@@ -1,7 +1,5 @@
 '''
-Created on Jun 12, 2019
 
-@author: Yuri E. Corilo
 exact masses, isotopologues, valences for dictionaries
 
  '''
