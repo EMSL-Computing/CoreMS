@@ -5,7 +5,9 @@ Created on Jun 12, 2019
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
-class MSPeak(object):
+from emsl.yec.calc.MSPeak_Calc import MS_PeakCalculations
+
+class MSPeak(MS_PeakCalculations):
     
     '''
     classdocs
@@ -36,12 +38,14 @@ class MSPeak(object):
         
         self.molecular_formula = d_mf
     
+    def set_isotopologues_indexes(self, l_isoto_indexes):
+        
+        self.isotopologue_indexes = l_isoto_indexes
+        
     def get_is_assigned(self):
         
         return bool(self.molecular_formula)     
         
-    def set_isotopologues_indexes(self, l_isoto_indexes):
-        
-        self.isotopologue_indexes = l_isoto_indexes
+    
         
             

@@ -6,8 +6,9 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
 
+from emsl.yec.calc.LC_Calc import LC_Calculations
 
-class LC(object):
+class LC(LC_Calculations):
     '''
     classdocs
     '''
