@@ -1,8 +1,15 @@
+__author__ = "Yuri E. Corilo"
+__date__ = "Jun 12, 2019"
+
+''' this code is a adaptation from spike library
+https://bitbucket.org/delsuc/spike/
+from Marc Delsuc
+'''
 
 from glob import glob
 from os import path
 from xml.dom import minidom
-from numpy import genfromtxt, fromstring, dtype, fromfile, linspace
+from numpy import genfromtxt, fromstring, dtype, fromfile
 
 
 class ReadBrukerSolarix():
@@ -29,11 +36,36 @@ class ReadBrukerSolarix():
             
     def read_file(self):
         
-        d_parameters = self.parse_parameters(self.parameter_filename_location)
+        d_params = self.parse_parameters(self.parameter_filename_location)
         
-        number_data_points = int(d_parameters.get("TD"))
+        self.fix_freq_limits(d_params)
         
-        bandwidth = float(d_parameters.get("SW_h"))
+        dt = dtype('l')    
+        data = fromfile(self.transient_data_filename, dtype=dt)
+        #print(number_data_points)
+        
+        output_parameters = dict()
+        
+        output_parameters["Atherm"] = float(d_params.get("ML1"))
+        
+        output_parameters["BTherm"] = float(d_params.get("ML2"))
+        
+        output_parameters["CTherm"] = float(d_params.get("ML3"))
+        
+        output_parameters["high_freq"] = float(d_params.get("EXC_Freq_High"))
+        
+        output_parameters["low_freq"] = float(d_params.get("EXC_Freq_Low"))
+        
+        output_parameters["bandwidth"] = float(d_params.get("SW_h"))
+        
+        output_parameters["number_data_points"] = int(d_params.get("TD"))
+        
+        output_parameters["filename_path"] = self.d_directory_location
+        
+        return data, output_parameters
+
+    @staticmethod
+    def fix_freq_limits(d_parameters):
         
         highfreq = float(d_parameters.get("EXC_Freq_High"))
         
@@ -44,27 +76,12 @@ class ReadBrukerSolarix():
             
             excitation_sweep_filelocation = self.locate_file(self.d_directory_location, "ExciteSweep")
             lowfreq, highfreq = self.get_excite_sweep_range(excitation_sweep_filelocation)
+            d_parameters["EXC_Freq_High"] =  highfreq
+            d_parameters["EXC_Freq_Low"] = lowfreq
+            
             print (highfreq, lowfreq) 
         
-        Atherm = float(d_parameters.get("ML1"))
-        BTherm = float(d_parameters.get("ML2"))
-        CTherm = float(d_parameters.get("ML3"))
-        #buffer = zeros((number_data_points))
         
-        dt = dtype('l')    
-        data = fromfile(self.transient_data_filename, dtype=dt)
-        print (len(data))
-        #print(number_data_points)
-        
-        transient_time = (1 / bandwidth) * ((number_data_points) / 2)
-        
-        
-        import matplotlib.pyplot as plt
-        time_axis = linspace(0, transient_time, num=len(data))
-        plt.plot(time_axis, data)
-        plt.show()
-        return data
-
     @staticmethod    
     def get_excite_sweep_range(filename):
         """
