@@ -84,13 +84,13 @@ class TransientCalculations(object):
       
         if self.exc_low_freq > self.exc_high_freq:
             
-            final =  where(freqdomain_X > self.valoresMidasDat.get_final_frequency())[-1][-1]
-            comeco =  where(freqdomain_X > self.valoresMidasDat.get_final_frequency())[0][0]
+            final =  where(freqdomain_X > self.exc_high_freq)[-1][-1]
+            comeco =  where(freqdomain_X > self.exc_high_freq())[0][0]
         
         else:
             
-            final =  where(freqdomain_X > self.valoresMidasDat.get_initial_frequency())[-1][-1]
-            comeco =  where(freqdomain_X > self.valoresMidasDat.get_initial_frequency())[0][0]
+            final =  where(freqdomain_X > self.exc_low_freq)[-1][-1]
+            comeco =  where(freqdomain_X > self.exc_low_freq)[0][0]
             
         
         return freqdomain_X[comeco:final], freqdomain_Y[comeco:final]
@@ -100,10 +100,8 @@ class TransientCalculations(object):
     def perform_magniture_mode_ft(self, transient, number_of_zero_fills):
         
         A = fft.fft(transient)
-        print( A)
-        print(len( A))
         
-        factor = int(number_of_zero_fills+2)
+        factor = int(number_of_zero_fills+1)
         Max_index = int(len(A)/factor)
         
         A = A[0:Max_index]
@@ -114,14 +112,14 @@ class TransientCalculations(object):
         
         magnitude_Y = sqrt((A.real**2) + (A.imag**2))
         
-        #freqdomain_X_cut, magnitude_Y_cut = self.cut_freq_domain(freqdomain_X, magnitude_Y)  
+        freqdomain_X_cut, magnitude_Y_cut = self.cut_freq_domain(freqdomain_X, magnitude_Y)  
         
         del transient 
         #del freqdomain_X
         #del magnitude_Y
         gc.collect()
         
-        return freqdomain_X, magnitude_Y
+        return freqdomain_X_cut, magnitude_Y_cut
     
     def correct_dc_offset(self):
         

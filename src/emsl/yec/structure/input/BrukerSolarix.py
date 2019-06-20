@@ -52,9 +52,9 @@ class ReadBrukerSolarix():
         
         output_parameters["Ctherm"] = float(d_params.get("ML3"))
         
-        output_parameters["high_freq"] = float(d_params.get("EXC_Freq_High"))
+        output_parameters["exc_high_freq"] = float(d_params.get("EXC_Freq_High"))
         
-        output_parameters["low_freq"] = float(d_params.get("EXC_Freq_Low"))
+        output_parameters["exc_low_freq"] = float(d_params.get("EXC_Freq_Low"))
         
         output_parameters["bandwidth"] = float(d_params.get("SW_h"))
         
