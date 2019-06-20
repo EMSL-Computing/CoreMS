@@ -1,13 +1,9 @@
-'''
-Created on Jun 19, 2019
-
-@author: eber373
-'''
+__author__ = "Yuri E. Corilo"
+__date__ = "Jun 12, 2019"
 
 import gc
 
-from numpy import hamming, hanning, blackman, zeros, fft, sqrt, arange, where, \
-    power
+from numpy import hamming, hanning, blackman, zeros, fft, sqrt, arange, where, power
 
 
 class TransientCalculations(object):
@@ -97,6 +93,10 @@ class TransientCalculations(object):
         del freqdomain_X, freqdomain_Y
         gc.collect()
     
+    def phase_and_absorption_mode_ft(self):
+        'anyone wants to play with this part please make yourself comfortable. I will:'
+        pass 
+            
     def perform_magniture_mode_ft(self, transient, number_of_zero_fills):
         
         A = fft.fft(transient)
@@ -127,8 +127,9 @@ class TransientCalculations(object):
     
     def f_to_mz(self):
         
-        print( self.Atherm, self.BTherm, self.frequency_domain)
-        m_z = (self.Atherm/ self.frequency_domain ) + (self.BTherm / power(self.frequency_domain, 2))
+        #Check if the Bterm of Ledford equation scales with the ICR trap voltage or not
+        print( self.Aterm, self.Bterm, self.frequency_domain)
+        m_z = (self.Aterm/ self.frequency_domain ) + (self.Bterm / power(self.frequency_domain, 2))
        
         return m_z 
     

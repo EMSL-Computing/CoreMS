@@ -46,11 +46,11 @@ class ReadBrukerSolarix():
         
         output_parameters = dict()
         
-        output_parameters["Atherm"] = float(d_params.get("ML1"))
+        output_parameters["Aterm"] = float(d_params.get("ML1"))
         
-        output_parameters["Btherm"] = float(d_params.get("ML2"))
+        output_parameters["Bterm"] = float(d_params.get("ML2"))
         
-        output_parameters["Ctherm"] = float(d_params.get("ML3"))
+        output_parameters["Cterm"] = float(d_params.get("ML3"))
         
         output_parameters["exc_high_freq"] = float(d_params.get("EXC_Freq_High"))
         
@@ -63,9 +63,13 @@ class ReadBrukerSolarix():
         output_parameters["filename_path"] = self.d_directory_location
         
         return data, output_parameters
-
-    @staticmethod
-    def fix_freq_limits(d_parameters):
+        
+        '''
+        for key, values in d_params.items():
+            print(key, values)
+        '''
+    
+    def fix_freq_limits(self, d_parameters):
         
         highfreq = float(d_parameters.get("EXC_Freq_High"))
         
@@ -79,8 +83,7 @@ class ReadBrukerSolarix():
             d_parameters["EXC_Freq_High"] =  highfreq
             d_parameters["EXC_Freq_Low"] = lowfreq
             
-            print (highfreq, lowfreq) 
-        
+                    
         
     @staticmethod    
     def get_excite_sweep_range(filename):

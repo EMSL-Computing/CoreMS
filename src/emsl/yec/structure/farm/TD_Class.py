@@ -32,11 +32,11 @@ class Transient(TransientCalculations):
         
         self.full_filename_path  = d_params.get("filename_path")
         
-        self.Atherm = d_params.get("Atherm")
+        self.Aterm = d_params.get("Aterm")
         
-        self.BTherm = d_params.get("Btherm")
-        print('BBB', self.BTherm)
-        self.CTherm = d_params.get("CTherm")
+        self.Bterm = d_params.get("Bterm")
+        
+        self.Cterm = d_params.get("Cterm")
         
         self.exc_high_freq = d_params.get("exc_high_freq")
         
@@ -51,7 +51,7 @@ class Transient(TransientCalculations):
         ### needs __set__parameters__ 
         self.transient_time = self.cal_transient_time()
     
-    ''''move it to main code'''
+    ''''move it to main code and store frequency domain at MS class???'''
     def set_frequency_domain(self):
         
         apodization_method = 'Hanning'
@@ -74,12 +74,13 @@ class Transient(TransientCalculations):
         
         self.plot_transient(new_time_domain)
         
-        time_domain_y = self.zero_fill(number_of_zero_fills, new_time_domain)     
+        time_domain_y_zero_filled = self.zero_fill(number_of_zero_fills, new_time_domain)     
         
+        self.transient_time = self.transient_time*(number_of_zero_fills+1)
         
-        self.plot_transient(time_domain_y)
+        self.plot_transient(time_domain_y_zero_filled)
         
-        self.frequency_domain, self.magnitude = self.perform_magniture_mode_ft(time_domain_y, number_of_zero_fills) 
+        self.frequency_domain, self.magnitude = self.perform_magniture_mode_ft(time_domain_y_zero_filled, number_of_zero_fills) 
     
     @property
     def get_filename(self):
@@ -96,6 +97,8 @@ class Transient(TransientCalculations):
         import matplotlib.pyplot as plt
         time_axis = linspace(0, self.transient_time, num=len(transient_data))
         plt.plot(time_axis, transient_data)
+        plt.xlabel("Time (s)")
+        plt.ylabel("Magnitude")
         plt.show()    
     
     '''move it to mass_spec_object'''
@@ -103,6 +106,8 @@ class Transient(TransientCalculations):
         
         import matplotlib.pyplot as plt
         plt.plot(self.frequency_domain, self.magnitude)
+        plt.xlabel("Hz")
+        plt.ylabel("Magnitude")
         plt.show()    
     
     '''move to ms_class'''
@@ -110,6 +115,8 @@ class Transient(TransientCalculations):
         mz = self.f_to_mz()
         import matplotlib.pyplot as plt
         plt.plot(mz, self.magnitude)
+        plt.xlabel("m/z")
+        plt.ylabel("Magnitude")
         plt.show()        
         
             
