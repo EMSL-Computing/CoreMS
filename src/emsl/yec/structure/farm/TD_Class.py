@@ -9,9 +9,17 @@ from numpy import linspace
 
 from emsl.yec.calc.TD_Calc import TransientCalculations
 
-
+import matplotlib.pyplot as plt
+        
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 19, 2019"
+
+fig = plt.figure()
+
+fig.patch.set_facecolor(None)
+        
+fig.patch.set_alpha(0)
+
 
 class Transient(TransientCalculations):
     
@@ -27,7 +35,7 @@ class Transient(TransientCalculations):
         
         self.__set__transient__time()
         
-        
+                
     def __set__parameters__objects(self, d_params):
         
         self.full_filename_path  = d_params.get("filename_path")
@@ -45,6 +53,8 @@ class Transient(TransientCalculations):
         self.bandwidth = d_params.get("bandwidth")
         
         self.number_data_points = d_params.get("number_data_points")
+        
+        self.location = 230
         
     def __set__transient__time(self):
         
@@ -70,6 +80,7 @@ class Transient(TransientCalculations):
                 
             new_time_domain = self.apodization(new_time_domain, apodization_method)  
         
+        
         self.plot_transient(self.transient_data)
         
         self.plot_transient(new_time_domain)
@@ -81,7 +92,8 @@ class Transient(TransientCalculations):
         self.plot_transient(time_domain_y_zero_filled)
         
         self.frequency_domain, self.magnitude = self.perform_magniture_mode_ft(time_domain_y_zero_filled, number_of_zero_fills) 
-    
+        
+        
     @property
     def get_filename(self):
         
@@ -93,28 +105,34 @@ class Transient(TransientCalculations):
         return dirname(self.full_filename_path)
     
     def plot_transient(self, transient_data):
+       
         
-        import matplotlib.pyplot as plt
+        self.location +=1
+        print( self.location)
         time_axis = linspace(0, self.transient_time, num=len(transient_data))
-        plt.plot(time_axis, transient_data)
+        plt.subplot(self.location)
+        plt.plot(time_axis, transient_data, color='green')
         plt.xlabel("Time (s)")
         plt.ylabel("Magnitude")
-        plt.show()    
+        #plt.show()    
     
     '''move it to mass_spec_object'''
     def plot_frequency_domain(self):
         
-        import matplotlib.pyplot as plt
-        plt.plot(self.frequency_domain, self.magnitude)
+        self.location +=1
+        plt.subplot(self.location)
+        plt.plot(self.frequency_domain, self.magnitude, color='green')
         plt.xlabel("Hz")
         plt.ylabel("Magnitude")
-        plt.show()    
+        #plt.show()    
     
     '''move to ms_class'''
     def plot_mz_domain(self):
+        
+        self.location +=1
         mz = self.f_to_mz()
-        import matplotlib.pyplot as plt
-        plt.plot(mz, self.magnitude)
+        plt.subplot(self.location)
+        plt.plot(mz, self.magnitude, color='green')
         plt.xlabel("m/z")
         plt.ylabel("Magnitude")
         plt.show()        
