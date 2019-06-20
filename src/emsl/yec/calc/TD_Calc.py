@@ -90,8 +90,8 @@ class TransientCalculations(object):
             
         
         return freqdomain_X[comeco:final], freqdomain_Y[comeco:final]
-        del freqdomain_X, freqdomain_Y
-        gc.collect()
+        #del freqdomain_X, freqdomain_Y
+        #gc.collect()
     
     def phase_and_absorption_mode_ft(self):
         'anyone wants to play with this part please make yourself comfortable. I will:'
@@ -127,7 +127,8 @@ class TransientCalculations(object):
     
     def f_to_mz(self):
         
-        #Check if the Bterm of Ledford equation scales with the ICR trap voltage or not
+        #Check if the Bterm of Ledford equation scales with the ICR trap voltage or not then Bterm = Bterm*trap_voltage
+        
         print( self.Aterm, self.Bterm, self.frequency_domain)
         m_z = (self.Aterm/ self.frequency_domain ) + (self.Bterm / power(self.frequency_domain, 2))
        
