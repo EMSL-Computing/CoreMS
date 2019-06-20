@@ -5,7 +5,7 @@ Created on Jun 12, 2019
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
-from emsl.yec.calc.MassSpecCalc import MassSpecCalculations
+from emsl.yec.calc.MS_Calc import MassSpecCalculations
 
 class MassSpec(MassSpecCalculations):
     '''
@@ -13,16 +13,33 @@ class MassSpec(MassSpecCalculations):
     '''
 
     #change for panda object input
-    def __init__(self, scan_number,polarity, noise_std, f_rt, ): #input_dataframe
+    def __init__(self, calibration_terms,  polarity, magnitude, frequency=None, mz=None, scan_number=1): #input_dataframe
                  
                 #  polarity, a_exp_mz, a_exp_freqs, a_magnitude, scan_number, rt, 
                 # noise_std=None, l_base_noise=None, l_signal_to_noises=None, l_charge=None, l_resolution=None ):
         
-        self.ion_charge = polarity
+        self.calibration_terms = calibration_terms #(A, B, C) 
+        self.frequency_domain = frequency
+        self.magnitude = magnitude
+        self.mz = mz
+        self.polarity = polarity
         self.scan_number = scan_number
-        self.retention_time = f_rt
-        self.noise_std = noise_std
+        self.peakObjs = None 
         
+        if not mz:
+            self.mz = self.f_to_mz()
+    
+    @property
+    def get_A_therm(self):
         
-        self.molecular_formulas = None 
+        return self.calibration_terms[0]
+    
+    @property
+    def get_B_therm(self):
         
+        return self.calibration_terms[1]
+    
+    @property
+    def get_C_therm(self):
+        
+        return self.calibration_terms[2]        

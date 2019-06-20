@@ -5,6 +5,8 @@ Created on Jun 19, 2019
 '''
 
 
+import pickle
+
 from emsl.yec.structure.farm.TD_Class import Transient
 from emsl.yec.structure.input.BrukerSolarix import ReadBrukerSolarix
 from emsl.yec.structure.input.MidasDatFile import ReadMidasDatFile
@@ -13,17 +15,27 @@ from emsl.yec.structure.input.MidasDatFile import ReadMidasDatFile
 filelocation = "C:\\Users\\eber373\\Desktop\\20190616_WK_ESFA_0pt2mgml_ESI_Neg_0pt8sFID_000001.d\\"    
 filelocation = "C:\\Users\\eber373\\Desktop\\20190205_WK_SRFA_opt_000001.d\\"
 
+apodization_method = 'Hanning'
+number_of_truncations = 0
+number_of_zero_fills = 1
+
 
 data, d_params = ReadBrukerSolarix(filelocation).read_file()
 
 bruker_transient = Transient(data, d_params)
 
-bruker_transient.set_frequency_domain()
+with open('test.pkl', 'wb') as file:
+    pickle.dump(bruker_transient, file, protocol=pickle.HIGHEST_PROTOCOL)
 
-bruker_transient.plot_frequency_domain()
+transient = pickle.load( open( 'test.pkl', "rb" ) )
 
-bruker_transient.plot_mz_domain()
+mass_spec = transient.get_frequency_domain(apodization_method, number_of_truncations, number_of_zero_fills)
 
+#bruker_transient.plot_frequency_domain()
+
+#bruker_transient.plot_mz_domain()
+
+'''
 
 filelocation = "C:\\Users\\eber373\\Desktop\\20190616_WK_ESFA_0pt2mgml_ESI_Neg_0pt8sFID_000001.d\\"
 
@@ -36,3 +48,5 @@ dat_transient.set_frequency_domain()
 dat_transient.plot_frequency_domain()
 
 dat_transient.plot_mz_domain()
+'''
+

@@ -25,11 +25,7 @@ class Transient(TransientCalculations):
     
     def __init__(self, data, d_params):
         
-        self.transient_data = data
-        
-        self.frequency_domain = None
-        
-        self.magnitude = None
+        self._transient_data = data
         
         self.__set__parameters__objects(d_params)
         
@@ -40,19 +36,17 @@ class Transient(TransientCalculations):
         
         self.full_filename_path  = d_params.get("filename_path")
         
-        self.Aterm = d_params.get("Aterm")
+        self.calibration_terms = (d_params.get("Aterm"), d_params.get("Bterm"), d_params.get("Cterm"))
+         
+        self._exc_high_freq = d_params.get("exc_high_freq")
         
-        self.Bterm = d_params.get("Bterm")
-        
-        self.Cterm = d_params.get("Cterm")
-        
-        self.exc_high_freq = d_params.get("exc_high_freq")
-        
-        self.exc_low_freq = d_params.get("exc_low_freq")
+        self._exc_low_freq = d_params.get("exc_low_freq")
         
         self.bandwidth = d_params.get("bandwidth")
         
         self.number_data_points = d_params.get("number_data_points")
+        
+        self.polarity = d_params.get("polarity")
         
         self.location = 230
         
@@ -62,37 +56,41 @@ class Transient(TransientCalculations):
         self.transient_time = self.cal_transient_time()
     
     ''''move it to main code and store frequency domain at MS class???'''
-    def set_frequency_domain(self):
-        
-        apodization_method = 'Hanning'
-        number_of_truncations = 0
-        number_of_zero_fills = 1
+    def get_frequency_domain(self, apodization_method, number_of_truncations, number_of_zero_fills ):
         
         if number_of_truncations > 0:
             
-            new_time_domain = self.truncation(self.transient_data, number_of_truncations)
+            new_time_domain = self.truncation(self._transient_data, number_of_truncations)
             
         else: 
             
-            new_time_domain = self.transient_data
+            new_time_domain = self._transient_data
             
         if apodization_method != "None":
                 
             new_time_domain = self.apodization(new_time_domain, apodization_method)  
         
+        #self.plot_transient(self.transient_data)
         
-        self.plot_transient(self.transient_data)
-        
-        self.plot_transient(new_time_domain)
+        #self.plot_transient(new_time_domain)
         
         time_domain_y_zero_filled = self.zero_fill(number_of_zero_fills, new_time_domain)     
         
-        self.transient_time = self.transient_time*(number_of_zero_fills+1)
+        #self.transient_time = self.transient_time*(number_of_zero_fills+1)
         
-        self.plot_transient(time_domain_y_zero_filled)
+        #self.plot_transient(time_domain_y_zero_filled)
         
-        self.frequency_domain, self.magnitude = self.perform_magniture_mode_ft(time_domain_y_zero_filled, number_of_zero_fills) 
+        frequency_domain, magnitude = self.perform_magniture_mode_ft(time_domain_y_zero_filled, number_of_zero_fills) 
+        #creat MS Object here? 
+        return frequency_domain, magnitude 
+    
+    def generate_mass_spec(self, apodization_method, number_of_truncations, number_of_zero_fills):
         
+        from emsl.yec.structure.farm.MS_Class import MassSpec
+        
+        frequency_domain, magnitude = self.get_frequency_domain(apodization_method, number_of_truncations, number_of_zero_fills)
+        
+        return MassSpec(self.calibration_terms, self.polarity, frequency_domain, magnitude, )
         
     @property
     def get_filename(self):
@@ -103,6 +101,21 @@ class Transient(TransientCalculations):
     def get_dir_location(self):
         
         return dirname(self.full_filename_path)
+    
+    @property
+    def get_A_therm(self):
+        
+        return self.calibration_terms[0]
+    
+    @property
+    def get_B_therm(self):
+        
+        return self.calibration_terms[1]
+    
+    @property
+    def get_C_therm(self):
+        
+        return self.calibration_terms[2]
     
     def plot_transient(self, transient_data):
        

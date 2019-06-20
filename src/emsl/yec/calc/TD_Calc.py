@@ -3,7 +3,7 @@ __date__ = "Jun 12, 2019"
 
 import gc
 
-from numpy import hamming, hanning, blackman, zeros, fft, sqrt, arange, where, power
+from numpy import hamming, hanning, blackman, zeros, fft, sqrt, arange, where
 
 
 class TransientCalculations(object):
@@ -78,15 +78,15 @@ class TransientCalculations(object):
     
     def cut_freq_domain(self, freqdomain_X, freqdomain_Y):
       
-        if self.exc_low_freq > self.exc_high_freq:
+        if self._exc_low_freq > self._exc_high_freq:
             
-            final =  where(freqdomain_X > self.exc_high_freq)[-1][-1]
-            comeco =  where(freqdomain_X > self.exc_high_freq())[0][0]
+            final =  where(freqdomain_X > self._exc_high_freq)[-1][-1]
+            comeco =  where(freqdomain_X > self._exc_high_freq())[0][0]
         
         else:
             
-            final =  where(freqdomain_X > self.exc_low_freq)[-1][-1]
-            comeco =  where(freqdomain_X > self.exc_low_freq)[0][0]
+            final =  where(freqdomain_X > self._exc_low_freq)[-1][-1]
+            comeco =  where(freqdomain_X > self._exc_low_freq)[0][0]
             
         
         return freqdomain_X[comeco:final], freqdomain_Y[comeco:final]
@@ -124,14 +124,5 @@ class TransientCalculations(object):
     def correct_dc_offset(self):
         
         pass
-    
-    def f_to_mz(self):
-        
-        #Check if the Bterm of Ledford equation scales with the ICR trap voltage or not then Bterm = Bterm*trap_voltage
-        
-        print( self.Aterm, self.Bterm, self.frequency_domain)
-        m_z = (self.Aterm/ self.frequency_domain ) + (self.Bterm / power(self.frequency_domain, 2))
-       
-        return m_z 
     
     

@@ -44,6 +44,7 @@ class ReadBrukerSolarix():
         data = fromfile(self.transient_data_filename, dtype=dt)
         #print(number_data_points)
         
+       
         output_parameters = dict()
         
         output_parameters["Aterm"] = float(d_params.get("ML1"))
@@ -59,6 +60,8 @@ class ReadBrukerSolarix():
         output_parameters["bandwidth"] = float(d_params.get("SW_h"))
         
         output_parameters["number_data_points"] = int(d_params.get("TD"))
+        
+        output_parameters["polarity"] = str(d_params.get("Polarity"))
         
         output_parameters["filename_path"] = self.d_directory_location
         
@@ -133,9 +136,22 @@ class ReadBrukerSolarix():
         parameter_dict = {}
         children = x.childNodes
         for child in children:
+            #print( child.node)
+            if (child.nodeName == 'reportinfo'):
+                sections = child.childNodes
+                for section in sections:
+                    if section.nodeName == 'section':
+                        if section.getAttribute('title') == 'Main':
+                            for element in section.childNodes:
+                                if element.nodeName == 'section':
+                                    if element.getAttribute('title') == "Polarity":
+                                        parameter_dict["Polarity"] = str(element.childNodes[1].getAttribute("value"))
+                                
+            
             if (child.nodeName == 'paramlist'):
                 params = child.childNodes
                 for param in params:
+                    #print( param.nodeName)
                     if (param.nodeName == 'param'):
                         paramenter_label = str(param.getAttribute('name'))
                         for element in param.childNodes:

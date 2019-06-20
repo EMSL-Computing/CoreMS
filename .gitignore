@@ -2,3 +2,5 @@
 .pyo  
 *.so  
 __pycache__/  
+*.pkl  
+res/  
