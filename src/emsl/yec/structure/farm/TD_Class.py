@@ -19,10 +19,13 @@ class Transient(TransientCalculations):
         
         self.transient_data = data
         
+        self.frequency_domain = None
+        
+        self.magnitude = None
+        
         self.__set__parameters__objects(d_params)
         
         self.__set__transient__time()
-        
         
         
     def __set__parameters__objects(self, d_params):
@@ -32,7 +35,7 @@ class Transient(TransientCalculations):
         self.Atherm = d_params.get("Atherm")
         
         self.BTherm = d_params.get("Btherm")
-        
+        print('BBB', self.BTherm)
         self.CTherm = d_params.get("CTherm")
         
         self.exc_high_freq = d_params.get("exc_high_freq")
@@ -48,6 +51,36 @@ class Transient(TransientCalculations):
         ### needs __set__parameters__ 
         self.transient_time = self.cal_transient_time()
     
+    ''''move it to main code'''
+    def set_frequency_domain(self):
+        
+        apodization_method = 'Hanning'
+        number_of_truncations = 0
+        number_of_zero_fills = 1
+        
+        if number_of_truncations > 0:
+            
+            new_time_domain = self.truncation(self.transient_data, number_of_truncations)
+            
+        else: 
+            
+            new_time_domain = self.transient_data
+            
+        if apodization_method != "None":
+                
+            new_time_domain = self.apodization(new_time_domain, apodization_method)  
+        
+        self.plot_transient(self.transient_data)
+        
+        self.plot_transient(new_time_domain)
+        
+        time_domain_y = self.zero_fill(number_of_zero_fills, new_time_domain)     
+        
+        
+        self.plot_transient(time_domain_y)
+        
+        self.frequency_domain, self.magnitude = self.perform_magniture_mode_ft(time_domain_y, number_of_zero_fills) 
+    
     @property
     def get_filename(self):
         
@@ -58,10 +91,25 @@ class Transient(TransientCalculations):
         
         return dirname(self.full_filename_path)
     
-    def plot_transient(self):
+    def plot_transient(self, transient_data):
         
         import matplotlib.pyplot as plt
-        time_axis = linspace(0, self.transient_time, num=self.number_data_points)
-        plt.plot(time_axis, self.transient_data)
+        time_axis = linspace(0, self.transient_time, num=len(transient_data))
+        plt.plot(time_axis, transient_data)
         plt.show()    
     
+    '''move it to mass_spec_object'''
+    def plot_frequency_domain(self):
+        
+        import matplotlib.pyplot as plt
+        plt.plot(self.frequency_domain, self.magnitude)
+        plt.show()    
+    
+    '''move to ms_class'''
+    def plot_mz_domain(self):
+        mz = self.f_to_mz()
+        import matplotlib.pyplot as plt
+        plt.plot(mz, self.magnitude)
+        plt.show()        
+        
+            
