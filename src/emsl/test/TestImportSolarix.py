@@ -7,9 +7,9 @@ Created on Jun 19, 2019
 
 import pickle
 
-from emsl.yec.structure.farm.TD_Class import Transient
+from emsl.yec.structure.farm.TransientClass import Transient
 from emsl.yec.structure.input.BrukerSolarix import ReadBrukerSolarix
-from emsl.yec.structure.input.MidasDatFile import ReadMidasDatFile
+#from emsl.yec.structure.input.MidasDatFile import ReadMidasDatFile
 
 
 filelocation = "C:\\Users\\eber373\\Desktop\\20190616_WK_ESFA_0pt2mgml_ESI_Neg_0pt8sFID_000001.d\\"    

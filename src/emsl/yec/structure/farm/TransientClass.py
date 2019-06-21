@@ -7,7 +7,7 @@ from os.path import basename, dirname
 
 from numpy import linspace
 
-from emsl.yec.calc.TD_Calc import TransientCalculations
+from emsl.yec.calc.TransientCalc import TransientCalculations
 from emsl.yec.structure.farm.MassSpectrumClass import MassSpec
 import matplotlib.pyplot as plt
 

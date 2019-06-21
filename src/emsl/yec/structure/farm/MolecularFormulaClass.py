@@ -1,11 +1,13 @@
 '''
 Created on Jun 12, 2019
 '''
+from emsl.yec.calc.MSPeakCalc import MS_PeakCalculations
+
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
-from emsl.yec.calc.MSPeak_Calc import MS_PeakCalculations
+
 
 class MSPeak(MS_PeakCalculations):
     

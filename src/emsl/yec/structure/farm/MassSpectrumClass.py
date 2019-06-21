@@ -3,9 +3,10 @@ Created on Jun 12, 2019
 '''
 from os.path import basename, dirname
 
-from emsl.yec.calc.MS_Calc import MassSpecCalculations
+from emsl.yec.calc.MassSpectrumCalc import MassSpecCalculations
 from emsl.yec.structure.farm.MolecularFormulaClass import MSPeak
 import matplotlib.pyplot as plt
+
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
