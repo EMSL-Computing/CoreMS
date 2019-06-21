@@ -19,11 +19,12 @@ class MassSpecCalculations(object):
         if Cterm == 0:
             
             #print( self.Aterm, self.Bterm, self.frequency_domain)
-            m_z = (Aterm/ self.frequency_domain ) + (Bterm / power(self.frequency_domain, 2))
+            self.mz_domain = (Aterm/ self.frequency_domain ) + (Bterm / power(self.frequency_domain, 2))
            
-            return m_z 
+            
         #@will I need you insight here, not sure what is the inverted ledford equation that Bruker refers to
         else:
             
-            return  Aterm/(2*(Bterm + self.frequency_domain)) + sqrt(Aterm**2 + 4*Bterm*Cterm + 4*Cterm*self.frequency_domain)/(2*(Bterm + self.frequency_domain))
+            self.mz_domain =  Aterm/(2*(Bterm + self.frequency_domain)) + sqrt(Aterm**2 + 4*Bterm*Cterm + 4*Cterm*self.frequency_domain)/(2*(Bterm + self.frequency_domain))
+    
     

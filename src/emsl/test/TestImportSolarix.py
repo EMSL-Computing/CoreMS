@@ -23,17 +23,18 @@ number_of_zero_fills = 1
 data, d_params = ReadBrukerSolarix(filelocation).read_file()
 
 bruker_transient = Transient(data, d_params)
+bruker_transient.set_processing_parameter(apodization_method, number_of_truncations, number_of_zero_fills)
+
+mass_spec = bruker_transient.generate_mass_spec()
+mass_spec.plot_mz_domain_profile()
+#mass_spec.set_processing_parameter()
 
 with open('test.pkl', 'wb') as file:
     pickle.dump(bruker_transient, file, protocol=pickle.HIGHEST_PROTOCOL)
 
-transient = pickle.load( open( 'test.pkl', "rb" ) )
 
-mass_spec = transient.get_frequency_domain(apodization_method, number_of_truncations, number_of_zero_fills)
-
-#bruker_transient.plot_frequency_domain()
-
-#bruker_transient.plot_mz_domain()
+#transient = pickle.load( open( 'test.pkl', "rb" ) )
+#do_something
 
 '''
 

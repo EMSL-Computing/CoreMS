@@ -65,6 +65,17 @@ class ReadBrukerSolarix():
         
         output_parameters["filename_path"] = self.d_directory_location
         
+        '''scan_number and rt will be need to lc ms'''
+         
+        output_parameters["mobility_scan"] = 0
+        
+        output_parameters["mobility_rt"] = 0
+        
+        output_parameters["scan_number"] = 0
+        
+        output_parameters["rt"] = 0
+        
+        
         return data, output_parameters
         
         '''
