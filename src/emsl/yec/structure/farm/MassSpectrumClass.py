@@ -11,8 +11,9 @@ import matplotlib.pyplot as plt
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
-
-class MassSpec(MassSpecCalculations):
+    
+    
+class MassSpecBase(MassSpecCalculations):
     '''
     classdocs
     '''
@@ -108,3 +109,57 @@ class MassSpec(MassSpecCalculations):
         plt.xlabel("m/z")
         plt.ylabel("Magnitude")
         plt.show()          
+        
+        
+class MassSpecCentroid(MassSpecBase):
+    
+    '''
+    classdocs
+    '''
+    
+    def __init__(self, dataframe, d_params, **kwargs): 
+                 
+        '''
+        Constructor
+        '''
+        
+        self.__set__parameters__objects(d_params)
+        
+        self.frequency_domain = None
+        self.magnitude = None
+        self.mz_domain = None
+        self.molecular_formulas = None
+        
+        
+        #for (key, value) in kwargs.items():
+        #    print(key, value)
+        #    if hasattr(self, key):
+        #        setattr(self, key, value)
+        #        print(key, value)    
+        
+class MassSpecProfile(MassSpecBase):
+    
+    '''
+    classdocs
+    '''
+    
+    def __init__(self, mz_domain, frequency_domain, magnitude, d_params, **kwargs): 
+                 
+        '''
+        Constructor
+        '''
+        self.frequency_domain = frequency_domain
+        self.magnitude = magnitude
+        self.mz_domain = None
+        self.molecular_formulas = None
+        
+        self.__set__parameters__objects(d_params)
+        
+        self.__set_mz_domain()
+        
+        
+        #for (key, value) in kwargs.items():
+        #    print(key, value)
+        #    if hasattr(self, key):
+        #        setattr(self, key, value)
+        #        print(key, value)            

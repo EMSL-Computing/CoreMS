@@ -18,10 +18,8 @@ class MassSpecCalculations(object):
         #Check if the Bterm of Ledford equation scales with the ICR trap voltage or not then Bterm = Bterm*trap_voltage
         if Cterm == 0:
             
-            #print( self.Aterm, self.Bterm, self.frequency_domain)
             self.mz_domain = (Aterm/ self.frequency_domain ) + (Bterm / power(self.frequency_domain, 2))
            
-            
         #@will I need you insight here, not sure what is the inverted ledford equation that Bruker refers to
         else:
             
