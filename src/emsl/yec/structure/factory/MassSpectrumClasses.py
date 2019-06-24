@@ -15,24 +15,16 @@ class MassSpecBase(MassSpecCalculations):
     '''
     classdocs
     '''
-    def __init__(self,frequency_domain, magnitude, d_params, **kwargs): 
+    def __init__(self,exp_mz, magnitude, d_params, **kwargs): 
                  
         '''
         Constructor
         '''
-        self.frequency_domain = frequency_domain
         self.magnitude = magnitude
-        self.mz_domain = None
+        self.exp_mz = exp_mz
         self.molecular_formulas = None
         
-        self.__set__parameters__objects(d_params)
-        
-        self.__set_mz_domain()
-        
-        """implement here, code in MassSpecCalc"""
-        self.calc_noise_threshould
-        self.peak_picking
-        self.calc_resolving_power
+        self._set_parameters_objects(d_params)
         
         #for (key, value) in kwargs.items():
         #    print(key, value)
@@ -54,25 +46,11 @@ class MassSpecBase(MassSpecCalculations):
         
         self.location = 220 
     
-    def __set_mz_domain(self):
-            
-        self.exp_mz = self.f_to_mz()
-    
     def set_creat_molecular_formulas(self):
         
         pass
         #self.molecular_formulas = [MSPeak(self.ion_charge, exp_mass, exp_freq, relative_abundance) for exp_mass, exp_freq, relative_abundance in zip(exp_masses,exp_freqs, relative_abundances)]
-   
-    @property
-    def number_molecular_weight(self):
-        #implement from MassSpectralPeaks objs
-        return 
-    @property
-    def get_weight_molecular_weight(self):
-        #implement from MassSpectralPeaks objs
-        return 
-    
-    
+        
     @property
     def A_therm(self):
         
@@ -108,7 +86,37 @@ class MassSpecBase(MassSpecCalculations):
         plt.ylabel("Magnitude")
         plt.show()          
         
+class MassSpecfromFreq(MassSpecBase):
+       
+    def __init__(self,frequency_domain, magnitude, d_params, **kwargs): 
+                 
+        '''
+        Constructor
+        '''
+        self.frequency_domain = frequency_domain
+        self.magnitude = magnitude
+        self.exp_mz = None
+        self.molecular_formulas = None
         
+        self._set_parameters_objects(d_params)
+        self._set_mz_domain()
+        
+        
+        """implement here, code in MassSpecCalc"""
+        self.calc_noise_threshould
+        self.peak_picking
+        self.calc_resolving_power  
+    
+    
+    @property
+    def exp_mz(self):    
+        return self._exp_mz
+    
+    @property.setter    
+    def _set_mz_domain(self):
+            
+        self._exp_mz = self.f_to_mz()
+           
 class MassSpecCentroid(MassSpecBase):
     
     '''
@@ -120,10 +128,8 @@ class MassSpecCentroid(MassSpecBase):
         '''
         Constructor
         '''
-        
-        self.frequency_domain = None
+        self.exp_mz = None
         self.magnitude = None
-        self.mz_domain = None
         self.molecular_formulas = None
         
         #for (key, value) in kwargs.items():
@@ -152,16 +158,20 @@ class MassSpecProfile(MassSpecBase):
     classdocs
     '''
     
-    def __init__(self, mz_domain, frequency_domain, magnitude, d_params, **kwargs): 
+    def __init__(self, exp_mz, magnitude, d_params, **kwargs): 
                  
         '''
         Constructor
         '''
-        self.frequency_domain = frequency_domain
-        self.magnitude = magnitude
-        self.mz_domain = None
-        self.molecular_formulas = None
         
+        self.magnitude = magnitude
+        self.exp_mz = exp_mz
+        
+        self.__set__parameters__objects(d_params)
+        
+        self.calc_noise_threshould
+        self.peak_picking
+        self.calc_resolving_power  
         
         #for (key, value) in kwargs.items():
         #    print(key, value)
