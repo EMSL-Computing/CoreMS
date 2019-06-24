@@ -27,24 +27,24 @@ class MSPeak(MassSpecPeakCalculation):
         self._kdm = None
         self._kendrick_mass = None
         self._nominal_km = None
-       
-        self.set_kmd_and_nominal()
+        self._calc_kdm()
         
         self.baseline_noise = None
-        self.recal_mz = None
-        self._ion_type = None
         
+        'updated after calibration'
+        self.recal_mz = None
+        
+        'updated after molecular formula ID'
+        self._ion_type = None
         self._theoretical_mz = None
         self._d_molecular_formula = None
         self._dbe = None
         self._assigment_mass_error = None 
-        self.confidence_score = None
-        
-        #updated after molecular formula ID
+        self._confidence_score = None
         self.is_isotopologue = False    
         self.isotopologue_indexes = []
         self.found_isotopologues = {}
-    
+        
     @property    
     def kdm(self): return self._kdm
         
@@ -65,6 +65,9 @@ class MSPeak(MassSpecPeakCalculation):
         
     @property
     def theoretical_mz(self): return self._theoretical_mz
+    
+    @property
+    def confidence_score(self): return self._confidence_score
         
     @property
     def dbe(self): return self._dbe
@@ -74,69 +77,54 @@ class MSPeak(MassSpecPeakCalculation):
         
         return bool(self.d_molecular_formula)    
     
-    @property.setter
-    def set_ion_type(self):
-        
-        if self.d_molecular_formula:
-            
-            self._ion_type = self.d_molecular_formula.get("IonType")
-        
-        else:
-            
-            raise Exception("Please set ion type first")            
-    
-    
-    @property.setter
-    def set_molecular_formula(self, formula_dict):
-        
-        self._d_molecular_formula = formula_dict
-        
-        self.__calc_theoretical_mz(formula_dict)
-        
-        self.__calc_dbe(formula_dict)
-        
-        self.set_ion_type()
-    
     @property
     def molecular_formula_list(self):
         
-        atoms_in_ordem = ["C", "H", "N", "O", "S"]
-
-        formula_list = []
-        
-        for atomo in atoms_in_ordem:
-
-            numero_atom = self.d_molecular_formula.get(atomo)
-
-            if numero_atom:
-                
-                formula_list.append(atomo)
-                formula_list.append(numero_atom)
-            #else:
-            #    formula_list_zero_filled.append(atomo)
-            #    formula_list_zero_filled.append(0)
-
-        atomos_in_dict = self.d_molecular_formula.keys()
-        for atomo in atomos_in_dict:
-
-            if atomo not in atoms_in_ordem and atomo != "IonType" and atomo != "HC":
-                
-                formula_list.append(atomo)
-                formula_list.append(self.d_molecular_formula.get(atomo))
-
-        return formula_list
-     
+        if self.d_molecular_formula:
+            atoms_in_ordem = ["C", "H", "N", "O", "S", "P"]
+    
+            formula_list = []
+            
+            for atomo in atoms_in_ordem:
+    
+                numero_atom = self.d_molecular_formula.get(atomo)
+    
+                if numero_atom:
+                    
+                    formula_list.append(atomo)
+                    formula_list.append(numero_atom)
+                #else:
+                #    formula_list_zero_filled.append(atomo)
+                #    formula_list_zero_filled.append(0)
+    
+            atomos_in_dict = self.d_molecular_formula.keys()
+            for atomo in atomos_in_dict:
+    
+                if atomo not in atoms_in_ordem and atomo != "IonType" and atomo != "HC":
+                    
+                    formula_list.append(atomo)
+                    formula_list.append(self.d_molecular_formula.get(atomo))
+    
+            return formula_list
+        else:
+            raise Exception("Molecular formula identification not performed yet")
+            
     @property 
     def molecular_formula_string(self):
         
-        formulalist = self.get_molecular_formula_list()
-        formulastring = "" 
-        
-        for each in range(0, len(formulalist),2):
+        if self.d_molecular_formula:
+            formulalist = self.get_molecular_formula_list()
+            formulastring = "" 
             
-            formulastring = formulastring + str(formulalist[each]) + str(formulalist[each+1]) + " "    
+            for each in range(0, len(formulalist),2):
+                
+                formulastring = formulastring + str(formulalist[each]) + str(formulalist[each+1]) + " "    
+                
+            return formulastring[0:-1]   
+       
+        else:
             
-        return formulastring[0:-1]   
+            raise Exception("Molecular formula identification not performed yet")
     
     @property
     def heteroatomic_class_label(self):
@@ -166,7 +154,32 @@ class MSPeak(MassSpecPeakCalculation):
             
             'dict, tuple or string'
         else:
-            return None    
+            raise Exception("Molecular formula identification not performed yet")
+    
+
+    @property.setter
+    def set_molecular_formula(self, formula_dict):
+        
+        self._d_molecular_formula = formula_dict
+        
+        self._calc_theoretical_mz(formula_dict)
+        
+        self._calc_dbe(formula_dict)
+        
+        self._set_ion_type()
+            
+        
+    @property.setter
+    def _set_ion_type(self):
+        
+        if self.d_molecular_formula:
+            
+            self._ion_type = self.d_molecular_formula.get("IonType")
+        
+        else:
+            
+            raise Exception("Please set ion type first")            
+   
         
     def add_found_isotopologue(self, object_found):
         

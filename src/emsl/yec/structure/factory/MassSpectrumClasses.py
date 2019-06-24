@@ -29,7 +29,7 @@ class MassSpecBase(MassSpecCalculations):
         
         self.__set_mz_domain()
         
-        """implement here"""
+        """implement here, code in MassSpecCalc"""
         self.calc_noise_threshould
         self.peak_picking
         self.calc_resolving_power

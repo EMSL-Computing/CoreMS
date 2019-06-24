@@ -12,7 +12,7 @@ class MassSpecPeakCalculation(object):
     '''
     
     @property.setter
-    def kdm(self):
+    def _calc_kdm(self):
         
         Hmass = Constants.atomic_masses.get('H')
         
@@ -29,7 +29,7 @@ class MassSpecPeakCalculation(object):
         self._kdm  = round(kmd,0)
     
     @property.setter
-    def __calc_dbe(self, formula_dict):
+    def _calc_dbe(self, formula_dict):
             
             individual_dbe = 0
             
@@ -46,7 +46,7 @@ class MassSpecPeakCalculation(object):
             self._dbe = 1 + (0.5 * individual_dbe)
             
     @property.setter        
-    def __calc_theoretical_mz(self, formula_dict):
+    def _calc_theoretical_mz(self, formula_dict):
         
         if self.ion_charge:
             
@@ -67,10 +67,10 @@ class MassSpecPeakCalculation(object):
             
             raise Exception("Please set ion charge first")
          
-        self.__set_mass_error('ppm')
+        self._set_mass_error('ppm')
            
     @property.setter
-    def __set_mass_error(self, method):
+    def _set_mass_error(self, method):
         '''methodo should be ppm or ppb'''
         
         Hum_Milhao = 1000000
@@ -92,4 +92,8 @@ class MassSpecPeakCalculation(object):
         else:
             
             raise Exception("Please set theoretical_mass first")
+        
+    @property.setter
+    def _calc_confidence_score(self): raise Exception("Not implemented yet") 
+        
     
