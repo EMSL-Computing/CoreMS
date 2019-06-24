@@ -3,7 +3,7 @@ Created on Jun 14, 2019
 
 @author: eber373
 '''
-from numpy import power, sqrt
+from numpy import power, sqrt, array
 
 
 class MassSpecCalculations(object):
@@ -25,4 +25,6 @@ class MassSpecCalculations(object):
             
             self.mz_domain =  Aterm/(2*(Bterm + self.frequency_domain)) + sqrt(Aterm**2 + 4*Bterm*Cterm + 4*Cterm*self.frequency_domain)/(2*(Bterm + self.frequency_domain))
     
-    
+    def get_number_molecular_weight(self):
+        
+        

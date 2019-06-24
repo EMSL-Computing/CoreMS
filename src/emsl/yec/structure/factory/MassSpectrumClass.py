@@ -4,13 +4,11 @@ Created on Jun 12, 2019
 from os.path import basename, dirname
 
 from emsl.yec.calc.MassSpectrumCalc import MassSpecCalculations
-from emsl.yec.structure.farm.MolecularFormulaClass import MSPeak
 import matplotlib.pyplot as plt
 
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
-
     
     
 class MassSpecBase(MassSpecCalculations):
@@ -30,6 +28,12 @@ class MassSpecBase(MassSpecCalculations):
         self.__set__parameters__objects(d_params)
         
         self.__set_mz_domain()
+        
+        """implement here"""
+        self.calc_noise_threshould
+        self.peak_picking
+        self.calc_resolving_power
+        
         #for (key, value) in kwargs.items():
         #    print(key, value)
         #    if hasattr(self, key):
@@ -58,22 +62,16 @@ class MassSpecBase(MassSpecCalculations):
         
         pass
         #self.molecular_formulas = [MSPeak(self.ion_charge, exp_mass, exp_freq, relative_abundance) for exp_mass, exp_freq, relative_abundance in zip(exp_masses,exp_freqs, relative_abundances)]
+   
+    @property
+    def number_molecular_weight(self):
+        #implement from MassSpectralPeaks objs
+        return 
+    @property
+    def get_weight_molecular_weight(self):
+        #implement from MassSpectralPeaks objs
+        return 
     
-    
-    def __process__from__centroid(self, l_base_noise, l_signal_to_noise, l_charge, l_resolving_power):
-        
-        if l_base_noise.any():
-            self.set_base_noise(l_base_noise)
-        
-        if l_signal_to_noise.any():
-            self.set_noise(l_signal_to_noise)
-        
-        if l_charge.any():
-            self.set_charge(l_charge)
-        
-        if l_resolving_power.any():
-            self.set_resolving_power(l_resolving_power)  
-
     
     @property
     def A_therm(self):
@@ -123,19 +121,30 @@ class MassSpecCentroid(MassSpecBase):
         Constructor
         '''
         
-        self.__set__parameters__objects(d_params)
-        
         self.frequency_domain = None
         self.magnitude = None
         self.mz_domain = None
         self.molecular_formulas = None
-        
         
         #for (key, value) in kwargs.items():
         #    print(key, value)
         #    if hasattr(self, key):
         #        setattr(self, key, value)
         #        print(key, value)    
+        
+    def __process__from__centroid(self, l_base_noise, l_signal_to_noise, l_charge, l_resolving_power):
+        
+        if l_base_noise.any():
+            self.set_base_noise(l_base_noise)
+        
+        if l_signal_to_noise.any():
+            self.set_noise(l_signal_to_noise)
+        
+        if l_charge.any():
+            self.set_charge(l_charge)
+        
+        if l_resolving_power.any():
+            self.set_resolving_power(l_resolving_power)  
         
 class MassSpecProfile(MassSpecBase):
     
@@ -152,10 +161,6 @@ class MassSpecProfile(MassSpecBase):
         self.magnitude = magnitude
         self.mz_domain = None
         self.molecular_formulas = None
-        
-        self.__set__parameters__objects(d_params)
-        
-        self.__set_mz_domain()
         
         
         #for (key, value) in kwargs.items():

@@ -8,7 +8,7 @@ from os.path import basename, dirname
 from numpy import linspace
 
 from emsl.yec.calc.TransientCalc import TransientCalculations
-from emsl.yec.structure.farm.MassSpectrumClass import MassSpec
+from emsl.yec.structure.farm.MassSpectrumClass import MassSpecBase
 import matplotlib.pyplot as plt
 
 
@@ -125,7 +125,7 @@ class Transient(TransientCalculations):
             
             self._plot_frequency_domain(frequency_domain, magnitude)
         
-        return MassSpec(frequency_domain, magnitude , self.d_params)
+        return MassSpecBase(frequency_domain, magnitude , self.d_params)
         
     
     @property
