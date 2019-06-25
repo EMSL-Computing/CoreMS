@@ -10,19 +10,22 @@ class MolecularFormula(MolecularFormulaCalc):
     '''
     classdocs
     '''
-
-    def __init__(self, _d_molecular_formula):
+    def __init__(self, _d_molecular_formula, ion_charge, exp_mz):
         
         self._d_molecular_formula = _d_molecular_formula
-        self.theoretical_mz = self._calc_theoretical_mz()
-        self._assigment_mass_error = self._set_assigment_mass_error()
         self._dbe = self._calc_dbe()
         self._ion_type = self._set_ion_type()
-        
+        self._ion_chage = ion_charge
+        self._theoretical_mz = self._calc_theoretical_mz()
+        self._assigment_mass_error = self._set_assigment_mass_error(exp_mz)
         self.is_isotopologue = False    
-    
+        
+        
     @property
     def dbe(self): return self._dbe
+    
+    @property
+    def ion_charge(self): return self._ion_chage
          
     @property
     def theoretical_mz(self): return self._theoretical_mz
@@ -45,5 +48,5 @@ class MolecularFormula(MolecularFormulaCalc):
     @dbe.setter
     def dbe(self): return self._calc_dbe()
     
-    @theoretical_mz.setter     
-    def theoretical_mz(self): return self._calc_theoretical_mz()
+    @assigment_mass_error.setter     
+    def assigment_mass_error(self, exp_mz): return self._set_assigment_mass_error(exp_mz)

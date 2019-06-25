@@ -49,8 +49,16 @@ class MassSpecBase(MassSpecCalculations):
     def set_mspeaks(self):
         
         #pass
-        MSPeak(1, 200.1, 100, 1e6, 4, 0) 
+        self.mspeaks = [MSPeak(1, 200.1, 100, 1e6, 4, 0)] 
         #self.mspeaks = [MSPeak(self.ion_charge, exp_mass, exp_freq, relative_abundance) for exp_mass, exp_freq, relative_abundance in zip(exp_masses,exp_freqs, relative_abundances)]
+            
+    def assign_molecular_formulas(self):
+        
+        '''call assigment algorithms here'''
+        
+        formula_dict = {'C':10,'H':20, 'O':10, "IonType": 'closed_shell' }
+         
+        self.mspeaks[0].molecular_formula = formula_dict
         
     @property
     def A_therm(self):

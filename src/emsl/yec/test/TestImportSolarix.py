@@ -27,7 +27,10 @@ bruker_transient.set_processing_parameter(apodization_method, number_of_truncati
 
 mass_spec = bruker_transient.generate_mass_spec()
 mass_spec.set_mspeaks()
+mass_spec.assign_molecular_formulas()
+
 mass_spec.plot_mz_domain_profile()
+
 #mass_spec.set_processing_parameter()
 
 with open('test.pkl', 'wb') as file:

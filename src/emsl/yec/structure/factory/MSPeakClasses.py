@@ -64,7 +64,7 @@ class MSPeak(MassSpecPeakCalculation):
     @molecular_formula.setter
     def molecular_formula(self, formula_dict):
         
-        self._molecular_formula = MolecularFormula(formula_dict)
+        self._molecular_formula = MolecularFormula(formula_dict, self.ion_charge, self.exp_mz)
         
         #self._calc_theoretical_mz(formula_dict)
         

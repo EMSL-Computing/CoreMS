@@ -64,11 +64,8 @@ class Transient(TransientCalculations):
         self.number_of_zero_fills = None
         
         
-    def __set__transient__time(self):
-        
-        ### needs __set__parameters__ 
-        self.transient_time = self.cal_transient_time()
-    
+    def __set__transient__time(self): self.transient_time = self.cal_transient_time()
+     
     
     def set_processing_parameter(self, apodization_method, number_of_truncations, number_of_zero_fills):
         

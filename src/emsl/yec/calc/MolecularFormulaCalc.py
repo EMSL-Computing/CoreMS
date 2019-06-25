@@ -15,7 +15,8 @@ class MolecularFormulaCalc(object):
         else:
             
             raise Exception("Please set Molecular_fromula_first")  
-        
+    
+    
       
     def _calc_theoretical_mz(self):
         
@@ -38,7 +39,7 @@ class MolecularFormulaCalc(object):
             
             raise Exception("Please set ion charge first")
          
-    def _set_assigment_mass_error(self, method='ppm'):
+    def _set_assigment_mass_error(self, exp_mz, method='ppm'):
         '''methodo should be ppm or ppb'''
         
         Hum_Milhao = 1000000
@@ -55,7 +56,7 @@ class MolecularFormulaCalc(object):
               
         if self.theoretical_mz:
             #self.parent need to be the MassSpecPeak associated with the MF class
-            return ((self.theoretical_mz - self.parent.exp_mass)/self.theoretical_mz)*mult_factor
+            return ((self.theoretical_mz - exp_mz)/self.theoretical_mz)*mult_factor
         
         else:
             
