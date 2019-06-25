@@ -21,7 +21,7 @@ class MassSpecBase(MassSpecCalculations):
         Constructor
         '''
         self.magnitude = magnitude
-        self.exp_mz = exp_mz
+        self._exp_mz = exp_mz
         self.mspeaks = None
         
         self._set_parameters_objects(d_params)
@@ -32,6 +32,9 @@ class MassSpecBase(MassSpecCalculations):
         #        setattr(self, key, value)
         #        print(key, value) 
         
+    @property
+    def exp_mz(self): return self._exp_mz
+    
     def _set_parameters_objects(self, d_params):
         
         self._full_filename_path  = d_params.get("filename_path")
@@ -45,6 +48,32 @@ class MassSpecBase(MassSpecCalculations):
         self.rt = d_params.get("rt")
         
         self.location = 220 
+        
+    @property
+    def Aterm(self):
+        
+        return self._calibration_terms[0]
+    
+    @property
+    def Bterm(self):
+        
+        return self._calibration_terms[1]
+    
+    @property
+    def Cterm(self):
+        
+        return self._calibration_terms[2]        
+    
+    @property
+    def filename(self):
+        
+        return basename(self.full_filename_path)
+    
+    @property
+    def dir_location(self):
+        
+        return dirname(self.full_filename_path)
+    '''move to ms_class'''
     
     def set_mspeaks(self):
         
@@ -60,36 +89,13 @@ class MassSpecBase(MassSpecCalculations):
          
         self.mspeaks[0].molecular_formula = formula_dict
         
-    @property
-    def A_therm(self):
-        
-        return self._calibration_terms[0]
-    
-    @property
-    def B_therm(self):
-        
-        return self._calibration_terms[1]
-    
-    @property
-    def C_therm(self):
-        
-        return self._calibration_terms[2]        
-    
-    @property
-    def filename(self):
-        
-        return basename(self.full_filename_path)
-    
-    @property
-    def dir_location(self):
-        
-        return dirname(self.full_filename_path)
-    '''move to ms_class'''
-    
     def plot_mz_domain_profile(self):
         
         #self.location +=1
         #plt.subplot(self.location)
+        #print(self.exp_mz)
+        #print(self.magnitude)
+        
         plt.plot(self.exp_mz, self.magnitude, color='green')
         plt.xlabel("m/z")
         plt.ylabel("Magnitude")
@@ -102,26 +108,19 @@ class MassSpecfromFreq(MassSpecBase):
         '''
         Constructor
         '''
-        self.frequency_domain = frequency_domain
-        self.magnitude = magnitude
-        self.exp_mz = None
-        self.molecular_formulas = None
+        super().__init__(None, magnitude, d_params)
         
-        self._set_parameters_objects(d_params)
+        self.frequency_domain = frequency_domain
+        
         self._set_mz_domain()
         
+        self.mspeaks = None
         
         """implement here, code in MassSpecCalc"""
-        self.calc_noise_threshould
-        self.peak_picking
-        self.calc_resolving_power  
-    
-    
-    @property
-    def exp_mz(self):    
-        return self._exp_mz
-    
-    @exp_mz.setter    
+        #self.calc_noise_threshould
+        #self.peak_picking
+        #self.calc_resolving_power  
+   
     def _set_mz_domain(self):
             
         self._exp_mz = self.f_to_mz()
@@ -132,20 +131,16 @@ class MassSpecCentroid(MassSpecBase):
     classdocs
     '''
     
-    def __init__(self, dataframe, d_params, **kwargs): 
+    def __init__(self, exp_mz, magnitude, dataframe, d_params, **kwargs): 
                  
         '''
         Constructor
+        dataframe will contain l_base_noise, l_signal_to_noise, l_charge, l_resolving_power
+        needs to simulate peak shape and pass as exp_mz and magnitude.
         '''
-        self.exp_mz = None
-        self.magnitude = None
-        self.molecular_formulas = None
+        super().__init__(exp_mz, magnitude, d_params)
         
-        #for (key, value) in kwargs.items():
-        #    print(key, value)
-        #    if hasattr(self, key):
-        #        setattr(self, key, value)
-        #        print(key, value)    
+        #self.__process__from__centroid(l_base_noise, l_signal_to_noise, l_charge, l_resolving_power)
         
     def __process__from__centroid(self, l_base_noise, l_signal_to_noise, l_charge, l_resolving_power):
         
@@ -172,11 +167,7 @@ class MassSpecProfile(MassSpecBase):
         '''
         Constructor
         '''
-        
-        self.magnitude = magnitude
-        self.exp_mz = exp_mz
-        
-        self.__set__parameters__objects(d_params)
+        super().__init__(exp_mz, magnitude, d_params)
         
         self.calc_noise_threshould
         self.peak_picking

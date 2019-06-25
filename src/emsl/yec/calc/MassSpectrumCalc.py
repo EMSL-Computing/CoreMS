@@ -14,7 +14,7 @@ class MassSpecCalculations(object):
     
     def f_to_mz(self):
         
-        Aterm, Bterm, Cterm = self.calibration_terms
+        Aterm, Bterm, Cterm = self.Aterm, self.Bterm, self.Cterm 
         #Check if the Bterm of Ledford equation scales with the ICR trap voltage or not then Bterm = Bterm*trap_voltage
         if Cterm == 0:
             
