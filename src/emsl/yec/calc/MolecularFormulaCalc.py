@@ -6,19 +6,17 @@ Created on Jun 24, 2019
 from emsl.yec.structure.static.Constants import Constants
 class MolecularFormulaCalc(object):
     
-    
-    @property.setter
     def _set_ion_type(self):
         
-        if self.molecular_formula:
+        if self.d_molecular_formula:
             
-            return self.molecular_formula.get("IonType")
+            return self.d_molecular_formula.get("IonType")
         
         else:
             
             raise Exception("Please set Molecular_fromula_first")  
         
-    @property.setter        
+      
     def _calc_theoretical_mz(self):
         
         if self.ion_charge:
@@ -63,14 +61,14 @@ class MolecularFormulaCalc(object):
             
             raise Exception("Please set theoretical_mz first")    
         
-    @property.setter
-    def _calc_dbe(self, formula_dict):
+    
+    def _calc_dbe(self):
             
             individual_dbe = 0
             
-            for atom in formula_dict.keys():
+            for atom in self.d_molecular_formula.keys():
                 if atom != "IonType":
-                    n_atom = int(formula_dict.get(atom))
+                    n_atom = int(self.d_molecular_formula.get(atom))
                     valencia = Constants.atoms_valence.get(atom)
                     if valencia > 0 and valencia is not None:
                         #print atom, valencia, n_atom, individual_dbe

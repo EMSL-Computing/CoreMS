@@ -7,11 +7,11 @@ Created on Jun 19, 2019
 
 import pickle
 
-from emsl.yec.structure.farm.TransientClass import Transient
+from emsl.yec.structure.factory.TransientClasses import Transient
 from emsl.yec.structure.input.BrukerSolarix import ReadBrukerSolarix
+
+
 #from emsl.yec.structure.input.MidasDatFile import ReadMidasDatFile
-
-
 filelocation = "C:\\Users\\eber373\\Desktop\\20190616_WK_ESFA_0pt2mgml_ESI_Neg_0pt8sFID_000001.d\\"    
 filelocation = "C:\\Users\\eber373\\Desktop\\20190205_WK_SRFA_opt_000001.d\\"
 
@@ -26,6 +26,7 @@ bruker_transient = Transient(data, d_params)
 bruker_transient.set_processing_parameter(apodization_method, number_of_truncations, number_of_zero_fills)
 
 mass_spec = bruker_transient.generate_mass_spec()
+mass_spec.set_mspeaks()
 mass_spec.plot_mz_domain_profile()
 #mass_spec.set_processing_parameter()
 

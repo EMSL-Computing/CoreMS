@@ -3,7 +3,8 @@ Created on Jun 12, 2019
 '''
 
 from emsl.yec.calc.MSPeakCalc import MassSpecPeakCalculation
-from emsl.yec.structure.factory.MolecularFormulaClass import MolecularFormula
+from emsl.yec.structure.factory.MolecularFormulaClasses import MolecularFormula
+
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
@@ -60,8 +61,8 @@ class MSPeak(MassSpecPeakCalculation):
         
         return bool(self.molecular_formula)    
     
-    @property.setter
-    def set_molecular_formula(self, formula_dict):
+    @molecular_formula.setter
+    def molecular_formula(self, formula_dict):
         
         self._molecular_formula = MolecularFormula(formula_dict)
         
@@ -70,7 +71,8 @@ class MSPeak(MassSpecPeakCalculation):
         #self._calc_dbe(formula_dict)
         
         #self._set_ion_type()
-    
+    @confidence_score.setter
+    def confidence_score(self): return self._calc_confidence_score() 
         
     def add_found_isotopologue(self, object_found):
         

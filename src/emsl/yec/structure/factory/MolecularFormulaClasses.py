@@ -3,7 +3,7 @@ Created on Jun 24, 2019
 
 @author: Yuri E. corilo 
 '''
-from emsl.yec.calc import MolecularFormulaCalc
+from emsl.yec.calc.MolecularFormulaCalc import MolecularFormulaCalc
 
 
 class MolecularFormula(MolecularFormulaCalc):
@@ -14,7 +14,7 @@ class MolecularFormula(MolecularFormulaCalc):
     def __init__(self, _d_molecular_formula):
         
         self._d_molecular_formula = _d_molecular_formula
-        self._theoretical_mz = self._calc_theoretical_mz(_d_molecular_formula)
+        self.theoretical_mz = self._calc_theoretical_mz()
         self._assigment_mass_error = self._set_assigment_mass_error()
         self._dbe = self._calc_dbe()
         self._ion_type = self._set_ion_type()
@@ -35,3 +35,15 @@ class MolecularFormula(MolecularFormulaCalc):
     
     @property
     def d_molecular_formula(self): return self._d_molecular_formula         
+    
+    @ion_type.setter
+    def ion_type(self): return self._set_ion_type()
+    
+    @theoretical_mz.setter     
+    def theoretical_mz(self): return self._calc_theoretical_mz()
+    
+    @dbe.setter
+    def dbe(self): return self._calc_dbe()
+    
+    @theoretical_mz.setter     
+    def theoretical_mz(self): return self._calc_theoretical_mz()
