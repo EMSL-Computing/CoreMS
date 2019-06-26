@@ -24,11 +24,9 @@ data, d_params = ReadBrukerSolarix(filelocation).read_file()
 
 bruker_transient = Transient(data, d_params)
 bruker_transient.set_processing_parameter(apodization_method, number_of_truncations, number_of_zero_fills)
-
 mass_spec = bruker_transient.generate_mass_spec()
 mass_spec.set_mspeaks()
 mass_spec.assign_molecular_formulas()
-
 mass_spec.plot_mz_domain_profile()
 
 #mass_spec.set_processing_parameter()

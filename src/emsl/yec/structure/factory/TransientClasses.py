@@ -2,19 +2,23 @@
 Created on Jun 12, 2019
 
 TIME DOMAIN CLASS
+@author: Yuri E. Corilo
+@date "Jun 19, 2019"
 '''
-from os.path import basename, dirname
-
-from numpy import linspace
-
-from emsl.yec.calc.TransientCalc import TransientCalculations
-from emsl.yec.structure.factory.MassSpectrumClasses import MassSpecBase,\
-    MassSpecfromFreq
-import matplotlib.pyplot as plt
-
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 19, 2019"
+
+from os.path import basename, dirname, normpath
+
+from matplotlib import rcParamsDefault, rcParams
+from numpy import linspace
+
+from emsl.yec.calc.TransientCalc import TransientCalculations
+from emsl.yec.encapsulation.Settings.ProcessingSetting import TransientSetting
+from emsl.yec.structure.factory.MassSpectrumClasses import MassSpecfromFreq
+import matplotlib.pyplot as plt
+
 
 fig = plt.figure()
 
@@ -58,83 +62,76 @@ class Transient(TransientCalculations):
         
         self.location = 220
         
-        self.apodization_method = None
+    def scale_plot_size(self, factor=1.5):
         
-        self.number_of_truncations = None
-        
-        self.number_of_zero_fills = None
-        
-        
+        default_dpi = rcParamsDefault['figure.dpi']
+        rcParams['figure.dpi'] = default_dpi*factor    
+            
     def __set__transient__time(self): self.transient_time = self.cal_transient_time()
      
     
     def set_processing_parameter(self, apodization_method, number_of_truncations, number_of_zero_fills):
         
-        self.apodization_method = apodization_method
+        TransientSetting.apodization_method = apodization_method
         
-        self.number_of_truncations = number_of_truncations
+        TransientSetting.number_of_truncations = number_of_truncations
         
-        self.number_of_zero_fills = number_of_zero_fills
+        TransientSetting.number_of_zero_fills = number_of_zero_fills
         
         
     def get_frequency_domain(self,  plot_result=True):
         
-        if not self.apodization_method and self.number_of_truncations and self.number_of_zero_fills:
-            
-            raise Exception("you need to call set_processing parameter before fFt")
+        #plt.figure(figsize=(13,8))
         
-        else:
+        if TransientSetting.number_of_truncations > 0:
             
-            if self.number_of_truncations > 0:
+            new_time_domain = self.truncation(self._transient_data)
+            
+        else: 
+            
+            new_time_domain = self._transient_data
+            
+        if TransientSetting.apodization_method != None:
                 
-                new_time_domain = self.truncation(self._transient_data, self.number_of_truncations)
-                
-            else: 
-                
-                new_time_domain = self._transient_data
-                
-            if self.apodization_method != None:
-                    
-                new_time_domain = self.apodization(new_time_domain, self.apodization_method)  
+            new_time_domain = self.apodization(new_time_domain)  
+        
+        if plot_result:
             
-            if plot_result:
-                
-                self.plot_transient(self._transient_data)
-            
-                self.plot_transient(new_time_domain)
-            
-            time_domain_y_zero_filled = self.zero_fill(self.number_of_zero_fills, new_time_domain)     
-            
-            self.transient_time = self.transient_time*(self.number_of_zero_fills+1)
-            
-            if plot_result:
-            
-                self.plot_transient(time_domain_y_zero_filled)
-            
-            return self.perform_magniture_mode_ft(time_domain_y_zero_filled, self.number_of_zero_fills) 
+            self._plot_transient(self._transient_data)
+        
+            self._plot_transient(new_time_domain)
+        
+        time_domain_y_zero_filled = self.zero_fill(new_time_domain)     
+        
+        self.transient_time = self.transient_time*(TransientSetting.number_of_zero_fills+1)
+        
+        if plot_result:
+        
+            self._plot_transient(time_domain_y_zero_filled)
+        
+        return self.perform_magniture_mode_ft(time_domain_y_zero_filled) 
         #return frequency_domain, magnitude 
     
     def generate_mass_spec(self, plot_result=True):
-        
-       
-        frequency_domain, magnitude = self.get_frequency_domain()
+               
+        frequency_domain, magnitude = self.get_frequency_domain(plot_result=plot_result)
         
         if plot_result:
             
             self._plot_frequency_domain(frequency_domain, magnitude)
         
         return MassSpecfromFreq(frequency_domain, magnitude , self.d_params)
-        
-    
+            
     @property
     def filename(self):
         
-        return basename(self._full_filename_path)
+        #return dirname(self._full_filename_path)
+        return basename(normpath(self._full_filename_path))
     
     @property
     def dir_location(self):
         
-        return dirname(self._full_filename_path)
+        return dirname(self._full_filename_path).strip(basename(normpath(self._full_filename_path)))
     
     @property
     def A_therm(self):
@@ -150,27 +147,48 @@ class Transient(TransientCalculations):
     def C_therm(self):
         
         return self.calibration_terms[2]
-    
+         
+    def _plot_frequency_domain(self,frequency_domain, magnitude):
         
-    def plot_transient(self, transient_data):
-       
-        #self.location +=1
+        self.location +=1
+        plt.subplot(self.location)
+        plt.plot(frequency_domain, magnitude, color='green')
+        plt.xlabel("Hz")
+        plt.ylabel("Magnitude")
+        #reset grid location index to 0  
+        self.location = 220
+        plt.show()   
+        
+    def _plot_transient(self, transient_data):
+        
+        self.location +=1
         #print( self.location)
         time_axis = linspace(0, self.transient_time, num=len(transient_data))
-        #plt.subplot(self.location)
+        plt.subplot(self.location)
         plt.plot(time_axis, transient_data, color='green')
+        plt.xlabel("Time (s)")
+        plt.ylabel("Magnitude")
+        #plt.show()    
+    
+    def plot_transient(self):
+        
+        #self.location +=1
+        #print( self.location)
+        time_axis = linspace(0, self.transient_time, num=len(self._transient_data))
+        #plt.subplot(self.location)
+        plt.plot(time_axis, self._transient_data, color='green')
         plt.xlabel("Time (s)")
         plt.ylabel("Magnitude")
         plt.show()    
     
     def plot_zerofilled_transient(self):
        
-        new_time_domain = self.apodization(self.transient_time, self.apodization_method)
-        time_domain_y_zero_filled = self.zero_fill(self.number_of_zero_fills, new_time_domain)     
-        self.transient_time = self.transient_time*(self.number_of_zero_fills+1)  
-        time_axis = linspace(0, time_domain_y_zero_filled, num=len(time_domain_y_zero_filled))
+        new_time_domain = self.apodization(self._transient_data)
+        time_domain_y_zero_filled = self.zero_fill(new_time_domain)     
+        self.transient_time = self.transient_time*(TransientSetting.number_of_zero_fills+1)  
+        time_axis = linspace(0, self.transient_time, num=len(time_domain_y_zero_filled))
         #plt.subplot(self.location)
-        plt.plot(time_axis, new_time_domain, color='green')
+        plt.plot(time_axis, time_domain_y_zero_filled, color='green')
         plt.xlabel("Time (s)")
         plt.ylabel("Magnitude")
         plt.show()   
@@ -179,8 +197,8 @@ class Transient(TransientCalculations):
        
         #self.location +=1
         #print( self.location)
-        new_time_domain = self.apodization(self.transient_time, self.apodization_method)  
-        time_axis = linspace(0, new_time_domain, num=len(new_time_domain))
+        new_time_domain = self.apodization(self._transient_data)  
+        time_axis = linspace(0, self.transient_time, num=len(new_time_domain))
         #plt.subplot(self.location)
         plt.plot(time_axis, new_time_domain, color='green')
         plt.xlabel("Time (s)")
@@ -193,20 +211,13 @@ class Transient(TransientCalculations):
         #self.location +=1
         #plt.subplot(self.location)
         frequency_domain, magnitude = self.get_frequency_domain(plot_result=False)
-        plt.plot(frequency_domain, magnitude, color='green')
-        plt.xlabel("Hz")
+        plt.plot(frequency_domain/1000, magnitude, color='green')
+        plt.xlabel("KHz")
         plt.ylabel("Magnitude")
         plt.show()    
     
     
-    def _plot_frequency_domain(self,frequency_domain, magnitude):
-        
-        #self.location +=1
-        #plt.subplot(self.location)
-        plt.plot(frequency_domain, magnitude, color='green')
-        plt.xlabel("Hz")
-        plt.ylabel("Magnitude")
-        plt.show()    
+     
     
           
         

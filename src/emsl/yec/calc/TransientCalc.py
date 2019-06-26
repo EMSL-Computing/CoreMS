@@ -1,9 +1,13 @@
-__author__ = "Yuri E. Corilo"
-__date__ = "Jun 12, 2019"
-
 import gc
 
 from numpy import hamming, hanning, blackman, zeros, fft, sqrt, arange, where
+
+from emsl.yec.encapsulation.Settings.ProcessingSetting import TransientSetting
+
+__author__ = "Yuri E. Corilo"
+__date__ = "Jun 12, 2019"
+
+
 
 
 class TransientCalculations(object):
@@ -16,9 +20,9 @@ class TransientCalculations(object):
         
         return (1 / self.bandwidth) * ((self.number_data_points) / 2)
         
-    def zero_fill(self, number_fills, transient ):
+    def zero_fill(self, transient ):
         
-        zeros_filled_transient = zeros(len(transient)*(number_fills+1))
+        zeros_filled_transient = zeros(len(transient)*(TransientSetting.number_of_zero_fills+1))
                 
         zeros_filled_transient[0:len(transient)] = transient    
         
@@ -28,11 +32,11 @@ class TransientCalculations(object):
         
         return  zeros_filled_transient 
     
-    def truncation(self, transient, number_of_truncations):
+    def truncation(self, transient):
         
         data_count = len(transient)
             
-        for _ in range(number_of_truncations):
+        for _ in range(TransientSetting.number_of_truncations):
         
             data_count = data_count / 2
             
@@ -44,7 +48,9 @@ class TransientCalculations(object):
         
         return time_domain_truncated
     
-    def apodization(self, transient, apodi_method):
+    def apodization(self, transient):
+        
+        apodi_method = TransientSetting.apodization_method
         
         length = self.number_data_points
             
@@ -97,11 +103,11 @@ class TransientCalculations(object):
         'anyone wants to play with this part please make yourself comfortable. I will:'
         pass 
             
-    def perform_magniture_mode_ft(self, transient, number_of_zero_fills):
+    def perform_magniture_mode_ft(self, transient):
         
         A = fft.fft(transient)
         
-        factor = int(number_of_zero_fills+1)
+        factor = int(TransientSetting.number_of_zero_fills+1)
         Max_index = int(len(A)/factor)
         
         A = A[0:Max_index]

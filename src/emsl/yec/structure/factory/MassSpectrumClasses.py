@@ -32,9 +32,6 @@ class MassSpecBase(MassSpecCalculations):
         #        setattr(self, key, value)
         #        print(key, value) 
         
-    @property
-    def exp_mz(self): return self._exp_mz
-    
     def _set_parameters_objects(self, d_params):
         
         self._full_filename_path  = d_params.get("filename_path")
@@ -49,6 +46,9 @@ class MassSpecBase(MassSpecCalculations):
         
         self.location = 220 
         
+    @property
+    def exp_mz(self): return self._exp_mz
+    
     @property
     def Aterm(self):
         
