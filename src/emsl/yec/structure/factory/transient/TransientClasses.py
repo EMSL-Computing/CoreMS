@@ -5,19 +5,22 @@ TIME DOMAIN CLASS
 @author: Yuri E. Corilo
 @date "Jun 19, 2019"
 '''
-
-__author__ = "Yuri E. Corilo"
-__date__ = "Jun 19, 2019"
-
 from os.path import basename, dirname, normpath
 
 from matplotlib import rcParamsDefault, rcParams
 from numpy import linspace
 
-from emsl.yec.calc.TransientCalc import TransientCalculations
-from emsl.yec.encapsulation.Settings.ProcessingSetting import TransientSetting
-from emsl.yec.structure.factory.MassSpectrumClasses import MassSpecfromFreq
+from emsl.yec.calc.transient.TransientCalc import TransientCalculations
+from emsl.yec.encapsulation.settings.ProcessingSetting import TransientSetting
+from emsl.yec.structure.factory.mass_spec.MS_Frequency import MassSpecfromFreq
 import matplotlib.pyplot as plt
+
+
+__author__ = "Yuri E. Corilo"
+__date__ = "Jun 19, 2019"
+
+
+
 
 
 fig = plt.figure()
@@ -81,7 +84,7 @@ class Transient(TransientCalculations):
         
     def get_frequency_domain(self,  plot_result=True):
         
-        #plt.figure(figsize=(13,8))
+        
         
         if TransientSetting.number_of_truncations > 0:
             
@@ -113,6 +116,8 @@ class Transient(TransientCalculations):
         #return frequency_domain, magnitude 
     
     def generate_mass_spec(self, plot_result=True):
+        
+        plt.figure(figsize=(13,8))
                
         frequency_domain, magnitude = self.get_frequency_domain(plot_result=plot_result)
         

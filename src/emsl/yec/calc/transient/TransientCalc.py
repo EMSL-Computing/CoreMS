@@ -2,7 +2,8 @@ import gc
 
 from numpy import hamming, hanning, blackman, zeros, fft, sqrt, arange, where
 
-from emsl.yec.encapsulation.Settings.ProcessingSetting import TransientSetting
+from emsl.yec.encapsulation.settings.ProcessingSetting import TransientSetting
+
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"

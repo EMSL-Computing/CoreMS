@@ -7,7 +7,7 @@ Created on Jun 19, 2019
 
 import pickle
 
-from emsl.yec.structure.factory.TransientClasses import Transient
+from emsl.yec.structure.factory.transient.TransientClasses import Transient
 from emsl.yec.structure.input.BrukerSolarix import ReadBrukerSolarix
 
 
@@ -24,10 +24,15 @@ data, d_params = ReadBrukerSolarix(filelocation).read_file()
 
 bruker_transient = Transient(data, d_params)
 bruker_transient.set_processing_parameter(apodization_method, number_of_truncations, number_of_zero_fills)
-mass_spec = bruker_transient.generate_mass_spec()
-mass_spec.set_mspeaks()
-mass_spec.assign_molecular_formulas()
-mass_spec.plot_mz_domain_profile()
+
+mass_spec = bruker_transient.generate_mass_spec(plot_result=False)
+
+mass_spec.set_noise_treshould()
+mass_spec.plot_mz_domain_profile_and_noise_threshold()
+
+#mass_spec.set_mspeaks()
+#mass_spec.assign_molecular_formulas()
+#mass_spec.plot_mz_domain_profile()
 
 #mass_spec.set_processing_parameter()
 
