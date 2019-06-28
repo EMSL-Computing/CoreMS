@@ -17,19 +17,32 @@ class MassSpecCentroid(MassSpecBase):
         Constructor
         '''
         '''needs to simulate peak shape and pass as exp_mz and magnitude.'''
-        exp_mz = dataframe['m/z'].values
-        magnitude = dataframe['Abundance'].values
+        exp_mz_centroid = dataframe['m/z'].values
+        magnitude_centroid = dataframe['Abundance'].values
+        exp_mz, magnitude = self.__simulate_profile__data__(exp_mz_centroid, magnitude_centroid)
+       
+        #print( exp_mz)
         super().__init__(exp_mz, magnitude, d_params)
         
         self._set_parameters_objects(d_params)
         self.__process__from__centroid(dataframe)
         
-    def __simulate_profile__data__(self):
+    def __simulate_profile__data__(self, exp_mz_centroid, magnitude_centroid):
         
-        #needs theoretical resolving power calculation
-        #return exp_mz, magnitude
-        peakshape = None#Gaussian
+        '''needs theoretical resolving power calculation and define peak shape
+        this is a quick fix to be able to plot as lines
+        peakshape = #Gaussian'''
         
+        x, y = [], []
+        for i in range(len(exp_mz_centroid)):
+            x.append(exp_mz_centroid[i]- 0.0000001)
+            x.append(exp_mz_centroid[i])
+            x.append(exp_mz_centroid[i]+ 0.0000001)
+            y.append(0)
+            y.append(magnitude_centroid[i])
+            y.append(0)
+        return x, y
+         
     def __process__from__centroid(self, dataframe):
         
         # this need to change after mass spec deconvolution

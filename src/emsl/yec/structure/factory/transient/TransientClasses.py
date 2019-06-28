@@ -15,20 +15,14 @@ from emsl.yec.encapsulation.settings.ProcessingSetting import TransientSetting
 from emsl.yec.structure.factory.mass_spec.MS_Frequency import MassSpecfromFreq
 import matplotlib.pyplot as plt
 
-
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 19, 2019"
-
-
-
-
 
 fig = plt.figure()
 
 fig.patch.set_facecolor(None)
         
 fig.patch.set_alpha(0)
-
 
 class Transient(TransientCalculations):
     

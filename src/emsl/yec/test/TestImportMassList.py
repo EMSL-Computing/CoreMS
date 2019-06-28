@@ -22,3 +22,5 @@ data, d_params = Read_MassList(full_file_path, polariy).read_file()
 mass_spec = MassSpecCentroid(data, d_params)
 
 mass_spec.assign_molecular_formulas()
+
+mass_spec.plot_mz_domain_profile()

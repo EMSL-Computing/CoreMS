@@ -2,14 +2,22 @@
 Created on Jun 12, 2019
 
 '''
-from os.path import basename, dirname
 
+from matplotlib import rcParamsDefault, rcParams
+
+from emsl.yec.calc.mass_spec.MassSpectrumCalc import MassSpecCalc
 from emsl.yec.structure.factory.MSPeakClasses import MSPeak
 import matplotlib.pyplot as plt
-from emsl.yec.calc.mass_spec.MassSpectrumCalc import MassSpecCalc
+
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
+
+fig = plt.figure()
+
+fig.patch.set_facecolor(None)
+        
+fig.patch.set_alpha(0)
     
 class MassSpecBase(MassSpecCalc):
     '''
@@ -47,6 +55,11 @@ class MassSpecBase(MassSpecCalc):
         self._dir_location = d_params.get("dir_location")
          
         self.location = 220 
+        
+    def scale_plot_size(self, factor=1.5):
+        
+        default_dpi = rcParamsDefault['figure.dpi']
+        rcParams['figure.dpi'] = default_dpi*factor    
         
     @property
     def exp_mz(self): return self._exp_mz
