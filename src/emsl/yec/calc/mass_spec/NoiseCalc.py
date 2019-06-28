@@ -8,7 +8,7 @@ from emsl.yec.encapsulation.settings.ProcessingSetting import MassSpectrumSettin
 
 class NoiseThreshouldCalc():        
         
-        def cut_mz_domain(self, auto):
+        def cut_mz_domain_noise(self, auto):
 
             if auto: 
                 
@@ -32,8 +32,8 @@ class NoiseThreshouldCalc():
             
             else:
                 
-                min_mz_noise = MassSpectrumSetting.max_noise_mz
-                max_mz_noise =  MassSpectrumSetting.min_noise_mz
+                min_mz_noise = MassSpectrumSetting.min_noise_mz
+                max_mz_noise =  MassSpectrumSetting.max_noise_mz
             
             
             final = where(self.exp_mz > min_mz_noise)[-1][-1]
@@ -49,8 +49,8 @@ class NoiseThreshouldCalc():
         def get_noise_average(self, ymincentroid):
     
             average_noise = average(ymincentroid)*2
-            s_desviation = 2*std(ymincentroid)
-            print (average_noise, s_desviation)
+            s_desviation = std(ymincentroid)*2
+            print( "Baseline noise level is %.2f, and the standard deviation is: %.2f" % (average_noise, s_desviation))
             return average_noise, s_desviation
     
         def get_magnitude_minima_centroide(self, intes):
@@ -74,7 +74,7 @@ class NoiseThreshouldCalc():
         
         def run_noise_threshould_calc(self, auto):
             
-            Y_cut = self.cut_mz_domain(auto)
+            Y_cut = self.cut_mz_domain_noise(auto)
         
             if auto:
                 

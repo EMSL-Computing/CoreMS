@@ -40,11 +40,17 @@ class TransientSetting():
             
 class MassSpectrumSetting():
     
-    _min_noise_mz = 100
-    _max_noise_mz = 200    
+    threshold_method = "relative_abudance"
+    implemented_noise_threshold_methods = ["auto", "signal_noise", "relative_abudance"]
+    noise_threshold_stds = 6.0
+    s2n_threshold = 4
+    relative_abundace_threshold = 5# from 1-100
     
-    @property
-    def min_noise_mz(self): return self._min_noise_mz
-    @property
-    def max_noise_mz(self): return self._max_noise_mz
+    min_noise_mz = 100.0
+    max_noise_mz = 200.0    
     
+    min_picking_mz = 100.0
+    max_picking_mz = 1000.0
+    
+    
+  

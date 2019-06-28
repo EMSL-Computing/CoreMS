@@ -18,8 +18,6 @@ class MassSpecfromFreq(MassSpecBase):
         
         self._set_mz_domain()
         
-        self.mspeaks = None
-        
         """implement here, code in MassSpecCalc"""
         #self.calc_noise_threshould
         #self.peak_picking
@@ -28,3 +26,8 @@ class MassSpecfromFreq(MassSpecBase):
     def _set_mz_domain(self):
             
         self._exp_mz = self._f_to_mz()
+        
+    def process_mass_spec(self):
+        
+        self.set_noise_treshould()
+        self.find_peaks()    

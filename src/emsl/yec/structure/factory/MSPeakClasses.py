@@ -19,7 +19,7 @@ class MSPeak(MassSpecPeakCalculation):
         #needed to create the object
         self.ion_charge = ion_charge
         self.exp_mz = exp_mz
-        self.mass = exp_mz/ion_charge
+        self.mass = float(exp_mz)/float(ion_charge)
         self.exp_freq = exp_freq
         self.magnitude = magnitude
         self.resolving_power = resolving_power 

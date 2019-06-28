@@ -96,8 +96,6 @@ class ReadBrukerSolarix():
             lowfreq, highfreq = self.get_excite_sweep_range(excitation_sweep_filelocation)
             d_parameters["EXC_Freq_High"] =  highfreq
             d_parameters["EXC_Freq_Low"] = lowfreq
-            
-                    
         
     @staticmethod    
     def get_excite_sweep_range(filename):
@@ -156,8 +154,10 @@ class ReadBrukerSolarix():
                             for element in section.childNodes:
                                 if element.nodeName == 'section':
                                     if element.getAttribute('title') == "Polarity":
-                                        parameter_dict["Polarity"] = str(element.childNodes[1].getAttribute("value"))
-                                
+                                        if  str(element.childNodes[1].getAttribute("value")) == 'Negative':
+                                            parameter_dict["Polarity"] = -1
+                                        else:    
+                                            parameter_dict["Polarity"] =  1
             
             if (child.nodeName == 'paramlist'):
                 params = child.childNodes

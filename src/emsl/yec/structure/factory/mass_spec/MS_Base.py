@@ -1,5 +1,6 @@
 '''
 Created on Jun 12, 2019
+
 '''
 from os.path import basename, dirname
 
@@ -7,13 +8,12 @@ from emsl.yec.structure.factory.MSPeakClasses import MSPeak
 import matplotlib.pyplot as plt
 from emsl.yec.calc.mass_spec.MassSpectrumCalc import MassSpecCalc
 
-
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
     
 class MassSpecBase(MassSpecCalc):
     '''
-    classdocs
+    Mass Spectrum class object with common features and functions
     '''
     def __init__(self,exp_mz, magnitude, d_params, **kwargs): 
                  
@@ -22,7 +22,7 @@ class MassSpecBase(MassSpecCalc):
         '''
         self._magnitude = magnitude
         self._exp_mz = exp_mz
-        self.mspeaks = None
+        self.mspeaks = []
         
         self._set_parameters_objects(d_params)
         
@@ -34,16 +34,18 @@ class MassSpecBase(MassSpecCalc):
         
     def _set_parameters_objects(self, d_params):
         
-        self._full_filename_path  = d_params.get("filename_path")
-        
         self._calibration_terms = (d_params.get("Aterm"), d_params.get("Bterm"), d_params.get("Cterm"))
         
-        self.polarity = d_params.get("polarity")
+        self.polarity = int(d_params.get("polarity"))
         
         self.scan_number = d_params.get("scan_number")
         
         self.rt = d_params.get("rt")
         
+        self._filename = d_params.get("filename")
+        
+        self._dir_location = d_params.get("dir_location")
+         
         self.location = 220 
         
     @property
@@ -68,19 +70,25 @@ class MassSpecBase(MassSpecCalc):
     def Cterm(self): return self._calibration_terms[2]        
     
     @property
-    def filename(self): return basename(self.full_filename_path)
+    def filename(self): return self._filename
     
     @property
-    def dir_location(self): return dirname(self.full_filename_path)
+    def dir_location(self): return self._dir_location
+    
+    def find_peaks(self):
+        
+        self.do_peak_picking()
+        print( "A total of %i peaks were found" % len(self.mspeaks))
     
     def set_noise_treshould(self, auto=True):
         
         self._baselise_noise, self._baselise_noise_std  = self.run_noise_threshould_calc(auto)
         
-    def set_mspeaks(self):
+    def add_mspeak(self, ion_charge, exp_mz, magnitude, resolving_power, signal_to_noise, massspec_index, exp_freq):
+        #parms ion_charge, exp_mz, magnitude, resolving_power, signal_to_noise, massspec_index, 
+        #print( self.mspeaks)
         
-        #pass
-        self.mspeaks = [MSPeak(1, 200.1, 100, 1e6, 4, 0)] 
+        self.mspeaks.append(MSPeak(ion_charge, exp_mz, magnitude, resolving_power, signal_to_noise, massspec_index, exp_freq=exp_freq)) 
         #self.mspeaks = [MSPeak(self.ion_charge, exp_mass, exp_freq, relative_abundance) for exp_mass, exp_freq, relative_abundance in zip(exp_masses,exp_freqs, relative_abundances)]
             
     def assign_molecular_formulas(self):
@@ -104,24 +112,15 @@ class MassSpecBase(MassSpecCalc):
             plt.xlabel("m/z")
             plt.ylabel("Magnitude")
             plt.show()      
+        
         else: 
             
             raise Exception("Calculate noise threshold first")
         
     def plot_mz_domain_profile(self):
         
-        #self.location +=1
-        #plt.subplot(self.location)
-        #print(self.exp_mz)
-        #print(self.magnitude)
-        
         plt.plot(self.exp_mz, self.magnitude, color='green')
         plt.xlabel("m/z")
         plt.ylabel("Magnitude")
         plt.show()          
-        
-
-           
-
-        
- 
+   

@@ -5,3 +5,4 @@ __pycache__/
 *.pkl  
 res/  
 doc/  
+*.ems  

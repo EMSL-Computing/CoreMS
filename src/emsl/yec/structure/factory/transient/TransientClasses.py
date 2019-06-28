@@ -61,7 +61,7 @@ class Transient(TransientCalculations):
         
         self.number_data_points = d_params.get("number_data_points")
         
-        self.polarity = d_params.get("polarity")
+        self.polarity = int(d_params.get("polarity"))
         
         self.location = 220
         
@@ -124,6 +124,9 @@ class Transient(TransientCalculations):
         if plot_result:
             
             self._plot_frequency_domain(frequency_domain, magnitude)
+        
+        self.d_params['filename'] = self.filename
+        self.d_params['dir_location'] = self.dir_location
         
         return MassSpecfromFreq(frequency_domain, magnitude , self.d_params)
             

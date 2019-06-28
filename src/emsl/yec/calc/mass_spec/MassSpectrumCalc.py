@@ -5,12 +5,16 @@ Created on Jun 14, 2019
 '''
 
 
-from numpy import power, sqrt
-from emsl.yec.calc.mass_spec.NoiseCalc import NoiseThreshouldCalc
 '''comment I'm not yet 100% sure about this structure so you with caution. I might decouple this classes later if 
 they need to be reused somewhere else then the the MassSpectrum'''
-        
-class MassSpecCalc(NoiseThreshouldCalc):
+
+from numpy import power, sqrt
+
+from emsl.yec.calc.mass_spec.PeakPicking import PeakPicking
+from emsl.yec.calc.mass_spec.NoiseCalc import NoiseThreshouldCalc
+
+
+class MassSpecCalc(NoiseThreshouldCalc, PeakPicking):
     
     '''
     classdocs
