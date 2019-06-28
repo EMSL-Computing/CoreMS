@@ -78,13 +78,14 @@ class MassSpecBase(MassSpecCalc):
     def find_peaks(self):
         
         self.do_peak_picking()
+        
         print( "A total of %i peaks were found" % len(self.mspeaks))
     
     def set_noise_treshould(self, auto=True):
         
         self._baselise_noise, self._baselise_noise_std  = self.run_noise_threshould_calc(auto)
         
-    def add_mspeak(self, ion_charge, exp_mz, magnitude, resolving_power, signal_to_noise, massspec_index, exp_freq):
+    def add_mspeak(self, ion_charge, exp_mz, magnitude, resolving_power, signal_to_noise, massspec_index, exp_freq=None):
         #parms ion_charge, exp_mz, magnitude, resolving_power, signal_to_noise, massspec_index, 
         #print( self.mspeaks)
         

@@ -3,33 +3,41 @@ Created on Jun 27, 2019
 
 @author: eber373
 '''
-from emsl.yec.structure.factory.mass_spec.MassSpectrumClass import MassSpecBase
+from emsl.yec.structure.factory.mass_spec.MS_Base import MassSpecBase
+
 
 class MassSpecCentroid(MassSpecBase):
     
     '''
     classdocs
     '''
-    def __init__(self, exp_mz, magnitude, dataframe, d_params, **kwargs): 
+    def __init__(self, dataframe, d_params, **kwargs): 
                  
         '''
         Constructor
-        dataframe will contain l_base_noise, l_signal_to_noise, l_charge, l_resolving_power
-        needs to simulate peak shape and pass as exp_mz and magnitude.
         '''
+        '''needs to simulate peak shape and pass as exp_mz and magnitude.'''
+        exp_mz = dataframe['m/z'].values
+        magnitude = dataframe['Abundance'].values
         super().__init__(exp_mz, magnitude, d_params)
         
-        #self.__process__from__centroid(l_base_noise, l_signal_to_noise, l_charge, l_resolving_power)
-    def __process__from__centroid(self, l_base_noise, l_signal_to_noise, l_charge, l_resolving_power):
+        self._set_parameters_objects(d_params)
+        self.__process__from__centroid(dataframe)
         
-        if l_base_noise.any():
-            self.set_base_noise(l_base_noise)
+    def __simulate_profile__data__(self):
         
-        if l_signal_to_noise.any():
-            self.set_noise(l_signal_to_noise)
+        #needs theoretical resolving power calculation
+        #return exp_mz, magnitude
+        peakshape = None#Gaussian
         
-        if l_charge.any():
-            self.set_charge(l_charge)
+    def __process__from__centroid(self, dataframe):
         
-        if l_resolving_power.any():
-            self.set_resolving_power(l_resolving_power)  
+        # this need to change after mass spec deconvolution
+        ion_charge = self.polarity
+        for index in range(dataframe['m/z'].size):
+            
+            exp_mz_centroid = dataframe['m/z'][index]
+            intes_centr = dataframe['Abundance'][index]
+            s_n = dataframe['S/N'][index]
+            peak_resolving_power = dataframe['Resolving Power'][index]
+            self.add_mspeak(ion_charge, exp_mz_centroid, intes_centr, peak_resolving_power, s_n, 0)    

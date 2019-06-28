@@ -44,7 +44,6 @@ class ReadBrukerSolarix():
         data = fromfile(self.transient_data_filename, dtype=dt)
         #print(number_data_points)
         
-       
         output_parameters = dict()
         
         output_parameters["Aterm"] = float(d_params.get("ML1"))
@@ -74,7 +73,6 @@ class ReadBrukerSolarix():
         output_parameters["scan_number"] = 0
         
         output_parameters["rt"] = 0
-        
         
         return data, output_parameters
         
