@@ -21,7 +21,7 @@ class PeakPicking():
         final =  where(self.exp_mz  > min_picking_mz)[-1][-1]
         comeco =  where(self.exp_mz  > min_picking_mz)[0][0]
         
-        mz_domain_X_low_cutoff, mz_domain_low_Y_cutoff,  = self.exp_mz [comeco:final], self.magnitude[comeco:final]
+        mz_domain_X_low_cutoff, mz_domain_low_Y_cutoff,  = self.exp_mz [comeco:final], self.abundance[comeco:final]
     
         final =  where(self.exp_mz < max_picking_mz)[-1][-1]
         comeco =  where(self.exp_mz < max_picking_mz)[0][0]
@@ -117,7 +117,7 @@ class PeakPicking():
         threshold_method = MassSpectrumSetting.threshold_method 
             
         if threshold_method == 'auto':
-            
+            print(MassSpectrumSetting.noise_threshold_stds)
             abudance_thresould = self.baselise_noise + (MassSpectrumSetting.noise_threshold_stds * self.baselise_noise_std)
             factor = 1
             
@@ -173,7 +173,7 @@ class PeakPicking():
                             
                             peak_resolving_power = self.calculate_resolving_power(intes, massa, x)
                             
-                            #parms ion_charge, exp_mz, magnitude, resolving_power, signal_to_noise, massspec_index,
+                            #parms ion_charge, exp_mz, abundance, resolving_power, signal_to_noise, massspec_index,
                             self.add_mspeak(self.polarity, exp_mz_centroid, intes_centr, peak_resolving_power, intes_centr/self.baselise_noise_std, x, exp_freq=freq_centr)
                             
                             x = x + 1

@@ -3,7 +3,10 @@ Created on Jun 27, 2019
 
 @author: corilo
 '''
+from numpy import flip
+
 from emsl.yec.structure.factory.mass_spec.MS_Base import MassSpecBase
+
 
 class MassSpecfromFreq(MassSpecBase):
        
@@ -12,7 +15,7 @@ class MassSpecfromFreq(MassSpecBase):
         '''
         Constructor
         '''
-        super().__init__(None, magnitude, d_params)
+        super().__init__(None, flip(magnitude), d_params)
         
         self.frequency_domain = frequency_domain
         
@@ -25,7 +28,7 @@ class MassSpecfromFreq(MassSpecBase):
    
     def _set_mz_domain(self):
             
-        self._exp_mz = self._f_to_mz()
+        self._exp_mz = flip(self._f_to_mz())
         
     def process_mass_spec(self):
         

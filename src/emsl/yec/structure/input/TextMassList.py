@@ -8,11 +8,10 @@ class Read_MassList(object):
     classdocs
     '''
 
-    def __init__(self, file_location, polarity, delimiter= "  "):
+    def __init__(self, file_location, polarity, ):
         
         '''
         Constructor
-        delimiter = "  " or " " or  "," or "\t" etc  
         '''
         #(newline="\n")
         
@@ -26,13 +25,13 @@ class Read_MassList(object):
         
         self.file_location = file_location
         
-        self.delimiter = delimiter
-        
         self.polarity = polarity
         
-    def read_file(self):
+    
+    def read_file(self, delimiter= "  "):
         
-        dataframe = read_csv(self.file_location, delimiter=self.delimiter, engine='python')
+        #delimiter = "  " or " " or  "," or "\t" etc  
+        dataframe = read_csv(self.file_location, delimiter=delimiter, engine='python')
         
         self.check_columns(dataframe.columns)
             

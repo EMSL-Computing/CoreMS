@@ -2,8 +2,9 @@
 Created on Jun 12, 2019
 '''
 
-from emsl.yec.calc.MSPeakCalc import MassSpecPeakCalculation
-from emsl.yec.structure.factory.MolecularFormulaClasses import MolecularFormula
+
+from emsl.yec.calc.mass_spec.MSPeakCalc import MassSpecPeakCalculation
+from emsl.yec.structure.factory.mass_spec.MolecularFormulaClasses import MolecularFormula
 
 
 __author__ = "Yuri E. Corilo"
@@ -14,14 +15,14 @@ class MSPeak(MassSpecPeakCalculation):
     '''
     classdocs
     '''
-    def __init__(self, ion_charge, exp_mz, magnitude, resolving_power, signal_to_noise, massspec_index, exp_freq=None):
+    def __init__(self, ion_charge, exp_mz, abundance, resolving_power, signal_to_noise, massspec_index, exp_freq=None):
         
         #needed to create the object
         self.ion_charge = ion_charge
         self.exp_mz = exp_mz
         self.mass = float(exp_mz)/float(ion_charge)
         self.exp_freq = exp_freq
-        self.magnitude = magnitude
+        self.abundance = abundance
         self.resolving_power = resolving_power 
         self.signal_to_noise = signal_to_noise 
         self.mass_spec_index = massspec_index

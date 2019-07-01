@@ -12,7 +12,7 @@ class NoiseThreshouldCalc():
 
             if auto: 
                 
-                number_average_molecular_weight = self.weight_average_molecular_weight()
+                number_average_molecular_weight = self.weight_average_molecular_weight(profile=True)
                  
                 #+-200 is a guess for testing only, it needs adjustment for each type of analysis
                 #need to check min mz here or it will break
@@ -37,9 +37,9 @@ class NoiseThreshouldCalc():
             
             
             final = where(self.exp_mz > min_mz_noise)[-1][-1]
-            comeco = where(self.magnitude > min_mz_noise)[0][0]
+            comeco = where(self.abundance > min_mz_noise)[0][0]
 
-            mz_domain_low_Y_cutoff = self.magnitude[comeco:final]
+            mz_domain_low_Y_cutoff = self.abundance[comeco:final]
 
             final = where(self.exp_mz  < max_mz_noise)[-1][-1]
             comeco = where(self.exp_mz  < max_mz_noise)[0][0]
@@ -53,7 +53,7 @@ class NoiseThreshouldCalc():
             print( "Baseline noise level is %.2f, and the standard deviation is: %.2f" % (average_noise, s_desviation))
             return average_noise, s_desviation
     
-        def get_magnitude_minima_centroide(self, intes):
+        def get_abundance_minima_centroide(self, intes):
     
             maximum = max(intes)
     
@@ -78,7 +78,7 @@ class NoiseThreshouldCalc():
         
             if auto:
                 
-                yminima = self.get_magnitude_minima_centroide(Y_cut)
+                yminima = self.get_abundance_minima_centroide(Y_cut)
                 
                 return self.get_noise_average(yminima)
             

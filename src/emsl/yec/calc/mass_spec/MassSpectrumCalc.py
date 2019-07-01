@@ -10,8 +10,8 @@ they need to be reused somewhere else then the the MassSpectrum'''
 
 from numpy import power, sqrt
 
-from emsl.yec.calc.mass_spec.PeakPicking import PeakPicking
 from emsl.yec.calc.mass_spec.NoiseCalc import NoiseThreshouldCalc
+from emsl.yec.calc.mass_spec.PeakPicking import PeakPicking
 
 
 class MassSpecCalc(NoiseThreshouldCalc, PeakPicking):
@@ -32,24 +32,37 @@ class MassSpecCalc(NoiseThreshouldCalc, PeakPicking):
             
             mz_domain =  Aterm/(2*(Bterm + self.frequency_domain)) + sqrt(Aterm**2 + 4*Bterm*Cterm + 4*Cterm*self.frequency_domain)/(2*(Bterm + self.frequency_domain))
         
-        return mz_domain
+        return mz_domain 
     
-    def number_average_molecular_weight(self, profile_data=True):
+    def assign_molecular_formulas(self):
+        
+        '''call assigment algorithms here'''
+        
+        formula_dict = {'C':5,'H':20, 'O':4, "IonType": 'open_shell' }
+        
+        self.mspeaks.get(0).molecular_formula = formula_dict
+        
+        formula_dict = {'C':13,'H':15, 'O':1, "IonType": 'close_shell' }
+        
+        self.mspeaks.get(1293).molecular_formula = formula_dict
+        
+    
+    def number_average_molecular_weight(self, profile=False):
         #mode is profile or centroid data 
-        if profile_data: 
-            return sum(self.exp_mz*self.magnitude)/sum(self.magnitude)
+        if profile: 
+            return sum(self.exp_mz*self.abundance)/sum(self.abundance)
         else:
-            return sum(self.exp_mz_centroide*self.magnitude_centroid)/sum(self.magnitude)
+            return sum(self.exp_mz_centroide*self.abundance_centroid)/sum(self.abundance_centroid)
         
-    def weight_average_molecular_weight(self, profile_data=True):
+    def weight_average_molecular_weight(self, profile=False):
         #implement from MassSpectralPeaks objs
-        if profile_data: 
+        if profile: 
             
-            return  sum(power(self.exp_mz,2)*self.magnitude)/sum(self.exp_mz*self.magnitude)
+            return  sum(power(self.exp_mz,2)*self.abundance)/sum(self.exp_mz*self.abundance)
         
         else:
             
-            return power(sum(self.exp_mz_centroide*self.magnitude_centroid),2)/sum(self.exp_mz_centroide*self.magnitude_centroid)
+            return sum(power(self.exp_mz_centroide,2)*self.abundance_centroid)/sum(self.exp_mz_centroide*self.abundance_centroid)
     
         
 

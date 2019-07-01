@@ -3,10 +3,15 @@ Created on Jun 12, 2019
 
 '''
 
+
+
+
 from matplotlib import rcParamsDefault, rcParams
+from numpy import array
 
 from emsl.yec.calc.mass_spec.MassSpectrumCalc import MassSpecCalc
-from emsl.yec.structure.factory.MSPeakClasses import MSPeak
+from emsl.yec.encapsulation.settings.ProcessingSetting import MassSpectrumSetting
+from emsl.yec.structure.factory.mass_spec.MSPeakClasses import MSPeak
 import matplotlib.pyplot as plt
 
 
@@ -23,14 +28,14 @@ class MassSpecBase(MassSpecCalc):
     '''
     Mass Spectrum class object with common features and functions
     '''
-    def __init__(self,exp_mz, magnitude, d_params, **kwargs): 
+    def __init__(self,exp_mz, abundance, d_params, **kwargs): 
                  
         '''
         Constructor
         '''
-        self._magnitude = magnitude
-        self._exp_mz = exp_mz
-        self.mspeaks = []
+        self._abundance = array(abundance)
+        self._exp_mz = array(exp_mz)
+        self.mspeaks = {}
         
         self._set_parameters_objects(d_params)
         
@@ -65,7 +70,17 @@ class MassSpecBase(MassSpecCalc):
     def exp_mz(self): return self._exp_mz
     
     @property
-    def magnitude(self): return self._magnitude
+    def exp_mz_centroide(self):
+        self.check_mspeaks()
+        return array([mspeak.exp_mz for mspeak in self.mspeaks.values()])
+    
+    @property
+    def abundance(self): return self._abundance
+    
+    @property
+    def abundance_centroid(self):
+        self.check_mspeaks()
+        return array([mspeak.abundance for mspeak in self.mspeaks.values()])
     
     @property
     def baselise_noise(self): return self._baselise_noise
@@ -88,43 +103,54 @@ class MassSpecBase(MassSpecCalc):
     @property
     def dir_location(self): return self._dir_location
     
+    def cal_noise_treshould(self, auto=True):
+        
+        self._baselise_noise, self._baselise_noise_std  = self.run_noise_threshould_calc(auto)
+        
+    def add_mspeak(self, ion_charge, exp_mz, abundance, resolving_power, signal_to_noise, massspec_index, exp_freq=None):
+        
+        self.mspeaks[massspec_index] =  MSPeak(ion_charge, exp_mz, abundance, resolving_power, signal_to_noise, massspec_index, exp_freq=exp_freq)   
+    
+    def check_mspeaks(self):
+        if self.mspeaks:
+            pass
+        else:
+            raise Exception("mspeaks dictionary is empty, please run find_peaks() first")
+    
+    def filter_by_s2n(self, s2n):
+        
+        self.check_mspeaks()
+        return {mspeak.mass_spec_index: mspeak for mspeak in self.mspeaks.values() if mspeak.signal_to_noise > s2n}
+    
+    def get_peaks_as_list(self):
+        
+        self.check_mspeaks()
+        return list(self.mspeaks.values())
+    
+    def get_mz_and_abundance_peaks_tuples(self):
+        
+        self.check_mspeaks()
+        return [(mspeak.mz, mspeak.abundance) for mspeak in self.mspeaks.values()]
+    
     def find_peaks(self):
         
         self.do_peak_picking()
         
-        print( "A total of %i peaks were found" % len(self.mspeaks))
-    
-    def set_noise_treshould(self, auto=True):
-        
-        self._baselise_noise, self._baselise_noise_std  = self.run_noise_threshould_calc(auto)
-        
-    def add_mspeak(self, ion_charge, exp_mz, magnitude, resolving_power, signal_to_noise, massspec_index, exp_freq=None):
-        #parms ion_charge, exp_mz, magnitude, resolving_power, signal_to_noise, massspec_index, 
-        #print( self.mspeaks)
-        
-        self.mspeaks.append(MSPeak(ion_charge, exp_mz, magnitude, resolving_power, signal_to_noise, massspec_index, exp_freq=exp_freq)) 
-        #self.mspeaks = [MSPeak(self.ion_charge, exp_mass, exp_freq, relative_abundance) for exp_mass, exp_freq, relative_abundance in zip(exp_masses,exp_freqs, relative_abundances)]
-            
-    def assign_molecular_formulas(self):
-        
-        '''call assigment algorithms here'''
-        
-        formula_dict = {'C':10,'H':20, 'O':10, "IonType": 'closed_shell' }
-         
-        self.mspeaks[0].molecular_formula = formula_dict
+        print( "A total of %i peaks were found" % len(self.mspeaks.keys()))
         
     def plot_mz_domain_profile_and_noise_threshold(self):
         
         if self.baselise_noise and self.baselise_noise:
             x = (self.exp_mz.min(), self.exp_mz.max())
             y = (self.baselise_noise, self.baselise_noise) 
-        
-            threshold = (self.baselise_noise + (3*self.baselise_noise_std))
-            plt.plot(self.exp_mz, self.magnitude, color='green')
+            
+            stds = MassSpectrumSetting.noise_threshold_stds
+            threshold = (self.baselise_noise + (stds*self.baselise_noise_std))
+            plt.plot(self.exp_mz, self.abundance, color='green')
             plt.plot(x, (threshold,threshold), color='yellow')
             plt.plot(x, y, color='red')
             plt.xlabel("m/z")
-            plt.ylabel("Magnitude")
+            plt.ylabel("abundance")
             plt.show()      
         
         else: 
@@ -133,8 +159,8 @@ class MassSpecBase(MassSpecCalc):
         
     def plot_mz_domain_profile(self):
         
-        plt.plot(self.exp_mz, self.magnitude, color='green')
+        plt.plot(self.exp_mz, self.abundance, color='green')
         plt.xlabel("m/z")
-        plt.ylabel("Magnitude")
+        plt.ylabel("abundance")
         plt.show()          
    

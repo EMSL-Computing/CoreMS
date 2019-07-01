@@ -6,31 +6,17 @@ Created on Jun 24, 2019
 from emsl.yec.structure.static.Constants import Constants
 class MolecularFormulaCalc(object):
     
-    def _set_ion_type(self):
-        
-        if self.d_molecular_formula:
-            
-            return self.d_molecular_formula.get("IonType")
-        
-        else:
-            
-            raise Exception("Please set Molecular_fromula_first")  
-    
-    
-      
     def _calc_theoretical_mz(self):
         
         if self.ion_charge:
             
             mass = 0
             
-            for each_atom in self.d_molecular_formula.keys() :
+            for each_atom in self._d_molecular_formula.keys() :
                 
                 if each_atom != "IonType" and each_atom != 'HC':
                     
-                    mass = mass + Constants.atomic_masses[each_atom]  *  self.d_molecular_formula.get(each_atom)
-                    
-                    #print mass
+                    mass = mass + Constants.atomic_masses[each_atom]  *  self._d_molecular_formula.get(each_atom)
                     
             return mass + ((-self.ion_charge) * Constants.electron_mass)
                     
@@ -67,9 +53,9 @@ class MolecularFormulaCalc(object):
             
             individual_dbe = 0
             
-            for atom in self.d_molecular_formula.keys():
+            for atom in self._d_molecular_formula.keys():
                 if atom != "IonType":
-                    n_atom = int(self.d_molecular_formula.get(atom))
+                    n_atom = int(self._d_molecular_formula.get(atom))
                     valencia = Constants.atoms_valence.get(atom)
                     if valencia > 0 and valencia is not None:
                         #print atom, valencia, n_atom, individual_dbe
@@ -79,11 +65,12 @@ class MolecularFormulaCalc(object):
             
             return 1 + (0.5 * individual_dbe)
            
-    @property 
     def to_string(self):
         
-        if self.d_molecular_formula:
-            formulalist = self.get_molecular_formula_list()
+        if self._d_molecular_formula:
+            
+            formulalist = self.to_list()
+            
             formulastring = "" 
             
             for each in range(0, len(formulalist),2):
@@ -96,17 +83,16 @@ class MolecularFormulaCalc(object):
             
             raise Exception("Molecular formula identification not performed yet")    
     
-    @property
-    def molecular_formula_list(self):
+    def to_list(self):
         
-        if self.d_molecular_formula:
+        if self._d_molecular_formula:
             atoms_in_ordem = ["C", "H", "N", "O", "S", "P"]
     
             formula_list = []
             
             for atomo in atoms_in_ordem:
     
-                numero_atom = self.d_molecular_formula.get(atomo)
+                numero_atom = self._d_molecular_formula.get(atomo)
     
                 if numero_atom:
                     
@@ -116,13 +102,13 @@ class MolecularFormulaCalc(object):
                 #    formula_list_zero_filled.append(atomo)
                 #    formula_list_zero_filled.append(0)
     
-            atomos_in_dict = self.d_molecular_formula.keys()
+            atomos_in_dict = self._d_molecular_formula.keys()
             for atomo in atomos_in_dict:
     
                 if atomo not in atoms_in_ordem and atomo != "IonType" and atomo != "HC":
                     
                     formula_list.append(atomo)
-                    formula_list.append(self.d_molecular_formula.get(atomo))
+                    formula_list.append(self._d_molecular_formula.get(atomo))
     
             return formula_list
         else:
@@ -131,9 +117,9 @@ class MolecularFormulaCalc(object):
     @property
     def heteroatomic_class_label(self):
         
-        if self.d_molecular_formula:
+        if self._d_molecular_formula:
             
-            formulalist = self.get_molecular_formula_list()
+            formulalist = self.to_list()
             classstring = "" 
             
             for each in range(0, len(formulalist),2):
@@ -146,7 +132,7 @@ class MolecularFormulaCalc(object):
                 
                 classstring = "HC "
                 
-            if self.d_molecular_formula.get("IonType") == 'RADICAL':    
+            if self._d_molecular_formula.get("IonType") == 'RADICAL':    
                 
                 return classstring[0:-1] + " " + "-R"
             

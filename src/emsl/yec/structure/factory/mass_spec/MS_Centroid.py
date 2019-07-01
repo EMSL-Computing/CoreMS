@@ -48,9 +48,10 @@ class MassSpecCentroid(MassSpecBase):
         # this need to change after mass spec deconvolution
         ion_charge = self.polarity
         for index in range(dataframe['m/z'].size):
-            
             exp_mz_centroid = dataframe['m/z'][index]
             intes_centr = dataframe['Abundance'][index]
             s_n = dataframe['S/N'][index]
             peak_resolving_power = dataframe['Resolving Power'][index]
-            self.add_mspeak(ion_charge, exp_mz_centroid, intes_centr, peak_resolving_power, s_n, 0)    
+            self.add_mspeak(ion_charge, exp_mz_centroid, intes_centr, peak_resolving_power, s_n, index)  
+            
+              

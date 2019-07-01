@@ -29,12 +29,14 @@ mass_spec = bruker_transient.generate_mass_spec(plot_result=False)
 
 mass_spec.set_noise_treshould()
 mass_spec.plot_mz_domain_profile_and_noise_threshold()
-mass_spec.find_ms_peaks()
-mass_spec.assign_molecular_formulas()
+mass_spec.find_peaks()
 
-#mass_spec.set_mspeaks()
-#mass_spec.assign_molecular_formulas()
-#mass_spec.plot_mz_domain_profile()
+
+mass_spec.number_average_molecular_weight()
+mass_spec.number_average_molecular_weight(profile=True)
+
+mass_spec.weight_average_molecular_weight()
+mass_spec.weight_average_molecular_weight(profile=True)
 
 #mass_spec.set_processing_parameter()
 
