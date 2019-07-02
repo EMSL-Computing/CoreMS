@@ -5,11 +5,11 @@ __date__ = "Jun 12, 2019"
 https://bitbucket.org/delsuc/spike/
 from Marc Delsuc
 '''
-
 from glob import glob
 from os import path
 from xml.dom import minidom
 from numpy import genfromtxt, fromstring, dtype, fromfile
+from emsl.yec.structure.factory.transient.TransientClasses import Transient
 
 
 class ReadBrukerSolarix():
@@ -33,12 +33,18 @@ class ReadBrukerSolarix():
         except:
             
             raise Exception('%s does not seem to be a valid Solarix spectrum'%(d_directory_location,))
-            
+        
+    
+    def __new__(cls,d_directory_location):
+        
+        cls.__init__(cls, d_directory_location)
+        return cls.read_file(cls)
+    
     def read_file(self):
         
         d_params = self.parse_parameters(self.parameter_filename_location)
         
-        self.fix_freq_limits(d_params)
+        self.fix_freq_limits(self, d_params)
         
         dt = dtype('l')    
         data = fromfile(self.transient_data_filename, dtype=dt)
@@ -74,7 +80,7 @@ class ReadBrukerSolarix():
         
         output_parameters["rt"] = 0
         
-        return data, output_parameters
+        return Transient(data, output_parameters)
         
         '''
         for key, values in d_params.items():

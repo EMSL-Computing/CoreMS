@@ -3,7 +3,8 @@ Created on Jun 27, 2019
 
 @author: Yuri E. Corilo
 '''
-from emsl.yec.structure.factory.mass_spec.MassSpectrumClass import MassSpecBase
+from emsl.yec.structure.factory.mass_spec.MS_Base import MassSpecBase
+
 
 class MassSpecProfile(MassSpecBase):
     

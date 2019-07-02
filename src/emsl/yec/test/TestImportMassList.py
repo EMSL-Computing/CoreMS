@@ -3,8 +3,9 @@ Created on Jun 28, 2019
 
 @author: eber373
 '''
-from emsl.yec.structure.input.TextMassList import Read_MassList
-from emsl.yec.structure.factory.mass_spec.MS_Centroid import MassSpecCentroid
+
+from emsl.yec.input.TextMassList import Read_MassList
+
 
 
 directory = "C:\\Users\\eber373\\Documents\\Desenvolvimento\\Software Projects\\EnviroMS\\res\\"
@@ -18,21 +19,12 @@ full_file_path = directory + file_name_ESFA_txt
 
 polariy = -1
  
-data, d_params = Read_MassList(full_file_path, polariy).read_file()
-
-mass_spec = MassSpecCentroid(data, d_params)
-
-#mass_spec.assign_molecular_formulas()
+mass_spec = Read_MassList(full_file_path, polariy, delimiter= "  ")
 
 mass_spec.plot_mz_domain_profile()
 
 print(mass_spec.number_average_molecular_weight())
 print(mass_spec.weight_average_molecular_weight())
-
-print('Exp. Mass :',
-      mass_spec.mspeaks.get(0).exp_mz,
-      '\nMol. Formula :',
-      mass_spec.mspeaks.get(0).molecular_formula.to_string())
 
 filtered_mass_peaks = mass_spec.filter_by_s2n(100)
 

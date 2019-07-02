@@ -1,14 +1,19 @@
+from pandas import read_csv
+
+from emsl.yec.structure.factory.mass_spec.MS_Centroid import MassSpecCentroid
+from emsl.yec.structure.factory.mass_spec.MS_Profile import MassSpecProfile
+
+
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
-from pandas import read_csv
         
 class Read_MassList(object):
     '''
     classdocs
     '''
 
-    def __init__(self, file_location, polarity, ):
+    def __init__(self, file_location, polarity, delimiter="  ", centroid=True):
         
         '''
         Constructor
@@ -21,28 +26,41 @@ class Read_MassList(object):
         
         self.__expected_columns = ['m/z', 'Abundance', 'S/N', 'Resolving Power']
         
-        #print(self.__expected_columns) 
-        
         self.file_location = file_location
         
         self.polarity = polarity
         
+        self.delimiter  = delimiter
+        
+        self.centroid  = centroid
+         
+        
     
-    def read_file(self, delimiter= "  "):
+    def __new__(cls,file_location, polarity, delimiter ):
+        
+        cls.__init__(cls, file_location, polarity, delimiter=delimiter)
+        return cls.read_file(cls)
+    
+    def read_file(self):
         
         #delimiter = "  " or " " or  "," or "\t" etc  
-        dataframe = read_csv(self.file_location, delimiter=delimiter, engine='python')
         
-        self.check_columns(dataframe.columns)
+        dataframe = read_csv(self.file_location, delimiter=self.delimiter, engine='python')
+        
+        self.check_columns(self, dataframe.columns)
             
-        self.clean_data_frame(dataframe)
+        self.clean_data_frame(self, dataframe)
         
         dataframe.rename(columns=self.name_dict, inplace=True)
  
-        output_parameters = self.get_output_parameters(self.polarity)
+        output_parameters = self.get_output_parameters(self, self.polarity)
             
-        return dataframe, output_parameters
-    
+        if self.centroid:
+            
+            return MassSpecCentroid(dataframe, output_parameters)
+        
+        else:
+            return MassSpecProfile(dataframe, output_parameters)
     
     def get_output_parameters(self, polarity):
         
