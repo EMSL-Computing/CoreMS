@@ -10,11 +10,14 @@ class MassSpecPeakCalculation(object):
     '''
     classdocs
     '''
-    def _calc_kdm(self):
+    def _calc_kdm(self, dict_base):
+        '''dict_base = {"C": 1, "H": 2}
+        '''
+        mass = 0
+        for atom in dict_base.keys():
+            mass = mass + Constants.atomic_masses.get(atom) * dict_base.get(atom)
         
-        Hmass = Constants.atomic_masses.get('H')
-        
-        kendrick_mass = (14.00000/(12.00000+ (2*Hmass)))*self.exp_mz
+        kendrick_mass = (int(mass)/mass)*self.exp_mz
         
         nominal_km =int(kendrick_mass)
         #for ICR

@@ -52,5 +52,8 @@ class MassSpectrumSetting():
     min_picking_mz = 100.0
     max_picking_mz = 1000.0
     
+class MassSpecPeakSetting():
     
+    '''needs to clear previous results from peak_picking'''
+    kendrick_base =  {"C": 1, "H": 2}   
   

@@ -37,14 +37,12 @@ class MassSpecCalc(NoiseThreshouldCalc, PeakPicking):
     def assign_molecular_formulas(self):
         
         '''call assigment algorithms here'''
-        
         formula_dict = {'C':5,'H':20, 'O':4, "IonType": 'open_shell' }
         
-        self.mspeaks.get(0).molecular_formula = formula_dict
+        for mspeak in self.mspeaks:
+            
+            mspeak.molecular_formula = formula_dict
         
-        formula_dict = {'C':13,'H':15, 'O':1, "IonType": 'close_shell' }
-        
-        self.mspeaks.get(1293).molecular_formula = formula_dict
         
     
     def number_average_molecular_weight(self, profile=False):

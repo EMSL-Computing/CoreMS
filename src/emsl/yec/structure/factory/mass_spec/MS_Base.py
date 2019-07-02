@@ -14,7 +14,6 @@ from emsl.yec.encapsulation.settings.ProcessingSetting import MassSpectrumSettin
 from emsl.yec.structure.factory.mass_spec.MSPeakClasses import MSPeak
 import matplotlib.pyplot as plt
 
-
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
@@ -102,7 +101,7 @@ class MassSpecBase(MassSpecCalc):
     
     @property
     def dir_location(self): return self._dir_location
-        
+    
     def add_mspeak(self, ion_charge, exp_mz, abundance, resolving_power, signal_to_noise, massspec_index, exp_freq=None):
         
         self.mspeaks.append(MSPeak(ion_charge, exp_mz, abundance, resolving_power, signal_to_noise, massspec_index, exp_freq=exp_freq))   
@@ -116,7 +115,7 @@ class MassSpecBase(MassSpecCalc):
     def filter_by_s2n(self, s2n):
         
         self.check_mspeaks()
-        return {mspeak.mass_spec_index: mspeak for mspeak in self.mspeaks if mspeak.signal_to_noise > s2n}
+        return [mspeak for mspeak in self.mspeaks if mspeak.signal_to_noise > s2n]
     
     def get_peaks_as_list(self):
         
@@ -130,10 +129,18 @@ class MassSpecBase(MassSpecCalc):
     
     def find_peaks(self):
         
+        '''needs to clear previous results from peak_picking'''
+        self.mspeaks = list()
+        '''then do peak picking'''
         self.do_peak_picking()
+        print("A total of %i peaks were found" % len(self.mspeaks))
         
-        print( "A total of %i peaks were found" % len(self.mspeaks))
+    def change_kendrick_base_all_mspeaks(self, kendrick_dict_base):
         
+        '''kendrick_dict_base = {"C": 1, "H": 2} or {{"C": 1, "H": 1, "O":1} etc '''
+        for mspeak in self.mspeaks:
+            mspeak.change_kendrick_base(kendrick_dict_base)
+            
     def plot_mz_domain_profile_and_noise_threshold(self):
         
         if self.baselise_noise and self.baselise_noise:

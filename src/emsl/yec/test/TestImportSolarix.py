@@ -21,8 +21,8 @@ bruker_transient = ReadBrukerSolarix(filelocation)
 bruker_transient.set_processing_parameter(apodization_method, number_of_truncations, number_of_zero_fills)
 
 mass_spec = bruker_transient.generate_mass_spec(plot_result=False)
-mass_spec.cal_noise_treshould()
 
+mass_spec.cal_noise_treshould()
 mass_spec.find_peaks()
 
 

@@ -29,7 +29,6 @@ class MassSpecfromFreq(MassSpecBase):
         #self.peak_picking
         #self.calc_resolving_power  
    
-   
     def _set_mz_domain(self):
             
         self._exp_mz = flip(self._f_to_mz())

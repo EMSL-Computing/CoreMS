@@ -4,6 +4,7 @@ Created on Jun 12, 2019
 
 
 from emsl.yec.calc.mass_spec.MSPeakCalc import MassSpecPeakCalculation
+from emsl.yec.encapsulation.settings.ProcessingSetting import MassSpecPeakSetting
 from emsl.yec.structure.factory.mass_spec.MolecularFormulaClasses import MolecularFormula
 
 
@@ -27,7 +28,8 @@ class MSPeak(MassSpecPeakCalculation):
         self.signal_to_noise = signal_to_noise 
         self.mass_spec_index = massspec_index
         
-        self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm()
+        kendrick_dict_base = MassSpecPeakSetting.kendrick_base
+        self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(kendrick_dict_base)
         
         self.baseline_noise = None
         
@@ -41,6 +43,10 @@ class MSPeak(MassSpecPeakCalculation):
         
         self.isotopologue_indexes = []
         self.found_isotopologues = {}
+        
+    def change_kendrick_base(self, kendrick_dict_base):
+        '''kendrick_dict_base = {"C": 1, "H": 2}'''
+        self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(kendrick_dict_base)
         
     @property    
     def kdm(self): return self._kdm
