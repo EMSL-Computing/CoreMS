@@ -35,7 +35,7 @@ class MassSpecBase(MassSpecCalc):
         '''
         self._abundance = array(abundance)
         self._exp_mz = array(exp_mz)
-        self.mspeaks = {}
+        self.mspeaks = list()
         
         self._set_parameters_objects(d_params)
         
@@ -72,7 +72,7 @@ class MassSpecBase(MassSpecCalc):
     @property
     def exp_mz_centroide(self):
         self.check_mspeaks()
-        return array([mspeak.exp_mz for mspeak in self.mspeaks.values()])
+        return array([mspeak.exp_mz for mspeak in self.mspeaks])
     
     @property
     def abundance(self): return self._abundance
@@ -80,7 +80,7 @@ class MassSpecBase(MassSpecCalc):
     @property
     def abundance_centroid(self):
         self.check_mspeaks()
-        return array([mspeak.abundance for mspeak in self.mspeaks.values()])
+        return array([mspeak.abundance for mspeak in self.mspeaks])
     
     @property
     def baselise_noise(self): return self._baselise_noise
@@ -102,14 +102,10 @@ class MassSpecBase(MassSpecCalc):
     
     @property
     def dir_location(self): return self._dir_location
-    
-    def cal_noise_treshould(self, auto=True):
-        
-        self._baselise_noise, self._baselise_noise_std  = self.run_noise_threshould_calc(auto)
         
     def add_mspeak(self, ion_charge, exp_mz, abundance, resolving_power, signal_to_noise, massspec_index, exp_freq=None):
         
-        self.mspeaks[massspec_index] =  MSPeak(ion_charge, exp_mz, abundance, resolving_power, signal_to_noise, massspec_index, exp_freq=exp_freq)   
+        self.mspeaks.append(MSPeak(ion_charge, exp_mz, abundance, resolving_power, signal_to_noise, massspec_index, exp_freq=exp_freq))   
     
     def check_mspeaks(self):
         if self.mspeaks:
@@ -120,23 +116,23 @@ class MassSpecBase(MassSpecCalc):
     def filter_by_s2n(self, s2n):
         
         self.check_mspeaks()
-        return {mspeak.mass_spec_index: mspeak for mspeak in self.mspeaks.values() if mspeak.signal_to_noise > s2n}
+        return {mspeak.mass_spec_index: mspeak for mspeak in self.mspeaks if mspeak.signal_to_noise > s2n}
     
     def get_peaks_as_list(self):
         
         self.check_mspeaks()
-        return list(self.mspeaks.values())
+        return list(self.mspeaks)
     
     def get_mz_and_abundance_peaks_tuples(self):
         
         self.check_mspeaks()
-        return [(mspeak.mz, mspeak.abundance) for mspeak in self.mspeaks.values()]
+        return [(mspeak.mz, mspeak.abundance) for mspeak in self.mspeaks]
     
     def find_peaks(self):
         
         self.do_peak_picking()
         
-        print( "A total of %i peaks were found" % len(self.mspeaks.keys()))
+        print( "A total of %i peaks were found" % len(self.mspeaks))
         
     def plot_mz_domain_profile_and_noise_threshold(self):
         

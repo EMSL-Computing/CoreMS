@@ -1,6 +1,6 @@
 import gc
 
-from numpy import hamming, hanning, blackman, zeros, fft, sqrt, arange, where
+from numpy import hamming, hanning, blackman, zeros, fft, sqrt, arange, where, power
 
 from emsl.yec.encapsulation.settings.ProcessingSetting import TransientSetting
 
@@ -115,7 +115,7 @@ class TransientCalculations(object):
         
         freqdomain_X = self.calculate_frequency_domain(datapoints)
         
-        magnitude_Y = sqrt((A.real**2) + (A.imag**2))
+        magnitude_Y = sqrt((power(A.real,2)) + (power(A.imag,2)))
         
         freqdomain_X_cut, magnitude_Y_cut = self.cut_freq_domain(freqdomain_X, magnitude_Y)  
         

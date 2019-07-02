@@ -3,8 +3,8 @@ Created on Jun 27, 2019
 
 @author: eber373
 '''
-from numpy import where, average, std
 from emsl.yec.encapsulation.settings.ProcessingSetting import MassSpectrumSetting
+from numpy import where,  isnan, inf, hstack, average, std
 
 class NoiseThreshouldCalc():
 
@@ -52,26 +52,32 @@ class NoiseThreshouldCalc():
             s_desviation = std(ymincentroid)*2
             print( "Baseline noise level is %.2f, and the standard deviation is: %.2f" % (average_noise, s_desviation))
             return average_noise, s_desviation
-
+        
         def get_abundance_minima_centroide(self, intes):
-
-            maximum = max(intes)
-
+        
+            maximum = intes.max()
+            
             thresould_min = (maximum * 5) / 100
-
-            intes_min =  []
-
-            x = 0
-            while (len(intes) - 1) > x:
-                if intes[x - 1] > intes[x] < intes[x + 1] and intes[x] < thresould_min:
-                    intes_min.append(intes[x]) # cria lista de intensidade centroide
-                    x = x + 1
-                x = x + 1
-
-            del intes
-
-            return intes_min
-
+            
+            y = -intes
+            
+            dy = y[1:] - y[:-1]
+            
+            '''replaces NaN for Infinity'''
+            indices_nan = where(isnan(y))[0]
+            
+            if indices_nan.size:
+                
+                y[indices_nan] = inf
+                dy[where(isnan(dy))[0]] = inf
+            
+            indices = where((hstack((dy, 0)) < 0) & (hstack((0, dy)) > 0))[0]
+            
+            if indices.size and thresould_min is not None:
+                indices = indices[y[indices] <= thresould_min]
+            
+            return intes[indices]
+        
         def run_noise_threshould_calc(self, auto):
 
             Y_cut = self.cut_mz_domain_noise(auto)
@@ -79,7 +85,6 @@ class NoiseThreshouldCalc():
             if auto:
 
                 yminima = self.get_abundance_minima_centroide(Y_cut)
-
                 return self.get_noise_average(yminima)
 
             else:

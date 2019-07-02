@@ -3,12 +3,12 @@
 @date: Jun 27, 2019
 '''
 
-import threading
 import time
 
-from numpy import where, polyfit, poly1d
+from numpy import where, polyfit, poly1d, isnan, inf, hstack
 
 from emsl.yec.encapsulation.settings.ProcessingSetting import MassSpectrumSetting
+
 
 class PeakPicking(object):
 
@@ -37,18 +37,19 @@ class PeakPicking(object):
 
     def do_peak_picking(self):
 
-
-            mz, abudance, freq_exp = self.cut_mz_domain_peak_picking()
-            print("Done selecting m/z range")
-
-            x = threading.Thread(target=self.calc_centroid, args=(mz, abudance, freq_exp))
-            x.start()
-            x.join()
+            time0 = time.time()
+            mz, abudance, freq = self.cut_mz_domain_peak_picking()
+            time1 = time.time()
+            print(round(time1 - time0, 2), "seconds to cut array")
+            self.calc_centroid(mz, abudance, freq)
+            #x = threading.Thread(target=self.calc_centroid, args=(mz, abudance, freq))
+            #x.start()
+            #x.join()
             #while x.is_alive():
                 # progress bar here so it wont freeze application
                 #print( len(self.mspeaks))
-            #self.calc_centroid(mz, abudance, freq_exp, abudance_thresould)
-
+            print( round(time.time() - time1, 2), "seconds to find the peaks")
+            
             print("Done picking peaks")
 
             '''
@@ -110,12 +111,41 @@ class PeakPicking(object):
 
             return resolvingpower
 
-    def calc_centroid(self, massa, intes, freq_exp):
-
-        #this function is too slow, may need slice and apply multi processing,
+    def calc_centroid(self, mass, abund, freq):
+        
+        abudance_thresould, factor = self.get_thresould(abund)
+        # find indices of all peaks
+        dy = abund[1:] - abund[:-1]
+        
+        '''replaces NaN for Infinity'''
+        indices_nan = where(isnan(abund))[0]
+        
+        if indices_nan.size:
+            
+            abund[indices_nan] = inf
+            dy[where(isnan(dy))[0]] = inf
+        
+        indexes = where((hstack((dy, 0)) < 0) & (hstack((0, dy)) > 0))[0]
+        
+        if indexes.size and abudance_thresould is not None:
+            indexes = indexes[abund[indexes]/factor >= abudance_thresould]
+        
+        #resolvingpower = [self.calculate_resolving_power( abund, mass, current_index) for current_index in indexes]
+        do_freq = freq.any()
+        
+        for current_index in indexes: 
+                                                                                    
+            exp_mz_centroid, freq_centr, intes_centr = self.find_apex_fit_quadratic(mass, abund, freq, current_index, do_freq)
+            peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
+            s2n = intes_centr/self.baselise_noise_std
+            self.add_mspeak(self.polarity, exp_mz_centroid, abund[current_index], peak_resolving_power, s2n, current_index, exp_freq=freq_centr)
+    
+    def get_thresould(self, intes):
+        
         threshold_method = MassSpectrumSetting.threshold_method
 
         if threshold_method == 'auto':
+            
             print(MassSpectrumSetting.noise_threshold_stds)
             abudance_thresould = self.baselise_noise + (MassSpectrumSetting.noise_threshold_stds * self.baselise_noise_std)
             factor = 1
@@ -132,12 +162,57 @@ class PeakPicking(object):
 
         else:
             raise  Exception("%s method was not implemented, please refer to emsl.yec.calc.mass_spec.NoiseCalc Class" % threshold_method)
+        
+        return abudance_thresould, factor
+        
+    def find_apex_fit_quadratic(self, mass, abund, freq, current_index, do_freq):
+        
+        list_mass = [mass[current_index - 1], mass[current_index], mass[current_index +1]]
+        list_y = [abund[current_index - 1],abund[current_index], abund[current_index +1]]
+        
+        z = poly1d(polyfit(list_mass, list_y, 2))
+        a = z[2]
+        b = z[1]
 
-        time0 = time.time()
+        calculated = -b/(2*a)
+        if calculated < 1 or int(calculated) != int(list_mass[1]):
 
-        x = 0
-        while (len(intes)-1) > x:
+            exp_mz_centroid = list_mass[1]
+        
+        else:
+            
+            exp_mz_centroid = calculated 
+        
+        if do_freq:
+            
+            list_freq = [freq[current_index - 1], freq[current_index], freq[current_index +1]]
+            z = poly1d(polyfit(list_freq, list_y, 2))
+            a = z[2]
+            b = z[1]
 
+            calculated_freq = -b/(2*a)
+
+            if calculated_freq < 1 or int(calculated_freq) != freq[current_index]:
+                freq_centr = list_freq[1]
+
+            else:
+                freq_centr = calculated_freq
+        
+        else:
+                freq_centr = None
+        
+        
+                
+        return exp_mz_centroid, freq_centr, abund[current_index]
+    
+    def old_calc_centroid(self, massa, intes, freq_exp):
+
+        #this function is too slow, may need slice and apply multi processing,
+        abudance_thresould, factor = self.get_thresould(intes)
+        
+        do_freq = freq_exp.any()
+        
+        for x in range(len(intes)-1):
                         if (intes[x]/factor) > abudance_thresould:
                             if  intes[x] > intes[x +1] and intes[x] > intes[x - 1]:# and (intes[x]/factor) > abudance_thresould:#and :
 
@@ -155,7 +230,7 @@ class PeakPicking(object):
                                     intes_centr = intes[x]
                                     exp_mz_centroid = calculated # cria lista de intensidade centroide
 
-                                if freq_exp.any():
+                                if do_freq:
 
                                     z = poly1d(polyfit([freq_exp[x - 1],freq_exp[x],freq_exp[x +1]], [intes[x - 1],intes[x],intes[x +1]], 2))
                                     a = z[2]
@@ -175,9 +250,4 @@ class PeakPicking(object):
 
                                 #parms ion_charge, exp_mz, abundance, resolving_power, signal_to_noise, massspec_index,
                                 self.add_mspeak(self.polarity, exp_mz_centroid, intes_centr, peak_resolving_power, intes_centr/self.baselise_noise_std, x, exp_freq=freq_centr)
-
-                                x = x + 1
-                            x = x + 1
-                        x = x + 1
-                    #x = x + 1
-        print( round(time.time() - time0, 2), "seconds to find the peaks")
+     
