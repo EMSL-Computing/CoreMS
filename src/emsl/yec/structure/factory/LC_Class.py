@@ -2,7 +2,7 @@
 Created on Jun 12, 2019
 '''
 from emsl.yec.calc.LC_Calc import LC_Calculations
-from emsl.yec.structure.factory.MassSpectrumClasses import MassSpecBase
+from emsl.yec.structure.factory.mass_spec.MS_Base import MassSpecBase
 
 
 __author__ = "Yuri E. Corilo"

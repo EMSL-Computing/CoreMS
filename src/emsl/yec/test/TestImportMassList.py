@@ -25,6 +25,7 @@ filtered_mass_peaks = mass_spec.filter_by_s2n(100)
 
 mass_spec_peaks_filtered = filtered_mass_peaks[0]
 
+'''
 print('Exp. Mass :',
       mass_spec_peaks_filtered.exp_mz, 
       '\nTheor. Mass :',
@@ -40,3 +41,4 @@ print('Exp. Mass :',
       '\nMass error :',
       mass_spec_peaks_filtered.molecular_formula.assigment_mass_error
       )
+'''      
