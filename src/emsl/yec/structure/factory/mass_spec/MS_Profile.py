@@ -7,7 +7,7 @@ __date__ = "Jun 27, 2019"
 class MassSpecProfile(MassSpecBase):
     
     '''
-    classdocs
+    classd
     '''
     
     def __init__(self, exp_mz, magnitude, d_params, **kwargs): 
