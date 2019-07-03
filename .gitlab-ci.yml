@@ -35,6 +35,7 @@ test-job:
     - docker
     - python
   script:
+    - ls .
     - python src/setup.py test
     - pip install tox flake8 pytest  # you can also use tox
     - flake8 --exclude=venv* --statistics
