@@ -18,6 +18,10 @@ cache:
     - .cache/pip
     - venv/
 
+stages:
+  - test
+  - run
+
 before_script:
   - python -V  # Print out python version for debugging
   - pip install virtualenv
@@ -25,16 +29,22 @@ before_script:
   - source venv/bin/activate
   - pip install -r requirements.txt
 
-test:
+test-job:
+  stage: test
   tags:
     - docker
+    - python
   script:
     - python setup.py test
     - pip install tox flake8 pytest  # you can also use tox
     - flake8 --exclude=venv* --statistics
     - pytest -v --cov=calculator
 
-run:
+run-job:
+  stage: run
+  tags:
+    - docker
+    - python
   script:
     - cd src
     - python setup.py sdist bdist_wheel
