@@ -1,8 +1,11 @@
+__author__ = "Yuri E. Corilo"
+__date__ = "Jul 02, 2019"
 
 
 class TransientSetting():
     
     implemented_apodization_function = ["Hamming", "Hanning", "Blackman"]
+    
     _apodization_method = 'Hanning'
     _number_of_truncations = 0
     _number_of_zero_fills = 1 

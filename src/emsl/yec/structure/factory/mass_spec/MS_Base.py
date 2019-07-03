@@ -1,17 +1,9 @@
-'''
-Created on Jun 12, 2019
-
-'''
-
-
-
-
-from matplotlib import rcParamsDefault, rcParams
-from numpy import array
-
 from emsl.yec.calc.mass_spec.MassSpectrumCalc import MassSpecCalc
 from emsl.yec.encapsulation.settings.ProcessingSetting import MassSpectrumSetting
 from emsl.yec.structure.factory.mass_spec.MSPeakClasses import MSPeak
+
+from matplotlib import rcParamsDefault, rcParams
+from numpy import array
 import matplotlib.pyplot as plt
 
 __author__ = "Yuri E. Corilo"

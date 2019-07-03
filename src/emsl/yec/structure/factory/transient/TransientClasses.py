@@ -1,18 +1,9 @@
-'''
-Created on Jun 12, 2019
-
-TIME DOMAIN CLASS
-@author: Yuri E. Corilo
-@date "Jun 19, 2019"
-'''
-from os.path import basename, dirname, normpath
-
-from matplotlib import rcParamsDefault, rcParams
-from numpy import linspace
-
 from emsl.yec.calc.transient.TransientCalc import TransientCalculations
 from emsl.yec.encapsulation.settings.ProcessingSetting import TransientSetting
 from emsl.yec.structure.factory.mass_spec.MS_Frequency import MassSpecfromFreq
+from matplotlib import rcParamsDefault, rcParams
+from numpy import linspace
+from os.path import basename, dirname, normpath
 import matplotlib.pyplot as plt
 
 __author__ = "Yuri E. Corilo"

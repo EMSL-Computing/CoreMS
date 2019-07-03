@@ -1,12 +1,8 @@
-'''
-Created on Jun 27, 2019
-
-@author: corilo
-'''
+from emsl.yec.structure.factory.mass_spec.MS_Base import MassSpecBase
 from numpy import flip
 
-from emsl.yec.structure.factory.mass_spec.MS_Base import MassSpecBase
-
+__author__ = "Yuri E. Corilo"
+__date__ = "Jun 27, 2019"
 
 class MassSpecfromFreq(MassSpecBase):
        

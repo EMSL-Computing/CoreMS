@@ -1,10 +1,7 @@
-'''
-Created on Jun 24, 2019
-
-@author: Yuri E. corilo 
-'''
 from emsl.yec.calc.mass_spec.MolecularFormulaCalc import MolecularFormulaCalc
 
+__author__ = "Yuri E. Corilo"
+__date__ = "Jun 24, 2019"
 
 class MolecularFormula(MolecularFormulaCalc):
     '''
@@ -16,6 +13,7 @@ class MolecularFormula(MolecularFormulaCalc):
         self._ion_chage = ion_charge
         self._assigment_mass_error = self._set_assigment_mass_error(exp_mz)
         self.is_isotopologue = False    
+        self._confidence_score = False
         
     @property
     def O_C(self): return self._d_molecular_formula.get("O")/self._d_molecular_formula.get("C")
@@ -40,7 +38,13 @@ class MolecularFormula(MolecularFormulaCalc):
     
     @property
     def atoms(self): return self._d_molecular_formula.keys()
+    
+    @property
+    def confidence_score(self): return self._confidence_score
              
+    @confidence_score.setter
+    def confidence_score(self): return self._calc_confidence_score() 
+        
     @property
     def atoms_qnt(self,atom): 
         if atom in self._d_molecular_formula:

@@ -33,8 +33,3 @@ class MassSpecPeakCalculation(object):
         
     def _calc_confidence_score(self): raise Exception("Not implemented yet") 
     
-    def _calc_resolving_power(self): raise Exception("Not implemented yet") 
-    
-    def _peak_picking(self): raise Exception("Not implemented yet")
-        
-        

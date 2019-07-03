@@ -1,12 +1,7 @@
-'''
-Created on Jun 28, 2019
-
-@author: eber373
-'''
-
 from emsl.yec.input.TextMassList import Read_MassList
 
-
+__author__ = "Yuri E. Corilo"
+__date__ = "Jul 02, 2019"
 
 directory = "C:\\Users\\eber373\\Documents\\Desenvolvimento\\Software Projects\\EnviroMS\\res\\"
 
@@ -28,11 +23,7 @@ print(mass_spec.weight_average_molecular_weight())
 
 filtered_mass_peaks = mass_spec.filter_by_s2n(100)
 
-first_index = next(iter(filtered_mass_peaks)) 
-
-print(first_index)
-
-mass_spec_peaks_filtered = filtered_mass_peaks.get(first_index)
+mass_spec_peaks_filtered = filtered_mass_peaks[0]
 
 print('Exp. Mass :',
       mass_spec_peaks_filtered.exp_mz, 

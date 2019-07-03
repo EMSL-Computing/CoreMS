@@ -1,11 +1,7 @@
-'''
-Created on Jun 19, 2019
-
-@author: eber373
-'''
-
-
 import pickle
+
+__author__ = "Yuri E. Corilo"
+__date__ = "Jun 19, 2019"
 
 from emsl.yec.input.BrukerSolarix import ReadBrukerSolarix
 
@@ -19,29 +15,15 @@ number_of_zero_fills = 1
 
 bruker_transient = ReadBrukerSolarix(filelocation)
 bruker_transient.set_processing_parameter(apodization_method, number_of_truncations, number_of_zero_fills)
-
 mass_spec = bruker_transient.generate_mass_spec(plot_result=False)
 
 mass_spec.cal_noise_treshould()
 mass_spec.find_peaks()
 
-
 print(mass_spec.mspeaks[0].exp_mz, mass_spec.mspeaks[-1].exp_mz)
-#mass_spec.plot_mz_domain_profile_and_noise_threshold()
-
-
-
-#mass_spec.number_average_molecular_weight()
-#mass_spec.number_average_molecular_weight(profile=True)
-
-#mass_spec.weight_average_molecular_weight()
-#mass_spec.weight_average_molecular_weight(profile=True)
-
-#mass_spec.set_processing_parameter()
 
 with open('test.pkl', 'wb') as file:
     pickle.dump(bruker_transient, file, protocol=pickle.HIGHEST_PROTOCOL)
-
 
 #transient = pickle.load( open( 'test.pkl', "rb" ) )
 #do_something

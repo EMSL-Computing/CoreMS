@@ -7,3 +7,7 @@ res/
 doc/  
 *.ems  
 src/libs/  
+src/bokeh_imple/  
+Lib/  
+Scripts/ 
+pyvenv.cfg  

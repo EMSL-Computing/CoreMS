@@ -1,10 +1,7 @@
-'''
-Created on Jun 27, 2019
-
-@author: eber373
-'''
 from emsl.yec.structure.factory.mass_spec.MS_Base import MassSpecBase
 
+__author__ = "Yuri E. Corilo"
+__date__ = "Jun 27, 2019"
 
 class MassSpecCentroid(MassSpecBase):
     
