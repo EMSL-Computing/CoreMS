@@ -46,7 +46,6 @@ run-job:
     - docker
     - python
   script:
-    - cd src
     - python src/setup.py sdist bdist_wheel
     #- python setup.py bdist_wheel
     # an alternative approach is to install and run:
