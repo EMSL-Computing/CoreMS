@@ -36,11 +36,10 @@ test-job:
     - python
   script:
     - ls .
-    - cd src
-    - python setup.py test
-    - pip install tox flake8 pytest  # you can also use tox
-    - flake8 --exclude=venv* --statistics
-    - pytest -v --cov=calculator
+    - python enviroms/setup.py test
+    #- pip install tox flake8 pytest  # you can also use tox
+    #- flake8 --exclude=venv* --statistics
+    #- pytest -v --cov=calculator
 
 run-job:
   stage: run
@@ -48,7 +47,6 @@ run-job:
     - docker
     - python
   script:
-    - cd src
     - python setup.py sdist bdist_wheel
     #- python setup.py bdist_wheel
     # an alternative approach is to install and run:
