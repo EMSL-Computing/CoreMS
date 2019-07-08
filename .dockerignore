@@ -1,0 +1,6 @@
+doc
+enviroms-env
+.gitlab-ci.yml
+.project
+.pydevproject
+build_complexity.bat

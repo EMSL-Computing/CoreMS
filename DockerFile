@@ -1,0 +1,9 @@
+FROM python:3
+WORKDIR /home/enviroms/
+COPY  . /home/enviroms/
+RUN pip install virtualenv
+RUN virtualenv mypython
+RUN . /home/enviroms/mypython/bin/activate && pip install -r requirements.txt
+CMD . /home/enviroms/mypython/bin/activate && exec python src/TestImportMassList.py
+#RUN pip install -r requirements.txt
+

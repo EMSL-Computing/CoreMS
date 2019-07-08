@@ -12,3 +12,5 @@ Lib/
 Scripts/ 
 pyvenv.cfg  
 build_complexity.bat  
+.pytest_cache/  
+.vscode/  
