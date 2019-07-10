@@ -30,6 +30,9 @@ class MassSpecBase(MassSpecCalc):
         
         self._set_parameters_objects(d_params)
         
+        # frequency is set inside MassSpecfromFreq Class
+        self._frequency_domain = None
+        
         #for (key, value) in kwargs.items():
         #    print(key, value)
         #    if hasattr(self, key):
@@ -57,6 +60,9 @@ class MassSpecBase(MassSpecCalc):
         default_dpi = rcParamsDefault['figure.dpi']
         rcParams['figure.dpi'] = default_dpi*factor    
         
+    @property
+    def frequency_domain(self): return self._frequency_domain
+
     @property
     def exp_mz(self): return self._exp_mz
     

@@ -13,17 +13,12 @@ class MassSpecfromFreq(MassSpecBase):
         '''
         super().__init__(None, flip(magnitude), d_params)
         
-        self.frequency_domain = frequency_domain
         
+        self._frequency_domain = frequency_domain
         self._set_mz_domain()
-        
+        self.label = 'Frequency'
         ''' use this call to automatically process data as the object is created, Setting need to be changed before initiating the class to be in effect'''
         #self.process_mass_spec()
-        
-        """implement here, code in MassSpecCalc"""
-        #self.calc_noise_threshould
-        #self.peak_picking
-        #self.calc_resolving_power  
    
     def _set_mz_domain(self):
             

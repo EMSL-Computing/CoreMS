@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "enviroms"
+version = "0.1.0"
+description = "Object Oriented Mass Spectrometry ToolBox"
+authors = ["Corilo, Yuri <corilo@pnnl.gov>"]
+exclude = ["enviroms/test/*.*", "enviroms/libs/*.*", "enviroms/bokeh_imple/*.*", "enviroms/emsl/yec/input/ThermoRaw.py"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+matplotlib = "^3.1"
+
+[tool.poetry.dev-dependencies]
+poetry = "^0.12.17"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

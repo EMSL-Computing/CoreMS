@@ -2,6 +2,9 @@ init:
     pip install -r requirements.txt
 
 test:
-    py.test tests
+    python setup.py test
 
-.PHONY: init test
+build:
+    - python setup.py sdist bdist_wheel
+
+.PHONY: init test build

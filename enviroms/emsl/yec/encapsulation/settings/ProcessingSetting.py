@@ -43,7 +43,7 @@ class TransientSetting():
             
 class MassSpectrumSetting():
     
-    threshold_method = "auto"
+    threshold_method = "relative_abudance"
     implemented_noise_threshold_methods = {"auto", "signal_noise", "relative_abudance"}
     noise_threshold_stds = 6.0
     s2n_threshold = 4

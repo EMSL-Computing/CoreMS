@@ -5,7 +5,7 @@
 
 import time
 
-from numpy import where, polyfit, poly1d, isnan, inf, hstack
+from numpy import hstack, inf, isnan, poly1d, polyfit, where
 
 from enviroms.emsl.yec.encapsulation.settings.ProcessingSetting import MassSpectrumSetting
 
@@ -38,10 +38,18 @@ class PeakPicking(object):
     def do_peak_picking(self):
 
             time0 = time.time()
-            mz, abudance, freq = self.cut_mz_domain_peak_picking()
+            
             time1 = time.time()
             print(round(time1 - time0, 2), "seconds to cut array")
-            self.calc_centroid(mz, abudance, freq)
+
+            if self.label == "Frequency":
+                mz, abudance, freq = self.cut_mz_domain_peak_picking()
+                self.calc_centroid(mz, abudance, freq)
+            
+            elif self.label == "Profile":
+                 self.calc_centroid(self.exp_mz, self.abundance, self.frequency_domain)
+            
+            else: raise Exception("Unknow mass spectrum type")
             #x = threading.Thread(target=self.calc_centroid, args=(mz, abudance, freq))
             #x.start()
             #x.join()
@@ -113,7 +121,7 @@ class PeakPicking(object):
 
     def calc_centroid(self, mass, abund, freq):
         
-        abudance_thresould, factor = self.get_thresould(abund)
+        abudance_thresould, factor = self.get_threshold(abund)
         # find indices of all peaks
         dy = abund[1:] - abund[:-1]
         
@@ -130,17 +138,24 @@ class PeakPicking(object):
         if indexes.size and abudance_thresould is not None:
             indexes = indexes[abund[indexes]/factor >= abudance_thresould]
         
-        #resolvingpower = [self.calculate_resolving_power( abund, mass, current_index) for current_index in indexes]
-        do_freq = freq.any()
+        do_freq = bool(self.label == 'Frequency')
         
         for current_index in indexes: 
-                                                                                    
-            exp_mz_centroid, freq_centr, intes_centr = self.find_apex_fit_quadratic(mass, abund, freq, current_index, do_freq)
-            peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
-            s2n = intes_centr/self.baselise_noise_std
+            
+            if do_freq:                                                                        
+                exp_mz_centroid, freq_centr, intes_centr = self.find_apex_fit_quadratic(mass, abund, freq, current_index, do_freq)
+                peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
+                s2n = intes_centr/self.baselise_noise_std
+                
+            else:
+
+                s2n = self.stn[current_index]
+                peak_resolving_power = self.resolving_power[current_index] 
+                exp_mz_centroid, freq_centr, intes_centr = self.find_apex_fit_quadratic(mass, abund, freq, current_index, do_freq)
+                
             self.add_mspeak(self.polarity, exp_mz_centroid, abund[current_index], peak_resolving_power, s2n, current_index, exp_freq=freq_centr)
     
-    def get_thresould(self, intes):
+    def get_threshold(self, intes):
         
         threshold_method = MassSpectrumSetting.threshold_method
 
@@ -208,7 +223,7 @@ class PeakPicking(object):
     def old_calc_centroid(self, massa, intes, freq_exp):
 
         #this function is too slow, may need slice and apply multi processing,
-        abudance_thresould, factor = self.get_thresould(intes)
+        abudance_thresould, factor = self.get_threshold(intes)
         
         do_freq = freq_exp.any()
         
@@ -250,4 +265,3 @@ class PeakPicking(object):
 
                                 #parms ion_charge, exp_mz, abundance, resolving_power, signal_to_noise, massspec_index,
                                 self.add_mspeak(self.polarity, exp_mz_centroid, intes_centr, peak_resolving_power, intes_centr/self.baselise_noise_std, x, exp_freq=freq_centr)
-     

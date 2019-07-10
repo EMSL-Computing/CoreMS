@@ -6,10 +6,10 @@ __pycache__/
 res/  
 doc/  
 *.ems  
-src/libs/  
-src/bokeh_imple/  
-Lib/  
-Scripts/ 
+enviroms/libs/  
+enviroms/bokeh_imple/  
+enviroms-python/
+enviroms-wpython/
 pyvenv.cfg  
 build_complexity.bat  
 .pytest_cache/  
