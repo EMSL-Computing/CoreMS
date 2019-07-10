@@ -37,6 +37,7 @@ test-job:
     - python
   script:
     - ls .
+    - rm enviroms/emsl/yec/input/win_only/__init__.py
     - python setup.py test
     #- pip install tox flake8 pytest  # you can also use tox
     #- flake8 --exclude=venv* --statistics
