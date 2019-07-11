@@ -1,7 +1,6 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jul 02, 2019"
 
-
 class TransientSetting():
     
     implemented_apodization_function = ["Hamming", "Hanning", "Blackman"]
@@ -39,11 +38,10 @@ class TransientSetting():
             return number
         else: 
             raise Exception("Can not be negative") 
-        
             
 class MassSpectrumSetting():
     
-    threshold_method = "relative_abudance"
+    threshold_method = "auto"
     implemented_noise_threshold_methods = {"auto", "signal_noise", "relative_abudance"}
     noise_threshold_stds = 6.0
     s2n_threshold = 4
@@ -59,4 +57,3 @@ class MassSpecPeakSetting():
     
     '''needs to clear previous results from peak_picking'''
     kendrick_base =  {"C": 1, "H": 2}   
-  
