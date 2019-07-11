@@ -2,7 +2,7 @@ import time
 
 from matplotlib import rcParamsDefault, rcParams
 from numpy import array, flip
-
+from enviroms.emsl.yec.encapsulation.constant.Constants import Labels
 from enviroms.emsl.yec.encapsulation.settings.ProcessingSetting import MassSpectrumSetting
 from enviroms.emsl.yec.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
 from enviroms.emsl.yec.mass_spectrum.factory.MSPeakClasses import MSPeak
@@ -193,7 +193,7 @@ class MassSpecProfile(MassSpecBase):
         abundance = dataframe['Abundance'].values
         super().__init__(exp_mz, abundance, d_params)
 
-        if self.label == "Thermo_Profile":
+        if self.label == Labels.thermo_profile:
             self.stn = dataframe["S/N"].values
             self.resolving_power = dataframe['Resolving Power'].values
             self._baselise_noise = d_params.get('baselise_noise')
@@ -201,7 +201,7 @@ class MassSpecProfile(MassSpecBase):
 
     def process_mass_spec(self):
 
-        if self.label != "Thermo_Profile":
+        if self.label != Labels.thermo_profile:
 
             self.cal_noise_treshould()
 
@@ -219,17 +219,16 @@ class MassSpecfromFreq(MassSpecBase):
         self.label = d_params.get('label')
         self._frequency_domain = frequency_domain
         self._set_mz_domain()
-        self.label = 'Frequency'
         ''' use this call to automatically process data as the object is created, Setting need to be changed before initiating the class to be in effect'''
         # self.process_mass_spec()
 
     def _set_mz_domain(self):
 
-        #if self.label == "Bruker_Frequency":
+        if self.label == Labels.bruker_frequency:
 
-        #    self._exp_mz = flip(self._f_to_mz_bruker())
+            self._exp_mz = flip(self._f_to_mz_bruker())
 
-        #else:
+        else:
 
         self._exp_mz = flip(self._f_to_mz())
 
@@ -260,7 +259,7 @@ class MassSpecCentroid(MassSpecBase):
         #    exp_mz_centroid, magnitude_centroid)
 
         # print( exp_mz)
-        self.label = 'Centroid'
+        self.label = Labels.centroid
         super().__init__(exp_mz_centroid, magnitude_centroid, d_params)
 
         self._set_parameters_objects(d_params)

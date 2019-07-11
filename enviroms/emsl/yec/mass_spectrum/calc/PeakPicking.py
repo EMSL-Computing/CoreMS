@@ -7,7 +7,7 @@
 from numpy import hstack, inf, isnan, poly1d, polyfit, where
 
 from enviroms.emsl.yec.encapsulation.settings.ProcessingSetting import MassSpectrumSetting
-
+from enviroms.emsl.yec.encapsulation.constant.Constants import Labels
 
 class PeakPicking(object):
 
@@ -36,14 +36,15 @@ class PeakPicking(object):
 
     def do_peak_picking(self):
 
-            if self.label == "Frequency":
+            if self.label == Labels.bruker_frequency or self.label == Labels.midas_frequency:
+                
                 mz, abudance, freq = self.cut_mz_domain_peak_picking()
                 self.calc_centroid(mz, abudance, freq)
             
-            elif self.label == "Thermo_Profile":
+            elif self.label == Labels.thermo_profile:
                 self.calc_centroid(self.exp_mz, self.abundance, self.frequency_domain)
             
-            elif self.label == "Bruker_Profile":
+            elif self.label == Labels.bruker_profile:
                 self.calc_centroid(self.exp_mz, self.abundance, self.frequency_domain)
             
             else: raise Exception("Unknow mass spectrum type")

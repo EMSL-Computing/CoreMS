@@ -6,7 +6,14 @@ exact masses, isotopologues, valences for dictionaries
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
-class Constants():
+class Labels:
+    bruker_profile = "Bruker_Profile"
+    thermo_profile = "Thermo_Profile"
+    bruker_frequency = "Bruker_Frequency"
+    midas_frequency = "Midas_Frequency"
+    centroid = "Centroid"
+    
+class Atoms:
     
     electron_mass = 0.0005485
     
