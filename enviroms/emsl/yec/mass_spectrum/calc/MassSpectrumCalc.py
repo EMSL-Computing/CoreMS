@@ -1,11 +1,7 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 27, 2019"
 
-'''comment I'm not yet 100% sure about this structure so you with caution. I might decouple this classes later if 
-they need to be reused somewhere else then the the MassSpectrum'''
-
 from numpy import power, multiply, sqrt
-
 from enviroms.emsl.yec.mass_spectrum.calc.NoiseCalc import NoiseThreshouldCalc
 from enviroms.emsl.yec.mass_spectrum.calc.PeakPicking import PeakPicking
 

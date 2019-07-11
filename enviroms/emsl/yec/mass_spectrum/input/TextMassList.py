@@ -58,10 +58,7 @@ class Read_MassList(object):
         if self.centroid:
             
             return MassSpecCentroid(dataframe, output_parameters)
-        
-      #  else:
-      #      return MassSpecProfile(dataframe, output_parameters)
-    
+
     def get_output_parameters(self, polarity):
         
         output_parameters = dict()

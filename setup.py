@@ -1,16 +1,20 @@
 import pathlib
-from setuptools import find_packages, setup
+from setuptools import setup
+import setuptools
+
 
 # The directory containing this file
 HERE = pathlib.Path(__file__).parent
+
 # The text of the README file
-#README = (HERE / "README.md").read_text()
+README = (HERE / "README.md").read_text()
+
 # This call to setup() does all the work
 setup(
     name="enviroms",
     version="0.1.0",
     description="Object Oriented Mass Spectrometry ToolBox",
-    #long_description=README,
+    long_description=README,
     long_description_content_type="text/markdown",
     url="https://gitlab.pnnl.gov/corilo/enviroms/",
     author="Corilo, Yuri",
@@ -21,14 +25,14 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
     ],
-    packages= find_packages(exclude= ["test", "*win_only", "libs", "bokeh_imple"]),
-    exclude_package_data={'.': ["*.win_only"]},
-    include_package_data=True,
+    packages= setuptools.find_packages(".", exclude= ["example", "*win_only"]),
+    exclude_package_data={'.': ["example", "*.win_only"]},
+    #include_package_data=True,
     install_requires=["pandas", "numpy", "matplotlib"],
     #entry_points={
     #    "console_scripts": [
     #        "realpython=reader.__main__:main",
-
     #    ]
     #},
 )
+
