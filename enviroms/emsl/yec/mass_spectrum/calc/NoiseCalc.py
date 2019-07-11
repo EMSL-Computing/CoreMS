@@ -81,11 +81,11 @@ class NoiseThreshouldCalc(object):
 
         return intes[indices]
 
+
     def run_noise_threshould_calc(self, auto):
 
-        time0 = time.time()   
         Y_cut = self.cut_mz_domain_noise(auto)
-        print( round(time.time() - time0, 2), "auto noise calculation")
+        
         if auto:
 
             yminima = self.get_abundance_minima_centroide(Y_cut)

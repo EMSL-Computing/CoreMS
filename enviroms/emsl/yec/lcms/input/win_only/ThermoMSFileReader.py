@@ -104,9 +104,9 @@ class ImportLCMSThermoMSFileReader(Thread):
             return str(str_filter.value).split()
 
     def check_full_scan(self, scan_number):
-
+       
         scan_mode_symbol = self.get_filter_for_scan_num(scan_number)[4]
-
+        
         return scan_mode_symbol == 'Full'
 
     def get_polarity_mode(self, scan_number):
@@ -126,7 +126,7 @@ class ImportLCMSThermoMSFileReader(Thread):
 
             raise Exception("Polarity Mode Unknown, please set it manually")
 
-    def get_data(self, scan):
+    def get_data(self, scan, d_parameter):
 
         scan = c_long(scan)
         pvarLabels = VARIANT()
@@ -145,6 +145,10 @@ class ImportLCMSThermoMSFileReader(Thread):
         array_noise_std = (numpy.array(noise) - numpy.array(base_noise)) / 3
         l_signal_to_noise = numpy.array(magnitude)/array_noise_std
 
+        d_parameter["baselise_noise"] = numpy.average(array_noise_std)
+        
+        d_parameter["baselise_noise_std"] =  numpy.average(array_noise_std)
+        
         data_dict = {"m/z": mz, "Abundance": magnitude,
                      "Resolving Power": rp, "S/N": l_signal_to_noise}
 
@@ -189,6 +193,7 @@ class ImportLCMSThermoMSFileReader(Thread):
             c_long(scan_number), byref(IsProfileScan))
         if error:
             raise IOError("IsProfileScanForScanNum error :", error)
+        #print (IsProfileScan.value, bool(1))
         return bool(IsProfileScan.value)
 
     def get_mass_spectra(self, d_parms):
@@ -206,36 +211,38 @@ class ImportLCMSThermoMSFileReader(Thread):
             list_scans = list()
 
             '''key = scan_number or retention time'''
-            print(self.initial_scan_number, self.final_scan_number)
+            #print(self.initial_scan_number, self.final_scan_number)
             for scan_number in range(self.initial_scan_number, self.final_scan_number+1):
                 
                 # scan_number = scan_number + 1
 
                 "only import FULL scans and Profile Mode, it ignores all others"
 
-                if self.check_full_scan(scan_number) and self.is_profile_scan_for_scan_num(scan_number):
+                if self.check_full_scan(scan_number) :
                     
-                    d_parms["label"] = "Thermo_Profile"
+                   if self.is_profile_scan_for_scan_num(scan_number):
+                        
+                        d_parms["label"] = "Thermo_Profile"
 
-                    d_parms["polarity"] = self.get_polarity_mode(
-                        scan_number)
+                        d_parms["polarity"] = self.get_polarity_mode(
+                            scan_number)
 
-                    d_parms["rt"], TIC = self.get_ScanHeaderInfoForScanNum(
-                        scan_number)
+                        d_parms["rt"], TIC = self.get_ScanHeaderInfoForScanNum(
+                            scan_number)
 
-                    d_parms["scan_number"] = scan_number
+                        d_parms["scan_number"] = scan_number
 
-                    list_RetentionTimeSeconds.append(d_parms.get("rt"))
+                        list_RetentionTimeSeconds.append(d_parms.get("rt"))
 
-                    list_Tics.append(TIC)
+                        list_Tics.append(TIC)
 
-                    list_scans.append(scan_number)
+                        list_scans.append(scan_number)
 
-                    data_dict = self.get_data(scan_number)
-                    data = DataFrame(data_dict)
-                    mass_spec = MassSpecProfile(data, d_parms)
-                    mass_spec.process_mass_spec()
-                    self.LCMS.add_mass_spectrum_for_scan(mass_spec)
+                        data_dict = self.get_data(scan_number, d_parms)
+                        data = DataFrame(data_dict)
+                        mass_spec = MassSpecProfile(data, d_parms)
+                        #mass_spec.process_mass_spec()
+                        self.LCMS.add_mass_spectrum_for_scan(mass_spec)
 
             # return each_mass_spectrum, list_Tics, array(list_RetentionTimeSeconds)
             self.LCMS.set_retention_time_list(list_RetentionTimeSeconds)

@@ -1,7 +1,7 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 27, 2019"
 
-from numpy import power, multiply, sqrt
+from numpy import power, multiply, sqrt, multiply
 from enviroms.emsl.yec.mass_spectrum.calc.NoiseCalc import NoiseThreshouldCalc
 from enviroms.emsl.yec.mass_spectrum.calc.PeakPicking import PeakPicking
 
@@ -10,7 +10,7 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
     '''
     classdocs
     '''
-    
+
     def _f_to_mz(self):
 
         Aterm, Bterm, Cterm = self.Aterm, self.Bterm, self.Cterm
@@ -27,7 +27,37 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
                                                                          Cterm + 4*Cterm*self.frequency_domain)/(2*(Bterm + self.frequency_domain))
 
         return mz_domain
-    
+
+    def _f_to_mz_bruker(self):
+        ''' burker equations for converting frequency (Hz) to m/z, 
+        nOmega aquistion is not yet implemented here'''
+
+        Aterm, Bterm, Cterm = self.Aterm, self.Bterm, self.Cterm
+        # Check if the Bterm of Ledford equation scales with the ICR trap voltage or not then Bterm = Bterm*trap_voltage
+        
+        print(Aterm, Bterm, Cterm)
+        if Cterm == 0:
+            
+            if Bterm == 0:
+                #uncalibrated data
+                return Aterm / self.frequency_domain 
+            
+            else:
+                #calc2
+                return Aterm / (self.frequency_domain + Bterm)
+
+        # @will I need you insight here, not sure what is the inverted ledford equation that Bruker refers to
+        else:
+            
+            diff = Aterm * Aterm
+            diff = diff - 4 * Cterm * (self.frequency_domain - Bterm)
+            diff = sqrt(diff)
+            diff = -Aterm+diff
+            
+            #calc3
+            return (2*Cterm)/diff
+            return diff/2* (self.frequency_domain - Bterm)
+
     def assign_molecular_formulas(self):
         '''call assigment algorithms here'''
         formula_dict = {'C': 5, 'H': 20, 'O': 4, "IonType": 'open_shell'}

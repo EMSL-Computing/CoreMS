@@ -58,6 +58,8 @@ class ReadBrukerSolarix(object):
 
         output_parameters = dict()
 
+        output_parameters["label"] = "Bruker_Frequency"
+            
         output_parameters["Aterm"] = float(d_params.get("ML1"))
 
         output_parameters["Bterm"] = float(d_params.get("ML2"))

@@ -1,19 +1,18 @@
 
-import os
-import sys
+import os, sys
+import pathlib
 sys.path.append(".")
-from enviroms.emsl.yec.mass_spectrum.input.TextMassList import Read_MassList
-
+from enviroms.emsl.yec.mass_spectrum.input.TextMassList  import Read_MassList
 __author__ = "Yuri E. Corilo"
 __date__ = "Jul 02, 2019"
-
+ 
 
 if __name__ == '__main__':
-
+    
     directory = os.path.join(os.getcwd(), "res/")
     #filename_ESFA = "20190616_WK_ESFA_0pt2mgml_ESI_Neg_0pt8sFID_000001.d"
     #filename_SRFA = "20190205_WPK_SRFA_opt_000001.d"
-    print(os.getcwd())
+    
     file_name_ESFA_txt = directory + \
         "20190616_WK_ESFA_0pt2mgml_ESI_Neg_1pt4sFID_000001.ascii"
 
