@@ -3,9 +3,7 @@ WORKDIR /home/enviroms/
 COPY  . /home/enviroms/
 RUN pip install virtualenv
 RUN virtualenv mypython
-RUN rm enviroms/emsl/yec/mass_spectrum/input/win_only/__init__.py
-RUN rm enviroms/emsl/yec/lcms/input/win_only/__init__.py
-RUN rm enviroms/example/win_only/__init__.py
+RUN python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('win_only/__init__.py')]"
 RUN . /home/enviroms/mypython/bin/activate && pip install -r requirements.txt
 CMD . /home/enviroms/mypython/bin/activate && python setup.py test
 #RUN pip install -r requirements.txt
