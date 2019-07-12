@@ -7,7 +7,7 @@ from numpy import array
 from pandas import DataFrame
 
 from enviroms.emsl.yec.encapsulation.input import InputParameters
-from enviroms.emsl.yec.lcms.factory.LC_Class import LCMSBase
+from enviroms.emsl.yec.mass_spectra.factory.LC_Class import LCMSBase
 from enviroms.emsl.yec.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile
 
 __author__ = "Yuri E. Corilo"

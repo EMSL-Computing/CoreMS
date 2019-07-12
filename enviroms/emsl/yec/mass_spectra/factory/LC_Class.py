@@ -1,7 +1,10 @@
 '''
 Created on Jun 12, 2019
 '''
-from enviroms.emsl.yec.lcms.calc.LC_Calc import LC_Calculations
+
+
+
+from enviroms.emsl.yec.mass_spectra.calc.LC_Calc import LC_Calculations
 
 
 __author__ = "Yuri E. Corilo"

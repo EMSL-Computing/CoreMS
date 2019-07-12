@@ -3,7 +3,7 @@ from comtypes.automation import BSTR, VARIANT
 from comtypes.client import CreateObject
 from ctypes import c_double, c_long
 from enviroms.emsl.yec.encapsulation.input import InputParameters
-from enviroms.emsl.yec.lcms.factory.LC_Class import LCMSBase
+from enviroms.emsl.yec.mass_spectra.factory.LC_Class import LCMSBase
 from enviroms.emsl.yec.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile
 from pandas import DataFrame
 from threading import Thread
