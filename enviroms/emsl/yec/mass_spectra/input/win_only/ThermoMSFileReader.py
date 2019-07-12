@@ -4,7 +4,8 @@ from comtypes.client import CreateObject
 from ctypes import c_double, c_long
 from enviroms.emsl.yec.encapsulation.input import InputParameters
 from enviroms.emsl.yec.mass_spectra.factory.LC_Class import LCMSBase
-from enviroms.emsl.yec.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile
+from enviroms.emsl.yec.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
+from enviroms.emsl.yec.encapsulation.constant.Constants import Labels
 from pandas import DataFrame
 from threading import Thread
 import numpy
@@ -14,7 +15,7 @@ __date__ = "July 9, 2019"
 
 
 class ImportLCMSThermoMSFileReader(Thread):
-    '''     Read FULL and PROFILE (it ignores all other scans) raw file data and store it return a LCMS class
+    """     Read FULL and PROFILE (it ignores all other scans) raw file data and store it return a LCMS class
     *  Default behaviour is to load all scans numbers
 
     *  set start_scan_number  and final_scan_number to change it before calling start(), or run()
@@ -22,13 +23,13 @@ class ImportLCMSThermoMSFileReader(Thread):
     *  Noise threshould will break the mass_spec.process_mass_spec() if the method in the
     MassSpecSetting class is set to something other than Relative Abundance
     (it needs to be fixed to work with all methods)
-    '''
+    """
 
     def __init__(self, file_location):
 
         Thread.__init__(self)
 
-        self.thermo_Library = CreateObject('MSFileReader.XRawfile')
+        self.thermo_Library = CreateObject("MSFileReader.XRawfile")
 
         self.thermo_Library.open(file_location)
 
@@ -45,10 +46,12 @@ class ImportLCMSThermoMSFileReader(Thread):
         self.file_location = file_location
 
     @property
-    def initial_scan_number(self): return self._initial_scan_number
+    def initial_scan_number(self):
+        return self._initial_scan_number
 
     @property
-    def final_scan_number(self): return self._final_scan_number
+    def final_scan_number(self):
+        return self._final_scan_number
 
     def check_scan(self, scan):
 
@@ -61,7 +64,9 @@ class ImportLCMSThermoMSFileReader(Thread):
             self._initial_scan_number = start_scan_number
         else:
             raise Exception(
-                "startscan and finalscan should be less than %s" % self.get_scans_numbers())
+                "startscan and finalscan should be less than %s"
+                % self.get_scans_numbers()
+            )
 
     @final_scan_number.setter
     def final_scan_number(self, final_scan_number):
@@ -70,17 +75,19 @@ class ImportLCMSThermoMSFileReader(Thread):
             self._final_scan_number = final_scan_number
         else:
             raise Exception(
-                "startscan and finalscan should be less than %s" % self.get_scans_numbers())
+                "startscan and finalscan should be less than %s"
+                % self.get_scans_numbers()
+            )
 
     def run(self):
-       
+
         d_parameters = InputParameters.d_parms(self.file_location)
         self.get_mass_spectra(d_parameters)
 
         # return self.LCMS
 
     def check_load_sucess(self):
-        ''' 0 if successful; otherwise, see Error Codes on MSFileReader Manual '''
+        """ 0 if successful; otherwise, see Error Codes on MSFileReader Manual """
         if self.res == 0:
 
             self.break_it = False
@@ -95,19 +102,19 @@ class ImportLCMSThermoMSFileReader(Thread):
         e.g.  ['FTMS', '-', 'p', 'NSI', 'Full', 'ms', '[200.00-1000.00]']
         """
         str_filter = BSTR(None)
-        error = self.thermo_Library.GetFilterForScanNum(
-            scan_number, byref(str_filter))
+        error = self.thermo_Library.GetFilterForScanNum(scan_number, byref(str_filter))
         if error:
-            raise IOError("scan %i GetFilterForScanNum error : %s" %
-                          (scan_number, str(error)))
+            raise IOError(
+                "scan %i GetFilterForScanNum error : %s" % (scan_number, str(error))
+            )
         else:
             return str(str_filter.value).split()
 
     def check_full_scan(self, scan_number):
-       
+
         scan_mode_symbol = self.get_filter_for_scan_num(scan_number)[4]
-        
-        return scan_mode_symbol == 'Full'
+
+        return scan_mode_symbol == "Full"
 
     def get_polarity_mode(self, scan_number):
 
@@ -143,14 +150,18 @@ class ImportLCMSThermoMSFileReader(Thread):
         # charge = scans_labels[5]
 
         array_noise_std = (numpy.array(noise) - numpy.array(base_noise)) / 3
-        l_signal_to_noise = numpy.array(magnitude)/array_noise_std
+        l_signal_to_noise = numpy.array(magnitude) / array_noise_std
 
         d_parameter["baselise_noise"] = numpy.average(array_noise_std)
-        
-        d_parameter["baselise_noise_std"] =  numpy.average(array_noise_std)
-        
-        data_dict = {"m/z": mz, "Abundance": magnitude,
-                     "Resolving Power": rp, "S/N": l_signal_to_noise}
+
+        d_parameter["baselise_noise_std"] = numpy.average(array_noise_std)
+
+        data_dict = {
+            "m/z": mz,
+            "Abundance": magnitude,
+            "Resolving Power": rp,
+            "S/N": l_signal_to_noise,
+        }
 
         return data_dict
 
@@ -174,15 +185,19 @@ class ImportLCMSThermoMSFileReader(Thread):
         nChannels = c_long(0)
         bUniformTime = c_long(False)
         dFrequency = c_double(0.0)
-        self.thermo_Library.GetScanHeaderInfoForScanNum(nScanNumber,
-                                                        nPackets, dRetantionTime,
-                                                        dLowMass,
-                                                        dHighMass, dTIC,
-                                                        dBasePeakMass,
-                                                        dBasePeakIntensity,
-                                                        nChannels,
-                                                        bUniformTime,
-                                                        dFrequency)
+        self.thermo_Library.GetScanHeaderInfoForScanNum(
+            nScanNumber,
+            nPackets,
+            dRetantionTime,
+            dLowMass,
+            dHighMass,
+            dTIC,
+            dBasePeakMass,
+            dBasePeakIntensity,
+            nChannels,
+            bUniformTime,
+            dFrequency,
+        )
 
         return dRetantionTime.value, dTIC.value
 
@@ -190,19 +205,20 @@ class ImportLCMSThermoMSFileReader(Thread):
 
         IsProfileScan = c_long()
         error = self.thermo_Library.IsProfileScanForScanNum(
-            c_long(scan_number), byref(IsProfileScan))
+            c_long(scan_number), byref(IsProfileScan)
+        )
         if error:
             raise IOError("IsProfileScanForScanNum error :", error)
-        #print (IsProfileScan.value, bool(1))
+        # print (IsProfileScan.value, bool(1))
         return bool(IsProfileScan.value)
 
     def get_mass_spectra(self, d_parms):
-        
+
         # Each_Mass_Spectrum = namedtuple('each_mass_spectrum', ['mass_list', 'abundance_list', 'retention_time', 'scan_number', 'tic_number'])
-        
+
         if self.check_load_sucess():
-            
-            '''get number of scans'''
+
+            """get number of scans"""
 
             list_Tics = list()
 
@@ -210,25 +226,27 @@ class ImportLCMSThermoMSFileReader(Thread):
 
             list_scans = list()
 
-            '''key = scan_number or retention time'''
-            #print(self.initial_scan_number, self.final_scan_number)
-            for scan_number in range(self.initial_scan_number, self.final_scan_number+1):
-                
+            """key = scan_number or retention time"""
+            # print(self.initial_scan_number, self.final_scan_number)
+            for scan_number in range(
+                self.initial_scan_number, self.final_scan_number + 1
+            ):
+                print(scan_number)
                 # scan_number = scan_number + 1
 
                 "only import FULL scans and Profile Mode, it ignores all others"
 
-                if self.check_full_scan(scan_number) :
-                    
-                   if self.is_profile_scan_for_scan_num(scan_number):
-                        
-                        d_parms["label"] = "Thermo_Profile"
+                if self.check_full_scan(scan_number):
 
-                        d_parms["polarity"] = self.get_polarity_mode(
-                            scan_number)
+                    if self.is_profile_scan_for_scan_num(scan_number):
+
+                        d_parms["label"] = Labels.thermo_centroid
+
+                        d_parms["polarity"] = self.get_polarity_mode(scan_number)
 
                         d_parms["rt"], TIC = self.get_ScanHeaderInfoForScanNum(
-                            scan_number)
+                            scan_number
+                        )
 
                         d_parms["scan_number"] = scan_number
 
@@ -240,8 +258,8 @@ class ImportLCMSThermoMSFileReader(Thread):
 
                         data_dict = self.get_data(scan_number, d_parms)
                         data = DataFrame(data_dict)
-                        mass_spec = MassSpecProfile(data, d_parms)
-                        #mass_spec.process_mass_spec()
+                        mass_spec = MassSpecCentroid(data, d_parms)
+                        # mass_spec.process_mass_spec()
                         self.LCMS.add_mass_spectrum_for_scan(mass_spec)
 
             # return each_mass_spectrum, list_Tics, array(list_RetentionTimeSeconds)
@@ -250,10 +268,10 @@ class ImportLCMSThermoMSFileReader(Thread):
             self.LCMS.set_scans_number_list(list_scans)
 
     def get_lc_ms_class(self):
-        '''get_lc_ms_class method should only be used when using this class as a Thread, 
-        otherwise use the run() method to return the LCMS class'''
+        """get_lc_ms_class method should only be used when using this class as a Thread, 
+        otherwise use the run() method to return the LCMS class"""
 
-        if self.LCMS.get_mass_spec_by_scan_number(0):
+        if self.LCMS.get_mass_spec_by_scan_number(self._initial_scan_number):
             return self.LCMS
         else:
             raise Exception("returning a empty LCMS class")

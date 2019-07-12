@@ -1,34 +1,29 @@
-'''
+"""
 Created on Jun 12, 2019
-'''
-
-
-
+"""
 from enviroms.emsl.yec.mass_spectra.calc.LC_Calc import LC_Calculations
-
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 25, 2019"
 
-
 class LCMSBase(LC_Calculations):
-    '''
+    """
     classdocs
-    '''
+    """
 
     def __init__(self, sample_name):
-        '''
+        """
         Constructor
-        '''
+        """
         self.sample_name = sample_name
         self.retention_time_list = []
         self.scans_number_list = []
         self.tic_list = []
 
         self.ms = {}
-        '''
+        """
         key is scan number; value is MassSpectrum Class
-        '''
+        """
 
     def add_mass_spectrum_for_scan(self, mass_spec):
 
@@ -40,10 +35,11 @@ class LCMSBase(LC_Calculations):
 
     def set_tic_list_from_data(self):
 
-        self.set_tic_list([self.ms.get(i).get_sumed_peak_height()
-                           for i in self.get_scans_number()])
+        self.set_tic_list(
+            [self.ms.get(i).get_sumed_peak_height() for i in self.get_scans_number()]
+        )
 
-        #self.set_tic_list([self.ms.get(i).get_sumed_signal_to_noise() for i in self.get_scans_number()])
+        # self.set_tic_list([self.ms.get(i).get_sumed_signal_to_noise() for i in self.get_scans_number()])
 
     def set_retention_time_from_data(self):
 
@@ -84,4 +80,3 @@ class LCMSBase(LC_Calculations):
 
         self.tic_list = lista
 
-    

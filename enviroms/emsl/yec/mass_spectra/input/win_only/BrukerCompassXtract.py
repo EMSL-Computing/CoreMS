@@ -13,20 +13,13 @@ from enviroms.emsl.yec.mass_spectrum.factory.MassSpectrumClasses import MassSpec
 __author__ = "Yuri E. Corilo"
 __date__ = "July 10, 2019"
 
-
-
-
-
-
-
 class ImportLCMSBrukerCompassXtract(Thread):
-
     def __init__(self, file_location):
 
         Thread.__init__(self)
 
-        '''Set up the COM object interface'''
-        self.Bruker_Library = CreateObject('EDAL.MSAnalysis')
+        """Set up the COM object interface"""
+        self.Bruker_Library = CreateObject("EDAL.MSAnalysis")
 
         self.res = self.Bruker_Library.Open(file_location)
 
@@ -41,10 +34,12 @@ class ImportLCMSBrukerCompassXtract(Thread):
         self.file_location = file_location
 
     @property
-    def initial_scan_number(self): return self._initial_scan_number
+    def initial_scan_number(self):
+        return self._initial_scan_number
 
     @property
-    def final_scan_number(self): return self._final_scan_number
+    def final_scan_number(self):
+        return self._final_scan_number
 
     def check_scan(self, scan):
 
@@ -57,7 +52,9 @@ class ImportLCMSBrukerCompassXtract(Thread):
             self._initial_scan_number = initial_scan_number
         else:
             raise Exception(
-                "startscan and finalscan should be less than %s" % self.get_scans_numbers())
+                "startscan and finalscan should be less than %s"
+                % self.get_scans_numbers()
+            )
 
     @final_scan_number.setter
     def final_scan_number(self, final_scan_number):
@@ -66,7 +63,9 @@ class ImportLCMSBrukerCompassXtract(Thread):
             self._final_scan_number = final_scan_number
         else:
             raise Exception(
-                "startscan and finalscan should be less than %s" % self.get_scans_numbers())
+                "startscan and finalscan should be less than %s"
+                % self.get_scans_numbers()
+            )
 
     def get_scans_numbers(self):
 
@@ -93,7 +92,7 @@ class ImportLCMSBrukerCompassXtract(Thread):
             raise IOError("Could not read mass spectrum polarity mode")
 
     def check_load_sucess(self):
-        ''' 0 if successful; otherwise, see Error Codes '''
+        """ 0 if successful; otherwise, see Error Codes """
 
         if self.res == 0:
 
@@ -128,14 +127,13 @@ class ImportLCMSBrukerCompassXtract(Thread):
             tics_array = [0]
 
         return tics_array
-    
+
     @staticmethod
-    
     def get_data(spectra, scan):
-        '''init_variable_from_get_spectrums
+        """init_variable_from_get_spectrums
         # massList set up later
         #retention_time = spectrum.RetentionTime
-        '''
+        """
 
         spectrum = spectra[scan]
 
@@ -145,8 +143,12 @@ class ImportLCMSBrukerCompassXtract(Thread):
 
         # index_to_cut = self.find_index_of_mass(1200, masslist[0])
 
-        data_dict = {"m/z": array(masslist[0]), "Abundance": array(masslist[1]),
-                     "Resolving Power": None, "S/N": None}
+        data_dict = {
+            "m/z": array(masslist[0]),
+            "Abundance": array(masslist[1]),
+            "Resolving Power": None,
+            "S/N": None,
+        }
 
         return data_dict
 
@@ -167,37 +169,36 @@ class ImportLCMSBrukerCompassXtract(Thread):
 
         list_scans = list()
 
-        for scan_number in range(self.initial_scan_number, self.final_scan_number+1):
-            
+        for scan_number in range(self.initial_scan_number, self.final_scan_number + 1):
+
             if spectra[scan_number].MSMSStage == 1:
-                #this label needs to go inside a encapsulation class for consistence
+                # this label needs to go inside a encapsulation class for consistence
                 d_parms["label"] = "Bruker_Profile"
 
-                d_parms["polarity"] = self.get_polarity_mode(
-                    spectra[scan_number])
+                d_parms["polarity"] = self.get_polarity_mode(spectra[scan_number])
 
-                d_parms["rt"] = list_RetentionTimeSeconds[scan_number-1]
+                d_parms["rt"] = list_RetentionTimeSeconds[scan_number - 1]
 
                 d_parms["scan_number"] = scan_number
 
                 list_scans.append(scan_number)
 
                 data_dict = self.get_data(spectra, scan_number)
-                
+
                 data = DataFrame(data_dict)
                 mass_spec = MassSpecProfile(data, d_parms)
                 mass_spec.process_mass_spec()
                 self.LCMS.add_mass_spectrum_for_scan(mass_spec)
-                
+
         self.LCMS.set_retention_time_list(list_RetentionTimeSeconds)
         self.LCMS.set_tic_list(list_Tics)
         self.LCMS.set_scans_number_list(list_scans)
-        #return each_mass_spectrum
-    
+        # return each_mass_spectrum
+
     def get_lc_ms_class(self):
-        '''get_lc_ms_class method should only be used when using this class as a Thread, 
-        otherwise use the run() method to return the LCMS class'''
-        
+        """get_lc_ms_class method should only be used when using this class as a Thread, 
+        otherwise use the run() method to return the LCMS class"""
+
         if self.LCMS.get_mass_spec_by_scan_number(self._initial_scan_number):
             return self.LCMS
         else:

@@ -5,7 +5,6 @@ Created on Jun 24, 2019
 '''
 from enviroms.emsl.yec.encapsulation.constant.Constants import Atoms
 
-
 class MolecularFormulaCalc(object):
     
     def _calc_theoretical_mz(self):

@@ -135,25 +135,21 @@ class PeakPicking(object):
         
         for current_index in indexes: 
             
-            if self.label == 'Frequency':                                                                        
+            if self.label == Labels.bruker_frequency:                                                               
                 
                 exp_mz_centroid, freq_centr, intes_centr = self.find_apex_fit_quadratic(mass, abund, freq, current_index)
                 peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
                 s2n = intes_centr/self.baselise_noise_std
-                
-            elif self.label == 'Thermo_Profile': 
-
-                peak_resolving_power = self.resolving_power[current_index] 
-                exp_mz_centroid, freq_centr, intes_centr = self.find_apex_fit_quadratic(mass, abund, freq, current_index)
-                s2n = self.stn[current_index]
-
-            elif self.label == 'Bruker_Profile': 
+            
+            elif self.label == Labels.bruker_profile: 
 
                 peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
                 exp_mz_centroid, freq_centr, intes_centr = self.find_apex_fit_quadratic(mass, abund, freq, current_index)
                 s2n = intes_centr/self.baselise_noise_std
 
-            self.add_mspeak(self.polarity, exp_mz_centroid, abund[current_index], peak_resolving_power, s2n, current_index, exp_freq=freq_centr)
+            else: raise Exception("Label '%s' not recognized inside : %s" % (self.label, self.__str__()))
+            
+            self.add_mspeak(self.polarity, exp_mz_centroid, abund[current_index] , peak_resolving_power, s2n, current_index, exp_freq=freq_centr)
     
     def get_threshold(self, intes):
         

@@ -11,8 +11,8 @@ class Labels:
     thermo_profile = "Thermo_Profile"
     bruker_frequency = "Bruker_Frequency"
     midas_frequency = "Midas_Frequency"
-    centroid = "Centroid"
-    
+    thermo_centroid = "Thermo_Centroid"
+
 class Atoms:
     
     electron_mass = 0.0005485
