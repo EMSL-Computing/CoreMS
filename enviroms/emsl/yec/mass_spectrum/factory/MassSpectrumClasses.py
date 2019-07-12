@@ -230,7 +230,7 @@ class MassSpecfromFreq(MassSpecBase):
 
         else:
 
-        self._exp_mz = flip(self._f_to_mz())
+            self._exp_mz = flip(self._f_to_mz())
 
     def process_mass_spec(self):
 
