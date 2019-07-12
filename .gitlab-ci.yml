@@ -37,7 +37,7 @@ test-job:
     - python
   script:
     - ls .
-    - python -c python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('win_only/__init__.py')]"
+    - python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('win_only/__init__.py')]"
     - python setup.py test
     #- pip install tox flake8 pytest  # you can also use tox
     #- flake8 --exclude=venv* --statistics
