@@ -3,7 +3,7 @@ Created on Jun 24, 2019
 
 @author: eber373
 '''
-from enviroms.emsl.yec.encapsulation.constant.Constants import Constants
+from enviroms.emsl.yec.encapsulation.constant.Constants import Atoms
 
 
 class MolecularFormulaCalc(object):
@@ -18,9 +18,9 @@ class MolecularFormulaCalc(object):
                 
                 if each_atom != "IonType" and each_atom != 'HC':
                     
-                    mass = mass + Constants.atomic_masses[each_atom]  *  self._d_molecular_formula.get(each_atom)
+                    mass = mass + Atoms.atomic_masses[each_atom]  *  self._d_molecular_formula.get(each_atom)
                     
-            return mass + ((-self.ion_charge) * Constants.electron_mass)
+            return mass + ((-self.ion_charge) * Atoms.electron_mass)
                     
                     
         else:
@@ -58,7 +58,7 @@ class MolecularFormulaCalc(object):
             for atom in self._d_molecular_formula.keys():
                 if atom != "IonType":
                     n_atom = int(self._d_molecular_formula.get(atom))
-                    valencia = Constants.atoms_valence.get(atom)
+                    valencia = Atoms.atoms_valence.get(atom)
                     if valencia > 0 and valencia is not None:
                         #print atom, valencia, n_atom, individual_dbe
                         individual_dbe = individual_dbe + (n_atom * (valencia - 2))
