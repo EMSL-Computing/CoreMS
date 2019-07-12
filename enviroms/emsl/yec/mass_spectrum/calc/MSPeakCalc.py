@@ -3,7 +3,7 @@ Created on Jun 14, 2019
 
 @author: eber373
 '''
-from enviroms.emsl.yec.encapsulation.constant.Constants import Constants
+from enviroms.emsl.yec.encapsulation.constant.Constants import Atoms
 
 
 class MassSpecPeakCalculation(object):
@@ -16,7 +16,7 @@ class MassSpecPeakCalculation(object):
         '''
         mass = 0
         for atom in dict_base.keys():
-            mass = mass + Constants.atomic_masses.get(atom) * dict_base.get(atom)
+            mass = mass + Atoms.atomic_masses.get(atom) * dict_base.get(atom)
         
         kendrick_mass = (int(mass)/mass)*self.exp_mz
         
