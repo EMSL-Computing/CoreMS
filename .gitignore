@@ -16,3 +16,4 @@ build_complexity.bat
 .vscode/  
 dist/  
 enviroms.egg-info/  
+data/

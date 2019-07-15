@@ -1,6 +1,8 @@
 FROM python:3
 WORKDIR /home/enviroms/
-COPY  . /home/enviroms/
+#VOLUME  . /home/enviroms/
+
+#COPY  . /home/enviroms/
 RUN pip install virtualenv
 RUN virtualenv mypython
 RUN python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('win_only/__init__.py')]"

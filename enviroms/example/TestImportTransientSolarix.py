@@ -1,4 +1,4 @@
-import pickle, sys
+import pickle, sys, os
 
 sys.path.append(".")
 from enviroms.emsl.yec.transient.input.BrukerSolarix import ReadBrukerSolarix
@@ -9,14 +9,19 @@ __date__ = "Jun 19, 2019"
 if __name__ == "__main__":
     
     # from enviroms.emsl.yec.structure.input.MidasDatFile import ReadMidasDatFile
-    filelocation = "C:\\Users\\eber373\\Desktop\\data\\20190616_WK_ESFA_0pt2mgml_ESI_Neg_0pt8sFID_000001.d\\"
-    filelocation = "C:\\Users\\eber373\\Desktop\\data\\20190205_WK_SRFA_opt_000001.d\\"
+    directory = os.path.join(os.getcwd(), "data/")
 
+    #file_name = os.path.normcase("20190616_WK_ESFA_0pt2mgml_ESI_Neg_0pt8sFID_000001.d/")
+    file_name = os.path.normcase("20190205_WK_SRFA_opt_000001.d/")
+
+    file_location = directory + file_name
+    
+    #setting for signal processing
     apodization_method = "Hanning"
     number_of_truncations = 0
     number_of_zero_fills = 1
 
-    bruker_reader = ReadBrukerSolarix(filelocation)
+    bruker_reader = ReadBrukerSolarix(file_location)
 
     bruker_transient = bruker_reader.get_transient()
 

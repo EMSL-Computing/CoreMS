@@ -10,19 +10,17 @@ __date__ = "Jul 02, 2019"
 
 if __name__ == "__main__":
 
-    directory = os.path.join(os.getcwd(), "res/")
-    # filename_ESFA = "20190616_WK_ESFA_0pt2mgml_ESI_Neg_0pt8sFID_000001.d"
-    # filename_SRFA = "20190205_WPK_SRFA_opt_000001.d"
-
-    file_name_ESFA_txt = (
-        directory + "20190616_WK_ESFA_0pt2mgml_ESI_Neg_1pt4sFID_000001.ascii"
-    )
-
-    full_file_path = file_name_ESFA_txt
-
+    directory = os.path.join(os.getcwd(), "data/")
+    
+    file_name = "20190616_WK_ESFA_0pt2mgml_ESI_Neg_1pt4sFID_000001.ascii"
+    
+    file_location = directory + file_name
+   
+    #polariy need to be set or read from the file
     polariy = -1
 
-    mass_list_reader = Read_MassList(full_file_path, polariy, delimiter="  ")
+    #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
+    mass_list_reader = Read_MassList(file_location, polariy, delimiter="  ")
 
     mass_spectrum = mass_list_reader.get_mass_spectrum(auto_process=True)
 

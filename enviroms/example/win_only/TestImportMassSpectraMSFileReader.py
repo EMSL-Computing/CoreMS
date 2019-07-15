@@ -1,7 +1,7 @@
 import sys
 sys.path.append(".")
-from enviroms.emsl.yec.encapsulation.settings.ProcessingSetting import (MassSpectrumSetting)
-from enviroms.emsl.yec.mass_spectra.input.win_only.ThermoMSFileReader import (ImportLCMSThermoMSFileReader)
+from enviroms.emsl.yec.encapsulation.settings.ProcessingSetting import MassSpectrumSetting
+from enviroms.emsl.yec.mass_spectra.input.win_only.ThermoMSFileReader import ImportLCMSThermoMSFileReader
 
 if __name__ == "__main__":
 
@@ -9,8 +9,9 @@ if __name__ == "__main__":
 
     lcms_reader = ImportLCMSThermoMSFileReader(file_location)
 
+    #setting the threshould method
     MassSpectrumSetting.threshold_method = "signal_noise"
-
+    
     all_scans = lcms_reader.get_scans_numbers()
 
     print("There are a total of %i scans" % all_scans)
@@ -22,7 +23,7 @@ if __name__ == "__main__":
 
     """to use the thread
     lcms_reader.start()
-    do something 
+    do something
     lcms_reader.join()
     lcms = lcms_reader.get_lcms"""
 

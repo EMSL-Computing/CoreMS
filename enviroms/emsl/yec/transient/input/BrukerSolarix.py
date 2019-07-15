@@ -46,7 +46,14 @@ class ReadBrukerSolarix(object):
 
         self.fix_freq_limits(d_params)
 
-        dt = dtype("l")
+        from sys import platform
+        
+        if platform == "win32":
+            # Windows...
+            dt = dtype("l")
+        else:
+            dt = dtype("i")
+
         data = fromfile(self.transient_data_filename, dtype=dt)
         # print(number_data_points)
 
