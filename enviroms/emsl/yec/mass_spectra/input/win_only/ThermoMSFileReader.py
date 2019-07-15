@@ -8,6 +8,7 @@ from enviroms.emsl.yec.mass_spectrum.factory.MassSpectrumClasses import MassSpec
 from enviroms.emsl.yec.encapsulation.constant.Constants import Labels
 from pandas import DataFrame
 from threading import Thread
+import multiprocessing
 import numpy
 
 __author__ = "Yuri E. Corilo"
@@ -222,7 +223,7 @@ class ImportLCMSThermoMSFileReader(Thread):
         return bool(IsProfileScan.value)
 
     def _import_mass_spectra(self, d_parms, auto_process=True):
-
+        results = []
         # Each_Mass_Spectrum = namedtuple('each_mass_spectrum', ['mass_list', 'abundance_list', 'retention_time', 'scan_number', 'tic_number'])
 
         if self.check_load_sucess():
@@ -266,12 +267,20 @@ class ImportLCMSThermoMSFileReader(Thread):
                         list_scans.append(scan_number)
 
                         data_dict = self.get_data(scan_number, d_parms)
+
                         data = DataFrame(data_dict)
+                        
+                        #results.append((data, d_parms))
+                        
                         mass_spec = MassSpecCentroid(data, d_parms, auto_process=auto_process)
-                        # mass_spec.process_mass_spec()
+                        
                         self.LCMS.add_mass_spectrum_for_scan(mass_spec)
 
-            # return each_mass_spectrum, list_Tics, array(list_RetentionTimeSeconds)
+            #pool = multiprocessing.Pool(5)
+            #result = pool.starmap(MassSpecCentroid, results)
+            #for ms in result:
+            #self.LCMS.add_mass_spectrum_for_scan(ms)
+            
             self.LCMS.set_retention_time_list(list_RetentionTimeSeconds)
             self.LCMS.set_tic_list(list_Tics)
             self.LCMS.set_scans_number_list(list_scans)

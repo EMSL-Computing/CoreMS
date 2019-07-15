@@ -3,10 +3,8 @@ import pickle, sys
 sys.path.append(".")
 from enviroms.emsl.yec.transient.input.BrukerSolarix import ReadBrukerSolarix
 
-
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 19, 2019"
-
 
 if __name__ == "__main__":
     
@@ -32,8 +30,8 @@ if __name__ == "__main__":
 
     print(mass_spec.mspeaks[0].exp_mz, mass_spec.mspeaks[-1].exp_mz)
 
-    with open("test.pkl", "wb") as file:
-        pickle.dump(bruker_transient, file, protocol=pickle.HIGHEST_PROTOCOL)
+    #with open("test.pkl", "wb") as file:
+    #    pickle.dump(bruker_transient, file, protocol=pickle.HIGHEST_PROTOCOL)
 
     # transient = pickle.load( open( 'test.pkl', "rb" ) )
     # do_something

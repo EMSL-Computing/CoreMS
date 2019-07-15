@@ -14,6 +14,8 @@ __author__ = "Yuri E. Corilo"
 __date__ = "July 10, 2019"
 
 class ImportLCMSBrukerCompassXtract(Thread):
+    '''class docs'''
+    
     def __init__(self, file_location):
 
         Thread.__init__(self)
@@ -159,7 +161,7 @@ class ImportLCMSBrukerCompassXtract(Thread):
         '''
 
         d_parameters = InputParameters.d_parms(self.file_location)
-        self.get_mass_spectra(d_parameters)
+        self._import_mass_spectra(d_parameters)
 
         # return LCMS
     

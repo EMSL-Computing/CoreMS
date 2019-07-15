@@ -80,3 +80,4 @@ class LCMSBase(LC_Calculations):
 
         self.tic_list = lista
 
+    
