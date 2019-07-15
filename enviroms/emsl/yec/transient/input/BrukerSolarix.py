@@ -13,8 +13,8 @@ from numpy import genfromtxt, fromstring, dtype, fromfile
 from os import path
 from xml.dom import minidom
 
-class ReadBrukerSolarix(object):
 
+class ReadBrukerSolarix(object):
     def __init__(self, d_directory_location):
 
         self.d_directory_location = d_directory_location
@@ -27,8 +27,7 @@ class ReadBrukerSolarix(object):
             self.parameter_filename_location = self.locate_file(
                 d_directory_location, "apexAcquisition.method"
             )
-            self.transient_data_filename = path.join(
-                d_directory_location, "fid")
+            self.transient_data_filename = path.join(d_directory_location, "fid")
 
             if not path.isfile(self.transient_data_filename):
 
@@ -41,16 +40,11 @@ class ReadBrukerSolarix(object):
                 % (d_directory_location)
             )
 
-    def __new__(cls, d_directory_location):
-
-        cls.__init__(cls, d_directory_location)
-        return cls.read_file(cls)
-
-    def read_file(self):
+    def get_transient(self):
 
         d_params = self.parse_parameters(self.parameter_filename_location)
 
-        self.fix_freq_limits(self, d_params)
+        self.fix_freq_limits(d_params)
 
         dt = dtype("l")
         data = fromfile(self.transient_data_filename, dtype=dt)
@@ -59,15 +53,14 @@ class ReadBrukerSolarix(object):
         output_parameters = dict()
 
         output_parameters["label"] = "Bruker_Frequency"
-            
+
         output_parameters["Aterm"] = float(d_params.get("ML1"))
 
         output_parameters["Bterm"] = float(d_params.get("ML2"))
 
         output_parameters["Cterm"] = float(d_params.get("ML3"))
 
-        output_parameters["exc_high_freq"] = float(
-            d_params.get("EXC_Freq_High"))
+        output_parameters["exc_high_freq"] = float(d_params.get("EXC_Freq_High"))
 
         output_parameters["exc_low_freq"] = float(d_params.get("EXC_Freq_Low"))
 
@@ -181,7 +174,8 @@ class ReadBrukerSolarix(object):
                                                 element.childNodes[1].getAttribute(
                                                     "value"
                                                 )
-                                            ) == "Negative"
+                                            )
+                                            == "Negative"
                                         ):
                                             parameter_dict["Polarity"] = -1
                                         else:
@@ -196,8 +190,7 @@ class ReadBrukerSolarix(object):
                         for element in param.childNodes:
                             if element.nodeName == "value":
                                 try:
-                                    parameter_value = str(
-                                        element.firstChild.toxml())
+                                    parameter_value = str(element.firstChild.toxml())
                                     # print v
                                 except:
                                     parameter_value = None

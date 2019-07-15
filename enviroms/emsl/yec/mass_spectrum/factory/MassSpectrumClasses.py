@@ -227,7 +227,7 @@ class MassSpecProfile(MassSpecBase):
     class docs
     """
 
-    def __init__(self, dataframe, d_params, **kwargs):
+    def __init__(self, dataframe, d_params, auto_process=True):
         """
         method docs
         """
@@ -236,7 +236,8 @@ class MassSpecProfile(MassSpecBase):
         exp_mz = dataframe["m/z"].values
         abundance = dataframe["Abundance"].values
         super().__init__(exp_mz, abundance, d_params)
-        self.process_mass_spec()
+        if auto_process:
+            self.process_mass_spec()
 
     @overrides(MassSpecBase)
     def process_mass_spec(self):
@@ -245,7 +246,7 @@ class MassSpecProfile(MassSpecBase):
 
 
 class MassSpecfromFreq(MassSpecBase):
-    def __init__(self, frequency_domain, magnitude, d_params, **kwargs):
+    def __init__(self, frequency_domain, magnitude, d_params, auto_process=True):
         """
         method docs
         """
@@ -255,7 +256,8 @@ class MassSpecfromFreq(MassSpecBase):
         self._frequency_domain = frequency_domain
         self._set_mz_domain()
         """ use this call to automatically process data as the object is created, Setting need to be changed before initiating the class to be in effect"""
-        self.process_mass_spec()
+        if auto_process:
+            self.process_mass_spec()
 
     def _set_mz_domain(self):
 
@@ -274,7 +276,7 @@ class MassSpecCentroid(MassSpecBase):
     classdocs
     """
 
-    def __init__(self, dataframe, d_params, **kwargs):
+    def __init__(self, dataframe, d_params, auto_process=True):
         """
 
         """
@@ -285,15 +287,19 @@ class MassSpecCentroid(MassSpecBase):
         #    exp_mz_centroid, magnitude_centroid)
 
         # print( exp_mz)
+
         self.label = d_params.get("label")
+        self.dataframe = dataframe
         super().__init__(exp_mz_centroid, magnitude_centroid, d_params)
 
         self._set_parameters_objects(d_params)
-        self.process_mass_spec(dataframe)
-
         if self.label == Labels.thermo_centroid:
             self._baselise_noise = d_params.get("baselise_noise")
             self._baselise_noise_std = d_params.get("baselise_noise_std")
+
+        if auto_process:
+            self.process_mass_spec(dataframe)
+            del self.dataframe
 
     def __simulate_profile__data__(self, exp_mz_centroid, magnitude_centroid):
         """needs theoretical resolving power calculation and define peak shape

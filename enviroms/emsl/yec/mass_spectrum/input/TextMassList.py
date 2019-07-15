@@ -33,31 +33,25 @@ class Read_MassList(object):
         self.delimiter  = delimiter
         
         self.centroid  = centroid
-         
-        
     
-    def __new__(cls,file_location, polarity, delimiter ):
-        
-        cls.__init__(cls, file_location, polarity, delimiter=delimiter)
-        return cls.read_file(cls)
     
-    def read_file(self):
+    def get_mass_spectrum(self, auto_process=True):
         
         #delimiter = "  " or " " or  "," or "\t" etc  
         
         dataframe = read_csv(self.file_location, delimiter=self.delimiter, engine='python')
         
-        self.check_columns(self, dataframe.columns)
+        self.check_columns(dataframe.columns)
             
-        self.clean_data_frame(self, dataframe)
+        self.clean_data_frame(dataframe)
         
         dataframe.rename(columns=self.name_dict, inplace=True)
  
-        output_parameters = self.get_output_parameters(self, self.polarity)
+        output_parameters = self.get_output_parameters(self.polarity)
             
         if self.centroid:
             
-            return MassSpecCentroid(dataframe, output_parameters)
+            return MassSpecCentroid(dataframe, output_parameters, auto_process=auto_process)
 
     def get_output_parameters(self, polarity):
         

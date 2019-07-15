@@ -153,13 +153,23 @@ class ImportLCMSBrukerCompassXtract(Thread):
         return data_dict
 
     def run(self):
+        '''thread will automatically process mass spectrum
+        use the get_mass_spectra class to import without processing mass spectrum
+        use get_lcms to acess resulting class
+        '''
 
         d_parameters = InputParameters.d_parms(self.file_location)
         self.get_mass_spectra(d_parameters)
 
         # return LCMS
+    
+    def get_mass_spectra(self,auto_process=True):
 
-    def get_mass_spectra(self, d_parms):
+        d_parameters = InputParameters.d_parms(self.file_location)
+        self._import_mass_spectra(d_parameters, auto_process=auto_process)
+        return self.LCMS
+
+    def _import_mass_spectra(self, d_parms, auto_process=True):
 
         spectra = self.Bruker_Library.MSSpectrumCollection
 
@@ -186,7 +196,7 @@ class ImportLCMSBrukerCompassXtract(Thread):
                 data_dict = self.get_data(spectra, scan_number)
 
                 data = DataFrame(data_dict)
-                mass_spec = MassSpecProfile(data, d_parms)
+                mass_spec = MassSpecProfile(data, d_parms, auto_process=auto_process)
                 mass_spec.process_mass_spec()
                 self.LCMS.add_mass_spectrum_for_scan(mass_spec)
 
@@ -195,7 +205,7 @@ class ImportLCMSBrukerCompassXtract(Thread):
         self.LCMS.set_scans_number_list(list_scans)
         # return each_mass_spectrum
 
-    def get_lc_ms_class(self):
+    def get_lcms(self):
         """get_lc_ms_class method should only be used when using this class as a Thread, 
         otherwise use the run() method to return the LCMS class"""
 

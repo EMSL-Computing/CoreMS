@@ -79,12 +79,21 @@ class ImportLCMSThermoMSFileReader(Thread):
                 % self.get_scans_numbers()
             )
 
+    
     def run(self):
+        '''thread will automatically process mass spectrum
+        use the get_mass_spectra class to import without processing mass spectrum'''
 
         d_parameters = InputParameters.d_parms(self.file_location)
-        self.get_mass_spectra(d_parameters)
+        self._import_mass_spectra(d_parameters)
 
         # return self.LCMS
+
+    def get_mass_spectra(self,auto_process=True):
+
+        d_parameters = InputParameters.d_parms(self.file_location)
+        self._import_mass_spectra(d_parameters, auto_process=auto_process)
+        return self.LCMS
 
     def check_load_sucess(self):
         """ 0 if successful; otherwise, see Error Codes on MSFileReader Manual """
@@ -212,7 +221,7 @@ class ImportLCMSThermoMSFileReader(Thread):
         # print (IsProfileScan.value, bool(1))
         return bool(IsProfileScan.value)
 
-    def get_mass_spectra(self, d_parms):
+    def _import_mass_spectra(self, d_parms, auto_process=True):
 
         # Each_Mass_Spectrum = namedtuple('each_mass_spectrum', ['mass_list', 'abundance_list', 'retention_time', 'scan_number', 'tic_number'])
 
@@ -258,7 +267,7 @@ class ImportLCMSThermoMSFileReader(Thread):
 
                         data_dict = self.get_data(scan_number, d_parms)
                         data = DataFrame(data_dict)
-                        mass_spec = MassSpecCentroid(data, d_parms)
+                        mass_spec = MassSpecCentroid(data, d_parms, auto_process=auto_process)
                         # mass_spec.process_mass_spec()
                         self.LCMS.add_mass_spectrum_for_scan(mass_spec)
 
@@ -267,7 +276,7 @@ class ImportLCMSThermoMSFileReader(Thread):
             self.LCMS.set_tic_list(list_Tics)
             self.LCMS.set_scans_number_list(list_scans)
 
-    def get_lc_ms_class(self):
+    def get_lcms(self):
         """get_lc_ms_class method should only be used when using this class as a Thread, 
         otherwise use the run() method to return the LCMS class"""
 
