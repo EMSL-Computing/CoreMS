@@ -28,7 +28,7 @@ setup(
     packages= setuptools.find_packages(".", exclude= ["example", "*win_only"]),
     exclude_package_data={'.': ["example", "*.win_only"]},
     #include_package_data=True,
-    install_requires=["pandas", "numpy", "matplotlib"],
+    install_requires=["pandas", "numpy", "matplotlib", "scipy"],
     #entry_points={
     #    "console_scripts": [
     #        "realpython=reader.__main__:main",
