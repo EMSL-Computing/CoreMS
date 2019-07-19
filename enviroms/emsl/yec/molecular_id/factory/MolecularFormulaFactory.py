@@ -53,7 +53,7 @@ class MolecularFormula(MolecularFormulaCalc):
     def confidence_score(self): return self._calc_confidence_score() 
         
     @property
-    def isotopologues(self): return self._cal_isotopologues(self._d_molecular_formula)
+    def isotopologues(self): return [MolecularFormulaIsotopologue(mf) for mf in self._cal_isotopologues(self._d_molecular_formula)]
     
     def atoms_qnt(self,atom): 
         if atom in self._d_molecular_formula:
@@ -157,86 +157,94 @@ class MolecularFormula(MolecularFormulaCalc):
             (needs resolving power calculation to be fully operational)        
             last update on 07-19-2019, Yuri E. Corilo 
         
-        *   This version is still beta, please double-check your results;
+        *   This version is still beta, the ration heavy_iso/mono_iso still needs work when dealing with two or more heavy isotopes
+            please double-check your results;
             expect it to break when adding non-conventional atoms (not yet tested)
             it needs speed optimization 
         """
         
-        iso_threo_ratio = 1000
         iteration_limit = 10
-        
+        iso_threo_ratio = 1000
         list_isotopologues = []
         #formula_dict = self._d_molecular_formula
         
         # this list set a limit for the isotopolgue iterations
         list_of_possible_carbon_13 = range(1,iteration_limit,1)
-        
+        #print(formula_dict.keys())
         for atom in formula_dict.keys():
+            
             #remove hidrogen and iontype label
-            if  atom is not "H" and atom is not 'IonType':
+            if  atom != 'IonType' and atom != "H":
                 number_atoms = formula_dict.get(atom)
                 #remove atomic mass label
-                atom_symbol = "".join([i for i in atom if not i.isdigit()])
+                atom_symbol = ''.join([i for i in atom if not i.isdigit()])
                 #get all isotopes labels;
                 # most abundance is the mono isotope with the atomic symbol(i.e., no atomic mass label);
                 #dict key returning 'C': [13C, 14C, etc]
                 isotopes_name_labels = Atoms.isotopes.get(atom_symbol)
                 #check for the existence of isotopes at the Atoms class #this way is not ideal;it needs to be changed
-                if len(isotopes_name_labels) > 1:
-                    #isotopes_name_labels[0] = FullName
-                    #isotopes_name_labels[0] = Tuple with Full Label i.e, 34S, 13C etc
-                    #print(isotopes_name_labels)
-                    
-                    for isotopo_label in isotopes_name_labels[1]:
+                
+                if isotopes_name_labels:
+                    if len(isotopes_name_labels) > 1:
+                        #isotopes_name_labels[0] = FullName
+                        #isotopes_name_labels[0] = Tuple with Full Label i.e, 34S, 13C etc
+                        #print(isotopes_name_labels)
                         
-                        index = 0
-                        
-                        while iso_threo_ratio > 0.01:
+                        for isotopo_label in isotopes_name_labels[1]:
+                            #print("isotopo_label", isotopo_label)
+                            index = 0
                             
-                            iso_proba = Atoms.isotopic_abundance.get(isotopo_label)
-                            qnt_iso_atom = list_of_possible_carbon_13[index] 
-                            index = index + 1
-                            
-                            p12 = binom.pmf(0, number_atoms, iso_proba)
-                            p13 = binom.pmf(qnt_iso_atom, number_atoms, iso_proba)
-                            
-                            iso_threo_ratio = p13 / p12
+                            while iso_threo_ratio > 0.01:
+                                
+                                iso_proba = Atoms.isotopic_abundance.get(isotopo_label)
+                                qnt_iso_atom = list_of_possible_carbon_13[index] 
+                                index = index + 1
+                                
+                                p12 = binom.pmf(0, number_atoms, iso_proba)
+                                p13 = binom.pmf(qnt_iso_atom, number_atoms, iso_proba)
+                                
+                                iso_threo_ratio = p13 / p12
+                                
+                                #print("iso_threo_ratio", iso_threo_ratio)
+                                if iso_threo_ratio > 0.01:
+                                    
+                                    #creates the new molecular formula dict
+                                    new_formula_dict = deepcopy(formula_dict)
+                                    #exlude atom so it wont run again on the recursive call
+                                    del new_formula_dict[atom] 
+                                    
+                                    #recursive call
+                                    recursive_isotopologues_list = self._cal_isotopologues(new_formula_dict)
+                                    
+                                    #add both mono and isotopologue atoms 
+                                    new_formula_dict[isotopo_label] = qnt_iso_atom
+                                    new_formula_dict[atom] = formula_dict.get(atom) - qnt_iso_atom
+                                    if new_formula_dict[atom] == 0:
+                                        del new_formula_dict[atom]
+                                    
+                                    #add both mono and isotopologue atoms for recursive call
+                                    for item_dict in recursive_isotopologues_list:
+                                        item_dict[isotopo_label] = qnt_iso_atom
+                                        item_dict[atom] = formula_dict.get(atom) - qnt_iso_atom
+                                        if item_dict[atom] == 0:
+                                            del item_dict[atom]
 
-                            if iso_threo_ratio > 0.01:
-                                
-                                #creates the new molecular formula dict
-                                new_formula_dict = deepcopy(formula_dict)
-                                #exlude atom so it wont run again on the recursive call
-                                del new_formula_dict[atom] 
-                                
-                                #recursive call
-                                recursive_isotopologues_list = self._cal_isotopologues(new_formula_dict)
-                                
-                                #add both mono and isotopologue atoms 
-                                new_formula_dict[isotopo_label] = qnt_iso_atom
-                                new_formula_dict[atom] = formula_dict.get(atom) - qnt_iso_atom
-                                if new_formula_dict[atom] == 0:
-                                    del new_formula_dict[atom]
-                                
-                                #add both mono and isotopologue atoms for recursive call
-                                for item_dict in recursive_isotopologues_list:
-                                    item_dict[isotopo_label] = qnt_iso_atom
-                                    item_dict[atom] = formula_dict.get(atom) - qnt_iso_atom
-                                    if item_dict[atom] == 0:
-                                        del item_dict[atom]
-
-                                list_isotopologues.append(new_formula_dict)
-                                #sum up results
-                                list_isotopologues = list_isotopologues + recursive_isotopologues_list
-                            
-        return list_isotopologues 
+                                    list_isotopologues.append(new_formula_dict)
+                                    #sum up results
+                                    recursive_isotopologues_list
+                                    #list_isotopologues = list_isotopologues + recursive_isotopologues_list
+                                    list_isotopologues.extend(x for x in recursive_isotopologues_list if x not in list_isotopologues)
+                
+                    iso_threo_ratio = 1000
+        
+        return  list_isotopologues
                 
 class MolecularFormulaIsotopologue(MolecularFormula):
         
     '''
     classdocs
     '''
-    def __init__(self, _d_molecular_formula, iso_threo_ratio, exp_mz=None):
+    def __init__(self, _d_molecular_formula, iso_threo_ratio=1, exp_mz=None):
         
         self._d_molecular_formula = _d_molecular_formula
         self.isotopologue_ratio = iso_threo_ratio

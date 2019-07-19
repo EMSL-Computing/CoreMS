@@ -3,16 +3,22 @@ Created on May 17, 2017
 
 @author: zuiur
 '''
-import sys
-sys.path.append(".")
-import csv, time
+import csv
 import itertools
+import pprint
+import sys
+import time
 from multiprocessing import freeze_support
 from operator import itemgetter
+from pprint import pprint
 from scipy.stats import norm
-from enviroms.emsl.yec.molecular_id.calc.MolecularLookupTable import MolecularCombinations
+
+sys.path.append(".")
+from enviroms.emsl.yec.molecular_id.calc.MolecularLookupTable import  MolecularCombinations
+
 
 def create_lookup_table():
+    
     min_dbe = 0
 
     max_dbe = 50
@@ -35,17 +41,18 @@ def create_lookup_table():
     ionCharge = -1
 
     #this needs to be optimized by the data
-    usedAtoms = {'C': (1, 100), 'H': (4, 200), 'O': (0, 20), 'N': (0, 2), 'S': (0, 2)}
+    usedAtoms = {'C': (1, 100), 'H': (4, 200), 'O': (0, 10), 'N': (0, 2), 'S': (0, 2)}
     dict_molecular_formulas = MolecularCombinations().runworker(usedAtoms, ionCharge, ionization_type, isProtonated, isRadical, use_pah_line_rule, min_dbe, max_dbe)
 
     print("dict_nominal_mass_listformulae", len(dict_molecular_formulas))
     print(dict_molecular_formulas.keys())
     print(dict_molecular_formulas.get("O2").keys())
-    for molecular_formulas in dict_molecular_formulas.get("O2").get(201):
+    for molecular_formulas in dict_molecular_formulas.get("O10").get(401):
         print( molecular_formulas.class_label)
         print( molecular_formulas.to_string)
         print( molecular_formulas.mz_theor)
-        print(molecular_formulas._cal_isotopologues())
+        for isotopologue in molecular_formulas.isotopologues:
+            print("isotopologue", isotopologue.to_string)
         #print( molecular_formulas.atoms)
         #print( molecular_formulas.ion_type)
         #print( molecular_formulas.ion_charge)

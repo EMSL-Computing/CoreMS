@@ -15,7 +15,7 @@ class MolecularCombinations:
      
     '''
     runworker()
-    Returns a dictioray of molecular formula objs inside a dict nominal masses and ion type
+    Returns a dictionary of molecular formula objs inside a dict nominal masses and ion type
         {iontype:{
             classes:{
                 nominal_mass:{
@@ -25,8 +25,9 @@ class MolecularCombinations:
         }
     note:
     waiting for python 3.8 release (set 2019)  to have share memory between subprocesses,
-    by then we need to pass the result dict and all settings into shared memory
-    the current serialization is adding 1.5s secounds for each ion type iteration'''
+    by then we need to pass the resulting dict and all settings into shared memory
+    the current serialization is adding 1.5s seconds for each ion type iteration
+    '''
 
     def runworker(self, usedAtoms, ionCharge, ionization_type, isProtonated, isRadical, use_pah_line_rule, min_dbe, max_dbe):
 
@@ -37,9 +38,9 @@ class MolecularCombinations:
         number_of_process = multiprocessing.cpu_count()
         #number_of_process = psutil.cpu_count(logical=False)
 
-        print("number_of_process", number_of_process)
+        print('number_of_process', number_of_process)
 
-        print("classes_list", len(classes_list))
+        print('classes_list', len(classes_list))
 
         '''exited with code=0 in 6.9 seconds windows and 5.9 Linux with 12 logical CPUs'''
         p = multiprocessing.Pool(number_of_process)
@@ -67,24 +68,24 @@ class MolecularCombinations:
 
         result = {}
 
-        min_c, max_c = usedAtoms.get("C")
-        min_h, max_h = usedAtoms.get("H")
+        min_c, max_c = usedAtoms.get('C')
+        min_h, max_h = usedAtoms.get('H')
 
-        min_h_fix = self.get_fixed_initial_number_of_hidrogen(min_h, "odd")
+        min_h_fix = self.get_fixed_initial_number_of_hidrogen(min_h, 'odd')
         possible_c = [c for c in range(min_c, max_c + 1)]
 
         possible_h = [h for h in range(min_h_fix, max_h + 2, 2)]
 
         list_products = [i for i in itertools.product(possible_c, possible_h)]
 
-        result["odd"] = list_products
+        result['odd'] = list_products
         
-        min_h_fix = self.get_fixed_initial_number_of_hidrogen(min_h, "even")
+        min_h_fix = self.get_fixed_initial_number_of_hidrogen(min_h, 'even')
         possible_h = [h for h in range(min_h, max_h + 2, 2)]
 
         list_products = [i for i in itertools.product(possible_c, possible_h)]
 
-        result["even"] = list_products
+        result['even'] = list_products
 
         return result
 
@@ -106,24 +107,24 @@ class MolecularCombinations:
         return new_list2    
     
     def get_classes_in_order(self, usedAtoms, ionCharge, ionization_type):
-        """ structure is 
-            ("HC", {"HC": 1})"""
+        ''' structure is 
+            ('HC', {'HC': 1})'''
 
-        min_n, max_n = usedAtoms.get("N")
-        min_o, max_o = usedAtoms.get("O")
-        min_s, max_s = usedAtoms.get("S")
+        min_n, max_n = usedAtoms.get('N')
+        min_o, max_o = usedAtoms.get('O')
+        min_s, max_s = usedAtoms.get('S')
 
         possible_n = [c for c in range(min_n, max_n + 1)]
         possible_o = [h for h in range(min_o, max_o + 1)]
         possible_s = [c for c in range(min_s, max_s + 1)]
 
-        atomos_in_ordem = ["N", "O", "S"]
+        atomos_in_ordem = ['N', 'O', 'S']
 
         classe_in_orderm = []
 
         all_atomos_tuples = itertools.product(possible_n, possible_o,
                                             possible_s)
-        """
+        '''
         this part is for extra atoms
         
         for selected_atomo in Recal_Assign_Settings.selection_of_atomos.keys():
@@ -137,11 +138,11 @@ class MolecularCombinations:
             all_atomos_tuples = [all_atomos_combined[0] + (all_atomos_combined[1],) for all_atomos_combined in
                                 all_atomos_tuples]
             atomos_in_ordem.append(selected_atomo)
-        """
+        '''
 
         for all_atomos_tuple in all_atomos_tuples:
 
-            classe_str = ""
+            classe_str = ''
             classe_dict = {}
             all_atomos_tuple = all_atomos_tuple
 
@@ -150,7 +151,7 @@ class MolecularCombinations:
                     classe_str = (classe_str +
                                 atomos_in_ordem[each_atomos_index] +
                                 str(all_atomos_tuple[each_atomos_index]) +
-                                " ")
+                                ' ')
                     classe_dict[
                         atomos_in_ordem[each_atomos_index]] = all_atomos_tuple[
                             each_atomos_index]
@@ -162,7 +163,7 @@ class MolecularCombinations:
 
             elif len(classe_str) == 0:
 
-                classe_in_orderm.append(("HC", {"HC": 1}))
+                classe_in_orderm.append(('HC', {'HC': 1}))
 
         return classe_in_orderm
 
@@ -170,7 +171,7 @@ class MolecularCombinations:
 
         remaining_h = min_h % 2
         
-        if odd_even == "even":
+        if odd_even == 'even':
             
             if remaining_h == 0: return remaining_h
             
@@ -201,7 +202,7 @@ class CombinationsWorker:
 
         if isProtonated:
 
-            ion_type = "DE_OR_PROTONATED"
+            ion_type = 'DE_OR_PROTONATED'
 
             par_ou_impar = self.get_h_impar_ou_par(ion_type, class_dict)
 
@@ -213,7 +214,7 @@ class CombinationsWorker:
 
         if isRadical:
 
-            ion_type = "RADICAL"
+            ion_type = 'RADICAL'
 
             par_ou_impar = self.get_h_impar_ou_par(ion_type, class_dict)
 
@@ -240,7 +241,7 @@ class CombinationsWorker:
 
             c_number = cada_possible[0]
             h_number = cada_possible[1]
-            o_number = class_dict.get("O")
+            o_number = class_dict.get('O')
             continuar = True
 
             if (float(h_number) / c_number) >= 0.3:
@@ -257,14 +258,14 @@ class CombinationsWorker:
                     for each_atom in class_dict.keys():
                         formula_dict[each_atom] = class_dict.get(each_atom)
 
-                    formula_dict["C"] = c_number
-                    formula_dict["H"] = h_number
-                    formula_dict["IonType"] = ion_type
+                    formula_dict['C'] = c_number
+                    formula_dict['H'] = h_number
+                    formula_dict['IonType'] = ion_type
 
                     molecular_formula = MolecularFormula(
                         formula_dict, ion_charge)
                     DBE = molecular_formula.dbe
-                    nominal_mass = molecular_formula.nominal_theoretical_mz
+                    nominal_mass = molecular_formula.mz_nominal_theo
 
                     # one second overhead to create and serialize the molecular formula object
                     #DBE = self.get_DBE(formula_dict, 1)
@@ -292,8 +293,8 @@ class CombinationsWorker:
 
     def get_h_impar_ou_par(self, ion_type, class_dict):
 
-        TEM_NITROGENIO = "N" in class_dict.keys()
-        TEM_PHOSPOROUS = "P" in class_dict.keys()
+        TEM_NITROGENIO = 'N' in class_dict.keys()
+        TEM_PHOSPOROUS = 'P' in class_dict.keys()
 
         number_of_halogen = self.get_total_halogen_atoms(class_dict)
 
@@ -315,36 +316,36 @@ class CombinationsWorker:
 
         if TEM_NITROGENIO and TEM_PHOSPOROUS:
 
-            number_of_n = class_dict.get("N") + class_dict.get("P")
+            number_of_n = class_dict.get('N') + class_dict.get('P')
             remaining_n = number_of_n % 2
 
         elif TEM_NITROGENIO and not TEM_PHOSPOROUS:
 
-            number_of_n = class_dict.get("N")
+            number_of_n = class_dict.get('N')
             remaining_n = number_of_n % 2
 
         elif TEM_PHOSPOROUS and not TEM_NITROGENIO:
 
-            number_of_n = class_dict.get("P")
+            number_of_n = class_dict.get('P')
             remaining_n = number_of_n % 2
 
         else:
 
             remaining_n = -1
 
-        if ion_type == "DE_OR_PROTONATED":
+        if ion_type == 'DE_OR_PROTONATED':
             # tem nitrogenio e eh impar hidrogenio tem que comecar com par
             if remaining_n > 0.0:
                 if TEM_NITROGENIO or TEM_PHOSPOROUS and remaining_n > 0:
 
                     if TEM_HALOGEN:
                         if remaining_halogen == 0:
-                            return "even"
+                            return 'even'
                         else:
-                            return "odd"
+                            return 'odd'
                     else:
 
-                        return "even"
+                        return 'even'
 
             if remaining_n == 0.0:
 
@@ -352,23 +353,23 @@ class CombinationsWorker:
 
                     if TEM_HALOGEN:
                         if remaining_halogen == 0:
-                            return "odd"
+                            return 'odd'
                         else:
-                            return "even"
+                            return 'even'
                     else:
-                        return "odd"
+                        return 'odd'
 
             else:
 
                 if TEM_HALOGEN:
                     if remaining_halogen == 0:
-                        return "odd"
+                        return 'odd'
                     else:
-                        return "even"
+                        return 'even'
                 else:
-                    return "odd"
+                    return 'odd'
 
-        elif ion_type == "RADICAL":
+        elif ion_type == 'RADICAL':
             # tem nitrogenio e eh impar hidrogenio tem que comecar com impar
 
             if remaining_n > 0.0:
@@ -376,11 +377,11 @@ class CombinationsWorker:
 
                     if TEM_HALOGEN:
                         if remaining_halogen == 0:
-                            return "odd"
+                            return 'odd'
                         else:
-                            return "even"
+                            return 'even'
                     else:
-                        return "odd"
+                        return 'odd'
 
             elif remaining_n == 0.0:
 
@@ -388,27 +389,27 @@ class CombinationsWorker:
 
                     if TEM_HALOGEN:
                         if remaining_halogen == 0:
-                            return "even"
+                            return 'even'
                         else:
-                            return "odd"
+                            return 'odd'
                     else:
-                        return "even"
+                        return 'even'
 
             else:
 
                 if TEM_HALOGEN:
                     if remaining_halogen == 0:
-                        return "even"
+                        return 'even'
                     else:
-                        return "odd"
+                        return 'odd'
                 else:
-                    return "even"
+                    return 'even'
 
     def get_dbe_limits(self, classe_dict, use_pah_line_rule, formula_dict, min_dbe, max_dbe):
 
         sum_hetero_atomos = 0
         for i in classe_dict.keys():
-            if i != "IonType":
+            if i != 'IonType':
 
                 sum_hetero_atomos = sum_hetero_atomos + classe_dict.get(i)
 
@@ -423,17 +424,17 @@ class CombinationsWorker:
 
             minDBE = 0
 
-            maxDBE = (int(formula_dict.get("C")) + sum_hetero_atomos) * 0.9
+            maxDBE = (int(formula_dict.get('C')) + sum_hetero_atomos) * 0.9
 
         return maxDBE, minDBE
 
     @staticmethod
     def get_total_halogen_atoms(class_dict):
 
-            atoms = ["F", "Cl", "Br", "I"]
+            atoms = ['F', 'Cl', 'Br', 'I']
 
             total_number = 0
-            """
+            '''
             for atom in atoms:
 
                 TEM_HALOGEN = in class_dict.keys(atom)
@@ -444,5 +445,5 @@ class CombinationsWorker:
 
                     if valencia == 1:
                         total_number = total_number + class_dict.get(atom)
-            """
+            '''
             return total_number    
