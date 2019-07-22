@@ -7,7 +7,6 @@ from enviroms.emsl.yec.mass_spectrum.input.TextMassList import Read_MassList
 __author__ = "Yuri E. Corilo"
 __date__ = "Jul 02, 2019"
 
-
 if __name__ == "__main__":
 
     directory = os.path.join(os.getcwd(), "data/")

@@ -1,8 +1,6 @@
-'''
-Created on May 17, 2017
+__author__ = "Yuri E. Corilo"
+__date__ = "Jul 22, 2019"
 
-@author: zuiur
-'''
 import csv
 import itertools
 import pprint
@@ -44,9 +42,6 @@ def create_lookup_table():
     usedAtoms = {'C': (1, 100), 'H': (4, 200), 'O': (0, 10), 'N': (0, 2), 'S': (0, 2)}
     dict_molecular_formulas = MolecularCombinations().runworker(usedAtoms, ionCharge, ionization_type, isProtonated, isRadical, use_pah_line_rule, min_dbe, max_dbe)
 
-    print("dict_nominal_mass_listformulae", len(dict_molecular_formulas))
-    print(dict_molecular_formulas.keys())
-    print(dict_molecular_formulas.get("O2").keys())
     for molecular_formulas in dict_molecular_formulas.get("O10").get(401):
         print( molecular_formulas.class_label)
         print( molecular_formulas.to_string)
@@ -56,8 +51,6 @@ def create_lookup_table():
         #print( molecular_formulas.atoms)
         #print( molecular_formulas.ion_type)
         #print( molecular_formulas.ion_charge)
-
-        
             
 if __name__ == "__main__":
     

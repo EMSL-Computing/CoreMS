@@ -1,9 +1,9 @@
-'''
-Created on Jun 24, 2019
+__author__ = "Yuri E. Corilo"
+__date__ = "Jun 24, 2019"
 
-@author: eber373
-'''
 from enviroms.emsl.yec.encapsulation.constant.Constants import Atoms
+from IsoSpecPy import IsoSpecPy
+from numpy import exp
 
 class MolecularFormulaCalc:
     
@@ -66,6 +66,103 @@ class MolecularFormulaCalc:
                         continue
             
             return 1 + (0.5 * individual_dbe)
+    
+    @staticmethod
+    def _cal_isotopologues(formula_dict):
+        
+        """
+        primary function to look for isotopologues based on a monoisotopic molecular formula
+        INPUT {'C':10, 'H', 20, 'O', 2, etc} Atomic labels need to follow Atoms class atoms labels
+        
+        This function needs to be expanded to include the calculation of resolving power
+        and plot the results.
+        
+        *   use this function at runtime during the molecular identification algorithm
+            only when a positive ID is observed to the monoisotopic ion
+        
+        *   use this function to simulate mass spectrum 
+            (needs resolving power calculation to be fully operational)        
+            last update on 07-19-2019, Yuri E. Corilo 
+        
+        *   expect it to break when adding non-conventional atoms (not yet tested)
+            
+        *   it needs speed optimization update: (Using IsoSpeccPy, a C Library (fast and acurate)) 
+            https://github.com/MatteoLacki/IsoSpec
+        """
+        #this value needs to be calculated from the mass spec dinamic range
+        min_relative_abundance = 0.01
+        
+        cut_off_to_IsoSpeccPy = 1 - min_relative_abundance
+        isotopologue_and_pro_ratio_tuples = []
+        atoms_labels = (atom for atom in formula_dict.keys() if atom != 'IonType' and atom != "H")
+        atoms_count = []
+        masses_list_tuples = []
+        props_list_tuples = []
+        all_atoms_list = []
+        for atom_label in atoms_labels:
+            #print( atom_label)
+            
+            if not len(Atoms.isotopes.get(atom_label))>1:
+                'This atom_label has no heavy isotope'
+                atoms_count.append(formula_dict.get(atom_label))
+                mass = Atoms.atomic_masses.get(atom_label)
+                prop = Atoms.isotopic_abundance.get(atom_label)
+                masses_list_tuples.append([mass])
+                props_list_tuples.append([prop])
+                all_atoms_list.append(atom_label)
+                
+            else:
+                
+                isotopoes_label_list = Atoms.isotopes.get(atom_label)[1]
+            
+                if len(isotopoes_label_list) > 1:
+                    'This atom_label has two or more heavy isotope'
+                    isotopoes_labels = [i for i in isotopoes_label_list]
+                else:
+                    'This atom_label only has one heavy isotope'
+                    isotopoes_labels = [isotopoes_label_list[0]]
+                
+                #all_atoms_list.extend(isotopoes_labels) 
+                isotopoes_labels = [atom_label] + isotopoes_labels
+                
+                all_atoms_list.extend(isotopoes_labels)
+                #print(all_labels)
+                masses = [Atoms.atomic_masses.get(atom_label) for atom_label in isotopoes_labels]
+                props = [Atoms.isotopic_abundance.get(atom_label) for atom_label in isotopoes_labels]
+                
+                atoms_count.append(formula_dict.get(atom_label))
+                masses_list_tuples.append(masses)
+                props_list_tuples.append(props)
+        
+        #print(all_atoms_list)
+        #print(masses)
+        #print(props) 
+        iso = IsoSpecPy.IsoSpec(atoms_count,masses_list_tuples,props_list_tuples, cut_off_to_IsoSpeccPy )
+        
+        confs = iso.getConfs()
+        
+        masses = confs[0]
+        probs = exp(confs[1])
+        molecular_formulas = confs[2]
+        
+        #print(all_atoms_list)    
+        #print("mass",masses)
+        #print("probs",exp(probs))
+        #print("molecular_formula",molecular_formulas)
+        
+        for isotopologue_index in range(1,len(iso),1):
+            #skip_mono_isotopic 
+            
+            formula_list = molecular_formulas[isotopologue_index]
+            new_formula_dict = dict(zip(all_atoms_list, formula_list))
+            new_formula_dict["IonType"] = formula_dict.get("IonType")
+            
+            prop_mono_iso = probs[0]
+            prop_ratio = probs[isotopologue_index]/prop_mono_iso
+            
+            isotopologue_and_pro_ratio_tuples.append((new_formula_dict,prop_ratio))
+        
+        return isotopologue_and_pro_ratio_tuples        
     
     
     

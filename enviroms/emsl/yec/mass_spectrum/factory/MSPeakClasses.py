@@ -88,3 +88,12 @@ class MSPeak(MassSpecPeakCalculation):
         else:
 
             self.founded_isotopologos[object_found.qnt_c13] = [object_found]
+
+class ICRMassPeak(MSPeak):
+    
+    def __init__(*args):
+        
+        super().__init__(*args)
+
+    def threoretical_resolving_power(self):
+        return 0
