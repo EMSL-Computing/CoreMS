@@ -833,7 +833,7 @@ class Atoms:
                 'Be': ['Beryllium'],
                 'B': ['Boron', ['11B']],
                 'C': ['Carbon', ['13C']],
-                'O': ['Oxygen', ['18O']],
+                'O': ['Oxygen', ['18O', '17O']],
                 'S': ['Sulfur', ['34S']],
                 'N': ['Nitrogen', ['15N']],
                 'V': ['Vanadium', ['50V']],

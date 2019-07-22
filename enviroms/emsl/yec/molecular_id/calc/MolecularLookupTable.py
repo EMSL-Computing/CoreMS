@@ -7,8 +7,7 @@ import itertools
 import multiprocessing
 
 
-from enviroms.emsl.yec.molecular_id.factory.MolecularFormulaFactory import \
-    MolecularFormula
+from enviroms.emsl.yec.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
 
 
 class MolecularCombinations:
