@@ -47,7 +47,6 @@ class MolecularFormulaCalc:
         else:
             
             raise Exception("Please set theoretical_mz first")    
-        
     
     def _calc_dbe(self):
             
@@ -134,9 +133,6 @@ class MolecularFormulaCalc:
                 masses_list_tuples.append(masses)
                 props_list_tuples.append(props)
         
-        #print(all_atoms_list)
-        #print(masses)
-        #print(props) 
         iso = IsoSpecPy.IsoSpec(atoms_count,masses_list_tuples,props_list_tuples, cut_off_to_IsoSpeccPy )
         
         confs = iso.getConfs()
@@ -144,11 +140,6 @@ class MolecularFormulaCalc:
         masses = confs[0]
         probs = exp(confs[1])
         molecular_formulas = confs[2]
-        
-        #print(all_atoms_list)    
-        #print("mass",masses)
-        #print("probs",exp(probs))
-        #print("molecular_formula",molecular_formulas)
         
         for isotopologue_index in range(1,len(iso),1):
             #skip_mono_isotopic 
