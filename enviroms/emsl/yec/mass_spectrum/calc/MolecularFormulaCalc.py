@@ -9,6 +9,8 @@ from numpy import exp
 
 class MolecularFormulaCalc:
     
+    def _calc_confidence_score(self):
+        pass
     def _calc_theoretical_mz(self):
         
         if self.ion_charge:

@@ -17,11 +17,13 @@ class MolecularFormula(MolecularFormulaCalc):
         #clear dictionary of atoms with 0 value
         self._d_molecular_formula = {key:val for key, val in _d_molecular_formula.items() if val != 0}
         self._ion_charge = ion_charge
+        self._assigment_mass_error = None
+        self._confidence_score = None
         
         if exp_mz:
             
             self._assigment_mass_error = self._calc_assigment_mass_error(exp_mz)
-            self._confidence_score = False
+            self._confidence_score = self._calc_confidence_score()     
         
     @property
     def O_C(self): return self._d_molecular_formula.get("O")/self._d_molecular_formula.get("C")
@@ -42,7 +44,7 @@ class MolecularFormula(MolecularFormulaCalc):
     def mz_nominal_theo(self): return int(self._calc_theoretical_mz())
 
     @property    
-    def assigment_mass_error(self): return self._assigment_mass_error
+    def mass_error(self): return self._assigment_mass_error
         
     @property
     def ion_type(self): return self._d_molecular_formula.get("IonType")

@@ -64,7 +64,7 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
         for mspeak in self.mspeaks:
 
             mspeak.molecular_formula = formula_dict
-
+   
     def number_average_molecular_weight(self, profile=False):
 
         # mode is profile or centroid data
@@ -76,7 +76,7 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
         else:
 
             return sum(self.exp_mz_centroide*self.abundance_centroid)/sum(self.abundance_centroid)
-
+    
     def weight_average_molecular_weight(self, profile=False):
 
         # implement from MassSpectralPeaks objs

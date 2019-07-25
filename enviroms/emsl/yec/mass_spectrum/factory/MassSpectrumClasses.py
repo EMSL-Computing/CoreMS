@@ -173,7 +173,7 @@ class MassSpecBase(MassSpecCalc):
             pass
         else:
             raise Exception(
-                "mspeaks dictionary is empty, please run find_peaks() first"
+                "mspeaks dictionary is empty, please run process_mass_spec() first"
             )
 
     def filter_by_s2n(self, s2n):
