@@ -14,7 +14,7 @@ from copy import deepcopy
 
 if __name__ == "__main__":
     
-    formula_dict = {'C':10, 'H':0, 'O':10,'Cl':1, 'IonType': 'Radical'}
+    formula_dict = {'C':10, 'H':0, 'O':10,'Cl':2, 'IonType': 'Radical'}
     
     ion_charge = 1 
     formula_obj = MolecularFormula(formula_dict, ion_charge)

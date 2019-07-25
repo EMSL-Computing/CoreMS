@@ -2,6 +2,8 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 24, 2019"
 
 from enviroms.emsl.yec.encapsulation.constant.Constants import Atoms
+#from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSpaceTableSetting
+from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSpaceTableSetting 
 from IsoSpecPy import IsoSpecPy
 from numpy import exp
 
@@ -53,14 +55,19 @@ class MolecularFormulaCalc:
             individual_dbe = 0
             
             for atom in self._d_molecular_formula.keys():
+                
                 if atom != "IonType":
-                    n_atom = int(self._d_molecular_formula.get(atom))
-                    valencia = Atoms.atoms_valence.get(atom)
                     
-                    if valencia is not None:
-                        if valencia > 0 :
-                            #print atom, valencia, n_atom, individual_dbe
-                            individual_dbe = individual_dbe + (n_atom * (valencia - 2))
+                    atom = ''.join([i for i in atom if not i.isdigit()]) 
+                    
+                    n_atom = int(self._d_molecular_formula.get(atom))
+                    
+                    valencia = MolecularSpaceTableSetting.used_atom_valences.get(atom)
+                    #valencia = Atoms.atoms_valence.get(atom)
+                    
+                    if valencia and valencia > 0:
+                        #print atom, valencia, n_atom, individual_dbe
+                        individual_dbe = individual_dbe + (n_atom * (valencia - 2))
                     else:
                         continue
             

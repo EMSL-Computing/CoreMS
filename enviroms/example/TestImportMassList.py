@@ -34,25 +34,25 @@ if __name__ == "__main__":
         mass_spectrum.weight_average_molecular_weight(),
     )
 
-    filtered_mass_peaks = mass_spectrum.filter_by_s2n(100)
+    filtered_mass_spectrum = mass_spectrum.filter_by_s2n(100)
 
-    filtered_mass_spec = filtered_mass_peaks[0]
+    filtered_mass_peak = filtered_mass_spectrum[0]
 
     """
     after assigment
     print('Exp. Mass :',
-          mass_spec_peaks_filtered.exp_mz, 
+          filtered_mass_peak.exp_mz, 
           '\nTheor. Mass :',
-          mass_spec_peaks_filtered.molecular_formula.theoretical_mz,
+          filtered_mass_peak.molecular_formula.theoretical_mz,
           '\nMol. Formula :',
-          mass_spec_peaks_filtered.molecular_formula.to_string(),
+          filtered_mass_peak.molecular_formula.to_string(),
           '\nDBE :',
-          mass_spec_peaks_filtered.molecular_formula.dbe, 
+          filtered_mass_peak.molecular_formula.dbe, 
           '\nH/C :',
-          mass_spec_peaks_filtered.molecular_formula.H_C,
+          filtered_mass_peak.molecular_formula.H_C,
           '\nClass :',
-          mass_spec_peaks_filtered.molecular_formula.heteroatomic_class_label,
+          filtered_mass_peak.molecular_formula.heteroatomic_class_label,
           '\nMass error :',
-          mass_spec_peaks_filtered.molecular_formula.assigment_mass_error
+          filtered_mass_peak.molecular_formula.assigment_mass_error
           )
     """

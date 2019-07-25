@@ -1,7 +1,7 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jul 02, 2019"
 
-class TransientSetting():
+class TransientSetting:
     
     implemented_apodization_function = ["Hamming", "Hanning", "Blackman"]
     

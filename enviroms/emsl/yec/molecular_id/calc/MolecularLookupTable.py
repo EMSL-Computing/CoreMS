@@ -1,14 +1,10 @@
-'''
-Created on May 17, 2017
+__author__ = "Yuri E. Corilo"
+__date__ = "Jul 02, 2019"
 
-@author: zuiur
-'''
 import itertools
 import multiprocessing
-
-
 from enviroms.emsl.yec.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
-
+from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSpaceTableSetting
 
 class MolecularCombinations:
      
@@ -23,16 +19,16 @@ class MolecularCombinations:
             }
         }
     note:
-    waiting for python 3.8 release (set 2019)  to have share memory between subprocesses,
-    by then we need to pass the resulting dict and all settings into shared memory
+    waiting for python 3.8 release (set 2019)  to have share memory between subprocesses;
+    by then we need to pass the resulting dict and all settings into shared memory;
     the current serialization is adding 1.5s seconds for each ion type iteration
     '''
 
-    def runworker(self, usedAtoms, ionCharge, ionization_type, isProtonated, isRadical, use_pah_line_rule, min_dbe, max_dbe):
+    def runworker(self,) :
 
-        c_h_combinations= self.get_c_h_combination(usedAtoms)
+        c_h_combinations= self.get_c_h_combination()
         
-        classes_list = self.get_classes_in_order(usedAtoms, ionCharge, ionization_type)
+        classes_list = self.get_classes_in_order()
 
         number_of_process = multiprocessing.cpu_count()
         #number_of_process = psutil.cpu_count(logical=False)
@@ -43,8 +39,7 @@ class MolecularCombinations:
 
         '''exited with code=0 in 6.9 seconds windows and 5.9 Linux with 12 logical CPUs'''
         p = multiprocessing.Pool(number_of_process)
-        args = [(class_tuple, isProtonated, isRadical, use_pah_line_rule, usedAtoms, 
-                min_dbe, max_dbe, ionCharge, c_h_combinations) for class_tuple in classes_list]
+        args = [(class_tuple, c_h_combinations) for class_tuple in classes_list]
         results = p.map(CombinationsWorker(), args)
 
         '''
@@ -60,11 +55,11 @@ class MolecularCombinations:
         
         return dict(zip(class_list_str, results))
         
-    def get_c_h_combination(self, usedAtoms):
+    def get_c_h_combination(self):
 
         # return dois dicionarios com produto das combinacooes de hidrogenio e carbono
         # para nitrogenio impar e par para radicais e protonados
-
+        usedAtoms = MolecularSpaceTableSetting.usedAtoms
         result = {}
 
         min_c, max_c = usedAtoms.get('C')
@@ -105,40 +100,48 @@ class MolecularCombinations:
 
         return new_list2    
     
-    def get_classes_in_order(self, usedAtoms, ionCharge, ionization_type):
+    def get_classes_in_order(self ):
         ''' structure is 
             ('HC', {'HC': 1})'''
+        
+        usedAtoms = MolecularSpaceTableSetting.usedAtoms 
+        
+        usedAtoms.pop("C")
+        usedAtoms.pop("H")
 
         min_n, max_n = usedAtoms.get('N')
         min_o, max_o = usedAtoms.get('O')
         min_s, max_s = usedAtoms.get('S')
+        min_p, max_p = usedAtoms.get('P')
 
-        possible_n = [c for c in range(min_n, max_n + 1)]
-        possible_o = [h for h in range(min_o, max_o + 1)]
-        possible_s = [c for c in range(min_s, max_s + 1)]
-
-        atomos_in_ordem = ['N', 'O', 'S']
+        possible_n = [n for n in range(min_n, max_n + 1)]
+        possible_o = [o for o in range(min_o, max_o + 1)]
+        possible_s = [s for s in range(min_s, max_s + 1)]
+        possible_p = [p for p in range(min_p, max_p + 1)]
+        
+        atomos_in_ordem = ['N', 'O', 'S', 'P']
 
         classe_in_orderm = []
 
         all_atomos_tuples = itertools.product(possible_n, possible_o,
-                                            possible_s)
-        '''
-        this part is for extra atoms
+                                            possible_s, possible_p)
         
-        for selected_atomo in Recal_Assign_Settings.selection_of_atomos.keys():
-            min_x = Recal_Assign_Settings.selection_of_atomos[selected_atomo][0]
-            max_x = Recal_Assign_Settings.selection_of_atomos[selected_atomo][1]
+        for atomo in atomos_in_ordem:
+            usedAtoms.pop(atomo, None)
+        
+        for selected_atomo, min_max_tuple in usedAtoms.items():
+            
+            min_x = min_max_tuple[0]
+            max_x = min_max_tuple[1]
             # massa =  Recal_Assign_Settings.selection_of_atomos[selected_atomo][2]
 
-            possible_x = [x for x in xrange(min_x, max_x + 1)]
+            possible_x = [x for x in range(min_x, max_x + 1)]
 
             all_atomos_tuples = itertools.product(all_atomos_tuples, possible_x)
             all_atomos_tuples = [all_atomos_combined[0] + (all_atomos_combined[1],) for all_atomos_combined in
                                 all_atomos_tuples]
             atomos_in_ordem.append(selected_atomo)
-        '''
-
+        
         for all_atomos_tuple in all_atomos_tuples:
 
             classe_str = ''
@@ -163,7 +166,7 @@ class MolecularCombinations:
             elif len(classe_str) == 0:
 
                 classe_in_orderm.append(('HC', {'HC': 1}))
-
+        
         return classe_in_orderm
 
     def get_fixed_initial_number_of_hidrogen(self, min_h, odd_even):
@@ -189,11 +192,23 @@ class CombinationsWorker:
 
         return self.get_combinations(*args)  # ,args[1]
 
-    def get_combinations(self, classe_tuple, isProtonated, isRadical,
-                         use_pah_line_rule, usedAtoms, min_dbe, max_dbe,
-                         ionCharge, c_h_combinations,
+    def get_combinations(self, classe_tuple,
+                          c_h_combinations,
                          ):
 
+        usedAtoms = MolecularSpaceTableSetting.usedAtoms
+        
+        min_dbe = MolecularSpaceTableSetting.min_dbe
+
+        max_dbe = MolecularSpaceTableSetting.max_dbe
+
+        use_pah_line_rule = MolecularSpaceTableSetting.use_pah_line_rule
+
+        isRadical = MolecularSpaceTableSetting.isRadical
+
+        isProtonated = MolecularSpaceTableSetting.isProtonated
+
+        ionCharge = MolecularSpaceTableSetting.ionCharge
         self.dict_results = {}
         
         #class_str = classe_tuple[0]
@@ -428,6 +443,7 @@ class CombinationsWorker:
         return maxDBE, minDBE
 
     @staticmethod
+    
     def get_total_halogen_atoms(class_dict):
 
             atoms = ['F', 'Cl', 'Br', 'I']
