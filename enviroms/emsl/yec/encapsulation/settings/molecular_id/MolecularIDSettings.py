@@ -1,6 +1,6 @@
 
 
-class MolecularSpaceTableSetting:
+class MoleculaLookupTableSetting:
     used_atom_valences = {'C': 4,
                         'H': 1,
                         'O': 2,
@@ -21,6 +21,10 @@ class MolecularSpaceTableSetting:
     min_dbe = 0
 
     max_dbe = 50
+
+    min_mz = 500
+
+    max_mz = 1200
 
     use_pah_line_rule = True
 

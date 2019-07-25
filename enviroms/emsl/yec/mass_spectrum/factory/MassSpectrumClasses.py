@@ -32,12 +32,12 @@ class MassSpecBase(MassSpecCalc):
     """
     Mass Spectrum class object with common features and functions
     """
-
     def __init__(self, exp_mz, abundance, d_params, **kwargs):
 
         self._abundance = array(abundance)
         self._exp_mz = array(exp_mz)
-        self.mspeaks = list()
+        
+        self.mspeaks = []
 
         self._set_parameters_objects(d_params)
 
@@ -49,6 +49,38 @@ class MassSpecBase(MassSpecCalc):
         #    if hasattr(self, key):
         #        setattr(self, key, value)
         #        print(key, value)
+
+    def __iter__(self):
+        self.cur = 0
+        return self 
+        
+    def __next__(self):
+        
+        i = self.cur
+        if i >= len(self.mspeaks):
+            raise StopIteration
+        self.cur += 1
+        return self.mspeaks[i] 
+
+    def add_mspeak (self, ion_charge, exp_mz,
+                    abundance,
+                    resolving_power,
+                    signal_to_noise,
+                    massspec_index,
+                    exp_freq=None,
+                ):
+
+        self.mspeaks.append(
+            MSPeak(
+                ion_charge,
+                exp_mz,
+                abundance,
+                resolving_power,
+                signal_to_noise,
+                massspec_index,
+                exp_freq=exp_freq,
+            )
+        )
 
     def _set_parameters_objects(self, d_params):
 
@@ -136,29 +168,6 @@ class MassSpecBase(MassSpecCalc):
     def dir_location(self):
         return self._dir_location
 
-    def add_mspeak(
-        self,
-        ion_charge,
-        exp_mz,
-        abundance,
-        resolving_power,
-        signal_to_noise,
-        massspec_index,
-        exp_freq=None,
-    ):
-
-        self.mspeaks.append(
-            MSPeak(
-                ion_charge,
-                exp_mz,
-                abundance,
-                resolving_power,
-                signal_to_noise,
-                massspec_index,
-                exp_freq=exp_freq,
-            )
-        )
-
     def check_mspeaks(self):
         if self.mspeaks:
             pass
@@ -172,11 +181,6 @@ class MassSpecBase(MassSpecCalc):
         self.check_mspeaks()
         return [mspeak for mspeak in self.mspeaks if mspeak.signal_to_noise > s2n]
 
-    def get_peaks_as_list(self):
-
-        self.check_mspeaks()
-        return list(self.mspeaks)
-
     def get_mz_and_abundance_peaks_tuples(self):
 
         self.check_mspeaks()
@@ -184,6 +188,7 @@ class MassSpecBase(MassSpecCalc):
 
     def find_peaks(self):
         """needs to clear previous results from peak_picking"""
+        del self.mspeaks 
         self.mspeaks = list()
         """then do peak picking"""
         self.do_peak_picking()

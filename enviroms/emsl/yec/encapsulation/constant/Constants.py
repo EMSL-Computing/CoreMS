@@ -8,12 +8,14 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
 class Labels:
+    
     bruker_profile = "Bruker_Profile"
     thermo_profile = "Thermo_Profile"
     bruker_frequency = "Bruker_Frequency"
     midas_frequency = "Midas_Frequency"
     thermo_centroid = "Thermo_Centroid"
-
+    radical_ion = "Radical"
+    de_protonated_ion = "DE_OR_P"
 class Atoms:
 
     electron_mass = 0.0005485

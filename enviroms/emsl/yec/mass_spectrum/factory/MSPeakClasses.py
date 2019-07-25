@@ -2,7 +2,7 @@
 from enviroms.emsl.yec.encapsulation.settings.ProcessingSetting import MassSpecPeakSetting
 from enviroms.emsl.yec.mass_spectrum.calc.MSPeakCalc import MassSpecPeakCalculation
 from enviroms.emsl.yec.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
-    
+
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
@@ -12,7 +12,6 @@ class MSPeak(MassSpecPeakCalculation):
     '''
     classdocs
     '''
-
     def __init__(self, ion_charge, exp_mz, abundance, resolving_power, signal_to_noise, massspec_index, exp_freq=None):
 
         # needed to create the object
@@ -36,17 +35,33 @@ class MSPeak(MassSpecPeakCalculation):
 
         'updated after molecular formula ID'
 
-        self._molecular_formula = None
+        self.molecular_formulas = []
         self._confidence_score = None
 
         self.isotopologue_indexes = []
         self.found_isotopologues = {}
+
+    def __iter__(self):
+        self.cur = 0
+        return self
+
+    def __next__(self):
+
+        i = self.cur
+        if i >= len(self.molecular_formulas):
+            raise StopIteration
+        self.cur += 1
+        return self.molecular_formulas[i]
 
     def change_kendrick_base(self, kendrick_dict_base):
         '''kendrick_dict_base = {"C": 1, "H": 2}'''
         self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(
             kendrick_dict_base)
 
+    def add_molecular_formula(self, formula_dict):
+
+        self.molecular_formulas.append(MolecularFormula(formula_dict,self.ion_charge,self.exp_mz))
+      
     @property
     def kdm(self): return self._kdm
 
@@ -55,45 +70,40 @@ class MSPeak(MassSpecPeakCalculation):
 
     @property
     def nominal_km(self): return self._nominal_km
-
-    @property
-    def molecular_formula(self): return self._molecular_formula
-
+    
     @property
     def is_assigned(self):
 
-        return bool(self.molecular_formula)
-
-    @molecular_formula.setter
-    def molecular_formula(self, formula_dict):
-
-        self._molecular_formula = MolecularFormula(
-            formula_dict, self.ion_charge, self.exp_mz)
-
-        # self._calc_theoretical_mz(formula_dict)
-
-        # self._calc_dbe(formula_dict)
-
-        # self._set_ion_type()
-    def add_found_isotopologue(self, object_found):
-
-        self.isotopologue_indexes.append(object_found.mass_spec_index)
-
-        print(object_found)
-
-        if object_found.qnt_c13 in self.found_isotopologues.keys():
-
-            self.found_isotopologues[object_found.qnt_c13].append([object_found])
-
-        else:
-
-            self.founded_isotopologos[object_found.qnt_c13] = [object_found]
-
-class ICRMassPeak(MSPeak):
+        return bool(self.molecular_formulas)
     
-    def __init__(*args):
+    @property
+    def number_possible_assigments(self,):
         
+        return len(self.molecular_formulas)
+    
+class ICRMassPeak(MSPeak):
+
+    def __init__(self, *args):
+
         super().__init__(*args)
 
     def threoretical_resolving_power(self):
         return 0
+
+class TOFMassPeak(MSPeak):
+
+    def __init__(self, *args):
+
+        super().__init__(*args)
+
+    def threoretical_resolving_power(self):
+        return 0
+
+class OrbiMassPeak(MSPeak):
+
+    def __init__(self, *args):
+
+        super().__init__(*args)
+
+    def threoretical_resolving_power(self):
+        return 0       

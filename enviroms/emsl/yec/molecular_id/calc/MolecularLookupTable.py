@@ -4,7 +4,7 @@ __date__ = "Jul 02, 2019"
 import itertools
 import multiprocessing
 from enviroms.emsl.yec.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
-from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSpaceTableSetting
+from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupTableSetting
 
 class MolecularCombinations:
      
@@ -59,7 +59,7 @@ class MolecularCombinations:
 
         # return dois dicionarios com produto das combinacooes de hidrogenio e carbono
         # para nitrogenio impar e par para radicais e protonados
-        usedAtoms = MolecularSpaceTableSetting.usedAtoms
+        usedAtoms = MoleculaLookupTableSetting.usedAtoms
         result = {}
 
         min_c, max_c = usedAtoms.get('C')
@@ -104,7 +104,7 @@ class MolecularCombinations:
         ''' structure is 
             ('HC', {'HC': 1})'''
         
-        usedAtoms = MolecularSpaceTableSetting.usedAtoms 
+        usedAtoms = MoleculaLookupTableSetting.usedAtoms 
         
         usedAtoms.pop("C")
         usedAtoms.pop("H")
@@ -196,20 +196,25 @@ class CombinationsWorker:
                           c_h_combinations,
                          ):
 
-        usedAtoms = MolecularSpaceTableSetting.usedAtoms
+        usedAtoms = MoleculaLookupTableSetting.usedAtoms
         
-        min_dbe = MolecularSpaceTableSetting.min_dbe
+        min_dbe = MoleculaLookupTableSetting.min_dbe
 
-        max_dbe = MolecularSpaceTableSetting.max_dbe
+        max_dbe = MoleculaLookupTableSetting.max_dbe
 
-        use_pah_line_rule = MolecularSpaceTableSetting.use_pah_line_rule
+        use_pah_line_rule = MoleculaLookupTableSetting.use_pah_line_rule
 
-        isRadical = MolecularSpaceTableSetting.isRadical
+        isRadical = MoleculaLookupTableSetting.isRadical
 
-        isProtonated = MolecularSpaceTableSetting.isProtonated
+        isProtonated = MoleculaLookupTableSetting.isProtonated
 
-        ionCharge = MolecularSpaceTableSetting.ionCharge
-        self.dict_results = {}
+        ionCharge = MoleculaLookupTableSetting.ionCharge
+        
+        min_mz = MoleculaLookupTableSetting.min_mz
+        
+        max_mz = MoleculaLookupTableSetting.max_mz
+        
+        dict_results = {}
         
         #class_str = classe_tuple[0]
         class_dict = classe_tuple[1]
@@ -220,25 +225,27 @@ class CombinationsWorker:
 
             par_ou_impar = self.get_h_impar_ou_par(ion_type, class_dict)
 
-            carbon_hidrogen_combination = c_h_combinations.get(
-                par_ou_impar)
+            carbon_hidrogen_combination = c_h_combinations.get(par_ou_impar)
 
-            self.get_theoretical_formulas_per_class(
-                carbon_hidrogen_combination, ion_type, class_dict, use_pah_line_rule, usedAtoms, min_dbe, max_dbe, ionCharge)
-
+            dict_results_per_ion_type = self.get_theoretical_formulas_per_class(carbon_hidrogen_combination, ion_type, class_dict, 
+                                                    use_pah_line_rule, usedAtoms, min_dbe, max_dbe,
+                                                    min_mz, max_mz, ionCharge)
+            dict_results[ion_type] = dict_results_per_ion_type
+        
         if isRadical:
 
             ion_type = 'RADICAL'
 
             par_ou_impar = self.get_h_impar_ou_par(ion_type, class_dict)
 
-            carbon_hidrogen_combination = c_h_combinations.get(
-                par_ou_impar)
+            carbon_hidrogen_combination = c_h_combinations.get(par_ou_impar)
 
-            self.get_theoretical_formulas_per_class(
-                carbon_hidrogen_combination, ion_type, class_dict, use_pah_line_rule, usedAtoms, min_dbe, max_dbe, ionCharge)
-
-        return self.dict_results
+            dict_results_per_ion_type = self.get_theoretical_formulas_per_class(carbon_hidrogen_combination, ion_type, class_dict, 
+                                                    use_pah_line_rule, usedAtoms, min_dbe, max_dbe, 
+                                                    min_mz, max_mz, ionCharge)
+            dict_results[ion_type] = dict_results_per_ion_type
+        
+        return dict_results
 
     def get_theoretical_formulas_per_class(self,
                                            carbon_hidrogen_combination,
@@ -248,9 +255,12 @@ class CombinationsWorker:
                                            usedAtoms,
                                            min_dbe,
                                            max_dbe,
+                                           min_mz,
+                                           max_mz, 
                                            ion_charge,
                                            ):
        
+        dict_results = {}
         for cada_possible in carbon_hidrogen_combination:
 
             c_number = cada_possible[0]
@@ -276,8 +286,7 @@ class CombinationsWorker:
                     formula_dict['H'] = h_number
                     formula_dict['IonType'] = ion_type
 
-                    molecular_formula = MolecularFormula(
-                        formula_dict, ion_charge)
+                    molecular_formula = MolecularFormula(formula_dict, ion_charge)
                     DBE = molecular_formula.dbe
                     nominal_mass = molecular_formula.mz_nominal_theo
 
@@ -285,7 +294,7 @@ class CombinationsWorker:
                     #DBE = self.get_DBE(formula_dict, 1)
                     #nominal_mass = int(self.getMass(formula_dict, ion_charge))
 
-                    if 200 < nominal_mass < 1200:
+                    if min_mz < nominal_mass < max_mz:
                         maxDBE, minDBE = self.get_dbe_limits(
                             class_dict,
                             use_pah_line_rule,
@@ -295,16 +304,17 @@ class CombinationsWorker:
                         )
 
                         if minDBE <= DBE <= maxDBE:
-                            if nominal_mass in self.dict_results.keys():
+                            
+                            if nominal_mass in dict_results.keys():
 
-                                self.dict_results[nominal_mass].append(
-                                    molecular_formula)
+                                dict_results[nominal_mass].append(molecular_formula)
 
                             else:
 
-                                self.dict_results[nominal_mass] = [
-                                    molecular_formula]
-
+                                dict_results[nominal_mass] = [molecular_formula]
+            
+        return dict_results
+    
     def get_h_impar_ou_par(self, ion_type, class_dict):
 
         TEM_NITROGENIO = 'N' in class_dict.keys()

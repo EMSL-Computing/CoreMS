@@ -25,6 +25,19 @@ class LCMSBase(LC_Calculations):
         key is scan number; value is MassSpectrum Class
         """
 
+    def __iter__(self):
+        self.cur_scan = 0
+        return self 
+        
+    def __next__(self):
+        
+        i = self.cur_scan
+        if i >= len(self.scans_number_list):
+            raise StopIteration
+        self.cur_scan += 1
+        next_scan_number = self.scans_number_list[i] 
+        return self.ms[next_scan_number]
+        
     def add_mass_spectrum_for_scan(self, mass_spec):
 
         self.ms[mass_spec.scan_number] = mass_spec

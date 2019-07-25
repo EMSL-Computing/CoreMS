@@ -3,7 +3,7 @@ __date__ = "Jun 24, 2019"
 
 from enviroms.emsl.yec.encapsulation.constant.Constants import Atoms
 #from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSpaceTableSetting
-from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSpaceTableSetting 
+from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupTableSetting
 from IsoSpecPy import IsoSpecPy
 from numpy import exp
 
@@ -62,7 +62,7 @@ class MolecularFormulaCalc:
                     
                     n_atom = int(self._d_molecular_formula.get(atom))
                     
-                    valencia = MolecularSpaceTableSetting.used_atom_valences.get(atom)
+                    valencia = MoleculaLookupTableSetting.used_atom_valences.get(atom)
                     #valencia = Atoms.atoms_valence.get(atom)
                     
                     if valencia and valencia > 0:
