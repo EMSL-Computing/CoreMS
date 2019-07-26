@@ -1,7 +1,11 @@
+__author__ = "Yuri E. Corilo"
+__date__ = "Jul 22, 2019"
+
 import sys
 sys.path.append(".")
 from enviroms.emsl.yec.encapsulation.settings.ProcessingSetting import MassSpectrumSetting
 from enviroms.emsl.yec.mass_spectra.input.win_only.ThermoMSFileReader import ImportLCMSThermoMSFileReader
+
 
 if __name__ == "__main__":
 
