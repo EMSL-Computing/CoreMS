@@ -7,7 +7,7 @@ from enviroms.emsl.yec.encapsulation.constant.Constants import Atoms
 from enviroms.emsl.yec.molecular_id.calc.MolecularLookupTable import  MolecularCombinations
 from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupTableSetting
 from enviroms.emsl.yec.mass_spectrum.input.TextMassList import Read_MassList
-from TestMolecularTableLookup import create_lookup_table
+from enviroms.example.TestMolecularTableLookup import create_lookup_table
 
 def creat_mass_spectrum():
 
