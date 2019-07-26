@@ -50,17 +50,13 @@ class MassSpecBase(MassSpecCalc):
         #        setattr(self, key, value)
         #        print(key, value)
 
-    def __iter__(self):
-        self.cur = 0
-        return self 
+    def __len__(self):
         
-    def __next__(self):
+        return len(self.mspeaks)
         
-        i = self.cur
-        if i >= len(self.mspeaks):
-            raise StopIteration
-        self.cur += 1
-        return self.mspeaks[i] 
+    def __getitem__(self, position):
+        
+        return self.mspeaks[position]
 
     def add_mspeak (self, ion_charge, exp_mz,
                     abundance,

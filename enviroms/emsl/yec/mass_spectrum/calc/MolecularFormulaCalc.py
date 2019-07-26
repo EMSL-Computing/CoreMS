@@ -10,7 +10,9 @@ from numpy import exp
 class MolecularFormulaCalc:
     
     def _calc_confidence_score(self):
-        pass
+        raise NotImplementedError
+        return 0
+    
     def _calc_theoretical_mz(self):
         
         if self.ion_charge:
@@ -44,7 +46,7 @@ class MolecularFormulaCalc:
         else:
             raise Exception("method needs to be ppm or ppb, you have entered %s" % method)
               
-        if self.exp_mz:
+        if exp_mz:
             #self.parent need to have a MassSpecPeak associated with the MolecularFormula class
             return ((self.theoretical_mz - self.exp_mz)/self.theoretical_mz)*mult_factor
         

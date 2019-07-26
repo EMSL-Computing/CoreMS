@@ -41,17 +41,13 @@ class MSPeak(MassSpecPeakCalculation):
         self.isotopologue_indexes = []
         self.found_isotopologues = {}
 
-    def __iter__(self):
-        self.cur = 0
-        return self
-
-    def __next__(self):
-
-        i = self.cur
-        if i >= len(self.molecular_formulas):
-            raise StopIteration
-        self.cur += 1
-        return self.molecular_formulas[i]
+    def __len__(self):
+        
+        return len(self.molecular_formulas)
+        
+    def __getitem__(self, position):
+        
+        return self.molecular_formulas[position]
 
     def change_kendrick_base(self, kendrick_dict_base):
         '''kendrick_dict_base = {"C": 1, "H": 2}'''
