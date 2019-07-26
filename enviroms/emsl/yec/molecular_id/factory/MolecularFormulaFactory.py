@@ -25,6 +25,20 @@ class MolecularFormula(MolecularFormulaCalc):
             self._assigment_mass_error = self._calc_assigment_mass_error(exp_mz)
             self._confidence_score = self._calc_confidence_score()     
         
+    def __len__(self):
+        
+        #crash if keys are not ordered
+        with self._d_molecular_formula as formula:
+            formula.pop("IonType", None)
+            return len(formula.keys())
+        
+    def __getitem__(self, position):
+        
+        with self._d_molecular_formula as formula:
+            formula.pop("IonType", None)
+            atom = formula.keys()[position]
+            return (atom, formula[atom])
+
     @property
     def O_C(self): return self._d_molecular_formula.get("O")/self._d_molecular_formula.get("C")
     
