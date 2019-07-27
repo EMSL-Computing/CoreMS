@@ -6,8 +6,6 @@ from enviroms.emsl.yec.encapsulation.constant.Constants import Atoms
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 24, 2019"
 
-
-
 class MolecularFormula(MolecularFormulaCalc):
     '''
     classdocs
@@ -23,21 +21,17 @@ class MolecularFormula(MolecularFormulaCalc):
         if exp_mz:
             
             self._assigment_mass_error = self._calc_assigment_mass_error(exp_mz)
-            self._confidence_score = self._calc_confidence_score()     
+            #self._confidence_score = self._calc_confidence_score()     
         
     def __len__(self):
         
         #crash if keys are not ordered
-        with self._d_molecular_formula as formula:
-            formula.pop("IonType", None)
-            return len(formula.keys())
+            return len(self._d_molecular_formula.keys())
         
     def __getitem__(self, position):
         
-        with self._d_molecular_formula as formula:
-            formula.pop("IonType", None)
-            atom = formula.keys()[position]
-            return (atom, formula[atom])
+            atom = self._d_molecular_formula.keys()[position]
+            return (atom, self._d_molecular_formula[atom])
 
     @property
     def O_C(self): return self._d_molecular_formula.get("O")/self._d_molecular_formula.get("C")
@@ -52,10 +46,10 @@ class MolecularFormula(MolecularFormulaCalc):
     def ion_charge(self): return self._ion_charge
          
     @property
-    def mz_theor(self): return self._calc_theoretical_mz()
+    def mz_theor(self): return self._calc_mz_theor()
     
     @property
-    def mz_nominal_theo(self): return int(self._calc_theoretical_mz())
+    def mz_nominal_theo(self): return int(self._calc_mz_theor())
 
     @property    
     def mass_error(self): return self._assigment_mass_error
@@ -72,10 +66,11 @@ class MolecularFormula(MolecularFormulaCalc):
     @confidence_score.setter
     def confidence_score(self): return self._calc_confidence_score() 
         
-    @property
-    def isotopologues(self): 
+    def isotopologues(self, min_abudance, current_abundance): 
         
-        return [MolecularFormulaIsotopologue(*mf, self.ion_charge) for mf in self._cal_isotopologues(self._d_molecular_formula)]
+        for mf in self._cal_isotopologues(self._d_molecular_formula, min_abudance, current_abundance ):
+
+            yield MolecularFormulaIsotopologue(*mf, self.ion_charge)
     
     def atoms_qnt(self,atom): 
         if atom in self._d_molecular_formula:
@@ -127,7 +122,7 @@ class MolecularFormula(MolecularFormulaCalc):
             atomos_in_dict = self._d_molecular_formula.keys()
             for atomo in atomos_in_dict:
     
-                if atomo not in atoms_in_ordem and atomo != "IonType" and atomo != "HC":
+                if atomo not in atoms_in_ordem and atomo != "IonType":
                     
                     formula_list.append(atomo)
                     formula_list.append(self._d_molecular_formula.get(atomo))

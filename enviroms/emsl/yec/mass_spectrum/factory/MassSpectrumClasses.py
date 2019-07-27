@@ -3,9 +3,7 @@ import time
 from matplotlib import rcParamsDefault, rcParams
 from numpy import array, flip
 from enviroms.emsl.yec.encapsulation.constant.Constants import Labels
-from enviroms.emsl.yec.encapsulation.settings.ProcessingSetting import (
-    MassSpectrumSetting,
-)
+from enviroms.emsl.yec.encapsulation.settings.ProcessingSetting import MassSpectrumSetting
 from enviroms.emsl.yec.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
 from enviroms.emsl.yec.mass_spectrum.factory.MSPeakClasses import MSPeak
 import matplotlib.pyplot as plt
@@ -32,10 +30,10 @@ class MassSpecBase(MassSpecCalc):
     """
     Mass Spectrum class object with common features and functions
     """
-    def __init__(self, exp_mz, abundance, d_params, **kwargs):
+    def __init__(self, mz_exp, abundance, d_params, **kwargs):
 
         self._abundance = array(abundance)
-        self._exp_mz = array(exp_mz)
+        self._mz_exp = array(mz_exp)
         
         self.mspeaks = []
 
@@ -58,7 +56,7 @@ class MassSpecBase(MassSpecCalc):
         
         return self.mspeaks[position]
 
-    def add_mspeak (self, ion_charge, exp_mz,
+    def add_mspeak (self, ion_charge, mz_exp,
                     abundance,
                     resolving_power,
                     signal_to_noise,
@@ -69,7 +67,7 @@ class MassSpecBase(MassSpecCalc):
         self.mspeaks.append(
             MSPeak(
                 ion_charge,
-                exp_mz,
+                mz_exp,
                 abundance,
                 resolving_power,
                 signal_to_noise,
@@ -119,23 +117,37 @@ class MassSpecBase(MassSpecCalc):
         return self._frequency_domain
 
     @property
-    def exp_mz(self):
-        return self._exp_mz
-
+    def mz_exp(self): return self._mz_exp
+    
     @property
-    def exp_mz_centroide(self):
+    def abundance(self): return self._abundance
+    
+    @property
+    def mz_exp_centroide(self):
         self.check_mspeaks()
-        return array([mspeak.exp_mz for mspeak in self.mspeaks])
+        return array([mspeak.mz_exp for mspeak in self.mspeaks])
 
     @property
-    def abundance(self):
-        return self._abundance
+    def max_mz_exp(self):
+        return max([mspeak.mz_exp for mspeak in self.mspeaks])
+
+    @property
+    def min_mz_exp(self):
+        return min([mspeak.mz_exp for mspeak in self.mspeaks])
 
     @property
     def abundance_centroid(self):
         self.check_mspeaks()
         return array([mspeak.abundance for mspeak in self.mspeaks])
 
+    @property
+    def max_abundance(self):
+        return max([mspeak.abundance for mspeak in self.mspeaks])
+    
+    @property
+    def min_abundance(self):
+        return min([mspeak.abundance for mspeak in self.mspeaks])
+    
     @property
     def baselise_noise(self):
         return self._baselise_noise
@@ -172,6 +184,12 @@ class MassSpecBase(MassSpecCalc):
                 "mspeaks dictionary is empty, please run process_mass_spec() first"
             )
 
+    def get_nominal_mass_indexes(self, nominal_mass):
+        
+        indexes = [i for i in range(len(self.mspeaks)) if nominal_mass <= self.mspeaks[i].mz_exp < nominal_mass+1]
+        return indexes
+    
+
     def filter_by_s2n(self, s2n):
 
         self.check_mspeaks()
@@ -198,12 +216,12 @@ class MassSpecBase(MassSpecCalc):
     def plot_mz_domain_profile_and_noise_threshold(self):
 
         if self.baselise_noise and self.baselise_noise:
-            x = (self.exp_mz.min(), self.exp_mz.max())
+            x = (self.mz_exp.min(), self.mz_exp.max())
             y = (self.baselise_noise, self.baselise_noise)
 
             stds = MassSpectrumSetting.noise_threshold_stds
             threshold = self.baselise_noise + (stds * self.baselise_noise_std)
-            plt.plot(self.exp_mz, self.abundance, color="green")
+            plt.plot(self.mz_exp, self.abundance, color="green")
             plt.plot(x, (threshold, threshold), color="yellow")
             plt.plot(x, y, color="red")
             plt.xlabel("m/z")
@@ -216,7 +234,7 @@ class MassSpecBase(MassSpecCalc):
 
     def plot_mz_domain_profile(self):
 
-        plt.plot(self.exp_mz, self.abundance, color="green")
+        plt.plot(self.mz_exp, self.abundance, color="green")
         plt.xlabel("m/z")
         plt.ylabel("abundance")
         plt.show()
@@ -234,9 +252,9 @@ class MassSpecProfile(MassSpecBase):
         """
         self.label = d_params.get("label")
 
-        exp_mz = dataframe["m/z"].values
+        mz_exp = dataframe["m/z"].values
         abundance = dataframe["Abundance"].values
-        super().__init__(exp_mz, abundance, d_params)
+        super().__init__(mz_exp, abundance, d_params)
         if auto_process:
             self.process_mass_spec()
 
@@ -264,11 +282,11 @@ class MassSpecfromFreq(MassSpecBase):
 
         if self.label == Labels.bruker_frequency:
 
-            self._exp_mz = flip(self._f_to_mz_bruker())
+            self._mz_exp = flip(self._f_to_mz_bruker())
 
         else:
 
-            self._exp_mz = flip(self._f_to_mz())
+            self._mz_exp = flip(self._f_to_mz())
 
 
 class MassSpecCentroid(MassSpecBase):
@@ -281,13 +299,13 @@ class MassSpecCentroid(MassSpecBase):
         """
 
         """
-        """needs to simulate peak shape and pass as exp_mz and magnitude."""
+        """needs to simulate peak shape and pass as mz_exp and magnitude."""
         exp_mz_centroid = dataframe["m/z"].values
         magnitude_centroid = dataframe["Abundance"].values
-        # exp_mz, magnitude = self.__simulate_profile__data__(
+        # mz_exp, magnitude = self.__simulate_profile__data__(
         #    exp_mz_centroid, magnitude_centroid)
 
-        # print( exp_mz)
+        # print( mz_exp)
 
         self.label = d_params.get("label")
         self.dataframe = dataframe

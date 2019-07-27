@@ -12,12 +12,12 @@ def create_lookup_table():
     
     dict_molecular_lookup_table = MolecularCombinations().runworker()
     
-    for molecular_formulas in dict_molecular_lookup_table.get('O10').get('RADICAL').get(602):
-        print( molecular_formulas.class_label)
-        print( molecular_formulas.to_string)
-        print( molecular_formulas.mz_theor)
-        for isotopologue in molecular_formulas.isotopologues:
-            print("isotopologue", isotopologue.to_string)
+    #for molecular_formulas in dict_molecular_lookup_table.get('O10').get('RADICAL').get(602):
+    #    print( molecular_formulas.class_label)
+    #    print( molecular_formulas.to_string)
+    #    print( molecular_formulas.mz_theor)
+    #    for isotopologue in molecular_formulas.isotopologues:
+    #        print("isotopologue", isotopologue.to_string)
         #print( molecular_formulas.atoms)
         #print( molecular_formulas.ion_type)
         #print( molecular_formulas.ion_charge)

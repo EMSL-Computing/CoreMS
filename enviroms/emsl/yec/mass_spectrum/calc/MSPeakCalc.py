@@ -18,11 +18,11 @@ class MassSpecPeakCalculation(object):
         for atom in dict_base.keys():
             mass = mass + Atoms.atomic_masses.get(atom) * dict_base.get(atom)
         
-        kendrick_mass = (int(mass)/mass)*self.exp_mz
+        kendrick_mass = (int(mass)/mass)*self.mz_exp
         
         nominal_km =int(kendrick_mass)
         #for ICR
-        nominal_mass = int(self.exp_mz) 
+        nominal_mass = int(self.mz_exp) 
         
         kmd = (nominal_mass - kendrick_mass) * 1000
         

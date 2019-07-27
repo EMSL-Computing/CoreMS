@@ -279,8 +279,9 @@ class CombinationsWorker:
 
                     formula_dict = {}
 
-                    for each_atom in class_dict.keys():
-                        formula_dict[each_atom] = class_dict.get(each_atom)
+                    for each_atom in class_dict.keys() :
+                        if each_atom != 'HC':
+                            formula_dict[each_atom] = class_dict.get(each_atom)
 
                     formula_dict['C'] = c_number
                     formula_dict['H'] = h_number

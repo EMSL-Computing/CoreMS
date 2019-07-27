@@ -13,7 +13,7 @@ class MolecularFormulaCalc:
         raise NotImplementedError
         return 0
     
-    def _calc_theoretical_mz(self):
+    def _calc_mz_theor(self):
         
         if self.ion_charge:
             
@@ -31,7 +31,7 @@ class MolecularFormulaCalc:
             
             raise Exception("Please set ion charge first")
          
-    def _calc_assigment_mass_error(self, exp_mz, method='ppm'):
+    def _calc_assigment_mass_error(self, mz_exp, method='ppm'):
         '''methodo should be ppm or ppb'''
         
         Hum_Milhao = 1000000
@@ -46,13 +46,13 @@ class MolecularFormulaCalc:
         else:
             raise Exception("method needs to be ppm or ppb, you have entered %s" % method)
               
-        if exp_mz:
+        if mz_exp:
             #self.parent need to have a MassSpecPeak associated with the MolecularFormula class
-            return ((self.theoretical_mz - self.exp_mz)/self.theoretical_mz)*mult_factor
+            return ((self.mz_theor - mz_exp)/self.mz_theor)*mult_factor
         
         else:
             
-            raise Exception("Please set theoretical_mz first")    
+            raise Exception("Please set mz_theor first")    
     
     def _calc_dbe(self):
             
@@ -78,7 +78,7 @@ class MolecularFormulaCalc:
             return 1 + (0.5 * individual_dbe)
     
     @staticmethod
-    def _cal_isotopologues(formula_dict):
+    def _cal_isotopologues(formula_dict, min_abudance, current_abundance):
         
         """
         primary function to look for isotopologues based on a monoisotopic molecular formula
@@ -94,23 +94,26 @@ class MolecularFormulaCalc:
             (needs resolving power calculation to be fully operational)        
             last update on 07-19-2019, Yuri E. Corilo 
         
-        *   expect it to break when adding non-conventional atoms (not yet tested)
+        *   it might break when adding non-conventional atoms (not yet tested)
             
-        *   it needs speed optimization update: (Using IsoSpeccPy, a C Library (fast and acurate)) 
+        *   it needs speed optimization; update: (Using IsoSpeccPy, a C Library (fast and acurate)) 
             https://github.com/MatteoLacki/IsoSpec
         """
         #this value needs to be calculated from the mass spec dinamic range
-        min_relative_abundance = 0.01
+        #updated it to reflect min possible mass peak abundance
+        #min_abudance/current_abundance will only work if the isotopologue abundance is less than the monoisotopic abundance
+        #needs to be checked
+        min_relative_abundance = min_abudance/current_abundance
         
         cut_off_to_IsoSpeccPy = 1 - min_relative_abundance
         isotopologue_and_pro_ratio_tuples = []
         atoms_labels = (atom for atom in formula_dict.keys() if atom != 'IonType' and atom != "H")
+        
         atoms_count = []
         masses_list_tuples = []
         props_list_tuples = []
         all_atoms_list = []
         for atom_label in atoms_labels:
-            #print( atom_label)
             
             if not len(Atoms.isotopes.get(atom_label))>1:
                 'This atom_label has no heavy isotope'
@@ -157,8 +160,9 @@ class MolecularFormulaCalc:
             
             formula_list = molecular_formulas[isotopologue_index]
             new_formula_dict = dict(zip(all_atoms_list, formula_list))
-            new_formula_dict["IonType"] = formula_dict.get("IonType")
-            
+            new_formula_dict['IonType'] = formula_dict.get('IonType')
+            new_formula_dict['H'] = formula_dict.get('H')
+
             prop_mono_iso = probs[0]
             prop_ratio = probs[isotopologue_index]/prop_mono_iso
             

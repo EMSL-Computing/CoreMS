@@ -12,12 +12,12 @@ class MSPeak(MassSpecPeakCalculation):
     '''
     classdocs
     '''
-    def __init__(self, ion_charge, exp_mz, abundance, resolving_power, signal_to_noise, massspec_index, exp_freq=None):
+    def __init__(self, ion_charge, mz_exp, abundance, resolving_power, signal_to_noise, massspec_index, exp_freq=None):
 
         # needed to create the object
         self.ion_charge = ion_charge
-        self.exp_mz = exp_mz
-        self.mass = float(exp_mz) / float(ion_charge)
+        self.mz_exp = mz_exp
+        self.mass = float(mz_exp) / float(ion_charge)
         self.exp_freq = exp_freq
         self.abundance = abundance
         self.resolving_power = resolving_power
@@ -58,6 +58,9 @@ class MSPeak(MassSpecPeakCalculation):
 
         self.molecular_formulas.append(MolecularFormula(formula_dict,self.ion_charge,self.exp_mz))
       
+    @property
+    def nominal_mz_exp(self): return int(self.mz_exp)
+
     @property
     def kdm(self): return self._kdm
 

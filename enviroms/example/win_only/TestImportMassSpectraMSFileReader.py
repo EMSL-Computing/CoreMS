@@ -23,7 +23,7 @@ if __name__ == "__main__":
     # a.initial_scan_number = 100
     # a.final_scan_number = 103
 
-    lcms = lcms_reader.get_mass_spectra(auto_process=False)
+    lcms = lcms_reader.get_mass_spectra(auto_process=True)
 
     """to use the thread
     lcms_reader.start()
@@ -34,8 +34,8 @@ if __name__ == "__main__":
     for mass_spec in lcms:
        
        # should throw a Exception error because auto_process is set to False
-       print(mass_spec.number_average_molecular_weight())
-       mass_spec.change_kendrick_base_all_mspeaks(kendrick_base)
+       #print(mass_spec.number_average_molecular_weight())
+       #mass_spec.change_kendrick_base_all_mspeaks(kendrick_base)
        for ms_peak in mass_spec:
            
            print(ms_peak.exp_mz)
