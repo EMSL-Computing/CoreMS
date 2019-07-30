@@ -9,6 +9,18 @@ from numpy import exp
 
 class MolecularFormulaCalc:
     
+    def _calc_resolving_power_low_pressure(self, B, T):
+        #T << collisional damping time 
+        #T = transient time (seconds)
+        #B = Magnetic Strenght (Testa)
+        return (1.274 * 10000000 * B * T) *(1/self.mz_theor)    
+
+    def _calc_resolving_power_high_pressure(self, B, T):
+        #T << collisional damping time 
+        #T = transient time (seconds)
+        #B = Magnetic Strenght (Testa)
+        return (2.758 * 10000000 * B * T) *(1/self.mz_theor)    
+
     def _calc_confidence_score(self):
         raise NotImplementedError
         return 0

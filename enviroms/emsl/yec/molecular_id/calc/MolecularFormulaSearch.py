@@ -40,7 +40,6 @@ class SearchMolecularFormulas:
         
         print(len(mass_spectrum_obj))
         
-        
         for mspeak in  mass_spectrum_obj:
 
             #print(mspeak) 
@@ -119,26 +118,24 @@ class SearchMolecularFormulaWorker:
                         
                         #move this outside to impove preformace
                         #we need to increase the search space to -+1 m_z 
-                        indexes_to_look = mass_spectrum_obj.get_nominal_mass_indexes(isotopologue_formula.mz_nominal_theo)
+                        first_index, last_index = mass_spectrum_obj.get_nominal_mz_frist_last_indexes(isotopologue_formula.mz_nominal_theo)
                         
-                        if indexes_to_look:
+                        for mspeaks_iso in mass_spectrum_obj[first_index:last_index]:
                             
-                            for mspeaks_iso in mass_spectrum_obj[indexes_to_look[0]:indexes_to_look[-1]]:
-                                
-                                error = isotopologue_formula._calc_assigment_mass_error(mspeaks_iso.mz_exp)    
-                                
-                                #need to define error distribution for abundance measurements
-                                if  min_mz_error <= error <= max_mz_error:
+                            error = isotopologue_formula._calc_assigment_mass_error(mspeaks_iso.mz_exp)    
+                            
+                            #need to define error distribution for abundance measurements
+                            if  min_mz_error <= error <= max_mz_error:
+                                    
+                                    abundance_error = isotopologue_formula._calc_abundance_error(mspeak_abundance,mspeaks_iso.abundance )            
+                                    
+                                    # margin of error was set empirically/ needs statistical calculation
+                                    #  of margin of error for the measurement of the abundances
+                                    if min_abun_error <= abundance_error <= max_abun_error:
                                         
-                                        abundance_error = isotopologue_formula._calc_abundance_error(mspeak_abundance,mspeaks_iso.abundance )            
+                                        mspeaks_iso.add_molecular_formula(isotopologue_formula)
                                         
-                                        # margin of error was set empirically/ needs statistical calculation
-                                        #  of margin of error for the measurement of the abundances
-                                        if min_abun_error <= abundance_error <= max_abun_error:
-                                            
-                                            mspeaks_iso.add_molecular_formula(isotopologue_formula)
-                                            
-                                            #print(error, abundance_error)  
-                                            
-                                            #output_file.write("%.4f \t %.4f \t %.2f \n " % (mspeaks_iso.mz_exp,  mspeaks_iso.abundance,  abundance_error))     
+                                        #print(error, abundance_error)  
+                                        
+                                        #output_file.write("%.4f \t %.4f \t %.2f \n " % (mspeaks_iso.mz_exp,  mspeaks_iso.abundance,  abundance_error))     
         #f.close()                                

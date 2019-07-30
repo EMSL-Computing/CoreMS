@@ -22,7 +22,6 @@ def overrides(interface_class):
     def overrider(method):
         assert method.__name__ in dir(interface_class)
         return method
-
     return overrider
 
 
@@ -35,7 +34,9 @@ class MassSpecBase(MassSpecCalc):
         self._abundance = array(abundance)
         self._mz_exp = array(mz_exp)
         
+        #objects created after process_mass_spec() function
         self.mspeaks = []
+        self._dict_nominal_masses_indexes  = {}
 
         self._set_parameters_objects(d_params)
 
@@ -100,6 +101,8 @@ class MassSpecBase(MassSpecCalc):
 
         self.cal_noise_treshould()
         self.find_peaks()
+        self._set_nominal_masses_start_final_indexes()
+        
 
     def cal_noise_treshould(self, auto=True):
 
@@ -184,12 +187,6 @@ class MassSpecBase(MassSpecCalc):
                 "mspeaks dictionary is empty, please run process_mass_spec() first"
             )
 
-    def get_nominal_mass_indexes(self, nominal_mass):
-        
-        indexes = [i for i in range(len(self.mspeaks)) if nominal_mass <= self.mspeaks[i].mz_exp < nominal_mass+1]
-        return indexes
-    
-
     def filter_by_s2n(self, s2n):
 
         self.check_mspeaks()
@@ -212,6 +209,52 @@ class MassSpecBase(MassSpecCalc):
         """kendrick_dict_base = {"C": 1, "H": 2} or {{"C": 1, "H": 1, "O":1} etc """
         for mspeak in self.mspeaks:
             mspeak.change_kendrick_base(kendrick_dict_base)
+
+    def get_nominal_mz_frist_last_indexes(self, nominal_mass):
+        
+        if self._dict_nominal_masses_indexes:
+            if nominal_mass in self._dict_nominal_masses_indexes.keys():
+                
+                return (self._dict_nominal_masses_indexes.get(nominal_mass)[0], self._dict_nominal_masses_indexes.get(nominal_mass)[1])
+            
+            else:
+                #import warnings
+                #uncomment warn to distribution
+                #warnings.warn("Nominal mass not found in _dict_nominal_masses_indexes, returning (0, 0) for nominal mass %i"%nominal_mass)
+                return (0,0)
+        else:
+            raise Exception("run process_mass_spec() function before trying to access the data")
+
+    def get_nominal_mass_indexes(self, nominal_mass):
+        
+        indexes = [i for i in range(len(self.mspeaks)) if nominal_mass <= self.mspeaks[i].mz_exp < nominal_mass+1]
+        return indexes
+    
+    def get_masses_sum_for_nominal_mass(self):
+        
+        dict_nominal_masses_count ={}
+        
+        all_nominal_masses = list(set([i.nominal_mz_exp for i in self.mspeaks]))
+        
+        for nominal_mass in all_nominal_masses:
+            
+            dict_nominal_masses_count[nominal_mass] = len(self.get_nominal_mass_indexes(nominal_mass))
+
+        return dict_nominal_masses_count
+
+    def _set_nominal_masses_start_final_indexes(self):
+        '''return ms peaks objs indexes(start and end) on the mass spectrum for all nominal masses'''
+        dict_nominal_masses_indexes ={}
+        
+        all_nominal_masses = list(set([i.nominal_mz_exp for i in self.mspeaks]))
+        
+        for nominal_mass in all_nominal_masses:
+            
+            indexes = self.get_nominal_mass_indexes(nominal_mass)
+            
+            dict_nominal_masses_indexes[nominal_mass] = (indexes[0],indexes[-1]) 
+
+        self._dict_nominal_masses_indexes = dict_nominal_masses_indexes
 
     def plot_mz_domain_profile_and_noise_threshold(self):
 
@@ -262,6 +305,7 @@ class MassSpecProfile(MassSpecBase):
     def process_mass_spec(self):
         self.cal_noise_treshould()
         self.find_peaks()
+        self._set_nominal_masses_start_final_indexes()
 
 
 class MassSpecfromFreq(MassSpecBase):
@@ -355,3 +399,5 @@ class MassSpecCentroid(MassSpecBase):
                 l_s_n[index],
                 index,
             )
+
+        self._set_nominal_masses_start_final_indexes()    

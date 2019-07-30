@@ -15,8 +15,6 @@ class TransientCalculations(object):
     classdocs
     '''
     
-    
-    
     def cal_transient_time(self):
         
         return (1 / self.bandwidth) * ((self.number_data_points) / 2)
