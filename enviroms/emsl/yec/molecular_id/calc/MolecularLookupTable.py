@@ -4,7 +4,7 @@ __date__ = "Jul 02, 2019"
 import itertools
 import multiprocessing
 from enviroms.emsl.yec.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
-from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupTableSetting
+from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupTableSettings
 
 class MolecularCombinations:
      
@@ -59,7 +59,7 @@ class MolecularCombinations:
 
         # return dois dicionarios com produto das combinacooes de hidrogenio e carbono
         # para nitrogenio impar e par para radicais e protonados
-        usedAtoms = MoleculaLookupTableSetting.usedAtoms
+        usedAtoms = MoleculaLookupTableSettings.usedAtoms
         result = {}
 
         min_c, max_c = usedAtoms.get('C')
@@ -104,7 +104,7 @@ class MolecularCombinations:
         ''' structure is 
             ('HC', {'HC': 1})'''
         
-        usedAtoms = MoleculaLookupTableSetting.usedAtoms 
+        usedAtoms = MoleculaLookupTableSettings.usedAtoms 
         
         usedAtoms.pop("C")
         usedAtoms.pop("H")
@@ -196,23 +196,27 @@ class CombinationsWorker:
                           c_h_combinations,
                          ):
 
-        usedAtoms = MoleculaLookupTableSetting.usedAtoms
+        usedAtoms = MoleculaLookupTableSettings.usedAtoms
         
-        min_dbe = MoleculaLookupTableSetting.min_dbe
+        min_dbe = MoleculaLookupTableSettings.min_dbe
 
-        max_dbe = MoleculaLookupTableSetting.max_dbe
+        max_dbe = MoleculaLookupTableSettings.max_dbe
 
-        use_pah_line_rule = MoleculaLookupTableSetting.use_pah_line_rule
+        use_pah_line_rule = MoleculaLookupTableSettings.use_pah_line_rule
 
-        isRadical = MoleculaLookupTableSetting.isRadical
+        isRadical = MoleculaLookupTableSettings.isRadical
 
-        isProtonated = MoleculaLookupTableSetting.isProtonated
+        isProtonated = MoleculaLookupTableSettings.isProtonated
 
-        ionCharge = MoleculaLookupTableSetting.ionCharge
+        ionCharge = MoleculaLookupTableSettings.ionCharge
         
-        min_mz = MoleculaLookupTableSetting.min_mz
+        min_mz = MoleculaLookupTableSettings.min_mz
         
-        max_mz = MoleculaLookupTableSetting.max_mz
+        max_mz = MoleculaLookupTableSettings.max_mz
+        
+        hc_filter = MoleculaLookupTableSettings.hc_filter
+        
+        oc_filter = MoleculaLookupTableSettings.oc_filter
         
         dict_results = {}
         
@@ -229,7 +233,7 @@ class CombinationsWorker:
 
             dict_results_per_ion_type = self.get_theoretical_formulas_per_class(carbon_hidrogen_combination, ion_type, class_dict, 
                                                     use_pah_line_rule, usedAtoms, min_dbe, max_dbe,
-                                                    min_mz, max_mz, ionCharge)
+                                                    min_mz, max_mz, hc_filter,oc_filter, ionCharge)
             dict_results[ion_type] = dict_results_per_ion_type
         
         if isRadical:
@@ -242,7 +246,7 @@ class CombinationsWorker:
 
             dict_results_per_ion_type = self.get_theoretical_formulas_per_class(carbon_hidrogen_combination, ion_type, class_dict, 
                                                     use_pah_line_rule, usedAtoms, min_dbe, max_dbe, 
-                                                    min_mz, max_mz, ionCharge)
+                                                    min_mz, max_mz, hc_filter,oc_filter, ionCharge)
             dict_results[ion_type] = dict_results_per_ion_type
         
         return dict_results
@@ -257,6 +261,8 @@ class CombinationsWorker:
                                            max_dbe,
                                            min_mz,
                                            max_mz, 
+                                           hc_filter, 
+                                           oc_filter,
                                            ion_charge,
                                            ):
        
@@ -268,11 +274,11 @@ class CombinationsWorker:
             o_number = class_dict.get('O')
             continuar = True
 
-            if (float(h_number) / c_number) >= 0.3:
+            if (float(h_number) / c_number) >= hc_filter:
 
                 if o_number:
 
-                    if float(o_number) / c_number > 1.2:
+                    if float(o_number) / c_number > oc_filter:
                         continuar = False
 
                 if continuar:

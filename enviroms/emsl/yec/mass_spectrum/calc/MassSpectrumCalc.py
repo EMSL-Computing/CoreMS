@@ -69,22 +69,22 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
 
         # mode is profile or centroid data
         if profile:
-            a = multiply(self.exp_mz, self.abundance)
+            a = multiply(self.mz_exp, self.abundance)
             b = self.abundance
             return a.sum()/b.sum()
 
         else:
 
-            return sum(self.exp_mz_centroide*self.abundance_centroid)/sum(self.abundance_centroid)
+            return sum(self.mz_exp_centroide*self.abundance_centroid)/sum(self.abundance_centroid)
     
     def weight_average_molecular_weight(self, profile=False):
 
         # implement from MassSpectralPeaks objs
 
         if profile:
-            a = multiply(power(self.exp_mz, 2), self.abundance)
-            b = self.exp_mz*self.abundance
+            a = multiply(power(self.mz_exp, 2), self.abundance)
+            b = self.mz_exp*self.abundance
             return a.sum() / b.sum()
 
         else:
-            return sum(power(self.exp_mz_centroide, 2)*self.abundance_centroid)/sum(self.exp_mz_centroide*self.abundance_centroid)
+            return sum(power(self.mz_exp_centroide, 2)*self.abundance_centroid)/sum(self.mz_exp_centroide*self.abundance_centroid)

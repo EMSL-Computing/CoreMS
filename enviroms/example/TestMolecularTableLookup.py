@@ -5,7 +5,7 @@ import time, sys, os
 sys.path.append(".")
 from enviroms.emsl.yec.encapsulation.constant.Constants import Atoms
 from enviroms.emsl.yec.molecular_id.calc.MolecularLookupTable import  MolecularCombinations
-from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupTableSetting
+from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupTableSettings
 from enviroms.emsl.yec.mass_spectrum.input.TextMassList import Read_MassList
 
 def create_lookup_table():
@@ -27,20 +27,20 @@ if __name__ == "__main__":
     
     #margin_error needs to be optimized by the data rp and sn
     #min_mz,max_mz  needs to be optimized by the data
-    MoleculaLookupTableSetting.min_mz = 200
-    MoleculaLookupTableSetting.max_mz = 1000
+    MoleculaLookupTableSettings.min_mz = 200
+    MoleculaLookupTableSettings.max_mz = 1000
     # C, H, N, O, S and P atoms are ALWAYS needed in the dictionary
     #the defaults values are defined at the encapsulation MolecularSpaceTableSetting    
-    MoleculaLookupTableSetting.usedAtoms['C'] = (1,90)
+    MoleculaLookupTableSettings.usedAtoms['C'] = (1,90)
     
     #some atoms has more than one valence state and the most commun will be used
     # adduct atoms needs valence 0
-    MoleculaLookupTableSetting.usedAtoms['Cl'] = (0,0)
+    MoleculaLookupTableSettings.usedAtoms['Cl'] = (0,0)
     possible_valences = Atoms.atoms_valence.get('Cl')
     valence_one = possible_valences[0]
     # if you want to specify it in needs to be changed here
     # otherwise it will use the lowest valence, PS needs insure propagation to isotopologues
-    MoleculaLookupTableSetting.used_atom_valences['Cl'] =  valence_one
+    MoleculaLookupTableSettings.used_atom_valences['Cl'] =  valence_one
 
     time0 = time.time()
     

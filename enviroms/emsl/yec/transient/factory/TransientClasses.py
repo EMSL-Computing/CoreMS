@@ -3,7 +3,7 @@ from os.path import basename, dirname, normpath
 from matplotlib import rcParamsDefault, rcParams
 from numpy import linspace
 
-from enviroms.emsl.yec.encapsulation.settings.ProcessingSetting import TransientSetting
+from enviroms.emsl.yec.encapsulation.settings.input.ProcessingSetting import TransientSetting
 from enviroms.emsl.yec.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
 from enviroms.emsl.yec.transient.calc.TransientCalc import TransientCalculations
 import matplotlib.pyplot as plt

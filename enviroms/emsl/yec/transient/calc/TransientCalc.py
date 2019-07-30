@@ -2,7 +2,7 @@ import gc
 
 from numpy import hamming, hanning, blackman, zeros, fft, sqrt, arange, where, power
 
-from enviroms.emsl.yec.encapsulation.settings.ProcessingSetting import TransientSetting
+from enviroms.emsl.yec.encapsulation.settings.input.ProcessingSetting import TransientSetting
 
 
 __author__ = "Yuri E. Corilo"

@@ -2,7 +2,7 @@ import time
 
 from numpy import where, average, std, isnan, inf, hstack
 
-from enviroms.emsl.yec.encapsulation.settings.ProcessingSetting import MassSpectrumSetting
+from enviroms.emsl.yec.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 27, 2019"
@@ -24,8 +24,8 @@ class NoiseThreshouldCalc(object):
             # need to check max mz here or it will break
             max_mz_noise = number_average_molecular_weight + 100
 
-            min_mz_whole_ms = self.exp_mz.min()
-            max_mz_whole_ms = self.exp_mz.max()
+            min_mz_whole_ms = self.mz_exp.min()
+            max_mz_whole_ms = self.mz_exp.max()
 
             if min_mz_noise < min_mz_whole_ms:
                 min_mz_noise = min_mz_whole_ms
@@ -38,13 +38,13 @@ class NoiseThreshouldCalc(object):
             min_mz_noise = MassSpectrumSetting.min_noise_mz
             max_mz_noise = MassSpectrumSetting.max_noise_mz
 
-        final = where(self.exp_mz > min_mz_noise)[-1][-1]
+        final = where(self.mz_exp > min_mz_noise)[-1][-1]
         comeco = where(self.abundance > min_mz_noise)[0][0]
 
         mz_domain_low_Y_cutoff = self.abundance[comeco:final]
 
-        final = where(self.exp_mz < max_mz_noise)[-1][-1]
-        comeco = where(self.exp_mz < max_mz_noise)[0][0]
+        final = where(self.mz_exp < max_mz_noise)[-1][-1]
+        comeco = where(self.mz_exp < max_mz_noise)[0][0]
 
         return mz_domain_low_Y_cutoff[comeco:final]
 

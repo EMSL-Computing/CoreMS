@@ -3,7 +3,7 @@ import time
 from matplotlib import rcParamsDefault, rcParams
 from numpy import array, flip
 from enviroms.emsl.yec.encapsulation.constant.Constants import Labels
-from enviroms.emsl.yec.encapsulation.settings.ProcessingSetting import MassSpectrumSetting
+from enviroms.emsl.yec.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting
 from enviroms.emsl.yec.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
 from enviroms.emsl.yec.mass_spectrum.factory.MSPeakClasses import MSPeak
 import matplotlib.pyplot as plt

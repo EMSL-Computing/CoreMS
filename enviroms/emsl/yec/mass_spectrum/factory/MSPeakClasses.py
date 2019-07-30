@@ -1,5 +1,5 @@
 
-from enviroms.emsl.yec.encapsulation.settings.ProcessingSetting import MassSpecPeakSetting
+from enviroms.emsl.yec.encapsulation.settings.input.ProcessingSetting import MassSpecPeakSetting
 from enviroms.emsl.yec.mass_spectrum.calc.MSPeakCalc import MassSpecPeakCalculation
 from enviroms.emsl.yec.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
 
@@ -54,9 +54,9 @@ class MSPeak(MassSpecPeakCalculation):
         self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(
             kendrick_dict_base)
 
-    def add_molecular_formula(self, formula_dict):
+    def add_molecular_formula(self, molecular_formula_obj):
 
-        self.molecular_formulas.append(MolecularFormula(formula_dict,self.ion_charge,self.exp_mz))
+        self.molecular_formulas.append(molecular_formula_obj)
       
     @property
     def nominal_mz_exp(self): return int(self.mz_exp)

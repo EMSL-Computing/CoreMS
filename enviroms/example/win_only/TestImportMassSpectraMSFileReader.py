@@ -3,7 +3,7 @@ __date__ = "Jul 22, 2019"
 
 import sys
 sys.path.append(".")
-from enviroms.emsl.yec.encapsulation.settings.ProcessingSetting import MassSpectrumSetting
+from enviroms.emsl.yec.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting
 from enviroms.emsl.yec.mass_spectra.input.win_only.ThermoMSFileReader import ImportLCMSThermoMSFileReader
 
 
@@ -38,7 +38,7 @@ if __name__ == "__main__":
        #mass_spec.change_kendrick_base_all_mspeaks(kendrick_base)
        for ms_peak in mass_spec:
            
-           print(ms_peak.exp_mz)
+           print(ms_peak.mz_exp)
            print(ms_peak.abundance)
            
            print(ms_peak.kendrick_mass)

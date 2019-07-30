@@ -21,7 +21,9 @@ if __name__ == "__main__":
     print("ion_type", formula_obj.ion_type)
     print("mz_theor", formula_obj.mz_theor)
     
-    for isotopologue_obj in formula_obj.isotopologues:
+    min_abudance, current_abundance = 1,1 
+    
+    for isotopologue_obj in formula_obj.isotopologues(0.01, current_abundance):
         
         print("formula:", isotopologue_obj.to_string, 
               "mz_theor:", isotopologue_obj.mz_theor,

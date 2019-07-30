@@ -32,7 +32,7 @@ if __name__ == "__main__":
        mass_spec.change_kendrick_base_all_mspeaks(kendrick_base)
        for ms_peak in mass_spec:
            
-           print(ms_peak.exp_mz)
+           print(ms_peak.mz_exp)
            print(ms_peak.abundance)
            print(ms_peak.kendrick_mass)
            kendrick_base = {"C" : 1, "H" : 0, "O" :1}

@@ -6,7 +6,7 @@
 
 from numpy import hstack, inf, isnan, poly1d, polyfit, where
 
-from enviroms.emsl.yec.encapsulation.settings.ProcessingSetting import MassSpectrumSetting
+from enviroms.emsl.yec.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting
 from enviroms.emsl.yec.encapsulation.constant.Constants import Labels
 
 class PeakPicking(object):
@@ -16,13 +16,13 @@ class PeakPicking(object):
         max_picking_mz = MassSpectrumSetting.max_picking_mz
         min_picking_mz =  MassSpectrumSetting.min_picking_mz
 
-        final =  where(self.exp_mz  > min_picking_mz)[-1][-1]
-        comeco =  where(self.exp_mz  > min_picking_mz)[0][0]
+        final =  where(self.mz_exp  > min_picking_mz)[-1][-1]
+        comeco =  where(self.mz_exp  > min_picking_mz)[0][0]
 
-        mz_domain_X_low_cutoff, mz_domain_low_Y_cutoff,  = self.exp_mz [comeco:final], self.abundance[comeco:final]
+        mz_domain_X_low_cutoff, mz_domain_low_Y_cutoff,  = self.mz_exp [comeco:final], self.abundance[comeco:final]
 
-        final =  where(self.exp_mz < max_picking_mz)[-1][-1]
-        comeco =  where(self.exp_mz < max_picking_mz)[0][0]
+        final =  where(self.mz_exp < max_picking_mz)[-1][-1]
+        comeco =  where(self.mz_exp < max_picking_mz)[0][0]
 
         if self.frequency_domain.any():
 
@@ -42,10 +42,10 @@ class PeakPicking(object):
                 self.calc_centroid(mz, abudance, freq)
             
             elif self.label == Labels.thermo_profile:
-                self.calc_centroid(self.exp_mz, self.abundance, self.frequency_domain)
+                self.calc_centroid(self.mz_exp, self.abundance, self.frequency_domain)
             
             elif self.label == Labels.bruker_profile:
-                self.calc_centroid(self.exp_mz, self.abundance, self.frequency_domain)
+                self.calc_centroid(self.mz_exp, self.abundance, self.frequency_domain)
             
             else: raise Exception("Unknow mass spectrum type")
             #x = threading.Thread(target=self.calc_centroid, args=(mz, abudance, freq))
@@ -137,19 +137,19 @@ class PeakPicking(object):
             
             if self.label == Labels.bruker_frequency:                                                               
                 
-                exp_mz_centroid, freq_centr, intes_centr = self.find_apex_fit_quadratic(mass, abund, freq, current_index)
+                mz_exp_centroid, freq_centr, intes_centr = self.find_apex_fit_quadratic(mass, abund, freq, current_index)
                 peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
                 s2n = intes_centr/self.baselise_noise_std
             
             elif self.label == Labels.bruker_profile: 
 
                 peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
-                exp_mz_centroid, freq_centr, intes_centr = self.find_apex_fit_quadratic(mass, abund, freq, current_index)
+                mz_exp_centroid, freq_centr, intes_centr = self.find_apex_fit_quadratic(mass, abund, freq, current_index)
                 s2n = intes_centr/self.baselise_noise_std
 
             else: raise Exception("Label '%s' not recognized inside : %s" % (self.label, self.__str__()))
             
-            self.add_mspeak(self.polarity, exp_mz_centroid, abund[current_index] , peak_resolving_power, s2n, current_index, exp_freq=freq_centr)
+            self.add_mspeak(self.polarity, mz_exp_centroid, abund[current_index] , peak_resolving_power, s2n, current_index, exp_freq=freq_centr)
     
     def get_threshold(self, intes):
         
@@ -188,11 +188,11 @@ class PeakPicking(object):
         calculated = -b/(2*a)
         if calculated < 1 or int(calculated) != int(list_mass[1]):
 
-            exp_mz_centroid = list_mass[1]
+            mz_exp_centroid = list_mass[1]
         
         else:
             
-            exp_mz_centroid = calculated 
+            mz_exp_centroid = calculated 
         
         if self.label == "Frequency":
             
@@ -212,7 +212,7 @@ class PeakPicking(object):
         else:
                 freq_centr = None
                 
-        return exp_mz_centroid, freq_centr, abund[current_index]
+        return mz_exp_centroid, freq_centr, abund[current_index]
     
     def old_calc_centroid(self, massa, intes, freq_exp):
 
@@ -233,11 +233,11 @@ class PeakPicking(object):
                                 if calculated < 1 or int(calculated) != int(massa[x]):
 
                                     intes_centr = intes[x]
-                                    exp_mz_centroid = massa[x]
+                                    mz_exp_centroid = massa[x]
                                 else:
                                     #use the tallest point
                                     intes_centr = intes[x]
-                                    exp_mz_centroid = calculated # cria lista de intensidade centroide
+                                    mz_exp_centroid = calculated # cria lista de intensidade centroide
 
                                 if do_freq:
 
@@ -257,5 +257,5 @@ class PeakPicking(object):
 
                                 peak_resolving_power = self.calculate_resolving_power(intes, massa, x)
 
-                                #parms ion_charge, exp_mz, abundance, resolving_power, signal_to_noise, massspec_index,
-                                self.add_mspeak(self.polarity, exp_mz_centroid, intes_centr, peak_resolving_power, intes_centr/self.baselise_noise_std, x, exp_freq=freq_centr)
+                                #parms ion_charge, mz_exp, abundance, resolving_power, signal_to_noise, massspec_index,
+                                self.add_mspeak(self.polarity, mz_exp_centroid, intes_centr, peak_resolving_power, intes_centr/self.baselise_noise_std, x, exp_freq=freq_centr)

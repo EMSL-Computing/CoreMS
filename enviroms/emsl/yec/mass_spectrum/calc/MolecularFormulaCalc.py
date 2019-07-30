@@ -3,7 +3,7 @@ __date__ = "Jun 24, 2019"
 
 from enviroms.emsl.yec.encapsulation.constant.Constants import Atoms
 #from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSpaceTableSetting
-from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupTableSetting
+from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupTableSettings
 from IsoSpecPy import IsoSpecPy
 from numpy import exp
 
@@ -47,6 +47,7 @@ class MolecularFormulaCalc:
             raise Exception("method needs to be ppm or ppb, you have entered %s" % method)
               
         if mz_exp:
+            
             #self.parent need to have a MassSpecPeak associated with the MolecularFormula class
             return ((self.mz_theor - mz_exp)/self.mz_theor)*mult_factor
         
@@ -54,6 +55,20 @@ class MolecularFormulaCalc:
             
             raise Exception("Please set mz_theor first")    
     
+    def _calc_abundance_error(self, mono_abundance, iso_abundance, method='perc'):
+        '''methodo should be ppm or ppb'''
+        
+        mult_factor = 100
+        if self.prop_ratio:
+            
+            theor_abundance = mono_abundance* self.prop_ratio
+            #self.parent need to have a MassSpecPeak associated with the MolecularFormula class
+            return ((theor_abundance - iso_abundance )/theor_abundance)*mult_factor
+        
+        else:
+            
+            raise Exception("Please calc_isotopologues")    
+
     def _calc_dbe(self):
             
             individual_dbe = 0
@@ -66,7 +81,7 @@ class MolecularFormulaCalc:
                     
                     n_atom = int(self._d_molecular_formula.get(atom))
                     
-                    valencia = MoleculaLookupTableSetting.used_atom_valences.get(atom)
+                    valencia = MoleculaLookupTableSettings.used_atom_valences.get(atom)
                     #valencia = Atoms.atoms_valence.get(atom)
                     
                     if valencia and valencia > 0:
@@ -107,7 +122,7 @@ class MolecularFormulaCalc:
         
         cut_off_to_IsoSpeccPy = 1 - min_relative_abundance
         isotopologue_and_pro_ratio_tuples = []
-        atoms_labels = (atom for atom in formula_dict.keys() if atom != 'IonType' and atom != "H")
+        atoms_labels = (atom for atom in formula_dict.keys() if atom != 'IonType') #and atom != "H")
         
         atoms_count = []
         masses_list_tuples = []
@@ -147,6 +162,8 @@ class MolecularFormulaCalc:
                 masses_list_tuples.append(masses)
                 props_list_tuples.append(props)
         
+       
+
         iso = IsoSpecPy.IsoSpec(atoms_count,masses_list_tuples,props_list_tuples, cut_off_to_IsoSpeccPy )
         
         confs = iso.getConfs()
@@ -161,7 +178,7 @@ class MolecularFormulaCalc:
             formula_list = molecular_formulas[isotopologue_index]
             new_formula_dict = dict(zip(all_atoms_list, formula_list))
             new_formula_dict['IonType'] = formula_dict.get('IonType')
-            new_formula_dict['H'] = formula_dict.get('H')
+            #new_formula_dict['H'] = formula_dict.get('H')
 
             prop_mono_iso = probs[0]
             prop_ratio = probs[isotopologue_index]/prop_mono_iso
