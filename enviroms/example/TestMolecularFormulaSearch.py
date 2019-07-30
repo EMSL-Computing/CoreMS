@@ -51,11 +51,12 @@ if __name__ == "__main__":
         
         if mspeak.is_assigned:
                 i += 1
-                print(mspeak.mz_exp, len(mspeak))
+                #print(mspeak.mz_exp, len(mspeak))
                 for formula in mspeak:
+                        # print(formula.to_string, formula._calc_assigment_mass_error(mspeak.mz_exp))
                         #need to change the calculation of error inside the formula
-                        print(formula.to_string, formula._calc_assigment_mass_error(mspeak.mz_exp))
-                
+                        if formula.is_isotopologue:
+                                print(formula.to_string, formula._calc_assigment_mass_error(mspeak.mz_exp))
         
         else: 
                 j += 1

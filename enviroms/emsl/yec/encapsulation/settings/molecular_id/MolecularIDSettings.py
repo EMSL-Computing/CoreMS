@@ -7,13 +7,13 @@ class MoleculaLookupTableSettings:
     # you can include any atom listed at Atoms class inside Constants module
     # make sure to include the selected valence at the used_atoms_valences when adding atoms 
     # to the usedAtoms dicts 
-    # NOTE : Adducts atoms has zero valence
+    # NOTE : Adducts atoms have zero valence
 
     usedAtoms = {'C': (1, 100),
                  'H': (4, 200),
-                 'O': (1, 10),
-                 'N': (0, 2),
-                 'S': (0, 2),
+                 'O': (0, 30),
+                 'N': (0, 1),
+                 'S': (0, 1),
                  'P': (0, 0),
                  }
     
@@ -60,10 +60,10 @@ class MoleculaSearchSettings:
     isProtonated = True
 
     #empirically set / needs optimization
-    min_mz_error = -3 #ppm
+    min_mz_error = -5 #ppm
 
     #empirically set / needs optimization    
-    max_mz_error = 3 #ppm
+    max_mz_error = 5 #ppm
 
     #empirically set / needs optimization
     min_abun_error = -30 # percentage 

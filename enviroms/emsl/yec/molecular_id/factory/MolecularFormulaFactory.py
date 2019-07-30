@@ -17,7 +17,7 @@ class MolecularFormula(MolecularFormulaCalc):
         self._ion_charge = ion_charge
         self._assigment_mass_error = None
         self._confidence_score = None
-        
+        self.is_isotopologue = False
         if exp_mz:
             
             self._assigment_mass_error = self._calc_assigment_mass_error(exp_mz)
@@ -169,6 +169,8 @@ class MolecularFormulaIsotopologue(MolecularFormula):
         super().__init__(_d_molecular_formula,  ion_charge)
         #prop_ratio is relative to the monoisotopic peak p_isotopologue/p_mono_isotopic
         self.prop_ratio = prop_ratio
+        
+        self.is_isotopologue = True
         
         if exp_mz:
             
