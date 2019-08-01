@@ -42,8 +42,7 @@ if __name__ == "__main__":
 
     mass_spectrum = creat_mass_spectrum(file_location)
     time1 = time.time()
-    SearchMolecularFormulas().runworker_mass_spectrum(mass_spectrum)
-
+    SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum)
     print('searching molecular formulas took %i seconds' % (time.time() - time1))
 
     i = 0

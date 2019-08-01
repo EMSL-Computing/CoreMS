@@ -18,8 +18,8 @@ class MolecularFormula(MolecularFormulaCalc):
         self._assigment_mass_error = None
         self._confidence_score = None
         self.is_isotopologue = False
+        
         if exp_mz:
-            
             self._assigment_mass_error = self._calc_assigment_mass_error(exp_mz)
             #self._confidence_score = self._calc_confidence_score()     
         

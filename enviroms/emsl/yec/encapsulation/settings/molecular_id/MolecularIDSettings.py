@@ -12,8 +12,8 @@ class MoleculaLookupTableSettings:
     usedAtoms = {'C': (1, 100),
                  'H': (4, 200),
                  'O': (0, 30),
-                 'N': (0, 1),
-                 'S': (0, 1),
+                 'N': (0, 0),
+                 'S': (0, 0),
                  'P': (0, 0),
                  }
     
@@ -60,10 +60,10 @@ class MoleculaSearchSettings:
     isProtonated = True
 
     #empirically set / needs optimization
-    min_mz_error = -4 #ppm
+    min_mz_error = -5 #ppm
 
     #empirically set / needs optimization    
-    max_mz_error = 4 #ppm
+    max_mz_error = -2 #ppm
 
     #empirically set / needs optimization
     min_abun_error = -30 # percentage 

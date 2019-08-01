@@ -63,7 +63,7 @@ class MolecularFormulaCalc:
             
             self._assigment_mass_error = ((self.mz_theor - mz_exp)/self.mz_theor)*mult_factor
             #self.parent need to have a MassSpecPeak associated with the MolecularFormula class
-            return ((self.mz_theor - mz_exp)/self.mz_theor)*mult_factor
+            return self._assigment_mass_error
         
         else:
             

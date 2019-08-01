@@ -5,6 +5,7 @@ import itertools
 import multiprocessing
 from enviroms.emsl.yec.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
 from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupTableSettings
+from copy import deepcopy
 
 class MolecularCombinations:
      
@@ -41,7 +42,8 @@ class MolecularCombinations:
         p = multiprocessing.Pool(number_of_process)
         args = [(class_tuple, c_h_combinations) for class_tuple in classes_list]
         results = p.map(CombinationsWorker(), args)
-
+        p.close()
+        p.join()
         '''
         args = [(class_tuple, isProtonated, isRadical, use_pah_line_rule, usedAtoms, 
                 min_dbe, max_dbe, ionCharge, c_h_combinations) for class_tuple in classes_list]
@@ -61,7 +63,7 @@ class MolecularCombinations:
         # para nitrogenio impar e par para radicais e protonados
         usedAtoms = MoleculaLookupTableSettings.usedAtoms
         result = {}
-
+        
         min_c, max_c = usedAtoms.get('C')
         min_h, max_h = usedAtoms.get('H')
 
@@ -104,7 +106,7 @@ class MolecularCombinations:
         ''' structure is 
             ('HC', {'HC': 1})'''
         
-        usedAtoms = MoleculaLookupTableSettings.usedAtoms 
+        usedAtoms = deepcopy(MoleculaLookupTableSettings.usedAtoms )
         
         usedAtoms.pop("C")
         usedAtoms.pop("H")

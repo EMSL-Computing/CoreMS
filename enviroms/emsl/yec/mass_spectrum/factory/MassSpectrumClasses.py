@@ -144,13 +144,13 @@ class MassSpecBase(MassSpecCalc):
         return array([mspeak.abundance for mspeak in self.mspeaks])
 
     @property
+    def max_abundance(self):
+        return max([mspeak.abundance for mspeak in self.mspeaks])
+    
+    @property
     def most_abundant_mspeak(self):
         
         return max(self.mspeaks, key=lambda m: m.abundance)
-
-    @property
-    def max_abundance(self):
-        return max([mspeak.abundance for mspeak in self.mspeaks])
     
     @property
     def min_abundance(self):
@@ -218,9 +218,11 @@ class MassSpecBase(MassSpecCalc):
     def get_nominal_mz_frist_last_indexes(self, nominal_mass):
         
         if self._dict_nominal_masses_indexes:
+            
             if nominal_mass in self._dict_nominal_masses_indexes.keys():
                 
-                return (self._dict_nominal_masses_indexes.get(nominal_mass)[0], self._dict_nominal_masses_indexes.get(nominal_mass)[1])
+                    
+                return (self._dict_nominal_masses_indexes.get(nominal_mass)[0], self._dict_nominal_masses_indexes.get(nominal_mass)[1]+1)
             
             else:
                 #import warnings
@@ -230,9 +232,10 @@ class MassSpecBase(MassSpecCalc):
         else:
             raise Exception("run process_mass_spec() function before trying to access the data")
 
-    def get_nominal_mass_indexes(self, nominal_mass):
-        
-        indexes = [i for i in range(len(self.mspeaks)) if nominal_mass <= self.mspeaks[i].mz_exp < nominal_mass+1]
+    def get_nominal_mass_indexes(self, nominal_mass, overlay=0.1):
+        min_mz_to_look = nominal_mass - overlay
+        max_mz_to_look = nominal_mass+1+overlay
+        indexes = [i for i in range(len(self.mspeaks)) if min_mz_to_look <= self.mspeaks[i].mz_exp <= max_mz_to_look]
         return indexes
     
     def get_masses_sum_for_nominal_mass(self):
@@ -256,8 +259,9 @@ class MassSpecBase(MassSpecCalc):
         for nominal_mass in all_nominal_masses:
             
             indexes = self.get_nominal_mass_indexes(nominal_mass)
-            
+                
             dict_nominal_masses_indexes[nominal_mass] = (indexes[0],indexes[-1]) 
+          
 
         self._dict_nominal_masses_indexes = dict_nominal_masses_indexes
 

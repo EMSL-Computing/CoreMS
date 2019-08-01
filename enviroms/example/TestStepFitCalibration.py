@@ -6,26 +6,6 @@ from enviroms.emsl.yec.molecular_id.calc.FindOxigenPeaks import FindOxygenPeaks
 from enviroms.emsl.yec.mass_spectrum.input.TextMassList import Read_MassList
 from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupTableSettings
 
-def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█'):
-    """
-    Call in a loop to create terminal progress bar
-    @params:
-        iteration   - Required  : current iteration (Int)
-        total       - Required  : total iterations (Int)
-        prefix      - Optional  : prefix string (Str)
-        suffix      - Optional  : suffix string (Str)
-        decimals    - Optional  : positive number of decimals in percent complete (Int)
-        length      - Optional  : character length of bar (Int)
-        fill        - Optional  : bar fill character (Str)
-    """
-    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-    filledLength = int(length * iteration // total)
-    bar = fill * filledLength + '-' * (length - filledLength)
-    print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end = '\r')
-    # Print New Line on Complete
-    if iteration == total: 
-        print()
-
 def creat_mass_spectrum(file_location):
 
     bruker_reader = ReadBrukerSolarix(file_location)
@@ -62,17 +42,36 @@ if __name__ == "__main__":
     time1 = time.time()
 
     find_formula_thread = FindOxygenPeaks(mass_spectrum)
-    find_formula_thread.start()
+    find_formula_thread.run()
     
     #while find_formula_thread.is_alive():
     #    for i in range(100):
     #        printProgressBar(i, 100)
-    find_formula_thread.join()
+    #find_formula_thread.join()
 
     mspeaks_results = find_formula_thread.get_list_found_peaks()
+    
     mspeaks_results = sorted(mspeaks_results, key=lambda mp: mp.mz_exp)
+    
+    error = list()
+    mass = list()
+    abundance = list()
     for mspeak in mspeaks_results:
         
-        print('found',mspeak.molecular_formula_lowest_error.to_string, mspeak.mz_exp)
-    
+        
+        for molecular_formula in mspeak:
+            print('found',mspeak.molecular_formula_lowest_error.to_string, mspeak.mz_exp,)    
+            mass.append(mspeak.mz_exp)
+            error.append(molecular_formula._calc_assigment_mass_error(mspeak.mz_exp))
+            abundance.append(mspeak.abundance)
+
+    #mass_spectrum.mz_exp_centroide
+    #mass_spectrum.abundance_centroid
+    from matplotlib import pylab
+    pylab.plot(mass_spectrum.mz_exp, mass_spectrum.abundance) 
+    pylab.plot(mass, abundance, "o")  
+    pylab.show()  
     print('searching molecular formulas took %i seconds' % (time.time() - time1))
+    pylab.plot(mass, error, "o")  
+    pylab.show()  
+    
