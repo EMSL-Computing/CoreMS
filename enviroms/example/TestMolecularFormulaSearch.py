@@ -1,14 +1,13 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jul 25, 2019"
 
+import sys, time, os 
+sys.path.append(".")
 from enviroms.emsl.yec.transient.input.BrukerSolarix import ReadBrukerSolarix
 from enviroms.emsl.yec.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
 from enviroms.emsl.yec.mass_spectrum.input.TextMassList import Read_MassList
 from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupTableSettings
-import time
-import sys
-import os
-sys.path.append(".")
+
 
 def creat_mass_spectrum(file_location):
 
@@ -43,10 +42,9 @@ if __name__ == "__main__":
 
     mass_spectrum = creat_mass_spectrum(file_location)
     time1 = time.time()
-    SearchMolecularFormulas().runworker(mass_spectrum)
+    SearchMolecularFormulas().runworker_mass_spectrum(mass_spectrum)
 
-    print('searching molecular formulas took %i seconds' %
-          (time.time() - time1))
+    print('searching molecular formulas took %i seconds' % (time.time() - time1))
 
     i = 0
     j = 0

@@ -45,6 +45,10 @@ class MSPeak(MassSpecPeakCalculation):
         
         return len(self.molecular_formulas)
         
+    def __setitem__(self, position, molecular_formula_obj):
+        
+        self.molecular_formulas[position] = molecular_formula_obj
+
     def __getitem__(self, position):
         
         return self.molecular_formulas[position]
@@ -80,6 +84,11 @@ class MSPeak(MassSpecPeakCalculation):
         
         return len(self.molecular_formulas)
     
+    @property
+    def molecular_formula_lowest_error(self):
+        
+         return min(self.molecular_formulas, key=lambda m: abs(m._calc_assigment_mass_error(self.mz_exp)))
+
 class ICRMassPeak(MSPeak):
 
     def __init__(self, *args):

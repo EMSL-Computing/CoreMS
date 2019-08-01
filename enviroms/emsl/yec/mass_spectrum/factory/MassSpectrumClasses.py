@@ -144,6 +144,11 @@ class MassSpecBase(MassSpecCalc):
         return array([mspeak.abundance for mspeak in self.mspeaks])
 
     @property
+    def most_abundant_mspeak(self):
+        
+        return max(self.mspeaks, key=lambda m: m.abundance)
+
+    @property
     def max_abundance(self):
         return max([mspeak.abundance for mspeak in self.mspeaks])
     

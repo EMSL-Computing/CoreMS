@@ -60,10 +60,10 @@ class MoleculaSearchSettings:
     isProtonated = True
 
     #empirically set / needs optimization
-    min_mz_error = -5 #ppm
+    min_mz_error = -4 #ppm
 
     #empirically set / needs optimization    
-    max_mz_error = 5 #ppm
+    max_mz_error = 4 #ppm
 
     #empirically set / needs optimization
     min_abun_error = -30 # percentage 

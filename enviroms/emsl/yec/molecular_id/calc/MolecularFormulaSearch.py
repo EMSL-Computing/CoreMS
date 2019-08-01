@@ -18,7 +18,61 @@ class SearchMolecularFormulas:
     
     '''
 
-    def runworker(self, mass_spectrum_obj):
+    def runworker_mspeak(self, mspeak, mass_spectrum_obj):
+
+        MoleculaLookupTableSettings.min_mz = mspeak.mz_exp-1
+    
+        MoleculaLookupTableSettings.max_mz = mspeak.mz_exp+1
+        
+        min_abundance = mass_spectrum_obj.min_abundance
+
+        dict_molecular_lookup_table = MolecularCombinations().runworker()
+
+        nominal_mz  = mspeak.nominal_mz_exp
+
+        classes = list(dict_molecular_lookup_table.keys())
+        
+        '''
+        waiting for python 3.8 release to set mass_spectrum_obj and dict_molecular_lookup_table on share memory
+        pool = multiprocessing.Pool(number_of_process)
+        args = [ (dict_molecular_lookup_table.get(classe).get(ion_type).get(nominal_mz), min_abundance, mass_spectrum_obj, mspeak_mz_exp, mspeak_abundance)  for classe in classes ]
+        pool.map(SearchMolecularFormulaWorker(), args)
+
+        pool.close()
+        pool.join()
+        '''
+        for classe in classes:
+            
+            possible_formulas = list()    
+            #we might need to increase the search space to -+1 m_z 
+            if MoleculaSearchSettings.isRadical:
+            
+                ion_type = Labels.radical_ion
+                
+                formulas = dict_molecular_lookup_table.get(classe).get(ion_type).get(nominal_mz)
+                
+                if formulas:
+                    
+                    possible_formulas.extend(formulas)
+
+            if MoleculaSearchSettings.isProtonated:
+            
+                ion_type = Labels.protonated_de_ion
+
+                formulas = dict_molecular_lookup_table.get(classe).get(ion_type).get(nominal_mz)
+                
+                if formulas:
+                    
+                    possible_formulas.extend(formulas)
+            
+            
+            if possible_formulas:
+                
+                SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, mspeak)
+        
+
+
+    def runworker_mass_spectrum(self, mass_spectrum_obj):
 
         
         #number_of_process = multiprocessing.cpu_count()
@@ -36,8 +90,6 @@ class SearchMolecularFormulas:
 
         classes = list(dict_molecular_lookup_table.keys())
 
-        output_file = open("abundance_error.txt", "w")  
-        
         print(len(mass_spectrum_obj))
         
         for mspeak in  mass_spectrum_obj:
@@ -80,7 +132,7 @@ class SearchMolecularFormulas:
 
                 if possible_formulas:
                     
-                    SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, mspeak, output_file)
+                    SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, mspeak)
             
 
 class SearchMolecularFormulaWorker:
@@ -90,7 +142,7 @@ class SearchMolecularFormulaWorker:
 
         return self.find_formulas(*args)  # ,args[1]
 
-    def find_formulas(self, possible_formulas, min_abundance, mass_spectrum_obj, mspeak, output_file ):
+    def find_formulas(self, possible_formulas, min_abundance, mass_spectrum_obj, mspeak ):
         
         min_mz_error = MoleculaSearchSettings.min_mz_error
         max_mz_error = MoleculaSearchSettings.max_mz_error
@@ -120,22 +172,22 @@ class SearchMolecularFormulaWorker:
                         #we need to increase the search space to -+1 m_z 
                         first_index, last_index = mass_spectrum_obj.get_nominal_mz_frist_last_indexes(isotopologue_formula.mz_nominal_theo)
                         
-                        for mspeaks_iso in mass_spectrum_obj[first_index:last_index]:
+                        for mspeak_iso in mass_spectrum_obj[first_index:last_index]:
                             
-                            error = isotopologue_formula._calc_assigment_mass_error(mspeaks_iso.mz_exp)    
+                            error = isotopologue_formula._calc_assigment_mass_error(mspeak_iso.mz_exp)    
                             
                             #need to define error distribution for abundance measurements
                             if  min_mz_error <= error <= max_mz_error:
                                     
-                                    abundance_error = isotopologue_formula._calc_abundance_error(mspeak_abundance,mspeaks_iso.abundance )            
+                                    abundance_error = isotopologue_formula._calc_abundance_error(mspeak_abundance,mspeak_iso.abundance )            
                                     
                                     # margin of error was set empirically/ needs statistical calculation
                                     #  of margin of error for the measurement of the abundances
                                     if min_abun_error <= abundance_error <= max_abun_error:
                                         
-                                        mspeaks_iso.add_molecular_formula(isotopologue_formula)
+                                        mspeak_iso.add_molecular_formula(isotopologue_formula)
                                         
                                         #print(error, abundance_error)  
                                         
-                                        #output_file.write("%.4f \t %.4f \t %.2f \n " % (mspeaks_iso.mz_exp,  mspeaks_iso.abundance,  abundance_error))     
+                                        #output_file.write("%.4f \t %.4f \t %.2f \n " % (mspeak_iso.mz_exp,  mspeak_iso.abundance,  abundance_error))     
         #f.close()                                

@@ -15,15 +15,16 @@ class MolecularFormulaCalc:
         #B = Magnetic Strenght (Testa)
         return (1.274 * 10000000 * B * T) *(1/self.mz_theor)    
 
-    def _calc_resolving_power_high_pressure(self, B, T):
+    def _calc_resolving_power_high_pressure(self, B, t):
         #T << collisional damping time 
+        # t= collisional dumping contanst
         #T = transient time (seconds)
         #B = Magnetic Strenght (Testa)
         return (2.758 * 10000000 * B * T) *(1/self.mz_theor)    
 
     def _calc_confidence_score(self):
         raise NotImplementedError
-        return 0
+        
     
     def _calc_mz_theor(self):
         
@@ -60,6 +61,7 @@ class MolecularFormulaCalc:
               
         if mz_exp:
             
+            self._assigment_mass_error = ((self.mz_theor - mz_exp)/self.mz_theor)*mult_factor
             #self.parent need to have a MassSpecPeak associated with the MolecularFormula class
             return ((self.mz_theor - mz_exp)/self.mz_theor)*mult_factor
         

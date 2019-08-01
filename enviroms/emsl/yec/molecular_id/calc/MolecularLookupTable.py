@@ -284,7 +284,6 @@ class CombinationsWorker:
                 if continuar:
 
                     formula_dict = {}
-
                     for each_atom in class_dict.keys() :
                         if each_atom != 'HC':
                             formula_dict[each_atom] = class_dict.get(each_atom)
@@ -301,7 +300,7 @@ class CombinationsWorker:
                     #DBE = self.get_DBE(formula_dict, 1)
                     #nominal_mass = int(self.getMass(formula_dict, ion_charge))
 
-                    if min_mz < nominal_mass < max_mz:
+                    if min_mz <= nominal_mass <= max_mz:
                         maxDBE, minDBE = self.get_dbe_limits(
                             class_dict,
                             use_pah_line_rule,

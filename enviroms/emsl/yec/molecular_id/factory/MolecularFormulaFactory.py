@@ -52,7 +52,7 @@ class MolecularFormula(MolecularFormulaCalc):
     def mz_nominal_theo(self): return int(self._calc_mz_theor())
 
     @property    
-    def mass_error(self): return self._assigment_mass_error
+    def mz_error(self): return self._assigment_mass_error
         
     @property
     def ion_type(self): return self._d_molecular_formula.get("IonType")
@@ -99,6 +99,11 @@ class MolecularFormula(MolecularFormulaCalc):
         else:
             
             raise Exception("Molecular formula identification not performed yet")    
+    
+    @property
+    def to_dict(self):
+        return self._d_molecular_formula
+    
     @property   
     def to_list(self):
         
