@@ -56,6 +56,7 @@ if __name__ == "__main__":
     error = list()
     mass = list()
     abundance = list()
+    formulas = list()
     for mspeak in mspeaks_results:
         
         for molecular_formula in mspeak:
@@ -63,7 +64,7 @@ if __name__ == "__main__":
             mass.append(mspeak.mz_exp)
             error.append(molecular_formula._calc_assigment_mass_error(mspeak.mz_exp))
             abundance.append(mspeak.abundance)
-
+            formulas.append(molecular_formula.to_string)
     #mass_spectrum.mz_exp_centroide
     #mass_spectrum.abundance_centroid
     from matplotlib import pylab
@@ -72,5 +73,10 @@ if __name__ == "__main__":
     pylab.show()  
     print('searching molecular formulas took %i seconds' % (time.time() - time1))
     pylab.plot(mass, error, "o")  
+    for i, abun in enumerate(abundance):
+        nor_abun = round((abun/mass_spectrum.max_abundance)*100,2)
+        #pylab.annotate(nor_abun, (mass[i], error[i]))
+        pylab.annotate(formulas[i], (mass[i], error[i]))
+
     pylab.show()  
     

@@ -2,9 +2,7 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jul 31, 2019"
 
 from threading import Thread
-from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupTableSettings, MoleculaSearchSettings
 from enviroms.emsl.yec.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
-from enviroms.emsl.yec.molecular_id.calc.MolecularLookupTable import  MolecularCombinations
 from enviroms.emsl.yec.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
 from copy import deepcopy
 
