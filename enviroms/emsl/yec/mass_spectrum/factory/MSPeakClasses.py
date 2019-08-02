@@ -18,7 +18,7 @@ class MSPeak(MassSpecPeakCalculation):
         self.ion_charge = ion_charge
         self.mz_exp = mz_exp
         self.mass = float(mz_exp) / float(ion_charge)
-        self.exp_freq = exp_freq
+        self.freq_exp = exp_freq
         self.abundance = abundance
         self.resolving_power = resolving_power
         self.signal_to_noise = signal_to_noise
@@ -31,7 +31,7 @@ class MSPeak(MassSpecPeakCalculation):
         self.baseline_noise = None
 
         'updated after calibration'
-        self.recal_mz = None
+        self.mz_recal = None
 
         'updated after molecular formula ID'
 

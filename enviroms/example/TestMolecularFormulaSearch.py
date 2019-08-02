@@ -47,23 +47,35 @@ if __name__ == "__main__":
 
     i = 0
     j = 0
-    f = open("20190205_WK_SRFA_opt_000001_resolving_power_1p4sec_12T.txt", "w")
+    error = list()
+    mass = list()
+    abundance = list()
+
     for mspeak in mass_spectrum:
 
         if mspeak.is_assigned:
             i += 1
             #print(mspeak.mz_exp, len(mspeak))
-            for formula in mspeak:
-                print(formula.to_string, formula._calc_assigment_mass_error(mspeak.mz_exp))
+            for mformula in mspeak:
+                mass.append(mspeak.mz_exp)
+                error.append(mformula._calc_assigment_mass_error(mspeak.mz_exp))
+                abundance.append(mspeak.abundance)
+                #print(mformula.to_string, mformula._calc_assigment_mass_error(mspeak.mz_exp))
                 # need to change the calculation of error inside the formula
-                if formula.is_isotopologue:
+                if mformula.is_isotopologue:
                     pass
-                    print(formula.to_string, formula._calc_assigment_mass_error(mspeak.mz_exp))
+                    #print(mformula.to_string, mformula._calc_assigment_mass_error(mspeak.mz_exp))
 
         else:
             j += 1
             pass
             #print("No Hit")
 
+    from matplotlib import pylab
+    pylab.plot(mass_spectrum.mz_exp, mass_spectrum.abundance) 
+    pylab.plot(mass, abundance, "o")  
+    pylab.show()  
+    pylab.plot(mass, error, "o")  
+    pylab.show()  
     print('%i peaks assigned and %i peaks not assigned' % (i, j))
-    f.close()
+    

@@ -37,8 +37,8 @@ class TransientCalculations(object):
             
         for _ in range(TransientSetting.number_of_truncations):
         
-            data_count = data_count / 2
-            
+            data_count = int(data_count / 2)
+         
         time_domain_truncated = transient[0:data_count]
         
         del transient
@@ -51,7 +51,7 @@ class TransientCalculations(object):
         
         apodi_method = TransientSetting.apodization_method
         
-        length = self.number_data_points
+        length = len(transient)
             
         if apodi_method == "Hamming":
                 H_function = hamming(length)
@@ -104,10 +104,22 @@ class TransientCalculations(object):
             
     def perform_magniture_mode_ft(self, transient):
         
-        A = fft.fft(transient)
         
-        factor = int(TransientSetting.number_of_zero_fills+1)
-        Max_index = int(len(A)/factor)
+        A = fft.fft(transient)
+        A = A[0:int(len(A)/2)]
+        
+        factor = int(TransientSetting.number_of_zero_fills-1)
+        if TransientSetting.number_of_zero_fills:
+            if TransientSetting.number_of_zero_fills == 1:
+                factor = 1/2
+                
+            else:
+                factor = int(1/TransientSetting.number_of_zero_fills+1)
+                
+            Max_index = int(len(A)/factor)    
+        
+        else:
+            Max_index = int(len(A))
         
         A = A[0:Max_index]
         

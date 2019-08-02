@@ -23,7 +23,7 @@ class FindOxygenPeaks():
     def run(self):
         
         molecular_formula_obj_reference = self.find_most_abundant_formula(self.mass_spectrum_obj)
-        
+        print(molecular_formula_obj_reference.mz_error)
         self.list_found_mspeaks = self.find_14Da_series_mspeaks(self.mass_spectrum_obj, molecular_formula_obj_reference)
         
         #possible_mol_formulas_objs = self.build_database(molecular_formula_obj_reference)
@@ -36,7 +36,7 @@ class FindOxygenPeaks():
         #this function is intended for test only. 
         # Have to sort by Kendrick to be able to select the most abundant series 
         #then select the most abundant peak inside the series
-        #or have the user select the reference mspeak somehow
+        #or have the user select the reference mspeak on the gui
 
         mspeak_most_abundant = mass_spectrum_obj.most_abundant_mspeak
 

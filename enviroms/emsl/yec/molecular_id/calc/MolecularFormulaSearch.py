@@ -9,7 +9,6 @@ from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings i
 from enviroms.emsl.yec.mass_spectrum.input.TextMassList import Read_MassList
 from enviroms.emsl.yec.molecular_id.calc.MolecularLookupTable import  MolecularCombinations
 
-
 class SearchMolecularFormulas:
      
     '''
@@ -192,7 +191,6 @@ class SearchMolecularFormulas:
                     
                     SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak)
             
-
 class SearchMolecularFormulaWorker:
 
     # needs this wraper to pass the class to multiprocessing
@@ -201,7 +199,16 @@ class SearchMolecularFormulaWorker:
         return self.find_formulas(*args)  # ,args[1]
 
     def find_formulas(self, possible_formulas, min_abundance, mass_spectrum_obj, ms_peak ):
-        
+        '''
+        # uses the closest error the next search (this is not ideal, it needs to use confidence
+        # metric to choose the right candidate then propagate the error using the error from the best candidate
+        # it needs to add s/n to the equation
+        # it need optimization to define the mz_error_range within a m/z unit since it is directly 
+        # proportional with the mass, and inversially proportinal to the rp. 
+        # It's not linear, i.e., sigma ∝ mass 
+        # the idea it to correlate sigma to resolving power, signal to noise and sample complexity per mz unit
+        '''
+
         min_mz_error = MoleculaSearchSettings.min_mz_error
         max_mz_error = MoleculaSearchSettings.max_mz_error
         min_abun_error = MoleculaSearchSettings.min_abun_error
@@ -209,7 +216,11 @@ class SearchMolecularFormulaWorker:
 
         #f = open("abundance_error.txt", "a+")    
         ms_peak_mz_exp, ms_peak_abundance = ms_peak.mz_exp, ms_peak.abundance
-
+        #min_error = min([pmf._calc_assigment_mass_error(ms_peak_mz_exp) for pmf in possible_formulas])
+        
+        last_dif = 0
+        last_error = 0
+        closest_error = 0
         for possible_formula in possible_formulas:
             
             if possible_formula:
@@ -217,6 +228,17 @@ class SearchMolecularFormulaWorker:
                 error = possible_formula._calc_assigment_mass_error(ms_peak_mz_exp)
                 
                 if  min_mz_error <= error <= max_mz_error:
+                    
+                    #initially using the lowest error
+                    #will need to change it to the best canditate after confidence metric
+                    #is stablished
+                    dif = error - last_error
+                    if dif < last_dif:
+                        last_dif = dif
+                        closest_error = error
+                        MoleculaSearchSettings.min_mz_error = closest_error - MoleculaSearchSettings.mz_error_range
+                        MoleculaSearchSettings.max_mz_error = closest_error + MoleculaSearchSettings.mz_error_range
+                        
                     
                     #add molecular formula match to ms_peak
                     ms_peak.add_molecular_formula(possible_formula)
@@ -238,10 +260,19 @@ class SearchMolecularFormulaWorker:
                             if  min_mz_error <= error <= max_mz_error:
                                     
                                     abundance_error = isotopologue_formula._calc_abundance_error(ms_peak_abundance,ms_peak_iso.abundance )            
-                                    
                                     # margin of error was set empirically/ needs statistical calculation
                                     #  of margin of error for the measurement of the abundances
                                     if min_abun_error <= abundance_error <= max_abun_error:
+                                        #initially using the lowest error
+                                        #will need to change it to the best canditate after confidence metric
+                                        #s/n change in the range is specially important to the isotopologues
+                                        #dif = error - last_error
+                                        #if dif < last_dif:
+                                        #    last_dif = dif
+                                        #    closest_error = error
+                                        #    MoleculaSearchSettings.min_mz_error = closest_error - MoleculaSearchSettings.mz_error_range
+                                        #    MoleculaSearchSettings.max_mz_error = closest_error + MoleculaSearchSettings.mz_error_range    
+                                           
                                         
                                         ms_peak_iso.add_molecular_formula(isotopologue_formula)
                                         

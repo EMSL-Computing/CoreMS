@@ -58,9 +58,8 @@ if __name__ == "__main__":
     abundance = list()
     for mspeak in mspeaks_results:
         
-        
         for molecular_formula in mspeak:
-            print('found',mspeak.molecular_formula_lowest_error.to_string, mspeak.mz_exp,)    
+            
             mass.append(mspeak.mz_exp)
             error.append(molecular_formula._calc_assigment_mass_error(mspeak.mz_exp))
             abundance.append(mspeak.abundance)

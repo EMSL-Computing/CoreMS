@@ -63,10 +63,13 @@ class MoleculaSearchSettings:
     min_mz_error = -5 #ppm
 
     #empirically set / needs optimization    
-    max_mz_error = -2 #ppm
+    max_mz_error = 5 #ppm
 
     #empirically set / needs optimization
     min_abun_error = -30 # percentage 
     
     #empirically set / needs optimization
     max_abun_error = 70 # percentage 
+
+    #empirically set / needs optimization
+    mz_error_range = 1
