@@ -5,7 +5,8 @@ __pycache__/
 *.pkl  
 res/  
 doc/  
-*.ems  
+*.ems
+.DS_Store 
 enviroms/libs/  
 enviroms/bokeh_imple/  
 enviroms-python/
