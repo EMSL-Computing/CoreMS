@@ -66,13 +66,13 @@ class MSPeak(MassSpecPeakCalculation):
     def nominal_mz_exp(self): return int(self.mz_exp)
 
     @property
-    def kdm(self): return self._kdm
+    def kmd(self): return self._kdm
 
     @property
     def kendrick_mass(self): return self._kendrick_mass
 
     @property
-    def nominal_km(self): return self._nominal_km
+    def knm(self): return self._nominal_km
     
     @property
     def is_assigned(self):
@@ -88,6 +88,8 @@ class MSPeak(MassSpecPeakCalculation):
     def molecular_formula_lowest_error(self):
         
          return min(self.molecular_formulas, key=lambda m: abs(m._calc_assigment_mass_error(self.mz_exp)))
+
+
 
 class ICRMassPeak(MSPeak):
 

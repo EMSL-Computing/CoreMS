@@ -1,10 +1,10 @@
 
 import sys, os, time
+import numpy as np
 sys.path.append(".")
 from enviroms.emsl.yec.transient.input.BrukerSolarix import ReadBrukerSolarix
 from enviroms.emsl.yec.molecular_id.calc.FindOxigenPeaks import FindOxygenPeaks
 from enviroms.emsl.yec.mass_spectrum.input.TextMassList import Read_MassList
-from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupTableSettings
 
 def creat_mass_spectrum(file_location):
 
@@ -42,12 +42,12 @@ if __name__ == "__main__":
     time1 = time.time()
 
     find_formula_thread = FindOxygenPeaks(mass_spectrum)
-    find_formula_thread.run()
+    find_formula_thread.start()
     
     #while find_formula_thread.is_alive():
     #    for i in range(100):
     #        printProgressBar(i, 100)
-    #find_formula_thread.join()
+    find_formula_thread.join()
 
     mspeaks_results = find_formula_thread.get_list_found_peaks()
     
@@ -56,7 +56,6 @@ if __name__ == "__main__":
     error = list()
     mass = list()
     abundance = list()
-    formulas = list()
     for mspeak in mspeaks_results:
         
         for molecular_formula in mspeak:
@@ -64,19 +63,12 @@ if __name__ == "__main__":
             mass.append(mspeak.mz_exp)
             error.append(molecular_formula._calc_assigment_mass_error(mspeak.mz_exp))
             abundance.append(mspeak.abundance)
-            formulas.append(molecular_formula.to_string)
-    #mass_spectrum.mz_exp_centroide
-    #mass_spectrum.abundance_centroid
+    
+    print('searching molecular formulas took %i seconds' % (time.time() - time1))
+    
     from matplotlib import pylab
     pylab.plot(mass_spectrum.mz_exp, mass_spectrum.abundance) 
     pylab.plot(mass, abundance, "o")  
-    pylab.show()  
-    print('searching molecular formulas took %i seconds' % (time.time() - time1))
-    pylab.plot(mass, error, "o")  
-    for i, abun in enumerate(abundance):
-        nor_abun = round((abun/mass_spectrum.max_abundance)*100,2)
-        #pylab.annotate(nor_abun, (mass[i], error[i]))
-        pylab.annotate(formulas[i], (mass[i], error[i]))
-
+    #pylab.plot(mass, error, "o")  
     pylab.show()  
     

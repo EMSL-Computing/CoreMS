@@ -47,7 +47,7 @@ class MoleculaLookupTableSettings:
     #ionCharge changes automatically with mass spectrum
     ionCharge = -1
 
-    hc_filter = 0.3
+    hc_filter = 0.1
 
     oc_filter = 1.2
 
@@ -60,10 +60,10 @@ class MoleculaSearchSettings:
     isProtonated = True
 
     #empirically set / needs optimization
-    min_mz_error = -5 #ppm
+    min_mz_error = -10 #ppm
 
     #empirically set / needs optimization    
-    max_mz_error = 5 #ppm
+    max_mz_error = 0 #ppm
 
     #empirically set / needs optimization
     min_abun_error = -30 # percentage 
@@ -73,3 +73,8 @@ class MoleculaSearchSettings:
 
     #empirically set / needs optimization
     mz_error_range = 2
+
+    #'distance', 'lowest', 'symmetrical', 'None'
+    error_method = 'distance'
+
+    mz_error_average = 0

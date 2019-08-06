@@ -1,5 +1,6 @@
 from copy import deepcopy
 from enviroms.emsl.yec.mass_spectrum.calc.MolecularFormulaCalc import MolecularFormulaCalc
+from enviroms.emsl.yec.encapsulation.settings.input.ProcessingSetting import MassSpecPeakSetting
 from enviroms.emsl.yec.encapsulation.constant.Constants import Atoms
 
 
@@ -19,6 +20,10 @@ class MolecularFormula(MolecularFormulaCalc):
         self._confidence_score = None
         self.is_isotopologue = False
         
+        kendrick_dict_base = MassSpecPeakSetting.kendrick_base
+        self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(
+            kendrick_dict_base)  
+
         if exp_mz:
             self._assigment_mass_error = self._calc_assigment_mass_error(exp_mz)
             #self._confidence_score = self._calc_confidence_score()     
@@ -28,10 +33,10 @@ class MolecularFormula(MolecularFormulaCalc):
         #crash if keys are not ordered
             return len(self._d_molecular_formula.keys())
         
-    def __getitem__(self, position):
+    def __getitem__(self, atom):
         
-            atom = self._d_molecular_formula.keys()[position]
-            return (atom, self._d_molecular_formula[atom])
+            #atom = list(self._d_molecular_formula.keys())[position]
+            return self._d_molecular_formula[atom]
 
     @property
     def O_C(self): return self._d_molecular_formula.get("O")/self._d_molecular_formula.get("C")
@@ -43,29 +48,40 @@ class MolecularFormula(MolecularFormulaCalc):
     def dbe(self): return self._calc_dbe()
     
     @property
-    def ion_charge(self): return self._ion_charge
-         
-    @property
-    def mz_theor(self): return self._calc_mz_theor()
-    
-    @property
     def mz_nominal_theo(self): return int(self._calc_mz_theor())
 
     @property    
     def mz_error(self): return self._assigment_mass_error
-        
+    
+    @property
+    def mz_theor(self): return self._calc_mz_theor()
+
     @property
     def ion_type(self): return self._d_molecular_formula.get("IonType")
+    
+    @property
+    def ion_charge(self): return self._ion_charge
     
     @property
     def atoms(self): return [key for key in self._d_molecular_formula.keys() if key != 'IonType']
     
     @property
-    def confidence_score(self): return self._confidence_score
-             
-    @confidence_score.setter
     def confidence_score(self): return self._calc_confidence_score() 
         
+    @property
+    def kmd(self): return self._kdm
+
+    @property
+    def kendrick_mass(self): return self._kendrick_mass
+
+    @property
+    def knm(self): return self._nominal_km
+
+    def change_kendrick_base(self, kendrick_dict_base):
+        '''kendrick_dict_base = {"C": 1, "H": 2}'''
+        self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(
+            kendrick_dict_base)
+                
     def isotopologues(self, min_abudance, current_abundance): 
         
         for mf in self._cal_isotopologues(self._d_molecular_formula, min_abudance, current_abundance ):
@@ -79,8 +95,9 @@ class MolecularFormula(MolecularFormulaCalc):
             raise Warning('Could not find %s in this Molecular Formula object'%str(atom))
     
     def atoms_symbol(self, atom): 
+        '''return the atom symbol without the mass number'''
         return ''.join([i for i in atom if not i.isdigit()])
-    
+
     @property       
     def to_string(self):
         

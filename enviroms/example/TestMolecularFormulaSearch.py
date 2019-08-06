@@ -1,13 +1,16 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jul 25, 2019"
 
-import sys, time, os 
+import os
+import sys
+import time
 sys.path.append(".")
-from enviroms.emsl.yec.transient.input.BrukerSolarix import ReadBrukerSolarix
-from enviroms.emsl.yec.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
-from enviroms.emsl.yec.mass_spectrum.input.TextMassList import Read_MassList
-from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupTableSettings
 
+from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupTableSettings
+from enviroms.emsl.yec.mass_spectrum.input.TextMassList import Read_MassList
+from enviroms.emsl.yec.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
+from enviroms.emsl.yec.molecular_id.calc.ClusterFilter import ClusteringFilter
+from enviroms.emsl.yec.transient.input.BrukerSolarix import ReadBrukerSolarix
 
 def creat_mass_spectrum(file_location):
 
@@ -39,43 +42,46 @@ if __name__ == "__main__":
     #file_name = "20190616_WK_ESFA_0pt2mgml_ESI_Neg_1pt4sFID_000001.ascii"
 
     file_location = directory + file_name
-
+    kendrick_base =  {'C':1,'H':2,'O':1}   
+    
     mass_spectrum = creat_mass_spectrum(file_location)
+    mass_spectrum.change_kendrick_base_all_mspeaks(kendrick_base)
+    
+    ClusteringFilter().filter_kendrick(mass_spectrum)
+    
     time1 = time.time()
+    
     SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum)
-    print('searching molecular formulas took %i seconds' % (time.time() - time1))
+    mass_spectrum.reset_indexes()
 
+    print('searching molecular formulas took %i seconds' % (time.time() - time1))
+    
     i = 0
     j = 0
     error = list()
     mass = list()
     abundance = list()
-
+    
     for mspeak in mass_spectrum:
 
         if mspeak.is_assigned:
             i += 1
-            #print(mspeak.mz_exp, len(mspeak))
+                
             for mformula in mspeak:
                 mass.append(mspeak.mz_exp)
                 error.append(mformula._calc_assigment_mass_error(mspeak.mz_exp))
                 abundance.append(mspeak.abundance)
-                #print(mformula.to_string, mformula._calc_assigment_mass_error(mspeak.mz_exp))
-                # need to change the calculation of error inside the formula
-                if mformula.is_isotopologue:
-                    pass
-                    #print(mformula.to_string, mformula._calc_assigment_mass_error(mspeak.mz_exp))
-
         else:
             j += 1
             pass
-            #print("No Hit")
-
+        
+    
     from matplotlib import pylab
-    pylab.plot(mass_spectrum.mz_exp, mass_spectrum.abundance) 
+    pylab.plot(mass_spectrum.mz_exp, mass_spectrum.abundance, color='g') 
     pylab.plot(mass, abundance, "o")  
     pylab.show()  
     pylab.plot(mass, error, "o")  
     pylab.show()  
     print('%i peaks assigned and %i peaks not assigned' % (i, j))
+    #ClusteringFilter().filter_mass_error(mass_spectrum)
     

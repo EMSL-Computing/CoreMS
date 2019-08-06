@@ -12,8 +12,7 @@ from enviroms.emsl.yec.molecular_id.calc.MolecularLookupTable import  MolecularC
 class SearchMolecularFormulas:
      
     '''
-    runworker()
-    
+    runworker()    
     '''
     def __enter__(self):
         return self
@@ -198,6 +197,39 @@ class SearchMolecularFormulaWorker:
 
         return self.find_formulas(*args)  # ,args[1]
 
+    def set_last_error(self, error, last_error, last_dif, closest_error):
+        
+        
+        if MoleculaSearchSettings.error_method == 'distance':
+            
+            dif = error - last_error
+            if dif < last_dif:
+                last_dif = dif
+                closest_error = error
+                MoleculaSearchSettings.min_mz_error = closest_error - MoleculaSearchSettings.mz_error_range
+                MoleculaSearchSettings.max_mz_error = closest_error + MoleculaSearchSettings.mz_error_range
+
+        elif MoleculaSearchSettings.error_method == 'lowest':
+            
+            if error < last_error:
+                MoleculaSearchSettings.min_mz_error = error - MoleculaSearchSettings.mz_error_range
+                MoleculaSearchSettings.max_mz_error = error + MoleculaSearchSettings.mz_error_range
+                last_error = error
+        
+        elif MoleculaSearchSettings.error_method == 'symmetrical':
+               
+               MoleculaSearchSettings.min_mz_error = MoleculaSearchSettings.mz_error_average - MoleculaSearchSettings.mz_error_range
+               MoleculaSearchSettings.max_mz_error = MoleculaSearchSettings.mz_error_average + MoleculaSearchSettings.mz_error_range
+        
+        else:
+               #using set MoleculaSearchSettings.min_mz_error and max_mz_error range
+               pass
+
+        return last_error, last_dif, closest_error         
+        '''returns the error based on the selected method at MoleculaSearchSettings.method
+
+        '''
+        
     def find_formulas(self, possible_formulas, min_abundance, mass_spectrum_obj, ms_peak ):
         '''
         # uses the closest error the next search (this is not ideal, it needs to use confidence
@@ -207,6 +239,7 @@ class SearchMolecularFormulaWorker:
         # proportional with the mass, and inversially proportinal to the rp. 
         # It's not linear, i.e., sigma ∝ mass 
         # the idea it to correlate sigma to resolving power, signal to noise and sample complexity per mz unit
+        # method='distance'
         '''
 
         min_mz_error = MoleculaSearchSettings.min_mz_error
@@ -221,6 +254,7 @@ class SearchMolecularFormulaWorker:
         last_dif = 0
         last_error = 0
         closest_error = 0
+        
         for possible_formula in possible_formulas:
             
             if possible_formula:
@@ -232,13 +266,14 @@ class SearchMolecularFormulaWorker:
                     #initially using the lowest error
                     #will need to change it to the best canditate after confidence metric
                     #is stablished
-                    dif = error - last_error
-                    if dif < last_dif:
-                        last_dif = dif
-                        closest_error = error
-                        MoleculaSearchSettings.min_mz_error = closest_error - MoleculaSearchSettings.mz_error_range
-                        MoleculaSearchSettings.max_mz_error = closest_error + MoleculaSearchSettings.mz_error_range
-                        
+                    
+                    #dif = error - last_error
+                    #if dif < last_dif:
+                    #    last_dif = dif
+                    #    closest_error = error
+                    #    MoleculaSearchSettings.min_mz_error = closest_error - MoleculaSearchSettings.mz_error_range
+                    #    MoleculaSearchSettings.max_mz_error = closest_error + MoleculaSearchSettings.mz_error_range
+                    last_error, last_dif, closest_error  = self.set_last_error(error, last_error, last_dif, closest_error)    
                     
                     #add molecular formula match to ms_peak
                     ms_peak.add_molecular_formula(possible_formula)

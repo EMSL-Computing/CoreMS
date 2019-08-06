@@ -83,6 +83,14 @@ class MolecularFormulaCalc:
             
             raise Exception("Please calc_isotopologues")    
 
+    @property
+    def dbe_ai(self):
+            
+        carbons =  self._d_molecular_formula.get('C')
+        hidrogens = self._d_molecular_formula.get('H')
+        oxigens = self._d_molecular_formula.get('O')
+        return 1 + (((2*carbons) - hidrogens - (2*oxigens))*0.5)
+
     def _calc_dbe(self):
             
             individual_dbe = 0
@@ -105,6 +113,25 @@ class MolecularFormulaCalc:
                         continue
             
             return 1 + (0.5 * individual_dbe)
+
+    def _calc_kdm(self, dict_base):
+        '''dict_base = {"C": 1, "H": 2}
+        '''
+        mass = 0
+        for atom in dict_base.keys():
+            mass = mass + Atoms.atomic_masses.get(atom) * dict_base.get(atom)
+        
+        kendrick_mass = (int(mass)/mass)*self.mz_theor
+        
+        nominal_km =int(kendrick_mass)
+       
+        kmd = (nominal_km - kendrick_mass) * 100
+        
+        #kmd = (nominal_km - km) * 1
+        kdm  = round(kmd,0)
+        
+        return kdm, kendrick_mass, nominal_km
+
     
     @staticmethod
     def _cal_isotopologues(formula_dict, min_abudance, current_abundance):

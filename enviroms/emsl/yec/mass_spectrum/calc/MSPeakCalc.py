@@ -21,10 +21,8 @@ class MassSpecPeakCalculation(object):
         kendrick_mass = (int(mass)/mass)*self.mz_exp
         
         nominal_km =int(kendrick_mass)
-        #for ICR
-        nominal_mass = int(self.mz_exp) 
-        
-        kmd = (nominal_mass - kendrick_mass) * 1000
+       
+        kmd = (nominal_km - kendrick_mass) * 100
         
         #kmd = (nominal_km - km) * 1
         kdm  = round(kmd,0)

@@ -35,9 +35,8 @@ class MassSpecBase(MassSpecCalc):
         self._mz_exp = array(mz_exp)
         
         #objects created after process_mass_spec() function
-        self.mspeaks = []
-        self._dict_nominal_masses_indexes  = {}
-
+        self._mspeaks = list()
+        self._dict_nominal_masses_indexes  = dict()
         self._set_parameters_objects(d_params)
 
         # frequency is set inside MassSpecfromFreq Class
@@ -56,8 +55,18 @@ class MassSpecBase(MassSpecCalc):
     def __getitem__(self, position):
         
         return self.mspeaks[position]
+    
+    def set_indexes(self, list_indexes):
+        
+        self.mspeaks = [self._mspeaks[i] for i in list_indexes]
+        self._set_nominal_masses_start_final_indexes()
+        
+    def reset_indexes(self):
+        
+        self.mspeaks = self._mspeaks
+        self._set_nominal_masses_start_final_indexes()
 
-    def add_mspeak (self, ion_charge, mz_exp,
+    def add_mspeak(self, ion_charge, mz_exp,
                     abundance,
                     resolving_power,
                     signal_to_noise,
@@ -65,7 +74,7 @@ class MassSpecBase(MassSpecCalc):
                     exp_freq=None,
                 ):
 
-        self.mspeaks.append(
+        self._mspeaks.append(
             MSPeak(
                 ion_charge,
                 mz_exp,
@@ -101,7 +110,8 @@ class MassSpecBase(MassSpecCalc):
 
         self.cal_noise_treshould()
         self.find_peaks()
-        self._set_nominal_masses_start_final_indexes()
+        self.reset_indexes()
+        
         
 
     def cal_noise_treshould(self, auto=True):
@@ -129,6 +139,16 @@ class MassSpecBase(MassSpecCalc):
     def mz_exp_centroide(self):
         self.check_mspeaks()
         return array([mspeak.mz_exp for mspeak in self.mspeaks])
+
+    @property
+    def kmd(self):
+        self.check_mspeaks()
+        return array([mspeak.kmd for mspeak in self.mspeaks])
+
+    @property
+    def kendrick_mass(self):
+        self.check_mspeaks()
+        return array([mspeak.kendrick_mass for mspeak in self.mspeaks])
 
     @property
     def max_mz_exp(self):
@@ -195,7 +215,8 @@ class MassSpecBase(MassSpecCalc):
     def filter_by_s2n(self, s2n):
 
         self.check_mspeaks()
-        return [mspeak for mspeak in self.mspeaks if mspeak.signal_to_noise > s2n]
+        indexes = [index for index, mspeak in enumerate(self.mspeaks) if mspeak.signal_to_noise > s2n]
+        self.set_indexes(indexes)
 
     def get_mz_and_abundance_peaks_tuples(self):
 
@@ -204,11 +225,11 @@ class MassSpecBase(MassSpecCalc):
 
     def find_peaks(self):
         """needs to clear previous results from peak_picking"""
-        del self.mspeaks 
-        self.mspeaks = list()
+        del self._mspeaks
+        self._mspeaks = list()
         """then do peak picking"""
         self.do_peak_picking()
-        print("A total of %i peaks were found" % len(self.mspeaks))
+        print("A total of %i peaks were found" % len(self._mspeaks))
 
     def change_kendrick_base_all_mspeaks(self, kendrick_dict_base):
         """kendrick_dict_base = {"C": 1, "H": 2} or {{"C": 1, "H": 1, "O":1} etc """
@@ -314,8 +335,9 @@ class MassSpecProfile(MassSpecBase):
     def process_mass_spec(self):
         self.cal_noise_treshould()
         self.find_peaks()
-        self._set_nominal_masses_start_final_indexes()
-
+        self.reset_indexes()
+        
+        
 
 class MassSpecfromFreq(MassSpecBase):
     def __init__(self, frequency_domain, magnitude, d_params, auto_process=True):
@@ -408,5 +430,6 @@ class MassSpecCentroid(MassSpecBase):
                 l_s_n[index],
                 index,
             )
-
-        self._set_nominal_masses_start_final_indexes()    
+        
+        self.reset_indexes()
+        
