@@ -24,9 +24,9 @@ class PeakPicking(object):
         final =  where(self.mz_exp < max_picking_mz)[-1][-1]
         comeco =  where(self.mz_exp < max_picking_mz)[0][0]
 
-        if self.frequency_domain.any():
+        if self.freq_exp.any():
 
-            freq_domain_Y_cutoff  = self.frequency_domain[comeco:final]
+            freq_domain_Y_cutoff  = self.freq_exp[comeco:final]
 
             return mz_domain_X_low_cutoff[comeco:final], mz_domain_low_Y_cutoff[comeco:final], freq_domain_Y_cutoff[comeco:final]
 
@@ -42,10 +42,10 @@ class PeakPicking(object):
                 self.calc_centroid(mz, abudance, freq)
             
             elif self.label == Labels.thermo_profile:
-                self.calc_centroid(self.mz_exp, self.abundance, self.frequency_domain)
+                self.calc_centroid(self.mz_exp, self.abundance, self.freq_exp)
             
             elif self.label == Labels.bruker_profile:
-                self.calc_centroid(self.mz_exp, self.abundance, self.frequency_domain)
+                self.calc_centroid(self.mz_exp, self.abundance, self.freq_exp)
             
             else: raise Exception("Unknow mass spectrum type")
             #x = threading.Thread(target=self.calc_centroid, args=(mz, abudance, freq))
@@ -194,7 +194,7 @@ class PeakPicking(object):
             
             mz_exp_centroid = calculated 
         
-        if self.label == "Frequency":
+        if self.label == Labels.bruker_frequency or self.label == Labels.midas_frequency:
             
             list_freq = [freq[current_index - 1], freq[current_index], freq[current_index +1]]
             z = poly1d(polyfit(list_freq, list_y, 2))

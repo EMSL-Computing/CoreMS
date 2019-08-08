@@ -1,7 +1,7 @@
 import time
 
 from matplotlib import rcParamsDefault, rcParams
-from numpy import array, flip
+from numpy import array, power, sqrt, average
 from enviroms.emsl.yec.encapsulation.constant.Constants import Labels
 from enviroms.emsl.yec.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting
 from enviroms.emsl.yec.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
@@ -66,6 +66,7 @@ class MassSpecBase(MassSpecCalc):
         self.mspeaks = self._mspeaks
         self._set_nominal_masses_start_final_indexes()
 
+    
     def add_mspeak(self, ion_charge, mz_exp,
                     abundance,
                     resolving_power,
@@ -106,14 +107,30 @@ class MassSpecBase(MassSpecCalc):
 
         self.location = 220
 
+    def reset_cal_therms(self, Aterm, Bterm, C, fas= 0):
+        
+        #print(self.Aterm,  A)
+
+        self._calibration_terms = (Aterm, Bterm, C)
+        freq_exp = array([mspeak.freq_exp for mspeak in self.mspeaks])+fas
+        
+        mz_domain = (Aterm / (freq_exp)) + (Bterm / power((freq_exp), 2))
+        for indexes, mspeak in enumerate(self):
+            mspeak.mz_exp = mz_domain[indexes]
+        #self.find_peaks()
+        #self.reset_indexes()
+            
+    def clear_molecular_formulas(self):
+        
+        self.check_mspeaks()
+        return array([mspeak.clear_molecular_formulas() for mspeak in self.mspeaks])
+
     def process_mass_spec(self):
 
         self.cal_noise_treshould()
         self.find_peaks()
         self.reset_indexes()
-        
-        
-
+   
     def cal_noise_treshould(self, auto=True):
 
         self._baselise_noise, self._baselise_noise_std = self.run_noise_threshould_calc(
@@ -126,7 +143,7 @@ class MassSpecBase(MassSpecCalc):
         rcParams["figure.dpi"] = default_dpi * factor
 
     @property
-    def frequency_domain(self):
+    def freq_exp(self):
         return self._frequency_domain
 
     @property
@@ -139,6 +156,10 @@ class MassSpecBase(MassSpecCalc):
     def mz_exp_centroide(self):
         self.check_mspeaks()
         return array([mspeak.mz_exp for mspeak in self.mspeaks])
+
+    def freq_exp_centroide(self):
+        self.check_mspeaks()
+        return array([mspeak.freq_exp for mspeak in self.mspeaks])
 
     @property
     def kmd(self):
@@ -344,7 +365,7 @@ class MassSpecfromFreq(MassSpecBase):
         """
         method docs
         """
-        super().__init__(None, flip(magnitude), d_params)
+        super().__init__(None, magnitude, d_params)
 
         self.label = d_params.get("label")
         self._frequency_domain = frequency_domain
@@ -357,11 +378,11 @@ class MassSpecfromFreq(MassSpecBase):
 
         if self.label == Labels.bruker_frequency:
 
-            self._mz_exp = flip(self._f_to_mz_bruker())
+            self._mz_exp = self._f_to_mz_bruker()
 
         else:
 
-            self._mz_exp = flip(self._f_to_mz())
+            self._mz_exp = self._f_to_mz()
 
 
 class MassSpecCentroid(MassSpecBase):

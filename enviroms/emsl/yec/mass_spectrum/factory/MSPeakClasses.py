@@ -1,8 +1,10 @@
 
-from enviroms.emsl.yec.encapsulation.settings.input.ProcessingSetting import MassSpecPeakSetting
-from enviroms.emsl.yec.mass_spectrum.calc.MSPeakCalc import MassSpecPeakCalculation
-from enviroms.emsl.yec.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
-
+from enviroms.emsl.yec.encapsulation.settings.input.ProcessingSetting import \
+    MassSpecPeakSetting
+from enviroms.emsl.yec.mass_spectrum.calc.MSPeakCalc import \
+    MassSpecPeakCalculation
+from enviroms.emsl.yec.molecular_id.factory.MolecularFormulaFactory import \
+    MolecularFormula
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
@@ -61,7 +63,11 @@ class MSPeak(MassSpecPeakCalculation):
     def add_molecular_formula(self, molecular_formula_obj):
 
         self.molecular_formulas.append(molecular_formula_obj)
-      
+    
+    def clear_molecular_formulas(self):
+        
+        self.molecular_formulas= []
+
     @property
     def nominal_mz_exp(self): return int(self.mz_exp)
 

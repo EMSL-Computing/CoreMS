@@ -72,7 +72,7 @@ class MoleculaSearchSettings:
     max_abun_error = 70 # percentage 
 
     #empirically set / needs optimization
-    mz_error_range = 2
+    mz_error_range = 1
 
     #'distance', 'lowest', 'symmetrical', 'None'
     error_method = 'distance'

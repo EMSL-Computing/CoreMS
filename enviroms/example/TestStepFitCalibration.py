@@ -1,10 +1,19 @@
 
-import sys, os, time
-import numpy as np
+import os
+import sys
+import time
 sys.path.append(".")
-from enviroms.emsl.yec.transient.input.BrukerSolarix import ReadBrukerSolarix
-from enviroms.emsl.yec.molecular_id.calc.FindOxigenPeaks import FindOxygenPeaks
+import numpy as np
+from matplotlib import pylab
+from numpy.ma.extras import average
+
+from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
+from enviroms.emsl.yec.mass_spectrum.calc.CalibrationCalc import MZDomain_Calibration, FreqDomain_Calibration
 from enviroms.emsl.yec.mass_spectrum.input.TextMassList import Read_MassList
+from enviroms.emsl.yec.molecular_id.calc.FindOxigenPeaks import FindOxygenPeaks
+from enviroms.emsl.yec.transient.input.BrukerSolarix import ReadBrukerSolarix
+from enviroms.emsl.yec.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
+
 
 def creat_mass_spectrum(file_location):
 
@@ -42,33 +51,50 @@ if __name__ == "__main__":
     time1 = time.time()
 
     find_formula_thread = FindOxygenPeaks(mass_spectrum)
-    find_formula_thread.start()
-    
-    #while find_formula_thread.is_alive():
-    #    for i in range(100):
-    #        printProgressBar(i, 100)
-    find_formula_thread.join()
+    find_formula_thread.run()
+    #find_formula_thread.join()
 
     mspeaks_results = find_formula_thread.get_list_found_peaks()
     
     mspeaks_results = sorted(mspeaks_results, key=lambda mp: mp.mz_exp)
     
+    #calibrate = MZDomain_Calibration(mass_spectrum, mspeaks_results)
+    calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
+    
+    calibrate.ledford_calibration()
+    
+    print('searching molecular formulas took %i seconds' % (time.time() - time1))
+    mass_spectrum.clear_molecular_formulas()
+    print('clear molecular formulas took %i seconds' % (time.time() - time1))
+    MoleculaSearchSettings.error_method = 'symmetrical'
+    MoleculaSearchSettings.min_mz_error = -1
+    MoleculaSearchSettings.max_mz_error = +1
+    mz_error_range = 2
+    SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum)
+    #find_formula_thread = FindOxygenPeaks(mass_spectrum)
+    #find_formula_thread.run()
+    #find_formula_thread.join()
+
     error = list()
     mass = list()
     abundance = list()
-    for mspeak in mspeaks_results:
+    freq_exp = list()
+    mz_theo = list()
+
+    for mspeak in mass_spectrum:
         
         for molecular_formula in mspeak:
             
-            mass.append(mspeak.mz_exp)
-            error.append(molecular_formula._calc_assigment_mass_error(mspeak.mz_exp))
-            abundance.append(mspeak.abundance)
-    
-    print('searching molecular formulas took %i seconds' % (time.time() - time1))
-    
-    from matplotlib import pylab
+            #if not molecular_formula.is_isotopologue:
+                freq_exp.append(mspeak.freq_exp)
+                mass.append(mspeak.mz_exp)
+                error.append(molecular_formula._calc_assigment_mass_error(mspeak.mz_exp))
+                abundance.append(mspeak.abundance)
+                mz_theo.append(molecular_formula.mz_theor)
+
+    print(np.average(error), np.std(error))
     pylab.plot(mass_spectrum.mz_exp, mass_spectrum.abundance) 
     pylab.plot(mass, abundance, "o")  
-    #pylab.plot(mass, error, "o")  
     pylab.show()  
-    
+    pylab.plot(mass, error, "o")  
+    pylab.show()  

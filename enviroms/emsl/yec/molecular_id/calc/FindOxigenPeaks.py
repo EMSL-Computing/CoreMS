@@ -25,6 +25,7 @@ class FindOxygenPeaks(Thread):
         
         self.mass_spectrum_obj.change_kendrick_base_all_mspeaks(kendrick_base)
         
+        # needs to be wrapped inside the mass_spec class
         ClusteringFilter().filter_kendrick(self.mass_spectrum_obj)
         
         molecular_formula_obj_reference = self.find_most_abundant_formula(self.mass_spectrum_obj)

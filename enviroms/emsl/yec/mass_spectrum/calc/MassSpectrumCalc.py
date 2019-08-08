@@ -13,18 +13,23 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
 
     def _f_to_mz(self):
 
+        print(type(self.freq_exp))
         Aterm, Bterm, Cterm = self.Aterm, self.Bterm, self.Cterm
         # Check if the Bterm of Ledford equation scales with the ICR trap voltage or not then Bterm = Bterm*trap_voltage
         if Cterm == 0:
-
-            mz_domain = (Aterm / self.frequency_domain) + \
-                (Bterm / power(self.frequency_domain, 2))
+            
+            if Bterm == 0:
+                #uncalibrated data
+                mz_domain = Aterm / self.freq_exp 
+                
+            else:
+                mz_domain = (Aterm / self.freq_exp) + (Bterm / power(self.freq_exp, 2))
 
         # @will I need you insight here, not sure what is the inverted ledford equation that Bruker refers to
         else:
 
-            mz_domain = Aterm/(2*(Bterm + self.frequency_domain)) + sqrt(Aterm**2 + 4*Bterm *
-                                                                         Cterm + 4*Cterm*self.frequency_domain)/(2*(Bterm + self.frequency_domain))
+            mz_domain = Aterm/(2*(Bterm + self.freq_exp)) + sqrt(Aterm**2 + 4*Bterm *
+                                                                         Cterm + 4*Cterm*self.freq_exp)/(2*(Bterm + self.freq_exp))
 
         return mz_domain
 
@@ -39,23 +44,23 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
             
             if Bterm == 0:
                 #uncalibrated data
-                return Aterm / self.frequency_domain 
+                return Aterm / self.freq_exp 
             
             else:
                 #calc2
-                return Aterm / (self.frequency_domain + Bterm)
+                return Aterm / (self.freq_exp + Bterm)
 
         # @will I need you insight here, not sure what is the inverted ledford equation that Bruker refers to
         else:
             
             diff = Aterm * Aterm
-            diff = diff - 4 * Cterm * (self.frequency_domain - Bterm)
+            diff = diff - 4 * Cterm * (self.freq_exp - Bterm)
             diff = sqrt(diff)
             diff = -Aterm+diff
             
             #calc3
             return (2*Cterm)/diff
-            return diff/2* (self.frequency_domain - Bterm)
+            return diff/2* (self.freq_exp - Bterm)
 
     def assign_molecular_formulas(self):
         '''call assigment algorithms here'''
