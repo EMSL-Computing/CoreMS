@@ -7,20 +7,25 @@ import numpy as np
 class MZDomain_Calibration:
 
     
-    def __init__(self, mass_spectrum, selected_mass_peaks):
+    def __init__(self, mass_spectrum, selected_mass_peaks, include_isotopologue=False):
         
         self.mass_spectrum = mass_spectrum
         self.selected_mass_peaks = selected_mass_peaks
-        self.load_variables()
+        self.load_variables(include_isotopologue)
 
-    def load_variables(self):
+    def load_variables(self, include_isotopologue):
         
         error = list()
         mz_exp = list()
         mz_theo = list()
         for mspeak in self.selected_mass_peaks:
             
-            for molecular_formula in mspeak:
+            if not include_isotopologue:
+                molecular_formulas = [formula for formula in mspeak if not formula.is_isotopologue]
+            else:
+                molecular_formulas = mspeak
+            
+            for molecular_formula in molecular_formulas:
                 mz_exp.append(mspeak.mz_exp)
                 error.append(molecular_formula._calc_assigment_mass_error(mspeak.mz_exp))
                 mz_theo.append(molecular_formula.mz_theor)
@@ -153,19 +158,16 @@ class FreqDomain_Calibration:
         for mspeak in selected_mass_peaks:
             
             if not include_isotopologue:
-                
                 molecular_formulas = [formula for formula in mspeak if not formula.is_isotopologue]
-                
             else:
-                
                 molecular_formulas = mspeak
             
-                for molecular_formula in molecular_formulas:
-                    
-                    freq_exp.append(mspeak.freq_exp)
-                    error.append(molecular_formula._calc_assigment_mass_error(mspeak.mz_exp))
-                    mz_theo.append(molecular_formula.mz_theor)
-                    mz_exp.append(mspeak.mz_exp)
+            for molecular_formula in molecular_formulas:
+                
+                freq_exp.append(mspeak.freq_exp)
+                error.append(molecular_formula._calc_assigment_mass_error(mspeak.mz_exp))
+                mz_theo.append(molecular_formula.mz_theor)
+                mz_exp.append(mspeak.mz_exp)
                     
         
         self.mz_exp = np.array(mz_exp)
