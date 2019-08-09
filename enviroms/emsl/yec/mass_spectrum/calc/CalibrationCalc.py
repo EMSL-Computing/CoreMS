@@ -30,7 +30,7 @@ class MZDomain_Calibration:
         self.mz_exp_ms = np.array([mspeak.mz_exp for mspeak in self.mass_spectrum])        
 
 
-    def linear(self):
+    def linear(self, iteration=False):
         mz_exp = self.mz_exp
         mz_exp_ms = self.mz_exp_ms 
         error = ((mz_exp-self.mz_theo)/self.mz_theo) *1000000
@@ -54,11 +54,13 @@ class MZDomain_Calibration:
                  last_rms = rms
                  mz_exp_ms = np.array([mspeak.mz_exp for mspeak in self.mass_spectrum])        
                  mz_domain = (Aterm * mz_exp_ms) + Bterm
-                 self.reset_mass_spec(mz_domain, Aterm, Bterm, 0)          
+                 self.reset_mass_spec(mz_domain, Aterm, Bterm, 0)        
+                 if not iteration:
+                     break       
             else:
                 break     
 
-    def ledford_inverted_calibration(self):
+    def ledford_inverted_calibration(self, iteration=False):
         
         mz_exp = self.mz_exp
         mz_exp_ms = self.mz_exp_ms 
@@ -84,12 +86,13 @@ class MZDomain_Calibration:
                  mz_exp_ms = np.array([mspeak.mz_exp for mspeak in self.mass_spectrum])        
                  mz_domain = (Aterm * (mz_exp_ms)) + (Bterm * np.power((mz_exp_ms), 2) )
                  self.reset_mass_spec(mz_domain, Aterm, Bterm, 0)   
-                        
+                 if not iteration:
+                    break       
             else:
                 break     
         
 
-    def quadratic(self):
+    def quadratic(self, iteration=False):
         
         mz_exp = self.mz_exp
         mz_exp_ms = self.mz_exp_ms 
@@ -114,7 +117,9 @@ class MZDomain_Calibration:
                  last_rms = rms
                  mz_exp_ms = np.array([mspeak.mz_exp for mspeak in self.mass_spectrum])        
                  mz_domain = (Aterm * (mz_exp_ms)) + (Bterm * np.power((mz_exp_ms), 2) + Cterm )
-                 self.reset_mass_spec(mz_domain, Aterm, Bterm, Cterm)          
+                 self.reset_mass_spec(mz_domain, Aterm, Bterm, Cterm)     
+                 if not iteration:
+                    break        
             else:
                 break     
         '''
@@ -137,26 +142,39 @@ class MZDomain_Calibration:
 
 class FreqDomain_Calibration:
 
-    def __init__(self, mass_spectrum, selected_mass_peaks):
+    def __init__(self, mass_spectrum, selected_mass_peaks, include_isotopologue=False):
         
+        self.selected_mass_peaks = selected_mass_peaks
         error = list()
         freq_exp = list()
         mz_theo = list()
+        mz_exp = list()
 
         for mspeak in selected_mass_peaks:
             
-            for molecular_formula in mspeak:
+            if not include_isotopologue:
                 
-                freq_exp.append(mspeak.freq_exp)
-                error.append(molecular_formula._calc_assigment_mass_error(mspeak.mz_exp))
-                mz_theo.append(molecular_formula.mz_theor)
+                molecular_formulas = [formula for formula in mspeak if not formula.is_isotopologue]
+                
+            else:
+                
+                molecular_formulas = mspeak
+            
+                for molecular_formula in molecular_formulas:
+                    
+                    freq_exp.append(mspeak.freq_exp)
+                    error.append(molecular_formula._calc_assigment_mass_error(mspeak.mz_exp))
+                    mz_theo.append(molecular_formula.mz_theor)
+                    mz_exp.append(mspeak.mz_exp)
+                    
         
+        self.mz_exp = np.array(mz_exp)
         self.mz_theo = np.array(mz_theo)
         self.freq_exp = np.array(freq_exp)
         self.mass_spectrum = mass_spectrum
         self.freq_exp_ms = np.array([mspeak.freq_exp for mspeak in mass_spectrum])
 
-    def reset_mass_spec(self, mz_domain, Aterm, Bterm, Cterm):
+    def recal_mass_spec(self, mz_domain, Aterm, Bterm, Cterm):
         
         self.mass_spectrum._calibration_terms = (Aterm, Bterm, 0)
         for indexes, mspeak in enumerate(self.mass_spectrum):
@@ -173,72 +191,69 @@ class FreqDomain_Calibration:
         print("Aterm", Aterm)
         #mz_domain = Aterm / (self.freq_exp_ms + Bterm) 
         mz_domain = (Aterm/self.freq_exp_ms) + Bterm 
-        self.reset_mass_spec(mz_domain, Aterm, Bterm, 0)
+        self.recal_mass_spec(mz_domain, Aterm, Bterm, 0)
 
-    def quadratic(self):
+    def quadratic(self, iteration=False):
         
-        matrix = np.vstack([1/self.freq_exp, 1/np.power(self.freq_exp,2), np.ones(len(self.freq_exp))]).T
-        Aterm, Bterm, Cterm =  np.linalg.lstsq(matrix, self.mz_theo, rcond=None)[0]
-        print("Aterm", Aterm)
-        #mz_domain = Aterm / (self.freq_exp_ms + Bterm) 
-        mz_domain = (Aterm / (self.freq_exp_ms)) + (Bterm / np.power((self.freq_exp_ms), 2) + Cterm)
-        self.reset_mass_spec(mz_domain, Aterm, Bterm, Cterm)
-
-    def freq_shif_calibration(self):
-        
-        freq_exp = self.freq_exp
         mz_theo = self.mz_theo
+        freq_exp = self.freq_exp
+        mz_exp = self.mz_exp
         
-        mz_theo = np.array(mz_theo)
-        Aterm = self.mass_spectrum.Aterm
-        Bterm = self.mass_spectrum.Bterm
-        f_thero = (Aterm + np.sqrt(np.power(-Aterm,2) - (4*mz_theo-Bterm))) /(2*mz_theo)
-        fas = np.average(freq_exp- f_thero)
-        
-        last_rms = 10000
-        last_fas = fas
-        opt_Aterm = Aterm
-        opt_Bterm = Bterm
+        error = ((mz_exp-mz_theo)/mz_theo) *1000000
+        last_rms = np.sqrt(np.mean(error**2))
         while True:
-            fitting = SquareFittingAB(freq_exp+fas, mz_theo)
-            Aterm = fitting.return_a()
-            Bterm = fitting.return_b()
             
-            f_thero = (Aterm + np.sqrt(np.power(-Aterm,2) - (4*mz_theo-Bterm))) /(2*mz_theo)
-            fas = np.average(freq_exp- f_thero)
-            mz_domain = (Aterm / (freq_exp+fas)) + (Bterm / np.power((freq_exp+fas), 2))
-            error = (mz_domain-self.mz_theo)/self.mz_theo
+            matrix = np.vstack([1/freq_exp, 1/np.power(freq_exp,2), np.ones(len(freq_exp))]).T
+            Aterm, Bterm, Cterm =  np.linalg.lstsq(matrix, self.mz_theo, rcond=None)[0]
+            mz_exp = (Aterm / (freq_exp)) + (Bterm / np.power((freq_exp), 2) )+ Cterm
+            error = ((mz_exp-mz_theo)/mz_theo)*1000000
             rms = np.sqrt(np.mean(error**2))
             std = np.std(error)
-            print('Inside', rms, std)
+            print ('HEREEE', rms, std, Aterm, Bterm)
             if rms < last_rms:
                 last_rms = rms
-                last_fas = fas
-                opt_Aterm = Aterm
-                opt_Bterm = Bterm
-               
-            else:
+                freq_exp = (Aterm + np.sqrt(np.power(-Aterm,2) - (4*Cterm*(mz_exp-Bterm)))) /(2*mz_exp)
                 
-                break
+                mz_domain = (Aterm / (self.freq_exp_ms)) + (Bterm / np.power((self.freq_exp_ms), 2) )+ Cterm
+                self.recal_mass_spec(mz_domain, Aterm, Bterm, Cterm)
+                if not iteration:
+                    break       
+            else:
+                break     
 
-        mz_domain = (opt_Aterm / (self.freq_exp_ms+last_fas)) + (opt_Bterm / np.power((self.freq_exp_ms+last_fas), 2))
-        self.reset_mass_spec(mz_domain, opt_Aterm, opt_Bterm, 0)
-
-    def ledford_calibration(self):
+    def ledford_calibration(self, iteration=False):
         
-        matrix = np.vstack([1/self.freq_exp, 1/np.power(self.freq_exp,2)]).T
-        Aterm, Bterm =  np.linalg.lstsq(matrix, self.mz_theo, rcond=None)[0]
-        print(Aterm, Bterm)
-        #fitting = SquareFittingAB(self.freq_exp, self.mz_theo)
-        #Aterm = fitting.return_a()
-        #Bterm = fitting.return_b()
-        mz_domain = (Aterm / (self.freq_exp)) + (Bterm / np.power((self.freq_exp), 2))
-        error = (mz_domain-self.mz_theo)/self.mz_theo
-        rms = np.sqrt(np.mean(error**2))
-        std = np.std(error)
-        mz_domain = (Aterm / (self.freq_exp_ms)) + (Bterm / np.power((self.freq_exp_ms), 2))
-        self.reset_mass_spec(mz_domain, Aterm, Bterm, 0)
+        mz_theo = self.mz_theo
+        freq_exp = self.freq_exp
+        mz_exp = self.mz_exp
         
+        error = ((mz_exp-self.mz_theo)/self.mz_theo) *1000000
+        last_rms = np.sqrt(np.mean(error**2))
+        while True:
+            
+            matrix = np.vstack([1/freq_exp, 1/np.power(freq_exp,2)]).T
+            Aterm, Bterm =  np.linalg.lstsq(matrix, self.mz_theo, rcond=None)[0]
+            
+            mz_exp = (Aterm / (freq_exp)) + (Bterm / np.power((freq_exp), 2))
+            error = ((mz_exp-mz_theo)/mz_theo)*1000000
+            rms = np.sqrt(np.mean(error**2))
+            std = np.std(error)
+            print ('HEREEE', rms, std, Aterm, Bterm)
+            if rms < last_rms:
+                 last_rms = rms
+                 freq_exp = (Aterm + np.sqrt(np.power(-Aterm,2) - (4*mz_exp-Bterm))) /(2*mz_exp)
+                 mz_domain = (Aterm / (self.freq_exp_ms)) + (Bterm / np.power((self.freq_exp_ms), 2))
+                 self.recal_mass_spec(mz_domain, Aterm, Bterm, 0)
+                 if not iteration:
+                    break       
+            else:
+                break     
+        
+    def setfit_calibration(self):
+        
+        for mspeak in self.selected_mass_peaks:
+           self.mass_spectrum[mspeak.index]
+            
 
 class SquareFittingAB:
     

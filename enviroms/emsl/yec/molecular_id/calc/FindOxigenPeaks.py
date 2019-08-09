@@ -17,10 +17,12 @@ class FindOxygenPeaks(Thread):
         Thread.__init__(self)
         
         self.mass_spectrum_obj = mass_spectrum_obj
-        self.list_found_mspeaks = []
+        
     
     def run(self):
         
+        self.list_found_mspeaks = []
+
         kendrick_base =  {'C':1,'H':2,'O':1}   
         
         self.mass_spectrum_obj.change_kendrick_base_all_mspeaks(kendrick_base)

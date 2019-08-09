@@ -74,7 +74,7 @@ class MoleculaSearchSettings:
     #empirically set / needs optimization
     mz_error_range = 1
 
-    #'distance', 'lowest', 'symmetrical', 'None'
-    error_method = 'distance'
+    #'distance', 'lowest', 'symmetrical','average' 'None'
+    error_method = 'average'
 
-    mz_error_average = 0
+    mz_error_average = 1

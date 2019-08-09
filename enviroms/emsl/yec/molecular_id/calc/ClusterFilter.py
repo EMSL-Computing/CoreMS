@@ -40,27 +40,27 @@ class ClusteringFilter():
         
         matrix_data_scaled = stscaler.transform(matrix_data)
 
-        clusters = DBSCAN(eps = .15).fit_predict(matrix_data_scaled)
+        clusters = DBSCAN(eps = .15, min_samples=15).fit_predict(matrix_data_scaled)
         
+        # Number of clusters in labels, ignoring noise if present.
         n_clusters_ = len(set(clusters)) - (1 if -1 in clusters else 0)
         n_noise_ = list(clusters).count(-1)
         
         indexes = []
         for i in range(len(clusters)):
-            if clusters[i] == 0:
+            if clusters[i] != -1:
                 indexes.append(i)
         
         print('Estimated number of clusters: %d' % n_clusters_)
         print('Estimated number of noise points: %d' % n_noise_)
-
+        mass_spectrum.set_indexes(indexes)
+        #from matplotlib import pyplot as plt
         #plt.scatter(matrix_data[:, 0], matrix_data[:, 1], c=clusters, cmap="plasma")
         #plt.xlabel("km")
         #plt.ylabel("kdm")
         #plt.show()
-
-        mass_spectrum.set_indexes(indexes)
-
-        # Number of clusters in labels, ignoring noise if present.
+        #plt.close()
+       
        
 
     def filter_mass_error(self, ms_peaks):

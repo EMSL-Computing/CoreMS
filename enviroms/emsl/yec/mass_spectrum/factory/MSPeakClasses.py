@@ -14,7 +14,7 @@ class MSPeak(MassSpecPeakCalculation):
     '''
     classdocs
     '''
-    def __init__(self, ion_charge, mz_exp, abundance, resolving_power, signal_to_noise, massspec_index, exp_freq=None):
+    def __init__(self, ion_charge, mz_exp, abundance, resolving_power, signal_to_noise, massspec_index, index, exp_freq=None):
 
         # needed to create the object
         self.ion_charge = ion_charge
@@ -25,7 +25,8 @@ class MSPeak(MassSpecPeakCalculation):
         self.resolving_power = resolving_power
         self.signal_to_noise = signal_to_noise
         self.mass_spec_index = massspec_index
-
+        self.index = index
+        
         kendrick_dict_base = MassSpecPeakSetting.kendrick_base
         self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(
             kendrick_dict_base)

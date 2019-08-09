@@ -13,9 +13,9 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
 
     def _f_to_mz(self):
 
-        print(type(self.freq_exp))
         Aterm, Bterm, Cterm = self.Aterm, self.Bterm, self.Cterm
         # Check if the Bterm of Ledford equation scales with the ICR trap voltage or not then Bterm = Bterm*trap_voltage
+        
         if Cterm == 0:
             
             if Bterm == 0:
@@ -23,13 +23,13 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
                 mz_domain = Aterm / self.freq_exp 
                 
             else:
-                mz_domain = (Aterm / self.freq_exp) + (Bterm / power(self.freq_exp, 2))
+                
+                mz_domain = (Aterm / (self.freq_exp)) + (Bterm / power((self.freq_exp), 2))
 
         # @will I need you insight here, not sure what is the inverted ledford equation that Bruker refers to
         else:
 
-            mz_domain = Aterm/(2*(Bterm + self.freq_exp)) + sqrt(Aterm**2 + 4*Bterm *
-                                                                         Cterm + 4*Cterm*self.freq_exp)/(2*(Bterm + self.freq_exp))
+            mz_domain = (Aterm / self.freq_exp) + (Bterm / power(self.freq_exp, 2)) + Cterm
 
         return mz_domain
 
@@ -39,7 +39,7 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
 
         Aterm, Bterm, Cterm = self.Aterm, self.Bterm, self.Cterm
         # Check if the Bterm of Ledford equation scales with the ICR trap voltage or not then Bterm = Bterm*trap_voltage
-        
+        print(Aterm, Bterm, Cterm)
         if Cterm == 0:
             
             if Bterm == 0:
@@ -52,12 +52,12 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
 
         # @will I need you insight here, not sure what is the inverted ledford equation that Bruker refers to
         else:
-            
             diff = Aterm * Aterm
-            diff = diff - 4 * Cterm * (self.freq_exp - Bterm)
+            
+            #this sign(diff + 4) changes on older aquistion software
+            diff = diff + 4 * Cterm * (self.freq_exp - Bterm)
             diff = sqrt(diff)
             diff = -Aterm+diff
-            
             #calc3
             return (2*Cterm)/diff
             return diff/2* (self.freq_exp - Bterm)

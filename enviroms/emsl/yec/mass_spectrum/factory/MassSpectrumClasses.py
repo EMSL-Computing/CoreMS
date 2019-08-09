@@ -1,7 +1,7 @@
 import time
 
 from matplotlib import rcParamsDefault, rcParams
-from numpy import array, power, sqrt, average
+from numpy import array, power, sqrt, average, flip
 from enviroms.emsl.yec.encapsulation.constant.Constants import Labels
 from enviroms.emsl.yec.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting
 from enviroms.emsl.yec.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
@@ -84,6 +84,7 @@ class MassSpecBase(MassSpecCalc):
                 signal_to_noise,
                 massspec_index,
                 exp_freq=exp_freq,
+                index = len(self._mspeaks)
             )
         )
 
@@ -109,15 +110,12 @@ class MassSpecBase(MassSpecCalc):
 
     def reset_cal_therms(self, Aterm, Bterm, C, fas= 0):
         
-        #print(self.Aterm,  A)
-
         self._calibration_terms = (Aterm, Bterm, C)
-        freq_exp = array([mspeak.freq_exp for mspeak in self.mspeaks])+fas
         
-        mz_domain = (Aterm / (freq_exp)) + (Bterm / power((freq_exp), 2))
-        for indexes, mspeak in enumerate(self):
-            mspeak.mz_exp = mz_domain[indexes]
-        #self.find_peaks()
+        self._mz_exp = self._f_to_mz()
+        self._abundance = self._abundance
+        self.find_peaks()
+        self.reset_indexes()
         #self.reset_indexes()
             
     def clear_molecular_formulas(self):
@@ -149,6 +147,9 @@ class MassSpecBase(MassSpecCalc):
     @property
     def mz_exp(self): return self._mz_exp
     
+    @mz_exp.setter
+    def mz_exp(self, _mz_exp ): self._mz_exp = _mz_exp
+
     @property
     def abundance(self): return self._abundance
     
@@ -246,9 +247,9 @@ class MassSpecBase(MassSpecCalc):
 
     def find_peaks(self):
         """needs to clear previous results from peak_picking"""
-        del self._mspeaks
         self._mspeaks = list()
         """then do peak picking"""
+        
         self.do_peak_picking()
         print("A total of %i peaks were found" % len(self._mspeaks))
 

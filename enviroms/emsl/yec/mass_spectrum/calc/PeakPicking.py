@@ -15,7 +15,7 @@ class PeakPicking(object):
 
         max_picking_mz = MassSpectrumSetting.max_picking_mz
         min_picking_mz =  MassSpectrumSetting.min_picking_mz
-
+        
         final =  where(self.mz_exp  > min_picking_mz)[-1][-1]
         comeco =  where(self.mz_exp  > min_picking_mz)[0][0]
 

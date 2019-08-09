@@ -9,6 +9,8 @@ from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings i
 from enviroms.emsl.yec.mass_spectrum.input.TextMassList import Read_MassList
 from enviroms.emsl.yec.molecular_id.calc.MolecularLookupTable import  MolecularCombinations
 
+
+
 class SearchMolecularFormulas:
      
     '''
@@ -22,6 +24,16 @@ class SearchMolecularFormulas:
         return False
 
     def run_worker_ms_peaks(self, ms_peaks, mass_spectrum_obj):
+
+        last_dif = 0
+        
+        last_error = 0
+        
+        closest_error = 0
+
+        error_average = MoleculaSearchSettings.mz_error_average
+        
+        nbValues = 0
 
         MoleculaLookupTableSettings.min_mz =  min(ms_peaks, key=lambda m: m.mz_exp).mz_exp
     
@@ -72,7 +84,7 @@ class SearchMolecularFormulas:
 
                 if possible_formulas:
                     
-                    SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak)
+                    SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak, last_error, last_dif, closest_error, error_average, nbValues)
     
 
     def run_worker_ms_peak(self, ms_peak, mass_spectrum_obj):
@@ -81,13 +93,24 @@ class SearchMolecularFormulas:
     
         MoleculaLookupTableSettings.max_mz = ms_peak.mz_exp+1
         
+        last_dif = 0
+        
+        last_error = 0
+        
+        closest_error = 0
+
+        error_average = MoleculaSearchSettings.mz_error_average
+        
+        nbValues = 0
+
         min_abundance = mass_spectrum_obj.min_abundance
 
         dict_molecular_lookup_table = MolecularCombinations().runworker()
 
         classes = list(dict_molecular_lookup_table.keys())
 
-        nominal_mz  = ms_peak.nominal_mz_exp        
+        nominal_mz  = ms_peak.nominal_mz_exp      
+        
         '''
         waiting for python 3.8 release to set mass_spectrum_obj and dict_molecular_lookup_table on share memory
         pool = multiprocessing.Pool(number_of_process)
@@ -124,10 +147,8 @@ class SearchMolecularFormulas:
             
             if possible_formulas:
                 
-                SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak)
+                SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak, last_error, last_dif, closest_error, error_average, nbValues)
         
-
-
     def run_worker_mass_spectrum(self, mass_spectrum_obj):
 
         
@@ -135,6 +156,15 @@ class SearchMolecularFormulas:
 
         '''loading this on a shared memory would be better than having to serialize it for every process
             waiting for python 3.8 release'''
+        last_dif = 0
+    
+        last_error = 0
+        
+        closest_error = 0
+
+        error_average = MoleculaSearchSettings.mz_error_average
+        
+        nbValues = 0
 
         MoleculaLookupTableSettings.min_mz = mass_spectrum_obj.min_mz_exp
     
@@ -148,7 +178,7 @@ class SearchMolecularFormulas:
 
         print(len(mass_spectrum_obj))
         
-        for ms_peak in  mass_spectrum_obj:
+        for ms_peak in sorted(mass_spectrum_obj, key=lambda m :m.mz_exp):
 
             #print(ms_peak) 
             nominal_mz  = ms_peak.nominal_mz_exp
@@ -188,7 +218,7 @@ class SearchMolecularFormulas:
 
                 if possible_formulas:
                     
-                    SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak)
+                    SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak, last_error, last_dif, closest_error, error_average, nbValues)
             
 class SearchMolecularFormulaWorker:
 
@@ -197,7 +227,7 @@ class SearchMolecularFormulaWorker:
 
         return self.find_formulas(*args)  # ,args[1]
 
-    def set_last_error(self, error, last_error, last_dif, closest_error):
+    def set_last_error(self, error, last_error, last_dif, closest_error, error_average, nbValues ):
         
         
         if MoleculaSearchSettings.error_method == 'distance':
@@ -215,22 +245,31 @@ class SearchMolecularFormulaWorker:
                 MoleculaSearchSettings.min_mz_error = error - MoleculaSearchSettings.mz_error_range
                 MoleculaSearchSettings.max_mz_error = error + MoleculaSearchSettings.mz_error_range
                 last_error = error
+                
         
         elif MoleculaSearchSettings.error_method == 'symmetrical':
                
                MoleculaSearchSettings.min_mz_error = MoleculaSearchSettings.mz_error_average - MoleculaSearchSettings.mz_error_range
                MoleculaSearchSettings.max_mz_error = MoleculaSearchSettings.mz_error_average + MoleculaSearchSettings.mz_error_range
         
-        else:
-               #using set MoleculaSearchSettings.min_mz_error and max_mz_error range
-               pass
+        elif MoleculaSearchSettings.error_method == 'average':
 
-        return last_error, last_dif, closest_error         
+                nbValues += 1
+                error_average = error_average + ((error - error_average) / nbValues)
+                MoleculaSearchSettings.min_mz_error =  error_average - MoleculaSearchSettings.mz_error_range
+                MoleculaSearchSettings.max_mz_error =  error_average + MoleculaSearchSettings.mz_error_range    
+                
+                
+        else:
+            #using set MoleculaSearchSettings.min_mz_error and max_mz_error range
+            pass
+
+        return last_error, last_dif, closest_error, error_average, nbValues        
         '''returns the error based on the selected method at MoleculaSearchSettings.method
 
         '''
         
-    def find_formulas(self, possible_formulas, min_abundance, mass_spectrum_obj, ms_peak ):
+    def find_formulas(self, possible_formulas, min_abundance, mass_spectrum_obj, ms_peak, last_error, last_dif, closest_error, error_average, nbValues  ):
         '''
         # uses the closest error the next search (this is not ideal, it needs to use confidence
         # metric to choose the right candidate then propagate the error using the error from the best candidate
@@ -251,10 +290,6 @@ class SearchMolecularFormulaWorker:
         ms_peak_mz_exp, ms_peak_abundance = ms_peak.mz_exp, ms_peak.abundance
         #min_error = min([pmf._calc_assigment_mass_error(ms_peak_mz_exp) for pmf in possible_formulas])
         
-        last_dif = 0
-        last_error = 0
-        closest_error = 0
-        
         for possible_formula in possible_formulas:
             
             if possible_formula:
@@ -273,7 +308,7 @@ class SearchMolecularFormulaWorker:
                     #    closest_error = error
                     #    MoleculaSearchSettings.min_mz_error = closest_error - MoleculaSearchSettings.mz_error_range
                     #    MoleculaSearchSettings.max_mz_error = closest_error + MoleculaSearchSettings.mz_error_range
-                    last_error, last_dif, closest_error  = self.set_last_error(error, last_error, last_dif, closest_error)    
+                    last_error, last_dif, closest_error, error_average, nbValues  = self.set_last_error(error, last_error, last_dif, closest_error, error_average, nbValues)    
                     
                     #add molecular formula match to ms_peak
                     ms_peak.add_molecular_formula(possible_formula)
@@ -308,7 +343,7 @@ class SearchMolecularFormulaWorker:
                                         #    MoleculaSearchSettings.min_mz_error = closest_error - MoleculaSearchSettings.mz_error_range
                                         #    MoleculaSearchSettings.max_mz_error = closest_error + MoleculaSearchSettings.mz_error_range    
                                            
-                                        
+                                        last_error, last_dif, closest_error, error_average, nbValues  = self.set_last_error(error, last_error, last_dif, closest_error, error_average, nbValues)    
                                         ms_peak_iso.add_molecular_formula(isotopologue_formula)
                                         
                                         #print(error, abundance_error)  
