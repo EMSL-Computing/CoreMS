@@ -5,3 +5,4 @@ enviroms-wpython
 .project
 .pydevproject
 build_complexity.bat
+.DS_Store
