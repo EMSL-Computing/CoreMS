@@ -1,7 +1,7 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jul 29, 2019"
 
-import multiprocessing
+
 import os
 from os.path import join
 from enviroms.emsl.yec.encapsulation.constant.Constants import Labels

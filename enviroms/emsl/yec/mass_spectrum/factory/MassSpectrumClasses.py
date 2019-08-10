@@ -1,21 +1,21 @@
 import time
 
-from matplotlib import rcParamsDefault, rcParams
+#from matplotlib import rcParamsDefault, rcParams
 from numpy import array, power, sqrt, average, flip
 from enviroms.emsl.yec.encapsulation.constant.Constants import Labels
 from enviroms.emsl.yec.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting
 from enviroms.emsl.yec.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
 from enviroms.emsl.yec.mass_spectrum.factory.MSPeakClasses import MSPeak
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
-fig = plt.figure()
+#fig = plt.figure()
 
-fig.patch.set_facecolor(None)
+#fig.patch.set_facecolor(None)
 
-fig.patch.set_alpha(0)
+#fig.patch.set_alpha(0)
 
 
 def overrides(interface_class):

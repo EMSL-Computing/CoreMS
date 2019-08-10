@@ -3,10 +3,12 @@ from builtins import NotImplementedError
 
 import numpy as np
 
+from enviroms.emsl.yec.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
+from matplotlib import pyplot as plt
+import matplotlib
 
 class MZDomain_Calibration:
 
-    
     def __init__(self, mass_spectrum, selected_mass_peaks, include_isotopologue=False):
         
         self.mass_spectrum = mass_spectrum
@@ -149,7 +151,7 @@ class FreqDomain_Calibration:
 
     def __init__(self, mass_spectrum, selected_mass_peaks, include_isotopologue=False):
         
-        self.selected_mass_peaks = selected_mass_peaks
+        self.selected_mspeaks = selected_mass_peaks
         error = list()
         freq_exp = list()
         mz_theo = list()
@@ -181,11 +183,7 @@ class FreqDomain_Calibration:
         self.mass_spectrum._calibration_terms = (Aterm, Bterm, 0)
         for indexes, mspeak in enumerate(self.mass_spectrum):
             mspeak.mz_exp = mz_domain[indexes]
-            
-    def step_fit(self):
     
-        raise NotImplementedError
-
     def linear(self):
         
         matrix = np.vstack([1/self.freq_exp, np.ones(len(self.freq_exp))]).T
@@ -251,12 +249,57 @@ class FreqDomain_Calibration:
             else:
                 break     
         
-    def setfit_calibration(self):
+    def step_fit(self, steps=10):
         
-        for mspeak in self.selected_mass_peaks:
-           self.mass_spectrum[mspeak.index]
+        f_to_mz = lambda f, A, B, C, TIC, a : (A / f) + (B / np.power(f, 2)) + (C*TIC/ np.power(f, 2))
+        mz_to_f = lambda m, A, B, C: (A + np.sqrt(np.power(-A,2) - (4*(m)))) /(2*m)
             
-
+        tuple_indexs = [(i, i+steps) for i in range(0, len(self.selected_mspeaks)-steps,steps)]
+        
+        for current_index, tuple_index in enumerate(tuple_indexs):
+            mspeak_ii, mspeak_fi = tuple_index 
+            freq_exp = list()
+            mz_theor = list()
+            mz_exp = list()
+            abu = list()
+            for i in range(mspeak_ii, mspeak_fi+1):
+                
+                freq_exp.append(self.selected_mspeaks[i].freq_exp)
+                mz_theor.append(self.selected_mspeaks[i][0].mz_theor)
+                mz_exp.append(self.selected_mspeaks[i].mz_exp)
+                abu.append(self.selected_mspeaks[i].abundance)
+                
+            
+               
+            freq_exp = np.array(freq_exp)
+            mz_theor = np.array(mz_theor)    
+            mz_exp = np.array(mz_exp)
+            abu = np.array(abu)
+            
+            if  current_index == len(tuple_indexs)-1:
+                ms_peaks_indexes = (self.selected_mspeaks[mspeak_ii].index, 0)
+            elif current_index == 0:    
+                ms_peaks_indexes = (len(self.mass_spectrum)-1, self.selected_mspeaks[mspeak_fi].index-1)  
+            else:
+                ms_peaks_indexes = (self.selected_mspeaks[mspeak_ii].index, self.selected_mspeaks[mspeak_fi].index-1)
+            
+            final_index, start_index = ms_peaks_indexes
+            TIC = sum([mspeak.abundance for mspeak in self.mass_spectrum[start_index:final_index]])
+            
+            print( (mspeak_ii, mspeak_fi), ms_peaks_indexes)   
+            matrix = np.vstack([1/freq_exp, 1/np.power(freq_exp,2), TIC/np.power(freq_exp,2)]).T
+            A, B , C =  np.linalg.lstsq(matrix, mz_theor, rcond=None)[0]
+            #C = 0
+            print(C)
+            
+            
+            for mspeak in self.mass_spectrum[start_index:final_index]:
+                mspeak.mz_exp = f_to_mz(mspeak.freq_exp, A, B, C, TIC,mspeak.abundance )            
+                
+                
+                 
+                
+            
 class SquareFittingAB:
     
     def __init__(self, eixo_f, eixo_mz, ):

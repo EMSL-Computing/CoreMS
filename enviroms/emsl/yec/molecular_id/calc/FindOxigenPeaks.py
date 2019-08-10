@@ -89,7 +89,7 @@ class FindOxygenPeaks(Thread):
         
         mass = initial_nominal_mass
         
-        nominal_masses = [initial_nominal_mass]
+        nominal_masses = []
         print('min_mz', min_mz)
         print('max_mz', max_mz)
         while mass <= max_mz:
@@ -126,11 +126,11 @@ class FindOxygenPeaks(Thread):
         
         SearchMolecularFormulas().run_worker_ms_peaks(list_most_abundant_peaks, mass_spectrum_obj)
         
-        return list_most_abundant_peaks            
+        return [mspeak for mspeak in list_most_abundant_peaks if mspeak]            
                 
     
     def get_list_found_peaks(self):
         
-        return self.list_found_mspeaks
+        return sorted(self.list_found_mspeaks, key=lambda mp: mp.mz_exp)
 
     
