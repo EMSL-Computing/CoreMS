@@ -29,7 +29,7 @@ if __name__ == "__main__":
         apodization_method, number_of_truncations, number_of_zero_fills
     )
 
-    mass_spec = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
+    mass_spec = bruker_transient.get_mass_spectrum(plot_result=True, auto_process=True)
 
     mass_spec.plot_mz_domain_profile_and_noise_threshold()
 

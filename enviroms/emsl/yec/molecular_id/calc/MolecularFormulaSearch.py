@@ -20,7 +20,7 @@ class SearchMolecularFormulas:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # make sure the dbconnection gets closed
+        
         return False
 
     def run_worker_ms_peaks(self, ms_peaks, mass_spectrum_obj):
@@ -345,7 +345,8 @@ class SearchMolecularFormulaWorker:
                                            
                                         last_error, last_dif, closest_error, error_average, nbValues  = self.set_last_error(error, last_error, last_dif, closest_error, error_average, nbValues)    
                                         ms_peak_iso.add_molecular_formula(isotopologue_formula)
-                                        
+                                        isotopologue_formula.mspeak_index_mono_isotopic = ms_peak.index
+                                        possible_formula.mspeak_indexes_isotopologues.append(ms_peak_iso.index)
                                         #print(error, abundance_error)  
                                         
                                         #output_file.write("%.4f \t %.4f \t %.2f \n " % (ms_peak_iso.mz_exp,  ms_peak_iso.abundance,  abundance_error))     

@@ -19,6 +19,7 @@ class MolecularFormula(MolecularFormulaCalc):
         self._assigment_mass_error = None
         self._confidence_score = None
         self.is_isotopologue = False
+        self.mspeak_indexes_isotopologues = []
         
         kendrick_dict_base = MassSpecPeakSetting.kendrick_base
         self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(
@@ -193,7 +194,8 @@ class MolecularFormulaIsotopologue(MolecularFormula):
         self.prop_ratio = prop_ratio
         
         self.is_isotopologue = True
-        
+        self.mspeak_index_mono_isotopic = None
+
         if exp_mz:
             
             self._assigment_mass_error = self._calc_assigment_mass_error(exp_mz)

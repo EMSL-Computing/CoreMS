@@ -6,7 +6,7 @@ from enviroms.emsl.yec.encapsulation.constant.Constants import Labels
 from enviroms.emsl.yec.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting
 from enviroms.emsl.yec.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
 from enviroms.emsl.yec.mass_spectrum.factory.MSPeakClasses import MSPeak
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"

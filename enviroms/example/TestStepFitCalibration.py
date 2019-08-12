@@ -68,7 +68,7 @@ if __name__ == "__main__":
     MoleculaSearchSettings.mz_error_range = 1
     MoleculaSearchSettings.mz_error_average = 0
     
-    #ClusteringFilter().filter_kendrick(mass_spectrum)
+    ClusteringFilter().filter_kendrick(mass_spectrum)
     SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum)
     
     error = list()
@@ -91,7 +91,7 @@ if __name__ == "__main__":
                 abundance.append(mspeak.abundance)
                 mz_theo.append(molecular_formula.mz_theor)
 
-    #print(np.average(error), np.std(error))
+    print(np.average(error), np.std(error))
     pylab.plot(mass_spectrum.mz_exp, mass_spectrum.abundance) 
     pylab.plot(mass, abundance, "o")  
     pylab.show()  

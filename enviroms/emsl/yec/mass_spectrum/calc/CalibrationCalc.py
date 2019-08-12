@@ -268,13 +268,12 @@ class FreqDomain_Calibration:
             else:
                 break
 
-    def step_fit(self, steps=10):
+    def step_fit(self, steps=3):
 
-        def f_to_mz(f, A, B, C, TIC, a): return (A / f) + \
-            (B / np.power(f, 2)) + (C*TIC / np.power(f, 2))
-        def mz_to_f(m, A, B, C): return (
-            A + np.sqrt(np.power(-A, 2) - (4*(m)))) / (2*m)
-
+        def f_to_mz(f, A, B, C, a): return (A / f) + \
+            (B / np.power(f, 2)) + (C*a / np.power(f, 2))
+        def mz_to_f(m, A, B, C): return (-A-m/B)
+        
         tuple_indexs = [(i, i+steps)
                         for i in range(0, len(self.selected_mspeaks)-steps, steps)]
 
@@ -290,7 +289,14 @@ class FreqDomain_Calibration:
                 mz_theor.append(self.selected_mspeaks[i][0].mz_theor)
                 mz_exp.append(self.selected_mspeaks[i].mz_exp)
                 abu.append(self.selected_mspeaks[i].abundance)
-
+                
+                mspeaks_iso_indexes = self.selected_mspeaks[i][0].mspeak_indexes_isotopologues    
+                for iso_index in mspeaks_iso_indexes:
+                    freq_exp.append(self.mass_spectrum[iso_index].freq_exp)
+                    mz_theor.append(self.mass_spectrum[iso_index][0].mz_theor)
+                    mz_exp.append(self.mass_spectrum[iso_index].mz_exp)
+                    abu.append(self.mass_spectrum[iso_index].abundance)    
+            
             freq_exp = np.array(freq_exp)
             mz_theor = np.array(mz_theor)
             mz_exp = np.array(mz_exp)
@@ -306,19 +312,19 @@ class FreqDomain_Calibration:
                     self.selected_mspeaks[mspeak_ii].index, self.selected_mspeaks[mspeak_fi].index-1)
 
             final_index, start_index = ms_peaks_indexes
+            
             TIC = sum(
                 [mspeak.abundance for mspeak in self.mass_spectrum[start_index:final_index]])
-
-            print((mspeak_ii, mspeak_fi), ms_peaks_indexes)
+            
             matrix = np.vstack(
-                [1/freq_exp, 1/np.power(freq_exp, 2), TIC/np.power(freq_exp, 2)]).T
+                [1/freq_exp, 1/np.power(freq_exp, 2), abu/np.power(freq_exp, 2)]).T
             A, B, C = np.linalg.lstsq(matrix, mz_theor, rcond=None)[0]
             #C = 0
             print(C)
-
+            
             for mspeak in self.mass_spectrum[start_index:final_index]:
                 mspeak.mz_exp = f_to_mz(
-                    mspeak.freq_exp, A, B, C, TIC, mspeak.abundance)
+                    mspeak.freq_exp, A, B, C, mspeak.abundance)
 
 
 class SquareFittingAB:
