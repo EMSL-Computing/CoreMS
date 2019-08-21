@@ -59,9 +59,9 @@ run-job:
 
 pages:
   script:
-    - pip install sphinx sphinx-rtd-theme
-    - cd doc ; make html
-    - mv build/html/ ../public/
+    - pip install pydoc3
+    - pdoc --html enviroms
+    - mv html/ ../public/
   artifacts:
     paths:
       - public
