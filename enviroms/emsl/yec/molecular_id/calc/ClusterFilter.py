@@ -63,11 +63,11 @@ class ClusteringFilter():
        
        
 
-    def filter_mass_error(self, ms_peaks):
+    def filter_mass_error(self, mass_spectrum):
         
         #data need to be binned by mz unit or more to be able to use clustering
         
-        matrix_data = self.get_mass_error_matrix_data(ms_peaks)
+        matrix_data = self.get_mass_error_matrix_data(mass_spectrum)
 
         stscaler = StandardScaler().fit(matrix_data)
         
@@ -80,14 +80,10 @@ class ClusteringFilter():
         #eps and min_samp need to be optmized by precision and number of mspeaks
         clusters = DBSCAN(eps = .1).fit_predict(matrix_data_scaled)
         indexes = []
+        
         for i in range(len(clusters)):
-            if clusters[i] == 0:
+            if clusters[i] != -1:
                 indexes.append(i)
 
-        plt.scatter(matrix_data[:, 0], matrix_data[:, 1], c=clusters, cmap="plasma")
-        plt.xlabel("mass")
-        plt.ylabel("error")
-        plt.show()  
-
-        return [ms_peaks[i] for i in indexes]
+        mass_spectrum.set_indexes(indexes)
         

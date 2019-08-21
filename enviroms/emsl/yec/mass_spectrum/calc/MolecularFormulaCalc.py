@@ -2,7 +2,6 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 24, 2019"
 
 from enviroms.emsl.yec.encapsulation.constant.Constants import Atoms
-#from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSpaceTableSetting
 from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupTableSettings
 from IsoSpecPy import IsoSpecPy
 from numpy import exp

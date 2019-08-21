@@ -9,8 +9,6 @@ from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings i
 from enviroms.emsl.yec.mass_spectrum.input.TextMassList import Read_MassList
 from enviroms.emsl.yec.molecular_id.calc.MolecularLookupTable import  MolecularCombinations
 
-
-
 class SearchMolecularFormulas:
      
     '''
@@ -23,8 +21,12 @@ class SearchMolecularFormulas:
         
         return False
 
-    def run_worker_ms_peaks(self, ms_peaks, mass_spectrum_obj):
+    def run_worker_ms_peaks(self, ms_peaks, mass_spectrum_obj, settings):
 
+        settings.usedAtoms
+        
+        print (settings.hc_filter)
+        
         last_dif = 0
         
         last_error = 0
@@ -35,13 +37,14 @@ class SearchMolecularFormulas:
         
         nbValues = 0
 
-        MoleculaLookupTableSettings.min_mz =  min(ms_peaks, key=lambda m: m.mz_exp).mz_exp
+        settings.min_mz =  min(ms_peaks, key=lambda m: m.mz_exp).mz_exp
     
-        MoleculaLookupTableSettings.max_mz = max(ms_peaks, key=lambda m: m.mz_exp).mz_exp
+        settings.max_mz = max(ms_peaks, key=lambda m: m.mz_exp).mz_exp
         
         min_abundance = mass_spectrum_obj.min_abundance
 
-        dict_molecular_lookup_table = MolecularCombinations().runworker()
+        
+        dict_molecular_lookup_table = MolecularCombinations().runworker(settings)
 
         classes = list(dict_molecular_lookup_table.keys())
 
@@ -87,11 +90,11 @@ class SearchMolecularFormulas:
                     SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak, last_error, last_dif, closest_error, error_average, nbValues)
     
 
-    def run_worker_ms_peak(self, ms_peak, mass_spectrum_obj):
+    def run_worker_ms_peak(self, ms_peak, mass_spectrum_obj, settings):
 
-        MoleculaLookupTableSettings.min_mz = ms_peak.mz_exp-1
+        settings.min_mz = ms_peak.mz_exp-1
     
-        MoleculaLookupTableSettings.max_mz = ms_peak.mz_exp+1
+        settings.max_mz = ms_peak.mz_exp+1
         
         last_dif = 0
         
@@ -105,7 +108,7 @@ class SearchMolecularFormulas:
 
         min_abundance = mass_spectrum_obj.min_abundance
 
-        dict_molecular_lookup_table = MolecularCombinations().runworker()
+        dict_molecular_lookup_table = MolecularCombinations().runworker(settings)
 
         classes = list(dict_molecular_lookup_table.keys())
 
@@ -149,7 +152,7 @@ class SearchMolecularFormulas:
                 
                 SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak, last_error, last_dif, closest_error, error_average, nbValues)
         
-    def run_worker_mass_spectrum(self, mass_spectrum_obj):
+    def run_worker_mass_spectrum(self, mass_spectrum_obj, settings):
 
         
         #number_of_process = multiprocessing.cpu_count()
@@ -166,13 +169,13 @@ class SearchMolecularFormulas:
         
         nbValues = 0
 
-        MoleculaLookupTableSettings.min_mz = mass_spectrum_obj.min_mz_exp
+        settings.min_mz = mass_spectrum_obj.min_mz_exp
     
-        MoleculaLookupTableSettings.max_mz = mass_spectrum_obj.max_mz_exp
+        settings.max_mz = mass_spectrum_obj.max_mz_exp
         
         min_abundance = mass_spectrum_obj.min_abundance
 
-        dict_molecular_lookup_table = MolecularCombinations().runworker()
+        dict_molecular_lookup_table = MolecularCombinations().runworker(settings)
 
         classes = list(dict_molecular_lookup_table.keys())
 
@@ -193,17 +196,17 @@ class SearchMolecularFormulas:
             pool.join()
             '''
             for classe in classes:
-                
+               
                 possible_formulas = list()    
                 #we might need to increase the search space to -+1 m_z 
                 if MoleculaSearchSettings.isRadical:
                 
                     ion_type = Labels.radical_ion
                     
-                    formulas = dict_molecular_lookup_table.get(classe).get(ion_type).get(nominal_mz)
                     
+                    formulas = dict_molecular_lookup_table.get(classe).get(ion_type).get(nominal_mz)
+                   
                     if formulas:
-                        
                         possible_formulas.extend(formulas)
 
                 if MoleculaSearchSettings.isProtonated:

@@ -8,13 +8,14 @@ from matplotlib import pyplot as pylab
 import matplotlib
 from numpy import average
 
-from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
+from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings, MoleculaLookupTableSettings
 from enviroms.emsl.yec.mass_spectrum.calc.CalibrationCalc import MZDomain_Calibration, FreqDomain_Calibration
 from enviroms.emsl.yec.mass_spectrum.input.TextMassList import Read_MassList
 from enviroms.emsl.yec.molecular_id.calc.FindOxigenPeaks import FindOxygenPeaks
 from enviroms.emsl.yec.transient.input.BrukerSolarix import ReadBrukerSolarix
 from enviroms.emsl.yec.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
 from enviroms.emsl.yec.molecular_id.calc.ClusterFilter import ClusteringFilter
+
 
 def creat_mass_spectrum(file_location):
 
@@ -42,8 +43,8 @@ if __name__ == "__main__":
     directory = os.path.join(os.getcwd(), "data/")
 
     #file_name = os.path.normcase("20190616_WK_ESFA_0pt2mgml_ESI_Neg_0pt8sFID_000001.d/")
-
-    file_name = os.path.normcase("20190205_WK_SRFA_opt_000001.d/")
+    file_name = os.path.normcase("20190501_WK_Bowen_LDI_Neg_SRNOM_0_A1_000001.d")
+    #file_name = os.path.normcase("20190205_WK_SRFA_opt_000001.d/")
 
     #file_name = "20190616_WK_ESFA_0pt2mgml_ESI_Neg_1pt4sFID_000001.ascii"
 
@@ -53,29 +54,55 @@ if __name__ == "__main__":
     
     time1 = time.time()
 
-    find_formula_thread = FindOxygenPeaks(mass_spectrum)
+    LookupTableSettings = MoleculaLookupTableSettings()
+
+    #MoleculaSearchSettings.error_method = 'Lowest'
+    #@MoleculaSearchSettings.min_mz_error = -1
+    #MoleculaSearchSettings.max_mz_error = 1
+    #MoleculaSearchSettings.mz_error_range = 1
+
+    find_formula_thread = FindOxygenPeaks(mass_spectrum, LookupTableSettings)
     find_formula_thread.run()
     mspeaks_results = find_formula_thread.get_list_found_peaks()
     
     calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
     #calibrate.ledford_calibration()
     calibrate.step_fit()
-    mass_spectrum.clear_molecular_formulas()
+    #mass_spectrum.clear_molecular_formulas()
 
     MoleculaSearchSettings.error_method = 'symmetrical'
-    MoleculaSearchSettings.min_mz_error = -3
+    MoleculaSearchSettings.min_mz_error = -1
     MoleculaSearchSettings.max_mz_error = 1
     MoleculaSearchSettings.mz_error_range = 1
     MoleculaSearchSettings.mz_error_average = 0
+    MoleculaSearchSettings.min_abun_error = -30 # percentage 
+    MoleculaSearchSettings.max_abun_error = 70 # percentage 
+    MoleculaSearchSettings.isProtonated = True 
+    MoleculaSearchSettings.isRadical= True 
     
+    LookupTableSettings.usedAtoms = {'C': (1, 100),
+                 'H': (4, 200),
+                 'O': (1, 20),
+                 'N': (0, 2),
+                 'S': (0, 2),
+                 'P': (0, 0),
+                 }
+    
+    #print(len(mass_spectrum))
     ClusteringFilter().filter_kendrick(mass_spectrum)
-    SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum)
+    #print(len(mass_spectrum))
+    SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum, LookupTableSettings)
     
     error = list()
+    error_iso = list()
+    mass_iso = list()
     mass = list()
     abundance = list()
+    abundance_iso = list()
     freq_exp = list()
     mz_theo = list()
+    o_c = list()
+    h_c = list()
 
     for mspeak in mass_spectrum:
         
@@ -84,16 +111,27 @@ if __name__ == "__main__":
             #molecular_formula = mspeak.molecular_formula_lowest_error
             for molecular_formula in mspeak:
                 
-            #if not molecular_formula.is_isotopologue:
-                freq_exp.append(mspeak.freq_exp)
-                mass.append(mspeak.mz_exp)
-                error.append(molecular_formula._calc_assigment_mass_error(mspeak.mz_exp))
-                abundance.append(mspeak.abundance)
-                mz_theo.append(molecular_formula.mz_theor)
-
-    print(np.average(error), np.std(error))
+                if  not molecular_formula.is_isotopologue:
+                    freq_exp.append(mspeak.freq_exp)
+                    mass.append(mspeak.mz_exp)
+                    error.append(molecular_formula._calc_assigment_mass_error(mspeak.mz_exp))
+                    abundance.append(mspeak.abundance)
+                    mz_theo.append(molecular_formula.mz_theor)
+                    o_c.append(molecular_formula.O_C)
+                    h_c.append(molecular_formula.H_C)
+                    
+                else:
+                    mass_iso.append(mspeak.mz_exp)
+                    abundance_iso.append(mspeak.abundance)
+                    error_iso.append(molecular_formula._calc_assigment_mass_error(mspeak.mz_exp))
+     
+    print(np.average(error), np.std(error), (len(error)+len(error_iso))/len(mass_spectrum)*100)
     pylab.plot(mass_spectrum.mz_exp, mass_spectrum.abundance) 
-    pylab.plot(mass, abundance, "o")  
+    pylab.plot(mass, abundance, "o") 
+    pylab.plot(mass_iso, abundance_iso, "o", color='red')  
     pylab.show()  
     pylab.plot(mass, error, "o")  
+    pylab.plot(mass_iso, error_iso, "o", color='red')  
+    pylab.show()  
+    pylab.plot( o_c, h_c, "o", color='red')  
     pylab.show()  

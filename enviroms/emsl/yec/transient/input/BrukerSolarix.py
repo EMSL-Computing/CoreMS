@@ -1,11 +1,10 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
-""" this code is a adaptation from spike library
+''' this code is a adaptation/automation of spike library
 https://bitbucket.org/delsuc/spike/
 from Marc Delsuc
-"""
-
+'''
 
 from enviroms.emsl.yec.transient.factory.TransientClasses import Transient
 from glob import glob
@@ -13,8 +12,22 @@ from numpy import genfromtxt, fromstring, dtype, fromfile
 from os import path
 from xml.dom import minidom
 
-
 class ReadBrukerSolarix(object):
+    
+    """
+    A class used to Read a single Transient from Bruker's FT-MS aquistion station (fid, or ser)
+        
+    Parameters
+    ----------
+    d_directory_location : str
+        the full path of the .d folder
+    
+    Methods
+    -------
+    get_transient()
+        Read the data and settings returning a Transient class  
+    """
+    
     def __init__(self, d_directory_location):
 
         self.d_directory_location = d_directory_location
@@ -31,7 +44,11 @@ class ReadBrukerSolarix(object):
 
             if not path.isfile(self.transient_data_filename):
 
-                raise Exception("Could not locate transient data")
+                self.transient_data_filename = path.join(d_directory_location, "ser")
+
+                if not path.isfile(self.transient_data_filename):
+                    
+                    raise Exception("Could not locate transient data")
 
         except FileExistsError:
 
@@ -155,11 +172,12 @@ class ReadBrukerSolarix(object):
     def parse_parameters(parameters_filename):
         """
             Open the given file and retrieve all parameters from apexAcquisition.method
-            NC is written when no value for value is found
+            None is written when no value for value is found
 
             structure : <param name = "AMS_ActiveExclusion"><value>0</value></param>
 
             read_param returns  values in a dictionnary
+            xml should be extinct, just a random option 
         """
         xmldoc = minidom.parse(parameters_filename)
 

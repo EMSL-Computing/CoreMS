@@ -1,24 +1,27 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jul 31, 2019"
 
-from threading import Thread
-from enviroms.emsl.yec.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
-from enviroms.emsl.yec.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
-from enviroms.emsl.yec.molecular_id.calc.ClusterFilter import ClusteringFilter
 from copy import deepcopy
+from threading import Thread
+
+from enviroms.emsl.yec.molecular_id.calc.ClusterFilter import ClusteringFilter
+from enviroms.emsl.yec.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
+from enviroms.emsl.yec.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
+from isort import settings
+
 
 class FindOxygenPeaks(Thread):
     
     '''class to walk 14Da units over oxygen space for negative ion mass spectrum of natural organic matter
         Returns a list of MSPeak class cotaining the possibles Molecular Formula class objects.  
     '''
-    def __init__(self, mass_spectrum_obj):
+    def __init__(self, mass_spectrum_obj, lookupTableSettings):
         
         Thread.__init__(self)
         
         self.mass_spectrum_obj = mass_spectrum_obj
+        self.lookupTableSettings = lookupTableSettings
         
-    
     def run(self):
         
         self.list_found_mspeaks = []
@@ -30,22 +33,22 @@ class FindOxygenPeaks(Thread):
         # needs to be wrapped inside the mass_spec class
         ClusteringFilter().filter_kendrick(self.mass_spectrum_obj)
         
-        molecular_formula_obj_reference = self.find_most_abundant_formula(self.mass_spectrum_obj)
+        molecular_formula_obj_reference = self.find_most_abundant_formula(self.mass_spectrum_obj, self.lookupTableSettings)
         
-        self.list_found_mspeaks = self.find_14Da_series_mspeaks(self.mass_spectrum_obj, molecular_formula_obj_reference)
+        self.list_found_mspeaks = self.find_14Da_series_mspeaks(self.mass_spectrum_obj, molecular_formula_obj_reference, self.lookupTableSettings)
         
         #possible_mol_formulas_objs = self.build_database(molecular_formula_obj_reference)
         #reset indexes after done with operation that includes a filter (i.e. ClusteringFilter().filter_kendrick())
         self.mass_spectrum_obj.reset_indexes()
 
-    def find_most_abundant_formula(self, mass_spectrum_obj):
+    def find_most_abundant_formula(self, mass_spectrum_obj, settings):
 
         #find most abundant using kendrick upper and lower limit
         # would be better to use clustering algorithm (see ClusteringFilter Module)
         
         mspeak_most_abundant = max(mass_spectrum_obj, key=lambda m: m.abundance )
 
-        SearchMolecularFormulas().run_worker_ms_peak(mspeak_most_abundant, mass_spectrum_obj)
+        SearchMolecularFormulas().run_worker_ms_peak(mspeak_most_abundant, mass_spectrum_obj, settings)
         
         if mspeak_most_abundant:
 
@@ -58,7 +61,7 @@ class FindOxygenPeaks(Thread):
         #return the first option
         #return mspeak_most_abundant[0]
 
-    def find_most_abundant_formula_test(self, mass_spectrum_obj):
+    def find_most_abundant_formula_test(self, mass_spectrum_obj, settings):
         
         #this function is intended for test only. 
         # Have to sort by Kendrick to be able to select the most abundant series 
@@ -67,7 +70,7 @@ class FindOxygenPeaks(Thread):
 
         mspeak_most_abundant = mass_spectrum_obj.most_abundant_mspeak
 
-        SearchMolecularFormulas().run_worker_ms_peak(mspeak_most_abundant, mass_spectrum_obj)
+        SearchMolecularFormulas().run_worker_ms_peak(mspeak_most_abundant, mass_spectrum_obj, settings)
         
         if mspeak_most_abundant:
 
@@ -77,7 +80,7 @@ class FindOxygenPeaks(Thread):
         #return the first option
         #return mspeak_most_abundant[0]
     
-    def find_14Da_series_mspeaks(self, mass_spectrum_obj, molecular_formula_obj_reference):
+    def find_14Da_series_mspeaks(self, mass_spectrum_obj, molecular_formula_obj_reference, lookupTableSettings):
 
         list_most_abundant_peaks = list()
 
@@ -124,7 +127,7 @@ class FindOxygenPeaks(Thread):
                 
                 list_most_abundant_peaks.append(mspeak_most_abundant)
         
-        SearchMolecularFormulas().run_worker_ms_peaks(list_most_abundant_peaks, mass_spectrum_obj)
+        SearchMolecularFormulas().run_worker_ms_peaks(list_most_abundant_peaks, mass_spectrum_obj, lookupTableSettings)
         
         return [mspeak for mspeak in list_most_abundant_peaks if mspeak]            
                 
@@ -132,5 +135,3 @@ class FindOxygenPeaks(Thread):
     def get_list_found_peaks(self):
         
         return sorted(self.list_found_mspeaks, key=lambda mp: mp.mz_exp)
-
-    

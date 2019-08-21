@@ -4,7 +4,7 @@ __date__ = "Jul 02, 2019"
 import itertools
 import multiprocessing
 from enviroms.emsl.yec.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
-from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupTableSettings
+from enviroms.emsl.yec.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
 from copy import deepcopy
 
 class MolecularCombinations:
@@ -25,13 +25,14 @@ class MolecularCombinations:
     the current serialization is adding 1.5s seconds for each ion type iteration
     '''
 
-    def runworker(self,) :
+    def runworker(self,settings) :
 
-        c_h_combinations= self.get_c_h_combination()
+        c_h_combinations= self.get_c_h_combination(settings)
         
-        classes_list = self.get_classes_in_order()
+        classes_list = self.get_classes_in_order(settings)
 
-        number_of_process = multiprocessing.cpu_count()
+        number_of_process = int(multiprocessing.cpu_count()/2)
+
         #number_of_process = psutil.cpu_count(logical=False)
 
         print('number_of_process', number_of_process)
@@ -40,7 +41,7 @@ class MolecularCombinations:
 
         '''exited with code=0 in 6.9 seconds windows and 5.9 Linux with 12 logical CPUs'''
         p = multiprocessing.Pool(number_of_process)
-        args = [(class_tuple, c_h_combinations) for class_tuple in classes_list]
+        args = [(class_tuple, c_h_combinations, settings) for class_tuple in classes_list]
         results = p.map(CombinationsWorker(), args)
         p.close()
         p.join()
@@ -57,11 +58,11 @@ class MolecularCombinations:
         
         return dict(zip(class_list_str, results))
         
-    def get_c_h_combination(self):
+    def get_c_h_combination(self, settings):
 
         # return dois dicionarios com produto das combinacooes de hidrogenio e carbono
         # para nitrogenio impar e par para radicais e protonados
-        usedAtoms = MoleculaLookupTableSettings.usedAtoms
+        usedAtoms = settings.usedAtoms
         result = {}
         
         min_c, max_c = usedAtoms.get('C')
@@ -102,11 +103,11 @@ class MolecularCombinations:
 
         return new_list2    
     
-    def get_classes_in_order(self ):
+    def get_classes_in_order(self, settings ):
         ''' structure is 
             ('HC', {'HC': 1})'''
         
-        usedAtoms = deepcopy(MoleculaLookupTableSettings.usedAtoms )
+        usedAtoms = deepcopy(settings.usedAtoms )
         
         usedAtoms.pop("C")
         usedAtoms.pop("H")
@@ -195,32 +196,33 @@ class CombinationsWorker:
         return self.get_combinations(*args)  # ,args[1]
 
     def get_combinations(self, classe_tuple,
-                          c_h_combinations,
+                          c_h_combinations,settings
                          ):
 
-        usedAtoms = MoleculaLookupTableSettings.usedAtoms
+        usedAtoms = settings.usedAtoms
         
-        min_dbe = MoleculaLookupTableSettings.min_dbe
+        min_dbe = settings.min_dbe
 
-        max_dbe = MoleculaLookupTableSettings.max_dbe
+        max_dbe = settings.max_dbe
 
-        use_pah_line_rule = MoleculaLookupTableSettings.use_pah_line_rule
+        use_pah_line_rule = settings.use_pah_line_rule
 
-        isRadical = MoleculaLookupTableSettings.isRadical
+        isRadical = settings.isRadical
 
-        isProtonated = MoleculaLookupTableSettings.isProtonated
+        isProtonated = settings.isProtonated
 
-        ionCharge = MoleculaLookupTableSettings.ionCharge
+        ionCharge = settings.ionCharge
         
-        min_mz = MoleculaLookupTableSettings.min_mz
+        min_mz = settings.min_mz
         
-        max_mz = MoleculaLookupTableSettings.max_mz
+        max_mz = settings.max_mz
         
-        hc_filter = MoleculaLookupTableSettings.hc_filter
+        hc_filter = settings.hc_filter
         
-        oc_filter = MoleculaLookupTableSettings.oc_filter
+        oc_filter = settings.oc_filter
         
         dict_results = {}
+        
         
         #class_str = classe_tuple[0]
         class_dict = classe_tuple[1]
@@ -276,8 +278,8 @@ class CombinationsWorker:
             o_number = class_dict.get('O')
             continuar = True
 
-            if (float(h_number) / c_number) >= hc_filter:
-
+            if float(h_number / c_number) >= hc_filter:
+                
                 if o_number:
 
                     if float(o_number) / c_number > oc_filter:

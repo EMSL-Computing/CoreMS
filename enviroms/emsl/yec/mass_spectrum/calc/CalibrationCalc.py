@@ -2,7 +2,6 @@
 from builtins import NotImplementedError
 
 import numpy as np
-
 from enviroms.emsl.yec.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
 from matplotlib import pyplot as plt
 import matplotlib
@@ -268,14 +267,13 @@ class FreqDomain_Calibration:
             else:
                 break
 
-    def step_fit(self, steps=3):
+    def step_fit(self, steps=4):
 
-        def f_to_mz(f, A, B, C, a): return (A / f) + \
-            (B / np.power(f, 2)) + (C*a / np.power(f, 2))
+        def f_to_mz(f, A, B, C, a): 
+                return (A / f) + (B / np.power(f, 2)) + (C*a / np.power(f, 2))
         def mz_to_f(m, A, B, C): return (-A-m/B)
         
-        tuple_indexs = [(i, i+steps)
-                        for i in range(0, len(self.selected_mspeaks)-steps, steps)]
+        tuple_indexs = [(i, i+steps) for i in range(0, len(self.selected_mspeaks)-steps, steps)]
 
         for current_index, tuple_index in enumerate(tuple_indexs):
             mspeak_ii, mspeak_fi = tuple_index
@@ -283,6 +281,12 @@ class FreqDomain_Calibration:
             mz_theor = list()
             mz_exp = list()
             abu = list()
+            len_mono = len(range(mspeak_ii, mspeak_fi+1))
+            len_iso =0
+            
+            for i in range(mspeak_ii, mspeak_fi+1):
+               len_iso +=  len(self.selected_mspeaks[i][0].mspeak_indexes_isotopologues)
+            
             for i in range(mspeak_ii, mspeak_fi+1):
 
                 freq_exp.append(self.selected_mspeaks[i].freq_exp)
@@ -291,11 +295,15 @@ class FreqDomain_Calibration:
                 abu.append(self.selected_mspeaks[i].abundance)
                 
                 mspeaks_iso_indexes = self.selected_mspeaks[i][0].mspeak_indexes_isotopologues    
-                for iso_index in mspeaks_iso_indexes:
-                    freq_exp.append(self.mass_spectrum[iso_index].freq_exp)
-                    mz_theor.append(self.mass_spectrum[iso_index][0].mz_theor)
-                    mz_exp.append(self.mass_spectrum[iso_index].mz_exp)
-                    abu.append(self.mass_spectrum[iso_index].abundance)    
+                
+                if len_iso == len_mono-1:
+                    for iso_index in mspeaks_iso_indexes:
+                    
+                        freq_exp.append(self.mass_spectrum[iso_index].freq_exp)
+                        mz_theor.append(self.mass_spectrum[iso_index][0].mz_theor)
+                        mz_exp.append(self.mass_spectrum[iso_index].mz_exp)
+                        abu.append(self.mass_spectrum[iso_index].abundance)    
+                        
             
             freq_exp = np.array(freq_exp)
             mz_theor = np.array(mz_theor)
@@ -313,18 +321,23 @@ class FreqDomain_Calibration:
 
             final_index, start_index = ms_peaks_indexes
             
-            TIC = sum(
-                [mspeak.abundance for mspeak in self.mass_spectrum[start_index:final_index]])
+            #sub_TIC = sum([mspeak.abundance for mspeak in self.mass_spectrum[start_index:final_index]])
             
-            matrix = np.vstack(
-                [1/freq_exp, 1/np.power(freq_exp, 2), abu/np.power(freq_exp, 2)]).T
-            A, B, C = np.linalg.lstsq(matrix, mz_theor, rcond=None)[0]
-            #C = 0
-            print(C)
+            #abundace term fails with lack of isotopologues
+            
+            if len_iso == len_mono-1:
+                
+                matrix = np.vstack([1/freq_exp, 1/np.power(freq_exp, 2), abu/np.power(freq_exp, 2)]).T
+                A, B, C = np.linalg.lstsq(matrix, mz_theor, rcond=None)[0]
+            else:
+                
+                matrix = np.vstack([1/freq_exp, 1/np.power(freq_exp, 2)]).T
+                A, B = np.linalg.lstsq(matrix, mz_theor, rcond=None)[0]
+                C = 0
             
             for mspeak in self.mass_spectrum[start_index:final_index]:
                 mspeak.mz_exp = f_to_mz(
-                    mspeak.freq_exp, A, B, C, mspeak.abundance)
+                    mspeak.freq_exp, A, B, C, 0)
 
 
 class SquareFittingAB:

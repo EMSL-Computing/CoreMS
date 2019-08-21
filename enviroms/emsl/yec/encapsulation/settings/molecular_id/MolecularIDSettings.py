@@ -1,5 +1,3 @@
-
-
 class MoleculaLookupTableSettings:
     
     # C, H, N, O, S and P atoms are ALWAYS needed at usedAtoms
@@ -8,48 +6,50 @@ class MoleculaLookupTableSettings:
     # make sure to include the selected valence at the used_atoms_valences when adding atoms 
     # to the usedAtoms dicts 
     # NOTE : Adducts atoms have zero valence
-
-    usedAtoms = {'C': (1, 100),
-                 'H': (4, 200),
-                 'O': (0, 30),
-                 'N': (0, 0),
-                 'S': (0, 0),
-                 'P': (0, 0),
-                 }
-    
     used_atom_valences = {'C': 4,
-                        'H': 1,
-                        'O': 2,
-                        'N': 3,
-                        'S': 2,
-                        'P': 3,
-                        }
+                            'H': 1,
+                            'O': 2,
+                            'N': 3,
+                            'S': 2,
+                            'P': 3,
+                            }
 
-    #min_mz changes automatically with mass spectrum
-    min_mz = 200
+    def __init__(self):
+        
+        self.usedAtoms = {'C': (1, 100),
+                    'H': (4, 200),
+                    'O': (0, 20),
+                    'N': (0, 0),
+                    'S': (0, 0),
+                    'P': (0, 0),
+                    }
+        
 
-    #max_mz changes automatically with mass spectrum
-    max_mz = 900
+        #min_mz changes automatically with mass spectrum
+        self.min_mz = 100
 
-    min_dbe = 0
+        #max_mz changes automatically with mass spectrum
+        self.max_mz = 800
 
-    max_dbe = 50
+        self.min_dbe = 0
 
-    #overwrites the dbe limits above to DBE = (C + heteroatoms) * 0.9
-    use_pah_line_rule = True
-    
-    isRadical = True
+        self.max_dbe = 50
 
-    isProtonated = True
+        #overwrites the dbe limits above to DBE = (C + heteroatoms) * 0.9
+        self.use_pah_line_rule = True
+        
+        self.isRadical = True
 
-    ionization_type = "ESI"
+        self.isProtonated = True
 
-    #ionCharge changes automatically with mass spectrum
-    ionCharge = -1
+        self.ionization_type = "ESI"
 
-    hc_filter = 0.1
+        #ionCharge changes automatically with mass spectrum
+        self.ionCharge = -1
 
-    oc_filter = 1.2
+        self.hc_filter = 0.3
+
+        self.oc_filter = 1.2
 
 class MoleculaSearchSettings:
     
@@ -60,10 +60,10 @@ class MoleculaSearchSettings:
     isProtonated = True
 
     #empirically set / needs optimization
-    min_mz_error = -10 #ppm
+    min_mz_error = -2 #ppm
 
     #empirically set / needs optimization    
-    max_mz_error = 0 #ppm
+    max_mz_error = 1 #ppm
 
     #empirically set / needs optimization
     min_abun_error = -30 # percentage 
@@ -72,9 +72,9 @@ class MoleculaSearchSettings:
     max_abun_error = 70 # percentage 
 
     #empirically set / needs optimization
-    mz_error_range = 1
+    mz_error_range = 1.5
 
     #'distance', 'lowest', 'symmetrical','average' 'None'
     error_method = 'average'
 
-    mz_error_average = 1
+    mz_error_average = 0

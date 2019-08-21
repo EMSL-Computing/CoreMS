@@ -12,7 +12,8 @@ if __name__ == "__main__":
     directory = os.path.join(os.getcwd(), "data/")
 
     #file_name = os.path.normcase("20190616_WK_ESFA_0pt2mgml_ESI_Neg_0pt8sFID_000001.d/")
-    file_name = os.path.normcase("20190205_WK_SRFA_opt_000001.d/")
+    #file_name = os.path.normcase("20190205_WK_SRFA_opt_000001.d/")
+    file_name = os.path.normcase("20190501_WK_Bowen_LDI_Neg_SRNOM_0_A1_000001.d")
 
     file_location = directory + file_name
     
