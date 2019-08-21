@@ -16,7 +16,6 @@ from enviroms.emsl.yec.transient.input.BrukerSolarix import ReadBrukerSolarix
 from enviroms.emsl.yec.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
 from enviroms.emsl.yec.molecular_id.calc.ClusterFilter import ClusteringFilter
 
-
 def creat_mass_spectrum(file_location):
 
     bruker_reader = ReadBrukerSolarix(file_location)
@@ -40,10 +39,10 @@ if __name__ == "__main__":
     # enviroms\emsl\yec\encapsulation\settings\molecular_id\MolecularIDSettings.py
     # for changing settings of the lookup table and searching algorithms
 
-    directory = os.path.join(os.getcwd(), "data/")
+    directory = os.path.join(os.getcwd(), "data/20190709_WK_CADY_Auto_SRFA_QC_O1_1_01_32/")
 
     #file_name = os.path.normcase("20190616_WK_ESFA_0pt2mgml_ESI_Neg_0pt8sFID_000001.d/")
-    file_name = os.path.normcase("20190501_WK_Bowen_LDI_Neg_SRNOM_0_A1_000001.d")
+    file_name = os.path.normcase("20190709_WK_CADY_Auto_SRFA_QC_O1_1_01_32.d")
     #file_name = os.path.normcase("20190205_WK_SRFA_opt_000001.d/")
 
     #file_name = "20190616_WK_ESFA_0pt2mgml_ESI_Neg_1pt4sFID_000001.ascii"
@@ -61,19 +60,19 @@ if __name__ == "__main__":
     #MoleculaSearchSettings.max_mz_error = 1
     #MoleculaSearchSettings.mz_error_range = 1
 
-    find_formula_thread = FindOxygenPeaks(mass_spectrum, LookupTableSettings)
-    find_formula_thread.run()
-    mspeaks_results = find_formula_thread.get_list_found_peaks()
+    #find_formula_thread = FindOxygenPeaks(mass_spectrum, LookupTableSettings)
+    #find_formula_thread.run()
+    #mspeaks_results = find_formula_thread.get_list_found_peaks()
     
-    calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
+    #calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
     #calibrate.ledford_calibration()
-    calibrate.step_fit()
+    #calibrate.step_fit()
     #mass_spectrum.clear_molecular_formulas()
 
     MoleculaSearchSettings.error_method = 'symmetrical'
     MoleculaSearchSettings.min_mz_error = -1
     MoleculaSearchSettings.max_mz_error = 1
-    MoleculaSearchSettings.mz_error_range = 1
+    MoleculaSearchSettings.mz_error_range = 2
     MoleculaSearchSettings.mz_error_average = 0
     MoleculaSearchSettings.min_abun_error = -30 # percentage 
     MoleculaSearchSettings.max_abun_error = 70 # percentage 
@@ -83,8 +82,8 @@ if __name__ == "__main__":
     LookupTableSettings.usedAtoms = {'C': (1, 100),
                  'H': (4, 200),
                  'O': (1, 20),
-                 'N': (0, 2),
-                 'S': (0, 2),
+                 'N': (0, 0),
+                 'S': (0, 0),
                  'P': (0, 0),
                  }
     
