@@ -26,9 +26,40 @@ def overrides(interface_class):
 
 
 class MassSpecBase(MassSpecCalc):
-    """
-    Mass Spectrum class object with common features and functions
-    """
+    '''
+    - A iterative mass spectrum base class, stores the profile data and instrument settings
+    - Iteration over a list of MSPeaks classes stored at the _mspeaks atributes
+    - _mspeaks is populated under the hood by calling process_mass_spec method
+    - iteration is null is _mspeaks is empty
+
+    Parameters
+    ----------
+    mz_exp : list(float)
+        list containing the imported experiemental masses 
+        (default is to store profile mode data, but it depends on the input type)
+    abundance: list(float)
+        list containing the imported abundance 
+        (default is to store profile mode data, but it depends on the input type)
+    d_params : dict{'str': float,int and str}
+        The keyword arguments are used for ...
+
+    Attributes
+    ----------
+    _mz_exp : list(float)
+        This is where we store mz_exp,
+    _abundance : list(float)     
+        This is where we store _abundance,
+    _mspeaks : list(MSPeak)
+        store MSpeaks objects identified by a peak picking algorithm     
+    
+    Relevant Methods
+    ----------
+    process_mass_spec()
+        find or set the noise thresould base on the setting encapsulated at settings.input.ProcessingSetting.MassSpectrumSetting
+        - run the peak peaking algorithm and use the method addMSPeaks() to populate _mspeaks attribuite
+    
+    see also: MassSpecCentroid(), MassSpecfromFreq(), MassSpecProfile()
+    '''
     def __init__(self, mz_exp, abundance, d_params, **kwargs):
 
         self._abundance = array(abundance)
@@ -47,7 +78,7 @@ class MassSpecBase(MassSpecCalc):
         #    if hasattr(self, key):
         #        setattr(self, key, value)
         #        print(key, value)
-
+    
     def __len__(self):
         
         return len(self.mspeaks)
