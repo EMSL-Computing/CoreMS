@@ -32,11 +32,12 @@ def creat_mass_spectrum(file_location):
     return mass_spectrum_obj
 
 def test_calibration():
+    '''
+    MoleculaLookupTableSettings and MoleculaSearchSettings at
+    enviroms\encapsulation\settings\molecular_id\MolecularIDSettings.py
+    for changing settings of the lookup table and searching algorithms
+    '''
     
-    # MoleculaLookupTableSettings and MoleculaSearchSettings at
-    # enviroms\emsl\yec\encapsulation\settings\molecular_id\MolecularIDSettings.py
-    # for changing settings of the lookup table and searching algorithms
-
     directory = os.path.join(os.getcwd(), "tests/tests_data/")
 
     file_name = os.path.normcase("ESI_NEG_SRFA.d/")
@@ -49,9 +50,9 @@ def test_calibration():
     
     LookupTableSettings = MoleculaLookupTableSettings()
 
-    MoleculaSearchSettings.error_method = 'Symmetrical'
+    MoleculaSearchSettings.error_method = 'average'
     MoleculaSearchSettings.min_mz_error = -5
-    MoleculaSearchSettings.max_mz_error = 5
+    MoleculaSearchSettings.max_mz_error = 1
     MoleculaSearchSettings.mz_error_range = 1
 
     find_formula_thread = FindOxygenPeaks(mass_spectrum, LookupTableSettings)
@@ -118,16 +119,16 @@ def test_calibration():
                     abundance_iso.append(mspeak.abundance)
                     error_iso.append(molecular_formula._calc_assigment_mass_error(mspeak.mz_exp))
      
-    #print(np.average(error), np.std(error), (len(error)+len(error_iso))/len(mass_spectrum)*100)
-    #pylab.plot(mass_spectrum.mz_exp, mass_spectrum.abundance) 
-    #pylab.plot(mass, abundance, "o") 
-    #pylab.plot(mass_iso, abundance_iso, "o", color='red')  
-    #pylab.show()  
-    #pylab.plot(mass, error, "o")  
-    #pylab.plot(mass_iso, error_iso, "o", color='red')  
-    #pylab.show()  
-    #pylab.plot( o_c, h_c, "o", color='red')  
-    #pylab.show()  
+    print(np.average(error), np.std(error), (len(error)+len(error_iso))/len(mass_spectrum)*100)
+    pylab.plot(mass_spectrum.mz_exp, mass_spectrum.abundance) 
+    pylab.plot(mass, abundance, "o") 
+    pylab.plot(mass_iso, abundance_iso, "o", color='red')  
+    pylab.show()  
+    pylab.plot(mass, error, "o")  
+    pylab.plot(mass_iso, error_iso, "o", color='red')  
+    pylab.show()  
+    pylab.plot( o_c, h_c, "o", color='red')  
+    pylab.show()  
 
 if __name__ == "__main__":
     

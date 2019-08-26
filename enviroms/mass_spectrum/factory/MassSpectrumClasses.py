@@ -97,7 +97,6 @@ class MassSpecBase(MassSpecCalc):
         self.mspeaks = self._mspeaks
         self._set_nominal_masses_start_final_indexes()
 
-    
     def add_mspeak(self, ion_charge, mz_exp,
                     abundance,
                     resolving_power,

@@ -3,7 +3,7 @@ __date__ = "Jul 31, 2019"
 
 from copy import deepcopy
 from threading import Thread
-
+from numpy import average, std
 from enviroms.molecular_id.calc.ClusterFilter import ClusteringFilter
 from enviroms.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
 from enviroms.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
@@ -42,11 +42,16 @@ class FindOxygenPeaks(Thread):
         self.mass_spectrum_obj.reset_indexes()
 
     def find_most_abundant_formula(self, mass_spectrum_obj, settings):
-
-        #find most abundant using kendrick upper and lower limit
-        # would be better to use clustering algorithm (see ClusteringFilter Module)
+        '''
+        find most abundant using kendrick upper and lower limit
         
-        mspeak_most_abundant = max(mass_spectrum_obj, key=lambda m: m.abundance )
+        '''
+        abundances =  mass_spectrum_obj.abundance_centroid
+        abun_mean = average(abundances, axis=0)
+        abun_std = std(abundances, axis=0)
+        upper_limit = abun_mean + 7* abun_std
+        print(upper_limit, max(mass_spectrum_obj, key=lambda m: m.abundance).abundance)
+        mspeak_most_abundant = max(mass_spectrum_obj, key=lambda m: m.abundance if m.abundance <= upper_limit else 0)
 
         SearchMolecularFormulas().run_worker_ms_peak(mspeak_most_abundant, mass_spectrum_obj, settings)
         
@@ -81,6 +86,12 @@ class FindOxygenPeaks(Thread):
         #return mspeak_most_abundant[0]
     
     def find_14Da_series_mspeaks(self, mass_spectrum_obj, molecular_formula_obj_reference, lookupTableSettings):
+
+        abundances =  mass_spectrum_obj.abundance_centroid
+        abun_mean = average(abundances, axis=0)
+        abun_std = std(abundances, axis=0)
+        upper_limit = abun_mean + 7* abun_std
+       
 
         list_most_abundant_peaks = list()
 
@@ -123,7 +134,9 @@ class FindOxygenPeaks(Thread):
                     )
                 '''
                 
-                mspeak_most_abundant = max(ms_peaks, key=lambda m: m.abundance)
+                mspeak_most_abundant = max(ms_peaks, key=lambda m: m.abundance if m.abundance <= upper_limit else 0)
+
+                #mspeak_most_abundant = max(ms_peaks, key=lambda m: m.abundance)
                 
                 list_most_abundant_peaks.append(mspeak_most_abundant)
         
