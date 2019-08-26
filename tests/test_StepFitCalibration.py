@@ -15,6 +15,18 @@ from enviroms.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFor
 from enviroms.molecular_id.calc.ClusterFilter import ClusteringFilter
 
 def creat_mass_spectrum(file_location):
+    '''parse transient data from Bruker into a mass spectrum class object
+
+        Parameters
+        ----------
+        file_location: str
+            The full path of the *.d data folder 
+        
+        Returns
+        -------
+        MassSpecfromFreq() class
+           (See MassSpecfromFreq class for more details)  
+        '''
 
     bruker_reader = ReadBrukerSolarix(file_location)
 
@@ -32,10 +44,19 @@ def creat_mass_spectrum(file_location):
     return mass_spectrum_obj
 
 def test_calibration():
-    '''
-    MoleculaLookupTableSettings and MoleculaSearchSettings at
-    enviroms\encapsulation\settings\molecular_id\MolecularIDSettings.py
-    for changing settings of the lookup table and searching algorithms
+    ''' Mass calibration test module: 
+            - creates a mass spectrum objec
+            - find oxygen most abundant peaks separated by 14Da
+            - calibrate on frequency domain using ledford equation
+            - filter data based on kendrick mass with CH2O base
+            - search for all molecular formula candidates 
+
+        Returns
+        -------
+        Nothing
+            
+            Store the results inside the mass spectrum class 
+            (See Docs for the structural details)  
     '''
     
     directory = os.path.join(os.getcwd(), "tests/tests_data/")
@@ -61,7 +82,7 @@ def test_calibration():
     
     calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
     calibrate.ledford_calibration()
-    calibrate.step_fit()
+    #calibrate.step_fit()
     mass_spectrum.clear_molecular_formulas()
 
     MoleculaSearchSettings.error_method = 'symmetrical'
@@ -119,17 +140,20 @@ def test_calibration():
                     abundance_iso.append(mspeak.abundance)
                     error_iso.append(molecular_formula._calc_assigment_mass_error(mspeak.mz_exp))
      
-    print(np.average(error), np.std(error), (len(error)+len(error_iso))/len(mass_spectrum)*100)
-    pylab.plot(mass_spectrum.mz_exp, mass_spectrum.abundance) 
-    pylab.plot(mass, abundance, "o") 
-    pylab.plot(mass_iso, abundance_iso, "o", color='red')  
-    pylab.show()  
-    pylab.plot(mass, error, "o")  
-    pylab.plot(mass_iso, error_iso, "o", color='red')  
-    pylab.show()  
-    pylab.plot( o_c, h_c, "o", color='red')  
-    pylab.show()  
+    if __name__ == "__main__":
+        #don not plot if running as unit test
+        print(np.average(error), np.std(error), (len(error)+len(error_iso))/len(mass_spectrum)*100)
+        pylab.plot(mass_spectrum.mz_exp, mass_spectrum.abundance) 
+        pylab.plot(mass, abundance, "o") 
+        pylab.plot(mass_iso, abundance_iso, "o", color='red')  
+        pylab.show()  
+        pylab.plot(mass, error, "o")  
+        pylab.plot(mass_iso, error_iso, "o", color='red')  
+        pylab.show()  
+        pylab.plot( o_c, h_c, "o", color='red')  
+        pylab.show()  
 
 if __name__ == "__main__":
     
-    test_calibration()    
+    test_calibration()
+     
