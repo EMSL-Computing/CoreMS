@@ -27,7 +27,8 @@ before_script:
   - virtualenv venv
   - source venv/bin/activate
   - pip install -r requirements.txt
-  - pip install wheel, pytest
+  - pip install wheel
+  - pip install pytest
 
 test-job:
   stage: test
