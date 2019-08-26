@@ -13,7 +13,7 @@ README = (HERE / "README.md").read_text()
 setup(
     name="enviroms",
     version="0.1.0",
-    description="Object Oriented Mass Spectrometry ToolBox",
+    description="Object Oriented Mass Spectrometry ToolBox for small molecules",
     long_description=README,
     long_description_content_type="text/markdown",
     url="https://gitlab.pnnl.gov/corilo/enviroms/",
@@ -27,11 +27,11 @@ setup(
     ],
     packages= setuptools.find_packages(".", exclude= ["example", "*win_only"]),
     exclude_package_data={'.': ["example", "*.win_only"]},
-    #include_package_data=True,
-    install_requires=["pandas", "numpy", "matplotlib", "scipy"],
+    include_package_data=True,
+    install_requires=["pandas", "numpy", "matplotlib", "scipy", 'IsoSpecPy'],
     #entry_points={
     #    "console_scripts": [
-    #        "realpython=reader.__main__:main",
+    #        "enviroms=cli.__main__:main",
     #    ]
     #},
 )
