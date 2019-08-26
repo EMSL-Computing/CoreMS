@@ -27,7 +27,8 @@ before_script:
   - virtualenv venv
   - source venv/bin/activate
   - pip install -r requirements.txt
-  - pip install wheel, pytest
+  - pip install wheel
+  - pip install pytest
 
 test-job:
   stage: test
@@ -36,7 +37,7 @@ test-job:
     - python
   script:
     - ls .
-    - python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('win_only/__init__.py')]"
+    - python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
     - python setup.py test
     - python -m pytest
     #- pip install tox flake8 pytest  # you can also use tox
