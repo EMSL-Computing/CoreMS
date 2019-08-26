@@ -67,8 +67,9 @@ setup(
     include_package_data=True,
     install_requires=["pandas", "numpy", "matplotlib", "scipy", 'IsoSpecPy'],
     # test are not yet implemented, will test dependences and syntax only for now
-    test_suite='nose2.collector',
-    tests_require=['nose2'],
+    test_suite='pytest',
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
 
     #test_suite='nose2.collector',
     #tests_require=['nose2'],

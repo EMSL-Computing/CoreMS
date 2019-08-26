@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<method>
+<submethods>
+<submethod program="apexControl" revision="0">
+<name/>
+<files>
+<file name="apexAcquisition.method"/>
+</files>
+</submethod>
+</submethods>
+<locked>false</locked>
+<readonly>false</readonly>
+<comment/>
+</method>

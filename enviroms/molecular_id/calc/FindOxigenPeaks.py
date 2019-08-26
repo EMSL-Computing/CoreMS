@@ -10,14 +10,14 @@ from enviroms.molecular_id.factory.MolecularFormulaFactory import MolecularFormu
 from isort import settings
 
 
-class FindOxygenPeaks(Thread):
+class FindOxygenPeaks():
     
     '''class to walk 14Da units over oxygen space for negative ion mass spectrum of natural organic matter
         Returns a list of MSPeak class cotaining the possibles Molecular Formula class objects.  
     '''
     def __init__(self, mass_spectrum_obj, lookupTableSettings):
         
-        Thread.__init__(self)
+        #Thread.__init__(self)
         
         self.mass_spectrum_obj = mass_spectrum_obj
         self.lookupTableSettings = lookupTableSettings
