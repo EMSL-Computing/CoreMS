@@ -18,3 +18,4 @@ build_complexity.bat
 dist/  
 enviroms.egg-info/  
 data/
+.eggs/

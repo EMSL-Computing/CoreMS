@@ -15,7 +15,7 @@ with open(filepath, 'r') as f:
     read_lines = f.readlines()
     
     
-    reclace_dict = {"12C": "C", "2D": "D", "3T": "T", "4He": "He", "14N": "N",
+    replace_dict = {"12C": "C", "2D": "D", "3T": "T", "4He": "He", "14N": "N",
                     "16O": "O", "19F": "F", "31P": "P", "32S": "S", "39K": "K",
                      "40Ca": "Ca", "51V": "V", "56Fe": "Fe", "1H": "H",
                     }
@@ -37,8 +37,8 @@ with open(filepath, 'r') as f:
             natural_abundance = None
         
         chem_symbol = mass_number+symbol
-        if chem_symbol in reclace_dict.keys():
-            chem_symbol = reclace_dict.get(chem_symbol)
+        if chem_symbol in replace_dict.keys():
+            chem_symbol = replace_dict.get(chem_symbol)
 
         #print(chem_symbol, atomic_number,symbol,mass_number,atomic_mass,natural_abundance)        
 
