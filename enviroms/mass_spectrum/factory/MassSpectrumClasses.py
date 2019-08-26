@@ -366,10 +366,36 @@ class MassSpecBase(MassSpecCalc):
 
 
 class MassSpecProfile(MassSpecBase):
+    '''
+    - A iterative mass spectrum class when entry point is on a profile format
+    - Stores the profile data and instrument settings
+    - Iteration over a list of MSPeaks classes stored at the _mspeaks atributes
+    - _mspeaks is populated under the hood by calling process_mass_spec method
+    - iteration is null if _mspeaks is empty
 
-    """
-    class docs
-    """
+    Parameters
+    ----------
+    dataframe : pandas Dataframe(Series(floats))
+        containg columns [m/z, Abundance, Resolving Power, S/N] 
+    d_params : dict{'str': float, int or str}
+        
+    Attributes
+    ----------
+    _mz_exp : list(float)
+        This is where we store mz_exp,
+    _abundance : list(float)     
+        This is where we store _abundance,
+    _mspeaks : list(MSPeak)
+        store MSpeaks objects identified by a peak picking algorithm     
+    
+    Relevant Methods
+    ----------
+    process_mass_spec()
+        find or set the noise thresould base on the setting encapsulated at settings.input.ProcessingSetting.MassSpectrumSetting
+        - run the peak peaking algorithm and use the method addMSPeaks() to populate _mspeaks attribuite
+    
+    see also: MassSpecBase(), MassSpecfromFreq(), MassSpecProfile()
+    '''
 
     def __init__(self, dataframe, d_params, auto_process=True):
         """
@@ -392,6 +418,46 @@ class MassSpecProfile(MassSpecBase):
         
 
 class MassSpecfromFreq(MassSpecBase):
+    '''
+    - A iterative mass spectrum class when data entry is on frequency(Hz) domain 
+    - Transform to m/z based on the settings stored at d_params
+    - Stores the profile data and instrument settings
+    - Iteration over a list of MSPeaks classes stored at the _mspeaks atributes
+    - _mspeaks is populated under the hood by calling process_mass_spec method
+    - iteration is null if _mspeaks is empty
+
+    Parameters
+    ----------
+    frequency_domain : list(float)
+        all datapoints in frequency domain in Hz
+    magnitude :  frequency_domain : list(float)
+        all datapoints in for magnitude of each frequency datapoint
+
+    Attributes
+    ----------
+    _mz_exp : list(float)
+        This is where we store mz_exp,
+    _frequency_domain : list(float)
+        This is where we store _frequency_domain,
+    _abundance : list(float)     
+        This is where we store _abundance,
+    _mspeaks : list(MSPeak)
+        store MSpeaks objects identified by a peak picking algorithm     
+    label : str
+        store label (Bruker, Midas Transient, see Labels class ). It across distinct processing points
+    
+    Relevant Methods
+    ----------
+    _set_mz_domain()
+        calculates the m_z based on the setting of d_params
+
+    process_mass_spec()
+        find or set the noise thresould base on the setting encapsulated at settings.input.ProcessingSetting.MassSpectrumSetting
+        - run the peak peaking algorithm and use the method addMSPeaks() to populate _mspeaks attribuite
+    
+    see also: MassSpecBase(), MassSpecfromFreq(), MassSpecProfile()
+    '''
+
     def __init__(self, frequency_domain, magnitude, d_params, auto_process=True):
         """
         method docs
@@ -418,14 +484,56 @@ class MassSpecfromFreq(MassSpecBase):
 
 class MassSpecCentroid(MassSpecBase):
 
-    """
-    classdocs
-    """
+    '''
+    - A iterative mass spectrum class when data entry is centroid mode
+    - Stores the centroid data and instrument settings
+    - Simulate profile data based on Gaussian or Lorentzian peak shape
+    - Iteration over a list of MSPeaks classes stored at the _mspeaks atributes
+    - _mspeaks is populated under the hood by calling process_mass_spec method
+    - iteration is null if _mspeaks is empty
+
+    Parameters
+    ----------
+    dataframe : pandas Dataframe(Series(floats))
+        containg columns [m/z, Abundance, Resolving Power, S/N] 
+    d_params : dict{'str': float, int or str}
+        
+    Attributes
+    ----------
+    _mz_exp : list(float)
+        This is where we store mz_exp,
+    _abundance : list(float)     
+        This is where we store _abundance,
+    _mspeaks : list(MSPeak)
+        store MSpeaks objects identified by a peak picking algorithm  
+
+    Attributes
+    ----------
+    _mz_exp : list(float)
+        This is where we store mz_exp,
+    _frequency_domain : list(float)
+        This is where we store _frequency_domain,
+    _abundance : list(float)     
+        This is where we store _abundance,
+    _mspeaks : list(MSPeak)
+        store MSpeaks objects identified by a peak picking algorithm     
+    label : str
+        store label (Bruker, Midas Transient, see Labels class)
+    
+    Relevant Methods
+    ----------
+    _set_mz_domain()
+        calculates the m_z based on the setting of d_params
+
+    process_mass_spec()
+        - overrides the base class function
+        - Populates _mspeaks list with MSpeaks class using the centroid date
+
+    see also: MassSpecBase(), MassSpecfromFreq(), MassSpecProfile()
+    '''
 
     def __init__(self, dataframe, d_params, auto_process=True):
-        """
-
-        """
+        
         """needs to simulate peak shape and pass as mz_exp and magnitude."""
         exp_mz_centroid = dataframe["m/z"].values
         magnitude_centroid = dataframe["Abundance"].values
