@@ -8,7 +8,9 @@ from enviroms.mass_spectrum.calc.PeakPicking import PeakPicking
 
 class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
     '''
-    classdocs
+    Class including numerical calcuations related to mass spectrum class
+    Inherted PeakPicking and NoiseThreshouldCalc ensuring its methods are 
+    available to the instantiated mass spectrum class object
     '''
 
     def _f_to_mz(self):
