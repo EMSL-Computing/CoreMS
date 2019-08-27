@@ -12,7 +12,17 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
     '''
 
     def _f_to_mz(self):
-
+        ''' Ledfor equations for converting frequency (Hz) to m/z, 
+        
+        Attributes
+        ----------
+        All Atributes are derivative from the MassSpecBase Class
+        
+        Returns 
+        ----------
+            numpy.array(float)
+            m/z domain after conversion from frequency
+        '''
         Aterm, Bterm, Cterm = self.Aterm, self.Bterm, self.Cterm
         # Check if the Bterm of Ledford equation scales with the ICR trap voltage or not then Bterm = Bterm*trap_voltage
         
@@ -34,9 +44,19 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
         return mz_domain
 
     def _f_to_mz_bruker(self):
-        ''' burker equations for converting frequency (Hz) to m/z, 
-        nOmega aquistion is not yet implemented here'''
-
+        ''' 
+        burker equations for converting frequency (Hz) to m/z, 
+        nOmega aquistion is not yet implemented here
+        
+        Attributes
+        ----------
+        All Atributes are derivative from the MassSpecBase Class
+        
+        Returns 
+        ----------
+            numpy.array(float)
+            m/z domain after conversion from frequency
+        '''
         Aterm, Bterm, Cterm = self.Aterm, self.Bterm, self.Cterm
         # Check if the Bterm of Ledford equation scales with the ICR trap voltage or not then Bterm = Bterm*trap_voltage
         print(Aterm, Bterm, Cterm)
@@ -62,16 +82,18 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
             return (2*Cterm)/diff
             return diff/2* (self.freq_exp - Bterm)
 
-    def assign_molecular_formulas(self):
-        '''call assigment algorithms here'''
-        formula_dict = {'C': 5, 'H': 20, 'O': 4, "IonType": 'open_shell'}
-
-        for mspeak in self.mspeaks:
-
-            mspeak.molecular_formula = formula_dict
-   
     def number_average_molecular_weight(self, profile=False):
-
+        ''' 
+        Average molecular weight calculation 
+        
+        Attributes
+        ----------
+        All Atributes are derivative from the MassSpecBase Class
+        
+        Returns 
+        ----------
+            (float)
+        '''
         # mode is profile or centroid data
         if profile:
             a = multiply(self.mz_exp, self.abundance)
@@ -83,7 +105,18 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
             return sum(self.mz_exp_centroide*self.abundance_centroid)/sum(self.abundance_centroid)
     
     def weight_average_molecular_weight(self, profile=False):
-
+        ''' 
+        Weighted Average molecular weight calculation 
+        
+        Attributes
+        ----------
+        All Atributes are derivative from the MassSpecBase Class
+        
+        Returns 
+        ----------
+            (float)
+        '''
+        
         # implement from MassSpectralPeaks objs
 
         if profile:
