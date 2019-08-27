@@ -14,7 +14,7 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
     '''
 
     def _f_to_mz(self):
-        ''' Ledfor equations for converting frequency (Hz) to m/z, 
+        ''' Ledford equation for converting frequency(Hz) to m/z, 
         
         Attributes
         ----------
@@ -47,7 +47,7 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
 
     def _f_to_mz_bruker(self):
         ''' 
-        burker equations for converting frequency (Hz) to m/z, 
+        Burker equations for converting frequency (Hz) to m/z, 
         nOmega aquistion is not yet implemented here
         
         Attributes
