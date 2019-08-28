@@ -12,8 +12,33 @@ from isort import settings
 
 class FindOxygenPeaks(Thread):
     
-    '''class to walk 14Da units over oxygen space for negative ion mass spectrum of natural organic matter
+    '''
+        Class to walk 14Da units over oxygen space for negative ion mass spectrum of natural organic matter
         Returns a list of MSPeak class cotaining the possibles Molecular Formula class objects.  
+        
+        Parameters
+        ----------
+        mass_spectrum_obj : MassSpec class
+            This is where we store MassSpec class obj,   
+        lookupTableSettings:  MoleculaLookupTableSettings class
+            This is where we store MoleculaLookupTableSettings class obj
+
+        Attributes
+        ----------
+        mass_spectrum_obj : MassSpec class
+            This is where we store MassSpec class obj,   
+        lookupTableSettings:  MoleculaLookupTableSettings class
+            This is where we store MoleculaLookupTableSettings class obj
+        
+        Relevant Methods
+        ----------
+            run()    
+                will be called when the instaciated class method start is called
+            get_list_found_peaks()
+                returns a list of MSpeaks classes cotaining all the MolecularFormula canditates inside the MSPeak
+                for more details of the structure see MSPeak class and MolecularFormula class    
+            set_mass_spec_indexes_by_found_peaks()
+                set the mass spectrum to interate over only the selected indexes
     '''
     def __init__(self, mass_spectrum_obj, lookupTableSettings):
         
@@ -43,9 +68,18 @@ class FindOxygenPeaks(Thread):
 
     def find_most_abundant_formula(self, mass_spectrum_obj, settings):
         '''
-        find most abundant using kendrick upper and lower limit
+        find most abundant using kendrick 
         
+        Returns
+        ----------
+        MolecularFormula class obj
+            most abundant MolecularFormula with the lowest mass error
         '''
+        #need to find a better way to cut off outliners
+        #import matplotlib.pyplot as plt
+        #plt.hist(mass_spectrum_obj.abundance_centroid, bins=100)
+        #plt.show()
+        
         abundances =  mass_spectrum_obj.abundance_centroid
         abun_mean = average(abundances, axis=0)
         abun_std = std(abundances, axis=0)
@@ -148,3 +182,14 @@ class FindOxygenPeaks(Thread):
     def get_list_found_peaks(self):
         
         return sorted(self.list_found_mspeaks, key=lambda mp: mp.mz_exp)
+
+    def set_mass_spec_indexes_by_found_peaks(self):
+        '''
+        Wanining!!!!
+        set the mass spectrum to interate over only the selected indexes
+        don not forget to call mass_spectrum_obj.reset_indexes after the job is done
+        '''
+        indexes = [msp.index for msp in self.list_found_mspeaks]
+        self.mass_spectrum_obj.set_indexes(indexes)
+        
+        
