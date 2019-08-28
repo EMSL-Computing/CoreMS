@@ -1,5 +1,4 @@
 import pickle, sys, os
-
 sys.path.append(".")
 from enviroms.transient.input.BrukerSolarix import ReadBrukerSolarix
 import pytest
@@ -34,10 +33,15 @@ def test_import_transient():
 
     #mass_spec.plot_mz_domain_profile_and_noise_threshold()
 
-    print(mass_spec.mspeaks[0].mz_exp, mass_spec.mspeaks[-1].mz_exp)
+    #print(mass_spec.mspeaks[0].mz_exp, mass_spec.mspeaks[-1].mz_exp)
 
+    assert mass_spec.mspeaks[0].mz_exp == 743.0789396348233
+    assert mass_spec.mspeaks[-1].mz_exp == 197.0096291077548
     #with open("test.pkl", "wb") as file:
     #    pickle.dump(bruker_transient, file, protocol=pickle.HIGHEST_PROTOCOL)
 
     # transient = pickle.load( open( 'test.pkl', "rb" ) )
     # do_something
+
+if __name__ == "__main__":
+    test_import_transient()

@@ -60,7 +60,10 @@ class FindOxygenPeaks(Thread):
         
         molecular_formula_obj_reference = self.find_most_abundant_formula(self.mass_spectrum_obj, self.lookupTableSettings)
         
-        self.list_found_mspeaks = self.find_14Da_series_mspeaks(self.mass_spectrum_obj, molecular_formula_obj_reference, self.lookupTableSettings)
+        self.list_found_mspeaks = self.find_series_mspeaks(self.mass_spectrum_obj,
+                                                           molecular_formula_obj_reference, 
+                                                           self.lookupTableSettings,
+                                                           deltamz=14)
         
         #possible_mol_formulas_objs = self.build_database(molecular_formula_obj_reference)
         #reset indexes after done with operation that includes a filter (i.e. ClusteringFilter().filter_kendrick())
@@ -83,8 +86,11 @@ class FindOxygenPeaks(Thread):
         abundances =  mass_spectrum_obj.abundance_centroid
         abun_mean = average(abundances, axis=0)
         abun_std = std(abundances, axis=0)
+        
         upper_limit = abun_mean + 7* abun_std
+        
         print(upper_limit, max(mass_spectrum_obj, key=lambda m: m.abundance).abundance)
+        
         mspeak_most_abundant = max(mass_spectrum_obj, key=lambda m: m.abundance if m.abundance <= upper_limit else 0)
 
         SearchMolecularFormulas().run_worker_ms_peak(mspeak_most_abundant, mass_spectrum_obj, settings)
@@ -119,7 +125,7 @@ class FindOxygenPeaks(Thread):
         #return the first option
         #return mspeak_most_abundant[0]
     
-    def find_14Da_series_mspeaks(self, mass_spectrum_obj, molecular_formula_obj_reference, lookupTableSettings):
+    def find_series_mspeaks(self, mass_spectrum_obj, molecular_formula_obj_reference, lookupTableSettings, deltamz=14):
 
         abundances =  mass_spectrum_obj.abundance_centroid
         abun_mean = average(abundances, axis=0)
@@ -142,13 +148,13 @@ class FindOxygenPeaks(Thread):
         print('max_mz', max_mz)
         while mass <= max_mz:
             #print "shit 1", mass, min_mz
-            mass += (14) 
+            mass += (deltamz) 
             nominal_masses.append(mass)
         
         mass = initial_nominal_mass    
         while mass >= min_mz:
             #print "shit 1", mass, min_mz
-            mass -= (14) 
+            mass -= (deltamz) 
             nominal_masses.append(mass)
         
         nominal_masses = sorted(nominal_masses)

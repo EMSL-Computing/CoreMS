@@ -12,8 +12,13 @@ from enviroms.molecular_id.calc.MolecularLookupTable import  MolecularCombinatio
 class SearchMolecularFormulas:
      
     '''
-    runworker()    
+    runworker()
     '''
+    
+    def __init__(self, first_hit=False):
+        
+        self.first_hit = first_hit
+
     def __enter__(self):
         return self
 
@@ -49,6 +54,9 @@ class SearchMolecularFormulas:
 
         for ms_peak in  ms_peaks:
 
+            if self.first_hit:
+                #print('hell yeah')
+                if ms_peak.is_assigned: continue
             
             nominal_mz  = ms_peak.nominal_mz_exp
             '''
@@ -90,6 +98,15 @@ class SearchMolecularFormulas:
     
 
     def run_worker_ms_peak(self, ms_peak, mass_spectrum_obj, settings):
+        '''
+        waiting for python 3.8 release to set mass_spectrum_obj and dict_molecular_lookup_table on share memory (redis?)
+        pool = multiprocessing.Pool(number_of_process)
+        args = [ (dict_molecular_lookup_table.get(classe).get(ion_type).get(nominal_mz), min_abundance, mass_spectrum_obj, ms_peak_mz_exp, ms_peak_abundance)  for classe in classes ]
+        pool.map(SearchMolecularFormulaWorker(), args)
+
+        pool.close()
+        pool.join()
+        '''
 
         settings.min_mz = ms_peak.mz_exp-1
     
@@ -113,15 +130,6 @@ class SearchMolecularFormulas:
 
         nominal_mz  = ms_peak.nominal_mz_exp      
         
-        '''
-        waiting for python 3.8 release to set mass_spectrum_obj and dict_molecular_lookup_table on share memory
-        pool = multiprocessing.Pool(number_of_process)
-        args = [ (dict_molecular_lookup_table.get(classe).get(ion_type).get(nominal_mz), min_abundance, mass_spectrum_obj, ms_peak_mz_exp, ms_peak_abundance)  for classe in classes ]
-        pool.map(SearchMolecularFormulaWorker(), args)
-
-        pool.close()
-        pool.join()
-        '''
         for classe in classes:
             
             possible_formulas = list()    
@@ -149,7 +157,11 @@ class SearchMolecularFormulas:
             
             if possible_formulas:
                 
-                SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak, last_error, last_dif, closest_error, error_average, nbValues)
+                SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, 
+                                                                mass_spectrum_obj, ms_peak, 
+                                                                last_error, last_dif, 
+                                                                closest_error, error_average, 
+                                                                nbValues, )
         
     def run_worker_mass_spectrum(self, mass_spectrum_obj, settings):
 
@@ -181,6 +193,10 @@ class SearchMolecularFormulas:
         print(len(mass_spectrum_obj))
         
         for ms_peak in sorted(mass_spectrum_obj, key=lambda m :m.mz_exp):
+
+            if self.first_hit:
+                #print('hell yeah')
+                if ms_peak.is_assigned: continue
 
             #print(ms_peak) 
             nominal_mz  = ms_peak.nominal_mz_exp
@@ -224,6 +240,7 @@ class SearchMolecularFormulas:
             
 class SearchMolecularFormulaWorker:
 
+    
     # needs this wraper to pass the class to multiprocessing
     def __call__(self, args):
 
@@ -266,12 +283,15 @@ class SearchMolecularFormulaWorker:
             #using set MoleculaSearchSettings.min_mz_error and max_mz_error range
             pass
 
-        return last_error, last_dif, closest_error, error_average, nbValues        
         '''returns the error based on the selected method at MoleculaSearchSettings.method
-
-        '''
+        '''    
+        return last_error, last_dif, closest_error, error_average, nbValues        
         
-    def find_formulas(self, possible_formulas, min_abundance, mass_spectrum_obj, ms_peak, last_error, last_dif, closest_error, error_average, nbValues  ):
+    def find_formulas(self, possible_formulas, min_abundance, 
+                      mass_spectrum_obj, ms_peak, 
+                      last_error, last_dif, 
+                      closest_error, error_average, 
+                      nbValues):
         '''
         # uses the closest error the next search (this is not ideal, it needs to use confidence
         # metric to choose the right candidate then propagate the error using the error from the best candidate
@@ -300,21 +320,12 @@ class SearchMolecularFormulaWorker:
                 
                 if  min_mz_error <= error <= max_mz_error:
                     
-                    #initially using the lowest error
-                    #will need to change it to the best canditate after confidence metric
-                    #is stablished
-                    
-                    #dif = error - last_error
-                    #if dif < last_dif:
-                    #    last_dif = dif
-                    #    closest_error = error
-                    #    MoleculaSearchSettings.min_mz_error = closest_error - MoleculaSearchSettings.mz_error_range
-                    #    MoleculaSearchSettings.max_mz_error = closest_error + MoleculaSearchSettings.mz_error_range
+                    #update the error
                     last_error, last_dif, closest_error, error_average, nbValues  = self.set_last_error(error, last_error, last_dif, closest_error, error_average, nbValues)    
                     
                     #add molecular formula match to ms_peak
                     ms_peak.add_molecular_formula(possible_formula)
-
+                    
                     #calculates and look for isotopologues
                     isotopologues = possible_formula.isotopologues(min_abundance, ms_peak_abundance)
                     
@@ -335,21 +346,18 @@ class SearchMolecularFormulaWorker:
                                     # margin of error was set empirically/ needs statistical calculation
                                     #  of margin of error for the measurement of the abundances
                                     if min_abun_error <= abundance_error <= max_abun_error:
-                                        #initially using the lowest error
-                                        #will need to change it to the best canditate after confidence metric
-                                        #s/n change in the range is specially important to the isotopologues
-                                        #dif = error - last_error
-                                        #if dif < last_dif:
-                                        #    last_dif = dif
-                                        #    closest_error = error
-                                        #    MoleculaSearchSettings.min_mz_error = closest_error - MoleculaSearchSettings.mz_error_range
-                                        #    MoleculaSearchSettings.max_mz_error = closest_error + MoleculaSearchSettings.mz_error_range    
-                                           
-                                        last_error, last_dif, closest_error, error_average, nbValues  = self.set_last_error(error, last_error, last_dif, closest_error, error_average, nbValues)    
-                                        ms_peak_iso.add_molecular_formula(isotopologue_formula)
-                                        isotopologue_formula.mspeak_index_mono_isotopic = ms_peak.index
-                                        possible_formula.mspeak_indexes_isotopologues.append(ms_peak_iso.index)
-                                        #print(error, abundance_error)  
                                         
-                                        #output_file.write("%.4f \t %.4f \t %.2f \n " % (ms_peak_iso.mz_exp,  ms_peak_iso.abundance,  abundance_error))     
-        #f.close()                                
+                                        #update the error   
+                                        last_error, last_dif, closest_error, error_average, nbValues  = self.set_last_error(error, last_error, last_dif, closest_error, error_average, nbValues)    
+                                        
+                                        #add molecular formula match to ms_peak
+                                        ms_peak_iso.add_molecular_formula(isotopologue_formula)
+                                        
+                                        #add mspeaks mono isotopic index to the isotopologue MolecularFormula obj
+                                        isotopologue_formula.mspeak_index_mono_isotopic = ms_peak.index
+                                        
+                                        #add mspeaks isotopologue index to the mono isotopic MolecularFormula obj
+                                        possible_formula.mspeak_indexes_isotopologues.append(ms_peak_iso.index)
+                                        
+                                        
+                                                  
