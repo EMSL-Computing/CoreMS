@@ -43,7 +43,6 @@ class SearchMolecularFormulas:
         
         min_abundance = mass_spectrum_obj.min_abundance
 
-        
         dict_molecular_lookup_table = MolecularCombinations().runworker(settings)
 
         classes = list(dict_molecular_lookup_table.keys())

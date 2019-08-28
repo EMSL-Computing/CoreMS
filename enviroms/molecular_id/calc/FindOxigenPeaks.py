@@ -184,11 +184,13 @@ class FindOxygenPeaks(Thread):
         return sorted(self.list_found_mspeaks, key=lambda mp: mp.mz_exp)
 
     def set_mass_spec_indexes_by_found_peaks(self):
+        
         '''
         Wanining!!!!
         set the mass spectrum to interate over only the selected indexes
         don not forget to call mass_spectrum_obj.reset_indexes after the job is done
         '''
+        
         indexes = [msp.index for msp in self.list_found_mspeaks]
         self.mass_spectrum_obj.set_indexes(indexes)
         
