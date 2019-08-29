@@ -33,9 +33,9 @@ before_script:
 test-job:
   stage: test
   tags:
-    - k8s
-#    - docker
-#    - python
+#    - k8s
+    - docker
+    - python
   script:
     - ls .
     - python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
@@ -48,8 +48,8 @@ test-job:
 run-job:
   stage: run
   tags:
-#    - docker
-#    - python
+    - docker
+    - python
     - k8s
   script:
     - python setup.py sdist bdist_wheel
