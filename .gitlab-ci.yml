@@ -35,7 +35,7 @@ test-job:
   tags:
     - k8s
     - docker
-#   - python
+#    - python
   script:
     - ls .
     - python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
@@ -48,7 +48,7 @@ test-job:
 run-job:
   stage: run
   tags:
-     - docker
+    - docker
 #    - python
     - k8s
   script:
