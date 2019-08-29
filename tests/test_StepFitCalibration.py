@@ -63,7 +63,6 @@ def test_calibration():
     '''
     
     directory = os.path.join(os.getcwd(), "tests/tests_data/")
-
     file_name = os.path.normcase("ESI_NEG_SRFA.d/")
 
     #file_name = "20190616_WK_ESFA_0pt2mgml_ESI_Neg_1pt4sFID_000001.ascii"
@@ -72,14 +71,14 @@ def test_calibration():
 
     mass_spectrum = creat_mass_spectrum(file_location)
     
-    LookupTableSettings = MoleculaLookupTableSettings()
+    lookupTableSettings = MoleculaLookupTableSettings()
 
     MoleculaSearchSettings.error_method = 'average'
     MoleculaSearchSettings.min_mz_error = -5
     MoleculaSearchSettings.max_mz_error = 1
     MoleculaSearchSettings.mz_error_range = 1
 
-    find_formula_thread = FindOxygenPeaks(mass_spectrum, LookupTableSettings)
+    find_formula_thread = FindOxygenPeaks(mass_spectrum, lookupTableSettings)
     find_formula_thread.run()
     mspeaks_results = find_formula_thread.get_list_found_peaks()
     
@@ -98,7 +97,7 @@ def test_calibration():
     MoleculaSearchSettings.isProtonated = True 
     MoleculaSearchSettings.isRadical= True 
     
-    LookupTableSettings.usedAtoms = {'C': (1, 100),
+    lookupTableSettings.usedAtoms = {'C': (1, 100),
                  'H': (4, 200),
                  'O': (1, 20),
                  'N': (0, 0),
@@ -109,7 +108,7 @@ def test_calibration():
     #print(len(mass_spectrum))
     ClusteringFilter().filter_kendrick(mass_spectrum)
     #print(len(mass_spectrum))
-    SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum, LookupTableSettings)
+    SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum, lookupTableSettings)
     
     error = list()
     error_iso = list()

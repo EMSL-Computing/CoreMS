@@ -1,6 +1,7 @@
 
 import os,  sys
 sys.path.append('.')
+from copy import deepcopy
 from threading import Thread
 from numpy.core.umath import invert
 from enviroms.molecular_id.calc.FindOxigenPeaks import FindOxygenPeaks
@@ -16,8 +17,6 @@ class OxigenPriorityAssignment(Thread):
 
     def run(self):
         
-        lowest_error = lambda msp:  msp.molecular_formula_lowest_error
-
         find_formula_thread = FindOxygenPeaks(self.mass_spectrum_obj, self.lookupTableSettings)
         find_formula_thread.run()
         #mass spec obj indexes are set to interate over only the peaks with a molecular formula candidate
@@ -35,6 +34,21 @@ class OxigenPriorityAssignment(Thread):
         # reset back the massspec obj indexes since we already collected the mspeak indexes
         self.mass_spectrum_obj.reset_indexes()
         
+        used_atoms = deepcopy(self.lookupTableSettings.usedAtoms)
+        import itertools
+
+        atomos_in_ordem = []
+        for atom in ('N','S','P',):
+            number_atoms = used_atoms.get(atom)
+            print(atom, number_atoms)
+            if number_atoms != (0,0):
+                atomos_in_ordem.append(atom)
+        
+        all_atoms_combinations = []
+        for i in range(1, len(atomos_in_ordem)+1):
+            all_atoms_combinations.extend(list(itertools.combinations(atomos_in_ordem, i)))
+        print(all_atoms_combinations)
+
         for classe, mspeak in dict_class_and_ms_peak_index.items():
             
             oxigen_number = mspeak[0]['O']
@@ -44,20 +58,26 @@ class OxigenPriorityAssignment(Thread):
             self.lookupTableSettings.use_pah_line_rule = False
             self.lookupTableSettings.min_dbe = dbe - 7
             self.lookupTableSettings.max_dbe = dbe + 7
-            self.lookupTableSettings.usedAtoms['O'] =  (oxigen_number, oxigen_number)
-            self.lookupTableSettings.usedAtoms['C'] =  (carbon_number-4, carbon_number+8) 
-            
-            SearchMolecularFormulas(first_hit=True).run_worker_mass_spectrum(self.mass_spectrum_obj, self.lookupTableSettings)
-            
-            print(classe) 
-        
-        print('before', len(self.mass_spectrum_obj))
-        print('before', len(self.mass_spectrum_obj._mspeaks))
-        
-        self.mass_spectrum_obj.reset_indexes()
-        print('after', len(self.mass_spectrum_obj))
-        print('after', len(self.mass_spectrum_obj._mspeaks))
+            self.lookupTableSettings.usedAtoms=  {'O' : (oxigen_number, oxigen_number)}
+            self.lookupTableSettings.usedAtoms['C'] = used_atoms['C']
+            self.lookupTableSettings.usedAtoms['H'] = used_atoms['H']
+            self.lookupTableSettings.usedAtoms['N'] = (0,0)
+            self.lookupTableSettings.usedAtoms['S'] = (0,0)
+            self.lookupTableSettings.usedAtoms['P'] = (0,0)
 
+            SearchMolecularFormulas(first_hit=True).run_worker_mass_spectrum(self.mass_spectrum_obj, self.lookupTableSettings)
+
+        for other_atoms_combinations in all_atoms_combinations:
+            
+            for atom in other_atoms_combinations:
+                
+                if used_atoms[atom][0] == 0:
+                    self.lookupTableSettings.usedAtoms[atom] =  (1, used_atoms[atom][1])
+                else:
+                    self.lookupTableSettings.usedAtoms[atom] =  used_atoms[atom]
+
+                SearchMolecularFormulas(first_hit=True).run_worker_mass_spectrum(self.mass_spectrum_obj, self.lookupTableSettings)
+        
 if __name__ == "__main__":
     
     from enviroms.transient.input.BrukerSolarix import ReadBrukerSolarix

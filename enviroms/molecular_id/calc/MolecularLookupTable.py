@@ -30,7 +30,7 @@ class MolecularCombinations:
         c_h_combinations= self.get_c_h_combination(settings)
         
         classes_list = self.get_classes_in_order(settings)
-
+        
         number_of_process = int(multiprocessing.cpu_count()/2)
 
         #number_of_process = psutil.cpu_count(logical=False)
