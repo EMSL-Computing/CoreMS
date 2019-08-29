@@ -18,14 +18,14 @@ def test_molecular_formula():
     ion_charge = 1 
     formula_obj = MolecularFormula(formula_dict, ion_charge)
     print("ion_type", formula_obj.ion_type)
-    assert formula_obj.mz_theor == 349.886303060457
+    assert round(formula_obj.mz_theor,2) == round(349.886303060457,2)
     
     min_abudance, current_abundance = 1,1 
     print(min_abudance, current_abundance)
     isotopologues = list(formula_obj.isotopologues(0.01, current_abundance))
     
-    assert isotopologues[0].mz_theor == 351.883352980637
-    assert isotopologues[0].prop_ratio == 0.6399334750069298
+    assert round(isotopologues[0].mz_theor,2) == round(351.883352980637,2)
+    assert round(isotopologues[0].prop_ratio) == round(0.6399334750069298,2)
     assert isotopologues[0].to_string == 'C10 O10 Cl1 37Cl1'
     
     '''

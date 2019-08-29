@@ -35,8 +35,8 @@ def test_import_transient():
 
     #print(mass_spec.mspeaks[0].mz_exp, mass_spec.mspeaks[-1].mz_exp)
 
-    assert mass_spec.mspeaks[0].mz_exp == 743.0789396348233
-    assert mass_spec.mspeaks[-1].mz_exp == 197.0096291077548
+    assert round(mass_spec.mspeaks[0].mz_exp,2) == round(743.0789396348233,2)
+    assert round(mass_spec.mspeaks[-1].mz_exp,2) == round(197.0096291077548,2)
     #with open("test.pkl", "wb") as file:
     #    pickle.dump(bruker_transient, file, protocol=pickle.HIGHEST_PROTOCOL)
 
