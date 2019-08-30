@@ -20,8 +20,14 @@ class FindOxygenPeaks(Thread):
         ----------
         mass_spectrum_obj : MassSpec class
             This is where we store MassSpec class obj,   
+        
         lookupTableSettings:  MoleculaLookupTableSettings class
             This is where we store MoleculaLookupTableSettings class obj
+        
+        min_O , max_O : int
+            minum and maxium of oxigen to allow the software to look for
+            it will override the settings at lookupTableSettings.usedAtoms
+            default min = 1, max = 30
 
         Attributes
         ----------
@@ -30,7 +36,7 @@ class FindOxygenPeaks(Thread):
         lookupTableSettings:  MoleculaLookupTableSettings class
             This is where we store MoleculaLookupTableSettings class obj
         
-        Relevant Methods
+        Methods
         ----------
             run()    
                 will be called when the instaciated class method start is called
@@ -40,14 +46,27 @@ class FindOxygenPeaks(Thread):
             set_mass_spec_indexes_by_found_peaks()
                 set the mass spectrum to interate over only the selected indexes
     '''
-    def __init__(self, mass_spectrum_obj, lookupTableSettings):
+    def __init__(self, mass_spectrum_obj, lookupTableSettings, min_O = 1, max_O = 30) :
         
         Thread.__init__(self)
         
         self.mass_spectrum_obj = mass_spectrum_obj
         self.lookupTableSettings = lookupTableSettings
+        self.min_0 = min_O
+        self.max_O = max_O
         
+
     def run(self):
+        
+        usedAtoms = deepcopy(self.lookupTableSettings.usedAtoms)
+        
+        #resets the used atoms to look only for oxygened organic compounds
+        self.lookupTableSettings.usedAtoms = {'O': (self.min_0, self.max_O),
+                                              'N' : (0, 0),
+                                              'S' : (0, 0),
+                                              'P' : (0, 0) }
+        self.lookupTableSettings.usedAtoms['H'] = usedAtoms['H']
+        self.lookupTableSettings.usedAtoms['C'] = usedAtoms['C']
         
         self.list_found_mspeaks = []
 
@@ -68,6 +87,7 @@ class FindOxygenPeaks(Thread):
         #possible_mol_formulas_objs = self.build_database(molecular_formula_obj_reference)
         #reset indexes after done with operation that includes a filter (i.e. ClusteringFilter().filter_kendrick())
         self.mass_spectrum_obj.reset_indexes()
+        self.lookupTableSettings.usedAtoms = usedAtoms
 
     def find_most_abundant_formula(self, mass_spectrum_obj, settings):
         '''

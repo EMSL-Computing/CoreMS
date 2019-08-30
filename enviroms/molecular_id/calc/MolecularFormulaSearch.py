@@ -26,6 +26,39 @@ class SearchMolecularFormulas:
         
         return False
 
+    def run(self, classes, dict_molecular_lookup_table, nominal_mz, min_abundance, 
+            mass_spectrum_obj, ms_peak, last_error, last_dif, 
+            closest_error, error_average, nbValues):
+
+        for classe in classes:
+                
+            possible_formulas = list()    
+            #we might need to increase the search space to -+1 m_z 
+            if MoleculaSearchSettings.isRadical:
+            
+                ion_type = Labels.radical_ion
+                
+                formulas = dict_molecular_lookup_table.get(classe).get(ion_type).get(nominal_mz)
+                
+                if formulas:
+                    
+                    possible_formulas.extend(formulas)
+
+            if MoleculaSearchSettings.isProtonated:
+            
+                ion_type = Labels.protonated_de_ion
+
+                formulas = dict_molecular_lookup_table.get(classe).get(ion_type).get(nominal_mz)
+                
+                if formulas:
+                    
+                    possible_formulas.extend(formulas)
+
+            if possible_formulas:
+                
+                SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak, last_error, last_dif, closest_error, error_average, nbValues)
+    
+
     def run_worker_ms_peaks(self, ms_peaks, mass_spectrum_obj, settings):
 
         settings.usedAtoms
@@ -68,35 +101,10 @@ class SearchMolecularFormulas:
             pool.close()
             pool.join()
             '''
-            for classe in classes:
-                
-                possible_formulas = list()    
-                #we might need to increase the search space to -+1 m_z 
-                if MoleculaSearchSettings.isRadical:
-                
-                    ion_type = Labels.radical_ion
+            self.run(classes, dict_molecular_lookup_table, nominal_mz, min_abundance, 
+                        mass_spectrum_obj, ms_peak, last_error, last_dif, 
+                        closest_error, error_average, nbValues)
                     
-                    formulas = dict_molecular_lookup_table.get(classe).get(ion_type).get(nominal_mz)
-                    
-                    if formulas:
-                        
-                        possible_formulas.extend(formulas)
-
-                if MoleculaSearchSettings.isProtonated:
-                
-                    ion_type = Labels.protonated_de_ion
-
-                    formulas = dict_molecular_lookup_table.get(classe).get(ion_type).get(nominal_mz)
-                    
-                    if formulas:
-                        
-                        possible_formulas.extend(formulas)
-
-                if possible_formulas:
-                    
-                    SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak, last_error, last_dif, closest_error, error_average, nbValues)
-    
-
     def run_worker_ms_peak(self, ms_peak, mass_spectrum_obj, settings):
         '''
         waiting for python 3.8 release to set mass_spectrum_obj and dict_molecular_lookup_table on share memory (redis?)
@@ -130,42 +138,12 @@ class SearchMolecularFormulas:
 
         nominal_mz  = ms_peak.nominal_mz_exp      
         
-        for classe in classes:
-            
-            possible_formulas = list()    
-            #we might need to increase the search space to -+1 m_z 
-            if MoleculaSearchSettings.isRadical:
-            
-                ion_type = Labels.radical_ion
-                
-                formulas = dict_molecular_lookup_table.get(classe).get(ion_type).get(nominal_mz)
-                
-                if formulas:
-                    
-                    possible_formulas.extend(formulas)
-
-            if MoleculaSearchSettings.isProtonated:
-            
-                ion_type = Labels.protonated_de_ion
-
-                formulas = dict_molecular_lookup_table.get(classe).get(ion_type).get(nominal_mz)
-                
-                if formulas:
-                    
-                    possible_formulas.extend(formulas)
-            
-            
-            if possible_formulas:
-                
-                SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, 
-                                                                mass_spectrum_obj, ms_peak, 
-                                                                last_error, last_dif, 
-                                                                closest_error, error_average, 
-                                                                nbValues, )
+        self.run(classes, dict_molecular_lookup_table, nominal_mz, min_abundance, 
+                        mass_spectrum_obj, ms_peak, last_error, last_dif, 
+                        closest_error, error_average, nbValues)
         
     def run_worker_mass_spectrum(self, mass_spectrum_obj, settings):
 
-        
         #number_of_process = multiprocessing.cpu_count()
 
         '''loading this on a shared memory would be better than having to serialize it for every process
@@ -210,36 +188,11 @@ class SearchMolecularFormulas:
             pool.close()
             pool.join()
             '''
-            for classe in classes:
-               
-                possible_formulas = list()    
-                #we might need to increase the search space to -+1 m_z 
-                if MoleculaSearchSettings.isRadical:
-                
-                    ion_type = Labels.radical_ion
-                    
-                    
-                    formulas = dict_molecular_lookup_table.get(classe).get(ion_type).get(nominal_mz)
-                   
-                    if formulas:
-                        possible_formulas.extend(formulas)
+            self.run(classes, dict_molecular_lookup_table, nominal_mz, min_abundance, 
+                        mass_spectrum_obj, ms_peak, last_error, last_dif, 
+                        closest_error, error_average, nbValues)
 
-                if MoleculaSearchSettings.isProtonated:
-                
-                    ion_type = Labels.protonated_de_ion
-
-                    formulas = dict_molecular_lookup_table.get(classe).get(ion_type).get(nominal_mz)
-                    
-                    if formulas:
-                        
-                        possible_formulas.extend(formulas)
-
-                if possible_formulas:
-                    
-                    SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak, last_error, last_dif, closest_error, error_average, nbValues)
-            
 class SearchMolecularFormulaWorker:
-
     
     # needs this wraper to pass the class to multiprocessing
     def __call__(self, args):

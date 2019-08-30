@@ -54,7 +54,7 @@ class MoleculaLookupTableSettings:
 class MoleculaSearchSettings:
     
     #needs to be enabled at the class MoleculaLookupTableSettings
-    isRadical = False
+    isRadical = True
     
     #needs to be enabled at the class MoleculaLookupTableSettings
     isProtonated = True
@@ -78,3 +78,8 @@ class MoleculaSearchSettings:
     error_method = 'average'
 
     mz_error_average = 0
+
+    min_dbe = 0 
+
+    max_dbe = 50 
+

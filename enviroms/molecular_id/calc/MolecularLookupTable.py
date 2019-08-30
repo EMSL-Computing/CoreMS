@@ -164,6 +164,7 @@ class MolecularCombinations:
             classe_str = classe_str.strip()
             
             if len(classe_str) > 0:
+                self.sort_class(atomos_in_ordem, classe_str)
                 classe_in_orderm.append((classe_str, classe_dict))
 
             elif len(classe_str) == 0:
@@ -171,6 +172,20 @@ class MolecularCombinations:
                 classe_in_orderm.append(('HC', {'HC': 1}))
         
         return classe_in_orderm
+
+    @staticmethod
+    def sort_class( atomos_in_ordem, classe_str) -> str: 
+        
+        #add oxygen to atoms_in_order
+        atomos_in_ordem =  ['N','O', 'S', 'P'] + atomos_in_ordem[:4]
+        sort_method = lambda word: ([atomos_in_ordem.index(c) for c in word[0]])
+        
+        class_list = classe_str.split(' ')
+        sorted_class_list = sorted(class_list, key=sort_method)
+        joined_class_list = ' '.join(str(x) for x in sorted_class_list) 
+        
+        return joined_class_list
+
 
     def get_fixed_initial_number_of_hidrogen(self, min_h, odd_even):
 

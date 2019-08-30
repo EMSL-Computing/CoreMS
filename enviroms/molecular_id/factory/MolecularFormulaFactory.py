@@ -174,7 +174,7 @@ class MolecularFormula(MolecularFormulaCalc):
                 
                 return classstring[0:-1] + " " + "-R"
             
-            else: return classstring[0:-1] + " "
+            else: return classstring[0:-1]
             
             'dict, tuple or string'
         else:
