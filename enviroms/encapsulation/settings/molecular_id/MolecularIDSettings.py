@@ -12,6 +12,7 @@ class MoleculaLookupTableSettings:
                             'N': 3,
                             'S': 2,
                             'P': 3,
+                            'Cl': 1,
                             }
 
     def __init__(self):
@@ -22,6 +23,7 @@ class MoleculaLookupTableSettings:
                     'N': (0, 0),
                     'S': (0, 0),
                     'P': (0, 0),
+                    'Cl': (0, 1),
                     }
         
 
@@ -54,7 +56,7 @@ class MoleculaLookupTableSettings:
 class MoleculaSearchSettings:
     
     #needs to be enabled at the class MoleculaLookupTableSettings
-    isRadical = False
+    isRadical = True
     
     #needs to be enabled at the class MoleculaLookupTableSettings
     isProtonated = True
@@ -78,3 +80,8 @@ class MoleculaSearchSettings:
     error_method = 'average'
 
     mz_error_average = 0
+
+    min_dbe = 0 
+
+    max_dbe = 50 
+

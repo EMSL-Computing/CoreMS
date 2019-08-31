@@ -12,17 +12,61 @@ from isort import settings
 
 class FindOxygenPeaks(Thread):
     
-    '''class to walk 14Da units over oxygen space for negative ion mass spectrum of natural organic matter
-        Returns a list of MSPeak class cotaining the possibles Molecular Formula class objects.  
     '''
-    def __init__(self, mass_spectrum_obj, lookupTableSettings):
+        Class to walk 14Da units over oxygen space for negative ion mass spectrum of natural organic matter
+        Returns a list of MSPeak class cotaining the possibles Molecular Formula class objects.  
+        
+        Parameters
+        ----------
+        mass_spectrum_obj : MassSpec class
+            This is where we store MassSpec class obj,   
+        
+        lookupTableSettings:  MoleculaLookupTableSettings class
+            This is where we store MoleculaLookupTableSettings class obj
+        
+        min_O , max_O : int
+            minum and maxium of oxigen to allow the software to look for
+            it will override the settings at lookupTableSettings.usedAtoms
+            default min = 1, max = 30
+
+        Attributes
+        ----------
+        mass_spectrum_obj : MassSpec class
+            This is where we store MassSpec class obj,   
+        lookupTableSettings:  MoleculaLookupTableSettings class
+            This is where we store MoleculaLookupTableSettings class obj
+        
+        Methods
+        ----------
+            run()    
+                will be called when the instaciated class method start is called
+            get_list_found_peaks()
+                returns a list of MSpeaks classes cotaining all the MolecularFormula canditates inside the MSPeak
+                for more details of the structure see MSPeak class and MolecularFormula class    
+            set_mass_spec_indexes_by_found_peaks()
+                set the mass spectrum to interate over only the selected indexes
+    '''
+    def __init__(self, mass_spectrum_obj, lookupTableSettings, min_O = 1, max_O = 30) :
         
         Thread.__init__(self)
         
         self.mass_spectrum_obj = mass_spectrum_obj
         self.lookupTableSettings = lookupTableSettings
+        self.min_0 = min_O
+        self.max_O = max_O
         
+
     def run(self):
+        
+        usedAtoms = deepcopy(self.lookupTableSettings.usedAtoms)
+        
+        #resets the used atoms to look only for oxygened organic compounds
+        self.lookupTableSettings.usedAtoms = {'O': (self.min_0, self.max_O),
+                                              'N' : (0, 0),
+                                              'S' : (0, 0),
+                                              'P' : (0, 0) }
+        self.lookupTableSettings.usedAtoms['H'] = usedAtoms['H']
+        self.lookupTableSettings.usedAtoms['C'] = usedAtoms['C']
         
         self.list_found_mspeaks = []
 
@@ -35,22 +79,38 @@ class FindOxygenPeaks(Thread):
         
         molecular_formula_obj_reference = self.find_most_abundant_formula(self.mass_spectrum_obj, self.lookupTableSettings)
         
-        self.list_found_mspeaks = self.find_14Da_series_mspeaks(self.mass_spectrum_obj, molecular_formula_obj_reference, self.lookupTableSettings)
+        self.list_found_mspeaks = self.find_series_mspeaks(self.mass_spectrum_obj,
+                                                           molecular_formula_obj_reference, 
+                                                           self.lookupTableSettings,
+                                                           deltamz=14)
         
         #possible_mol_formulas_objs = self.build_database(molecular_formula_obj_reference)
         #reset indexes after done with operation that includes a filter (i.e. ClusteringFilter().filter_kendrick())
         self.mass_spectrum_obj.reset_indexes()
+        self.lookupTableSettings.usedAtoms = usedAtoms
 
     def find_most_abundant_formula(self, mass_spectrum_obj, settings):
         '''
-        find most abundant using kendrick upper and lower limit
+        find most abundant using kendrick 
         
+        Returns
+        ----------
+        MolecularFormula class obj
+            most abundant MolecularFormula with the lowest mass error
         '''
+        #need to find a better way to cut off outliners
+        #import matplotlib.pyplot as plt
+        #plt.hist(mass_spectrum_obj.abundance_centroid, bins=100)
+        #plt.show()
+        
         abundances =  mass_spectrum_obj.abundance_centroid
         abun_mean = average(abundances, axis=0)
         abun_std = std(abundances, axis=0)
+        
         upper_limit = abun_mean + 7* abun_std
+        
         print(upper_limit, max(mass_spectrum_obj, key=lambda m: m.abundance).abundance)
+        
         mspeak_most_abundant = max(mass_spectrum_obj, key=lambda m: m.abundance if m.abundance <= upper_limit else 0)
 
         SearchMolecularFormulas().run_worker_ms_peak(mspeak_most_abundant, mass_spectrum_obj, settings)
@@ -85,7 +145,7 @@ class FindOxygenPeaks(Thread):
         #return the first option
         #return mspeak_most_abundant[0]
     
-    def find_14Da_series_mspeaks(self, mass_spectrum_obj, molecular_formula_obj_reference, lookupTableSettings):
+    def find_series_mspeaks(self, mass_spectrum_obj, molecular_formula_obj_reference, lookupTableSettings, deltamz=14):
 
         abundances =  mass_spectrum_obj.abundance_centroid
         abun_mean = average(abundances, axis=0)
@@ -108,13 +168,13 @@ class FindOxygenPeaks(Thread):
         print('max_mz', max_mz)
         while mass <= max_mz:
             #print "shit 1", mass, min_mz
-            mass += (14) 
+            mass += (deltamz) 
             nominal_masses.append(mass)
         
         mass = initial_nominal_mass    
         while mass >= min_mz:
             #print "shit 1", mass, min_mz
-            mass -= (14) 
+            mass -= (deltamz) 
             nominal_masses.append(mass)
         
         nominal_masses = sorted(nominal_masses)
@@ -148,3 +208,16 @@ class FindOxygenPeaks(Thread):
     def get_list_found_peaks(self):
         
         return sorted(self.list_found_mspeaks, key=lambda mp: mp.mz_exp)
+
+    def set_mass_spec_indexes_by_found_peaks(self):
+        
+        '''
+        Wanining!!!!
+        set the mass spectrum to interate over only the selected indexes
+        don not forget to call mass_spectrum_obj.reset_indexes after the job is done
+        '''
+        
+        indexes = [msp.index for msp in self.list_found_mspeaks]
+        self.mass_spectrum_obj.set_indexes(indexes)
+        
+        

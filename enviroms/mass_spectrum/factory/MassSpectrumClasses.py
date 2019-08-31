@@ -88,12 +88,12 @@ class MassSpecBase(MassSpecCalc):
         return self.mspeaks[position]
     
     def set_indexes(self, list_indexes):
-        
+        ''' set the mass spectrum to interate over only the selected MSpeaks indexes'''
         self.mspeaks = [self._mspeaks[i] for i in list_indexes]
         self._set_nominal_masses_start_final_indexes()
         
     def reset_indexes(self):
-        
+        ''' reset the mass spectrum to interate over all MSpeaks objs'''
         self.mspeaks = self._mspeaks
         self._set_nominal_masses_start_final_indexes()
 
