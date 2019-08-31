@@ -100,7 +100,7 @@ def test_calibration():
     lookupTableSettings.usedAtoms = {'C': (1, 100),
                  'H': (4, 200),
                  'O': (1, 20),
-                 'N': (0, 0),
+                 'N': (0, 1),
                  'S': (0, 0),
                  'P': (0, 0),
                  }
@@ -141,13 +141,15 @@ def test_calibration():
                             o_c.append(molecular_formula.O_C)
                             h_c.append(molecular_formula.H_C)
                             pylab.plot(molecular_formula['C'], molecular_formula.dbe, "o",   color=colors[molecular_formula['O']])
-                            pylab.annotate(molecular_formula['O'], (molecular_formula['C']+0.5, molecular_formula.dbe+0.5))
+                            #pylab.annotate(molecular_formula.class_label, (molecular_formula['C']+0.5, molecular_formula.dbe+0.5))
+                            pylab.annotate(mspeak.mz_exp, (molecular_formula['C']+0.5, molecular_formula.dbe+0.5))
 
                         else:
                         
                             mass_iso.append(mspeak.mz_exp)
                             abundance_iso.append(mspeak.abundance)
                             error_iso.append(molecular_formula._calc_assigment_mass_error(mspeak.mz_exp))
+        
         print(max(o_c), min(o_c))
         pylab.show()                
         

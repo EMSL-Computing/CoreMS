@@ -14,7 +14,7 @@ class OxigenPriorityAssignment(Thread):
 
     def __init__(self, mass_spectrum_obj, lookupTableSettings):
         '''TODO:- add support for other atoms and adducts: Done
-                - add dbe range on search runtime
+                - add dbe range on search runtime : Done
                 - add docs
                 - improve performace : Done 
         '''
@@ -33,9 +33,7 @@ class OxigenPriorityAssignment(Thread):
         
         dict_ox_class_and_ms_peak = self.ox_classes_and_dbes_in_ordem_()
         
-        print(dict_ox_class_and_ms_peak.keys())
-        
-        assign_classes_order = self.get_classes_in_order(dict_ox_class_and_ms_peak)
+        assign_classes_order_str_dict_tuple_list = self.get_classes_in_order(dict_ox_class_and_ms_peak)
 
         self.create_molecular_database()
         
@@ -45,9 +43,9 @@ class OxigenPriorityAssignment(Thread):
         # reset back the massspec obj indexes since we already collected the mspeak indexes
         self.mass_spectrum_obj.reset_indexes()
             
-        self.run_worker_mass_spectrum(assign_classes_order)
+        self.run_worker_mass_spectrum(assign_classes_order_str_dict_tuple_list,dict_ox_class_and_ms_peak)
         
-    def run_worker_mass_spectrum(self, assign_classes_order):
+    def run_worker_mass_spectrum(self, assign_classes_order_tuples, dict_ox_class_and_ms_peak):
         
         last_dif = 0
     
@@ -65,47 +63,57 @@ class OxigenPriorityAssignment(Thread):
         
         min_abundance = self.mass_spectrum_obj.min_abundance
 
-        for classe in assign_classes_order:
-                    
-            for ms_peak in sorted(mass_spectrum_obj, key=lambda m :m.abundance):
+        print(assign_classes_order_tuples)
+        
+        for ms_peak in sorted(mass_spectrum_obj, key=lambda m :m.abundance):
 
-                #already assinged a molecular formula
+            #already assinged a molecular formula
+            if ms_peak.is_assigned: continue
+
+                #print(ms_peak) 
+            nominal_mz  = ms_peak.nominal_mz_exp
+
+            for classe_tuple in assign_classes_order_tuples:
+                classe_str  = classe_tuple[0]
+                classe_dict = classe_tuple[1]
+                # limits the dbe by the Ox class most abundant,
+                # need to add other atoms contribution to be more accurate
+                # but +-7 should be sufficient to cover the range 
+
+                oxigen_number = 'O' + str(classe_dict.get('O'))
+                current_dbe = dict_ox_class_and_ms_peak[oxigen_number][0].dbe
+                MoleculaSearchSettings.max_dbe = current_dbe + 7
+                MoleculaSearchSettings.min_dbe = current_dbe - 7
+                
                 if ms_peak.is_assigned: continue
 
-                    #print(ms_peak) 
-                nominal_mz  = ms_peak.nominal_mz_exp
-
-                for classe in assign_classes_order:
+                possible_formulas = list()    
+                #we might need to increase the search space to -+1 m_z 
                     
-                    if ms_peak.is_assigned: continue
+                if MoleculaSearchSettings.isProtonated:
+        
+                    ion_type = Labels.protonated_de_ion
 
-                    possible_formulas = list()    
-                    #we might need to increase the search space to -+1 m_z 
+                    formulas = self.dict_molecular_lookup_table.get(classe_str).get(ion_type).get(nominal_mz)
+                    
+                    if formulas:
                         
-                    if MoleculaSearchSettings.isProtonated:
-            
-                        ion_type = Labels.protonated_de_ion
-
-                        formulas = self.dict_molecular_lookup_table.get(classe).get(ion_type).get(nominal_mz)
+                        possible_formulas.extend(formulas)
+               
+                if MoleculaSearchSettings.isRadical:
                 
-                        if formulas:
-                            
-                            possible_formulas.extend(formulas)
-
-                    if MoleculaSearchSettings.isRadical:
+                    ion_type = Labels.radical_ion
                     
-                        ion_type = Labels.radical_ion
+                    formulas = self.dict_molecular_lookup_table.get(classe_str).get(ion_type).get(nominal_mz)
+                    
+                    if formulas:
                         
-                        formulas = self.dict_molecular_lookup_table.get(classe).get(ion_type).get(nominal_mz)
-                        
-                        if formulas:
-                            
-                            possible_formulas.extend(formulas)
+                        possible_formulas.extend(formulas)
 
-                    if possible_formulas:
-            
-                        SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak, last_error, last_dif, closest_error, error_average, nbValues)
-     
+                if possible_formulas:
+        
+                    SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak, last_error, last_dif, closest_error, error_average, nbValues)
+    
     def create_molecular_database(self):
         #number_of_process = multiprocessing.cpu_count()
 
@@ -141,7 +149,7 @@ class OxigenPriorityAssignment(Thread):
         for mspeak in sorted(self.mass_spectrum_obj, key=lambda msp: msp.abundance, reverse=True):
             
             ox_classe = mspeak.molecular_formula_lowest_error.class_label
-            print ('Ox class', ox_classe)
+            
             if ox_classe in dict_ox_class_and_ms_peak.keys():
                 
                 #get the most abundant of the same ox class
@@ -154,7 +162,7 @@ class OxigenPriorityAssignment(Thread):
         
         return dict_ox_class_and_ms_peak
 
-    def get_classes_in_order(self, dict_ox_class_and_ms_peak)-> [str]:
+    def get_classes_in_order(self, dict_ox_class_and_ms_peak)-> [(str, dict)]: 
         ''' structure is 
             ('HC', {'HC': 1})'''
         
@@ -206,10 +214,12 @@ class OxigenPriorityAssignment(Thread):
         
         combination_classes_ordered = self.sort_classes(atomos_in_ordem, combined_classes)
         
-        return  list(dict_ox_class_and_ms_peak.keys()) + combination_classes_ordered #+ classe_in_ordem + hc_class
+        oxygen_class_str_dict_tuple = [(oxclass, mspeak[0].class_dict) for oxclass, mspeak in dict_ox_class_and_ms_peak.items()] 
+
+        return  oxygen_class_str_dict_tuple + combination_classes_ordered #+ classe_in_ordem + hc_class
 
     @staticmethod
-    def get_class_strings_dict(all_atomos_tuples, atomos_in_ordem) -> [str]:
+    def get_class_strings_dict(all_atomos_tuples, atomos_in_ordem) -> [(str, dict)]: 
         
         classe_list= []
         hc_class = []
@@ -240,7 +250,7 @@ class OxigenPriorityAssignment(Thread):
         return classe_list, hc_class
     
     @staticmethod
-    def combine_ox_class_with_other( atomos_in_ordem, classes_strings_dict_tuples, dict_ox_class_and_ms_peak) -> [str]:
+    def combine_ox_class_with_other( atomos_in_ordem, classes_strings_dict_tuples, dict_ox_class_and_ms_peak) -> [dict]:
         
         #sort methods that uses the key of classes dictonary and the atoms_in_ordem as referece
         # c_tuple[1] = class_dict, because is one key:value map we loop throught keys and get the first item only 
@@ -260,15 +270,18 @@ class OxigenPriorityAssignment(Thread):
         return combination
     
     @staticmethod
-    def sort_classes( atomos_in_ordem, combination_tuples) -> [str]: 
+    def sort_classes( atomos_in_ordem, combination_tuples) -> [(str, dict)]: 
         
         join_list_of_list_classes = list()
         atomos_in_ordem =  ['N','S','P', 'O'] + atomos_in_ordem[3:]
-        print('HEREEEEEEEEE',atomos_in_ordem)
+        
         sort_method = lambda atoms_keys: [atomos_in_ordem.index(atoms_keys)] #(len(word[0]), print(word[1]))#[atomos_in_ordem.index(atom) for atom in list( word[1].keys())])
-        for c_tuple in combination_tuples:
-            sorted_dict_keys = sorted(c_tuple, key = sort_method)
-            join_list_of_list_classes.append(' '.join([atom + str(c_tuple[atom]) for atom in sorted_dict_keys]))
+        for class_dict in combination_tuples:
+            
+            sorted_dict_keys = sorted(class_dict, key = sort_method)
+            class_str = ' '.join([atom + str(class_dict[atom]) for atom in sorted_dict_keys])
+            new_class_dict = { atom: class_dict[atom] for atom in sorted_dict_keys}
+            join_list_of_list_classes.append((class_str, new_class_dict))
         
         return join_list_of_list_classes
         
@@ -303,7 +316,7 @@ if __name__ == "__main__":
         MoleculaSearchSettings.min_abun_error = -30 # percentage
         MoleculaSearchSettings.max_abun_error = 70 # percentage
         MoleculaSearchSettings.isProtonated = True
-        MoleculaSearchSettings.isRadical= False
+        MoleculaSearchSettings.isRadical= True
     
 
     def plot():

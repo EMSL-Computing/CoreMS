@@ -260,7 +260,9 @@ class SearchMolecularFormulaWorker:
         max_mz_error = MoleculaSearchSettings.max_mz_error
         min_abun_error = MoleculaSearchSettings.min_abun_error
         max_abun_error = MoleculaSearchSettings.max_abun_error
-
+        max_dbe = MoleculaSearchSettings.max_dbe
+        min_dbe = MoleculaSearchSettings.min_dbe
+        
         #f = open("abundance_error.txt", "a+")    
         ms_peak_mz_exp, ms_peak_abundance = ms_peak.mz_exp, ms_peak.abundance
         #min_error = min([pmf._calc_assigment_mass_error(ms_peak_mz_exp) for pmf in possible_formulas])
@@ -271,7 +273,7 @@ class SearchMolecularFormulaWorker:
                 
                 error = possible_formula._calc_assigment_mass_error(ms_peak_mz_exp)
                 
-                if  min_mz_error <= error <= max_mz_error:
+                if  min_mz_error <= error <= max_mz_error and min_dbe <= possible_formula.dbe <= max_dbe:
                     
                     #update the error
                     last_error, last_dif, closest_error, error_average, nbValues  = self.set_last_error(error, last_error, last_dif, closest_error, error_average, nbValues)    
@@ -293,7 +295,7 @@ class SearchMolecularFormulaWorker:
                             error = isotopologue_formula._calc_assigment_mass_error(ms_peak_iso.mz_exp)    
                             
                             #need to define error distribution for abundance measurements
-                            if  min_mz_error <= error <= max_mz_error:
+                            if  min_mz_error <= error <= max_mz_error and min_dbe <= isotopologue_formula.dbe <= max_dbe:
                                     
                                     abundance_error = isotopologue_formula._calc_abundance_error(ms_peak_abundance,ms_peak_iso.abundance )            
                                     # margin of error was set empirically/ needs statistical calculation

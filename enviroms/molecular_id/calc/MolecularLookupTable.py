@@ -149,44 +149,44 @@ class MolecularCombinations:
 
             classe_str = ''
             classe_dict = {}
-            all_atomos_tuple = all_atomos_tuple
-
-            for each_atomos_index in range(len(all_atomos_tuple)):
-                if all_atomos_tuple[each_atomos_index] != 0:
-                    classe_str = (classe_str +
-                                atomos_in_ordem[each_atomos_index] +
-                                str(all_atomos_tuple[each_atomos_index]) +
-                                ' ')
-                    classe_dict[
-                        atomos_in_ordem[each_atomos_index]] = all_atomos_tuple[
-                            each_atomos_index]
+            
+            for each_atomos_index, atom_number in enumerate(all_atomos_tuple):
+                
+                if atom_number != 0:
+                    classe_str = (classe_str + atomos_in_ordem[each_atomos_index] + str(atom_number) +  ' ')
+                    classe_dict[atomos_in_ordem[each_atomos_index]] = atom_number
 
             classe_str = classe_str.strip()
             
             if len(classe_str) > 0:
-                self.sort_class(atomos_in_ordem, classe_str)
+                
                 classe_in_orderm.append((classe_str, classe_dict))
 
             elif len(classe_str) == 0:
 
                 classe_in_orderm.append(('HC', {'HC': 1}))
         
+        classe_in_orderm = self.sort_classes(atomos_in_ordem, classe_in_orderm)
+        
         return classe_in_orderm
 
     @staticmethod
-    def sort_class( atomos_in_ordem, classe_str) -> str: 
+    def sort_classes( atomos_in_ordem, combination_tuples) -> [str]: 
         
-        #add oxygen to atoms_in_order
-        atomos_in_ordem =  ['N','O', 'S', 'P'] + atomos_in_ordem[:4]
-        sort_method = lambda word: ([atomos_in_ordem.index(c) for c in word[0]])
+        join_list_of_list_classes = list()
+        atomos_in_ordem =  ['N','S','P', 'O'] + atomos_in_ordem[4:]
         
-        class_list = classe_str.split(' ')
-        sorted_class_list = sorted(class_list, key=sort_method)
-        joined_class_list = ' '.join(str(x) for x in sorted_class_list) 
+        sort_method = lambda atoms_keys: [atomos_in_ordem.index(atoms_keys)] #(len(word[0]), print(word[1]))#[atomos_in_ordem.index(atom) for atom in list( word[1].keys())])
+        for class_tuple in combination_tuples:
+            
+            sorted_dict_keys = sorted(class_tuple[1], key = sort_method)
+            class_str = ' '.join([atom + str(class_tuple[1][atom]) for atom in sorted_dict_keys])
+            class_dict = { atom: class_tuple[1][atom] for atom in sorted_dict_keys}
+            join_list_of_list_classes.append((class_str, class_dict))
         
-        return joined_class_list
+        return join_list_of_list_classes
 
-
+    
     def get_fixed_initial_number_of_hidrogen(self, min_h, odd_even):
 
         remaining_h = min_h % 2

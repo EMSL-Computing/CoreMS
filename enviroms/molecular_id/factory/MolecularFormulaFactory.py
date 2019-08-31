@@ -1,4 +1,5 @@
 from copy import deepcopy
+from collections import OrderedDict
 from enviroms.mass_spectrum.calc.MolecularFormulaCalc import MolecularFormulaCalc
 from enviroms.encapsulation.settings.input.ProcessingSetting import MassSpecPeakSetting
 from enviroms.encapsulation.constant.Constants import Atoms
@@ -14,7 +15,9 @@ class MolecularFormula(MolecularFormulaCalc):
     def __init__(self, _d_molecular_formula, ion_charge, exp_mz=None):
         
         #clear dictionary of atoms with 0 value
+        
         self._d_molecular_formula = {key:val for key, val in _d_molecular_formula.items() if val != 0}
+
         self._ion_charge = ion_charge
         self._assigment_mass_error = None
         self._confidence_score = None
@@ -28,7 +31,7 @@ class MolecularFormula(MolecularFormulaCalc):
         if exp_mz:
             self._assigment_mass_error = self._calc_assigment_mass_error(exp_mz)
             #self._confidence_score = self._calc_confidence_score()     
-        
+    
     def __len__(self):
         
         #crash if keys are not ordered
@@ -124,6 +127,7 @@ class MolecularFormula(MolecularFormulaCalc):
     
     @property   
     def to_list(self):
+        '''TODO ensure self._d_molecular_formula is a orderedDict'''
         
         if self._d_molecular_formula:
             atoms_in_ordem = ["C", "H", "N", "O", "S", "P"]
@@ -180,6 +184,21 @@ class MolecularFormula(MolecularFormulaCalc):
         else:
             raise Exception("Molecular formula identification not performed yet")        
     
+    @property
+    def class_dict(self):
+        
+        if self._d_molecular_formula:
+            
+            class_dict = {}
+            for atom, qnt in self._d_molecular_formula.items():
+    
+                if atom != "IonType" and atom !='C' and atom !='H':
+                    
+                    class_dict[atom] = qnt
+                    
+            return class_dict
+        
+        raise Exception("Molecular formula identification not performed yet")           
     
 
 class MolecularFormulaIsotopologue(MolecularFormula):

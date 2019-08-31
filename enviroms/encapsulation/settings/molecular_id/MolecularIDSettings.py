@@ -12,6 +12,7 @@ class MoleculaLookupTableSettings:
                             'N': 3,
                             'S': 2,
                             'P': 3,
+                            'Cl': 1,
                             }
 
     def __init__(self):
@@ -22,6 +23,7 @@ class MoleculaLookupTableSettings:
                     'N': (0, 0),
                     'S': (0, 0),
                     'P': (0, 0),
+                    'Cl': (0, 1),
                     }
         
 
