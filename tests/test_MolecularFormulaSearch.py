@@ -82,4 +82,6 @@ def test_molecular_formula_search():
     #pylab.show()  
     print('%i peaks assigned and %i peaks not assigned' % (i, j))
     #ClusteringFilter().filter_mass_error(mass_spectrum)
-    
+
+if __name__ == "__main__":
+    test_molecular_formula_search()

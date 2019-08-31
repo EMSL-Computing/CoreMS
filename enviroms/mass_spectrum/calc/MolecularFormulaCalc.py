@@ -98,11 +98,11 @@ class MolecularFormulaCalc:
                 
                 if atom != "IonType":
                     
-                    atom = ''.join([i for i in atom if not i.isdigit()]) 
-                    
                     n_atom = int(self._d_molecular_formula.get(atom))
                     
-                    valencia = MoleculaLookupTableSettings.used_atom_valences.get(atom)
+                    clean_atom = ''.join([i for i in atom if not i.isdigit()]) 
+                    
+                    valencia = MoleculaLookupTableSettings.used_atom_valences.get(clean_atom)
                     #valencia = Atoms.atoms_valence.get(atom)
                     
                     if valencia and valencia > 0:
