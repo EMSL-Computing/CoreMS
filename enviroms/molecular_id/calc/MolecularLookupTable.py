@@ -174,7 +174,7 @@ class MolecularCombinations:
     def sort_classes( atomos_in_ordem, combination_tuples) -> [str]: 
         
         join_list_of_list_classes = list()
-        atomos_in_ordem =  ['N','S','P', 'O'] + atomos_in_ordem[4:]
+        atomos_in_ordem =  ['N','S','P', 'O'] + atomos_in_ordem[4:] + ['HC']
         
         sort_method = lambda atoms_keys: [atomos_in_ordem.index(atoms_keys)] #(len(word[0]), print(word[1]))#[atomos_in_ordem.index(atom) for atom in list( word[1].keys())])
         for class_tuple in combination_tuples:
