@@ -35,9 +35,9 @@ test-job:
   
   stage: test
   tags:
-    #- k8s
-    - docker
-    - python
+    - k8s
+    #- docker
+    #- python
 
   script:
     - ls .
@@ -51,9 +51,9 @@ test-job:
 run-job:
   stage: run
   tags:
-    - docker
-    - python
-    #- k8s
+    #- docker
+    #- python
+    - k8s
 
   script:
     - python setup.py sdist bdist_wheel
