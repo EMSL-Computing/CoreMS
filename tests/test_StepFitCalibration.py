@@ -15,6 +15,7 @@ from enviroms.molecular_id.calc.FindOxigenPeaks import FindOxygenPeaks
 from enviroms.transient.input.BrukerSolarix import ReadBrukerSolarix
 from enviroms.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
 from enviroms.molecular_id.calc.ClusterFilter import ClusteringFilter
+from enviroms.mass_spectrum.output.MassSpectrumtoCSV import MassSpectoCSV
 
 def creat_mass_spectrum(file_location):
     '''parse transient data from Bruker into a mass spectrum class object
@@ -83,14 +84,14 @@ def test_calibration():
     mspeaks_results = find_formula_thread.get_list_found_peaks()
     
     calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
-    calibrate.ledford_calibration()
-    #calibrate.step_fit()
+    #calibrate.ledford_calibration()
+    calibrate.step_fit()
     mass_spectrum.clear_molecular_formulas()
 
     MoleculaSearchSettings.error_method = 'symmetrical'
     MoleculaSearchSettings.min_mz_error = -1
     MoleculaSearchSettings.max_mz_error = 1
-    MoleculaSearchSettings.mz_error_range = 2
+    MoleculaSearchSettings.mz_error_range = 1
     MoleculaSearchSettings.mz_error_average = 0
     MoleculaSearchSettings.min_abun_error = -30 # percentage 
     MoleculaSearchSettings.max_abun_error = 70 # percentage 
@@ -99,10 +100,10 @@ def test_calibration():
     
     lookupTableSettings.usedAtoms = {'C': (1, 100),
                  'H': (4, 200),
-                 'O': (1, 20),
-                 'N': (0, 1),
-                 'S': (0, 0),
-                 'P': (0, 0),
+                 'O': (0, 20),
+                 'N': (0, 4),
+                 'S': (0, 4),
+                 'P': (0, 4),
                  }
     
     #print(len(mass_spectrum))
@@ -110,6 +111,8 @@ def test_calibration():
     #print(len(mass_spectrum))
     SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum, lookupTableSettings)
     
+    MassSpectoCSV('neg_esi_srfa_1ppm_test.csv', mass_spectrum).start()
+    '''
     error = list()
     error_iso = list()
     mass_iso = list()
@@ -151,7 +154,7 @@ def test_calibration():
                             error_iso.append(molecular_formula._calc_assigment_mass_error(mspeak.mz_exp))
         
         print(max(o_c), min(o_c))
-        pylab.show()                
+        #pylab.show()                
         
     if __name__ == "__main__":
         #don not plot if running as unit test
@@ -166,7 +169,7 @@ def test_calibration():
         pylab.show()  
         pylab.plot( o_c, h_c, "o", color='red')  
         pylab.show()  
-
+    '''
 if __name__ == "__main__":
     
     test_calibration()

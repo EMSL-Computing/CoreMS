@@ -19,6 +19,7 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
         Attributes
         ----------
         All Atributes are derivative from the MassSpecBase Class
+        by calling self
         
         Returns 
         ----------

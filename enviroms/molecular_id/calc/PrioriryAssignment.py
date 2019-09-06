@@ -7,7 +7,7 @@ from itertools import product
 from enviroms.molecular_id.calc.FindOxigenPeaks import FindOxygenPeaks
 from enviroms.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
 from enviroms.molecular_id.calc.MolecularLookupTable import MolecularCombinations
-from enviroms.encapsulation.constant.Constants import Labels
+from enviroms.encapsulation.Constants import Labels
 from enviroms.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulaWorker
 
 class OxigenPriorityAssignment(Thread):
@@ -65,7 +65,7 @@ class OxigenPriorityAssignment(Thread):
 
         print(assign_classes_order_tuples)
         
-        for ms_peak in sorted(mass_spectrum_obj, key=lambda m :m.abundance):
+        for ms_peak in mass_spectrum_obj.sort_by_abundance():
 
             #already assinged a molecular formula
             if ms_peak.is_assigned: continue

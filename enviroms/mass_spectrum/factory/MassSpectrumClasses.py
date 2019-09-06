@@ -2,7 +2,7 @@ import time
 
 #from matplotlib import rcParamsDefault, rcParams
 from numpy import array, power, sqrt, average, flip
-from enviroms.encapsulation.constant.Constants import Labels
+from enviroms.encapsulation.Constants import Labels
 from enviroms.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting
 from enviroms.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
 from enviroms.mass_spectrum.factory.MSPeakClasses import MSPeak
@@ -255,6 +255,12 @@ class MassSpecBase(MassSpecCalc):
     @property
     def dir_location(self):
         return self._dir_location
+
+    def sort_by_mz(self):
+        return sorted(self, key=lambda m: m.mz_exp)
+
+    def sort_by_abundance(self):
+        return sorted(self, key=lambda m: m.abundance)
 
     def check_mspeaks(self):
         if self.mspeaks:

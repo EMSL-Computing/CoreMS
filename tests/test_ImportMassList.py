@@ -3,6 +3,7 @@ import pathlib
 sys.path.append(".")
 from enviroms.mass_spectrum.input.TextMassList import Read_MassList
 import pytest
+
 __author__ = "Yuri E. Corilo"
 __date__ = "Jul 02, 2019"
 
@@ -33,4 +34,5 @@ def test_import_mass_list():
     
     print( mass_spectrum[0])
 
-    
+if __name__ == '__main__':
+    test_import_mass_list()

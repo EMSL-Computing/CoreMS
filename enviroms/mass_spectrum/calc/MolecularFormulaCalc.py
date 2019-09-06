@@ -1,7 +1,7 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 24, 2019"
 
-from enviroms.encapsulation.constant.Constants import Atoms
+from enviroms.encapsulation.Constants import Atoms
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupTableSettings
 from IsoSpecPy import IsoSpecPy
 from numpy import exp
@@ -86,9 +86,9 @@ class MolecularFormulaCalc:
     def dbe_ai(self):
             
         carbons =  self._d_molecular_formula.get('C')
-        hidrogens = self._d_molecular_formula.get('H')
-        oxigens = self._d_molecular_formula.get('O')
-        return 1 + (((2*carbons) - hidrogens - (2*oxigens))*0.5)
+        hydrogens = self._d_molecular_formula.get('H')
+        oxygens = self._d_molecular_formula.get('O')
+        return 1 + (((2*carbons) - hydrogens - (2*oxygens))*0.5)
 
     def _calc_dbe(self):
             

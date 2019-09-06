@@ -1,10 +1,7 @@
 
-from enviroms.encapsulation.settings.input.ProcessingSetting import \
-    MassSpecPeakSetting
-from enviroms.mass_spectrum.calc.MSPeakCalc import \
-    MassSpecPeakCalculation
-from enviroms.molecular_id.factory.MolecularFormulaFactory import \
-    MolecularFormula
+from enviroms.encapsulation.settings.input.ProcessingSetting import MassSpecPeakSetting
+from enviroms.mass_spectrum.calc.MSPeakCalc import MassSpecPeakCalculation
+from enviroms.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
@@ -95,8 +92,6 @@ class MSPeak(MassSpecPeakCalculation):
     def molecular_formula_lowest_error(self):
         
          return min(self.molecular_formulas, key=lambda m: abs(m._calc_assigment_mass_error(self.mz_exp)))
-
-
 
 class ICRMassPeak(MSPeak):
 

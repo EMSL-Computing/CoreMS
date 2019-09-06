@@ -16,6 +16,7 @@ class Labels:
     thermo_centroid = 'Thermo_Centroid'
     radical_ion = 'RADICAL'
     protonated_de_ion = 'DE_OR_PROTONATED'
+    ion_type = 'Ion Type'
 
 class Atoms:
 
@@ -376,7 +377,7 @@ class Atoms:
                      '292Ts': 292.2074675,
                      '294Og': 294.2139271}
 
-    atoms_order = ['C', 'H', 'N', 'O', 'S', '13C', '34S', 'P', 'Na', '35Cl', '37Cl',
+    atoms_order = ['C', 'H', 'N', 'O', 'S', 'P', '13C', '34S', 'Na', 'Cl', '37Cl',
                         'V', 'I', 'Ac', 'Al', 'Ar', 'As', 'At', 'Au', 'Co', 'Cs', 'D', 'F', 'Fr',
                         'He', 'Po', 'Ra', 'Rh', 'Rn', 'Be', 'Bi', 'Nb54Fe', '57Fe', '58Ni', '60Ni',
                         '61Ni', '62Ni', '10B', '11B', '6Li', '7Li', 'La', 'Mn', '107Ag', '109Ag', '100Mo',

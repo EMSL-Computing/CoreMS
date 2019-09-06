@@ -3,7 +3,7 @@ __date__ = "Jul 22, 2019"
 
 import sys, pytest
 sys.path.append(".")
-from enviroms.encapsulation.constant.Constants import Atoms
+from enviroms.encapsulation.Constants import Atoms
 from enviroms.molecular_id.factory.MolecularFormulaFactory import MolecularFormula    
 
 

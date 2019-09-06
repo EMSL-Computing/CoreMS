@@ -4,7 +4,7 @@ __date__ = "Jul 29, 2019"
 
 import os
 from os.path import join
-from enviroms.encapsulation.constant.Constants import Labels
+from enviroms.encapsulation.Constants import Labels
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupTableSettings, MoleculaSearchSettings
 from enviroms.mass_spectrum.input.TextMassList import Read_MassList
 from enviroms.molecular_id.calc.MolecularLookupTable import  MolecularCombinations

@@ -2,8 +2,7 @@ from copy import deepcopy
 from collections import OrderedDict
 from enviroms.mass_spectrum.calc.MolecularFormulaCalc import MolecularFormulaCalc
 from enviroms.encapsulation.settings.input.ProcessingSetting import MassSpecPeakSetting
-from enviroms.encapsulation.constant.Constants import Atoms
-
+from enviroms.encapsulation.Constants import Atoms
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 24, 2019"
@@ -43,7 +42,12 @@ class MolecularFormula(MolecularFormulaCalc):
             return self._d_molecular_formula[atom]
 
     @property
-    def O_C(self): return self._d_molecular_formula.get("O")/self._d_molecular_formula.get("C")
+    def O_C(self): 
+            
+            if 'O' in self._d_molecular_formula.keys():
+                return self._d_molecular_formula.get("O")/self._d_molecular_formula.get("C")
+            else:
+                return None    
     
     @property
     def H_C(self): return self._d_molecular_formula.get("H")/self._d_molecular_formula.get("C")

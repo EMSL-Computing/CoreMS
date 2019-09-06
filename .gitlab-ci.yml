@@ -31,16 +31,18 @@ before_script:
   - pip install pytest
 
 test-job:
+  
   stage: test
   tags:
     #- k8s
     - docker
     - python
+
   script:
     - ls .
     - python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
     - python setup.py test
-    - python -m pytest
+    - python -m pytest -v --cov
     #- pip install tox flake8 pytest  # you can also use tox
     #- flake8 --exclude=venv* --statistics
     #- pytest -v --cov=calculator
@@ -51,12 +53,14 @@ run-job:
     - docker
     - python
     #- k8s
+
   script:
     - python setup.py sdist bdist_wheel
     #- python setup.py bdist_wheel
     # an alternative approach is to install and run:
     - pip install dist/*
     # run the command here
+
   artifacts:
     paths:
       - dist/*.whl

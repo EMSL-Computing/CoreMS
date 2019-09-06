@@ -8,13 +8,15 @@ doc/
 *.ems
 .DS_Store 
 enviroms/libs/  
+env-enviroms/  
 enviroms/bokeh_imple/  
 enviroms-python/
 enviroms-wpython/
 pyvenv.cfg  
 build_complexity.bat  
-.pytest_cache/  
 .vscode/  
+.pytest_cache/
+.vs/
 dist/  
 enviroms.egg-info/  
 data/

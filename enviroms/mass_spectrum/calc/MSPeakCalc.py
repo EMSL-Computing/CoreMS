@@ -3,7 +3,7 @@ Created on Jun 14, 2019
 
 @author: eber373
 '''
-from enviroms.encapsulation.constant.Constants import Atoms
+from enviroms.encapsulation.Constants import Atoms
 
 
 class MassSpecPeakCalculation(object):
