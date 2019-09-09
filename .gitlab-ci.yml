@@ -29,20 +29,21 @@ before_script:
   - pip install -r requirements.txt
   - pip install wheel
   - pip install pytest
+  - pip install pytest-cov
 
 test-job:
   
   stage: test
   tags:
-    #- k8s
-    - docker
-    - python
+    - k8s
+    #- docker
+    #- python
 
   script:
     - ls .
     - python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
     - python setup.py test
-    - python -m pytest -v --cov
+    - python -m pytest -v --cov=enviroms
     #- pip install tox flake8 pytest  # you can also use tox
     #- flake8 --exclude=venv* --statistics
     #- pytest -v --cov=calculator
@@ -50,9 +51,9 @@ test-job:
 run-job:
   stage: run
   tags:
-    - docker
-    - python
-    #- k8s
+    #- docker
+    #- python
+    - k8s
 
   script:
     - python setup.py sdist bdist_wheel
