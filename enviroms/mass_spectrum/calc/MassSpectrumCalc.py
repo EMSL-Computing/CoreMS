@@ -5,7 +5,6 @@ from numpy import power, multiply, sqrt, multiply
 from enviroms.mass_spectrum.calc.NoiseCalc import NoiseThreshouldCalc
 from enviroms.mass_spectrum.calc.PeakPicking import PeakPicking
 
-
 class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
     '''
     Class including numerical calcuations related to mass spectrum class

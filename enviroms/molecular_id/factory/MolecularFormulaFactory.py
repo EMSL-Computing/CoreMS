@@ -2,7 +2,9 @@ from copy import deepcopy
 from collections import OrderedDict
 from enviroms.mass_spectrum.calc.MolecularFormulaCalc import MolecularFormulaCalc
 from enviroms.encapsulation.settings.input.ProcessingSetting import MassSpecPeakSetting
-from enviroms.encapsulation.Constants import Atoms
+from enviroms.encapsulation.Constants import Atoms, Labels
+
+
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 24, 2019"
@@ -65,8 +67,16 @@ class MolecularFormula(MolecularFormulaCalc):
     def mz_theor(self): return self._calc_mz_theor()
 
     @property
-    def ion_type(self): return self._d_molecular_formula.get("IonType")
-    
+    def ion_type(self): 
+        iontype = self._d_molecular_formula.get("IonType")
+        if iontype == Labels.protonated_de_ion:
+            if self.ion_charge > 0: 
+                return Labels.protonaded
+            else: 
+                return Labels.de_protonated    
+        else:
+            return iontype
+       
     @property
     def ion_charge(self): return self._ion_charge
     

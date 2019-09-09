@@ -9,13 +9,13 @@ import matplotlib
 from numpy import average
 
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings, MoleculaLookupTableSettings
-from enviroms.mass_spectrum.calc.CalibrationCalc import MZDomain_Calibration, FreqDomain_Calibration
-from enviroms.mass_spectrum.input.TextMassList import Read_MassList
+from enviroms.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration
+#from enviroms.mass_spectrum.input.TextMassList import Read_MassList
 from enviroms.molecular_id.calc.FindOxigenPeaks import FindOxygenPeaks
 from enviroms.transient.input.BrukerSolarix import ReadBrukerSolarix
 from enviroms.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
 from enviroms.molecular_id.calc.ClusterFilter import ClusteringFilter
-from enviroms.mass_spectrum.output.MassSpectrumtoCSV import MassSpectoCSV
+from enviroms.mass_spectrum.output.MassSpecExport import MassSpecExport
 
 def creat_mass_spectrum(file_location):
     '''parse transient data from Bruker into a mass spectrum class object
@@ -101,9 +101,9 @@ def test_calibration():
     lookupTableSettings.usedAtoms = {'C': (1, 100),
                  'H': (4, 200),
                  'O': (0, 20),
-                 'N': (0, 4),
-                 'S': (0, 4),
-                 'P': (0, 4),
+                 'N': (0, 1),
+                 'S': (0, 1),
+                 'P': (0, 0),
                  }
     
     #print(len(mass_spectrum))
@@ -111,7 +111,7 @@ def test_calibration():
     #print(len(mass_spectrum))
     SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum, lookupTableSettings)
     
-    MassSpectoCSV('neg_esi_srfa_1ppm_test.csv', mass_spectrum).start()
+    MassSpecExport('neg_esi_srfa_1ppm_test', mass_spectrum, 'excel').start()
     '''
     error = list()
     error_iso = list()

@@ -16,6 +16,8 @@ class Labels:
     thermo_centroid = 'Thermo_Centroid'
     radical_ion = 'RADICAL'
     protonated_de_ion = 'DE_OR_PROTONATED'
+    protonaded = "protonated"
+    de_protonated = "de-protonated"
     ion_type = 'Ion Type'
 
 class Atoms:
