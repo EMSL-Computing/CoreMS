@@ -1,12 +1,12 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Aug 26, 2019"
 
-import os, sys, time, pytest
+
+import os, sys, time, pytest, matplotlib
 sys.path.append(".")
+
 import numpy as np
 from matplotlib import pyplot as pylab
-import matplotlib
-from numpy import average
 
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings, MoleculaLookupTableSettings
 from enviroms.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration
@@ -101,16 +101,18 @@ def test_calibration():
     lookupTableSettings.usedAtoms = {'C': (1, 100),
                  'H': (4, 200),
                  'O': (0, 20),
-                 'N': (0, 1),
-                 'S': (0, 1),
-                 'P': (0, 0),
+                 'N': (0, 2),
+                 'S': (0, 2),
+                 'P': (0, 2),
                  }
     
     #print(len(mass_spectrum))
     ClusteringFilter().filter_kendrick(mass_spectrum)
     #print(len(mass_spectrum))
+    time0 = time.time()
+    print('started')
     SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum, lookupTableSettings)
-    
+    print(time.time()-time0)
     MassSpecExport('neg_esi_srfa_1ppm_test', mass_spectrum, 'excel').start()
     '''
     error = list()

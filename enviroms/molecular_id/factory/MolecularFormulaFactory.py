@@ -68,20 +68,27 @@ class MolecularFormula(MolecularFormulaCalc):
 
     @property
     def ion_type(self): 
-        iontype = self._d_molecular_formula.get("IonType")
-        if iontype == Labels.protonated_de_ion:
+        ion_type = self._d_molecular_formula.get(Labels.ion_type)
+        if ion_type == Labels.protonated_de_ion:
             if self.ion_charge > 0: 
                 return Labels.protonaded
             else: 
                 return Labels.de_protonated    
         else:
-            return iontype
-       
+            return ion_type
+
+    @ion_type.setter
+    def ion_type(self, ion_type):
+        if  ion_type in [Labels.protonated_de_ion, Labels.adduct_ion, Labels.radical_ion]:
+            self._d_molecular_formula[Labels.ion_type] = ion_type
+        else:
+            raise TypeError("Ion type can only be: 'DE_OR_PROTONATED', 'RADICAL' or  'ADDUCT', not %s"%ion_type)   
+
     @property
     def ion_charge(self): return self._ion_charge
     
     @property
-    def atoms(self): return [key for key in self._d_molecular_formula.keys() if key != 'IonType']
+    def atoms(self): return [key for key in self._d_molecular_formula.keys() if key != Labels.ion_type]
     
     @property
     def confidence_score(self): return self._calc_confidence_score() 
@@ -163,7 +170,7 @@ class MolecularFormula(MolecularFormulaCalc):
             atomos_in_dict = self._d_molecular_formula.keys()
             for atomo in atomos_in_dict:
     
-                if atomo not in atoms_in_ordem and atomo != "IonType":
+                if atomo not in atoms_in_ordem and atomo != Labels.ion_type:
                     
                     formula_list.append(atomo)
                     formula_list.append(self._d_molecular_formula.get(atomo))
@@ -188,7 +195,7 @@ class MolecularFormula(MolecularFormulaCalc):
             
             if classstring == "": classstring = "HC "
                 
-            if self._d_molecular_formula.get("IonType") == 'RADICAL':    
+            if self._d_molecular_formula.get(Labels.ion_type) == 'RADICAL':    
                 
                 return classstring[0:-1] + " " + "-R"
             
@@ -206,7 +213,7 @@ class MolecularFormula(MolecularFormulaCalc):
             class_dict = {}
             for atom, qnt in self._d_molecular_formula.items():
     
-                if atom != "IonType" and atom !='C' and atom !='H':
+                if atom != Labels.ion_type and atom !='C' and atom !='H':
                     
                     class_dict[atom] = qnt
                     

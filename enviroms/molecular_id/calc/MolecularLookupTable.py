@@ -5,6 +5,7 @@ import itertools
 import multiprocessing
 from enviroms.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
+from enviroms.encapsulation.Constants import Labels
 from copy import deepcopy
 
 class MolecularCombinations:
@@ -12,7 +13,7 @@ class MolecularCombinations:
     '''
     runworker()
     Returns a dictionary of molecular formula objs inside a dict nominal masses and ion type
-        {iontype:{
+        {Labels.ion_type:{
             classes:{
                 nominal_mass:{
                     [MolecularFormula objs,]
@@ -31,7 +32,7 @@ class MolecularCombinations:
         
         classes_list = self.get_classes_in_order(settings)
         
-        number_of_process = int(multiprocessing.cpu_count()/2)
+        number_of_process = int(multiprocessing.cpu_count())
 
         #number_of_process = psutil.cpu_count(logical=False)
 
@@ -309,7 +310,7 @@ class CombinationsWorker:
 
                     formula_dict['C'] = c_number
                     formula_dict['H'] = h_number
-                    formula_dict['IonType'] = ion_type
+                    formula_dict[Labels.ion_type] = ion_type
 
                     molecular_formula = MolecularFormula(formula_dict, ion_charge)
                     DBE = molecular_formula.dbe
@@ -458,7 +459,7 @@ class CombinationsWorker:
 
         sum_hetero_atomos = 0
         for i in classe_dict.keys():
-            if i != 'IonType':
+            if i != Labels.ion_type:
 
                 sum_hetero_atomos = sum_hetero_atomos + classe_dict.get(i)
 

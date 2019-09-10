@@ -12,7 +12,7 @@ class MoleculaLookupTableSettings:
                             'N': 3,
                             'S': 2,
                             'P': 3,
-                            'Cl': 1,
+                            'Cl': 0,
                             }
 
     def __init__(self):
@@ -26,7 +26,6 @@ class MoleculaLookupTableSettings:
                     'Cl': (0, 1),
                     }
         
-
         #min_mz changes automatically with mass spectrum
         self.min_mz = 100
 
@@ -55,28 +54,34 @@ class MoleculaLookupTableSettings:
 
 class MoleculaSearchSettings:
     
-    #needs to be enabled at the class MoleculaLookupTableSettings
-    isRadical = True
+    # look for close shell ions [M + Adduct]+ only considers metal set in the list adduct_atoms  
+    isAdduct = False
+    adduct_atoms = ['Cl', 'Br', 'Na', 'K']
     
-    #needs to be enabled at the class MoleculaLookupTableSettings
+    # depending on the polarity mode it looks for [M].+ , [M].-
+    # needs to be enabled at the class MoleculaLookupTableSettings
+    isRadical = False
+    
+    # depending on the polarity mode it looks for [M + H]+ , [M - H]+
+    # needs to be enabled at the class MoleculaLookupTableSettings
     isProtonated = True
 
-    #empirically set / needs optimization
+    # empirically set / needs optimization
     min_mz_error = -5 #ppm
 
-    #empirically set / needs optimization    
+    # empirically set / needs optimization    
     max_mz_error = 5 #ppm
 
-    #empirically set / needs optimization
+    # empirically set / needs optimization
     min_abun_error = -30 # percentage 
     
-    #empirically set / needs optimization
+    # empirically set / needs optimization
     max_abun_error = 70 # percentage 
 
-    #empirically set / needs optimization
+    # empirically set / needs optimization
     mz_error_range = 1.5
 
-    #'distance', 'lowest', 'symmetrical','average' 'None'
+    # 'distance', 'lowest', 'symmetrical','average' 'None'
     error_method = 'average'
 
     mz_error_average = 0

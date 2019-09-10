@@ -2,6 +2,7 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 24, 2019"
 
 from enviroms.encapsulation.Constants import Atoms
+from enviroms.encapsulation.Constants import Labels
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupTableSettings
 from IsoSpecPy import IsoSpecPy
 from numpy import exp
@@ -33,10 +34,11 @@ class MolecularFormulaCalc:
             
             for each_atom in self._d_molecular_formula.keys() :
                 
-                if each_atom != "IonType" and each_atom != 'HC':
+                if each_atom != Labels.ion_type and each_atom != 'HC':
                     
-                    mass = mass + Atoms.atomic_masses[each_atom]  *  self._d_molecular_formula.get(each_atom)
-                    
+                    try:
+                        mass = mass + Atoms.atomic_masses[each_atom]  *  self._d_molecular_formula.get(each_atom)
+                    except: print(Labels.ion_type, each_atom) 
             return mass + ((-self.ion_charge) * Atoms.electron_mass)
         
         else:
@@ -96,7 +98,7 @@ class MolecularFormulaCalc:
             
             for atom in self._d_molecular_formula.keys():
                 
-                if atom != "IonType":
+                if atom != Labels.ion_type:
                     
                     n_atom = int(self._d_molecular_formula.get(atom))
                     
@@ -162,7 +164,7 @@ class MolecularFormulaCalc:
         
         cut_off_to_IsoSpeccPy = 1 - min_relative_abundance
         isotopologue_and_pro_ratio_tuples = []
-        atoms_labels = (atom for atom in formula_dict.keys() if atom != 'IonType') #and atom != "H")
+        atoms_labels = (atom for atom in formula_dict.keys() if atom != Labels.ion_type) #and atom != "H")
         
         atoms_count = []
         masses_list_tuples = []
@@ -217,7 +219,7 @@ class MolecularFormulaCalc:
             
             formula_list = molecular_formulas[isotopologue_index]
             new_formula_dict = dict(zip(all_atoms_list, formula_list))
-            new_formula_dict['IonType'] = formula_dict.get('IonType')
+            new_formula_dict[Labels.ion_type] = formula_dict.get(Labels.ion_type)
             #new_formula_dict['H'] = formula_dict.get('H')
 
             prop_mono_iso = probs[0]

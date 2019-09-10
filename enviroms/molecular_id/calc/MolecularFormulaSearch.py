@@ -29,9 +29,14 @@ class SearchMolecularFormulas:
     def run(self, classes, dict_molecular_lookup_table, nominal_mz, min_abundance, 
             mass_spectrum_obj, ms_peak, last_error, last_dif, 
             closest_error, error_average, nbValues):
-
+        
+        def check_adduct_class(classe_dict):
+            return any([key in classe_dict.keys() for key in MoleculaSearchSettings.adduct_atoms])
+        
         for classe in classes:
-                
+            
+            #is_adduct = check_adduct_class(classe_dict)        
+            
             possible_formulas = list()    
             #we might need to increase the search space to -+1 m_z 
             if MoleculaSearchSettings.isRadical:
@@ -42,9 +47,20 @@ class SearchMolecularFormulas:
                 
                 if formulas:
                     
-                    possible_formulas.extend(formulas)
+                    is_adduct = check_adduct_class(formulas[0].class_dict)
+                    
+                    if is_adduct and MoleculaSearchSettings.isAdduct:
+                        
+                        #replace ion_type in the molecular_formula object
+                        for m_formula in formulas: m_formula.ion_type = Labels.adduct_ion
 
-            if MoleculaSearchSettings.isProtonated:
+                        possible_formulas.extend(formulas)
+                    
+                    elif not is_adduct:
+                        
+                        possible_formulas.extend(formulas)
+
+            if MoleculaSearchSettings.isProtonated:# and not is_adduct:
             
                 ion_type = Labels.protonated_de_ion
 
@@ -52,7 +68,11 @@ class SearchMolecularFormulas:
                 
                 if formulas:
                     
-                    possible_formulas.extend(formulas)
+                    is_adduct = check_adduct_class(formulas[0].class_dict)
+                    
+                    if not is_adduct:
+                        
+                        possible_formulas.extend(formulas)
 
             if possible_formulas:
                 
@@ -84,7 +104,7 @@ class SearchMolecularFormulas:
         dict_molecular_lookup_table = MolecularCombinations().runworker(settings)
 
         classes = list(dict_molecular_lookup_table.keys())
-
+        
         for ms_peak in  ms_peaks:
 
             if self.first_hit:
@@ -101,10 +121,11 @@ class SearchMolecularFormulas:
             pool.close()
             pool.join()
             '''
+           
             self.run(classes, dict_molecular_lookup_table, nominal_mz, min_abundance, 
                         mass_spectrum_obj, ms_peak, last_error, last_dif, 
                         closest_error, error_average, nbValues)
-                    
+                        
     def run_worker_ms_peak(self, ms_peak, mass_spectrum_obj, settings):
         '''
         waiting for python 3.8 release to set mass_spectrum_obj and dict_molecular_lookup_table on share memory (redis?)
@@ -139,8 +160,8 @@ class SearchMolecularFormulas:
         nominal_mz  = ms_peak.nominal_mz_exp      
         
         self.run(classes, dict_molecular_lookup_table, nominal_mz, min_abundance, 
-                        mass_spectrum_obj, ms_peak, last_error, last_dif, 
-                        closest_error, error_average, nbValues)
+                            mass_spectrum_obj, ms_peak, last_error, last_dif, 
+                            closest_error, error_average, nbValues)
         
     def run_worker_mass_spectrum(self, mass_spectrum_obj, settings):
 
@@ -169,8 +190,8 @@ class SearchMolecularFormulas:
         classes = list(dict_molecular_lookup_table.keys())
 
         print(len(mass_spectrum_obj))
-        
-        for ms_peak in sorted(mass_spectrum_obj, key=lambda m :m.mz_exp):
+
+        for ms_peak in mass_spectrum_obj.sort_by_mz():
 
             if self.first_hit:
                 #print('hell yeah')
@@ -179,19 +200,22 @@ class SearchMolecularFormulas:
             #print(ms_peak) 
             nominal_mz  = ms_peak.nominal_mz_exp
             
-            '''
-            waiting for python 3.8 release to set mass_spectrum_obj and dict_molecular_lookup_table on share memory
-            pool = multiprocessing.Pool(number_of_process)
-            args = [ (dict_molecular_lookup_table.get(classe).get(ion_type).get(nominal_mz), min_abundance, mass_spectrum_obj, ms_peak_mz_exp, ms_peak_abundance)  for classe in classes ]
-            pool.map(SearchMolecularFormulaWorker(), args)
-
-            pool.close()
-            pool.join()
-            '''
             self.run(classes, dict_molecular_lookup_table, nominal_mz, min_abundance, 
                         mass_spectrum_obj, ms_peak, last_error, last_dif, 
                         closest_error, error_average, nbValues)
+        
+        #pool = ThreadPool(20)
+        #args = [ (classes, dict_molecular_lookup_table, ms_peak.nominal_mz_exp, min_abundance, 
+        #            mass_spectrum_obj, ms_peak, last_error, last_dif, 
+        #            closest_error, error_average, nbValues) for ms_peak in mass_spectrum_obj.sort_by_mz() ]
+        
+        #pool.map(fwrap, args)
+        #pool.close()
+        #pool.join()
+            
 
+            
+            
 class SearchMolecularFormulaWorker:
     
     # needs this wraper to pass the class to multiprocessing

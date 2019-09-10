@@ -1,11 +1,13 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jul 22, 2019"
 
-import sys, pytest
+import sys
 sys.path.append(".")
+
+import pytest
 from enviroms.encapsulation.Constants import Atoms
 from enviroms.molecular_id.factory.MolecularFormulaFactory import MolecularFormula    
-
+from enviroms.encapsulation.Constants import Labels
 
 from copy import deepcopy
 
@@ -13,7 +15,7 @@ def test_molecular_formula():
     
     '''test the MolecularFormula class and the calculation of isotopologues'''
     
-    formula_dict = {'C':10, 'H':0, 'O':10,'Cl':2, 'IonType': 'Radical'}
+    formula_dict = {'C':10, 'H':0, 'O':10,'Cl':2, Labels.ion_type: 'Radical'}
     
     ion_charge = 1 
     formula_obj = MolecularFormula(formula_dict, ion_charge)

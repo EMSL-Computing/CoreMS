@@ -4,11 +4,14 @@ sys.path.append('.')
 from copy import deepcopy
 from threading import Thread
 from itertools import product
+
+
+from enviroms.encapsulation.Constants import Labels
+from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
 from enviroms.molecular_id.calc.FindOxigenPeaks import FindOxygenPeaks
+from enviroms.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulaWorker
 from enviroms.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
 from enviroms.molecular_id.calc.MolecularLookupTable import MolecularCombinations
-from enviroms.encapsulation.Constants import Labels
-from enviroms.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulaWorker
 
 class OxigenPriorityAssignment(Thread):
 
@@ -47,6 +50,9 @@ class OxigenPriorityAssignment(Thread):
         
     def run_worker_mass_spectrum(self, assign_classes_order_tuples, dict_ox_class_and_ms_peak):
         
+        def check_adduct_class(classe_dict):
+            return any([key in classe_dict.keys() for key in MoleculaSearchSettings.adduct_atoms])
+        
         last_dif = 0
     
         last_error = 0
@@ -65,7 +71,7 @@ class OxigenPriorityAssignment(Thread):
 
         print(assign_classes_order_tuples)
         
-        for ms_peak in mass_spectrum_obj.sort_by_abundance():
+        for ms_peak in self.mass_spectrum_obj.sort_by_abundance():
 
             #already assinged a molecular formula
             if ms_peak.is_assigned: continue
@@ -89,8 +95,9 @@ class OxigenPriorityAssignment(Thread):
 
                 possible_formulas = list()    
                 #we might need to increase the search space to -+1 m_z 
-                    
-                if MoleculaSearchSettings.isProtonated:
+                is_adduct = check_adduct_class(classe_dict)    
+                
+                if MoleculaSearchSettings.isProtonated and not is_adduct:
         
                     ion_type = Labels.protonated_de_ion
 
@@ -100,7 +107,7 @@ class OxigenPriorityAssignment(Thread):
                         
                         possible_formulas.extend(formulas)
                
-                if MoleculaSearchSettings.isRadical:
+                if MoleculaSearchSettings.isRadical and not is_adduct:
                 
                     ion_type = Labels.radical_ion
                     
@@ -110,9 +117,25 @@ class OxigenPriorityAssignment(Thread):
                         
                         possible_formulas.extend(formulas)
 
+                # looks for adduct, used_atom_valences should be 0 
+                # this code does not support H exchance by halogen atoms
+
+                if MoleculaSearchSettings.isAdduct and is_adduct:
+                    
+                    ion_type = Labels.radical_ion
+                    
+                    formulas = self.dict_molecular_lookup_table.get(classe_str).get(ion_type).get(nominal_mz)
+                    
+                    if formulas:
+                        
+                        #replace ion_type in the molecular_formula object
+                        for m_formula in formulas: m_formula.ion_type = Labels.adduct_ion
+                        
+                        possible_formulas.extend(formulas)
+
                 if possible_formulas:
         
-                    SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak, last_error, last_dif, closest_error, error_average, nbValues)
+                    SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, self.mass_spectrum_obj, ms_peak, last_error, last_dif, closest_error, error_average, nbValues)
     
     def create_molecular_database(self):
         #number_of_process = multiprocessing.cpu_count()
@@ -136,9 +159,9 @@ class OxigenPriorityAssignment(Thread):
         
         self.lookupTableSettings.usedAtoms['O'] = (min_o, max_o)
 
-        self.lookupTableSettings.min_mz = mass_spectrum_obj.min_mz_exp
+        self.lookupTableSettings.min_mz = self.mass_spectrum_obj.min_mz_exp
     
-        self.lookupTableSettings.max_mz = mass_spectrum_obj.max_mz_exp
+        self.lookupTableSettings.max_mz = self.mass_spectrum_obj.max_mz_exp
         
         self.dict_molecular_lookup_table = MolecularCombinations().runworker(self.lookupTableSettings)
 
@@ -263,7 +286,7 @@ class OxigenPriorityAssignment(Thread):
         
         # _ ignoring the class_str
         for _ , other_classe_dict in classe_in_ordem:
-            
+          
            #combination.extend([[other_classe_str + ' ' + oxigen_mf[0].class_label , {**other_classe_dict, **oxigen_mf[0].class_dict}] for oxigen_mf in oxigen_mfs])
            combination.extend([{**other_classe_dict, **oxigen_mf[0].class_dict} for oxigen_mf in oxigen_mfs])
  
@@ -308,6 +331,9 @@ if __name__ == "__main__":
         calibrate.ledford_calibration()
         mass_spectrum_obj.clear_molecular_formulas()
 
+    
+    def assign_mf():
+        
         MoleculaSearchSettings.error_method = 'symmetrical'
         MoleculaSearchSettings.min_mz_error = -1
         MoleculaSearchSettings.max_mz_error = 1
@@ -316,8 +342,12 @@ if __name__ == "__main__":
         MoleculaSearchSettings.min_abun_error = -30 # percentage
         MoleculaSearchSettings.max_abun_error = 70 # percentage
         MoleculaSearchSettings.isProtonated = True
-        MoleculaSearchSettings.isRadical= True
-    
+        MoleculaSearchSettings.isRadical = False
+        MoleculaSearchSettings.isAdduct = True
+
+        assignOx = OxigenPriorityAssignment(mass_spectrum_obj, lookupTableSettings)
+        assignOx.start()
+        assignOx.join()
 
     def plot():
         colors = list(mcolors.XKCD_COLORS.keys())
@@ -330,7 +360,6 @@ if __name__ == "__main__":
                     for molecular_formula in mspeak:
                         if molecular_formula['O'] == o:
                             if  not molecular_formula.is_isotopologue:
-                                
                                 pyplot.plot(molecular_formula['C'], molecular_formula.dbe, "o",   color=colors[molecular_formula['O']])
                                 pyplot.plot(molecular_formula['C'], molecular_formula.dbe, "o",   color=colors[molecular_formula['O']])
                                 pyplot.annotate(molecular_formula.class_label, (molecular_formula['C']+0.5, molecular_formula.dbe+0.5))
@@ -351,11 +380,7 @@ if __name__ == "__main__":
     
     calibrate()
 
-    assignOx = OxigenPriorityAssignment(mass_spectrum_obj, lookupTableSettings)
-
-    assignOx.start()
-
-    assignOx.join()
+    assign_mf()
 
     plot()
 

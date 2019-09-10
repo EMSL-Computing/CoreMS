@@ -8,12 +8,13 @@ import pandas as pd
 class MassSpecExport(Thread):
     '''
     TODO: add MSPeak indexes: done
-          re-sort MSPeak index if data originated from frequency domain  
+    
     '''
     def __init__(self, out_file_path, mass_spectrum, output_type):
         
         '''
-        Constructor
+        output_type:str 
+            'excel', 'csv' or 'pandas' 
         '''
         Thread.__init__(self)
 
@@ -105,7 +106,7 @@ class MassSpecExport(Thread):
 
         def add_no_match_dict_data():
             
-            dict_result = { 'Index': ms_peak.index,
+            dict_result = { 'Index': index,
                             'Measured m/z':  ms_peak.mz_exp,
                             'Calibrated m/z': ms_peak.mz_exp,
                             'Measured Abundance': ms_peak.abundance,
@@ -117,7 +118,7 @@ class MassSpecExport(Thread):
         def add_match_dict_data():
             
             formula_dict = m_formula.to_dict
-            dict_result = { 'Index':ms_peak.index,
+            dict_result = { 'Index': index,
                             'Measured m/z':  ms_peak.mz_exp,
                             'Calibrated m/z': ms_peak.mz_exp,
                             'Calculated m/z': m_formula.mz_theor,
@@ -139,7 +140,7 @@ class MassSpecExport(Thread):
             
             dict_data_list.append(dict_result)
         
-        for ms_peak in self.mass_spectrum.sort_by_mz():
+        for index, ms_peak in enumerate(self.mass_spectrum.sort_by_mz()):
             
             #check if there is a molecular formula candidate for the msPeak
             if ms_peak:
@@ -156,13 +157,13 @@ class MassSpecExport(Thread):
                     add_no_match_dict_data()
         
         if include_isotopolgues and not isotopologue_inline:
-            for ms_peak in self.mass_spectrum.sort_by_mz():
+            for index, ms_peak in enumerate(self.mass_spectrum.sort_by_mz()):
                 for m_formula in ms_peak:
                     if m_formula.is_isotopologue:
                         add_match_dict_data()
                         
         if include_no_match and not no_match_inline:
-            for ms_peak in self.mass_spectrum.sort_by_mz():
+            for index, ms_peak in enumerate(self.mass_spectrum.sort_by_mz()):
                 if not ms_peak:
                     add_no_match_dict_data()
         return dict_data_list            

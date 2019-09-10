@@ -18,12 +18,14 @@ class Labels:
     protonated_de_ion = 'DE_OR_PROTONATED'
     protonaded = "protonated"
     de_protonated = "de-protonated"
-    ion_type = 'Ion Type'
+    adduct_ion = "ADDUCT"
+    ion_type = 'IonType'
 
 class Atoms:
 
     electron_mass = 0.0005485
 
+    
     atomic_masses = {'H': 1.007825032239,
                      'D': 2.0141017781212,
                      'T': 3.016049277924,
