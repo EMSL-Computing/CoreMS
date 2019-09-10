@@ -12,7 +12,6 @@ from enviroms.mass_spectrum.input.TextMassList import Read_MassList
 from enviroms.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
 from enviroms.molecular_id.calc.ClusterFilter import ClusteringFilter
 from enviroms.transient.input.BrukerSolarix import ReadBrukerSolarix
-from enviroms.mass_spectrum.output.MassSpectrumtoCSV import MassSpectoCSV
 
 def creat_mass_spectrum(file_location):
 
