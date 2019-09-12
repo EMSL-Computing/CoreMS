@@ -32,16 +32,16 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
             
             if Bterm == 0:
                 #uncalibrated data
-                mz_domain = Aterm / self.freq_exp 
+                mz_domain = Aterm / self.freq_exp_profile 
                 
             else:
                 
-                mz_domain = (Aterm / (self.freq_exp)) + (Bterm / power((self.freq_exp), 2))
+                mz_domain = (Aterm / (self.freq_exp_profile)) + (Bterm / power((self.freq_exp_profile), 2))
 
         # @will I need you insight here, not sure what is the inverted ledford equation that Bruker refers to
         else:
 
-            mz_domain = (Aterm / self.freq_exp) + (Bterm / power(self.freq_exp, 2)) + Cterm
+            mz_domain = (Aterm / self.freq_exp_profile) + (Bterm / power(self.freq_exp_profile, 2)) + Cterm
 
         return mz_domain
 
@@ -66,23 +66,23 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
             
             if Bterm == 0:
                 #uncalibrated data
-                return Aterm / self.freq_exp 
+                return Aterm / self.freq_exp_profile 
             
             else:
                 #calc2
-                return Aterm / (self.freq_exp + Bterm)
+                return Aterm / (self.freq_exp_profile + Bterm)
 
         # @will I need you insight here, not sure what is the inverted ledford equation that Bruker refers to
         else:
             diff = Aterm * Aterm
             
             #this sign(diff + 4) changes on older aquistion software
-            diff = diff + 4 * Cterm * (self.freq_exp - Bterm)
+            diff = diff + 4 * Cterm * (self.freq_exp_profile - Bterm)
             diff = sqrt(diff)
             diff = -Aterm+diff
             #calc3
             return (2*Cterm)/diff
-            return diff/2* (self.freq_exp - Bterm)
+            return diff/2* (self.freq_exp_profile - Bterm)
 
     def number_average_molecular_weight(self, profile=False):
         ''' 
@@ -98,13 +98,13 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
         '''
         # mode is profile or centroid data
         if profile:
-            a = multiply(self.mz_exp, self.abundance)
-            b = self.abundance
+            a = multiply(self.mz_exp_profile, self.abundance_profile)
+            b = self.abundance_profile
             return a.sum()/b.sum()
 
         else:
 
-            return sum(self.mz_exp_centroide*self.abundance_centroid)/sum(self.abundance_centroid)
+            return sum(self.mz_exp*self.abundance)/sum(self.abundance)
     
     def weight_average_molecular_weight(self, profile=False):
         ''' 
@@ -122,9 +122,9 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
         # implement from MassSpectralPeaks objs
 
         if profile:
-            a = multiply(power(self.mz_exp, 2), self.abundance)
-            b = self.mz_exp*self.abundance
+            a = multiply(power(self.mz_exp_profile, 2), self.abundance_profile)
+            b = self.mz_exp_profile*self.abundance_profile
             return a.sum() / b.sum()
 
         else:
-            return sum(power(self.mz_exp_centroide, 2)*self.abundance_centroid)/sum(self.mz_exp_centroide*self.abundance_centroid)
+            return sum(power(self.mz_exp, 2)*self.abundance)/sum(self.mz_exp*self.abundance)

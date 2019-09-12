@@ -171,31 +171,41 @@ class MassSpecBase(MassSpecCalc):
         rcParams["figure.dpi"] = default_dpi * factor
 
     @property
-    def freq_exp(self):
+    def freq_exp_profile(self):
         return self._frequency_domain
 
     @property
-    def mz_exp(self): return self._mz_exp
+    def mz_exp_profile(self): return self._mz_exp
     
     @property
-    def mz_exp_centroide(self):
+    def mz_exp(self):
         self.check_mspeaks()
         return array([mspeak.mz_exp for mspeak in self.mspeaks])
 
-    @mz_exp.setter
-    def mz_exp(self, _mz_exp ): self._mz_exp = _mz_exp
+    @mz_exp_profile.setter
+    def mz_exp_profile(self, _mz_exp ): self._mz_exp = _mz_exp
 
     @property
-    def abundance(self): return self._abundance
+    def abundance_profile(self): return self._abundance
     
     @property
-    def abundance_centroid(self):
+    def abundance(self):
         self.check_mspeaks()
         return array([mspeak.abundance for mspeak in self.mspeaks])
 
-    def freq_exp_centroide(self):
+    def freq_exp(self):
         self.check_mspeaks()
         return array([mspeak.freq_exp for mspeak in self.mspeaks])
+
+    @property
+    def resolving_power(self):
+        self.check_mspeaks()
+        return array([mspeak.resolving_power for mspeak in self.mspeaks])
+
+    @property
+    def signal_to_noise(self):
+        self.check_mspeaks()
+        return array([mspeak.signal_to_noise for mspeak in self.mspeaks])
 
     @property
     def kmd(self):
@@ -347,12 +357,12 @@ class MassSpecBase(MassSpecCalc):
     def plot_mz_domain_profile_and_noise_threshold(self):
 
         if self.baselise_noise and self.baselise_noise:
-            x = (self.mz_exp.min(), self.mz_exp.max())
+            x = (self.mz_exp_profile.min(), self.mz_exp_profile.max())
             y = (self.baselise_noise, self.baselise_noise)
 
             stds = MassSpectrumSetting.noise_threshold_stds
             threshold = self.baselise_noise + (stds * self.baselise_noise_std)
-            plt.plot(self.mz_exp, self.abundance, color="green")
+            plt.plot(self.mz_exp_profile, self.abundance_profile, color="green")
             plt.plot(x, (threshold, threshold), color="yellow")
             plt.plot(x, y, color="red")
             plt.xlabel("m/z")
@@ -365,7 +375,7 @@ class MassSpecBase(MassSpecCalc):
 
     def plot_mz_domain_profile(self):
 
-        plt.plot(self.mz_exp, self.abundance, color="green")
+        plt.plot(self.mz_exp_profile, self.abundance_profile, color="green")
         plt.xlabel("m/z")
         plt.ylabel("abundance")
         plt.show()

@@ -24,8 +24,8 @@ class NoiseThreshouldCalc(object):
             # need to check max mz here or it will break
             max_mz_noise = number_average_molecular_weight + 100
 
-            min_mz_whole_ms = self.mz_exp.min()
-            max_mz_whole_ms = self.mz_exp.max()
+            min_mz_whole_ms = self.mz_exp_profile.min()
+            max_mz_whole_ms = self.mz_exp_profile.max()
 
             if min_mz_noise < min_mz_whole_ms:
                 min_mz_noise = min_mz_whole_ms
@@ -38,13 +38,13 @@ class NoiseThreshouldCalc(object):
             min_mz_noise = MassSpectrumSetting.min_noise_mz
             max_mz_noise = MassSpectrumSetting.max_noise_mz
 
-        final = where(self.mz_exp > min_mz_noise)[-1][-1]
-        comeco = where(self.abundance > min_mz_noise)[0][0]
+        final = where(self.mz_exp_profile > min_mz_noise)[-1][-1]
+        comeco = where(self.abundance_profile > min_mz_noise)[0][0]
 
-        mz_domain_low_Y_cutoff = self.abundance[comeco:final]
+        mz_domain_low_Y_cutoff = self.abundance_profile[comeco:final]
 
-        final = where(self.mz_exp < max_mz_noise)[-1][-1]
-        comeco = where(self.mz_exp < max_mz_noise)[0][0]
+        final = where(self.mz_exp_profile < max_mz_noise)[-1][-1]
+        comeco = where(self.mz_exp_profile < max_mz_noise)[0][0]
 
         return mz_domain_low_Y_cutoff[comeco:final]
 

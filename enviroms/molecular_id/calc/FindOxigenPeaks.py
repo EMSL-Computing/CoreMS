@@ -100,10 +100,10 @@ class FindOxygenPeaks(Thread):
         '''
         #need to find a better way to cut off outliners
         #import matplotlib.pyplot as plt
-        #plt.hist(mass_spectrum_obj.abundance_centroid, bins=100)
+        #plt.hist(mass_spectrum_obj.abundance, bins=100)
         #plt.show()
         
-        abundances =  mass_spectrum_obj.abundance_centroid
+        abundances =  mass_spectrum_obj.abundance
         abun_mean = average(abundances, axis=0)
         abun_std = std(abundances, axis=0)
         
@@ -147,7 +147,7 @@ class FindOxygenPeaks(Thread):
     
     def find_series_mspeaks(self, mass_spectrum_obj, molecular_formula_obj_reference, lookupTableSettings, deltamz=14):
 
-        abundances =  mass_spectrum_obj.abundance_centroid
+        abundances =  mass_spectrum_obj.abundance
         abun_mean = average(abundances, axis=0)
         abun_std = std(abundances, axis=0)
         upper_limit = abun_mean + 7* abun_std

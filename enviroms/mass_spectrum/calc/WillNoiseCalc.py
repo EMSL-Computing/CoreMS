@@ -13,7 +13,7 @@ class WillNoiseThreshouldCalc(NoiseThreshouldCalc):
     
     def xrun_noise_threshould_calc(self, auto):
             mz = self.exp_mz
-            abun = self.abundance 
+            abun = self.abundance_profile 
             Y_cut = self.cut_mz_domain_noise(auto)
             
             if auto:

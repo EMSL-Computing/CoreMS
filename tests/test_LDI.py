@@ -64,15 +64,20 @@ def search_mf(mass_spectrum_obj):
     SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum_obj, lookupTableSettings)
 
 def plot():
-    colors = list(mcolors.XKCD_COLORS.keys())
+    #colors = list(mcolors.XKCD_COLORS.keys())
     #oxigens = range(6,21)
     
     #for o in oxigens:
         #o_c = list()
     
-    pyplot.plot(mass_spectrum_obj.mz_exp, mass_spectrum_obj.abundance)
+    #pyplot.plot(mass_spectrum_obj.mz_exp_profile, mass_spectrum_obj.abundance_profile)
     
+    pyplot.scatter(mass_spectrum_obj.mz_exp, mass_spectrum_obj.resolving_power,
+                                         s=mass_spectrum_obj.signal_to_noise, 
+                                         cmap='seismic')
+    print(max(mass_spectrum_obj.signal_to_noise), min(mass_spectrum_obj.signal_to_noise))
     for mspeak in mass_spectrum_obj:
+        
         if mspeak:
             #molecular_formula = mspeak.molecular_formula_lowest_error
             off_set = 0 
@@ -80,7 +85,8 @@ def plot():
                 
                 if not molecular_formula.is_isotopologue:
                     if molecular_formula.mspeak_indexes_isotopologues:
-                        pyplot.annotate(molecular_formula.to_string, (mspeak.mz_exp + off_set, mspeak.abundance ))
+                        #pyplot.annotate(molecular_formula.to_string, (mspeak.mz_exp + off_set, mspeak.abundance ))
+                        
                         off_set +=  0.1
                     #if molecular_formula['O'] == o:
                     #    if  not molecular_formula.is_isotopologue:
@@ -92,9 +98,9 @@ def plot():
     
 if __name__ == "__main__":
 
-    file_location = os.path.join(os.getcwd(), "data/") + os.path.normcase("20190315_WK_CADY_O68_S1_PCP55A_H2O_000001.d")
+    #file_location = os.path.join(os.getcwd(), "data/") + os.path.normcase("20190315_WK_CADY_O68_S1_PCP55A_H2O_000001.d")
 
-    #file_location = os.path.join(os.getcwd(), "tests/tests_data/") + os.path.normcase("ESI_NEG_SRFA.d/")
+    file_location = os.path.join(os.getcwd(), "tests/tests_data/") + os.path.normcase("ESI_NEG_SRFA.d/")
     
     bruker_reader = ReadBrukerSolarix(file_location)
 
@@ -115,8 +121,9 @@ if __name__ == "__main__":
 
     #assign_mf(mass_spectrum_obj)
 
-    search_mf(mass_spectrum_obj)
+    #search_mf(mass_spectrum_obj)
 
-    MassSpecExport('neg_esi_srfa_1ppm_test', mass_spectrum_obj, 'excel').start()
+    MassSpecExport(mass_spectrum_obj.filename, mass_spectrum_obj, 'excel').start()
+
 
     plot()

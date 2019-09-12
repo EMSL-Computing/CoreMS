@@ -16,17 +16,17 @@ class PeakPicking(object):
         max_picking_mz = MassSpectrumSetting.max_picking_mz
         min_picking_mz =  MassSpectrumSetting.min_picking_mz
         
-        final =  where(self.mz_exp  > min_picking_mz)[-1][-1]
-        comeco =  where(self.mz_exp  > min_picking_mz)[0][0]
+        final =  where(self.mz_exp_profile  > min_picking_mz)[-1][-1]
+        comeco =  where(self.mz_exp_profile  > min_picking_mz)[0][0]
 
-        mz_domain_X_low_cutoff, mz_domain_low_Y_cutoff,  = self.mz_exp [comeco:final], self.abundance[comeco:final]
+        mz_domain_X_low_cutoff, mz_domain_low_Y_cutoff,  = self.mz_exp_profile [comeco:final], self.abundance_profile[comeco:final]
 
-        final =  where(self.mz_exp < max_picking_mz)[-1][-1]
-        comeco =  where(self.mz_exp < max_picking_mz)[0][0]
+        final =  where(self.mz_exp_profile < max_picking_mz)[-1][-1]
+        comeco =  where(self.mz_exp_profile < max_picking_mz)[0][0]
 
-        if self.freq_exp.any():
+        if self.freq_exp_profile.any():
 
-            freq_domain_Y_cutoff  = self.freq_exp[comeco:final]
+            freq_domain_Y_cutoff  = self.freq_exp_profile[comeco:final]
 
             return mz_domain_X_low_cutoff[comeco:final], mz_domain_low_Y_cutoff[comeco:final], freq_domain_Y_cutoff[comeco:final]
 
@@ -42,10 +42,10 @@ class PeakPicking(object):
                 self.calc_centroid(mz, abudance, freq)
             
             elif self.label == Labels.thermo_profile:
-                self.calc_centroid(self.mz_exp, self.abundance, self.freq_exp)
+                self.calc_centroid(self.mz_exp_profile, self.abundance_profile, self.freq_exp_profile)
             
             elif self.label == Labels.bruker_profile:
-                self.calc_centroid(self.mz_exp, self.abundance, self.freq_exp)
+                self.calc_centroid(self.mz_exp_profile, self.abundance_profile, self.freq_exp_profile)
             
             else: raise Exception("Unknow mass spectrum type")
             #x = threading.Thread(target=self.calc_centroid, args=(mz, abudance, freq))
