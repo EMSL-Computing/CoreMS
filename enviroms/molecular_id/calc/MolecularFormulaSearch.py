@@ -39,7 +39,7 @@ class SearchMolecularFormulas:
             
             possible_formulas = list()    
             #we might need to increase the search space to -+1 m_z 
-            if MoleculaSearchSettings.isRadical:
+            if MoleculaSearchSettings.isRadical or MoleculaSearchSettings.isAdduct:
             
                 ion_type = Labels.radical_ion
                 
@@ -56,7 +56,7 @@ class SearchMolecularFormulas:
 
                         possible_formulas.extend(formulas)
                     
-                    elif not is_adduct:
+                    elif not is_adduct and MoleculaSearchSettings.isRadical:
                         
                         possible_formulas.extend(formulas)
 

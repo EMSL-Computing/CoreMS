@@ -23,7 +23,7 @@ class MoleculaLookupTableSettings:
                     'N': (0, 0),
                     'S': (0, 0),
                     'P': (0, 0),
-                    'Cl': (0, 1),
+                    'Cl': (1, 1),
                     }
         
         #min_mz changes automatically with mass spectrum

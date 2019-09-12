@@ -177,6 +177,11 @@ class MassSpecBase(MassSpecCalc):
     @property
     def mz_exp(self): return self._mz_exp
     
+    @property
+    def mz_exp_centroide(self):
+        self.check_mspeaks()
+        return array([mspeak.mz_exp for mspeak in self.mspeaks])
+
     @mz_exp.setter
     def mz_exp(self, _mz_exp ): self._mz_exp = _mz_exp
 
@@ -184,9 +189,9 @@ class MassSpecBase(MassSpecCalc):
     def abundance(self): return self._abundance
     
     @property
-    def mz_exp_centroide(self):
+    def abundance_centroid(self):
         self.check_mspeaks()
-        return array([mspeak.mz_exp for mspeak in self.mspeaks])
+        return array([mspeak.abundance for mspeak in self.mspeaks])
 
     def freq_exp_centroide(self):
         self.check_mspeaks()
@@ -209,11 +214,6 @@ class MassSpecBase(MassSpecCalc):
     @property
     def min_mz_exp(self):
         return min([mspeak.mz_exp for mspeak in self.mspeaks])
-
-    @property
-    def abundance_centroid(self):
-        self.check_mspeaks()
-        return array([mspeak.abundance for mspeak in self.mspeaks])
 
     @property
     def max_abundance(self):
