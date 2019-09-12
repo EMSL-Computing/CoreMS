@@ -230,6 +230,10 @@ class MassSpecBase(MassSpecCalc):
         return max([mspeak.abundance for mspeak in self.mspeaks])
     
     @property
+    def max_signal_to_noise(self):
+        return max([mspeak.signal_to_noise for mspeak in self.mspeaks])
+    
+    @property
     def most_abundant_mspeak(self):
         
         return max(self.mspeaks, key=lambda m: m.abundance)
@@ -280,10 +284,28 @@ class MassSpecBase(MassSpecCalc):
                 "mspeaks dictionary is empty, please run process_mass_spec() first"
             )
 
-    def filter_by_s2n(self, s2n):
+    def filter_by_mz(self, min_mz, max_mz):
 
         self.check_mspeaks()
-        indexes = [index for index, mspeak in enumerate(self.mspeaks) if mspeak.signal_to_noise > s2n]
+        indexes = [index for index, mspeak in enumerate(self.mspeaks) if min_mz <= mspeak.mz_exp <= max_mz]
+        self.set_indexes(indexes)
+
+    def filter_by_s2n(self, min_s2n, max_s2n=False):
+
+        self.check_mspeaks()
+        if not max_s2n:
+            max_s2n = self.max_signal_to_noise
+
+        self.check_mspeaks()
+        indexes = [index for index, mspeak in enumerate(self.mspeaks)if min_s2n <= mspeak.signal_to_noise <= max_s2n ]
+        self.set_indexes(indexes)
+
+    def filter_by_abundance(self, min_abund, max_abund=False):
+
+        self.check_mspeaks()
+        if not max_abund:
+            max_abund = self.max_abundance
+        indexes = [index for index, mspeak in enumerate(self.mspeaks) if min_abund <= mspeak.abundance <= max_abund]
         self.set_indexes(indexes)
 
     def get_mz_and_abundance_peaks_tuples(self):
