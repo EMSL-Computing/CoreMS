@@ -75,6 +75,9 @@ class PeakPicking(object):
             index_minus = current_index
             while peak_height_minus  >= target_peak_height:
 
+                if intes[index_minus - 1]  > intes[index_minus]:
+                    break
+                
                 index_minus = index_minus -1
                 peak_height_minus = intes[index_minus]
                 #print "massa", "," , "intes", "," , massa[index_minus], "," , peak_height_minus
@@ -89,8 +92,11 @@ class PeakPicking(object):
             massa1 = (y_intercep -b)/a
 
             index_plus = current_index
+            
             while peak_height_plus  >= target_peak_height:
 
+                if intes[index_plus + 1]  > intes[index_plus]:
+                    break
                 index_plus = index_plus + 1
                 peak_height_plus = intes[index_plus]
                 #print "massa", "," , "intes", "," , massa[index_plus], "," , peak_height_plus

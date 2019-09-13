@@ -14,6 +14,7 @@ from enviroms.molecular_id.calc.FindOxigenPeaks import FindOxygenPeaks
 from enviroms.molecular_id.calc.PrioriryAssignment import OxigenPriorityAssignment
 from enviroms.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
 from enviroms.transient.input.BrukerSolarix import ReadBrukerSolarix
+from enviroms.mass_spectrum.input.TextMassList import Read_MassList
 
 
 def calibrate(mass_spectrum_obj):
@@ -72,10 +73,22 @@ def plot():
     
     #pyplot.plot(mass_spectrum_obj.mz_exp_profile, mass_spectrum_obj.abundance_profile)
     
-    pyplot.scatter(mass_spectrum_obj.mz_exp, mass_spectrum_obj.resolving_power,
+    
+
+    pyplot.scatter(mass_spectrum_obj.mz_exp, mass_spectrum_obj.resolving_power/1000,
                                          s=mass_spectrum_obj.signal_to_noise, 
                                          cmap='seismic')
-    print(max(mass_spectrum_obj.signal_to_noise), min(mass_spectrum_obj.signal_to_noise))
+
+    pyplot.plot(mass_spectrum_obj.mz_exp, mass_spectrum_obj.resolving_power_calc(B, T, "low")/1000,  c='r')
+    
+    #pyplot.plot(mass_spectrum_obj.mz_exp_profile, mass_spectrum_obj.abundance_profile,  c='r')                       
+    
+    #mass_spectrum_obj.filter_by_resolving_power(B, T)
+
+    
+    #pyplot.plot(mass_spectrum_obj.mz_exp, mass_spectrum_obj.abundance,  'o')                       
+
+
     for mspeak in mass_spectrum_obj:
         
         if mspeak:
@@ -100,13 +113,28 @@ if __name__ == "__main__":
 
     #file_location = os.path.join(os.getcwd(), "data/") + os.path.normcase("20190315_WK_CADY_O68_S1_PCP55A_H2O_000001.d")
 
-    file_location = os.path.join(os.getcwd(), "tests/tests_data/") + os.path.normcase("ESI_NEG_SRFA.d/")
+    #file_location = os.path.join(os.getcwd(), "tests/tests_data/") + os.path.normcase("ESI_NEG_SRFA.d/")
+    #
+    #bruker_reader = ReadBrukerSolarix(file_location)
+
+    #bruker_transient = bruker_reader.get_transient()
+
+    file_location = os.path.join(os.getcwd(), "tests/tests_data/") + "ESI_NEG_ESFA.ascii"
     
-    bruker_reader = ReadBrukerSolarix(file_location)
+    #polariy need to be set or read from the file
+    polariy = -1
 
-    bruker_transient = bruker_reader.get_transient()
+    #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
+    mass_list_reader = Read_MassList(file_location, polariy, delimiter="  ")
 
-    mass_spectrum_obj = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
+    mass_spectrum_obj = mass_list_reader.get_mass_spectrum(auto_process=True)
+    
+    T = 1.3981013333333334#bruker_transient.transient_time
+    
+    print(T, "T")
+    B = 15.0
+
+    #mass_spectrum_obj = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
 
     #mass_spectrum_obj.plot_mz_domain_profile_and_noise_threshold()
 
@@ -123,7 +151,7 @@ if __name__ == "__main__":
 
     #search_mf(mass_spectrum_obj)
 
-    MassSpecExport(mass_spectrum_obj.filename, mass_spectrum_obj, 'excel').start()
+    #MassSpecExport(mass_spectrum_obj.filename, mass_spectrum_obj, 'excel').start()
 
-
+    
     plot()
