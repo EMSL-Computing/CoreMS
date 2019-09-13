@@ -63,6 +63,7 @@ class PeakPicking(object):
 
             del max_peaks_x_y
             '''
+   
     def calculate_resolving_power(self, intes, massa, current_index):
 
             peak_height = intes[current_index]

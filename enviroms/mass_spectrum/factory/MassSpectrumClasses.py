@@ -202,6 +202,23 @@ class MassSpecBase(MassSpecCalc):
         self.check_mspeaks()
         return array([mspeak.resolving_power for mspeak in self.mspeaks])
 
+    def resolving_power_calc(self, B, T, limit):
+        '''
+        low pressure limits, 
+        T: float 
+            transient time
+        B: float
+            Magnetic Filed Strength (Tesla)    
+        
+        reference
+        Marshall et al. (Mass Spectrom Rev. 1998 Jan-Feb;17(1):1-35.)
+        DOI: 10.1002/(SICI)1098-2787(1998)17:1<1::AID-MAS1>3.0.CO;2-K
+        
+        '''
+        rpe = lambda m, z: (1.274e7 * z * B * T)/(m*z)
+        self.check_mspeaks()
+        return array([rpe(mspeak.mz_exp, mspeak.ion_charge) for mspeak in self.mspeaks])
+
     @property
     def signal_to_noise(self):
         self.check_mspeaks()
@@ -306,6 +323,15 @@ class MassSpecBase(MassSpecCalc):
         if not max_abund:
             max_abund = self.max_abundance
         indexes = [index for index, mspeak in enumerate(self.mspeaks) if min_abund <= mspeak.abundance <= max_abund]
+        self.set_indexes(indexes)
+
+    def filter_by_resolving_power(self, B, T):
+
+        rpe = lambda m, z: (1.274e7 * z * B * T)/(m*z)
+
+        self.check_mspeaks()
+        
+        indexes = [index for index, mspeak in enumerate(self.mspeaks) if  mspeak.resolving_power >= rpe(mspeak.mz_exp,mspeak.ion_charge)]
         self.set_indexes(indexes)
 
     def get_mz_and_abundance_peaks_tuples(self):
