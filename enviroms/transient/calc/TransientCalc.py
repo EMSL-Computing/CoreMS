@@ -104,9 +104,11 @@ class TransientCalculations(object):
             
     def perform_magniture_mode_ft(self, transient):
         
-        A = fft.fft(transient)
+        A = fft.rfft(transient)
         
-        A = A[0:int(len(A)/2)]
+        #A = fft.fft(transient)
+        #A = A[0:int(len(A)/2)]
+
         factor = int(TransientSetting.number_of_zero_fills-1)
         if TransientSetting.number_of_zero_fills:
             if TransientSetting.number_of_zero_fills == 1:
