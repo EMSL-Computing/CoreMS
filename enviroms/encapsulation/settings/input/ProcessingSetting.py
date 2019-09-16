@@ -4,7 +4,7 @@ __date__ = "Jul 02, 2019"
 class TransientSetting:
     
     implemented_apodization_function = ["Hamming", "Hanning", "Blackman"]
-    apodization_method = 'Hanning'
+    apodization_method = "Hamming"
     number_of_truncations = 0
     number_of_zero_fills = 1
             

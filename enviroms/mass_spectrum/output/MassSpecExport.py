@@ -61,6 +61,14 @@ class MassSpecExport(Thread):
         else:
             raise ValueError("Unkown output type: %s; it can be 'excel', 'csv' or 'pandas'" %self.output_type)
     
+    def get_pandas_df(self):
+        
+        self.columns.extend(self.atomos_order_list)
+        dict_data_list = self.get_list_dict_data()
+        df = pd.DataFrame(dict_data_list, columns=self.columns)
+        df.name =  self.output_type
+        return df
+
     def to_pandas(self, dict_data_list):
         
         df = pd.DataFrame(dict_data_list, columns=self.columns)
@@ -99,7 +107,7 @@ class MassSpecExport(Thread):
 
         return sorted(all_used_atoms, key = sort_method)
 
-    def get_list_dict_data(self, include_no_match=True, include_isotopolgues=True, 
+    def get_list_dict_data(self, include_no_match=False, include_isotopolgues=True, 
                             isotopologue_inline=False, no_match_inline=False):
         
         dict_data_list = []

@@ -182,6 +182,7 @@ class MolecularFormula(MolecularFormulaCalc):
     @property
     def class_label(self):
         
+        
         if self._d_molecular_formula:
             
             formulalist = self.to_list
@@ -195,11 +196,12 @@ class MolecularFormula(MolecularFormulaCalc):
             
             if classstring == "": classstring = "HC "
                 
+            classstring = classstring.strip()
             if self._d_molecular_formula.get(Labels.ion_type) == 'RADICAL':    
                 
-                return classstring[0:-1] + " " + "-R"
+                return classstring + " " + "-R"
             
-            else: return classstring[0:-1]
+            else: return classstring
             
             'dict, tuple or string'
         else:

@@ -10,7 +10,8 @@ class ClusteringFilter():
     def get_mass_error_matrix_data(self, ms_peaks):
         mass_list = list()
         error_list = list()
-        for mspeak in ms_peaks:
+        list_indexes_mass_spec = []
+        for index, mspeak in enumerate(ms_peaks):
 
             if mspeak.is_assigned:
                     
@@ -18,11 +19,12 @@ class ClusteringFilter():
                 for mformula in mspeak:
                     mass_list.append(mspeak.mz_exp)
                     error_list.append(mformula._calc_assigment_mass_error(mspeak.mz_exp))
-            
+                    list_indexes_mass_spec.append(index)
+        
         dict = {'mass': mass_list, 'error': error_list}  
         df = pd.DataFrame(dict) 
         matrix_data = df.values.astype("float32", copy = False)
-        return matrix_data
+        return matrix_data, list_indexes_mass_spec
 
     def get_kendrick_matrix_data(self, mass_spectrum):
         km = mass_spectrum.kendrick_mass
@@ -48,12 +50,12 @@ class ClusteringFilter():
         
         indexes = []
         for i in range(len(clusters)):
-            if clusters[i] != -1:
+            if clusters[i] == -1:
                 indexes.append(i)
         
         print('Estimated number of clusters: %d' % n_clusters_)
         print('Estimated number of noise points: %d' % n_noise_)
-        mass_spectrum.set_indexes(indexes)
+        mass_spectrum.filter_by_index(indexes)
         #from matplotlib import pyplot as plt
         #plt.scatter(matrix_data[:, 0], matrix_data[:, 1], c=clusters, cmap="plasma")
         #plt.xlabel("km")
@@ -61,13 +63,11 @@ class ClusteringFilter():
         #plt.show()
         #plt.close()
        
-       
-
     def filter_mass_error(self, mass_spectrum):
         
         #data need to be binned by mz unit or more to be able to use clustering
         
-        matrix_data = self.get_mass_error_matrix_data(mass_spectrum)
+        matrix_data, list_indexes_mass_spec = self.get_mass_error_matrix_data(mass_spectrum)
 
         stscaler = StandardScaler().fit(matrix_data)
         
@@ -78,12 +78,51 @@ class ClusteringFilter():
         #clusters = MeanShift(bandwidth=bandwidth, bin_seeding=True).fit_predict(matrix_data_scaled)
         
         #eps and min_samp need to be optmized by precision and number of mspeaks
-        clusters = DBSCAN(eps = .1).fit_predict(matrix_data_scaled)
+        clusters = DBSCAN(eps = .15).fit_predict(matrix_data_scaled)
+        
         indexes = []
         
-        for i in range(len(clusters)):
-            if clusters[i] != -1:
-                indexes.append(i)
+        #from matplotlib import pyplot as plt
+        #plt.scatter(matrix_data[:, 0], matrix_data[:, 1], c=clusters, cmap="plasma")
+        #plt.xlabel("km")
+        #plt.ylabel("kdm")
+        #plt.show()
+        #plt.close()
 
-        mass_spectrum.set_indexes(indexes)
+        for i in range(len(clusters)):
+            if clusters[i] == -1:
+                indexes.append(list_indexes_mass_spec[i])
         
+        mass_spectrum.filter_by_index(indexes)
+
+    def remove_assigment_by_mass_error(self, mass_spectrum):
+        
+        #data need to be binned by mz unit or more to be able to use clustering
+        
+        matrix_data, list_indexes_mass_spec = self.get_mass_error_matrix_data(mass_spectrum)
+
+        stscaler = StandardScaler().fit(matrix_data)
+        
+        matrix_data_scaled = stscaler.transform(matrix_data)
+        
+        #bandwidth = estimate_bandwidth(matrix_data_scaled, quantile=0.3, n_samples=int(len(ms_peaks)/3))
+
+        #clusters = MeanShift(bandwidth=bandwidth, bin_seeding=True).fit_predict(matrix_data_scaled)
+        
+        #eps and min_samp need to be optmized by precision and number of mspeaks
+        clusters = DBSCAN(eps = .15).fit_predict(matrix_data_scaled)
+        
+        indexes = []
+        
+        #from matplotlib import pyplot as plt
+        #plt.scatter(matrix_data[:, 0], matrix_data[:, 1], c=clusters, cmap="plasma")
+        #plt.xlabel("km")
+        #plt.ylabel("kdm")
+        #plt.show()
+        #plt.close()
+
+        for i in range(len(clusters)):
+            if clusters[i] == -1:
+                indexes.append(list_indexes_mass_spec[i])
+        
+        mass_spectrum.remove_assigment_by_index(indexes)    

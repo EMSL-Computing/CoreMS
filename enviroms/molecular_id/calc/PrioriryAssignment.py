@@ -26,33 +26,63 @@ class OxigenPriorityAssignment(Thread):
         self.lookupTableSettings = lookupTableSettings
         #initiated at create_molecular_database()
         self.dict_molecular_lookup_table = None
+        self.assign_classes_order_str_dict_tuple_list = None
+        self.dict_ox_class_and_ms_peak = None
 
     def run(self):
+        
+        #get oxigen classes dict and the associate mspeak class 
+        #list_of_classes_min_max_dbe = self.class_and_dbes_in_ordem()
+        # create database separated to give the user the chance to use mass spec filters
+
+        if self.assign_classes_order_str_dict_tuple_list and self.dict_ox_class_and_ms_peak:
+            
+            self.run_worker_mass_spectrum(self.assign_classes_order_str_dict_tuple_list, self.dict_ox_class_and_ms_peak)
+        
+        else:
+            raise RuntimeError('call create_data_base() first')
+    
+    def create_data_base(self):
         
         find_formula_thread = FindOxygenPeaks(self.mass_spectrum_obj, self.lookupTableSettings)
         find_formula_thread.run()
         #mass spec obj indexes are set to interate over only the peaks with a molecular formula candidate
         find_formula_thread.set_mass_spec_indexes_by_found_peaks()
         
-        dict_ox_class_and_ms_peak = self.ox_classes_and_dbes_in_ordem_()
+        self.dict_ox_class_and_ms_peak = self.ox_classes_and_dbes_in_ordem_()
         
-        assign_classes_order_str_dict_tuple_list = self.get_classes_in_order(dict_ox_class_and_ms_peak)
-
-        self.create_molecular_database()
-        
-        #get oxigen classes dict and the associate mspeak class 
-        #list_of_classes_min_max_dbe = self.class_and_dbes_in_ordem()
+        self.assign_classes_order_str_dict_tuple_list = self.get_classes_in_order(self.dict_ox_class_and_ms_peak)
 
         # reset back the massspec obj indexes since we already collected the mspeak indexes
-        self.mass_spectrum_obj.reset_indexes()
-            
-        self.run_worker_mass_spectrum(assign_classes_order_str_dict_tuple_list,dict_ox_class_and_ms_peak)
+        
+        self.create_molecular_database()
         
     def run_worker_mass_spectrum(self, assign_classes_order_tuples, dict_ox_class_and_ms_peak):
         
         def check_adduct_class(classe_dict):
-            return any([key in classe_dict.keys() for key in MoleculaSearchSettings.adduct_atoms])
+            return any([key in classe_dict.keys() for key in MoleculaSearchSettings.adduct_atoms_neg])
         
+        def set_min_max_dbe_by_oxygen(classe_dict):
+            # calculates min and max DBE based on the oxigen number
+            # ref :https://pubs.acs.org/doi/full/10.1021/ac200464q
+            # if class does not has O it use the pha rule
+            # ref : Vlad Lobodin manuscript to be include here
+            '''
+            atoms_exchanges = ['N']
+            if 'O' in classe_dict.keys():
+                
+                oxigen_number = classe_dict.get("O")
+                for atom in atoms_exchanges:
+                    if atom in classe_dict.keys():
+                        oxigen_number += classe_dict.get(atom)
+
+                MoleculaSearchSettings.min_dbe = (oxigen_number/3) - 0.5 
+                MoleculaSearchSettings.max_dbe = oxigen_number*3 + 0.5 + 2
+            
+            else:
+            '''    
+            MoleculaSearchSettings.use_pah_line_rule = True
+
         last_dif = 0
     
         last_error = 0
@@ -75,21 +105,19 @@ class OxigenPriorityAssignment(Thread):
 
             #already assinged a molecular formula
             if ms_peak.is_assigned: continue
-
                 #print(ms_peak) 
             nominal_mz  = ms_peak.nominal_mz_exp
 
             for classe_tuple in assign_classes_order_tuples:
                 classe_str  = classe_tuple[0]
                 classe_dict = classe_tuple[1]
+                #if len(classe_dict.keys()) == 2:
+                #    if classe_dict.get('S') == 1:
+                 #       continue
                 # limits the dbe by the Ox class most abundant,
                 # need to add other atoms contribution to be more accurate
                 # but +-7 should be sufficient to cover the range 
-
-                oxigen_number = 'O' + str(classe_dict.get('O'))
-                current_dbe = dict_ox_class_and_ms_peak[oxigen_number][0].dbe
-                MoleculaSearchSettings.max_dbe = current_dbe + 7
-                MoleculaSearchSettings.min_dbe = current_dbe - 7
+                set_min_max_dbe_by_oxygen(classe_dict)
                 
                 if ms_peak.is_assigned: continue
 
@@ -143,20 +171,22 @@ class OxigenPriorityAssignment(Thread):
         '''loading this on a shared memory would be better than having to serialize it for every process
             waiting for python 3.8 release'''
         
-        min_o = min(self.mass_spectrum_obj, key=lambda msp: msp[0]['O'])[0]['O']
+        min_o = min(self.mass_spectrum_obj, key=lambda msp: msp[0]['O'])[0]['O'] - 2
         
-        max_o = max(self.mass_spectrum_obj, key=lambda msp: msp[0]['O'])[0]['O']
+        max_o = max(self.mass_spectrum_obj, key=lambda msp: msp[0]['O'])[0]['O'] + 2
 
-        min_dbe = min(self.mass_spectrum_obj, key=lambda msp: msp[0].dbe)[0].dbe
+        #min_dbe = min(self.mass_spectrum_obj, key=lambda msp: msp[0].dbe)[0].dbe
 
-        max_dbe = max(self.mass_spectrum_obj, key=lambda msp: msp[0].dbe)[0].dbe
+        #max_dbe = max(self.mass_spectrum_obj, key=lambda msp: msp[0].dbe)[0].dbe
 
-        self.lookupTableSettings.use_pah_line_rule = False
+        #self.lookupTableSettings.use_pah_line_rule = False
         
-        self.lookupTableSettings.min_dbe = min_dbe - 7 if  (min_dbe - 7) > 0 else 0
+        #self.lookupTableSettings.min_dbe = min_dbe/2#min_dbe - 7 if  (min_dbe - 7) > 0 else 0
         
-        self.lookupTableSettings.max_dbe = max_dbe + 7
+        #self.lookupTableSettings.max_dbe = max_dbe * 2 #max_dbe + 7
         
+        self.mass_spectrum_obj.reset_indexes()
+
         self.lookupTableSettings.usedAtoms['O'] = (min_o, max_o)
 
         self.lookupTableSettings.min_mz = self.mass_spectrum_obj.min_mz_exp
@@ -308,9 +338,9 @@ class OxigenPriorityAssignment(Thread):
         
         return join_list_of_list_classes
         
-   
+'''   
 if __name__ == "__main__":
-    
+    pass
     from enviroms.transient.input.BrukerSolarix import ReadBrukerSolarix
     from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings, MoleculaLookupTableSettings
     from enviroms.mass_spectrum.calc.CalibrationCalc import MZDomain_Calibration, FreqDomain_Calibration
@@ -319,8 +349,8 @@ if __name__ == "__main__":
     def calibrate():
         
         MoleculaSearchSettings.error_method = 'average'
-        MoleculaSearchSettings.min_mz_error = -5
-        MoleculaSearchSettings.max_mz_error = 1
+        MoleculaSearchSettings.min_mz_error = -2
+        MoleculaSearchSettings.max_mz_error = 2
         MoleculaSearchSettings.mz_error_range = 1
 
         find_formula_thread = FindOxygenPeaks(mass_spectrum_obj, lookupTableSettings)
@@ -385,5 +415,5 @@ if __name__ == "__main__":
     plot()
 
 
-
+'''
     

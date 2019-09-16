@@ -301,11 +301,19 @@ class MassSpecBase(MassSpecCalc):
                 "mspeaks dictionary is empty, please run process_mass_spec() first"
             )
 
+    def remove_assigment_by_index(self, indexes):
+        for i in indexes: self.mspeaks[i].clear_molecular_formulas()
+
+    def filter_by_index(self, list_indexes):
+        
+        self.mspeaks = [self.mspeaks[i] for i in range(len(self.mspeaks)) if i not in list_indexes]
+        self._set_nominal_masses_start_final_indexes()
+
     def filter_by_mz(self, min_mz, max_mz):
 
         self.check_mspeaks()
         indexes = [index for index, mspeak in enumerate(self.mspeaks) if min_mz <= mspeak.mz_exp <= max_mz]
-        self.set_indexes(indexes)
+        self.filter_by_index(indexes)
 
     def filter_by_s2n(self, min_s2n, max_s2n=False):
 
@@ -315,7 +323,7 @@ class MassSpecBase(MassSpecCalc):
 
         self.check_mspeaks()
         indexes = [index for index, mspeak in enumerate(self.mspeaks)if min_s2n <= mspeak.signal_to_noise <= max_s2n ]
-        self.set_indexes(indexes)
+        self.filter_by_index(indexes)
 
     def filter_by_abundance(self, min_abund, max_abund=False):
 
@@ -323,16 +331,25 @@ class MassSpecBase(MassSpecCalc):
         if not max_abund:
             max_abund = self.max_abundance
         indexes = [index for index, mspeak in enumerate(self.mspeaks) if min_abund <= mspeak.abundance <= max_abund]
-        self.set_indexes(indexes)
+        self.filter_by_index(indexes)
 
-    def filter_by_resolving_power(self, B, T):
+    def filter_by_max_resolving_power(self, B, T):
 
         rpe = lambda m, z: (1.274e7 * z * B * T)/(m*z)
 
         self.check_mspeaks()
         
-        indexes = [index for index, mspeak in enumerate(self.mspeaks) if  mspeak.resolving_power >= rpe(mspeak.mz_exp,mspeak.ion_charge)]
-        self.set_indexes(indexes)
+        indexes_to_remove = [index for index, mspeak in enumerate(self.mspeaks) if  mspeak.resolving_power >= rpe(mspeak.mz_exp,mspeak.ion_charge)]
+        self.filter_by_index(indexes_to_remove)
+
+    def filter_by_min_resolving_power(self, B, T):
+
+        rpe = lambda m, z: (1.274e7 * z * B * T)/(m*z)
+
+        self.check_mspeaks()
+        
+        indexes_to_remove = [index for index, mspeak in enumerate(self.mspeaks) if  mspeak.resolving_power <= rpe(mspeak.mz_exp,mspeak.ion_charge)]
+        self.filter_by_index(indexes_to_remove)
 
     def get_mz_and_abundance_peaks_tuples(self):
 

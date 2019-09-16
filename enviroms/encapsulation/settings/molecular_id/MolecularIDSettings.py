@@ -7,12 +7,19 @@ class MoleculaLookupTableSettings:
     # to the usedAtoms dicts 
     # NOTE : Adducts atoms have zero valence
     used_atom_valences = {'C': 4,
+                            '13C': 4,
                             'H': 1,
                             'O': 2,
+                            '18O': 2,
                             'N': 3,
                             'S': 2,
+                            '34S': 2,
                             'P': 3,
                             'Cl': 0,
+                            '37Cl': 0,
+                            'Br': 0,
+                            'Na': 1,
+                            'F': 0,
                             }
 
     def __init__(self):
@@ -23,7 +30,7 @@ class MoleculaLookupTableSettings:
                     'N': (0, 0),
                     'S': (0, 0),
                     'P': (0, 0),
-                    'Cl': (1, 1),
+                    'Cl': (0, 0),
                     }
         
         #min_mz changes automatically with mass spectrum
@@ -37,7 +44,7 @@ class MoleculaLookupTableSettings:
         self.max_dbe = 50
 
         #overwrites the dbe limits above to DBE = (C + heteroatoms) * 0.9
-        self.use_pah_line_rule = True
+        self.use_pah_line_rule = False
         
         self.isRadical = True
 
@@ -56,8 +63,11 @@ class MoleculaSearchSettings:
     
     # look for close shell ions [M + Adduct]+ only considers metal set in the list adduct_atoms  
     isAdduct = False
-    adduct_atoms = ['Cl', 'Br', 'Na', 'K']
     
+    adduct_atoms_neg = ['Cl', 'Br', 'F']
+    
+    adduct_atoms_pos = ['Na', 'K']
+
     # depending on the polarity mode it looks for [M].+ , [M].-
     # needs to be enabled at the class MoleculaLookupTableSettings
     isRadical = False

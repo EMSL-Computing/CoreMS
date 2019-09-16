@@ -63,8 +63,12 @@ class PeakPicking(object):
 
             del max_peaks_x_y
             '''
-   
+    
     def calculate_resolving_power(self, intes, massa, current_index):
+            
+            '''this is a conservative calculation of resolving power,
+               the peak need to be resolved at leat at the half-maximum magnitude,
+               otherwise, the convoluted peak is used to calculate resolving power'''
 
             peak_height = intes[current_index]
             target_peak_height = peak_height/2
@@ -75,9 +79,6 @@ class PeakPicking(object):
             index_minus = current_index
             while peak_height_minus  >= target_peak_height:
 
-                if intes[index_minus - 1]  > intes[index_minus]:
-                    break
-                
                 index_minus = index_minus -1
                 peak_height_minus = intes[index_minus]
                 #print "massa", "," , "intes", "," , massa[index_minus], "," , peak_height_minus
@@ -92,11 +93,8 @@ class PeakPicking(object):
             massa1 = (y_intercep -b)/a
 
             index_plus = current_index
-            
             while peak_height_plus  >= target_peak_height:
 
-                if intes[index_plus + 1]  > intes[index_plus]:
-                    break
                 index_plus = index_plus + 1
                 peak_height_plus = intes[index_plus]
                 #print "massa", "," , "intes", "," , massa[index_plus], "," , peak_height_plus
@@ -121,8 +119,11 @@ class PeakPicking(object):
 
             return resolvingpower
 
+
     def calc_centroid(self, mass, abund, freq):
-        
+        #TODO: remove peaks that minimum is one data point from the maximum
+        # to remove artifacts 
+
         abudance_thresould, factor = self.get_threshold(abund)
         # find indices of all peaks
         dy = abund[1:] - abund[:-1]

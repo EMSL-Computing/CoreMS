@@ -31,7 +31,7 @@ class SearchMolecularFormulas:
             closest_error, error_average, nbValues):
         
         def check_adduct_class(classe_dict):
-            return any([key in classe_dict.keys() for key in MoleculaSearchSettings.adduct_atoms])
+            return any([key in classe_dict.keys() for key in MoleculaSearchSettings.adduct_atoms_neg])
         
         for classe in classes:
             
@@ -305,6 +305,7 @@ class SearchMolecularFormulaWorker:
                     #add molecular formula match to ms_peak
                     ms_peak.add_molecular_formula(possible_formula)
                     
+                   
                     #calculates and look for isotopologues
                     isotopologues = possible_formula.isotopologues(min_abundance, ms_peak_abundance)
                     
