@@ -22,16 +22,9 @@ stages:
   - run
   - build
 
-before_script:
-  - python -V  # Print out python version for debugging
-  - pip install virtualenv
-  - virtualenv venv
-  - source venv/bin/activate
-  - pip install -r requirements.txt
-  - pip install wheel
-  - pip install pytest
-  - pip install pytest-cov
-
+#before_script:
+  #
+  
 test-job:
   
   stage: test
@@ -41,6 +34,14 @@ test-job:
     - python
 
   script:
+    - python -V  # Print out python version for debugging
+    - pip install virtualenv
+    - virtualenv venv
+    - source venv/bin/activate
+    - pip install -r requirements.txt
+    - pip install wheel
+    - pip install pytest
+    - pip install pytest-cov
     - ls .
     - python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
     - python setup.py test
@@ -57,6 +58,12 @@ run-job:
     #- k8s
 
   script:
+    - python -V  # Print out python version for debugging
+    - pip install virtualenv
+    - virtualenv venv
+    - source venv/bin/activate
+    - pip install -r requirements.txt
+    - pip install wheel
     - python setup.py sdist bdist_wheel
     #- python setup.py bdist_wheel
     # an alternative approach is to install and run:
