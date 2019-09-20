@@ -1,4 +1,4 @@
-class MoleculaLookupTableSettings:
+class MoleculaLookupDictSettings:
     
     # C, H, N, O, S and P atoms are ALWAYS needed at usedAtoms
     # if you don't want to include one of thoses atoms set the max and min at 0

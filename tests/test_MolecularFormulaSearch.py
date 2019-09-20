@@ -7,7 +7,7 @@ import time
 import pytest
 sys.path.append(".")
 
-from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupTableSettings
+from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings
 from enviroms.mass_spectrum.input.TextMassList import Read_MassList
 from enviroms.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
 from enviroms.molecular_id.calc.ClusterFilter import ClusteringFilter
@@ -50,7 +50,7 @@ def test_molecular_formula_search():
     ClusteringFilter().filter_kendrick(mass_spectrum)
     
     time1 = time.time()
-    LookupTableSettings = MoleculaLookupTableSettings()
+    LookupTableSettings = MoleculaLookupDictSettings()
     SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum, LookupTableSettings)
     mass_spectrum.reset_indexes()
 

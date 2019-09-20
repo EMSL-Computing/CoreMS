@@ -5,7 +5,7 @@ sys.path.append(".")
 
 import pytest
 
-from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import  MoleculaLookupTableSettings, MoleculaSearchSettings
+from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import  MoleculaLookupDictSettings, MoleculaSearchSettings
 from enviroms.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration, MZDomain_Calibration
 from enviroms.mass_spectrum.output.MassSpecExport import MassSpecExport 
 from enviroms.mass_spectrum.input.TextMassList import Read_MassList

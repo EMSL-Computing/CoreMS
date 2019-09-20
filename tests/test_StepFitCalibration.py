@@ -8,14 +8,14 @@ sys.path.append(".")
 import numpy as np
 from matplotlib import pyplot as pylab
 
-from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings, MoleculaLookupTableSettings
+from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings, MoleculaLookupDictSettings
 from enviroms.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration
 #from enviroms.mass_spectrum.input.TextMassList import Read_MassList
 from enviroms.molecular_id.calc.FindOxigenPeaks import FindOxygenPeaks
 from enviroms.transient.input.BrukerSolarix import ReadBrukerSolarix
 from enviroms.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
 from enviroms.molecular_id.calc.ClusterFilter import ClusteringFilter
-from enviroms.mass_spectrum.output.MassSpecExport import MassSpecExport
+from enviroms.mass_spectrum.output.export import MassSpecExport
 
 def creat_mass_spectrum(file_location):
     '''parse transient data from Bruker into a mass spectrum class object
@@ -72,7 +72,7 @@ def test_calibration():
 
     mass_spectrum = creat_mass_spectrum(file_location)
     
-    lookupTableSettings = MoleculaLookupTableSettings()
+    lookupTableSettings = MoleculaLookupDictSettings()
 
     MoleculaSearchSettings.error_method = 'average'
     MoleculaSearchSettings.min_mz_error = -5
@@ -113,7 +113,16 @@ def test_calibration():
     print('started')
     SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum, lookupTableSettings)
     print(time.time()-time0)
-    MassSpecExport('neg_esi_srfa_1ppm_test', mass_spectrum, 'excel').start()
+    
+    exportMS= MassSpecExport('neg_esi_srfa_1ppm_test', mass_spectrum)
+    exportMS.run()
+    
+    exportMS.output_type = 'csv'
+    exportMS.run()
+    
+    exportMS.output_type = 'pandas'
+    exportMS.run()
+    
     '''
     error = list()
     error_iso = list()

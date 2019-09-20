@@ -10,7 +10,7 @@ class MassSpecExport(Thread):
     TODO: add MSPeak indexes: done
     
     '''
-    def __init__(self, out_file_path, mass_spectrum, output_type):
+    def __init__(self, out_file_path, mass_spectrum, output_type='excel'):
         
         '''
         output_type:str 
@@ -45,6 +45,19 @@ class MassSpecExport(Thread):
                             'Is Isotopologue',
                             #'Aromaticity Index',
                             ]
+    
+    @property
+    def output_type(self):
+        return self._output_type
+    
+    @output_type.setter
+    def output_type(self, output_type):
+        output_types = ['excel', 'csv', 'pandas']
+        if output_type in output_types:
+            self._output_type = output_type
+        else:
+            raise TypeError('Supported types are "excel", "csv" or "pandas", %s entered' % output_type) 
+    
     def run(self):
         
         dict_data_list = self.get_list_dict_data()

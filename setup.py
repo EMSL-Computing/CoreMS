@@ -37,11 +37,11 @@ class test_enviroms(Command):
         # change to the test dir and run the tests
         os.chdir("tests")
         sys.path.insert(0, "")
-        import run_test
+        #import run_test
         #if self.offline:
         #    run_test.main(["--offline"])
         #else:
-        run_test.main([])
+        #run_test.main([])
 
         # change back to the current directory
         os.chdir(this_dir)
@@ -71,7 +71,7 @@ setup(
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
 
-    #test_suite='nose2.collector',
+    #test_suite='pytest',
     #tests_require=['nose2'],
     #cmdclass={
           #"install": install_enviroms,

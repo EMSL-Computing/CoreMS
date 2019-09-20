@@ -229,11 +229,11 @@ class MolecularFormulaIsotopologue(MolecularFormula):
     '''
     classdocs
     '''
-    def __init__(self, _d_molecular_formula, prop_ratio, ion_charge, exp_mz=None):
+    def __init__(self, _d_molecular_formula, prob_ratio, ion_charge, exp_mz=None):
         
         super().__init__(_d_molecular_formula,  ion_charge)
-        #prop_ratio is relative to the monoisotopic peak p_isotopologue/p_mono_isotopic
-        self.prop_ratio = prop_ratio
+        #prob_ratio is relative to the monoisotopic peak p_isotopologue/p_mono_isotopic
+        self.prob_ratio = prob_ratio
         
         self.is_isotopologue = True
         self.mspeak_index_mono_isotopic = None
