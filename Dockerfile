@@ -3,10 +3,12 @@ WORKDIR /home/enviroms/
 #VOLUME  . /home/enviroms/
 
 #COPY  . /home/enviroms/
-RUN pip install virtualenv
-RUN virtualenv mypython
-RUN python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('win_only/__init__.py')]"
-RUN . /home/enviroms/mypython/bin/activate && pip install -r requirements.txt
-CMD . /home/enviroms/mypython/bin/activate && python setup.py test
-#RUN pip install -r requirements.txt
-
+RUN   python -V  # Print out python version for debugging
+RUN   pip install virtualenv
+RUN   virtualenv venv
+RUN   source venv/bin/activate
+RUN   pip install -r requirements.txt
+RUN   pip install wheel
+RUN   python setup.py sdist bdist_wheel
+RUN   python setup.py bdist_wheel
+RUN   pip install dist/*
