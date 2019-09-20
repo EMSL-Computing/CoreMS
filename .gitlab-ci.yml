@@ -29,9 +29,10 @@ test-job:
   
   stage: test
   tags:
-    #- k8s
-    - docker
-    - python
+    - k8s
+    - rc
+    #- docker
+    #- python
 
   script:
     - python -V  # Print out python version for debugging
@@ -53,10 +54,11 @@ test-job:
 run-job:
   stage: run
   tags:
-    - docker
-    - python
-    #- k8s
-
+    #- docker
+    #- python
+    - k8s
+    - rc
+    
   script:
     - python -V  # Print out python version for debugging
     - pip install virtualenv
