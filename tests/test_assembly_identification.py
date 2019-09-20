@@ -7,7 +7,7 @@ import pytest
 
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import  MoleculaLookupDictSettings, MoleculaSearchSettings
 from enviroms.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration, MZDomain_Calibration
-from enviroms.mass_spectrum.output.MassSpecExport import MassSpecExport 
+from enviroms.mass_spectrum.output.export import MassSpecExport 
 from enviroms.mass_spectrum.input.TextMassList import Read_MassList
 from enviroms.molecular_id.calc.FindOxigenPeaks import FindOxygenPeaks
 from enviroms.molecular_id.calc.PrioriryAssignment import OxigenPriorityAssignment
