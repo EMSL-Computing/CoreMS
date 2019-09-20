@@ -20,26 +20,29 @@ cache:
 stages:
   - test
   - run
+  - build
 
-before_script:
-  - python -V  # Print out python version for debugging
-  - pip install virtualenv
-  - virtualenv venv
-  - source venv/bin/activate
-  - pip install -r requirements.txt
-  - pip install wheel
-  - pip install pytest
-  - pip install pytest-cov
-
+#before_script:
+  #
+  
 test-job:
   
   stage: test
   tags:
-    #- k8s
-    - docker
-    - python
+    - k8s
+    - rc
+    #- docker
+    #- python
 
   script:
+    - python -V  # Print out python version for debugging
+    - pip install virtualenv
+    - virtualenv venv
+    - source venv/bin/activate
+    - pip install -r requirements.txt
+    - pip install wheel
+    - pip install pytest
+    - pip install pytest-cov
     - ls .
     - python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
     - python setup.py test
@@ -51,11 +54,18 @@ test-job:
 run-job:
   stage: run
   tags:
-    - docker
-    - python
-    #- k8s
-
+    #- docker
+    #- python
+    - k8s
+    - rc
+    
   script:
+    - python -V  # Print out python version for debugging
+    - pip install virtualenv
+    - virtualenv venv
+    - source venv/bin/activate
+    - pip install -r requirements.txt
+    - pip install wheel
     - python setup.py sdist bdist_wheel
     #- python setup.py bdist_wheel
     # an alternative approach is to install and run:
@@ -66,6 +76,21 @@ run-job:
     paths:
       - dist/*.whl
 
+build:
+  stage: build
+  tags:
+    - k8s
+    - rc
+    
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - export DOCKER_CONFIG=/kaniko/.docker/
+    - export GOOGLE_APPLICATION_CREDENTIALS=/kaniko/.docker/config.json  
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+    
 
 #pages:
 #  script:
