@@ -1,5 +1,5 @@
 '''
-exact masses, isotopologues, valences and isotopic abundandes 
+exact masses, isotopologues, covalences and isotopic abundandes 
 last update masses and isotopic abundandes from NIST(07/18/2019):
 https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-relative-atomic-masses
  '''
@@ -400,7 +400,7 @@ class Atoms:
                         '80Se', '82Kr', '82Se', '83Kr', '84Kr', '85Rb', '86Kr', '86Sr', '87Rb', '87Sr', '88Sr', '90Zr', '91Zr', '92Mo', '92Zr',
                         '94Mo', '94Zr', '95Mo', '96Mo', '96Ru', '96Zr', '97Mo', '98Mo', '98Ru', '99Ru']
 
-    atoms_valence = {'C': (4),
+    atoms_covalence = {'C': (4),
                      '13C': (4),
                      'N': (3),
                      'O': (2),

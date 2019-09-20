@@ -105,7 +105,7 @@ class MolecularFormulaCalc:
                     clean_atom = ''.join([i for i in atom if not i.isdigit()]) 
                     
                     valencia = MoleculaLookupTableSettings.used_atom_valences.get(clean_atom)
-                    #valencia = Atoms.atoms_valence.get(atom)
+                    #valencia = Atoms.atoms_covalence.get(atom)
                     
                     if valencia and valencia > 0:
                         #print atom, valencia, n_atom, individual_dbe

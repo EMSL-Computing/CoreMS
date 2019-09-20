@@ -34,13 +34,13 @@ def test_molecular_lookup_table():
     #the defaults values are defined at the encapsulation MolecularSpaceTableSetting    
     LookupTableSettings.usedAtoms['C'] = (1,90)
     
-    #some atoms has more than one valence state and the most commun will be used
-    # adduct atoms needs valence 0
+    #some atoms has more than one covalence state and the most commun will be used
+    # adduct atoms needs covalence 0
     LookupTableSettings.usedAtoms['Cl'] = (0,0)
-    possible_valences = Atoms.atoms_valence.get('Cl')
+    possible_valences = Atoms.atoms_covalence.get('Cl')
     valence_one = possible_valences[0]
     # if you want to specify it in needs to be changed here
-    # otherwise it will use the lowest valence, PS needs insure propagation to isotopologues
+    # otherwise it will use the lowest covalence, PS needs insure propagation to isotopologues
     MoleculaLookupTableSettings.used_atom_valences['Cl'] =  valence_one
 
     time0 = time.time()
