@@ -27,7 +27,7 @@ def test_molecular_formula():
     isotopologues = list(formula_obj.isotopologues(0.01, current_abundance))
     
     assert round(isotopologues[0].mz_theor,2) == round(351.883352980637,2)
-    assert round(isotopologues[0].prop_ratio,2) == round(0.6399334750069298,2)
+    assert round(isotopologues[0].prob_ratio,2) == round(0.6399334750069298,2)
     assert isotopologues[0].to_string == 'C10 O10 Cl1 37Cl1'
     
     '''
@@ -35,7 +35,7 @@ def test_molecular_formula():
         
         print("formula:", isotopologue_obj.to_string, 
               "mz_theor:", isotopologue_obj.mz_theor,
-              "prprop_ratio:", isotopologue_obj.prop_ratio)
+              "prprop_ratio:", isotopologue_obj.prob_ratio)
       '''
 
 if __name__ == "__main__":

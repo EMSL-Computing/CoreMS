@@ -80,7 +80,7 @@ class MolecularLookUpDictExport(Thread):
         
         df = pd.DataFrame(dict_data_list, columns=self.columns)
         
-        df.to_pickle(self.file_location + '.pkl',  index=False)
+        df.to_pickle(self.file_location + '.pkl')
 
     def to_excel(self, dict_data_list):
         
@@ -92,7 +92,7 @@ class MolecularLookUpDictExport(Thread):
         
         import csv
         try:
-            with open(self.file_location, 'w', newline='') as csvfile:
+            with open(self.file_location +'.csv', 'w', newline='') as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=self.columns)
                 writer.writeheader()
                 for data in dict_data_list:
@@ -146,21 +146,23 @@ class MolecularLookUpDictExport(Thread):
             
             for dict_nominal_mass in dict_ion_type.values():
                 
-                for m_formula in dict_nominal_mass.values():
+                for m_formulas in dict_nominal_mass.values():
+                    
+                    for m_formula in m_formulas:
+                        
+                        if m_formula.is_isotopologue:
+                            dict_result = add_isotopologue_data()
+                        else:
+                            dict_result = add_mfobj_dict_data()     
+                        
+                        add_mfobj_dict_data()
+                        
+                        formula_dict = m_formula.to_dict
 
-                    if m_formula.is_isotopologue:
-                        dict_result = add_isotopologue_data()
-                    else:
-                        dict_result = add_mfobj_dict_data()     
-                    
-                    add_mfobj_dict_data()
-                    
-                    formula_dict = m_formula.to_dict
-
-                    for atom in self.atomos_order_list:
-                        if atom in formula_dict.keys():
-                            dict_result[atom] =  formula_dict.get(atom)
-                    
-                    dict_data_list.append(dict_result)
+                        for atom in self.atomos_order_list:
+                            if atom in formula_dict.keys():
+                                dict_result[atom] =  formula_dict.get(atom)
+                        
+                        dict_data_list.append(dict_result)
 
         return dict_data_list           

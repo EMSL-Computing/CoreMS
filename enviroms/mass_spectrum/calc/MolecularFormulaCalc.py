@@ -74,9 +74,9 @@ class MolecularFormulaCalc:
         '''methodo should be ppm or ppb'''
         
         mult_factor = 100
-        if self.prop_ratio:
+        if self.prob_ratio:
             
-            theor_abundance = mono_abundance* self.prop_ratio
+            theor_abundance = mono_abundance* self.prob_ratio
             #self.parent need to have a MassSpecPeak associated with the MolecularFormula class
             return ((theor_abundance - iso_abundance )/theor_abundance)*mult_factor
         
@@ -223,9 +223,9 @@ class MolecularFormulaCalc:
             new_formula_dict['H'] = formula_dict.get('H')
 
             prop_mono_iso = probs[0]
-            prop_ratio = probs[isotopologue_index]/prop_mono_iso
+            prob_ratio = probs[isotopologue_index]/prop_mono_iso
             
-            isotopologue_and_pro_ratio_tuples.append((new_formula_dict,prop_ratio))
+            isotopologue_and_pro_ratio_tuples.append((new_formula_dict,prob_ratio))
         
         return isotopologue_and_pro_ratio_tuples        
     

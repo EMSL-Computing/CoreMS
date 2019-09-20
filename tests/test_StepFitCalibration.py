@@ -101,9 +101,9 @@ def test_calibration():
     lookupTableSettings.usedAtoms = {'C': (1, 100),
                  'H': (4, 200),
                  'O': (0, 20),
-                 'N': (0, 2),
-                 'S': (0, 2),
-                 'P': (0, 2),
+                 'N': (0, 1),
+                 'S': (0, 0),
+                 'P': (0, 0),
                  }
     
     #print(len(mass_spectrum))
@@ -123,64 +123,8 @@ def test_calibration():
     exportMS.output_type = 'pandas'
     exportMS.run()
     
-    '''
-    error = list()
-    error_iso = list()
-    mass_iso = list()
-    mass = list()
-    abundance = list()
-    abundance_iso = list()
-    freq_exp = list()
-    mz_theo = list()
-    o_c = list()
-    h_c = list()
-    colors = list(matplotlib.colors.XKCD_COLORS.keys())
-    colors_oxigen = []
-    oxigens = range(8,21)
-    for o in oxigens:
-        o_c = list()
-        for mspeak in mass_spectrum:
-            
-            if mspeak:
-                
-                #molecular_formula = mspeak.molecular_formula_lowest_error
-                for molecular_formula in mspeak:
-                    if molecular_formula['O'] == o:
-                        if  not molecular_formula.is_isotopologue:
-                            freq_exp.append(mspeak.freq_exp)
-                            mass.append(mspeak.mz_exp)
-                            error.append(molecular_formula._calc_assigment_mass_error(mspeak.mz_exp))
-                            abundance.append(mspeak.abundance)
-                            mz_theo.append(molecular_formula.mz_theor)
-                            o_c.append(molecular_formula.O_C)
-                            h_c.append(molecular_formula.H_C)
-                            pylab.plot(molecular_formula['C'], molecular_formula.dbe, "o",   color=colors[molecular_formula['O']])
-                            #pylab.annotate(molecular_formula.class_label, (molecular_formula['C']+0.5, molecular_formula.dbe+0.5))
-                            pylab.annotate(mspeak.mz_exp, (molecular_formula['C']+0.5, molecular_formula.dbe+0.5))
+    exportMS.get_pandas_df()
 
-                        else:
-                        
-                            mass_iso.append(mspeak.mz_exp)
-                            abundance_iso.append(mspeak.abundance)
-                            error_iso.append(molecular_formula._calc_assigment_mass_error(mspeak.mz_exp))
-        
-        print(max(o_c), min(o_c))
-        #pylab.show()                
-        
-    if __name__ == "__main__":
-        #don not plot if running as unit test
-        
-        print(np.average(error), np.std(error), (len(error)+len(error_iso))/len(mass_spectrum)*100)
-        #pylab.plot(mass_spectrum.mz_exp, mass_spectrum.abundance)
-        #pylab.plot(mass, abundance, "o") 
-        #pylab.plot(mass_iso, abundance_iso, "o", color=colors_oxigen)  
-        pylab.show()  
-        pylab.plot(mass, error, "o")  
-        pylab.plot(mass_iso, error_iso, "o", color='red')  
-        pylab.show()  
-        pylab.plot( o_c, h_c, "o", color='red')  
-        pylab.show()  
-    '''
 if __name__ == "__main__":
     
     test_calibration()

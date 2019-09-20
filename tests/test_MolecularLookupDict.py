@@ -3,8 +3,10 @@ __date__ = "Jul 22, 2019"
 
 import time, sys, os, pytest
 sys.path.append(".")
+
 from enviroms.encapsulation.Constants import Atoms, Labels
 from enviroms.molecular_id.calc.MolecularLookupTable import  MolecularCombinations
+from enviroms.molecular_id.output.export import  MolecularLookUpDictExport
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings
 
 def create_lookup_dict(LookupTableSettings):
@@ -43,7 +45,6 @@ def test_molecular_lookup_dict():
     MoleculaLookupDictSettings.used_atom_valences['Cl'] =  valence_one
 
     time0 = time.time()
-    
     dict_molecular_lookup_table = create_lookup_dict(LookupDictSettings)
     
     mz = (dict_molecular_lookup_table.get('O2').get(Labels.radical_ion).get(394)[0].mz_theor)
@@ -53,6 +54,17 @@ def test_molecular_lookup_dict():
     assert(dbe == 2.0)
     time1 = time.time()
     
+    export_moldict = MolecularLookUpDictExport('test', dict_molecular_lookup_table)
+    export_moldict.run()
+    
+    export_moldict.output_type = 'csv'
+    export_moldict.run()
+    
+    export_moldict.output_type = 'pandas'
+    export_moldict.run()
+
+    export_moldict.get_pandas_df()
+
     print("create the molecular lookup table took %.2f seconds", time1-time0)
     
 if __name__ == '__main__':

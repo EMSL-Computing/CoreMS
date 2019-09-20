@@ -86,19 +86,19 @@ class MassSpecExport(Thread):
         
         df = pd.DataFrame(dict_data_list, columns=self.columns)
         
-        df.to_pickle(self.file_location + '.pkl',  index=False)
+        df.to_pickle(self.file_location + '.pkl')
 
     def to_excel(self, dict_data_list):
         
         df = pd.DataFrame(dict_data_list, columns=self.columns)
         
-        df.to_excel(self.file_location + '.xlsx',  index=False)
+        df.to_excel(self.file_location + '.xlsx')
 
     def to_csv(self, dict_data_list):
         
         import csv
         try:
-            with open(self.file_location, 'w', newline='') as csvfile:
+            with open(self.file_location +'.csv', 'w', newline='') as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=self.columns)
                 writer.writeheader()
                 for data in dict_data_list:
