@@ -36,7 +36,7 @@ def creat_mass_spectrum(file_location):
     bruker_transient = bruker_reader.get_transient()
 
     mass_spectrum_obj = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
-    #mass_spectrum_obj.plot_mz_domain_profile_and_noise_threshold()
+    mass_spectrum_obj.plot_mz_domain_profile_and_noise_threshold()
     
     # polariy need to be set if reading a text file
     #polariy = -1
@@ -66,31 +66,29 @@ def test_calibration():
     directory = os.path.join(os.getcwd(), "tests/tests_data/")
     file_name = os.path.normcase("ESI_NEG_SRFA.d/")
 
-    #file_name = "20190616_WK_ESFA_0pt2mgml_ESI_Neg_1pt4sFID_000001.ascii"
-
     file_location = directory + file_name
 
     mass_spectrum = creat_mass_spectrum(file_location)
     
     lookupTableSettings = MoleculaLookupDictSettings()
 
-    MoleculaSearchSettings.error_method = 'average'
+    MoleculaSearchSettings.error_method = 'None'
     MoleculaSearchSettings.min_mz_error = -5
-    MoleculaSearchSettings.max_mz_error = 1
+    MoleculaSearchSettings.max_mz_error = 5
     MoleculaSearchSettings.mz_error_range = 1
 
     find_formula_thread = FindOxygenPeaks(mass_spectrum, lookupTableSettings)
     find_formula_thread.run()
     mspeaks_results = find_formula_thread.get_list_found_peaks()
     
-    calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
+    #calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
     #calibrate.ledford_calibration()
-    calibrate.step_fit()
+    #calibrate.step_fit()
     mass_spectrum.clear_molecular_formulas()
 
     MoleculaSearchSettings.error_method = 'symmetrical'
-    MoleculaSearchSettings.min_mz_error = -1
-    MoleculaSearchSettings.max_mz_error = 1
+    MoleculaSearchSettings.min_mz_error = -3
+    MoleculaSearchSettings.max_mz_error = 3
     MoleculaSearchSettings.mz_error_range = 1
     MoleculaSearchSettings.mz_error_average = 0
     MoleculaSearchSettings.min_abun_error = -30 # percentage 

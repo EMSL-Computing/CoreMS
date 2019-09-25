@@ -15,12 +15,11 @@ from enviroms.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFor
 from enviroms.molecular_id.calc.ClusterFilter import ClusteringFilter
 from enviroms.transient.input.BrukerSolarix import ReadBrukerSolarix
 
-
 def calibrate(mass_spectrum_obj):
     
     MoleculaSearchSettings.error_method = 'None'
-    MoleculaSearchSettings.min_mz_error = 0.25
-    MoleculaSearchSettings.max_mz_error = -1
+    MoleculaSearchSettings.min_mz_error = -2
+    MoleculaSearchSettings.max_mz_error = 1
     MoleculaSearchSettings.mz_error_range = 1
     MoleculaSearchSettings.mz_error_average = 0
     MoleculaSearchSettings.min_abun_error = -30 # percentage
@@ -450,7 +449,7 @@ def plot_c_dbe_classes():
 
 if __name__ == "__main__":
     pass
-    '''
+    
     #TODO include search for Na/H exchange for carboxilic acids  (needs to load from close shell options)
     # i.e [M-H + Na + Cl]-
     from matplotlib import colors as mcolors
@@ -461,11 +460,10 @@ if __name__ == "__main__":
     #file_name = "20190911_Kew_APPI_Elliot_DRY_IAT100ms_50ulmin_000001.d"
     #file_name = "20190912_Kew_LDI_Elliot_DRY_C4_0_C4_000001.d"
     #file_name= "20190912_kew_ldi_elliot_spe_f4_anchorchip_0_f4_000001.d"
-    file_name = "20190912_Kew_LDI_Elliot_DRY_C4_AnchorChip_0_C4_000001.d"
+    #file_name = "20190912_Kew_LDI_Elliot_DRY_C4_AnchorChip_0_C4_000001.d"
     #file_name = "20190911_Kew_ESI_Elliot_DRY_IAT100ms_000001.d"
-    #file_name = "20190911_Kew_ESI_Elliot_SPE_IAT100ms_000002.d"
+    file_name = "20190911_Kew_ESI_Elliot_SPE_IAT100ms_000002.d"
     #file_name = "20190912_Kew_LDI_Elliot_Whole_B15_1500um_0_B15_000001.d"
-    
     
     file_location = os.path.join(os.getcwd(), "data/201909_ldiesiappi_elliot/") + os.path.normcase(file_name)
 
@@ -483,16 +481,16 @@ if __name__ == "__main__":
 
     mass_spectrum_obj = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
 
-    mass_spectrum_obj.plot_mz_domain_profile_and_noise_threshold()
+    #mass_spectrum_obj.plot_mz_domain_profile_and_noise_threshold()
     
-    lookupTableSettings = MoleculaLookupTableSettings()
+    lookupTableSettings = MoleculaLookupDictSettings()
     
     #plot_resolving_power()
 
-    #calibrate(mass_spectrum_obj)
+    calibrate(mass_spectrum_obj)
 
     MoleculaSearchSettings.error_method = 'None'
-    MoleculaSearchSettings.min_mz_error = 0.25
+    MoleculaSearchSettings.min_mz_error = -1
     MoleculaSearchSettings.max_mz_error = 1
     MoleculaSearchSettings.mz_error_range = 1
     MoleculaSearchSettings.mz_error_average = 0
@@ -519,7 +517,7 @@ if __name__ == "__main__":
 
     #search_nx(mass_spectrum_obj)
 
-    #search_ox(mass_spectrum_obj)
+    search_ox(mass_spectrum_obj)
 
     #search_nox(mass_spectrum_obj)
 
@@ -540,5 +538,5 @@ if __name__ == "__main__":
 
     #plot_c_dbe_classes()
 
-    #plot_error_distribution()
-    '''
+    plot_error_distribution()
+  

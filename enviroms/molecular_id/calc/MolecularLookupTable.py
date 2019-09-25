@@ -5,7 +5,7 @@ import itertools
 import multiprocessing
 from enviroms.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
-from enviroms.encapsulation.Constants import Labels
+from enviroms.encapsulation.constants import Labels
 from copy import deepcopy
 
 class MolecularCombinations:

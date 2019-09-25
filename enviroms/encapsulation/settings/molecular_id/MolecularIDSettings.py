@@ -2,7 +2,7 @@ class MoleculaLookupDictSettings:
     
     # C, H, N, O, S and P atoms are ALWAYS needed at usedAtoms
     # if you don't want to include one of thoses atoms set the max and min at 0
-    # you can include any atom listed at Atoms class inside Constants module
+    # you can include any atom listed at Atoms class inside constants module
     # make sure to include the selected covalence at the used_atoms_valences when adding atoms 
     # to the usedAtoms dicts 
     # NOTE : Adducts atoms have zero covalence
@@ -26,7 +26,7 @@ class MoleculaLookupDictSettings:
         
         self.usedAtoms = {'C': (1, 100),
                     'H': (4, 200),
-                    'O': (0, 20),
+                    'O': (0, 18),
                     'N': (0, 0),
                     'S': (0, 0),
                     'P': (0, 0),

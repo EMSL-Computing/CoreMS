@@ -49,7 +49,7 @@ class test_enviroms(Command):
 # This call to setup() does all the work
 setup(
     name="enviroms",
-    version="0.1.0",
+    version="1.0.0-alpha",
     description="Object Oriented Mass Spectrometry ToolBox for small molecules",
     long_description=README,
     long_description_content_type="text/markdown",

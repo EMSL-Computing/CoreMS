@@ -6,7 +6,7 @@ from threading import Thread
 
 import pandas as pd
 
-from enviroms.encapsulation.Constants import Atoms
+from enviroms.encapsulation.constants import Atoms
 
 class MolecularLookUpDictExport(Thread):
     '''

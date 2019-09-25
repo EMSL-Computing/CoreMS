@@ -55,7 +55,6 @@ class FindOxygenPeaks(Thread):
         self.min_0 = min_O
         self.max_O = max_O
         
-
     def run(self):
         
         usedAtoms = deepcopy(self.lookupTableSettings.usedAtoms)
@@ -63,8 +62,12 @@ class FindOxygenPeaks(Thread):
         #resets the used atoms to look only for oxygened organic compounds
         self.lookupTableSettings.usedAtoms = {'O': (self.min_0, self.max_O),
                                               'N' : (0, 0),
-                                              'S' : (0, 0),
-                                              'P' : (0, 0) }
+                                              'S' : (0, 1),
+                                              'P' : (0, 0), 
+                                              'Cl': (0, 1),}
+        
+        self.lookupTableSettings.isAdduct = True
+
         self.lookupTableSettings.usedAtoms['H'] = usedAtoms['H']
         self.lookupTableSettings.usedAtoms['C'] = usedAtoms['C']
         
@@ -84,8 +87,9 @@ class FindOxygenPeaks(Thread):
                                                            self.lookupTableSettings,
                                                            deltamz=14)
         
-        #possible_mol_formulas_objs = self.build_database(molecular_formula_obj_reference)
-        #reset indexes after done with operation that includes a filter (i.e. ClusteringFilter().filter_kendrick())
+        # possible_mol_formulas_objs = self.build_database(molecular_formula_obj_reference)
+        # reset indexes after done with operation that includes a filter (i.e. ClusteringFilter().filter_kendrick())
+        
         self.mass_spectrum_obj.reset_indexes()
         self.lookupTableSettings.usedAtoms = usedAtoms
 
@@ -152,7 +156,6 @@ class FindOxygenPeaks(Thread):
         abun_std = std(abundances, axis=0)
         upper_limit = abun_mean + 7* abun_std
        
-
         list_most_abundant_peaks = list()
 
         min_mz = mass_spectrum_obj.min_mz_exp

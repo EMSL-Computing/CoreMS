@@ -1,8 +1,8 @@
 import time
 
 #from matplotlib import rcParamsDefault, rcParams
-from numpy import array, power, sqrt, average, flip
-from enviroms.encapsulation.Constants import Labels
+from numpy import array, power
+from enviroms.encapsulation.constants import Labels
 from enviroms.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting
 from enviroms.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
 from enviroms.mass_spectrum.factory.MSPeakClasses import MSPeak
@@ -201,23 +201,6 @@ class MassSpecBase(MassSpecCalc):
     def resolving_power(self):
         self.check_mspeaks()
         return array([mspeak.resolving_power for mspeak in self.mspeaks])
-
-    def resolving_power_calc(self, B, T, limit):
-        '''
-        low pressure limits, 
-        T: float 
-            transient time
-        B: float
-            Magnetic Filed Strength (Tesla)    
-        
-        reference
-        Marshall et al. (Mass Spectrom Rev. 1998 Jan-Feb;17(1):1-35.)
-        DOI: 10.1002/(SICI)1098-2787(1998)17:1<1::AID-MAS1>3.0.CO;2-K
-        
-        '''
-        rpe = lambda m, z: (1.274e7 * z * B * T)/(m*z)
-        self.check_mspeaks()
-        return array([rpe(mspeak.mz_exp, mspeak.ion_charge) for mspeak in self.mspeaks])
 
     @property
     def signal_to_noise(self):

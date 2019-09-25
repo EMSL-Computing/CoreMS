@@ -142,6 +142,21 @@ class MolecularFormula(MolecularFormulaCalc):
             
             raise Exception("Molecular formula identification not performed yet")    
     
+    def to_string_formated(self):
+        
+        SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
+        SUP = str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹")
+
+        if self._d_molecular_formula:
+            formula_srt = ''
+            for atom in Atoms.atoms_order:
+                if atom in self.to_dict.keys():
+                    formula_srt += atom.translate(SUP) + str(int(self.to_dict.get(atom))).translate(SUB)
+            return formula_srt
+        
+        else:
+            raise Exception("Molecular formula identification not performed yet")    
+
     @property
     def to_dict(self):
         return self._d_molecular_formula

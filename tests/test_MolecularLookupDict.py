@@ -4,7 +4,7 @@ __date__ = "Jul 22, 2019"
 import time, sys, os, pytest
 sys.path.append(".")
 
-from enviroms.encapsulation.Constants import Atoms, Labels
+from enviroms.encapsulation.constants import Atoms, Labels
 from enviroms.molecular_id.calc.MolecularLookupTable import  MolecularCombinations
 from enviroms.molecular_id.output.export import  MolecularLookUpDictExport
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings
@@ -34,7 +34,12 @@ def test_molecular_lookup_dict():
     # C, H, N, O, S and P atoms are ALWAYS needed in the dictionary
     #the defaults values are defined at the encapsulation MolecularSpaceTableSetting    
     LookupDictSettings.usedAtoms['C'] = (1,90)
-    
+    LookupDictSettings.usedAtoms['H'] = (4,200)
+    LookupDictSettings.usedAtoms['O'] = (4,20)
+    #LookupDictSettings.usedAtoms['H'] = (4,200)
+    #LookupDictSettings.usedAtoms['H'] = (4,200)
+    #LookupDictSettings.usedAtoms['H'] = (4,200)
+
     #some atoms has more than one covalence state and the most commun will be used
     # adduct atoms needs covalence 0
     LookupDictSettings.usedAtoms['Cl'] = (0,0)
@@ -63,7 +68,7 @@ def test_molecular_lookup_dict():
     export_moldict.output_type = 'pandas'
     export_moldict.run()
 
-    export_moldict.get_pandas_df()
+    df = export_moldict.get_pandas_df()
 
     print("create the molecular lookup table took %.2f seconds", time1-time0)
     
