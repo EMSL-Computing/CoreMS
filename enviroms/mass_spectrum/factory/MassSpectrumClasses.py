@@ -2,7 +2,7 @@ import time
 
 #from matplotlib import rcParamsDefault, rcParams
 from numpy import array, power
-from enviroms.encapsulation.constants import Labels
+from enviroms.encapsulation.constant import Labels
 from enviroms.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting
 from enviroms.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
 from enviroms.mass_spectrum.factory.MSPeakClasses import MSPeak

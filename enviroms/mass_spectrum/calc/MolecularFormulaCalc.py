@@ -1,8 +1,8 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 24, 2019"
 
-from enviroms.encapsulation.constants import Atoms
-from enviroms.encapsulation.constants import Labels
+from enviroms.encapsulation.constant import Atoms
+from enviroms.encapsulation.constant import Labels
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings
 from IsoSpecPy import IsoSpecPy
 from numpy import exp

@@ -2,7 +2,7 @@ from copy import deepcopy
 from collections import OrderedDict
 from enviroms.mass_spectrum.calc.MolecularFormulaCalc import MolecularFormulaCalc
 from enviroms.encapsulation.settings.input.ProcessingSetting import MassSpecPeakSetting
-from enviroms.encapsulation.Constants import Atoms, Labels
+from enviroms.encapsulation.constant import Atoms, Labels
 
 
 

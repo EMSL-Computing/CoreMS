@@ -5,7 +5,7 @@ from ctypes import c_double, c_long
 from enviroms.encapsulation.settings.input import InputParameters
 from enviroms.mass_spectra.factory.LC_Class import LCMSBase
 from enviroms.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
-from enviroms.encapsulation.constants import Labels
+from enviroms.encapsulation.constant import Labels
 from pandas import DataFrame
 from threading import Thread
 import multiprocessing

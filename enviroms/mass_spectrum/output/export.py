@@ -1,7 +1,7 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Set 06, 2019"
 
-from enviroms.encapsulation.constants import Atoms
+from enviroms.encapsulation.constant import Atoms
 from threading import Thread
 import pandas as pd
 
