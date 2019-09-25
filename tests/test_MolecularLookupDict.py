@@ -35,11 +35,9 @@ def test_molecular_lookup_dict():
     #the defaults values are defined at the encapsulation MolecularSpaceTableSetting    
     LookupDictSettings.usedAtoms['C'] = (1,90)
     LookupDictSettings.usedAtoms['H'] = (4,200)
-    LookupDictSettings.usedAtoms['O'] = (4,20)
-    #LookupDictSettings.usedAtoms['H'] = (4,200)
-    #LookupDictSettings.usedAtoms['H'] = (4,200)
-    #LookupDictSettings.usedAtoms['H'] = (4,200)
-
+    LookupDictSettings.usedAtoms['O'] = (2,10)
+    
+    LookupDictSettings.isRadical = True
     #some atoms has more than one covalence state and the most commun will be used
     # adduct atoms needs covalence 0
     LookupDictSettings.usedAtoms['Cl'] = (0,0)
