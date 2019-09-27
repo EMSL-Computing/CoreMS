@@ -5,7 +5,7 @@ import os
 import sys
 import time
 import pytest
-sys.path.append(".")
+sys.path.append('.')
 from enviroms.mass_spectrum.factory.MSPeakClasses import MSPeak
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings
 from enviroms.mass_spectrum.input.textMassList import Read_MassList
@@ -18,7 +18,7 @@ def creat_mass_spectrum(file_location):
     bruker_reader = ReadBrukerSolarix(file_location)
 
     bruker_transient = bruker_reader.get_transient()
-
+    
     mass_spectrum_obj = bruker_transient.get_mass_spectrum(
         plot_result=False, auto_process=True)
 

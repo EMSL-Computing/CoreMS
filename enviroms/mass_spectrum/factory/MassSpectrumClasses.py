@@ -157,16 +157,21 @@ class MassSpecBase(MassSpecCalc):
     def process_mass_spec(self):
 
         self.cal_noise_treshould()
+        
         self.find_peaks()
+        
         self.reset_indexes()
    
     def cal_noise_treshould(self, auto=True):
 
-        if Labels.simulated_profile:
+        if self.label == Labels.simulated_profile:
+            
             self._baselise_noise, self._baselise_noise_std = 0.1, 1
+        
         else:
+            print('HERRREEEE')
             self._baselise_noise, self._baselise_noise_std = self.run_noise_threshould_calc(auto)
-
+            
     def scale_plot_size(self, factor=1.5):
 
         default_dpi = rcParamsDefault["figure.dpi"]

@@ -168,7 +168,7 @@ class PeakPicking(object):
             else: raise Exception("Label '%s' not recognized inside : %s" % (self.label, self.__str__()))
             
             self.add_mspeak(self.polarity, mz_exp_centroid, abund[current_index] , peak_resolving_power, s2n, current_index, exp_freq=freq_centr)
-    
+        
     def get_threshold(self, intes):
         
         threshold_method = MassSpectrumSetting.threshold_method

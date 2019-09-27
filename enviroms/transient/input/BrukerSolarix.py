@@ -73,7 +73,7 @@ class ReadBrukerSolarix(object):
 
         data = fromfile(self.transient_data_filename, dtype=dt)
         # print(number_data_points)
-
+        
         output_parameters = dict()
 
         output_parameters["label"] = "Bruker_Frequency"

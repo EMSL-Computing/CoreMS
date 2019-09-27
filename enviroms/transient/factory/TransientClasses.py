@@ -120,7 +120,7 @@ class Transient(TransientCalculations):
 
         self.d_params["filename"] = self.filename
         self.d_params["dir_location"] = self.dir_location
-
+        
         return MassSpecfromFreq(
             frequency_domain, magnitude, self.d_params, auto_process=auto_process
         )
