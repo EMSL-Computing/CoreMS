@@ -17,10 +17,10 @@ class MassSpectrumSetting():
     relative_abundace_threshold = 5# from 1-100
     
     min_noise_mz = 100.0
-    max_noise_mz = 200.0    
+    max_noise_mz = 1200.0  
     
     min_picking_mz = 100.0
-    max_picking_mz = 1000.0
+    max_picking_mz = 1200.0
     
 class MassSpecPeakSetting():
     

@@ -27,7 +27,12 @@ class MassSpecExport(Thread):
 
         # collect all assigned atoms and order them accordingly to the Atoms.atoms_order list 
         self.atomos_order_list = self.get_all_used_atoms_in_ordem()
+        
+        self._init_columns()
 
+        
+    def _init_columns(self):
+        
         #column labels in order
         self.columns = [    'Index',
                             'Measured m/z',
@@ -45,7 +50,7 @@ class MassSpecExport(Thread):
                             'Is Isotopologue',
                             #'Aromaticity Index',
                             ]
-    
+
     @property
     def output_type(self):
         return self._output_type
@@ -120,7 +125,7 @@ class MassSpecExport(Thread):
 
         return sorted(all_used_atoms, key = sort_method)
 
-    def get_list_dict_data(self, include_no_match=False, include_isotopolgues=True, 
+    def get_list_dict_data(self, include_no_match=True, include_isotopolgues=True, 
                             isotopologue_inline=False, no_match_inline=False):
         
         dict_data_list = []

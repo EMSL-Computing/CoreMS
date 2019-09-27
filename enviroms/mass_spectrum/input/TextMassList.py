@@ -1,6 +1,6 @@
 from pandas import read_csv
 
-from enviroms.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroid
+from enviroms.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroid, MassSpecProfile
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
@@ -11,7 +11,7 @@ class Read_MassList(object):
     classdocs
     '''
 
-    def __init__(self, file_location, polarity, delimiter="  ", centroid=True):
+    def __init__(self, file_location, polarity, delimiter="  ", isCentroid=True):
         
         '''
         Constructor
@@ -21,7 +21,6 @@ class Read_MassList(object):
         #change this dict VALUES to match your labels, THE ORDER WON'T MATTER
         self.name_dict = {'m/z':'m/z', 'Res.':'Resolving Power', 'I':'Abundance' , "S/N":"S/N"}
         
-        
         self.__expected_columns = ['m/z', 'Abundance', 'S/N', 'Resolving Power']
         
         self.file_location = file_location
@@ -30,7 +29,7 @@ class Read_MassList(object):
         
         self.delimiter  = delimiter
         
-        self.centroid  = centroid
+        self.isCentroid  = isCentroid
     
     
     def get_mass_spectrum(self, auto_process=True):
@@ -51,6 +50,10 @@ class Read_MassList(object):
             
             return MassSpecCentroid(dataframe, output_parameters, auto_process=auto_process)
 
+        else:
+            
+            return MassSpecProfile(dataframe, output_parameters, auto_process=auto_process)
+    
     def get_output_parameters(self, polarity):
         
         output_parameters = dict()

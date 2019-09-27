@@ -47,6 +47,9 @@ class PeakPicking(object):
             elif self.label == Labels.bruker_profile:
                 self.calc_centroid(self.mz_exp_profile, self.abundance_profile, self.freq_exp_profile)
             
+            elif self.label == Labels.simulated_profile:
+                self.calc_centroid(self.mz_exp_profile, self.abundance_profile, self.freq_exp_profile)
+            
             else: raise Exception("Unknow mass spectrum type")
             #x = threading.Thread(target=self.calc_centroid, args=(mz, abudance, freq))
             #x.start()
@@ -155,6 +158,13 @@ class PeakPicking(object):
                 mz_exp_centroid, freq_centr, intes_centr = self.find_apex_fit_quadratic(mass, abund, freq, current_index)
                 s2n = intes_centr/self.baselise_noise_std
 
+            elif self.label == Labels.simulated_profile: 
+
+                peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
+                mz_exp_centroid, intes_centr = self.use_the_max(mass, abund, current_index)
+                s2n = intes_centr/self.baselise_noise_std
+                freq_centr = None
+
             else: raise Exception("Label '%s' not recognized inside : %s" % (self.label, self.__str__()))
             
             self.add_mspeak(self.polarity, mz_exp_centroid, abund[current_index] , peak_resolving_power, s2n, current_index, exp_freq=freq_centr)
@@ -222,6 +232,10 @@ class PeakPicking(object):
                 
         return mz_exp_centroid, freq_centr, abund[current_index]
     
+    def use_the_max(self, mass, abund, current_index):
+        
+            return mass[current_index], abund[current_index]
+
     def old_calc_centroid(self, massa, intes, freq_exp):
 
         #this function is too slow, may need slice and apply multi processing,
@@ -230,40 +244,18 @@ class PeakPicking(object):
         do_freq = freq_exp.any()
         
         for x in range(len(intes)-1):
-                        if (intes[x]/factor) > abudance_thresould:
-                            if  intes[x] > intes[x +1] and intes[x] > intes[x - 1]:# and (intes[x]/factor) > abudance_thresould:#and :
+            if (intes[x]/factor) > abudance_thresould:
+                
+                if  intes[x] > intes[x +1] and intes[x] > intes[x - 1]:# and (intes[x]/factor) > abudance_thresould:#and :
+                    intes_centr = intes[x]
+                    mz_exp_centroid = massa[x]
+                    
+                    if do_freq:
+                        freq_centr = freq_exp[x]
+                    else:
+                        freq_centr = None
 
-                                z = poly1d(polyfit([massa[x - 1], massa[x], massa[x +1]], [intes[x - 1],intes[x], intes[x +1]], 2))
-                                a = z[2]
-                                b = z[1]
+                    peak_resolving_power = self.calculate_resolving_power(intes, massa, x)
 
-                                calculated = -b/(2*a)
-                                if calculated < 1 or int(calculated) != int(massa[x]):
-
-                                    intes_centr = intes[x]
-                                    mz_exp_centroid = massa[x]
-                                else:
-                                    #use the tallest point
-                                    intes_centr = intes[x]
-                                    mz_exp_centroid = calculated # cria lista de intensidade centroide
-
-                                if do_freq:
-
-                                    z = poly1d(polyfit([freq_exp[x - 1],freq_exp[x],freq_exp[x +1]], [intes[x - 1],intes[x],intes[x +1]], 2))
-                                    a = z[2]
-                                    b = z[1]
-
-                                    calculated_freq = -b/(2*a)
-
-                                    if calculated_freq < 1 or int(calculated_freq) != freq_exp[x]:
-                                        freq_centr = freq_exp[x]
-
-                                    else:
-                                        freq_centr = calculated_freq # cria lista de intensidade centroide
-                                else:
-                                    freq_centr = None
-
-                                peak_resolving_power = self.calculate_resolving_power(intes, massa, x)
-
-                                #parms ion_charge, mz_exp, abundance, resolving_power, signal_to_noise, massspec_index,
-                                self.add_mspeak(self.polarity, mz_exp_centroid, intes_centr, peak_resolving_power, intes_centr/self.baselise_noise_std, x, exp_freq=freq_centr)
+                    #parms ion_charge, mz_exp, abundance, resolving_power, signal_to_noise, massspec_index,
+                    self.add_mspeak(self.polarity, mz_exp_centroid, intes_centr, peak_resolving_power, intes_centr/self.baselise_noise_std, x, exp_freq=freq_centr)

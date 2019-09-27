@@ -2,11 +2,12 @@ import time
 
 #from matplotlib import rcParamsDefault, rcParams
 from numpy import array, power
+import matplotlib.pyplot as plt
+
 from enviroms.encapsulation.constant import Labels
 from enviroms.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting
 from enviroms.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
 from enviroms.mass_spectrum.factory.MSPeakClasses import MSPeak
-import matplotlib.pyplot as plt
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
@@ -161,9 +162,10 @@ class MassSpecBase(MassSpecCalc):
    
     def cal_noise_treshould(self, auto=True):
 
-        self._baselise_noise, self._baselise_noise_std = self.run_noise_threshould_calc(
-            auto
-        )
+        if Labels.simulated_profile:
+            self._baselise_noise, self._baselise_noise_std = 0.1, 1
+        else:
+            self._baselise_noise, self._baselise_noise_std = self.run_noise_threshould_calc(auto)
 
     def scale_plot_size(self, factor=1.5):
 
@@ -431,7 +433,7 @@ class MassSpecBase(MassSpecCalc):
 
 class MassSpecProfile(MassSpecBase):
     '''
-    - A iterative mass spectrum class when entry point is on a profile format
+    - A iterative mass spectrum class when the entry point is on profile format
     - Stores the profile data and instrument settings
     - Iteration over a list of MSPeaks classes stored at the _mspeaks atributes
     - _mspeaks is populated under the hood by calling process_mass_spec method
@@ -461,7 +463,7 @@ class MassSpecProfile(MassSpecBase):
     see also: MassSpecBase(), MassSpecfromFreq(), MassSpecProfile()
     '''
 
-    def __init__(self, dataframe, d_params, auto_process=True):
+    def __init__(self, dataframe, d_params, auto_process=True, auto_noise=True):
         """
         method docs
         """
@@ -471,11 +473,12 @@ class MassSpecProfile(MassSpecBase):
         abundance = dataframe["Abundance"].values
         super().__init__(mz_exp, abundance, d_params)
         if auto_process:
-            self.process_mass_spec()
+            self.process_mass_spec(auto_noise)
 
     @overrides(MassSpecBase)
-    def process_mass_spec(self):
-        self.cal_noise_treshould()
+    
+    def process_mass_spec(self, autoNoise):
+        self.cal_noise_treshould(auto=autoNoise)
         self.find_peaks()
         self.reset_indexes()
         

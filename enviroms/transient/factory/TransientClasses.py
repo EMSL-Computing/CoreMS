@@ -110,7 +110,7 @@ class Transient(TransientCalculations):
 
     def get_mass_spectrum(self, auto_process=True, plot_result=True):
 
-        plt.figure(figsize=(13, 8))
+        #plt.figure(figsize=(13, 8))
 
         frequency_domain, magnitude = self.get_frequency_domain(plot_result=plot_result)
 
