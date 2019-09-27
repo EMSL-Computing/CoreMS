@@ -46,7 +46,7 @@ class Read_MassList(object):
  
         output_parameters = self.get_output_parameters(self.polarity)
             
-        if self.centroid:
+        if self.isCentroid:
             
             return MassSpecCentroid(dataframe, output_parameters, auto_process=auto_process)
 

@@ -112,7 +112,6 @@ class ReadBrukerSolarix(object):
         for key, values in d_params.items():
             print(key, values)
         """
-
     def fix_freq_limits(self, d_parameters):
 
         highfreq = float(d_parameters.get("EXC_Freq_High"))

@@ -36,7 +36,7 @@ def creat_mass_spectrum(file_location):
     bruker_transient = bruker_reader.get_transient()
 
     mass_spectrum_obj = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
-    mass_spectrum_obj.plot_mz_domain_profile_and_noise_threshold()
+    #mass_spectrum_obj.plot_mz_domain_profile_and_noise_threshold()
     
     # polariy need to be set if reading a text file
     #polariy = -1
@@ -78,7 +78,9 @@ def test_calibration():
     MoleculaSearchSettings.mz_error_range = 1
 
     find_formula_thread = FindOxygenPeaks(mass_spectrum, lookupTableSettings)
-    find_formula_thread.run()
+    find_formula_thread.start()
+    find_formula_thread.join()
+    
     mspeaks_results = find_formula_thread.get_list_found_peaks()
     
     #calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
