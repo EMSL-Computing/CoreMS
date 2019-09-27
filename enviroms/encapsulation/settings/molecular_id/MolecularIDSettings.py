@@ -26,7 +26,7 @@ class MoleculaLookupDictSettings:
         
         self.usedAtoms = {'C': (1, 100),
                     'H': (4, 200),
-                    'O': (0, 18),
+                    'O': (0, 4),
                     'N': (0, 0),
                     'S': (0, 0),
                     'P': (0, 0),
