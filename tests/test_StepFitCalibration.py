@@ -10,7 +10,7 @@ from matplotlib import pyplot as pylab
 
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings, MoleculaLookupDictSettings
 from enviroms.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration
-#from enviroms.mass_spectrum.input.TextMassList import Read_MassList
+#from enviroms.mass_spectrum.input.textMassList import Read_MassList
 from enviroms.molecular_id.calc.FindOxigenPeaks import FindOxygenPeaks
 from enviroms.transient.input.BrukerSolarix import ReadBrukerSolarix
 from enviroms.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
