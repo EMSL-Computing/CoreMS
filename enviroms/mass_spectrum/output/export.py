@@ -18,7 +18,7 @@ class MassSpecExport(Thread):
         '''
         Thread.__init__(self)
 
-        self.file_location = out_file_path
+        self.output_file = out_file_path
 
         #'excel', 'csv' or 'pandas'
         self.output_type = output_type
@@ -84,26 +84,26 @@ class MassSpecExport(Thread):
         self.columns.extend(self.atomos_order_list)
         dict_data_list = self.get_list_dict_data()
         df = pd.DataFrame(dict_data_list, columns=self.columns)
-        df.name =  self.output_type
+        df.name =  self.output_file
         return df
 
     def to_pandas(self, dict_data_list):
         
         df = pd.DataFrame(dict_data_list, columns=self.columns)
         
-        df.to_pickle(self.file_location + '.pkl')
+        df.to_pickle(self.output_file + '.pkl')
 
     def to_excel(self, dict_data_list):
         
         df = pd.DataFrame(dict_data_list, columns=self.columns)
         
-        df.to_excel(self.file_location + '.xlsx')
+        df.to_excel(self.output_file + '.xlsx')
 
     def to_csv(self, dict_data_list):
         
         import csv
         try:
-            with open(self.file_location +'.csv', 'w', newline='') as csvfile:
+            with open(self.output_file +'.csv', 'w', newline='') as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=self.columns)
                 writer.writeheader()
                 for data in dict_data_list:

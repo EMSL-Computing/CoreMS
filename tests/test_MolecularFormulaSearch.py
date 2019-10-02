@@ -51,6 +51,7 @@ def test_molecular_formula_search():
     
     time1 = time.time()
     LookupTableSettings = MoleculaLookupDictSettings()
+    
     SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum, LookupTableSettings)
     mass_spectrum.reset_indexes()
 
@@ -63,6 +64,7 @@ def test_molecular_formula_search():
     abundance = list()
     
     for mspeak in mass_spectrum:
+        
         if mspeak.is_assigned:
             i += 1
             for mformula in mspeak:
@@ -74,6 +76,7 @@ def test_molecular_formula_search():
             pass
         
    
+    
     #from matplotlib import pylab
     #pylab.plot(mass_spectrum.mz_exp, mass_spectrum.abundance, color='g') 
     #pylab.plot(mass, abundance, "o")  

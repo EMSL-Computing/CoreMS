@@ -37,11 +37,11 @@ class MoleculaLookupDictSettings:
         self.min_mz = 100
 
         #max_mz changes automatically with mass spectrum
-        self.max_mz = 800
+        self.max_mz = 1200
 
         self.min_dbe = 0
 
-        self.max_dbe = 50
+        self.max_dbe = 100
 
         #overwrites the dbe limits above to DBE = (C + heteroatoms) * 0.9
         self.use_pah_line_rule = False

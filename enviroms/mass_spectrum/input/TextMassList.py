@@ -21,7 +21,7 @@ class Read_MassList(object):
         #change this dict VALUES to match your labels, THE ORDER WON'T MATTER
         self.name_dict = {'m/z':'m/z', 'Res.':'Resolving Power', 'I':'Abundance' , "S/N":"S/N"}
         
-        self.__expected_columns = ['m/z', 'Abundance', 'S/N', 'Resolving Power']
+        self._expected_columns = ['m/z', 'Abundance', 'S/N', 'Resolving Power']
         
         self.file_location = file_location
         
@@ -87,7 +87,7 @@ class Read_MassList(object):
         for column_name in dataframe.columns:
             
             expected_column_name = self.name_dict.get(column_name)
-            if expected_column_name not in self.__expected_columns:
+            if expected_column_name not in self._expected_columns:
                 
                 #dataframe = dataframe.drop(column_name, axis=1)
                 del dataframe[column_name]
@@ -99,7 +99,7 @@ class Read_MassList(object):
         
         missing_columns = []
         
-        for column_name in self.__expected_columns:
+        for column_name in self._expected_columns:
             
             user_column_name = inverted_name_dict.get(column_name)
             
