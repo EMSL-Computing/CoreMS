@@ -8,10 +8,9 @@ from itertools import product
 
 from enviroms.encapsulation.constant import Labels
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
-from enviroms.molecular_id.calc.FindOxigenPeaks import FindOxygenPeaks
-from enviroms.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulaWorker
-from enviroms.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
-from enviroms.molecular_id.calc.MolecularLookupTable import MolecularCombinations
+from enviroms.molecular_id.search.FindOxigenPeaks import FindOxygenPeaks
+from enviroms.molecular_id.search.MolecularFormulaSearch import SearchMolecularFormulaWorker, SearchMolecularFormulas
+from enviroms.molecular_id.factory.MolecularLookupTable import MolecularCombinations
 
 class OxigenPriorityAssignment(Thread):
 

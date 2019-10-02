@@ -7,7 +7,7 @@ from os.path import join
 from enviroms.encapsulation.constant import Labels
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings, MoleculaSearchSettings
 from enviroms.mass_spectrum.input.textMassList import Read_MassList
-from enviroms.molecular_id.calc.MolecularLookupTable import  MolecularCombinations
+from enviroms.molecular_id.factory.MolecularLookupTable import  MolecularCombinations
 
 class SearchMolecularFormulas:
      

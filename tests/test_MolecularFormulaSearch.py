@@ -9,7 +9,7 @@ sys.path.append('.')
 from enviroms.mass_spectrum.factory.MSPeakClasses import MSPeak
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings
 from enviroms.mass_spectrum.input.textMassList import Read_MassList
-from enviroms.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
+from enviroms.molecular_id.search.MolecularFormulaSearch import SearchMolecularFormulas
 from enviroms.molecular_id.calc.ClusterFilter import ClusteringFilter
 from enviroms.transient.input.BrukerSolarix import ReadBrukerSolarix
 

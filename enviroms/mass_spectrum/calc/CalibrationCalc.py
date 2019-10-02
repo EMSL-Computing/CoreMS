@@ -2,7 +2,7 @@
 from builtins import NotImplementedError
 
 import numpy as np
-from enviroms.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
+from enviroms.molecular_id.search.MolecularFormulaSearch import SearchMolecularFormulas
 from matplotlib import pyplot as plt
 import matplotlib
 

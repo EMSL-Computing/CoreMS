@@ -5,7 +5,7 @@ from copy import deepcopy
 from threading import Thread
 from numpy import average, std
 from enviroms.molecular_id.calc.ClusterFilter import ClusteringFilter
-from enviroms.molecular_id.calc.MolecularFormulaSearch import SearchMolecularFormulas
+from enviroms.molecular_id.search.MolecularFormulaSearch import SearchMolecularFormulas
 from enviroms.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
 
 

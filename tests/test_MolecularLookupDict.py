@@ -5,7 +5,7 @@ import time, sys, os, pytest
 sys.path.append(".")
 
 from enviroms.encapsulation.constant import Atoms, Labels
-from enviroms.molecular_id.calc.MolecularLookupTable import  MolecularCombinations
+from enviroms.molecular_id.factory.MolecularLookupTable import MolecularCombinations
 from enviroms.molecular_id.output.export import  MolecularLookUpDictExport
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings
 
