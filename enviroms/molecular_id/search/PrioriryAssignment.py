@@ -5,7 +5,6 @@ from copy import deepcopy
 from threading import Thread
 from itertools import product
 
-
 from enviroms.encapsulation.constant import Labels
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
 from enviroms.molecular_id.search.FindOxigenPeaks import FindOxygenPeaks

@@ -6,12 +6,15 @@ from copy import deepcopy
 import itertools
 import multiprocessing
 import pickle
+import codecs
 
 from pymongo import MongoClient
 
 from enviroms.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
 from enviroms.encapsulation.constant import Labels
+
+
 
 class MolecularCombinations:
      
@@ -46,21 +49,20 @@ class MolecularCombinations:
         print('classes_list', len(classes_list))
 
         '''exited with code=0 in 6.9 seconds windows and 5.9 Linux with 12 logical CPUs'''
-        p = multiprocessing.Pool(number_of_process)
+        p = multiprocessing.Pool(1)
         args = [(class_tuple, c_h_combinations, settings) for class_tuple in classes_list]
         p.map(CombinationsWorker(), args)
         p.close()
         p.join()
         '''
-        args = [(class_tuple, isProtonated, isRadical, use_pah_line_rule, usedAtoms, 
-                min_dbe, max_dbe, ionCharge, c_h_combinations) for class_tuple in classes_list]
+        args = [(class_tuple, c_h_combinations, settings) for class_tuple in classes_list]
         results = list()
         
         for arg in args:
             #exited with code=0 in 17.444 seconds
             results.append(CombinationsWorker().get_combinations(*arg))
-        '''
         
+        '''
     def get_c_h_combination(self, settings):
 
         # return dois dicionarios com produto das combinacooes de hidrogenio e carbono
@@ -250,10 +252,10 @@ class CombinationsWorker:
 
             carbon_hidrogen_combination = c_h_combinations.get(par_ou_impar)
 
-            list_mf = self.push_mf_db(carbon_hidrogen_combination, ion_type, class_dict, 
+            list_mf = self.get_mol_formulas(carbon_hidrogen_combination, ion_type, class_dict, 
                                                     use_pah_line_rule, usedAtoms, min_dbe, max_dbe,
                                                     min_mz, max_mz, hc_filter,oc_filter, ionCharge)
-            self.insert_formulas_db(list_mf)
+            self.insert_formulas_mongo(list_mf)
             
         if isRadical:
 
@@ -263,31 +265,41 @@ class CombinationsWorker:
 
             carbon_hidrogen_combination = c_h_combinations.get(par_ou_impar)
 
-            list_mf = self.push_mf_db(carbon_hidrogen_combination, ion_type, class_dict, 
+            list_mf = self.get_mol_formulas(carbon_hidrogen_combination, ion_type, class_dict, 
                                                     use_pah_line_rule, usedAtoms, min_dbe, max_dbe, 
                                                     min_mz, max_mz, hc_filter,oc_filter, ionCharge)
             
-            self.insert_formulas_db(list_mf)
+            self.insert_formulas_mongo(list_mf)
 
-    def insert_formulas_db(self, list_mf):
+    
+    
+    def insert_formulas_mongo(self, list_mf):
             
             if len(list_mf) > 0:
+                
                 client = MongoClient("mongodb://enviroms-client:esmlpnnl2019@localhost:27017/enviroms")
+                
                 db = client.db = client.enviroms
                 formulas = db.molform
                 
                 try:
                     formulas.insert_many(list_mf, ordered=False)
+                    client.close()
                 
                 except Exception as e:
                     #duplicate_error
                     try:
                         if e.details["writeErrors"][0]["code"] == 11000:
+                            client.close()
                             pass#print(e.details)
                     except:
+                        
+                        client.close()
                         raise Exception(e) 
-    
-    def push_mf_db(self,carbon_hidrogen_combination,
+                
+                
+
+    def get_mol_formulas(self,carbon_hidrogen_combination,
                     ion_type,
                     class_dict,
                     use_pah_line_rule,
@@ -347,10 +359,11 @@ class CombinationsWorker:
                             
                             dict_results = {}
                             dict_results['nominal_mass'] = nominal_mass
-                            dict_results['mol_formula'] = Binary(pickle.dumps(molecular_formula))
+                            dict_results['mol_formula'] =  pickle.dumps(molecular_formula)
                             dict_results['ion_type'] = ion_type
                             dict_results['ion_charge'] = ion_charge
                             dict_results['class'] = molecular_formula.class_label
+                            
                             list_formulas.append(dict_results)
 
         
