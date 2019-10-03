@@ -28,16 +28,22 @@ class MolForm_SQL:
         # make sure the dbconnection gets closed
         self.session.close()
 
+    def add_all(self, sql_molform_list):
+
+        self.session.add_all( [MolecularFormulaTable(**sql_molform_dict)  for sql_molform_dict in sql_molform_list] )
+    
     def add_entry(self,sql_molform): 
 
         one_formula = MolecularFormulaTable(**sql_molform)  
+        self.session.add(one_formula)  
+
+    def commit(self):
         try:
-            self.session.add(one_formula)  
-            self.session.commit()
+            self.session.commit()  
         except:
             self.session.rollback()
-            raise     
-
+            raise
+            
     def read_entry(self,):
         mol_formulas = self.session.query(MolecularFormulaTable)  
         for mol_formula in mol_formulas:  
