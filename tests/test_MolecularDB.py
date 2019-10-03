@@ -60,7 +60,7 @@ def xtest_molecular_lookup_db():
     #the defaults values are defined at the encapsulation MolecularSpaceTableSetting    
     LookupDictSettings.usedAtoms['C'] = (1,90)
     LookupDictSettings.usedAtoms['H'] = (4,200)
-    LookupDictSettings.usedAtoms['O'] = (0,30)
+    LookupDictSettings.usedAtoms['O'] = (0,3)
     LookupDictSettings.usedAtoms['N'] = (0,3)
     LookupDictSettings.usedAtoms['S'] = (0,3)
 
@@ -81,7 +81,7 @@ def xtest_molecular_lookup_db():
     
 if __name__ == '__main__':
     
-    #xtest_molecular_lookup_db()
-    xtest_query_sql()
+    xtest_molecular_lookup_db()
+    #xtest_query_sql()
     #xtest_query()
 

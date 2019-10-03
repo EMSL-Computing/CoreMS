@@ -369,9 +369,17 @@ class CombinationsWorker:
                             dict_results['ion_charge'] = ion_charge
                             dict_results['classe'] = molecular_formula.class_label
                             
+                            dict_results['C'] = molecular_formula['C']
+                            dict_results['H'] = molecular_formula['H']
+                            dict_results['N'] = molecular_formula['N']
+                            dict_results['O'] = molecular_formula['O']
+                            dict_results['S'] = molecular_formula['S']
+                            dict_results['P'] = molecular_formula['P']
+                            dict_results['DBE'] = molecular_formula.dbe
+                            
                             list_formulas.append(dict_results)
 
-        return  list_formulas
+        return list_formulas
         
     def get_h_impar_ou_par(self, ion_type, class_dict):
 

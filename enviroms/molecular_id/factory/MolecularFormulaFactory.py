@@ -41,8 +41,11 @@ class MolecularFormula(MolecularFormulaCalc):
     def __getitem__(self, atom):
         
             #atom = list(self._d_molecular_formula.keys())[position]
-            return self._d_molecular_formula[atom]
-
+            if atom in self._d_molecular_formula.keys():
+                return self._d_molecular_formula[atom]
+            else:
+                return None
+                
     @property
     def O_C(self): 
             

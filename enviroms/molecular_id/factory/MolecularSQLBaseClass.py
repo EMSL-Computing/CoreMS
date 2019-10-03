@@ -1,10 +1,12 @@
-from sqlalchemy import create_engine, Column, Integer, Binary, String
+from sqlalchemy import create_engine, Column, Integer, Binary, String, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 
 Base = declarative_base()
 
+
+    
 class MolecularFormulaTable(Base):  
     __tablename__ = 'molform'
 
@@ -13,6 +15,14 @@ class MolecularFormulaTable(Base):
     ion_type = Column(String, nullable=False)
     ion_charge = Column(Integer, nullable=False)
     classe = Column(String, nullable=False)
+    
+    C = Column(Integer, nullable=False)
+    H = Column(Integer, nullable=True)
+    N = Column(Integer, nullable=True)
+    O = Column(Integer, nullable=True)
+    S = Column(Integer, nullable=True)
+    P = Column(Integer, nullable=True)
+    DBE = Column(Float, nullable=False)
 
     def __init__(self, kargs): 
         
@@ -21,6 +31,13 @@ class MolecularFormulaTable(Base):
         self.ion_type = kargs['ion_type']
         self.ion_charge = kargs['ion_charge']
         self.classe = kargs['classe']
+        self.C = kargs['C']
+        self.H = kargs['H']
+        self.N = kargs['N']
+        self.O = kargs['O']
+        self.S = kargs['S']
+        self.P = kargs['P']
+        self.DBE = kargs['DBE']
        
     def __repr__(self):
         return "<MolecularFormulaTable(classe='%s', nominal_mass='%i', ion_type='%s', ion_charge='%i')>" % (
@@ -65,12 +82,15 @@ class MolForm_SQL:
             
     def read_entry(self,):
         
-        mol_formulas = self.session.query(MolecularFormulaTable).filter(MolecularFormulaTable.classe == 'O2')
+        mol_formulas = self.session.query(MolecularFormulaTable).filter(MolecularFormulaTable.C == 55)
         
         mol_formulas = mol_formulas.filter(MolecularFormulaTable.ion_charge == -1)
         
+        mol_formulas = mol_formulas.filter(MolecularFormulaTable.C == 55)
+
         for mol_formula in mol_formulas:  
-            print(mol_formula.nominal_mass)
+           
+            print(mol_formula.ion_type)
 
     def update_entry(self, entry):
         
