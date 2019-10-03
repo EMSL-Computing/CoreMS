@@ -10,10 +10,10 @@ import codecs
 
 from pymongo import MongoClient
 
-from enviroms.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
 from enviroms.encapsulation.constant import Labels
-
+from enviroms.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
+from enviroms.molecular_id.factory.MolecularSQLBaseClass import MolForm_SQL
 
 
 class MolecularCombinations:
@@ -49,11 +49,12 @@ class MolecularCombinations:
         print('classes_list', len(classes_list))
 
         '''exited with code=0 in 6.9 seconds windows and 5.9 Linux with 12 logical CPUs'''
-        p = multiprocessing.Pool(1)
+        p = multiprocessing.Pool(number_of_process)
         args = [(class_tuple, c_h_combinations, settings) for class_tuple in classes_list]
         p.map(CombinationsWorker(), args)
         p.close()
         p.join()
+        
         '''
         args = [(class_tuple, c_h_combinations, settings) for class_tuple in classes_list]
         results = list()
@@ -61,8 +62,8 @@ class MolecularCombinations:
         for arg in args:
             #exited with code=0 in 17.444 seconds
             results.append(CombinationsWorker().get_combinations(*arg))
-        
         '''
+        
     def get_c_h_combination(self, settings):
 
         # return dois dicionarios com produto das combinacooes de hidrogenio e carbono
@@ -255,7 +256,7 @@ class CombinationsWorker:
             list_mf = self.get_mol_formulas(carbon_hidrogen_combination, ion_type, class_dict, 
                                                     use_pah_line_rule, usedAtoms, min_dbe, max_dbe,
                                                     min_mz, max_mz, hc_filter,oc_filter, ionCharge)
-            self.insert_formulas_mongo(list_mf)
+            self.insert_formula_sql(list_mf)
             
         if isRadical:
 
@@ -269,9 +270,13 @@ class CombinationsWorker:
                                                     use_pah_line_rule, usedAtoms, min_dbe, max_dbe, 
                                                     min_mz, max_mz, hc_filter,oc_filter, ionCharge)
             
-            self.insert_formulas_mongo(list_mf)
+            self.insert_formula_sql(list_mf)
+  
+    def insert_formula_sql(self, list_mf):
 
-    
+        with MolForm_SQL() as sql_handle:
+            
+            sql_handle.add_all(list_mf)
     
     def insert_formulas_mongo(self, list_mf):
             
@@ -359,14 +364,13 @@ class CombinationsWorker:
                             
                             dict_results = {}
                             dict_results['nominal_mass'] = nominal_mass
-                            dict_results['mol_formula'] =  pickle.dumps(molecular_formula)
+                            dict_results['mol_formula'] =  Binary(pickle.dumps(molecular_formula))
                             dict_results['ion_type'] = ion_type
                             dict_results['ion_charge'] = ion_charge
-                            dict_results['class'] = molecular_formula.class_label
+                            dict_results['classe'] = molecular_formula.class_label
                             
                             list_formulas.append(dict_results)
 
-        
         return  list_formulas
         
     def get_h_impar_ou_par(self, ion_type, class_dict):
