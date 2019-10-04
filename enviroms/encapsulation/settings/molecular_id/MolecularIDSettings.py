@@ -35,8 +35,8 @@ class MoleculaLookupDictSettings:
 
         self.isProtonated = True
 
-        #ionCharge changes automatically with mass spectrum
-        self.ionCharge = -1
+        #ion_charge changes automatically with mass spectrum
+        self.ion_charge = -1
 
 
 class MoleculaSearchSettings:
@@ -44,34 +44,43 @@ class MoleculaSearchSettings:
     # look for close shell ions [M + Adduct]+ only considers metal set in the list adduct_atoms  
     
     '''query setting'''
-    ionCharge  = -1
+    ion_charge  = -1
 
     hc_filter = 0.3
 
     oc_filter = 1.2
     
-    isAdduct = False
-    
+    use_pah_line_rule = False
+
     min_dbe = 0 
 
     max_dbe = 50 
-
+    
     adduct_atoms_neg = ['Cl', 'Br', 'F']
     
     adduct_atoms_pos = ['Na', 'K']
-
-    use_pah_line_rule = False
-
+    
     # depending on the polarity mode it looks for [M].+ , [M].-
-    # needs to be enabled at the class MoleculaLookupTableSettings
-    isRadical = False
+    # query and automatically compile and push options if it doesn't exist
+    isRadical = True
     
     # depending on the polarity mode it looks for [M + H]+ , [M - H]+
-    # needs to be enabled at the class MoleculaLookupTableSettings
+     # query and automatically compile and push options if it doesn't exist
     isProtonated = True
 
+    usedAtoms = {   'C': (1, 100),
+                    'H': (4, 200),
+                    'O': (0, 4),
+                    'N': (0, 0),
+                    'S': (0, 0),
+                    'P': (0, 0),
+                    'Cl': (0, 0),
+                }
+    
     ''' search setting '''
     
+    isAdduct = False
+
     ionization_type = "ESI"
 
     # empirically set / needs optimization

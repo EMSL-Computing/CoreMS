@@ -465,7 +465,7 @@ if __name__ == "__main__":
     file_name = "20190911_Kew_ESI_Elliot_SPE_IAT100ms_000002.d"
     #file_name = "20190912_Kew_LDI_Elliot_Whole_B15_1500um_0_B15_000001.d"
     
-    file_location = os.path.join(os.getcwd(), "data/201909_ldiesiappi_elliot/") + os.path.normcase(file_name)
+    file_location = os.path.join(os.getcwd(), "res/data/201909_ldiesiappi_elliot/") + os.path.normcase(file_name)
 
     #file_location = os.path.join(os.getcwd(), "tests/tests_data/") + os.path.normcase("ESI_NEG_SRFA.d/")
     

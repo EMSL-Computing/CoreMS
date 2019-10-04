@@ -45,7 +45,7 @@ def test_molecular_lookup_dict():
     valence_one = possible_valences[0]
     # if you want to specify it in needs to be changed here
     # otherwise it will use the lowest covalence, PS needs insure propagation to isotopologues
-    MoleculaLookupDictSettings.used_atom_valences['Cl'] =  valence_one
+    MoleculaSearchSettings.used_atom_valences['Cl'] =  valence_one
 
     time0 = time.time()
     dict_molecular_lookup_table = create_lookup_dict(LookupDictSettings)

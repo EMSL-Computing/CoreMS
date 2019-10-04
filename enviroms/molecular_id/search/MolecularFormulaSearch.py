@@ -7,7 +7,8 @@ from os.path import join
 from enviroms.encapsulation.constant import Labels
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings, MoleculaSearchSettings
 from enviroms.mass_spectrum.input.textMassList import Read_MassList
-from enviroms.molecular_id.factory.MolecularLookupTable import  MolecularCombinations
+from enviroms.molecular_id.factory.MolecularLookupTableDB import  MolecularCombinations
+from enviroms.molecular_id.factory.molecularSQL import MolForm_SQL
 
 class SearchMolecularFormulas:
      
@@ -26,65 +27,64 @@ class SearchMolecularFormulas:
         
         return False
 
-    def run(self, classes, dict_molecular_lookup_table, nominal_mz, min_abundance, 
+    def run(self, classes, nominal_mz, min_abundance, 
             mass_spectrum_obj, ms_peak, last_error, last_dif, 
             closest_error, error_average, nbValues):
         
         def check_adduct_class(classe_dict):
+            
             return any([key in classe_dict.keys() for key in MoleculaSearchSettings.adduct_atoms_neg])
         
-        for classe in classes:
-            
-            #is_adduct = check_adduct_class(classe_dict)        
-            
-            possible_formulas = list()    
-            #we might need to increase the search space to -+1 m_z 
-            if MoleculaSearchSettings.isRadical or MoleculaSearchSettings.isAdduct:
-            
-                ion_type = Labels.radical_ion
+        with MolForm_SQL() as sql_handle:
                 
-                formulas = dict_molecular_lookup_table.get(classe).get(ion_type).get(nominal_mz)
+            for classe in classes:
                 
-                if formulas:
+                #is_adduct = check_adduct_class(classe_dict)        
+                
+                possible_formulas = list()    
+                #we might need to increase the search space to -+1 m_z 
+                if MoleculaSearchSettings.isRadical or MoleculaSearchSettings.isAdduct:
+                
+                    ion_type = Labels.radical_ion
                     
-                    is_adduct = check_adduct_class(formulas[0].class_dict)
+                    formulas = sql_handle.get_entries(classe, ion_type, nominal_mz)
                     
-                    if is_adduct and MoleculaSearchSettings.isAdduct:
+                    if formulas:
                         
-                        #replace ion_type in the molecular_formula object
-                        for m_formula in formulas: m_formula.ion_type = Labels.adduct_ion
-
-                        possible_formulas.extend(formulas)
-                    
-                    elif not is_adduct and MoleculaSearchSettings.isRadical:
+                        is_adduct = check_adduct_class(formulas[0].class_dict)
                         
-                        possible_formulas.extend(formulas)
+                        if is_adduct and MoleculaSearchSettings.isAdduct:
+                            
+                            #replace ion_type in the molecular_formula object
+                            for m_formula in formulas: m_formula.ion_type = Labels.adduct_ion
 
-            if MoleculaSearchSettings.isProtonated:# and not is_adduct:
-            
-                ion_type = Labels.protonated_de_ion
-
-                formulas = dict_molecular_lookup_table.get(classe).get(ion_type).get(nominal_mz)
-                
-                if formulas:
-                    
-                    is_adduct = check_adduct_class(formulas[0].class_dict)
-                    
-                    if not is_adduct:
+                            possible_formulas.extend(formulas)
                         
-                        possible_formulas.extend(formulas)
+                        elif not is_adduct and MoleculaSearchSettings.isRadical:
+                            
+                            possible_formulas.extend(formulas)
 
-            if possible_formulas:
+                if MoleculaSearchSettings.isProtonated:# and not is_adduct:
                 
-                SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak, last_error, last_dif, closest_error, error_average, nbValues)
-    
+                    ion_type = Labels.protonated_de_ion
 
-    def run_worker_ms_peaks(self, ms_peaks, mass_spectrum_obj, settings):
+                    formulas = sql_handle.get_entries(classe, ion_type, nominal_mz)
+                    
+                    if formulas:
+                        
+                        is_adduct = check_adduct_class(formulas[0].class_dict)
+                        
+                        if not is_adduct:
+                            
+                            possible_formulas.extend(formulas)
 
-        settings.usedAtoms
+                if possible_formulas:
+                    
+                    SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak, last_error, last_dif, closest_error, error_average, nbValues)
         
-        print (settings.hc_filter)
-        
+
+    def run_worker_ms_peaks(self, ms_peaks, mass_spectrum_obj):
+
         last_dif = 0
         
         last_error = 0
@@ -95,16 +95,14 @@ class SearchMolecularFormulas:
         
         nbValues = 0
 
-        settings.min_mz =  min(ms_peaks, key=lambda m: m.mz_exp).mz_exp
+        MoleculaSearchSettings.min_mz =  min(ms_peaks, key=lambda m: m.mz_exp).mz_exp
     
-        settings.max_mz = max(ms_peaks, key=lambda m: m.mz_exp).mz_exp
+        MoleculaSearchSettings.max_mz = max(ms_peaks, key=lambda m: m.mz_exp).mz_exp
         
         min_abundance = mass_spectrum_obj.min_abundance
 
-        dict_molecular_lookup_table = MolecularCombinations().runworker(settings)
+        classes = MolecularCombinations().runworker()
 
-        classes = list(dict_molecular_lookup_table.keys())
-        
         for ms_peak in  ms_peaks:
 
             if self.first_hit:
@@ -122,11 +120,11 @@ class SearchMolecularFormulas:
             pool.join()
             '''
            
-            self.run(classes, dict_molecular_lookup_table, nominal_mz, min_abundance, 
+            self.run(classes, nominal_mz, min_abundance, 
                         mass_spectrum_obj, ms_peak, last_error, last_dif, 
                         closest_error, error_average, nbValues)
                         
-    def run_worker_ms_peak(self, ms_peak, mass_spectrum_obj, settings):
+    def run_worker_ms_peak(self, ms_peak, mass_spectrum_obj):
         '''
         waiting for python 3.8 release to set mass_spectrum_obj and dict_molecular_lookup_table on share memory (redis?)
         pool = multiprocessing.Pool(number_of_process)
@@ -137,9 +135,9 @@ class SearchMolecularFormulas:
         pool.join()
         '''
 
-        settings.min_mz = ms_peak.mz_exp-1
+        MoleculaSearchSettings.min_mz = ms_peak.mz_exp-1
     
-        settings.max_mz = ms_peak.mz_exp+1
+        MoleculaSearchSettings.max_mz = ms_peak.mz_exp+1
         
         last_dif = 0
         
@@ -153,17 +151,15 @@ class SearchMolecularFormulas:
 
         min_abundance = mass_spectrum_obj.min_abundance
 
-        dict_molecular_lookup_table = MolecularCombinations().runworker(settings)
-
-        classes = list(dict_molecular_lookup_table.keys())
-
+        classes = MolecularCombinations().runworker()
+        
         nominal_mz  = ms_peak.nominal_mz_exp      
         
-        self.run(classes, dict_molecular_lookup_table, nominal_mz, min_abundance, 
-                            mass_spectrum_obj, ms_peak, last_error, last_dif, 
-                            closest_error, error_average, nbValues)
+        self.run(classes, nominal_mz, min_abundance, 
+                    mass_spectrum_obj, ms_peak, last_error, last_dif, 
+                    closest_error, error_average, nbValues)
         
-    def run_worker_mass_spectrum(self, mass_spectrum_obj, settings):
+    def run_worker_mass_spectrum(self, mass_spectrum_obj):
 
         #number_of_process = multiprocessing.cpu_count()
 
@@ -179,18 +175,14 @@ class SearchMolecularFormulas:
         
         nbValues = 0
 
-        settings.min_mz = mass_spectrum_obj.min_mz_exp
+        MoleculaSearchSettings.min_mz = mass_spectrum_obj.min_mz_exp
     
-        settings.max_mz = mass_spectrum_obj.max_mz_exp
+        MoleculaSearchSettings.max_mz = mass_spectrum_obj.max_mz_exp
         
         min_abundance = mass_spectrum_obj.min_abundance
 
-        dict_molecular_lookup_table = MolecularCombinations().runworker(settings)
-
-        classes = list(dict_molecular_lookup_table.keys())
-
-        print(len(mass_spectrum_obj))
-
+        classes = MolecularCombinations().runworker()
+        
         for ms_peak in mass_spectrum_obj.sort_by_mz():
 
             if self.first_hit:
@@ -200,7 +192,7 @@ class SearchMolecularFormulas:
             #print(ms_peak) 
             nominal_mz  = ms_peak.nominal_mz_exp
             
-            self.run(classes, dict_molecular_lookup_table, nominal_mz, min_abundance, 
+            self.run(classes, nominal_mz, min_abundance, 
                         mass_spectrum_obj, ms_peak, last_error, last_dif, 
                         closest_error, error_average, nbValues)
         
@@ -297,7 +289,7 @@ class SearchMolecularFormulaWorker:
                 
                 error = possible_formula._calc_assigment_mass_error(ms_peak_mz_exp)
                 
-                if  min_mz_error <= error <= max_mz_error and min_dbe <= possible_formula.dbe <= max_dbe:
+                if  min_mz_error <= error <= max_mz_error:
                     
                     #update the error
                     last_error, last_dif, closest_error, error_average, nbValues  = self.set_last_error(error, last_error, last_dif, closest_error, error_average, nbValues)    
@@ -305,7 +297,6 @@ class SearchMolecularFormulaWorker:
                     #add molecular formula match to ms_peak
                     ms_peak.add_molecular_formula(possible_formula)
                     
-                   
                     #calculates and look for isotopologues
                     isotopologues = possible_formula.isotopologues(min_abundance, ms_peak_abundance)
                     
@@ -320,7 +311,7 @@ class SearchMolecularFormulaWorker:
                             error = isotopologue_formula._calc_assigment_mass_error(ms_peak_iso.mz_exp)    
                             
                             #need to define error distribution for abundance measurements
-                            if  min_mz_error <= error <= max_mz_error and min_dbe <= isotopologue_formula.dbe <= max_dbe:
+                            if  min_mz_error <= error <= max_mz_error:
                                     
                                     abundance_error = isotopologue_formula._calc_abundance_error(ms_peak_abundance,ms_peak_iso.abundance )            
                                     # margin of error was set empirically/ needs statistical calculation

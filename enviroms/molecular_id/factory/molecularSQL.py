@@ -1,15 +1,23 @@
-from sqlalchemy import create_engine, Column, Integer, Binary, String, Float
+import pickle
+
+from sqlalchemy import create_engine, Column, Integer, Binary, String, Float, exists
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm.exc import MultipleResultsFound
+
+
+from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
 
 Base = declarative_base()
 
 class MolecularFormulaTable(Base):  
+    
     __tablename__ = 'molform'
 
     id = Column( Binary, primary_key=True)
-    nominal_mass= Column(Integer, nullable=False)
+    nominal_mz= Column(Integer, nullable=False)
     ion_type = Column(String, nullable=False)
     ion_charge = Column(Integer, nullable=False)
     classe = Column(String, nullable=False)
@@ -25,7 +33,7 @@ class MolecularFormulaTable(Base):
     def __init__(self, kargs): 
         
         self.id = kargs['mol_formula']
-        self.nominal_mass =kargs['nominal_mass']
+        self.nominal_mz =kargs['nominal_mass']
         self.ion_type = kargs['ion_type']
         self.ion_charge = kargs['ion_charge']
         self.classe = kargs['classe']
@@ -39,7 +47,7 @@ class MolecularFormulaTable(Base):
        
     def __repr__(self):
         return "<MolecularFormulaTable(classe='%s', nominal_mass='%i', ion_type='%s', ion_charge='%i')>" % (
-                                    self.classe, self.nominal_mass, self.ion_type, self.ion_charge)
+                                    self.classe, self.nominal_mz, self.ion_type, self.ion_charge)
 
 class MolForm_SQL:
     
@@ -51,7 +59,7 @@ class MolForm_SQL:
 
     def __enter__(self):
         
-        self.engine = create_engine('sqlite:///{DB}'.format(DB='molformulas.sqlite'), connect_args={'timeout': 15})
+        self.engine = create_engine('sqlite:///{DB}'.format(DB='res/molformulas.sqlite'), connect_args={'timeout': 15})
         
         Base.metadata.create_all(self.engine)
 
@@ -78,17 +86,40 @@ class MolForm_SQL:
             self.session.rollback()
             print(str(e))
             
-    def read_entry(self,):
+    def check_entry(self,classe):
+        # this is way too slow, create a pos and neg table
+        #try:
+        #yes = self.session.query(MolecularFormulaTable.id).filter(MolecularFormulaTable.classe==classe).filter(MolecularFormulaTable.ion_charge == MoleculaSearchSettings.ion_charge).scalar() is not None
         
-        mol_formulas = self.session.query(MolecularFormulaTable).filter(MolecularFormulaTable.C == 55)
-        
-        mol_formulas = mol_formulas.filter(MolecularFormulaTable.ion_charge == -1)
-        
-        mol_formulas = mol_formulas.filter(MolecularFormulaTable.C == 55)
+        #except MultipleResultsFound as e:
+        #    yes = True
+        #except MultipleResultsFound as e:
+        #    yes = True
+        yes = self.session.query(exists().where(
+            (MolecularFormulaTable.classe == classe) &
+            (MolecularFormulaTable.ion_charge == MoleculaSearchSettings.ion_charge))).scalar()
 
-        for mol_formula in mol_formulas:  
-           
-            print(mol_formula.ion_type)
+        return yes
+    
+    def get_entries(self,classe, ion_type, nominal_mz):
+        
+        mol_formulas = self.session.query(MolecularFormulaTable).filter(
+            MolecularFormulaTable.nominal_mz == nominal_mz,
+            MolecularFormulaTable.classe == classe, 
+            MolecularFormulaTable.ion_type == ion_type,
+            MolecularFormulaTable.ion_charge == MoleculaSearchSettings.ion_charge,
+            MolecularFormulaTable.H/MolecularFormulaTable.C >= MoleculaSearchSettings.hc_filter,
+            MolecularFormulaTable.O/MolecularFormulaTable.C >= MoleculaSearchSettings.oc_filter,
+            MolecularFormulaTable.DBE <= MoleculaSearchSettings.max_dbe,
+            MolecularFormulaTable.DBE <= MoleculaSearchSettings.min_dbe)
+            
+        
+        #mol_formulas = mol_formulas.filter(ion_type = ion_type)
+
+        #mol_formulas = mol_formulas.filter(ion_charge = MoleculaSearchSettings.ion_charge)
+
+        return [pickle.loads(formula.id) for formula in mol_formulas]
+       
 
     def update_entry(self, entry):
         
@@ -105,4 +136,5 @@ class MolForm_SQL:
             self.session.rollback()
             print(str(e))
 
-        
+
+   

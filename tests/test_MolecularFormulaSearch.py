@@ -50,9 +50,7 @@ def test_molecular_formula_search():
     ClusteringFilter().filter_kendrick(mass_spectrum)
     
     time1 = time.time()
-    LookupTableSettings = MoleculaLookupDictSettings()
-    
-    SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum, LookupTableSettings)
+    SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum)
     mass_spectrum.reset_indexes()
 
     print('searching molecular formulas took %i seconds' % (time.time() - time1))
@@ -74,8 +72,6 @@ def test_molecular_formula_search():
         else:
             j += 1
             pass
-        
-   
     
     #from matplotlib import pylab
     #pylab.plot(mass_spectrum.mz_exp, mass_spectrum.abundance, color='g') 
