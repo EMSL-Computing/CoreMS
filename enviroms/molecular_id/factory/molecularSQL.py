@@ -5,8 +5,6 @@ from sqlalchemy.orm import sessionmaker
 
 Base = declarative_base()
 
-
-    
 class MolecularFormulaTable(Base):  
     __tablename__ = 'molform'
 

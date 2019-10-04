@@ -5,15 +5,13 @@ from bson.binary import Binary
 from copy import deepcopy
 import itertools
 import multiprocessing
-import pickle
-import codecs
 
-from pymongo import MongoClient
 
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
 from enviroms.encapsulation.constant import Labels
 from enviroms.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
-from enviroms.molecular_id.factory.MolecularSQLBaseClass import MolForm_SQL
+from enviroms.molecular_id.factory.molecularSQL import MolForm_SQL
+from enviroms.molecular_id.factory.molecularMongo import MolForm_Mongo
 
 
 class MolecularCombinations:
@@ -274,36 +272,20 @@ class CombinationsWorker:
   
     def insert_formula_sql(self, list_mf):
 
-        with MolForm_SQL() as sql_handle:
-            
-            sql_handle.add_all(list_mf)
-    
+        if len(list_mf) > 0:
+        
+            with MolForm_SQL() as sql_handle:
+                
+                sql_handle.add_all(list_mf)
+        
     def insert_formulas_mongo(self, list_mf):
-            
-            if len(list_mf) > 0:
+         
+        if len(list_mf) > 0:
+        
+            with MolForm_Mongo() as mongo_handle:
                 
-                client = MongoClient("mongodb://enviroms-client:esmlpnnl2019@localhost:27017/enviroms")
-                
-                db = client.db = client.enviroms
-                formulas = db.molform
-                
-                try:
-                    formulas.insert_many(list_mf, ordered=False)
-                    client.close()
-                
-                except Exception as e:
-                    #duplicate_error
-                    try:
-                        if e.details["writeErrors"][0]["code"] == 11000:
-                            client.close()
-                            pass#print(e.details)
-                    except:
-                        
-                        client.close()
-                        raise Exception(e) 
-                
-                
-
+                mongo_handle.add_all(list_mf)
+    
     def get_mol_formulas(self,carbon_hidrogen_combination,
                     ion_type,
                     class_dict,

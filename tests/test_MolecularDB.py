@@ -47,7 +47,6 @@ def xtest_query_sql():
     with MolForm_SQL() as sqldb:
 
         sqldb.read_entry()
-    
 
 def xtest_molecular_lookup_db():    
     
@@ -81,7 +80,7 @@ def xtest_molecular_lookup_db():
     
 if __name__ == '__main__':
     
-    xtest_molecular_lookup_db()
-    #xtest_query_sql()
-    #xtest_query()
+    #xtest_molecular_lookup_db()
+    xtest_query_sql()
+    
 
