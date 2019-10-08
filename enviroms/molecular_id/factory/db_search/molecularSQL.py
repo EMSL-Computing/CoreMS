@@ -7,7 +7,6 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.exc import MultipleResultsFound
 
-
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
 
 Base = declarative_base()
@@ -63,9 +62,9 @@ class MolForm_SQL:
 
     def __enter__(self):
         
-        #self.engine = create_engine('sqlite:///{DB}'.format(DB='res/molformulas.sqlite'), connect_args={'timeout': 15})
+        self.engine = create_engine('sqlite:///{DB}'.format(DB='res/molformulas.sqlite'), connect_args={'timeout': 15})
         
-        self.engine = create_engine('postgresql://postgres:docker@localhost:5432/')
+        #self.engine = create_engine('postgresql://postgres:docker@localhost:5432/')
         
         Base.metadata.create_all(self.engine)
 
@@ -92,6 +91,39 @@ class MolForm_SQL:
             self.session.rollback()
             print(str(e))
             
+    def get_dict_entries(self, classes, ion_type, nominal_mzs):
+
+        dict_res = {}
+
+        formulas = self.session.query(MolecularFormulaTable).filter(
+            MolecularFormulaTable.nominal_mz.in_(nominal_mzs),
+            MolecularFormulaTable.classe.in_(classes), 
+            MolecularFormulaTable.ion_type == ion_type,
+            MolecularFormulaTable.DBE >= MoleculaSearchSettings.min_dbe, 
+            MolecularFormulaTable.DBE <= MoleculaSearchSettings.max_dbe, 
+            MolecularFormulaTable.ion_charge == MoleculaSearchSettings.ion_charge,
+            MolecularFormulaTable.O_C <= MoleculaSearchSettings.oc_filter,
+            MolecularFormulaTable.H_C >= MoleculaSearchSettings.hc_filter,
+            )
+
+        for formula in formulas:
+            
+            if formula.classe in dict_res.keys():
+                
+                if formula.nominal_mz in dict_res[formula.classe].keys():
+                    
+                    dict_res.get(formula.classe).get(formula.nominal_mz).append(pickle.loads(formula.id) )
+                
+                else:
+
+                    dict_res.get(formula.classe)[formula.nominal_mz] = [pickle.loads(formula.id) ]  
+        
+            else:
+                
+                dict_res[formula.classe] = {formula.nominal_mz: [pickle.loads(formula.id)] }     
+        
+        return dict_res
+
     def check_entry(self,classe, ion_type):
         # this is way too slow, create a pos and neg table
         #try:

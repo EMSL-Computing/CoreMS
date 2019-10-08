@@ -9,8 +9,8 @@ from enviroms.encapsulation.constant import Labels
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings, MoleculaSearchSettings
 from enviroms.mass_spectrum.input.textMassList import Read_MassList
 from enviroms.molecular_id.factory.db_search.MolecularLookupTableDB import  MolecularCombinations
-#from enviroms.molecular_id.factory.db_search.molecularSQL import MolForm_SQL as molform_db
-from enviroms.molecular_id.factory.db_search.molecularMongo import MolForm_Mongo as molform_db
+from enviroms.molecular_id.factory.db_search.molecularSQL import MolForm_SQL as molform_db
+#from enviroms.molecular_id.factory.db_search.molecularMongo import MolForm_Mongo as molform_db
 
 class SearchMolecularFormulas:
      

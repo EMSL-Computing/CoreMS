@@ -40,8 +40,7 @@ def xtest_mspeak_search():
 
     mass_spec_obj = creat_mass_spectrum()
     mspeak_obj = mass_spec_obj.most_abundant_mspeak
-     
-
+    
     SearchMolecularFormulas().run_worker_ms_peak(mspeak_obj, mass_spec_obj)
 
     if mspeak_obj.is_assigned:
@@ -54,11 +53,9 @@ def xtest_molecular_formula_search_db():
     
     time1 = time.time()
     
-    #LookupTableSettings = MoleculaLookupDictSettings()
-
     SearchMolecularFormulas(first_hit=False).run_worker_mass_spectrum(mass_spec_obj)
     
-    print('searching molecular formulas took %i seconds' % (time.time() - time1))
+    print('searching molecular formulas took %.3f seconds' % (time.time() - time1))
     
     i = 0
     j = 0
@@ -77,8 +74,7 @@ def xtest_molecular_formula_search_db():
         else:
             j += 1
             pass
-        
-   
+    
     print('%i peaks assigned and %i peaks not assigned' % (i, j))
     
 if __name__ == "__main__":
