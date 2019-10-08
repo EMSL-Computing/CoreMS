@@ -1,6 +1,6 @@
 import pickle
 
-from sqlalchemy import create_engine, Column, Integer, Binary, String, Float, exists
+from sqlalchemy import create_engine, Column, Integer, LargeBinary, String, Float, exists
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
@@ -15,7 +15,7 @@ class MolecularFormulaTable(Base):
     
     __tablename__ = 'molform'
 
-    id = Column( Binary, primary_key=True)
+    id = Column( LargeBinary, primary_key=True)
     nominal_mz= Column(Integer, nullable=False)
     ion_type = Column(String, nullable=False)
     ion_charge = Column(Integer, nullable=False)
