@@ -10,8 +10,9 @@ import pickle
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings, MoleculaLookupDictSettings
 from enviroms.encapsulation.constant import Labels
 from enviroms.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
-from enviroms.molecular_id.factory.molecularSQL import MolForm_SQL
-from enviroms.molecular_id.factory.molecularMongo import MolForm_Mongo
+
+#from enviroms.molecular_id.factory.db_search.molecularSQL import MolForm_SQL as molform_db
+from enviroms.molecular_id.factory.db_search.molecularMongo import MolForm_Mongo as molform_db
 
 
 class MolecularCombinations:
@@ -38,29 +39,35 @@ class MolecularCombinations:
         
         classes_list = self.get_classes_in_order()
         
-        with MolForm_SQL() as sql_db:
+        #print('check', MoleculaSearchSettings.isRadical, MoleculaSearchSettings.isProtonated)
+        
+        with molform_db() as sql_db:
 
             if MoleculaSearchSettings.isProtonated:
             
-                for classe in classes_list:
+                for classe_tuple in classes_list:
 
-                    if not sql_db.check_entry(classe[0]):
+                    if sql_db.check_entry(classe_tuple[0], Labels.protonated_de_ion):
                         
-                        class_to_create.append(classe)
 
-            if  MoleculaSearchSettings.isAdduct:
-
-                for classe in classes_list:
+                        pass
                     
-                    classeR = classe[0] + ' -R'
-                    
-                    if not sql_db.check_entry(classeR):
+                    else:    
                         
-                        class_to_create.append(classe)
+                        class_to_create.append((classe_tuple, Labels.protonated_de_ion))
+
+            if  MoleculaSearchSettings.isRadical:
+
+                for classe_tuple in classes_list:
+                    
+                    if sql_db.check_entry(classe_tuple[0], Labels.radical_ion):
+                        pass
+                    else:
+
+                        class_to_create.append((classe_tuple, Labels.radical_ion))
         
         return classes_list, class_to_create           
 
-    
     def runworker(self) :
 
         classes_list, class_to_create = self.check_database_get_class_list()
@@ -82,7 +89,7 @@ class MolecularCombinations:
             print('creating database entry for %i classes' % len(class_to_create))
 
             p = multiprocessing.Pool(number_of_process)
-            args = [(class_tuple, c_h_combinations, settings) for class_tuple in class_to_create]
+            args = [(class_tuple, c_h_combinations, ion_type, settings) for class_tuple, ion_type in class_to_create]
             p.map(CombinationsWorker(), args)
             p.close()
             p.join()
@@ -97,7 +104,7 @@ class MolecularCombinations:
             #exited with code=0 in 17.444 seconds
             results.append(CombinationsWorker().get_combinations(*arg))
         '''
-
+    
     def get_c_h_combination(self, settings):
 
         # return dois dicionarios com produto das combinacooes de hidrogenio e carbono
@@ -252,11 +259,9 @@ class CombinationsWorker:
         return self.get_combinations(*args)  # ,args[1]
 
     def get_combinations(self, classe_tuple,
-                          c_h_combinations,settings
+                          c_h_combinations, ion_type, settings
                          ):
 
-        usedAtoms = settings.usedAtoms
-        
         min_dbe = settings.min_dbe
 
         max_dbe = settings.max_dbe
@@ -267,66 +272,68 @@ class CombinationsWorker:
         
         max_mz = settings.max_mz
         
-        class_str = classe_tuple[0]
+        isRadical = ion_type == Labels.radical_ion
         
-        isRadical = class_str[-2:] == '-R'
-        
-        isProtonated = class_str[-2:] != '-R'
+        isProtonated = ion_type == Labels.protonated_de_ion
 
+        #class_dict = classe_tuple[1]
+
+        #print("isRadical", classe_tuple[0], isRadical) 
+        
+        #print("isProtonated", classe_tuple[0], isProtonated) 
+        
         class_dict = classe_tuple[1]
-
+        #print 
         if isProtonated:
 
-            ion_type = 'DE_OR_PROTONATED'
+            ion_type = Labels.protonated_de_ion
 
             par_ou_impar = self.get_h_impar_ou_par(ion_type, class_dict)
 
             carbon_hidrogen_combination = c_h_combinations.get(par_ou_impar)
 
-            list_mf = self.get_mol_formulas(carbon_hidrogen_combination, ion_type, class_dict, 
+            list_mf = self.get_mol_formulas(carbon_hidrogen_combination, ion_type, classe_tuple, 
                                                     min_dbe, max_dbe,
                                                     min_mz, max_mz, ion_charge)
-            self.insert_formula_sql(list_mf)
+            self.insert_formula_db(list_mf)
             
         if isRadical:
 
-            ion_type = 'RADICAL'
-
+           
+            ion_type = Labels.radical_ion
+            
             par_ou_impar = self.get_h_impar_ou_par(ion_type, class_dict)
 
             carbon_hidrogen_combination = c_h_combinations.get(par_ou_impar)
 
-            list_mf = self.get_mol_formulas(carbon_hidrogen_combination, ion_type, class_dict, 
+            list_mf = self.get_mol_formulas(carbon_hidrogen_combination, ion_type, classe_tuple, 
                                                     min_dbe, max_dbe, 
                                                     min_mz, max_mz, ion_charge)
             
-            self.insert_formula_sql(list_mf)
+            self.insert_formula_db(list_mf)
   
-    def insert_formula_sql(self, list_mf):
+    def insert_formula_db(self, list_mf):
 
         if len(list_mf) > 0:
         
-            with MolForm_SQL() as sql_handle:
+            with molform_db() as sql_handle:
                 
                 sql_handle.add_all(list_mf)
         
-    def insert_formulas_mongo(self, list_mf):
-         
-        if len(list_mf) > 0:
-        
-            with MolForm_Mongo() as mongo_handle:
-                
-                mongo_handle.add_all(list_mf)
+    
     
     def get_mol_formulas(self,carbon_hidrogen_combination,
                     ion_type,
-                    class_dict,
+                    classe_tuple,
                     min_dbe,
                     max_dbe,
                     min_mz,
                     max_mz, 
                     ion_charge,
                     ):
+        
+        class_dict = classe_tuple[1]
+        class_str = classe_tuple[0]
         
         list_formulas = []
         for cada_possible in carbon_hidrogen_combination:
@@ -355,11 +362,11 @@ class CombinationsWorker:
                 if min_dbe <= DBE <= max_dbe:
                     
                     dict_results = {}
-                    dict_results['nominal_mass'] = nominal_mass
+                    dict_results['nominal_mz'] = nominal_mass
                     dict_results['mol_formula'] =  Binary(pickle.dumps(molecular_formula))
                     dict_results['ion_type'] = ion_type
                     dict_results['ion_charge'] = ion_charge
-                    dict_results['classe'] = molecular_formula.class_label
+                    dict_results['classe'] = class_str
                     
                     dict_results['C'] = molecular_formula['C']
                     dict_results['H'] = molecular_formula['H']
@@ -367,6 +374,8 @@ class CombinationsWorker:
                     dict_results['O'] = molecular_formula['O']
                     dict_results['S'] = molecular_formula['S']
                     dict_results['P'] = molecular_formula['P']
+                    dict_results['O_C'] = molecular_formula['O']/molecular_formula['C']
+                    dict_results['H_C'] = molecular_formula['H']/molecular_formula['C']
                     dict_results['DBE'] = molecular_formula.dbe
                     
                     list_formulas.append(dict_results)
@@ -375,6 +384,7 @@ class CombinationsWorker:
         
     def get_h_impar_ou_par(self, ion_type, class_dict):
 
+        
         TEM_NITROGENIO = 'N' in class_dict.keys()
         TEM_PHOSPOROUS = 'P' in class_dict.keys()
 

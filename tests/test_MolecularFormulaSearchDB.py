@@ -7,13 +7,18 @@ import time
 import pytest
 sys.path.append('.')
 from enviroms.mass_spectrum.factory.MSPeakClasses import MSPeak
-from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings
+from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings, MoleculaLookupDictSettings
 from enviroms.mass_spectrum.input.textMassList import Read_MassList
-from enviroms.molecular_id.search.MolecularFormulaSearch import SearchMolecularFormulas
+from enviroms.molecular_id.search.db_search.MolecularFormulaSearchDB import SearchMolecularFormulas
 from enviroms.molecular_id.calc.ClusterFilter import ClusteringFilter
 from enviroms.transient.input.BrukerSolarix import ReadBrukerSolarix
 
-def creat_mass_spectrum(file_location):
+def creat_mass_spectrum():
+
+    directory = os.path.join(os.getcwd(), "tests/tests_data/")
+    file_name = os.path.normcase("ESI_NEG_SRFA.d/")
+
+    file_location = directory + file_name
 
     bruker_reader = ReadBrukerSolarix(file_location)
 
@@ -21,6 +26,7 @@ def creat_mass_spectrum(file_location):
     
     mass_spectrum_obj = bruker_transient.get_mass_spectrum(
         plot_result=False, auto_process=True)
+
 
     # polariy need to be set if reading a text file
     #polariy = -1
@@ -30,32 +36,28 @@ def creat_mass_spectrum(file_location):
 
     return mass_spectrum_obj
 
-def test_molecular_formula_search():
+def xtest_mspeak_search():
 
-    # MoleculaLookupTableSettings and MoleculaSearchSettings at
-    # enviroms\emsl\yec\encapsulation\settings\molecular_id\MolecularIDSettings.py
-    # for changing settings of the lookup table and searching algorithms
+    mass_spec_obj = creat_mass_spectrum()
+    mspeak_obj = mass_spec_obj.most_abundant_mspeak
+    print(mspeak_obj.mz_exp)    
 
-    directory = os.path.join(os.getcwd(), "tests/tests_data/")
+    SearchMolecularFormulas().run_worker_ms_peak(mspeak_obj, mass_spec_obj)
 
-    file_name = os.path.normcase("ESI_NEG_SRFA.d/")
+    if mspeak_obj.is_assigned:
 
-    #file_name = "20190616_WK_ESFA_0pt2mgml_ESI_Neg_1pt4sFID_000001.ascii"
+        print( mspeak_obj[0].mz_error, mspeak_obj[0].to_string_formated)
 
-    file_location = directory + file_name
-    #kendrick_base =  {'C':1,'H':2,'O':1}   
+def xtest_molecular_formula_search_db():
     
-    mass_spectrum = creat_mass_spectrum(file_location)
-    #mass_spectrum.change_kendrick_base_all_mspeaks(kendrick_base)
-    #ClusteringFilter().filter_kendrick(mass_spectrum)
+    mass_spec_obj = creat_mass_spectrum()
     
     time1 = time.time()
-    LookupTableSettings = MoleculaLookupDictSettings()
     
-    SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum, LookupTableSettings)
-    
-    mass_spectrum.reset_indexes()
+    #LookupTableSettings = MoleculaLookupDictSettings()
 
+    SearchMolecularFormulas(first_hit=True).run_worker_mass_spectrum(mass_spec_obj)
+    
     print('searching molecular formulas took %i seconds' % (time.time() - time1))
     
     i = 0
@@ -64,7 +66,7 @@ def test_molecular_formula_search():
     mass = list()
     abundance = list()
     
-    for mspeak in mass_spectrum:
+    for mspeak in mass_spec_obj.sort_by_abundance():
         
         if mspeak.is_assigned:
             i += 1
@@ -77,15 +79,9 @@ def test_molecular_formula_search():
             pass
         
    
-    
-    #from matplotlib import pylab
-    #pylab.plot(mass_spectrum.mz_exp, mass_spectrum.abundance, color='g') 
-    #pylab.plot(mass, abundance, "o")  
-    #pylab.show()  
-    #pylab.plot(mass, error, "o")  
-    #pylab.show()  
     print('%i peaks assigned and %i peaks not assigned' % (i, j))
-    #ClusteringFilter().filter_mass_error(mass_spectrum)
-
+    
 if __name__ == "__main__":
-    test_molecular_formula_search()
+
+    xtest_molecular_formula_search_db()
+    #xtest_mspeak_search()

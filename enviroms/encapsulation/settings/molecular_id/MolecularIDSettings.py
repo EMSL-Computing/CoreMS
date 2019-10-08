@@ -38,6 +38,12 @@ class MoleculaLookupDictSettings:
         #ion_charge changes automatically with mass spectrum
         self.ion_charge = -1
 
+        self.hc_filter = 0.3
+
+        self.oc_filter = 1.2
+    
+        self.use_pah_line_rule = False
+
 
 class MoleculaSearchSettings:
     
@@ -52,17 +58,17 @@ class MoleculaSearchSettings:
     
     use_pah_line_rule = False
 
-    min_dbe = 0 
+    min_dbe = 0
 
-    max_dbe = 50 
-    
+    max_dbe = 40
+
     adduct_atoms_neg = ['Cl', 'Br', 'F']
     
     adduct_atoms_pos = ['Na', 'K']
     
     # depending on the polarity mode it looks for [M].+ , [M].-
     # query and automatically compile and push options if it doesn't exist
-    isRadical = True
+    isRadical = False
     
     # depending on the polarity mode it looks for [M + H]+ , [M - H]+
      # query and automatically compile and push options if it doesn't exist
@@ -70,7 +76,7 @@ class MoleculaSearchSettings:
 
     usedAtoms = {   'C': (1, 100),
                     'H': (4, 200),
-                    'O': (0, 4),
+                    'O': (6, 12),
                     'N': (0, 0),
                     'S': (0, 0),
                     'P': (0, 0),
@@ -84,10 +90,10 @@ class MoleculaSearchSettings:
     ionization_type = "ESI"
 
     # empirically set / needs optimization
-    min_mz_error = -5 #ppm
+    min_mz_error = -7 #ppm
 
         # empirically set / needs optimization    
-    max_mz_error = 5 #ppm
+    max_mz_error = -2 #ppm
 
     # empirically set / needs optimization set for isotopologue search
     min_abun_error = -30 # percentage 
@@ -99,7 +105,7 @@ class MoleculaSearchSettings:
     mz_error_range = 1.5
 
     # 'distance', 'lowest', 'symmetrical','average' 'None'
-    error_method = 'average'
+    error_method = 'None'
 
     mz_error_average = 0
 

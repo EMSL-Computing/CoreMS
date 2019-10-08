@@ -18,7 +18,7 @@ class MolecularFormula(MolecularFormulaCalc):
         #clear dictionary of atoms with 0 value
         
         self._d_molecular_formula = {key:val for key, val in _d_molecular_formula.items() if val != 0}
-
+        
         self._ion_charge = ion_charge
         self._assigment_mass_error = None
         self._confidence_score = None
@@ -44,7 +44,7 @@ class MolecularFormula(MolecularFormulaCalc):
             if atom in self._d_molecular_formula.keys():
                 return self._d_molecular_formula[atom]
             else:
-                return None
+                return 0
                 
     @property
     def O_C(self): 
@@ -145,6 +145,7 @@ class MolecularFormula(MolecularFormulaCalc):
             
             raise Exception("Molecular formula identification not performed yet")    
     
+    @property
     def to_string_formated(self):
         
         SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")

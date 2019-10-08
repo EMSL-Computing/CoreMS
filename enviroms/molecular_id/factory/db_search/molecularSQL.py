@@ -29,11 +29,13 @@ class MolecularFormulaTable(Base):
     S = Column(Integer, nullable=True)
     P = Column(Integer, nullable=True)
     DBE = Column(Float, nullable=False)
+    O_C = Column(Float, nullable=True)
+    H_C = Column(Float, nullable=True)
 
     def __init__(self, kargs): 
         
         self.id = kargs['mol_formula']
-        self.nominal_mz =kargs['nominal_mass']
+        self.nominal_mz =kargs['nominal_mz']
         self.ion_type = kargs['ion_type']
         self.ion_charge = kargs['ion_charge']
         self.classe = kargs['classe']
@@ -43,6 +45,8 @@ class MolecularFormulaTable(Base):
         self.O = kargs['O']
         self.S = kargs['S']
         self.P = kargs['P']
+        self.H_C = kargs['H_C']
+        self.O_C = kargs['O_C']
         self.DBE = kargs['DBE']
        
     def __repr__(self):
@@ -59,7 +63,9 @@ class MolForm_SQL:
 
     def __enter__(self):
         
-        self.engine = create_engine('sqlite:///{DB}'.format(DB='res/molformulas.sqlite'), connect_args={'timeout': 15})
+        #self.engine = create_engine('sqlite:///{DB}'.format(DB='res/molformulas.sqlite'), connect_args={'timeout': 15})
+        
+        self.engine = create_engine('postgresql://postgres:docker@localhost:5432/')
         
         Base.metadata.create_all(self.engine)
 
@@ -86,7 +92,7 @@ class MolForm_SQL:
             self.session.rollback()
             print(str(e))
             
-    def check_entry(self,classe):
+    def check_entry(self,classe, ion_type):
         # this is way too slow, create a pos and neg table
         #try:
         #yes = self.session.query(MolecularFormulaTable.id).filter(MolecularFormulaTable.classe==classe).filter(MolecularFormulaTable.ion_charge == MoleculaSearchSettings.ion_charge).scalar() is not None
@@ -97,27 +103,38 @@ class MolForm_SQL:
         #    yes = True
         yes = self.session.query(exists().where(
             (MolecularFormulaTable.classe == classe) &
+            (MolecularFormulaTable.ion_type == ion_type) &
             (MolecularFormulaTable.ion_charge == MoleculaSearchSettings.ion_charge))).scalar()
 
         return yes
     
+    
+    def get_all(self,):
+        
+        mol_formulas = self.session.query(MolecularFormulaTable).all()
+        
+        #mol_formulas = mol_formulas.filter(ion_type = ion_type)
+
+        #mol_formulas = mol_formulas.filter(ion_charge = MoleculaSearchSettings.ion_charge)
+        
+        return [pickle.loads(formula.id) for formula in mol_formulas]
+
     def get_entries(self,classe, ion_type, nominal_mz):
         
         mol_formulas = self.session.query(MolecularFormulaTable).filter(
             MolecularFormulaTable.nominal_mz == nominal_mz,
             MolecularFormulaTable.classe == classe, 
             MolecularFormulaTable.ion_type == ion_type,
+            MolecularFormulaTable.DBE >= MoleculaSearchSettings.min_dbe, 
+            MolecularFormulaTable.DBE <= MoleculaSearchSettings.max_dbe, 
             MolecularFormulaTable.ion_charge == MoleculaSearchSettings.ion_charge,
-            MolecularFormulaTable.H/MolecularFormulaTable.C >= MoleculaSearchSettings.hc_filter,
-            MolecularFormulaTable.O/MolecularFormulaTable.C >= MoleculaSearchSettings.oc_filter,
-            MolecularFormulaTable.DBE <= MoleculaSearchSettings.max_dbe,
-            MolecularFormulaTable.DBE <= MoleculaSearchSettings.min_dbe)
-            
+            MolecularFormulaTable.O_C <= MoleculaSearchSettings.oc_filter,
+            MolecularFormulaTable.H_C >= MoleculaSearchSettings.hc_filter,
+            )
         
         #mol_formulas = mol_formulas.filter(ion_type = ion_type)
 
         #mol_formulas = mol_formulas.filter(ion_charge = MoleculaSearchSettings.ion_charge)
-
         return [pickle.loads(formula.id) for formula in mol_formulas]
        
 

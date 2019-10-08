@@ -165,7 +165,7 @@ class MolecularFormulaCalc:
         cut_off_to_IsoSpeccPy = 1 - min_relative_abundance
         isotopologue_and_pro_ratio_tuples = []
         atoms_labels = (atom for atom in formula_dict.keys() if atom != Labels.ion_type and atom != 'H')
-        
+       
         atoms_count = []
         masses_list_tuples = []
         props_list_tuples = []
@@ -220,7 +220,8 @@ class MolecularFormulaCalc:
             formula_list = molecular_formulas[isotopologue_index]
             new_formula_dict = dict(zip(all_atoms_list, formula_list))
             new_formula_dict[Labels.ion_type] = formula_dict.get(Labels.ion_type)
-            new_formula_dict['H'] = formula_dict.get('H')
+            if formula_dict.get('H'):
+                new_formula_dict['H'] = formula_dict.get('H')
 
             prop_mono_iso = probs[0]
             prob_ratio = probs[isotopologue_index]/prop_mono_iso
