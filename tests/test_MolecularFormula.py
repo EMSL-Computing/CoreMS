@@ -23,7 +23,7 @@ def test_molecular_formula():
     assert round(formula_obj.mz_theor,2) == round(349.886303060457,2)
     
     min_abudance, current_abundance = 1,1 
-    print(min_abudance, current_abundance)
+    #print(min_abudance, current_abundance)
     isotopologues = list(formula_obj.isotopologues(0.01, current_abundance))
     
     assert round(isotopologues[0].mz_theor,2) == round(351.883352980637,2)

@@ -18,7 +18,7 @@ class MolecularFormula(MolecularFormulaCalc):
         #clear dictionary of atoms with 0 value
         
         self._d_molecular_formula = {key:val for key, val in _d_molecular_formula.items() if val != 0}
-
+        
         self._ion_charge = ion_charge
         self._assigment_mass_error = None
         self._confidence_score = None
@@ -44,7 +44,7 @@ class MolecularFormula(MolecularFormulaCalc):
             if atom in self._d_molecular_formula.keys():
                 return self._d_molecular_formula[atom]
             else:
-                return None
+                return 0
                 
     @property
     def O_C(self): 
@@ -145,6 +145,7 @@ class MolecularFormula(MolecularFormulaCalc):
             
             raise Exception("Molecular formula identification not performed yet")    
     
+    @property
     def to_string_formated(self):
         
         SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
@@ -169,55 +170,40 @@ class MolecularFormula(MolecularFormulaCalc):
         '''TODO ensure self._d_molecular_formula is a orderedDict'''
         
         if self._d_molecular_formula:
-            atoms_in_ordem = ["C", "H", "N", "O", "S", "P"]
-    
-            formula_list = []
+            formula_list = []    
             
-            for atomo in atoms_in_ordem:
+            for atomo, atom_number in self._d_molecular_formula.items():
     
-                numero_atom = self._d_molecular_formula.get(atomo)
-    
-                if numero_atom:
+                if atomo != Labels.ion_type:
                     
                     formula_list.append(atomo)
-                    formula_list.append(numero_atom)
-                #else:
-                #    formula_list_zero_filled.append(atomo)
-                #    formula_list_zero_filled.append(0)
-    
-            atomos_in_dict = self._d_molecular_formula.keys()
-            for atomo in atomos_in_dict:
-    
-                if atomo not in atoms_in_ordem and atomo != Labels.ion_type:
-                    
-                    formula_list.append(atomo)
-                    formula_list.append(self._d_molecular_formula.get(atomo))
+                    formula_list.append(atom_number)
     
             return formula_list
         else:
             raise Exception("Molecular formula identification not performed yet")
-        
+    
     @property
     def class_label(self):
-        
         
         if self._d_molecular_formula:
             
             formulalist = self.to_list
-            classstring = "" 
+            classstring = '' 
             
             for each in range(0, len(formulalist),2):
                 
-                if formulalist[each] != 'C' and formulalist[each] != 'H':
+                if formulalist[each] != 'C' and formulalist[each] != 'H' and formulalist[each] != 'HC':
                      
-                    classstring = classstring + str(formulalist[each]) + str(formulalist[each+1]) + " "    
+                    classstring = classstring + str(formulalist[each]) + str(formulalist[each+1]) + ' '    
             
-            if classstring == "": classstring = "HC "
+            if classstring == '': classstring = 'HC'
                 
             classstring = classstring.strip()
+            
             if self._d_molecular_formula.get(Labels.ion_type) == 'RADICAL':    
                 
-                return classstring + " " + "-R"
+                return classstring + ' -R'
             
             else: return classstring
             

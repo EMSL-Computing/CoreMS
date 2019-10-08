@@ -48,7 +48,7 @@ class MolecularCombinations:
         p.join()
         '''
         args = [(class_tuple, isProtonated, isRadical, use_pah_line_rule, usedAtoms, 
-                min_dbe, max_dbe, ionCharge, c_h_combinations) for class_tuple in classes_list]
+                min_dbe, max_dbe, ion_charge, c_h_combinations) for class_tuple in classes_list]
         results = list()
         
         for arg in args:
@@ -227,7 +227,7 @@ class CombinationsWorker:
 
         isProtonated = settings.isProtonated
 
-        ionCharge = settings.ionCharge
+        ion_charge = settings.ion_charge
         
         min_mz = settings.min_mz
         
@@ -253,7 +253,7 @@ class CombinationsWorker:
 
             dict_results_per_ion_type = self.get_theoretical_formulas_per_class(carbon_hidrogen_combination, ion_type, class_dict, 
                                                     use_pah_line_rule, usedAtoms, min_dbe, max_dbe,
-                                                    min_mz, max_mz, hc_filter,oc_filter, ionCharge)
+                                                    min_mz, max_mz, hc_filter,oc_filter, ion_charge)
             dict_results[ion_type] = dict_results_per_ion_type
         
         if isRadical:
@@ -266,7 +266,7 @@ class CombinationsWorker:
 
             dict_results_per_ion_type = self.get_theoretical_formulas_per_class(carbon_hidrogen_combination, ion_type, class_dict, 
                                                     use_pah_line_rule, usedAtoms, min_dbe, max_dbe, 
-                                                    min_mz, max_mz, hc_filter,oc_filter, ionCharge)
+                                                    min_mz, max_mz, hc_filter,oc_filter, ion_charge)
             dict_results[ion_type] = dict_results_per_ion_type
         
         return dict_results

@@ -7,7 +7,7 @@ sys.path.append(".")
 from enviroms.encapsulation.constant import Atoms, Labels
 from enviroms.molecular_id.factory.MolecularLookupTable import MolecularCombinations
 from enviroms.molecular_id.output.export import  MolecularLookUpDictExport
-from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings
+from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings, MoleculaSearchSettings
 
 def create_lookup_dict(LookupTableSettings):
     
@@ -45,7 +45,7 @@ def test_molecular_lookup_dict():
     valence_one = possible_valences[0]
     # if you want to specify it in needs to be changed here
     # otherwise it will use the lowest covalence, PS needs insure propagation to isotopologues
-    MoleculaLookupDictSettings.used_atom_valences['Cl'] =  valence_one
+    MoleculaSearchSettings.used_atom_valences['Cl'] =  valence_one
 
     time0 = time.time()
     dict_molecular_lookup_table = create_lookup_dict(LookupDictSettings)
