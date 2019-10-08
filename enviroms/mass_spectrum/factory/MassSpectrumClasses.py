@@ -359,6 +359,17 @@ class MassSpecBase(MassSpecCalc):
         for mspeak in self.mspeaks:
             mspeak.change_kendrick_base(kendrick_dict_base)
 
+    @property
+    def nominal_mz(self):
+
+        if self._dict_nominal_masses_indexes:
+
+            return sorted(list(self._dict_nominal_masses_indexes.keys()))
+
+        else:
+            
+            raise ValueError("Nominal indexes not yet set")    
+    
     def get_nominal_mz_frist_last_indexes(self, nominal_mass):
         
         if self._dict_nominal_masses_indexes:

@@ -3,7 +3,7 @@ __date__ = "Jun 24, 2019"
 
 from enviroms.encapsulation.constant import Atoms
 from enviroms.encapsulation.constant import Labels
-from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings
+from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
 from IsoSpecPy import IsoSpecPy
 from numpy import exp
 
@@ -104,7 +104,7 @@ class MolecularFormulaCalc:
                     
                     clean_atom = ''.join([i for i in atom if not i.isdigit()]) 
                     
-                    valencia = MoleculaLookupDictSettings.used_atom_valences.get(clean_atom)
+                    valencia = MoleculaSearchSettings.used_atom_valences.get(clean_atom)
                     #valencia = Atoms.atoms_covalence.get(atom)
                     
                     if valencia and valencia > 0:
@@ -165,7 +165,7 @@ class MolecularFormulaCalc:
         cut_off_to_IsoSpeccPy = 1 - min_relative_abundance
         isotopologue_and_pro_ratio_tuples = []
         atoms_labels = (atom for atom in formula_dict.keys() if atom != Labels.ion_type and atom != 'H')
-        
+       
         atoms_count = []
         masses_list_tuples = []
         props_list_tuples = []
@@ -220,7 +220,8 @@ class MolecularFormulaCalc:
             formula_list = molecular_formulas[isotopologue_index]
             new_formula_dict = dict(zip(all_atoms_list, formula_list))
             new_formula_dict[Labels.ion_type] = formula_dict.get(Labels.ion_type)
-            new_formula_dict['H'] = formula_dict.get('H')
+            if formula_dict.get('H'):
+                new_formula_dict['H'] = formula_dict.get('H')
 
             prop_mono_iso = probs[0]
             prob_ratio = probs[isotopologue_index]/prop_mono_iso

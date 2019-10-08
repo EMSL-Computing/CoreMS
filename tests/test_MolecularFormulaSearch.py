@@ -43,16 +43,17 @@ def test_molecular_formula_search():
     #file_name = "20190616_WK_ESFA_0pt2mgml_ESI_Neg_1pt4sFID_000001.ascii"
 
     file_location = directory + file_name
-    kendrick_base =  {'C':1,'H':2,'O':1}   
+    #kendrick_base =  {'C':1,'H':2,'O':1}   
     
     mass_spectrum = creat_mass_spectrum(file_location)
-    mass_spectrum.change_kendrick_base_all_mspeaks(kendrick_base)
-    ClusteringFilter().filter_kendrick(mass_spectrum)
+    #mass_spectrum.change_kendrick_base_all_mspeaks(kendrick_base)
+    #ClusteringFilter().filter_kendrick(mass_spectrum)
     
     time1 = time.time()
     LookupTableSettings = MoleculaLookupDictSettings()
     
     SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum, LookupTableSettings)
+    
     mass_spectrum.reset_indexes()
 
     print('searching molecular formulas took %i seconds' % (time.time() - time1))
