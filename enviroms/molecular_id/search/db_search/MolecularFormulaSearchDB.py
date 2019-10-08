@@ -31,7 +31,7 @@ class SearchMolecularFormulas:
 
     def run(self, classes, nominal_mz, min_abundance, 
             mass_spectrum_obj, ms_peak, last_error, last_dif, 
-            closest_error, error_average, nbValues, sql_handle):
+            closest_error, error_average, nbValues, dict_res):
         
         def check_adduct_class(classe_dict):
             
@@ -48,7 +48,7 @@ class SearchMolecularFormulas:
             
                 ion_type = Labels.radical_ion
                 
-                formulas = sql_handle.get_entries(classe_str, ion_type, nominal_mz)
+                formulas = dict_res.get(ion_type).get(classe_str).get(nominal_mz)
                 #print('query took %i seconds' % (time.time() - time1))
                 
                 if formulas:
@@ -70,7 +70,7 @@ class SearchMolecularFormulas:
             
                 ion_type = Labels.protonated_de_ion
                 
-                formulas = sql_handle.get_entries(classe_str, ion_type, nominal_mz)
+                formulas = dict_res.get(ion_type).get(classe_str).get(nominal_mz)
                 
                 if formulas:
                     
@@ -182,19 +182,41 @@ class SearchMolecularFormulas:
 
         classes = MolecularCombinations().runworker()
         
+        nominal_mzs = mass_spectrum_obj.nominal_mz
+
+        dict_res = {}
+        
+        
+        classes_str = [class_tuple[0] for class_tuple in classes]
+        
+        #print (classes_str)
+        if MoleculaSearchSettings.isProtonated:
+            ion_type = Labels.protonated_de_ion
+
+            with molform_db() as sql_handle:
+
+                dict_res[ion_type] = sql_handle.get_dict_entries(classes_str, ion_type, nominal_mzs)
+
+        if MoleculaSearchSettings.isRadical:
+
+            ion_type = Labels.radical_ion
+
+            with molform_db() as sql_handle:
+
+                dict_res[ion_type] = sql_handle.get_dict_entries(classes_str, ion_type, nominal_mzs)
+        
+        #print(dict_res)
         for ms_peak in mass_spectrum_obj.sort_by_abundance():
             
             if self.first_hit:
                     #print('hell yeah')
                     if ms_peak.is_assigned: continue
                 
-            with molform_db() as sql_handle:
-            
-                nominal_mz  = ms_peak.nominal_mz_exp      
-                         
-                self.run(classes, nominal_mz, min_abundance, 
-                            mass_spectrum_obj, ms_peak, last_error, last_dif, 
-                            closest_error, error_average, nbValues, sql_handle)
+            nominal_mz  = ms_peak.nominal_mz_exp
+                        
+            self.run(classes, nominal_mz, min_abundance, 
+                        mass_spectrum_obj, ms_peak, last_error, last_dif, 
+                        closest_error, error_average, nbValues, dict_res)
 
         #pool = ThreadPool(20)
         #args = [ (classes, dict_molecular_lookup_table, ms_peak.nominal_mz_exp, min_abundance, 

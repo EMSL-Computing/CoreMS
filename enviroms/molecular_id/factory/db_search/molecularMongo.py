@@ -61,34 +61,33 @@ class MolForm_Mongo:
 
         return self.molform_collection.find({})
 
-    def get_dict_entries(self, classes, ion_type, nominal_mzs):
+    def get_dict_entries(self, classe, ion_type, nominal_mzs):
 
         dict_res = {}
 
-        formulas = self.molform_collection.find( {'classe': classes, 
+        formulas = self.molform_collection.find( {'classe': {"$in": classe}, 
                                                 'ion_type': ion_type,
-                                                'nominal_mz': nominal_mzs,  
-                                                'O_C' : { '$gt': MoleculaSearchSettings.oc_filter }, 
+                                                'nominal_mz':{"$in": nominal_mzs},  
+                                                'O_C' : { '$lt': MoleculaSearchSettings.oc_filter }, 
                                                 'H_C' : { '$gt': MoleculaSearchSettings.hc_filter},
                                                 'DBE' : { '$gt': MoleculaSearchSettings.min_dbe},
                                                 'DBE' : { '$lt': MoleculaSearchSettings.max_dbe},
                                                 })
-
         for formula in formulas:
             
-            if formula['classes'] in dict_res.keys():
+            if formula["classe"] in dict_res.keys():
                 
-                if formula['nominal_mz'] in dict_res[formula['classes']].keys():
+                if formula['nominal_mz'] in dict_res[formula['classe']].keys():
                     
-                    dict_res.get(formula['classes']).get(formula['nominal_mz']).append(formula['mol_formula'])
+                    dict_res.get(formula['classe']).get(formula['nominal_mz']).append(pickle.loads(formula['mol_formula']) )
                 
                 else:
 
-                    dict_res.get(formula['classes'])[formula['nominal_mz']] = [formula['mol_formula']]  
+                    dict_res.get(formula['classe'])[formula['nominal_mz']] = [pickle.loads(formula['mol_formula']) ]  
         
             else:
                 
-                dict_res[formula['classes']] = {formula['nominal_mz']: [formula['mol_formula']]}     
+                dict_res[formula['classe']] = {formula['nominal_mz']: [pickle.loads(formula['mol_formula'])] }     
         
         return dict_res
     
