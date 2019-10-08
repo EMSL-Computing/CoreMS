@@ -74,8 +74,7 @@ def xtest_molecular_lookup_db():
     
 if __name__ == '__main__':
     
-    #xtest_molecular_lookup_db()
-    #xtest_query_mongo()
+    xtest_molecular_lookup_db()
+    xtest_query_mongo()
     #xtest_query_sql()
     #xtest_query_sql()
-

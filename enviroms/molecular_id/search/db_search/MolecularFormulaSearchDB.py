@@ -105,28 +105,31 @@ class SearchMolecularFormulas:
 
         classes = MolecularCombinations().runworker()
 
-        
-        with molform_db() as sql_handle:
+        classes_str = [class_tuple[0] for class_tuple in classes]
 
-            for ms_peak in  ms_peaks:
+        nominal_mzs = [ms_peak.nominal_mz_exp for ms_peak in  ms_peaks]
 
-                if self.first_hit:
-                    #print('hell yeah')
-                    if ms_peak.is_assigned: continue
-                
-                nominal_mz  = ms_peak.nominal_mz_exp
-                '''
-                waiting for python 3.8 release to set mass_spectrum_obj and dict_molecular_lookup_table on share memory
-                pool = multiprocessing.Pool(number_of_process)
-                args = [ (dict_molecular_lookup_table.get(classe).get(ion_type).get(nominal_mz), min_abundance, mass_spectrum_obj, ms_peak_mz_exp, ms_peak_abundance)  for classe in classes ]
-                pool.map(SearchMolecularFormulaWorker(), args)
+        dict_res = self.get_dict_molecular_database(classes_str, nominal_mzs)
 
-                pool.close()
-                pool.join()
-                '''
-                self.run(classes, nominal_mz, min_abundance, 
-                            mass_spectrum_obj, ms_peak, last_error, last_dif, 
-                            closest_error, error_average, nbValues, sql_handle)
+        for ms_peak in  ms_peaks:
+
+            if self.first_hit:
+                #print('hell yeah')
+                if ms_peak.is_assigned: continue
+            
+            nominal_mz  = ms_peak.nominal_mz_exp
+            '''
+            waiting for python 3.8 release to set mass_spectrum_obj and dict_molecular_lookup_table on share memory
+            pool = multiprocessing.Pool(number_of_process)
+            args = [ (dict_molecular_lookup_table.get(classe).get(ion_type).get(nominal_mz), min_abundance, mass_spectrum_obj, ms_peak_mz_exp, ms_peak_abundance)  for classe in classes ]
+            pool.map(SearchMolecularFormulaWorker(), args)
+
+            pool.close()
+            pool.join()
+            '''
+            self.run(classes, nominal_mz, min_abundance, 
+                        mass_spectrum_obj, ms_peak, last_error, last_dif, 
+                        closest_error, error_average, nbValues, dict_res)
                         
     def run_worker_ms_peak(self, ms_peak, mass_spectrum_obj):
         
@@ -154,13 +157,15 @@ class SearchMolecularFormulas:
 
         classes = MolecularCombinations().runworker()
         
-        nominal_mz  = ms_peak.nominal_mz_exp      
+        nominal_mz  = [ms_peak.nominal_mz_exp]  
         
-        with molform_db() as sql_handle:
-           
-            self.run(classes, nominal_mz, min_abundance, 
+        classes_str = [class_tuple[0] for class_tuple in classes]
+
+        dict_res = self.get_dict_molecular_database(classes_str, nominal_mz)
+        
+        self.run(classes, nominal_mz, min_abundance, 
                         mass_spectrum_obj, ms_peak, last_error, last_dif, 
-                        closest_error, error_average, nbValues, sql_handle)
+                        closest_error, error_average, nbValues, dict_res)
             
     def run_worker_mass_spectrum(self, mass_spectrum_obj):
 
@@ -184,13 +189,29 @@ class SearchMolecularFormulas:
         
         nominal_mzs = mass_spectrum_obj.nominal_mz
 
-        dict_res = {}
-        
-        
         classes_str = [class_tuple[0] for class_tuple in classes]
+
+        dict_res = self.get_dict_molecular_database(classes_str, nominal_mzs)
+        #print(dict_res)
+        for ms_peak in mass_spectrum_obj.sort_by_abundance():
+            
+            if self.first_hit:
+                    #print('hell yeah')
+                    if ms_peak.is_assigned: continue
+                
+            nominal_mz  = ms_peak.nominal_mz_exp
+                        
+            self.run(classes, nominal_mz, min_abundance, 
+                        mass_spectrum_obj, ms_peak, last_error, last_dif, 
+                        closest_error, error_average, nbValues, dict_res)
+
+    def get_dict_molecular_database(self, classes_str, nominal_mzs):
+            
+        dict_res = {}
         
         #print (classes_str)
         if MoleculaSearchSettings.isProtonated:
+            
             ion_type = Labels.protonated_de_ion
 
             with molform_db() as sql_handle:
@@ -205,28 +226,8 @@ class SearchMolecularFormulas:
 
                 dict_res[ion_type] = sql_handle.get_dict_entries(classes_str, ion_type, nominal_mzs)
         
-        #print(dict_res)
-        for ms_peak in mass_spectrum_obj.sort_by_abundance():
-            
-            if self.first_hit:
-                    #print('hell yeah')
-                    if ms_peak.is_assigned: continue
+        return dict_res
                 
-            nominal_mz  = ms_peak.nominal_mz_exp
-                        
-            self.run(classes, nominal_mz, min_abundance, 
-                        mass_spectrum_obj, ms_peak, last_error, last_dif, 
-                        closest_error, error_average, nbValues, dict_res)
-
-        #pool = ThreadPool(20)
-        #args = [ (classes, dict_molecular_lookup_table, ms_peak.nominal_mz_exp, min_abundance, 
-        #            mass_spectrum_obj, ms_peak, last_error, last_dif, 
-        #            closest_error, error_average, nbValues) for ms_peak in mass_spectrum_obj.sort_by_mz() ]
-        
-        #pool.map(fwrap, args)
-        #pool.close()
-        #pool.join()
-            
             
 class SearchMolecularFormulaWorker:
     

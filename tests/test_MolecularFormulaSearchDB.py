@@ -40,7 +40,7 @@ def xtest_mspeak_search():
 
     mass_spec_obj = creat_mass_spectrum()
     mspeak_obj = mass_spec_obj.most_abundant_mspeak
-    print(mspeak_obj.mz_exp)    
+     
 
     SearchMolecularFormulas().run_worker_ms_peak(mspeak_obj, mass_spec_obj)
 
@@ -56,7 +56,7 @@ def xtest_molecular_formula_search_db():
     
     #LookupTableSettings = MoleculaLookupDictSettings()
 
-    SearchMolecularFormulas(first_hit=True).run_worker_mass_spectrum(mass_spec_obj)
+    SearchMolecularFormulas(first_hit=False).run_worker_mass_spectrum(mass_spec_obj)
     
     print('searching molecular formulas took %i seconds' % (time.time() - time1))
     
