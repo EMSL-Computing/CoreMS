@@ -49,8 +49,8 @@ class test_enviroms(Command):
 # This call to setup() does all the work
 setup(
     name="enviroms",
-    version="1.0.0-alpha",
-    description="Object Oriented Mass Spectrometry ToolBox for small molecules",
+    version="2.0.0-alpha",
+    description="Object Oriented Mass Spectrometry ToolBox for Small Molecules",
     long_description=README,
     long_description_content_type="text/markdown",
     url="https://gitlab.pnnl.gov/corilo/enviroms/",
