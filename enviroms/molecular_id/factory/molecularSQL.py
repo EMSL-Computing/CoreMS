@@ -94,7 +94,7 @@ class MolForm_SQL:
     def get_dict_entries(self, classes, ion_type, nominal_mzs):
 
         dict_res = {}
-
+        
         formulas = self.session.query(MolecularFormulaTable).filter(
             MolecularFormulaTable.nominal_mz.in_(nominal_mzs),
             MolecularFormulaTable.classe.in_(classes), 

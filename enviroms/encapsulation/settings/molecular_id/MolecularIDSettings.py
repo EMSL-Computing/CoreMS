@@ -60,7 +60,7 @@ class MoleculaSearchSettings:
 
     min_dbe = 0
 
-    max_dbe = 40
+    max_dbe = 70
 
     adduct_atoms_neg = ['Cl', 'Br', 'F']
     
@@ -76,7 +76,7 @@ class MoleculaSearchSettings:
 
     usedAtoms = {   'C': (1, 100),
                     'H': (4, 200),
-                    'O': (4, 18),
+                    'O': (4, 19),
                     'N': (0, 0),
                     'S': (0, 0),
                     'P': (0, 0),
