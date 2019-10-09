@@ -11,9 +11,9 @@ import time, sys, os, pytest
 sys.path.append(".")
 
 from enviroms.encapsulation.constant import Atoms, Labels
-from enviroms.molecular_id.factory.db_search.MolecularLookupTableDB import  MolecularCombinations
-from enviroms.molecular_id.factory.db_search.molecularSQL import MolForm_SQL
-from enviroms.molecular_id.factory.db_search.molecularMongo import MolForm_Mongo
+from enviroms.molecular_id.factory.MolecularLookupTable import  MolecularCombinations
+from enviroms.molecular_id.factory.molecularSQL import MolForm_SQL
+from enviroms.molecular_id.factory.molecularMongo import MolForm_Mongo
 from enviroms.molecular_id.output.export import  MolecularLookUpDictExport
 from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings, MoleculaSearchSettings
 
@@ -30,9 +30,9 @@ def xtest_query_mongo():
        print(formula[0])
        print(pickle.loads(formula[0]['mol_formula']).mz_theor)
 
-def xtest_query_sql():
+def test_query_sql():
 
-    with MolForm_Mongo() as sqldb:
+    with MolForm_SQL() as sqldb:
         #sqldb.get_all()
 
         ion_type = Labels.protonated_de_ion
@@ -41,7 +41,7 @@ def xtest_query_sql():
         nominal_mz = 501
         print(len(sqldb.get_entries(classe, ion_type, nominal_mz)))
 
-def xtest_molecular_lookup_db():    
+def test_molecular_lookup_db():    
     
     #margin_error needs to be optimized by the data rp and sn
     #min_mz,max_mz  needs to be optimized by the data
@@ -51,7 +51,7 @@ def xtest_molecular_lookup_db():
     #the defaults values are defined at the encapsulation MolecularSpaceTableSetting    
     MoleculaSearchSettings.usedAtoms['C'] = (1,90)
     MoleculaSearchSettings.usedAtoms['H'] = (4,200)
-    MoleculaSearchSettings.usedAtoms['O'] = (1,3)
+    MoleculaSearchSettings.usedAtoms['O'] = (1,8)
     MoleculaSearchSettings.usedAtoms['N'] = (0,0)
     MoleculaSearchSettings.usedAtoms['S'] = (0,0)
 
@@ -74,7 +74,7 @@ def xtest_molecular_lookup_db():
     
 if __name__ == '__main__':
     
-    xtest_molecular_lookup_db()
-    xtest_query_mongo()
-    #xtest_query_sql()
-    #xtest_query_sql()
+    test_molecular_lookup_db()
+    test_query_sql()
+    #xtest_query_mongo()
+    

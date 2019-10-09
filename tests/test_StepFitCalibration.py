@@ -70,21 +70,19 @@ def test_calibration():
 
     mass_spectrum = creat_mass_spectrum(file_location)
     
-    lookupTableSettings = MoleculaLookupDictSettings()
-
     MoleculaSearchSettings.error_method = 'None'
     MoleculaSearchSettings.min_mz_error = -5
     MoleculaSearchSettings.max_mz_error = 5
     MoleculaSearchSettings.mz_error_range = 1
 
-    find_formula_thread = FindOxygenPeaks(mass_spectrum, lookupTableSettings)
+    find_formula_thread = FindOxygenPeaks(mass_spectrum)
     find_formula_thread.start()
     find_formula_thread.join()
     
     mspeaks_results = find_formula_thread.get_list_found_peaks()
     
-    #calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
-    #calibrate.ledford_calibration()
+    calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
+    calibrate.ledford_calibration()
     #calibrate.step_fit()
     mass_spectrum.clear_molecular_formulas()
 
@@ -98,7 +96,7 @@ def test_calibration():
     MoleculaSearchSettings.isProtonated = True 
     MoleculaSearchSettings.isRadical= True 
     
-    lookupTableSettings.usedAtoms = {'C': (1, 100),
+    MoleculaSearchSettings.usedAtoms = {'C': (1, 100),
                  'H': (4, 200),
                  'O': (0, 20),
                  'N': (0, 1),
@@ -111,7 +109,7 @@ def test_calibration():
     #print(len(mass_spectrum))
     time0 = time.time()
     print('started')
-    SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum, lookupTableSettings)
+    SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum)
     print(time.time()-time0)
     
     exportMS= MassSpecExport('neg_esi_srfa_1ppm_test', mass_spectrum)

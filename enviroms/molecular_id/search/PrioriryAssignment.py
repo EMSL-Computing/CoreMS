@@ -10,10 +10,12 @@ from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import Mol
 from enviroms.molecular_id.search.FindOxigenPeaks import FindOxygenPeaks
 from enviroms.molecular_id.search.MolecularFormulaSearch import SearchMolecularFormulaWorker, SearchMolecularFormulas
 from enviroms.molecular_id.factory.MolecularLookupTable import MolecularCombinations
+from enviroms.molecular_id.factory.molecularSQL import MolForm_SQL as molform_db
+#from enviroms.molecular_id.factory.molecularMongo import MolForm_Mongo as molform_db
 
 class OxigenPriorityAssignment(Thread):
 
-    def __init__(self, mass_spectrum_obj, lookupTableSettings):
+    def __init__(self, mass_spectrum_obj):
         '''TODO:- add support for other atoms and adducts: Done
                 - add dbe range on search runtime : Done
                 - add docs
@@ -21,7 +23,6 @@ class OxigenPriorityAssignment(Thread):
         '''
         Thread.__init__(self)
         self.mass_spectrum_obj = mass_spectrum_obj
-        self.lookupTableSettings = lookupTableSettings
         #initiated at create_molecular_database()
         self.dict_molecular_lookup_table = None
         self.assign_classes_order_str_dict_tuple_list = None
@@ -42,7 +43,7 @@ class OxigenPriorityAssignment(Thread):
     
     def create_data_base(self):
         
-        find_formula_thread = FindOxygenPeaks(self.mass_spectrum_obj, self.lookupTableSettings)
+        find_formula_thread = FindOxygenPeaks(self.mass_spectrum_obj)
         find_formula_thread.run()
         #mass spec obj indexes are set to interate over only the peaks with a molecular formula candidate
         find_formula_thread.set_mass_spec_indexes_by_found_peaks()
@@ -91,13 +92,9 @@ class OxigenPriorityAssignment(Thread):
         
         nbValues = 0
 
-        self.lookupTableSettings.min_mz = self.mass_spectrum_obj.min_mz_exp
-    
-        self.lookupTableSettings.max_mz = self.mass_spectrum_obj.max_mz_exp
-        
         min_abundance = self.mass_spectrum_obj.min_abundance
 
-        print(assign_classes_order_tuples)
+        print('classes assignment order', assign_classes_order_tuples)
         
         for ms_peak in self.mass_spectrum_obj.sort_by_abundance():
 
@@ -185,14 +182,43 @@ class OxigenPriorityAssignment(Thread):
         
         self.mass_spectrum_obj.reset_indexes()
 
-        self.lookupTableSettings.usedAtoms['O'] = (min_o, max_o)
+        initial_ox = deepcopy(MoleculaSearchSettings.usedAtoms)
 
-        self.lookupTableSettings.min_mz = self.mass_spectrum_obj.min_mz_exp
-    
-        self.lookupTableSettings.max_mz = self.mass_spectrum_obj.max_mz_exp
+        MoleculaSearchSettings.usedAtoms['O'] = (min_o, max_o)
+
+        classes = MolecularCombinations().runworker()
+
+        classes_str = [class_tuple[0] for class_tuple in classes]
+
+        nominal_mzs = self.mass_spectrum_obj.nominal_mz_exp
+
+        self.dict_molecular_lookup_table = self.get_dict_molecular_database(classes_str, nominal_mzs)
+
         
-        self.dict_molecular_lookup_table = MolecularCombinations().runworker(self.lookupTableSettings)
+    def get_dict_molecular_database(self, classes_str, nominal_mzs):
+            
+        dict_res = {}
+        
+        #print (classes_str)
+        if MoleculaSearchSettings.isProtonated:
+            
+            ion_type = Labels.protonated_de_ion
 
+            with molform_db() as sql_handle:
+
+                dict_res[ion_type] = sql_handle.get_dict_entries(classes_str, ion_type, nominal_mzs)
+
+        if MoleculaSearchSettings.isRadical:
+
+            ion_type = Labels.radical_ion
+
+            with molform_db() as sql_handle:
+
+                dict_res[ion_type] = sql_handle.get_dict_entries(classes_str, ion_type, nominal_mzs)
+        
+        return dict_res
+
+    
     def ox_classes_and_dbes_in_ordem_(self) -> dict:
         
         dict_ox_class_and_ms_peak = dict()
@@ -217,7 +243,7 @@ class OxigenPriorityAssignment(Thread):
         ''' structure is 
             ('HC', {'HC': 1})'''
         
-        usedAtoms = deepcopy(self.lookupTableSettings.usedAtoms)
+        usedAtoms = deepcopy(MoleculaSearchSettings.usedAtoms)
         
         usedAtoms.pop("C")
         usedAtoms.pop("H")
