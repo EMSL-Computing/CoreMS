@@ -62,7 +62,7 @@ class MolForm_SQL:
 
     def __enter__(self):
         
-        self.engine = create_engine('sqlite:///{DB}'.format(DB='res/molformulas.sqlite'), connect_args={'timeout': 15})
+        self.engine = create_engine('sqlite:///{DB}'.format(DB='db/molformulas.sqlite'), connect_args={'timeout': 15})
         
         #self.engine = create_engine('postgresql://postgres:docker@localhost:5432/')
         
