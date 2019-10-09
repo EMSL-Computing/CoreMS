@@ -32,7 +32,7 @@ def xtest_query_mongo():
 
 def test_query_sql():
 
-    with MolForm_Mongo() as sqldb:
+    with MolForm_SQL() as sqldb:
         #sqldb.get_all()
 
         ion_type = Labels.protonated_de_ion
