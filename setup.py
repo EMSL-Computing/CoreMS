@@ -21,8 +21,8 @@ setup(
     author_email="corilo@pnnl.gov",
     license="Not decided yet",
     classifiers=[
-        #"License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 3",
+        "License :: MIT License",
+        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
     ],
     packages= setuptools.find_packages(".", exclude= ["test", "*win_only"]),
@@ -30,8 +30,8 @@ setup(
     include_package_data=True,
     install_requires=["pandas", "numpy", "matplotlib", "scipy", 'IsoSpecPy', 'sqlalchemy'],
     # test are not yet implemented, will test dependences and syntax only for now
+    setup_requires=['pytest-runner', 'wheel'],
     test_suite='pytest',
-    setup_requires=['pytest-runner'],
     tests_require=['pytest'],
 
    

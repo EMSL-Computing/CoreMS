@@ -17,7 +17,7 @@ build_complexity.bat
 .vscode/  
 .pytest_cache/
 .vs/
-dist/  
 corems.egg-info/  
 res/data/
 .eggs/
+db/
