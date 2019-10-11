@@ -5,29 +5,18 @@ sys.path.append(".")
 
 import pytest
 
-from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import  MoleculaLookupDictSettings, MoleculaSearchSettings
-from enviroms.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration, MZDomain_Calibration
-from enviroms.mass_spectrum.output.export import MassSpecExport 
-from enviroms.mass_spectrum.input.textMassList import Read_MassList
-from enviroms.molecular_id.search.FindOxigenPeaks import FindOxygenPeaks
-from enviroms.molecular_id.search.PrioriryAssignment import OxigenPriorityAssignment
-from enviroms.molecular_id.search.MolecularFormulaSearch import SearchMolecularFormulas
-from enviroms.molecular_id.calc.ClusterFilter import ClusteringFilter
-from enviroms.transient.input.BrukerSolarix import ReadBrukerSolarix
+from corems.encapsulation.settings.molecular_id.MolecularIDSettings import  MoleculaLookupDictSettings, MoleculaSearchSettings
+from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration, MZDomain_Calibration
+from corems.mass_spectrum.output.export import MassSpecExport 
+from corems.mass_spectrum.input.textMassList import Read_MassList
+from corems.molecular_id.search.FindOxigenPeaks import FindOxygenPeaks
+from corems.molecular_id.search.PrioriryAssignment import OxigenPriorityAssignment
+from corems.molecular_id.search.MolecularFormulaSearch import SearchMolecularFormulas
+from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
+from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
 
 def calibrate(mass_spectrum_obj):
     
-    MoleculaSearchSettings.error_method = 'None'
-    MoleculaSearchSettings.min_mz_error = -2
-    MoleculaSearchSettings.max_mz_error = 1
-    MoleculaSearchSettings.mz_error_range = 1
-    MoleculaSearchSettings.mz_error_average = 0
-    MoleculaSearchSettings.min_abun_error = -30 # percentage
-    MoleculaSearchSettings.max_abun_error = 70 # percentage
-    MoleculaSearchSettings.isProtonated = True
-    MoleculaSearchSettings.isRadical = True
-    MoleculaSearchSettings.isAdduct = False
-
     find_formula_thread = FindOxygenPeaks(mass_spectrum_obj)
     find_formula_thread.run()
     mspeaks_results = find_formula_thread.get_list_found_peaks()
@@ -237,11 +226,8 @@ def search_mf(mass_spectrum_obj):
 
 def search_ox(mass_spectrum_obj):
 
-    #print(len(mass_spectrum_obj), 'before kendrick filter')
     filter_by_resolving_power()
-    #print(len(mass_spectrum_obj), 'after kendrick filter')
-    #print(len(mass_spectrum_obj), 'after resolving power filter')
-
+   
     MoleculaSearchSettings.usedAtoms['O'] = (1,10)
     MoleculaSearchSettings.usedAtoms['N'] = (0, 0)
     MoleculaSearchSettings.usedAtoms['S'] = (0, 0)
@@ -249,14 +235,6 @@ def search_ox(mass_spectrum_obj):
     #MoleculaSearchSettings.usedAtoms['F'] = (0, 1)
     #MoleculaSearchSettings.usedAtoms['P'] = (0, 0)
     
-    
-    MoleculaSearchSettings.min_dbe = 0
-    MoleculaSearchSettings.max_dbe = 50
-    
-    MoleculaSearchSettings.isProtonated = True
-    MoleculaSearchSettings.isRadical = True
-    MoleculaSearchSettings.isAdduct = True
-
     SearchMolecularFormulas(first_hit=True).run_worker_mass_spectrum(mass_spectrum_obj,)
 
 def search_sx(mass_spectrum_obj):
@@ -276,75 +254,40 @@ def search_sx(mass_spectrum_obj):
     
     MoleculaSearchSettings.min_dbe = 0
     MoleculaSearchSettings.max_dbe = 50
-    
-    MoleculaSearchSettings.isProtonated = True
-    MoleculaSearchSettings.isRadical = True
-    MoleculaSearchSettings.isAdduct = True
-
+  
     SearchMolecularFormulas(first_hit=True).run_worker_mass_spectrum(mass_spectrum_obj,)
 
 def search_sox(mass_spectrum_obj):
 
-    #print(len(mass_spectrum_obj), 'before kendrick filter')
     filter_by_resolving_power()
-    #print(len(mass_spectrum_obj), 'after kendrick filter')
-    #print(len(mass_spectrum_obj), 'after resolving power filter')
-
+    
     MoleculaSearchSettings.usedAtoms['O'] = (1, 10)
     MoleculaSearchSettings.usedAtoms['N'] = (0, 0)
     MoleculaSearchSettings.usedAtoms['S'] = (1, 3)
     MoleculaSearchSettings.usedAtoms['Cl'] = (0, 0)
-    #MoleculaSearchSettings.usedAtoms['F'] = (0, 1)
-    #MoleculaSearchSettings.usedAtoms['P'] = (0, 0)
     
-    
-    MoleculaSearchSettings.min_dbe = 0
-    MoleculaSearchSettings.max_dbe = 50
-    
-    MoleculaSearchSettings.isProtonated = True
-    MoleculaSearchSettings.isRadical = True
-    MoleculaSearchSettings.isAdduct = True
-
     SearchMolecularFormulas(first_hit=True).run_worker_mass_spectrum(mass_spectrum_obj,)
 
 def search_nox(mass_spectrum_obj):
 
-    #print(len(mass_spectrum_obj), 'before kendrick filter')
+    
     filter_by_resolving_power()
-    #print(len(mass_spectrum_obj), 'after kendrick filter')
-    #print(len(mass_spectrum_obj), 'after resolving power filter')
-
+    
     MoleculaSearchSettings.usedAtoms['O'] = (1, 10)
     MoleculaSearchSettings.usedAtoms['N'] = (1, 3)
     MoleculaSearchSettings.usedAtoms['S'] = (0, 0)
     MoleculaSearchSettings.usedAtoms['Cl'] = (0, 0)
-    #MoleculaSearchSettings.usedAtoms['F'] = (0, 1)
-    #MoleculaSearchSettings.usedAtoms['P'] = (0, 0)
-    
-    
-    MoleculaSearchSettings.min_dbe = 0
-    MoleculaSearchSettings.max_dbe = 50
-    
-    MoleculaSearchSettings.isProtonated = True
-    MoleculaSearchSettings.isRadical = True
-    MoleculaSearchSettings.isAdduct = True
-
+   
     SearchMolecularFormulas(first_hit=True).run_worker_mass_spectrum(mass_spectrum_obj,)
     
 def search_nsox(mass_spectrum_obj):
 
-    #print(len(mass_spectrum_obj), 'before kendrick filter')
     filter_by_resolving_power()
-    #print(len(mass_spectrum_obj), 'after kendrick filter')
-    #print(len(mass_spectrum_obj), 'after resolving power filter')
-
+    
     MoleculaSearchSettings.usedAtoms['O'] = (1, 10)
     MoleculaSearchSettings.usedAtoms['N'] = (1, 3)
     MoleculaSearchSettings.usedAtoms['S'] = (1, 3)
     MoleculaSearchSettings.usedAtoms['Cl'] = (0, 0)
-    #MoleculaSearchSettings.usedAtoms['F'] = (0, 1)
-    #MoleculaSearchSettings.usedAtoms['P'] = (0, 0)
-    
     
     MoleculaSearchSettings.min_dbe = 0
     MoleculaSearchSettings.max_dbe = 50
@@ -400,11 +343,6 @@ def percent_assigned_peaks():
     print("%.2f of peaks assigned %.2f relative abundance"% (total_assigned/total*100, sum_assigned_abun/sum_abundance*100))
 
 def plot_mass_spectrum():
-    #colors = list(mcolors.XKCD_COLORS.keys())
-    #oxigens = range(6,21)
-    
-    #for o in oxigens:
-        #o_c = list()
     
     pyplot.plot(mass_spectrum_obj.mz_exp_profile, mass_spectrum_obj.abundance_profile)
     
@@ -467,8 +405,6 @@ if __name__ == "__main__":
     
     file_location = os.path.join(os.getcwd(), "res/data/201909_ldiesiappi_elliot/") + os.path.normcase(file_name)
 
-    #file_location = os.path.join(os.getcwd(), "tests/tests_data/") + os.path.normcase("ESI_NEG_SRFA.d/")
-    
     bruker_reader = ReadBrukerSolarix(file_location)
 
     bruker_transient = bruker_reader.get_transient()
@@ -486,6 +422,10 @@ if __name__ == "__main__":
     MoleculaSearchSettings = MoleculaLookupDictSettings()
     
     #plot_resolving_power()
+
+    #MoleculaSearchSettings.error_method = 'None'
+    #MoleculaSearchSettings.min_mz_error = -10
+    #MoleculaSearchSettings.max_mz_error = 10
 
     calibrate(mass_spectrum_obj)
 
@@ -529,8 +469,8 @@ if __name__ == "__main__":
 
     #plot_mass_spectrum()
     
-    #if not os.path.isdir(mass_spectrum_obj.filename):
-    #    os.mkdir(mass_spectrum_obj.filename)
+    if not os.path.isdir(mass_spectrum_obj.filename):
+        os.mkdir(mass_spectrum_obj.filename)
     
     #MassSpecExport(mass_spectrum_obj.filename+'/'+mass_spectrum_obj.filename, mass_spectrum_obj, 'excel').start()
     

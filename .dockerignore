@@ -1,6 +1,6 @@
 doc
-enviroms-python
-enviroms-wpython
+corems-python
+corems-wpython
 .gitlab-ci.yml
 .project
 .pydevproject

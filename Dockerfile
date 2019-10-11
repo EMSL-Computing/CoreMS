@@ -1,13 +1,13 @@
 FROM python:latest
-WORKDIR /home/enviroms/
-#VOLUME  . /home/enviroms/
+WORKDIR /home/corems/
+#VOLUME  . /home/corems/
 
-COPY  enviroms/ /home/enviroms/
-COPY  requirements.txt LICENSE README.md setup.py /home/enviroms/
+COPY  corems/ /home/corems/
+COPY  requirements.txt LICENSE README.md setup.py /home/corems/
 RUN pip install virtualenv
 RUN virtualenv mypython
 RUN python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('win_only/__init__.py')]"
-RUN . /home/enviroms/mypython/bin/activate
+RUN . /home/corems/mypython/bin/activate
 RUN pip install -r requirements.txt
 RUN pip install wheel
 RUN python setup.py sdist bdist_wheel

@@ -5,9 +5,9 @@ import sys
 sys.path.append(".")
 
 import pytest
-from enviroms.encapsulation.constant import Atoms
-from enviroms.molecular_id.factory.MolecularFormulaFactory import MolecularFormula    
-from enviroms.encapsulation.constant import Labels
+from corems.encapsulation.constant import Atoms
+from corems.molecular_id.factory.MolecularFormulaFactory import MolecularFormula    
+from corems.encapsulation.constant import Labels
 
 from copy import deepcopy
 

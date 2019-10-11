@@ -2,7 +2,7 @@ import sys
 
 sys.path.append(".")
 
-from enviroms.mass_spectra.input.win_only.BrukerCompassXtract import (
+from corems.mass_spectra.input.win_only.BrukerCompassXtract import (
     ImportLCMSBrukerCompassXtract,
 )
 

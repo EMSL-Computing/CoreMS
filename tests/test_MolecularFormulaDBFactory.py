@@ -10,21 +10,21 @@ import pymongo
 import time, sys, os, pytest
 sys.path.append(".")
 
-from enviroms.encapsulation.constant import Atoms, Labels
-from enviroms.molecular_id.factory.MolecularLookupTable import  MolecularCombinations
-from enviroms.molecular_id.factory.molecularSQL import MolForm_SQL
-from enviroms.molecular_id.factory.molecularMongo import MolForm_Mongo
-from enviroms.molecular_id.output.export import  MolecularLookUpDictExport
-from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings, MoleculaSearchSettings
+from corems.encapsulation.constant import Atoms, Labels
+from corems.molecular_id.factory.MolecularLookupTable import  MolecularCombinations
+from corems.molecular_id.factory.molecularSQL import MolForm_SQL
+from corems.molecular_id.factory.molecularMongo import MolForm_Mongo
+from corems.molecular_id.output.export import  MolecularLookUpDictExport
+from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings, MoleculaSearchSettings
 
 def create_lookup_dict():
     
     MolecularCombinations().runworker()
 
 def xtest_query_mongo():
-    #client = MongoClient("mongodb://enviroms-client:esmlpnnl2019@localhost:27017/enviroms")
+    #client = MongoClient("mongodb://corems-client:esmlpnnl2019@localhost:27017/corems")
         
-    #db = client.enviroms.drop_collection('molform')
+    #db = client.corems.drop_collection('molform')
     with MolForm_Mongo() as mongo_db:
        formula = mongo_db.get_all()
        print(formula[0])

@@ -1,13 +1,13 @@
 import pickle, sys, os
 sys.path.append(".")
-from enviroms.transient.input.BrukerSolarix import ReadBrukerSolarix
+from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
 import pytest
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 19, 2019"
 
 def test_import_transient():
     
-    # from enviroms.structure.input.MidasDatFile import ReadMidasDatFile
+    # from corems.structure.input.MidasDatFile import ReadMidasDatFile
     directory = os.path.join(os.getcwd(), "tests/tests_data/")
 
     file_name = os.path.normcase("ESI_NEG_SRFA.d")

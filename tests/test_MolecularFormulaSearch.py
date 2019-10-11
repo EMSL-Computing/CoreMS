@@ -6,12 +6,13 @@ import sys
 import time
 import pytest
 sys.path.append('.')
-from enviroms.mass_spectrum.factory.MSPeakClasses import MSPeak
-from enviroms.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings, MoleculaLookupDictSettings
-from enviroms.mass_spectrum.input.textMassList import Read_MassList
-from enviroms.molecular_id.search.MolecularFormulaSearch import SearchMolecularFormulas
-from enviroms.molecular_id.calc.ClusterFilter import ClusteringFilter
-from enviroms.transient.input.BrukerSolarix import ReadBrukerSolarix
+from corems.mass_spectrum.factory.MSPeakClasses import MSPeak
+from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
+from corems.mass_spectrum.input.textMassList import Read_MassList
+from corems.mass_spectrum.input.fromData import ms_from_array_centroid
+from corems.molecular_id.search.MolecularFormulaSearch import SearchMolecularFormulas
+from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
+from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
 
 def creat_mass_spectrum():
 
@@ -36,6 +37,22 @@ def creat_mass_spectrum():
     #mass_spectrum_obj  = mass_list_reader.get_mass_spectrum(auto_process=True)
 
     return mass_spectrum_obj
+
+def test_run_molecular_formula_search():
+
+    mz = [215.09269]
+    abundance = [1]
+    rp, s2n = [1,1]
+    dataname = 'one peak'
+    mass_spectrum_obj = ms_from_array_centroid(mz, abundance, rp, s2n, dataname)
+
+    SearchMolecularFormulas().run_worker_ms_peak(mass_spectrum_obj[0], mass_spectrum_obj)
+    ms_peak = mass_spectrum_obj[0]
+    print(ms_peak.mz_exp)
+    if ms_peak.is_assigned:
+        for formula in ms_peak:
+            print(formula.to_string_formated, formula.mz_error)
+        
 
 def test_mspeak_search():
 
@@ -81,5 +98,6 @@ def test_molecular_formula_search_db():
     
 if __name__ == "__main__":
 
+    test_run_molecular_formula_search()
     #test_molecular_formula_search_db()
-    test_mspeak_search()
+    #test_mspeak_search()

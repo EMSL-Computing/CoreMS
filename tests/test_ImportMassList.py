@@ -1,7 +1,7 @@
 import os, sys
 import pathlib
 sys.path.append(".")
-from enviroms.mass_spectrum.input.textMassList import Read_MassList
+from corems.mass_spectrum.input.textMassList import Read_MassList
 import pytest
 
 __author__ = "Yuri E. Corilo"

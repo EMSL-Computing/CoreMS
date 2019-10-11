@@ -1,9 +1,9 @@
 [tool.poetry]
-name = "enviroms"
-version = "0.1.0"
+name = "corems"
+version = "2.0.a0"
 description = "Object Oriented Mass Spectrometry ToolBox"
 authors = ["Corilo, Yuri <corilo@pnnl.gov>"]
-exclude = ["enviroms/test/*.*", "enviroms/libs/*.*", "enviroms/bokeh_imple/*.*", "enviroms/emsl/yec/input/ThermoRaw.py"]
+exclude = ["corems/test/*.*", "corems/libs/*.*", "corems/bokeh_imple/*.*", "corems/emsl/yec/input/ThermoRaw.py"]
 
 [tool.poetry.dependencies]
 python = "^3.7"

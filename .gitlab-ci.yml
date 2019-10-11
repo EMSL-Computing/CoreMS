@@ -46,7 +46,7 @@ test-job:
     - ls .
     - python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
     - python setup.py test
-    - python -m pytest -v --cov=enviroms
+    - python -m pytest -v --cov=corems
     #- pip install tox flake8 pytest  # you can also use tox
     #- flake8 --exclude=venv* --statistics
     #- pytest -v --cov=calculator
