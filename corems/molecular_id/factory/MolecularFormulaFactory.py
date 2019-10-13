@@ -133,8 +133,8 @@ class MolecularFormula(MolecularFormulaCalc):
             formula_srt = ''
             for atom in Atoms.atoms_order:
                 if atom in self.to_dict.keys():
-                    formula_srt += atom + str(int(self.to_dict.get(atom)))
-            return formula_srt
+                    formula_srt += atom + str(int(self.to_dict.get(atom))) + ' '
+            return formula_srt.strip()
         
         else:
             raise Exception("Molecular formula identification not performed yet")    
