@@ -130,19 +130,13 @@ class MolecularFormula(MolecularFormulaCalc):
     def to_string(self):
         
         if self._d_molecular_formula:
-            
-            formulalist = self.to_list
-            
-            formulastring = "" 
-            
-            for each in range(0, len(formulalist),2):
-                
-                formulastring = formulastring + str(formulalist[each]) + str(formulalist[each+1]) + " "    
-                
-            return formulastring[0:-1]   
-       
+            formula_srt = ''
+            for atom in Atoms.atoms_order:
+                if atom in self.to_dict.keys():
+                    formula_srt += atom + str(int(self.to_dict.get(atom)))
+            return formula_srt
+        
         else:
-            
             raise Exception("Molecular formula identification not performed yet")    
     
     @property
