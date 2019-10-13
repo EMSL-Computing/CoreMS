@@ -1,4 +1,4 @@
-import pickle
+import pickle, os
 
 from sqlalchemy import create_engine, Column, Integer, LargeBinary, String, Float, exists
 from sqlalchemy.ext.declarative import declarative_base
