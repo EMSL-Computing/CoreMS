@@ -18,3 +18,4 @@ core_env/
 res/data/
 .eggs/
 dist/
+build/
