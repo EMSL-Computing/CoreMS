@@ -48,7 +48,7 @@ class MoleculaLookupDictSettings:
 
 class MoleculaSearchSettings:
     
-    db_directory = 'db'
+    db_directory = None
 
     # look for close shell ions [M + Adduct]+ only considers metal set in the list adduct_atoms  
     
