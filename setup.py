@@ -12,7 +12,7 @@ README = (HERE / "README.md").read_text()
 # This call to setup() does all the work
 setup(
     name="coreMS",
-    version="2.0.0-alpha",
+    version="2.0.1-alpha",
     description="Object Oriented Mass Spectrometry ToolBox for Small Molecules",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -29,7 +29,7 @@ setup(
     packages= setuptools.find_packages(".", exclude= ["test", "*win_only"]),
     exclude_package_data={'.': ["test", "*.win_only"]},
     include_package_data=True,
-    install_requires=["pandas", "numpy", "matplotlib", "scipy", 'IsoSpecPy', 'sqlalchemy', 'openpyxl', 'pymongo', ],
+    install_requires=["pandas", "numpy", "matplotlib", "scipy", 'IsoSpecPy', 'sqlalchemy', 'openpyxl', 'pymongo','pyyaml' ],
     # test are not yet implemented, will test dependences and syntax only for now
     setup_requires=['pytest-runner', 'wheel'],
     test_suite='pytest',

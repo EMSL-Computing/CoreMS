@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 class MoleculaLookupDictSettings:
     
     # C, H, N, O, S and P atoms are ALWAYS needed at usedAtoms
@@ -47,6 +48,8 @@ class MoleculaLookupDictSettings:
 
 class MoleculaSearchSettings:
     
+    db_directory = 'db'
+
     # look for close shell ions [M + Adduct]+ only considers metal set in the list adduct_atoms  
     
     '''query setting'''

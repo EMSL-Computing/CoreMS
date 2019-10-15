@@ -158,7 +158,7 @@ class MolecularFormula(MolecularFormulaCalc):
     @property
     def to_dict(self):
         return self._d_molecular_formula
-    
+
     @property   
     def to_list(self):
         '''TODO ensure self._d_molecular_formula is a orderedDict'''
