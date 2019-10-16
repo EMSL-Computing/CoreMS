@@ -62,19 +62,17 @@ class MolForm_SQL:
 
     def __enter__(self):
         
-        directory = os.path.dirname( __file__)
+        directory = os.getcwd()
         
         if MoleculaSearchSettings.db_directory:
             
             db_directory = MoleculaSearchSettings.db_directory
             
             self.engine = create_engine(db_directory)
-            print('yes')
-            print(db_directory)
+            
 
         else:
             
-            print('no')
             if not os.path.isdir(directory+'/db'):
                 
                 os.mkdir(directory+'/db')    
