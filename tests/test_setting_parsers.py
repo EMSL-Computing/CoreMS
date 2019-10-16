@@ -1,7 +1,7 @@
 import sys
 sys.path.append(".")
 
-from corems.encapsulation.settings import settings_parsers
+from corems.encapsulation.settings.io import settings_parsers
 
 def test_dump():
       settings_parsers.dump_search_settings_yaml()  
