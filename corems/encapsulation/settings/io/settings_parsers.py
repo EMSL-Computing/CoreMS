@@ -19,6 +19,7 @@ def set_dict_data(data_loaded):
         Warning("Could not load the settings, using the defaults values")    
 
 def dump_search_settings_json( filename='SearchConfig'):
+    
     '''Write JSON file into current directory
     '''        
     

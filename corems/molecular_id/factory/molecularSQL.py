@@ -65,19 +65,23 @@ class MolForm_SQL:
         directory = os.path.dirname( __file__)
         
         if MoleculaSearchSettings.db_directory:
-        
+            
             db_directory = MoleculaSearchSettings.db_directory
             
             self.engine = create_engine(db_directory)
-        
+            print('yes')
+            print(db_directory)
+
         else:
             
+            print('no')
             if not os.path.isdir(directory+'/db'):
                 
                 os.mkdir(directory+'/db')    
             
             self.engine = create_engine('sqlite:///{DB}'.format(DB=directory+'/db'+'/molformulas.sqlite'), connect_args={'timeout': 15})
         
+        print(self.engine)
         #self.engine = create_engine('postgresql://postgres:docker@localhost:5432/')
         
         Base.metadata.create_all(self.engine)
@@ -151,7 +155,6 @@ class MolForm_SQL:
             (MolecularFormulaTable.classe == classe) &
             (MolecularFormulaTable.ion_type == ion_type) &
             (MolecularFormulaTable.ion_charge == MoleculaSearchSettings.ion_charge))).scalar()
-        print(yes)
         return yes
     
     
@@ -204,4 +207,11 @@ class MolForm_SQL:
         self.session.query(MolecularFormulaTable).delete()
         self.session.commit()  
 
+    def clear_data(self):
+        '''clear tables'''
+        meta = Base.metadata
+        for table in reversed(meta.sorted_tables):
+            print ('Clear table %s' % table)
+            self.session.execute(table.delete())
+        self.session.commit()
    

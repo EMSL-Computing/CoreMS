@@ -32,6 +32,7 @@ def xtest_query_mongo():
 def test_query_sql():
 
     with MolForm_SQL() as sqldb:
+        #sqldb.clear_data()
 
         ion_type = Labels.protonated_de_ion
         print('ion_type', ion_type)
@@ -75,8 +76,8 @@ if __name__ == '__main__':
     from corems.encapsulation.settings.io import settings_parsers
 
     #settings_parsers.load_search_setting_yaml()
-    #settings_parsers.load_search_setting_json()
+    settings_parsers.load_search_setting_json()
     #test_molecular_lookup_db()
     test_query_sql()
     #xtest_query_mongo()
-    
+    test_molecular_lookup_db()

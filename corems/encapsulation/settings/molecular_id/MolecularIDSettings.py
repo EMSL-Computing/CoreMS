@@ -45,6 +45,8 @@ class MoleculaLookupDictSettings:
     
         self.use_pah_line_rule = False
 
+        self.db_directory = None
+
 
 class MoleculaSearchSettings:
     

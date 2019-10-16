@@ -78,7 +78,8 @@ class MolecularCombinations:
             settings = MoleculaLookupDictSettings()
             settings.usedAtoms = deepcopy(MoleculaSearchSettings.usedAtoms)
             settings.ion_charge = MoleculaSearchSettings.ion_charge
-
+            settings.db_directory = MoleculaSearchSettings.db_directory
+            
             c_h_combinations= self.get_c_h_combination(settings)
             
             number_of_process = 1#int(multiprocessing.cpu_count())
@@ -311,10 +312,11 @@ class CombinationsWorker:
                                                     min_dbe, max_dbe, 
                                                     min_mz, max_mz, ion_charge)
             
-            self.insert_formula_db(list_mf)
+            self.insert_formula_db(list_mf, settings)
   
-    def insert_formula_db(self, list_mf):
+    def insert_formula_db(self, list_mf, settings):
 
+        MoleculaSearchSettings.db_directory = settings.db_directory
         if len(list_mf) > 0:
         
             with molform_db() as sql_handle:
