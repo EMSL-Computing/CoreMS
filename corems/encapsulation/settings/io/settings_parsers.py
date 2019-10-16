@@ -46,7 +46,7 @@ def load_search_setting_json(setting_path=False):
         file_path = setting_path
 
     else:
-        filename='searchSettings.json'
+        filename='SearchConfig.json'
         file_path = os.getcwd() + os.path.normcase('/' + filename)
         
     with open(file_path, 'r', encoding='utf8',) as stream:
@@ -56,7 +56,7 @@ def load_search_setting_json(setting_path=False):
        
         data_loaded = json.loads(jdata)
         set_dict_data(data_loaded)
-        
+
 
 '''def dump_search_settings_yaml(filename='SearchConfig'):
     Write YAML file into current directory

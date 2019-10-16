@@ -23,7 +23,6 @@ def create_lookup_dict():
 
 def xtest_query_mongo():
     #client = MongoClient("mongodb://corems-client:esmlpnnl2019@localhost:27017/corems")
-        
     #db = client.corems.drop_collection('molform')
     with MolForm_Mongo() as mongo_db:
        formula = mongo_db.get_all()
@@ -33,13 +32,12 @@ def xtest_query_mongo():
 def test_query_sql():
 
     with MolForm_SQL() as sqldb:
-        #sqldb.get_all()
 
         ion_type = Labels.protonated_de_ion
-        print(ion_type)
+        print('ion_type', ion_type)
         classe = 'O8'
         nominal_mz = 501
-        print(len(sqldb.get_entries(classe, ion_type, nominal_mz)))
+        print('total mol formulas found: ', len(sqldb.get_entries(classe, ion_type, nominal_mz)))
 
 def test_molecular_lookup_db():    
     
@@ -74,7 +72,11 @@ def test_molecular_lookup_db():
     
 if __name__ == '__main__':
     
-    test_molecular_lookup_db()
+    from corems.encapsulation.settings.io import settings_parsers
+
+    #settings_parsers.load_search_setting_yaml()
+    #settings_parsers.load_search_setting_json()
+    #test_molecular_lookup_db()
     test_query_sql()
     #xtest_query_mongo()
     

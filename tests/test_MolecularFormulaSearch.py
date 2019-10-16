@@ -99,5 +99,4 @@ def test_molecular_formula_search_db():
 if __name__ == "__main__":
 
     test_run_molecular_formula_search()
-    #test_molecular_formula_search_db()
     #test_mspeak_search()
