@@ -1,4 +1,4 @@
-FROM python:latest
+FROM python:3.7.4
 WORKDIR /home/corems/
 #VOLUME  . /home/corems/
 
