@@ -479,4 +479,3 @@ if __name__ == "__main__":
     #plot_c_dbe_classes(df)
 
     plot_error_distribution()
-  

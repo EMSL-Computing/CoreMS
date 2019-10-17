@@ -297,7 +297,7 @@ class CombinationsWorker:
             list_mf = self.get_mol_formulas(carbon_hidrogen_combination, ion_type, classe_tuple, 
                                                     min_dbe, max_dbe,
                                                     min_mz, max_mz, ion_charge)
-            self.insert_formula_db(list_mf)
+            self.insert_formula_db(list_mf, settings)
             
         if isRadical:
 

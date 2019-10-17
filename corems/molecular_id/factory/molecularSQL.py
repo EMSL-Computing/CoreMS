@@ -69,7 +69,6 @@ class MolForm_SQL:
             db_directory = MoleculaSearchSettings.db_directory
             
             self.engine = create_engine(db_directory)
-            
 
         else:
             
@@ -79,7 +78,6 @@ class MolForm_SQL:
             
             self.engine = create_engine('sqlite:///{DB}'.format(DB=directory+'/db'+'/molformulas.sqlite'), connect_args={'timeout': 15})
         
-        print(self.engine)
         #self.engine = create_engine('postgresql://postgres:docker@localhost:5432/')
         
         Base.metadata.create_all(self.engine)

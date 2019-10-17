@@ -1,60 +1,32 @@
 {
-    //only look for adducts ion type for these atoms
     "adduct_atoms_neg": [
-        "Cl",
-        "Br",
-        "F"
+        "Cl", "Br", "F"
     ],
-
-    //only look for adducts ion type for these atoms 
     "adduct_atoms_pos": [
-        "Na",
-        "K"
+        "Na", "K"
     ],
-
-    //If using a online database set address here
-    //"postgresql://postgres:docker@localhost:5432/"
-    "db_directory": false,
-    //,
-    
-    //Ionization techinique and polarity mode,
-    "ionization_type": "ESI",
+    "db_directory": null,
+    "error_method": "symmetrical", "hc_filter": 0.3,
     "ion_charge": -1,
-    
-    //ion types
-    "isAdduct": false,
+    "ionization_type": "ESI", "isAdduct": true,
     "isProtonated": true,
     "isRadical": true,
-    
-    "min_dbe": 0,
-    "max_dbe": 70,
-    
-    //abundance error boundaries for isotoplogue search
     "max_abun_error": 70,
+    "max_dbe": 70,
+    "max_mz": 800,
+    "max_mz_error": 3,
     "min_abun_error": -30,
-    
-    //mass error methods and boundaries
-    "error_method": "None",
-    "max_mz_error": 1,
-    "min_mz_error": -1,
+    "min_dbe": 0,
+    "min_mz": 100,
+    "min_mz_error": -3,
     "mz_error_average": 0,
-    "mz_error_range": 1.5,
-    
-    //search filters
-    "hc_filter": 0.3,
+    "mz_error_range": 1,
     "oc_filter": 1.2,
-    
     "use_pah_line_rule": false,
-    
-    //min and max atoms used to search for molecular fprmulas
     "usedAtoms": {
         "C": [
             1,
             100
-        ],
-        "Cl": [
-            0,
-            0
         ],
         "H": [
             4,
@@ -65,8 +37,8 @@
             1
         ],
         "O": [
-            2,
-            19
+            0,
+            20
         ],
         "P": [
             0,
@@ -77,10 +49,6 @@
             0
         ]
     },
-
-    //atoms covalences
-    //used to calculate DBE and position (Cl adduct (0) vs covalently bonded (1))
-    
     "used_atom_valences": {
         "13C": 4,
         "18O": 2,
