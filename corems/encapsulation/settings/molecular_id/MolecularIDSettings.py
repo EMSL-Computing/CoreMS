@@ -1,14 +1,20 @@
 from dataclasses import dataclass
 class MoleculaLookupDictSettings:
     
+    '''
+    # DO NOT CHAGE IT! These are used to generate the database entries 
+
+    # DO change when creating a new application database 
+    
+    # FOR search settings runtime and database query check use the MoleculaSearchSettings class below
+
     # C, H, N, O, S and P atoms are ALWAYS needed at usedAtoms
     # if you don't want to include one of thoses atoms set the max and min at 0
-    # you can include any atom listed at Atoms class inside constants module
-    # make sure to include the selected covalence at the used_atoms_valences when adding atoms 
-    # to the usedAtoms dicts 
+    # you can include any atom listed at Atoms class inside encapsulation.settings.constants module
+    # make sure to include the selected covalence at the used_atoms_valences when adding new atoms 
     # NOTE : Adducts atoms have zero covalence
-    # NOTE : Not using global bacause this class is distributed using multiprocessing
-    
+    # NOTE : Not using static variable bacause this class is distributed using multiprocessing
+    '''
     def __init__(self):
         
         self.usedAtoms = {'C': (1, 100),
@@ -47,9 +53,12 @@ class MoleculaLookupDictSettings:
 
         self.db_directory = None
 
-
 class MoleculaSearchSettings:
     
+    use_min_peaks_filter = True
+
+    min_peaks_per_class = 15
+
     db_directory = None
 
     # look for close shell ions [M + Adduct]+ only considers metal set in the list adduct_atoms  

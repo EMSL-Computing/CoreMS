@@ -6,6 +6,8 @@ import sys
 import time
 import pytest
 sys.path.append('.')
+
+
 from corems.mass_spectrum.factory.MSPeakClasses import MSPeak
 from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
 from corems.mass_spectrum.input.textMassList import Read_MassList
@@ -13,6 +15,7 @@ from corems.mass_spectrum.input.fromData import ms_from_array_centroid
 from corems.molecular_id.search.MolecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
+from corems.encapsulation.settings.io import settings_parsers
 
 def creat_mass_spectrum():
 
@@ -37,6 +40,7 @@ def creat_mass_spectrum():
     #mass_spectrum_obj  = mass_list_reader.get_mass_spectrum(auto_process=True)
 
     return mass_spectrum_obj
+
 
 def test_run_molecular_formula_search():
 
@@ -98,5 +102,8 @@ def test_molecular_formula_search_db():
     
 if __name__ == "__main__":
 
+    
+    settings_parsers.load_search_setting_json()
+    test_molecular_formula_search_db()
     test_run_molecular_formula_search()
     #test_mspeak_search()

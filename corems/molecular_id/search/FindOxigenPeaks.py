@@ -56,10 +56,17 @@ class FindOxygenPeaks(Thread):
         
     def run(self):
         
-        #resets the used atoms to look only for oxygened organic compounds
         
+        #save initial settings min peaks per class filter 
+        initial_min_peak_bool = deepcopy(MoleculaSearchSettings.use_min_peaks_filter)
+
+        #deactivate the usage of min peaks per class filter
+        MoleculaSearchSettings.use_min_peaks_filter = False
+
+        #save initial settings for Ox 
         initial_ox = deepcopy(MoleculaSearchSettings.usedAtoms['O'])
 
+        #resets the used atoms to look only for oxygened organic compounds
         MoleculaSearchSettings.usedAtoms['O'] =  (self.min_0, self.max_O)
         
         self.list_found_mspeaks = []
@@ -80,6 +87,8 @@ class FindOxygenPeaks(Thread):
         # reset indexes after done with operation that includes a filter (i.e. ClusteringFilter().filter_kendrick())
         
         MoleculaSearchSettings.usedAtoms['O'] =  initial_ox
+        
+        MoleculaSearchSettings.use_min_peaks_filter = initial_min_peak_bool
         
         self.mass_spectrum_obj.reset_indexes()
        

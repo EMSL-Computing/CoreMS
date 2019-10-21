@@ -144,7 +144,7 @@ class MolecularFormula(MolecularFormulaCalc):
         
         SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
         SUP = str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹")
-
+        
         if self._d_molecular_formula:
             formula_srt = ''
             for atom in Atoms.atoms_order:

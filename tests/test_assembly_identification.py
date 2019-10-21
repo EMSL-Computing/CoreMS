@@ -33,7 +33,6 @@ def filter_by_resolving_power():
 def filter_by_kendrick():
 
     kendrick_base =  {'C':1,'H':2,'O':1}   
-        
     mass_spectrum_obj.change_kendrick_base_all_mspeaks(kendrick_base)
         
         # needs to be wrapped inside the mass_spec class
@@ -419,7 +418,7 @@ if __name__ == "__main__":
 
     #mass_spectrum_obj.plot_mz_domain_profile_and_noise_threshold()
     
-    MoleculaSearchSettings = MoleculaLookupDictSettings()
+    MoleculaSearchSettings = MoleculaSearchSettings()
     
     #plot_resolving_power()
 
