@@ -56,7 +56,6 @@ class FindOxygenPeaks(Thread):
         
     def run(self):
         
-        
         #save initial settings min peaks per class filter 
         initial_min_peak_bool = deepcopy(MoleculaSearchSettings.use_min_peaks_filter)
 

@@ -91,11 +91,17 @@ class MassSpecBase(MassSpecCalc):
     def set_indexes(self, list_indexes):
         ''' set the mass spectrum to interate over only the selected MSpeaks indexes'''
         self.mspeaks = [self._mspeaks[i] for i in list_indexes]
+        
+        for i, mspeak in  enumerate(self.mspeaks): mspeak.index = i
+        
         self._set_nominal_masses_start_final_indexes()
         
     def reset_indexes(self):
         ''' reset the mass spectrum to interate over all MSpeaks objs'''
         self.mspeaks = self._mspeaks
+        
+        for i, mspeak in  enumerate(self.mspeaks): mspeak.index = i
+
         self._set_nominal_masses_start_final_indexes()
 
     def add_mspeak(self, ion_charge, mz_exp,
@@ -297,6 +303,9 @@ class MassSpecBase(MassSpecCalc):
     def filter_by_index(self, list_indexes):
         
         self.mspeaks = [self.mspeaks[i] for i in range(len(self.mspeaks)) if i not in list_indexes]
+        
+        for i, mspeak in  enumerate(self.mspeaks): mspeak.index = i
+
         self._set_nominal_masses_start_final_indexes()
 
     def filter_by_mz(self, min_mz, max_mz):

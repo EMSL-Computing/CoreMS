@@ -3,7 +3,7 @@ sys.path.append(".")
 
 from corems.encapsulation.settings.io import settings_parsers
 
-def test_dump():
+def xtest_dump():
       
       settings_parsers.dump_search_settings_json()
   

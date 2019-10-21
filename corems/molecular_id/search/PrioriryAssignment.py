@@ -61,6 +61,14 @@ class OxigenPriorityAssignment(Thread):
         def check_adduct_class(classe_dict):
             return any([key in classe_dict.keys() for key in MoleculaSearchSettings.adduct_atoms_neg])
         
+        def check_min_peaks(ms_peak_indexes):
+            
+            if  MoleculaSearchSettings.use_min_peaks_filter:
+
+                if not len(ms_peak_indexes) >= MoleculaSearchSettings.min_peaks_per_class:
+                    
+                    for index in ms_peak_indexes: mass_spectrum_obj[index].clear_molecular_formulas()
+
         def set_min_max_dbe_by_oxygen(classe_dict):
             # calculates min and max DBE based on the oxigen number
             # ref :https://pubs.acs.org/doi/full/10.1021/ac200464q
@@ -82,84 +90,81 @@ class OxigenPriorityAssignment(Thread):
             '''    
             MoleculaSearchSettings.use_pah_line_rule = True
 
-        last_dif = 0
-    
-        last_error = 0
-        
-        closest_error = 0
+        def run_search(possible_formulas):
+            
+            all_assigned_indexes = list()
 
+            for ms_peak in self.mass_spectrum_obj.sort_by_abundance():
+
+                #already assinged a molecular formula
+                if ms_peak.is_assigned: continue
+            
+                nominal_mz  = ms_peak.nominal_mz_exp
+
+                #get mono isotopic peaks that was added a molecular formula obj
+                #TODO update error variables
+                ms_peak_indexes = SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, self.mass_spectrum_obj, ms_peak)    
+
+                all_assigned_indexes.extend(ms_peak_indexes)
+            
+            #filter per min peaks per mono isotopic class
+            check_min_peaks(all_assigned_indexes)
+        
         error_average = MoleculaSearchSettings.mz_error_average
         
-        nbValues = 0
-
         min_abundance = self.mass_spectrum_obj.min_abundance
 
         print('classes assignment order', assign_classes_order_tuples)
         
-        for ms_peak in self.mass_spectrum_obj.sort_by_abundance():
-
-            #already assinged a molecular formula
-            if ms_peak.is_assigned: continue
-                #print(ms_peak) 
-            nominal_mz  = ms_peak.nominal_mz_exp
-
-            for classe_tuple in assign_classes_order_tuples:
-                classe_str  = classe_tuple[0]
-                classe_dict = classe_tuple[1]
-                #if len(classe_dict.keys()) == 2:
-                #    if classe_dict.get('S') == 1:
-                 #       continue
-                # limits the dbe by the Ox class most abundant,
-                # need to add other atoms contribution to be more accurate
-                # but +-7 should be sufficient to cover the range 
-                set_min_max_dbe_by_oxygen(classe_dict)
+        for classe_tuple in assign_classes_order_tuples:
                 
-                if ms_peak.is_assigned: continue
+            classe_str  = classe_tuple[0]
+            classe_dict = classe_tuple[1]
 
-                possible_formulas = list()    
-                #we might need to increase the search space to -+1 m_z 
-                is_adduct = check_adduct_class(classe_dict)    
-                
-                if MoleculaSearchSettings.isProtonated and not is_adduct:
+            is_adduct = check_adduct_class(classe_dict)    
+            set_min_max_dbe_by_oxygen(classe_dict)
+            #if len(classe_dict.keys()) == 2:
+            #    if classe_dict.get('S') == 1:
+            #       continue
+            # limits the dbe by the Ox class most abundant,
+            # need to add other atoms contribution to be more accurate
+            # but +-7 should be sufficient to cover the range 
+            
+            if MoleculaSearchSettings.isProtonated and not is_adduct:
         
                     ion_type = Labels.protonated_de_ion
 
-                    formulas = self.dict_molecular_lookup_table.get(classe_str).get(ion_type).get(nominal_mz)
+                    possible_formulas = self.dict_molecular_lookup_table.get(ion_type).get(classe_str).get(nominal_mz)
                     
-                    if formulas:
-                        
-                        possible_formulas.extend(formulas)
-               
-                if MoleculaSearchSettings.isRadical and not is_adduct:
+                    if possible_formulas:
+
+                        run_search(possible_formulas)    
+
+            if MoleculaSearchSettings.isRadical and not is_adduct:
                 
                     ion_type = Labels.radical_ion
                     
-                    formulas = self.dict_molecular_lookup_table.get(classe_str).get(ion_type).get(nominal_mz)
+                    possible_formulas = self.dict_molecular_lookup_table.get(ion_type).get(classe_str).get(nominal_mz)
                     
-                    if formulas:
-                        
-                        possible_formulas.extend(formulas)
+                    if possible_formulas:
 
-                # looks for adduct, used_atom_valences should be 0 
-                # this code does not support H exchance by halogen atoms
+                        run_search(possible_formulas)    
 
-                if MoleculaSearchSettings.isAdduct and is_adduct:
-                    
-                    ion_type = Labels.radical_ion
-                    
-                    formulas = self.dict_molecular_lookup_table.get(classe_str).get(ion_type).get(nominal_mz)
-                    
-                    if formulas:
-                        
-                        #replace ion_type in the molecular_formula object
-                        for m_formula in formulas: m_formula.ion_type = Labels.adduct_ion
-                        
-                        possible_formulas.extend(formulas)
-
+            # looks for adduct, used_atom_valences should be 0 
+            # this code does not support H exchance by halogen atoms
+            if MoleculaSearchSettings.isAdduct and is_adduct:
+                
+                ion_type = Labels.radical_ion
+                
+                possible_formulas = self.dict_molecular_lookup_table.get(ion_type).get(classe_str).get(nominal_mz)
+                
                 if possible_formulas:
-        
-                    SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, self.mass_spectrum_obj, ms_peak, last_error, last_dif, closest_error, error_average, nbValues)
-    
+                    
+                    #replace ion_type in the molecular_formula object
+                    for m_formula in possible_formulas: m_formula.ion_type = Labels.adduct_ion
+                    
+                    run_search(possible_formulas)      
+           
     def create_molecular_database(self):
         #number_of_process = multiprocessing.cpu_count()
 
@@ -218,7 +223,6 @@ class OxigenPriorityAssignment(Thread):
         
         return dict_res
 
-    
     def ox_classes_and_dbes_in_ordem_(self) -> dict:
         
         dict_ox_class_and_ms_peak = dict()
