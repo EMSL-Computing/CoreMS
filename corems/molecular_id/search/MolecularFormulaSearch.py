@@ -7,7 +7,6 @@ from copy import deepcopy
 
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings, MoleculaSearchSettings
-from corems.mass_spectrum.input.textMassList import Read_MassList
 from corems.molecular_id.factory.MolecularLookupTable import  MolecularCombinations
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL as molform_db
 #from corems.molecular_id.factory.molecularMongo import MolForm_Mongo as molform_db

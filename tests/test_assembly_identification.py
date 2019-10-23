@@ -8,7 +8,6 @@ import pytest
 from corems.encapsulation.settings.molecular_id.MolecularIDSettings import  MoleculaLookupDictSettings, MoleculaSearchSettings
 from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration, MZDomain_Calibration
 from corems.mass_spectrum.output.export import MassSpecExport 
-from corems.mass_spectrum.input.textMassList import Read_MassList
 from corems.molecular_id.search.FindOxigenPeaks import FindOxygenPeaks
 from corems.molecular_id.search.PrioriryAssignment import OxigenPriorityAssignment
 from corems.molecular_id.search.MolecularFormulaSearch import SearchMolecularFormulas

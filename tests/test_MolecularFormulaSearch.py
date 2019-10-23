@@ -10,8 +10,8 @@ sys.path.append('.')
 
 from corems.mass_spectrum.factory.MSPeakClasses import MSPeak
 from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
-from corems.mass_spectrum.input.textMassList import Read_MassList
-from corems.mass_spectrum.input.fromData import ms_from_array_centroid
+from corems.mass_spectrum.input.textMassList import ReadMassList
+from corems.mass_spectrum.input.numpyArray import ms_from_array_centroid
 from corems.molecular_id.search.MolecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.transient.input.BrukerSolarix import ReadBrukerSolarix

@@ -1,7 +1,7 @@
 import os, sys
 import pathlib
 sys.path.append(".")
-from corems.mass_spectrum.input.textMassList import Read_MassList
+from corems.mass_spectrum.input.textMassList import ReadMassList
 import pytest
 
 __author__ = "Yuri E. Corilo"
@@ -15,7 +15,7 @@ def test_import_mass_list():
     polariy = -1
 
     #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
-    mass_list_reader = Read_MassList(file_location, polariy, delimiter="  ")
+    mass_list_reader = ReadMassList(file_location, polariy, delimiter="  ")
 
     mass_spectrum = mass_list_reader.get_mass_spectrum(auto_process=True)
 
