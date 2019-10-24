@@ -97,7 +97,7 @@ def test_calibration():
     MoleculaSearchSettings.isRadical= True 
     
     MoleculaSearchSettings.usedAtoms = {'C': (1, 100),
-                 'H': (4, 100),
+                 'H': (4, 200),
                  'O': (0, 20),
                  'N': (0, 1),
                  'S': (0, 0),
