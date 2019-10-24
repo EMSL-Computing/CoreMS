@@ -3,6 +3,7 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Oct 23, 2019"
 
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
+from corems.encapsulation.settings.input import InputParameters
 from corems.encapsulation.constant import Labels
 from pandas import DataFrame
 
@@ -28,28 +29,20 @@ def ms_from_array_centroid(mz, abundance, rp, s2n, dataname, polarity=-1, auto_p
     
 def get_output_parameters(polarity, file_location):
         
-        output_parameters = dict()
+        d_parms = InputParameters.d_parms(file_location)
         
-        output_parameters["Aterm"] = None
+        d_parms["polarity"] = polarity
         
-        output_parameters["Bterm"] = None
+        d_parms["filename_path"] = file_location
         
-        output_parameters["Cterm"] = None
+        d_parms["mobility_scan"] = 0
         
-        output_parameters["polarity"] = polarity
+        d_parms["mobility_rt"] = 0
         
-        output_parameters["filename_path"] = file_location
+        d_parms["scan_number"] = 0
         
-        '''scan_number and rt will be need to lc ms'''
-         
-        output_parameters["mobility_scan"] = 0
-        
-        output_parameters["mobility_rt"] = 0
-        
-        output_parameters["scan_number"] = 0
-        
-        output_parameters["rt"] = 0
+        d_parms["rt"] = 0
 
-        output_parameters['label'] = Labels.simulated_profile
+        d_parms['label'] = Labels.simulated_profile
         
-        return output_parameters
+        return d_parms

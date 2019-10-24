@@ -11,11 +11,17 @@ class LCMSBase(LC_Calculations):
     classdocs
     """
 
-    def __init__(self, sample_name):
+    def __init__(self, file_location):
         """
         Constructor
         """
-        self.sample_name = sample_name
+        
+        if not file_location.exists():
+        
+            raise FileExistsError("File does not exist: " + file_location)
+        
+        self.file_location = Path(file_location)
+        self.sample_name = file_location.stem
         self.retention_time_list = []
         self.scans_number_list = []
         self.tic_list = []
