@@ -8,7 +8,7 @@ from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroid, M
 
 class ReadMassList(MassListBaseClass):
     '''
-    The MassSpectra object contains lots of MassSpectrum
+    The ReadMassList object contains lots of MassSpectrum objs
 
     Parameters
     ----------

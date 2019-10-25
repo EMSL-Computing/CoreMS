@@ -9,7 +9,7 @@ import pickle
 
 from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings, MoleculaLookupDictSettings
 from corems.encapsulation.constant import Labels
-from corems.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
+from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
 
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL as molform_db
 #from corems.molecular_id.factory.molecularMongo import MolForm_Mongo as molform_db

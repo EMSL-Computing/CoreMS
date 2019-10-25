@@ -11,9 +11,9 @@ from matplotlib import pyplot as pylab
 from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings, MoleculaLookupDictSettings
 from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration
 #from corems.mass_spectrum.input.textMassList import Read_MassList
-from corems.molecular_id.search.FindOxigenPeaks import FindOxygenPeaks
+from corems.molecular_id.search.findOxigenPeaks import FindOxygenPeaks
 from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
-from corems.molecular_id.search.MolecularFormulaSearch import SearchMolecularFormulas
+from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.mass_spectrum.output.export import MassSpecExport
 

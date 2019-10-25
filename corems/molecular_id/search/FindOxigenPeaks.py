@@ -5,8 +5,8 @@ from copy import deepcopy
 from threading import Thread
 from numpy import average, std
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
-from corems.molecular_id.search.MolecularFormulaSearch import SearchMolecularFormulas
-from corems.molecular_id.factory.MolecularFormulaFactory import MolecularFormula
+from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
+from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
 from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings, MoleculaLookupDictSettings
 
 
@@ -53,7 +53,7 @@ class FindOxygenPeaks(Thread):
         self.mass_spectrum_obj = mass_spectrum_obj
         self.min_0 = min_O
         self.max_O = max_O
-        
+    
     def run(self):
         
         #save initial settings min peaks per class filter 

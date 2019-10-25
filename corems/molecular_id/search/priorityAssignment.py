@@ -7,8 +7,8 @@ from itertools import product
 
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
-from corems.molecular_id.search.FindOxigenPeaks import FindOxygenPeaks
-from corems.molecular_id.search.MolecularFormulaSearch import SearchMolecularFormulaWorker, SearchMolecularFormulas
+from corems.molecular_id.search.findOxigenPeaks import FindOxygenPeaks
+from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulaWorker, SearchMolecularFormulas
 from corems.molecular_id.factory.MolecularLookupTable import MolecularCombinations
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL as molform_db
 #from corems.molecular_id.factory.molecularMongo import MolForm_Mongo as molform_db

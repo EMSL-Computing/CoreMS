@@ -2,7 +2,7 @@
 from builtins import NotImplementedError
 
 import numpy as np
-from corems.molecular_id.search.MolecularFormulaSearch import SearchMolecularFormulas
+from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from matplotlib import pyplot as plt
 import matplotlib
 

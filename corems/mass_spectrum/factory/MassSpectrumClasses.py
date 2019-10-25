@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting
 from corems.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
-from corems.mass_spectrum.factory.MSPeakClasses import MSPeak
+from corems.ms_peak.factory.MSPeakClasses import MSPeak
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
@@ -178,11 +178,6 @@ class MassSpecBase(MassSpecCalc):
             print('HERRREEEE')
             self._baselise_noise, self._baselise_noise_std = self.run_noise_threshould_calc(auto)
             
-    def scale_plot_size(self, factor=1.5):
-
-        default_dpi = rcParamsDefault["figure.dpi"]
-        rcParams["figure.dpi"] = default_dpi * factor
-
     @property
     def freq_exp_profile(self):
         return self._frequency_domain

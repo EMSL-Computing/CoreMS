@@ -16,7 +16,6 @@
     //"postgresql://postgres:docker@localhost:5432/"
     "db_directory":null,
     
-    
     //Ionization techinique and polarity mode,
     "ionization_type": "ESI",
     "ion_charge": -1,
