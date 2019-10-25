@@ -12,7 +12,7 @@ README = (HERE / "README.md").read_text()
 # This call to setup() does all the work
 setup(
     name="coreMS",
-    version="2.0.2-alpha",
+    version="3.0.0-alpha",
     description="Object Oriented Mass Spectrometry ToolBox for Small Molecules",
     long_description=README,
     long_description_content_type="text/markdown",
