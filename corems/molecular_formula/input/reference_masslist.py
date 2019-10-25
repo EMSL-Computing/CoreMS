@@ -24,7 +24,7 @@ class ReadMassListReference(Thread):
             
     def bruker_ref_file(self):
 
-        import csv
+        import csv.
         ref_f = open('samples.csv')
         rdr = csv.DictReader(filter(lambda row: row[0]!='#', ref_f))
         for row in rdr:
