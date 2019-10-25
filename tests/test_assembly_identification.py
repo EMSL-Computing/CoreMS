@@ -2,7 +2,6 @@
 import os
 import sys
 sys.path.append(".")
-
 import pytest
 
 from corems.encapsulation.settings.molecular_id.MolecularIDSettings import  MoleculaLookupDictSettings, MoleculaSearchSettings
