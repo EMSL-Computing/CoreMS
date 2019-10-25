@@ -35,6 +35,7 @@ test-source:
    
 
   script:
+    - apt update
     - apt install gcc
     - python -V  # Print out python version for debugging
     - pip install virtualenv
