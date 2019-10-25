@@ -5,7 +5,6 @@ from threading import Thread
 from pathlib import Path
 import sys
 
-sys.path.append('.')
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
 from corems.encapsulation.constant import Labels
 
