@@ -1,6 +1,6 @@
 # Official language image. Look for the different tagged releases at:
 # https://hub.docker.com/r/library/python/tags/
-image: FROM python:3.7.5-slim-buster
+image: python:3.7.5-slim-buster
 
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
@@ -28,43 +28,38 @@ stages:
   
 test-job:
   
-  stage: test
+  stage: test_source
   tags:
     - k8s
     - rc
-    #- docker
-    #- python
+   
 
   script:
     - python -V  # Print out python version for debugging
     - pip install virtualenv
     - virtualenv venv
-    - . venv/bin/activate
+    - source venv/bin/activate
     - pip install -r requirements.txt
-    - pip install wheel
     - pip install pytest
     - pip install pytest-cov
     - ls .
     - python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
-    - python setup.py test
     - python -m pytest -v --cov=corems
-    #- pip install tox flake8 pytest  # you can also use tox
-    #- flake8 --exclude=venv* --statistics
-    #- pytest -v --cov=calculator
+   
 
 run-job:
+  
   stage: run
   tags:
-    #- docker
-    #- python
     - k8s
     - rc
     
   script:
+    - apt install gcc
     - python -V  # Print out python version for debugging
     - pip install virtualenv
     - virtualenv venv
-    - . venv/bin/activate
+    - source venv/bin/activate
     - pip install -r requirements.txt
     - pip install wheel
     - python setup.py sdist bdist_wheel
@@ -78,7 +73,6 @@ run-job:
       - dist/*.whl
 
 docker-image:
-  
   stage: build
   
   tags:
@@ -86,6 +80,7 @@ docker-image:
     - rc
     
   image:
+    
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   
