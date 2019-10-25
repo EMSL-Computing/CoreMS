@@ -12,6 +12,7 @@ class Labels:
     bruker_profile = 'Bruker_Profile'
     thermo_profile = 'Thermo_Profile'
     simulated_profile = 'Simulated Profile'
+    booster_profile = 'Booster Profile'
     bruker_frequency = 'Bruker_Frequency'
     midas_frequency = 'Midas_Frequency'
     thermo_centroid = 'Thermo_Centroid'

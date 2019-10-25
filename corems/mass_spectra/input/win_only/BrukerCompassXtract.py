@@ -7,6 +7,7 @@ from numpy import array
 from pandas import DataFrame
 
 from corems.encapsulation.settings.input import InputParameters
+from corems.encapsulation.constant import Labels
 from corems.mass_spectra.factory.LC_Class import LCMSBase
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile
 
@@ -16,9 +17,11 @@ __date__ = "July 10, 2019"
 class ImportLCMSBrukerCompassXtract(Thread):
     '''class docs'''
     
-    def __init__(self, file_location):
+    def __init__(self, file_location, auto_process=True):
 
         Thread.__init__(self)
+
+        self.lcms = LCMSBase(file_location)
 
         """Set up the COM object interface"""
         self.Bruker_Library = CreateObject("EDAL.MSAnalysis")
@@ -27,13 +30,13 @@ class ImportLCMSBrukerCompassXtract(Thread):
 
         self.check_load_sucess()
 
-        self.LCMS = LCMSBase(file_location)
-
         self._initial_scan_number = 1
 
         self._final_scan_number = self.get_scans_numbers()
 
         self.file_location = file_location
+
+        self.auto_process = auto_process
 
     @property
     def initial_scan_number(self):
@@ -155,27 +158,15 @@ class ImportLCMSBrukerCompassXtract(Thread):
         return data_dict
 
     def run(self):
-        '''thread will automatically process mass spectrum
-        use the get_mass_spectra class to import without processing mass spectrum
-        use get_lcms to acess resulting class
-        '''
-
+        '''creates the lcms obj'''
         d_parameters = InputParameters.d_parms(self.file_location)
         self._import_mass_spectra(d_parameters)
 
-        # return LCMS
-    
-    def get_mass_spectra(self,auto_process=True):
-
-        d_parameters = InputParameters.d_parms(self.file_location)
-        self._import_mass_spectra(d_parameters, auto_process=auto_process)
-        return self.LCMS
-
-    def _import_mass_spectra(self, d_parms, auto_process=True):
+    def _import_mass_spectra(self, d_parms):
 
         spectra = self.Bruker_Library.MSSpectrumCollection
 
-        list_RetentionTimeSeconds = self.get_bruker_retention_time()
+        list_rt = self.get_bruker_retention_time()
 
         list_Tics = self.get_bruker_tics()
 
@@ -185,7 +176,7 @@ class ImportLCMSBrukerCompassXtract(Thread):
 
             if spectra[scan_number].MSMSStage == 1:
                 # this label needs to go inside a encapsulation class for consistence
-                d_parms["label"] = "Bruker_Profile"
+                d_parms["label"] = Labels.bruker_profile
 
                 d_parms["polarity"] = self.get_polarity_mode(spectra[scan_number])
 
@@ -198,20 +189,20 @@ class ImportLCMSBrukerCompassXtract(Thread):
                 data_dict = self.get_data(spectra, scan_number)
 
                 data = DataFrame(data_dict)
-                mass_spec = MassSpecProfile(data, d_parms, auto_process=auto_process)
+                mass_spec = MassSpecProfile(data, d_parms, auto_process=self.auto_process)
                 mass_spec.process_mass_spec()
-                self.LCMS.add_mass_spectrum_for_scan(mass_spec)
+                self.lcms.add_mass_spectrum_for_scan(mass_spec)
 
-        self.LCMS.set_retention_time_list(list_RetentionTimeSeconds)
-        self.LCMS.set_tic_list(list_Tics)
-        self.LCMS.set_scans_number_list(list_scans)
+        self.lcms.set_retention_time_list(list_rt)
+        self.lcms.set_tic_list(list_Tics)
+        self.lcms.set_scans_number_list(list_scans)
         # return each_mass_spectrum
 
-    def get_lcms(self):
+    def get_lcms_obj(self):
         """get_lc_ms_class method should only be used when using this class as a Thread, 
-        otherwise use the run() method to return the LCMS class"""
+        otherwise use the run() method to return the lcms class"""
 
-        if self.LCMS.get_mass_spec_by_scan_number(self._initial_scan_number):
-            return self.LCMS
+        if self.lcms.get_mass_spec_by_scan_number(self._initial_scan_number):
+            return self.lcms
         else:
-            raise Exception("returning a empty LCMS class")
+            raise Exception("returning a empty lcms class")

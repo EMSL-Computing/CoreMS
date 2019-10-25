@@ -1,12 +1,11 @@
 
+__author__ = "Yuri E. Corilo"
+__date__ = "Oct 23, 2019"
 
 import os, sys
 sys.path.append(".")
 from corems.mass_spectrum.input.boosterHDF import ReadHDF_Booster
 import pytest
-
-__author__ = "Yuri E. Corilo"
-__date__ = "Jul 02, 2019"
 
 def test_import_booster_hdf():
 
@@ -17,7 +16,7 @@ def test_import_booster_hdf():
 
     booster_reader = ReadHDF_Booster(file_location, polariy)
 
-    mass_spectrum = booster_reader.get_mass_spectrum(auto_process=True)
+    mass_spectrum = booster_reader.get_mass_spectrum(auto_process=True, auto_noise=False)
 
     #mass_spectrum.plot_mz_domain_profile()
 
