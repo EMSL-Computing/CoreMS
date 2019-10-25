@@ -26,9 +26,9 @@ stages:
 #before_script:
   #
   
-test-job:
+test-source:
   
-  stage: test_source
+  stage: test
   tags:
     - k8s
     - rc
