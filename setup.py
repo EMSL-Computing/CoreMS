@@ -31,7 +31,7 @@ setup(
     
     exclude_package_data={'.': ["test", "*.win_only"]},
     include_package_data=True,
-    install_requires=["pandas", "numpy", "matplotlib", "scipy", 'IsoSpecPy', 'sqlalchemy', 'openpyxl', 'pymongo', 'psycopg2-binary'],
+    install_requires=["pandas", "numpy", "matplotlib", "scipy", 'h5py', 'sklearn', 'IsoSpecPy', 'sqlalchemy', 'openpyxl', 'pymongo', 'psycopg2-binary'],
     # test are not yet implemented, will test dependences and syntax only for now
     setup_requires=['pytest-runner', 'wheel'],
     test_suite='pytest',

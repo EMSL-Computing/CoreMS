@@ -1,6 +1,7 @@
 # Official language image. Look for the different tagged releases at:
 # https://hub.docker.com/r/library/python/tags/
-image: gitlab.pnnl.gov:4567/mass-spectrometry/corems:latest 
+image: python:3.7.5-slim-buster
+#gitlab.pnnl.gov:4567/mass-spectrometry/corems:latest 
 #python:3.7.5
 
 # Change pip's cache directory to be inside the project directory since we can
@@ -23,8 +24,6 @@ stages:
   - test
   - run
   - build
-
-
   
 test-source:
   
@@ -35,6 +34,7 @@ test-source:
    
 
   script:
+    - apt install build-essential
     - python -V  # Print out python version for debugging
     - pip install -r requirements.txt
     - pip install pytest
