@@ -36,7 +36,9 @@ test-source:
 
   script:
     - python -V  # Print out python version for debugging
-    - pip install -r requirements.txt
+    - pip install pur
+    - pur -r requirements.txt
+    #- pip install -r requirements.txt
     - pip install pytest
     - pip install pytest-cov
     - ls .
@@ -54,7 +56,7 @@ run-job:
   script:
     
     - python -V  # Print out python version for debugging
-    - pip install -r requirements.txt
+    - pur -r requirements.txt
     - pip install wheel
     - python setup.py sdist #bdist_wheel
     #- python setup.py bdist_wheel
