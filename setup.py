@@ -9,9 +9,9 @@ README = (HERE / "README.md").read_text()
 
 # This call to setup() does all the work
 setup(
-    name="corems",
+    name="coreMS",
     version="3.0.a0",
-    description="Object Oriented Mass Spectrometry ToolBox for Small Molecules",
+    description="Object Oriented Mass Spectrometry ToolBox for Small Molecules Analysis",
     long_description=README,
     long_description_content_type="text/markdown",
     url="https://gitlab.pnnl.gov/corilo/corems/",

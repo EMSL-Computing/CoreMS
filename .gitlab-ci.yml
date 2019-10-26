@@ -34,7 +34,7 @@ test-source:
    
   script:
     - apt update 
-    - apt install build-essential
+    - apt install -y build-essential
     - python -V  # Print out python version for debugging
     - pip install -r requirements.txt
     - pip install pytest
