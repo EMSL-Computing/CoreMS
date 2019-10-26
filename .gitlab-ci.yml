@@ -1,6 +1,6 @@
 # Official language image. Look for the different tagged releases at:
 # https://hub.docker.com/r/library/python/tags/
-image: python:3.7.5-slim-buster
+image: python:3.7.5
 
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
@@ -35,12 +35,8 @@ test-source:
    
 
   script:
-    - apt update
-    - apt install gcc
     - python -V  # Print out python version for debugging
-    - pip install virtualenv
-    - virtualenv venv
-    - source venv/bin/activate
+   
     - pip install -r requirements.txt
     - pip install pytest
     - pip install pytest-cov
@@ -59,12 +55,9 @@ run-job:
   script:
     
     - python -V  # Print out python version for debugging
-    - pip install virtualenv
-    - virtualenv venv
-    - source venv/bin/activate
     - pip install -r requirements.txt
     - pip install wheel
-    - python setup.py sdist bdist_wheel
+    - python setup.py sdist #bdist_wheel
     #- python setup.py bdist_wheel
     # an alternative approach is to install and run:
     - pip install dist/*
@@ -72,7 +65,7 @@ run-job:
 
   artifacts:
     paths:
-      - dist/*.whl
+      - dist/*
 
 docker-image:
   stage: build
