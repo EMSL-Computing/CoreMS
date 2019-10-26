@@ -52,7 +52,8 @@ run-job:
     - rc
     
   script:
-    
+    - apt update 
+    - apt install -y build-essential
     - python -V  # Print out python version for debugging
     - pip install -r requirements.txt
     - pip install wheel
