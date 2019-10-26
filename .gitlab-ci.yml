@@ -32,8 +32,8 @@ test-source:
     - k8s
     - rc
    
-
   script:
+    - apt update 
     - apt install build-essential
     - python -V  # Print out python version for debugging
     - pip install -r requirements.txt
