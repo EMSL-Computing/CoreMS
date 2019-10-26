@@ -25,7 +25,7 @@ setup(
         "Programming Language :: Python :: 3.7",
     ],
     
-    package_dir={'corems': 'corems'},
+    #package_dir={'corems': 'corems'},
     packages=find_packages(),
     
     

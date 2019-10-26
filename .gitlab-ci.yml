@@ -23,8 +23,7 @@ stages:
   - run
   - build
 
-#before_script:
-  #
+
   
 test-source:
   
@@ -36,7 +35,6 @@ test-source:
 
   script:
     - python -V  # Print out python version for debugging
-   
     - pip install -r requirements.txt
     - pip install pytest
     - pip install pytest-cov
