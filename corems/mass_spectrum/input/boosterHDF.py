@@ -7,7 +7,7 @@ from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.settings.input import InputParameters
 
-class ReadHDF_Booster(MassListBaseClass):
+class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
     
     '''
     The MassSpectra object contains lots of MassSpectrum
@@ -29,7 +29,7 @@ class ReadHDF_Booster(MassListBaseClass):
 
     def __init__(self, file_location, polarity, delimiter="  ", isCentroid=False):
         
-        super(ReadHDF_Booster, self).__init__(file_location, polarity, isCentroid=False)
+        super(ReadHDF_BoosterMassSpectrum, self).__init__(file_location, polarity, isCentroid=False)
         
     def get_data_profile(self, mz, abundance, rt, auto_process, auto_noise):
 
@@ -51,16 +51,21 @@ class ReadHDF_Booster(MassListBaseClass):
         if len(scans) == 1:
             
             booster_data = h5pydata[scans[0]]
-            
+            print(booster_data)
             if self.isCentroid:
                 
                 raise NotImplementedError
                 #return numpyArray.ms_from_array_centroid(mz, abun, rp, snt, self.file_location.stem, polarity=self.polarity=,  auto_process=True, auto_noise=auto_noise)
                 
             else:
+                
                 mz = booster_data[0]
                 abun = booster_data[1]
+                
                 rt = float(scans[0])
+                print(mz)
+                print(abun)
+
                 return self.get_data_profile(mz, abun, rt, auto_process, auto_noise)
 
     def get_output_parameters(self, rt):

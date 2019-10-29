@@ -2,10 +2,12 @@ from comtypes import byref
 from comtypes.automation import BSTR, VARIANT
 from comtypes.client import CreateObject
 from ctypes import c_double, c_long
+
 from corems.encapsulation.settings.input import InputParameters
 from corems.mass_spectra.factory.LC_Class import LCMSBase
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
 from corems.encapsulation.constant import Labels
+
 from pandas import DataFrame
 from threading import Thread
 import multiprocessing
@@ -14,8 +16,8 @@ import numpy
 __author__ = "Yuri E. Corilo"
 __date__ = "July 9, 2019"
 
-
 class ImportLCMSThermoMSFileReader(Thread):
+    
     """     Read FULL and PROFILE (it ignores all other scans) raw file data and store it return a LCMS class
     *  Default behaviour is to load all scans numbers
 
