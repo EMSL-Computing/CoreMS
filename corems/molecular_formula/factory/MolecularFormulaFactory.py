@@ -13,12 +13,19 @@ class MolecularFormula(MolecularFormulaCalc):
     '''
     classdocs
     '''
-    def __init__(self, _d_molecular_formula, ion_charge, exp_mz=None):
+    def __init__(self, molecular_formula, ion_charge, exp_mz=None, ion_type=None):
         
         #clear dictionary of atoms with 0 value
         
-        self._d_molecular_formula = {key:val for key, val in _d_molecular_formula.items() if val != 0}
+        if   type(molecular_formula) is dict:
+                self._from_dict(molecular_formula)   
         
+        elif type(molecular_formula) is list:
+                self._from_list(molecular_formula, ion_type)   
+        
+        elif type(molecular_formula) is str:
+                self._from_str(molecular_formula, ion_type)   
+
         self._ion_charge = ion_charge
         self._assigment_mass_error = None
         self._confidence_score = None
@@ -45,7 +52,28 @@ class MolecularFormula(MolecularFormulaCalc):
                 return self._d_molecular_formula[atom]
             else:
                 return 0
-                
+    
+    def _from_dict(self, molecular_formula):
+        
+        self._d_molecular_formula = {key:val for key, val in molecular_formula.items() if val != 0}
+
+    def _from_list(self, molecular_formula_list,  ion_type):
+        # list has to be in the format 
+        #['C', 10, 'H', 21, '13C', 1, 'Cl', 1, etc]  
+        for each in range(0, len(molecular_formula_list),2):
+            
+            atoms_label =  molecular_formula_list[each]
+            atoms_number = molecular_formula_list[each]
+
+            self._d_molecular_formula[atoms_label] = int(atoms_number)
+        self._d_molecular_formula[Labels.ion_type] = ion_type
+
+    def _from_str(self, molecular_formula_str,  ion_type):
+        # string has to be in the format 
+        #'C10 H21 13C1 Cl1 37Cl1 etc'
+        molecular_formula_list = molecular_formula_str.split(' ')
+        self._from_list(molecular_formula_list, ion_type)
+
     @property
     def O_C(self): 
             
