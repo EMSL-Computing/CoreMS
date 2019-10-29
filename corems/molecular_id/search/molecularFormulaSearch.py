@@ -35,7 +35,7 @@ class SearchMolecularFormulas:
         
         return False
 
-    def run_search(self, possible_formulas, mass_spectrum_obj, min_abundance, is_adduct=False):
+    def run_search(self, possible_formulas_dict, mass_spectrum_obj, min_abundance, is_adduct=False):
             
         all_assigned_indexes = list()
 
@@ -50,15 +50,15 @@ class SearchMolecularFormulas:
             #get mono isotopic peaks that was added a molecular formula obj
             #TODO update error variables
 
-            possible_formula_nominal = possible_formulas.get(nominal_mz)
+            possible_formulas_nominal = possible_formulas_dict.get(nominal_mz)
             
-            if possible_formula_nominal:
+            if possible_formulas_nominal:
 
                 if is_adduct:
                     
-                    for m_formula in possible_formulas: m_formula.ion_type = Labels.adduct_ion
+                    for m_formula in possible_formulas_dict: m_formula.ion_type = Labels.adduct_ion
 
-                ms_peak_indexes = SearchMolecularFormulaWorker().find_formulas(possible_formula_nominal, min_abundance, mass_spectrum_obj, ms_peak)    
+                ms_peak_indexes = SearchMolecularFormulaWorker().find_formulas(possible_formulas_nominal, min_abundance, mass_spectrum_obj, ms_peak)    
 
                 all_assigned_indexes.extend(ms_peak_indexes)
         
@@ -77,7 +77,7 @@ class SearchMolecularFormulas:
 
     def check_adduct_class(self, classe_dict):
             
-            return any([key in classe_dict.keys() for key in MoleculaSearchSettings.adduct_atoms_neg])
+            return any([key in classe_dict.keys() for key in MoleculaSearchSettings.adduct_atoms_neg + MoleculaSearchSettings.adduct_atoms_pos])
 
     def run(self, classes, nominal_mz, min_abundance, 
             mass_spectrum_obj, ms_peak, dict_res):
@@ -113,7 +113,7 @@ class SearchMolecularFormulas:
                         elif is_adduct and MoleculaSearchSettings.isAdduct:
                            
                             #replace ion_type in the molecular_formula object
-                            for m_formula in formulas: m_formula.ion_type = Labels.adduct_ion
+                            for m_formula in possible_formulas: m_formula.ion_type = Labels.adduct_ion
 
                             if possible_formulas:
                
@@ -172,7 +172,7 @@ class SearchMolecularFormulas:
             self.run(classes, nominal_mz, min_abundance, 
                         mass_spectrum_obj, ms_peak, dict_res)
 
-        MoleculaSearchSettings.use_min_peaks_filter = False                
+        MoleculaSearchSettings.use_min_peaks_filter = initial_min_peak_bool                
                         
     def run_worker_ms_peak(self, ms_peak, mass_spectrum_obj):
         
@@ -259,6 +259,33 @@ class SearchMolecularFormulas:
                     #replace ion_type in the molecular_formula object
                     self.run_search(possible_formulas, mass_spectrum_obj, min_abundance, is_adduct=is_adduct)          
 
+    def search_mol_formulas(self, mass_spectrum_obj, possible_formulas_list, find_isotopologues=True):
+
+        
+        SearchMolecularFormulaWorker(find_isotopologues=find_isotopologues).reset_error()
+
+        initial_min_peak_bool = deepcopy(MoleculaSearchSettings.use_min_peaks_filter)
+        
+        MoleculaSearchSettings.use_min_peaks_filter = False
+
+        possible_formulas_dict_nm =  {}
+        for mf in possible_formulas_list:
+            nm = mf.mz_nominal_theo
+            if nm in possible_formulas_dict_nm.keys():
+                possible_formulas_dict_nm[nm].append(mf)
+            else:    
+                possible_formulas_dict_nm[nm] = [mf]
+
+        min_abundance = mass_spectrum_obj.min_abundance
+
+        self.run_search(possible_formulas_dict_nm, mass_spectrum_obj, min_abundance)          
+
+        MoleculaSearchSettings.use_min_peaks_filter = initial_min_peak_bool
+
+        mspeaks = [mspeak for mspeak in mass_spectrum_obj if mspeak.is_assigned]
+        
+        return mspeaks
+
     def get_dict_molecular_database(self, classes_str, nominal_mzs):
             
         dict_res = {}
@@ -287,6 +314,10 @@ class SearchMolecularFormulaWorker:
     
     #TODO add reset erro function
     # needs this wraper to pass the class to multiprocessing
+    
+    def __init__(self,find_isotopologues=True):
+        self.find_isotopologues = find_isotopologues
+    
     def __call__(self, args):
 
         return self.find_formulas(*args)  # ,args[1]
@@ -340,8 +371,7 @@ class SearchMolecularFormulaWorker:
         
         
     def find_formulas(self, possible_formulas, min_abundance, 
-                      mass_spectrum_obj, ms_peak, 
-                      ):
+                      mass_spectrum_obj, ms_peak):
         '''
         # uses the closest error the next search (this is not ideal, it needs to use confidence
         # metric to choose the right candidate then propagate the error using the error from the best candidate
@@ -383,38 +413,39 @@ class SearchMolecularFormulaWorker:
                     
                     mspeak_assigned_index.append(ms_peak.index)
                     
-                    #calculates and look for isotopologues
-                    isotopologues = possible_formula.isotopologues(min_abundance, ms_peak_abundance)
-                    
-                    for isotopologue_formula in isotopologues:
+                    if self.find_isotopologues:
+                        #calculates and look for isotopologues
+                        isotopologues = possible_formula.isotopologues(min_abundance, ms_peak_abundance)
                         
-                        #move this outside to impove preformace
-                        #we need to increase the search space to -+1 m_z 
-                        first_index, last_index = mass_spectrum_obj.get_nominal_mz_frist_last_indexes(isotopologue_formula.mz_nominal_theo)
-                        
-                        for ms_peak_iso in mass_spectrum_obj[first_index:last_index]:
+                        for isotopologue_formula in isotopologues:
                             
-                            error = isotopologue_formula._calc_assigment_mass_error(ms_peak_iso.mz_exp)    
+                            #move this outside to impove preformace
+                            #we need to increase the search space to -+1 m_z 
+                            first_index, last_index = mass_spectrum_obj.get_nominal_mz_frist_last_indexes(isotopologue_formula.mz_nominal_theo)
                             
-                            #need to define error distribution for abundance measurements
-                            
-                            abundance_error = isotopologue_formula._calc_abundance_error(ms_peak_abundance,ms_peak_iso.abundance )            
-                            # margin of error was set empirically/ needs statistical calculation
-                            #  of margin of error for the measurement of the abundances
-                            if min_abun_error <= abundance_error <= max_abun_error:
+                            for ms_peak_iso in mass_spectrum_obj[first_index:last_index]:
                                 
-                                #update the error   
+                                error = isotopologue_formula._calc_assigment_mass_error(ms_peak_iso.mz_exp)    
                                 
-                                self.set_last_error(error)    
+                                #need to define error distribution for abundance measurements
                                 
-                                #add molecular formula match to ms_peak
-                                ms_peak_iso.add_molecular_formula(isotopologue_formula)
-                                
-                                #add mspeaks mono isotopic index to the isotopologue MolecularFormula obj
-                                isotopologue_formula.mspeak_index_mono_isotopic = ms_peak.index
-                                
-                                #add mspeaks isotopologue index to the mono isotopic MolecularFormula obj
-                                possible_formula.mspeak_indexes_isotopologues.append(ms_peak_iso.index)
+                                abundance_error = isotopologue_formula._calc_abundance_error(ms_peak_abundance,ms_peak_iso.abundance )            
+                                # margin of error was set empirically/ needs statistical calculation
+                                #  of margin of error for the measurement of the abundances
+                                if min_abun_error <= abundance_error <= max_abun_error:
+                                    
+                                    #update the error   
+                                    
+                                    self.set_last_error(error)    
+                                    
+                                    #add molecular formula match to ms_peak
+                                    ms_peak_iso.add_molecular_formula(isotopologue_formula)
+                                    
+                                    #add mspeaks mono isotopic index to the isotopologue MolecularFormula obj
+                                    isotopologue_formula.mspeak_index_mono_isotopic = ms_peak.index
+                                    
+                                    #add mspeaks isotopologue index to the mono isotopic MolecularFormula obj
+                                    possible_formula.mspeak_indexes_isotopologues.append(ms_peak_iso.index)
 
         return mspeak_assigned_index
 
