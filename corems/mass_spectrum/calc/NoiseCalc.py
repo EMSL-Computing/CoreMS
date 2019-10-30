@@ -11,9 +11,9 @@ __date__ = "Jun 27, 2019"
 class NoiseThreshouldCalc(object):
 
     def cut_mz_domain_noise(self, auto):
-
+        
         if auto:
-
+            
             # this calculation is taking too long (about 2 seconds)
             number_average_molecular_weight = self.weight_average_molecular_weight(
                 profile=True)
@@ -37,9 +37,9 @@ class NoiseThreshouldCalc(object):
 
             min_mz_noise = MassSpectrumSetting.min_noise_mz
             max_mz_noise = MassSpectrumSetting.max_noise_mz
-
+            
         final = where(self.mz_exp_profile > min_mz_noise)[-1][-1]
-        comeco = where(self.abundance_profile > min_mz_noise)[0][0]
+        comeco = where(self.mz_exp_profile > min_mz_noise)[0][0]
 
         mz_domain_low_Y_cutoff = self.abundance_profile[comeco:final]
 

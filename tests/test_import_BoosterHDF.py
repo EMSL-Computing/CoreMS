@@ -23,10 +23,10 @@ def test_import_booster_mass_spectrum_hdf():
 
         booster_reader = ReadHDF_BoosterMassSpectrum(file_path, polariy)
 
-        mass_spectrum = booster_reader.get_mass_spectrum(auto_process=True, auto_noise=False)
+        mass_spectrum = booster_reader.get_mass_spectrum(auto_process=True, auto_noise=True)
 
         #mass_spectrum.plot_mz_domain_profile()
-
+        
         print(
             "number_average_molecular_weight",
             mass_spectrum.number_average_molecular_weight(),
@@ -36,15 +36,11 @@ def test_import_booster_mass_spectrum_hdf():
             mass_spectrum.weight_average_molecular_weight(),
         )
 
-        mass_spectrum.filter_by_s2n(100)
-        
-        assert round(mass_spectrum[0].mz_exp,3) == 248.961
+        assert round(mass_spectrum[0].mz_exp,3) == 220.147
     
     else:
         
         FileNotFoundError(file_path)
-
-
 
 def test_import_booster_mass_spectra_hdf():
 
@@ -58,9 +54,7 @@ def test_import_booster_mass_spectra_hdf():
 
         booster_reader.start()
         booster_reader.join()
-
         #lcms = booster_reader.get_lcms_obj()
-
 
 if __name__ == '__main__':
 

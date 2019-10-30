@@ -47,6 +47,9 @@ class PeakPicking(object):
             elif self.label == Labels.bruker_profile:
                 self.calc_centroid(self.mz_exp_profile, self.abundance_profile, self.freq_exp_profile)
             
+            elif self.label == Labels.booster_profile:
+                self.calc_centroid(self.mz_exp_profile, self.abundance_profile, self.freq_exp_profile)
+
             elif self.label == Labels.simulated_profile:
                 self.calc_centroid(self.mz_exp_profile, self.abundance_profile, self.freq_exp_profile)
             
@@ -152,7 +155,7 @@ class PeakPicking(object):
                 peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
                 s2n = intes_centr/self.baselise_noise_std
             
-            elif self.label == Labels.bruker_profile: 
+            elif self.label == Labels.bruker_profile or self.label == Labels.booster_profile or self.label.thermo_profile: 
 
                 peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
                 mz_exp_centroid, freq_centr, intes_centr = self.find_apex_fit_quadratic(mass, abund, freq, current_index)

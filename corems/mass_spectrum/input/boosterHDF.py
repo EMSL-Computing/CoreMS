@@ -31,7 +31,7 @@ class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
         
         self.polarity = self.get_polarity(file_location)
 
-        super(ReadHDF_BoosterMassSpectrum, self).__init__(file_location, self.polarity,  isCentroid=False)
+        super().__init__(file_location, self.polarity,  isCentroid=False)
         
     def get_data_profile(self, mz, abundance, auto_process, auto_noise):
 
@@ -42,8 +42,7 @@ class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
         output_parameters = self.get_output_parameters()
             
         return MassSpecProfile(df, output_parameters, auto_process=auto_process, auto_noise=auto_noise)
-        
-
+    
     def get_attr_data(self, scan, attr_srt):
 
         return self.h5pydata[self.scans[scan]].attrs[attr_srt]
@@ -62,7 +61,7 @@ class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
         else:
             return +1    
 
-    def get_mass_spectrum(self, auto_process=True, auto_noise=False):
+    def get_mass_spectrum(self, auto_process=True, auto_noise=True):
         
         # only one mass spectrum
         if len(self.scans) == 1:
@@ -97,7 +96,7 @@ class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
         
         d_parms["rt"] = self.get_attr_data(0, 'r_h_start_time')
 
-        d_parms['label'] = Labels.simulated_profile
+        d_parms['label'] = Labels.booster_profile
 
         d_parms["Aterm"] = self.get_attr_data(0, 'r_cparams')[0]
 

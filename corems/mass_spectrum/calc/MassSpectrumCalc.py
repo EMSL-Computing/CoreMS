@@ -1,7 +1,7 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 27, 2019"
 
-from numpy import power, multiply, sqrt, multiply
+from numpy import power, multiply, sqrt, multiply, array
 from corems.mass_spectrum.calc.NoiseCalc import NoiseThreshouldCalc
 from corems.mass_spectrum.calc.PeakPicking import PeakPicking
 
