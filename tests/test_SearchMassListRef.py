@@ -3,6 +3,7 @@ sys.path.append(".")
 
 from corems.molecular_formula.input.masslist_ref import ImportMassListRef
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
+from corems.encapsulation.constant import Atoms
 import pytest
 
 __author__ = "Yuri E. Corilo"
@@ -34,7 +35,8 @@ def test_search_imported_ref_files():
     
     ms_peaks_assigned = SearchMolecularFormulas().search_mol_formulas(mass_spectrum_obj, mf_references_list, find_isotopologues=False)
 
-    print(ms_peaks_assigned)
+    assert (len(ms_peaks_assigned)) > 0
+
 
 if __name__ == '__main__':
     

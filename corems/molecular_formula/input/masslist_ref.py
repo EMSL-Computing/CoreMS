@@ -79,6 +79,16 @@ class ImportMassListRef():#Thread
         return  list_mf_obj           
 
 
+    def split(self, delimiters, string, maxsplit=0):
+    
+        ''' does not work when formula has atoms with same caracaters:
+            i.e - C10H21NNa
+        '''
+        regexPattern = '|'.join(map(re.escape, delimiters))
+        isotopes = re.findall(regexPattern, string)
+        counts = re.split(regexPattern, string, maxsplit)
+        return isotopes, counts
+
     def mformula_s_to_dict(self, s_mformulatring):
         
         ''' 
@@ -115,16 +125,15 @@ class ImportMassListRef():#Thread
             
             dict_res = {}
 
-            for each_atom_qnt in all_atoms:
+            for each_atom_count in all_atoms:
                 
-                number = re.findall(r'[0-9]{1,10000}', each_atom_qnt)
-                atom = ''.join(re.findall(r'[A-z]', each_atom_qnt))
+                count = re.findall(r'[0-9]{1,10000}', each_atom_count)
+                atom = ''.join(re.findall(r'[A-z]', each_atom_count))
                 
                 if atom in Atoms.atoms_order:
                 
-                    if number:
-                        pass
-                        dict_res[atom] = int(number[0])
+                    if count:
+                        dict_res[atom] = int(count[0])
                     else:
                         dict_res[atom] = 1
                 

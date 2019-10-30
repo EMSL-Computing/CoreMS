@@ -11,6 +11,7 @@ from corems.mass_spectra.factory.LC_Class import LCMSBase
 from corems.encapsulation.settings.input import InputParameters
 
 class ReadHDF_BoosterMassSpectra(Thread):
+    
     '''class docs'''
     
     def __init__(self, file_location, polarity, auto_process=True):
@@ -32,14 +33,18 @@ class ReadHDF_BoosterMassSpectra(Thread):
         self.polarity = polarity
 
         self.auto_process = True
+    
+    def get_attr_data(self, scan, attr_srt):
+
+        return self.hdf_obj[str(scan)].attrs[attr_srt]
 
     def import_mass_spectra(self, d_parms):
         
-        list_rt = list()
+        list_rt, list_tic = list(), list()
         
         for scan_number in self.list_scans:
             
-            d_parms["rt"] =  list_rt.append([scan_number])
+            d_parms["rt"] =  list_rt.append(self.get_attr_data(scan_number, 'r_h_start_time'))
 
             d_parms["scan_number"] = scan_number
 
@@ -47,14 +52,20 @@ class ReadHDF_BoosterMassSpectra(Thread):
     
             d_parms["polarity"] = self.polarity
 
+            d_parms["Aterm"] = self.get_attr_data(scan_number, 'r_cparams')[0]
+
+            d_parms["Bterm"] = self.get_attr_data(scan_number, 'r_cparams')[1]
+
             list_rt.append(d_parms["rt"])
+
+            list_tic.append(self.get_attr_data(scan_number, 'r_h_tic'))
             
             mass_spec = self.get_mass_spectrum(scan_number, d_parms)
 
             self.lcms.add_mass_spectrum_for_scan(mass_spec)
 
         self.lcms.set_retention_time_list(list_rt)
-        self.lcms.set_tic_list_from_data()
+        self.lcms.set_tic_list(list_tic)
         self.lcms.set_scans_number_list(self.list_scans)
         
     def get_mass_spectrum(self, scan, d_parms):

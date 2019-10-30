@@ -7,6 +7,9 @@ from pathlib import Path
 import pytest
 
 sys.path.append(".")
+
+
+
 from corems.mass_spectrum.input.boosterHDF import ReadHDF_BoosterMassSpectrum
 from corems.mass_spectra.input.boosterHDF import ReadHDF_BoosterMassSpectra
 
@@ -61,5 +64,19 @@ def test_import_booster_mass_spectra_hdf():
 
 if __name__ == '__main__':
 
-    #test_import_booster_mass_spectrum_hdf()        
-    test_import_booster_mass_spectra_hdf()
+    test_import_booster_mass_spectrum_hdf()        
+    #test_import_booster_mass_spectra_hdf()
+    #import h5py
+    #file_path = Path.cwd() / "tests/tests_data/" / "ESFA_100k_9767-13548_chB.A_re_pc_Averaged1min.h5"
+    #hdf_obj =  h5py.File(file_path, 'r')
+    #x = hdf_obj['2']
+    #for key, metadata in x.attrs.items():
+    #        print(key, ":", metadata)
+
+    #for key, value in hdf_obj.items():
+    #    print(key, value[0])
+    #    for keyse, metadata in value.attrs.items():
+    #        print(keyse, ":", metadata)
+
+
+    
