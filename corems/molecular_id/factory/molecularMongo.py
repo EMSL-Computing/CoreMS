@@ -30,14 +30,7 @@ class MolForm_Mongo:
                 raise  Exception(e)        
     
     def check_entry(self,classe, ion_type):
-        # this is way too slow, create a pos and neg table
-        #try:
-        #yes = self.session.query(MolecularFormulaTable.id).filter(MolecularFormulaTable.classe==classe).filter(MolecularFormulaTable.ion_charge == MoleculaSearchSettings.ion_charge).scalar() is not None
-        
-        #except MultipleResultsFound as e:
-        #    yes = True
-        #except MultipleResultsFound as e:
-        #    yes = True
+       
         formulas = self.molform_collection.find({'classe': classe, 'ion_type': ion_type}).limit(1)
         
         if list(formulas):

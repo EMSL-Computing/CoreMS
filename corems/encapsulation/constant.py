@@ -29,7 +29,6 @@ class Atoms:
 
     electron_mass = 0.0005485
 
-    
     atomic_masses = {'H': 1.007825032239,
                      'D': 2.0141017781212,
                      'T': 3.016049277924,

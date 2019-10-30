@@ -1,5 +1,5 @@
 import io, os
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings, MoleculaLookupDictSettings
+from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
 import json
 
 def get_dict_data():

@@ -31,18 +31,11 @@ def test_import_transient():
 
     mass_spec = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
 
-    #mass_spec.plot_mz_domain_profile_and_noise_threshold()
-
-    #print(mass_spec.mspeaks[0].mz_exp, mass_spec.mspeaks[-1].mz_exp)
+    print(mass_spec.mspeaks[0].mz_exp, mass_spec.mspeaks[-1].mz_exp)
    
+    with open("test.pkl", "wb") as file:
+        pickle.dump(bruker_transient, file, protocol=pickle.HIGHEST_PROTOCOL)
 
-    #assert round(mass_spec.mspeaks[0].mz_exp,2) == round(743.0789396348233,2)
-    #assert round(mass_spec.mspeaks[-1].mz_exp,2) == round(197.0096291077548,2)
-    #with open("test.pkl", "wb") as file:
-    #    pickle.dump(bruker_transient, file, protocol=pickle.HIGHEST_PROTOCOL)
-
-    # transient = pickle.load( open( 'test.pkl', "rb" ) )
-    # do_something
-
+    
 if __name__ == "__main__":
     test_import_transient()
