@@ -8,8 +8,6 @@ import pytest
 
 sys.path.append(".")
 
-
-
 from corems.mass_spectrum.input.boosterHDF import ReadHDF_BoosterMassSpectrum
 from corems.mass_spectra.input.boosterHDF import ReadHDF_BoosterMassSpectra
 
