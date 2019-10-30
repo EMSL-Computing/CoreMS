@@ -1,9 +1,11 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Set 06, 2019"
 
-from corems.encapsulation.constant import Atoms
 from threading import Thread
-import pandas as pd
+
+from corems.encapsulation.constant import Atoms
+
+from pandas import DataFrame
 
 class MassSpecExport(Thread):
     '''
@@ -83,19 +85,19 @@ class MassSpecExport(Thread):
         
         self.columns.extend(self.atomos_order_list)
         dict_data_list = self.get_list_dict_data()
-        df = pd.DataFrame(dict_data_list, columns=self.columns)
+        df = DataFrame(dict_data_list, columns=self.columns)
         df.name =  self.output_file
         return df
 
     def to_pandas(self, dict_data_list):
         
-        df = pd.DataFrame(dict_data_list, columns=self.columns)
+        df = DataFrame(dict_data_list, columns=self.columns)
         
         df.to_pickle(self.output_file + '.pkl')
 
     def to_excel(self, dict_data_list):
         
-        df = pd.DataFrame(dict_data_list, columns=self.columns)
+        df = DataFrame(dict_data_list, columns=self.columns)
         
         df.to_excel(self.output_file + '.xlsx')
 

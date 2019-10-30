@@ -29,11 +29,11 @@ class ReadBrukerSolarix(object):
     """
     
     def __init__(self, d_directory_location):
+        
+        if not d_directory_location.exists:
+            raise Exception("File does not exist: " + d_directory_location)
 
         self.d_directory_location = d_directory_location
-
-        if not path.exists(d_directory_location):
-            raise Exception("File does not exist: " + d_directory_location)
 
         try:
 

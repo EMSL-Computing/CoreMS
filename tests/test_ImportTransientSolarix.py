@@ -1,21 +1,21 @@
-import pickle, sys, os
+import pickle, sys
+from pathlib import Path
 sys.path.append(".")
-from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
+
 import pytest
+
+from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
+
+
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 19, 2019"
 
 def test_import_transient():
     
     # from corems.structure.input.MidasDatFile import ReadMidasDatFile
-    directory = os.path.join(os.getcwd(), "tests/tests_data/")
-
-    file_name = os.path.normcase("ESI_NEG_SRFA.d")
-    #file_name = os.path.normcase("20190205_WK_SRFA_opt_000001.d/")
-    #file_name = os.path.normcase("20190501_WK_Bowen_LDI_Neg_SRNOM_0_A1_000001.d")
-
-    file_location = directory + file_name
     
+    file_location = Path.cwd() / "tests/tests_data/" / "ESI_NEG_SRFA.d"
+
     #setting for signal processing
     apodization_method = "Hanning"
     number_of_truncations = 0

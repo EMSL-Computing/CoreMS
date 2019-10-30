@@ -1,11 +1,14 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jul 25, 2019"
 
-import os
+
 import sys
 import time
-import pytest
+from pathlib import Path
 sys.path.append('.')
+
+
+import pytest
 
 
 from corems.ms_peak.factory.MSPeakClasses import MSPeak
@@ -18,12 +21,8 @@ from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
 from corems.encapsulation.settings.io import settings_parsers
 
 def creat_mass_spectrum():
-
-    directory = os.path.join(os.getcwd(), "tests/tests_data/")
     
-    file_name = os.path.normcase("ESI_NEG_SRFA.d/")
-
-    file_location = directory + file_name
+    file_location = Path.cwd() / "tests/tests_data/" / "ESI_NEG_SRFA.d"
 
     bruker_reader = ReadBrukerSolarix(file_location)
 

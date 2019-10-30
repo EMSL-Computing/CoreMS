@@ -1,5 +1,5 @@
-import os, sys
-import pathlib
+import sys
+from pathlib import Path
 sys.path.append(".")
 from corems.mass_spectrum.input.textMassList import ReadMassList
 import pytest
@@ -9,7 +9,7 @@ __date__ = "Jul 02, 2019"
 
 def test_import_mass_list():
 
-    file_location = os.path.join(os.getcwd(), "tests/tests_data/") + "ESI_NEG_ESFA.ascii"
+    file_location = Path.cwd() / "tests/tests_data/" / "ESI_NEG_ESFA.ascii"
     
     #polariy need to be set or read from the file
     polariy = -1
@@ -32,7 +32,10 @@ def test_import_mass_list():
 
     mass_spectrum.filter_by_s2n(100)
     
-    print( mass_spectrum[0])
+    mass_list_reader = ReadMassList(file_location, polariy, isCentroid=False, delimiter="  ")
+
+    mass_spectrum = mass_list_reader.get_mass_spectrum(auto_process=True)
+
 
 if __name__ == '__main__':
     test_import_mass_list()

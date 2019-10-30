@@ -2,7 +2,8 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Aug 26, 2019"
 
 
-import os, sys, time, pytest, matplotlib
+import  sys, time, pytest, matplotlib
+from pathlib import Path
 sys.path.append(".")
 
 import numpy as np
@@ -63,10 +64,8 @@ def test_calibration():
             (See Docs for the structural details)  
     '''
     
-    directory = os.path.join(os.getcwd(), "tests/tests_data/")
-    file_name = os.path.normcase("ESI_NEG_SRFA.d/")
-
-    file_location = directory + file_name
+    
+    file_location = Path.cwd() / "tests/tests_data/" / "ESI_NEG_SRFA.d/"
 
     mass_spectrum = creat_mass_spectrum(file_location)
     

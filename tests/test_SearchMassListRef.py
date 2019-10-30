@@ -1,9 +1,11 @@
 import os, sys
+from pathlib import Path
 sys.path.append(".")
 
 from corems.molecular_formula.input.masslist_ref import ImportMassListRef
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.encapsulation.constant import Atoms
+
 import pytest
 
 __author__ = "Yuri E. Corilo"
@@ -13,7 +15,7 @@ def get_mass_spectrum():
 
     from corems.mass_spectrum.input.textMassList import ReadMassList
 
-    file_location = os.path.join(os.getcwd(), "tests/tests_data/") + "ESI_NEG_ESFA.ascii"
+    file_location = Path.cwd() / "tests/tests_data/" / "ESI_NEG_ESFA.ascii"
 
     #polarity needs to be set or read from the file
 

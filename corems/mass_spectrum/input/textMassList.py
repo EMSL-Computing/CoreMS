@@ -5,7 +5,7 @@ from pandas import read_csv
 
 from corems.mass_spectrum.input.baseClass import MassListBaseClass
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroid, MassSpecProfile
-
+from corems.encapsulation.constant import Labels
 class ReadMassList(MassListBaseClass):
     '''
     The ReadMassList object contains lots of MassSpectrum objs
@@ -45,6 +45,8 @@ class ReadMassList(MassListBaseClass):
 
         else:
             
+            output_parameters[Labels.label] = Labels.bruker_profile
+    
             return MassSpecProfile(dataframe, output_parameters, auto_process=auto_process)
     
     
