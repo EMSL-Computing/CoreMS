@@ -108,7 +108,8 @@ class Transient(TransientCalculations):
         return self.perform_magniture_mode_ft(time_domain_y_zero_filled)
         # return frequency_domain, magnitude
 
-    def get_mass_spectrum(self, auto_process=True, plot_result=True):
+    def get_mass_spectrum(self, auto_process=True, plot_result=True,
+                         keep_profile=True, auto_noise=True):
 
         #plt.figure(figsize=(13, 8))
 
@@ -122,8 +123,9 @@ class Transient(TransientCalculations):
         self.d_params["dir_location"] = self.dir_location
         
         return MassSpecfromFreq(
-            frequency_domain, magnitude, self.d_params, auto_process=auto_process
-        )
+            frequency_domain, magnitude, self.d_params, 
+            auto_process=auto_process, keep_profile=keep_profile,
+            auto_noise=auto_noise)
 
     @property
     def filename(self):

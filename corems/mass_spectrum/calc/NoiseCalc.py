@@ -52,8 +52,8 @@ class NoiseThreshouldCalc(object):
 
         average_noise = average(ymincentroid)*2
         s_desviation = std(ymincentroid)*2
-        print("Baseline noise level is %.2f, and the standard deviation is: %.2f" % (
-            average_noise, s_desviation))
+        #print("Baseline noise level is %.2f, and the standard deviation is: %.2f" % (
+        #    average_noise, s_desviation))
         return average_noise, s_desviation
 
     def get_abundance_minima_centroide(self, intes):

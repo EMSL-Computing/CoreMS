@@ -243,7 +243,7 @@ class ImportLCMSThermoMSFileReader(Thread):
             for scan_number in range(
                 self.initial_scan_number, self.final_scan_number + 1
             ):
-                print(scan_number)
+                #print(scan_number)
                 # scan_number = scan_number + 1
 
                 "only import FULL scans and Profile Mode, it ignores all others"

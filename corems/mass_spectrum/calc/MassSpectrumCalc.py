@@ -78,7 +78,6 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
         '''
         Aterm, Bterm, Cterm = self.Aterm, self.Bterm, self.Cterm
         # Check if the Bterm of Ledford equation scales with the ICR trap voltage or not then Bterm = Bterm*trap_voltage
-        print(Aterm, Bterm, Cterm)
         if Cterm == 0:
             
             if Bterm == 0:

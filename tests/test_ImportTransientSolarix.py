@@ -6,7 +6,6 @@ import pytest
 
 from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
 
-
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 19, 2019"
 

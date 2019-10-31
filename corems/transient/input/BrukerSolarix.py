@@ -1,8 +1,9 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
+from copy import deepcopy
 from pathlib import Path
 
-from numpy import genfromtxt, fromstring, dtype, fromfile
+from numpy import genfromtxt, fromstring, dtype, fromfile, frombuffer
 from xml.dom import minidom
 
 from corems.transient.factory.TransientClasses import Transient
@@ -28,7 +29,7 @@ class ReadBrukerSolarix(object):
     def __init__(self, d_directory_location):
         
         if not d_directory_location.exists():
-            raise Exception("File does not exist: " + str(d_directory_location))
+            raise FileNotFoundError("File does not exist: " + str(d_directory_location))
 
         self.d_directory_location = d_directory_location
         
@@ -39,24 +40,21 @@ class ReadBrukerSolarix(object):
             )
             self.transient_data_path = d_directory_location / "fid"
             
-            print (self.transient_data_path.exists() , 'HEREEEE')
-            
-            
             if not self.transient_data_path.exists():
 
                 self.transient_data_path = d_directory_location / "ser"
 
                 if not self.transient_data_path.exists():
                     
-                    raise Exception("Could not locate transient data")
+                    raise FileNotFoundError("Could not locate transient data")
 
                 else:
                     # get scan attributes
                     self.scan_attr = d_directory_location / "scan.xml"
 
-        except FileExistsError:
-
-            print(
+        except:
+            
+            raise FileExistsError(
                 "%s does not seem to be a valid Solarix Mass Spectrum"
                 % (d_directory_location)
             )
@@ -65,17 +63,16 @@ class ReadBrukerSolarix(object):
     
         from bs4 import BeautifulSoup
         
-        
         soup = BeautifulSoup(self.scan_attr.open(),'xml')
 
         rts = [float(rt.text) for rt in soup.find_all('minutes')]
         tics = [float(tic.text) for tic in soup.find_all('tic')]
         scans = [int(scan.text) for scan in soup.find_all('count')]
     
-        if len(scans) > 1: return  scans,rts, tics
-        else:  return scans[0],rts[0], tics[0]  
+        return  scans,rts, tics
+       
         
-    def get_transient(self):
+    def get_transient(self, scan_index=0):
 
         d_params = self.parse_parameters(self.parameter_filename_location)
 
@@ -89,24 +86,21 @@ class ReadBrukerSolarix(object):
         else:
             dt = dtype("i")
 
-        data = fromfile(self.transient_data_path.open(), dtype=dt)
-        # print(number_data_points)
-        
-        output_parameters = d_parms(self.d_directory_location)
+        output_parameters = deepcopy(d_parms(self.d_directory_location))
         # get rt, scan, and tic from scan.xml file, otherwise  using 0 defaults values 
         
         if self.transient_data_path.name == 'ser':
             
             if self.scan_attr.exists:
                 
-                scan, rt, tic = self.get_scan_attr()
+                scans, rts, tics = self.get_scan_attr()
 
-                output_parameters["scan_number"] = scan
+                output_parameters["scan_number"] = scans[scan_index]
 
-                output_parameters["rt"] = rt
+                output_parameters["rt"] = rts[scan_index]
 
-                output_parameters["tic"] = tic
-
+                output_parameters["tic"] = tics[scan_index]
+        
         output_parameters["label"] = "Bruker_Frequency"
 
         output_parameters["Aterm"] = float(d_params.get("ML1"))
@@ -124,7 +118,20 @@ class ReadBrukerSolarix(object):
         output_parameters["number_data_points"] = int(d_params.get("TD"))
 
         output_parameters["polarity"] = str(d_params.get("Polarity"))
-       
+
+        data_points = int(d_params.get("TD"))
+
+        scan = output_parameters["scan_number"]
+
+        with open(self.transient_data_path, 'rb') as databin:
+            
+            #seek start scan data 
+            databin.seek((scan-1)*4*data_points)
+            #read scan data and parse to 32int struct
+            data = frombuffer(databin.read(4*data_points), dtype=dt)
+        
+        #data = fromfile(self.transient_data_path.open(), dtype=dt, offset=(scan-1)*32*data_points)
+        
         return Transient(data, output_parameters)
 
         """

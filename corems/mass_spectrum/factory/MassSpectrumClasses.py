@@ -1,4 +1,4 @@
-import time
+import time, gc
 
 #from matplotlib import rcParamsDefault, rcParams
 from numpy import array, power
@@ -158,14 +158,29 @@ class MassSpecBase(MassSpecCalc):
         self.check_mspeaks()
         return array([mspeak.clear_molecular_formulas() for mspeak in self.mspeaks])
 
-    def process_mass_spec(self):
-
-        self.cal_noise_treshould()
+    def process_mass_spec(self,  keep_profile=True, auto_noise=True):
+        #from numpy import delete
+        self.cal_noise_treshould(auto=auto_noise)
         
         self.find_peaks()
         
         self.reset_indexes()
-   
+        all_indexes = range(len(self.mz_exp_profile))
+        
+        if not keep_profile:
+            
+            self._abundance *= 0
+            self._mz_exp  *= 0
+            self._abundance  *= 0
+            
+            #self.abundance_profile = list()
+            #self.freq_exp_profile = list()
+
+            #delete(self.mz_exp_profile, all_indexes)
+            #delete(self.abundance_profile, all_indexes)
+            #delete(self.freq_exp_profile, all_indexes)
+            #gc.collect()
+
     def cal_noise_treshould(self, auto=True):
 
         if self.label == Labels.simulated_profile:
@@ -173,7 +188,7 @@ class MassSpecBase(MassSpecCalc):
             self._baselise_noise, self._baselise_noise_std = 0.1, 1
         
         else:
-            print('HERRREEEE')
+            
             self._baselise_noise, self._baselise_noise_std = self.run_noise_threshould_calc(auto)
             
     @property
@@ -354,7 +369,7 @@ class MassSpecBase(MassSpecCalc):
         """then do peak picking"""
         
         self.do_peak_picking()
-        print("A total of %i peaks were found" % len(self._mspeaks))
+        #print("A total of %i peaks were found" % len(self._mspeaks))
 
     def change_kendrick_base_all_mspeaks(self, kendrick_dict_base):
         """kendrick_dict_base = {"C": 1, "H": 2} or {{"C": 1, "H": 1, "O":1} etc """
@@ -543,7 +558,8 @@ class MassSpecfromFreq(MassSpecBase):
     see also: MassSpecBase(), MassSpecfromFreq(), MassSpecProfile()
     '''
 
-    def __init__(self, frequency_domain, magnitude, d_params, auto_process=True):
+    def __init__(self, frequency_domain, magnitude, d_params, 
+                auto_process=True, keep_profile=True, auto_noise=True):
         """
         method docs
         """
@@ -554,7 +570,7 @@ class MassSpecfromFreq(MassSpecBase):
         self._set_mz_domain()
         """ use this call to automatically process data as the object is created, Setting need to be changed before initiating the class to be in effect"""
         if auto_process:
-            self.process_mass_spec()
+            self.process_mass_spec(keep_profile=keep_profile, auto_noise=auto_noise)
 
     def _set_mz_domain(self):
 

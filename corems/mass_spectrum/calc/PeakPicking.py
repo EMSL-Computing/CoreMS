@@ -178,7 +178,7 @@ class PeakPicking(object):
 
         if threshold_method == 'auto':
             
-            print(MassSpectrumSetting.noise_threshold_stds)
+            #print(MassSpectrumSetting.noise_threshold_stds)
             abudance_thresould = self.baselise_noise + (MassSpectrumSetting.noise_threshold_stds * self.baselise_noise_std)
             factor = 1
 
