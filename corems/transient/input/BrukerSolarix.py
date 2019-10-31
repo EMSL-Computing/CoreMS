@@ -123,14 +123,16 @@ class ReadBrukerSolarix(object):
 
         scan = output_parameters["scan_number"]
 
-        with open(self.transient_data_path, 'rb') as databin:
-            
-            #seek start scan data 
-            databin.seek((scan-1)*4*data_points)
-            #read scan data and parse to 32int struct
-            data = frombuffer(databin.read(4*data_points), dtype=dt)
-        
-        #data = fromfile(self.transient_data_path.open(), dtype=dt, offset=(scan-1)*32*data_points)
+        if self.transient_data_path.name == 'ser':
+            with open(self.transient_data_path, 'rb') as databin:
+                
+                #seek start scan data 
+                databin.seek((scan-1)*4*data_points)
+                #read scan data and parse to 32int struct
+                data = frombuffer(databin.read(4*data_points), dtype=dt)
+        else:
+
+            data = fromfile(self.transient_data_path.open(), dtype=dt)
         
         return Transient(data, output_parameters)
 
