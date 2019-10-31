@@ -1,12 +1,6 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
-''' this code is a adaptation/automation of spike library
-https://bitbucket.org/delsuc/spike/
-from Marc Delsuc
-'''
-
-
 from numpy import genfromtxt, fromstring, dtype, fromfile
 from xml.dom import minidom
 
@@ -42,16 +36,16 @@ class ReadBrukerSolarix(object):
             self.parameter_filename_location = self.locate_file(
                 d_directory_location, "apexAcquisition.method"
             )
-            self.transient_data_filename = d_directory_location / "fid"
+            self.transient_data_path = d_directory_location / "fid"
             
-            print (self.transient_data_filename.exists() , 'HEREEEE')
+            print (self.transient_data_path.exists() , 'HEREEEE')
             
             
-            if not self.transient_data_filename.exists():
+            if not self.transient_data_path.exists():
 
-                self.transient_data_filename = d_directory_location / "ser"
+                self.transient_data_path = d_directory_location / "ser"
 
-                if not self.transient_data_filename.exists():
+                if not self.transient_data_path.exists():
                     
                     raise Exception("Could not locate transient data")
 
@@ -67,12 +61,19 @@ class ReadBrukerSolarix(object):
             )
 
     def get_scan_attr(self):
-
-        from  bs4 import BeautifulSoup
-
-        soup = BeautifulSoup(self.scan_attr,'xml')
-
     
+        from bs4 import BeautifulSoup
+        from pathlib import Path
+        
+        soup = BeautifulSoup(self.scan_attr.open(),'xml')
+
+        rts = [float(rt.text) for rt in soup.find_all('minutes')]
+        tics = [float(tic.text) for tic in soup.find_all('tic')]
+        scans = [int(scan.text) for scan in soup.find_all('count')]
+    
+        if len(scans) > 1: return  scans,rts, tics
+        else:  return scans[0],rts[0], tics[0]  
+        
     def get_transient(self):
 
         d_params = self.parse_parameters(self.parameter_filename_location)
@@ -87,14 +88,20 @@ class ReadBrukerSolarix(object):
         else:
             dt = dtype("i")
 
-        data = fromfile(str(self.transient_data_filename), dtype=dt)
+        data = fromfile(self.transient_data_path.open(), dtype=dt)
         # print(number_data_points)
         
+        output_parameters = d_parms(self.d_directory_location)
+        # get rt, scan, and tic from scan.xml file, otherwise  using 0 defaults values 
         if self.scan_attr.exists:
             
-            self.get_scan_attr()
+            scan, rt, tic = self.get_scan_attr()
 
-        output_parameters = d_parms(self.d_directory_location)
+            output_parameters["scan_number"] = scan
+
+            output_parameters["rt"] = rt
+
+            output_parameters["tic"] = tic
 
         output_parameters["label"] = "Bruker_Frequency"
 
@@ -114,10 +121,6 @@ class ReadBrukerSolarix(object):
 
         output_parameters["polarity"] = str(d_params.get("Polarity"))
        
-        output_parameters["scan_number"] = scan
-
-        output_parameters["rt"] = rt
-
         return Transient(data, output_parameters)
 
         """
@@ -156,11 +159,17 @@ class ReadBrukerSolarix(object):
 
     @staticmethod
     def locate_file(folder, type_file_name):
+        
         from pathlib import Path
         """
             type_of_file = ExciteSweep or apexAcquisition.method
             From the given folder this function return the absolute path to the ExciteSweep file, or the apexAcquisition.method file
             It should always be in a subfolder 
+        
+            ''' this code is a adaptation/automation of spike library
+                https://bitbucket.org/delsuc/spike/
+                from Marc Delsuc
+            '''
         """
         
         directory_location = folder.glob( '**/*apexAcquisition.method')
@@ -183,16 +192,22 @@ class ReadBrukerSolarix(object):
 
     @staticmethod
     def parse_parameters(parameters_filename):
-        """
+        """ 
+            TODO: change to beautiful soup xml parsing
             Open the given file and retrieve all parameters from apexAcquisition.method
             None is written when no value for value is found
 
             structure : <param name = "AMS_ActiveExclusion"><value>0</value></param>
 
             read_param returns  values in a dictionnary
-            xml should be extinct, just a random option 
+            xml should be extinct, just a random option
+
+            ''' this code is a adaptation/automation of spike library
+                https://bitbucket.org/delsuc/spike/
+                from Marc Delsuc
+            '''
         """
-        xmldoc = minidom.parse(str(parameters_filename))
+        xmldoc = minidom.parse(parameters_filename.open())
 
         x = xmldoc.documentElement
         parameter_dict = {}
