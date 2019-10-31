@@ -1,5 +1,4 @@
 import pathlib, os, sys
-
 from setuptools import setup, find_packages
 # The directory containing this file
 HERE = pathlib.Path(__file__).parent
@@ -10,7 +9,7 @@ README = (HERE / "README.md").read_text()
 # This call to setup() does all the work
 setup(
     name="coreMS",
-    version="3.1.a0",
+    version="3.2.a0",
     description="Object Oriented Mass Spectrometry ToolBox for Small Molecules Analysis",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -27,9 +26,7 @@ setup(
     
     #package_dir={'corems': 'corems'},
     packages=find_packages(),
-    
-    
-    exclude_package_data={'.': ["test", "*.win_only"]},
+    exclude_package_data={'.': ["tests", "*.win_only"]},
     include_package_data=True,
     install_requires=["pandas", "numpy", "matplotlib", "scipy", 'h5py', 'sklearn', 'IsoSpecPy', 
                       'sqlalchemy', 'openpyxl', 'pymongo', 'psycopg2-binary', 'beautifulsoup4', 'lxml', 

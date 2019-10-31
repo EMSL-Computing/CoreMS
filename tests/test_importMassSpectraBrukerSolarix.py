@@ -1,11 +1,9 @@
-
 import sys
 from pathlib import Path
 sys.path.append(".")
 
 from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
 from corems.mass_spectra.input.brukerSolarix import ReadBruker_SolarixTransientMassSpectra
-
 
 def test_import_lcms_from_transient():
 
@@ -16,12 +14,22 @@ def test_import_lcms_from_transient():
     read_lcms.start()
     read_lcms.join()
 
+    lcms = read_lcms.get_lcms_obj()
+    
+    for ms in lcms:
+        #assign mf
+        for mspeak in ms:
+            #mspeak.mz_exp,mspeak.mz_abund 
+            for mf in mspeak:
+                #mf.to_string, mf.mz_theor    
+                pass
+
 if __name__ == "__main__":
     
-    #test_import_lcms_from_transient()
-    import timeit
-    t = timeit.Timer("test_import_lcms_from_transient()", setup="from __main__ import test_import_lcms_from_transient")
+    test_import_lcms_from_transient()
+    #import timeit
+    #t = timeit.Timer("test_import_lcms_from_transient()", setup="from __main__ import test_import_lcms_from_transient")
 
-    print(t.timeit(1))
+    #print(t.timeit(1))
 
     #timeit.timeit("test_import_lcms_from_transient()", setup="from __main__ import test_import_lcms_from_transient"))
