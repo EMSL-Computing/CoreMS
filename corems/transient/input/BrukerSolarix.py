@@ -6,11 +6,13 @@ https://bitbucket.org/delsuc/spike/
 from Marc Delsuc
 '''
 
-from corems.transient.factory.TransientClasses import Transient
-from glob import glob
+
 from numpy import genfromtxt, fromstring, dtype, fromfile
-from os import path
 from xml.dom import minidom
+
+from corems.transient.factory.TransientClasses import Transient
+
+from corems.encapsulation.settings.input.InputParameters import d_parms
 
 class ReadBrukerSolarix(object):
     
@@ -30,7 +32,7 @@ class ReadBrukerSolarix(object):
     
     def __init__(self, d_directory_location):
         
-        if not d_directory_location.exists:
+        if not d_directory_location.exists():
             raise Exception("File does not exist: " + d_directory_location)
 
         self.d_directory_location = d_directory_location
@@ -40,23 +42,37 @@ class ReadBrukerSolarix(object):
             self.parameter_filename_location = self.locate_file(
                 d_directory_location, "apexAcquisition.method"
             )
-            self.transient_data_filename = path.join(d_directory_location, "fid")
+            self.transient_data_filename = d_directory_location / "fid"
+            
+            print (self.transient_data_filename.exists() , 'HEREEEE')
+            
+            
+            if not self.transient_data_filename.exists():
 
-            if not path.isfile(self.transient_data_filename):
+                self.transient_data_filename = d_directory_location / "ser"
 
-                self.transient_data_filename = path.join(d_directory_location, "ser")
-
-                if not path.isfile(self.transient_data_filename):
+                if not self.transient_data_filename.exists():
                     
                     raise Exception("Could not locate transient data")
+
+                else:
+                    # get scan attributes
+                    self.scan_attr = d_directory_location / "scan.xml"
 
         except FileExistsError:
 
             print(
-                "%s does not seem to be a valid Solarix spectrum"
+                "%s does not seem to be a valid Solarix Mass Spectrum"
                 % (d_directory_location)
             )
 
+    def get_scan_attr(self):
+
+        from  bs4 import BeautifulSoup
+
+        soup = BeautifulSoup(self.scan_attr,'xml')
+
+    
     def get_transient(self):
 
         d_params = self.parse_parameters(self.parameter_filename_location)
@@ -71,10 +87,14 @@ class ReadBrukerSolarix(object):
         else:
             dt = dtype("i")
 
-        data = fromfile(self.transient_data_filename, dtype=dt)
+        data = fromfile(str(self.transient_data_filename), dtype=dt)
         # print(number_data_points)
         
-        output_parameters = dict()
+        if self.scan_attr.exists:
+            
+            self.get_scan_attr()
+
+        output_parameters = d_parms(self.d_directory_location)
 
         output_parameters["label"] = "Bruker_Frequency"
 
@@ -93,18 +113,10 @@ class ReadBrukerSolarix(object):
         output_parameters["number_data_points"] = int(d_params.get("TD"))
 
         output_parameters["polarity"] = str(d_params.get("Polarity"))
+       
+        output_parameters["scan_number"] = scan
 
-        output_parameters["filename_path"] = self.d_directory_location
-
-        """scan_number and rt will be need to lc ms"""
-
-        output_parameters["mobility_scan"] = 0
-
-        output_parameters["mobility_rt"] = 0
-
-        output_parameters["scan_number"] = 0
-
-        output_parameters["rt"] = 0
+        output_parameters["rt"] = rt
 
         return Transient(data, output_parameters)
 
@@ -144,28 +156,30 @@ class ReadBrukerSolarix(object):
 
     @staticmethod
     def locate_file(folder, type_file_name):
+        from pathlib import Path
         """
             type_of_file = ExciteSweep or apexAcquisition.method
             From the given folder this function return the absolute path to the ExciteSweep file, or the apexAcquisition.method file
             It should always be in a subfolder 
         """
-        directory_location = glob(path.join(folder, "*", type_file_name))
-
-        if len(directory_location) > 1:
+        
+        directory_location = folder.glob( '**/*apexAcquisition.method')
+        result = list(directory_location)
+        if len(result) > 1:
 
             raise Exception(
                 "You have more than 1 %s file in the %s folder, using the first one"
                 % (type_file_name, folder)
             )
 
-        elif len(directory_location) == 0:
+        elif len(result) == 0:
 
             raise Exception(
                 "You don't have any %s file in the  %s folder, please double check the path"
                 % (type_file_name, folder)
             )
 
-        return directory_location[0]
+        return result[0]
 
     @staticmethod
     def parse_parameters(parameters_filename):
@@ -178,7 +192,7 @@ class ReadBrukerSolarix(object):
             read_param returns  values in a dictionnary
             xml should be extinct, just a random option 
         """
-        xmldoc = minidom.parse(parameters_filename)
+        xmldoc = minidom.parse(str(parameters_filename))
 
         x = xmldoc.documentElement
         parameter_dict = {}
@@ -222,3 +236,4 @@ class ReadBrukerSolarix(object):
                             parameter_dict[paramenter_label] = parameter_value
 
         return parameter_dict
+

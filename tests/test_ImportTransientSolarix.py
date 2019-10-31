@@ -14,7 +14,7 @@ def test_import_transient():
     
     # from corems.structure.input.MidasDatFile import ReadMidasDatFile
     
-    file_location = Path.cwd() / "tests/tests_data/" / "ESI_NEG_SRFA.d"
+    file_location = Path.cwd() / "tests/tests_data/" / "20190709_WK_CADY_Auto_SRFA_QC_O1_1_01_32.d"
 
     #setting for signal processing
     apodization_method = "Hanning"
@@ -36,6 +36,21 @@ def test_import_transient():
     with open("test.pkl", "wb") as file:
         pickle.dump(bruker_transient, file, protocol=pickle.HIGHEST_PROTOCOL)
 
+def test_read_scan_xml():
     
+    from bs4 import BeautifulSoup
+    
+    file_location = Path.cwd() / "tests/tests_data/" / "20190709_WK_CADY_Auto_SRFA_QC_O1_1_01_32.d" / "scan.xml"
+
+    soup = BeautifulSoup(file_location.open(),'xml')
+
+    for s in soup.find_all('scan'):
+        
+        rt = s.find_all('minutes')[0].text
+        tic = s.find_all('tic')[0].text
+        
+        print(rt,tic )
+
 if __name__ == "__main__":
-    test_import_transient()
+    #test_import_transient()
+    test_read_scan_xml()
