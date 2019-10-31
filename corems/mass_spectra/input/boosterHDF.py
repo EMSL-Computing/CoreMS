@@ -14,7 +14,7 @@ class ReadHDF_BoosterMassSpectra(Thread):
     
     '''class docs'''
     
-    def __init__(self, file_location, polarity, auto_process=True):
+    def __init__(self, file_location, auto_process=True):
 
         Thread.__init__(self)
 
@@ -30,9 +30,21 @@ class ReadHDF_BoosterMassSpectra(Thread):
 
         self.file_location = file_location
 
-        self.polarity = polarity
-
         self.auto_process = True
+    
+    def get_polarity(self, file_location, scan):
+
+        self.h5pydata = h5py.File(file_location, 'r')
+
+        self.scans = list(self.h5pydata.keys())
+        
+        polarity = self.get_attr_data(scan,'r_h_polarity')
+        
+        if polarity == 'negative scan':
+            
+            return -1
+        else:
+            return +1    
     
     def get_attr_data(self, scan, attr_srt):
 
@@ -50,7 +62,7 @@ class ReadHDF_BoosterMassSpectra(Thread):
 
             d_parms['label'] = Labels.simulated_profile
     
-            d_parms["polarity"] = self.polarity
+            d_parms["polarity"] = self.get_polarity(scan_number)
 
             d_parms["Aterm"] = self.get_attr_data(scan_number, 'r_cparams')[0]
 
