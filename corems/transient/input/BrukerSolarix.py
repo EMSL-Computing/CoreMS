@@ -1,5 +1,6 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
+from pathlib import Path
 
 from numpy import genfromtxt, fromstring, dtype, fromfile
 from xml.dom import minidom
@@ -30,7 +31,7 @@ class ReadBrukerSolarix(object):
             raise Exception("File does not exist: " + d_directory_location)
 
         self.d_directory_location = d_directory_location
-
+        
         try:
 
             self.parameter_filename_location = self.locate_file(
@@ -63,7 +64,7 @@ class ReadBrukerSolarix(object):
     def get_scan_attr(self):
     
         from bs4 import BeautifulSoup
-        from pathlib import Path
+        
         
         soup = BeautifulSoup(self.scan_attr.open(),'xml')
 
@@ -93,15 +94,18 @@ class ReadBrukerSolarix(object):
         
         output_parameters = d_parms(self.d_directory_location)
         # get rt, scan, and tic from scan.xml file, otherwise  using 0 defaults values 
-        if self.scan_attr.exists:
+        
+        if self.transient_data_path.name == 'ser':
             
-            scan, rt, tic = self.get_scan_attr()
+            if self.scan_attr.exists:
+                
+                scan, rt, tic = self.get_scan_attr()
 
-            output_parameters["scan_number"] = scan
+                output_parameters["scan_number"] = scan
 
-            output_parameters["rt"] = rt
+                output_parameters["rt"] = rt
 
-            output_parameters["tic"] = tic
+                output_parameters["tic"] = tic
 
         output_parameters["label"] = "Bruker_Frequency"
 
