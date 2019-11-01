@@ -65,7 +65,7 @@ class MassSpecExport(Thread):
         else:
             raise TypeError('Supported types are "excel", "csv" or "pandas", %s entered' % output_type) 
     
-    def run(self):
+    def save(self):
         
         dict_data_list = self.get_list_dict_data()
         
@@ -80,6 +80,10 @@ class MassSpecExport(Thread):
             self.to_pandas(dict_data_list)
         else:
             raise ValueError("Unkown output type: %s; it can be 'excel', 'csv' or 'pandas'" %self.output_type)
+
+    def run(self):
+        
+        self.save()
     
     def get_pandas_df(self):
         
