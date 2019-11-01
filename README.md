@@ -4,5 +4,5 @@
 # CoreMS
 
 ## Object Oriented Mass Spectrometry ToolBox for Small Molecules Analysis
-## Currrent version [1.0.0.alpha] 
+## Currrent version [4.0.0.alpha] 
 
