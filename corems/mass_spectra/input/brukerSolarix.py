@@ -79,7 +79,7 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
             
     def get_lcms_obj(self):
         
-        if self.lcms.get_mass_spec_by_scan_number(self.initial_scan_number):
+        if self.lcms:
             return self.lcms
         else:
             raise Exception("returning a empty lcms class")
