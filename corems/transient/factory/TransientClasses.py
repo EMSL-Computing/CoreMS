@@ -21,6 +21,25 @@ fig.patch.set_alpha(0)
 '''
 
 class Transient(TransientCalculations):
+    '''
+    The ReadMassList object contains lots of MassSpectrum objs
+
+    Parameters
+    ----------
+    arg : str
+        The arg is used for ...
+    *args
+        The variable arguments are used for ...
+    **kwargs
+        The keyword arguments are used for ...
+
+    Attributes
+    ----------
+    arg : str
+        This is where we store arg,
+    '''
+    
+    
     def __init__(self, data, d_params):
 
         self._transient_data = data

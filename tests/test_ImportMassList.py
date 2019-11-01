@@ -36,7 +36,6 @@ def test_import_mass_list():
 
     mass_spectrum = mass_list_reader.get_mass_spectrum(auto_process=True)
 
-    
 
 if __name__ == '__main__':
     test_import_mass_list()

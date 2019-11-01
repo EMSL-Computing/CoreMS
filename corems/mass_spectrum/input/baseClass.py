@@ -82,7 +82,7 @@ class MassListBaseClass:
                 del dataframe[column_name]
         #return dataframe
         
-    def check_columns(self, data_frame_columns_names):
+    def check_columns(self, header_lable):
         
         inverted_name_dict = {value: key for key, value in self.name_dict.items()}
         
@@ -92,7 +92,7 @@ class MassListBaseClass:
             
             user_column_name = inverted_name_dict.get(column_name)
             
-            if user_column_name not in data_frame_columns_names:
+            if user_column_name not in header_lable:
                 missing_columns.append(column_name) 
         
         if len(missing_columns) > 0:

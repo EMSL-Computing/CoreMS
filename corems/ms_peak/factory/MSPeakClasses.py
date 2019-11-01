@@ -1,13 +1,13 @@
 
 from corems.encapsulation.settings.input.ProcessingSetting import MassSpecPeakSetting
-from corems.ms_peak.calc.MSPeakCalc import MassSpecPeakCalculation
+from corems.ms_peak.calc.MSPeakCalc import MSPeakCalculation
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
 
-class MSPeak(MassSpecPeakCalculation):
+class _MSPeak(MSPeakCalculation):
     '''
     classdocs
     '''
@@ -65,7 +65,7 @@ class MSPeak(MassSpecPeakCalculation):
     def clear_molecular_formulas(self):
         
         self.molecular_formulas= []
-
+    
     @property
     def nominal_mz_exp(self): return int(self.mz_exp)
 
@@ -93,29 +93,45 @@ class MSPeak(MassSpecPeakCalculation):
         
          return min(self.molecular_formulas, key=lambda m: abs(m._calc_assigment_mass_error(self.mz_exp)))
 
-class ICRMassPeak(MSPeak):
+class ICRMassPeak(_MSPeak):
 
     def __init__(self, *args):
 
         super().__init__(*args)
 
-    def threoretical_resolving_power(self):
+    def resolving_power_calc(self, B, T):
+        
+        '''
+        low pressure limits, 
+        T: float 
+            transient time
+        B: float
+            Magnetic Filed Strength (Tesla)    
+        
+        reference
+        Marshall et al. (Mass Spectrom Rev. 1998 Jan-Feb;17(1):1-35.)
+        DOI: 10.1002/(SICI)1098-2787(1998)17:1<1::AID-MAS1>3.0.CO;2-K
+        '''
+        return (1.274e7 * self.ion_charge * B * T)/ (self.mz_exp*self.ion_charge)
+
+    def set_threoretical_resolving_power(self, B, T):
+
+        self.resolving_power = self.resolving_power_calc(B, T) 
+        
+class TOFMassPeak(_MSPeak):
+
+    def __init__(self, *args):
+
+        super().__init__(*args)
+
+    def set_threoretical_resolving_power(self):
         return 0
 
-class TOFMassPeak(MSPeak):
+class OrbiMassPeak(_MSPeak):
 
     def __init__(self, *args):
 
         super().__init__(*args)
 
-    def threoretical_resolving_power(self):
-        return 0
-
-class OrbiMassPeak(MSPeak):
-
-    def __init__(self, *args):
-
-        super().__init__(*args)
-
-    def threoretical_resolving_power(self):
+    def set_threoretical_resolving_power(self):
         return 0       

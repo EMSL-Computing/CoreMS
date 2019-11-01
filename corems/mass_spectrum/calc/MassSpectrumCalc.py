@@ -12,7 +12,7 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
     available to the instantiated mass spectrum class object
     '''
 
-    def resolving_power_calc(self, B, T, limit):
+    def resolving_power_calc(self, B, T):
         '''
         low pressure limits, 
         T: float 
@@ -25,9 +25,9 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
         DOI: 10.1002/(SICI)1098-2787(1998)17:1<1::AID-MAS1>3.0.CO;2-K
         
         '''
-        rpe = lambda m, z: (1.274e7 * z * B * T)/(m*z)
+       
         self.check_mspeaks()
-        return array([rpe(mspeak.mz_exp, mspeak.ion_charge) for mspeak in self.mspeaks])
+        return array([mspeak.resolving_power_calc(B, T) for mspeak in self.mspeaks])
         
     def _f_to_mz(self):
         ''' Ledford equation for converting frequency(Hz) to m/z, 
