@@ -35,9 +35,10 @@ class MSPeakCalculation(object):
     def lorentz_pdf(self, datapoint=10000):
         
         if self.resolving_power:
+            
             #full width half maximum distance
             self.fwhm = (self.mz_exp/self.resolving_power)
-            print(self.fwhm)
+            
             # stardart deviation
             γ = self.fwhm/2
 

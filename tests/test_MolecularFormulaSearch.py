@@ -11,7 +11,6 @@ sys.path.append('.')
 import pytest
 
 
-from corems.ms_peak.factory.MSPeakClasses import MSPeak
 from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
 from corems.mass_spectrum.input.textMassList import ReadMassList
 from corems.mass_spectrum.input.numpyArray import ms_from_array_centroid

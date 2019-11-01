@@ -15,16 +15,25 @@ def simulate_peak(mspeak):
     mz_lo, abund_lo = mspeak.lorentz_pdf()
     mz_gaus, abund_gaus = mspeak.gaussian_pdf()
     
-    pyplot.plot(mz_lo, abund_lo, 'r', label='Lorentz')
-    pyplot.plot(mz_gaus, abund_gaus, 'g', label='Gauss')
-    pyplot.legend()
-    pyplot.show()
+    return round(mz_lo[0],3), round(mz_gaus[0],3), round(abund_lo[0],3), round(abund_gaus[0],3)
+    #print(mspeak.fwhm)
+    #pyplot.plot(mz_lo, abund_lo, 'r', label='Lorentz')
+    #pyplot.plot(mz_gaus, abund_gaus, 'g', label='Gauss')
+    #pyplot.legend()
+    #pyplot.show()
 
 def test_mspeak_calculations():
 
     kendrick_base = {'C': 1, 'H': 2}
     
-    mspeak = ICRMassPeak(+1, 212.1234, 200, 1000000, 200, 300, 1)
+    ion_charge = +1
+    mz_exp = 212.1234
+    abundance = 200
+    resolving_power = 1000000
+    signal_to_noise = 200
+    massspec_index = 300
+    index = 1
+    mspeak = ICRMassPeak(ion_charge, mz_exp, abundance, resolving_power, signal_to_noise, massspec_index, index)
     
     mspeak.change_kendrick_base(kendrick_base)
 
@@ -32,10 +41,10 @@ def test_mspeak_calculations():
     assert round(mspeak.kmd, 3) == -89.0
     assert mspeak.knm == 211
 
-    simulate_peak(mspeak)
-
+    assert simulate_peak(mspeak) == (212.123, 212.123, 3.077, 0.0)
+    
     mspeak.set_threoretical_resolving_power(50, 3)
-
+    
     simulate_peak(mspeak)
 
 if __name__ == '__main__':

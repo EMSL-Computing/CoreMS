@@ -95,9 +95,9 @@ class _MSPeak(MSPeakCalculation):
 
 class ICRMassPeak(_MSPeak):
 
-    def __init__(self, *args):
+    def __init__(self, *args, exp_freq=None):
 
-        super().__init__(*args)
+        super().__init__(*args,exp_freq=exp_freq)
 
     def resolving_power_calc(self, B, T):
         
@@ -120,18 +120,18 @@ class ICRMassPeak(_MSPeak):
         
 class TOFMassPeak(_MSPeak):
 
-    def __init__(self, *args):
+    def __init__(self, *args, exp_freq=None):
 
-        super().__init__(*args)
+        super().__init__(*args,exp_freq=exp_freq)
 
     def set_threoretical_resolving_power(self):
         return 0
 
 class OrbiMassPeak(_MSPeak):
 
-    def __init__(self, *args):
+    def __init__(self, *args, exp_freq=None):
 
-        super().__init__(*args)
+        super().__init__(*args,exp_freq=exp_freq)
 
     def set_threoretical_resolving_power(self):
         return 0       

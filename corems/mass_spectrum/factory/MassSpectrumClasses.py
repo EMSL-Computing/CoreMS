@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting
 from corems.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
-from corems.ms_peak.factory.MSPeakClasses import MSPeak
+from corems.ms_peak.factory.MSPeakClasses import ICRMassPeak as MSPeak
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
@@ -118,8 +118,9 @@ class MassSpecBase(MassSpecCalc):
                 resolving_power,
                 signal_to_noise,
                 massspec_index,
+                len(self._mspeaks),
                 exp_freq=exp_freq,
-                index = len(self._mspeaks)
+                
             )
         )
 
