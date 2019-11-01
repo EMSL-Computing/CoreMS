@@ -5,5 +5,5 @@
 
 ## Mass Spectrometry ToolBox for Small Molecules Analysis
 
-## Currrent Version [4.1.0.alpha] 
+## Currrent Version [4.2.0.alpha] 
 
