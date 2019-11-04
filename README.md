@@ -14,7 +14,8 @@
 - Bruker Solarix ComprassXtract
 - Bruker Solarix transients, ser and fid (FT and magnitude mode)
 - ThermoFisher Raw
-- Midas (.dat) from MagLab ICR data aquisiton station (FT and magnitude mode)
+- Spectroswiss Signal booster acquisition station
+- Midas (.dat) from MagLab ICR data acquisition station (FT and magnitude mode)
 - Masslist in Profile and Centroid Mode (include all delimiters types, i.e, ",", "\t", "  ")
 
 #### Data output formats
