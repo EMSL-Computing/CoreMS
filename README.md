@@ -1,19 +1,89 @@
+
 # CoreMS
-Mass Spectrometry ToolBox for Small Molecules Analysis
+
+**CoreMS** is a comprehensive mass spectrometry framework for small molecules analysis.
 
 ## Currrent Version
-`4.2.0.alpha`
 
-[![pipeline status](https://gitlab.pnnl.gov/mass-spectrometry/corems/badges/master/pipeline.svg)](https://gitlab.pnnl.gov/corilo/corems/commits/master)
-[![coverage report](https://gitlab.pnnl.gov/mass-spectrometry/corems/badges/master/coverage.svg)](https://gitlab.pnnl.gov/corilo/corems/commits/master)
+### `4.2.0.alpha`
 
-## Basic example:
+[![pipeline status](https://gitlab.pnnl.gov/mass-spectrometry/corems/badges/master/pipeline.svg)](https://gitlab.pnnl.gov/corilo/corems/commits/master) [![coverage report](https://gitlab.pnnl.gov/mass-spectrometry/corems/badges/master/coverage.svg)](https://gitlab.pnnl.gov/corilo/corems/commits/master)
+
+#### Data input formats
+
+- Bruker Solarix ComprassXtract
+- Bruker Solarix transients, ser and fid (FT and magnitude mode)
+- ThermoFisher Raw
+- Midas (.dat) from MagLab ICR data aquisiton station (FT and magnitude mode)
+- Masslist in Profile and Centroid Mode (include all delimiters types, i.e, ",", "\t", "  ")
+
+#### Data output formats
+
+- Comma separated values (csv)
+- Microsoft Excel (xrlr)
+- Hierarchical Data Format (.h5)
+- Pandas data frame
+
+#### Data structure type
+
+- LC-MS
+- IMS-MS
+- Transient
+- Mass Spectra
+- Mass Spectrum
+
+## Available features
+
+#### Data Signal Processing
+
+- Magnitude mode FT
+- Manual and automatic noise thresould calculation
+- Peak picking
+
+#### Molecular formulae search
+
+- Local or external database search
+- Automatic fine isotopic structure calculation and search
+- Auto molecular formulae assigments for ESI(-) MS for natural organic matter analysis
+- Kendrick filter using density based clutering
+
+#### Signal Processing
+
+- Magnitude mode FT
+- Auto noise thresould calculation
+- Resolving Power calculation
+- Peak picking
+
+#### Calibration
+
+- Frequency and m/z domain calibration functions:
+- ledford equation [ref]
+- linear equation [ref]
+- quadratic equation [ref]
+- step fit ('walking calibration") based on the ledford equation [ref]
+- Auto noise thresould calculation
+- Peak picking
+
+#### Molecular formulae search and assignments
+
+- Automatic fine isotopic structure calculation and search
+- Auto molecular formulae assigments for ESI(-) MS for natural organic matter analysis
+- Automatic fine isotopic structure calculation and search
+- Auto kendrick rebase
+
+#### Mass spectrum simulations
+
+- Peak shape (lorentz and gaussian)
+- Mass error error distribution
+
+## Basic example
+
 ```python
 file_path= 'neg_esi_srfa_1ppm_test.d'
 
 #Bruker Solarix class reader
-bruker_reader = ReadBrukerSolarix(file_path) 
- 
+bruker_reader = ReadBrukerSolarix(file_path)
+
 #access the transient object
 bruker_transient_obj = bruker_reader.get_transient()
 
@@ -32,28 +102,28 @@ SearchMolecularFormulas(first_hit=False).run_worker_mass_spectrum(mass_spectrum_
 
 # iterate over mass spectral peaks objs
 for mspeak in mass_spectrum_obj.sort_by_abundance():
-    
+
     # returns true if there is at least one molecular formula associated
     # with the mass spectral peak
     # same as mspeak.is_assigned -- > bool
     if  mspeak:
-        
-        # get the molecular formula with the lowest highest mass accuracy      
+
+        # get the molecular formula with the lowest highest mass accuracy
         molecular_formula = mspeak.molecular_formula_lowest_error
 
         # plot mz and peak height, use mass_spectrum_obj.mz_exp to access all mz
-        # and mass_spectrum_obj.mz_exp_profile to access mz with all available datapoints    
-	    pyplot.plot(mspeak.mz_exp, mspeak.abundance, 'o', c='g')
-        
+        # and mass_spectrum_obj.mz_exp_profile to access mz with all available datapoints
+        pyplot.plot(mspeak.mz_exp, mspeak.abundance, 'o', c='g')
+
         # iterate over all molecular formulae associated with the ms peaks obj
         for molecular_formula in mspeak:
-            
+
             #check if the molecular formula is a isotopologue
             if molecular_formula.is_isotopologue:
-                
+
                 #access the molecular formula text representation
                 print (molecular_formula.to_string())
-                
+
                 #get 13C atoms count
                 print (molecular_formula['13C'])
     else:
