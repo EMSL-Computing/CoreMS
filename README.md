@@ -3,7 +3,7 @@
 
 **CoreMS** is a comprehensive mass spectrometry framework for small molecules analysis.
 
-## Currrent Version
+## Current Version
 
 ### `4.2.0.alpha`
 
@@ -16,14 +16,14 @@
 - ThermoFisher Raw
 - Spectroswiss Signal booster acquisition station
 - Midas (.dat) from MagLab ICR data acquisition station (FT and magnitude mode)
-- Masslist in Profile and Centroid Mode (include all delimiters types, i.e, ",", "\t", "  ")
+- Mass list in Profile and Centroid Mode (include all delimiters types)
 
 #### Data output formats
 
-- Comma separated values (csv)
-- Microsoft Excel (xrlr)
+- Comma-separated values (CSV)
+- Microsoft Excel (xlsx)
 - Hierarchical Data Format (.h5)
-- Pandas data frame
+- Pandas data frame (can be saved using pickle) 
 
 #### Data structure type
 
@@ -38,20 +38,20 @@
 #### Data Signal Processing
 
 - Magnitude mode FT
-- Manual and automatic noise thresould calculation
+- Manual and automatic noise threshold calculation
 - Peak picking
 
 #### Molecular formulae search
 
 - Local or external database search
 - Automatic fine isotopic structure calculation and search
-- Auto molecular formulae assigments for ESI(-) MS for natural organic matter analysis
-- Kendrick filter using density based clutering
+- Auto molecular formulae assignments for ESI(-) MS for natural organic matter analysis
+- Kendrick filter using density-based clustering
 
 #### Signal Processing
 
 - Magnitude mode FT
-- Auto noise thresould calculation
+- Auto noise threshold calculation
 - Resolving Power calculation
 - Peak picking
 
@@ -62,20 +62,18 @@
 - linear equation [ref]
 - quadratic equation [ref]
 - step fit ('walking calibration") based on the ledford equation [ref]
-- Auto noise thresould calculation
-- Peak picking
 
 #### Molecular formulae search and assignments
 
 - Automatic fine isotopic structure calculation and search
-- Auto molecular formulae assigments for ESI(-) MS for natural organic matter analysis
+- Auto molecular formulae assignments for ESI(-) MS for natural organic matter analysis
 - Automatic fine isotopic structure calculation and search
-- Auto kendrick rebase
+- Auto Kendrick rebase
 
 #### Mass spectrum simulations
 
-- Peak shape (lorentz and gaussian)
-- Mass error error distribution
+- Peak shape (Lorentz and gaussian)
+- Mass error distribution
 
 ## Basic example
 
