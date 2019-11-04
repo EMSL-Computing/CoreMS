@@ -24,7 +24,7 @@ T =  bruker_transient_obj.transient_time
 mass_spectrum_obj = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
 
 # - search monoisotopic molecular formulas for all mass spectral peaks
-# - calculate fine isotopic structure based on monoisotopic molecular formulas founded and current dynamic range
+# - calculate fine isotopic structure based on monoisotopic molecular formulas found and current dynamic range
 # - search molecular formulas of correspondent calculated isotopologues, 
 # - settings are stored at SearchConfig.json and can be changed directly on the file or inside the framework class
 
