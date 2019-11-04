@@ -1,4 +1,6 @@
-import pathlib, os, sys
+import os
+import pathlib
+import sys
 from setuptools import setup, find_packages
 # The directory containing this file
 HERE = pathlib.Path(__file__).parent
@@ -17,27 +19,26 @@ setup(
     author="Corilo, Yuri",
     author_email="corilo@pnnl.gov",
     license="GNU Affero General Public License v3.0",
-    
     classifiers=[
         "License :: MIT License",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
     ],
-    
-    #package_dir={'corems': 'corems'},
+
+    # package_dir={'corems': 'corems'},
     packages=find_packages(),
     exclude_package_data={'.': ["tests", "*.win_only"]},
     include_package_data=True,
     install_requires=["pandas", "numpy", "matplotlib", "scipy", 'h5py', 'sklearn', 'IsoSpecPy', 
                       'sqlalchemy', 'openpyxl', 'pymongo', 'psycopg2-binary', 'beautifulsoup4', 'lxml', 
-                      'xlrd',  'h5py'],
+                      'xlrd', 'h5py'],
     # test are not yet implemented, will test dependences and syntax only for now
     setup_requires=['pytest-runner', 'wheel'],
     test_suite='pytest',
     tests_require=['pytest'],
-    #entry_points={
+    # entry_points={
     #    "console_scripts": [
     #        "corems=cli.__main__:main",
     #    ]
-    #},
+    # },
 )
