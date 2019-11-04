@@ -118,10 +118,11 @@ def test_calibration():
     exportMS.output_type = 'csv'
     exportMS.run()
     
+    exportMS.get_pandas_df()
+
     exportMS.output_type = 'pandas'
     exportMS.run()
     
-    exportMS.get_pandas_df()
 
 if __name__ == "__main__":
     

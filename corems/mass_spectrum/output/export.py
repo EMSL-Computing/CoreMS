@@ -7,13 +7,10 @@ from corems.encapsulation.constant import Atoms
 
 from pandas import DataFrame
 
-
 class MassSpecExport(Thread):
     '''
     TODO: add MSPeak indexes: done
-
     '''
-
     def __init__(self, out_file_path, mass_spectrum, output_type='excel'):
         '''
         output_type:str
@@ -37,12 +34,12 @@ class MassSpecExport(Thread):
 
         # column labels in order
         self.columns = ['Index',
-                        'Measured m/z',
+                        'm/z',
                         'Calibrated m/z',
                         'Calculated m/z',
-                        'Measured Abundance',
-                        'Measured Resolving Power',
-                        'Signal/Noise',
+                        'Abundance',
+                        'Resolving Power',
+                        'S/N',
                         'Mass Error (ppm)',
                         'DBE',
                         'H/C',
@@ -71,14 +68,14 @@ class MassSpecExport(Thread):
         dict_data_list = self.get_list_dict_data()
 
         # add atoms labels to the columns
-        self.columns.extend(self.atomos_order_list)
+        column = self.columns + self.atomos_order_list
 
         if self.output_type == 'excel':
-            self.to_excel(dict_data_list)
+            self.to_excel(dict_data_list, column)
         elif self.output_type == 'csv':
-            self.to_csv(dict_data_list)
+            self.to_csv(dict_data_list, column)
         elif self.output_type == 'pandas':
-            self.to_pandas(dict_data_list)
+            self.to_pandas(dict_data_list, column)
         else:
             raise ValueError(
                 "Unkown output type: %s; it can be 'excel', 'csv' or 'pandas'" % self.output_type)
@@ -89,30 +86,30 @@ class MassSpecExport(Thread):
 
     def get_pandas_df(self):
 
-        self.columns.extend(self.atomos_order_list)
+        column = self.columns + self.atomos_order_list
         dict_data_list = self.get_list_dict_data()
-        df = DataFrame(dict_data_list, columns=self.columns)
+        df = DataFrame(dict_data_list, columns=column)
         df.name = self.output_file
         return df
 
-    def to_pandas(self, dict_data_list):
+    def to_pandas(self, dict_data_list, columns):
 
-        df = DataFrame(dict_data_list, columns=self.columns)
+        df = DataFrame(dict_data_list, columns=columns)
 
         df.to_pickle(self.output_file + '.pkl')
 
-    def to_excel(self, dict_data_list):
+    def to_excel(self, dict_data_list, columns):
 
-        df = DataFrame(dict_data_list, columns=self.columns)
+        df = DataFrame(dict_data_list, columns=columns)
 
         df.to_excel(self.output_file + '.xlsx')
 
-    def to_csv(self, dict_data_list):
+    def to_csv(self, dict_data_list, columns):
 
         import csv
         try:
             with open(self.output_file + '.csv', 'w', newline='') as csvfile:
-                writer = csv.DictWriter(csvfile, fieldnames=self.columns)
+                writer = csv.DictWriter(csvfile, fieldnames=columns)
                 writer.writeheader()
                 for data in dict_data_list:
                     writer.writerow(data)
