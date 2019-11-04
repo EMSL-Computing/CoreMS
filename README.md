@@ -9,71 +9,63 @@
 
 [![pipeline status](https://gitlab.pnnl.gov/mass-spectrometry/corems/badges/master/pipeline.svg)](https://gitlab.pnnl.gov/corilo/corems/commits/master) [![coverage report](https://gitlab.pnnl.gov/mass-spectrometry/corems/badges/master/coverage.svg)](https://gitlab.pnnl.gov/corilo/corems/commits/master)
 
-#### Data input formats
+### Data input formats
 
 - Bruker Solarix ComprassXtract
 - Bruker Solarix transients, ser and fid (FT and magnitude mode)
 - ThermoFisher Raw
-- Spectroswiss Signal booster acquisition station
-- Midas (.dat) from MagLab ICR data acquisition station (FT and magnitude mode)
+- Spectroswiss Signal booster data-acquisition station
+- Midas (.dat) from MagLab ICR data-acquisition station (FT and magnitude mode)
 - Mass list in Profile and Centroid Mode (include all delimiters types)
+- Panda dataframe (TODO)
 
-#### Data output formats
+### Data output formats
 
-- Comma-separated values (CSV)
+- Text Files (csv, tab, etc)
 - Microsoft Excel (xlsx)
-- Hierarchical Data Format (.h5)
-- Pandas data frame (can be saved using pickle) 
+- Hierarchical Data Format (.h5) (TODO)
+- Pandas data frame (can be saved using pickle, h5, etc)
 
-#### Data structure type
+### Data structure type
 
 - LC-MS
 - IMS-MS
+- LC-IMS-MS (TODO)
 - Transient
 - Mass Spectra
 - Mass Spectrum
 
 ## Available features
 
-#### Data Signal Processing
+### Signal Processing
 
-- Magnitude mode FT
+- Apodization, Zerofilling, and Magnitude mode FT
 - Manual and automatic noise threshold calculation
-- Peak picking
-
-#### Molecular formulae search
-
-- Local or external database search
-- Automatic fine isotopic structure calculation and search
-- Auto molecular formulae assignments for ESI(-) MS for natural organic matter analysis
-- Kendrick filter using density-based clustering
-
-#### Signal Processing
-
-- Magnitude mode FT
-- Auto noise threshold calculation
+- Peak picking apex quadratic fitting
 - Resolving Power calculation
-- Peak picking
 
-#### Calibration
+### Calibration
 
 - Frequency and m/z domain calibration functions:
 - ledford equation [ref]
-- linear equation [ref]
-- quadratic equation [ref]
+- linear equation
+- quadratic equation
+- Automatic search most abundant **Ox** homologue serie
 - step fit ('walking calibration") based on the ledford equation [ref]
 
-#### Molecular formulae search and assignments
+### Molecular formulae search and assigment
 
+- Automatic local or external database generation
+- Automatic molecular formulae assignments for ESI(-) MS for natural organic matter analysis
 - Automatic fine isotopic structure calculation and search
-- Auto molecular formulae assignments for ESI(-) MS for natural organic matter analysis
-- Automatic fine isotopic structure calculation and search
-- Auto Kendrick rebase
+- Flexible Kendrick normalization base
+- Kendrick filter using density-based clustering
 
-#### Mass spectrum simulations
+### Mass spectrum simulations
 
 - Peak shape (Lorentz and gaussian)
 - Mass error distribution
+- ICR Resolving Power based on magnetic field (B), and transient time(T)
 
 ## Basic example
 
