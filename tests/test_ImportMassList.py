@@ -8,7 +8,7 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jul 02, 2019"
 
 
-def test_import_corems_mass_list():
+def xtest_import_corems_mass_list():
 
     file_location = Path.cwd() / "tests/tests_data/" / "ESI_NEG_SRFA_COREMS.csv"
     
@@ -50,5 +50,5 @@ def test_import_mass_list():
 
 
 if __name__ == '__main__':
-    #test_import_mass_list()
-    test_import_corems_mass_list()
+    test_import_mass_list()
+    #test_import_corems_mass_list()

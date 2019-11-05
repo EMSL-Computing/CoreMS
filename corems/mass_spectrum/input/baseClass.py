@@ -33,9 +33,9 @@ class MassListBaseClass:
         #(newline="\n")
         
         #change this dict VALUES to match your labels, THE ORDER WON'T MATTER
-        #self.name_dict = {'m/z':'m/z', 'Res.':'Resolving Power', 'I':'Abundance' , "S/N":"S/N"}
+        self.name_dict = {'m/z':'m/z', 'Res.':'Resolving Power', 'I':'Abundance' , "S/N":"S/N"}
         
-        self.name_dict = {'m/z':'m/z', 'Resolving Power':'Resolving Power', 'Abundance':'Abundance' , "S/N":"S/N"}
+        #self.name_dict = {'m/z':'m/z', 'Resolving Power':'Resolving Power', 'Abundance':'Abundance' , "S/N":"S/N"}
 
         self._expected_columns = ['m/z', 'Abundance', 'S/N', 'Resolving Power']
         

@@ -4,7 +4,7 @@ __date__ = "Jun 12, 2019"
 from pandas import read_csv
 
 from corems.mass_spectrum.input.baseClass import MassListBaseClass
-from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroid, MassSpecProfile
+from corems.mass_spectrum.factory.MassSpectrumClasses import AssignedMassSpecCentroid, MassSpecProfile, MassSpecCentroid
 from corems.encapsulation.constant import Labels
 
 class ReadCoremsMasslist(MassListBaseClass):
@@ -35,7 +35,7 @@ class ReadCoremsMasslist(MassListBaseClass):
  
         output_parameters = self.get_output_parameters(self.polarity)
 
-        return MassSpecCentroid(self.dataframe, output_parameters, auto_process=auto_process)
+        return AssignedMassSpecCentroid(self.dataframe, output_parameters, auto_process=auto_process)
 
 
 class ReadMassList(MassListBaseClass):

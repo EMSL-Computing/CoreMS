@@ -583,8 +583,7 @@ class MassSpecfromFreq(MassSpecBase):
 
             self._mz_exp = self._f_to_mz()
 
-
-class MassSpecCentroid(MassSpecBase):
+class AssignedMassSpecCentroid(MassSpecBase):
 
     '''
     - A iterative mass spectrum class when data entry is centroid mode
@@ -669,24 +668,29 @@ class MassSpecCentroid(MassSpecBase):
         from math import isnan
         # it is wasy too slow, it needs to be changed to other functional structure
 
-        ion_charge = dataframe["Ion Charge"]
+        
         l_exp_mz_centroid = dataframe["m/z"]
         l_intes_centr = dataframe["Abundance"]
         l_peak_resolving_power = dataframe["Resolving Power"]
         l_s_n = dataframe["S/N"]
 
+        #check if is coreMS file
         if 'Is Isotopologue' in dataframe:
         
             formula = dataframe.loc[:, 'C':].fillna(0)
+            ion_charge = dataframe["Ion Charge"]
             is_isotopologue = dataframe['Is Isotopologue']
-           
         
         for index in range(dataframe["m/z"].size):
-            atoms = list(formula.columns)
-            counts = list(formula.iloc[index])
+            
+            counts = 0
+            
+            if 'Is Isotopologue' in dataframe:
+                atoms = list(formula.columns)
+                counts = list(formula.iloc[index])
 
-            formula_list = [sub[item] for item in range(len(atoms)) 
-                      for sub in [atoms, counts]] 
+                formula_list = [sub[item] for item in range(len(atoms)) 
+                        for sub in [atoms, counts]] 
             
             self.add_mspeak(
                 ion_charge[index],
@@ -696,10 +700,123 @@ class MassSpecCentroid(MassSpecBase):
                 l_s_n[index],
                 index,
             )
+
             if sum(counts) > 0:
                 mfobj = MolecularFormula(formula_list, ion_charge[index])
                 mfobj.is_isotopologue = is_isotopologue
                 self._mspeaks[index].add_molecular_formula(mfobj)
         
         self.reset_indexes()
+
+
+class MassSpecCentroid(MassSpecBase):
+
+    '''
+    - A iterative mass spectrum class when data entry is centroid mode
+    - Stores the centroid data and instrument settings
+    - Simulate profile data based on Gaussian or Lorentzian peak shape
+    - Iteration over a list of MSPeaks classes stored at the _mspeaks atributes
+    - _mspeaks is populated under the hood by calling process_mass_spec method
+    - iteration is null if _mspeaks is empty
+
+    Parameters
+    ----------
+    dataframe : pandas Dataframe(Series(floats))
+        containg columns [m/z, Abundance, Resolving Power, S/N] 
+    d_params : dict{'str': float, int or str}
         
+    Attributes
+    ----------
+    _mz_exp : list(float)
+        This is where we store mz_exp,
+    _abundance : list(float)     
+        This is where we store _abundance,
+    _mspeaks : list(MSPeak)
+        store MSpeaks objects identified by a peak picking algorithm  
+
+    Attributes
+    ----------
+    _mz_exp : list(float)
+        This is where we store mz_exp,
+    _frequency_domain : list(float)
+        This is where we store _frequency_domain,
+    _abundance : list(float)     
+        This is where we store _abundance,
+    _mspeaks : list(MSPeak)
+        store MSpeaks objects identified by a peak picking algorithm     
+    label : str
+        store label (Bruker, Midas Transient, see Labels class)
+    
+    Relevant Methods
+    ----------
+    _set_mz_domain()
+        calculates the m_z based on the setting of d_params
+
+    process_mass_spec()
+        - overrides the base class function
+        - Populates _mspeaks list with MSpeaks class using the centroid date
+
+    see also: MassSpecBase(), MassSpecfromFreq(), MassSpecProfile()
+    '''
+
+    def __init__(self, dataframe, d_params, auto_process=True):
+        
+        """needs to simulate peak shape and pass as mz_exp and magnitude."""
+        exp_mz_centroid = dataframe["m/z"].values
+        magnitude_centroid = dataframe["Abundance"].values
+        # mz_exp, magnitude = self.__simulate_profile__data__(
+        #    exp_mz_centroid, magnitude_centroid)
+
+        # print( mz_exp)
+
+        self.label = d_params.get("label")
+        self.dataframe = dataframe
+        super().__init__(exp_mz_centroid, magnitude_centroid, d_params)
+
+        self._set_parameters_objects(d_params)
+        if self.label == Labels.thermo_centroid:
+            self._baselise_noise = d_params.get("baselise_noise")
+            self._baselise_noise_std = d_params.get("baselise_noise_std")
+
+        if auto_process:
+            self.process_mass_spec(dataframe)
+            del self.dataframe
+
+    def __simulate_profile__data__(self, exp_mz_centroid, magnitude_centroid):
+        """needs theoretical resolving power calculation and define peak shape
+        this is a quick fix to be able to plot as lines
+        peakshape = #Gaussian"""
+
+        x, y = [], []
+        for i in range(len(exp_mz_centroid)):
+            x.append(exp_mz_centroid[i] - 0.0000001)
+            x.append(exp_mz_centroid[i])
+            x.append(exp_mz_centroid[i] + 0.0000001)
+            y.append(0)
+            y.append(magnitude_centroid[i])
+            y.append(0)
+        return x, y
+
+    @overrides(MassSpecBase)
+    def process_mass_spec(self, dataframe):
+
+        # it is wasy too slow, it needs to be changed to other functional structure
+
+        ion_charge = self.polarity
+        l_exp_mz_centroid = dataframe["m/z"]
+        l_intes_centr = dataframe["Abundance"]
+        l_peak_resolving_power = dataframe["Resolving Power"]
+        l_s_n = dataframe["S/N"]
+
+        for index in range(dataframe["m/z"].size):
+            self.add_mspeak(
+                ion_charge,
+                l_exp_mz_centroid[index],
+                l_intes_centr[index],
+                l_peak_resolving_power[index],
+                l_s_n[index],
+                index,
+            )
+        
+        self.reset_indexes()
+
