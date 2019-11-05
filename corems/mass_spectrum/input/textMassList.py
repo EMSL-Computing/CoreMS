@@ -1,8 +1,6 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
-from pandas import read_csv
-
 from corems.mass_spectrum.input.baseClass import MassListBaseClass
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
@@ -10,50 +8,45 @@ from corems.encapsulation.constant import Labels
 from corems.encapsulation.settings.input.InputSetting import DataInputSetting
 
 class ReadCoremsMasslist(MassListBaseClass):
+    '''
+    # The ReadCoremsMasslist object reads processed mass list data types
+    # and returns the mass spectrum obj with the molecular formula objs
 
-    def __init__(self, file_location, delimiter=","):
-        
-        '''
-        Constructor
-        '''
-        
-        self.dataframe = read_csv(file_location, delimiter=delimiter, engine='python')
-
-        if not 'Ion Charge' in self.dataframe:
-            raise ValueError("%s it is not a valid CoreMS file" % str(file_location))
-        
-        polarity = self.dataframe['Ion Charge'].values[0]
-
-        super().__init__(file_location, polarity, delimiter=delimiter,isCentroid=True)
-        
-        
+    # **Only available for centroid mass spectrum type: it will ignoere the parameter **isCentroid** 
+    # Please see MassListBaseClass for more details
+    
+    '''
     def get_mass_spectrum(self, auto_process=True):
+    
+        dataframe = self.get_dataframe()
         
-        #delimiter = "  " or " " or  "," or "\t" etc  
+        if not 'Ion Charge' in dataframe:
+            raise ValueError("%s it is not a valid CoreMS file" % str(self.file_location))
         
-        self.check_columns(self.dataframe.columns)
+        self.check_columns(dataframe.columns)
         
-        self.dataframe.rename(columns=DataInputSetting.header_translate, inplace=True)
+        dataframe.rename(columns=DataInputSetting.header_translate, inplace=True)
  
-        output_parameters = self.get_output_parameters(self.polarity)
+        polarity = dataframe['Ion Charge'].values[0]
 
-        mass_spec_obj = MassSpecCentroid(self.dataframe, output_parameters, auto_process=auto_process)
+        output_parameters = self.get_output_parameters(polarity)
 
-        self.add_molecular_formula(mass_spec_obj)
+        mass_spec_obj = MassSpecCentroid(dataframe, output_parameters, auto_process=auto_process)
+
+        self.add_molecular_formula(mass_spec_obj, dataframe)
         
         return mass_spec_obj
 
-    def add_molecular_formula(self, mass_spec_obj):
+    def add_molecular_formula(self, mass_spec_obj, dataframe):
         
         #check if is coreMS file
-        if 'Is Isotopologue' in self.dataframe:
+        if 'Is Isotopologue' in dataframe:
             
-            
-            mz_exp_df = self.dataframe["m/z"]
-            formula_df = self.dataframe.loc[:, 'C':].fillna(0)
-            ion_type_df =  self.dataframe["Ion Type"]
-            ion_charge_df = self.dataframe["Ion Charge"]
-            is_isotopologue_df = self.dataframe['Is Isotopologue']
+            mz_exp_df = dataframe["m/z"]
+            formula_df = dataframe.loc[:, 'C':].fillna(0)
+            ion_type_df =  dataframe["Ion Type"]
+            ion_charge_df = dataframe["Ion Charge"]
+            is_isotopologue_df = dataframe['Is Isotopologue']
         
         mass_spec_mz_exp_list = mass_spec_obj.mz_exp
     
@@ -63,7 +56,7 @@ class ReadCoremsMasslist(MassListBaseClass):
 
             ms_peak_index = list(mass_spec_mz_exp_list).index(mz_exp)
             
-            if 'Is Isotopologue' in self.dataframe:
+            if 'Is Isotopologue' in dataframe:
                 
                 atoms = list(formula_df.columns)
                 counts = list(formula_df.iloc[df_index])
@@ -80,29 +73,26 @@ class ReadCoremsMasslist(MassListBaseClass):
 
 
 class ReadMassList(MassListBaseClass):
+    
     '''
-    The ReadMassList object contains lots of MassSpectrum objs
-
-    Parameters
-    ----------
-    arg : str
-        The arg is used for ...
-    *args
-        The variable arguments are used for ...
-    **kwargs
-        The keyword arguments are used for ...
-
-    Attributes
-    ----------
-    arg : str
-        This is where we store arg,
+    The ReadCoremsMasslist object reads unprocessed mass list data types
+    and returns the mass spectrum obj 
+    See MassListBaseClass for details
+    
     '''
 
-    def get_mass_spectrum(self, auto_process=True):
-        
+    def get_mass_spectrum(self, polarity, auto_process=True):
+        '''
+         The MassListBaseClass object reads mass list data types and returns the mass spectrum obj
+
+        Parameters
+        ----------
+        polarity: int 
+            +1 or -1 
+        '''
         #delimiter = "  " or " " or  "," or "\t" etc  
         
-        dataframe = read_csv(self.file_location, delimiter=self.delimiter, engine='python')
+        dataframe = self.get_dataframe()
         
         self.check_columns(dataframe.columns)
             
@@ -110,7 +100,7 @@ class ReadMassList(MassListBaseClass):
         
         dataframe.rename(columns=DataInputSetting.header_translate, inplace=True)
  
-        output_parameters = self.get_output_parameters(self.polarity)
+        output_parameters = self.get_output_parameters(polarity)
             
         if self.isCentroid:
             

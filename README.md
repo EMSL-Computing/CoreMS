@@ -16,12 +16,13 @@
 - ThermoFisher Raw
 - Spectroswiss Signal booster data-acquisition station
 - Midas (.dat) from MagLab ICR data-acquisition station (FT and magnitude mode)
-- Mass list in Profile and Centroid Mode (include all delimiters types)
+- Mass list in Profile and Centroid Mode (include all delimiters types and Excel)
+- CoreMS exported processed mass list files(Excel, csv, txt, etc)
 - Panda dataframe (`TODO`)
 
 ### Data output formats
 
-- Text Files (csv, tab, etc)
+- Text Files (csv, tab separated txt, etc)
 - Microsoft Excel (xlsx)
 - Hierarchical Data Format (.h5) (`TODO`)
 - Pandas data frame (can be saved using pickle, h5, etc)
@@ -63,8 +64,8 @@
 
 ### Mass spectrum simulations
 
-- Peak shape (Lorentz and gaussian)
-- Mass error distribution
+- Peak shape (Lorentz and Gaussian)
+- Mass error distribution(`TODO`)
 - ICR Resolving Power based on magnetic field (B), and transient time(T)
 
 ## Basic example

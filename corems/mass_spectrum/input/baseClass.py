@@ -1,29 +1,37 @@
 from pathlib import Path
+
+from pandas import read_csv, read_pickle
+
 from corems.encapsulation.settings.input.InputSetting import DataInputSetting
+
 class MassListBaseClass:
     '''
-    The MassSpectra object contains lots of MassSpectrum
+    # The MassListBaseClass object reads mass list data types and returns the mass spectrum obj
 
-    Parameters
+    # Parameters
     ----------
-    arg : str
-        The arg is used for ...
-    *args
-        The variable arguments are used for ...
-    **kwargs
-        The keyword arguments are used for ...
-
-    Attributes
-    ----------
-    arg : str
-        This is where we store arg,
-    '''
-
-    def __init__(self, file_location, polarity, delimiter="  ", isCentroid=True):
+    ## file_location : str
+        file_location is full data path
+    ## * delimiter: str
+        Delimeter to read text based files ("," "\t", " ", "  ", etc)
+    ## **data_type : str
+        The keyword argument data_type is used to determine what type of file to read:
+        pandas(pickle) or txt(.csv, txt, asci, etc)
+    ## **isCentroid : bool
+        The keyword argument isCentroid is used to determine the mass spectrum data structure:
+        if set to False will assume profile mode and will attempt to peak pick
         
-        '''
-        Constructor
-        '''
+    # Attributes
+    ----------
+    ## _expected_columns : set
+       The file has to have a least the values inside the set.
+	
+    For label translation see:
+		corems.encapsulation.settings.input.InputSetting 
+       	or add your labels to the SettingsCoreMS.json file and parse the settings
+
+    '''
+    def __init__(self, file_location, delimiter="  ", data_type='txt', isCentroid=True):
         
         self.file_location = Path(file_location)
 
@@ -34,11 +42,27 @@ class MassListBaseClass:
         
         self._expected_columns = {"m/z", "Abundance", "S/N", "Resolving Power"}
         
-        self.polarity = polarity
-        
         self.delimiter  = delimiter
         
         self.isCentroid  = isCentroid
+
+        self.data_type = data_type
+
+    def get_dataframe(self):
+
+        if self.data_type == 'txt':
+
+            dataframe = read_csv(self.file_location, delimiter=self.delimiter, engine='python')
+        
+        elif self.data_type == 'dataframe':
+
+            dataframe = read_pickle(self.file_location)   
+        
+        else:
+
+            raise TypeError('Data type %s is not supported' % self.data_type)
+
+        return  dataframe 
 
     def get_output_parameters(self, polarity):
         

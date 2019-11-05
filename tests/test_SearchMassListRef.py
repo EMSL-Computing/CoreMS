@@ -21,7 +21,7 @@ def get_mass_spectrum():
 
     polariy = -1
    
-    return ReadMassList(file_location, polariy, delimiter="  ").get_mass_spectrum(auto_process=True)
+    return ReadMassList(file_location, delimiter="  ").get_mass_spectrum(polariy, auto_process=True)
     
 def test_search_imported_ref_files():
 
