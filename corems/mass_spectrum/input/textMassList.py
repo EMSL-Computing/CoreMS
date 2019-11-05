@@ -6,6 +6,7 @@ from pandas import read_csv
 from corems.mass_spectrum.input.baseClass import MassListBaseClass
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroid, MassSpecProfile
 from corems.encapsulation.constant import Labels
+
 class ReadMassList(MassListBaseClass):
     '''
     The ReadMassList object contains lots of MassSpectrum objs

@@ -40,6 +40,7 @@ class MassSpecExport(Thread):
                         'Abundance',
                         'Resolving Power',
                         'S/N',
+                        'Ion Charge',
                         'Mass Error (ppm)',
                         'DBE',
                         'H/C',
@@ -139,11 +140,13 @@ class MassSpecExport(Thread):
         def add_no_match_dict_data():
 
             dict_result = {'Index': index,
-                           'Measured m/z':  ms_peak.mz_exp,
+                           'm/z':  ms_peak.mz_exp,
                            'Calibrated m/z': ms_peak.mz_exp,
-                           'Measured Abundance': ms_peak.abundance,
-                           'Measured Resolving Power': ms_peak.resolving_power,
-                           'Signal/Noise':  ms_peak.signal_to_noise}
+                           'Abundance': ms_peak.abundance,
+                           'Resolving Power': ms_peak.resolving_power,
+                           'S/N':  ms_peak.signal_to_noise,
+                           'Ion Charge': ms_peak.ion_charge,
+                           }
 
             dict_data_list.append(dict_result)
 
@@ -151,12 +154,13 @@ class MassSpecExport(Thread):
 
             formula_dict = m_formula.to_dict
             dict_result = {'Index': index,
-                           'Measured m/z':  ms_peak.mz_exp,
+                           'm/z':  ms_peak.mz_exp,
                            'Calibrated m/z': ms_peak.mz_exp,
                            'Calculated m/z': m_formula.mz_theor,
-                           'Measured Abundance': ms_peak.abundance,
-                           'Measured Resolving Power': ms_peak.resolving_power,
-                           'Signal/Noise':  ms_peak.signal_to_noise,
+                           'Abundance': ms_peak.abundance,
+                           'Resolving Power': ms_peak.resolving_power,
+                           'S/N':  ms_peak.signal_to_noise,
+                           'Ion Charge': ms_peak.ion_charge,
                            'Mass Error (ppm)': m_formula._calc_assigment_mass_error(ms_peak.mz_exp),
                            'DBE':  m_formula.dbe,
                            'Heteroatom Class': m_formula.class_label,
