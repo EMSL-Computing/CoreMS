@@ -1,4 +1,4 @@
-__version__ = '5.3.0.alpha'
+__version__ = '5.3.1.alpha'
 __doc__ = """
 
 CoreMS - a powerful framework for mass spectrometry data processing and analysis of small molecules
