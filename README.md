@@ -18,7 +18,7 @@
 - Midas (.dat) from MagLab ICR data-acquisition station (FT and magnitude mode)
 - Mass list in Profile and Centroid Mode (include all delimiters types and Excel)
 - CoreMS exported processed mass list files(Excel, csv, txt, etc)
-- Panda dataframe (`TODO`)
+- Panda dataframe
 
 ### Data output formats
 
@@ -56,8 +56,8 @@
 
 ### Molecular formulae search and assigment
 
-- Automatic local or external database generation
-- Automatic molecular formulae assignments for ESI(-) MS for natural organic matter analysis
+- Automatic local (SQLite) or external (MongoDB or Postgres) database check, generation, and search
+- Automatic molecular formulae assignments alogorithm for ESI(-) MS for natural organic matter analysis
 - Automatic fine isotopic structure calculation and search
 - Flexible Kendrick normalization base
 - Kendrick filter using density-based clustering
