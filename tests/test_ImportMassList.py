@@ -7,8 +7,7 @@ import pytest
 __author__ = "Yuri E. Corilo"
 __date__ = "Jul 02, 2019"
 
-
-def xtest_import_corems_mass_list():
+def test_import_corems_mass_list():
 
     file_location = Path.cwd() / "tests/tests_data/" / "ESI_NEG_SRFA_COREMS.csv"
     
@@ -18,6 +17,11 @@ def xtest_import_corems_mass_list():
     mass_list_reader = ReadCoremsMasslist(file_location)
 
     mass_spectrum = mass_list_reader.get_mass_spectrum()
+
+    for mspeak in mass_spectrum:
+        if mspeak:
+            for mf in mspeak:
+                print(mf.to_string)
 
 def test_import_mass_list():
 
@@ -48,7 +52,6 @@ def test_import_mass_list():
 
     mass_spectrum = mass_list_reader.get_mass_spectrum(auto_process=True)
 
-
 if __name__ == '__main__':
-    test_import_mass_list()
-    #test_import_corems_mass_list()
+    #test_import_mass_list()
+    test_import_corems_mass_list()

@@ -59,7 +59,7 @@ class _MSPeak(MSPeakCalculation):
             kendrick_dict_base)
 
     def add_molecular_formula(self, molecular_formula_obj):
-
+       
         self.molecular_formulas.append(molecular_formula_obj)
     
     def clear_molecular_formulas(self):

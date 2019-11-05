@@ -4,7 +4,8 @@ __date__ = "Jun 12, 2019"
 from pandas import read_csv
 
 from corems.mass_spectrum.input.baseClass import MassListBaseClass
-from corems.mass_spectrum.factory.MassSpectrumClasses import AssignedMassSpecCentroid, MassSpecProfile, MassSpecCentroid
+from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
+from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 from corems.encapsulation.constant import Labels
 
 class ReadCoremsMasslist(MassListBaseClass):
@@ -35,7 +36,46 @@ class ReadCoremsMasslist(MassListBaseClass):
  
         output_parameters = self.get_output_parameters(self.polarity)
 
-        return AssignedMassSpecCentroid(self.dataframe, output_parameters, auto_process=auto_process)
+        mass_spec_obj = MassSpecCentroid(self.dataframe, output_parameters, auto_process=auto_process)
+
+        self.add_molecular_formula(mass_spec_obj)
+        
+        return mass_spec_obj
+
+    def add_molecular_formula(self, mass_spec_obj):
+        
+        #check if is coreMS file
+        if 'Is Isotopologue' in self.dataframe:
+            
+            
+            mz_exp_df = self.dataframe["m/z"]
+            formula_df = self.dataframe.loc[:, 'C':].fillna(0)
+            ion_type_df =  self.dataframe["Ion Type"]
+            ion_charge_df = self.dataframe["Ion Charge"]
+            is_isotopologue_df = self.dataframe['Is Isotopologue']
+        
+        mass_spec_mz_exp_list = mass_spec_obj.mz_exp
+    
+        for df_index, mz_exp in enumerate(mz_exp_df):
+            
+            counts = 0
+
+            ms_peak_index = list(mass_spec_mz_exp_list).index(mz_exp)
+            
+            if 'Is Isotopologue' in self.dataframe:
+                
+                atoms = list(formula_df.columns)
+                counts = list(formula_df.iloc[df_index])
+
+                formula_list = [sub[item] for item in range(len(atoms)) 
+                        for sub in [atoms, counts]] 
+            if sum(counts) > 0:
+                
+
+                ion_type = Labels.ion_type_translate.get(ion_type_df[df_index])
+                mfobj = MolecularFormula(formula_list, ion_charge_df[df_index], mass_spec_obj[ms_peak_index].mz_exp, ion_type=ion_type)
+                mfobj.is_isotopologue = is_isotopologue_df[df_index]
+                mass_spec_obj[ms_peak_index].add_molecular_formula(mfobj)
 
 
 class ReadMassList(MassListBaseClass):

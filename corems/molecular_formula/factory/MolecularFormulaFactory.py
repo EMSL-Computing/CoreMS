@@ -64,9 +64,10 @@ class MolecularFormula(MolecularFormulaCalc):
         for each in range(0, len(molecular_formula_list),2):
             
             atoms_label =  molecular_formula_list[each]
-            atoms_number = molecular_formula_list[each+1]
-
-            self._d_molecular_formula[atoms_label] = int(atoms_number)
+            atoms_count = int(molecular_formula_list[each+1])
+            if atoms_count > 0:
+                self._d_molecular_formula[atoms_label] = int(atoms_count)
+        
         self._d_molecular_formula[Labels.ion_type] = ion_type
 
     def _from_str(self, molecular_formula_str,  ion_type):

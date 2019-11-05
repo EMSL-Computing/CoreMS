@@ -25,6 +25,10 @@ class Labels:
     adduct_ion = "ADDUCT"
     ion_type = 'IonType'
 
+    ion_type_translate = { 'protonated': 'DE_OR_PROTONATED',
+                          'de-protonated': 'DE_OR_PROTONATED',
+                          'radical': 'RADICAL',
+                          'adduct': 'ADDUCT'}
 class Atoms:
 
     electron_mass = 0.0005485
