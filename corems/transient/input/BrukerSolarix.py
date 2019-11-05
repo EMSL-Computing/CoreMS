@@ -8,7 +8,7 @@ from xml.dom import minidom
 
 from corems.transient.factory.TransientClasses import Transient
 
-from corems.encapsulation.settings.input.InputParameters import d_parms
+from corems.encapsulation.settings.input.InputSetting import d_parms
 
 class ReadBrukerSolarix(object):
     

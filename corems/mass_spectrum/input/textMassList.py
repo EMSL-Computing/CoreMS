@@ -7,6 +7,7 @@ from corems.mass_spectrum.input.baseClass import MassListBaseClass
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 from corems.encapsulation.constant import Labels
+from corems.encapsulation.settings.input.InputSetting import DataInputSetting
 
 class ReadCoremsMasslist(MassListBaseClass):
 
@@ -32,7 +33,7 @@ class ReadCoremsMasslist(MassListBaseClass):
         
         self.check_columns(self.dataframe.columns)
         
-        self.dataframe.rename(columns=self.name_dict, inplace=True)
+        self.dataframe.rename(columns=DataInputSetting.header_translate, inplace=True)
  
         output_parameters = self.get_output_parameters(self.polarity)
 
@@ -107,7 +108,7 @@ class ReadMassList(MassListBaseClass):
             
         self.clean_data_frame(dataframe)
         
-        dataframe.rename(columns=self.name_dict, inplace=True)
+        dataframe.rename(columns=DataInputSetting.header_translate, inplace=True)
  
         output_parameters = self.get_output_parameters(self.polarity)
             

@@ -8,7 +8,7 @@ class TransientSetting:
     number_of_truncations = 0
     number_of_zero_fills = 1
             
-class MassSpectrumSetting():
+class MassSpectrumSetting:
     
     threshold_method = "auto"
     implemented_noise_threshold_methods = {"auto", "signal_noise", "relative_abudance"}
@@ -22,8 +22,7 @@ class MassSpectrumSetting():
     min_picking_mz = 100.0
     max_picking_mz = 1200.0
     
-class MassSpecPeakSetting():
+class MassSpecPeakSetting:
     
     '''needs to clear previous results from peak_picking'''
     kendrick_base =  {"C": 1, "H": 2}   
-

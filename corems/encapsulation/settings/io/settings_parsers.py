@@ -4,7 +4,7 @@ from corems.encapsulation.settings.molecular_id.MolecularIDSettings import Molec
 from corems.encapsulation.settings.input.ProcessingSetting import TransientSetting
 from corems.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting
 from corems.encapsulation.settings.input.ProcessingSetting import MassSpecPeakSetting
-
+from corems.encapsulation.settings.input.InputSetting import DataInputSetting
 
 def get_dict_data():
     
@@ -28,15 +28,21 @@ def get_dict_data():
         if not item.startswith('__'):
             massSpecPeakSetting[item] =  value                        
     
+    dataInputSetting = {}
+    for item, value in DataInputSetting.__dict__.items():
+        if not item.startswith('__'):
+            dataInputSetting[item] =  value  
+
     return { "MoleculaSearch": moleculaSearchSettings,
              "Transient": transientSetting,
              "MassSpectrum": massSpectrumSetting,
              "MassSpecPeak": massSpecPeakSetting,
+             "DataInput": dataInputSetting,
             }
 
 def set_dict_data(data_loaded):
     
-    labels = ["MoleculaSearch", "Transient", "MassSpectrum", "MassSpecPeak"]
+    labels = ["MoleculaSearch", "Transient", "MassSpectrum", "MassSpecPeak", "DataInput"]
     classes = [MoleculaSearchSettings, TransientSetting, MassSpectrumSetting, MassSpecPeakSetting]
     
     label_class = zip(labels, classes)

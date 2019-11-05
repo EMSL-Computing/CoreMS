@@ -1,5 +1,5 @@
 from pathlib import Path
-
+from corems.encapsulation.settings.input.InputSetting import DataInputSetting
 class MassListBaseClass:
     '''
     The MassSpectra object contains lots of MassSpectrum
@@ -32,12 +32,7 @@ class MassListBaseClass:
 
         #(newline="\n")
         
-        #change this dict VALUES to match your labels, THE ORDER WON'T MATTER
-        #self.name_dict = {'m/z':'m/z', 'Res.':'Resolving Power', 'I':'Abundance' , "S/N":"S/N"}
-        
-        self.name_dict = {'m/z':'m/z', 'Resolving Power':'Resolving Power', 'Abundance':'Abundance' , "S/N":"S/N"}
-
-        self._expected_columns = ['m/z', 'Abundance', 'S/N', 'Resolving Power']
+        self._expected_columns = {"m/z", "Abundance", "S/N", "Resolving Power"}
         
         self.polarity = polarity
         
@@ -77,7 +72,7 @@ class MassListBaseClass:
         
         for column_name in dataframe.columns:
             
-            expected_column_name = self.name_dict.get(column_name)
+            expected_column_name = DataInputSetting.header_translate.get(column_name)
             if expected_column_name not in self._expected_columns:
                 
                 #dataframe = dataframe.drop(column_name, axis=1)
@@ -86,20 +81,30 @@ class MassListBaseClass:
         
     def check_columns(self, header_labels):
         
-        print(header_labels)
+        #print(header_labels)
+        #print( DataInputSetting.header_translate.keys())
+        #inverted_name_dict = {value: key for key, value in DataInputSetting.header_translate.items()}
+        
+        #print(inverted_name_dict)
+        
+        found_label = set()
 
-        inverted_name_dict = {value: key for key, value in self.name_dict.items()}
-        
-        missing_columns = []
-        
-        for column_name in self._expected_columns:
+        for label in header_labels:
             
-            user_column_name = inverted_name_dict.get(column_name)
-            
-            if user_column_name not in header_labels:
-                missing_columns.append(column_name) 
+            if not label in self._expected_columns:
+                
+                user_column_name = DataInputSetting.header_translate.get(label)
+                
+                if user_column_name in self._expected_columns:
+                    
+                    found_label.add(user_column_name)
+    
+            else:   
+                found_label.add(label)
         
-        if len(missing_columns) > 0:
+        not_found = self._expected_columns - found_label
+
+        if len(not_found) > 0:
             
-            raise Exception("Please make sure to include the columns %s" % ', '.join(missing_columns))    
+            raise Exception("Please make sure to include the columns %s" % ', '.join(not_found))    
 

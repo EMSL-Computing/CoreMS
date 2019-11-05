@@ -3,7 +3,7 @@ from comtypes.automation import BSTR, VARIANT
 from comtypes.client import CreateObject
 from ctypes import c_double, c_long
 
-from corems.encapsulation.settings.input import InputParameters
+from corems.encapsulation.settings.input import InputSetting
 from corems.mass_spectra.factory.LC_Class import LCMSBase
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
 from corems.encapsulation.constant import Labels
@@ -87,14 +87,14 @@ class ImportLCMSThermoMSFileReader(Thread):
         '''thread will automatically process mass spectrum
         use the get_mass_spectra class to import without processing mass spectrum'''
 
-        d_parameters = InputParameters.d_parms(self.file_location)
+        d_parameters = InputSetting.d_parms(self.file_location)
         self._import_mass_spectra(d_parameters)
 
         # return self.LCMS
 
     def get_mass_spectra(self,auto_process=True):
 
-        d_parameters = InputParameters.d_parms(self.file_location)
+        d_parameters = InputSetting.d_parms(self.file_location)
         self._import_mass_spectra(d_parameters, auto_process=auto_process)
         return self.LCMS
 

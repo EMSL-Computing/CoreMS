@@ -3,7 +3,7 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Oct 23, 2019"
 
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
-from corems.encapsulation.settings.input import InputParameters
+from corems.encapsulation.settings.input import InputSetting
 from corems.encapsulation.constant import Labels
 from pandas import DataFrame
 
@@ -29,7 +29,7 @@ def ms_from_array_centroid(mz, abundance, rp, s2n, dataname, polarity=-1, auto_p
     
 def get_output_parameters(polarity, file_location):
         
-        d_parms = InputParameters.d_parms(file_location)
+        d_parms = InputSetting.d_parms(file_location)
         
         d_parms["polarity"] = polarity
         

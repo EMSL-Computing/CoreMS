@@ -5,7 +5,7 @@ import h5py
 from corems.mass_spectrum.input.baseClass import MassListBaseClass
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile
 from corems.encapsulation.constant import Labels
-from corems.encapsulation.settings.input import InputParameters
+from corems.encapsulation.settings.input import InputSetting
 
 class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
     
@@ -82,7 +82,7 @@ class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
 
     def get_output_parameters(self):
         
-        d_parms = InputParameters.d_parms(self.file_location)
+        d_parms = InputSetting.d_parms(self.file_location)
         
         d_parms["polarity"] = self.polarity
         
