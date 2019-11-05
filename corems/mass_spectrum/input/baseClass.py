@@ -53,7 +53,7 @@ class MassListBaseClass:
         if self.data_type == 'txt':
 
             dataframe = read_csv(self.file_location, delimiter=self.delimiter, engine='python')
-        
+            
         elif self.data_type == 'dataframe':
 
             dataframe = read_pickle(self.file_location)   

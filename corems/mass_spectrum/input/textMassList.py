@@ -18,9 +18,10 @@ class ReadCoremsMasslist(MassListBaseClass):
     '''
     def get_mass_spectrum(self, auto_process=True):
     
-        dataframe = self.get_dataframe()
         
-        if not 'Ion Charge' in dataframe:
+        dataframe = self.get_dataframe()
+       
+        if not set(['H/C', 'O/C', 'Heteroatom Class', 'Ion Type', 'Is Isotopologue']).issubset(dataframe.columns):
             raise ValueError("%s it is not a valid CoreMS file" % str(self.file_location))
         
         self.check_columns(dataframe.columns)

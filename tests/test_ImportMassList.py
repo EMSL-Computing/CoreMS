@@ -14,7 +14,7 @@ def test_import_corems_mass_list():
     #polariy need to be set or read from the file
     
     #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
-    mass_list_reader = ReadCoremsMasslist(file_location)
+    mass_list_reader = ReadCoremsMasslist(file_location, delimiter=",")
 
     mass_spectrum = mass_list_reader.get_mass_spectrum()
 
