@@ -33,8 +33,10 @@ class MassListBaseClass:
         #(newline="\n")
         
         #change this dict VALUES to match your labels, THE ORDER WON'T MATTER
-        self.name_dict = {'m/z':'m/z', 'Res.':'Resolving Power', 'I':'Abundance' , "S/N":"S/N"}
+        #self.name_dict = {'m/z':'m/z', 'Res.':'Resolving Power', 'I':'Abundance' , "S/N":"S/N"}
         
+        self.name_dict = {'m/z':'m/z', 'Resolving Power':'Resolving Power', 'Abundance':'Abundance' , "S/N":"S/N"}
+
         self._expected_columns = ['m/z', 'Abundance', 'S/N', 'Resolving Power']
         
         self.polarity = polarity
@@ -82,8 +84,10 @@ class MassListBaseClass:
                 del dataframe[column_name]
         #return dataframe
         
-    def check_columns(self, header_lable):
+    def check_columns(self, header_labels):
         
+        print(header_labels)
+
         inverted_name_dict = {value: key for key, value in self.name_dict.items()}
         
         missing_columns = []
@@ -92,7 +96,7 @@ class MassListBaseClass:
             
             user_column_name = inverted_name_dict.get(column_name)
             
-            if user_column_name not in header_lable:
+            if user_column_name not in header_labels:
                 missing_columns.append(column_name) 
         
         if len(missing_columns) > 0:

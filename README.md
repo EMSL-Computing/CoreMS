@@ -17,20 +17,20 @@
 - Spectroswiss Signal booster data-acquisition station
 - Midas (.dat) from MagLab ICR data-acquisition station (FT and magnitude mode)
 - Mass list in Profile and Centroid Mode (include all delimiters types)
-- Panda dataframe (TODO)
+- Panda dataframe (`TODO`)
 
 ### Data output formats
 
 - Text Files (csv, tab, etc)
 - Microsoft Excel (xlsx)
-- Hierarchical Data Format (.h5) (TODO)
+- Hierarchical Data Format (.h5) (`TODO`)
 - Pandas data frame (can be saved using pickle, h5, etc)
 
 ### Data structure type
 
 - LC-MS
 - IMS-MS
-- LC-IMS-MS (TODO)
+- LC-IMS-MS (`TODO`)
 - Transient
 - Mass Spectra
 - Mass Spectrum
@@ -70,6 +70,10 @@
 ## Basic example
 
 ```python
+from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
+from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
+from corems.mass_spectrum.output.export import MassSpecExport
+
 file_path= 'neg_esi_srfa_1ppm_test.d'
 
 #Bruker Solarix class reader
@@ -122,13 +126,11 @@ for mspeak in mass_spectrum_obj.sort_by_abundance():
         print(mspeak.mz_exp,mspeak.abundance)
 
 #create export class
-exportMS = MassSpecExport('neg_esi_srfa_1ppm_test',  mass_spectrum_obj.filter_by_sn())
+exportMS = MassSpecExport('neg_esi_srfa_1ppm_test',  mass_spectrum_obj.filter_by_sn(4))
 #get pandas dataframe
 df_obj = exportMS.get_pandas_df()
 #set file output type
 exportMS.output_type = ’excel’ #csv, txt
 #save the file
 exportMS.save()
-
-
 ```

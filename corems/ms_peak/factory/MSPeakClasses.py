@@ -1,7 +1,7 @@
 
 from corems.encapsulation.settings.input.ProcessingSetting import MassSpecPeakSetting
 from corems.ms_peak.calc.MSPeakCalc import MSPeakCalculation
-from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
+
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"

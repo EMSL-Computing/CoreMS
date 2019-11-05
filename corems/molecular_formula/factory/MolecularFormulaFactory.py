@@ -60,10 +60,11 @@ class MolecularFormula(MolecularFormulaCalc):
     def _from_list(self, molecular_formula_list,  ion_type):
         # list has to be in the format 
         #['C', 10, 'H', 21, '13C', 1, 'Cl', 1, etc]  
+        self._d_molecular_formula = {}
         for each in range(0, len(molecular_formula_list),2):
             
             atoms_label =  molecular_formula_list[each]
-            atoms_number = molecular_formula_list[each]
+            atoms_number = molecular_formula_list[each+1]
 
             self._d_molecular_formula[atoms_label] = int(atoms_number)
         self._d_molecular_formula[Labels.ion_type] = ion_type
