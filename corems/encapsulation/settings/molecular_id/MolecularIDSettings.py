@@ -59,7 +59,7 @@ class MoleculaSearchSettings:
 
     min_peaks_per_class = 15
 
-    db_directory = None
+    db_directory = False
 
     # look for close shell ions [M + Adduct]+ only considers metal set in the list adduct_atoms  
     

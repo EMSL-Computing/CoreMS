@@ -13,7 +13,7 @@ __date__ = "Jul 02, 2019"
 
 def get_mass_spectrum():
 
-    from corems.mass_spectrum.input.textMassList import ReadMassList
+    from corems.mass_spectrum.input.massList import ReadMassList
 
     file_location = Path.cwd() / "tests/tests_data/" / "ESI_NEG_ESFA.ascii"
 

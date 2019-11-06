@@ -17,6 +17,7 @@ class Labels:
     bruker_frequency = 'Bruker_Frequency'
     midas_frequency = 'Midas_Frequency'
     thermo_centroid = 'Thermo_Centroid'
+    corems_centroid = 'CoreMS_Centroid'
     
     radical_ion = 'RADICAL'
     protonated_de_ion = 'DE_OR_PROTONATED'

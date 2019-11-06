@@ -14,16 +14,18 @@ class _MSPeak(MSPeakCalculation):
     def __init__(self, ion_charge, mz_exp, abundance, resolving_power, signal_to_noise, massspec_index, index, exp_freq=None):
 
         # needed to create the object
-        self.ion_charge = ion_charge
-        self.mz_exp = mz_exp
+        self.ion_charge = int(ion_charge)
+        self.mz_exp = float(mz_exp)
         self.mass = float(mz_exp) / float(ion_charge)
-        self.freq_exp = exp_freq
-        self.abundance = abundance
-        self.resolving_power = resolving_power
-        self.signal_to_noise = signal_to_noise
-        self.mass_spec_index = massspec_index
-        self.index = index
+        self.abundance = float(abundance)
+        self.resolving_power = float(resolving_power)
+        self.signal_to_noise = float(signal_to_noise)
+        self.mass_spec_index = int(massspec_index)
+        self.index = int(index)
         
+        if exp_freq:
+            self.freq_exp = float(exp_freq)
+
         kendrick_dict_base = MassSpecPeakSetting.kendrick_base
         self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(
             kendrick_dict_base)

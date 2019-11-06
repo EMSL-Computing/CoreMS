@@ -4,8 +4,10 @@ __date__ = "Set 06, 2019"
 from threading import Thread
 
 from corems.encapsulation.constant import Atoms
-
+from corems.encapsulation.settings.io import settings_parsers
+from numpy import string_, array, NaN
 from pandas import DataFrame
+
 
 class MassSpecExport(Thread):
     '''
@@ -14,7 +16,7 @@ class MassSpecExport(Thread):
     def __init__(self, out_file_path, mass_spectrum, output_type='excel'):
         '''
         output_type:str
-            'excel', 'csv' or 'pandas'
+            'excel', 'csv', 'hdf5' or 'pandas'
         '''
         Thread.__init__(self)
 
@@ -33,7 +35,7 @@ class MassSpecExport(Thread):
     def _init_columns(self):
 
         # column labels in order
-        self.columns = ['Index',
+        self.columns_label = ['Index',
                         'm/z',
                         'Calibrated m/z',
                         'Calculated m/z',
@@ -57,7 +59,7 @@ class MassSpecExport(Thread):
 
     @output_type.setter
     def output_type(self, output_type):
-        output_types = ['excel', 'csv', 'pandas']
+        output_types = ['excel', 'csv', 'pandas', 'hdf5']
         if output_type in output_types:
             self._output_type = output_type
         else:
@@ -65,47 +67,58 @@ class MassSpecExport(Thread):
                 'Supported types are "excel", "csv" or "pandas", %s entered' % output_type)
 
     def save(self):
-
-        dict_data_list = self.get_list_dict_data()
-
-        # add atoms labels to the columns
-        column = self.columns + self.atomos_order_list
+        '''wrapper to run in a separated thread'''
 
         if self.output_type == 'excel':
-            self.to_excel(dict_data_list, column)
+            self.to_excel()
         elif self.output_type == 'csv':
-            self.to_csv(dict_data_list, column)
+            self.to_csv()
         elif self.output_type == 'pandas':
-            self.to_pandas(dict_data_list, column)
+            self.to_pandas()
+        elif self.output_type == 'hdf5':
+            self.to_pandas()    
         else:
             raise ValueError(
                 "Unkown output type: %s; it can be 'excel', 'csv' or 'pandas'" % self.output_type)
 
     def run(self):
-
+        ''' run is called when the Tread start
+            call exportMS.start() '''
         self.save()
 
     def get_pandas_df(self):
 
-        column = self.columns + self.atomos_order_list
+        columns = self.columns_label + self.atomos_order_list
         dict_data_list = self.get_list_dict_data()
-        df = DataFrame(dict_data_list, columns=column)
+        df = DataFrame(dict_data_list, columns=columns)
         df.name = self.output_file
         return df
 
-    def to_pandas(self, dict_data_list, columns):
+    def to_pandas(self):
+        
+        columns = self.columns_label + self.atomos_order_list
+
+        dict_data_list = self.get_list_dict_data()
 
         df = DataFrame(dict_data_list, columns=columns)
 
         df.to_pickle(self.output_file + '.pkl')
 
-    def to_excel(self, dict_data_list, columns):
+    def to_excel(self):
+
+        columns = self.columns_label + self.atomos_order_list
+
+        dict_data_list = self.get_list_dict_data()
 
         df = DataFrame(dict_data_list, columns=columns)
 
         df.to_excel(self.output_file + '.xlsx')
 
-    def to_csv(self, dict_data_list, columns):
+    def to_csv(self):
+        
+        columns = self.columns_label + self.atomos_order_list
+
+        dict_data_list = self.get_list_dict_data()
 
         import csv
         try:
@@ -116,6 +129,54 @@ class MassSpecExport(Thread):
                     writer.writerow(data)
         except IOError as ioerror:
             print(ioerror)
+
+    
+    def to_hdf(self, ):
+        
+        import h5py
+        import json
+
+        list_results = self.list_dict_to_list()
+        
+        dict_ms_attrs = self.none_to_nan(self.get_mass_spec_attrs())
+        
+        setting_dicts = settings_parsers.get_dict_data()
+
+        with h5py.File(self.output_file + '.hdf5', 'w') as f:
+        
+            dset = f.create_dataset(str(self.mass_spectrum.scan_number), data=list_results)
+            dset.attrs['ColumnsLabels'] = json.dumps(self.columns_label + self.atomos_order_list)
+            dset.attrs['MassSpecAttrs'] = json.dumps(dict_ms_attrs)
+            
+            for setting_label, setting_dict in setting_dicts.items(): 
+                if setting_label != 'Transient':
+                    dset.attrs[setting_label+'Setting'] =  json.dumps(self.none_to_nan(setting_dict))
+
+            #dset.attrs.update(dict_ms_attrs)
+          
+    def none_to_nan(self, dict_data):
+        
+        for key, values in dict_data.items():
+            if not values: dict_data[key] = NaN
+        
+        return dict_data   
+
+    def get_mass_spec_attrs(self):
+
+        dict_ms_attrs = {}
+        dict_ms_attrs['polarity'] =     self.mass_spectrum.polarity
+        dict_ms_attrs['rt'] =     self.mass_spectrum.rt
+        dict_ms_attrs['mobility_scan'] =     self.mass_spectrum.mobility_scan
+        dict_ms_attrs['mobility_rt'] =     self.mass_spectrum.mobility_rt
+        dict_ms_attrs['Aterm'] =  self.mass_spectrum.Aterm
+        dict_ms_attrs['Bterm'] =  self.mass_spectrum.Bterm
+        dict_ms_attrs['Cterm'] =  self.mass_spectrum.Cterm
+        dict_ms_attrs['baselise_noise'] =  self.mass_spectrum.baselise_noise
+        dict_ms_attrs['baselise_noise_std'] =  self.mass_spectrum.baselise_noise_std
+        
+        
+        return dict_ms_attrs
+
 
     def get_all_used_atoms_in_ordem(self):
 
@@ -132,6 +193,26 @@ class MassSpecExport(Thread):
 
         return sorted(all_used_atoms, key=sort_method)
 
+    def list_dict_to_list(self):
+        
+        column_labels = self.columns_label + self.atomos_order_list
+
+        dict_list = self.get_list_dict_data()
+        
+        all_lines = []
+        for dict_res in dict_list:
+            
+            result_line = [NaN] * len(column_labels)
+            
+            for label, value in dict_res.items():
+                
+                label_index = column_labels.index(label)
+                result_line[label_index] =  value   
+            
+            all_lines.append(result_line)
+        return  all_lines       
+
+    
     def get_list_dict_data(self, include_no_match=True, include_isotopolgues=True,
                            isotopologue_inline=False, no_match_inline=False):
 
@@ -163,10 +244,10 @@ class MassSpecExport(Thread):
                            'Ion Charge': ms_peak.ion_charge,
                            'Mass Error (ppm)': m_formula._calc_assigment_mass_error(ms_peak.mz_exp),
                            'DBE':  m_formula.dbe,
-                           'Heteroatom Class': m_formula.class_label,
+                           'Heteroatom Class': m_formula.class_label.encode('utf-8'),
                            'H/C':  m_formula.H_C,
                            'O/C':  m_formula.O_C,
-                           'Ion Type': m_formula.ion_type.lower(),
+                           'Ion Type': m_formula.ion_type.lower().encode('utf-8'),
                            'Is Isotopologue': int(m_formula.is_isotopologue),
                            }
 
@@ -204,4 +285,5 @@ class MassSpecExport(Thread):
             for index, ms_peak in enumerate(self.mass_spectrum.sort_by_mz()):
                 if not ms_peak:
                     add_no_match_dict_data()
+        
         return dict_data_list

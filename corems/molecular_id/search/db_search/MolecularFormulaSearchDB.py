@@ -7,7 +7,7 @@ from os.path import join
 
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings, MoleculaSearchSettings
-from corems.mass_spectrum.input.textMassList import Read_MassList
+from corems.mass_spectrum.input.massList import Read_MassList
 from corems.molecular_id.factory.db_search.MolecularLookupTableDB import  MolecularCombinations
 from corems.molecular_id.factory.db_search.molecularSQL import MolForm_SQL as molform_db
 #from corems.molecular_id.factory.db_search.molecularMongo import MolForm_Mongo as molform_db

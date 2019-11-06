@@ -4,8 +4,9 @@ __date__ = "Jun 12, 2019"
 from corems.mass_spectrum.input.baseClass import MassListBaseClass
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
-from corems.encapsulation.constant import Labels
+from corems.encapsulation.constant import Labels, Atoms
 from corems.encapsulation.settings.input.InputSetting import DataInputSetting
+
 
 class ReadCoremsMasslist(MassListBaseClass):
     '''
@@ -16,9 +17,10 @@ class ReadCoremsMasslist(MassListBaseClass):
     # Please see MassListBaseClass for more details
     
     '''
-    def get_mass_spectrum(self, auto_process=True):
-    
+    def get_mass_spectrum(self, auto_process=True, loadSettings=True):
         
+        if loadSettings: self.load_settings()
+
         dataframe = self.get_dataframe()
        
         if not set(['H/C', 'O/C', 'Heteroatom Class', 'Ion Type', 'Is Isotopologue']).issubset(dataframe.columns):
@@ -43,8 +45,14 @@ class ReadCoremsMasslist(MassListBaseClass):
         #check if is coreMS file
         if 'Is Isotopologue' in dataframe:
             
-            mz_exp_df = dataframe["m/z"]
-            formula_df = dataframe.loc[:, 'C':].fillna(0)
+            mz_exp_df = dataframe["m/z"].astype(float)
+            #formula_df = dataframe.loc[:, 'C':].fillna(0)
+            #\.replace({b'nan':0})
+            try:
+               formula_df = dataframe[dataframe.columns.intersection(Atoms.atoms_order)].replace({b'nan':0})
+            except:
+               formula_df = dataframe[dataframe.columns.intersection(Atoms.atoms_order)].fillna(0)
+            
             ion_type_df =  dataframe["Ion Type"]
             ion_charge_df = dataframe["Ion Charge"]
             is_isotopologue_df = dataframe['Is Isotopologue']
@@ -55,21 +63,20 @@ class ReadCoremsMasslist(MassListBaseClass):
             
             counts = 0
 
-            ms_peak_index = list(mass_spec_mz_exp_list).index(mz_exp)
+            ms_peak_index = list(mass_spec_mz_exp_list).index(float(mz_exp))
             
             if 'Is Isotopologue' in dataframe:
                 
-                atoms = list(formula_df.columns)
-                counts = list(formula_df.iloc[df_index])
+                atoms = list(formula_df.columns.astype(str))
+                counts = list(formula_df.iloc[df_index].astype(int))
 
                 formula_list = [sub[item] for item in range(len(atoms)) 
                         for sub in [atoms, counts]] 
             if sum(counts) > 0:
-                
 
-                ion_type = Labels.ion_type_translate.get(ion_type_df[df_index])
-                mfobj = MolecularFormula(formula_list, ion_charge_df[df_index], mass_spec_obj[ms_peak_index].mz_exp, ion_type=ion_type)
-                mfobj.is_isotopologue = is_isotopologue_df[df_index]
+                ion_type = str(Labels.ion_type_translate.get(ion_type_df[df_index]))
+                mfobj = MolecularFormula(formula_list, int(ion_charge_df[df_index]), mass_spec_obj[ms_peak_index].mz_exp, ion_type=ion_type)
+                mfobj.is_isotopologue = bool(is_isotopologue_df[df_index])
                 mass_spec_obj[ms_peak_index].add_molecular_formula(mfobj)
 
 
@@ -82,7 +89,7 @@ class ReadMassList(MassListBaseClass):
     
     '''
 
-    def get_mass_spectrum(self, polarity, auto_process=True):
+    def get_mass_spectrum(self, polarity, auto_process=True, loadSettings=True):
         '''
          The MassListBaseClass object reads mass list data types and returns the mass spectrum obj
 
@@ -93,6 +100,8 @@ class ReadMassList(MassListBaseClass):
         '''
         #delimiter = "  " or " " or  "," or "\t" etc  
         
+        if loadSettings: self.load_settings()
+
         dataframe = self.get_dataframe()
         
         self.check_columns(dataframe.columns)

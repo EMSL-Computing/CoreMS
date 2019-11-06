@@ -11,12 +11,11 @@ from matplotlib import pyplot as pylab
 
 from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings, MoleculaLookupDictSettings
 from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration
-#from corems.mass_spectrum.input.textMassList import Read_MassList
+#from corems.mass_spectrum.input.massList import Read_MassList
 from corems.molecular_id.search.findOxigenPeaks import FindOxygenPeaks
 from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
-from corems.mass_spectrum.output.export import MassSpecExport
 
 def creat_mass_spectrum(file_location):
     
@@ -25,12 +24,12 @@ def creat_mass_spectrum(file_location):
         Parameters
         ----------
         file_location: str
-            The full path of the *.d data folder 
+            The full path of the *.d data folder
         
         Returns
         -------
         MassSpecfromFreq() class
-           (See MassSpecfromFreq class for more details)  
+           (See MassSpecfromFreq class for more details)
         '''
 
     bruker_reader = ReadBrukerSolarix(file_location)
@@ -38,6 +37,7 @@ def creat_mass_spectrum(file_location):
     bruker_transient = bruker_reader.get_transient()
 
     mass_spectrum_obj = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
+    
     #mass_spectrum_obj.plot_mz_domain_profile_and_noise_threshold()
     
     # polariy need to be set if reading a text file
@@ -112,16 +112,6 @@ def test_calibration():
     SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum)
     print(time.time()-time0)
     
-    exportMS= MassSpecExport('neg_esi_srfa_1ppm_test', mass_spectrum)
-    exportMS.run()
-    
-    exportMS.output_type = 'csv'
-    exportMS.run()
-    
-    exportMS.get_pandas_df()
-
-    exportMS.output_type = 'pandas'
-    exportMS.run()
     
 
 if __name__ == "__main__":

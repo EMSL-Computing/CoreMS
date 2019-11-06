@@ -27,7 +27,7 @@ class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
         This is where we store arg,
     '''
 
-    def __init__(self, file_location, delimiter="  ", isCentroid=False):
+    def __init__(self, file_location, isCentroid=False):
         
         self.polarity = self.get_polarity(file_location)
 

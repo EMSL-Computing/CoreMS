@@ -16,7 +16,7 @@ class MassListBaseClass:
         Delimeter to read text based files ("," "\t", " ", "  ", etc)
     ## **data_type : str
         The keyword argument data_type is used to determine what type of file to read:
-        pandas(pickle) or txt(.csv, txt, asci, etc)
+        pandas(pickle), txt(.csv, txt, asci, etc) or HDF5
     ## **isCentroid : bool
         The keyword argument isCentroid is used to determine the mass spectrum data structure:
         if set to False will assume profile mode and will attempt to peak pick
@@ -63,6 +63,14 @@ class MassListBaseClass:
             raise TypeError('Data type %s is not supported' % self.data_type)
 
         return  dataframe 
+
+    def load_settings(self,):
+
+        #this will load the setting from SettingCoreMS.json
+        # coreMSHFD5 overrides this function to import the attrs stored in the h5 file
+        
+        pass
+
 
     def get_output_parameters(self, polarity):
         

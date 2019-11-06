@@ -76,8 +76,8 @@ if __name__ == '__main__':
     from corems.encapsulation.settings.io import settings_parsers
 
     #settings_parsers.load_search_setting_yaml()
-    settings_parsers.load_search_setting_json()
-    #test_molecular_lookup_db()
+    #settings_parsers.load_search_setting_json()
+   
     test_query_sql()
     #xtest_query_mongo()
     test_molecular_lookup_db()

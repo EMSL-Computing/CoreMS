@@ -5,7 +5,7 @@ from numpy import array, power
 import matplotlib.pyplot as plt
 
 from corems.encapsulation.constant import Labels
-from corems.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting
+from corems.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting, MassSpecPeakSetting
 from corems.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
 from corems.ms_peak.factory.MSPeakClasses import ICRMassPeak as MSPeak
 
@@ -63,7 +63,8 @@ class MassSpecBase(MassSpecCalc):
 
         self._abundance = array(abundance)
         self._mz_exp = array(mz_exp)
-        
+        self._baselise_noise = None
+        self._baselise_noise_std = None
         #objects created after process_mass_spec() function
         self._mspeaks = list()
         self._dict_nominal_masses_indexes  = dict()
@@ -137,6 +138,10 @@ class MassSpecBase(MassSpecCalc):
         self.scan_number = d_params.get("scan_number")
 
         self.rt = d_params.get("rt")
+
+        self.mobility_rt = d_params.get("mobility_rt")
+
+        self.mobility_scan = d_params.get("mobility_scan")
 
         self._filename = d_params.get("filename")
 
@@ -266,11 +271,17 @@ class MassSpecBase(MassSpecCalc):
     
     @property
     def baselise_noise(self):
-        return self._baselise_noise
+        if self._baselise_noise:
+            return self._baselise_noise
+        else:     
+            return None
 
     @property
     def baselise_noise_std(self):
-        return self._baselise_noise_std
+        if self._baselise_noise_std:
+            return self._baselise_noise_std
+        else:     
+            return None
 
     @property
     def Aterm(self):
@@ -374,7 +385,11 @@ class MassSpecBase(MassSpecCalc):
 
     def change_kendrick_base_all_mspeaks(self, kendrick_dict_base):
         """kendrick_dict_base = {"C": 1, "H": 2} or {{"C": 1, "H": 1, "O":1} etc """
+        
+        MassSpecPeakSetting.kendrick_base = kendrick_dict_base
+        
         for mspeak in self.mspeaks:
+
             mspeak.change_kendrick_base(kendrick_dict_base)
 
     @property
@@ -673,8 +688,6 @@ class MassSpecCentroid(MassSpecBase):
 
     @overrides(MassSpecBase)
     def process_mass_spec(self, dataframe):
-
-        # it is wasy too slow, it needs to be changed to other functional structure
 
         ion_charge = self.polarity
         l_exp_mz_centroid = dataframe["m/z"]

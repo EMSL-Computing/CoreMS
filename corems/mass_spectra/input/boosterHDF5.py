@@ -60,9 +60,9 @@ class ReadHDF_BoosterMassSpectra(Thread):
 
             d_parms["scan_number"] = scan_number
 
-            d_parms['label'] = Labels.simulated_profile
+            d_parms['label'] = Labels.booster_profile
     
-            d_parms["polarity"] = self.get_polarity(scan_number)
+            d_parms["polarity"] = self.get_polarity(self.file_location, scan_number)
 
             d_parms["Aterm"] = self.get_attr_data(scan_number, 'r_cparams')[0]
 

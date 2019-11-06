@@ -64,19 +64,12 @@ class MolForm_SQL:
         
         directory = os.getcwd()
         
-        if MoleculaSearchSettings.db_directory:
-            
-            db_directory = MoleculaSearchSettings.db_directory
-            
-            self.engine = create_engine(db_directory)
-
-        else:
-            
-            if not os.path.isdir(directory+'/db'):
+        print(MoleculaSearchSettings.db_directory)
+        if not os.path.isdir(directory+'/db'):
                 
-                os.mkdir(directory+'/db')    
+            os.mkdir(directory+'/db')    
             
-            self.engine = create_engine('sqlite:///{DB}'.format(DB=directory+'/db'+'/molformulas.sqlite'), connect_args={'timeout': 15})
+        self.engine = create_engine('sqlite:///{DB}'.format(DB=directory+'/db'+'/molformulas.sqlite'))
         
         #self.engine = create_engine('postgresql://postgres:docker@localhost:5432/')
         

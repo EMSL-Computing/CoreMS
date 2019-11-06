@@ -12,7 +12,7 @@ import pytest
 
 
 from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
-from corems.mass_spectrum.input.textMassList import ReadMassList
+from corems.mass_spectrum.input.massList import ReadMassList
 from corems.mass_spectrum.input.numpyArray import ms_from_array_centroid
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
@@ -104,4 +104,4 @@ if __name__ == "__main__":
     settings_parsers.load_search_setting_json()
     test_molecular_formula_search_db()
     test_run_molecular_formula_search()
-    #test_mspeak_search()
+    test_mspeak_search()

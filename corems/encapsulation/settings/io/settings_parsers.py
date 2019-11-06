@@ -52,8 +52,13 @@ def set_dict_data(data_loaded):
         for label, classe in label_class:
 
             class_data = data_loaded.get(label)
-            for item, value in class_data.items():
-                setattr(classe, item, value)
+            # not always we will not all the settings
+            # this allow a class data to be none and continue
+            # to import the other classes
+
+            if class_data:
+                for item, value in class_data.items():
+                    setattr(classe, item, value)
         
     else:
         
