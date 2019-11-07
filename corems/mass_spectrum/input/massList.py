@@ -10,11 +10,11 @@ from corems.encapsulation.settings.input.InputSetting import DataInputSetting
 
 class ReadCoremsMasslist(MassListBaseClass):
     '''
-    # The ReadCoremsMasslist object reads processed mass list data types
-    # and returns the mass spectrum obj with the molecular formula objs
+    The ReadCoremsMasslist object reads processed mass list data types
+    and returns the mass spectrum obj with the molecular formula objs
 
-    # **Only available for centroid mass spectrum type: it will ignoere the parameter **isCentroid** 
-    # Please see MassListBaseClass for more details
+    **Only available for centroid mass spectrum type: it will ignoere the parameter **isCentroid** 
+    Please see MassListBaseClass for more details
     
     '''
     def get_mass_spectrum(self, auto_process=True, loadSettings=True):

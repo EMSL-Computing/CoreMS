@@ -2,11 +2,16 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Set 06, 2019"
 
 from threading import Thread
+from pathlib import Path
 
-from corems.encapsulation.constant import Atoms
-from corems.encapsulation.settings.io import settings_parsers
 from numpy import string_, array, NaN
 from pandas import DataFrame
+
+from corems.encapsulation.settings.io.settings_parsers import get_dict_data
+from corems.encapsulation.constant import Atoms
+from corems.encapsulation.constant import Labels
+from corems.encapsulation.settings.io import settings_parsers
+
 
 
 class MassSpecExport(Thread):
@@ -20,7 +25,7 @@ class MassSpecExport(Thread):
         '''
         Thread.__init__(self)
 
-        self.output_file = out_file_path
+        self.output_file = Path(out_file_path)
 
         # 'excel', 'csv' or 'pandas'
         self.output_type = output_type
@@ -94,6 +99,18 @@ class MassSpecExport(Thread):
         df.name = self.output_file
         return df
 
+    def write_settings(self):
+        
+        import json
+        dict_setting = get_dict_data()
+        del dict_setting['DataInput']
+        dict_setting['MassSpecAttrs'] = self.none_to_nan_and_json(self.get_mass_spec_attrs())
+        
+        with open(self.output_file.with_suffix('.json'), 'w', encoding='utf8', ) as outfile:
+
+            output = json.dumps(dict_setting, sort_keys=True, indent=4, separators=(',', ': '))
+            outfile.write(output)
+    
     def to_pandas(self):
         
         columns = self.columns_label + self.atomos_order_list
@@ -102,7 +119,7 @@ class MassSpecExport(Thread):
 
         df = DataFrame(dict_data_list, columns=columns)
 
-        df.to_pickle(self.output_file + '.pkl')
+        df.to_pickle(self.output_file.with_suffix('.pkl'))
 
     def to_excel(self):
 
@@ -112,7 +129,7 @@ class MassSpecExport(Thread):
 
         df = DataFrame(dict_data_list, columns=columns)
 
-        df.to_excel(self.output_file + '.xlsx')
+        df.to_excel(self.output_file.with_suffix('.xlsx'))
 
     def to_csv(self):
         
@@ -122,15 +139,23 @@ class MassSpecExport(Thread):
 
         import csv
         try:
-            with open(self.output_file + '.csv', 'w', newline='') as csvfile:
+            with open(self.output_file.with_suffix('.csv'), 'w', newline='') as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=columns)
                 writer.writeheader()
                 for data in dict_data_list:
                     writer.writerow(data)
         except IOError as ioerror:
             print(ioerror)
-
     
+    
+    def write_metadata_hdf(self, setting_dicts, hdf_handle):
+       
+        for setting_label, setting_dict in setting_dicts.items(): 
+               
+                if setting_label != 'MoleculaSearch' and setting_label != 'MassSpecPeak':
+                    
+                    hdf_handle.attrs[setting_label+'Setting'] =  self.none_to_nan_and_json(setting_dict)
+  
     def to_hdf(self, ):
         
         import h5py
@@ -138,28 +163,33 @@ class MassSpecExport(Thread):
 
         list_results = self.list_dict_to_list()
         
-        dict_ms_attrs = self.none_to_nan(self.get_mass_spec_attrs())
+        dict_ms_attrs = self.none_to_nan_and_json(self.get_mass_spec_attrs())
         
         setting_dicts = settings_parsers.get_dict_data()
 
-        with h5py.File(self.output_file + '.hdf5', 'w') as f:
-        
-            dset = f.create_dataset(str(self.mass_spectrum.scan_number), data=list_results)
-            dset.attrs['ColumnsLabels'] = json.dumps(self.columns_label + self.atomos_order_list)
-            dset.attrs['MassSpecAttrs'] = json.dumps(dict_ms_attrs)
-            
-            for setting_label, setting_dict in setting_dicts.items(): 
-                if setting_label != 'Transient':
-                    dset.attrs[setting_label+'Setting'] =  json.dumps(self.none_to_nan(setting_dict))
+        columns_labels = json.dumps(self.columns_label + self.atomos_order_list)
 
-            #dset.attrs.update(dict_ms_attrs)
-          
-    def none_to_nan(self, dict_data):
-        
+        with h5py.File(self.output_file.with_suffix('.hdf5'), 'w') as hdf_handle:
+            
+            self.write_metadata_hdf(setting_dicts, hdf_handle)
+            
+            dset = hdf_handle.create_dataset(str(self.mass_spectrum.scan_number), data=list_results)
+            dset.attrs['ColumnsLabels'] = columns_labels
+            dset.attrs['MassSpecAttrs'] = dict_ms_attrs
+            #needs to store the molecular search in a dict by scan number in the search class then it can be accessed here
+            dset.attrs['MoleculaSearchSetting'] = self.none_to_nan_and_json(setting_dicts.get('MoleculaSearch'))
+            dset.attrs['MassSpecPeakSetting'] = self.none_to_nan_and_json(setting_dicts.get('MassSpecPeak'))
+            
+            
+
+    
+    @staticmethod
+    def none_to_nan_and_json(dict_data):
+        import json
         for key, values in dict_data.items():
             if not values: dict_data[key] = NaN
         
-        return dict_data   
+        return json.dumps(dict_data)
 
     def get_mass_spec_attrs(self):
 

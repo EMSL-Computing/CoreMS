@@ -40,8 +40,10 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
         loaded_settings = {}
         loaded_settings['MoleculaSearch'] = self.get_attr_data(0, 'MoleculaSearchSetting')
-        loaded_settings['MassSpectrum'] = self.get_attr_data(0, 'MassSpectrumSetting')
         loaded_settings['MassSpecPeak'] = self.get_attr_data(0, 'MassSpecPeakSetting')
+        
+        loaded_settings['MassSpectrum'] = self.get_high_level_attr_data('MassSpectrumSetting')
+        loaded_settings['Transient'] = self.get_high_level_attr_data('TransientSetting')
         
         set_dict_data(loaded_settings)
 
@@ -64,6 +66,12 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         return DataFrame(list_dict)
     
     
+    def get_high_level_attr_data(self, attr_group):
+        
+        import json
+
+        return json.loads(self.h5pydata.attrs[attr_group])
+   
     def get_attr_data(self, scan, attr_group, attr_srt=None):
         
         import json

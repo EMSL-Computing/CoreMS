@@ -17,8 +17,8 @@ if __name__ == "__main__":
     print("There are a total of %i scans" % all_scans)
     # a.initial_scan_number = 100
     # a.final_scan_number = 103
-
-    lcms = lcms_reader.get_mass_spectra(auto_process=True)
+    
+    lcms = lcms_reader.get_lcms_obj(auto_process=True)
     """to use the thread
     lcmc_reader.start()
     do something 

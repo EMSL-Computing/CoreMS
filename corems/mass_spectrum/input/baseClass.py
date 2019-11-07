@@ -36,7 +36,7 @@ class MassListBaseClass:
         self.file_location = Path(file_location)
 
         if not self.file_location.exists():
-            raise FileExistsError("File does not exist: " + file_location)
+            raise FileExistsError("File does not exist: %s" %  file_location)
 
         #(newline="\n")
         

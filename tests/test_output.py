@@ -8,7 +8,6 @@ import pytest
 from corems.mass_spectrum.output.export import MassSpecExport
 from corems.mass_spectrum.input.massList import ReadCoremsMasslist
 
-
 def import_corems_mass_list():
 
     file_location = Path.cwd() / "tests/tests_data/" / "ESI_NEG_SRFA_COREMS.csv"
@@ -26,7 +25,7 @@ def test_export():
 
     mass_spectrum = import_corems_mass_list()
 
-    exportMS= MassSpecExport('neg_esi_srfa_1ppm_test', mass_spectrum)
+    exportMS= MassSpecExport('NEG_ESI_SRFA_CoreMS', mass_spectrum)
 
     exportMS.to_pandas()
     exportMS.to_excel()
@@ -39,8 +38,9 @@ if __name__ == "__main__":
 
     #data_list_dict = exportMS.get_list_dict_data()
     import h5py
-    file1 = h5py.File('neg_esi_srfa_1ppm_test.hdf5', 'r')
+    file1 = h5py.File('NEG_ESI_SRFA_CoreMS.hdf5', 'r')
     
+    print(file1.attrs.keys())
     print(file1['0'].attrs.keys())
     #print(file1['0'].attrs['test'])
     #for f in file1['0']:

@@ -17,14 +17,14 @@
 - Spectroswiss Signal booster data-acquisition station
 - Midas (.dat) from MagLab ICR data-acquisition station (FT and magnitude mode)
 - Mass list in Profile and Centroid Mode (include all delimiters types and Excel)
-- CoreMS exported processed mass list files(Excel, csv, txt, etc)
+- CoreMS exported processed mass list files(Excel, csv, txt, hdf5)
 - Panda dataframe
 
 ### Data output formats
 
 - Text Files (csv, tab separated txt, etc)
 - Microsoft Excel (xlsx)
-- Hierarchical Data Format (.h5) (`TODO`)
+- Hierarchical Data Format (.hdf5) with processing setting and class attributes
 - Pandas data frame (can be saved using pickle, h5, etc)
 
 ### Data structure type
