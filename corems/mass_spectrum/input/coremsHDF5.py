@@ -36,11 +36,11 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         self.scans = list(self.h5pydata.keys())
 
     #override baseclass  
-    def load_settings(self):
+    def load_settings(self, scan):
 
         loaded_settings = {}
-        loaded_settings['MoleculaSearch'] = self.get_attr_data(0, 'MoleculaSearchSetting')
-        loaded_settings['MassSpecPeak'] = self.get_attr_data(0, 'MassSpecPeakSetting')
+        loaded_settings['MoleculaSearch'] = self.get_attr_data(scan, 'MoleculaSearchSetting')
+        loaded_settings['MassSpecPeak'] = self.get_attr_data(scan, 'MassSpecPeakSetting')
         
         loaded_settings['MassSpectrum'] = self.get_high_level_attr_data('MassSpectrumSetting')
         loaded_settings['Transient'] = self.get_high_level_attr_data('TransientSetting')
@@ -48,11 +48,11 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         set_dict_data(loaded_settings)
 
     #override baseclass  
-    def get_dataframe(self):
+    def get_dataframe(self, scan):
 
-        columnsLabels = self.get_attr_data(0, 'ColumnsLabels')
+        columnsLabels = self.get_attr_data(scan, 'ColumnsLabels')
 
-        corems_table_data = self.h5pydata[self.scans[0]]
+        corems_table_data = self.h5pydata[self.scans[scan]]
 
         list_dict = []
         for row in corems_table_data:
@@ -85,7 +85,7 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
              return json.loads(self.h5pydata[self.scans[scan]].attrs[attr_group])
    
     #override baseclass  
-    def get_output_parameters(self, polarity):
+    def get_output_parameters(self, polarity, scan=0):
         
         d_parms = InputSetting.d_parms(self.file_location)
         
@@ -93,21 +93,21 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         
         d_parms["filename_path"] = self.file_location
         
-        d_parms["mobility_scan"] = self.get_attr_data( 0, 'MassSpecAttrs', 'mobility_scan')
+        d_parms["mobility_scan"] = self.get_attr_data( scan, 'MassSpecAttrs', 'mobility_scan')
         
-        d_parms["mobility_rt"] = self.get_attr_data( 0, 'MassSpecAttrs', 'mobility_rt')
+        d_parms["mobility_rt"] = self.get_attr_data( scan, 'MassSpecAttrs', 'mobility_rt')
         
-        d_parms["scan_number"] = 0
+        d_parms["scan_number"] = scan
         
-        d_parms["rt"] = self.get_attr_data( 0, 'MassSpecAttrs', 'rt')
+        d_parms["rt"] = self.get_attr_data( scan, 'MassSpecAttrs', 'rt')
 
         d_parms['label'] = Labels.corems_centroid
 
-        d_parms["Aterm"] = self.get_attr_data( 0, 'MassSpecAttrs','Aterm')
+        d_parms["Aterm"] = self.get_attr_data( scan, 'MassSpecAttrs','Aterm')
 
-        d_parms["Bterm"] = self.get_attr_data( 0, 'MassSpecAttrs','Bterm')
+        d_parms["Bterm"] = self.get_attr_data( scan, 'MassSpecAttrs','Bterm')
             
-        d_parms["Cterm"] = self.get_attr_data( 0, 'MassSpecAttrs','Cterm')
+        d_parms["Cterm"] = self.get_attr_data( scan, 'MassSpecAttrs','Cterm')
 
         return d_parms
 

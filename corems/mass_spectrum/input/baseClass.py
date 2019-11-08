@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pandas import read_csv, read_pickle
+from pandas import read_csv, read_pickle, read_excel
 
 from corems.encapsulation.settings.input.InputSetting import DataInputSetting
 
@@ -48,7 +48,7 @@ class MassListBaseClass:
 
         self.data_type = data_type
 
-    def get_dataframe(self):
+    def get_dataframe(self, scan=0):
 
         if self.data_type == 'txt':
 
@@ -58,21 +58,26 @@ class MassListBaseClass:
 
             dataframe = read_pickle(self.file_location)   
         
+        elif self.data_type == 'excel':
+            
+            dataframe = read_excel(self.file_location, engine='python')
+        
         else:
 
             raise TypeError('Data type %s is not supported' % self.data_type)
 
         return  dataframe 
 
-    def load_settings(self,):
+    def load_settings(self,scan_number):
 
-        #this will load the setting from SettingCoreMS.json
+        settings_file_path = self.file_location.with_suffix('.json')
+        # TODO this will load the setting from SettingCoreMS.json
         # coreMSHFD5 overrides this function to import the attrs stored in the h5 file
-        
+        print('WARNING not_loading_settings')
         pass
 
 
-    def get_output_parameters(self, polarity):
+    def get_output_parameters(self, polarity, scan=0):
         
         output_parameters = dict()
         
@@ -92,7 +97,7 @@ class MassListBaseClass:
         
         output_parameters["mobility_rt"] = 0
         
-        output_parameters["scan_number"] = 0
+        output_parameters["scan_number"] = scan
         
         output_parameters["rt"] = 0
         

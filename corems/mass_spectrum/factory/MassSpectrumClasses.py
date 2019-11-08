@@ -1,7 +1,7 @@
 import time, gc
 
 #from matplotlib import rcParamsDefault, rcParams
-from numpy import array, power
+from numpy import array, power, float64
 import matplotlib.pyplot as plt
 
 from corems.encapsulation.constant import Labels
@@ -61,8 +61,8 @@ class MassSpecBase(MassSpecCalc):
     '''
     def __init__(self, mz_exp, abundance, d_params, **kwargs):
 
-        self._abundance = array(abundance)
-        self._mz_exp = array(mz_exp)
+        self._abundance = array(abundance, dtype=float64)
+        self._mz_exp = array(mz_exp, dtype=float64)
         self._baselise_noise = None
         self._baselise_noise_std = None
         #objects created after process_mass_spec() function
@@ -295,6 +295,7 @@ class MassSpecBase(MassSpecCalc):
     def Cterm(self):
         return self._calibration_terms[2]
 
+
     @property
     def filename(self):
         return self._filename
@@ -308,6 +309,12 @@ class MassSpecBase(MassSpecCalc):
 
     def sort_by_abundance(self):
         return sorted(self, key=lambda m: m.abundance)
+
+    @property
+    def tic(self):
+        
+        if list(self.abundance_profile): return sum(self.abundance_profile)
+        else: return (sum(self.abundance))
 
     def check_mspeaks(self):
         if self.mspeaks:

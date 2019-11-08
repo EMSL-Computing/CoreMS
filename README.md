@@ -57,7 +57,7 @@
 ### Molecular formulae search and assigment
 
 - Automatic local (SQLite) or external (MongoDB or Postgres) database check, generation, and search
-- Automatic molecular formulae assignments alogorithm for ESI(-) MS for natural organic matter analysis
+- Automatic molecular formulae assignments algorithm for ESI(-) MS for natural organic matter analysis
 - Automatic fine isotopic structure calculation and search
 - Flexible Kendrick normalization base
 - Kendrick filter using density-based clustering

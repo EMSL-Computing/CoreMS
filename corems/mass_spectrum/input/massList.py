@@ -7,7 +7,6 @@ from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFo
 from corems.encapsulation.constant import Labels, Atoms
 from corems.encapsulation.settings.input.InputSetting import DataInputSetting
 
-
 class ReadCoremsMasslist(MassListBaseClass):
     '''
     The ReadCoremsMasslist object reads processed mass list data types
@@ -17,11 +16,11 @@ class ReadCoremsMasslist(MassListBaseClass):
     Please see MassListBaseClass for more details
     
     '''
-    def get_mass_spectrum(self, auto_process=True, loadSettings=True):
+    def get_mass_spectrum(self, scan_number=0, auto_process=True, loadSettings=True):
         
-        if loadSettings: self.load_settings()
+        if loadSettings: self.load_settings(scan_number)
 
-        dataframe = self.get_dataframe()
+        dataframe = self.get_dataframe(scan_number)
        
         if not set(['H/C', 'O/C', 'Heteroatom Class', 'Ion Type', 'Is Isotopologue']).issubset(dataframe.columns):
             raise ValueError("%s it is not a valid CoreMS file" % str(self.file_location))
@@ -32,7 +31,7 @@ class ReadCoremsMasslist(MassListBaseClass):
  
         polarity = dataframe['Ion Charge'].values[0]
 
-        output_parameters = self.get_output_parameters(polarity)
+        output_parameters = self.get_output_parameters(polarity, scan=scan_number)
 
         mass_spec_obj = MassSpecCentroid(dataframe, output_parameters, auto_process=auto_process)
 
@@ -89,7 +88,7 @@ class ReadMassList(MassListBaseClass):
     
     '''
 
-    def get_mass_spectrum(self, polarity, auto_process=True, loadSettings=True):
+    def get_mass_spectrum(self, polarity, scan=0, auto_process=True, loadSettings=True):
         '''
          The MassListBaseClass object reads mass list data types and returns the mass spectrum obj
 
@@ -100,7 +99,7 @@ class ReadMassList(MassListBaseClass):
         '''
         #delimiter = "  " or " " or  "," or "\t" etc  
         
-        if loadSettings: self.load_settings()
+        if loadSettings: self.load_settings(scan)
 
         dataframe = self.get_dataframe()
         

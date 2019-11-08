@@ -10,13 +10,19 @@ sys.path.append(".")
 
 import pytest
 
+from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
+
+from corems.mass_spectra.input.brukerSolarix import ReadBruker_SolarixTransientMassSpectra
+from corems.mass_spectra.input.boosterHDF5 import ReadHDF_BoosterMassSpectra
+from corems.mass_spectra.input.coremsHDF5 import ReadCoreMSHDF_MassSpectra
+from corems.mass_spectra.input.massList import ReadCoremsMassSpectraText
+
+
 from corems.mass_spectrum.input.massList import ReadMassList, ReadCoremsMasslist
 from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
-from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
-from corems.mass_spectra.input.brukerSolarix import ReadBruker_SolarixTransientMassSpectra
-
 from corems.mass_spectrum.input.boosterHDF5 import ReadHDF_BoosterMassSpectrum
-from corems.mass_spectra.input.boosterHDF5 import ReadHDF_BoosterMassSpectra
+
+
 
 def test_import_booster_mass_spectrum_hdf():
 
@@ -123,7 +129,23 @@ def test_import_corems_hdf5():
             
             for mf in mspeak:
                 
-                print(mf.to_string)
+                print('mass_spectrum', mf.to_string)
+
+    read_lc_ms = ReadCoreMSHDF_MassSpectra(file_location)
+
+    read_lc_ms.start()
+    read_lc_ms.join()
+    
+    mass_spectra = read_lc_ms.get_lcms_obj()
+
+    for mspeak in mass_spectra[0]:
+        
+        if mspeak:
+            
+            for mf in mspeak:
+                
+                print('mass_spectra', mf.to_string)
+
 
 def test_import_corems_mass_list():
 
@@ -137,9 +159,28 @@ def test_import_corems_mass_list():
     mass_spectrum = mass_list_reader.get_mass_spectrum()
 
     for mspeak in mass_spectrum:
+        
         if mspeak:
+            
             for mf in mspeak:
                 print(mf.to_string)
+
+    file_location = Path.cwd() / "tests/tests_data/" /  "ESI_NEG_SRFA_COREMS.corems"
+
+    read_lc_ms = ReadCoremsMassSpectraText(file_location)
+
+    read_lc_ms.start()
+    read_lc_ms.join()
+    
+    mass_spectra = read_lc_ms.get_lcms_obj()
+
+    for mspeak in mass_spectra[0]:
+        
+        if mspeak:
+            
+            for mf in mspeak:
+                
+                print('mass_spectra', mf.to_string)                
 
 def test_import_mass_list():
 
@@ -171,6 +212,6 @@ def test_import_mass_list():
     mass_spectrum = mass_list_reader.get_mass_spectrum(polarity,auto_process=True)
 
 if __name__ == '__main__':
-    test_import_corems_hdf5()
+    #test_import_corems_hdf5()
     test_import_corems_mass_list()
-    test_import_mass_list()
+    #test_import_mass_list()

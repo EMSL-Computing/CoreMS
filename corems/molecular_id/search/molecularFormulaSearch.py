@@ -11,12 +11,11 @@ from corems.molecular_id.factory.MolecularLookupTable import  MolecularCombinati
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL as molform_db
 #from corems.molecular_id.factory.molecularMongo import MolForm_Mongo as molform_db
 
-
-global last_error 
-global last_dif 
-global closest_error 
+global last_error
+global last_dif
+global closest_error
 global error_average
-global nbValues 
+global nbValues
 
 class SearchMolecularFormulas:
      

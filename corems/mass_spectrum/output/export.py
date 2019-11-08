@@ -12,8 +12,6 @@ from corems.encapsulation.constant import Atoms
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.settings.io import settings_parsers
 
-
-
 class MassSpecExport(Thread):
     '''
     TODO: add MSPeak indexes: done
@@ -33,7 +31,7 @@ class MassSpecExport(Thread):
         self.mass_spectrum = mass_spectrum
 
         # collect all assigned atoms and order them accordingly to the Atoms.atoms_order list
-        self.atomos_order_list = self.get_all_used_atoms_in_ordem()
+        self.atomos_order_list = self.get_all_used_atoms_in_ordem(self.mass_spectrum)
 
         self._init_columns()
 
@@ -93,49 +91,55 @@ class MassSpecExport(Thread):
 
     def get_pandas_df(self):
 
-        columns = self.columns_label + self.atomos_order_list
+        columns = self.columns_label + self.get_all_used_atoms_in_ordem(self.mass_spectrum)
         dict_data_list = self.get_list_dict_data()
         df = DataFrame(dict_data_list, columns=columns)
         df.name = self.output_file
         return df
 
-    def write_settings(self):
+    def write_settings(self, output_path, mass_spectrum):
         
         import json
-        dict_setting = get_dict_data()
-        del dict_setting['DataInput']
-        dict_setting['MassSpecAttrs'] = self.none_to_nan_and_json(self.get_mass_spec_attrs())
         
-        with open(self.output_file.with_suffix('.json'), 'w', encoding='utf8', ) as outfile:
+        dict_setting = settings_parsers.get_dict_data()
+        del dict_setting['DataInput']
+        
+        dict_setting['MassSpecAttrs'] = self.get_mass_spec_attrs(mass_spectrum)
+        
+        with open(output_path.with_suffix('.json'), 'w', encoding='utf8', ) as outfile:
 
             output = json.dumps(dict_setting, sort_keys=True, indent=4, separators=(',', ': '))
             outfile.write(output)
     
     def to_pandas(self):
         
-        columns = self.columns_label + self.atomos_order_list
+        columns = self.columns_label + self.get_all_used_atoms_in_ordem(self.mass_spectrum)
 
-        dict_data_list = self.get_list_dict_data()
+        dict_data_list = self.get_list_dict_data(self.mass_spectrum)
 
         df = DataFrame(dict_data_list, columns=columns)
 
         df.to_pickle(self.output_file.with_suffix('.pkl'))
-
+        
+        self.write_settings(self.output_file, self.mass_spectrum)
+    
     def to_excel(self):
 
-        columns = self.columns_label + self.atomos_order_list
+        columns = self.columns_label + self.get_all_used_atoms_in_ordem(self.mass_spectrum)
 
-        dict_data_list = self.get_list_dict_data()
+        dict_data_list = self.get_list_dict_data(self.mass_spectrum)
 
         df = DataFrame(dict_data_list, columns=columns)
 
         df.to_excel(self.output_file.with_suffix('.xlsx'))
 
+        self.write_settings(self.output_file, self.mass_spectrum)
+
     def to_csv(self):
         
-        columns = self.columns_label + self.atomos_order_list
+        columns = self.columns_label + self.get_all_used_atoms_in_ordem(self.mass_spectrum)
 
-        dict_data_list = self.get_list_dict_data()
+        dict_data_list = self.get_list_dict_data(self.mass_spectrum)
 
         import csv
         try:
@@ -144,6 +148,9 @@ class MassSpecExport(Thread):
                 writer.writeheader()
                 for data in dict_data_list:
                     writer.writerow(data)
+            
+            self.write_settings(self.output_file, self.mass_spectrum)
+        
         except IOError as ioerror:
             print(ioerror)
     
@@ -161,13 +168,13 @@ class MassSpecExport(Thread):
         import h5py
         import json
 
-        list_results = self.list_dict_to_list()
+        list_results = self.list_dict_to_list(self.mass_spectrum)
         
-        dict_ms_attrs = self.none_to_nan_and_json(self.get_mass_spec_attrs())
+        dict_ms_attrs = self.none_to_nan_and_json(self.get_mass_spec_attrs(self.mass_spectrum))
         
         setting_dicts = settings_parsers.get_dict_data()
 
-        columns_labels = json.dumps(self.columns_label + self.atomos_order_list)
+        columns_labels = json.dumps(self.columns_label + self.get_all_used_atoms_in_ordem(self.mass_spectrum))
 
         with h5py.File(self.output_file.with_suffix('.hdf5'), 'w') as hdf_handle:
             
@@ -179,40 +186,40 @@ class MassSpecExport(Thread):
             #needs to store the molecular search in a dict by scan number in the search class then it can be accessed here
             dset.attrs['MoleculaSearchSetting'] = self.none_to_nan_and_json(setting_dicts.get('MoleculaSearch'))
             dset.attrs['MassSpecPeakSetting'] = self.none_to_nan_and_json(setting_dicts.get('MassSpecPeak'))
-            
-            
-
     
-    @staticmethod
+    @staticmethod     
     def none_to_nan_and_json(dict_data):
         import json
         for key, values in dict_data.items():
             if not values: dict_data[key] = NaN
         
-        return json.dumps(dict_data)
+        output = json.dumps(dict_data, sort_keys=True, indent=4, separators=(',', ': '))
+        return json.dumps(output)
 
-    def get_mass_spec_attrs(self):
+    def get_mass_spec_attrs(self, mass_spectrum):
 
         dict_ms_attrs = {}
-        dict_ms_attrs['polarity'] =     self.mass_spectrum.polarity
-        dict_ms_attrs['rt'] =     self.mass_spectrum.rt
-        dict_ms_attrs['mobility_scan'] =     self.mass_spectrum.mobility_scan
-        dict_ms_attrs['mobility_rt'] =     self.mass_spectrum.mobility_rt
-        dict_ms_attrs['Aterm'] =  self.mass_spectrum.Aterm
-        dict_ms_attrs['Bterm'] =  self.mass_spectrum.Bterm
-        dict_ms_attrs['Cterm'] =  self.mass_spectrum.Cterm
-        dict_ms_attrs['baselise_noise'] =  self.mass_spectrum.baselise_noise
-        dict_ms_attrs['baselise_noise_std'] =  self.mass_spectrum.baselise_noise_std
+        dict_ms_attrs['polarity'] =     mass_spectrum.polarity
+        dict_ms_attrs['rt'] =     mass_spectrum.rt
+        dict_ms_attrs['tic'] =  mass_spectrum.tic
+        dict_ms_attrs['mobility_scan'] =     mass_spectrum.mobility_scan
+        dict_ms_attrs['mobility_rt'] =     mass_spectrum.mobility_rt
+        dict_ms_attrs['Aterm'] =  mass_spectrum.Aterm
+        dict_ms_attrs['Bterm'] =  mass_spectrum.Bterm
+        dict_ms_attrs['Cterm'] =  mass_spectrum.Cterm
+        dict_ms_attrs['baselise_noise'] =  mass_spectrum.baselise_noise
+        dict_ms_attrs['baselise_noise_std'] =  mass_spectrum.baselise_noise_std
+       
         
         
         return dict_ms_attrs
 
 
-    def get_all_used_atoms_in_ordem(self):
+    def get_all_used_atoms_in_ordem(self, mass_spectrum):
 
         atomos_in_order = Atoms.atoms_order
         all_used_atoms = set()
-        for ms_peak in self.mass_spectrum:
+        for ms_peak in mass_spectrum:
             for m_formula in ms_peak:
                 if ms_peak:
                     for atom in m_formula.atoms:
@@ -223,11 +230,11 @@ class MassSpecExport(Thread):
 
         return sorted(all_used_atoms, key=sort_method)
 
-    def list_dict_to_list(self):
+    def list_dict_to_list(self, mass_spectrum):
         
-        column_labels = self.columns_label + self.atomos_order_list
+        column_labels = self.columns_label + self.get_all_used_atoms_in_ordem(mass_spectrum)
 
-        dict_list = self.get_list_dict_data()
+        dict_list = self.get_list_dict_data(mass_spectrum)
         
         all_lines = []
         for dict_res in dict_list:
@@ -243,7 +250,7 @@ class MassSpecExport(Thread):
         return  all_lines       
 
     
-    def get_list_dict_data(self, include_no_match=True, include_isotopolgues=True,
+    def get_list_dict_data(self, mass_spectrum, include_no_match=True, include_isotopolgues=True,
                            isotopologue_inline=False, no_match_inline=False):
 
         dict_data_list = []
@@ -287,7 +294,7 @@ class MassSpecExport(Thread):
 
             dict_data_list.append(dict_result)
 
-        for index, ms_peak in enumerate(self.mass_spectrum.sort_by_mz()):
+        for index, ms_peak in enumerate(mass_spectrum.sort_by_mz()):
 
             # check if there is a molecular formula candidate for the msPeak
             if ms_peak:
@@ -306,13 +313,13 @@ class MassSpecExport(Thread):
                     add_no_match_dict_data()
 
         if include_isotopolgues and not isotopologue_inline:
-            for index, ms_peak in enumerate(self.mass_spectrum.sort_by_mz()):
+            for index, ms_peak in enumerate(mass_spectrum.sort_by_mz()):
                 for m_formula in ms_peak:
                     if m_formula.is_isotopologue:
                         add_match_dict_data()
 
         if include_no_match and not no_match_inline:
-            for index, ms_peak in enumerate(self.mass_spectrum.sort_by_mz()):
+            for index, ms_peak in enumerate(mass_spectrum.sort_by_mz()):
                 if not ms_peak:
                     add_no_match_dict_data()
         
