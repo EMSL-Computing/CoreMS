@@ -13,14 +13,20 @@ from corems.encapsulation.constant import Labels
 from corems.encapsulation.settings.io import settings_parsers
 
 class MassSpecExport(Thread):
+    
     '''
     TODO: add MSPeak indexes: done
     '''
+    
     def __init__(self, out_file_path, mass_spectrum, output_type='excel'):
+        
         '''
         output_type:str
+        
             'excel', 'csv', 'hdf5' or 'pandas'
+        
         '''
+        
         Thread.__init__(self)
 
         self.output_file = Path(out_file_path)
@@ -79,7 +85,7 @@ class MassSpecExport(Thread):
         elif self.output_type == 'pandas':
             self.to_pandas()
         elif self.output_type == 'hdf5':
-            self.to_pandas()    
+            self.to_pandas()
         else:
             raise ValueError(
                 "Unkown output type: %s; it can be 'excel', 'csv' or 'pandas'" % self.output_type)
@@ -89,10 +95,10 @@ class MassSpecExport(Thread):
             call exportMS.start() '''
         self.save()
 
-    def get_pandas_df(self):
+    def get_pandas_df(self, mass_spectrum):
 
         columns = self.columns_label + self.get_all_used_atoms_in_ordem(self.mass_spectrum)
-        dict_data_list = self.get_list_dict_data()
+        dict_data_list = self.get_list_dict_data(mass_spectrum)
         df = DataFrame(dict_data_list, columns=columns)
         df.name = self.output_file
         return df
@@ -154,41 +160,66 @@ class MassSpecExport(Thread):
         except IOError as ioerror:
             print(ioerror)
     
-    
-    def write_metadata_hdf(self, setting_dicts, hdf_handle):
-       
-        for setting_label, setting_dict in setting_dicts.items(): 
-               
-                if setting_label != 'MoleculaSearch' and setting_label != 'MassSpecPeak':
-                    
-                    hdf_handle.attrs[setting_label+'Setting'] =  self.none_to_nan_and_json(setting_dict)
-  
-    def to_hdf(self, ):
+   
+    def to_hdf(self, analyzer, instrument_label):
         
         import h5py
         import json
-
-        list_results = self.list_dict_to_list(self.mass_spectrum)
-        
-        dict_ms_attrs = self.none_to_nan_and_json(self.get_mass_spec_attrs(self.mass_spectrum))
-        
-        setting_dicts = settings_parsers.get_dict_data()
-
-        columns_labels = json.dumps(self.columns_label + self.get_all_used_atoms_in_ordem(self.mass_spectrum))
+        from datetime import datetime, timezone
 
         with h5py.File(self.output_file.with_suffix('.hdf5'), 'w') as hdf_handle:
             
-            self.write_metadata_hdf(setting_dicts, hdf_handle)
+            list_results = self.list_dict_to_list(self.mass_spectrum)
             
-            dset = hdf_handle.create_dataset(str(self.mass_spectrum.scan_number), data=list_results)
-            dset.attrs['ColumnsLabels'] = columns_labels
-            dset.attrs['MassSpecAttrs'] = dict_ms_attrs
-            #needs to store the molecular search in a dict by scan number in the search class then it can be accessed here
-            dset.attrs['MoleculaSearchSetting'] = self.none_to_nan_and_json(setting_dicts.get('MoleculaSearch'))
-            dset.attrs['MassSpecPeakSetting'] = self.none_to_nan_and_json(setting_dicts.get('MassSpecPeak'))
-    
+            dict_ms_attrs = self.none_to_nan_and_json(self.get_mass_spec_attrs(self.mass_spectrum))
+            
+            setting_dicts = settings_parsers.get_dict_data()
+
+            columns_labels = json.dumps(self.columns_label + self.get_all_used_atoms_in_ordem(self.mass_spectrum))
+
+            if not hdf_handle['date']:
+
+                timenow = datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z")
+                hdf_handle['date_utc'] = timenow
+                hdf_handle['filename'] = self.mass_spectrum.filename.name
+                hdf_handle['analyzer'] = analyzer
+                hdf_handle['instrument_label'] = instrument_label
+                hdf_handle['data_structure'] = 'mass_spectrum'
+
+            scan_group = hdf_handle.create_group(str(self.mass_spectrum.scan_number))
+  
+            if self.mass_spectrum.abundance_profile:
+                
+                mz_abun_array = array(self.mass_spectrum.abundance_profile, self.mass_spectrum.mz_profile)
+                
+                raw_ms_dataset = scan_group.create_dataset('raw_ms', data=mz_abun_array, dtype="f8")
+            
+            else:
+                
+                #create empy dataset for missing raw data
+                raw_ms_dataset = scan_group.create_dataset('raw_ms', dtype="f8")
+
+            raw_ms_dataset.attrs['MassSpecAttrs'] = dict_ms_attrs
+            raw_ms_dataset.attrs['TransientSetting'] = self.none_to_nan_and_json(setting_dicts.get('TransientSetting'))
+
+            # if there is not processed data len = 0, otherwise len() will return next index
+            index_processed_data = str(len(scan_group.keys()))
+
+            processed_dset = scan_group.create_dataset(index_processed_data, data=list_results,  dtype="S")
+        
+            processed_dset['date_utc'] = timenow
+
+            processed_dset.attrs['ColumnsLabels'] = columns_labels
+            
+            processed_dset.attrs['MoleculaSearchSetting'] = self.none_to_nan_and_json(setting_dicts.get('MoleculaSearch'))
+            
+            processed_dset.attrs['MassSpecPeakSetting'] = self.none_to_nan_and_json(setting_dicts.get('MassSpecPeak'))
+
+            processed_dset.attrs['MassSpectrumSetting'] = self.none_to_nan_and_json(setting_dicts.get('MassSpectrum'))
+
     @staticmethod     
     def none_to_nan_and_json(dict_data):
+        
         import json
         for key, values in dict_data.items():
             if not values: dict_data[key] = NaN
@@ -199,7 +230,7 @@ class MassSpecExport(Thread):
     def get_mass_spec_attrs(self, mass_spectrum):
 
         dict_ms_attrs = {}
-        dict_ms_attrs['polarity'] =     mass_spectrum.polarity
+        dict_ms_attrs['polarity'] = mass_spectrum.polarity
         dict_ms_attrs['rt'] =     mass_spectrum.rt
         dict_ms_attrs['tic'] =  mass_spectrum.tic
         dict_ms_attrs['mobility_scan'] =     mass_spectrum.mobility_scan
@@ -209,9 +240,7 @@ class MassSpecExport(Thread):
         dict_ms_attrs['Cterm'] =  mass_spectrum.Cterm
         dict_ms_attrs['baselise_noise'] =  mass_spectrum.baselise_noise
         dict_ms_attrs['baselise_noise_std'] =  mass_spectrum.baselise_noise_std
-       
-        
-        
+          
         return dict_ms_attrs
 
 

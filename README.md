@@ -1,4 +1,3 @@
-
 # CoreMS
 
 **CoreMS** is a comprehensive mass spectrometry framework for small molecules analysis.
@@ -54,7 +53,7 @@
 - Automatic search most abundant **Ox** homologue serie
 - step fit ('walking calibration") based on the ledford equation [ref]
 
-### Molecular formulae search and assigment
+### Molecular formulae search and assignment
 
 - Automatic local (SQLite) or external (MongoDB or Postgres) database check, generation, and search
 - Automatic molecular formulae assignments algorithm for ESI(-) MS for natural organic matter analysis
