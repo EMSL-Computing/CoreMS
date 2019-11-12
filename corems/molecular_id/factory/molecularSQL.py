@@ -7,8 +7,6 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.exc import MultipleResultsFound
 
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
-
 Base = declarative_base()
 
 class MolecularFormulaTable(Base):  
@@ -63,8 +61,7 @@ class MolForm_SQL:
     def __enter__(self):
         
         directory = os.getcwd()
-        
-        print(MoleculaSearchSettings.db_directory)
+       
         if not os.path.isdir(directory+'/db'):
                 
             os.mkdir(directory+'/db')    
@@ -98,7 +95,7 @@ class MolForm_SQL:
             self.session.rollback()
             print(str(e))
             
-    def get_dict_entries(self, classes, ion_type, nominal_mzs):
+    def get_dict_entries(self, classes, ion_type, nominal_mzs, molecular_search_settings):
 
         dict_res = {}
         
@@ -106,11 +103,11 @@ class MolForm_SQL:
             MolecularFormulaTable.nominal_mz.in_(nominal_mzs),
             MolecularFormulaTable.classe.in_(classes), 
             MolecularFormulaTable.ion_type == ion_type,
-            MolecularFormulaTable.DBE >= MoleculaSearchSettings.min_dbe, 
-            MolecularFormulaTable.DBE <= MoleculaSearchSettings.max_dbe, 
-            MolecularFormulaTable.ion_charge == MoleculaSearchSettings.ion_charge,
-            MolecularFormulaTable.O_C <= MoleculaSearchSettings.oc_filter,
-            MolecularFormulaTable.H_C >= MoleculaSearchSettings.hc_filter,
+            MolecularFormulaTable.DBE >= molecular_search_settings.min_dbe, 
+            MolecularFormulaTable.DBE <= molecular_search_settings.max_dbe, 
+            MolecularFormulaTable.ion_charge == molecular_search_settings.ion_charge,
+            MolecularFormulaTable.O_C <= molecular_search_settings.oc_filter,
+            MolecularFormulaTable.H_C >= molecular_search_settings.hc_filter,
             )
 
         for formula in formulas:
@@ -131,10 +128,10 @@ class MolForm_SQL:
         
         return dict_res
 
-    def check_entry(self,classe, ion_type):
+    def check_entry(self,classe, ion_type, molecular_search_settings):
         # this is way too slow, create a pos and neg table
         #try:
-        #yes = self.session.query(MolecularFormulaTable.id).filter(MolecularFormulaTable.classe==classe).filter(MolecularFormulaTable.ion_charge == MoleculaSearchSettings.ion_charge).scalar() is not None
+        #yes = self.session.query(MolecularFormulaTable.id).filter(MolecularFormulaTable.classe==classe).filter(MolecularFormulaTable.ion_charge == molecular_search_settings.ion_charge).scalar() is not None
         
         #except MultipleResultsFound as e:
         #    yes = True
@@ -143,7 +140,7 @@ class MolForm_SQL:
         yes = self.session.query(exists().where(
             (MolecularFormulaTable.classe == classe) &
             (MolecularFormulaTable.ion_type == ion_type) &
-            (MolecularFormulaTable.ion_charge == MoleculaSearchSettings.ion_charge))).scalar()
+            (MolecularFormulaTable.ion_charge == molecular_search_settings.ion_charge))).scalar()
         return yes
     
     
@@ -153,26 +150,26 @@ class MolForm_SQL:
         
         #mol_formulas = mol_formulas.filter(ion_type = ion_type)
 
-        #mol_formulas = mol_formulas.filter(ion_charge = MoleculaSearchSettings.ion_charge)
+        #mol_formulas = mol_formulas.filter(ion_charge = molecular_search_settings.ion_charge)
         
         return [pickle.loads(formula.id) for formula in mol_formulas]
 
-    def get_entries(self,classe, ion_type, nominal_mz):
+    def get_entries(self,classe, ion_type, nominal_mz, molecular_search_settings):
         
         mol_formulas = self.session.query(MolecularFormulaTable).filter(
             MolecularFormulaTable.nominal_mz == nominal_mz,
             MolecularFormulaTable.classe == classe, 
             MolecularFormulaTable.ion_type == ion_type,
-            MolecularFormulaTable.DBE >= MoleculaSearchSettings.min_dbe, 
-            MolecularFormulaTable.DBE <= MoleculaSearchSettings.max_dbe, 
-            MolecularFormulaTable.ion_charge == MoleculaSearchSettings.ion_charge,
-            MolecularFormulaTable.O_C <= MoleculaSearchSettings.oc_filter,
-            MolecularFormulaTable.H_C >= MoleculaSearchSettings.hc_filter,
+            MolecularFormulaTable.DBE >= molecular_search_settings.min_dbe, 
+            MolecularFormulaTable.DBE <= molecular_search_settings.max_dbe, 
+            MolecularFormulaTable.ion_charge == molecular_search_settings.ion_charge,
+            MolecularFormulaTable.O_C <= molecular_search_settings.oc_filter,
+            MolecularFormulaTable.H_C >= molecular_search_settings.hc_filter,
             )
         
         #mol_formulas = mol_formulas.filter(ion_type = ion_type)
 
-        #mol_formulas = mol_formulas.filter(ion_charge = MoleculaSearchSettings.ion_charge)
+        #mol_formulas = mol_formulas.filter(ion_charge = molecular_search_settings.ion_charge)
         return [pickle.loads(formula.id) for formula in mol_formulas]
        
 

@@ -15,11 +15,11 @@ from corems.molecular_id.factory.MolecularLookupTable import  MolecularCombinati
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL
 from corems.molecular_id.factory.molecularMongo import MolForm_Mongo
 from corems.molecular_id.output.export import  MolecularLookUpDictExport
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings, MoleculaSearchSettings
+from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings, MolecularSearchSettings
 
 def create_lookup_dict():
     
-    MolecularCombinations().runworker()
+    MolecularCombinations().runworker(MolecularSearchSettings)
 
 def xtest_query_mongo():
     #client = MongoClient("mongodb://corems-client:esmlpnnl2019@localhost:27017/corems")
@@ -38,33 +38,33 @@ def test_query_sql():
         print('ion_type', ion_type)
         classe = 'O8'
         nominal_mz = 501
-        print('total mol formulas found: ', len(sqldb.get_entries(classe, ion_type, nominal_mz)))
+        print('total mol formulas found: ', len(sqldb.get_entries(classe, ion_type, nominal_mz, MolecularSearchSettings)))
 
 def test_molecular_lookup_db():    
     
     #margin_error needs to be optimized by the data rp and sn
     #min_mz,max_mz  needs to be optimized by the data
-    MoleculaSearchSettings.min_mz = 100
-    MoleculaSearchSettings.max_mz = 800
+    MolecularSearchSettings.min_mz = 100
+    MolecularSearchSettings.max_mz = 800
     # C, H, N, O, S and P atoms are ALWAYS needed in the dictionary
     #the defaults values are defined at the encapsulation MolecularSpaceTableSetting    
-    MoleculaSearchSettings.usedAtoms['C'] = (1,90)
-    MoleculaSearchSettings.usedAtoms['H'] = (4,200)
-    MoleculaSearchSettings.usedAtoms['O'] = (1,8)
-    MoleculaSearchSettings.usedAtoms['N'] = (0,0)
-    MoleculaSearchSettings.usedAtoms['S'] = (0,0)
+    MolecularSearchSettings.usedAtoms['C'] = (1,90)
+    MolecularSearchSettings.usedAtoms['H'] = (4,200)
+    MolecularSearchSettings.usedAtoms['O'] = (1,8)
+    MolecularSearchSettings.usedAtoms['N'] = (0,0)
+    MolecularSearchSettings.usedAtoms['S'] = (0,0)
 
-    MoleculaSearchSettings.isRadical = True
-    MoleculaSearchSettings.isProtonated = False
+    MolecularSearchSettings.isRadical = True
+    MolecularSearchSettings.isProtonated = False
     #some atoms has more than one covalence state and the most commun will be used
     # adduct atoms needs covalence 0
-    MoleculaSearchSettings.usedAtoms['Cl'] = (0,0)
+    MolecularSearchSettings.usedAtoms['Cl'] = (0,0)
     possible_valences = Atoms.atoms_covalence.get('Cl')
     valence_one = possible_valences[0]
     
     # if you want to specify it in needs to be changed here
     # otherwise it will use the lowest covalence, PS needs insure propagation to isotopologues
-    MoleculaSearchSettings.used_atom_valences['Cl'] =  valence_one
+    MolecularSearchSettings.used_atom_valences['Cl'] =  valence_one
     
     time0 = time.time()
     create_lookup_dict()

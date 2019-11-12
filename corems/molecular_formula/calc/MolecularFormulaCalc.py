@@ -3,7 +3,7 @@ __date__ = "Jun 24, 2019"
 
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.constant import Labels
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
+from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings
 from IsoSpecPy import IsoSpecPy
 from numpy import exp
 
@@ -104,7 +104,7 @@ class MolecularFormulaCalc:
                     
                     clean_atom = ''.join([i for i in atom if not i.isdigit()]) 
                     
-                    valencia = MoleculaSearchSettings.used_atom_valences.get(clean_atom)
+                    valencia = MolecularSearchSettings.used_atom_valences.get(clean_atom)
                     #valencia = Atoms.atoms_covalence.get(atom)
                     
                     if valencia and valencia > 0:

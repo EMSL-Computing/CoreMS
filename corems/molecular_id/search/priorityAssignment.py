@@ -6,7 +6,6 @@ from threading import Thread
 from itertools import product
 
 from corems.encapsulation.constant import Labels
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
 from corems.molecular_id.search.findOxigenPeaks import FindOxygenPeaks
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulaWorker, SearchMolecularFormulas
 from corems.molecular_id.factory.MolecularLookupTable import MolecularCombinations
@@ -59,15 +58,15 @@ class OxigenPriorityAssignment(Thread):
     def run_worker_mass_spectrum(self, assign_classes_order_tuples, dict_ox_class_and_ms_peak):
         
         def check_adduct_class(classe_dict):
-            return any([key in classe_dict.keys() for key in MoleculaSearchSettings.adduct_atoms_neg])
+            return any([key in classe_dict.keys() for key in self.mass_spectrum_obj.molecular_search_settings.adduct_atoms_neg])
         
         def check_min_peaks(ms_peak_indexes):
             
-            if  MoleculaSearchSettings.use_min_peaks_filter:
+            if  self.mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter:
 
-                if not len(ms_peak_indexes) >= MoleculaSearchSettings.min_peaks_per_class:
+                if not len(ms_peak_indexes) >= self.mass_spectrum_obj.molecular_search_settings.min_peaks_per_class:
                     
-                    for index in ms_peak_indexes: mass_spectrum_obj[index].clear_molecular_formulas()
+                    for index in ms_peak_indexes: self.mass_spectrum_obj[index].clear_molecular_formulas()
 
         def set_min_max_dbe_by_oxygen(classe_dict):
             # calculates min and max DBE based on the oxigen number
@@ -83,34 +82,42 @@ class OxigenPriorityAssignment(Thread):
                     if atom in classe_dict.keys():
                         oxigen_number += classe_dict.get(atom)
 
-                MoleculaSearchSettings.min_dbe = (oxigen_number/3) - 0.5 
-                MoleculaSearchSettings.max_dbe = oxigen_number*3 + 0.5 + 2
+                self.mass_spectrum_obj.molecular_search_settings.min_dbe = (oxigen_number/3) - 0.5 
+                self.mass_spectrum_obj.molecular_search_settings.max_dbe = oxigen_number*3 + 0.5 + 2
             
             else:
             '''    
-            MoleculaSearchSettings.use_pah_line_rule = True
+            self.mass_spectrum_obj.molecular_search_settings.use_pah_line_rule = True
 
-        def run_search(possible_formulas):
+        def run_search(possible_formulas_dict, mass_spectrum_obj, min_abundance, is_adduct=False):
             
             all_assigned_indexes = list()
 
-            for ms_peak in self.mass_spectrum_obj.sort_by_abundance():
+            for ms_peak in mass_spectrum_obj.sort_by_abundance():
 
                 #already assinged a molecular formula
-                if ms_peak.is_assigned: continue
-            
+               
                 nominal_mz  = ms_peak.nominal_mz_exp
 
                 #get mono isotopic peaks that was added a molecular formula obj
                 #TODO update error variables
-                ms_peak_indexes = SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, self.mass_spectrum_obj, ms_peak)    
 
-                all_assigned_indexes.extend(ms_peak_indexes)
+                possible_formulas_nominal = possible_formulas_dict.get(nominal_mz)
+                
+                if possible_formulas_nominal:
+
+                    if is_adduct:
+                        
+                        for m_formula in possible_formulas_dict: m_formula.ion_type = Labels.adduct_ion
+
+                    ms_peak_indexes = SearchMolecularFormulaWorker().find_formulas(possible_formulas_nominal, min_abundance, mass_spectrum_obj, ms_peak)    
+
+                    all_assigned_indexes.extend(ms_peak_indexes)
             
             #filter per min peaks per mono isotopic class
             check_min_peaks(all_assigned_indexes)
         
-        error_average = MoleculaSearchSettings.mz_error_average
+        error_average = self.mass_spectrum_obj.molecular_search_settings.mz_error_average
         
         min_abundance = self.mass_spectrum_obj.min_abundance
 
@@ -130,41 +137,38 @@ class OxigenPriorityAssignment(Thread):
             # need to add other atoms contribution to be more accurate
             # but +-7 should be sufficient to cover the range 
             
-            if MoleculaSearchSettings.isProtonated and not is_adduct:
+            if self.mass_spectrum_obj.molecular_search_settings.isProtonated and not is_adduct:
         
                     ion_type = Labels.protonated_de_ion
 
-                    possible_formulas = self.dict_molecular_lookup_table.get(ion_type).get(classe_str).get(nominal_mz)
+                    possible_formulas_dict = self.dict_molecular_lookup_table.get(ion_type).get(classe_str)
                     
-                    if possible_formulas:
+                    if possible_formulas_dict:
 
-                        run_search(possible_formulas)    
+                        run_search(possible_formulas_dict, self.mass_spectrum_obj, min_abundance, is_adduct=is_adduct)
 
-            if MoleculaSearchSettings.isRadical and not is_adduct:
+            if self.mass_spectrum_obj.molecular_search_settings.isRadical and not is_adduct:
                 
                     ion_type = Labels.radical_ion
                     
-                    possible_formulas = self.dict_molecular_lookup_table.get(ion_type).get(classe_str).get(nominal_mz)
+                    possible_formulas_dict = self.dict_molecular_lookup_table.get(ion_type).get(classe_str)
                     
-                    if possible_formulas:
+                    if possible_formulas_dict:
 
-                        run_search(possible_formulas)    
+                        run_search(possible_formulas_dict, self.mass_spectrum_obj, min_abundance, is_adduct=is_adduct)
 
             # looks for adduct, used_atom_valences should be 0 
             # this code does not support H exchance by halogen atoms
-            if MoleculaSearchSettings.isAdduct and is_adduct:
+            if self.mass_spectrum_obj.molecular_search_settings.isAdduct and is_adduct:
                 
                 ion_type = Labels.radical_ion
                 
-                possible_formulas = self.dict_molecular_lookup_table.get(ion_type).get(classe_str).get(nominal_mz)
-                
-                if possible_formulas:
+                possible_formulas_dict = self.dict_molecular_lookup_table.get(ion_type).get(classe_str)
                     
-                    #replace ion_type in the molecular_formula object
-                    for m_formula in possible_formulas: m_formula.ion_type = Labels.adduct_ion
-                    
-                    run_search(possible_formulas)      
-           
+                if possible_formulas_dict:
+
+                    run_search(possible_formulas_dict, self.mass_spectrum_obj, min_abundance, is_adduct=is_adduct)
+
     def create_molecular_database(self):
         #number_of_process = multiprocessing.cpu_count()
 
@@ -187,39 +191,38 @@ class OxigenPriorityAssignment(Thread):
         
         self.mass_spectrum_obj.reset_indexes()
 
-        initial_ox = deepcopy(MoleculaSearchSettings.usedAtoms)
+        #initial_ox = deepcopy(self.mass_spectrum_obj.molecular_search_settings.usedAtoms)
 
-        MoleculaSearchSettings.usedAtoms['O'] = (min_o, max_o)
+        self.mass_spectrum_obj.molecular_search_settings.usedAtoms['O'] = (min_o, max_o)
 
-        classes = MolecularCombinations().runworker()
+        classes = MolecularCombinations().runworker(self.mass_spectrum_obj.molecular_search_settings)
 
         classes_str = [class_tuple[0] for class_tuple in classes]
 
         nominal_mzs = self.mass_spectrum_obj.nominal_mz_exp
 
         self.dict_molecular_lookup_table = self.get_dict_molecular_database(classes_str, nominal_mzs)
-
         
     def get_dict_molecular_database(self, classes_str, nominal_mzs):
             
         dict_res = {}
         
         #print (classes_str)
-        if MoleculaSearchSettings.isProtonated:
+        if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
             
             ion_type = Labels.protonated_de_ion
 
             with molform_db() as sql_handle:
 
-                dict_res[ion_type] = sql_handle.get_dict_entries(classes_str, ion_type, nominal_mzs)
+                dict_res[ion_type] = sql_handle.get_dict_entries(classes_str, ion_type, nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
 
-        if MoleculaSearchSettings.isRadical:
+        if self.mass_spectrum_obj.molecular_search_settings.isRadical:
 
             ion_type = Labels.radical_ion
 
             with molform_db() as sql_handle:
 
-                dict_res[ion_type] = sql_handle.get_dict_entries(classes_str, ion_type, nominal_mzs)
+                dict_res[ion_type] = sql_handle.get_dict_entries(classes_str, ion_type, nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
         
         return dict_res
 
@@ -247,7 +250,7 @@ class OxigenPriorityAssignment(Thread):
         ''' structure is 
             ('HC', {'HC': 1})'''
         
-        usedAtoms = deepcopy(MoleculaSearchSettings.usedAtoms)
+        usedAtoms = deepcopy(self.mass_spectrum_obj.molecular_search_settings.usedAtoms)
         
         usedAtoms.pop("C")
         usedAtoms.pop("H")
@@ -370,16 +373,16 @@ class OxigenPriorityAssignment(Thread):
 if __name__ == "__main__":
     pass
     from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
-    from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings, MoleculaLookupTableSettings
+    from corems.encapsulation.settings.molecular_id.MolecularIDSettings import self.mass_spectrum_obj.molecular_search_settings, MoleculaLookupTableSettings
     from corems.mass_spectrum.calc.CalibrationCalc import MZDomain_Calibration, FreqDomain_Calibration
     from matplotlib import pyplot, colors as mcolors
 
     def calibrate():
         
-        MoleculaSearchSettings.error_method = 'average'
-        MoleculaSearchSettings.min_mz_error = -2
-        MoleculaSearchSettings.max_mz_error = 2
-        MoleculaSearchSettings.mz_error_range = 1
+        self.mass_spectrum_obj.molecular_search_settings.error_method = 'average'
+        self.mass_spectrum_obj.molecular_search_settings.min_mz_error = -2
+        self.mass_spectrum_obj.molecular_search_settings.max_mz_error = 2
+        self.mass_spectrum_obj.molecular_search_settings.mz_error_range = 1
 
         find_formula_thread = FindOxygenPeaks(mass_spectrum_obj, lookupTableSettings)
         find_formula_thread.run()
@@ -392,16 +395,16 @@ if __name__ == "__main__":
     
     def assign_mf():
         
-        MoleculaSearchSettings.error_method = 'symmetrical'
-        MoleculaSearchSettings.min_mz_error = -1
-        MoleculaSearchSettings.max_mz_error = 1
-        MoleculaSearchSettings.mz_error_range = 2
-        MoleculaSearchSettings.mz_error_average = 0
-        MoleculaSearchSettings.min_abun_error = -30 # percentage
-        MoleculaSearchSettings.max_abun_error = 70 # percentage
-        MoleculaSearchSettings.isProtonated = True
-        MoleculaSearchSettings.isRadical = False
-        MoleculaSearchSettings.isAdduct = True
+        self.mass_spectrum_obj.molecular_search_settings.error_method = 'symmetrical'
+        self.mass_spectrum_obj.molecular_search_settings.min_mz_error = -1
+        self.mass_spectrum_obj.molecular_search_settings.max_mz_error = 1
+        self.mass_spectrum_obj.molecular_search_settings.mz_error_range = 2
+        self.mass_spectrum_obj.molecular_search_settings.mz_error_average = 0
+        self.mass_spectrum_obj.molecular_search_settings.min_abun_error = -30 # percentage
+        self.mass_spectrum_obj.molecular_search_settings.max_abun_error = 70 # percentage
+        self.mass_spectrum_obj.molecular_search_settings.isProtonated = True
+        self.mass_spectrum_obj.molecular_search_settings.isRadical = False
+        self.mass_spectrum_obj.molecular_search_settings.isAdduct = True
 
         assignOx = OxigenPriorityAssignment(mass_spectrum_obj, lookupTableSettings)
         assignOx.start()

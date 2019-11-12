@@ -7,7 +7,7 @@ import itertools
 import multiprocessing
 import pickle
 
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings, MoleculaLookupDictSettings
+from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings
 from corems.encapsulation.constant import Labels
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
 
@@ -33,21 +33,21 @@ class MolecularCombinations:
     the current serialization is adding 1.5s seconds for each ion type iteration
     '''
 
-    def check_database_get_class_list(self):
+    def check_database_get_class_list(self, molecular_search_settings):
 
         class_to_create = []
         
-        classes_list = self.get_classes_in_order()
+        classes_list = self.get_classes_in_order(molecular_search_settings)
         
-        #print('check', MoleculaSearchSettings.isRadical, MoleculaSearchSettings.isProtonated)
+        #print('check', molecular_search_settings.isRadical, molecular_search_settings.isProtonated)
         
         with molform_db() as sql_db:
 
-            if MoleculaSearchSettings.isProtonated:
+            if molecular_search_settings.isProtonated:
             
                 for classe_tuple in classes_list:
 
-                    if sql_db.check_entry(classe_tuple[0], Labels.protonated_de_ion):
+                    if sql_db.check_entry(classe_tuple[0], Labels.protonated_de_ion, molecular_search_settings):
                         
                         pass
                     
@@ -55,11 +55,11 @@ class MolecularCombinations:
                         
                         class_to_create.append((classe_tuple, Labels.protonated_de_ion))
 
-            if  MoleculaSearchSettings.isRadical:
+            if  molecular_search_settings.isRadical:
 
                 for classe_tuple in classes_list:
                     
-                    if sql_db.check_entry(classe_tuple[0], Labels.radical_ion):
+                    if sql_db.check_entry(classe_tuple[0], Labels.radical_ion, molecular_search_settings):
                         pass
                     
                     
@@ -69,16 +69,16 @@ class MolecularCombinations:
         
         return classes_list, class_to_create           
 
-    def runworker(self) :
+    def runworker(self, molecular_search_settings) :
 
-        classes_list, class_to_create = self.check_database_get_class_list()
+        classes_list, class_to_create = self.check_database_get_class_list(molecular_search_settings)
         
         if class_to_create:
             
             settings = MoleculaLookupDictSettings()
-            settings.usedAtoms = deepcopy(MoleculaSearchSettings.usedAtoms)
-            settings.ion_charge = MoleculaSearchSettings.ion_charge
-            settings.db_directory = MoleculaSearchSettings.db_directory
+            settings.usedAtoms = deepcopy(molecular_search_settings.usedAtoms)
+            settings.ion_charge = molecular_search_settings.ion_charge
+            settings.db_directory = molecular_search_settings.db_directory
             
             c_h_combinations= self.get_c_h_combination(settings)
             
@@ -97,15 +97,7 @@ class MolecularCombinations:
             p.join()
         
         return classes_list
-        
-        '''
-        args = [(class_tuple, c_h_combinations, settings) for class_tuple in classes_list]
-        results = list()
-        
-        for arg in args:
-            #exited with code=0 in 17.444 seconds
-            results.append(CombinationsWorker().get_combinations(*arg))
-        '''
+       
     
     def get_c_h_combination(self, settings):
 
@@ -153,11 +145,11 @@ class MolecularCombinations:
         return new_list2    
     
     
-    def get_classes_in_order(self):
+    def get_classes_in_order(self, molecular_search_settings):
         ''' structure is 
             ('HC', {'HC': 1})'''
         
-        usedAtoms = deepcopy(MoleculaSearchSettings.usedAtoms)
+        usedAtoms = deepcopy(molecular_search_settings.usedAtoms)
         
         usedAtoms.pop("C")
         usedAtoms.pop("H")
@@ -316,14 +308,12 @@ class CombinationsWorker:
   
     def insert_formula_db(self, list_mf, settings):
 
-        MoleculaSearchSettings.db_directory = settings.db_directory
         if len(list_mf) > 0:
         
             with molform_db() as sql_handle:
                 
                 sql_handle.add_all(list_mf)
         
-    
     
     def get_mol_formulas(self,carbon_hidrogen_combination,
                     ion_type,

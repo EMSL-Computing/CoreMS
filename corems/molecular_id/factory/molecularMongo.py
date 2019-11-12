@@ -1,7 +1,7 @@
 import pickle
 
 from pymongo import MongoClient
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
+from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings
 
 class MolForm_Mongo:
 
@@ -61,10 +61,10 @@ class MolForm_Mongo:
         formulas = self.molform_collection.find( {'classe': {"$in": classe}, 
                                                 'ion_type': ion_type,
                                                 'nominal_mz':{"$in": nominal_mzs},  
-                                                'O_C' : { '$lt': MoleculaSearchSettings.oc_filter }, 
-                                                'H_C' : { '$gt': MoleculaSearchSettings.hc_filter},
-                                                'DBE' : { '$gt': MoleculaSearchSettings.min_dbe},
-                                                'DBE' : { '$lt': MoleculaSearchSettings.max_dbe},
+                                                'O_C' : { '$lt': MolecularSearchSettings.oc_filter }, 
+                                                'H_C' : { '$gt': MolecularSearchSettings.hc_filter},
+                                                'DBE' : { '$gt': MolecularSearchSettings.min_dbe},
+                                                'DBE' : { '$lt': MolecularSearchSettings.max_dbe},
                                                 })
         for formula in formulas:
             
@@ -91,10 +91,10 @@ class MolForm_Mongo:
         formulas = self.molform_collection.find( {'classe': classe, 
                                                 'ion_type': ion_type,
                                                 'nominal_mz': nominal_mz,  
-                                                'O_C' : { '$lt': MoleculaSearchSettings.oc_filter }, 
-                                                'H_C' : { '$gt': MoleculaSearchSettings.hc_filter},
-                                                'DBE' : { '$gt': MoleculaSearchSettings.min_dbe},
-                                                'DBE' : { '$lt': MoleculaSearchSettings.max_dbe},
+                                                'O_C' : { '$lt': MolecularSearchSettings.oc_filter }, 
+                                                'H_C' : { '$gt': MolecularSearchSettings.hc_filter},
+                                                'DBE' : { '$gt': MolecularSearchSettings.min_dbe},
+                                                'DBE' : { '$lt': MolecularSearchSettings.max_dbe},
                                                 })
         
 

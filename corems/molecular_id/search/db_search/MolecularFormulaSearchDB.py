@@ -6,7 +6,7 @@ import os, time
 from os.path import join
 
 from corems.encapsulation.constant import Labels
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings, MoleculaSearchSettings
+from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings, MolecularSearchSettings
 from corems.mass_spectrum.input.massList import Read_MassList
 from corems.molecular_id.factory.db_search.MolecularLookupTableDB import  MolecularCombinations
 from corems.molecular_id.factory.db_search.molecularSQL import MolForm_SQL as molform_db
@@ -35,7 +35,7 @@ class SearchMolecularFormulas:
         
         def check_adduct_class(classe_dict):
             
-            return any([key in classe_dict.keys() for key in MoleculaSearchSettings.adduct_atoms_neg])
+            return any([key in classe_dict.keys() for key in MolecularSearchSettings.adduct_atoms_neg])
        
         for classe_str, class_dict in classes:
             
@@ -44,7 +44,7 @@ class SearchMolecularFormulas:
             possible_formulas = list()    
             
             #we might need to increase the search space to -+1 m_z 
-            if MoleculaSearchSettings.isRadical or MoleculaSearchSettings.isAdduct:
+            if MolecularSearchSettings.isRadical or MolecularSearchSettings.isAdduct:
             
                 ion_type = Labels.radical_ion
                 
@@ -55,18 +55,18 @@ class SearchMolecularFormulas:
                     
                     is_adduct = check_adduct_class(formulas[0].class_dict)
                     
-                    if is_adduct and MoleculaSearchSettings.isAdduct:
+                    if is_adduct and MolecularSearchSettings.isAdduct:
                         
                         #replace ion_type in the molecular_formula object
                         for m_formula in formulas: m_formula.ion_type = Labels.adduct_ion
 
                         possible_formulas.extend(formulas)
                     
-                    elif not is_adduct and MoleculaSearchSettings.isRadical:
+                    elif not is_adduct and MolecularSearchSettings.isRadical:
                         
                         possible_formulas.extend(formulas)
 
-            if MoleculaSearchSettings.isProtonated:# and not is_adduct:
+            if MolecularSearchSettings.isProtonated:# and not is_adduct:
             
                 ion_type = Labels.protonated_de_ion
                 
@@ -93,13 +93,13 @@ class SearchMolecularFormulas:
         
         closest_error = 0
 
-        error_average = MoleculaSearchSettings.mz_error_average
+        error_average = MolecularSearchSettings.mz_error_average
         
         nbValues = 0
 
-        MoleculaSearchSettings.min_mz =  min(ms_peaks, key=lambda m: m.mz_exp).mz_exp
+        MolecularSearchSettings.min_mz =  min(ms_peaks, key=lambda m: m.mz_exp).mz_exp
     
-        MoleculaSearchSettings.max_mz = max(ms_peaks, key=lambda m: m.mz_exp).mz_exp
+        MolecularSearchSettings.max_mz = max(ms_peaks, key=lambda m: m.mz_exp).mz_exp
         
         min_abundance = mass_spectrum_obj.min_abundance
 
@@ -149,7 +149,7 @@ class SearchMolecularFormulas:
         
         closest_error = 0
 
-        error_average = MoleculaSearchSettings.mz_error_average
+        error_average = MolecularSearchSettings.mz_error_average
         
         nbValues = 0
 
@@ -179,7 +179,7 @@ class SearchMolecularFormulas:
         
         closest_error = 0
 
-        error_average = MoleculaSearchSettings.mz_error_average
+        error_average = MolecularSearchSettings.mz_error_average
         
         nbValues = 0
 
@@ -210,7 +210,7 @@ class SearchMolecularFormulas:
         dict_res = {}
         
         #print (classes_str)
-        if MoleculaSearchSettings.isProtonated:
+        if MolecularSearchSettings.isProtonated:
             
             ion_type = Labels.protonated_de_ion
 
@@ -218,7 +218,7 @@ class SearchMolecularFormulas:
 
                 dict_res[ion_type] = sql_handle.get_dict_entries(classes_str, ion_type, nominal_mzs)
 
-        if MoleculaSearchSettings.isRadical:
+        if MolecularSearchSettings.isRadical:
 
             ion_type = Labels.radical_ion
 
@@ -239,41 +239,41 @@ class SearchMolecularFormulaWorker:
     def set_last_error(self, error, last_error, last_dif, closest_error, error_average, nbValues ):
         
         
-        if MoleculaSearchSettings.error_method == 'distance':
+        if MolecularSearchSettings.error_method == 'distance':
             
             dif = error - last_error
             if dif < last_dif:
                 last_dif = dif
                 closest_error = error
-                MoleculaSearchSettings.min_mz_error = closest_error - MoleculaSearchSettings.mz_error_range
-                MoleculaSearchSettings.max_mz_error = closest_error + MoleculaSearchSettings.mz_error_range
+                MolecularSearchSettings.min_mz_error = closest_error - MolecularSearchSettings.mz_error_range
+                MolecularSearchSettings.max_mz_error = closest_error + MolecularSearchSettings.mz_error_range
 
-        elif MoleculaSearchSettings.error_method == 'lowest':
+        elif MolecularSearchSettings.error_method == 'lowest':
             
             if error < last_error:
-                MoleculaSearchSettings.min_mz_error = error - MoleculaSearchSettings.mz_error_range
-                MoleculaSearchSettings.max_mz_error = error + MoleculaSearchSettings.mz_error_range
+                MolecularSearchSettings.min_mz_error = error - MolecularSearchSettings.mz_error_range
+                MolecularSearchSettings.max_mz_error = error + MolecularSearchSettings.mz_error_range
                 last_error = error
                 
         
-        elif MoleculaSearchSettings.error_method == 'symmetrical':
+        elif MolecularSearchSettings.error_method == 'symmetrical':
                
-               MoleculaSearchSettings.min_mz_error = MoleculaSearchSettings.mz_error_average - MoleculaSearchSettings.mz_error_range
-               MoleculaSearchSettings.max_mz_error = MoleculaSearchSettings.mz_error_average + MoleculaSearchSettings.mz_error_range
+               MolecularSearchSettings.min_mz_error = MolecularSearchSettings.mz_error_average - MolecularSearchSettings.mz_error_range
+               MolecularSearchSettings.max_mz_error = MolecularSearchSettings.mz_error_average + MolecularSearchSettings.mz_error_range
         
-        elif MoleculaSearchSettings.error_method == 'average':
+        elif MolecularSearchSettings.error_method == 'average':
 
                 nbValues += 1
                 error_average = error_average + ((error - error_average) / nbValues)
-                MoleculaSearchSettings.min_mz_error =  error_average - MoleculaSearchSettings.mz_error_range
-                MoleculaSearchSettings.max_mz_error =  error_average + MoleculaSearchSettings.mz_error_range    
+                MolecularSearchSettings.min_mz_error =  error_average - MolecularSearchSettings.mz_error_range
+                MolecularSearchSettings.max_mz_error =  error_average + MolecularSearchSettings.mz_error_range    
                 
                 
         else:
-            #using set MoleculaSearchSettings.min_mz_error and max_mz_error range
+            #using set MolecularSearchSettings.min_mz_error and max_mz_error range
             pass
 
-        '''returns the error based on the selected method at MoleculaSearchSettings.method
+        '''returns the error based on the selected method at MolecularSearchSettings.method
         '''    
         return last_error, last_dif, closest_error, error_average, nbValues        
         
@@ -293,12 +293,12 @@ class SearchMolecularFormulaWorker:
         # method='distance'
         '''
 
-        min_mz_error = MoleculaSearchSettings.min_mz_error
-        max_mz_error = MoleculaSearchSettings.max_mz_error
-        min_abun_error = MoleculaSearchSettings.min_abun_error
-        max_abun_error = MoleculaSearchSettings.max_abun_error
-        max_dbe = MoleculaSearchSettings.max_dbe
-        min_dbe = MoleculaSearchSettings.min_dbe
+        min_mz_error = MolecularSearchSettings.min_mz_error
+        max_mz_error = MolecularSearchSettings.max_mz_error
+        min_abun_error = MolecularSearchSettings.min_abun_error
+        max_abun_error = MolecularSearchSettings.max_abun_error
+        max_dbe = MolecularSearchSettings.max_dbe
+        min_dbe = MolecularSearchSettings.min_dbe
         
         #f = open("abundance_error.txt", "a+")    
         ms_peak_mz_exp, ms_peak_abundance = ms_peak.mz_exp, ms_peak.abundance

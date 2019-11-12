@@ -6,7 +6,7 @@ class MoleculaLookupDictSettings:
 
     # DO change when creating a new application database 
     
-    # FOR search settings runtime and database query check use the MoleculaSearchSettings class below
+    # FOR search settings runtime and database query check use the MolecularSearchSettings class below
 
     # C, H, N, O, S and P atoms are ALWAYS needed at usedAtoms
     # if you don't want to include one of thoses atoms set the max and min at 0
@@ -53,7 +53,7 @@ class MoleculaLookupDictSettings:
 
         self.db_directory = None
 
-class MoleculaSearchSettings:
+class MolecularSearchSettings:
     
     use_min_peaks_filter = True
 

@@ -9,7 +9,7 @@ sys.path.append(".")
 import numpy as np
 from matplotlib import pyplot as pylab
 
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings, MoleculaLookupDictSettings
+from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings, MoleculaLookupDictSettings
 from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration
 #from corems.mass_spectrum.input.massList import Read_MassList
 from corems.molecular_id.search.findOxigenPeaks import FindOxygenPeaks
@@ -70,10 +70,10 @@ def test_calibration():
 
     mass_spectrum = creat_mass_spectrum(file_location)
     
-    MoleculaSearchSettings.error_method = 'None'
-    MoleculaSearchSettings.min_mz_error = -5
-    MoleculaSearchSettings.max_mz_error = 5
-    MoleculaSearchSettings.mz_error_range = 1
+    MolecularSearchSettings.error_method = 'None'
+    MolecularSearchSettings.min_mz_error = -5
+    MolecularSearchSettings.max_mz_error = 5
+    MolecularSearchSettings.mz_error_range = 1
 
     find_formula_thread = FindOxygenPeaks(mass_spectrum)
     find_formula_thread.start()
@@ -86,17 +86,17 @@ def test_calibration():
     #calibrate.step_fit()
     mass_spectrum.clear_molecular_formulas()
 
-    MoleculaSearchSettings.error_method = 'symmetrical'
-    MoleculaSearchSettings.min_mz_error = -3
-    MoleculaSearchSettings.max_mz_error = 3
-    MoleculaSearchSettings.mz_error_range = 1
-    MoleculaSearchSettings.mz_error_average = 0
-    MoleculaSearchSettings.min_abun_error = -30 # percentage 
-    MoleculaSearchSettings.max_abun_error = 70 # percentage 
-    MoleculaSearchSettings.isProtonated = True 
-    MoleculaSearchSettings.isRadical= True 
+    MolecularSearchSettings.error_method = 'symmetrical'
+    MolecularSearchSettings.min_mz_error = -3
+    MolecularSearchSettings.max_mz_error = 3
+    MolecularSearchSettings.mz_error_range = 1
+    MolecularSearchSettings.mz_error_average = 0
+    MolecularSearchSettings.min_abun_error = -30 # percentage 
+    MolecularSearchSettings.max_abun_error = 70 # percentage 
+    MolecularSearchSettings.isProtonated = True 
+    MolecularSearchSettings.isRadical= True 
     
-    MoleculaSearchSettings.usedAtoms = {'C': (1, 100),
+    MolecularSearchSettings.usedAtoms = {'C': (1, 100),
                  'H': (4, 200),
                  'O': (0, 20),
                  'N': (0, 1),

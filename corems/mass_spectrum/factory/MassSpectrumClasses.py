@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting, MassSpecPeakSetting, TransientSetting
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
+from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings
 from corems.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
 from corems.ms_peak.factory.MSPeakClasses import ICRMassPeak as MSPeak
 
@@ -76,7 +76,7 @@ class MassSpecBase(MassSpecCalc):
     
     def _init_settings(self):
         
-        self._mol_search_setting  = deepcopy(MoleculaSearchSettings)
+        self._mol_search_setting  = deepcopy(MolecularSearchSettings)
         self._settings  = deepcopy(MassSpectrumSetting)
         self._mspeaks_setting  = deepcopy(MassSpecPeakSetting)
 
@@ -225,13 +225,13 @@ class MassSpecBase(MassSpecCalc):
         self._settings =  instance_MassSpectrumSetting
         
     @property
-    def molecula_search_settings(self):  return self._mol_search_setting
+    def molecular_search_settings(self):  return self._mol_search_setting
 
-    @molecula_search_settings.setter
+    @molecular_search_settings.setter
     
-    def molecula_search_settings(self, instance_MoleculaSearchSettings):
+    def molecular_search_settings(self, instance_MolecularSearchSettings):
         
-        self._mol_search_setting =  instance_MoleculaSearchSettings
+        self._mol_search_setting =  instance_MolecularSearchSettings
     
     @property
     def freq_exp_profile(self):
