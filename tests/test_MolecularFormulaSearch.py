@@ -11,13 +11,9 @@ sys.path.append('.')
 import pytest
 
 
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings
-from corems.mass_spectrum.input.massList import ReadMassList
 from corems.mass_spectrum.input.numpyArray import ms_from_array_centroid
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
-from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
-from corems.encapsulation.settings.io import settings_parsers
 
 def creat_mass_spectrum():
     
@@ -100,8 +96,6 @@ def test_molecular_formula_search_db():
     
 if __name__ == "__main__":
 
-    
-    settings_parsers.load_search_setting_json()
     #test_molecular_formula_search_db()
     #test_run_molecular_formula_search()
     test_mspeak_search()

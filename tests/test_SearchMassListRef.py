@@ -4,7 +4,6 @@ sys.path.append(".")
 
 from corems.molecular_formula.input.masslist_ref import ImportMassListRef
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
-from corems.encapsulation.constant import Atoms
 
 import pytest
 

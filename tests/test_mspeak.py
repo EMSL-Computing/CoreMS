@@ -1,4 +1,4 @@
-from matplotlib import pyplot
+
 import pytest
 import sys
 from pathlib import Path
@@ -14,11 +14,7 @@ def simulate_peak(mspeak):
     mz_gaus, abund_gaus = mspeak.gaussian_pdf()
 
     return round(mz_lo[0], 3), round(mz_gaus[0], 3), round(abund_lo[0], 3), round(abund_gaus[0], 3)
-    # print(mspeak.fwhm)
-    # pyplot.plot(mz_lo, abund_lo, 'r', label='Lorentz')
-    # pyplot.plot(mz_gaus, abund_gaus, 'g', label='Gauss')
-    # pyplot.legend()
-    # pyplot.show()
+   
 
 def test_mspeak_calculations():
 

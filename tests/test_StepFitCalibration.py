@@ -9,7 +9,7 @@ sys.path.append(".")
 import numpy as np
 from matplotlib import pyplot as pylab
 
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings, MoleculaLookupDictSettings
+from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings
 from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration
 #from corems.mass_spectrum.input.massList import Read_MassList
 from corems.molecular_id.search.findOxigenPeaks import FindOxygenPeaks

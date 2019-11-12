@@ -5,7 +5,6 @@ import sys
 sys.path.append(".")
 
 import pytest
-from corems.encapsulation.constant import Atoms
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula     
 from corems.encapsulation.constant import Labels
 

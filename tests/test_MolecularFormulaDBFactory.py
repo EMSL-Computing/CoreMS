@@ -10,12 +10,11 @@ import pymongo
 import time, sys, os, pytest
 sys.path.append(".")
 
-from corems.encapsulation.constant import Atoms, Labels
+from corems.encapsulation.constant import Labels
 from corems.molecular_id.factory.MolecularLookupTable import  MolecularCombinations
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL
 from corems.molecular_id.factory.molecularMongo import MolForm_Mongo
-from corems.molecular_id.output.export import  MolecularLookUpDictExport
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings, MolecularSearchSettings
+from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings
 
 def create_lookup_dict():
     
@@ -59,8 +58,7 @@ def test_molecular_lookup_db():
     #some atoms has more than one covalence state and the most commun will be used
     # adduct atoms needs covalence 0
     MolecularSearchSettings.usedAtoms['Cl'] = (0,0)
-    possible_valences = Atoms.atoms_covalence.get('Cl')
-    valence_one = possible_valences[0]
+    valence_one = 1
     
     # if you want to specify it in needs to be changed here
     # otherwise it will use the lowest covalence, PS needs insure propagation to isotopologues
