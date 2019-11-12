@@ -26,6 +26,12 @@ def d_parms(file_location):
 
         parameters["bandwidth"] = None
 
+        parameters['analyzer'] = None
+        
+        parameters['instrument_label'] = None 
+
+        parameters['sample_name'] = None
+
         parameters["number_data_points"] = 0
 
         parameters["polarity"] = None

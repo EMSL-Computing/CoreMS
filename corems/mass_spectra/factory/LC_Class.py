@@ -11,11 +11,11 @@ class LCMSBase(LC_Calculations):
     classdocs
     """
 
-    def __init__(self, file_location):
+    def __init__(self, file_location, analyzer='Unknown', instrument_label='Unknown', sample_name=None):
         
         """
         Constructor
-        file_location: Path('')
+        file_location: pathlib.Path() 
             Path object from pathlib containing the file location
         """
         
@@ -24,7 +24,18 @@ class LCMSBase(LC_Calculations):
             raise FileExistsError("File does not exist: " + file_location)
         
         self.file_location = file_location
-        self.sample_name = file_location.stem
+        
+        if sample_name: 
+        
+            self.sample_name = sample_name
+
+        else: 
+        
+            self.sample_name = file_location.stem
+        
+        self.analyzer = analyzer
+        self.instrument_label = instrument_label
+        
         self.retention_time_list = []
         self.scans_number_list = []
         self.tic_list = []

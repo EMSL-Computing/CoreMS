@@ -53,22 +53,10 @@ class PeakPicking(object):
             elif self.label == Labels.simulated_profile:
                 self.calc_centroid(self.mz_exp_profile, self.abundance_profile, self.freq_exp_profile)
             
-            else: raise Exception("Unknow mass spectrum type")
-            #x = threading.Thread(target=self.calc_centroid, args=(mz, abudance, freq))
-            #x.start()
-            #x.join()
-            #while x.is_alive():
-                # progress bar here so it wont freeze application
-                #print( len(self.mspeaks))
+           
+            else: raise Exception("Unknow mass spectrum type", self.label)
             
-            '''
-            print "HELL YES"
-            max_peaks_x_y = SpectrumProcess().peakdetect_mob(ymaxcentroid, x_axis = xmaxcentroid, lookahead = 2)
-
-            max_peaks_x, max_peaks_y = max_peaks_x_y[0], max_peaks_x_y[1]
-
-            del max_peaks_x_y
-            '''
+           
     
     def calculate_resolving_power(self, intes, massa, current_index):
             

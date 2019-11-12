@@ -14,7 +14,8 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
     
     '''class docs'''
     
-    def __init__(self, d_directory_location, auto_process=True, auto_noise=True, keep_profile=False):
+    def __init__(self, d_directory_location, analyzer='ICR', instrument_label='15T', 
+                       auto_process=True, auto_noise=True, keep_profile=False):
 
         Thread.__init__(self)
 
@@ -27,7 +28,7 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
                                 maybe an Imaging experiment?\
                                 please ReadBruker_SolarixTransientImage class for Imaging dataset " % d_directory_location)
 
-        self.lcms = LCMSBase(d_directory_location)
+        self.lcms = LCMSBase(d_directory_location, analyzer, instrument_label)
 
         self.auto_process = auto_process
         self.auto_noise = auto_noise
@@ -49,7 +50,7 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
         
         list_scan, list_rt, list_tic = self.get_scan_attr()
         
-        for scan_index, scan_number in enumerate(list_scan):
+        for scan_index, _ in enumerate(list_scan):
             
             mass_spec = self.get_mass_spectrum(scan_index)
 
@@ -74,7 +75,6 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
 
     def run(self):
         '''creates the lcms obj'''
-
         self.import_mass_spectra()
             
     def get_lcms_obj(self):

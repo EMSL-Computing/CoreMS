@@ -84,7 +84,7 @@ def test_import_lcms_from_transient():
         for mspeak in ms:
             #mspeak.mz_exp,mspeak.mz_abund 
             for mf in mspeak:
-                #mf.to_string, mf.mz_theor, mf.is_isotopologue    
+                mf.to_string, mf.mz_theor, mf.is_isotopologue    
                 pass
 
 
@@ -112,6 +112,7 @@ def test_import_transient():
     print(mass_spec.mspeaks[0].mz_exp, mass_spec.mspeaks[-1].mz_exp)
    
 
+
 def test_import_corems_hdf5():
 
     file_location = Path.cwd() / "tests/tests_data/" / "NEG_ESI_SRFA_CoreMS.hdf5"
@@ -130,7 +131,7 @@ def test_import_corems_hdf5():
             for mf in mspeak:
                 
                 print('mass_spectrum', mf.to_string)
-
+    
     read_lc_ms = ReadCoreMSHDF_MassSpectra(file_location)
 
     read_lc_ms.start()
@@ -145,7 +146,7 @@ def test_import_corems_hdf5():
             for mf in mspeak:
                 
                 print('mass_spectra', mf.to_string)
-
+    
 
 def test_import_corems_mass_list():
 
@@ -154,7 +155,7 @@ def test_import_corems_mass_list():
     #polariy need to be set or read from the file
     
     #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
-    mass_list_reader = ReadCoremsMasslist(file_location, delimiter=",")
+    mass_list_reader = ReadCoremsMasslist(file_location, delimiter=",",  analyzer='ICR', instrument_label='12T')
 
     mass_spectrum = mass_list_reader.get_mass_spectrum()
 
@@ -212,6 +213,11 @@ def test_import_mass_list():
     mass_spectrum = mass_list_reader.get_mass_spectrum(polarity,auto_process=True)
 
 if __name__ == '__main__':
-    #test_import_corems_hdf5()
-    test_import_corems_mass_list()
+    
+    #test_import_booster_mass_spectrum_hdf()
+    #test_import_booster_mass_spectra_hdf()
+    #test_import_lcms_from_transient()
+    #test_import_transient()
+    test_import_corems_hdf5()
+    #test_import_corems_mass_list()
     #test_import_mass_list()

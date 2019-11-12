@@ -14,11 +14,11 @@ class ReadHDF_BoosterMassSpectra(Thread):
     
     '''class docs'''
     
-    def __init__(self, file_location, auto_process=True):
+    def __init__(self, file_location, analyzer='ICR', instrument_label='21T', auto_process=True):
 
         Thread.__init__(self)
 
-        self.lcms = LCMSBase(file_location)
+        self.lcms = LCMSBase(file_location, analyzer=analyzer,instrument_label=instrument_label)
 
         self.hdf_obj =  h5py.File(file_location, 'r')
 
@@ -31,6 +31,10 @@ class ReadHDF_BoosterMassSpectra(Thread):
         self.file_location = file_location
 
         self.auto_process = True
+
+        self.analyzer = analyzer
+
+        self.instrument_label = instrument_label
     
     def get_polarity(self, file_location, scan):
 
@@ -67,6 +71,10 @@ class ReadHDF_BoosterMassSpectra(Thread):
             d_parms["Aterm"] = self.get_attr_data(scan_number, 'r_cparams')[0]
 
             d_parms["Bterm"] = self.get_attr_data(scan_number, 'r_cparams')[1]
+
+            d_parms['analyzer'] = self.analyzer
+        
+            d_parms['instrument_label'] = self.instrument_label
 
             list_rt.append(d_parms["rt"])
 

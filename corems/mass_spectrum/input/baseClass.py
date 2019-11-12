@@ -2,7 +2,8 @@ from pathlib import Path
 
 from pandas import read_csv, read_pickle, read_excel
 
-from corems.encapsulation.settings.input.InputSetting import DataInputSetting
+from corems.encapsulation.settings.input.InputSetting import DataInputSetting, d_parms
+from corems.encapsulation.constant import Labels
 
 class MassListBaseClass:
     '''
@@ -31,7 +32,9 @@ class MassListBaseClass:
        	or add your labels to the SettingsCoreMS.json file and parse the settings
 
     '''
-    def __init__(self, file_location, delimiter="  ", data_type='txt', isCentroid=True):
+    def __init__(self, file_location, delimiter="  ", data_type='txt', isCentroid=True,
+                                        analyzer='Unknown', instrument_label='Unknown',
+                                        sample_name=None):
         
         self.file_location = Path(file_location)
 
@@ -48,7 +51,13 @@ class MassListBaseClass:
 
         self.data_type = data_type
 
-    def get_dataframe(self, scan=0):
+        self.analyzer = analyzer
+
+        self.instrument_label = instrument_label
+
+        self.sample_name = sample_name
+
+    def get_dataframe(self):
 
         if self.data_type == 'txt':
 
@@ -68,19 +77,40 @@ class MassListBaseClass:
 
         return  dataframe 
 
-    def load_settings(self,scan_number):
+    def load_settings(self, mass_spec_obj):
 
         settings_file_path = self.file_location.with_suffix('.json')
         # TODO this will load the setting from SettingCoreMS.json
         # coreMSHFD5 overrides this function to import the attrs stored in the h5 file
+        #loaded_settings = {}
+        #loaded_settings['MoleculaSearch'] = self.get_scan_group_attr_data(scan_index,  time_index, 'MoleculaSearchSetting')
+        #loaded_settings['MassSpecPeak'] = self.get_scan_group_attr_data(scan_index,  time_index, 'MassSpecPeakSetting')
+        
+        #loaded_settings['MassSpectrum'] = self.get_scan_group_attr_data(scan_index, time_index, 'MassSpectrumSetting')
+        #loaded_settings['Transient'] = self.get_scan_group_attr_data(scan_index, time_index, 'TransientSetting')
+        
         print('WARNING not_loading_settings')
         pass
 
 
-    def get_output_parameters(self, polarity, scan=0):
+    def get_output_parameters(self, polarity, scan_index=0):
         
-        output_parameters = dict()
+        #TODO pull attrs from json settings file in load_settings function MassSpecAttrs group and analyzer, instrument_label and sample_name
+        from copy import deepcopy
         
+        output_parameters = d_parms(self.file_location)
+        
+        if self.isCentroid:
+            output_parameters['label'] = Labels.corems_centroid
+        else:
+            output_parameters['label'] = Labels.bruker_profile    
+
+        output_parameters['analyzer'] = self.analyzer
+        
+        output_parameters['instrument_label'] = self.instrument_label
+
+        output_parameters['sample_name'] = self.sample_name
+
         output_parameters["Aterm"] = None
         
         output_parameters["Bterm"] = None
@@ -89,15 +119,13 @@ class MassListBaseClass:
         
         output_parameters["polarity"] = polarity
         
-        output_parameters["filename_path"] = self.file_location
-        
         '''scan_number and rt will be need to lc ms'''
          
         output_parameters["mobility_scan"] = 0
         
         output_parameters["mobility_rt"] = 0
         
-        output_parameters["scan_number"] = scan
+        output_parameters["scan_number"] = scan_index
         
         output_parameters["rt"] = 0
         

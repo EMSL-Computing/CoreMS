@@ -6,6 +6,36 @@ from corems.encapsulation.settings.input.ProcessingSetting import MassSpectrumSe
 from corems.encapsulation.settings.input.ProcessingSetting import MassSpecPeakSetting
 from corems.encapsulation.settings.input.InputSetting import DataInputSetting
 
+def get_dict_data_ms(mass_spec):
+
+    moleculaSearchSettings = {}
+    
+    for item, value in mass_spec.molecula_search_settings.__dict__.items():
+        if not item.startswith('__'):
+            moleculaSearchSettings[item] =  value
+    
+    transientSetting = {}
+    if mass_spec._transient_settings:
+        for item, value in mass_spec.transient_settings.__dict__.items():
+            if not item.startswith('__'):
+                transientSetting[item] =  value
+    
+    massSpectrumSetting = {}
+    for item, value in mass_spec.settings.__dict__.items():
+        if not item.startswith('__'):
+            massSpectrumSetting[item] =  value
+    
+    massSpecPeakSetting = {}
+    for item, value in  mass_spec.mspeaks_settings.__dict__.items():
+        if not item.startswith('__'):
+            massSpecPeakSetting[item] =  value                        
+    
+    return { "MoleculaSearch": moleculaSearchSettings,
+             "Transient": transientSetting,
+             "MassSpectrum": massSpectrumSetting,
+             "MassSpecPeak": massSpecPeakSetting,
+            }
+
 def get_dict_data():
     
     moleculaSearchSettings = {}
@@ -40,10 +70,27 @@ def get_dict_data():
              "DataInput": dataInputSetting,
             }
 
+def set_dict_data_ms(data_loaded, mass_spec):
+    
+    moleculaSearchSettings = MoleculaSearchSettings()
+    transientSetting = TransientSetting()
+    massSpectrumSetting = MassSpectrumSetting()
+    massSpecPeakSetting = MassSpecPeakSetting()
+    
+    moleculaSearchSettings.__dict__ = data_loaded.get("MoleculaSearch")
+    transientSetting.__dict__ = data_loaded.get("Transient")
+    massSpectrumSetting.__dict__ = data_loaded.get("MassSpectrum")
+    massSpecPeakSetting.__dict__ = data_loaded.get("MassSpecPeak")
+
+    mass_spec.molecula_search_settings = moleculaSearchSettings
+    mass_spec.transient_settings = transientSetting
+    mass_spec.settings = massSpectrumSetting
+    mass_spec.mspeaks_settings = massSpecPeakSetting
+ 
 def set_dict_data(data_loaded):
     
     labels = ["MoleculaSearch", "Transient", "MassSpectrum", "MassSpecPeak", "DataInput"]
-    classes = [MoleculaSearchSettings, TransientSetting, MassSpectrumSetting, MassSpecPeakSetting]
+    classes = [MoleculaSearchSettings, TransientSetting, MassSpectrumSetting, MassSpecPeakSetting, DataInputSetting]
     
     label_class = zip(labels, classes)
     
@@ -68,7 +115,6 @@ def dump_search_settings_json( filename='SettingsCoreMS.json'):
     
     '''Write JSON file into current directory
     '''        
-    
     data_dict = get_dict_data()
 
     file_path = Path.cwd() / filename 

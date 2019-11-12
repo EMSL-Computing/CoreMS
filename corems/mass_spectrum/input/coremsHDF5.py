@@ -1,12 +1,16 @@
 
+import json
+
 from pandas import DataFrame
 import h5py
 
-from corems.encapsulation.settings.io.settings_parsers import set_dict_data
+from corems.encapsulation.settings.io.settings_parsers import set_dict_data_ms
 from corems.mass_spectrum.input.massList import ReadCoremsMasslist
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroid
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.settings.input import InputSetting
+from corems.encapsulation.settings.input.InputSetting import DataInputSetting
+
 
 class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
     
@@ -35,24 +39,66 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
         self.scans = list(self.h5pydata.keys())
 
+        print(self.scans)
+    
+    def load_raw_data(self, mass_spectrum, scan_index=0):
+
+        scan_label = self.scans[scan_index]
+
+        mz_profile = self.h5pydata[scan_label]['raw_ms'][0]
+        
+        abundance_profile = self.h5pydata[scan_label]['raw_ms'][1]
+
+        mass_spectrum.mz_exp_profile = mz_profile
+        
+        mass_spectrum.abundance_profile = abundance_profile
+
+    def get_mass_spectrum(self, scan_number=0, time_index=-1, auto_process=True, load_settings=True, load_raw = True):
+        
+        dataframe = self.get_dataframe(scan_number, time_index=time_index)
+        
+        if not set(['H/C', 'O/C', 'Heteroatom Class', 'Ion Type', 'Is Isotopologue']).issubset(dataframe.columns):
+            raise ValueError("%s it is not a valid CoreMS file" % str(self.file_location))
+        
+        dataframe.rename(columns=DataInputSetting.header_translate, inplace=True)
+ 
+        polarity = dataframe['Ion Charge'].values[0]
+
+        output_parameters = self.get_output_parameters(polarity, scan_index=scan_number)
+
+        mass_spec_obj = MassSpecCentroid(dataframe, output_parameters, auto_process=auto_process)
+
+        if load_settings: self.load_settings(mass_spec_obj, scan_index=scan_number, time_index=time_index)
+
+        if load_raw: self.load_raw_data(mass_spec_obj, scan_index=scan_number)
+
+        self.add_molecular_formula(mass_spec_obj, dataframe)
+        
+        return mass_spec_obj
+
     #override baseclass  
-    def load_settings(self, scan):
+    def load_settings(self, mass_spectrum, scan_index = 0, time_index = -1):
 
         loaded_settings = {}
-        loaded_settings['MoleculaSearch'] = self.get_attr_data(scan, 'MoleculaSearchSetting')
-        loaded_settings['MassSpecPeak'] = self.get_attr_data(scan, 'MassSpecPeakSetting')
+        loaded_settings['MoleculaSearch'] = self.get_scan_group_attr_data(scan_index,  time_index, 'MoleculaSearchSetting')
+        loaded_settings['MassSpecPeak'] = self.get_scan_group_attr_data(scan_index,  time_index, 'MassSpecPeakSetting')
         
-        loaded_settings['MassSpectrum'] = self.get_high_level_attr_data('MassSpectrumSetting')
-        loaded_settings['Transient'] = self.get_high_level_attr_data('TransientSetting')
+        loaded_settings['MassSpectrum'] = self.get_scan_group_attr_data(scan_index, time_index, 'MassSpectrumSetting')
         
-        set_dict_data(loaded_settings)
+        loaded_settings['Transient'] = self.get_scan_group_attr_data(scan_index, time_index, 'TransientSetting')
+        
+        set_dict_data_ms(loaded_settings, mass_spectrum)
 
     #override baseclass  
-    def get_dataframe(self, scan):
+    def get_dataframe(self, scan_index = 0, time_index = -1):
 
-        columnsLabels = self.get_attr_data(scan, 'ColumnsLabels')
+        columnsLabels = self.get_scan_group_attr_data(scan_index, time_index, 'ColumnsLabels')
+        
+        scan_label = self.scans[scan_index]
 
-        corems_table_data = self.h5pydata[self.scans[scan]]
+        index_to_pull = self.get_time_index_to_pull(scan_label, time_index)
+        
+        corems_table_data = self.h5pydata[scan_label][index_to_pull]
 
         list_dict = []
         for row in corems_table_data:
@@ -62,52 +108,68 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
                 data_dict[label] = data
             
             list_dict.append(data_dict)
-        
+
         return DataFrame(list_dict)
     
     
-    def get_high_level_attr_data(self, attr_group):
+    def get_time_index_to_pull(self, scan_label, time_index):
         
-        import json
+        time_data = sorted([(i, int(i)) for i in self.h5pydata[scan_label].keys() if i != 'raw_ms'], key=lambda m: m[1])
+        
+        index_to_pull = time_data[time_index][0]     
 
-        return json.loads(self.h5pydata.attrs[attr_group])
+        return index_to_pull
+
+    def get_high_level_attr_data(self, attr_str, ):
+        
+        return self.h5pydata.attrs[attr_str]
    
-    def get_attr_data(self, scan, attr_group, attr_srt=None):
+    def get_scan_group_attr_data(self, scan_index, time_index, attr_group, attr_srt=None):
         
-        import json
+        scan_label = self.scans[scan_index]
 
+        index_to_pull = self.get_time_index_to_pull(scan_label, time_index)
+        
         if attr_srt:
             
-            return json.loads(self.h5pydata[self.scans[scan]].attrs[attr_group])[attr_srt]
+            return json.loads(self.h5pydata[scan_label][index_to_pull].attrs[attr_group])[attr_srt]
         
         else:
              
-             return json.loads(self.h5pydata[self.scans[scan]].attrs[attr_group])
+             data = self.h5pydata[scan_label][index_to_pull].attrs.get(attr_group)
+             if data:
+                return json.loads(data)
+             else:
+                return {}   
    
+    def get_raw_data_attr_data(self, scan_index, attr_group, attr_str):
+        
+        scan_label = self.scans[scan_index]
+        
+        return json.loads(self.h5pydata[scan_label]['raw_ms'].attrs[attr_group])[attr_str]
+
     #override baseclass  
-    def get_output_parameters(self, polarity, scan=0):
+    def get_output_parameters(self, polarity, scan_index=0):
         
         d_parms = InputSetting.d_parms(self.file_location)
-        
-        d_parms["polarity"] = polarity
-        
         d_parms["filename_path"] = self.file_location
+        d_parms["scan_number"] = int(self.scans[scan_index])
+        d_parms['polarity'] = self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'polarity')
+        d_parms['rt'] =     self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'rt')
         
-        d_parms["mobility_scan"] = self.get_attr_data( scan, 'MassSpecAttrs', 'mobility_scan')
+        d_parms['tic'] =  self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'tic')
         
-        d_parms["mobility_rt"] = self.get_attr_data( scan, 'MassSpecAttrs', 'mobility_rt')
+        d_parms['mobility_scan'] =    self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'mobility_scan')
+        d_parms['mobility_rt'] =     self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'mobility_rt')
+        d_parms['Aterm'] =  self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'Aterm')
+        d_parms['Bterm'] =  self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'Bterm')
+        d_parms['Cterm'] = self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'Cterm')
+        d_parms['baselise_noise'] = self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'baselise_noise')
+        d_parms['baselise_noise_std'] = self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'baselise_noise_std')
         
-        d_parms["scan_number"] = scan
-        
-        d_parms["rt"] = self.get_attr_data( scan, 'MassSpecAttrs', 'rt')
-
-        d_parms['label'] = Labels.corems_centroid
-
-        d_parms["Aterm"] = self.get_attr_data( scan, 'MassSpecAttrs','Aterm')
-
-        d_parms["Bterm"] = self.get_attr_data( scan, 'MassSpecAttrs','Bterm')
-            
-        d_parms["Cterm"] = self.get_attr_data( scan, 'MassSpecAttrs','Cterm')
+        d_parms['analyzer'] = self.get_high_level_attr_data('analyzer')
+        d_parms['instrument_label'] = self.get_high_level_attr_data('instrument_label')
+        d_parms['sample_name'] = self.get_high_level_attr_data('sample_name')
 
         return d_parms
 

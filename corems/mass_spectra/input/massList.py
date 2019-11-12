@@ -10,19 +10,20 @@ from corems.mass_spectra.factory.LC_Class import LCMSBase
 
 class ReadCoremsMassSpectraText(ReadCoremsMasslist, Thread):
     
-    def __init__(self, file_location):
+    def __init__(self, file_location, analyzer='Unknown', instrument_label='Unknown'):
         
         if not Path(file_location).exists:
             raise FileNotFoundError("%s not found" % file_location)
         
         if not Path(file_location).suffix == '.corems':
+            
             raise TypeError("%s is not a valid CoreMS file" % file_location)
         
         Thread.__init__(self)
         
         ReadCoremsMasslist.__init__(self, file_location)
         
-        self.lcms = LCMSBase(self.file_location)
+        self.lcms = LCMSBase(self.file_location, analyzer=analyzer,instrument_label=instrument_label)
 
     def get_scans_filename(self):
         

@@ -1,22 +1,18 @@
 import time, gc
+from pathlib import Path
 
 #from matplotlib import rcParamsDefault, rcParams
 from numpy import array, power, float64
 import matplotlib.pyplot as plt
 
 from corems.encapsulation.constant import Labels
-from corems.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting, MassSpecPeakSetting
+from corems.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting, MassSpecPeakSetting, TransientSetting
+from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaSearchSettings
 from corems.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
 from corems.ms_peak.factory.MSPeakClasses import ICRMassPeak as MSPeak
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
-
-#fig = plt.figure()
-
-#fig.patch.set_facecolor(None)
-
-#fig.patch.set_alpha(0)
 
 def overrides(interface_class):
     def overrider(method):
@@ -63,22 +59,26 @@ class MassSpecBase(MassSpecCalc):
 
         self._abundance = array(abundance, dtype=float64)
         self._mz_exp = array(mz_exp, dtype=float64)
-        self._baselise_noise = None
-        self._baselise_noise_std = None
+        
         #objects created after process_mass_spec() function
         self._mspeaks = list()
         self._dict_nominal_masses_indexes  = dict()
-        self._set_parameters_objects(d_params)
+        self._baselise_noise = None
+        self._baselise_noise_std = None
 
-        # frequency is set inside MassSpecfromFreq Class
+        #set to None: initialization occurs inside subclass MassSpecfromFreq
+        self._transient_settings = None 
         self._frequency_domain = None
-
-        # for (key, value) in kwargs.items():
-        #    print(key, value)
-        #    if hasattr(self, key):
-        #        setattr(self, key, value)
-        #        print(key, value)
+        
+        self._init_settings()
+        self._set_parameters_objects(d_params)
     
+    def _init_settings(self):
+        
+        self._mol_search_setting  = MoleculaSearchSettings()
+        self._settings  = MoleculaSearchSettings()
+        self._mspeaks_setting  = MassSpecPeakSetting()
+
     def __len__(self):
         
         return len(self.mspeaks)
@@ -124,7 +124,7 @@ class MassSpecBase(MassSpecCalc):
                 
             )
         )
-
+    
     def _set_parameters_objects(self, d_params):
 
         self._calibration_terms = (
@@ -132,6 +132,12 @@ class MassSpecBase(MassSpecCalc):
             d_params.get("Bterm"),
             d_params.get("Cterm"),
         )
+
+        self.label = d_params.get(Labels.label)
+
+        self.analyzer = d_params.get('analyzer')
+        
+        self.instrument_label = d_params.get('instrument_label')
 
         self.polarity = int(d_params.get("polarity"))
 
@@ -143,11 +149,17 @@ class MassSpecBase(MassSpecCalc):
 
         self.mobility_scan = d_params.get("mobility_scan")
 
-        self._filename = d_params.get("filename")
+        self._filename = d_params.get("filename_path")
 
         self._dir_location = d_params.get("dir_location")
 
-        self.location = 220
+        if d_params.get('sample_name'): 
+        
+            self.sample_name = d_params.get('sample_name')
+
+        else: 
+        
+            self.sample_name = self.filename.stem
 
     def reset_cal_therms(self, Aterm, Bterm, C, fas= 0):
         
@@ -165,27 +177,20 @@ class MassSpecBase(MassSpecCalc):
         return array([mspeak.clear_molecular_formulas() for mspeak in self.mspeaks])
 
     def process_mass_spec(self,  keep_profile=True, auto_noise=True):
+        
         #from numpy import delete
         self.cal_noise_treshould(auto=auto_noise)
         
         self.find_peaks()
         
         self.reset_indexes()
-        all_indexes = range(len(self.mz_exp_profile))
         
         if not keep_profile:
             
             self._abundance *= 0
             self._mz_exp  *= 0
             self._abundance  *= 0
-            
-            #self.abundance_profile = list()
-            #self.freq_exp_profile = list()
-
-            #delete(self.mz_exp_profile, all_indexes)
-            #delete(self.abundance_profile, all_indexes)
-            #delete(self.freq_exp_profile, all_indexes)
-            #gc.collect()
+        
 
     def cal_noise_treshould(self, auto=True):
 
@@ -196,18 +201,52 @@ class MassSpecBase(MassSpecCalc):
         else:
             
             self._baselise_noise, self._baselise_noise_std = self.run_noise_threshould_calc(auto)
+
+    @property
+    def mspeaks_settings(self):  return self._mspeaks_setting
+
+    @mspeaks_settings.setter
+    def mspeaks_settings(self, instance_MassSpecPeakSetting):
+        if isinstance(instance_MassSpecPeakSetting, MassSpecPeakSetting):
+            self._mspeaks_setting =  instance_MassSpecPeakSetting
+        else:
+            raise TypeError(instance_MassSpecPeakSetting, "is not a MassSpectrumSetting instance")  
+
+    
+    @property
+    def settings(self):  return self._settings
+
+    @settings.setter
+    def settings(self, instance_MassSpectrumSetting):
+        if isinstance(instance_MassSpectrumSetting, MassSpectrumSetting):
+            self._settings =  instance_MassSpectrumSetting
+        else:
+            raise TypeError(instance_MassSpectrumSetting, "is not a MassSpectrumSetting instance")       
+
+    @property
+    def molecula_search_settings(self):  return self._mol_search_setting
+
+    @molecula_search_settings.setter
+    def molecula_search_settings(self, instance_MoleculaSearchSettings):
+        
+        if isinstance(instance_MoleculaSearchSettings, MoleculaSearchSettings):
             
+            self._mol_search_setting =  instance_MoleculaSearchSettings
+        
+        else:
+            raise TypeError(instance_MoleculaSearchSettings, "is not a MoleculaSearchSettings instance")      
+
     @property
     def freq_exp_profile(self):
         return self._frequency_domain
 
     @property
-    def mz_exp_profile(self): return self._mz_exp
-    
-    @property
     def mz_exp(self):
         self.check_mspeaks()
         return array([mspeak.mz_exp for mspeak in self.mspeaks])
+
+    @property
+    def mz_exp_profile(self): return self._mz_exp
 
     @mz_exp_profile.setter
     def mz_exp_profile(self, _mz_exp ): self._mz_exp = _mz_exp
@@ -215,6 +254,10 @@ class MassSpecBase(MassSpecCalc):
     @property
     def abundance_profile(self): return self._abundance
     
+    @abundance_profile.setter
+    def abundance_profile(self, _abundance): return self._abundance
+    
+
     @property
     def abundance(self):
         self.check_mspeaks()
@@ -298,7 +341,7 @@ class MassSpecBase(MassSpecCalc):
 
     @property
     def filename(self):
-        return self._filename
+        return Path(self._filename)
 
     @property
     def dir_location(self):
@@ -523,11 +566,10 @@ class MassSpecProfile(MassSpecBase):
         """
         method docs
         """
-        self.label = d_params.get("label")
-
         mz_exp = dataframe["m/z"].values
         abundance = dataframe["Abundance"].values
         super().__init__(mz_exp, abundance, d_params)
+        
         if auto_process:
             self.process_mass_spec(auto_noise)
 
@@ -588,12 +630,14 @@ class MassSpecfromFreq(MassSpecBase):
         """
         super().__init__(None, magnitude, d_params)
 
-        self.label = d_params.get("label")
+        self._transient_settings = TransientSetting()
         self._frequency_domain = frequency_domain
         self._set_mz_domain()
+        
         """ use this call to automatically process data as the object is created, Setting need to be changed before initiating the class to be in effect"""
         if auto_process:
             self.process_mass_spec(keep_profile=keep_profile, auto_noise=auto_noise)
+
 
     def _set_mz_domain(self):
 
@@ -604,6 +648,16 @@ class MassSpecfromFreq(MassSpecBase):
         else:
 
             self._mz_exp = self._f_to_mz()
+
+    @property
+    def transient_settings(self):  return self._transient_setting
+
+    @transient_settings.setter
+    def transient_settings(self, instance_TransientSetting):
+        if isinstance(instance_TransientSetting, TransientSetting):
+            self._transient_setting =  instance_TransientSetting  
+        else:
+            raise TypeError(instance_TransientSetting, "is not a TransientSetting instance")    
 
 class MassSpecCentroid(MassSpecBase):
 
@@ -660,12 +714,7 @@ class MassSpecCentroid(MassSpecBase):
         """needs to simulate peak shape and pass as mz_exp and magnitude."""
         exp_mz_centroid = dataframe["m/z"].values
         magnitude_centroid = dataframe["Abundance"].values
-        # mz_exp, magnitude = self.__simulate_profile__data__(
-        #    exp_mz_centroid, magnitude_centroid)
-
-        # print( mz_exp)
-
-        self.label = d_params.get("label")
+        
         self.dataframe = dataframe
         super().__init__(exp_mz_centroid, magnitude_centroid, d_params)
 
@@ -679,10 +728,9 @@ class MassSpecCentroid(MassSpecBase):
             del self.dataframe
 
     def __simulate_profile__data__(self, exp_mz_centroid, magnitude_centroid):
-        """needs theoretical resolving power calculation and define peak shape
-        this is a quick fix to be able to plot as lines
-        peakshape = #Gaussian"""
-
+        '''needs theoretical resolving power calculation and define peak shape
+        this is a quick fix to be able to plot as lines'''
+        
         x, y = [], []
         for i in range(len(exp_mz_centroid)):
             x.append(exp_mz_centroid[i] - 0.0000001)

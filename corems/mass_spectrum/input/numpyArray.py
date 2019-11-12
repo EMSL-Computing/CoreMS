@@ -31,6 +31,10 @@ def get_output_parameters(polarity, file_location):
         
         d_parms = InputSetting.d_parms(file_location)
         
+        d_parms['analyzer'] = 'Generic Simulated'
+
+        d_parms['instrument_label'] = 'Generic Simulated'
+
         d_parms["polarity"] = polarity
         
         d_parms["filename_path"] = file_location

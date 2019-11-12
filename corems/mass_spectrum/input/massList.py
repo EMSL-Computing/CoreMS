@@ -16,11 +16,9 @@ class ReadCoremsMasslist(MassListBaseClass):
     Please see MassListBaseClass for more details
     
     '''
-    def get_mass_spectrum(self, scan_number=0, auto_process=True, loadSettings=True):
+    def get_mass_spectrum(self, scan_number=0, time_index=-1, auto_process=True, loadSettings=True):
         
-        if loadSettings: self.load_settings(scan_number)
-
-        dataframe = self.get_dataframe(scan_number)
+        dataframe = self.get_dataframe()
        
         if not set(['H/C', 'O/C', 'Heteroatom Class', 'Ion Type', 'Is Isotopologue']).issubset(dataframe.columns):
             raise ValueError("%s it is not a valid CoreMS file" % str(self.file_location))
@@ -31,9 +29,11 @@ class ReadCoremsMasslist(MassListBaseClass):
  
         polarity = dataframe['Ion Charge'].values[0]
 
-        output_parameters = self.get_output_parameters(polarity, scan=scan_number)
+        output_parameters = self.get_output_parameters(polarity)
 
         mass_spec_obj = MassSpecCentroid(dataframe, output_parameters, auto_process=auto_process)
+
+        if loadSettings: self.load_settings(mass_spec_obj)
 
         self.add_molecular_formula(mass_spec_obj, dataframe)
         
@@ -70,7 +70,7 @@ class ReadCoremsMasslist(MassListBaseClass):
                 counts = list(formula_df.iloc[df_index].astype(int))
 
                 formula_list = [sub[item] for item in range(len(atoms)) 
-                        for sub in [atoms, counts]] 
+                                for sub in [atoms, counts]] 
             if sum(counts) > 0:
 
                 ion_type = str(Labels.ion_type_translate.get(ion_type_df[df_index]))
@@ -99,8 +99,6 @@ class ReadMassList(MassListBaseClass):
         '''
         #delimiter = "  " or " " or  "," or "\t" etc  
         
-        if loadSettings: self.load_settings(scan)
-
         dataframe = self.get_dataframe()
         
         self.check_columns(dataframe.columns)
@@ -113,12 +111,18 @@ class ReadMassList(MassListBaseClass):
             
         if self.isCentroid:
             
-            return MassSpecCentroid(dataframe, output_parameters, auto_process=auto_process)
+            mass_spec = MassSpecCentroid(dataframe, output_parameters, auto_process=auto_process)
+            
+            if loadSettings: self.load_settings(mass_spec)
+            
+            return mass_spec
 
         else:
-            
-            output_parameters[Labels.label] = Labels.bruker_profile
-    
-            return MassSpecProfile(dataframe, output_parameters, auto_process=auto_process)
+
+            mass_spec = MassSpecProfile(dataframe, output_parameters, auto_process=auto_process)
+
+            if loadSettings: self.load_settings(mass_spec)
+
+            return mass_spec
     
     

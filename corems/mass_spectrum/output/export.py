@@ -4,13 +4,13 @@ __date__ = "Set 06, 2019"
 from threading import Thread
 from pathlib import Path
 
-from numpy import string_, array, NaN
+from numpy import string_, array, NaN, empty
 from pandas import DataFrame
 
-from corems.encapsulation.settings.io.settings_parsers import get_dict_data
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.settings.io import settings_parsers
+from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
 
 class MassSpecExport(Thread):
     
@@ -107,9 +107,8 @@ class MassSpecExport(Thread):
         
         import json
         
-        dict_setting = settings_parsers.get_dict_data()
-        del dict_setting['DataInput']
-        
+        dict_setting = settings_parsers.get_dict_data_ms(mass_spectrum)
+
         dict_setting['MassSpecAttrs'] = self.get_mass_spec_attrs(mass_spectrum)
         
         with open(output_path.with_suffix('.json'), 'w', encoding='utf8', ) as outfile:
@@ -161,71 +160,89 @@ class MassSpecExport(Thread):
             print(ioerror)
     
    
-    def to_hdf(self, analyzer, instrument_label):
+    def to_hdf(self):
         
         import h5py
         import json
         from datetime import datetime, timezone
 
-        with h5py.File(self.output_file.with_suffix('.hdf5'), 'w') as hdf_handle:
+        with h5py.File(self.output_file.with_suffix('.hdf5'), 'a') as hdf_handle:
             
             list_results = self.list_dict_to_list(self.mass_spectrum)
             
-            dict_ms_attrs = self.none_to_nan_and_json(self.get_mass_spec_attrs(self.mass_spectrum))
+            dict_ms_attrs = self.get_mass_spec_attrs(self.mass_spectrum)
             
-            setting_dicts = settings_parsers.get_dict_data()
+            setting_dicts = settings_parsers.get_dict_data_ms(self.mass_spectrum)
 
             columns_labels = json.dumps(self.columns_label + self.get_all_used_atoms_in_ordem(self.mass_spectrum))
 
-            if not hdf_handle['date']:
+            if not hdf_handle.attrs.get('date_utc'):
 
-                timenow = datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z")
-                hdf_handle['date_utc'] = timenow
-                hdf_handle['filename'] = self.mass_spectrum.filename.name
-                hdf_handle['analyzer'] = analyzer
-                hdf_handle['instrument_label'] = instrument_label
-                hdf_handle['data_structure'] = 'mass_spectrum'
+                timenow = str(datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z"))
+                hdf_handle.attrs['date_utc'] = timenow
+                hdf_handle.attrs['file_name'] = self.mass_spectrum.filename.name
+                hdf_handle.attrs['data_structure'] = 'mass_spectrum'
+                hdf_handle.attrs['analyzer'] = self.mass_spectrum.analyzer
+                hdf_handle.attrs['instrument_label'] = self.mass_spectrum.instrument_label
+                hdf_handle.attrs['sample_name'] = self.mass_spectrum.sample_name
 
-            scan_group = hdf_handle.create_group(str(self.mass_spectrum.scan_number))
-  
-            if self.mass_spectrum.abundance_profile:
-                
-                mz_abun_array = array(self.mass_spectrum.abundance_profile, self.mass_spectrum.mz_profile)
-                
-                raw_ms_dataset = scan_group.create_dataset('raw_ms', data=mz_abun_array, dtype="f8")
+            group_key = str(self.mass_spectrum.scan_number)
             
+            if not group_key in hdf_handle.keys():
+                
+                scan_group = hdf_handle.create_group(str(self.mass_spectrum.scan_number))
+
+                if list(self.mass_spectrum.abundance_profile):
+                
+                    mz_abun_array = empty(shape=(2,len(self.mass_spectrum.abundance_profile)))
+                    
+                    mz_abun_array[0] = self.mass_spectrum.abundance_profile
+                    mz_abun_array[1] = self.mass_spectrum.mz_exp_profile
+                    
+                    raw_ms_dataset = scan_group.create_dataset('raw_ms', data=mz_abun_array, dtype="f8")
+
+                else:
+                    #create empy dataset for missing raw data
+                    raw_ms_dataset = scan_group.create_dataset('raw_ms', dtype="f8")
+
+                raw_ms_dataset.attrs['MassSpecAttrs'] = self.to_json(dict_ms_attrs)
+                
+                if isinstance(self.mass_spectrum, MassSpecfromFreq):
+                    raw_ms_dataset.attrs['TransientSetting'] = self.to_json(setting_dicts.get('TransientSetting'))
+
             else:
                 
-                #create empy dataset for missing raw data
-                raw_ms_dataset = scan_group.create_dataset('raw_ms', dtype="f8")
-
-            raw_ms_dataset.attrs['MassSpecAttrs'] = dict_ms_attrs
-            raw_ms_dataset.attrs['TransientSetting'] = self.none_to_nan_and_json(setting_dicts.get('TransientSetting'))
-
+                scan_group = hdf_handle.get(group_key)
+    
             # if there is not processed data len = 0, otherwise len() will return next index
             index_processed_data = str(len(scan_group.keys()))
-
-            processed_dset = scan_group.create_dataset(index_processed_data, data=list_results,  dtype="S")
+            
+            print('index_processed_data', index_processed_data)
+            
+            timenow = str(datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z"))
+            
+            processed_dset = scan_group.create_dataset(index_processed_data, data=list_results)
         
-            processed_dset['date_utc'] = timenow
+            processed_dset.attrs['date_utc'] = timenow
 
             processed_dset.attrs['ColumnsLabels'] = columns_labels
             
-            processed_dset.attrs['MoleculaSearchSetting'] = self.none_to_nan_and_json(setting_dicts.get('MoleculaSearch'))
+            processed_dset.attrs['MoleculaSearchSetting'] = self.to_json(setting_dicts.get('MoleculaSearch'))
             
-            processed_dset.attrs['MassSpecPeakSetting'] = self.none_to_nan_and_json(setting_dicts.get('MassSpecPeak'))
+            processed_dset.attrs['MassSpecPeakSetting'] = self.to_json(setting_dicts.get('MassSpecPeak'))
 
-            processed_dset.attrs['MassSpectrumSetting'] = self.none_to_nan_and_json(setting_dicts.get('MassSpectrum'))
+            processed_dset.attrs['MassSpectrumSetting'] = self.to_json(setting_dicts.get('MassSpectrum'))
+
 
     @staticmethod     
-    def none_to_nan_and_json(dict_data):
+    def to_json(dict_data, nan=False):
         
         import json
-        for key, values in dict_data.items():
-            if not values: dict_data[key] = NaN
+        #for key, values in dict_data.items():
+        #    if not values: dict_data[key] = NaN
         
-        output = json.dumps(dict_data, sort_keys=True, indent=4, separators=(',', ': '))
-        return json.dumps(output)
+        #output = json.dumps(dict_data, sort_keys=True, indent=4, separators=(',', ': '))
+        return json.dumps(dict_data)
 
     def get_mass_spec_attrs(self, mass_spectrum):
 
@@ -240,7 +257,7 @@ class MassSpecExport(Thread):
         dict_ms_attrs['Cterm'] =  mass_spectrum.Cterm
         dict_ms_attrs['baselise_noise'] =  mass_spectrum.baselise_noise
         dict_ms_attrs['baselise_noise_std'] =  mass_spectrum.baselise_noise_std
-          
+       
         return dict_ms_attrs
 
 
