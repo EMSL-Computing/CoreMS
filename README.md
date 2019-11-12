@@ -1,6 +1,12 @@
 # CoreMS
 
-**CoreMS** is a comprehensive mass spectrometry framework for small molecules analysis.
+**CoreMS** is a comprehensive mass spectrometry framework for software development and data analysis of small molecules analysis.
+
+- reproducible pipeline
+- logical mass spectrometric data structure
+- self-containing data and metadata storage
+- modern molecular formulae assigment algorithms
+- dinamic molecular search space database search and generator
 
 ## Current Version
 
@@ -10,30 +16,36 @@
 
 ### Data input formats
 
-- Bruker Solarix ComprassXtract
-- Bruker Solarix transients, ser and fid (FT and magnitude mode)
-- ThermoFisher Raw
-- Spectroswiss Signal booster data-acquisition station
-- Midas (.dat) from MagLab ICR data-acquisition station (FT and magnitude mode)
-- Mass list in Profile and Centroid Mode (include all delimiters types and Excel)
-- CoreMS exported processed mass list files(Excel, csv, txt, hdf5)
-- Panda dataframe
+- Bruker Solarix (CompassXtract)
+- Bruker Solarix transients, ser and fid (FT magnitude mode only)
+- ThermoFisher (.raw)
+- Spectroswiss signal booster data-acquisition station (.hdf5)
+- MagLab ICR data-acquisition station (FT and magnitude mode) (.dat)
+- Generic mass list in profile and centroid mde (include all delimiters types and Excel formats)
+- CoreMS exported processed mass list files(excel, .csv, .txt, pandas dataframe as .pkl)
+- CoreMS self-containing Hierarchical Data Format (.hdf5)
+- Pandas dataframe
 
 ### Data output formats
 
-- Text Files (csv, tab separated txt, etc)
-- Microsoft Excel (xlsx)
-- Hierarchical Data Format (.hdf5) with processing setting and class attributes
 - Pandas data frame (can be saved using pickle, h5, etc)
+- Text Files (.csv, tab separated .txt, etc)
+- Microsoft Excel (xlsx)
+- Automatic JSON for metadata storage and reusage
+- Self-containing Hierarchical Data Format (.hdf5) inclusing raw data and ime-series datapoint for processed datasets with all associated metadata stored as json attributes
 
-### Data structure type
+### Data structure types
 
 - LC-MS
-- IMS-MS
+- IMS-MS (`TODO`)
 - LC-IMS-MS (`TODO`)
+- Collections (`TODO`)
 - Transient
 - Mass Spectra
 - Mass Spectrum
+- Mass Spectral Peak
+- Molecular Formula
+- Molecular Structure (`TODO`)
 
 ## Available features
 
@@ -41,23 +53,23 @@
 
 - Apodization, Zerofilling, and Magnitude mode FT
 - Manual and automatic noise threshold calculation
-- Peak picking apex quadratic fitting
-- Resolving Power calculation
+- Peak picking using apex quadratic fitting
+- Experimental resolving power calculation
 
 ### Calibration
 
 - Frequency and m/z domain calibration functions:
-- ledford equation [ref]
-- linear equation
-- quadratic equation
+- Ledford equation [ref]
+- Linear equation
+- Quadratic equation
 - Automatic search most abundant **Ox** homologue serie
-- step fit ('walking calibration") based on the ledford equation [ref]
+- Step fit ('walking calibration") based on the ledford equation [ref]
 
 ### Molecular formulae search and assignment
 
 - Automatic local (SQLite) or external (MongoDB or Postgres) database check, generation, and search
 - Automatic molecular formulae assignments algorithm for ESI(-) MS for natural organic matter analysis
-- Automatic fine isotopic structure calculation and search
+- Automatic fine isotopic structure calculation and search for all isotopes
 - Flexible Kendrick normalization base
 - Kendrick filter using density-based clustering
 
@@ -65,7 +77,7 @@
 
 - Peak shape (Lorentz and Gaussian)
 - Mass error distribution(`TODO`)
-- ICR Resolving Power based on magnetic field (B), and transient time(T)
+- Calculated ICR Resolving Power based on magnetic field (B), and transient time(T)
 
 ## Basic example
 
@@ -130,7 +142,7 @@ exportMS = MassSpecExport('neg_esi_srfa_1ppm_test',  mass_spectrum_obj.filter_
 #get pandas dataframe
 df_obj = exportMS.get_pandas_df()
 #set file output type
-exportMS.output_type = ’excel’ #csv, txt
+exportMS.output_type = 'hdf5' #csv, txt, #pandas
 #save the file
 exportMS.save()
 ```
