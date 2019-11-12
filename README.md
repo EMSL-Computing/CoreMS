@@ -10,7 +10,7 @@
 
 ## Current Version
 
-### `0.0.1.beta`
+### `0.1.0.beta`
 
 [![pipeline status](https://gitlab.pnnl.gov/mass-spectrometry/corems/badges/master/pipeline.svg)](https://gitlab.pnnl.gov/corilo/corems/commits/master) [![coverage report](https://gitlab.pnnl.gov/mass-spectrometry/corems/badges/master/coverage.svg)](https://gitlab.pnnl.gov/corilo/corems/commits/master)
 
@@ -89,7 +89,7 @@
     docker run -v home/user/yourdir -p 8888:8888 gitlab.pnnl.gov:4567/mass-spectrometry/corems:latest
     ```
 
-- Open address provided in the terminal: `http://127.0.0.1:8888/?token={}`
+- Open address provided in the terminal: `http://127.0.1.0:8888/?token={}`
 
 - Open CoreMS-Tutorial.ipynb
 
