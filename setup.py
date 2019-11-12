@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 HERE = pathlib.Path(__file__).parent
 
 # The text of the README file
-README = (HERE / "README.md").read_text()
+README = (HERE / "README.md").read_text(encoding='utf-8')
 
 # This call to setup() does all the work
 setup(
@@ -15,7 +15,7 @@ setup(
     description="Object Oriented Mass Spectrometry ToolBox for Small Molecules Analysis",
     long_description=README,
     long_description_content_type="text/markdown",
-    url="https://gitlab.pnnl.gov/corilo/corems/",
+    url="https://gitlab.pnnl.gov/mass-spectrometry/corems/",
     author="Corilo, Yuri",
     author_email="corilo@pnnl.gov",
     license="GNU Affero General Public License v3.0",

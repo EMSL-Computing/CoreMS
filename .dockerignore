@@ -15,11 +15,12 @@ core_env/
 .vscode/  
 .pytest_cache/
 .vs/
-res/data/
-.eggs/
-dist/
+res/data/*
+.eggs/*
+dist/*
 build/
-tests/
-support_code/
-db/
+tests/*
+tests/test_data/*
+support_code/*
+db/*
 
