@@ -159,7 +159,7 @@ class SearchMolecularFormulas:
 
         nominal_mzs = [ms_peak.nominal_mz_exp for ms_peak in  ms_peaks]
 
-        dict_res = self.get_dict_molecular_database(classes_str, nominal_mzs, mass_spectrum_obj)
+        dict_res = self.get_dict_molecular_database(classes_str, nominal_mzs, mass_spectrum_obj.molecular_search_settings)
 
         for ms_peak in  ms_peaks:
 

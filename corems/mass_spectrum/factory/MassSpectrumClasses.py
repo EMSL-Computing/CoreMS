@@ -68,7 +68,7 @@ class MassSpecBase(MassSpecCalc):
         self._baselise_noise_std = None
 
         #set to None: initialization occurs inside subclass MassSpecfromFreq
-        self._transient_settings = None 
+        self._transient_setting = None 
         self._frequency_domain = None
         
         self._init_settings()
@@ -76,9 +76,10 @@ class MassSpecBase(MassSpecCalc):
     
     def _init_settings(self):
         
-        self._mol_search_setting  = deepcopy(MolecularSearchSettings)
+        self._mol_search_settings  = deepcopy(MolecularSearchSettings)
         self._settings  = deepcopy(MassSpectrumSetting)
-        self._mspeaks_setting  = deepcopy(MassSpecPeakSetting)
+        self._mspeaks_settings  = deepcopy(MassSpecPeakSetting)
+        
 
     def __len__(self):
         
@@ -208,13 +209,13 @@ class MassSpecBase(MassSpecCalc):
             self._baselise_noise, self._baselise_noise_std = self.run_noise_threshould_calc(auto)
 
     @property
-    def mspeaks_settings(self):  return self._mspeaks_setting
+    def mspeaks_settings(self):  return self._mspeaks_settings
 
     @mspeaks_settings.setter
     
     def mspeaks_settings(self, instance_MassSpecPeakSetting):
        
-            self._mspeaks_setting =  instance_MassSpecPeakSetting
+            self._mspeaks_settings =  instance_MassSpecPeakSetting
        
     @property
     def settings(self):  return self._settings
@@ -225,13 +226,13 @@ class MassSpecBase(MassSpecCalc):
         self._settings =  instance_MassSpectrumSetting
         
     @property
-    def molecular_search_settings(self):  return self._mol_search_setting
+    def molecular_search_settings(self):  return self._mol_search_settings
 
     @molecular_search_settings.setter
     
     def molecular_search_settings(self, instance_MolecularSearchSettings):
         
-        self._mol_search_setting =  instance_MolecularSearchSettings
+        self._mol_search_settings =  instance_MolecularSearchSettings
     
     @property
     def freq_exp_profile(self):
@@ -647,12 +648,12 @@ class MassSpecfromFreq(MassSpecBase):
             self._mz_exp = self._f_to_mz()
 
     @property
-    def transient_settings(self):  return self._transient_setting
+    def transient_settings(self):  return self._transient_settings
 
     @transient_settings.setter
     def transient_settings(self, instance_TransientSetting):
         
-        self._transient_setting =  instance_TransientSetting  
+        self._transient_settings =  instance_TransientSetting  
         
 class MassSpecCentroid(MassSpecBase):
 

@@ -33,6 +33,8 @@ class ReadBrukerSolarix(object):
 
         self.d_directory_location = d_directory_location
         
+        self.file_location = d_directory_location
+        
         try:
 
             self.parameter_filename_location = self.locate_file(

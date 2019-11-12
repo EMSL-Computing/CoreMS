@@ -79,6 +79,20 @@
 - Mass error distribution(`TODO`)
 - Calculated ICR Resolving Power based on magnetic field (B), and transient time(T)
 
+## Jupyter-CoreMS
+
+- [Install docker for desktop](https://hub.docker.com/?overlay=onboarding)
+
+- Open a terminal and run:
+
+    ```bash
+    docker run -v home/user/yourdir -p 8888:8888 gitlab.pnnl.gov:4567/mass-spectrometry/corems:latest
+    ```
+
+- Open address provided in the terminal: `http://127.0.0.1:8888/?token={}`
+
+- Open CoreMS-Tutorial.ipynb
+
 ## Basic example
 
 ```python

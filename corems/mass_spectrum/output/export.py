@@ -26,7 +26,6 @@ class MassSpecExport(Thread):
             'excel', 'csv', 'hdf5' or 'pandas'
         
         '''
-        
         Thread.__init__(self)
 
         self.output_file = Path(out_file_path)

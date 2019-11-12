@@ -15,7 +15,7 @@ def get_dict_data_ms(mass_spec):
             MolecularSearchSettings[item] =  value
     
     transientSetting = {}
-    if mass_spec._transient_settings:
+    if mass_spec.transient_settings:
         for item, value in mass_spec.transient_settings.__dict__.items():
             if not item.startswith('__'):
                 transientSetting[item] =  value
