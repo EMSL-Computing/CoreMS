@@ -17,6 +17,7 @@ class ReadMidasDatFile():
         '''
         Constructor
         '''
+        raise NotImplementedError("This class is not yet implemented, if you want to use it please contact the author at corilo@pnnl.gov or feel free to implement it")
         if not path.isfile(filename_path):
             raise Exception("File does not exist: "+ filename_path)
         

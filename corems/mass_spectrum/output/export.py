@@ -84,7 +84,7 @@ class MassSpecExport(Thread):
         elif self.output_type == 'pandas':
             self.to_pandas()
         elif self.output_type == 'hdf5':
-            self.to_pandas()
+            self.to_hdf()
         else:
             raise ValueError(
                 "Unkown output type: %s; it can be 'excel', 'csv' or 'pandas'" % self.output_type)

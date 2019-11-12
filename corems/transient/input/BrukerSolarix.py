@@ -103,6 +103,8 @@ class ReadBrukerSolarix(object):
 
                 output_parameters["tic"] = tics[scan_index]
         
+        output_parameters["analyzer"] = "ICR"
+
         output_parameters["label"] = "Bruker_Frequency"
 
         output_parameters["Aterm"] = float(d_params.get("ML1"))

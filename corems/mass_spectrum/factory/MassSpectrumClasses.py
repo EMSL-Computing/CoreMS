@@ -68,7 +68,7 @@ class MassSpecBase(MassSpecCalc):
         self._baselise_noise_std = None
 
         #set to None: initialization occurs inside subclass MassSpecfromFreq
-        self._transient_setting = None 
+        self._transient_settings = None 
         self._frequency_domain = None
         
         self._init_settings()

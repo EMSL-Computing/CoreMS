@@ -14,27 +14,27 @@ def d_parms(file_location):
 
         parameters = dict()
 
-        parameters["Aterm"] = None
+        parameters["Aterm"] = 0
 
-        parameters["Bterm"] = None
+        parameters["Bterm"] = 0
 
-        parameters["Cterm"] = None
+        parameters["Cterm"] = 0
 
-        parameters["exc_high_freq"] = None
+        parameters["exc_high_freq"] = 0
 
-        parameters["exc_low_freq"] = None
+        parameters["exc_low_freq"] = 0
 
-        parameters["bandwidth"] = None
+        parameters["bandwidth"] = 0
 
-        parameters['analyzer'] = None
+        parameters['analyzer'] = 'Unknown'
         
-        parameters['instrument_label'] = None 
+        parameters['instrument_label'] = 'Unknown' 
 
-        parameters['sample_name'] = None
+        parameters['sample_name'] = 'Unknown'
 
         parameters["number_data_points"] = 0
 
-        parameters["polarity"] = None
+        parameters["polarity"] = 'Unknown'
 
         parameters["filename_path"] = file_location
 
