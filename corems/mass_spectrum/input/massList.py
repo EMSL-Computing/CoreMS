@@ -33,7 +33,7 @@ class ReadCoremsMasslist(MassListBaseClass):
 
         mass_spec_obj = MassSpecCentroid(dataframe, output_parameters, auto_process=auto_process)
 
-        if loadSettings: self.load_settings(mass_spec_obj)
+        if loadSettings: self.load_settings(mass_spec_obj, output_parameters)
 
         self.add_molecular_formula(mass_spec_obj, dataframe)
         
@@ -113,7 +113,7 @@ class ReadMassList(MassListBaseClass):
             
             mass_spec = MassSpecCentroid(dataframe, output_parameters, auto_process=auto_process)
             
-            if loadSettings: self.load_settings(mass_spec)
+            if loadSettings: self.load_settings(mass_spec, output_parameters)
             
             return mass_spec
 
@@ -121,7 +121,7 @@ class ReadMassList(MassListBaseClass):
 
             mass_spec = MassSpecProfile(dataframe, output_parameters, auto_process=auto_process)
 
-            if loadSettings: self.load_settings(mass_spec)
+            if loadSettings: self.load_settings(mass_spec, output_parameters)
 
             return mass_spec
     

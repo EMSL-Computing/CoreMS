@@ -42,32 +42,30 @@
             "Na",
             "K"
         ],
-        "db_directory": NaN,
+        "db_directory": false,
         "error_method": "None",
         "hc_filter": 0.3,
         "ion_charge": -1,
         "ionization_type": "ESI",
         "isAdduct": true,
-        "isProtonated": false,
+        "isProtonated": true,
         "isRadical": true,
         "max_abun_error": 70,
         "max_dbe": 70,
-        "max_mz": 800,
         "max_mz_error": 5,
         "min_abun_error": -30,
-        "min_dbe": NaN,
-        "min_mz": 100,
+        "min_dbe": 0,
         "min_mz_error": -5,
         "min_peaks_per_class": 15,
-        "mz_error_average": NaN,
+        "mz_error_average": 0,
         "mz_error_range": 1.5,
         "oc_filter": 1.2,
         "use_min_peaks_filter": true,
-        "use_pah_line_rule": NaN,
+        "use_pah_line_rule": false,
         "usedAtoms": {
             "C": [
                 1,
-                90
+                100
             ],
             "Cl": [
                 0,
@@ -82,8 +80,8 @@
                 0
             ],
             "O": [
-                1,
-                8
+                2,
+                19
             ],
             "P": [
                 0,
@@ -111,14 +109,8 @@
             "S": 2
         }
     },
-    "Transient": {
-        "apodization_method": "Hanning",
-        "implemented_apodization_function": [
-            "Hamming",
-            "Hanning",
-            "Blackman"
-        ],
-        "number_of_truncations": NaN,
-        "number_of_zero_fills": 1
-    }
+    "Transient": {},
+    "analyzer": "ICR",
+    "instrument_label": "21T",
+    "sample_name": "ESFA_100k_9767-13548_chB.A_re_pc_CoAddAll_mFT"
 }

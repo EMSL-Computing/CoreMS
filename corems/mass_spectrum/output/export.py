@@ -1,5 +1,5 @@
 __author__ = "Yuri E. Corilo"
-__date__ = "Set 06, 2019"
+__date__ = "Nov 11, 2019"
 
 from threading import Thread
 from pathlib import Path
@@ -110,7 +110,10 @@ class MassSpecExport(Thread):
         dict_setting = settings_parsers.get_dict_data_ms(mass_spectrum)
 
         dict_setting['MassSpecAttrs'] = self.get_mass_spec_attrs(mass_spectrum)
-        
+        dict_setting['analyzer'] = mass_spectrum.analyzer
+        dict_setting['instrument_label'] = mass_spectrum.instrument_label
+        dict_setting['sample_name'] = mass_spectrum.sample_name
+
         with open(output_path.with_suffix('.json'), 'w', encoding='utf8', ) as outfile:
 
             output = json.dumps(dict_setting, sort_keys=True, indent=4, separators=(',', ': '))
@@ -257,7 +260,7 @@ class MassSpecExport(Thread):
         dict_ms_attrs['Cterm'] =  mass_spectrum.Cterm
         dict_ms_attrs['baselise_noise'] =  mass_spectrum.baselise_noise
         dict_ms_attrs['baselise_noise_std'] =  mass_spectrum.baselise_noise_std
-       
+
         return dict_ms_attrs
 
 

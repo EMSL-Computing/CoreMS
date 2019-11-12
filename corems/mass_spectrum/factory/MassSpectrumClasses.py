@@ -1,5 +1,6 @@
 import time, gc
 from pathlib import Path
+from copy import deepcopy
 
 #from matplotlib import rcParamsDefault, rcParams
 from numpy import array, power, float64
@@ -75,9 +76,9 @@ class MassSpecBase(MassSpecCalc):
     
     def _init_settings(self):
         
-        self._mol_search_setting  = MoleculaSearchSettings()
-        self._settings  = MoleculaSearchSettings()
-        self._mspeaks_setting  = MassSpecPeakSetting()
+        self._mol_search_setting  = deepcopy(MoleculaSearchSettings)
+        self._settings  = deepcopy(MassSpectrumSetting)
+        self._mspeaks_setting  = deepcopy(MassSpecPeakSetting)
 
     def __len__(self):
         
@@ -153,6 +154,10 @@ class MassSpecBase(MassSpecCalc):
 
         self._dir_location = d_params.get("dir_location")
 
+        self._baselise_noise = d_params.get("baselise_noise")
+
+        self._baselise_noise_std = d_params.get("baselise_noise_std")
+
         if d_params.get('sample_name'): 
         
             self.sample_name = d_params.get('sample_name')
@@ -206,36 +211,28 @@ class MassSpecBase(MassSpecCalc):
     def mspeaks_settings(self):  return self._mspeaks_setting
 
     @mspeaks_settings.setter
-    def mspeaks_settings(self, instance_MassSpecPeakSetting):
-        if isinstance(instance_MassSpecPeakSetting, MassSpecPeakSetting):
-            self._mspeaks_setting =  instance_MassSpecPeakSetting
-        else:
-            raise TypeError(instance_MassSpecPeakSetting, "is not a MassSpectrumSetting instance")  
-
     
+    def mspeaks_settings(self, instance_MassSpecPeakSetting):
+       
+            self._mspeaks_setting =  instance_MassSpecPeakSetting
+       
     @property
     def settings(self):  return self._settings
 
     @settings.setter
     def settings(self, instance_MassSpectrumSetting):
-        if isinstance(instance_MassSpectrumSetting, MassSpectrumSetting):
-            self._settings =  instance_MassSpectrumSetting
-        else:
-            raise TypeError(instance_MassSpectrumSetting, "is not a MassSpectrumSetting instance")       
-
+        
+        self._settings =  instance_MassSpectrumSetting
+        
     @property
     def molecula_search_settings(self):  return self._mol_search_setting
 
     @molecula_search_settings.setter
+    
     def molecula_search_settings(self, instance_MoleculaSearchSettings):
         
-        if isinstance(instance_MoleculaSearchSettings, MoleculaSearchSettings):
-            
-            self._mol_search_setting =  instance_MoleculaSearchSettings
-        
-        else:
-            raise TypeError(instance_MoleculaSearchSettings, "is not a MoleculaSearchSettings instance")      
-
+        self._mol_search_setting =  instance_MoleculaSearchSettings
+    
     @property
     def freq_exp_profile(self):
         return self._frequency_domain
@@ -654,11 +651,9 @@ class MassSpecfromFreq(MassSpecBase):
 
     @transient_settings.setter
     def transient_settings(self, instance_TransientSetting):
-        if isinstance(instance_TransientSetting, TransientSetting):
-            self._transient_setting =  instance_TransientSetting  
-        else:
-            raise TypeError(instance_TransientSetting, "is not a TransientSetting instance")    
-
+        
+        self._transient_setting =  instance_TransientSetting  
+        
 class MassSpecCentroid(MassSpecBase):
 
     '''

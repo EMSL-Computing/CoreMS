@@ -70,22 +70,33 @@ def get_dict_data():
              "DataInput": dataInputSetting,
             }
 
-def set_dict_data_ms(data_loaded, mass_spec):
+def set_dict_data_ms(data_loaded, mass_spec_obj):
     
-    moleculaSearchSettings = MoleculaSearchSettings()
-    transientSetting = TransientSetting()
-    massSpectrumSetting = MassSpectrumSetting()
-    massSpecPeakSetting = MassSpecPeakSetting()
-    
-    moleculaSearchSettings.__dict__ = data_loaded.get("MoleculaSearch")
-    transientSetting.__dict__ = data_loaded.get("Transient")
-    massSpectrumSetting.__dict__ = data_loaded.get("MassSpectrum")
-    massSpecPeakSetting.__dict__ = data_loaded.get("MassSpecPeak")
+    from copy import deepcopy
 
-    mass_spec.molecula_search_settings = moleculaSearchSettings
-    mass_spec.transient_settings = transientSetting
-    mass_spec.settings = massSpectrumSetting
-    mass_spec.mspeaks_settings = massSpecPeakSetting
+    classes = [deepcopy(MoleculaSearchSettings), 
+               deepcopy(TransientSetting),
+               deepcopy(MassSpectrumSetting),
+               deepcopy(MassSpecPeakSetting)]
+    labels = ["MoleculaSearch", "Transient", "MassSpectrum", "MassSpecPeak"]
+    
+    label_class = zip(labels, classes)
+
+    if data_loaded:
+    
+        for label, classe in label_class:
+            class_data = data_loaded.get(label)
+            # not always we will not all the settings
+            # this allow a class data to be none and continue
+            # to import the other classes
+            if class_data:
+                for item, value in class_data.items():
+                    setattr(classe, item, value)
+
+    mass_spec_obj.molecula_search_settings = classes[0]
+    mass_spec_obj.transient_settings = classes[1]
+    mass_spec_obj.settings = classes[2]
+    mass_spec_obj.mspeaks_settings = classes[3]
  
 def set_dict_data(data_loaded):
     

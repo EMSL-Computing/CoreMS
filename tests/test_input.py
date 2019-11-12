@@ -110,8 +110,6 @@ def test_import_transient():
     mass_spec = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
 
     print(mass_spec.mspeaks[0].mz_exp, mass_spec.mspeaks[-1].mz_exp)
-   
-
 
 def test_import_corems_hdf5():
 
@@ -166,7 +164,7 @@ def test_import_corems_mass_list():
             for mf in mspeak:
                 print(mf.to_string)
 
-    file_location = Path.cwd() / "tests/tests_data/" /  "ESI_NEG_SRFA_COREMS.corems"
+    file_location = Path.cwd() / "tests/tests_data/" /  "NEG_ESI_SRFA_CoreMS.corems"
 
     read_lc_ms = ReadCoremsMassSpectraText(file_location)
 
@@ -221,3 +219,4 @@ if __name__ == '__main__':
     test_import_corems_hdf5()
     #test_import_corems_mass_list()
     #test_import_mass_list()
+    

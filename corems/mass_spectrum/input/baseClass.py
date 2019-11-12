@@ -1,9 +1,15 @@
+__author__ = "Yuri E. Corilo"
+__date__ = "Nov 11, 2019"
+
+
 from pathlib import Path
 
 from pandas import read_csv, read_pickle, read_excel
 
 from corems.encapsulation.settings.input.InputSetting import DataInputSetting, d_parms
 from corems.encapsulation.constant import Labels
+from corems.encapsulation.settings.io import settings_parsers
+
 
 class MassListBaseClass:
     '''
@@ -77,9 +83,27 @@ class MassListBaseClass:
 
         return  dataframe 
 
-    def load_settings(self, mass_spec_obj):
+    def load_settings(self, mass_spec_obj, output_parameters):
+
+        import json
+        import warnings
 
         settings_file_path = self.file_location.with_suffix('.json')
+        
+        if settings_file_path.exists():
+            
+            with open(settings_file_path, 'r', encoding='utf8', ) as infile:
+
+                input_settings = json.load(infile)
+                
+                mass_spec_obj._set_parameters_objects(output_parameters)
+
+                settings_parsers.set_dict_data_ms(input_settings, mass_spec_obj)
+     
+        else:
+            
+            warnings.warn("auto settings loading is enabled but could not locate the file:  %s. Please load the settings manually" % settings_file_path)
+                             
         # TODO this will load the setting from SettingCoreMS.json
         # coreMSHFD5 overrides this function to import the attrs stored in the h5 file
         #loaded_settings = {}
@@ -89,9 +113,6 @@ class MassListBaseClass:
         #loaded_settings['MassSpectrum'] = self.get_scan_group_attr_data(scan_index, time_index, 'MassSpectrumSetting')
         #loaded_settings['Transient'] = self.get_scan_group_attr_data(scan_index, time_index, 'TransientSetting')
         
-        print('WARNING not_loading_settings')
-        pass
-
 
     def get_output_parameters(self, polarity, scan_index=0):
         
