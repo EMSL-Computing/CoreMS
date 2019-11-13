@@ -66,7 +66,7 @@ def test_calibration():
     '''
     
     
-    file_location = Path.cwd() / "tests/tests_data/" / "ESI_NEG_SRFA.d/"
+    file_location = Path.cwd() /  "ESI_NEG_SRFA.d/"
 
     mass_spectrum = creat_mass_spectrum(file_location)
     

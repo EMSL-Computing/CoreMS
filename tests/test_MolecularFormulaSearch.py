@@ -17,7 +17,7 @@ from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
 
 def creat_mass_spectrum():
     
-    file_location = Path.cwd() / "tests/tests_data/" / "ESI_NEG_SRFA.d"
+    file_location = Path.cwd() /  "ESI_NEG_SRFA.d"
 
     bruker_reader = ReadBrukerSolarix(file_location)
 

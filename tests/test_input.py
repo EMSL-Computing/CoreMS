@@ -92,7 +92,7 @@ def test_import_transient():
     
     # from corems.structure.input.MidasDatFile import ReadMidasDatFile
     
-    file_location = Path.cwd() / "tests/tests_data/" / "ESI_NEG_SRFA.d"
+    file_location = Path.cwd() / "ESI_NEG_SRFA.d"
 
     #setting for signal processing
     apodization_method = "Hanning"
