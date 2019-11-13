@@ -81,7 +81,7 @@
 
 ## Jupyter-CoreMS
 
-- [Install docker for desktop](https://hub.docker.com/?overlay=onboarding)
+If you don't have docker installed, the easiest way is to [install docker for desktop](https://hub.docker.com/?overlay=onboarding)
 
 - Open a terminal and run:
 
@@ -89,9 +89,9 @@
     docker run -v home/user/yourdir -p 8888:8888 gitlab.pnnl.gov:4567/mass-spectrometry/corems:latest
     ```
 
-- Open address provided in the terminal: `http://127.0.1.0:8888/?token={}`
+- In your browser, open the URL address provided in the terminal: `http://127.0.1.0:8888/?token=<token>.`
 
-- Open CoreMS-Tutorial.ipynb
+- Open the CoreMS-Tutorial.ipynb and follow the code
 
 ## Basic example
 
