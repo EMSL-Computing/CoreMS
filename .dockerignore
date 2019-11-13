@@ -8,7 +8,6 @@ pyvenv.cfg
 .DS_Store 
 __pycache__/  
 res/  
-doc/  
 corems.egg-info/  
 corems/libs/  
 core_env/  
