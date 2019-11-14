@@ -98,6 +98,7 @@ class OxigenPriorityAssignment(Thread):
 
             for ms_peak in mass_spectrum_obj.sort_by_abundance():
 
+                if ms_peak: continue
                 #already assinged a molecular formula
                
                 nominal_mz  = ms_peak.nominal_mz_exp
