@@ -2,7 +2,7 @@
     "MassSpecAttrs": {
         "Aterm": 322479750.0,
         "Bterm": -2339534713.0189333,
-        "Cterm": null,
+        "Cterm": 0,
         "baselise_noise": 0.004129409982567542,
         "baselise_noise_std": 0.0029758180236541046,
         "mobility_rt": 0,
@@ -30,7 +30,7 @@
         "noise_threshold_stds": 6,
         "relative_abundace_threshold": 5,
         "s2n_threshold": 4,
-        "threshold_method": "auto"
+        "threshold_method": "relative_abudance"
     },
     "MoleculaSearch": {
         "adduct_atoms_neg": [
@@ -52,9 +52,11 @@
         "isRadical": true,
         "max_abun_error": 70,
         "max_dbe": 70,
+        "max_mz": 800,
         "max_mz_error": 5,
         "min_abun_error": -30,
         "min_dbe": 0,
+        "min_mz": 100,
         "min_mz_error": -5,
         "min_peaks_per_class": 15,
         "mz_error_average": 0,
@@ -112,5 +114,5 @@
     "Transient": {},
     "analyzer": "ICR",
     "instrument_label": "21T",
-    "sample_name": "ESFA_100k_9767-13548_chB.A_re_pc_CoAddAll_mFT"
+    "sample_name": "Unknown"
 }

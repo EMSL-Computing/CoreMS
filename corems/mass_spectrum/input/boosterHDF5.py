@@ -31,7 +31,7 @@ class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
         
         self.polarity = self.get_polarity(file_location)
 
-        super().__init__(file_location, self.polarity,  isCentroid=False)
+        super().__init__(file_location, isCentroid=False)
         
     def get_data_profile(self, mz, abundance, auto_process, auto_noise):
 

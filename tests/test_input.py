@@ -31,9 +31,8 @@ def test_import_booster_mass_spectrum_hdf():
     if file_path.exists:
         
         #polariy need to be set or read from the file
-        polariy = -1
-
-        booster_reader = ReadHDF_BoosterMassSpectrum(file_path, polariy)
+        
+        booster_reader = ReadHDF_BoosterMassSpectrum(file_path, isCentroid=False)
 
         mass_spectrum = booster_reader.get_mass_spectrum(auto_process=True, auto_noise=True)
 
@@ -160,7 +159,7 @@ def test_import_corems_mass_list():
     #polariy need to be set or read from the file
     
     #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
-    mass_list_reader = ReadCoremsMasslist(file_location, delimiter=",",  analyzer='ICR', instrument_label='12T')
+    mass_list_reader = ReadCoremsMasslist(file_location,  analyzer='ICR', instrument_label='12T')
 
     mass_spectrum = mass_list_reader.get_mass_spectrum()
 
@@ -190,13 +189,20 @@ def test_import_corems_mass_list():
 
 def test_import_mass_list():
 
+    file_location = Path.cwd() / "tests/tests_data/" / "NEG_ESI_SRFA_CoreMS.xlsx"
+    
+    mass_list_reader = ReadMassList(file_location)
+
     file_location = Path.cwd() / "tests/tests_data/" / "ESI_NEG_ESFA.ascii"
     
+    mass_list_reader = ReadMassList(file_location)
+
     #polariy need to be set or read from the file
     polarity = -1
+     
 
     #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
-    mass_list_reader = ReadMassList(file_location, delimiter="  ")
+    mass_list_reader = ReadMassList(file_location)
 
     mass_spectrum = mass_list_reader.get_mass_spectrum(polarity, auto_process=True)
 
@@ -213,17 +219,17 @@ def test_import_mass_list():
 
     mass_spectrum.filter_by_s2n(100)
     
-    mass_list_reader = ReadMassList(file_location, isCentroid=False, delimiter="  ")
+    mass_list_reader = ReadMassList(file_location, isCentroid=False, )
 
     mass_spectrum = mass_list_reader.get_mass_spectrum(polarity,auto_process=True)
 
 if __name__ == '__main__':
     
-    #test_import_booster_mass_spectrum_hdf()
-    #test_import_booster_mass_spectra_hdf()
-    #test_import_lcms_from_transient()
-    #test_import_transient()
+    test_import_booster_mass_spectrum_hdf()
+    test_import_booster_mass_spectra_hdf()
+    test_import_lcms_from_transient()
+    test_import_transient()
     test_import_corems_hdf5()
-    #test_import_corems_mass_list()
-    #test_import_mass_list()
+    test_import_corems_mass_list()
+    test_import_mass_list()
     

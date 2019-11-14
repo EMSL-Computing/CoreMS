@@ -38,8 +38,7 @@ class MassListBaseClass:
        	or add your labels to the SettingsCoreMS.json file and parse the settings
 
     '''
-    def __init__(self, file_location, delimiter="  ", data_type='txt', isCentroid=True,
-                                        analyzer='Unknown', instrument_label='Unknown',
+    def __init__(self, file_location, isCentroid=True, analyzer='Unknown', instrument_label='Unknown',
                                         sample_name=None):
         
         self.file_location = Path(file_location)
@@ -51,19 +50,67 @@ class MassListBaseClass:
         
         self._expected_columns = {"m/z", "Abundance", "S/N", "Resolving Power"}
         
-        self.delimiter  = delimiter
+        self._delimiter  = None
         
         self.isCentroid  = isCentroid
 
-        self.data_type = data_type
+        self._data_type = None
 
         self.analyzer = analyzer
 
         self.instrument_label = instrument_label
 
         self.sample_name = sample_name
+    
+    @property
+    def data_type(self):
+        return self._data_type
+    
+    @data_type.setter
+    def data_type(self, data_type):
+        self._data_type = data_type
 
+    @property
+    def delimiter(self):
+        return self._delimiter
+    
+    @delimiter.setter
+    def delimiter(self, delimiter):
+        self._delimiter = delimiter
+
+
+    def set_data_type(self):
+
+        if self.file_location.suffix == '.csv':
+
+            self.data_type = 'txt'
+            self.delimiter = ','
+        
+        elif self.file_location.suffix == '.txt':
+
+            self.data_type = 'txt'
+            self.delimiter = '\t'
+
+        elif self.file_location.suffix == '.xlsx':
+
+            self.data_type = 'excel'
+
+        elif self.file_location.suffix == '.ascii':
+
+            self.data_type = 'txt'      
+            self.delimiter = '  '
+
+        elif self.file_location.suffix == '.pkl':
+
+            self.data_type = 'dataframe'      
+        else: 
+            raise TypeError("Data type could not be automatically recognized for %s; please set data type and delimiter manually." % self.file_location.name)    
+                
     def get_dataframe(self):
+
+        if not self.data_type or not self.delimiter:
+
+            self.set_data_type()
 
         if self.data_type == 'txt':
 
@@ -75,7 +122,7 @@ class MassListBaseClass:
         
         elif self.data_type == 'excel':
             
-            dataframe = read_excel(self.file_location, engine='python')
+            dataframe = read_excel(self.file_location)
         
         else:
 

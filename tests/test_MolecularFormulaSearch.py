@@ -32,7 +32,7 @@ def creat_mass_spectrum():
     # polariy need to be set if reading a text file
     #polariy = -1
     # load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
-    #mass_list_reader = Read_MassList(file_location, delimiter="  ")
+    #mass_list_reader = Read_MassList(file_location,  )
     #mass_spectrum_obj  = mass_list_reader.get_mass_spectrum(polarity, auto_process=True)
 
     return mass_spectrum_obj
