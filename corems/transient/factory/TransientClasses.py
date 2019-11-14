@@ -174,7 +174,7 @@ class Transient(TransientCalculations):
 
         return self.calibration_terms[2]
 
-    def _plot_frequency_domain(self, frequency_domain, magnitude):
+    def _plot_frequency_domain(self, frequency_domain, magnitude): # pragma: no cover
 
         self.location += 1
         plt.subplot(self.location)
@@ -185,7 +185,7 @@ class Transient(TransientCalculations):
         self.location = 220
         plt.show()
 
-    def _plot_transient(self, transient_data):
+    def _plot_transient(self, transient_data): # pragma: no cover
 
         self.location += 1
         # print( self.location)
@@ -196,7 +196,7 @@ class Transient(TransientCalculations):
         plt.ylabel("Magnitude")
         # plt.show()
 
-    def plot_transient(self):
+    def plot_transient(self): # pragma: no cover
 
         # self.location +=1
         # print( self.location)
@@ -207,7 +207,7 @@ class Transient(TransientCalculations):
         plt.ylabel("Magnitude")
         plt.show()
 
-    def plot_zerofilled_transient(self):
+    def plot_zerofilled_transient(self): 
 
         new_time_domain = self.apodization(self._transient_data)
         time_domain_y_zero_filled = self.zero_fill(new_time_domain)
@@ -221,7 +221,7 @@ class Transient(TransientCalculations):
         plt.ylabel("Magnitude")
         plt.show()
 
-    def plot_apodized_transient(self):
+    def plot_apodized_transient(self):  # pragma: no cover
 
         # self.location +=1
         # print( self.location)
@@ -233,7 +233,7 @@ class Transient(TransientCalculations):
         plt.ylabel("Magnitude")
         plt.show()
 
-    def plot_frequency_domain(self):
+    def plot_frequency_domain(self):  # pragma: no cover
 
         # self.location +=1
         # plt.subplot(self.location)
