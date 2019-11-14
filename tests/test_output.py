@@ -42,7 +42,9 @@ def test_export_mass_spectra():
     mass_spectra = import_booster_mass_spectra_hdf()
 
     exportMS= MassSpectraExport('NEG_ESI_SRFA_CoreMS', mass_spectra)
-
+    
+    exportMS.get_mass_spectra_attrs(mass_spectra)
+    exportMS.get_pandas_df()
     exportMS.to_pandas()
     exportMS.to_excel()
     exportMS.to_csv()

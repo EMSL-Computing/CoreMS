@@ -78,6 +78,9 @@ def test_import_lcms_from_transient():
     read_lcms.join()
 
     lcms = read_lcms.get_lcms_obj()
+    lcms.find_nearest_scan(1)
+    lcms.get_scans_number()
+    lcms[0]
     
     for ms in lcms:
         #assign mf

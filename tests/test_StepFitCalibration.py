@@ -10,7 +10,7 @@ import numpy as np
 from matplotlib import pyplot as pylab
 
 from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings
-from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration
+from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration, MZDomain_Calibration
 #from corems.mass_spectrum.input.massList import Read_MassList
 from corems.molecular_id.search.findOxigenPeaks import FindOxygenPeaks
 from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
@@ -48,6 +48,8 @@ def creat_mass_spectrum(file_location):
 
     return mass_spectrum_obj
 
+
+
 def test_calibration():
     
     ''' Mass calibration test module: 
@@ -66,15 +68,19 @@ def test_calibration():
     '''
     
     
-    file_location = Path.cwd() /  "ESI_NEG_SRFA.d/"
-
-    mass_spectrum = creat_mass_spectrum(file_location)
+    
     
     MolecularSearchSettings.error_method = 'None'
     MolecularSearchSettings.min_mz_error = -5
     MolecularSearchSettings.max_mz_error = 5
     MolecularSearchSettings.mz_error_range = 1
+    MolecularSearchSettings.isProtonated = True 
+    MolecularSearchSettings.isRadical= True 
 
+    file_location = Path.cwd() /  "ESI_NEG_SRFA.d/"
+
+    mass_spectrum = creat_mass_spectrum(file_location)
+        
     find_formula_thread = FindOxygenPeaks(mass_spectrum)
     find_formula_thread.start()
     find_formula_thread.join()
@@ -82,8 +88,15 @@ def test_calibration():
     mspeaks_results = find_formula_thread.get_list_found_peaks()
     
     calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
-    calibrate.ledford_calibration()
-    #calibrate.step_fit()
+    calibrate.linear()
+    calibrate.step_fit()
+    calibrate.quadratic()
+    
+    calibrate = MZDomain_Calibration(mass_spectrum, mspeaks_results, include_isotopologue=True)
+    calibrate.linear()
+    calibrate.ledford_inverted_calibration()
+    calibrate.quadratic()
+    
     mass_spectrum.clear_molecular_formulas()
 
     MolecularSearchSettings.error_method = 'symmetrical'
@@ -107,14 +120,13 @@ def test_calibration():
     #print(len(mass_spectrum))
     ClusteringFilter().filter_kendrick(mass_spectrum)
     #print(len(mass_spectrum))
-    time0 = time.time()
-    print('started')
+   
     SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum)
-    print(time.time()-time0)
-    
-    
+    ClusteringFilter().remove_assigment_by_mass_error(mass_spectrum)    
+def test_import_ref_list():
+    pass    
 
 if __name__ == "__main__":
     
-    test_calibration()
-     
+    
+     test_calibration()

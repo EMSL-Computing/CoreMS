@@ -10,7 +10,7 @@ class DataInputSetting:
                             "Signal/Noise":"S/N",
                             "S/N":"S/N"}
 
-def d_parms(file_location):
+def d_parms(file_location): #pragma: no cover
 
         parameters = dict()
 

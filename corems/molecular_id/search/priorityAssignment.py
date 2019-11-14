@@ -32,6 +32,8 @@ class OxigenPriorityAssignment(Thread):
         # get oxigen classes dict and the associate mspeak class 
         # list_of_classes_min_max_dbe = self.class_and_dbes_in_ordem()
         # create database separated to give the user the chance to use mass spec filters
+        
+        self.create_data_base()
 
         if self.assign_classes_order_str_dict_tuple_list and self.dict_ox_class_and_ms_peak:
             

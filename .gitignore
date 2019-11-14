@@ -9,6 +9,7 @@ pyvenv.cfg
 .DS_Store 
 __pycache__/  
 res/  
+doc/coverage_html_report
 corems.egg-info/  
 corems/libs/  
 core_env/  

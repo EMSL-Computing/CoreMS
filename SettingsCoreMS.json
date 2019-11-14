@@ -1,139 +1,107 @@
-//begin file
 {
+    "DataInput": {
+        "header_translate": {
+            "Abundance": "Abundance", "I": "Abundance", "Res.": "Resolving Power", "Resolving Power": "Resolving Power", "S/N": "S/N", "Signal/Noise": "S/N", "m/z": "m/z"
+        }
+    },
+    "MassSpecPeak": {
+        "kendrick_base": {
+            "C": 1,
+            "H": 2
+        }
+    },
+    "MassSpectrum": {
+        "implemented_noise_threshold_methods": [
+            "auto", "signal_noise", "relative_abudance"
+        ],
+        "max_noise_mz": 1200.0,
+        "max_picking_mz": 1200.0,
+        "min_noise_mz": 100.0,
+        "min_picking_mz": 100.0,
+        "noise_threshold_stds": 6,
+        "relative_abundace_threshold": 5,
+        "s2n_threshold": 4,
+        "threshold_method": "auto"
+    },
     "MoleculaSearch": {
-            
-            //only look for adducts ion type for these atoms
-            "adduct_atoms_neg": [
-                "Cl",
-                "Br",
-                "F"
+        "adduct_atoms_neg": [
+            "Cl", "Br", "F"
+        ],
+        "adduct_atoms_pos": [
+            "Na", "K"
+        ],
+        "db_directory": false,
+        "error_method": "None", "hc_filter": 0.3,
+        "ion_charge": -1,
+        "ionization_type": "ESI", "isAdduct": true,
+        "isProtonated": true,
+        "isRadical": true,
+        "max_abun_error": 70,
+        "max_dbe": 70,
+        "max_mz": 800,
+        "max_mz_error": 5,
+        "min_abun_error": -30,
+        "min_dbe": 0,
+        "min_mz": 100,
+        "min_mz_error": -5,
+        "min_peaks_per_class": 15,
+        "mz_error_average": 0,
+        "mz_error_range": 1.5,
+        "oc_filter": 1.2,
+        "use_min_peaks_filter": true,
+        "use_pah_line_rule": false,
+        "usedAtoms": {
+            "C": [
+                1,
+                100
             ],
-            //only look for adducts ion type for these atoms 
-            "adduct_atoms_pos": [
-                "Na",
-                "K"
+            "Cl": [
+                0,
+                0
             ],
-            //If using a online database set address here
-            //"postgresql://postgres:docker@localhost:5432/"
-            "db_directory": false,
-            //Ionization techinique and polarity mode,
-            "ionization_type": "ESI",
-            "ion_charge": -1,
-            //ion types
-            "isAdduct": false,
-            "isProtonated": true,
-            "isRadical": true,
-            "use_pah_line_rule": false,
-            "min_dbe": 0,
-            "max_dbe": 40,
-            //abundance error boundaries for isotoplogue search
-            "max_abun_error": 70,
-            "min_abun_error": -30,
-            //mass error methods and boundaries
-            "error_method": "None",
-            "max_mz_error": 1,
-            "min_mz_error": -5,
-            "mz_error_average": 0,
-            "mz_error_range": 1.5,
-            //search filters
-            "hc_filter": 0.3,
-            "oc_filter": 1.2,
-            "use_min_peaks_filter": false,
-            "min_peaks_per_class": 5,
-            //min and max atoms used to search for molecular fprmulas
-            "usedAtoms": {
-                "C": [
-                    1,
-                    100
-                ],
-                "Cl": [
-                    0,
-                    0
-                ],
-                "H": [
-                    4,
-                    200
-                ],
-                "N": [
-                    0,
-                    0
-                ],
-                "O": [
-                    2,
-                    19
-                ],
-                "P": [
-                    0,
-                    0
-                ],
-                "S": [
-                    0,
-                    0
-                ]
-            },
-            //atoms covalences
-            //used to calculate DBE and position (Cl adduct (0) vs covalently bonded (1))
-            "used_atom_valences": {
-                "13C": 4,
-                "18O": 2,
-                "34S": 2,
-                "37Cl": 0,
-                "Br": 0,
-                "C": 4,
-                "Cl": 0,
-                "F": 0,
-                "H": 1,
-                "N": 3,
-                "Na": 1,
-                "O": 2,
-                "P": 3,
-                "S": 2
-            }
+            "H": [
+                4,
+                200
+            ],
+            "N": [
+                0,
+                0
+            ],
+            "O": [
+                2,
+                19
+            ],
+            "P": [
+                0,
+                0
+            ],
+            "S": [
+                0,
+                0
+            ]
+        },
+        "used_atom_valences": {
+            "13C": 4,
+            "18O": 2,
+            "34S": 2,
+            "37Cl": 0,
+            "Br": 0,
+            "C": 4,
+            "Cl": 0,
+            "F": 0,
+            "H": 1,
+            "N": 3,
+            "Na": 1,
+            "O": 2,
+            "P": 3,
+            "S": 2
+        }
     },
-    
-    "Transient" : {
-        
-        "implemented_apodization_function" : ["Hamming", "Hanning", "Blackman"],
-        "apodization_method" : "Hanning",
-        "number_of_truncations" : 0,
-        "number_of_zero_fills" : 1
-    },
-
-    "MassSpectrum" : {
-        
-        "threshold_method" : "auto",
-        "implemented_noise_threshold_methods" : ["auto", "signal_noise", "relative_abudance"],
-        "noise_threshold_stds" : 6,
-        "s2n_threshold" : 4,
-        "relative_abundace_threshold" : 5,
-        
-        "min_noise_mz" : 100.0,
-        "max_noise_mz" : 1200.0,
-        
-        "min_picking_mz" : 100.0,
-        "max_picking_mz" : 1200.0
-    },
-
-    "MassSpecPeak" : {
-        //TODO: set this at the change kendrick base function
-        "kendrick_base" : {"C": 1, "H": 1, "O":1}
-    },
-
-    "DataInput" : {
-        
-        //add this dict VALUES to match your labels, THE ORDER WON"T MATTER
-        //"column_translate" : {"m/z":"m/z", "Resolving Power":"Resolving Power", "Abundance":"Abundance" , "S/N":"S/N"}
-        "header_translate" : {  "m/z":"m/z", 
-                                "Resolving Power":"Resolving Power",
-                                "Res.":"Resolving Power", 
-                                "I":"Abundance" ,
-                                "Abundance":"Abundance",
-                                "Signal/Noise":"S/N",
-                                "S/N":"S/N"}
-        
-
+    "Transient": {
+        "apodization_method": "Hanning", "implemented_apodization_function": [
+            "Hamming", "Hanning", "Blackman"
+        ],
+        "number_of_truncations": 0,
+        "number_of_zero_fills": 1
     }
-
 }
-//end file
-

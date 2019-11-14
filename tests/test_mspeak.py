@@ -31,6 +31,11 @@ def test_mspeak_calculations():
                          resolving_power, signal_to_noise, massspec_index, index)
 
     mspeak.change_kendrick_base(kendrick_base)
+    
+    mspeak._calc_kdm(kendrick_base)
+    
+    mspeak.lorentz_pdf()
+    mspeak.gaussian_pdf()
 
     assert round(mspeak.kendrick_mass, 3) == 211.887
     assert round(mspeak.kmd, 3) == -89.0

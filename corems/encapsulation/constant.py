@@ -7,7 +7,7 @@ https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-relative-atomi
 __author__ = 'Yuri E. Corilo'
 __date__ = 'Jun 12, 2019'
 
-class Labels:
+class Labels: #pragma: no cover
     
     label = 'label'
     bruker_profile = 'Bruker_Profile'
@@ -30,7 +30,7 @@ class Labels:
                           'de-protonated': 'DE_OR_PROTONATED',
                           'radical': 'RADICAL',
                           'adduct': 'ADDUCT'}
-class Atoms:
+class Atoms: #pragma: no cover
 
     electron_mass = 0.0005485
 

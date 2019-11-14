@@ -38,10 +38,10 @@ def get_dict_data_ms(mass_spec):
 
 def get_dict_data():
     
-    MolecularSearchSettings = {}
+    molecularSearchSettings = {}
     for item, value in MolecularSearchSettings.__dict__.items():
         if not item.startswith('__'):
-            MolecularSearchSettings[item] =  value
+            molecularSearchSettings[item] =  value
     
     transientSetting = {}
     for item, value in TransientSetting.__dict__.items():
@@ -63,7 +63,7 @@ def get_dict_data():
         if not item.startswith('__'):
             dataInputSetting[item] =  value  
 
-    return { "MoleculaSearch": MolecularSearchSettings,
+    return { "MoleculaSearch": molecularSearchSettings,
              "Transient": transientSetting,
              "MassSpectrum": massSpectrumSetting,
              "MassSpecPeak": massSpecPeakSetting,

@@ -13,7 +13,9 @@ import pytest
 
 from corems.mass_spectrum.input.numpyArray import ms_from_array_centroid
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
+from corems.molecular_id.search.priorityAssignment import OxigenPriorityAssignment
 from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
+
 
 def creat_mass_spectrum():
     
@@ -93,9 +95,20 @@ def test_molecular_formula_search_db():
             pass
     
     print('%i peaks assigned and %i peaks not assigned' % (i, j))
+
+def test_priorityAssigment():
     
+    mass_spec_obj = creat_mass_spectrum()
+    
+    assignOx = OxigenPriorityAssignment(mass_spec_obj) 
+
+    assignOx.start() 
+
+    assignOx.join() 
+
 if __name__ == "__main__":
 
+    test_priorityAssigment()
     #test_molecular_formula_search_db()
     #test_run_molecular_formula_search()
-    test_mspeak_search()
+    #test_mspeak_search()

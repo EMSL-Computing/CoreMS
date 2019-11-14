@@ -41,7 +41,7 @@ test-source:
     - pip install pytest-cov
     - ls .
     - python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
-    - python -m pytest -v --cov=corems
+    - pytest
    
 
 run-job:
