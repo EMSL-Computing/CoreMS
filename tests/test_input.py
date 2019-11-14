@@ -80,6 +80,10 @@ def test_import_lcms_from_transient():
     lcms = read_lcms.get_lcms_obj()
     lcms.find_nearest_scan(1)
     lcms.get_scans_number()
+    lcms.set_retention_time_from_data()
+    lcms.set_tic_list_from_data()
+    lcms.get_retention_time()
+    lcms.get_tic()
     lcms[0]
     
     for ms in lcms:

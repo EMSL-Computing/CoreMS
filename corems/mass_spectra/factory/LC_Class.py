@@ -74,7 +74,7 @@ class LCMSBase(LC_Calculations):
     def set_tic_list_from_data(self):
 
         self.set_tic_list(
-            [self.ms.get(i).get_sumed_peak_height() for i in self.get_scans_number()]
+            [self.ms.get(i).tic for i in self.get_scans_number()]
         )
 
         # self.set_tic_list([self.ms.get(i).get_sumed_signal_to_noise() for i in self.get_scans_number()])

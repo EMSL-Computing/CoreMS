@@ -34,8 +34,9 @@ class OxigenPriorityAssignment(Thread):
         # create database separated to give the user the chance to use mass spec filters
         
         self.create_data_base()
-
+        
         if self.assign_classes_order_str_dict_tuple_list and self.dict_ox_class_and_ms_peak:
+
             
             self.run_worker_mass_spectrum(self.assign_classes_order_str_dict_tuple_list, self.dict_ox_class_and_ms_peak)
         
@@ -201,7 +202,7 @@ class OxigenPriorityAssignment(Thread):
 
         classes_str = [class_tuple[0] for class_tuple in classes]
 
-        nominal_mzs = self.mass_spectrum_obj.nominal_mz_exp
+        nominal_mzs = self.mass_spectrum_obj.nominal_mz
 
         self.dict_molecular_lookup_table = self.get_dict_molecular_database(classes_str, nominal_mzs)
         

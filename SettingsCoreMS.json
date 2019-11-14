@@ -21,7 +21,7 @@
         "noise_threshold_stds": 6,
         "relative_abundace_threshold": 5,
         "s2n_threshold": 4,
-        "threshold_method": "auto"
+        "threshold_method": "relative_abudance"
     },
     "MoleculaSearch": {
         "adduct_atoms_neg": [
@@ -98,10 +98,10 @@
         }
     },
     "Transient": {
-        "apodization_method": "Hanning", "implemented_apodization_function": [
+        "apodization_method": "Blackman", "implemented_apodization_function": [
             "Hamming", "Hanning", "Blackman"
         ],
-        "number_of_truncations": 0,
+        "number_of_truncations": 1,
         "number_of_zero_fills": 1
     }
 }

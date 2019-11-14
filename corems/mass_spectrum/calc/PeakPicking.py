@@ -227,7 +227,7 @@ class PeakPicking(object):
         
             return mass[current_index], abund[current_index]
 
-    def old_calc_centroid(self, massa, intes, freq_exp):
+    def old_calc_centroid(self, massa, intes, freq_exp): #pragma: no cover
 
         #this function is too slow, may need slice and apply multi processing,
         abudance_thresould, factor = self.get_threshold(intes)

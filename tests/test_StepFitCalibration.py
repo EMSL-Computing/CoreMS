@@ -80,7 +80,7 @@ def test_calibration():
     file_location = Path.cwd() /  "ESI_NEG_SRFA.d/"
 
     mass_spectrum = creat_mass_spectrum(file_location)
-        
+
     find_formula_thread = FindOxygenPeaks(mass_spectrum)
     find_formula_thread.start()
     find_formula_thread.join()
@@ -90,12 +90,13 @@ def test_calibration():
     calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
     calibrate.linear()
     calibrate.step_fit()
-    calibrate.quadratic()
+    calibrate.quadratic(iteration=True)
+    calibrate.ledford_calibration()
     
     calibrate = MZDomain_Calibration(mass_spectrum, mspeaks_results, include_isotopologue=True)
-    calibrate.linear()
-    calibrate.ledford_inverted_calibration()
-    calibrate.quadratic()
+    calibrate.linear(iteration=True)
+    calibrate.ledford_inverted_calibration(iteration=True)
+    calibrate.quadratic(iteration=True)
     
     mass_spectrum.clear_molecular_formulas()
 

@@ -207,7 +207,7 @@ class Transient(TransientCalculations):
         plt.ylabel("Magnitude")
         plt.show()
 
-    def plot_zerofilled_transient(self): 
+    def plot_zerofilled_transient(self): # pragma: no cover
 
         new_time_domain = self.apodization(self._transient_data)
         time_domain_y_zero_filled = self.zero_fill(new_time_domain)

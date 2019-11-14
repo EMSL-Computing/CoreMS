@@ -15,7 +15,7 @@ from corems.mass_spectrum.input.numpyArray import ms_from_array_centroid
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.search.priorityAssignment import OxigenPriorityAssignment
 from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
-
+from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings
 
 def creat_mass_spectrum():
     
@@ -98,13 +98,19 @@ def test_molecular_formula_search_db():
 
 def test_priorityAssigment():
     
+    MolecularSearchSettings.error_method = 'None'
+    MolecularSearchSettings.min_mz_error = -5
+    MolecularSearchSettings.max_mz_error = 5
+    MolecularSearchSettings.mz_error_range = 1
+    MolecularSearchSettings.isProtonated = True 
+    MolecularSearchSettings.isRadical= True 
+
     mass_spec_obj = creat_mass_spectrum()
     
     assignOx = OxigenPriorityAssignment(mass_spec_obj) 
 
-    assignOx.start() 
-
-    assignOx.join() 
+    assignOx.run() 
+ 
 
 if __name__ == "__main__":
 

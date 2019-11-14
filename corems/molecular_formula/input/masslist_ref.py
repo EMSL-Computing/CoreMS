@@ -55,8 +55,8 @@ class ImportMassListRef():#Thread
         
         return  list_mf_obj           
 
-    def from_corems_ref_file(self, delimiter="\t"):
-        
+    def from_corems_ref_file(self, delimiter="\t"): #pragma: no cover
+        '''not being used'''
         import csv
 
         list_mf_obj = []
@@ -79,14 +79,14 @@ class ImportMassListRef():#Thread
         return  list_mf_obj           
 
 
-    def split(self, delimiters, string, maxsplit=0):
+    def split(self, delimiters, string, maxsplit=0): #pragma: no cover
     
         ''' does not work when formula has atoms with same caracaters:
             i.e - C10H21NNa
         '''
-        regexPattern = '|'.join(map(re.escape, delimiters))
-        isotopes = re.findall(regexPattern, string)
-        counts = re.split(regexPattern, string, maxsplit)
+        regexPattern = '|'.join(map(re.escape, delimiters)) #pragma: no cover
+        isotopes = re.findall(regexPattern, string) #pragma: no cover
+        counts = re.split(regexPattern, string, maxsplit)  #pragma: no cover
         return isotopes, counts
 
     def mformula_s_to_dict(self, s_mformulatring):

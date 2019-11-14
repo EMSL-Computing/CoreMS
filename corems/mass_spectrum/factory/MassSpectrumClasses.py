@@ -357,12 +357,21 @@ class MassSpecBase(MassSpecCalc):
         if list(self.abundance_profile): return sum(self.abundance_profile)
         else: return (sum(self.abundance))
 
+    def check_mspeaks_warning(self):
+        import warnings
+        if self.mspeaks:
+            pass
+        else:
+            warnings.warn(
+                "mspeaks list is empty, continuing without filtering data"
+            )
+
     def check_mspeaks(self):
         if self.mspeaks:
             pass
         else:
             raise Exception(
-                "mspeaks dictionary is empty, please run process_mass_spec() first"
+                "mspeaks list is empty, please run process_mass_spec() first"
             )
 
     def remove_assigment_by_index(self, indexes):
@@ -378,23 +387,23 @@ class MassSpecBase(MassSpecCalc):
 
     def filter_by_mz(self, min_mz, max_mz):
 
-        self.check_mspeaks()
+        self.check_mspeaks_warning()
         indexes = [index for index, mspeak in enumerate(self.mspeaks) if min_mz <= mspeak.mz_exp <= max_mz]
         self.filter_by_index(indexes)
 
     def filter_by_s2n(self, min_s2n, max_s2n=False):
 
-        self.check_mspeaks()
+        self.check_mspeaks_warning()
         if not max_s2n:
             max_s2n = self.max_signal_to_noise
 
-        self.check_mspeaks()
+        self.check_mspeaks_warning()
         indexes = [index for index, mspeak in enumerate(self.mspeaks)if min_s2n <= mspeak.signal_to_noise <= max_s2n ]
         self.filter_by_index(indexes)
 
     def filter_by_abundance(self, min_abund, max_abund=False):
 
-        self.check_mspeaks()
+        self.check_mspeaks_warning()
         if not max_abund:
             max_abund = self.max_abundance
         indexes = [index for index, mspeak in enumerate(self.mspeaks) if min_abund <= mspeak.abundance <= max_abund]
@@ -404,7 +413,7 @@ class MassSpecBase(MassSpecCalc):
 
         rpe = lambda m, z: (1.274e7 * z * B * T)/(m*z)
 
-        self.check_mspeaks()
+        self.check_mspeaks_warning()
         
         indexes_to_remove = [index for index, mspeak in enumerate(self.mspeaks) if  mspeak.resolving_power >= rpe(mspeak.mz_exp,mspeak.ion_charge)]
         self.filter_by_index(indexes_to_remove)
@@ -413,7 +422,7 @@ class MassSpecBase(MassSpecCalc):
 
         rpe = lambda m, z: (1.274e7 * z * B * T)/(m*z)
 
-        self.check_mspeaks()
+        self.check_mspeaks_warning()
         
         indexes_to_remove = [index for index, mspeak in enumerate(self.mspeaks) if  mspeak.resolving_power <= rpe(mspeak.mz_exp,mspeak.ion_charge)]
         self.filter_by_index(indexes_to_remove)
@@ -421,7 +430,7 @@ class MassSpecBase(MassSpecCalc):
     def get_mz_and_abundance_peaks_tuples(self):
 
         self.check_mspeaks()
-        return [(mspeak.mz, mspeak.abundance) for mspeak in self.mspeaks]
+        return [(mspeak.mz_exp, mspeak.abundance) for mspeak in self.mspeaks]
 
     def find_peaks(self):
         """needs to clear previous results from peak_picking"""
@@ -501,7 +510,7 @@ class MassSpecBase(MassSpecCalc):
 
         self._dict_nominal_masses_indexes = dict_nominal_masses_indexes
 
-    def plot_mz_domain_profile_and_noise_threshold(self):
+    def plot_mz_domain_profile_and_noise_threshold(self): #pragma: no cover
 
         if self.baselise_noise and self.baselise_noise:
             x = (self.mz_exp_profile.min(), self.mz_exp_profile.max())
@@ -520,7 +529,7 @@ class MassSpecBase(MassSpecCalc):
 
             raise Exception("Calculate noise threshold first")
 
-    def plot_mz_domain_profile(self):
+    def plot_mz_domain_profile(self): #pragma: no cover
 
         plt.plot(self.mz_exp_profile, self.abundance_profile, color="green")
         plt.xlabel("m/z")
