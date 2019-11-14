@@ -56,6 +56,13 @@ def test_run_molecular_formula_search():
 
 def test_mspeak_search():
 
+    #MolecularSearchSettings.usedAtoms['P'] = (0,2)
+    #MolecularSearchSettings.usedAtoms['N'] = (0,2)
+    #MolecularSearchSettings.usedAtoms['F'] = (0,1)
+
+    MolecularSearchSettings.used_atom_valences['P'] = 3
+    MolecularSearchSettings.used_atom_valences['F'] = 1
+    
     mass_spec_obj = creat_mass_spectrum()
 
     mspeak_obj = mass_spec_obj.most_abundant_mspeak
@@ -98,12 +105,14 @@ def test_molecular_formula_search_db():
 
 def test_priorityAssigment():
     
+    MolecularSearchSettings.usedAtoms['F'] = (0,1)
     MolecularSearchSettings.error_method = 'None'
     MolecularSearchSettings.min_mz_error = -5
     MolecularSearchSettings.max_mz_error = 5
     MolecularSearchSettings.mz_error_range = 1
     MolecularSearchSettings.isProtonated = True 
     MolecularSearchSettings.isRadical= True 
+    MolecularSearchSettings.isAdduct= False 
 
     mass_spec_obj = creat_mass_spectrum()
     
@@ -111,6 +120,7 @@ def test_priorityAssigment():
 
     assignOx.run() 
  
+    MolecularSearchSettings.usedAtoms['F'] = (0,0)
 
 if __name__ == "__main__":
 

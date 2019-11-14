@@ -111,8 +111,8 @@ class OxigenPriorityAssignment(Thread):
 
                     if is_adduct:
                         
-                        for m_formula in possible_formulas_dict: m_formula.ion_type = Labels.adduct_ion
-
+                            for m_formula in possible_formulas_nominal: m_formula.ion_type = Labels.adduct_ion
+                        
                     ms_peak_indexes = SearchMolecularFormulaWorker().find_formulas(possible_formulas_nominal, min_abundance, mass_spectrum_obj, ms_peak)    
 
                     all_assigned_indexes.extend(ms_peak_indexes)
@@ -120,7 +120,7 @@ class OxigenPriorityAssignment(Thread):
             #filter per min peaks per mono isotopic class
             check_min_peaks(all_assigned_indexes)
         
-        error_average = self.mass_spectrum_obj.molecular_search_settings.mz_error_average
+        #error_average = self.mass_spectrum_obj.molecular_search_settings.mz_error_average
         
         min_abundance = self.mass_spectrum_obj.min_abundance
 
