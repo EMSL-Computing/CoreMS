@@ -18,7 +18,7 @@ cache:
   
   paths:
     - .cache/pip
-    - venv/
+  
 
 stages:
   - test
@@ -42,6 +42,10 @@ test-source:
     - ls .
     - python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
     - pytest
+  
+  artifacts:
+    paths:
+      - doc/coverage_html_report  
    
 
 run-job:
@@ -57,10 +61,10 @@ run-job:
     - python -V  # Print out python version for debugging
     - pip install -r requirements.txt
     - pip install wheel
-    - python setup.py sdist #bdist_wheel
-    #- python setup.py bdist_wheel
+    - python setup.py sdist bdist_wheel
+    - python setup.py bdist_wheel
     # an alternative approach is to install and run:
-    - pip install dist/*
+    #- pip install dist/*
     # run the command here
 
   artifacts:
