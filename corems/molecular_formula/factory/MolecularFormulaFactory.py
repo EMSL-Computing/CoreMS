@@ -4,7 +4,7 @@ from corems.molecular_formula.calc.MolecularFormulaCalc import MolecularFormulaC
 from corems.encapsulation.settings.input.ProcessingSetting import MassSpecPeakSetting
 from corems.encapsulation.constant import Atoms, Labels
 
-
+import re
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 24, 2019"
@@ -70,11 +70,28 @@ class MolecularFormula(MolecularFormulaCalc):
         
         self._d_molecular_formula[Labels.ion_type] = ion_type
 
+    
     def _from_str(self, molecular_formula_str,  ion_type):
         # string has to be in the format 
         #'C10 H21 13C1 Cl1 37Cl1 etc'
         molecular_formula_list = molecular_formula_str.split(' ')
-        self._from_list(molecular_formula_list, ion_type)
+        final_formula = []
+        for i in molecular_formula_list:
+            atoms_count = self.split(Atoms.atoms_order, i)
+            final_formula.extend(atoms_count)
+        print(final_formula)
+        self._from_list(final_formula, ion_type)
+
+    def split(self, delimiters, string, maxsplit=0): #pragma: no cover
+        
+        ''' does not work when formula has atoms with same caracaters:
+            i.e - C10H21NNa
+        '''
+        regexPattern = '|'.join(map(re.escape, delimiters)) #pragma: no cover
+        isotopes = re.findall(regexPattern, string) #pragma: no cover
+        counts = re.split(regexPattern, string, maxsplit)  #pragma: no cover
+       
+        return [isotopes[0], int(counts[1])]
 
     @property
     def O_C(self): 

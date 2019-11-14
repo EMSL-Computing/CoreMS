@@ -69,6 +69,8 @@ def test_export_mass_spectrum():
     exportMS._output_type = 'pandas'
     exportMS.save()
     exportMS._output_type = 'hdf5'
+    exportMS.save()
+    exportMS.get_pandas_df()    
 
     
 

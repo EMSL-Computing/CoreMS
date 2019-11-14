@@ -29,7 +29,16 @@ def test_molecular_formula():
     assert round(isotopologues[0].prob_ratio,2) == round(0.6399334750069298,2)
     assert isotopologues[0].to_string == 'C10 O10 Cl1 37Cl1'
     
+    formula_obj.ion_type = 'RADICAL'
+    formula_obj.kmd
+    formula_obj.kendrick_mass
+    formula_obj.knm
+    formula_obj.atoms_qnt('C')
     formula_obj.class_label
+    formula_obj.atoms_symbol('13C')
+    
+    formula_str = 'C10 H21 N1'
+    formula_obj = MolecularFormula(formula_str, ion_charge)
     '''
     for isotopologue_obj in formula_obj.isotopologues(0.01, current_abundance):
         

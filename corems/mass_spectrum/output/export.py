@@ -94,10 +94,10 @@ class MassSpecExport(Thread):
             call exportMS.start() '''
         self.save()
 
-    def get_pandas_df(self, mass_spectrum):
+    def get_pandas_df(self):
 
         columns = self.columns_label + self.get_all_used_atoms_in_ordem(self.mass_spectrum)
-        dict_data_list = self.get_list_dict_data(mass_spectrum)
+        dict_data_list = self.get_list_dict_data(self.mass_spectrum)
         df = DataFrame(dict_data_list, columns=columns)
         df.name = self.output_file
         return df
