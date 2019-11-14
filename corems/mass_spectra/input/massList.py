@@ -49,10 +49,6 @@ class ReadCoremsMassSpectraText(ReadCoremsMasslist, Thread):
                 self.data_type == 'txt'    
                 self.delimiter = ','    
             
-            elif file_path_obj.suffix == '.csv':
-                self.data_type == 'txt'    
-                self.delimiter = ','    
-
             elif file_path_obj.suffix == '.xlsx':
                 self.data_type == 'excel'    
                 self.delimiter = ',' 
