@@ -146,9 +146,10 @@ class MZDomain_Calibration:
     def reset_mass_spec(self, mz_domain, Aterm, Bterm, Cterm):
 
         self.mass_spectrum._calibration_terms = (Aterm, Bterm, 0)
-        for indexes, mspeak in enumerate(self.mass_spectrum):
-            mspeak.mz_exp = mz_domain[indexes]
-
+        
+        #for indexes, mspeak in enumerate(self.mass_spectrum):
+        #    mspeak.mz_cal = mz_domain[indexes] 
+        self.mass_spectrum.mz_cal = mz_domain
 
 class FreqDomain_Calibration:
 
@@ -186,8 +187,10 @@ class FreqDomain_Calibration:
     def recal_mass_spec(self, mz_domain, Aterm, Bterm, Cterm):
 
         self.mass_spectrum._calibration_terms = (Aterm, Bterm, 0)
-        for indexes, mspeak in enumerate(self.mass_spectrum):
-            mspeak.mz_exp = mz_domain[indexes]
+        
+        #for indexes, mspeak in enumerate(self.mass_spectrum):
+        #    mspeak.mz_cal = mz_domain[indexes] 
+        self.mass_spectrum.mz_cal = mz_domain
 
     def linear(self):
 
@@ -330,5 +333,7 @@ class FreqDomain_Calibration:
                 C = 0
             
             for mspeak in self.mass_spectrum[start_index:final_index]:
-                mspeak.mz_exp = f_to_mz(
+                mspeak.mz_cal = f_to_mz(
                     mspeak.freq_exp, A, B, C, 0)
+        
+        self.mass_spectrum.is_calibrated = True    

@@ -15,13 +15,17 @@ class _MSPeak(MSPeakCalculation):
 
         # needed to create the object
         self.ion_charge = int(ion_charge)
-        self.mz_exp = float(mz_exp)
+        self._mz_exp = float(mz_exp)
         self.mass = float(mz_exp) / float(ion_charge)
         self.abundance = float(abundance)
         self.resolving_power = float(resolving_power)
         self.signal_to_noise = float(signal_to_noise)
         self.mass_spec_index = int(massspec_index)
         self.index = int(index)
+        'updated after calibration'
+        self.mz_cal = None
+        'updated individual calculation'
+        self.baseline_noise = None
         
         if exp_freq:
             self.freq_exp = float(exp_freq)
@@ -29,12 +33,7 @@ class _MSPeak(MSPeakCalculation):
         kendrick_dict_base = MassSpecPeakSetting.kendrick_base
         self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(
             kendrick_dict_base)
-
-        self.baseline_noise = None
-
-        'updated after calibration'
-        self.mz_recal = None
-
+ 
         'updated after molecular formula ID'
 
         self.molecular_formulas = []
@@ -68,6 +67,18 @@ class _MSPeak(MSPeakCalculation):
         
         self.molecular_formulas= []
     
+    
+    @property
+    def mz_exp(self):
+        if self.mz_cal:
+            return self.mz_cal
+        else:
+            return self._mz_exp
+    
+    @mz_exp.setter
+    def mz_exp(self, mz_exp):
+        self._mz_exp = mz_exp
+
     @property
     def nominal_mz_exp(self): return int(self.mz_exp)
 
@@ -92,8 +103,8 @@ class _MSPeak(MSPeakCalculation):
     
     @property
     def molecular_formula_lowest_error(self):
-        
-         return min(self.molecular_formulas, key=lambda m: abs(m._calc_assigment_mass_error(self.mz_exp)))
+       
+       return min(self.molecular_formulas, key=lambda m: abs(m._calc_assigment_mass_error(self.mz_exp)))
 
 class ICRMassPeak(_MSPeak):
 
