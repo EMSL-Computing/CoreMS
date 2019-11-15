@@ -55,9 +55,9 @@ class MoleculaLookupDictSettings:
 
 class MolecularSearchSettings:
     
-    use_min_peaks_filter = True
+    use_min_peaks_filter = False
 
-    min_peaks_per_class = 15
+    min_peaks_per_class = 1
 
     db_directory = False
 
@@ -90,7 +90,7 @@ class MolecularSearchSettings:
 
     usedAtoms = {   'C': (1, 100),
                     'H': (4, 200),
-                    'O': (2, 19),
+                    'O': (1, 19),
                     'N': (0, 0),
                     'S': (0, 0),
                     'P': (0, 0),

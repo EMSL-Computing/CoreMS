@@ -128,6 +128,39 @@ def test_import_ref_list():
     pass    
 
 if __name__ == "__main__":
+    from corems.encapsulation.settings.io import settings_parsers  
+
+    MolecularSearchSettings.error_method = 'None'
+    MolecularSearchSettings.min_mz_error = 0.0
+    MolecularSearchSettings.max_mz_error = 20.0
+    MolecularSearchSettings.mz_error_range = 1
+    MolecularSearchSettings.isProtonated = True 
+    MolecularSearchSettings.isRadical= False 
+    MolecularSearchSettings.isAdduct= False 
+    MolecularSearchSettings.usedAtoms['O'] = (1,8)
     
+    print(MolecularSearchSettings.usedAtoms)
+
+    settings_parsers.load_search_setting_json(settings_path="SettingsCoreMS.json")    
+
+    file_path = Path("C:\\Users\\eber373\\OneDrive - PNNL\\Trabalhos\\Mayes\\Mayes_V1D76Alt_ICR_23Sept19_Alder_Infuse_p05_1_01_48741.d")
+
+    mass_spectrum = creat_mass_spectrum(file_path)
+    print(mass_spectrum.polarity)
+    find_formula_thread = FindOxygenPeaks(mass_spectrum)
+    find_formula_thread.run()
+
+    mspeaks_results = find_formula_thread.get_list_found_peaks()
+
+    for peak in mspeaks_results:
+        if peak:
+            for mf in peak:
+                print(peak.mz_exp,mf.to_string, mf.mz_error )
     
-     test_calibration()
+   
+    mass_spectrum.plot_mz_domain_profile_and_noise_threshold()
+    
+    calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
+    calibrate.ledford_calibration()
+
+    #test_calibration()

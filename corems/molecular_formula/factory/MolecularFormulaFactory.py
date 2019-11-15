@@ -30,6 +30,7 @@ class MolecularFormula(MolecularFormulaCalc):
         self._assigment_mass_error = None
         self._confidence_score = None
         self.is_isotopologue = False
+        self.expected_isotopologues = []
         self.mspeak_indexes_isotopologues = []
         
         kendrick_dict_base = MassSpecPeakSetting.kendrick_base

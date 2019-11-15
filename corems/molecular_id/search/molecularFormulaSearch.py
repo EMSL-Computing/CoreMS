@@ -22,9 +22,10 @@ class SearchMolecularFormulas:
     '''
     runworker()
     '''
-    def __init__(self, first_hit=False):
+    def __init__(self, first_hit=False, find_isotopologues=True):
         
         self.first_hit = first_hit
+        self.find_isotopologues = find_isotopologues
 
     def __enter__(self):
 
@@ -57,7 +58,7 @@ class SearchMolecularFormulas:
                     
                     for m_formula in possible_formulas_dict: m_formula.ion_type = Labels.adduct_ion
 
-                ms_peak_indexes = SearchMolecularFormulaWorker().find_formulas(possible_formulas_nominal, min_abundance, mass_spectrum_obj, ms_peak)    
+                ms_peak_indexes = SearchMolecularFormulaWorker(find_isotopologues=self.find_isotopologues).find_formulas(possible_formulas_nominal, min_abundance, mass_spectrum_obj, ms_peak)    
 
                 all_assigned_indexes.extend(ms_peak_indexes)
         
@@ -105,7 +106,7 @@ class SearchMolecularFormulas:
                             
                             if possible_formulas:
                
-                                ms_peak_indexes = SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak)    
+                                ms_peak_indexes = SearchMolecularFormulaWorker(find_isotopologues=self.find_isotopologues).find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak)    
                                 
                                 self.check_min_peaks(ms_peak_indexes, mass_spectrum_obj)
 
@@ -116,7 +117,7 @@ class SearchMolecularFormulas:
 
                             if possible_formulas:
                
-                                ms_peak_indexes = SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak)    
+                                ms_peak_indexes = SearchMolecularFormulaWorker(find_isotopologues=self.find_isotopologues).find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak)    
                                 
                                 self.check_min_peaks(ms_peak_indexes, mass_spectrum_obj)
 
@@ -136,7 +137,7 @@ class SearchMolecularFormulas:
                         
                         if not is_adduct:
                             
-                            ms_peak_indexes = SearchMolecularFormulaWorker().find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak)
+                            ms_peak_indexes = SearchMolecularFormulaWorker(find_isotopologues=self.find_isotopologues).find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak)
 
                             self.check_min_peaks(ms_peak_indexes, mass_spectrum_obj)
 
@@ -149,7 +150,7 @@ class SearchMolecularFormulas:
         #deactivate the usage of min peaks per class filter
         mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = False
 
-        SearchMolecularFormulaWorker().reset_error(mass_spectrum_obj)
+        SearchMolecularFormulaWorker(find_isotopologues=self.find_isotopologues).reset_error(mass_spectrum_obj)
 
         min_abundance = mass_spectrum_obj.min_abundance
 
@@ -181,9 +182,9 @@ class SearchMolecularFormulas:
         #deactivate the usage of min peaks per class filter
         mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = False
 
-        SearchMolecularFormulaWorker().reset_error(mass_spectrum_obj)
+        SearchMolecularFormulaWorker(find_isotopologues=self.find_isotopologues).reset_error(mass_spectrum_obj)
         
-        min_abundance = mass_spectrum_obj.min_abundance
+        min_abundance = 0.01
 
         classes = MolecularCombinations().runworker(mass_spectrum_obj.molecular_search_settings)
         
@@ -205,7 +206,7 @@ class SearchMolecularFormulas:
         '''loading this on a shared memory would be better than having to serialize it for every process
             waiting for python 3.8 release'''
        
-        SearchMolecularFormulaWorker().reset_error(mass_spectrum_obj)
+        SearchMolecularFormulaWorker(find_isotopologues=self.find_isotopologues).reset_error(mass_spectrum_obj)
 
         min_abundance = mass_spectrum_obj.min_abundance
 
@@ -401,7 +402,7 @@ class SearchMolecularFormulaWorker:
             if possible_formula:
                 
                 error = possible_formula._calc_assigment_mass_error(ms_peak_mz_exp)
-                
+               
                 if  min_mz_error <= error <= max_mz_error:
                     
                     #update the error
@@ -418,7 +419,8 @@ class SearchMolecularFormulaWorker:
                         isotopologues = possible_formula.isotopologues(min_abundance, ms_peak_abundance)
                         
                         for isotopologue_formula in isotopologues:
-                            
+                           
+                            possible_formula.expected_isotopologues.append(isotopologue_formula)
                             #move this outside to impove preformace
                             #we need to increase the search space to -+1 m_z 
                             first_index, last_index = mass_spectrum_obj.get_nominal_mz_frist_last_indexes(isotopologue_formula.mz_nominal_theo)

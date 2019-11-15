@@ -100,6 +100,7 @@ def set_dict_data_ms(data_loaded, mass_spec_obj):
  
 def set_dict_data(data_loaded):
     
+    import warnings
     labels = ["MoleculaSearch", "Transient", "MassSpectrum", "MassSpecPeak", "DataInput"]
     classes = [MolecularSearchSettings, TransientSetting, MassSpectrumSetting, MassSpecPeakSetting, DataInputSetting]
     
@@ -120,7 +121,7 @@ def set_dict_data(data_loaded):
         
     else:
         
-        Warning("Could not load the settings, using the defaults values")    
+        warnings.warn("Could not load the settings, using the defaults values")    
 
 def dump_search_settings_json( filename='SettingsCoreMS.json'):
     
