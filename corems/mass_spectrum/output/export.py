@@ -306,7 +306,7 @@ class MassSpecExport(Thread):
         def add_no_match_dict_data():
 
             dict_result = {'Index': index,
-                           'm/z':  ms_peak.mz_exp,
+                           'm/z':  ms_peak._mz_exp,
                            'Calibrated m/z': ms_peak.mz_exp,
                            'Abundance': ms_peak.abundance,
                            'Resolving Power': ms_peak.resolving_power,
@@ -320,14 +320,14 @@ class MassSpecExport(Thread):
 
             formula_dict = m_formula.to_dict
             dict_result = {'Index': index,
-                           'm/z':  ms_peak.mz_exp,
+                           'm/z':  ms_peak._mz_exp,
                            'Calibrated m/z': ms_peak.mz_exp,
                            'Calculated m/z': m_formula.mz_theor,
                            'Abundance': ms_peak.abundance,
                            'Resolving Power': ms_peak.resolving_power,
                            'S/N':  ms_peak.signal_to_noise,
                            'Ion Charge': ms_peak.ion_charge,
-                           'Mass Error (ppm)': m_formula._calc_assigment_mass_error(ms_peak.mz_exp),
+                           'Mass Error (ppm)': m_formula.mz_error,
                            'DBE':  m_formula.dbe,
                            'Heteroatom Class': m_formula.class_label.encode('utf-8'),
                            'H/C':  m_formula.H_C,

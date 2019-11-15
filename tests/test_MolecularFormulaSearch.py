@@ -7,9 +7,7 @@ import time
 from pathlib import Path
 sys.path.append('.')
 
-
 import pytest
-
 
 from corems.mass_spectrum.input.numpyArray import ms_from_array_centroid
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas

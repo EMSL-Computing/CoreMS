@@ -43,6 +43,7 @@ class SearchMolecularFormulas:
 
             #already assinged a molecular formula
             if self.first_hit: 
+                
                 if ms_peak.is_assigned: continue
         
             nominal_mz  = ms_peak.nominal_mz_exp
@@ -326,7 +327,8 @@ class SearchMolecularFormulaWorker:
     def reset_error(self, mass_spectrum_obj):
         global last_error, last_dif, closest_error, error_average, nbValues  
         last_error, last_dif, closest_error, nbValues  = 0.0, 0.0, 0.0, 0.0
-        error_average = mass_spectrum_obj.molecular_search_settings.mz_error_average
+        
+        error_average = 0
 
     def set_last_error(self, error, mass_spectrum_obj ):
         
@@ -410,6 +412,9 @@ class SearchMolecularFormulaWorker:
                     self.set_last_error(error, mass_spectrum_obj)    
                    
                     #add molecular formula match to ms_peak
+                    
+                    possible_formula.set_assigment_mass_error(error)
+
                     ms_peak.add_molecular_formula(possible_formula)
                     
                     mspeak_assigned_index.append(ms_peak.index)
@@ -429,25 +434,29 @@ class SearchMolecularFormulaWorker:
                                 
                                 error = isotopologue_formula._calc_assigment_mass_error(ms_peak_iso.mz_exp)    
                                 
-                                #need to define error distribution for abundance measurements
-                                
-                                abundance_error = isotopologue_formula._calc_abundance_error(ms_peak_abundance,ms_peak_iso.abundance )            
-                                # margin of error was set empirically/ needs statistical calculation
-                                #  of margin of error for the measurement of the abundances
-                                if min_abun_error <= abundance_error <= max_abun_error:
+                                if  min_mz_error <= error <= max_mz_error:
                                     
-                                    #update the error   
+                                    #need to define error distribution for abundance measurements
                                     
-                                    self.set_last_error(error, mass_spectrum_obj)    
-                                    
-                                    #add molecular formula match to ms_peak
-                                    ms_peak_iso.add_molecular_formula(isotopologue_formula)
-                                    
-                                    #add mspeaks mono isotopic index to the isotopologue MolecularFormula obj
-                                    isotopologue_formula.mspeak_index_mono_isotopic = ms_peak.index
-                                    
-                                    #add mspeaks isotopologue index to the mono isotopic MolecularFormula obj
-                                    possible_formula.mspeak_indexes_isotopologues.append(ms_peak_iso.index)
+                                    abundance_error = isotopologue_formula._calc_abundance_error(ms_peak_abundance,ms_peak_iso.abundance )            
+                                    # margin of error was set empirically/ needs statistical calculation
+                                    #  of margin of error for the measurement of the abundances
+                                    if min_abun_error <= abundance_error <= max_abun_error:
+                                        
+                                        #update the error   
+                                        
+                                        self.set_last_error(error, mass_spectrum_obj)    
+                                        
+                                        isotopologue_formula.set_assigment_mass_error(error)
+
+                                        #add molecular formula match to ms_peak
+                                        ms_peak_iso.add_molecular_formula(isotopologue_formula)
+                                        
+                                        #add mspeaks mono isotopic index to the isotopologue MolecularFormula obj
+                                        isotopologue_formula.mspeak_index_mono_isotopic = ms_peak.index
+                                        
+                                        #add mspeaks isotopologue index to the mono isotopic MolecularFormula obj
+                                        possible_formula.mspeak_indexes_isotopologues.append(ms_peak_iso.index)
 
         return mspeak_assigned_index
 
