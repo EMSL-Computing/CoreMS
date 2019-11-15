@@ -46,7 +46,7 @@ class FindOxygenPeaks(Thread):
             set_mass_spec_indexes_by_found_peaks()
                 set the mass spectrum to interate over only the selected indexes
     '''
-    def __init__(self, mass_spectrum_obj, min_O = 1, max_O = 6) :
+    def __init__(self, mass_spectrum_obj, min_O = 1, max_O = 19) :
         
         Thread.__init__(self)
         

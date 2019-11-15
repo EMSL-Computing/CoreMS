@@ -4,7 +4,7 @@ from copy import deepcopy
 
 #from matplotlib import rcParamsDefault, rcParams
 from numpy import array, power, float64
-import matplotlib.pyplot as plt
+
 
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting, MassSpecPeakSetting, TransientSetting
@@ -73,13 +73,14 @@ class MassSpecBase(MassSpecCalc):
         
         self._init_settings()
         self._set_parameters_objects(d_params)
-    
+
+        self.is_calibrated = False
+
     def _init_settings(self):
         
         self._mol_search_settings  = deepcopy(MolecularSearchSettings)
         self._settings  = deepcopy(MassSpectrumSetting)
         self._mspeaks_settings  = deepcopy(MassSpecPeakSetting)
-        
 
     def __len__(self):
         
@@ -239,9 +240,31 @@ class MassSpecBase(MassSpecCalc):
         return self._frequency_domain
 
     @property
+    def mz_cal(self):
+        return array([mspeak.mz_cal for mspeak in self.mspeaks])
+    
+    @mz_cal.setter
+    def mz_cal(self, mz_cal_list):
+            
+            if  len(mz_cal_list) == len(self._mspeaks):
+                self.is_calibrated = True
+                for index, mz_cal in enumerate(mz_cal_list):
+                    self._mspeaks[index].mz_cal = mz_cal
+            else: 
+                raise Exception( "calibrated array (%i) is not of the same size of the data (%i)" % len(mz_cal_list),  len(self._mspeaks))        
+        
+    @property
     def mz_exp(self):
+        
         self.check_mspeaks()
-        return array([mspeak.mz_exp for mspeak in self.mspeaks])
+        
+        if self.is_calibrated:
+            
+            return array([mspeak.mz_cal for mspeak in self.mspeaks])
+        
+        else:
+            
+            return array([mspeak.mz_exp for mspeak in self.mspeaks])
 
     @property
     def mz_exp_profile(self): return self._mz_exp
@@ -511,6 +534,7 @@ class MassSpecBase(MassSpecCalc):
         self._dict_nominal_masses_indexes = dict_nominal_masses_indexes
 
     def plot_mz_domain_profile_and_noise_threshold(self): #pragma: no cover
+        import matplotlib.pyplot as plt
 
         if self.baselise_noise and self.baselise_noise:
             x = (self.mz_exp_profile.min(), self.mz_exp_profile.max())
@@ -530,6 +554,7 @@ class MassSpecBase(MassSpecCalc):
             raise Exception("Calculate noise threshold first")
 
     def plot_mz_domain_profile(self): #pragma: no cover
+        import matplotlib.pyplot as plt
 
         plt.plot(self.mz_exp_profile, self.abundance_profile, color="green")
         plt.xlabel("m/z")

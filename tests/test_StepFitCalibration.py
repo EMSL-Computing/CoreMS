@@ -128,6 +128,7 @@ def test_import_ref_list():
     pass    
 
 if __name__ == "__main__":
+    
     from corems.encapsulation.settings.io import settings_parsers  
 
     MolecularSearchSettings.error_method = 'None'
@@ -143,9 +144,11 @@ if __name__ == "__main__":
 
     settings_parsers.load_search_setting_json(settings_path="SettingsCoreMS.json")    
 
-    file_path = Path("C:\\Users\\eber373\\OneDrive - PNNL\\Trabalhos\\Mayes\\Mayes_V1D76Alt_ICR_23Sept19_Alder_Infuse_p05_1_01_48741.d")
+    file_location = Path.cwd() /  "ESI_NEG_SRFA.d/"
 
-    mass_spectrum = creat_mass_spectrum(file_path)
+    #file_location = Path("C:\\Users\\eber373\\OneDrive - PNNL\\Trabalhos\\Mayes\\Mayes_V1D76Alt_ICR_23Sept19_Alder_Infuse_p05_1_01_48741.d")
+
+    mass_spectrum = creat_mass_spectrum(file_location)
     print(mass_spectrum.polarity)
     find_formula_thread = FindOxygenPeaks(mass_spectrum)
     find_formula_thread.run()
@@ -157,10 +160,9 @@ if __name__ == "__main__":
             for mf in peak:
                 print(peak.mz_exp,mf.to_string, mf.mz_error )
     
-   
     mass_spectrum.plot_mz_domain_profile_and_noise_threshold()
     
     calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
     calibrate.ledford_calibration()
 
-    #test_calibration()
+    test_calibration()
