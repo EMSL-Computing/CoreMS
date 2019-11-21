@@ -139,7 +139,31 @@ def dump_search_settings_json( filename='SettingsCoreMS.json'):
         output = re.sub(r'",\s+', '", ', output)
         
         outfile.write(output)
+
+def load_setting_ms_obj(mass_spec_obj, settings_path=False):   
+    
+    if settings_path:
         
+        file_path = Path(settings_path)
+
+    else:
+        
+        filename='SettingsCoreMS.json'
+        file_path = Path.cwd() / filename 
+
+    if Path.exists:  
+        
+        with open(file_path, 'r', encoding='utf8',) as stream:
+            
+            stream_lines = [n for n in stream.readlines() if not '//' in n.strip()]
+            jdata = ''.join(stream_lines)
+            data_loaded = json.loads(jdata)
+            set_dict_data_ms(data_loaded, mass_spec_obj)
+    else:
+        
+        raise FileNotFoundError("Could not locate %s", file_path)   
+
+
 def load_search_setting_json(settings_path=False):
     
     '''LOAD JSON file from current directory

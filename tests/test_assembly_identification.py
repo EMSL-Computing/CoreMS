@@ -390,6 +390,7 @@ if __name__ == "__main__":
     from matplotlib import colors as mcolors
     from matplotlib import pyplot
     import matplotlib
+    from pathlib import Path
     #matplotlib.use('Agg')
 
     #file_name = "20190911_Kew_APPI_Elliot_DRY_IAT100ms_50ulmin_000001.d"
@@ -397,11 +398,11 @@ if __name__ == "__main__":
     #file_name= "20190912_kew_ldi_elliot_spe_f4_anchorchip_0_f4_000001.d"
     #file_name = "20190912_Kew_LDI_Elliot_DRY_C4_AnchorChip_0_C4_000001.d"
     #file_name = "20190911_Kew_ESI_Elliot_DRY_IAT100ms_000001.d"
-    file_name = "20190911_Kew_ESI_Elliot_SPE_IAT100ms_000002.d"
+    #file_name = "20190911_Kew_ESI_Elliot_SPE_IAT100ms_000002.d"
     #file_name = "20190912_Kew_LDI_Elliot_Whole_B15_1500um_0_B15_000001.d"
     
-    file_location = os.path.join(os.getcwd(), "res/data/201909_ldiesiappi_elliot/") + os.path.normcase(file_name)
-
+    file_location = Path.cwd() /  "ESI_NEG_SRFA.d/"
+    
     bruker_reader = ReadBrukerSolarix(file_location)
 
     bruker_transient = bruker_reader.get_transient()
@@ -426,13 +427,13 @@ if __name__ == "__main__":
 
     calibrate(mass_spectrum_obj)
 
-    MolecularSearchSettings.error_method = 'None'
-    MolecularSearchSettings.min_mz_error = -1
-    MolecularSearchSettings.max_mz_error = 1
-    MolecularSearchSettings.mz_error_range = 1
-    MolecularSearchSettings.mz_error_average = 0
-    MolecularSearchSettings.min_abun_error = -30 # percentage
-    MolecularSearchSettings.max_abun_error = 70 # percentage
+    #MolecularSearchSettings.error_method = 'None'
+    #MolecularSearchSettings.min_mz_error = -1
+    #MolecularSearchSettings.max_mz_error = 1
+    #MolecularSearchSettings.mz_error_range = 1
+    #MolecularSearchSettings.mz_error_average = 0
+    #MolecularSearchSettings.min_abun_error = -30 # percentage
+    #MolecularSearchSettings.max_abun_error = 70 # percentage
 
     #assign_mf_ox(mass_spectrum_obj)
 
@@ -454,7 +455,7 @@ if __name__ == "__main__":
 
     #search_nx(mass_spectrum_obj)
 
-    search_ox(mass_spectrum_obj)
+    #search_ox(mass_spectrum_obj)
 
     #search_nox(mass_spectrum_obj)
 
@@ -466,8 +467,8 @@ if __name__ == "__main__":
 
     #plot_mass_spectrum()
     
-    if not os.path.isdir(mass_spectrum_obj.filename):
-        os.mkdir(mass_spectrum_obj.filename)
+    #if not os.path.isdir(mass_spectrum_obj.filename):
+    #    os.mkdir(mass_spectrum_obj.filename)
     
     #MassSpecExport(mass_spectrum_obj.filename+'/'+mass_spectrum_obj.filename, mass_spectrum_obj, 'excel').start()
     
@@ -475,4 +476,4 @@ if __name__ == "__main__":
 
     #plot_c_dbe_classes(df)
 
-    plot_error_distribution()
+    #plot_error_distribution()

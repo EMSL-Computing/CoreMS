@@ -56,12 +56,12 @@ class ClusteringFilter():
         print('Estimated number of clusters: %d' % n_clusters_)
         print('Estimated number of noise points: %d' % n_noise_)
         mass_spectrum.filter_by_index(indexes)
-        #from matplotlib import pyplot as plt
-        #plt.scatter(matrix_data[:, 0], matrix_data[:, 1], c=clusters, cmap="plasma")
-        #plt.xlabel("km")
-        #plt.ylabel("kdm")
-        #plt.show()
-        #plt.close()
+        from matplotlib import pyplot as plt
+        plt.scatter(matrix_data[:, 0], matrix_data[:, 1], c=clusters, cmap="spectral")
+        plt.xlabel("km")
+        plt.ylabel("kdm")
+        plt.show()
+        plt.close()
        
 
     def remove_assigment_by_mass_error(self, mass_spectrum):

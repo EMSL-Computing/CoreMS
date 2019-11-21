@@ -7,7 +7,7 @@ from pathlib import Path
 sys.path.append(".")
 
 import numpy as np
-from matplotlib import pyplot as pylab
+from matplotlib import pyplot 
 
 from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings
 from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration, MZDomain_Calibration
@@ -155,6 +155,9 @@ if __name__ == "__main__":
 
     mspeaks_results = find_formula_thread.get_list_found_peaks()
 
+    
+
+    '''
     for peak in mspeaks_results:
         if peak:
             for mf in peak:
@@ -166,3 +169,4 @@ if __name__ == "__main__":
     calibrate.ledford_calibration()
 
     test_calibration()
+    '''
