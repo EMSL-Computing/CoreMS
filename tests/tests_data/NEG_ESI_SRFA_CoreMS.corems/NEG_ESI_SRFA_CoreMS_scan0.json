@@ -21,7 +21,7 @@
         "implemented_noise_threshold_methods": [
             "auto",
             "signal_noise",
-            "relative_abudance"
+            "relative_abundance"
         ],
         "max_noise_mz": 1200.0,
         "max_picking_mz": 1200.0,
@@ -30,7 +30,7 @@
         "noise_threshold_stds": 6,
         "relative_abundace_threshold": 5,
         "s2n_threshold": 4,
-        "threshold_method": "relative_abudance"
+        "threshold_method": "relative_abundance"
     },
     "MoleculaSearch": {
         "adduct_atoms_neg": [

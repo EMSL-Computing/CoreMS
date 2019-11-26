@@ -8,12 +8,12 @@ from xml.dom import minidom
 
 from corems.transient.factory.TransientClasses import Transient
 
-from corems.encapsulation.settings.input.InputSetting import d_parms
+from corems.encapsulation.settings.input.InputSetting import d_params
 
 class ReadBrukerSolarix(object):
     
     """
-    A class used to Read a single Transient from Bruker's FT-MS aquistion station (fid, or ser)
+    A class used to Read a single Transient from Bruker's FT-MS acquisition station (fid, or ser)
         
     Parameters
     ----------
@@ -76,9 +76,9 @@ class ReadBrukerSolarix(object):
         
     def get_transient(self, scan_index=0):
 
-        d_params = self.parse_parameters(self.parameter_filename_location)
+        file_d_params = self.parse_parameters(self.parameter_filename_location)
 
-        self.fix_freq_limits(d_params)
+        self.fix_freq_limits(file_d_params)
 
         from sys import platform
         
@@ -88,9 +88,10 @@ class ReadBrukerSolarix(object):
         else:
             dt = dtype("i")
 
-        output_parameters = deepcopy(d_parms(self.d_directory_location))
         # get rt, scan, and tic from scan.xml file, otherwise  using 0 defaults values 
         
+        output_parameters = deepcopy(d_params(self.d_directory_location))
+
         if self.transient_data_path.name == 'ser':
             
             if self.scan_attr.exists:
@@ -107,23 +108,23 @@ class ReadBrukerSolarix(object):
 
         output_parameters["label"] = "Bruker_Frequency"
 
-        output_parameters["Aterm"] = float(d_params.get("ML1"))
+        output_parameters["Aterm"] = float(file_d_params.get("ML1"))
 
-        output_parameters["Bterm"] = float(d_params.get("ML2"))
+        output_parameters["Bterm"] = float(file_d_params.get("ML2"))
 
-        output_parameters["Cterm"] = float(d_params.get("ML3"))
+        output_parameters["Cterm"] = float(file_d_params.get("ML3"))
 
-        output_parameters["exc_high_freq"] = float(d_params.get("EXC_Freq_High"))
+        output_parameters["exc_high_freq"] = float(file_d_params.get("EXC_Freq_High"))
 
-        output_parameters["exc_low_freq"] = float(d_params.get("EXC_Freq_Low"))
+        output_parameters["exc_low_freq"] = float(file_d_params.get("EXC_Freq_Low"))
 
-        output_parameters["bandwidth"] = float(d_params.get("SW_h"))
+        output_parameters["bandwidth"] = float(file_d_params.get("SW_h"))
 
-        output_parameters["number_data_points"] = int(d_params.get("TD"))
+        output_parameters["number_data_points"] = int(file_d_params.get("TD"))
 
-        output_parameters["polarity"] = str(d_params.get("Polarity"))
+        output_parameters["polarity"] = str(file_d_params.get("Polarity"))
 
-        data_points = int(d_params.get("TD"))
+        data_points = int(file_d_params.get("TD"))
 
         scan = output_parameters["scan_number"]
 
@@ -143,7 +144,7 @@ class ReadBrukerSolarix(object):
         """
         for key, values in d_params.items():
             print(key, values)
-        """
+                   """
     def fix_freq_limits(self, d_parameters):
 
         highfreq = float(d_parameters.get("EXC_Freq_High"))

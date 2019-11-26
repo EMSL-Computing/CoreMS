@@ -54,33 +54,33 @@ class ReadHDF_BoosterMassSpectra(Thread):
 
         return self.hdf_obj[str(scan)].attrs[attr_srt]
 
-    def import_mass_spectra(self, d_parms):
+    def import_mass_spectra(self, d_params):
         
         list_rt, list_tic = list(), list()
         
         for scan_number in self.list_scans:
             
-            d_parms["rt"] =  list_rt.append(self.get_attr_data(scan_number, 'r_h_start_time'))
+            d_params["rt"] =  list_rt.append(self.get_attr_data(scan_number, 'r_h_start_time'))
 
-            d_parms["scan_number"] = scan_number
+            d_params["scan_number"] = scan_number
 
-            d_parms['label'] = Labels.booster_profile
+            d_params['label'] = Labels.booster_profile
     
-            d_parms["polarity"] = self.get_polarity(self.file_location, scan_number)
+            d_params["polarity"] = self.get_polarity(self.file_location, scan_number)
 
-            d_parms["Aterm"] = self.get_attr_data(scan_number, 'r_cparams')[0]
+            d_params["Aterm"] = self.get_attr_data(scan_number, 'r_cparams')[0]
 
-            d_parms["Bterm"] = self.get_attr_data(scan_number, 'r_cparams')[1]
+            d_params["Bterm"] = self.get_attr_data(scan_number, 'r_cparams')[1]
 
-            d_parms['analyzer'] = self.analyzer
+            d_params['analyzer'] = self.analyzer
         
-            d_parms['instrument_label'] = self.instrument_label
+            d_params['instrument_label'] = self.instrument_label
 
-            list_rt.append(d_parms["rt"])
+            list_rt.append(d_params["rt"])
 
             list_tic.append(self.get_attr_data(scan_number, 'r_h_tic'))
             
-            mass_spec = self.get_mass_spectrum(scan_number, d_parms)
+            mass_spec = self.get_mass_spectrum(scan_number, d_params)
 
             self.lcms.add_mass_spectrum_for_scan(mass_spec)
 
@@ -88,7 +88,7 @@ class ReadHDF_BoosterMassSpectra(Thread):
         self.lcms.set_tic_list(list_tic)
         self.lcms.set_scans_number_list(self.list_scans)
         
-    def get_mass_spectrum(self, scan, d_parms):
+    def get_mass_spectrum(self, scan, d_params):
         
         booster_data = self.hdf_obj[str(scan)]
         
@@ -106,14 +106,14 @@ class ReadHDF_BoosterMassSpectra(Thread):
             }
             
             data = DataFrame(data_dict)
-            mass_spec = MassSpecProfile(data, d_parms, auto_process=self.auto_process)
+            mass_spec = MassSpecProfile(data, d_params, auto_process=self.auto_process)
 
         return mass_spec
 
     def run(self):
         '''creates the lcms obj'''
 
-        d_parameters = InputSetting.d_parms(self.file_location)
+        d_parameters = InputSetting.d_params(self.file_location)
         self.import_mass_spectra(d_parameters)
             
     def get_lcms_obj(self):

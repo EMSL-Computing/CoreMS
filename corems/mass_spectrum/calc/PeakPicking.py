@@ -175,7 +175,7 @@ class PeakPicking(object):
             abudance_thresould = MassSpectrumSetting.s2n_threshold
             factor = self.baselise_noise_std
 
-        elif threshold_method == "relative_abudance":
+        elif threshold_method == "relative_abundance":
 
             abudance_thresould = MassSpectrumSetting.relative_abundace_threshold
             factor = intes.max()/100

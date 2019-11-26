@@ -607,7 +607,7 @@ class MassSpecProfile(MassSpecBase):
 
     @overrides(MassSpecBase)
     
-    def process_mass_spec(self, autoNoise):
+    def process_mass_spec(self, autoNoise=True):
         self.cal_noise_treshould(auto=autoNoise)
         self.find_peaks()
         self.reset_indexes()

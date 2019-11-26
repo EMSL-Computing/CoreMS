@@ -82,27 +82,27 @@ class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
 
     def get_output_parameters(self):
         
-        d_parms = InputSetting.d_parms(self.file_location)
+        d_params = InputSetting.d_params(self.file_location)
         
-        d_parms["polarity"] = self.polarity
+        d_params["polarity"] = self.polarity
         
-        d_parms["filename_path"] = self.file_location
+        d_params["filename_path"] = self.file_location
         
-        d_parms["mobility_scan"] = 0
+        d_params["mobility_scan"] = 0
         
-        d_parms["mobility_rt"] = 0
+        d_params["mobility_rt"] = 0
         
-        d_parms["scan_number"] = 0
+        d_params["scan_number"] = 0
         
-        d_parms["rt"] = self.get_attr_data(0, 'r_h_start_time')
+        d_params["rt"] = self.get_attr_data(0, 'r_h_start_time')
 
-        d_parms['label'] = Labels.booster_profile
+        d_params['label'] = Labels.booster_profile
 
-        d_parms["Aterm"] = self.get_attr_data(0, 'r_cparams')[0]
+        d_params["Aterm"] = self.get_attr_data(0, 'r_cparams')[0]
 
-        d_parms["Bterm"] = self.get_attr_data(0, 'r_cparams')[1]
+        d_params["Bterm"] = self.get_attr_data(0, 'r_cparams')[1]
 
-        return d_parms
+        return d_params
 
 
     

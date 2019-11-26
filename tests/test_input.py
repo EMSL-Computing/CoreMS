@@ -1,27 +1,20 @@
-
-
 __author__ = "Yuri E. Corilo"
 __date__ = "Jul 02, 2019"
 
-
 import sys
-from pathlib import Path
 sys.path.append(".")
+from pathlib import Path
 
 import pytest
 
-from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
-
-from corems.mass_spectra.input.brukerSolarix import ReadBruker_SolarixTransientMassSpectra
 from corems.mass_spectra.input.boosterHDF5 import ReadHDF_BoosterMassSpectra
+from corems.mass_spectra.input.brukerSolarix import ReadBruker_SolarixTransientMassSpectra
 from corems.mass_spectra.input.coremsHDF5 import ReadCoreMSHDF_MassSpectra
 from corems.mass_spectra.input.massList import ReadCoremsMassSpectraText
-
-
-from corems.mass_spectrum.input.massList import ReadMassList, ReadCoremsMasslist
-from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
 from corems.mass_spectrum.input.boosterHDF5 import ReadHDF_BoosterMassSpectrum
-
+from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
+from corems.mass_spectrum.input.massList import ReadCoremsMasslist, ReadMassList
+from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
 
 
 def test_import_booster_mass_spectrum_hdf():
@@ -30,7 +23,7 @@ def test_import_booster_mass_spectrum_hdf():
     
     if file_path.exists:
         
-        #polariy need to be set or read from the file
+        #polarity need to be set or read from the file
         
         booster_reader = ReadHDF_BoosterMassSpectrum(file_path, isCentroid=False)
 
@@ -58,10 +51,10 @@ def test_import_booster_mass_spectra_hdf():
     file_path = Path.cwd() / "tests/tests_data/" / "ESFA_100k_9767-13548_chB.A_re_pc_CoAddAll_mFT.h5"
     
     if file_path.exists:
-        #polariy need to be set or read from the file
-        polariy = -1
+        #polarity need to be set or read from the file
+        polarity = -1
 
-        booster_reader = ReadHDF_BoosterMassSpectra(file_path, polariy)
+        booster_reader = ReadHDF_BoosterMassSpectra(file_path, polarity)
 
         booster_reader.start()
         booster_reader.join()
@@ -121,7 +114,7 @@ def test_import_corems_hdf5():
 
     file_location = Path.cwd() / "tests/tests_data/" / "NEG_ESI_SRFA_CoreMS.hdf5"
     
-    #polariy need to be set or read from the file
+    #polarity need to be set or read from the file
     
     #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
     mass_list_reader = ReadCoreMSHDF_MassSpectrum(file_location)
@@ -156,7 +149,7 @@ def test_import_corems_mass_list():
 
     file_location = Path.cwd() / "tests/tests_data/" / "ESI_NEG_SRFA_COREMS.csv"
     
-    #polariy need to be set or read from the file
+    #polarity need to be set or read from the file
     
     #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
     mass_list_reader = ReadCoremsMasslist(file_location,  analyzer='ICR', instrument_label='12T')
@@ -197,7 +190,7 @@ def test_import_mass_list():
     
     mass_list_reader = ReadMassList(file_location)
 
-    #polariy need to be set or read from the file
+    #polarity need to be set or read from the file
     polarity = -1
      
 
@@ -232,4 +225,3 @@ if __name__ == '__main__':
     test_import_corems_hdf5()
     test_import_corems_mass_list()
     test_import_mass_list()
-    

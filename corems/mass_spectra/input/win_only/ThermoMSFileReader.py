@@ -87,14 +87,14 @@ class ImportLCMSThermoMSFileReader(Thread):
         '''thread will automatically process mass spectrum
         use the get_mass_spectra class to import without processing mass spectrum'''
 
-        d_parameters = InputSetting.d_parms(self.file_location)
+        d_parameters = InputSetting.d_params(self.file_location)
         self._import_mass_spectra(d_parameters)
 
         # return self.LCMS
 
     def get_mass_spectra(self,auto_process=True):
 
-        d_parameters = InputSetting.d_parms(self.file_location)
+        d_parameters = InputSetting.d_params(self.file_location)
         self._import_mass_spectra(d_parameters, auto_process=auto_process)
         return self.LCMS
 
@@ -224,7 +224,7 @@ class ImportLCMSThermoMSFileReader(Thread):
         # print (IsProfileScan.value, bool(1))
         return bool(IsProfileScan.value)
 
-    def _import_mass_spectra(self, d_parms, auto_process=True):
+    def _import_mass_spectra(self, d_params, auto_process=True):
         results = []
         # Each_Mass_Spectrum = namedtuple('each_mass_spectrum', ['mass_list', 'abundance_list', 'retention_time', 'scan_number', 'tic_number'])
 
@@ -252,29 +252,29 @@ class ImportLCMSThermoMSFileReader(Thread):
 
                     if self.is_profile_scan_for_scan_num(scan_number):
 
-                        d_parms["label"] = Labels.thermo_centroid
+                        d_params["label"] = Labels.thermo_centroid
 
-                        d_parms["polarity"] = self.get_polarity_mode(scan_number)
+                        d_params["polarity"] = self.get_polarity_mode(scan_number)
 
-                        d_parms["rt"], TIC = self.get_ScanHeaderInfoForScanNum(
+                        d_params["rt"], TIC = self.get_ScanHeaderInfoForScanNum(
                             scan_number
                         )
 
-                        d_parms["scan_number"] = scan_number
+                        d_params["scan_number"] = scan_number
 
-                        list_RetentionTimeSeconds.append(d_parms.get("rt"))
+                        list_RetentionTimeSeconds.append(d_params.get("rt"))
 
                         list_Tics.append(TIC)
 
                         list_scans.append(scan_number)
 
-                        data_dict = self.get_data(scan_number, d_parms)
+                        data_dict = self.get_data(scan_number, d_params)
 
                         data = DataFrame(data_dict)
                         
-                        #results.append((data, d_parms))
+                        #results.append((data, d_params))
                         
-                        mass_spec = MassSpecCentroid(data, d_parms, auto_process=auto_process)
+                        mass_spec = MassSpecCentroid(data, d_params, auto_process=auto_process)
                         
                         self.LCMS.add_mass_spectrum_for_scan(mass_spec)
 

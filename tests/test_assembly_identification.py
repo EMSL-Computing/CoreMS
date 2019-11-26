@@ -4,11 +4,11 @@ import sys
 sys.path.append(".")
 import pytest
 
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import  MoleculaLookupDictSettings, MolecularSearchSettings
+from corems.encapsulation.settings.molecular_id.MolecularIDSettings import  MolecularLookupDictSettings, MolecularSearchSettings
 from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration, MZDomain_Calibration
 from corems.mass_spectrum.output.export import MassSpecExport 
-from corems.molecular_id.search.findOxigenPeaks import FindOxygenPeaks
-from corems.molecular_id.search.priorityAssignment import OxigenPriorityAssignment
+from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
+from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
@@ -19,9 +19,9 @@ def calibrate(mass_spectrum_obj):
     find_formula_thread.run()
     mspeaks_results = find_formula_thread.get_list_found_peaks()
     
-    calibrate = FreqDomain_Calibration(mass_spectrum_obj, mspeaks_results)
-    calibrate.ledford_calibration()
-    mass_spectrum_obj.clear_molecular_formulas()
+    #calibrate = FreqDomain_Calibration(mass_spectrum_obj, mspeaks_results)
+    #calibrate.ledford_calibration()
+    #mass_spectrum_obj.clear_molecular_formulas()
 
 def filter_by_resolving_power():
 
@@ -85,7 +85,7 @@ def assign_mf_sox(mass_spectrum_obj):
     MolecularSearchSettings.isRadical = True
     MolecularSearchSettings.isAdduct = True
 
-    assignOx = OxigenPriorityAssignment(mass_spectrum_obj)
+    assignOx = OxygenPriorityAssignment(mass_spectrum_obj)
     assignOx.create_data_base()
 
     filter_by_kendrick()
@@ -111,7 +111,7 @@ def assign_mf_ox(mass_spectrum_obj):
     MolecularSearchSettings.isRadical = True
     MolecularSearchSettings.isAdduct = True
 
-    assignOx = OxigenPriorityAssignment(mass_spectrum_obj)
+    assignOx = OxygenPriorityAssignment(mass_spectrum_obj)
     assignOx.create_data_base()
 
     filter_by_kendrick()
@@ -136,7 +136,7 @@ def assign_mf_nox(mass_spectrum_obj):
     MolecularSearchSettings.isRadical = True
     MolecularSearchSettings.isAdduct = True
 
-    assignOx = OxigenPriorityAssignment(mass_spectrum_obj)
+    assignOx = OxygenPriorityAssignment(mass_spectrum_obj)
     assignOx.create_data_base()
 
     filter_by_kendrick()
@@ -364,7 +364,8 @@ def plot_mass_spectrum():
 
         else:
             
-            pyplot.plot(mspeak.mz_exp, mspeak.abundance, 'o', c='r')
+            continue
+            #pyplot.plot(mspeak.mz_exp, mspeak.abundance, 'o', c='r')
 
     pyplot.show()                
 
@@ -385,7 +386,7 @@ def plot_c_dbe_classes(df):
 if __name__ == "__main__":
     pass
     
-    #TODO include search for Na/H exchange for carboxilic acids  (needs to load from close shell options)
+    #TODO include search for Na/H exchange for carboxylic acids  (needs to load from close shell options)
     # i.e [M-H + Na + Cl]-
     from matplotlib import colors as mcolors
     from matplotlib import pyplot
@@ -426,6 +427,8 @@ if __name__ == "__main__":
     #MolecularSearchSettings.max_mz_error = 10
 
     calibrate(mass_spectrum_obj)
+
+    plot_mass_spectrum()
 
     #MolecularSearchSettings.error_method = 'None'
     #MolecularSearchSettings.min_mz_error = -1

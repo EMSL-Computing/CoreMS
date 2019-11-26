@@ -29,24 +29,24 @@ def ms_from_array_centroid(mz, abundance, rp, s2n, dataname, polarity=-1, auto_p
     
 def get_output_parameters(polarity, file_location):
         
-        d_parms = InputSetting.d_parms(file_location)
+        d_params = InputSetting.d_params(file_location)
         
-        d_parms['analyzer'] = 'Generic Simulated'
+        d_params['analyzer'] = 'Generic Simulated'
 
-        d_parms['instrument_label'] = 'Generic Simulated'
+        d_params['instrument_label'] = 'Generic Simulated'
 
-        d_parms["polarity"] = polarity
+        d_params["polarity"] = polarity
         
-        d_parms["filename_path"] = file_location
+        d_params["filename_path"] = file_location
         
-        d_parms["mobility_scan"] = 0
+        d_params["mobility_scan"] = 0
         
-        d_parms["mobility_rt"] = 0
+        d_params["mobility_rt"] = 0
         
-        d_parms["scan_number"] = 0
+        d_params["scan_number"] = 0
         
-        d_parms["rt"] = 0
+        d_params["rt"] = 0
 
-        d_parms['label'] = Labels.simulated_profile
+        d_params['label'] = Labels.simulated_profile
         
-        return d_parms
+        return d_params

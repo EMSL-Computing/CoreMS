@@ -2,7 +2,7 @@ import sys
 sys.path.append(".")
 
 from corems.encapsulation.settings.io import settings_parsers
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings
+from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularLookupDictSettings
 
 def test_json():
       
@@ -15,7 +15,7 @@ def test_data():
 
 def test_settings_search():
 
-    test = MoleculaLookupDictSettings()
+    test = MolecularLookupDictSettings()
     test.usedAtoms['C'] = (0,0)
     test.db_directory = 'test'
 

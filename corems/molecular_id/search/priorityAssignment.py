@@ -6,13 +6,13 @@ from threading import Thread
 from itertools import product
 
 from corems.encapsulation.constant import Labels
-from corems.molecular_id.search.findOxigenPeaks import FindOxygenPeaks
+from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulaWorker, SearchMolecularFormulas
 from corems.molecular_id.factory.MolecularLookupTable import MolecularCombinations
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL as molform_db
 #from corems.molecular_id.factory.molecularMongo import MolForm_Mongo as molform_db
 
-class OxigenPriorityAssignment(Thread):
+class OxygenPriorityAssignment(Thread):
 
     def __init__(self, mass_spectrum_obj):
         '''TODO:- add support for other atoms and adducts: Done
@@ -29,7 +29,7 @@ class OxigenPriorityAssignment(Thread):
 
     def run(self):
         
-        # get oxigen classes dict and the associate mspeak class 
+        # get Oxygen classes dict and the associate mspeak class 
         # list_of_classes_min_max_dbe = self.class_and_dbes_in_ordem()
         # create database separated to give the user the chance to use mass spec filters
         
@@ -72,7 +72,7 @@ class OxigenPriorityAssignment(Thread):
                     for index in ms_peak_indexes: self.mass_spectrum_obj[index].clear_molecular_formulas()
 
         def set_min_max_dbe_by_oxygen(classe_dict):
-            # calculates min and max DBE based on the oxigen number
+            # calculates min and max DBE based on the Oxygen number
             # ref :https://pubs.acs.org/doi/full/10.1021/ac200464q
             # if class does not has O it use the pha rule
             # ref : Vlad Lobodin manuscript to be include here
@@ -80,13 +80,13 @@ class OxigenPriorityAssignment(Thread):
             atoms_exchanges = ['N']
             if 'O' in classe_dict.keys():
                 
-                oxigen_number = classe_dict.get("O")
+                Oxygen_number = classe_dict.get("O")
                 for atom in atoms_exchanges:
                     if atom in classe_dict.keys():
-                        oxigen_number += classe_dict.get(atom)
+                        Oxygen_number += classe_dict.get(atom)
 
-                self.mass_spectrum_obj.molecular_search_settings.min_dbe = (oxigen_number/3) - 0.5 
-                self.mass_spectrum_obj.molecular_search_settings.max_dbe = oxigen_number*3 + 0.5 + 2
+                self.mass_spectrum_obj.molecular_search_settings.min_dbe = (Oxygen_number/3) - 0.5 
+                self.mass_spectrum_obj.molecular_search_settings.max_dbe = Oxygen_number*3 + 0.5 + 2
             
             else:
             '''    
@@ -343,7 +343,7 @@ class OxigenPriorityAssignment(Thread):
         #sort methods that uses the key of classes dictonary and the atoms_in_ordem as referece
         # c_tuple[1] = class_dict, because is one key:value map we loop throught keys and get the first item only 
         # sort by len first then sort based on the atomos_in_ordem list
-        oxigen_mfs = dict_ox_class_and_ms_peak.values()
+        Oxygen_mfs = dict_ox_class_and_ms_peak.values()
         
         sort_method = lambda word: (len(word[0]), [atomos_in_ordem.index(atom) for atom in list( word[1].keys())])
         classe_in_ordem = sorted(classes_strings_dict_tuples, key = sort_method)
@@ -352,8 +352,8 @@ class OxigenPriorityAssignment(Thread):
         # _ ignoring the class_str
         for _ , other_classe_dict in classe_in_ordem:
           
-           #combination.extend([[other_classe_str + ' ' + oxigen_mf[0].class_label , {**other_classe_dict, **oxigen_mf[0].class_dict}] for oxigen_mf in oxigen_mfs])
-           combination.extend([{**other_classe_dict, **oxigen_mf[0].class_dict} for oxigen_mf in oxigen_mfs])
+           #combination.extend([[other_classe_str + ' ' + Oxygen_mf[0].class_label , {**other_classe_dict, **Oxygen_mf[0].class_dict}] for Oxygen_mf in Oxygen_mfs])
+           combination.extend([{**other_classe_dict, **Oxygen_mf[0].class_dict} for Oxygen_mf in Oxygen_mfs])
  
         return combination
     
@@ -410,14 +410,14 @@ if __name__ == "__main__":
         self.mass_spectrum_obj.molecular_search_settings.isRadical = False
         self.mass_spectrum_obj.molecular_search_settings.isAdduct = True
 
-        assignOx = OxigenPriorityAssignment(mass_spectrum_obj, lookupTableSettings)
+        assignOx = OxygenPriorityAssignment(mass_spectrum_obj, lookupTableSettings)
         assignOx.start()
         assignOx.join()
 
     def plot():
         colors = list(mcolors.XKCD_COLORS.keys())
-        oxigens = range(6,21)
-        for o in oxigens:
+        Oxygens = range(6,21)
+        for o in Oxygens:
             #o_c = list()
             for mspeak in mass_spectrum_obj:
                 if mspeak:

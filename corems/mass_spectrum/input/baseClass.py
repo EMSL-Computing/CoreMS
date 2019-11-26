@@ -6,7 +6,7 @@ from pathlib import Path
 
 from pandas import read_csv, read_pickle, read_excel
 
-from corems.encapsulation.settings.input.InputSetting import DataInputSetting, d_parms
+from corems.encapsulation.settings.input.InputSetting import DataInputSetting, d_params
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.settings.io import settings_parsers
 
@@ -166,7 +166,7 @@ class MassListBaseClass:
         #TODO pull attrs from json settings file in load_settings function MassSpecAttrs group and analyzer, instrument_label and sample_name
         from copy import deepcopy
         
-        output_parameters = d_parms(self.file_location)
+        output_parameters = d_params(self.file_location)
         
         if self.isCentroid:
             output_parameters['label'] = Labels.corems_centroid

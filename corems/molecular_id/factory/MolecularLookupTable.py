@@ -7,7 +7,7 @@ import itertools
 import multiprocessing
 import pickle
 
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings
+from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularLookupDictSettings
 from corems.encapsulation.constant import Labels
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
 
@@ -75,7 +75,7 @@ class MolecularCombinations:
         
         if class_to_create:
             
-            settings = MoleculaLookupDictSettings()
+            settings = MolecularLookupDictSettings()
             settings.usedAtoms = deepcopy(molecular_search_settings.usedAtoms)
             settings.ion_charge = molecular_search_settings.ion_charge
             settings.db_directory = molecular_search_settings.db_directory

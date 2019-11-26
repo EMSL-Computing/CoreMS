@@ -12,7 +12,7 @@ from matplotlib import pyplot
 from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings
 from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration, MZDomain_Calibration
 #from corems.mass_spectrum.input.massList import Read_MassList
-from corems.molecular_id.search.findOxigenPeaks import FindOxygenPeaks
+from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
 from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
@@ -40,10 +40,10 @@ def creat_mass_spectrum(file_location):
     
     #mass_spectrum_obj.plot_mz_domain_profile_and_noise_threshold()
     
-    # polariy need to be set if reading a text file
-    #polariy = -1
+    # polarity need to be set if reading a text file
+    #polarity = -1
     # load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
-    #mass_list_reader = Read_MassList(file_location, polariy,  )
+    #mass_list_reader = Read_MassList(file_location, polarity,  )
     #mass_spectrum_obj  = mass_list_reader.get_mass_spectrum(auto_process=True)
 
     return mass_spectrum_obj
@@ -53,7 +53,7 @@ def creat_mass_spectrum(file_location):
 def test_calibration():
     
     ''' Mass calibration test module: 
-            - creates a mass spectrum objec
+            - creates a mass spectrum object
             - find oxygen most abundant peaks separated by 14Da
             - calibrate on frequency domain using ledford equation
             - filter data based on kendrick mass with CH2O base
@@ -132,41 +132,65 @@ if __name__ == "__main__":
     from corems.encapsulation.settings.io import settings_parsers  
 
     MolecularSearchSettings.error_method = 'None'
-    MolecularSearchSettings.min_mz_error = 0.0
-    MolecularSearchSettings.max_mz_error = 20.0
+    MolecularSearchSettings.min_mz_error = -7
+    MolecularSearchSettings.max_mz_error = 0
     MolecularSearchSettings.mz_error_range = 1
     MolecularSearchSettings.isProtonated = True 
     MolecularSearchSettings.isRadical= False 
     MolecularSearchSettings.isAdduct= False 
-    MolecularSearchSettings.usedAtoms['O'] = (1,8)
+    MolecularSearchSettings.usedAtoms['O'] = (1,20)
     
     print(MolecularSearchSettings.usedAtoms)
 
-    settings_parsers.load_search_setting_json(settings_path="SettingsCoreMS.json")    
+    #settings_parsers.load_search_setting_json(settings_path="SettingsCoreMS.json")    
 
     file_location = Path.cwd() /  "ESI_NEG_SRFA.d/"
 
     #file_location = Path("C:\\Users\\eber373\\OneDrive - PNNL\\Trabalhos\\Mayes\\Mayes_V1D76Alt_ICR_23Sept19_Alder_Infuse_p05_1_01_48741.d")
 
     mass_spectrum = creat_mass_spectrum(file_location)
+    
     print(mass_spectrum.polarity)
+    
     find_formula_thread = FindOxygenPeaks(mass_spectrum)
     find_formula_thread.run()
-
     mspeaks_results = find_formula_thread.get_list_found_peaks()
-
     
-
-    '''
-    for peak in mspeaks_results:
-        if peak:
-            for mf in peak:
-                print(peak.mz_exp,mf.to_string, mf.mz_error )
     
-    mass_spectrum.plot_mz_domain_profile_and_noise_threshold()
-    
+    #mass_spectrum.plot_mz_domain_profile_and_noise_threshold()
     calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
-    calibrate.ledford_calibration()
+    calibrate.step_fit()
 
-    test_calibration()
-    '''
+    mass_spectrum.molecular_search_settings.min_mz_error = -1
+    mass_spectrum.molecular_search_settings.max_mz_error = 1
+    
+    find_formula_thread = FindOxygenPeaks(mass_spectrum)
+    find_formula_thread.run()
+    mspeaks_results = find_formula_thread.get_list_found_peaks()
+    
+    fig, ax = pyplot.subplots()
+    
+
+    ax.plot(mass_spectrum.mz_exp_profile, mass_spectrum.abundance_profile)
+    for mspeak in mspeaks_results:
+        if mspeak:
+            for mf in mspeak:
+                
+                ax.plot(mspeak.mz_exp, mspeak.abundance, 'o', c='g')     
+                ax.annotate(mspeak[0].to_string_formated,  (mspeak.mz_exp, mspeak.abundance + 100), fontsize=22)     
+                #print(peak.mz_exp,mf.to_string, mf.mz_error )
+    
+   
+    ax.label_outer()
+    ax.get_yaxis().set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.tick_params(axis='both', which='major', labelsize=16)
+
+    pyplot.xlabel("m/z",fontsize=16)
+    #pyplot.ylabel("DBE")
+    pyplot.show()
+    
+    #test_calibration()
+   

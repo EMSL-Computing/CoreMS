@@ -7,14 +7,14 @@ from numpy import average, std
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MoleculaLookupDictSettings
+from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularLookupDictSettings
 
 
 class FindOxygenPeaks(Thread):
     
     '''
         Class to walk 14Da units over oxygen space for negative ion mass spectrum of natural organic matter
-        Returns a list of MSPeak class cotaining the possibles Molecular Formula class objects.  
+        Returns a list of MSPeak class containing the possible Molecular Formula class objects.  
         
         Parameters
         ----------
@@ -25,7 +25,7 @@ class FindOxygenPeaks(Thread):
             This is where we store MoleculaLookupTableSettings class obj
         
         min_O , max_O : int
-            minum and maxium of oxigen to allow the software to look for
+            minum and maxium of Oxygen to allow the software to look for
             it will override the settings at lookupTableSettings.usedAtoms
             default min = 1, max = 30
 
@@ -46,7 +46,7 @@ class FindOxygenPeaks(Thread):
             set_mass_spec_indexes_by_found_peaks()
                 set the mass spectrum to interate over only the selected indexes
     '''
-    def __init__(self, mass_spectrum_obj, min_O = 1, max_O = 19) :
+    def __init__(self, mass_spectrum_obj, min_O = 1, max_O = 22) :
         
         Thread.__init__(self)
         

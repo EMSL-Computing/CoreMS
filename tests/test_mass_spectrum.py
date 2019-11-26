@@ -12,7 +12,7 @@ import pytest
 from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
 from corems.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting, TransientSetting
 
-def test_creat_mass_spectrum():
+def test_create_mass_spectrum():
     
     file_location = Path.cwd() /  "ESI_NEG_SRFA.d"
 
@@ -30,7 +30,7 @@ def test_creat_mass_spectrum():
     MassSpectrumSetting.threshold_method = 'signal_noise'
     mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
 
-    MassSpectrumSetting.threshold_method = 'relative_abudance'
+    MassSpectrumSetting.threshold_method = 'relative_abundance'
     mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
 
     mass_spectrum_obj.freq_exp
@@ -57,4 +57,4 @@ def test_creat_mass_spectrum():
      
 
 if __name__ == "__main__":
-    test_creat_mass_spectrum()
+    test_create_mass_spectrum()

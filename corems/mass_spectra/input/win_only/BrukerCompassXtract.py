@@ -159,10 +159,10 @@ class ImportLCMSBrukerCompassXtract(Thread):
 
     def run(self):
         '''creates the lcms obj'''
-        d_parameters = InputSetting.d_parms(self.file_location)
+        d_parameters = InputSetting.d_params(self.file_location)
         self._import_mass_spectra(d_parameters)
 
-    def _import_mass_spectra(self, d_parms):
+    def _import_mass_spectra(self, d_params):
 
         spectra = self.Bruker_Library.MSSpectrumCollection
 
@@ -176,20 +176,20 @@ class ImportLCMSBrukerCompassXtract(Thread):
 
             if spectra[scan_number].MSMSStage == 1:
                 # this label needs to go inside a encapsulation class for consistence
-                d_parms["label"] = Labels.bruker_profile
+                d_params["label"] = Labels.bruker_profile
 
-                d_parms["polarity"] = self.get_polarity_mode(spectra[scan_number])
+                d_params["polarity"] = self.get_polarity_mode(spectra[scan_number])
 
-                d_parms["rt"] = list_RetentionTimeSeconds[scan_number - 1]
+                d_params["rt"] = list_rt[scan_number - 1]
 
-                d_parms["scan_number"] = scan_number
+                d_params["scan_number"] = scan_number
 
                 list_scans.append(scan_number)
 
                 data_dict = self.get_data(spectra, scan_number)
 
                 data = DataFrame(data_dict)
-                mass_spec = MassSpecProfile(data, d_parms, auto_process=self.auto_process)
+                mass_spec = MassSpecProfile(data, d_params, auto_process=self.auto_process)
                 mass_spec.process_mass_spec()
                 self.lcms.add_mass_spectrum_for_scan(mass_spec)
 

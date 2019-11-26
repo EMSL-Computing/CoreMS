@@ -1,19 +1,19 @@
 from dataclasses import dataclass
-class MoleculaLookupDictSettings:
+class MolecularLookupDictSettings:
     
     '''
-    # DO NOT CHAGE IT! These are used to generate the database entries 
+    ### DO NOT CHANGE IT! These are used to generate the database entries 
 
-    # DO change when creating a new application database 
+    ### DO change when creating a new application database 
     
-    # FOR search settings runtime and database query check use the MolecularSearchSettings class below
+    ### FOR search settings runtime and database query check use the MolecularSearchSettings class below
 
-    # C, H, N, O, S and P atoms are ALWAYS needed at usedAtoms
-    # if you don't want to include one of thoses atoms set the max and min at 0
-    # you can include any atom listed at Atoms class inside encapsulation.settings.constants module
-    # make sure to include the selected covalence at the used_atoms_valences when adding new atoms 
-    # NOTE : Adducts atoms have zero covalence
-    # NOTE : Not using static variable bacause this class is distributed using multiprocessing
+    ### C, H, N, O, S and P atoms are ALWAYS needed at usedAtoms
+    ### if you don't want to include one of those atoms set the max and min at 0
+    ### you can include any atom listed at Atoms class inside encapsulation.settings.constants module
+    ### make sure to include the selected covalence at the used_atoms_valences when adding new atoms 
+    ### NOTE : Adducts atoms have zero covalence
+    ### NOTE : Not using static variable because this class is distributed using multiprocessing
     '''
     def __init__(self):
         

@@ -168,10 +168,10 @@ class ThermoRawfile(object):
                     2: 'ETD',
                     3: 'HCD'}
 
-    scanType = {'ScanTypeFull': 0,
-                'ScanTypeSIM': 1,
-                'ScanTypeZoom': 2,
-                'ScanTypeSRM': 3,
+    scanType = {'Full': 0,
+                'SIM': 1,
+                'Zoom': 2,
+                'SRM': 3,
                 0: 'ScanTypeFull',
                 1: 'ScanTypeSIM',
                 2: 'ScanTypeZoom',
