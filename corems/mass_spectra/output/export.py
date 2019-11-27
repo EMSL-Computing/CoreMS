@@ -14,7 +14,7 @@ from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
 
 class MassSpectraExport(MassSpecExport):
     '''
-    TODO: add MSPeak indexes: done
+    
     '''
     def __init__(self, out_file_path, mass_spectra, output_type='excel'):
         '''

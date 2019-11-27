@@ -20,5 +20,4 @@ dist/
 build/
 tests/
 tests/test_data/
-support_code/
 db/

@@ -1,9 +1,6 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Nov 26, 2019"
 
-
-import clr
-
 controllerType = {-1: 'No device',
                     0: 'MS',
                     1: 'Analog',
@@ -95,6 +92,8 @@ controllerType = {-1: 'No device',
 import sys
 
 sys.path.append("./lib")
+
+import clr 
 
 clr.AddReference("ThermoFisher.CommonCore.RawFileReader")
 

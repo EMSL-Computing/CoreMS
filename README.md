@@ -86,7 +86,7 @@ If you don't have docker installed, the easiest way is to [install docker for de
 - Open a terminal and run:
 
     ```bash
-    docker run -v home/user/yourdir -p 8888:8888 gitlab.pnnl.gov:4567/mass-spectrometry/corems:latest
+    docker run --rm -v host/dir:container/dir: -p 8888:8888 gitlab.pnnl.gov:4567/mass-spectrometry/corems:latest
     ```
 
 - In your browser, open the URL address provided in the terminal: `http://127.0.3.0:8888/?token=<token>.`
