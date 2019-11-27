@@ -421,7 +421,7 @@ class MassSpecBase(MassSpecCalc):
             max_s2n = self.max_signal_to_noise
 
         self.check_mspeaks_warning()
-        indexes = [index for index, mspeak in enumerate(self.mspeaks)if min_s2n <= mspeak.signal_to_noise <= max_s2n ]
+        indexes = [index for index, mspeak in enumerate(self.mspeaks) if min_s2n <= mspeak.signal_to_noise <= max_s2n ]
         self.filter_by_index(indexes)
 
     def filter_by_abundance(self, min_abund, max_abund=False):
