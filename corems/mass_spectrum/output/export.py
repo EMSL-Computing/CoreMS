@@ -36,7 +36,7 @@ class MassSpecExport(Thread):
         self.mass_spectrum = mass_spectrum
 
         # collect all assigned atoms and order them accordingly to the Atoms.atoms_order list
-        self.atomos_order_list = self.get_all_used_atoms_in_ordem(self.mass_spectrum)
+        self.atoms_order_list = self.get_all_used_atoms_in_ordem(self.mass_spectrum)
 
         self._init_columns()
 
@@ -265,7 +265,7 @@ class MassSpecExport(Thread):
 
     def get_all_used_atoms_in_ordem(self, mass_spectrum):
 
-        atomos_in_order = Atoms.atoms_order
+        atoms_in_order = Atoms.atoms_order
         all_used_atoms = set()
         for ms_peak in mass_spectrum:
             for m_formula in ms_peak:
@@ -274,7 +274,7 @@ class MassSpecExport(Thread):
                         all_used_atoms.add(atom)
 
         def sort_method(atom):
-            return [atomos_in_order.index(atom)]
+            return [atoms_in_order.index(atom)]
 
         return sorted(all_used_atoms, key=sort_method)
 
@@ -336,7 +336,7 @@ class MassSpecExport(Thread):
                            'Is Isotopologue': int(m_formula.is_isotopologue),
                            }
 
-            for atom in self.atomos_order_list:
+            for atom in self.atoms_order_list:
                 if atom in formula_dict.keys():
                     dict_result[atom] = formula_dict.get(atom)
 

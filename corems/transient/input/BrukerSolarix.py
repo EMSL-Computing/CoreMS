@@ -27,7 +27,7 @@ class ReadBrukerSolarix(object):
     """
     
     def __init__(self, d_directory_location):
-        
+        d_directory_location = Path(d_directory_location)
         if not d_directory_location.exists():
             raise FileNotFoundError("File does not exist: " + str(d_directory_location))
 
@@ -141,10 +141,10 @@ class ReadBrukerSolarix(object):
         
         return Transient(data, output_parameters)
 
-        """
+    """
         for key, values in d_params.items():
             print(key, values)
-                   """
+    """
     def fix_freq_limits(self, d_parameters):
 
         highfreq = float(d_parameters.get("EXC_Freq_High"))
