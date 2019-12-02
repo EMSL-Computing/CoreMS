@@ -268,8 +268,8 @@ class MassSpecExport(Thread):
         atoms_in_order = Atoms.atoms_order
         all_used_atoms = set()
         for ms_peak in mass_spectrum:
-            for m_formula in ms_peak:
-                if ms_peak:
+            if ms_peak:
+                for m_formula in ms_peak:
                     for atom in m_formula.atoms:
                         all_used_atoms.add(atom)
 
