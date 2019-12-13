@@ -64,7 +64,7 @@ except ImportError:
     XRawfile2_dll_path_0 = copy.deepcopy(XRawfile2_dll_path)
     while not XRawfile2_dll_loaded:
         try:
-            # TODO ? version with XRawfile2.dll integrated
+            # version with XRawfile2.dll integrated
             # = no need to install MSFileReader, dll not registered to the COM server
             # problem : IXRawfile4 not found
             # http://osdir.com/ml/python.comtypes.user/2008-07/msg00045.html messages 42-46 talk about it
