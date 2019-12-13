@@ -483,7 +483,7 @@ class MassSpecBase(MassSpecCalc):
             
             raise ValueError("Nominal indexes not yet set")    
     
-    def get_nominal_mz_frist_last_indexes(self, nominal_mass):
+    def get_nominal_mz_first_last_indexes(self, nominal_mass):
         
         if self._dict_nominal_masses_indexes:
             

@@ -38,7 +38,7 @@ class MolecularFormula(MolecularFormulaCalc):
             kendrick_dict_base)  
 
         if exp_mz:
-            self._assigment_mass_error = self._calc_assigment_mass_error(exp_mz)
+            self._assigment_mass_error = self._calc_assignment_mass_error(exp_mz)
             #self._confidence_score = self._calc_confidence_score()     
     
     def __len__(self):
@@ -286,5 +286,5 @@ class MolecularFormulaIsotopologue(MolecularFormula):
 
         if exp_mz:
             
-            self._assigment_mass_error = self._calc_assigment_mass_error(exp_mz)
+            self._assigment_mass_error = self._calc_assignment_mass_error(exp_mz)
             self._confidence_score = False

@@ -182,7 +182,7 @@ class FindOxygenPeaks(Thread):
         
         for nominal_mass in nominal_masses:
             
-            first_index, last_index = mass_spectrum_obj.get_nominal_mz_frist_last_indexes(nominal_mass)
+            first_index, last_index = mass_spectrum_obj.get_nominal_mz_first_last_indexes(nominal_mass)
             
             ms_peaks = mass_spectrum_obj[first_index:last_index]
             

@@ -25,7 +25,7 @@ class MZDomain_Calibration:
             for molecular_formula in molecular_formulas:
                 mz_exp.append(mspeak.mz_exp)
                 error.append(
-                    molecular_formula._calc_assigment_mass_error(mspeak.mz_exp))
+                    molecular_formula._calc_assignment_mass_error(mspeak.mz_exp))
                 mz_theo.append(molecular_formula.mz_theor)
 
         self.mz_theo = np.array(mz_theo)
@@ -173,7 +173,7 @@ class FreqDomain_Calibration:
 
                 freq_exp.append(mspeak.freq_exp)
                 error.append(
-                    molecular_formula._calc_assigment_mass_error(mspeak.mz_exp))
+                    molecular_formula._calc_assignment_mass_error(mspeak.mz_exp))
                 mz_theo.append(molecular_formula.mz_theor)
                 mz_exp.append(mspeak.mz_exp)
 

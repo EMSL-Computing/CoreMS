@@ -45,11 +45,11 @@ class MolecularFormulaCalc:
             
             raise Exception("Please set ion charge first")
          
-    def set_assigment_mass_error(self, error):
+    def set_assignment_mass_error(self, error):
         
         self._assigment_mass_error = error
     
-    def _calc_assigment_mass_error(self, mz_exp, method='ppm'):
+    def _calc_assignment_mass_error(self, mz_exp, method='ppm'):
         '''methodo should be ppm or ppb'''
         
         Hum_Milhao = 1000000

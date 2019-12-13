@@ -18,7 +18,7 @@ class ClusteringFilter():
                 #print(mspeak.mz_exp, len(mspeak))
                 for mformula in mspeak:
                     mass_list.append(mspeak.mz_exp)
-                    error_list.append(mformula._calc_assigment_mass_error(mspeak.mz_exp))
+                    error_list.append(mformula._calc_assignment_mass_error(mspeak.mz_exp))
                     list_indexes_mass_spec.append(index)
         
         dict = {'mass': mass_list, 'error': error_list}  

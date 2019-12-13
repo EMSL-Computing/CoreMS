@@ -10,12 +10,11 @@ from corems.molecular_id.factory.MolecularLookupTable import  MolecularCombinati
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL as molform_db
 #from corems.molecular_id.factory.molecularMongo import MolForm_Mongo as molform_db
 
-global last_error
-global last_dif
-global closest_error
-global error_average
-global nbValues
-
+last_error = 0
+last_dif = 0
+closest_error = 0
+error_average = 0
+nbValues = 0
 
 class SearchMolecularFormulas:
      
@@ -41,7 +40,7 @@ class SearchMolecularFormulas:
 
         for ms_peak in mass_spectrum_obj.sort_by_abundance():
 
-            #already assinged a molecular formula
+            #already assigned a molecular formula
             if self.first_hit: 
                 
                 if ms_peak.is_assigned: continue
@@ -51,15 +50,15 @@ class SearchMolecularFormulas:
             #get mono isotopic peaks that was added a molecular formula obj
             #TODO update error variables
 
-            possible_formulas_nominal = possible_formulas_dict.get(nominal_mz)
+            possible_formulas_dict_nm = possible_formulas_dict.get(nominal_mz)
             
-            if possible_formulas_nominal:
+            if possible_formulas_dict_nm:
 
                 if is_adduct:
-                    
+                    # change molecular formula from radical to adduct since the nitrogen number is the same 
                     for m_formula in possible_formulas_dict: m_formula.ion_type = Labels.adduct_ion
 
-                ms_peak_indexes = SearchMolecularFormulaWorker(find_isotopologues=self.find_isotopologues).find_formulas(possible_formulas_nominal, min_abundance, mass_spectrum_obj, ms_peak)    
+                ms_peak_indexes = SearchMolecularFormulaWorker(find_isotopologues=self.find_isotopologues).find_formulas(possible_formulas_dict_nm, min_abundance, mass_spectrum_obj, ms_peak)    
 
                 all_assigned_indexes.extend(ms_peak_indexes)
         
@@ -175,6 +174,7 @@ class SearchMolecularFormulas:
 
         mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = initial_min_peak_bool                
                         
+    
     def run_worker_ms_peak(self, ms_peak, mass_spectrum_obj):
         
         #save initial settings min peaks per class filter 
@@ -270,10 +270,14 @@ class SearchMolecularFormulas:
         mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = False
         
         possible_formulas_dict_nm =  {}
+        
         for mf in possible_formulas_list:
+            
             nm = mf.mz_nominal_theo
+            
             if nm in possible_formulas_dict_nm.keys():
                 possible_formulas_dict_nm[nm].append(mf)
+            
             else:    
                 possible_formulas_dict_nm[nm] = [mf]
 
@@ -314,8 +318,8 @@ class SearchMolecularFormulas:
             
 class SearchMolecularFormulaWorker:
     
-    #TODO add reset erro function
-    # needs this wraper to pass the class to multiprocessing
+    #TODO add reset error function
+    # needs this warper to pass the class to multiprocessing
     
     def __init__(self, find_isotopologues=True):
         self.find_isotopologues = find_isotopologues
@@ -380,7 +384,7 @@ class SearchMolecularFormulaWorker:
         # metric to choose the right candidate then propagate the error using the error from the best candidate
         # it needs to add s/n to the equation
         # it need optimization to define the mz_error_range within a m/z unit since it is directly 
-        # proportional with the mass, and inversially proportinal to the rp. 
+        # proportional with the mass, and inversely proportional to the rp. 
         # It's not linear, i.e., sigma ∝ mass 
         # the idea it to correlate sigma to resolving power, signal to noise and sample complexity per mz unit
         # method='distance'
@@ -397,13 +401,13 @@ class SearchMolecularFormulaWorker:
         
         #f = open("abundance_error.txt", "a+")    
         ms_peak_mz_exp, ms_peak_abundance = ms_peak.mz_exp, ms_peak.abundance
-        #min_error = min([pmf._calc_assigment_mass_error(ms_peak_mz_exp) for pmf in possible_formulas])
+        #min_error = min([pmf._calc_assignment_mass_error(ms_peak_mz_exp) for pmf in possible_formulas])
         
         for possible_formula in possible_formulas:
             
             if possible_formula:
                 
-                error = possible_formula._calc_assigment_mass_error(ms_peak_mz_exp)
+                error = possible_formula._calc_assignment_mass_error(ms_peak_mz_exp)
                
                 if  min_mz_error <= error <= max_mz_error:
                     
@@ -413,7 +417,7 @@ class SearchMolecularFormulaWorker:
                    
                     #add molecular formula match to ms_peak
                     
-                    possible_formula.set_assigment_mass_error(error)
+                    possible_formula.set_assignment_mass_error(error)
 
                     ms_peak.add_molecular_formula(possible_formula)
                     
@@ -426,13 +430,13 @@ class SearchMolecularFormulaWorker:
                         for isotopologue_formula in isotopologues:
                            
                             possible_formula.expected_isotopologues.append(isotopologue_formula)
-                            #move this outside to impove preformace
+                            #move this outside to improve preformace
                             #we need to increase the search space to -+1 m_z 
-                            first_index, last_index = mass_spectrum_obj.get_nominal_mz_frist_last_indexes(isotopologue_formula.mz_nominal_theo)
+                            first_index, last_index = mass_spectrum_obj.get_nominal_mz_first_last_indexes(isotopologue_formula.mz_nominal_theo)
                             
                             for ms_peak_iso in mass_spectrum_obj[first_index:last_index]:
                                 
-                                error = isotopologue_formula._calc_assigment_mass_error(ms_peak_iso.mz_exp)    
+                                error = isotopologue_formula._calc_assignment_mass_error(ms_peak_iso.mz_exp)    
                                 
                                 if  min_mz_error <= error <= max_mz_error:
                                     
@@ -447,7 +451,7 @@ class SearchMolecularFormulaWorker:
                                         
                                         self.set_last_error(error, mass_spectrum_obj)    
                                         
-                                        isotopologue_formula.set_assigment_mass_error(error)
+                                        isotopologue_formula.set_assignment_mass_error(error)
 
                                         #add molecular formula match to ms_peak
                                         ms_peak_iso.add_molecular_formula(isotopologue_formula)

@@ -104,7 +104,7 @@ class _MSPeak(MSPeakCalculation):
     @property
     def molecular_formula_lowest_error(self):
        
-       return min(self.molecular_formulas, key=lambda m: abs(m._calc_assigment_mass_error(self.mz_exp)))
+       return min(self.molecular_formulas, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))
 
 class ICRMassPeak(_MSPeak):
 

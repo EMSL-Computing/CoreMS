@@ -102,7 +102,7 @@ def test_molecular_formula_search_db():
             i += 1
             for mformula in mspeak:
                 mass.append(mspeak.mz_exp)
-                error.append(mformula._calc_assigment_mass_error(mspeak.mz_exp))
+                error.append(mformula._calc_assignment_mass_error(mspeak.mz_exp))
                 abundance.append(mspeak.abundance)
         else:
             j += 1
