@@ -118,7 +118,7 @@ class PeakPicking(object):
         #TODO: remove peaks that minimum is one data point from the maximum
         # to remove artifacts 
 
-        abudance_thresould, factor = self.get_threshold(abund)
+        abundance_threshold, factor = self.get_threshold(abund)
         # find indices of all peaks
         dy = abund[1:] - abund[:-1]
         
@@ -132,8 +132,8 @@ class PeakPicking(object):
         
         indexes = where((hstack((dy, 0)) < 0) & (hstack((0, dy)) > 0))[0]
         
-        if indexes.size and abudance_thresould is not None:
-            indexes = indexes[abund[indexes]/factor >= abudance_thresould]
+        if indexes.size and abundance_threshold is not None:
+            indexes = indexes[abund[indexes]/factor >= abundance_threshold]
         
         for current_index in indexes: 
             
@@ -167,23 +167,23 @@ class PeakPicking(object):
         if threshold_method == 'auto':
             
             #print(MassSpectrumSetting.noise_threshold_stds)
-            abudance_thresould = self.baselise_noise + (MassSpectrumSetting.noise_threshold_stds * self.baselise_noise_std)
+            abundance_threshold = self.baselise_noise + (MassSpectrumSetting.noise_threshold_stds * self.baselise_noise_std)
             factor = 1
 
         elif threshold_method == 'signal_noise':
 
-            abudance_thresould = MassSpectrumSetting.s2n_threshold
+            abundance_threshold = MassSpectrumSetting.s2n_threshold
             factor = self.baselise_noise_std
 
         elif threshold_method == "relative_abundance":
 
-            abudance_thresould = MassSpectrumSetting.relative_abundace_threshold
+            abundance_threshold = MassSpectrumSetting.relative_abundace_threshold
             factor = intes.max()/100
 
         else:
             raise  Exception("%s method was not implemented, please refer to corems.mass_spectrum.calc.NoiseCalc Class" % threshold_method)
         
-        return abudance_thresould, factor
+        return abundance_threshold, factor
         
     def find_apex_fit_quadratic(self, mass, abund, freq, current_index):
         
@@ -230,14 +230,14 @@ class PeakPicking(object):
     def old_calc_centroid(self, massa, intes, freq_exp): #pragma: no cover
 
         #this function is too slow, may need slice and apply multi processing,
-        abudance_thresould, factor = self.get_threshold(intes)
+        abundance_threshold, factor = self.get_threshold(intes)
         
         do_freq = freq_exp.any()
         
         for x in range(len(intes)-1):
-            if (intes[x]/factor) > abudance_thresould:
+            if (intes[x]/factor) > abundance_threshold:
                 
-                if  intes[x] > intes[x +1] and intes[x] > intes[x - 1]:# and (intes[x]/factor) > abudance_thresould:#and :
+                if  intes[x] > intes[x +1] and intes[x] > intes[x - 1]:# and (intes[x]/factor) > abundance_threshold:#and :
                     intes_centr = intes[x]
                     mz_exp_centroid = massa[x]
                     

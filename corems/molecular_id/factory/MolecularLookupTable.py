@@ -164,39 +164,39 @@ class MolecularCombinations:
         possible_s = [s for s in range(min_s, max_s + 1)]
         possible_p = [p for p in range(min_p, max_p + 1)]
         
-        atomos_in_ordem = ['N', 'O', 'S', 'P']
+        atoms_in_ordem = ['N', 'O', 'S', 'P']
 
         classe_in_orderm = []
 
-        all_atomos_tuples = itertools.product(possible_n, possible_o,
+        all_atoms_tuples = itertools.product(possible_n, possible_o,
                                             possible_s, possible_p)
         
-        for atomo in atomos_in_ordem:
+        for atomo in atoms_in_ordem:
             usedAtoms.pop(atomo, None)
         
         for selected_atomo, min_max_tuple in usedAtoms.items():
             
             min_x = min_max_tuple[0]
             max_x = min_max_tuple[1]
-            # massa =  Recal_Assign_Settings.selection_of_atomos[selected_atomo][2]
+            # massa =  Recal_Assign_Settings.selection_of_atoms[selected_atomo][2]
 
             possible_x = [x for x in range(min_x, max_x + 1)]
 
-            all_atomos_tuples = itertools.product(all_atomos_tuples, possible_x)
-            all_atomos_tuples = [all_atomos_combined[0] + (all_atomos_combined[1],) for all_atomos_combined in
-                                all_atomos_tuples]
-            atomos_in_ordem.append(selected_atomo)
+            all_atoms_tuples = itertools.product(all_atoms_tuples, possible_x)
+            all_atoms_tuples = [all_atoms_combined[0] + (all_atoms_combined[1],) for all_atoms_combined in
+                                all_atoms_tuples]
+            atoms_in_ordem.append(selected_atomo)
         
-        for all_atomos_tuple in all_atomos_tuples:
+        for all_atoms_tuple in all_atoms_tuples:
 
             classe_str = ''
             classe_dict = {}
             
-            for each_atomos_index, atom_number in enumerate(all_atomos_tuple):
+            for each_atoms_index, atom_number in enumerate(all_atoms_tuple):
                 
                 if atom_number != 0:
-                    classe_str = (classe_str + atomos_in_ordem[each_atomos_index] + str(atom_number) +  ' ')
-                    classe_dict[atomos_in_ordem[each_atomos_index]] = atom_number
+                    classe_str = (classe_str + atoms_in_ordem[each_atoms_index] + str(atom_number) +  ' ')
+                    classe_dict[atoms_in_ordem[each_atoms_index]] = atom_number
 
             classe_str = classe_str.strip()
             
@@ -208,17 +208,17 @@ class MolecularCombinations:
 
                 classe_in_orderm.append(('HC', {'HC': ''}))
         
-        classe_in_orderm = self.sort_classes(atomos_in_ordem, classe_in_orderm)
+        classe_in_orderm = self.sort_classes(atoms_in_ordem, classe_in_orderm)
         
         return classe_in_orderm
 
     @staticmethod
-    def sort_classes( atomos_in_ordem, combination_tuples) -> [str]: 
+    def sort_classes( atoms_in_ordem, combination_tuples) -> [str]: 
         
         join_list_of_list_classes = list()
-        atomos_in_ordem =  ['N','S','P','O'] + atomos_in_ordem[4:] + ['HC']
+        atoms_in_ordem =  ['N','S','P','O'] + atoms_in_ordem[4:] + ['HC']
         
-        sort_method = lambda atoms_keys: [atomos_in_ordem.index(atoms_keys)] #(len(word[0]), print(word[1]))#[atomos_in_ordem.index(atom) for atom in list( word[1].keys())])
+        sort_method = lambda atoms_keys: [atoms_in_ordem.index(atoms_keys)] #(len(word[0]), print(word[1]))#[atoms_in_ordem.index(atom) for atom in list( word[1].keys())])
         for class_tuple in combination_tuples:
             
             sorted_dict_keys = sorted(class_tuple[1], key = sort_method)
@@ -492,13 +492,13 @@ class CombinationsWorker:
 
     def get_dbe_limits(self, classe_dict, use_pah_line_rule, formula_dict, min_dbe, max_dbe):
 
-        sum_hetero_atomos = 0
+        sum_hetero_atoms = 0
         for i in classe_dict.keys():
             if i != Labels.ion_type:
 
-                sum_hetero_atomos = sum_hetero_atomos + classe_dict.get(i)
+                sum_hetero_atoms = sum_hetero_atoms + classe_dict.get(i)
 
-        # sum_hetero_atomos = sum(classe_dict.values())
+        # sum_hetero_atoms = sum(classe_dict.values())
 
         if not use_pah_line_rule:
 
@@ -509,7 +509,7 @@ class CombinationsWorker:
 
             minDBE = 0
 
-            maxDBE = (int(formula_dict.get('C')) + sum_hetero_atomos) * 0.9
+            maxDBE = (int(formula_dict.get('C')) + sum_hetero_atoms) * 0.9
 
         return maxDBE, minDBE
 
@@ -527,7 +527,7 @@ class CombinationsWorker:
 
                 if TEM_HALOGEN:
 
-                    valencia = Recal_Assign_Settings.selection_of_atomos.get(atom)[3]
+                    valencia = Recal_Assign_Settings.selection_of_atoms.get(atom)[3]
 
                     if valencia == 1:
                         total_number = total_number + class_dict.get(atom)
