@@ -14,8 +14,7 @@ def simulate_peak(mspeak):
     mz_gaus, abund_gaus = mspeak.gaussian_pdf()
 
     return round(mz_lo[0], 3), round(mz_gaus[0], 3), round(abund_lo[0], 3), round(abund_gaus[0], 3)
-   
-
+ 
 def test_mspeak_calculations():
 
     kendrick_base = {'C': 1, 'H': 2}
@@ -43,7 +42,7 @@ def test_mspeak_calculations():
 
     assert simulate_peak(mspeak) == (212.123, 212.123, 3.077, 0.0)
 
-    mspeak.set_threoretical_resolving_power(50, 3)
+    mspeak.set_theoretical_resolving_power(50, 3)
 
     simulate_peak(mspeak)
 

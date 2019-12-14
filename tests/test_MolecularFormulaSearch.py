@@ -15,7 +15,7 @@ from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignme
 from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
 from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings
 
-def creat_mass_spectrum():
+def create_mass_spectrum():
     
     file_location = Path.cwd() /  "ESI_NEG_SRFA.d"
 
@@ -68,21 +68,28 @@ def test_run_molecular_formula_search():
 def test_mspeak_search():
 
     
-    mass_spec_obj = creat_mass_spectrum()
+    mass_spec_obj = create_mass_spectrum()
+    
+    print("OK")
 
     mspeak_obj = mass_spec_obj.most_abundant_mspeak
     
     SearchMolecularFormulas().run_worker_ms_peak(mspeak_obj, mass_spec_obj)
 
-   
-
+    print("OK2")
     if mspeak_obj.is_assigned:
+        
+        print(mspeak_obj.molecular_formula_earth_filter().to_string)
+        print(mspeak_obj.molecular_formula_water_filter().to_string)
+        print(mspeak_obj.molecular_formula_air_filter().to_string)
+        print(mspeak_obj.cia_score_S_P_error().to_string)
+        print(mspeak_obj.cia_score_N_S_P_error().to_string)
 
         print(mspeak_obj[0].mz_error, mspeak_obj[0].to_string_formated)
 
 def test_molecular_formula_search_db():
     
-    mass_spec_obj = creat_mass_spectrum()
+    mass_spec_obj = create_mass_spectrum()
     
     time1 = time.time()
     
@@ -121,7 +128,7 @@ def test_priorityAssignment():
     MolecularSearchSettings.isRadical= True 
     MolecularSearchSettings.isAdduct= False 
 
-    mass_spec_obj = creat_mass_spectrum()
+    mass_spec_obj = create_mass_spectrum()
     
     assignOx = OxygenPriorityAssignment(mass_spec_obj) 
 
@@ -131,7 +138,7 @@ def test_priorityAssignment():
 
 if __name__ == "__main__":
 
-    test_priorityAssignment()
+    #test_priorityAssignment()
     #test_molecular_formula_search_db()
     #test_run_molecular_formula_search()
-    #test_mspeak_search()
+    test_mspeak_search()

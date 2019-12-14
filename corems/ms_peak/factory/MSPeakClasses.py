@@ -67,7 +67,6 @@ class _MSPeak(MSPeakCalculation):
         
         self.molecular_formulas= []
     
-    
     @property
     def mz_exp(self):
         if self.mz_cal:
@@ -97,7 +96,7 @@ class _MSPeak(MSPeakCalculation):
         return bool(self.molecular_formulas)
     
     @property
-    def number_possible_assigments(self,):
+    def number_possible_assignments(self,):
         
         return len(self.molecular_formulas)
     
@@ -105,6 +104,75 @@ class _MSPeak(MSPeakCalculation):
     def molecular_formula_lowest_error(self):
        
        return min(self.molecular_formulas, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))
+
+    def molecular_formula_earth_filter(self, lowest_error=True):
+        
+        candidates = list(filter(lambda mf: mf.get("O") > 0 and mf.get("N") <=3 and mf.get("P") <= 2 and (3 * mf.get("P")) <= mf.get("O"), self.molecular_formulas))
+
+        if lowest_error:
+            return min(candidates, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))
+        else:
+            return candidates
+    
+    def molecular_formula_water_filter(self, lowest_error=True):
+       
+        candidates = list(filter(lambda mf: mf.get("O") > 0 and mf.get("N") <=3 and mf.get("S") <=2 and  mf.get("P") <= 2, self.molecular_formulas))
+
+        if lowest_error:
+            return min(candidates, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))
+        else:
+            return candidates
+    
+    def molecular_formula_air_filter(self, lowest_error=True):
+       
+        candidates = list(filter(lambda mf: mf.get("O") > 0 and mf.get("N") <=2 and mf.get("S") <=1 and  mf.get("P") == 0 and 3* (mf.get("S") + mf.get("N")) <= mf.get("O"), self.molecular_formulas))
+        
+        if lowest_error:
+            return min(candidates, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))
+        else:
+            return candidates
+
+    def cia_score_S_P_error(self):
+        #case EFormulaScore.HAcap:
+
+        lowest_S_P_mf = min(self.molecular_formulas, key=lambda mf: mf.get('S') + mf.get('P'))
+        lowest_S_P_count = lowest_S_P_mf.get("S") + lowest_S_P_mf.get("P")
+        
+        list_same_s_p = list(filter(lambda mf: mf.get('S') + mf.get('P') == lowest_S_P_count, self.molecular_formulas))
+
+        #check if list is not empty
+        if list_same_s_p:
+        
+            return min(list_same_s_p, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))
+        
+        else:
+        
+            return lowest_S_P_mf
+    
+    def cia_score_N_S_P_error(self):
+        #case EFormulaScore.HAcap:
+        
+        lowest_N_S_P_mf = min(self.molecular_formulas, key=lambda mf: mf.get('N') + mf.get('S') + mf.get('P'))
+        lowest_N_S_P_count = lowest_N_S_P_mf.get("N") + lowest_N_S_P_mf.get("S") + lowest_N_S_P_mf.get("P")
+
+        list_same_N_S_P = list(filter(lambda mf: mf.get('N') + mf.get('S') + mf.get('P') == lowest_N_S_P_count, self.molecular_formulas))
+
+        if list_same_N_S_P:
+
+            SP_filtered_list =  list(filter(lambda mf: (mf.get("S") <= 3 ) and  (mf.get("P")  <= 1 ), list_same_N_S_P))
+            
+            if SP_filtered_list:
+                
+                return min(SP_filtered_list, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp))) 
+            
+            else:    
+                
+                return min(list_same_N_S_P, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))            
+        
+        else:
+            
+            return lowest_N_S_P_mf 
+ 
 
 class ICRMassPeak(_MSPeak):
 
@@ -127,7 +195,7 @@ class ICRMassPeak(_MSPeak):
         '''
         return (1.274e7 * self.ion_charge * B * T)/ (self.mz_exp*self.ion_charge)
 
-    def set_threoretical_resolving_power(self, B, T):
+    def set_theoretical_resolving_power(self, B, T):
 
         self.resolving_power = self.resolving_power_calc(B, T) 
         
@@ -137,7 +205,7 @@ class TOFMassPeak(_MSPeak):
 
         super().__init__(*args,exp_freq=exp_freq)
 
-    def set_threoretical_resolving_power(self):
+    def set_theoretical_resolving_power(self):
         return 0
 
 class OrbiMassPeak(_MSPeak):
@@ -146,5 +214,5 @@ class OrbiMassPeak(_MSPeak):
 
         super().__init__(*args,exp_freq=exp_freq)
 
-    def set_threoretical_resolving_power(self):
+    def set_theoretical_resolving_power(self):
         return 0       

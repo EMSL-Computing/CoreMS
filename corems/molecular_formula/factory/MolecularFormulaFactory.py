@@ -54,6 +54,14 @@ class MolecularFormula(MolecularFormulaCalc):
             else:
                 return 0
     
+    def get(self, atom):
+        
+            #atom = list(self._d_molecular_formula.keys())[position]
+            if atom in self._d_molecular_formula.keys():
+                return self._d_molecular_formula[atom]
+            else:
+                return 0
+                
     def _from_dict(self, molecular_formula):
         
         self._d_molecular_formula = {key:val for key, val in molecular_formula.items() if val != 0}
