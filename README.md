@@ -10,7 +10,7 @@
 
 ## Current Version
 
-### `1.0.0.beta`
+### `2.0.0.beta`
 
 [![pipeline status](https://gitlab.pnnl.gov/mass-spectrometry/corems/badges/master/pipeline.svg)](https://gitlab.pnnl.gov/corilo/corems/commits/master) [![coverage report](https://gitlab.pnnl.gov/mass-spectrometry/corems/badges/master/coverage.svg)](https://gitlab.pnnl.gov/corilo/corems/commits/master)
 
@@ -89,7 +89,7 @@ If you don't have docker installed, the easiest way is to [install docker for de
     docker run --rm -v host/dir:container/dir: -p 8888:8888 gitlab.pnnl.gov:4567/mass-spectrometry/corems:latest
     ```
 
-- In your browser, open the URL address provided in the terminal: `http://127.1.0.0:8888/?token=<token>.`
+- In your browser, open the URL address provided in the terminal: `http://127.2.0.0:8888/?token=<token>.`
 
 - Open the CoreMS-Tutorial.ipynb and follow the code
 
