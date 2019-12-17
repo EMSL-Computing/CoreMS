@@ -3,7 +3,7 @@ FROM gitlab.pnnl.gov:4567/mass-spectrometry/corems:corems-base-mono
 WORKDIR /home/CoreMS
 
 COPY corems/ /home/CoreMS/corems/
-COPY requirements.txt LICENSE README.md setup.py doc/CoreMS_Tutorial.ipynb /home/CoreMS/
+COPY requirements.txt LICENSE README.md setup.py doc/CoreMS_Tutorial.ipynb SettingsCoreMS.json /home/CoreMS/
 COPY lib/ /home/CoreMS/lib/
 COPY support_code/ /home/CoreMS/support_code/
 COPY ESI_NEG_SRFA.d/ /home/CoreMS/ESI_NEG_SRFA.d/

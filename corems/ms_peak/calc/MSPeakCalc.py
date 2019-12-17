@@ -36,7 +36,7 @@ class MSPeakCalculation(object):
         if self.resolving_power:
 
             # full width half maximum distance
-            self.fwhm = (self.mz_exp / self.resolving_power)
+            self.fwhm = (self.mz_exp / self.resolving_power)#self.resolving_power)
 
             # stardart deviation
             γ = self.fwhm / 2
@@ -44,14 +44,18 @@ class MSPeakCalculation(object):
             # half width baseline distance
             hw_base_distance = (8 * γ)
 
-            mz_domain = linspace(self.mz_exp - hw_base_distance,
-                                 self.mz_exp + hw_base_distance, datapoint)
-
+            #mz_domain = linspace(self.mz_exp - hw_base_distance,
+            #                     self.mz_exp + hw_base_distance, datapoint)
+            mz_domain = linspace(self.nominal_mz_exp - 0.1,
+                                 self.nominal_mz_exp + 1.1, datapoint)
+            
             # gaussian_pdf = lambda x0, x, s: (1/ math.sqrt(2*math.pi*math.pow(s,2))) * math.exp(-1 * math.pow(x-x0,2) / 2*math.pow(s,2) )
             calc_abundance = cauchy.pdf(mz_domain, self.mz_exp, γ)
 
             return mz_domain, (calc_abundance * self.abundance / max(calc_abundance))
+        
         else:
+            
             raise LookupError(
                 'resolving power is not defined, try to use set_max_resolving_power()')
 

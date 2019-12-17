@@ -1,11 +1,10 @@
 
-from corems.encapsulation.settings.input.ProcessingSetting import MassSpecPeakSetting
-from corems.ms_peak.calc.MSPeakCalc import MSPeakCalculation
-
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
+from corems.encapsulation.settings.input.ProcessingSetting import MassSpecPeakSetting
+from corems.ms_peak.calc.MSPeakCalc import MSPeakCalculation
 
 class _MSPeak(MSPeakCalculation):
     '''

@@ -195,6 +195,7 @@ class PeakPicking(object):
         b = z[1]
 
         calculated = -b/(2*a)
+        
         if calculated < 1 or int(calculated) != int(list_mass[1]):
 
             mz_exp_centroid = list_mass[1]
@@ -250,3 +251,24 @@ class PeakPicking(object):
 
                     #parms ion_charge, mz_exp, abundance, resolving_power, signal_to_noise, massspec_index,
                     self.add_mspeak(self.polarity, mz_exp_centroid, intes_centr, peak_resolving_power, intes_centr/self.baselise_noise_std, x, exp_freq=freq_centr)
+
+    def calc_min(self, massa, intes, freq_exp): #pragma: no cover
+
+        #this function is too slow, may need slice and apply multi processing,
+        
+        do_freq = freq_exp.any()
+        
+        min_mz = []
+        min_abu = list()
+        for x in range(len(intes)-1):
+                
+            if  intes[x] < intes[x +1] and intes[x] < intes[x - 1]:# and (intes[x]/factor) > abundance_threshold:#and :
+                intes_centr = intes[x]
+                mz_exp_centroid = massa[x]
+                
+                min_mz.append(mz_exp_centroid)
+                min_abu.append(intes_centr)
+        
+        return min_mz, min_abu 
+
+                    
