@@ -46,11 +46,11 @@ def calc_minimum(mass, abund):
 
         return mass[indexes], abund[indexes]
 
-max_mz = 300
+max_mz = 1200
 
 rp_increments = 10000
 
-base_line_threshold = 0.01
+base_line_threshold = 0.1
 
 datapoints = 5000
 
@@ -61,10 +61,12 @@ reader_obj = ReadBrukerSolarix(file_path)
 transient_obj = reader_obj.get_transient()
 
 mass_spectrum_obj = transient_obj.get_mass_spectrum(plot_result=False)
-
+error_list = []
+mz_list = []
 for peak_obj_idx, peak_obj in enumerate(mass_spectrum_obj):
     
-    if  peak_obj_idx != 0 or peak_obj_idx != len(mass_spectrum_obj)-1 :
+    print(peak_obj_idx, len(mass_spectrum_obj))
+    if  peak_obj_idx != 0 and peak_obj_idx != len(mass_spectrum_obj)-1:
 
         next_peak_obj = mass_spectrum_obj[peak_obj_idx + 1]
         
@@ -130,20 +132,25 @@ for peak_obj_idx, peak_obj in enumerate(mass_spectrum_obj):
                     
                     #pyplot.show()  
             
-                previous_shift_ppp = calc_ppm_error(previous_peak_obj.mz_exp, mz_centroid[2])
+                #previous_shift_ppp = calc_ppm_error(previous_peak_obj.mz_exp, mz_centroid[2])
                 
                 mass_shift_ppp = calc_ppm_error(peak_obj.mz_exp, mz_centroid[1])
                 
-                next_shift_ppp = calc_ppm_error(next_peak_obj.mz_exp, mz_centroid[0])
+                #next_shift_ppp = calc_ppm_error(next_peak_obj.mz_exp, mz_centroid[0])
 
-                print(previous_shift_ppp,mass_shift_ppp, next_shift_ppp)    
+                error_list.append(mass_shift_ppp)
+                mz_list.append(peak_obj.mz_exp)
                 
-                pyplot.plot(mz_centroid, abund_centroid, 'o')
-
-                pyplot.plot(mz_min_valley, abund_min_valley, 'o', c='g')
-
-                pyplot.plot(summed_mz_domain,summed_peaks_abun)
+                #print(previous_shift_ppp,mass_shift_ppp, next_shift_ppp)    
                 
-                pyplot.show()  
+                #pyplot.plot(mz_centroid, abund_centroid, 'o')
+
+                #pyplot.plot(mz_min_valley, abund_min_valley, 'o', c='g')
+
+                #pyplot.plot(summed_mz_domain,summed_peaks_abun)
+                
+                #pyplot.show()
+pyplot.plot(mz_list, error_list, 'o')   
+pyplot.show()
 
 
