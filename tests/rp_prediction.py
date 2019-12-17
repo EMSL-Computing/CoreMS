@@ -46,11 +46,11 @@ def calc_minimum(mass, abund):
 
         return mass[indexes], abund[indexes]
 
-max_mz = 1200
+max_mz = 300
 
 rp_increments = 10000
 
-base_line_threshold = 0.1
+base_line_threshold = 0.01
 
 datapoints = 5000
 
@@ -72,6 +72,8 @@ for peak_obj_idx, peak_obj in enumerate(mass_spectrum_obj):
         
         if peak_obj.nominal_mz_exp < max_mz and  peak_obj.nominal_mz_exp == next_peak_obj.nominal_mz_exp and peak_obj.nominal_mz_exp == previous_peak_obj.nominal_mz_exp:
             
+            datapoints = len(mass_spectrum_obj.get_nominal_mass_profile(peak_obj.nominal_mz_exp))
+
             sim_mz, sim_abun = peak_obj.lorentz_pdf()
             next_sim_mz, next_sim_abun = next_peak_obj.lorentz_pdf()
             previous_sim_mz, previous_sim_abun = previous_peak_obj.lorentz_pdf()

@@ -500,6 +500,16 @@ class MassSpecBase(MassSpecCalc):
         else:
             raise Exception("run process_mass_spec() function before trying to access the data")
 
+    def get_nominal_mass_profile(self, nominal_mass, overlay=0.1):
+        
+        min_mz = nominal_mass - overlay
+        
+        max_mz = nominal_mass+1+overlay
+        
+        result = list(filter(lambda mz: min_mz <= mz <= max_mz, self.mz_exp_profile))  
+  
+        return result
+
     def get_nominal_mass_indexes(self, nominal_mass, overlay=0.1):
         min_mz_to_look = nominal_mass - overlay
         max_mz_to_look = nominal_mass+1+overlay
