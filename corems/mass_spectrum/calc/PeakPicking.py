@@ -61,8 +61,8 @@ class PeakPicking(object):
     def calculate_resolving_power(self, intes, massa, current_index):
             
             '''this is a conservative calculation of resolving power,
-               the peak need to be resolved at leat at the half-maximum magnitude,
-               otherwise, the convoluted peak is used to calculate resolving power'''
+               the peak need to be resolved at least at the half-maximum magnitude,
+               otherwise, the combined full width at half maximum is used to calculate resolving power'''
 
             peak_height = intes[current_index]
             target_peak_height = peak_height/2
@@ -113,7 +113,24 @@ class PeakPicking(object):
 
             return resolvingpower
 
+    def cal_minima(self, mass, abund):
 
+        dy = abund[1:] - abund[:-1]
+        
+        '''replaces nan for infinity'''
+        indices_nan = where(isnan(abund))[0]
+        
+        if indices_nan.size:
+            
+            abund[indices_nan] = inf
+            dy[where(isnan(dy))[0]] = inf
+        
+        indexes = where((hstack((dy, 0)) < 0) & (hstack((0, dy)) > 0))[0]
+
+        if indexes.size:
+            
+            return mass[indexes], abund[indexes]
+    
     def calc_centroid(self, mass, abund, freq):
         #TODO: remove peaks that minimum is one data point from the maximum
         # to remove artifacts 
@@ -122,7 +139,7 @@ class PeakPicking(object):
         # find indices of all peaks
         dy = abund[1:] - abund[:-1]
         
-        '''replaces NaN for Infinity'''
+        '''replaces nan for infinity'''
         indices_nan = where(isnan(abund))[0]
         
         if indices_nan.size:
@@ -255,8 +272,6 @@ class PeakPicking(object):
     def calc_min(self, massa, intes, freq_exp): #pragma: no cover
 
         #this function is too slow, may need slice and apply multi processing,
-        
-        do_freq = freq_exp.any()
         
         min_mz = []
         min_abu = list()
