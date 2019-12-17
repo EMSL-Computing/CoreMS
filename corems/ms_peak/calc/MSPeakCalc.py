@@ -31,12 +31,12 @@ class MSPeakCalculation(object):
 
         return kdm, kendrick_mass, nominal_km
 
-    def lorentz_pdf(self, datapoint=10000):
+    def lorentz_pdf(self, datapoint=10000, delta_rp = 0):
 
         if self.resolving_power:
 
             # full width half maximum distance
-            self.fwhm = (self.mz_exp / self.resolving_power)#self.resolving_power)
+            self.fwhm = (self.mz_exp / (self.resolving_power + delta_rp))#self.resolving_power)
 
             # stardart deviation
             γ = self.fwhm / 2
