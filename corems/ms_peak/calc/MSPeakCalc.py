@@ -31,7 +31,7 @@ class MSPeakCalculation(object):
 
         return kdm, kendrick_mass, nominal_km
 
-    def lorentz_pdf(self, datapoint=10000, delta_rp = 0):
+    def lorentz_pdf(self, datapoints=10000, delta_rp = 0):
 
         if self.resolving_power:
 
@@ -47,7 +47,7 @@ class MSPeakCalculation(object):
             #mz_domain = linspace(self.mz_exp - hw_base_distance,
             #                     self.mz_exp + hw_base_distance, datapoint)
             mz_domain = linspace(self.nominal_mz_exp - 0.1,
-                                 self.nominal_mz_exp + 1.1, datapoint)
+                                 self.nominal_mz_exp + 1.1, datapoints)
             
             # gaussian_pdf = lambda x0, x, s: (1/ math.sqrt(2*math.pi*math.pow(s,2))) * math.exp(-1 * math.pow(x-x0,2) / 2*math.pow(s,2) )
             calc_abundance = cauchy.pdf(mz_domain, self.mz_exp, γ)

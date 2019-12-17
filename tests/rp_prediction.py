@@ -8,7 +8,10 @@ from numpy import hstack, inf, isnan, where
 from scipy.stats import norm, cauchy
 
 from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
-       
+
+def calc_ppm_error(mass_ref, mass_sim):
+    return ((mass_ref-mass_sim)/mass_ref)*1000000
+
 def calc_maximum(mass, abund):
 
         dy = abund[1:] - abund[:-1]
@@ -44,6 +47,12 @@ def calc_minimum(mass, abund):
         return mass[indexes], abund[indexes]
 
 max_mz = 1200
+
+rp_increments = 10000
+
+base_line_threshold = 0.1
+
+datapoints = 5000
 
 file_path = Path.cwd() / "ESI_NEG_SRFA.d"
 
@@ -82,15 +91,15 @@ for peak_obj_idx, peak_obj in enumerate(mass_spectrum_obj):
             print(previous_peak_obj.mz_exp, peak_obj.mz_exp, next_peak_obj.mz_exp,)
             print(previous_peak_obj.abundance, peak_obj.abundance, next_peak_obj.abundance)
            
-            delta_rp = 10000
+            delta_rp = rp_increments
             
             if len(mz_centroid) == 3:
                 
-                while  abund_min_valley[0] > 0.01 or abund_min_valley[1] > 0.01:
+                while  abund_min_valley[0] > base_line_threshold or abund_min_valley[1] > base_line_threshold:
                     
-                    previous_sim_mz, previous_sim_abun = previous_peak_obj.lorentz_pdf(delta_rp=delta_rp)
-                    sim_mz, sim_abun = peak_obj.lorentz_pdf(delta_rp=delta_rp)
-                    next_sim_mz, next_sim_abun = next_peak_obj.lorentz_pdf(delta_rp=delta_rp)
+                    previous_sim_mz, previous_sim_abun = previous_peak_obj.lorentz_pdf(datapoints=datapoints, delta_rp=delta_rp)
+                    sim_mz, sim_abun = peak_obj.lorentz_pdf(datapoints=datapoints, delta_rp=delta_rp)
+                    next_sim_mz, next_sim_abun = next_peak_obj.lorentz_pdf(datapoints=datapoints, delta_rp=delta_rp)
                     
                     summed_peaks_abun = (sim_abun + next_sim_abun + previous_sim_abun) # fix
                     summed_peaks_abun = summed_peaks_abun/(max(summed_peaks_abun))
@@ -98,7 +107,7 @@ for peak_obj_idx, peak_obj in enumerate(mass_spectrum_obj):
                     min_mz = min(list(sim_mz) + list(previous_sim_mz) + list(next_sim_mz))
                     max_mz = max(list(sim_mz) + list(previous_sim_mz) + list(next_sim_mz))
                     
-                    summed_mz_domain = linspace(min_mz, max_mz, 10000)
+                    summed_mz_domain = linspace(min_mz, max_mz, datapoints)
 
                     mz_centroid, abund_centroid = calc_maximum(summed_mz_domain,summed_peaks_abun)    
 
@@ -107,7 +116,7 @@ for peak_obj_idx, peak_obj in enumerate(mass_spectrum_obj):
                     if len(abund_min_valley) == 0:
                         break
                     
-                    delta_rp += 10000
+                    delta_rp += rp_increments
 
                     print (abund_min_valley)
 
@@ -119,37 +128,20 @@ for peak_obj_idx, peak_obj in enumerate(mass_spectrum_obj):
                     
                     #pyplot.show()  
             
-            '''
-            delta_rp = 1000
-            while abund_min_valley[1] > 1:
+                previous_shift_ppp = calc_ppm_error(previous_peak_obj.mz_exp, mz_centroid[2])
                 
-                previous_sim_mz, previous_sim_abun = previous_peak_obj.lorentz_pdf()
-                sim_mz, sim_abun = peak_obj.lorentz_pdf(delta_rp=delta_rp)
-                next_sim_mz, next_sim_abun = next_peak_obj.lorentz_pdf(delta_rp=delta_rp)
+                mass_shift_ppp = calc_ppm_error(peak_obj.mz_exp, mz_centroid[1])
                 
-                summed_peaks_abun = (sim_abun + next_sim_abun + previous_sim_abun) # fix
-                summed_peaks_abun = summed_peaks_abun/(max(summed_peaks_abun))
+                next_shift_ppp = calc_ppm_error(next_peak_obj.mz_exp, mz_centroid[0])
 
-                min_mz = min(list(sim_mz) + list(previous_sim_mz) + list(next_sim_mz))
-                max_mz = max(list(sim_mz) + list(previous_sim_mz) + list(next_sim_mz))
+                print(previous_shift_ppp,mass_shift_ppp, next_shift_ppp)    
                 
-                summed_mz_domain = linspace(min_mz, max_mz, 10000)
+                pyplot.plot(mz_centroid, abund_centroid, 'o')
 
-                mz_centroid, abund_centroid = calc_maximum(summed_mz_domain,summed_peaks_abun)    
+                pyplot.plot(mz_min_valley, abund_min_valley, 'o', c='g')
 
-                mz_min_valley, abund_min_valley = calc_minimum(summed_mz_domain,summed_peaks_abun)  
-
-                delta_rp += 100
-
-                print (abund_min_valley)
-            '''
-            
-            pyplot.plot(mz_centroid, abund_centroid, 'o')
-
-            pyplot.plot(mz_min_valley, abund_min_valley, 'o', c='g')
-
-            pyplot.plot(summed_mz_domain,summed_peaks_abun)
-            
-            pyplot.show()  
+                pyplot.plot(summed_mz_domain,summed_peaks_abun)
+                
+                pyplot.show()  
 
 
