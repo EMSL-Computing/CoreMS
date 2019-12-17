@@ -44,7 +44,7 @@ def calc_minimum(mass, abund):
             
             return mass[indexes], abund[indexes]
 
-
+max_mz = 1200
 file_path = Path.cwd() / "ESI_NEG_SRFA.d"
 
 reader_obj = ReadBrukerSolarix(file_path)
@@ -61,22 +61,20 @@ for peak_obj_idx, peak_obj in enumerate(mass_spectrum_obj):
 
         sim_mz, sim_abun = peak_obj.lorentz_pdf()
         
-        #pyplot.plot(sim_mz,sim_abun)
-        
-        #pyplot.show()    
-
         next_peak_obj = mass_spectrum_obj[peak_obj_idx + 1]
-        next_sim_mz, next_sim_abun = next_peak_obj.lorentz_pdf()
         
         previous_peak_obj = mass_spectrum_obj[peak_obj_idx - 1]
-        previous_sim_mz, previous_sim_abun = previous_peak_obj.lorentz_pdf()
         
-        summed_peaks_abun = sim_abun + next_sim_abun + previous_sim_abun # fix
+        if peak_obj.nominal_mz_exp < max_mz and  peak_obj.nominal_mz_exp == next_peak_obj.nominal_mz_exp and peak_obj.nominal_mz_exp == previous_peak_obj.nominal_mz_exp:
+        
+            next_sim_mz, next_sim_abun = next_peak_obj.lorentz_pdf()
+            previous_sim_mz, previous_sim_abun = previous_peak_obj.lorentz_pdf()
+        
+            summed_peaks_abun = (sim_abun + next_sim_abun + previous_sim_abun) # fix
+            summed_peaks_abun = summed_peaks_abun/(max(summed_peaks_abun))
 
-        min_mz = min(list(sim_mz) + list(previous_sim_mz) + list(next_sim_mz))
-        max_mz = max(list(sim_mz) + list(previous_sim_mz) + list(next_sim_mz))
-        
-        if peak_obj.nominal_mz_exp == next_peak_obj.nominal_mz_exp and peak_obj.nominal_mz_exp == previous_peak_obj.nominal_mz_exp:
+            min_mz = min(list(sim_mz) + list(previous_sim_mz) + list(next_sim_mz))
+            max_mz = max(list(sim_mz) + list(previous_sim_mz) + list(next_sim_mz))
             
             summed_mz_domain = linspace(min_mz, max_mz, 10000)
 
@@ -90,7 +88,6 @@ for peak_obj_idx, peak_obj in enumerate(mass_spectrum_obj):
             pyplot.plot(mz_centroid, abund_centroid, 'o')
 
             pyplot.plot(mz_min_valley, abund_min_valley, 'o', c='g')
-
 
             pyplot.plot(summed_mz_domain,summed_peaks_abun)
             
