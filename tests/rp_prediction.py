@@ -52,7 +52,7 @@ rp_increments = 10000
 
 base_line_threshold = 0.1
 
-datapoints = 5000
+datapoints = 100000
 
 file_path = Path.cwd() / "ESI_NEG_SRFA.d"
 
@@ -64,21 +64,22 @@ mass_spectrum_obj = transient_obj.get_mass_spectrum(plot_result=False)
 error_list = []
 mz_list = []
 for peak_obj_idx, peak_obj in enumerate(mass_spectrum_obj):
-    
-    print(peak_obj_idx, len(mass_spectrum_obj))
+    mass_spec_size = len(mass_spectrum_obj)
+    #print(peak_obj_idx, len(mass_spectrum_obj))
     if  peak_obj_idx != 0 and peak_obj_idx != len(mass_spectrum_obj)-1:
-
+        
+        print(peak_obj_idx, mass_spec_size)
         next_peak_obj = mass_spectrum_obj[peak_obj_idx + 1]
         
         previous_peak_obj = mass_spectrum_obj[peak_obj_idx - 1]
         
         if peak_obj.nominal_mz_exp < max_mz and  peak_obj.nominal_mz_exp == next_peak_obj.nominal_mz_exp and peak_obj.nominal_mz_exp == previous_peak_obj.nominal_mz_exp:
             
-            datapoints = len(mass_spectrum_obj.get_nominal_mass_profile(peak_obj.nominal_mz_exp))
-
-            sim_mz, sim_abun = peak_obj.lorentz_pdf()
-            next_sim_mz, next_sim_abun = next_peak_obj.lorentz_pdf()
-            previous_sim_mz, previous_sim_abun = previous_peak_obj.lorentz_pdf()
+            datapoints = mass_spectrum_obj.get_nominal_mass_profile_len(peak_obj.nominal_mz_exp)
+            print(datapoints)
+            sim_mz, sim_abun = peak_obj.lorentz_pdf(datapoints=datapoints)
+            next_sim_mz, next_sim_abun = next_peak_obj.lorentz_pdf(datapoints=datapoints)
+            previous_sim_mz, previous_sim_abun = previous_peak_obj.lorentz_pdf(datapoints=datapoints)
         
             summed_peaks_abun = (sim_abun + next_sim_abun + previous_sim_abun) # fix
             summed_peaks_abun = summed_peaks_abun/(max(summed_peaks_abun))
@@ -86,14 +87,14 @@ for peak_obj_idx, peak_obj in enumerate(mass_spectrum_obj):
             min_mz = min(list(sim_mz) + list(previous_sim_mz) + list(next_sim_mz))
             max_mz = max(list(sim_mz) + list(previous_sim_mz) + list(next_sim_mz))
             
-            summed_mz_domain = linspace(min_mz, max_mz, 10000)
+            summed_mz_domain = linspace(min_mz, max_mz, datapoints)
 
             mz_centroid, abund_centroid = calc_maximum(summed_mz_domain,summed_peaks_abun)    
 
             mz_min_valley, abund_min_valley = calc_minimum(summed_mz_domain,summed_peaks_abun)    
 
-            print(previous_peak_obj.mz_exp, peak_obj.mz_exp, next_peak_obj.mz_exp,)
-            print(previous_peak_obj.abundance, peak_obj.abundance, next_peak_obj.abundance)
+            #print(previous_peak_obj.mz_exp, peak_obj.mz_exp, next_peak_obj.mz_exp,)
+            #print(previous_peak_obj.abundance, peak_obj.abundance, next_peak_obj.abundance)
            
             delta_rp = rp_increments
             
@@ -122,7 +123,7 @@ for peak_obj_idx, peak_obj in enumerate(mass_spectrum_obj):
                     
                     delta_rp += rp_increments
 
-                    print (abund_min_valley)
+                    #print (abund_min_valley)
 
                     #pyplot.plot(mz_centroid, abund_centroid, 'o')
 

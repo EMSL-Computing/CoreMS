@@ -11,9 +11,9 @@ __date__ = "Jul 02, 2019"
 def simulate_peak(mspeak):
 
     mz_lo, abund_lo = mspeak.lorentz_pdf()
-    mz_gaus, abund_gaus = mspeak.gaussian_pdf()
+    mz_gauss, abund_gauss = mspeak.gaussian_pdf()
 
-    return round(mz_lo[0], 3), round(mz_gaus[0], 3), round(abund_lo[0], 3), round(abund_gaus[0], 3)
+    return round(mz_lo[0], 3), round(mz_gauss[0], 3), round(abund_lo[0], 3), round(abund_gauss[0], 3)
  
 def test_mspeak_calculations():
 
@@ -40,7 +40,8 @@ def test_mspeak_calculations():
     assert round(mspeak.kmd, 3) == -89.0
     assert mspeak.knm == 211
 
-    assert simulate_peak(mspeak) == (212.123, 212.123, 3.077, 0.0)
+    print(simulate_peak(mspeak))
+    assert simulate_peak(mspeak) == (211.9, 212.123, 0.0, 0.0)
 
     mspeak.set_theoretical_resolving_power(50, 3)
 
