@@ -3,7 +3,7 @@ from pathlib import Path
 from copy import deepcopy
 
 #from matplotlib import rcParamsDefault, rcParams
-from numpy import array, power, float64
+from numpy import array, power, float64, where
 
 
 from corems.encapsulation.constant import Labels
@@ -24,7 +24,7 @@ def overrides(interface_class):
 class MassSpecBase(MassSpecCalc):
     '''
     - A iterative mass spectrum base class, stores the profile data and instrument settings
-    - Iteration over a list of MSPeaks classes stored at the _mspeaks atributes
+    - Iteration over a list of MSPeaks classes stored at the _mspeaks attributes
     - _mspeaks is populated under the hood by calling process_mass_spec method
     - iteration is null is _mspeaks is empty
 
@@ -51,8 +51,8 @@ class MassSpecBase(MassSpecCalc):
     Relevant Methods
     ----------
     process_mass_spec()
-        find or set the noise thresould base on the setting encapsulated at settings.input.ProcessingSetting.MassSpectrumSetting
-        - run the peak peaking algorithm and use the method addMSPeaks() to populate _mspeaks attribuite
+        find or set the noise threshold base on the setting encapsulated at settings.input.ProcessingSetting.MassSpectrumSetting
+        - run the peak peaking algorithm and use the method addMSPeaks() to populate _mspeaks attribute
     
     see also: MassSpecCentroid(), MassSpecfromFreq(), MassSpecProfile()
     '''
@@ -99,7 +99,7 @@ class MassSpecBase(MassSpecCalc):
         self._set_nominal_masses_start_final_indexes()
         
     def reset_indexes(self):
-        ''' reset the mass spectrum to interate over all MSpeaks objs'''
+        ''' reset the mass spectrum to interate over all MSpeaks obj'''
         self.mspeaks = self._mspeaks
         
         for i, mspeak in  enumerate(self.mspeaks): mspeak.index = i
@@ -186,7 +186,7 @@ class MassSpecBase(MassSpecCalc):
     def process_mass_spec(self,  keep_profile=True, auto_noise=True):
         
         #from numpy import delete
-        self.cal_noise_treshould(auto=auto_noise)
+        self.cal_noise_threshold(auto=auto_noise)
         
         self.find_peaks()
         
@@ -199,7 +199,7 @@ class MassSpecBase(MassSpecCalc):
             self._abundance  *= 0
         
 
-    def cal_noise_treshould(self, auto=True):
+    def cal_noise_threshold(self, auto=True):
 
         if self.label == Labels.simulated_profile:
             
@@ -207,7 +207,7 @@ class MassSpecBase(MassSpecCalc):
         
         else:
             
-            self._baselise_noise, self._baselise_noise_std = self.run_noise_threshould_calc(auto)
+            self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto)
 
     @property
     def mspeaks_settings(self):  return self._mspeaks_settings
@@ -397,7 +397,7 @@ class MassSpecBase(MassSpecCalc):
                 "mspeaks list is empty, please run process_mass_spec() first"
             )
 
-    def remove_assigment_by_index(self, indexes):
+    def remove_assignment_by_index(self, indexes):
         for i in indexes: self.mspeaks[i].clear_molecular_formulas()
 
     def filter_by_index(self, list_indexes):
@@ -500,15 +500,24 @@ class MassSpecBase(MassSpecCalc):
         else:
             raise Exception("run process_mass_spec() function before trying to access the data")
 
-    def get_nominal_mass_profile_len(self, nominal_mass, overlay=0.1):
+    def datapoints_count_by_nominal_mz(self, mz_overlay=0.1):
         
-        min_mz = nominal_mass - overlay
+        dict_nominal_masses_count ={}
         
-        max_mz = nominal_mass+1+overlay
+        all_nominal_masses = list(set([i.nominal_mz_exp for i in self.mspeaks]))
         
-        result = sum(1 for _ in filter(lambda mz: min_mz <= mz <= max_mz, self.mz_exp_profile))
+        for nominal_mass in all_nominal_masses:
+
+            min_mz = nominal_mass - mz_overlay
         
-        return result
+            max_mz = nominal_mass + 1 + mz_overlay
+            
+            indexes = indexes = where((self.mz_exp_profile > min_mz) & (self.mz_exp_profile < max_mz)) 
+            
+            dict_nominal_masses_count[nominal_mass] = indexes[0].size
+
+        return dict_nominal_masses_count
+
 
     def get_nominal_mass_indexes(self, nominal_mass, overlay=0.1):
         min_mz_to_look = nominal_mass - overlay
@@ -516,7 +525,7 @@ class MassSpecBase(MassSpecCalc):
         indexes = [i for i in range(len(self.mspeaks)) if min_mz_to_look <= self.mspeaks[i].mz_exp <= max_mz_to_look]
         return indexes
     
-    def get_masses_sum_for_nominal_mass(self):
+    def get_masses_count_by_nominal_mass(self):
         
         dict_nominal_masses_count ={}
         
@@ -550,8 +559,8 @@ class MassSpecBase(MassSpecCalc):
             x = (self.mz_exp_profile.min(), self.mz_exp_profile.max())
             y = (self.baselise_noise, self.baselise_noise)
 
-            stds = MassSpectrumSetting.noise_threshold_stds
-            threshold = self.baselise_noise + (stds * self.baselise_noise_std)
+            std = MassSpectrumSetting.noise_threshold_std
+            threshold = self.baselise_noise + (std * self.baselise_noise_std)
             plt.plot(self.mz_exp_profile, self.abundance_profile, color="green")
             plt.plot(x, (threshold, threshold), color="yellow")
             plt.plot(x, y, color="red")
@@ -576,14 +585,14 @@ class MassSpecProfile(MassSpecBase):
     '''
     - A iterative mass spectrum class when the entry point is on profile format
     - Stores the profile data and instrument settings
-    - Iteration over a list of MSPeaks classes stored at the _mspeaks atributes
+    - Iteration over a list of MSPeaks classes stored at the _mspeaks attributes
     - _mspeaks is populated under the hood by calling process_mass_spec method
     - iteration is null if _mspeaks is empty
 
     Parameters
     ----------
     dataframe : pandas Dataframe(Series(floats))
-        containg columns [m/z, Abundance, Resolving Power, S/N] 
+        contains columns [m/z, Abundance, Resolving Power, S/N] 
     d_params : dict{'str': float, int or str}
         
     Attributes
@@ -598,8 +607,8 @@ class MassSpecProfile(MassSpecBase):
     Relevant Methods
     ----------
     process_mass_spec()
-        find or set the noise thresould base on the setting encapsulated at settings.input.ProcessingSetting.MassSpectrumSetting
-        - run the peak peaking algorithm and use the method addMSPeaks() to populate _mspeaks attribuite
+        find or set the noise threshold base on the setting encapsulated at settings.input.ProcessingSetting.MassSpectrumSetting
+        - run the peak peaking algorithm and use the method addMSPeaks() to populate _mspeaks attribute
     
     see also: MassSpecBase(), MassSpecfromFreq(), MassSpecProfile()
     '''
@@ -618,7 +627,7 @@ class MassSpecProfile(MassSpecBase):
     @overrides(MassSpecBase)
     
     def process_mass_spec(self, autoNoise=True):
-        self.cal_noise_treshould(auto=autoNoise)
+        self.cal_noise_threshold(auto=autoNoise)
         self.find_peaks()
         self.reset_indexes()
         
@@ -629,7 +638,7 @@ class MassSpecfromFreq(MassSpecBase):
     - A iterative mass spectrum class when data entry is on frequency(Hz) domain 
     - Transform to m/z based on the settings stored at d_params
     - Stores the profile data and instrument settings
-    - Iteration over a list of MSPeaks classes stored at the _mspeaks atributes
+    - Iteration over a list of MSPeaks classes stored at the _mspeaks attributes
     - _mspeaks is populated under the hood by calling process_mass_spec method
     - iteration is null if _mspeaks is empty
 
@@ -659,8 +668,8 @@ class MassSpecfromFreq(MassSpecBase):
         calculates the m_z based on the setting of d_params
 
     process_mass_spec()
-        find or set the noise thresould base on the setting encapsulated at settings.input.ProcessingSetting.MassSpectrumSetting
-        - run the peak peaking algorithm and use the method addMSPeaks() to populate _mspeaks attribuite
+        find or set the noise threshold base on the setting encapsulated at settings.input.ProcessingSetting.MassSpectrumSetting
+        - run the peak peaking algorithm and use the method addMSPeaks() to populate _mspeaks attribute
     
     see also: MassSpecBase(), MassSpecfromFreq(), MassSpecProfile()
     '''
@@ -705,14 +714,14 @@ class MassSpecCentroid(MassSpecBase):
     - A iterative mass spectrum class when data entry is centroid mode
     - Stores the centroid data and instrument settings
     - Simulate profile data based on Gaussian or Lorentzian peak shape
-    - Iteration over a list of MSPeaks classes stored at the _mspeaks atributes
+    - Iteration over a list of MSPeaks classes stored at the _mspeaks attributes
     - _mspeaks is populated under the hood by calling process_mass_spec method
     - iteration is null if _mspeaks is empty
 
     Parameters
     ----------
     dataframe : pandas Dataframe(Series(floats))
-        containg columns [m/z, Abundance, Resolving Power, S/N] 
+        contains columns [m/z, Abundance, Resolving Power, S/N] 
     d_params : dict{'str': float, int or str}
         
     Attributes

@@ -94,4 +94,4 @@ class ClusteringFilter():
             if clusters[i] == -1:
                 indexes.append(list_indexes_mass_spec[i])
         
-        mass_spectrum.remove_assigment_by_index(indexes)    
+        mass_spectrum.remove_assignment_by_index(indexes)    

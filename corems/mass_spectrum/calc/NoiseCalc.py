@@ -82,7 +82,7 @@ class NoiseThreshouldCalc(object):
         return intes[indices]
 
 
-    def run_noise_threshould_calc(self, auto):
+    def run_noise_threshold_calc(self, auto):
 
         Y_cut = self.cut_mz_domain_noise(auto)
         

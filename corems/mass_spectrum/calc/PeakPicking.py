@@ -183,8 +183,8 @@ class PeakPicking(object):
 
         if threshold_method == 'auto':
             
-            #print(MassSpectrumSetting.noise_threshold_stds)
-            abundance_threshold = self.baselise_noise + (MassSpectrumSetting.noise_threshold_stds * self.baselise_noise_std)
+            #print(MassSpectrumSetting.noise_threshold_std)
+            abundance_threshold = self.baselise_noise + (MassSpectrumSetting.noise_threshold_std * self.baselise_noise_std)
             factor = 1
 
         elif threshold_method == 'signal_noise':
