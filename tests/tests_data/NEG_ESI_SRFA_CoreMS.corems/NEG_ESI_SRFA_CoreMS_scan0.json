@@ -28,7 +28,7 @@
         "min_noise_mz": 100.0,
         "min_picking_mz": 100.0,
         "noise_threshold_stds": 6,
-        "relative_abundace_threshold": 5,
+        "relative_abundance_threshold": 5,
         "s2n_threshold": 4,
         "threshold_method": "relative_abundance"
     },

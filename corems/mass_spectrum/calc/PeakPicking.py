@@ -194,7 +194,7 @@ class PeakPicking(object):
 
         elif threshold_method == "relative_abundance":
 
-            abundance_threshold = MassSpectrumSetting.relative_abundace_threshold
+            abundance_threshold = MassSpectrumSetting.relative_abundance_threshold
             factor = intes.max()/100
 
         else:
