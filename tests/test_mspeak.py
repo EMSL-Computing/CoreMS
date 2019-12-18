@@ -41,7 +41,7 @@ def test_mspeak_calculations():
     assert mspeak.knm == 211
 
     print(simulate_peak(mspeak))
-    assert simulate_peak(mspeak) == (211.9, 212.123, 0.0, 0.0)
+    assert simulate_peak(mspeak) == (211.9, 211.9, 0.0, 0.0)
 
     mspeak.set_theoretical_resolving_power(50, 3)
 

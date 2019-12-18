@@ -12,7 +12,7 @@ class MassSpectrumSetting:
     
     threshold_method = "auto"
     implemented_noise_threshold_methods = ("auto", "signal_noise", "relative_abundance")
-    noise_threshold_std = 2
+    noise_threshold_std = 6
     s2n_threshold = 4
     relative_abundance_threshold = 6 # from 1-100
     
