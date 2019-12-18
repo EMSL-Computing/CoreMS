@@ -59,25 +59,28 @@ class MSPeakCalculation(object):
             raise LookupError(
                 'resolving power is not defined, try to use set_max_resolving_power()')
 
-    def gaussian_pdf(self, datapoint=10000):
+    def gaussian_pdf(self, datapoints=10000, delta_rp = 0, mz_overlay=0.1):
 
         # check if MSPeak contains the resolving power info
         if self.resolving_power:
             # full width half maximum distance
-            self.fwhm = self.mz_exp / self.resolving_power
+            self.fwhm = (self.mz_exp / (self.resolving_power + delta_rp))#self.resolving_power)
 
             # stardart deviation
             s = self.fwhm / (2 * sqrt(2 * log(2)))
 
             # half width baseline distance
-            hw_base_distance = (3.2 * s)
+            #hw_base_distance = (3.2 * s)
 
-            match_loz_factor = 3
+            #match_loz_factor = 3
 
-            n_d = hw_base_distance * match_loz_factor
+            #n_d = hw_base_distance * match_loz_factor
 
-            mz_domain = linspace(
-                self.mz_exp - n_d, self.mz_exp + n_d, datapoint)
+            #mz_domain = linspace(
+            #    self.mz_exp - n_d, self.mz_exp + n_d, datapoint)
+
+            mz_domain = linspace(self.nominal_mz_exp - mz_overlay,
+                                 self.nominal_mz_exp + 1 + mz_overlay, datapoints)
 
             # gaussian_pdf = lambda x0, x, s: (1/ math.sqrt(2*math.pi*math.pow(s,2))) * math.exp(-1 * math.pow(x-x0,2) / 2*math.pow(s,2) )
             calc_abundance = norm.pdf(mz_domain, self.mz_exp, s)
