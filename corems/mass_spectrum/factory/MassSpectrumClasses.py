@@ -508,13 +508,14 @@ class MassSpecBase(MassSpecCalc):
         
         for nominal_mass in all_nominal_masses:
 
-            min_mz = nominal_mass - mz_overlay
-        
-            max_mz = nominal_mass + 1 + mz_overlay
+            if nominal_mass not in dict_nominal_masses_count:
+                min_mz = nominal_mass - mz_overlay
             
-            indexes = indexes = where((self.mz_exp_profile > min_mz) & (self.mz_exp_profile < max_mz)) 
-            
-            dict_nominal_masses_count[nominal_mass] = indexes[0].size
+                max_mz = nominal_mass + 1 + mz_overlay
+                
+                indexes = indexes = where((self.mz_exp_profile > min_mz) & (self.mz_exp_profile < max_mz)) 
+                
+                dict_nominal_masses_count[nominal_mass] = indexes[0].size
 
         return dict_nominal_masses_count
 
@@ -532,8 +533,8 @@ class MassSpecBase(MassSpecCalc):
         all_nominal_masses = list(set([i.nominal_mz_exp for i in self.mspeaks]))
         
         for nominal_mass in all_nominal_masses:
-            
-            dict_nominal_masses_count[nominal_mass] = len(self.get_nominal_mass_indexes(nominal_mass))
+            if nominal_mass not in dict_nominal_masses_count:
+                dict_nominal_masses_count[nominal_mass] = len(self.get_nominal_mass_indexes(nominal_mass))
 
         return dict_nominal_masses_count
 
@@ -552,7 +553,7 @@ class MassSpecBase(MassSpecCalc):
 
         self._dict_nominal_masses_indexes = dict_nominal_masses_indexes
 
-    def plot_mz_domain_profile_and_noise_threshold(self): #pragma: no cover
+    def plot_mz_domain_profile_and_noise_threshold(self, ax=None): #pragma: no cover
         import matplotlib.pyplot as plt
 
         if self.baselise_noise and self.baselise_noise:
@@ -561,24 +562,31 @@ class MassSpecBase(MassSpecCalc):
 
             std = MassSpectrumSetting.noise_threshold_std
             threshold = self.baselise_noise + (std * self.baselise_noise_std)
-            plt.plot(self.mz_exp_profile, self.abundance_profile, color="green")
-            plt.plot(x, (threshold, threshold), color="yellow")
-            plt.plot(x, y, color="red")
-            plt.xlabel("m/z")
-            plt.ylabel("abundance")
-            plt.show()
+
+            if ax is None:
+                ax = plt.gca()
+            ax.plot(self.mz_exp_profile, self.abundance_profile, color="green")
+            ax.plot(x, (threshold, threshold), color="yellow")
+            ax.plot(x, y, color="red")
+            ax.set(xlabel='m/z', ylabel='abundance')
+            #plt.show()
 
         else:
 
             raise Exception("Calculate noise threshold first")
+        
+        return ax
 
-    def plot_mz_domain_profile(self): #pragma: no cover
+    def plot_mz_domain_profile(self, ax=None): #pragma: no cover
+        
         import matplotlib.pyplot as plt
 
-        plt.plot(self.mz_exp_profile, self.abundance_profile, color="green")
-        plt.xlabel("m/z")
-        plt.ylabel("abundance")
-        plt.show()
+        if ax is None:
+            ax = plt.gca()
+        ax.plot(self.mz_exp_profile, self.abundance_profile, color="green")
+        ax.set(xlabel='m/z', ylabel='abundance')
+        
+        return ax
 
 
 class MassSpecProfile(MassSpecBase):

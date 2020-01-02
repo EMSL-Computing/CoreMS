@@ -8,7 +8,7 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 27, 2019"
 
 
-class NoiseThreshouldCalc(object):
+class NoiseThresholdCalc(object):
 
     def cut_mz_domain_noise(self, auto):
         

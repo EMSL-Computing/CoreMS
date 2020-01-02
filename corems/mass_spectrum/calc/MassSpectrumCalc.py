@@ -2,13 +2,14 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 27, 2019"
 
 from numpy import power, multiply, sqrt, multiply, array
-from corems.mass_spectrum.calc.NoiseCalc import NoiseThreshouldCalc
+from corems.mass_spectrum.calc.NoiseCalc import NoiseThresholdCalc
+
 from corems.mass_spectrum.calc.PeakPicking import PeakPicking
 
-class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
+class MassSpecCalc(PeakPicking, NoiseThresholdCalc):
     '''
-    Class including numerical calcuations related to mass spectrum class
-    Inherted PeakPicking and NoiseThreshouldCalc ensuring its methods are 
+    Class including numerical calculations related to mass spectrum class
+    Inherited PeakPicking and NoiseThresholdCalc ensuring its methods are 
     available to the instantiated mass spectrum class object
     '''
 
@@ -34,7 +35,7 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
         
         Attributes
         ----------
-        All Atributes are derivative from the MassSpecBase Class
+        All Attributes are derivative from the MassSpecBase Class
         by calling self
         
         Returns 
@@ -65,11 +66,11 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
     def _f_to_mz_bruker(self):
         ''' 
         Burker equations for converting frequency (Hz) to m/z, 
-        nOmega aquistion is not yet implemented here
+        nOmega acquisition is not yet implemented here
         
         Attributes
         ----------
-        All Atributes are derivative from the MassSpecBase Class
+        All Attributes are derivative from the MassSpecBase Class
         
         Returns 
         ----------
@@ -106,7 +107,7 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
         
         Attributes
         ----------
-        All Atributes are derivative from the MassSpecBase Class
+        All Attributes are derivative from the MassSpecBase Class
         
         Returns 
         ----------
@@ -128,7 +129,7 @@ class MassSpecCalc(PeakPicking, NoiseThreshouldCalc):
         
         Attributes
         ----------
-        All Atributes are derivative from the MassSpecBase Class
+        All Attributes are derivative from the MassSpecBase Class
         
         Returns 
         ----------
