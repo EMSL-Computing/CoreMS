@@ -9,7 +9,7 @@ class KendrickGrouping:
         
         for i, mspeak in enumerate(self.mspeaks):
             
-            if mspeak.mz_exp % 2 == 0:
+            if mspeak.nominal_mz_exp % 2 == 0:
                 even_idx.append(i)
             else:
                 odd_idx.append(i)
@@ -36,8 +36,7 @@ class KendrickGrouping:
         
             #return dictionary with the keys sorted by sum of the abundances
         if sort:
-            
-            return sorted(kendrick_group_index.items(), key = lambda it: sum([self.mspeaks[i].abundance for i in it[1]]), reverse=True )
+            return dict(sorted(kendrick_group_index.items(), key = lambda it: sum([self.mspeaks[i].abundance for i in it[1]]), reverse=True ))
         
         else:
             return kendrick_group_index
@@ -65,7 +64,7 @@ class KendrickGrouping:
         
         #return dictionary with the kmd as keys and the correspondents peaks indexes
         even_idx, odd_idx = self.odd_even_index_lists()
-
+        
         even_kendrick_group_index = self.populate_kendrick_index_dict(even_idx, sort=sort)
         
         odd_kendrick_group_index = self.populate_kendrick_index_dict(odd_idx, sort=sort)

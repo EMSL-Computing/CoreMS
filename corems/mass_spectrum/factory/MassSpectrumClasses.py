@@ -11,6 +11,7 @@ from corems.encapsulation.settings.input.ProcessingSetting import MassSpectrumSe
 from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings
 from corems.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
 from corems.ms_peak.factory.MSPeakClasses import ICRMassPeak as MSPeak
+from corems.mass_spectrum.calc.KendrickGroup import KendrickGrouping
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
@@ -21,7 +22,7 @@ def overrides(interface_class):
         return method
     return overrider
 
-class MassSpecBase(MassSpecCalc):
+class MassSpecBase(MassSpecCalc, KendrickGrouping):
     '''
     - A iterative mass spectrum base class, stores the profile data and instrument settings
     - Iteration over a list of MSPeaks classes stored at the _mspeaks attributes

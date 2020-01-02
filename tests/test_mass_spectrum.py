@@ -52,8 +52,8 @@ def test_create_mass_spectrum():
     mass_spectrum_obj._f_to_mz()
     mass_spectrum_obj.number_average_molecular_weight(profile=True)
     mass_spectrum_obj.reset_cal_therms(mass_spectrum_obj.Aterm,mass_spectrum_obj.Bterm,mass_spectrum_obj.Cterm)
+    mass_spectrum_obj.kendrick_groups_indexes()
 
-    
      
 
 if __name__ == "__main__":

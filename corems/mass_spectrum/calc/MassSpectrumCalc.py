@@ -6,7 +6,7 @@ from corems.mass_spectrum.calc.NoiseCalc import NoiseThresholdCalc
 
 from corems.mass_spectrum.calc.PeakPicking import PeakPicking
 
-class MassSpecCalc(PeakPicking, NoiseThresholdCalc):
+class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
     '''
     Class including numerical calculations related to mass spectrum class
     Inherited PeakPicking and NoiseThresholdCalc ensuring its methods are 
