@@ -8,7 +8,7 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 27, 2019"
 
 
-class NoiseThresholdCalc(object):
+class NoiseThresholdCalc:
 
     def cut_mz_domain_noise(self, auto):
         
@@ -51,16 +51,16 @@ class NoiseThresholdCalc(object):
     def get_noise_average(self, ymincentroid):
 
         average_noise = average(ymincentroid)*2
-        s_desviation = std(ymincentroid)*2
+        s_deviation = std(ymincentroid)*2
         #print("Baseline noise level is %.2f, and the standard deviation is: %.2f" % (
-        #    average_noise, s_desviation))
-        return average_noise, s_desviation
+        #    average_noise, s_deviation))
+        return average_noise, s_deviation
 
-    def get_abundance_minima_centroide(self, intes):
+    def get_abundance_minima_centroid(self, intes):
 
         maximum = intes.max()
 
-        thresould_min = (maximum * 5) / 100
+        threshold_min = (maximum * 5) / 100
 
         y = -intes
 
@@ -76,8 +76,8 @@ class NoiseThresholdCalc(object):
 
         indices = where((hstack((dy, 0)) < 0) & (hstack((0, dy)) > 0))[0]
 
-        if indices.size and thresould_min is not None:
-            indices = indices[y[indices] <= thresould_min]
+        if indices.size and threshold_min is not None:
+            indices = indices[y[indices] <= threshold_min]
 
         return intes[indices]
 
@@ -88,7 +88,7 @@ class NoiseThresholdCalc(object):
         
         if auto:
 
-            yminima = self.get_abundance_minima_centroide(Y_cut)
+            yminima = self.get_abundance_minima_centroid(Y_cut)
             
             return self.get_noise_average(yminima)
 

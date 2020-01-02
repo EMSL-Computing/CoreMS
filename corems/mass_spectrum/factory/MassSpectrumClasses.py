@@ -278,7 +278,6 @@ class MassSpecBase(MassSpecCalc):
     @abundance_profile.setter
     def abundance_profile(self, _abundance): return self._abundance
     
-
     @property
     def abundance(self):
         self.check_mspeaks()
@@ -297,7 +296,23 @@ class MassSpecBase(MassSpecCalc):
     def signal_to_noise(self):
         self.check_mspeaks()
         return array([mspeak.signal_to_noise for mspeak in self.mspeaks])
+    
+    @property
+    def nominal_mz(self):
 
+        if self._dict_nominal_masses_indexes:
+
+            return sorted(list(self._dict_nominal_masses_indexes.keys()))
+
+        else:
+            
+            raise ValueError("Nominal indexes not yet set")    
+
+    def get_mz_and_abundance_peaks_tuples(self):
+
+        self.check_mspeaks()
+        return [(mspeak.mz_exp, mspeak.abundance) for mspeak in self.mspeaks]
+    
     @property
     def kmd(self):
         self.check_mspeaks()
@@ -450,10 +465,7 @@ class MassSpecBase(MassSpecCalc):
         indexes_to_remove = [index for index, mspeak in enumerate(self.mspeaks) if  mspeak.resolving_power <= rpe(mspeak.mz_exp,mspeak.ion_charge)]
         self.filter_by_index(indexes_to_remove)
 
-    def get_mz_and_abundance_peaks_tuples(self):
-
-        self.check_mspeaks()
-        return [(mspeak.mz_exp, mspeak.abundance) for mspeak in self.mspeaks]
+    
 
     def find_peaks(self):
         """needs to clear previous results from peak_picking"""
@@ -472,17 +484,6 @@ class MassSpecBase(MassSpecCalc):
 
             mspeak.change_kendrick_base(kendrick_dict_base)
 
-    @property
-    def nominal_mz(self):
-
-        if self._dict_nominal_masses_indexes:
-
-            return sorted(list(self._dict_nominal_masses_indexes.keys()))
-
-        else:
-            
-            raise ValueError("Nominal indexes not yet set")    
-    
     def get_nominal_mz_first_last_indexes(self, nominal_mass):
         
         if self._dict_nominal_masses_indexes:
@@ -500,32 +501,6 @@ class MassSpecBase(MassSpecCalc):
         else:
             raise Exception("run process_mass_spec() function before trying to access the data")
 
-    def datapoints_count_by_nominal_mz(self, mz_overlay=0.1):
-        
-        dict_nominal_masses_count ={}
-        
-        all_nominal_masses = list(set([i.nominal_mz_exp for i in self.mspeaks]))
-        
-        for nominal_mass in all_nominal_masses:
-
-            if nominal_mass not in dict_nominal_masses_count:
-                min_mz = nominal_mass - mz_overlay
-            
-                max_mz = nominal_mass + 1 + mz_overlay
-                
-                indexes = indexes = where((self.mz_exp_profile > min_mz) & (self.mz_exp_profile < max_mz)) 
-                
-                dict_nominal_masses_count[nominal_mass] = indexes[0].size
-
-        return dict_nominal_masses_count
-
-
-    def get_nominal_mass_indexes(self, nominal_mass, overlay=0.1):
-        min_mz_to_look = nominal_mass - overlay
-        max_mz_to_look = nominal_mass+1+overlay
-        indexes = [i for i in range(len(self.mspeaks)) if min_mz_to_look <= self.mspeaks[i].mz_exp <= max_mz_to_look]
-        return indexes
-    
     def get_masses_count_by_nominal_mass(self):
         
         dict_nominal_masses_count ={}
@@ -538,6 +513,32 @@ class MassSpecBase(MassSpecCalc):
 
         return dict_nominal_masses_count
 
+    def datapoints_count_by_nominal_mz(self, mz_overlay=0.1):
+        
+        dict_nominal_masses_count ={}
+        
+        all_nominal_masses = list(set([i.nominal_mz_exp for i in self.mspeaks]))
+        
+        for nominal_mass in all_nominal_masses:
+
+            if nominal_mass not in dict_nominal_masses_count:
+                
+                min_mz = nominal_mass - mz_overlay
+            
+                max_mz = nominal_mass + 1 + mz_overlay
+                
+                indexes = indexes = where((self.mz_exp_profile > min_mz) & (self.mz_exp_profile < max_mz)) 
+                
+                dict_nominal_masses_count[nominal_mass] = indexes[0].size
+
+        return dict_nominal_masses_count
+
+    def get_nominal_mass_indexes(self, nominal_mass, overlay=0.1):
+        min_mz_to_look = nominal_mass - overlay
+        max_mz_to_look = nominal_mass+1+overlay
+        indexes = [i for i in range(len(self.mspeaks)) if min_mz_to_look <= self.mspeaks[i].mz_exp <= max_mz_to_look]
+        return indexes
+    
     def _set_nominal_masses_start_final_indexes(self):
         '''return ms peaks objs indexes(start and end) on the mass spectrum for all nominal masses'''
         dict_nominal_masses_indexes ={}

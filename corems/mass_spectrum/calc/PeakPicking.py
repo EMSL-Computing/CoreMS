@@ -9,7 +9,7 @@ from numpy import hstack, inf, isnan, poly1d, polyfit, where
 from corems.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting
 from corems.encapsulation.constant import Labels
 
-class PeakPicking(object):
+class PeakPicking:
 
     def cut_mz_domain_peak_picking(self):
 
