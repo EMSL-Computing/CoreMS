@@ -1,7 +1,7 @@
 
 class KendrickGrouping:
 
-    def odd_even_index_lists(self):
+    def mz_odd_even_index_lists(self):
         # get odd and even indexes lists
         
         even_idx = [] 
@@ -53,17 +53,21 @@ class KendrickGrouping:
         
         if sum_even >= sum_odd:
             
-            return even_kendrick_group_index, odd_kendrick_group_index
+            even_kendrick_group_index.update(odd_kendrick_group_index)
+            
+            return even_kendrick_group_index
         
         else: 
             
-            return odd_kendrick_group_index, even_kendrick_group_index    
+            odd_kendrick_group_index.update(even_kendrick_group_index)
+            
+            return odd_kendrick_group_index  
         
     
     def kendrick_groups_indexes(self, sort=True):
         
         #return dictionary with the kmd as keys and the correspondents peaks indexes
-        even_idx, odd_idx = self.odd_even_index_lists()
+        even_idx, odd_idx = self.mz_odd_even_index_lists()
         
         even_kendrick_group_index = self.populate_kendrick_index_dict(even_idx, sort=sort)
         
