@@ -19,10 +19,10 @@ class KendrickGrouping:
     def populate_kendrick_index_dict(self, list_indexes, sort=True):
 
         kendrick_group_index = {}
-        #set mass spectrum to iterate only over odd numbers
-        self.set_indexes(list_indexes)  
         
-        for i, mspeak in enumerate(self.mspeaks):
+        for i in list_indexes:
+            
+            mspeak = self.mspeaks[i]
             
             if mspeak.kmd not in kendrick_group_index:
                 
@@ -32,8 +32,6 @@ class KendrickGrouping:
 
                 kendrick_group_index[mspeak.kmd].append(i)
 
-        self.reset_indexes()
-        
             #return dictionary with the keys sorted by sum of the abundances
         if sort:
             return dict(sorted(kendrick_group_index.items(), key = lambda it: sum([self.mspeaks[i].abundance for i in it[1]]), reverse=True ))

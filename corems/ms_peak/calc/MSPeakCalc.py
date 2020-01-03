@@ -16,15 +16,16 @@ class MSPeakCalculation(object):
     def _calc_kdm(self, dict_base):
         '''dict_base = {"C": 1, "H": 2}
         '''
+        
         mass = 0
         for atom in dict_base.keys():
-            mass = mass + Atoms.atomic_masses.get(atom) * dict_base.get(atom)
+            mass += Atoms.atomic_masses.get(atom) * dict_base.get(atom)
 
         kendrick_mass = (int(mass) / mass) * self.mz_exp
 
         nominal_km = int(kendrick_mass)
 
-        kmd = (nominal_km - kendrick_mass) * 100
+        kmd = (nominal_km - kendrick_mass) *1000
 
         # kmd = (nominal_km - km) * 1
         kdm = round(kmd, 0)
