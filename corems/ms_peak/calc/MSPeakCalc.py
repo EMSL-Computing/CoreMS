@@ -25,7 +25,7 @@ class MSPeakCalculation(object):
 
         nominal_km = int(kendrick_mass)
 
-        kmd = (nominal_km - kendrick_mass) *1000
+        kmd = (nominal_km - kendrick_mass) *100
 
         # kmd = (nominal_km - km) * 1
         kdm = round(kmd, 0)
