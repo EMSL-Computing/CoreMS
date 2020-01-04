@@ -25,12 +25,12 @@ class MSPeakCalculation(object):
 
         nominal_km = int(kendrick_mass)
 
-        kmd = (nominal_km - kendrick_mass) *100
+        kmd = (nominal_km - kendrick_mass) 
 
         # kmd = (nominal_km - km) * 1
-        kdm = round(kmd, 0)
+        #kdm = round(kmd,0)
 
-        return kdm, kendrick_mass, nominal_km
+        return kmd, kendrick_mass, nominal_km
 
     def voigt_pdf(self, datapoints=10000, delta_rp = 0, mz_overlay=0.1):
         

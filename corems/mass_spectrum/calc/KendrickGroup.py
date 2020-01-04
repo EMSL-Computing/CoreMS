@@ -16,21 +16,94 @@ class KendrickGrouping:
         
         return even_idx, odd_idx 
 
-    def populate_kendrick_index_dict(self, list_indexes, sort=True):
+    def calc_error(self, current, test):
+        
+        return ((current-test)/current)*1e6
+  
+    
+    def populate_kendrick_index_dict_error(self, list_indexes, sort=True):
+        
+        def error():
 
+            return  abs(current_kmd_reference - next_mspeak.kmd)
+
+        already_found = []
+        
+        all_results = []
+        
+        for i in list_indexes:
+            
+            result_indexes = []
+            
+            mspeak = self.mspeaks[i]    
+
+            current_kmd_reference = mspeak.kmd
+            for j in list_indexes :
+                
+                if j not in already_found and j != i:
+                    
+                    next_mspeak = self.mspeaks[j]
+
+                    if  error() <= 0.001:
+                        
+                        result_indexes.append(j)    
+                        already_found.append(j)
+
+                        current_kmd_reference = next_mspeak.kmd
+            
+            if result_indexes and len(result_indexes) > 3:
+                
+                already_found.append(i)
+                
+                result_indexes.insert(0,i)
+                
+                all_results.append(result_indexes)        
+            else:
+                
+                for w in result_indexes:
+
+                    already_found.remove(w)        
+
+        kendrick_group_index = { i : indexes_list for i, indexes_list in enumerate(all_results) }
+
+       
+            #return dictionary with the keys sorted by sum of the abundances
+        if sort:
+            print("YES")
+            return dict(sorted(kendrick_group_index.items(), key = lambda it: sum([self.mspeaks[i].abundance for i in it[1]]), reverse=True ))
+        
+        else:
+            
+            return kendrick_group_index
+        
+    def populate_kendrick_index_dict_rounding(self, list_indexes, sort=True):
+
+        #self.test(list_indexes)
+        #breakpoint()
         kendrick_group_index = {}
         
         for i in list_indexes:
             
             mspeak = self.mspeaks[i]
             
-            if mspeak.kmd not in kendrick_group_index:
+            group = round(mspeak.kmd * 100)
+            
+            if group not in kendrick_group_index:
                 
-                kendrick_group_index[mspeak.kmd] = [i]
+                kendrick_group_index[group] = [i]
 
             else: 
+                
+                last_index = kendrick_group_index[group][-1]
+                
+                print(abs(mspeak.kmd - self.mspeaks[last_index].kmd ))
+                
+                if abs(mspeak.kmd - self.mspeaks[last_index].kmd ) < 0.001:
 
-                kendrick_group_index[mspeak.kmd].append(i)
+                    kendrick_group_index[group].append(i)
+                
+               
+
 
             #return dictionary with the keys sorted by sum of the abundances
         if sort:
@@ -43,7 +116,7 @@ class KendrickGrouping:
     
         all_even_indexes = [i for v in even_kendrick_group_index.values() for i in v]
         
-        all_odd_indexes = [i for v in even_kendrick_group_index.values() for i in v]
+        all_odd_indexes = [i for v in odd_kendrick_group_index.values() for i in v]
 
         sum_even = sum([self.mspeaks[i].abundance for i in all_even_indexes])
         
@@ -67,8 +140,8 @@ class KendrickGrouping:
         #return dictionary with the kmd as keys and the correspondents peaks indexes
         even_idx, odd_idx = self.mz_odd_even_index_lists()
         
-        even_kendrick_group_index = self.populate_kendrick_index_dict(even_idx, sort=sort)
+        even_kendrick_group_index = self.populate_kendrick_index_dict_error(even_idx, sort=sort)
         
-        odd_kendrick_group_index = self.populate_kendrick_index_dict(odd_idx, sort=sort)
+        odd_kendrick_group_index = self.populate_kendrick_index_dict_error(odd_idx, sort=sort)
         
         return self.sort_abundance_kendrick_dict(even_kendrick_group_index, odd_kendrick_group_index)
