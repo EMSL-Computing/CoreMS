@@ -88,6 +88,7 @@ class ImportLCMSThermoMSFileReader(Thread):
         # scan_filter.ScanMode 0 = FULL
         scan_filter = self.iRawDataPlus.GetFilterForScanNumber(scan_number)
 
+       
         return scan_filter.ScanMode == 0
 
     def get_polarity_mode(self, scan_number):
@@ -107,36 +108,53 @@ class ImportLCMSThermoMSFileReader(Thread):
 
             raise Exception("Polarity Mode Unknown, please set it manually")
 
-    def get_data(self, scan, d_parameter):
+    def get_data(self, scan, d_parameter, scan_type):
 
         
-        centroidStream = self.iRawDataPlus.GetCentroidStream(scan, False)
-        noise= list(centroidStream.Noises)
-        baselines = list(centroidStream.Baselines)
-        rp = list(centroidStream.Resolutions)
-        magnitude = list(centroidStream.Intensities)
-        mz = list(centroidStream.Masses)
-
+        if scan_type == "Centroid":
+            
+            centroidStream = self.iRawDataPlus.GetCentroidStream(scan, False)
+            
+            noise= list(centroidStream.Noises)
+            
+            baselines = list(centroidStream.Baselines)
+            
+            rp = list(centroidStream.Resolutions)
+            
+            magnitude = list(centroidStream.Intensities)
+            
+            mz = list(centroidStream.Masses)
         
-        # charge = scans_labels[5]
-        array_noise_std = (numpy.array(noise) - numpy.array(baselines)) / 3
-        l_signal_to_noise = numpy.array(magnitude) / array_noise_std
+            # charge = scans_labels[5]
+            array_noise_std = (numpy.array(noise) - numpy.array(baselines)) / 3
+            l_signal_to_noise = numpy.array(magnitude) / array_noise_std
 
-        d_parameter["baselise_noise"] = numpy.average(array_noise_std)
+            d_parameter["baselise_noise"] = numpy.average(array_noise_std)
 
-        d_parameter["baselise_noise_std"] = numpy.average(array_noise_std)
+            d_parameter["baselise_noise_std"] = numpy.average(array_noise_std)
 
-        data_dict = {
-            "m/z": mz,
-            "Abundance": magnitude,
-            "Resolving Power": rp,
-            "S/N": l_signal_to_noise,
-        }
+            data_dict = {
+                "m/z": mz,
+                "Abundance": magnitude,
+                "Resolving Power": rp,
+                "S/N": l_signal_to_noise,
+            }
+        
+        else: 
 
-        if centroidStream.CoefficientsCount == 4:
+            scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan)
+            
+            profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(scan, scanStatistics)
 
-            d_parameter["Aterm"] = centroidStream.Coefficients[2]
-            d_parameter["Bterm"] = centroidStream.Coefficients[3]
+            magnitude = list(profileStream.Intensities)
+            
+            mz = list(profileStream.Positions)
+
+            data_dict = {
+                "m/z": mz,
+                "Abundance": magnitude,
+            }
+
 
         return data_dict
 
@@ -180,11 +198,11 @@ class ImportLCMSThermoMSFileReader(Thread):
 
                 list_scans.append(scan_number)
 
-                data_dict = self.get_data(scan_number, d_params)
-
-                data = DataFrame(data_dict)
-
                 if self.check_full_scan(scan_number):
+
+                        data_dict = self.get_data(scan_number, d_params, "Profile")
+
+                        data = DataFrame(data_dict)
                         
                         print("loading profile scan number: ", scan_number)
                         
@@ -194,6 +212,10 @@ class ImportLCMSThermoMSFileReader(Thread):
                 
                 else:
 
+                        data_dict = self.get_data(scan_number, d_params, "Centroid")
+
+                        data = DataFrame(data_dict)
+                        
                         print("loading centroid scan number: ", scan_number)
                         
                         mass_spec = MassSpecCentroid(data, d_params, auto_process=auto_process)
