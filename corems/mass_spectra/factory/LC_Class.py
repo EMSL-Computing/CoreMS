@@ -1,6 +1,8 @@
 """
 Created on Jun 12, 2019
 """
+
+from pathlib import Path
 from corems.mass_spectra.calc.LC_Calc import LC_Calculations
 
 __author__ = "Yuri E. Corilo"
@@ -15,9 +17,11 @@ class LCMSBase(LC_Calculations):
         
         """
         Constructor
-        file_location: pathlib.Path() 
+        file_location: text or pathlib.Path() 
             Path object from pathlib containing the file location
         """
+        
+        file_location = Path(file_location)
         
         if not file_location.exists():
         

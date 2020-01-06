@@ -8,8 +8,8 @@ from corems.encapsulation.constant import Labels
 
 import clr
 clr.AddReference("ThermoFisher.CommonCore.RawFileReader")
-
 from ThermoFisher.CommonCore.RawFileReader import RawFileReaderAdapter
+
 from pandas import DataFrame
 from threading import Thread
 import multiprocessing
@@ -112,11 +112,12 @@ class ImportLCMSThermoMSFileReader(Thread):
         
         centroidStream = self.iRawDataPlus.GetCentroidStream(scan, False)
         noise= list(centroidStream.Noises)
-        baselines = centroidStream.Baselines
+        baselines = list(centroidStream.Baselines)
         rp = list(centroidStream.Resolutions)
         magnitude = list(centroidStream.Intensities)
         mz = list(centroidStream.Masses)
 
+        
         # charge = scans_labels[5]
         array_noise_std = (numpy.array(noise) - numpy.array(baselines)) / 3
         l_signal_to_noise = numpy.array(magnitude) / array_noise_std
@@ -149,7 +150,7 @@ class ImportLCMSThermoMSFileReader(Thread):
 
     def _import_mass_spectra(self, d_params, auto_process=True):
         
-        if self.check_load_success():
+            #if self.check_load_success():
 
             """get number of scans"""
 
@@ -163,27 +164,37 @@ class ImportLCMSThermoMSFileReader(Thread):
 
                 "only import FULL scans it ignores all others"
 
+                scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan_number)
+
+                d_params["label"] = Labels.thermo_profile
+
+                d_params["polarity"] = self.get_polarity_mode(scan_number)
+
+                d_params["rt"]  = self.iRawDataPlus.RetentionTimeFromScanNumber(scan_number)
+
+                d_params["scan_number"] = scan_number
+
+                list_RetentionTimeSeconds.append(d_params.get("rt"))
+
+                list_Tics.append(scanStatistics.TIC)
+
+                list_scans.append(scan_number)
+
+                data_dict = self.get_data(scan_number, d_params)
+
+                data = DataFrame(data_dict)
+
                 if self.check_full_scan(scan_number):
+                        
+                        print("loading profile scan number: ", scan_number)
+                        
+                        mass_spec = MassSpecProfile(data, d_params, auto_process=auto_process)
+                        
+                        self.LCMS.add_mass_spectrum_for_scan(mass_spec)
+                
+                else:
 
-                        scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan_number)
-
-                        d_params["label"] = Labels.thermo_centroid
-
-                        d_params["polarity"] = self.get_polarity_mode(scan_number)
-
-                        d_params["rt"]  = self.iRawDataPlus.RetentionTimeFromScanNumber(scan_number)
-
-                        d_params["scan_number"] = scan_number
-
-                        list_RetentionTimeSeconds.append(d_params.get("rt"))
-
-                        list_Tics.append(scanStatistics.TIC)
-
-                        list_scans.append(scan_number)
-
-                        data_dict = self.get_data(scan_number, d_params)
-
-                        data = DataFrame(data_dict)
+                        print("loading centroid scan number: ", scan_number)
                         
                         mass_spec = MassSpecCentroid(data, d_params, auto_process=auto_process)
                         
@@ -205,4 +216,10 @@ class ImportLCMSThermoMSFileReader(Thread):
         if self.LCMS.get_mass_spec_by_scan_number(self._initial_scan_number):
             return self.LCMS
         else:
-            raise Exception("returning a empty LCMS class")
+            self.run()
+            
+            if self.LCMS.get_mass_spec_by_scan_number(self._initial_scan_number):
+                
+                return self.LCMS
+            else:
+                raise Exception("returning a empty LCMS class")
