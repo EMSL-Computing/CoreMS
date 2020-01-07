@@ -5,8 +5,8 @@
 - reproducible pipeline
 - logical mass spectrometric data structure
 - self-containing data and metadata storage
-- modern molecular formulae assigment algorithms
-- dinamic molecular search space database search and generator
+- modern molecular formulae assignment algorithms
+- dynamic molecular search space database search and generator
 
 ## Current Version
 
@@ -31,8 +31,8 @@
 - Pandas data frame (can be saved using pickle, h5, etc)
 - Text Files (.csv, tab separated .txt, etc)
 - Microsoft Excel (xlsx)
-- Automatic JSON for metadata storage and reusage
-- Self-containing Hierarchical Data Format (.hdf5) inclusing raw data and ime-series datapoint for processed datasets with all associated metadata stored as json attributes
+- Automatic JSON for metadata storage and reuse
+- Self-containing Hierarchical Data Format (.hdf5) including raw data and ime-series data-point for processed data-sets with all associated metadata stored as json attributes
 
 ### Data structure types
 
@@ -62,7 +62,7 @@
 - Ledford equation [ref]
 - Linear equation
 - Quadratic equation
-- Automatic search most abundant **Ox** homologue serie
+- Automatic search most abundant **Ox** homologue series
 - Step fit ('walking calibration") based on the ledford equation [ref]
 
 ### Molecular formulae search and assignment
@@ -151,12 +151,11 @@ for mspeak in mass_spectrum_obj.sort_by_abundance():
         #get mz and peak height
         print(mspeak.mz_exp,mspeak.abundance)
 
-#create export class
-exportMS = MassSpecExport('neg_esi_srfa_1ppm_test',  mass_spectrum_obj.filter_by_s2n(4))
-#get pandas dataframe
-df_obj = exportMS.get_pandas_df()
-#set file output type
-exportMS.output_type = 'hdf5' #csv, txt, #pandas
-#save the file
-exportMS.save()
+
+#exporting data
+mass_spectrum_obj.to_csv("filename")
+
+mass_spectrum_obj.to_hdf5("filename")
+
+mass_spectrum_obj.to_pandas("filename")
 ```

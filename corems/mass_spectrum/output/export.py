@@ -47,7 +47,7 @@ class MassSpecExport(Thread):
                         'm/z',
                         'Calibrated m/z',
                         'Calculated m/z',
-                        'Abundance',
+                        'Peak Height',
                         'Resolving Power',
                         'S/N',
                         'Ion Charge',
@@ -309,7 +309,7 @@ class MassSpecExport(Thread):
             dict_result = {'Index': index,
                            'm/z':  ms_peak._mz_exp,
                            'Calibrated m/z': ms_peak.mz_exp,
-                           'Abundance': ms_peak.abundance,
+                           'Peak Height': ms_peak.abundance,
                            'Resolving Power': ms_peak.resolving_power,
                            'S/N':  ms_peak.signal_to_noise,
                            'Ion Charge': ms_peak.ion_charge,
@@ -324,7 +324,7 @@ class MassSpecExport(Thread):
                            'm/z':  ms_peak._mz_exp,
                            'Calibrated m/z': ms_peak.mz_exp,
                            'Calculated m/z': m_formula.mz_theor,
-                           'Abundance': ms_peak.abundance,
+                           'Peak Height': ms_peak.abundance,
                            'Resolving Power': ms_peak.resolving_power,
                            'S/N':  ms_peak.signal_to_noise,
                            'Ion Charge': ms_peak.ion_charge,
@@ -343,7 +343,7 @@ class MassSpecExport(Thread):
 
             dict_data_list.append(dict_result)
 
-        for index, ms_peak in enumerate(mass_spectrum.sort_by_mz()):
+        for index, ms_peak in enumerate(mass_spectrum):
 
             # check if there is a molecular formula candidate for the msPeak
             if ms_peak:
@@ -362,13 +362,13 @@ class MassSpecExport(Thread):
                     add_no_match_dict_data()
 
         if include_isotopolgues and not isotopologue_inline:
-            for index, ms_peak in enumerate(mass_spectrum.sort_by_mz()):
+            for index, ms_peak in enumerate(mass_spectrum):
                 for m_formula in ms_peak:
                     if m_formula.is_isotopologue:
                         add_match_dict_data()
 
         if include_no_match and not no_match_inline:
-            for index, ms_peak in enumerate(mass_spectrum.sort_by_mz()):
+            for index, ms_peak in enumerate(mass_spectrum):
                 if not ms_peak:
                     add_no_match_dict_data()
         

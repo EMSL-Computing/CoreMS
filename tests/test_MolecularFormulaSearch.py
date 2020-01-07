@@ -121,11 +121,11 @@ def test_priorityAssignment():
     
     
     MolecularSearchSettings.error_method = 'None'
-    MolecularSearchSettings.min_mz_error = -5
-    MolecularSearchSettings.max_mz_error = 5
+    MolecularSearchSettings.min_mz_error = -3
+    MolecularSearchSettings.max_mz_error = 3
     MolecularSearchSettings.mz_error_range = 1
     MolecularSearchSettings.isProtonated = True 
-    MolecularSearchSettings.isRadical= True 
+    MolecularSearchSettings.isRadical= False 
     MolecularSearchSettings.isAdduct= False 
 
     mass_spec_obj = create_mass_spectrum()

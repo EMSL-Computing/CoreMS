@@ -570,8 +570,17 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             ax.plot(self.mz_exp_profile, self.abundance_profile, color="green")
             ax.plot(x, (threshold, threshold), color="yellow")
             ax.plot(x, y, color="red")
-            ax.set(xlabel='m/z', ylabel='abundance')
-            #plt.show()
+
+            ax.set_xlabel("$\t{m/z}$", fontsize=12)
+            ax.set_ylabel('Abundance', fontsize=12)
+            ax.tick_params(axis='both', which='major', labelsize=12)
+
+            ax.axes.spines['top'].set_visible(False)
+            ax.axes.spines['right'].set_visible(False)
+
+            ax.get_yaxis().set_visible(False)
+            ax.spines['left'].set_visible(False)
+            
 
         else:
 
@@ -589,6 +598,32 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         ax.set(xlabel='m/z', ylabel='abundance')
         
         return ax
+
+    def to_excel(self, out_file_path):
+        
+        from corems.mass_spectrum.output.export import MassSpecExport
+        exportMS= MassSpecExport(out_file_path, self)
+        exportMS.to_excel()
+
+
+    def to_hdf(self, out_file_path):
+        from corems.mass_spectrum.output.export import MassSpecExport
+        exportMS= MassSpecExport(out_file_path, self)
+        exportMS.to_hdf()
+
+    def to_csv(self, out_file_path):
+        from corems.mass_spectrum.output.export import MassSpecExport
+        exportMS= MassSpecExport(out_file_path, self)
+        exportMS.to_csv()
+        
+    def to_pandas(self, out_file_path):
+        #pickle dataframe (pkl extension)
+        from corems.mass_spectrum.output.export import MassSpecExport
+        exportMS= MassSpecExport(out_file_path, self)
+        exportMS.to_pandas()
+        
+
+
 
 
 class MassSpecProfile(MassSpecBase):
