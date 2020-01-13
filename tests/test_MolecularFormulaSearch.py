@@ -121,7 +121,7 @@ def test_priorityAssignment():
     
     
     MolecularSearchSettings.error_method = 'None'
-    MolecularSearchSettings.min_mz_error = -3
+    MolecularSearchSettings.min_mz_error = -5
     MolecularSearchSettings.max_mz_error = 3
     MolecularSearchSettings.mz_error_range = 1
     MolecularSearchSettings.isProtonated = True 
@@ -138,7 +138,7 @@ def test_priorityAssignment():
 
 if __name__ == "__main__":
 
-    #test_priorityAssignment()
+    test_priorityAssignment()
     #test_molecular_formula_search_db()
     #test_run_molecular_formula_search()
-    test_mspeak_search()
+    #test_mspeak_search()
