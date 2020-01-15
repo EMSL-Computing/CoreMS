@@ -34,7 +34,7 @@ def test_create_mass_spectrum():
 
     MassSpectrumSetting.threshold_method = 'relative_abundance'
     mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
-
+      
     mass_spectrum_obj.freq_exp
     mass_spectrum_obj.dir_location
     mass_spectrum_obj.resolving_power
@@ -61,7 +61,7 @@ def test_create_mass_spectrum():
     kendrick_group_index = mass_spectrum_obj.kendrick_groups_indexes()
 
     mass_spectrum_obj.reset_indexes()
-
+    
     return mass_spectrum_obj, kendrick_group_index
     
 
@@ -69,7 +69,10 @@ def test_create_mass_spectrum():
 if __name__ == "__main__":
 
     mass_spectrum_obj, kendrick_group_index = test_create_mass_spectrum()
-
+    mass_spectrum_obj.plot_mz_domain_profile_and_noise_threshold()
+    pyplot.show()
+    
+    '''
     for kmd, most_abun_kendrick_group_index in  kendrick_group_index.items():
     
         print(kmd)
@@ -92,3 +95,4 @@ if __name__ == "__main__":
         
         pyplot.scatter(knm, kmd)
         pyplot.show()
+    '''

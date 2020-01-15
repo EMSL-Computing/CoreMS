@@ -184,10 +184,10 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self.check_mspeaks()
         return array([mspeak.clear_molecular_formulas() for mspeak in self.mspeaks])
 
-    def process_mass_spec(self,  keep_profile=True, auto_noise=True):
+    def process_mass_spec(self, keep_profile=True, auto_noise=True, noise_bayes_est=False):
         
         #from numpy import delete
-        self.cal_noise_threshold(auto=auto_noise)
+        self.cal_noise_threshold(auto=auto_noise, bayes=noise_bayes_est)
         
         self.find_peaks()
         
@@ -198,9 +198,8 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             self._abundance *= 0
             self._mz_exp  *= 0
             self._abundance  *= 0
-        
-
-    def cal_noise_threshold(self, auto=True):
+    
+    def cal_noise_threshold(self, auto=True, bayes=True):
 
         if self.label == Labels.simulated_profile:
             
@@ -559,6 +558,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         import matplotlib.pyplot as plt
 
         if self.baselise_noise and self.baselise_noise:
+            
             x = (self.mz_exp_profile.min(), self.mz_exp_profile.max())
             y = (self.baselise_noise, self.baselise_noise)
 
@@ -658,7 +658,7 @@ class MassSpecProfile(MassSpecBase):
     see also: MassSpecBase(), MassSpecfromFreq(), MassSpecProfile()
     '''
 
-    def __init__(self, dataframe, d_params, auto_process=True, auto_noise=True):
+    def __init__(self, dataframe, d_params, auto_process=True, auto_noise=True, noise_bayes_est=True):
         """
         method docs
         """
@@ -669,13 +669,6 @@ class MassSpecProfile(MassSpecBase):
         if auto_process:
             self.process_mass_spec(auto_noise)
 
-    @overrides(MassSpecBase)
-    
-    def process_mass_spec(self, autoNoise=True):
-        self.cal_noise_threshold(auto=autoNoise)
-        self.find_peaks()
-        self.reset_indexes()
-        
         
 
 class MassSpecfromFreq(MassSpecBase):
