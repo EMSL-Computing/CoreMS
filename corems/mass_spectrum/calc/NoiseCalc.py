@@ -76,7 +76,7 @@ class NoiseThresholdCalc:
             
             print(pm.summary(trace))
 
-            return pm.summary(trace)['mean'].values 
+            return pm.summary(trace)['mean'].values[0] 
             
 
     def get_noise_average(self, ymincentroid, bayes=False):

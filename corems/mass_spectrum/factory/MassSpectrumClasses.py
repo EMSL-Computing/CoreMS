@@ -713,7 +713,7 @@ class MassSpecfromFreq(MassSpecBase):
     '''
 
     def __init__(self, frequency_domain, magnitude, d_params, 
-                auto_process=True, keep_profile=True, auto_noise=True):
+                auto_process=True, keep_profile=True, auto_noise=True, noise_bayes_est=False):
         """
         method docs
         """
@@ -725,7 +725,7 @@ class MassSpecfromFreq(MassSpecBase):
         
         """ use this call to automatically process data as the object is created, Setting need to be changed before initiating the class to be in effect"""
         if auto_process:
-            self.process_mass_spec(keep_profile=keep_profile, auto_noise=auto_noise)
+            self.process_mass_spec(keep_profile=keep_profile, auto_noise=auto_noise, noise_bayes_est=noise_bayes_est)
 
 
     def _set_mz_domain(self):
