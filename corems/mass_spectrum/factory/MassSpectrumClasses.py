@@ -199,7 +199,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             self._mz_exp  *= 0
             self._abundance  *= 0
     
-    def cal_noise_threshold(self, auto=True, bayes=True):
+    def cal_noise_threshold(self, auto=True, bayes=False):
 
         if self.label == Labels.simulated_profile:
             
@@ -207,7 +207,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         
         else:
             
-            self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto)
+            self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto, bayes=bayes)
 
     @property
     def mspeaks_settings(self):  return self._mspeaks_settings

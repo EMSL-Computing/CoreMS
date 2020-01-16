@@ -79,7 +79,7 @@ class NoiseThresholdCalc:
             return pm.summary(trace)['mean'].values 
             
 
-    def get_noise_average(self, ymincentroid, bayes=True):
+    def get_noise_average(self, ymincentroid, bayes=False):
         #assumes noise to be gaussian and estimate noise level by calculating the valley 
         # if bayes is enable it will model the valley distributuion as half-Normal and estimate the std
         
@@ -121,7 +121,7 @@ class NoiseThresholdCalc:
         return intes[indices]
 
 
-    def run_noise_threshold_calc(self, auto, bayes=True):
+    def run_noise_threshold_calc(self, auto, bayes=False):
 
         Y_cut = self.cut_mz_domain_noise(auto)
         
