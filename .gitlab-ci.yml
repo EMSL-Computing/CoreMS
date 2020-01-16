@@ -29,11 +29,8 @@ test-source:
   
   stage: test
   tags:
-    - kubernetes  
     - massspec
-    - rcint
     
-   
   script:
     - apt update 
     - apt install -y build-essential
@@ -54,9 +51,7 @@ run-job:
   
   stage: run
   tags:
-    - kubernetes  
     - massspec
-    - rcint
     
   script:
     - apt update 
@@ -78,9 +73,7 @@ docker-image:
   stage: build
   
   tags:
-    - kubernetes  
     - massspec
-    - rcint
     
   image:
     
