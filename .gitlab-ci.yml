@@ -28,8 +28,12 @@ stages:
 test-source:
   
   stage: test
+  
   tags:
     - massspec
+    - k8s 
+    - rcint
+    
     
   script:
     - apt update 
@@ -52,6 +56,8 @@ run-job:
   stage: run
   tags:
     - massspec
+    - k8s 
+    - rcint
     
   script:
     - apt update 
@@ -74,6 +80,9 @@ docker-image:
   
   tags:
     - massspec
+    - k8s 
+    - rcint
+    
     
   image:
     
