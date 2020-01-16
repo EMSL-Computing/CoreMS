@@ -6,7 +6,6 @@ sys.path.append(".")
 from pathlib import Path
 
 import pytest
-from matplotlib import pyplot
 
 from corems.mass_spectra.input.boosterHDF5 import ReadHDF_BoosterMassSpectra
 from corems.mass_spectra.input.brukerSolarix import ReadBruker_SolarixTransientMassSpectra
@@ -110,7 +109,7 @@ def test_import_transient():
     mass_spectrum_obj = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
 
     mass_spectrum_obj.plot_mz_domain_profile_and_noise_threshold()
-    pyplot.show()
+    #pyplot.show()
 
 
     print(mass_spectrum_obj.mspeaks[0].mz_exp, mass_spectrum_obj.mspeaks[-1].mz_exp)
