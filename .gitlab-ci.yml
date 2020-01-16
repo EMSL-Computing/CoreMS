@@ -28,12 +28,10 @@ stages:
 test-source:
   
   stage: test
-  
   tags:
     - massspec
     - k8s 
     - rcint
-    
     
   script:
     - apt update 
