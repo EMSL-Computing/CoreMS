@@ -34,8 +34,7 @@ test-source:
     - rcint
     
   script:
-    - apt update 
-    - apt install -y build-essential
+    
     - python -V  # Print out python version for debugging
     - pip install -r requirements.txt
     - pip install pytest
@@ -58,8 +57,7 @@ run-job:
     - rcint
     
   script:
-    - apt update 
-    - apt install -y build-essential
+    
     - python -V  # Print out python version for debugging
     - pip install -r requirements.txt
     - pip install wheel

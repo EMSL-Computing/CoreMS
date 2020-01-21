@@ -8,10 +8,10 @@ pyvenv.cfg
 .DS_Store 
 __pycache__/  
 res/  
-corems.egg-info/  
-corems/libs/  
+corems.egg-info/
+corems/libs/
 core_env/  
-.vscode/  
+.vscode/
 .pytest_cache/
 .vs/
 res/data/
@@ -21,3 +21,7 @@ build/
 tests/
 tests/test_data/
 db/
+.git/
+.pytest_cache/
+.ipynb_checkpoints/
+.eggs/
