@@ -36,9 +36,9 @@ test-source:
   script:
     
     - python3.7 -V  # Print out python version for debugging
-    - pip install -r requirements.txt
-    - pip install pytest
-    - pip install pytest-cov
+    - pip3.7 install -r requirements.txt
+    - pip3.7 install pytest
+    - pip3.7 install pytest-cov
     - ls .
     - python3.7 -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
     - pytest
@@ -59,8 +59,8 @@ run-job:
   script:
     
     - python3.7 -V  # Print out python version for debugging
-    - pip install -r requirements.txt
-    - pip install wheel
+    - pip3.7 install -r requirements.txt
+    - pip3.7 install wheel
     - python3.7 setup.py sdist bdist_wheel
     - python3.7 setup.py bdist_wheel
     # an alternative approach is to install and run:
