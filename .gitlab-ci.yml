@@ -1,8 +1,8 @@
 # Official language image. Look for the different tagged releases at:
 # https://hub.docker.com/r/library/python/tags/
-#image: gitlab.pnnl.gov:4567/mass-spectrometry/corems:corems-base
+image: gitlab.pnnl.gov:4567/mass-spectrometry/corems:corems-base
 #gitlab.pnnl.gov:4567/mass-spectrometry/corems:latest 
-image: python:3.7.6-slim
+#image: python:3.7.6-slim
 
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
@@ -35,12 +35,12 @@ test-source:
     
   script:
     
-    - python3.7 -V  # Print out python version for debugging
-    - pip3.7 install -r requirements.txt
-    - pip3.7 install pytest
-    - pip3.7 install pytest-cov
+    - python -V  # Print out python version for debugging
+    - pip install -r requirements.txt
+    - pip install pytest
+    - pip install pytest-cov
     - ls .
-    - python3.7 -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
+    - python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
     - pytest
   
   artifacts:
@@ -58,11 +58,11 @@ run-job:
     
   script:
     
-    - python3.7 -V  # Print out python version for debugging
-    - pip3.7 install -r requirements.txt
-    - pip3.7 install wheel
-    - python3.7 setup.py sdist bdist_wheel
-    - python3.7 setup.py bdist_wheel
+    - python -V  # Print out python version for debugging
+    - pip install -r requirements.txt
+    - pip install wheel
+    - python setup.py sdist bdist_wheel
+    - python setup.py bdist_wheel
     # an alternative approach is to install and run:
     #- pip install dist/*
     # run the command here
