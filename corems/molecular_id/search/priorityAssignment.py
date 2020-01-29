@@ -219,7 +219,7 @@ class OxygenPriorityAssignment(Thread):
 
                 dict_res[ion_type] = sql_handle.get_dict_entries(classes_str, ion_type, nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
 
-        if self.mass_spectrum_obj.molecular_search_settings.isRadical:
+        if self.mass_spectrum_obj.molecular_search_settings.isRadical or self.mass_spectrum_obj.molecular_search_settings.isAdduct:
 
             ion_type = Labels.radical_ion
 
