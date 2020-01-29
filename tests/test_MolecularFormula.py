@@ -7,7 +7,6 @@ sys.path.append(".")
 import pytest
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula     
 from corems.encapsulation.constant import Labels
-
 from copy import deepcopy
 
 def test_molecular_formula():
@@ -21,8 +20,8 @@ def test_molecular_formula():
     print("ion_type", formula_obj.ion_type)
     assert round(formula_obj.mz_theor,2) == round(349.886303060457,2)
     
-    min_abudance, current_abundance = 1,1 
-    #print(min_abudance, current_abundance)
+    min_abundance, current_abundance = 1,1 
+    #print(min_abundance, current_abundance)
     isotopologues = list(formula_obj.isotopologues(0.01, current_abundance))
     
     assert round(isotopologues[0].mz_theor,2) == round(351.883352980637,2)
@@ -44,7 +43,7 @@ def test_molecular_formula():
         
         print("formula:", isotopologue_obj.to_string, 
               "mz_theor:", isotopologue_obj.mz_theor,
-              "prprop_ratio:", isotopologue_obj.prob_ratio)
+              "prob_ratio:", isotopologue_obj.prob_ratio)
       '''
 
 if __name__ == "__main__":

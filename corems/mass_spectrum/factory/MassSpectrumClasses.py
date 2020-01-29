@@ -27,12 +27,12 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     - A iterative mass spectrum base class, stores the profile data and instrument settings
     - Iteration over a list of MSPeaks classes stored at the _mspeaks attributes
     - _mspeaks is populated under the hood by calling process_mass_spec method
-    - iteration is null is _mspeaks is empty
+    - iteration is null if _mspeaks is empty
 
     Parameters
     ----------
     mz_exp : list(float)
-        list containing the imported experiemental masses 
+        list containing the imported experiemental m/z 
         (default is to store profile mode data, but it depends on the input type)
     abundance: list(float)
         list containing the imported abundance 
@@ -534,12 +534,14 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         return dict_nominal_masses_count
 
     def get_nominal_mass_indexes(self, nominal_mass, overlay=0.1):
+        
         min_mz_to_look = nominal_mass - overlay
         max_mz_to_look = nominal_mass+1+overlay
         indexes = [i for i in range(len(self.mspeaks)) if min_mz_to_look <= self.mspeaks[i].mz_exp <= max_mz_to_look]
         return indexes
     
     def _set_nominal_masses_start_final_indexes(self):
+        
         '''return ms peaks objs indexes(start and end) on the mass spectrum for all nominal masses'''
         dict_nominal_masses_indexes ={}
         
@@ -555,8 +557,8 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self._dict_nominal_masses_indexes = dict_nominal_masses_indexes
 
     def plot_mz_domain_profile_and_noise_threshold(self, ax=None): #pragma: no cover
+        
         import matplotlib.pyplot as plt
-
         if self.baselise_noise and self.baselise_noise:
             
             x = (self.mz_exp_profile.min(), self.mz_exp_profile.max())

@@ -20,6 +20,7 @@ def test_settings_search():
     test.db_directory = 'test'
 
 if __name__ == "__main__":
+    
     test_json()
     test_data()
     test_settings_search()

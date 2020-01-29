@@ -56,7 +56,7 @@ class SearchMolecularFormulas:
 
                 if is_adduct:
                     # change molecular formula from radical to adduct since the nitrogen number is the same 
-                    for m_formula in possible_formulas_dict: m_formula.ion_type = Labels.adduct_ion
+                    for m_formula in possible_formulas_dict_nm: m_formula.ion_type = Labels.adduct_ion
 
                 ms_peak_indexes = SearchMolecularFormulaWorker(find_isotopologues=self.find_isotopologues).find_formulas(possible_formulas_dict_nm, min_abundance, mass_spectrum_obj, ms_peak)    
 
@@ -305,14 +305,14 @@ class SearchMolecularFormulas:
 
                 dict_res[ion_type] = sql_handle.get_dict_entries(classes_str, ion_type, nominal_mzs, molecular_search_settings)
 
-        if molecular_search_settings.isRadical:
+        if molecular_search_settings.isRadical or molecular_search_settings.isAdduct:
 
             ion_type = Labels.radical_ion
 
             with molform_db() as sql_handle:
 
                 dict_res[ion_type] = sql_handle.get_dict_entries(classes_str, ion_type, nominal_mzs,  molecular_search_settings)
-        
+       
         return dict_res
                 
             

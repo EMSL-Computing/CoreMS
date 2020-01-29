@@ -18,9 +18,9 @@ def get_mass_spectrum():
 
     #polarity needs to be set or read from the file
 
-    polariy = -1
+    polarity = -1
    
-    return ReadMassList(file_location).get_mass_spectrum(polariy, auto_process=True)
+    return ReadMassList(file_location).get_mass_spectrum(polarity, auto_process=True)
     
 def test_search_imported_ref_files():
 

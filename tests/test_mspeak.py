@@ -5,6 +5,7 @@ from pathlib import Path
 sys.path.append(".")
 
 from corems.ms_peak.factory.MSPeakClasses import ICRMassPeak
+
 __author__ = "Yuri E. Corilo"
 __date__ = "Jul 02, 2019"
 

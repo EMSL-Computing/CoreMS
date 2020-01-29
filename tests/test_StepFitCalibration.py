@@ -17,7 +17,7 @@ from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 
-def creat_mass_spectrum(file_location):
+def create_mass_spectrum(file_location):
     
     '''parse transient data from Bruker into a mass spectrum class object
 
@@ -79,7 +79,7 @@ def test_calibration():
 
     file_location = Path.cwd() /  "ESI_NEG_SRFA.d/"
 
-    mass_spectrum = creat_mass_spectrum(file_location)
+    mass_spectrum = create_mass_spectrum(file_location)
 
     find_formula_thread = FindOxygenPeaks(mass_spectrum)
     find_formula_thread.start()
@@ -123,7 +123,8 @@ def test_calibration():
     #print(len(mass_spectrum))
    
     SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum)
-    ClusteringFilter().remove_assigment_by_mass_error(mass_spectrum)    
+    ClusteringFilter().remove_assigment_by_mass_error(mass_spectrum)  
+
 def test_import_ref_list():
     pass    
 
@@ -148,7 +149,7 @@ if __name__ == "__main__":
 
     #file_location = Path("C:\\Users\\eber373\\OneDrive - PNNL\\Trabalhos\\Mayes\\Mayes_V1D76Alt_ICR_23Sept19_Alder_Infuse_p05_1_01_48741.d")
 
-    mass_spectrum = creat_mass_spectrum(file_location)
+    mass_spectrum = create_mass_spectrum(file_location)
     
     print(mass_spectrum.polarity)
     
