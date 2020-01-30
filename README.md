@@ -2,6 +2,8 @@
 
 **CoreMS** is a comprehensive mass spectrometry framework for software development and data analysis of small molecules analysis.
 
+CoreMS is a Python package is a high-level building block for mass spectrometry data processing and software development that provides fast, flexible, and expressive data structures. The package is designed to make working with mass spectrometry software and data both easy and intuitive by removing the steep learning curve needed to accurately implement signal processing, data curation and annotation. All modules are designed using an intuitive mass spectrometric hierarchical class structure, using object-oriented programming paradigm. Each module contains classes to store the data, expose pertinent functions, and calculate conventional mass spectrometric parameters.
+
 - reproducible pipeline
 - logical mass spectrometric data structure
 - self-containing data and metadata storage
@@ -10,7 +12,7 @@
 
 ## Current Version
 
-### `3.4.1.beta`
+### `3.5.0.beta`
 
 [![pipeline status](https://gitlab.pnnl.gov/mass-spectrometry/corems/badges/master/pipeline.svg)](https://gitlab.pnnl.gov/corilo/corems/commits/master) [![coverage report](https://gitlab.pnnl.gov/mass-spectrometry/corems/badges/master/coverage.svg)](https://gitlab.pnnl.gov/corilo/corems/commits/master)
 
