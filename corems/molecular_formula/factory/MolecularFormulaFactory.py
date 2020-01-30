@@ -27,7 +27,7 @@ class MolecularFormula(MolecularFormulaCalc):
                 self._from_str(molecular_formula, ion_type)   
 
         self._ion_charge = ion_charge
-        self._assigment_mass_error = None
+        self._assignment_mass_error = None
         self._confidence_score = None
         self.is_isotopologue = False
         self.expected_isotopologues = []
@@ -38,7 +38,7 @@ class MolecularFormula(MolecularFormulaCalc):
             kendrick_dict_base)  
 
         if exp_mz:
-            self._assigment_mass_error = self._calc_assignment_mass_error(exp_mz)
+            self._assignment_mass_error = self._calc_assignment_mass_error(exp_mz)
             #self._confidence_score = self._calc_confidence_score()     
     
     def __len__(self):
@@ -120,7 +120,7 @@ class MolecularFormula(MolecularFormulaCalc):
     def mz_nominal_theo(self): return int(self._calc_mz_theor())
 
     @property    
-    def mz_error(self): return self._assigment_mass_error
+    def mz_error(self): return self._assignment_mass_error
     
     @property
     def mz_theor(self): return self._calc_mz_theor()
@@ -294,5 +294,5 @@ class MolecularFormulaIsotopologue(MolecularFormula):
 
         if exp_mz:
             
-            self._assigment_mass_error = self._calc_assignment_mass_error(exp_mz)
+            self._assignment_mass_error = self._calc_assignment_mass_error(exp_mz)
             self._confidence_score = False

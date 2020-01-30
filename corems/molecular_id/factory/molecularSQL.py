@@ -129,6 +129,11 @@ class MolForm_SQL:
         return dict_res
 
     def check_entry(self,classe, ion_type, molecular_search_settings):
+        #TODO
+        #  get all classes, ion_type, ion charge as str add to a dict or list
+        #  then check if class in database
+        # 
+        #  
         # this is way too slow, create a pos and neg table
         #try:
         #yes = self.session.query(MolecularFormulaTable.id).filter(MolecularFormulaTable.classe==classe).filter(MolecularFormulaTable.ion_charge == molecular_search_settings.ion_charge).scalar() is not None
@@ -143,6 +148,15 @@ class MolForm_SQL:
             (MolecularFormulaTable.ion_charge == molecular_search_settings.ion_charge))).scalar()
         return yes
     
+    
+    def get_all_classes(self, ion_type, molecular_search_settings):
+        
+        query = self.session.query(MolecularFormulaTable.classe.distinct().label("classe"))
+        
+        classes = [row.classe for row in query.filter(MolecularFormulaTable.ion_type == ion_type,
+             MolecularFormulaTable.ion_charge == molecular_search_settings.ion_charge)]
+        
+        return classes  
     
     def get_all(self,):
         

@@ -30,7 +30,8 @@ class OxygenPriorityAssignment(Thread):
         # get Oxygen classes dict and the associate mspeak class 
         # list_of_classes_min_max_dbe = self.class_and_dbes_in_order()
         # create database separated to give the user the chance to use mass spec filters
-              
+
+             
         assign_classes_order_str_dict_tuple_list = self.create_data_base()
         
         if assign_classes_order_str_dict_tuple_list:
@@ -48,6 +49,9 @@ class OxygenPriorityAssignment(Thread):
             
             min_o = min(self.mass_spectrum_obj, key=lambda msp: msp[0]['O'])[0]['O'] - 2
             
+            if min_o <= 0:
+                min_o = 1
+
             max_o = max(self.mass_spectrum_obj, key=lambda msp: msp[0]['O'])[0]['O'] + 2
 
             #min_dbe = min(self.mass_spectrum_obj, key=lambda msp: msp[0].dbe)[0].dbe
@@ -75,8 +79,10 @@ class OxygenPriorityAssignment(Thread):
             self.dict_molecular_lookup_table = self.get_dict_molecular_database(classes_str, nominal_mzs)
         
         # get the most abundant peak and them every 14Da, only allow Ox and its derivatives
+        print("Started Find Oxygen Peaks series")
         find_formula_thread = FindOxygenPeaks(self.mass_spectrum_obj)
         find_formula_thread.run()
+        print("Finished Find Oxygen Peaks series")
         
         #mass spec obj indexes are set to interate over only the peaks with a molecular formula candidate
         find_formula_thread.set_mass_spec_indexes_by_found_peaks()
@@ -88,17 +94,18 @@ class OxygenPriorityAssignment(Thread):
         assign_classes_order_str_dict_tuple_list = self.get_classes_in_order(dict_ox_class_and_ms_peak)
 
         create_molecular_database()
-
+        
         return assign_classes_order_str_dict_tuple_list
         
     def run_worker_mass_spectrum(self, assign_classes_order_tuples):
         
         def check_adduct_class(classe_dict):
+
             return any([key in classe_dict.keys() for key in self.mass_spectrum_obj.molecular_search_settings.adduct_atoms_neg])
         
         def check_min_peaks(ms_peak_indexes):
             
-            if  self.mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter:
+            if self.mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter:
 
                 if not len(ms_peak_indexes) >= self.mass_spectrum_obj.molecular_search_settings.min_peaks_per_class:
                     
@@ -159,10 +166,12 @@ class OxygenPriorityAssignment(Thread):
         min_abundance = self.mass_spectrum_obj.min_abundance
 
         for classe_tuple in assign_classes_order_tuples:
-                
+
             classe_str  = classe_tuple[0]
             classe_dict = classe_tuple[1]
-
+            
+            print("Started molecular formula search for class %s" % classe_str)
+            
             is_adduct = check_adduct_class(classe_dict)    
             set_min_max_dbe_by_oxygen(classe_dict)
             #if len(classe_dict.keys()) == 2:
@@ -203,9 +212,9 @@ class OxygenPriorityAssignment(Thread):
                 if possible_formulas_dict:
 
                     run_search(possible_formulas_dict, self.mass_spectrum_obj, min_abundance, is_adduct=is_adduct)
-
-    
         
+        print("Finished molecular formula search")
+    
     def get_dict_molecular_database(self, classes_str, nominal_mzs):
             
         dict_res = {}
@@ -234,9 +243,11 @@ class OxygenPriorityAssignment(Thread):
         # change to OrderedDict if your version is lower
         dict_ox_class_and_ms_peak = dict()
         
-        for mspeak in sorted(self.mass_spectrum_obj, key=lambda msp: msp.abundance, reverse=True):
+        for mspeak in self.mass_spectrum_obj.sort_by_abundance(reverse=True):
             
-            ox_classe = mspeak.molecular_formula_lowest_error.class_label
+            #change this filter to cia filter, give more option here, confidence, number of isotopologue found etc
+
+            ox_classe = mspeak.cia_score_N_S_P_error.class_label
             
             if ox_classe in dict_ox_class_and_ms_peak.keys():
                 

@@ -386,8 +386,8 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     def sort_by_mz(self):
         return sorted(self, key=lambda m: m.mz_exp)
 
-    def sort_by_abundance(self):
-        return sorted(self, key=lambda m: m.abundance)
+    def sort_by_abundance(self, reverse=False):
+        return sorted(self, key=lambda m: m.abundance, reverse=reverse)
 
     @property
     def tic(self):
@@ -465,7 +465,6 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         indexes_to_remove = [index for index, mspeak in enumerate(self.mspeaks) if  mspeak.resolving_power <= rpe(mspeak.mz_exp,mspeak.ion_charge)]
         self.filter_by_index(indexes_to_remove)
 
-    
 
     def find_peaks(self):
         """needs to clear previous results from peak_picking"""
@@ -556,6 +555,29 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         self._dict_nominal_masses_indexes = dict_nominal_masses_indexes
 
+    def percentile_assigned(self):
+        
+        assign_abun = 0
+        not_assign_abun = 0
+        i = 0
+        j = 0
+        for mspeak in self.sort_by_abundance():
+            
+            if mspeak.is_assigned:
+                i += 1
+                assign_abun += mspeak.abundance
+                
+            else:
+                j += 1
+                not_assign_abun += mspeak.abundance
+                   
+        total_percent = (i/(i+j))*100
+        total_relative_abundance = (assign_abun/(not_assign_abun+assign_abun)) *100
+
+        print('%i peaks assigned and %i peaks not assigned , total  = %.2f %%, relative abundance = %.2f %%' % (i, j, total_percent,total_relative_abundance  ))
+
+        return i, j, total_percent,total_relative_abundance 
+        
     def plot_mz_domain_profile_and_noise_threshold(self, ax=None): #pragma: no cover
         
         import matplotlib.pyplot as plt

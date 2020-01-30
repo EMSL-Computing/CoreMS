@@ -27,14 +27,56 @@ class MolecularCombinations:
                 }
             }
         }
-    note:
-    waiting for python 3.8 release (set 2019)  to have share memory between subprocesses;
-    by then we need to pass the resulting dict and all settings into shared memory;
-    the current serialization is adding 1.5s seconds for each ion type iteration
     '''
 
     def check_database_get_class_list(self, molecular_search_settings):
 
+        all_class_to_create = []
+        
+        classes_dict = self.get_classes_in_order(molecular_search_settings)
+        
+        class_str_set = set(classes_dict.keys())
+        
+        #print(classes_list)
+        
+        with molform_db() as sql_db:
+
+            if molecular_search_settings.isProtonated:
+
+                existing_classes = set(sql_db.get_all_classes(Labels.protonated_de_ion, molecular_search_settings))
+
+                class_to_create = class_str_set - existing_classes
+
+                for class_str in class_to_create:
+                    
+                    class_tuple =  (class_str, classes_dict.get(class_str)) 
+                    
+                    all_class_to_create.append((class_tuple, Labels.protonated_de_ion))
+
+            if  molecular_search_settings.isRadical:
+
+                existing_classes = set(sql_db.get_all_classes(Labels.radical_ion, molecular_search_settings))
+
+                class_to_create = class_str_set - existing_classes
+
+                for class_str in class_to_create:
+                    
+                    class_tuple =  (class_str, classes_dict.get(class_str)) 
+                    
+                    all_class_to_create.append((class_tuple, Labels.protonated_de_ion))
+                
+        #print (existing_classes)class_str_list
+
+        return [(c_s, c_d) for c_s, c_d in classes_dict.items()], all_class_to_create       
+
+    def check_database_get_class_list1(self, molecular_search_settings):
+        
+        ''' queries the molecular formula database for classes using the molecular_search_settings class settings
+            TODO
+            - too slow with SQLLite locally, need to test with online postgres
+            - change querying strategy?
+        '''
+        
         class_to_create = []
         
         classes_list = self.get_classes_in_order(molecular_search_settings)
@@ -71,7 +113,9 @@ class MolecularCombinations:
 
     def runworker(self, molecular_search_settings) :
 
+        print ("Querying database for existing classes")
         classes_list, class_to_create = self.check_database_get_class_list(molecular_search_settings)
+        print ("Finished querying database for existing classes")
         
         if class_to_create:
             
@@ -82,11 +126,9 @@ class MolecularCombinations:
             
             c_h_combinations= self.get_c_h_combination(settings)
             
-            number_of_process = 1#int(multiprocessing.cpu_count())
-
+            number_of_process = int(multiprocessing.cpu_count()/2)
+            print("Using %i logical CPUs for database entry generation"% number_of_process )
             #number_of_process = psutil.cpu_count(logical=False)
-
-            print('number_of_process', number_of_process)
 
             print('creating database entry for %i classes' % len(class_to_create))
 
@@ -101,8 +143,6 @@ class MolecularCombinations:
     
     def get_c_h_combination(self, settings):
 
-        # return dois dicionarios com produto das combinacooes de hidrogenio e carbono
-        # para nitrogenio impar e par para radicais e protonados
         usedAtoms = settings.usedAtoms
         result = {}
         
@@ -166,13 +206,13 @@ class MolecularCombinations:
         
         atoms_in_ordem = ['N', 'O', 'S', 'P']
 
-        classe_in_orderm = []
+        classe_in_order = {}
 
         all_atoms_tuples = itertools.product(possible_n, possible_o,
                                             possible_s, possible_p)
         
-        for atomo in atoms_in_ordem:
-            usedAtoms.pop(atomo, None)
+        for atom in atoms_in_ordem:
+            usedAtoms.pop(atom, None)
         
         for selected_atomo, min_max_tuple in usedAtoms.items():
             
@@ -202,31 +242,31 @@ class MolecularCombinations:
             
             if len(classe_str) > 0:
                 
-                classe_in_orderm.append((classe_str, classe_dict))
+                classe_in_order[classe_str] =  classe_dict
 
             elif len(classe_str) == 0:
 
-                classe_in_orderm.append(('HC', {'HC': ''}))
+                classe_in_order['HC'] = {'HC': ''}
         
-        classe_in_orderm = self.sort_classes(atoms_in_ordem, classe_in_orderm)
+        classe_in_order_dict = self.sort_classes(atoms_in_ordem, classe_in_order)
         
-        return classe_in_orderm
+        return classe_in_order_dict
 
     @staticmethod
-    def sort_classes( atoms_in_ordem, combination_tuples) -> [str]: 
+    def sort_classes( atoms_in_ordem, combination_dict) -> [str]: 
         
-        join_list_of_list_classes = list()
+        join_dict_classes = dict()
         atoms_in_ordem =  ['N','S','P','O'] + atoms_in_ordem[4:] + ['HC']
         
         sort_method = lambda atoms_keys: [atoms_in_ordem.index(atoms_keys)] #(len(word[0]), print(word[1]))#[atoms_in_ordem.index(atom) for atom in list( word[1].keys())])
-        for class_tuple in combination_tuples:
+        for class_str, class_dict in combination_dict.items():
             
-            sorted_dict_keys = sorted(class_tuple[1], key = sort_method)
-            class_str = ' '.join([atom + str(class_tuple[1][atom]) for atom in sorted_dict_keys])
-            class_dict = { atom: class_tuple[1][atom] for atom in sorted_dict_keys}
-            join_list_of_list_classes.append((class_str, class_dict))
+            sorted_dict_keys = sorted(class_dict, key = sort_method)
+            class_str = ' '.join([atom + str(class_dict[atom]) for atom in sorted_dict_keys])
+            class_dict = { atom: class_dict[atom] for atom in sorted_dict_keys}
+            join_dict_classes[class_str] =  class_dict
         
-        return join_list_of_list_classes
+        return join_dict_classes
 
     
     def get_fixed_initial_number_of_hidrogen(self, min_h, odd_even):

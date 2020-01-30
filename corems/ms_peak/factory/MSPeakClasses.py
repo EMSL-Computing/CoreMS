@@ -131,6 +131,7 @@ class _MSPeak(MSPeakCalculation):
         else:
             return candidates
 
+    @property
     def cia_score_S_P_error(self):
         #case EFormulaScore.HAcap:
 
@@ -148,6 +149,7 @@ class _MSPeak(MSPeakCalculation):
         
             return lowest_S_P_mf
     
+    @property
     def cia_score_N_S_P_error(self):
         #case EFormulaScore.HAcap:
         

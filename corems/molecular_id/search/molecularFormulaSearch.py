@@ -185,7 +185,7 @@ class SearchMolecularFormulas:
 
         SearchMolecularFormulaWorker(find_isotopologues=self.find_isotopologues).reset_error(mass_spectrum_obj)
         
-        min_abundance = 0.01
+        min_abundance = mass_spectrum_obj.min_abundance
 
         classes = MolecularCombinations().runworker(mass_spectrum_obj.molecular_search_settings)
         
@@ -193,6 +193,7 @@ class SearchMolecularFormulas:
 
         classes_str = [class_tuple[0] for class_tuple in classes]
 
+        
         dict_res = self.get_dict_molecular_database(classes_str, [nominal_mz],  mass_spectrum_obj.molecular_search_settings)
         
         self.run(classes, nominal_mz, min_abundance, 

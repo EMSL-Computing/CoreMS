@@ -21,11 +21,11 @@ class FindOxygenPeaks(Thread):
         mass_spectrum_obj : MassSpec class
             This is where we store MassSpec class obj,   
         
-        lookupTableSettings:  MoleculaLookupTableSettings class
-            This is where we store MoleculaLookupTableSettings class obj
+        lookupTableSettings:  MolecularLookupTableSettings class
+            This is where we store MolecularLookupTableSettings class obj
         
         min_O , max_O : int
-            minum and maxium of Oxygen to allow the software to look for
+            minium and maximum of Oxygen to allow the software to look for
             it will override the settings at lookupTableSettings.usedAtoms
             default min = 1, max = 30
 
@@ -33,15 +33,15 @@ class FindOxygenPeaks(Thread):
         ----------
         mass_spectrum_obj : MassSpec class
             This is where we store MassSpec class obj,   
-        lookupTableSettings:  MoleculaLookupTableSettings class
-            This is where we store MoleculaLookupTableSettings class obj
+        lookupTableSettings:  MolecularLookupTableSettings class
+            This is where we store MolecularLookupTableSettings class obj
         
         Methods
         ----------
             run()    
-                will be called when the instaciated class method start is called
+                will be called when the instantiated class method start is called
             get_list_found_peaks()
-                returns a list of MSpeaks classes cotaining all the MolecularFormula canditates inside the MSPeak
+                returns a list of MSpeaks classes cotaining all the MolecularFormula candidates inside the MSPeak
                 for more details of the structure see MSPeak class and MolecularFormula class    
             set_mass_spec_indexes_by_found_peaks()
                 set the mass spectrum to interate over only the selected indexes
@@ -77,8 +77,13 @@ class FindOxygenPeaks(Thread):
         # needs to be wrapped inside the mass_spec class
         ClusteringFilter().filter_kendrick(self.mass_spectrum_obj)
         
+        print("Start most abundant mass spectral peak search") 
         molecular_formula_obj_reference = self.find_most_abundant_formula(self.mass_spectrum_obj)
         
+        print("Select most abundant peak with molecular formula =  %s with a m/z error of %s ppm" % (molecular_formula_obj_reference.to_string, molecular_formula_obj_reference.mz_error))
+        
+        print("Started mass spectral peak series search")
+
         self.list_found_mspeaks = self.find_series_mspeaks(self.mass_spectrum_obj,
                                                            molecular_formula_obj_reference, 
                                                            deltamz=14)
@@ -111,19 +116,23 @@ class FindOxygenPeaks(Thread):
         
         upper_limit = abun_mean + 7* abun_std
         
-        print(upper_limit, max(mass_spectrum_obj, key=lambda m: m.abundance).abundance)
+        print("Maximum abundance limit  = %s and max abundance kendrick cluster = %s"  % (upper_limit, max(mass_spectrum_obj, key=lambda m: m.abundance).abundance))
         
         mspeak_most_abundant = max(mass_spectrum_obj, key=lambda m: m.abundance if m.abundance <= upper_limit else 0)
 
+        print("Searching molecular formulas")
+
         SearchMolecularFormulas().run_worker_ms_peak(mspeak_most_abundant, mass_spectrum_obj)
         
+        print("Finished searching molecular formulas")
+
         if mspeak_most_abundant:
 
-            return mspeak_most_abundant.molecular_formula_lowest_error 
+            return mspeak_most_abundant.cia_score_N_S_P_error
         
         else:
         
-            raise Exception("Could not find a possible molecular formula match for the most abudant peak of m/z %.5f"%mspeak_most_abundant.mz_exp )
+            raise Exception("Could not find a possible molecular formula match for the most abundant peak of m/z %.5f"%mspeak_most_abundant.mz_exp )
         
         #return the first option
         #return mspeak_most_abundant[0]
@@ -141,7 +150,8 @@ class FindOxygenPeaks(Thread):
         
         if mspeak_most_abundant:
 
-            return mspeak_most_abundant.molecular_formula_lowest_error 
+            return mspeak_most_abundant.cia_score_N_S_P_error 
+            
         else:
             raise Exception("Could not find a possible molecular formula match for the most abudant peak of m/z %.5f"%mspeak_most_abundant.mz_exp )
         #return the first option
