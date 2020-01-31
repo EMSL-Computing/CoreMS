@@ -216,7 +216,6 @@ class MolForm_SQL:
             MolecularFormulaTable.ion_charge == molecular_search_settings.ion_charge,
             MolecularFormulaTable.O_C <= molecular_search_settings.oc_filter,
             MolecularFormulaTable.H_C >= molecular_search_settings.hc_filter,
-            MolecularFormulaTable.O_P >= molecular_search_settings.op_filter,
             )
         
         #mol_formulas = mol_formulas.filter(ion_type = ion_type)
