@@ -34,10 +34,11 @@ class MolecularLookupDictSettings:
 
         self.min_dbe = 0
 
-        self.max_dbe = 100
+        self.max_dbe = 50
 
         #overwrites the dbe limits above to DBE = (C + heteroatoms) * 0.9
-        
+        self.use_pah_line_rule = False
+
         self.isRadical = True
 
         self.isProtonated = True
@@ -45,15 +46,17 @@ class MolecularLookupDictSettings:
         #ion_charge changes automatically with mass spectrum
         self.ion_charge = -1
 
+        self.op_filter = 4
+
         self.hc_filter = 0.3
 
         self.oc_filter = 1.2
     
-        self.use_pah_line_rule = False
-
         self.db_directory = None
 
 class MolecularSearchSettings:
+    
+    #max_mz and min_mz changes automatically with mass spectrum
     
     use_min_peaks_filter = False
 
@@ -69,17 +72,24 @@ class MolecularSearchSettings:
     hc_filter = 0.3
 
     oc_filter = 1.2
+
+    op_filter = 2
     
     use_pah_line_rule = False
 
     min_dbe = 0
 
-    max_dbe = 70
+    max_dbe = 50
 
     adduct_atoms_neg = ['Cl', 'Br', 'F']
     
     adduct_atoms_pos = ['Na', 'K']
+
+    score_methods = ["S_P_lowest_error", "N_S_P_lowest_error", "lowest_error", "prop_score",
+                     "air_filter_error", "water_filter_error", "earth_filter_error" ]
     
+    score_method = "lowest_error"
+
     # depending on the polarity mode it looks for [M].+ , [M].-
     # query and automatically compile and push options if it doesn't exist
     isRadical = True

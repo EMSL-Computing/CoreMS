@@ -84,7 +84,7 @@ def test_mspeak_search():
         print(mspeak_obj.molecular_formula_air_filter().to_string)
         print(mspeak_obj.cia_score_S_P_error().to_string)
         print(mspeak_obj.cia_score_N_S_P_error().to_string)
-
+        print(mspeak_obj.best_molecular_formula_candidate.to_string)
         print(mspeak_obj[0].mz_error, mspeak_obj[0].to_string_formated)
 
 def test_molecular_formula_search_db():

@@ -4,7 +4,12 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
 from corems.encapsulation.settings.input.ProcessingSetting import MassSpecPeakSetting
+from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings
+
+
 from corems.ms_peak.calc.MSPeakCalc import MSPeakCalculation
+
+
 
 class _MSPeak(MSPeakCalculation):
     '''
@@ -99,7 +104,6 @@ class _MSPeak(MSPeakCalculation):
         
         return len(self.molecular_formulas)
     
-    @property
     def molecular_formula_lowest_error(self):
        
        return min(self.molecular_formulas, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))
@@ -132,6 +136,36 @@ class _MSPeak(MSPeakCalculation):
             return candidates
 
     @property
+    def best_molecular_formula_candidate(self):
+        
+        if MolecularSearchSettings.score_method == "N_S_P_lowest_error":
+            return self.cia_score_N_S_P_error()
+        
+        elif MolecularSearchSettings.score_method == "S_P_lowest_error":
+            return self.cia_score_S_P_error()
+
+        elif MolecularSearchSettings.score_method == "lowest_error":
+            return self.molecular_formula_lowest_error()    
+        
+        elif MolecularSearchSettings.score_method == "air_filter_error":
+            return self.molecular_formula_air_filter()    
+
+        elif MolecularSearchSettings.score_method == "water_filter_error":
+            return self.molecular_formula_water_filter()    
+
+        elif MolecularSearchSettings.score_method == "earth_filter_error":
+            return self.molecular_formula_earth_filter()   
+
+        elif MolecularSearchSettings.score_method == "prop_score":
+            #TODO
+            raise NotImplementedError
+        else:
+            
+            raise TypeError("Unknown score method selected: % s, \
+                            Please check score_method at \
+                            encapsulation.settings.molecular_id.MolecularIDSettings.MolecularSearchSettings", 
+                            MolecularSearchSettings.score_method)    
+
     def cia_score_S_P_error(self):
         #case EFormulaScore.HAcap:
 
@@ -149,7 +183,6 @@ class _MSPeak(MSPeakCalculation):
         
             return lowest_S_P_mf
     
-    @property
     def cia_score_N_S_P_error(self):
         #case EFormulaScore.HAcap:
         

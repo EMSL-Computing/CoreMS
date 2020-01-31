@@ -19,11 +19,11 @@ class MolecularCombinations:
      
     '''
     runworker()
-    Returns a dictionary of molecular formula objs inside a dict nominal masses and ion type
+    Returns a dictionary of molecular formula obj inside a dict nominal masses and ion type
         {Labels.ion_type:{
             classes:{
                 nominal_mass:{
-                    [MolecularFormula objs,]
+                    [MolecularFormula obj,]
                 }
             }
         }
@@ -131,12 +131,13 @@ class MolecularCombinations:
             #number_of_process = psutil.cpu_count(logical=False)
 
             print('creating database entry for %i classes' % len(class_to_create))
-
+            
             p = multiprocessing.Pool(number_of_process)
             args = [(class_tuple, c_h_combinations, ion_type, settings) for class_tuple, ion_type in class_to_create]
             p.map(CombinationsWorker(), args)
             p.close()
             p.join()
+        
         
         return classes_list
        

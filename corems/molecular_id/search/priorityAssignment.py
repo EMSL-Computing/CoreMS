@@ -71,7 +71,7 @@ class OxygenPriorityAssignment(Thread):
             self.mass_spectrum_obj.molecular_search_settings.usedAtoms['O'] = (min_o, max_o)
 
             classes = MolecularCombinations().runworker(self.mass_spectrum_obj.molecular_search_settings)
-
+            
             classes_str = [class_tuple[0] for class_tuple in classes]
 
             nominal_mzs = self.mass_spectrum_obj.nominal_mz
@@ -79,22 +79,22 @@ class OxygenPriorityAssignment(Thread):
             self.dict_molecular_lookup_table = self.get_dict_molecular_database(classes_str, nominal_mzs)
         
         # get the most abundant peak and them every 14Da, only allow Ox and its derivatives
-        print("Started Find Oxygen Peaks series")
+       
         find_formula_thread = FindOxygenPeaks(self.mass_spectrum_obj)
         find_formula_thread.run()
-        print("Finished Find Oxygen Peaks series")
         
         #mass spec obj indexes are set to interate over only the peaks with a molecular formula candidate
         find_formula_thread.set_mass_spec_indexes_by_found_peaks()
         
         #get the Ox class and the DBE for the lowest error molecular formula candidate
         dict_ox_class_and_ms_peak = self.ox_classes_and_peaks_in_order_()
-        
+                      
         # sort the classes by abundance
-        assign_classes_order_str_dict_tuple_list = self.get_classes_in_order(dict_ox_class_and_ms_peak)
-
-        create_molecular_database()
         
+        assign_classes_order_str_dict_tuple_list = self.get_classes_in_order(dict_ox_class_and_ms_peak)
+        
+        create_molecular_database()
+                
         return assign_classes_order_str_dict_tuple_list
         
     def run_worker_mass_spectrum(self, assign_classes_order_tuples):
@@ -220,24 +220,23 @@ class OxygenPriorityAssignment(Thread):
         dict_res = {}
         
         #print (classes_str)
-        if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
-            
-            ion_type = Labels.protonated_de_ion
-
-            with molform_db() as sql_handle:
-
+        with molform_db() as sql_handle:
+        
+            if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
+                
+                ion_type = Labels.protonated_de_ion
+                
                 dict_res[ion_type] = sql_handle.get_dict_entries(classes_str, ion_type, nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
+                
+            if self.mass_spectrum_obj.molecular_search_settings.isRadical or self.mass_spectrum_obj.molecular_search_settings.isAdduct:
 
-        if self.mass_spectrum_obj.molecular_search_settings.isRadical or self.mass_spectrum_obj.molecular_search_settings.isAdduct:
-
-            ion_type = Labels.radical_ion
-
-            with molform_db() as sql_handle:
+                ion_type = Labels.radical_ion
 
                 dict_res[ion_type] = sql_handle.get_dict_entries(classes_str, ion_type, nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
         
-        return dict_res
+            return dict_res
 
+    
     def ox_classes_and_peaks_in_order_(self) -> dict:
         # order is only valid in python 3.4 and above
         # change to OrderedDict if your version is lower
@@ -247,7 +246,7 @@ class OxygenPriorityAssignment(Thread):
             
             #change this filter to cia filter, give more option here, confidence, number of isotopologue found etc
 
-            ox_classe = mspeak.cia_score_N_S_P_error.class_label
+            ox_classe = mspeak.best_molecular_formula_candidate.class_label
             
             if ox_classe in dict_ox_class_and_ms_peak.keys():
                 
@@ -306,7 +305,8 @@ class OxygenPriorityAssignment(Thread):
             
             #important to index where the atom position is in on the tuple in all_atoms_tuples
             atoms_in_order.append(selected_atom_label)
-       
+
+        
         classes_strings_dict_tuples, hc_class = self.get_class_strings_dict(all_atoms_tuples, atoms_in_order)
 
         combined_classes = self.combine_ox_class_with_other(atoms_in_order, classes_strings_dict_tuples, dict_ox_class_and_ms_peak)

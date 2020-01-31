@@ -143,7 +143,6 @@ class SearchMolecularFormulas:
 
     def run_worker_ms_peaks(self, ms_peaks, mass_spectrum_obj):
 
-        
         #save initial settings min peaks per class filter 
         initial_min_peak_bool = deepcopy(mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter)
 
@@ -298,22 +297,20 @@ class SearchMolecularFormulas:
         dict_res = {}
         
         #print (classes_str)
-        if molecular_search_settings.isProtonated:
-            
-            ion_type = Labels.protonated_de_ion
+        with molform_db() as sql_handle:
 
-            with molform_db() as sql_handle:
+            if molecular_search_settings.isProtonated:
+                
+                ion_type = Labels.protonated_de_ion
 
                 dict_res[ion_type] = sql_handle.get_dict_entries(classes_str, ion_type, nominal_mzs, molecular_search_settings)
 
-        if molecular_search_settings.isRadical or molecular_search_settings.isAdduct:
+            if molecular_search_settings.isRadical or molecular_search_settings.isAdduct:
 
-            ion_type = Labels.radical_ion
-
-            with molform_db() as sql_handle:
+                ion_type = Labels.radical_ion
 
                 dict_res[ion_type] = sql_handle.get_dict_entries(classes_str, ion_type, nominal_mzs,  molecular_search_settings)
-       
+            
         return dict_res
                 
             

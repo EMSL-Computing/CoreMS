@@ -6,6 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.exc import MultipleResultsFound
+from sqlalchemy.pool import QueuePool
 
 Base = declarative_base()
 
@@ -28,7 +29,7 @@ class MolecularFormulaTable(Base):
     DBE = Column(Float, nullable=False)
     O_C = Column(Float, nullable=True)
     H_C = Column(Float, nullable=True)
-
+    
     def __init__(self, kargs): 
         
         self.id = kargs['mol_formula']
@@ -66,7 +67,8 @@ class MolForm_SQL:
                 
             os.mkdir(directory+'/db')    
             
-        self.engine = create_engine('sqlite:///{DB}'.format(DB=directory+'/db'+'/molformulas.sqlite'))
+        self.engine = create_engine('sqlite:///{DB}'.format(DB=directory+'/db'+'/molformulas.sqlite'), 
+                    poolclass=QueuePool)
         
         #self.engine = create_engine('postgresql://postgres:docker@localhost:5432/')
         
@@ -96,35 +98,70 @@ class MolForm_SQL:
             print(str(e))
             
     def get_dict_entries(self, classes, ion_type, nominal_mzs, molecular_search_settings):
-
-        dict_res = {}
         
-        formulas = self.session.query(MolecularFormulaTable).filter(
-            MolecularFormulaTable.nominal_mz.in_(nominal_mzs),
-            MolecularFormulaTable.classe.in_(classes), 
-            MolecularFormulaTable.ion_type == ion_type,
-            MolecularFormulaTable.DBE >= molecular_search_settings.min_dbe, 
-            MolecularFormulaTable.DBE <= molecular_search_settings.max_dbe, 
-            MolecularFormulaTable.ion_charge == molecular_search_settings.ion_charge,
-            MolecularFormulaTable.O_C <= molecular_search_settings.oc_filter,
-            MolecularFormulaTable.H_C >= molecular_search_settings.hc_filter,
-            )
-
-        for formula in formulas:
+        '''Known issue, when using SQLite:
+         if the number of classes and nominal_m/zs are higher than 1,998 the query will fail
+         Solution: use postgres or split query''' 
+        
+        print(len(classes) + len(nominal_mzs))
+        
+        print("started molecular formula table generation")
+        
+        def query(class_list):
             
-            if formula.classe in dict_res.keys():
+            return self.session.query(MolecularFormulaTable).filter(
+                MolecularFormulaTable.nominal_mz.in_(nominal_mzs),
+                MolecularFormulaTable.classe.in_(class_list), 
+                MolecularFormulaTable.ion_type == ion_type,
+                MolecularFormulaTable.DBE >= molecular_search_settings.min_dbe, 
+                MolecularFormulaTable.DBE <= molecular_search_settings.max_dbe, 
+                MolecularFormulaTable.ion_charge == molecular_search_settings.ion_charge,
+                MolecularFormulaTable.O_C <= molecular_search_settings.oc_filter,
+                MolecularFormulaTable.H_C >= molecular_search_settings.hc_filter)
                 
-                if formula.nominal_mz in dict_res[formula.classe].keys():
-                    
-                    dict_res.get(formula.classe).get(formula.nominal_mz).append(pickle.loads(formula.id) )
+            
+        def add_dict_formula(formulas):
+            
+            for formula in formulas:
                 
-                else:
+                if formula.O and formula.P:
 
-                    dict_res.get(formula.classe)[formula.nominal_mz] = [pickle.loads(formula.id) ]  
+                    if  not (formula.O -2)/ formula.P >= molecular_search_settings.op_filter:
+                        continue
+
+                if formula.classe in dict_res.keys():
+                    
+                    if formula.nominal_mz in dict_res[formula.classe].keys():
+                        
+                        dict_res.get(formula.classe).get(formula.nominal_mz).append(pickle.loads(formula.id) )
+                    
+                    else:
+
+                        dict_res.get(formula.classe)[formula.nominal_mz] = [pickle.loads(formula.id) ]  
+            
+                else:
+                    
+                    dict_res[formula.classe] = {formula.nominal_mz: [pickle.loads(formula.id)] }     
+
         
-            else:
-                
-                dict_res[formula.classe] = {formula.nominal_mz: [pickle.loads(formula.id)] }     
+        dict_res = {}
+
+        if (len(classes) + len(nominal_mzs)) >= 993:
+            
+            classes_chunk = int(len(classes)/2)
+            
+            formulas = query(classes[:classes_chunk])
+            add_dict_formula(formulas)
+            
+            formulas = query(classes[classes_chunk:])
+            add_dict_formula(formulas)
+            
+        else:
+
+            formulas = query(classes)
+            add_dict_formula(formulas)
+            
+            print("Finished molecular formula table generation")
         
         return dict_res
 
@@ -179,6 +216,7 @@ class MolForm_SQL:
             MolecularFormulaTable.ion_charge == molecular_search_settings.ion_charge,
             MolecularFormulaTable.O_C <= molecular_search_settings.oc_filter,
             MolecularFormulaTable.H_C >= molecular_search_settings.hc_filter,
+            MolecularFormulaTable.O_P >= molecular_search_settings.op_filter,
             )
         
         #mol_formulas = mol_formulas.filter(ion_type = ion_type)

@@ -6,8 +6,7 @@ from threading import Thread
 from numpy import average, std
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
-from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularLookupDictSettings
+
 
 
 class FindOxygenPeaks(Thread):
@@ -46,7 +45,7 @@ class FindOxygenPeaks(Thread):
             set_mass_spec_indexes_by_found_peaks()
                 set the mass spectrum to interate over only the selected indexes
     '''
-    def __init__(self, mass_spectrum_obj, min_O = 1, max_O = 22) :
+    def __init__(self, mass_spectrum_obj, min_O = 2, max_O = 22) :
         
         Thread.__init__(self)
         
@@ -128,7 +127,7 @@ class FindOxygenPeaks(Thread):
 
         if mspeak_most_abundant:
 
-            return mspeak_most_abundant.cia_score_N_S_P_error
+            return mspeak_most_abundant.best_molecular_formula_candidate
         
         else:
         
@@ -150,7 +149,7 @@ class FindOxygenPeaks(Thread):
         
         if mspeak_most_abundant:
 
-            return mspeak_most_abundant.cia_score_N_S_P_error 
+            return mspeak_most_abundant.best_molecular_formula_candidate 
             
         else:
             raise Exception("Could not find a possible molecular formula match for the most abudant peak of m/z %.5f"%mspeak_most_abundant.mz_exp )
