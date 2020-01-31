@@ -578,7 +578,38 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         return i, j, total_percent,total_relative_abundance 
         
-    def plot_mz_domain_profile_and_noise_threshold(self, ax=None): #pragma: no cover
+    def plot_centroid(self, ax=None, c='g'):
+        
+        import matplotlib.pyplot as plt
+        if self._mspeaks:
+            
+            if ax is None:
+                ax = plt.gca()
+            
+            markerline_a, stemlines_a, baseline_a  = ax.stem(self.mz_exp, self.abundance, linefmt='-',  markerfmt=" ", use_line_collection =True)
+            
+            plt.setp(markerline_a, 'color', c, 'linewidth', 2)
+            plt.setp(stemlines_a, 'color', c, 'linewidth', 2)
+            plt.setp(baseline_a, 'color', c, 'linewidth', 2)
+
+            ax.set_xlabel("$\t{m/z}$", fontsize=12)
+            ax.set_ylabel('Abundance', fontsize=12)
+            ax.tick_params(axis='both', which='major', labelsize=12)
+
+            ax.axes.spines['top'].set_visible(False)
+            ax.axes.spines['right'].set_visible(False)
+
+            ax.get_yaxis().set_visible(False)
+            ax.spines['left'].set_visible(False)
+            
+
+        else:
+
+            raise Exception("No centroid data found, please run process_mass_spec")
+        
+        return ax
+
+    def plot_profile_and_noise_threshold(self, ax=None): 
         
         import matplotlib.pyplot as plt
         if self.baselise_noise and self.baselise_noise:
@@ -645,7 +676,13 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         from corems.mass_spectrum.output.export import MassSpecExport
         exportMS= MassSpecExport(out_file_path, self)
         exportMS.to_pandas()
+
+    def to_dataframe(self,):
+        #returns pandas dataframe
         
+        from corems.mass_spectrum.output.export import MassSpecExport
+        exportMS= MassSpecExport(self.filename, self)
+        exportMS.get_pandas_df()    
 
 
 

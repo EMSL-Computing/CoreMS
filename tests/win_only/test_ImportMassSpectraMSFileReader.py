@@ -52,5 +52,5 @@ if __name__ == "__main__":
 
     mass_spec = lcms.get_mass_spec_by_scan_number(200)
     mass_spec.plot_mz_domain_profile()
-    mass_spec.plot_mz_domain_profile_and_noise_threshold()
+    mass_spec.plot_profile_and_noise_threshold()
 

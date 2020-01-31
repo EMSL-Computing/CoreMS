@@ -3,17 +3,19 @@ __date__ = "Jul 25, 2019"
 
 
 import sys
+sys.path.append('.')
+
 import time
 from pathlib import Path
-sys.path.append('.')
 
 import pytest
 
+from corems.encapsulation.settings.molecular_id.MolecularIDSettings import  MolecularSearchSettings
+from corems.mass_spectrum.factory.classification import  HeteroatomsClassification
 from corems.mass_spectrum.input.numpyArray import ms_from_array_centroid
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings
 
 def create_mass_spectrum():
     
@@ -38,8 +40,8 @@ def create_mass_spectrum():
 
 def test_run_molecular_formula_search():
 
-    MolecularSearchSettings.usedAtoms['F'] = (0,2)
-    MolecularSearchSettings.usedAtoms['P'] = (0,2)
+    MolecularSearchSettings.usedAtoms['F'] = (0,1)
+    MolecularSearchSettings.usedAtoms['P'] = (0,1)
     MolecularSearchSettings.usedAtoms['Cl'] = (0,1)
     MolecularSearchSettings.isAdduct = True
 
@@ -133,7 +135,17 @@ def test_priorityAssignment():
     assignOx = OxygenPriorityAssignment(mass_spec_obj) 
 
     assignOx.run() 
- 
+
+    #test classification 
+    mass_spec_obj.percentile_assigned()
+
+    mass_spectrum_by_classes = HeteroatomsClassification(mass_spec_obj)
+
+    mass_spectrum_by_classes.plot_ms_assigned_unassigned()
+    
+    mass_spectrum_by_classes.atoms_ratio_all("H", "C")
+
+    mass_spectrum_by_classes.atoms_ratio_all("H", "C")
     
 
 if __name__ == "__main__":

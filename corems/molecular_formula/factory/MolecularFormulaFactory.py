@@ -130,7 +130,7 @@ class MolecularFormula(MolecularFormulaCalc):
         ion_type = self._d_molecular_formula.get(Labels.ion_type)
         if ion_type == Labels.protonated_de_ion:
             if self.ion_charge > 0: 
-                return Labels.protonaded
+                return Labels.protonated
             else: 
                 return Labels.de_protonated    
         else:
@@ -251,14 +251,20 @@ class MolecularFormula(MolecularFormulaCalc):
                 
             classstring = classstring.strip()
             
-            if self._d_molecular_formula.get(Labels.ion_type) == 'RADICAL':    
+            if self._d_molecular_formula.get(Labels.ion_type) == Labels.radical_ion:    
                 
                 return classstring + ' -R'
             
+            elif self._d_molecular_formula.get(Labels.ion_type) == Labels.adduct_ion:    
+                
+                return classstring + ' -A'
+
             else: return classstring
             
             'dict, tuple or string'
+        
         else:
+            
             raise Exception("Molecular formula identification not performed yet")        
     
     @property

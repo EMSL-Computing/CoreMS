@@ -19,9 +19,11 @@ class Labels: #pragma: no cover
     thermo_centroid = 'Thermo_Centroid'
     corems_centroid = 'CoreMS_Centroid'
     
+    unassigned = 'unassigned'
+
     radical_ion = 'RADICAL'
     protonated_de_ion = 'DE_OR_PROTONATED'
-    protonaded = "protonated"
+    protonated = "protonated"
     de_protonated = "de-protonated"
     adduct_ion = "ADDUCT"
     ion_type = 'IonType'

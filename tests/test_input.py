@@ -108,7 +108,7 @@ def test_import_transient():
 
     mass_spectrum_obj = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
 
-    mass_spectrum_obj.plot_mz_domain_profile_and_noise_threshold()
+    mass_spectrum_obj.plot_profile_and_noise_threshold()
     #pyplot.show()
 
 

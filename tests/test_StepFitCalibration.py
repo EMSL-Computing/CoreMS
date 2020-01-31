@@ -38,7 +38,7 @@ def create_mass_spectrum(file_location):
 
     mass_spectrum_obj = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
     
-    #mass_spectrum_obj.plot_mz_domain_profile_and_noise_threshold()
+    #mass_spectrum_obj.plot_profile_and_noise_threshold()
     
     # polarity need to be set if reading a text file
     #polarity = -1
@@ -158,7 +158,7 @@ if __name__ == "__main__":
     mspeaks_results = find_formula_thread.get_list_found_peaks()
     
     
-    #mass_spectrum.plot_mz_domain_profile_and_noise_threshold()
+    #mass_spectrum.plot_profile_and_noise_threshold()
     calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
     calibrate.step_fit()
 
