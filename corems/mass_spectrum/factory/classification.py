@@ -9,7 +9,7 @@ class HeteroatomsClassification(Mapping):
     
     '''Group mass spectrum data by heteroatom classes (Nn, Oo, Ss, NnOo, NnSs, etc..)
         
-       class obj behaves as a dictionary of classes and return a list of ms_peak objs
+       class obj behaves as a dictionary of classes and return a list of ms_peak obj
 
     '''
     
@@ -95,7 +95,7 @@ class HeteroatomsClassification(Mapping):
 
     def abundance(self, classe):
 
-        return [mspeak.mz_exp for mspeak in self[classe]]
+        return [mspeak.abundance for mspeak in self[classe]]
 
     def peaks_count_percentile(self, classe):
 
