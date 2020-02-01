@@ -4,6 +4,8 @@ __date__ = "Jan 31, 2020"
 from collections.abc import Mapping
 
 from corems.encapsulation.constant import Labels
+from corems.encapsulation.constant import Atoms
+
 
 class HeteroatomsClassification(Mapping):
     
@@ -14,6 +16,10 @@ class HeteroatomsClassification(Mapping):
     '''
     
     def __init__(self, mass_spectrum, choose_molecular_formula=True):
+
+        def sort_atoms_method( atom):
+            
+            return [Atoms.atoms_order.index(atom)]
 
         self._ms_grouped_class = dict()
         
@@ -26,6 +32,8 @@ class HeteroatomsClassification(Mapping):
         self.sum_abundance = 0
 
         check_assign = False
+
+        all_used_atoms = set()
 
         for ms_peak in mass_spectrum:
             
@@ -43,11 +51,25 @@ class HeteroatomsClassification(Mapping):
 
                 if choose_molecular_formula:
                     
-                    classes =  ms_peak.best_molecular_formula_candidate.class_label
-                
+                    formula = ms_peak.best_molecular_formula_candidate
+                    
+                    classes =  [formula.class_label]
+                    
+                    for atom in formula.atoms:
+                        
+                        all_used_atoms.add(atom)
+
                 else: 
 
-                    classes = [mf.class_label for mf in ms_peak]
+                    classes = []
+                    
+                    for mf in ms_peak:
+                        
+                        classes.append(mf.class_label)
+                        
+                        for atom in formula.atoms:
+                             
+                             all_used_atoms.add(atom)
 
                 for classe in classes:
                     
@@ -59,9 +81,12 @@ class HeteroatomsClassification(Mapping):
 
                         self._ms_grouped_class[classe] = [ms_peak]
 
+        self.all_identified_atoms = sorted(all_used_atoms, key=sort_atoms_method)
+
         if not check_assign:
 
             raise Exception("No molecular formula associated with any mspeak objects")
+    
 
     def __len__(self):
         
@@ -75,10 +100,18 @@ class HeteroatomsClassification(Mapping):
 
          return iter(self._ms_grouped_class) 
 
+    def get_classes(self, abundance_perc_threshold):
+
+        return [classe for classe in self.keys() if self.abundance_count_percentile(classe) > abundance_perc_threshold ]
+        
     def carbon_number(self, classe):
 
         return [mf.get('C') for mspeak in self[classe] for mf in mspeak ]
-    
+
+    def atom_count(self, atom, classe):
+
+        return [mf.get(atom) for mspeak in self[classe] for mf in mspeak ]
+
     def dbe(self, classe):
 
         return [mf.dbe for mspeak in self[classe] for mf in mspeak]
@@ -90,12 +123,28 @@ class HeteroatomsClassification(Mapping):
         return [mf.get(numerator)/mf.get(denominator) for mspeak in self[classe] for mf in mspeak ]
     
     def mz_exp(self, classe):
-
-        return [mspeak.mz_exp for mspeak in self[classe]]
-
+        
+        if classe != Labels.unassigned:
+            
+            return [mspeak.mz_exp for mspeak in self[classe] for mf in mspeak]
+        
+        else:
+            
+            return [mspeak.mz_exp for mspeak in self[classe]]
+    
     def abundance(self, classe):
 
-        return [mspeak.abundance for mspeak in self[classe]]
+        if classe != Labels.unassigned:
+            
+            return [mspeak.abundance for mspeak in self[classe] for mf in mspeak]
+        
+        else:
+            
+            return [mspeak.abundance for mspeak in self[classe]]
+
+    def mz_calc(self, classe):
+
+        return [mf.mz_theor for mspeak in self[classe] for mf in mspeak] 
 
     def peaks_count_percentile(self, classe):
 
@@ -135,10 +184,80 @@ class HeteroatomsClassification(Mapping):
             
         return [self.atoms_ratio(classe, numerator, denominator) for classe in classes if classe != Labels.unassigned]
 
-    def to_dataframe(self,):
+    def to_dataframe(self, incluse_isotopologue=False, abundance_perc_threshold=5):
         
         from pandas import DataFrame
+        
+        columns_labels = ['mz', 'calibrated_mz', 'calculated_m_z', 'abundance',
+                                'resolving_power', 'sn', 'ion_charge', 'mass_error',
+                                'dbe', 'class', 'hc', 'oc', 'ion_type','is_isotopologue',
+                                'class_abundance', 'class_count']
 
+        dict_data_list = []
+
+        for classe, list_mspeaks in self.items():
+
+            percent_abundance = self.abundance_count_percentile(classe)
+            
+            #ignores low abundant classes
+            if abundance_perc_threshold < abundance_perc_threshold: continue
+                
+            peaks_count_percentile = self.peaks_count_percentile(classe)
+
+            for ms_peak in list_mspeaks:
+                 
+                if ms_peak.is_assigned:
+                    
+                    for m_formula in ms_peak:
+                        
+                        #ignores isotopologues
+                        if not incluse_isotopologue and m_formula.is_isotopologue: continue
+                        
+                        formula_dict = m_formula.to_dict
+
+                        dict_result = {'mz':  ms_peak._mz_exp,
+                                'calibrated_mz': ms_peak.mz_exp,
+                                'calculated_mz': m_formula.mz_theor,
+                                'abundance': ms_peak.abundance,
+                                'resolving_power': ms_peak.resolving_power,
+                                'sn':  ms_peak.signal_to_noise,
+                                'ion_charge': ms_peak.ion_charge,
+                                'mass_error': m_formula.mz_error,
+                                'dbe':  m_formula.dbe,
+                                'class': classe,
+                                'hc':  m_formula.H_C,
+                                'oc':  m_formula.O_C,
+                                'ion_type': str(m_formula.ion_type.lower().encode('utf-8')),
+                                'is_isotopologue': int(m_formula.is_isotopologue),
+                                'class_abundance': percent_abundance,
+                                'class_count': peaks_count_percentile
+                                }
+                        
+                        for atom in formula_dict.keys():
+                        
+                           dict_result[atom] = formula_dict.get(atom)
+
+                    dict_data_list.append(dict_result)
+
+                else:
+                    
+                    dict_result = {'mz':  ms_peak._mz_exp,
+                                'calibrated_mz': ms_peak.mz_exp,
+                                'abundance': ms_peak.abundance,
+                                'resolving_power': ms_peak.resolving_power,
+                                'sn':  ms_peak.signal_to_noise,
+                                'ion_charge': ms_peak.ion_charge,
+                                'class': classe,
+                                'class_abundance': percent_abundance,
+                                'class_count': percent_abundance
+                                }
+                
+                    dict_data_list.append(dict_result)                
+
+        columns = columns_labels + self.all_identified_atoms
+
+        return DataFrame(dict_data_list, columns=columns)
+     
     def plot_ms_assigned_unassigned(self, assigned_color= 'g', unassigned_color = 'r'):
         
         from matplotlib import pyplot as plt
@@ -153,16 +272,12 @@ class HeteroatomsClassification(Mapping):
 
         for plot_obj in ax.stem(mz_assigned,abundance_assigned, linefmt='-',  markerfmt=" ", use_line_collection =True):
         
-            plt.setp(plot_obj, 'color', 'g', 'linewidth', 2)
+            plt.setp(plot_obj, 'color', assigned_color, 'linewidth', 2)
         
-
-        markerline, stemlines, baseline  = ax.stem(mz_not_assigned,abundance_not_assigned, linefmt='-', markerfmt=" ",  use_line_collection =True)
+        for plot_obj in ax.stem(mz_not_assigned, abundance_not_assigned, linefmt='-', markerfmt=" ",  use_line_collection =True):
         
+            plt.setp(plot_obj, 'color', unassigned_color, 'linewidth', 2)
         
-        plt.setp(markerline, 'color', 'r', 'linewidth', 2)
-        plt.setp(stemlines, 'color', 'r', 'linewidth', 2)
-        plt.setp(baseline, 'color', 'r', 'linewidth', 2)
-
         ax.set_xlabel("$\t{m/z}$", fontsize=12)
         ax.set_ylabel('Abundance', fontsize=12)
         ax.tick_params(axis='both', which='major', labelsize=12)
