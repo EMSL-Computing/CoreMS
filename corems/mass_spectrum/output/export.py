@@ -313,7 +313,7 @@ class MassSpecExport(Thread):
                            'Resolving Power': ms_peak.resolving_power,
                            'S/N':  ms_peak.signal_to_noise,
                            'Ion Charge': ms_peak.ion_charge,
-                           'Heteroatom Class' : Labels.unassigned
+                           'Heteroatom Class' : Labels.unassigned.encode('utf-8')
                            }
 
             dict_data_list.append(dict_result)
@@ -332,10 +332,10 @@ class MassSpecExport(Thread):
                            'Ion Charge': ms_peak.ion_charge,
                            'Mass Error (ppm)': m_formula.mz_error,
                            'DBE':  m_formula.dbe,
-                           'Heteroatom Class': str(m_formula.class_label.encode('utf-8')),
+                           'Heteroatom Class': m_formula.class_label.encode('utf-8'),
                            'H/C':  m_formula.H_C,
                            'O/C':  m_formula.O_C,
-                           'Ion Type': str(m_formula.ion_type.lower().encode('utf-8')),
+                           'Ion Type': m_formula.ion_type.lower().encode('utf-8'),
                            'Is Isotopologue': int(m_formula.is_isotopologue),
                            }
 
