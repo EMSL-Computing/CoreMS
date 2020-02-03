@@ -46,7 +46,7 @@ class ClusteringFilter():
         
         matrix_data_scaled = stdscaler.transform(matrix_data)
 
-        clusters = DBSCAN(eps = .15, min_samples=15).fit_predict(matrix_data_scaled)
+        clusters = DBSCAN(eps = .15, min_samples=50).fit_predict(matrix_data_scaled)
         
         # Number of clusters in labels, ignoring noise if present.
         n_clusters_ = len(set(clusters)) - (1 if -1 in clusters else 0)

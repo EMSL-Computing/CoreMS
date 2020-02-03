@@ -2,6 +2,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 import sys
+sys.path.append("C:\\Users\\eber373\\Desenvolvimento\\Projects-Python\\CoreMS")
 
 from pathlib import Path
 
@@ -61,6 +62,8 @@ if __name__ == "__main__":
     mass_spectrum.molecular_search_settings.isAdduct = False
 
     mass_spectrum.filter_by_max_resolving_power(15, 2)
+
+    plt.show()
 
     OxygenPriorityAssignment(mass_spectrum).run()
 
