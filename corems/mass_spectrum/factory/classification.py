@@ -323,7 +323,9 @@ class HeteroatomsClassification(Mapping):
             ax.set_xlabel("Carbon number", fontsize=16)
             ax.set_ylabel('DBE', fontsize=16)
             ax.tick_params(axis='both', which='major', labelsize=18)
-            ax.set_xticks(range(0, max_c, c_incr)) 
+            ax.set_xticks(range(0, max_c, c_incr))
             ax.set_yticks(range(0, max_dbe, dbe_incr))
-        
+
+            # returns matplot axes obj and the class percentile of the relative abundance 
+            
             return ax, abun_perc 
