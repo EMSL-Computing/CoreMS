@@ -6,10 +6,11 @@ from threading import Thread
 from itertools import product
 
 from corems.encapsulation.constant import Labels
-from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
-from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulaWorker, SearchMolecularFormulas
+from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.molecular_id.factory.MolecularLookupTable import MolecularCombinations
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL as molform_db
+from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
+from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulaWorker, SearchMolecularFormulas
 #from corems.molecular_id.factory.molecularMongo import MolForm_Mongo as molform_db
 
 class OxygenPriorityAssignment(Thread):
@@ -135,7 +136,7 @@ class OxygenPriorityAssignment(Thread):
         def run_search(possible_formulas_dict, mass_spectrum_obj, min_abundance, is_adduct=False):
             
             all_assigned_indexes = list()
-
+            
             for ms_peak in mass_spectrum_obj.sort_by_abundance():
 
                 if ms_peak: continue
@@ -163,6 +164,12 @@ class OxygenPriorityAssignment(Thread):
         
         #error_average = self.mass_spectrum_obj.molecular_search_settings.mz_error_average
         
+        kdm_base = self.mass_spectrum_obj.mspeaks_settings.kendrick_base
+        
+        self.mass_spectrum_obj.change_kendrick_base_all_mspeaks(kdm_base)
+
+        ClusteringFilter().filter_kendrick(self.mass_spectrum_obj)
+
         min_abundance = self.mass_spectrum_obj.min_abundance
 
         for classe_tuple in assign_classes_order_tuples:

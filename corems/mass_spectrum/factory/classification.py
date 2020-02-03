@@ -195,13 +195,13 @@ class HeteroatomsClassification(Mapping):
             
         return [self.atoms_ratio(classe, numerator, denominator) for classe in classes if classe != Labels.unassigned]
 
-    def to_dataframe(self, incluse_isotopologue=False, abundance_perc_threshold=5):
+    def to_dataframe(self, incluse_isotopologue=False, abundance_perc_threshold=5, include_unassigned=False):
         
         from pandas import DataFrame
         
         columns_labels = ['mz', 'calibrated_mz', 'calculated_m_z', 'abundance',
                                 'resolving_power', 'sn', 'ion_charge', 'mass_error',
-                                'dbe', 'class', 'hc', 'oc', 'ion_type','is_isotopologue',
+                                'DBE', 'class', 'HC', 'OC', 'ion_type','is_isotopologue',
                                 'class_abundance', 'class_count']
 
         dict_data_list = []
@@ -234,10 +234,10 @@ class HeteroatomsClassification(Mapping):
                                 'sn':  ms_peak.signal_to_noise,
                                 'ion_charge': ms_peak.ion_charge,
                                 'mass_error': m_formula.mz_error,
-                                'dbe':  m_formula.dbe,
+                                'DBE':  m_formula.dbe,
                                 'class': classe,
-                                'hc':  m_formula.H_C,
-                                'oc':  m_formula.O_C,
+                                'HC':  m_formula.H_C,
+                                'OC':  m_formula.O_C,
                                 'ion_type': str(m_formula.ion_type.lower().encode('utf-8')),
                                 'is_isotopologue': int(m_formula.is_isotopologue),
                                 'class_abundance': percent_abundance,
@@ -251,6 +251,8 @@ class HeteroatomsClassification(Mapping):
                     dict_data_list.append(dict_result)
 
                 else:
+
+                    if not include_unassigned: continue
                     
                     dict_result = {'mz':  ms_peak._mz_exp,
                                 'calibrated_mz': ms_peak.mz_exp,

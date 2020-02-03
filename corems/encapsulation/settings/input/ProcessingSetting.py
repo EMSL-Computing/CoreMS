@@ -25,5 +25,5 @@ class MassSpectrumSetting:
 class MassSpecPeakSetting:
     
     '''needs to clear previous results from peak_picking'''
-    kendrick_base =  {"C": 1, "H":2}   
-    #kendrick_base =  {"C": 1, "H":2, "O":1}   
+    #kendrick_base =  {"C": 1, "H":2}   
+    kendrick_base =  {"C": 1, "H":2, "O":1}   

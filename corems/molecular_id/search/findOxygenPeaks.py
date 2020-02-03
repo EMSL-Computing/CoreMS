@@ -69,9 +69,9 @@ class FindOxygenPeaks(Thread):
         
         self.list_found_mspeaks = []
 
-        kendrick_base =  {'C':1,'H':2,'O':1}   
+        kdm_base = self.mass_spectrum_obj.mspeaks_settings.kendrick_base
         
-        self.mass_spectrum_obj.change_kendrick_base_all_mspeaks(kendrick_base)
+        self.mass_spectrum_obj.change_kendrick_base_all_mspeaks(kdm_base)
         
         # needs to be wrapped inside the mass_spec class
         ClusteringFilter().filter_kendrick(self.mass_spectrum_obj)

@@ -1,6 +1,10 @@
+
 from sklearn.cluster import DBSCAN
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import MeanShift, estimate_bandwidth
+
+
+
 import numpy as np
 import pandas as pd
 #import matplotlib.pyplot as plt
@@ -38,9 +42,9 @@ class ClusteringFilter():
         
         matrix_data = self.get_kendrick_matrix_data(mass_spectrum)
 
-        stscaler = StandardScaler().fit(matrix_data)
+        stdscaler = StandardScaler().fit(matrix_data)
         
-        matrix_data_scaled = stscaler.transform(matrix_data)
+        matrix_data_scaled = stdscaler.transform(matrix_data)
 
         clusters = DBSCAN(eps = .15, min_samples=15).fit_predict(matrix_data_scaled)
         
@@ -64,21 +68,21 @@ class ClusteringFilter():
         #plt.close()
        
 
-    def remove_assigment_by_mass_error(self, mass_spectrum):
+    def remove_assignment_by_mass_error(self, mass_spectrum):
         
         #data need to be binned by mz unit or more to be able to use clustering
         
         matrix_data, list_indexes_mass_spec = self.get_mass_error_matrix_data(mass_spectrum)
 
-        stscaler = StandardScaler().fit(matrix_data)
+        stdscaler = StandardScaler().fit(matrix_data)
         
-        matrix_data_scaled = stscaler.transform(matrix_data)
+        matrix_data_scaled = stdscaler.transform(matrix_data)
         
         #bandwidth = estimate_bandwidth(matrix_data_scaled, quantile=0.3, n_samples=int(len(ms_peaks)/3))
 
         #clusters = MeanShift(bandwidth=bandwidth, bin_seeding=True).fit_predict(matrix_data_scaled)
         
-        #eps and min_samp need to be optmized by precision and number of mspeaks
+        #eps and min_samp need to be optimized by precision and number of mspeaks
         clusters = DBSCAN(eps = .15).fit_predict(matrix_data_scaled)
         
         indexes = []

@@ -20,19 +20,12 @@ def class_plot(df):
 
     sns.set(style="white", rc={"axes.facecolor": (0, 0, 0, 0)})
 
-    sns.pairplot(df, vars=[ 'mz','abundance'],  hue="class")
-
-    plt.show()
-
-def dbe_c_number_plot(carbon_number, dbe, abundance ):
-
-    import seaborn as sns
-
-    sns.set(style="white", rc={"axes.facecolor": (0, 0, 0, 0)})
-
-    #sns.jointplot(carbon_number, dbe, kind="hex", hue=abundance)
-
-    plt.scatter(carbon_number, dbe, c=abundance, alpha=0.5)
+    #sns.pairplot(df, vars=[ 'mz','abundance'],  hue="class")
+    
+    g = sns.PairGrid(df, vars=[ 'mz','abundance'], hue="class")
+    g = g.map_upper(sns.kdeplot)
+    g = g.map_upper(sns.kdeplot)
+    g = g.map_diag(sns.kdeplot, lw=2)
     plt.show()
 
 if __name__ == "__main__":
@@ -81,12 +74,14 @@ if __name__ == "__main__":
 
     dataframe = mass_spectrum_by_classes.to_dataframe()
     
+    class_plot(dataframe)
+
     all_classes = 0
 
     for classe in mass_spectrum_by_classes.get_classes(threshold_perc=1, isotopologue=False):
-
+            
         mass_spectrum_by_classes.plot_dbe_vs_carbon_number(classe)
     
-    plt.show()
+        plt.show()
 
     print("Sum Relative Abundance = %.2f" % all_classes)
