@@ -2,10 +2,10 @@ import warnings
 warnings.filterwarnings("ignore")
 
 import sys
+
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-
 from PySide2.QtWidgets import QFileDialog, QApplication
 from PySide2.QtCore import Qt
 
@@ -30,8 +30,9 @@ def dbe_c_number_plot(carbon_number, dbe, abundance ):
 
     sns.set(style="white", rc={"axes.facecolor": (0, 0, 0, 0)})
 
-    sns.jointplot(carbon_number, dbe, kind="hex", color="#4CB391")
+    #sns.jointplot(carbon_number, dbe, kind="hex", hue=abundance)
 
+    plt.scatter(carbon_number, dbe, c=abundance, alpha=0.5)
     plt.show()
 
 if __name__ == "__main__":
@@ -50,6 +51,10 @@ if __name__ == "__main__":
     mass_spectrum.molecular_search_settings.error_method = 'None'
     mass_spectrum.molecular_search_settings.min_mz_error = -0.5
     mass_spectrum.molecular_search_settings.max_mz_error = 0.5
+
+    mass_spectrum.molecular_search_settings.min_dbe = 0
+    mass_spectrum.molecular_search_settings.max_dbe = 30
+
     mass_spectrum.molecular_search_settings.usedAtoms['C'] = (1,90)
     mass_spectrum.molecular_search_settings.usedAtoms['H'] = (4,200)
     mass_spectrum.molecular_search_settings.usedAtoms['O'] = (2,20)
@@ -62,6 +67,8 @@ if __name__ == "__main__":
     mass_spectrum.molecular_search_settings.isRadical= False
     mass_spectrum.molecular_search_settings.isAdduct = False
 
+    mass_spectrum.filter_by_max_resolving_power(15, 2)
+
     OxygenPriorityAssignment(mass_spectrum).run()
 
     mass_spectrum.percentile_assigned()
@@ -70,19 +77,16 @@ if __name__ == "__main__":
 
     mass_spectrum_by_classes.plot_ms_assigned_unassigned()
 
-    dataframe = mass_spectrum_by_classes.to_dataframe()
-
-    
-    for classe in mass_spectrum_by_classes.get_classes(1):
-
-        if classe != Labels.unassigned:
-
-            print(classe)
-
-            carbon_number = mass_spectrum_by_classes.carbon_number(classe)
-            dbe = mass_spectrum_by_classes.dbe(classe)
-            abundance = mass_spectrum_by_classes.abundance(classe)
-
-            dbe_c_number_plot(carbon_number, dbe, abundance)
-
     plt.show()
+
+    dataframe = mass_spectrum_by_classes.to_dataframe()
+    
+    all_classes = 0
+
+    for classe in mass_spectrum_by_classes.get_classes(threshold_perc=1, isotopologue=False):
+
+        mass_spectrum_by_classes.plot_dbe_vs_carbon_number(classe)
+    
+    plt.show()
+
+    print("Sum Relative Abundance = %.2f" % all_classes)

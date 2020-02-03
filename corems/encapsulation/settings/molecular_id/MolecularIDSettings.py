@@ -46,7 +46,7 @@ class MolecularLookupDictSettings:
         #ion_charge changes automatically with mass spectrum
         self.ion_charge = -1
 
-        self.op_filter = 4
+        self.op_filter = 2
 
         self.hc_filter = 0.3
 

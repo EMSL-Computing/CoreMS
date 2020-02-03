@@ -100,9 +100,20 @@ class HeteroatomsClassification(Mapping):
 
          return iter(self._ms_grouped_class) 
 
-    def get_classes(self, abundance_perc_threshold):
-
-        return [classe for classe in self.keys() if self.abundance_count_percentile(classe) > abundance_perc_threshold ]
+    def get_classes(self, threshold_perc=1, isotopologue=True):
+        
+        classes = list()
+        for classe in self.keys():
+            
+            if self.abundance_count_percentile(classe) > threshold_perc:
+                
+                if classe != Labels.unassigned:
+                    # access first molecular formula inside the first ms peak and check isotopologue
+                    if not isotopologue and self.get(classe)[0][0].is_isotopologue: continue
+                
+                classes.append(classe)
+        
+        return classes
         
     def carbon_number(self, classe):
 
@@ -290,3 +301,29 @@ class HeteroatomsClassification(Mapping):
         
         return ax    
 
+    def plot_dbe_vs_carbon_number(self, classe, max_c=50, max_dbe=40, dbe_incr=5, c_incr=10):
+        
+        from matplotlib import pyplot as plt
+        
+        if classe != Labels.unassigned:
+
+            # get data 
+            abun_perc = self.abundance_count_percentile(classe)
+            carbon_number = self.carbon_number(classe)
+            dbe = self.dbe(classe)
+            abundance = self.abundance(classe)
+            
+            #plot data
+            ax = plt.gca()
+
+            ax.scatter(carbon_number, dbe, c=abundance, alpha=0.5)
+            
+            title = "%s, %.2f" % (classe, abun_perc)
+            ax.set_title(title)
+            ax.set_xlabel("Carbon number", fontsize=16)
+            ax.set_ylabel('DBE', fontsize=16)
+            ax.tick_params(axis='both', which='major', labelsize=18)
+            ax.set_xticks(range(0, max_c, c_incr)) 
+            ax.set_yticks(range(0, max_dbe, dbe_incr))
+        
+            return ax, abun_perc 
