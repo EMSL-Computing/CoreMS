@@ -46,13 +46,17 @@ class MZDomain_Calibration:
             #matrix = np.vstack([mz_exp, np.power(mz_exp,2)]).T
             #Aterm, Bterm =  np.linalg.lstsq(matrix, self.mz_theo, rcond=None)[0]
 
-            print("Aterm", Aterm)
+            
             #mz_domain = Aterm / (self.freq_exp_ms + Bterm)
             mz_exp = (Aterm * mz_exp) + Bterm
             error = ((mz_exp-self.mz_theo)/self.mz_theo)*1000000
             rms = np.sqrt(np.mean(error**2))
             std = np.std(error)
-            print('HEREEE', rms, std, Aterm, Bterm)
+            
+            print("%.2f Aterm,  %.2f Bterm" %  (Aterm, Bterm))
+
+            print('Calibration Step fit %.2f RMS,  %.2f std,  %.2f Aterm,  %.2f Bterm ' %(rms, std, Aterm, Bterm))
+            print()
             if rms < last_rms:
                 last_rms = rms
                 mz_exp_ms = np.array(
@@ -78,13 +82,14 @@ class MZDomain_Calibration:
             #matrix = np.vstack([mz_exp, np.power(mz_exp,2)]).T
             #Aterm, Bterm =  np.linalg.lstsq(matrix, self.mz_theo, rcond=None)[0]
 
-            print("Aterm", Aterm)
             #mz_domain = Aterm / (self.freq_exp_ms + Bterm)
             mz_exp = (Aterm * (mz_exp)) + (Bterm * np.power((mz_exp), 2))
             error = ((mz_exp-self.mz_theo)/self.mz_theo)*1000000
             rms = np.sqrt(np.mean(error**2))
             std = np.std(error)
-            print('HEREEE', rms, std, Aterm, Bterm)
+            print("%.2f Aterm,  %.2f Bterm" %  (Aterm, Bterm))
+            print('Ledford Inverted Calibration %.2f RMS,  %.2f std,  %.2f Aterm,  %.2f Bterm ' %(rms, std, Aterm, Bterm))
+            print()
             if rms < last_rms:
                 last_rms = rms
                 mz_exp_ms = np.array(
@@ -113,14 +118,16 @@ class MZDomain_Calibration:
             #matrix = np.vstack([mz_exp, np.power(mz_exp,2)]).T
             #Aterm, Bterm =  np.linalg.lstsq(matrix, self.mz_theo, rcond=None)[0]
 
-            print("Aterm", Aterm)
+           
             #mz_domain = Aterm / (self.freq_exp_ms + Bterm)
             mz_exp = (Aterm * (mz_exp)) + \
                 (Bterm * np.power((mz_exp), 2) + Cterm)
             error = ((mz_exp-self.mz_theo)/self.mz_theo)*1000000
             rms = np.sqrt(np.mean(error**2))
             std = np.std(error)
-            print('HEREEE', rms, std, Aterm, Bterm)
+            print("%.2f Aterm,  %.2f Bterm" %  (Aterm, Bterm))
+            print('Quadratic Calibration %.2f RMS,  %.2f std,  %.2f Aterm,  %.2f Bterm ' %(rms, std, Aterm, Bterm))
+            print()
             if rms < last_rms:
                 last_rms = rms
                 mz_exp_ms = np.array(
@@ -132,16 +139,7 @@ class MZDomain_Calibration:
                     break
             else:
                 break
-        '''
-        matrix = np.vstack([self.mz_exp, np.power(self.mz_exp,2), np.ones(len(self.mz_exp))]).T
-        Aterm, Bterm, Cterm =  np.linalg.lstsq(matrix, self.mz_theo, rcond=None)[0]
-        print("Aterm", Aterm)
-        #mz_domain = Aterm / (self.freq_exp_ms + Bterm) 
-        self.mz_exp = (Aterm * (self.mz_exp)) + (Bterm * np.power((self.mz_exp), 2) + Cterm)
-    
-        mz_domain = (Aterm * (self.mz_exp_ms)) + (Bterm * np.power((self.mz_exp_ms), 2) + Cterm)
-        self.reset_mass_spec(mz_domain, Aterm, Bterm, Cterm)
-        '''
+       
 
     def reset_mass_spec(self, mz_domain, Aterm, Bterm, Cterm):
 
@@ -196,7 +194,9 @@ class FreqDomain_Calibration:
 
         matrix = np.vstack([1/self.freq_exp, np.ones(len(self.freq_exp))]).T
         Aterm, Bterm = np.linalg.lstsq(matrix, self.mz_theo, rcond=None)[0]
-        print("Aterm", Aterm)
+        print("%.2f Aterm,  %.2f Bterm" %  (Aterm, Bterm))
+        print('Linear Calibration %.2f Aterm,  %.2f Bterm ' %(Aterm, Bterm))
+        print()
         #mz_domain = Aterm / (self.freq_exp_ms + Bterm)
         mz_domain = (Aterm/self.freq_exp_ms) + Bterm
         self.recal_mass_spec(mz_domain, Aterm, Bterm, 0)
@@ -220,7 +220,9 @@ class FreqDomain_Calibration:
             error = ((mz_exp-mz_theo)/mz_theo)*1000000
             rms = np.sqrt(np.mean(error**2))
             std = np.std(error)
-            print('HEREEE', rms, std, Aterm, Bterm)
+            print("%.2f Aterm,  %.2f Bterm" %  (Aterm, Bterm))
+            print('Quadratic Calibration %.2f RMS,  %.2f std,  %.2f Aterm,  %.2f Bterm ' %(rms, std, Aterm, Bterm))
+            print()
             if rms < last_rms:
                 last_rms = rms
                 freq_exp = (Aterm + np.sqrt(np.power(-Aterm, 2) -
@@ -251,7 +253,9 @@ class FreqDomain_Calibration:
             error = ((mz_exp-mz_theo)/mz_theo)*1000000
             rms = np.sqrt(np.mean(error**2))
             std = np.std(error)
-            print('HEREEE', rms, std, Aterm, Bterm)
+            print("%.2f Aterm,  %.2f Bterm" %  (Aterm, Bterm))
+            print('Ledford Calibration %.2f RMS,  %.2f std,  %.2f Aterm,  %.2f Bterm ' %(rms, std, Aterm, Bterm))
+            print()
             if rms < last_rms:
                 last_rms = rms
                 freq_exp = (Aterm + np.sqrt(np.power(-Aterm, 2) -
@@ -268,38 +272,27 @@ class FreqDomain_Calibration:
 
         def f_to_mz(f, A, B, C, a): 
                 return (A / f) + (B / np.power(f, 2)) + (C*a / np.power(f, 2))
+        
         def mz_to_f(m, A, B, C): return (-A-m/B)
         
-        tuple_indexs = [(i, i+steps) for i in range(0, len(self.selected_mspeaks)-steps, steps)]
+        tuple_indexes = [(i, i+steps) for i in range(0, len(self.selected_mspeaks)-steps, steps)]
 
-        for current_index, tuple_index in enumerate(tuple_indexs):
+        for current_index, tuple_index in enumerate(tuple_indexes):
+            
             mspeak_ii, mspeak_fi = tuple_index
             freq_exp = list()
             mz_theor = list()
             mz_exp = list()
             abu = list()
-            len_mono = len(range(mspeak_ii, mspeak_fi+1))
-            len_iso =0
-            
-            for i in range(mspeak_ii, mspeak_fi+1):
-               len_iso +=  len(self.selected_mspeaks[i][0].mspeak_indexes_isotopologues)
             
             for i in range(mspeak_ii, mspeak_fi+1):
 
+                best_formula = self.selected_mspeaks[i].best_molecular_formula_candidate
+
                 freq_exp.append(self.selected_mspeaks[i].freq_exp)
-                mz_theor.append(self.selected_mspeaks[i][0].mz_theor)
+                mz_theor.append(best_formula.mz_theor)
                 mz_exp.append(self.selected_mspeaks[i].mz_exp)
                 abu.append(self.selected_mspeaks[i].abundance)
-                
-                mspeaks_iso_indexes = self.selected_mspeaks[i][0].mspeak_indexes_isotopologues    
-                
-                if len_iso == len_mono-1:
-                    for iso_index in mspeaks_iso_indexes:
-                    
-                        freq_exp.append(self.mass_spectrum[iso_index].freq_exp)
-                        mz_theor.append(self.mass_spectrum[iso_index][0].mz_theor)
-                        mz_exp.append(self.mass_spectrum[iso_index].mz_exp)
-                        abu.append(self.mass_spectrum[iso_index].abundance)    
                         
             
             freq_exp = np.array(freq_exp)
@@ -307,8 +300,9 @@ class FreqDomain_Calibration:
             mz_exp = np.array(mz_exp)
             abu = np.array(abu)
 
-            if current_index == len(tuple_indexs)-1:
+            if current_index == len(tuple_indexes)-1:
                 ms_peaks_indexes = (self.selected_mspeaks[mspeak_ii].index, 0)
+            
             elif current_index == 0:
                 ms_peaks_indexes = (len(self.mass_spectrum)-1,
                                     self.selected_mspeaks[mspeak_fi].index-1)
@@ -317,23 +311,12 @@ class FreqDomain_Calibration:
                     self.selected_mspeaks[mspeak_ii].index, self.selected_mspeaks[mspeak_fi].index-1)
 
             final_index, start_index = ms_peaks_indexes
-            
-            #sub_TIC = sum([mspeak.abundance for mspeak in self.mass_spectrum[start_index:final_index]])
-            
-            #abundace term fails with lack of isotopologues
-            
-            if len_iso == len_mono-1:
-                
-                matrix = np.vstack([1/freq_exp, 1/np.power(freq_exp, 2), abu/np.power(freq_exp, 2)]).T
-                A, B, C = np.linalg.lstsq(matrix, mz_theor, rcond=None)[0]
-            else:
-                
-                matrix = np.vstack([1/freq_exp, 1/np.power(freq_exp, 2)]).T
-                A, B = np.linalg.lstsq(matrix, mz_theor, rcond=None)[0]
-                C = 0
+                           
+            matrix = np.vstack([1/freq_exp, 1/np.power(freq_exp, 2)]).T
+            A, B = np.linalg.lstsq(matrix, mz_theor, rcond=None)[0]
+            C = 0
             
             for mspeak in self.mass_spectrum[start_index:final_index]:
-                mspeak.mz_cal = f_to_mz(
-                    mspeak.freq_exp, A, B, C, 0)
+                mspeak.mz_cal = f_to_mz(mspeak.freq_exp, A, B, C, 0)
         
         self.mass_spectrum.is_calibrated = True    
