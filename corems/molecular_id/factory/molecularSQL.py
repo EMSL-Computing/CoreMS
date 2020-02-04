@@ -103,9 +103,9 @@ class MolForm_SQL:
          if the number of classes and nominal_m/zs are higher than 1,998 the query will fail
          Solution: use postgres or split query''' 
         
-        print(len(classes) + len(nominal_mzs))
         
-        print("started molecular formula table generation")
+        
+        print("Started molecular formula table generation")
         
         def query(class_list):
             
@@ -162,7 +162,8 @@ class MolForm_SQL:
             add_dict_formula(formulas)
             
             print("Finished molecular formula table generation")
-        
+            print()
+
         return dict_res
 
     def check_entry(self,classe, ion_type, molecular_search_settings):

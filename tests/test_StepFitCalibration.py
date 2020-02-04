@@ -123,75 +123,12 @@ def test_calibration():
     #print(len(mass_spectrum))
    
     SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum)
-    ClusteringFilter().remove_assigment_by_mass_error(mass_spectrum)  
+    ClusteringFilter().remove_assignment_by_mass_error(mass_spectrum)  
 
 def test_import_ref_list():
     pass    
 
 if __name__ == "__main__":
     
-    from corems.encapsulation.settings.io import settings_parsers  
-
-    MolecularSearchSettings.error_method = 'None'
-    MolecularSearchSettings.min_mz_error = -7
-    MolecularSearchSettings.max_mz_error = 0
-    MolecularSearchSettings.mz_error_range = 1
-    MolecularSearchSettings.isProtonated = True 
-    MolecularSearchSettings.isRadical= False 
-    MolecularSearchSettings.isAdduct= False 
-    MolecularSearchSettings.usedAtoms['O'] = (1,20)
-    
-    print(MolecularSearchSettings.usedAtoms)
-
-    #settings_parsers.load_search_setting_json(settings_path="SettingsCoreMS.json")    
-
-    file_location = Path.cwd() /  "ESI_NEG_SRFA.d/"
-
-    #file_location = Path("C:\\Users\\eber373\\OneDrive - PNNL\\Trabalhos\\Mayes\\Mayes_V1D76Alt_ICR_23Sept19_Alder_Infuse_p05_1_01_48741.d")
-
-    mass_spectrum = create_mass_spectrum(file_location)
-    
-    print(mass_spectrum.polarity)
-    
-    find_formula_thread = FindOxygenPeaks(mass_spectrum)
-    find_formula_thread.run()
-    mspeaks_results = find_formula_thread.get_list_found_peaks()
-    
-    
-    #mass_spectrum.plot_profile_and_noise_threshold()
-    calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
-    calibrate.step_fit()
-
-    mass_spectrum.molecular_search_settings.min_mz_error = -1
-    mass_spectrum.molecular_search_settings.max_mz_error = 1
-    
-    find_formula_thread = FindOxygenPeaks(mass_spectrum)
-    find_formula_thread.run()
-    mspeaks_results = find_formula_thread.get_list_found_peaks()
-    
-    fig, ax = pyplot.subplots()
-    
-
-    ax.plot(mass_spectrum.mz_exp_profile, mass_spectrum.abundance_profile)
-    for mspeak in mspeaks_results:
-        if mspeak:
-            for mf in mspeak:
-                
-                ax.plot(mspeak.mz_exp, mspeak.abundance, 'o', c='g')     
-                ax.annotate(mspeak[0].to_string_formated,  (mspeak.mz_exp, mspeak.abundance + 100), fontsize=22)     
-                #print(peak.mz_exp,mf.to_string, mf.mz_error )
-    
-   
-    ax.label_outer()
-    ax.get_yaxis().set_visible(False)
-    ax.spines['left'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.tick_params(axis='both', which='major', labelsize=16)
-
-    pyplot.xlabel("m/z",fontsize=16)
-    #pyplot.ylabel("DBE")
-    pyplot.show()
-    
-    #test_calibration()
+    test_calibration()
    

@@ -58,7 +58,7 @@ if __name__ == "__main__":
     mass_spectrum.molecular_search_settings.usedAtoms['P'] = (0,0)
     mass_spectrum.molecular_search_settings.usedAtoms['Na'] = (0,0)
     mass_spectrum.molecular_search_settings.isProtonated = True
-    mass_spectrum.molecular_search_settings.isRadical= False
+    mass_spectrum.molecular_search_settings.isRadical= True
     mass_spectrum.molecular_search_settings.isAdduct = False
 
     mass_spectrum.filter_by_max_resolving_power(15, 2)
