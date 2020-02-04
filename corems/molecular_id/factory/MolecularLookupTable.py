@@ -63,7 +63,7 @@ class MolecularCombinations:
                     
                     class_tuple =  (class_str, classes_dict.get(class_str)) 
                     
-                    all_class_to_create.append((class_tuple, Labels.protonated_de_ion))
+                    all_class_to_create.append((class_tuple, Labels.radical_ion))
                 
         #print (existing_classes)class_str_list
 
@@ -119,6 +119,8 @@ class MolecularCombinations:
         
         if class_to_create:
             
+            print(class_to_create)
+
             settings = MolecularLookupDictSettings()
             settings.usedAtoms = deepcopy(molecular_search_settings.usedAtoms)
             settings.ion_charge = molecular_search_settings.ion_charge
@@ -126,17 +128,20 @@ class MolecularCombinations:
             
             c_h_combinations= self.get_c_h_combination(settings)
             
-            number_of_process = int(multiprocessing.cpu_count()/2)
+            number_of_process = 1#int(multiprocessing.cpu_count()/2)
             print("Using %i logical CPUs for database entry generation"% number_of_process )
             #number_of_process = psutil.cpu_count(logical=False)
 
             print('creating database entry for %i classes' % len(class_to_create))
             
+            breakpoint()
             p = multiprocessing.Pool(number_of_process)
             args = [(class_tuple, c_h_combinations, ion_type, settings) for class_tuple, ion_type in class_to_create]
             p.map(CombinationsWorker(), args)
             p.close()
             p.join()
+
+            breakpoint()
         
         
         return classes_list
