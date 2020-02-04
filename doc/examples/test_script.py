@@ -82,7 +82,7 @@ if __name__ == "__main__":
     all_classes = 0
 
     for classe in mass_spectrum_by_classes.get_classes(threshold_perc=1, isotopologue=False):
-            
+        
         mass_spectrum_by_classes.plot_dbe_vs_carbon_number(classe)
     
         plt.show()

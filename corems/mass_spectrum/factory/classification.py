@@ -31,6 +31,10 @@ class HeteroatomsClassification(Mapping):
 
         self.sum_abundance = 0
 
+        self.min_max_mz = (mass_spectrum.min_mz_exp, mass_spectrum.max_mz_exp)
+
+        self.min_max_abundance = (mass_spectrum.min_abundance, mass_spectrum.max_abundance)
+
         check_assign = False
 
         all_used_atoms = set()
@@ -112,7 +116,7 @@ class HeteroatomsClassification(Mapping):
                     if not isotopologue and self.get(classe)[0][0].is_isotopologue: continue
                 
                 classes.append(classe)
-        
+        #TODO sort classes chemically here too
         return classes
         
     def carbon_number(self, classe):
@@ -253,7 +257,7 @@ class HeteroatomsClassification(Mapping):
                 else:
 
                     if not include_unassigned: continue
-                    
+
                     dict_result = {'mz':  ms_peak._mz_exp,
                                 'calibrated_mz': ms_peak.mz_exp,
                                 'abundance': ms_peak.abundance,
@@ -303,6 +307,38 @@ class HeteroatomsClassification(Mapping):
         
         return ax    
 
+    def plot_ms_class(self, classe, color= 'g'):
+        
+        from matplotlib import pyplot as plt
+        
+        if classe != Labels.unassigned:
+            ax = plt.gca()
+            
+            abun_perc = self.abundance_count_percentile(classe)
+            mz_assigned = self.mz_exp(classe)
+            abundance_assigned= self.abundance(classe)
+
+            for plot_obj in ax.stem( mz_assigned, abundance_assigned, linefmt='-',  markerfmt=" ", use_line_collection =True):
+            
+                plt.setp(plot_obj, 'color', color, 'linewidth', 2)
+            
+            title = "%s, %.2f %%" % (classe, abun_perc)
+            ax.set_title(title)
+            ax.set_xlabel("$\t{m/z}$", fontsize=12)
+            ax.set_ylabel('Abundance', fontsize=12)
+            ax.tick_params(axis='both', which='major', labelsize=12)
+
+            ax.axes.spines['top'].set_visible(False)
+            ax.axes.spines['right'].set_visible(False)
+
+            ax.get_yaxis().set_visible(False)
+            ax.spines['left'].set_visible(False)
+
+            ax.set_xlim(self.min_max_mz)
+            ax.set_ylim(self.min_max_abundance)
+        
+            return ax   
+
     def plot_dbe_vs_carbon_number(self, classe, max_c=50, max_dbe=40, dbe_incr=5, c_incr=10):
         
         from matplotlib import pyplot as plt
@@ -320,7 +356,7 @@ class HeteroatomsClassification(Mapping):
 
             ax.scatter(carbon_number, dbe, c=abundance, alpha=0.5)
             
-            title = "%s, %.2f" % (classe, abun_perc)
+            title = "%s, %.2f %%" % (classe, abun_perc)
             ax.set_title(title)
             ax.set_xlabel("Carbon number", fontsize=16)
             ax.set_ylabel('DBE', fontsize=16)
