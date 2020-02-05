@@ -113,11 +113,12 @@ class MolecularCombinations:
 
     def runworker(self, molecular_search_settings) :
 
-        print()
+        
         print ("Querying database for existing classes")
         classes_list, class_to_create = self.check_database_get_class_list(molecular_search_settings)
         print ("Finished querying database for existing classes")
         print()
+
         if class_to_create:
             
             settings = MolecularLookupDictSettings()
@@ -132,7 +133,6 @@ class MolecularCombinations:
             #number_of_process = psutil.cpu_count(logical=False)
 
             print('creating database entry for %i classes' % len(class_to_create))
-            
             
             p = multiprocessing.Pool(number_of_process)
             args = [(class_tuple, c_h_combinations, ion_type, settings) for class_tuple, ion_type in class_to_create]

@@ -58,9 +58,9 @@ class MolecularSearchSettings:
     
     #max_mz and min_mz changes automatically with mass spectrum
     
-    use_min_peaks_filter = False
+    use_min_peaks_filter = True
 
-    min_peaks_per_class = 1
+    min_peaks_per_class = 30
 
     db_directory = False
 
@@ -88,7 +88,7 @@ class MolecularSearchSettings:
     score_methods = ["S_P_lowest_error", "N_S_P_lowest_error", "lowest_error", "prop_score",
                      "air_filter_error", "water_filter_error", "earth_filter_error" ]
     
-    score_method = "lowest_error"
+    score_method = "N_S_P_lowest_error"
 
     # depending on the polarity mode it looks for [M].+ , [M].-
     # query and automatically compile and push options if it doesn't exist
@@ -100,7 +100,7 @@ class MolecularSearchSettings:
 
     usedAtoms = {   'C': (1, 100),
                     'H': (4, 200),
-                    'O': (1, 19),
+                    'O': (1, 22),
                     'N': (0, 0),
                     'S': (0, 0),
                     'P': (0, 0),

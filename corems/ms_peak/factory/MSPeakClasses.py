@@ -6,10 +6,7 @@ __date__ = "Jun 12, 2019"
 from corems.encapsulation.settings.input.ProcessingSetting import MassSpecPeakSetting
 from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings
 
-
 from corems.ms_peak.calc.MSPeakCalc import MSPeakCalculation
-
-
 
 class _MSPeak(MSPeakCalculation):
     '''
