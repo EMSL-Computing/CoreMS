@@ -12,9 +12,11 @@ import pandas as pd
 class ClusteringFilter():
     
     def get_mass_error_matrix_data(self, ms_peaks):
+        
         mass_list = list()
         error_list = list()
         list_indexes_mass_spec = []
+        
         for index, mspeak in enumerate(ms_peaks):
 
             if mspeak.is_assigned:
@@ -25,16 +27,17 @@ class ClusteringFilter():
                     error_list.append(mformula._calc_assignment_mass_error(mspeak.mz_exp))
                     list_indexes_mass_spec.append(index)
         
-        dict = {'mass': mass_list, 'error': error_list}  
-        df = pd.DataFrame(dict) 
+        kendrick_dict = {'mass': mass_list, 'error': error_list}  
+        df = pd.DataFrame(kendrick_dict) 
         matrix_data = df.values.astype("float32", copy = False)
         return matrix_data, list_indexes_mass_spec
 
     def get_kendrick_matrix_data(self, mass_spectrum):
+        
         km = mass_spectrum.kendrick_mass
         kdm = mass_spectrum.kmd
-        dict = {'km': km, 'kdm': kdm}  
-        df = pd.DataFrame(dict) 
+        kendrick_dict = {'km': km, 'kdm': kdm}  
+        df = pd.DataFrame(kendrick_dict) 
         matrix_data = df.values.astype("float32", copy = False)
         return matrix_data
 
@@ -66,7 +69,57 @@ class ClusteringFilter():
         #plt.ylabel("kdm")
         #plt.show()
         #plt.close()
-       
+
+    def filter_kendrick_by_index(self, ms_peak_indexes, mass_spectrum_obj):
+        
+        min_samples = mass_spectrum_obj.molecular_search_settings.min_peaks_per_class
+
+        kendrick_dict = {'km': list(), 'kmd': list()}  
+
+        for index in ms_peak_indexes:
+           kendrick_dict["km"].append(mass_spectrum_obj[index].kendrick_mass)
+           kendrick_dict["kmd"].append(mass_spectrum_obj[index].kmd)
+        
+        df = pd.DataFrame(kendrick_dict) 
+        matrix_data = df.values.astype("float32", copy = False)
+
+        stdscaler = StandardScaler().fit(matrix_data)
+        matrix_data_scaled = stdscaler.transform(matrix_data)
+
+        clusters = DBSCAN(eps = .7, min_samples=min_samples).fit_predict(matrix_data_scaled)
+        
+        # Number of clusters in labels, ignoring noise if present.
+        n_clusters_ = len(set(clusters)) - (1 if -1 in clusters else 0)
+        n_noise_ = list(clusters).count(-1)
+        
+        print('Estimated number of clusters: %d' % n_clusters_)
+        print('Estimated number of noise points: %d' % n_noise_)
+
+        noise_idx = []
+        
+        other_peaks_idx = []
+
+        for i in range(len(clusters)):
+            if clusters[i] == -1:
+                noise_idx.append(ms_peak_indexes[i])
+            else:
+                other_peaks_idx.append(ms_peak_indexes[i])    
+
+        mfs = [mass_spectrum_obj[index].best_molecular_formula_candidate.to_string for index in other_peaks_idx]
+        
+        mfs_noise = [mass_spectrum_obj[index].best_molecular_formula_candidate.to_string for index in noise_idx]
+        
+        #print(mfs)
+        #print(mfs_noise)
+
+        #from matplotlib import pyplot as plt
+        #plt.scatter(matrix_data[:, 0], matrix_data[:, 1], c=clusters, cmap="jet")
+        #plt.xlabel("km")
+        #plt.ylabel("kdm")
+        #plt.show()
+        #plt.close()
+
+        return noise_idx      
 
     def remove_assignment_by_mass_error(self, mass_spectrum):
         

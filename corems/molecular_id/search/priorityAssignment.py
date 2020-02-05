@@ -104,6 +104,14 @@ class OxygenPriorityAssignment(Thread):
 
             return any([key in classe_dict.keys() for key in self.mass_spectrum_obj.molecular_search_settings.adduct_atoms_neg])
         
+        def filter_kendrick(ms_peak_indexes):
+
+            if self.mass_spectrum_obj.molecular_search_settings.use_runtime_kendrick_filter:
+
+                noise_indexes = ClusteringFilter().filter_kendrick_by_index(ms_peak_indexes, self.mass_spectrum_obj)
+
+                for index in noise_indexes: self.mass_spectrum_obj[index].clear_molecular_formulas()
+        
         def check_min_peaks(ms_peak_indexes):
             
             if self.mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter:
@@ -159,8 +167,12 @@ class OxygenPriorityAssignment(Thread):
 
                     all_assigned_indexes.extend(ms_peak_indexes)
             
+            #filter noise kendrick
+            filter_kendrick(all_assigned_indexes)
+
             #filter per min peaks per mono isotopic class
             check_min_peaks(all_assigned_indexes)
+            
         
         #error_average = self.mass_spectrum_obj.molecular_search_settings.mz_error_average
         

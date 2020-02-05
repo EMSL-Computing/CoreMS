@@ -58,9 +58,11 @@ class MolecularSearchSettings:
     
     #max_mz and min_mz changes automatically with mass spectrum
     
+    use_runtime_kendrick_filter = True
+
     use_min_peaks_filter = True
 
-    min_peaks_per_class = 30
+    min_peaks_per_class = 15
 
     db_directory = False
 

@@ -47,7 +47,7 @@ if __name__ == "__main__":
     mass_spectrum.molecular_search_settings.max_mz_error = 0.5
 
     mass_spectrum.molecular_search_settings.min_dbe = 0
-    mass_spectrum.molecular_search_settings.max_dbe = 30
+    mass_spectrum.molecular_search_settings.max_dbe = 50
 
     mass_spectrum.molecular_search_settings.usedAtoms['C'] = (1,90)
     mass_spectrum.molecular_search_settings.usedAtoms['H'] = (4,200)
@@ -75,9 +75,9 @@ if __name__ == "__main__":
 
     plt.show()
 
-    dataframe = mass_spectrum_by_classes.to_dataframe()
+    #dataframe = mass_spectrum_by_classes.to_dataframe()
     
-    class_plot(dataframe)
+    #class_plot(dataframe)
 
     all_classes = 0
 
