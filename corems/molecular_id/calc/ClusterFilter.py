@@ -81,8 +81,7 @@ class ClusteringFilter():
         for index in ms_peak_indexes:
            kendrick_dict["km"].append(mass_spectrum_obj[index].kendrick_mass)
            kendrick_dict["kmd"].append(mass_spectrum_obj[index].kmd)
-           i += 1
-        
+           
         # check min data points otherwise StandardScaler().fit(0 will fail
         
         df = pd.DataFrame(kendrick_dict) 
