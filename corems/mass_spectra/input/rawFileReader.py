@@ -109,7 +109,6 @@ class ImportLCMSThermoMSFileReader(Thread):
             raise Exception("Polarity Mode Unknown, please set it manually")
 
     def get_data(self, scan, d_parameter, scan_type):
-
         
         if scan_type == "Centroid":
             
@@ -165,6 +164,56 @@ class ImportLCMSThermoMSFileReader(Thread):
         isCentroid = scanStatistics.IsCentroidScan
        
         return  bool(not isCentroid)
+
+    def get_summed_mass_spectrum(self, initial_scan_number, final_scan_number, auto_process=True):
+
+        d_params = InputSetting.d_params(self.file_location)
+
+        # assumes first scan is full scan
+         
+        d_params["label"] = Labels.thermo_profile
+
+        d_params["polarity"] = self.get_polarity_mode(initial_scan_number)
+        
+        all_mz = dict()
+
+        for scan_number in range(self.initial_scan_number, self.final_scan_number + 1):
+
+            scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan_number)
+            
+            segmentedScan = self.iRawDataPlus.GetSegmentedScanFromScanNumber(scan_number, scanStatistics)
+
+            len_data = segmentedScan.Positions.Length
+
+            for i in range(len_data):
+
+                mz = segmentedScan.Positions[i]
+                abundance = segmentedScan.Intensities[i]
+
+                if mz in all_mz:
+                    all_mz[mz] = all_mz[mz] + abundance    
+                else: 
+                    all_mz[mz] = abundance
+
+        mz_all = []
+        abun_all = []
+
+        for mz in sorted (all_mz) : 
+            mz_all.append(mz)
+            abun_all.append(all_mz[mz])
+
+
+        data_dict = {
+                "m/z": mz_all,
+                "Abundance": abun_all,
+            }
+        
+        data = DataFrame(data_dict)
+
+        mass_spec = MassSpecProfile(data, d_params, auto_process=auto_process)
+
+        return mass_spec
+       
 
     def _import_mass_spectra(self, d_params, auto_process=True):
         

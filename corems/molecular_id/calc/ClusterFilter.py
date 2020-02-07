@@ -62,6 +62,7 @@ class ClusteringFilter():
         
         print('Estimated number of clusters: %d' % n_clusters_)
         print('Estimated number of noise points: %d' % n_noise_)
+        print()
         mass_spectrum.filter_by_index(indexes)
         #from matplotlib import pyplot as plt
         #plt.scatter(matrix_data[:, 0], matrix_data[:, 1], c=clusters, cmap="jet")
@@ -90,7 +91,7 @@ class ClusteringFilter():
         stdscaler = StandardScaler().fit(matrix_data)
         matrix_data_scaled = stdscaler.transform(matrix_data)
 
-        clusters = DBSCAN(eps = .7, min_samples=min_samples).fit_predict(matrix_data_scaled)
+        clusters = DBSCAN(eps = .8, min_samples=min_samples).fit_predict(matrix_data_scaled)
         
         # Number of clusters in labels, ignoring noise if present.
         n_clusters_ = len(set(clusters)) - (1 if -1 in clusters else 0)
@@ -98,6 +99,7 @@ class ClusteringFilter():
         
         print('Estimated number of clusters: %d' % n_clusters_)
         print('Estimated number of noise points: %d' % n_noise_)
+        print()
 
         noise_idx = []
         
