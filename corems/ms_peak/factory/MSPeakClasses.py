@@ -182,28 +182,30 @@ class _MSPeak(MSPeakCalculation):
     
     def cia_score_N_S_P_error(self):
         #case EFormulaScore.HAcap:
-        
-        lowest_N_S_P_mf = min(self.molecular_formulas, key=lambda mf: mf.get('N') + mf.get('S') + mf.get('P'))
-        lowest_N_S_P_count = lowest_N_S_P_mf.get("N") + lowest_N_S_P_mf.get("S") + lowest_N_S_P_mf.get("P")
+        if self.molecular_formulas:
 
-        list_same_N_S_P = list(filter(lambda mf: mf.get('N') + mf.get('S') + mf.get('P') == lowest_N_S_P_count, self.molecular_formulas))
+            lowest_N_S_P_mf = min(self.molecular_formulas, key=lambda mf: mf.get('N') + mf.get('S') + mf.get('P'))
+            lowest_N_S_P_count = lowest_N_S_P_mf.get("N") + lowest_N_S_P_mf.get("S") + lowest_N_S_P_mf.get("P")
 
-        if list_same_N_S_P:
+            list_same_N_S_P = list(filter(lambda mf: mf.get('N') + mf.get('S') + mf.get('P') == lowest_N_S_P_count, self.molecular_formulas))
 
-            SP_filtered_list =  list(filter(lambda mf: (mf.get("S") <= 3 ) and  (mf.get("P")  <= 1 ), list_same_N_S_P))
-            
-            if SP_filtered_list:
+            if list_same_N_S_P:
+
+                SP_filtered_list =  list(filter(lambda mf: (mf.get("S") <= 3 ) and  (mf.get("P")  <= 1 ), list_same_N_S_P))
                 
-                return min(SP_filtered_list, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp))) 
-            
-            else:    
+                if SP_filtered_list:
+                    
+                    return min(SP_filtered_list, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp))) 
                 
-                return min(list_same_N_S_P, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))            
-        
+                else:    
+                    
+                    return min(list_same_N_S_P, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))            
+            
+            else:
+                
+                return lowest_N_S_P_mf 
         else:
-            
-            return lowest_N_S_P_mf 
- 
+            raise Exception("No molecular formula associated with the mass spectrum peak at m/z: %.6f" % self.mz_exp)
 
 class ICRMassPeak(_MSPeak):
 

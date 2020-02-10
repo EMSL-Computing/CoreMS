@@ -221,9 +221,12 @@ class SearchMolecularFormulas:
         dict_res = self.get_dict_molecular_database(classes_str, nominal_mzs, mass_spectrum_obj.molecular_search_settings)
         
         for classe_tuple in classes:
-                
+
+            
             classe_str  = classe_tuple[0]
             classe_dict = classe_tuple[1]
+
+            print("Started molecular formulae search for class ", classe_str)
 
             is_adduct = self.check_adduct_class(classe_dict, mass_spectrum_obj)    
             

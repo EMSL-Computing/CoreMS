@@ -23,6 +23,7 @@ class HeteroatomsClassification(Mapping):
 
         self._ms_grouped_class = dict()
         
+        self.choose_mf = choose_molecular_formula
         #mapping for ms peaks without any molecular formula associated
 
         self._ms_grouped_class[Labels.unassigned] = list()
@@ -34,6 +35,10 @@ class HeteroatomsClassification(Mapping):
         self.min_max_mz = (mass_spectrum.min_mz_exp, mass_spectrum.max_mz_exp)
 
         self.min_max_abundance = (mass_spectrum.min_abundance, mass_spectrum.max_abundance)
+
+        self.min_mz_error = mass_spectrum.molecular_search_settings.min_mz_error
+
+        self.max_mz_error = mass_spectrum.molecular_search_settings.max_mz_error
 
         check_assign = False
 
@@ -55,11 +60,11 @@ class HeteroatomsClassification(Mapping):
 
                 if choose_molecular_formula:
                     
-                    formula = ms_peak.best_molecular_formula_candidate
+                    mf = ms_peak.best_molecular_formula_candidate
                     
-                    classes =  [formula.class_label]
+                    classes =  [mf.class_label]
                     
-                    for atom in formula.atoms:
+                    for atom in mf.atoms:
                         
                         all_used_atoms.add(atom)
 
@@ -71,7 +76,7 @@ class HeteroatomsClassification(Mapping):
                         
                         classes.append(mf.class_label)
                         
-                        for atom in formula.atoms:
+                        for atom in mf.atoms:
                              
                              all_used_atoms.add(atom)
 
@@ -108,44 +113,63 @@ class HeteroatomsClassification(Mapping):
         
         classes = list()
         for classe in self.keys():
-            
-            if self.abundance_count_percentile(classe) > threshold_perc:
-                
-                if classe != Labels.unassigned:
-                    # access first molecular formula inside the first ms peak and check isotopologue
-                    if not isotopologue and self.get(classe)[0][0].is_isotopologue: continue
-                
-                classes.append(classe)
+            if classe != Labels.unassigned:
+                if self.abundance_count_percentile(classe) > threshold_perc:
+                    
+                    if classe != Labels.unassigned:
+                        # access first molecular formula inside the first ms peak and check isotopologue
+                        if not isotopologue and self.get(classe)[0][0].is_isotopologue: continue
+                    
+                    classes.append(classe)
         #TODO sort classes chemically here too
         return classes
         
+    def molecular_formula_string(self, classe,):
+
+        if self.choose_mf:
+            return [mspeak.best_molecular_formula_candidate for mspeak in self[classe]]
+        else:
+            return [mf for mspeak in self[classe] for mf in mspeak ]
+
+    def molecular_formula(self, classe,):
+
+        if self.choose_mf:
+            return [mspeak.best_molecular_formula_candidate for mspeak in self[classe]]
+        else:
+            return [mf for mspeak in self[classe] for mf in mspeak ]
+            
     def carbon_number(self, classe):
 
-        return [mf.get('C') for mspeak in self[classe] for mf in mspeak ]
+        if self.choose_mf:
+            return [mspeak.best_molecular_formula_candidate.get("C") for mspeak in self[classe]]
+        else:
+            return [mf.get('C') for mspeak in self[classe] for mf in mspeak ]
 
     def atom_count(self, atom, classe):
-
-        return [mf.get(atom) for mspeak in self[classe] for mf in mspeak ]
+        if self.choose_mf:
+            return [mspeak.best_molecular_formula_candidate.get(atom) for mspeak in self[classe]]
+        else:    
+            return [mf.get(atom) for mspeak in self[classe] for mf in mspeak ]
 
     def dbe(self, classe):
-
-        return [mf.dbe for mspeak in self[classe] for mf in mspeak]
+        if self.choose_mf:
+            return [mspeak.best_molecular_formula_candidate.dbe for mspeak in self[classe]]
+        else:    
+            return [mf.dbe for mspeak in self[classe] for mf in mspeak]
     
     def atoms_ratio(self, classe, numerator, denominator):
 
-        #return [mspeak.mz_exp for classe in classes for mspeak in self[classe] if classe != Labels.unassigned]
-
-        return [mf.get(numerator)/mf.get(denominator) for mspeak in self[classe] for mf in mspeak ]
-    
+        return [mf.get(numerator)/mf.get(denominator) for mf in self.molecular_formula(classe)]
+       
     def mz_exp(self, classe):
         
-        if classe != Labels.unassigned:
+        if self.choose_mf or classe == Labels.unassigned:
             
-            return [mspeak.mz_exp for mspeak in self[classe] for mf in mspeak]
+            return [mspeak.mz_exp for mspeak in self[classe]]
         
         else:
             
-            return [mspeak.mz_exp for mspeak in self[classe]]
+            return [mspeak.mz_exp for mspeak in self[classe] for mf in mspeak]
     
     def abundance(self, classe):
 
@@ -157,9 +181,27 @@ class HeteroatomsClassification(Mapping):
             
             return [mspeak.abundance for mspeak in self[classe]]
 
-    def mz_calc(self, classe):
+    def mz_error(self, classe):
 
-        return [mf.mz_theor for mspeak in self[classe] for mf in mspeak] 
+        if classe != Labels.unassigned:
+            
+            if self.choose_mf:
+                
+                return [mspeak.best_molecular_formula_candidate.mz_error for mspeak in self[classe]]
+            
+            else:
+                
+                return [mf.mz_error for mspeak in self[classe] for mf in mspeak ]
+    
+    def mz_theor(self, classe):
+        
+        if self.choose_mf:
+            
+            return [mspeak.best_molecular_formula_candidate.mz_theor for mspeak in self[classe]]
+        
+        else:
+            
+            return [mf.mz_theor for mspeak in self[classe] for mf in mspeak] 
 
     def peaks_count_percentile(self, classe):
 
@@ -307,6 +349,39 @@ class HeteroatomsClassification(Mapping):
         
         return ax    
 
+    
+    def plot_mz_error_class(self, classe, color= 'g'):
+        
+        from matplotlib import pyplot as plt
+        
+        if classe != Labels.unassigned:
+            ax = plt.gca()
+            
+            print(classe)
+            abun_perc = self.abundance_count_percentile(classe)
+            mz_assigned = self.mz_exp(classe)
+            mz_error= self.mz_error(classe)
+            
+            print(len(mz_assigned), len(mz_error))
+            ax.scatter( mz_assigned, mz_error, c=color)
+            
+            title = "%s, %.2f %%" % (classe, abun_perc)
+            ax.set_title(title)
+            ax.set_xlabel("$\t{m/z}$", fontsize=12)
+            ax.set_ylabel('Error (ppm)', fontsize=12)
+            ax.tick_params(axis='both', which='major', labelsize=12)
+
+            ax.axes.spines['top'].set_visible(True)
+            ax.axes.spines['right'].set_visible(True)
+
+            ax.get_yaxis().set_visible(True)
+            ax.spines['left'].set_visible(True)
+
+            ax.set_xlim(self.min_max_mz)
+            ax.set_ylim(self.min_mz_error, self.max_mz_error)
+        
+            return ax   
+            
     def plot_ms_class(self, classe, color= 'g'):
         
         from matplotlib import pyplot as plt

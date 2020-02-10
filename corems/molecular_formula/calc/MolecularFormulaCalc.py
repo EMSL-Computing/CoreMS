@@ -67,6 +67,8 @@ class MolecularFormulaCalc:
         if mz_exp:
             
             #self.parent need to have a MassSpecPeak associated with the MolecularFormula class
+            self._assignment_mass_error = ((self.mz_theor - mz_exp)/self.mz_theor)*mult_factor
+
             return ((self.mz_theor - mz_exp)/self.mz_theor)*mult_factor
         
         else:
@@ -74,7 +76,7 @@ class MolecularFormulaCalc:
             raise Exception("Please set mz_theor first")    
     
     def _calc_abundance_error(self, mono_abundance, iso_abundance, method='perc'):
-        '''methodo should be ppm or ppb'''
+        '''method should be ppm or ppb'''
         
         mult_factor = 100
         if self.prob_ratio:
