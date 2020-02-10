@@ -129,33 +129,33 @@ class HeteroatomsClassification(Mapping):
         if self.choose_mf:
             return [mspeak.best_molecular_formula_candidate for mspeak in self[classe]]
         else:
-            return [mf for mspeak in self[classe] for mf in mspeak ]
+            return [mf for mspeak in self[classe] for mf in mspeak if mf.class_label == classe]
 
     def molecular_formula(self, classe,):
 
         if self.choose_mf:
             return [mspeak.best_molecular_formula_candidate for mspeak in self[classe]]
         else:
-            return [mf for mspeak in self[classe] for mf in mspeak ]
+            return [mf for mspeak in self[classe] for mf in mspeak if mf.class_label == classe]
             
     def carbon_number(self, classe):
 
         if self.choose_mf:
             return [mspeak.best_molecular_formula_candidate.get("C") for mspeak in self[classe]]
         else:
-            return [mf.get('C') for mspeak in self[classe] for mf in mspeak ]
+            return [mf.get('C') for mspeak in self[classe] for mf in mspeak if mf.class_label == classe]
 
     def atom_count(self, atom, classe):
         if self.choose_mf:
             return [mspeak.best_molecular_formula_candidate.get(atom) for mspeak in self[classe]]
         else:    
-            return [mf.get(atom) for mspeak in self[classe] for mf in mspeak ]
+            return [mf.get(atom) for mspeak in self[classe] for mf in mspeak if mf.class_label == classe]
 
     def dbe(self, classe):
         if self.choose_mf:
             return [mspeak.best_molecular_formula_candidate.dbe for mspeak in self[classe]]
         else:    
-            return [mf.dbe for mspeak in self[classe] for mf in mspeak]
+            return [mf.dbe for mspeak in self[classe] for mf in mspeak if mf.class_label == classe]
     
     def atoms_ratio(self, classe, numerator, denominator):
 
@@ -169,17 +169,17 @@ class HeteroatomsClassification(Mapping):
         
         else:
             
-            return [mspeak.mz_exp for mspeak in self[classe] for mf in mspeak]
+            return [mspeak.mz_exp for mspeak in self[classe] for mf in mspeak if mf.class_label == classe]
     
     def abundance(self, classe):
 
-        if classe != Labels.unassigned:
+        if self.choose_mf or classe == Labels.unassigned:
             
-            return [mspeak.abundance for mspeak in self[classe] for mf in mspeak]
+            return [mspeak.abundance for mspeak in self[classe]]
         
         else:
             
-            return [mspeak.abundance for mspeak in self[classe]]
+            return [mspeak.abundance for mspeak in self[classe] for mf in mspeak if mf.class_label == classe]
 
     def mz_error(self, classe):
 
@@ -187,11 +187,11 @@ class HeteroatomsClassification(Mapping):
             
             if self.choose_mf:
                 
-                return [mspeak.best_molecular_formula_candidate.mz_error for mspeak in self[classe]]
+                return [mspeak.best_molecular_formula_candidate._calc_assignment_mass_error(mspeak.mz_exp) for mspeak in self[classe]]
             
             else:
                 
-                return [mf.mz_error for mspeak in self[classe] for mf in mspeak ]
+                return [mf._calc_assignment_mass_error(mspeak.mz_exp) for mspeak in self[classe] for mf in mspeak if mf.class_label == classe]
     
     def mz_theor(self, classe):
         
@@ -201,7 +201,7 @@ class HeteroatomsClassification(Mapping):
         
         else:
             
-            return [mf.mz_theor for mspeak in self[classe] for mf in mspeak] 
+            return [mf.mz_theor for mspeak in self[classe] for mf in mspeak if mf.class_label == classe] 
 
     def peaks_count_percentile(self, classe):
 

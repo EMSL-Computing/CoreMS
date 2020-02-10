@@ -39,7 +39,8 @@ class MolecularFormulaCalc:
                     try:
                         mass = mass + Atoms.atomic_masses[each_atom]  *  self._d_molecular_formula.get(each_atom)
                     except: print(Labels.ion_type, each_atom) 
-            return mass + ((-self.ion_charge) * Atoms.electron_mass)
+            
+            return mass + ((-1*self.ion_charge) * Atoms.electron_mass)
         
         else:
             
