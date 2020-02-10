@@ -53,7 +53,7 @@ class MolecularCombinations:
                     
                     all_class_to_create.append((class_tuple, Labels.protonated_de_ion))
 
-            if  molecular_search_settings.isRadical:
+            if  molecular_search_settings.isRadical or molecular_search_settings.isAdduct:
 
                 existing_classes = set(sql_db.get_all_classes(Labels.radical_ion, molecular_search_settings))
 
