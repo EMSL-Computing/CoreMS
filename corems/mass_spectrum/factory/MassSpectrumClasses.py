@@ -72,16 +72,19 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self._transient_settings = None 
         self._frequency_domain = None
         
-        self._init_settings()
         self._set_parameters_objects(d_params)
+        self._init_settings()
 
         self.is_calibrated = False
 
     def _init_settings(self):
         
         self._mol_search_settings  = deepcopy(MolecularSearchSettings)
+        self._mol_search_settings.ion_charge = self.polarity
+
         self._settings  = deepcopy(MassSpectrumSetting)
         self._mspeaks_settings  = deepcopy(MassSpecPeakSetting)
+
 
     def __len__(self):
         
