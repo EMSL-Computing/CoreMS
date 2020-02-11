@@ -1,6 +1,6 @@
 '''
-exact masses, isotopologues, covalences and isotopic abundandes 
-last update masses and isotopic abundandes from NIST(07/18/2019):
+exact masses, isotopologues, covalences and isotopic abundances 
+last update masses and isotopic abundances from NIST(07/18/2019):
 https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-relative-atomic-masses
  '''
 
@@ -108,7 +108,7 @@ class Atoms: #pragma: no cover
                      '61Ni': 60.9310555752,
                      '62Ni': 61.9283453755,
                      '64Ni': 63.9279668258,
-                     '63Cu': 62.9295977256,
+                     'Cu': 62.9295977256,
                      '65Cu': 64.9277897071,
                      '64Zn': 63.9291420171,
                      '66Zn': 65.9260338194,
@@ -127,7 +127,7 @@ class Atoms: #pragma: no cover
                      '76Se': 75.91921370417,
                      '77Se': 76.91991415467,
                      '78Se': 77.917309282,
-                     '80Se': 79.916521813,
+                     'Se': 79.916521813,
                      '82Se': 81.916699515,
                      'Br': 78.918337614,
                      '81Br': 80.916289714,
@@ -391,9 +391,9 @@ class Atoms: #pragma: no cover
                      '292Ts': 292.2074675,
                      '294Og': 294.2139271}
 
-    atoms_order = ['C', 'H', 'N', 'O', 'S', 'P', '13C', '34S', 'Na', 'Cl', '37Cl',
+    atoms_order = ['C', 'H', 'N', 'O', 'S', 'P', '13C', '34S', 'Na', 'Cl', '37Cl','Fe', 'Ca',
                         'V', 'I', 'Ac', 'Al', 'Ar', 'As', 'At', 'Au', 'Co', 'Cs', 'D', 'F', 'Fr','18O', '17O',
-                        'He', 'Po', 'Ra', 'Rh', 'Rn', 'Be', 'Bi', 'Nb54Fe', '57Fe', '58Ni', '60Ni',
+                        'He', 'Po', 'Ra', 'Rh', 'Rn', 'Be', 'Bi', 'Nb, 54Fe', '57Fe', '58Ni', '60Ni',
                         '61Ni', '62Ni', '10B', '11B', '6Li', '7Li', 'La', 'Mn', '107Ag', '109Ag', '100Mo',
                         '100Ru', '101Ru', '102Pd', '102Ru', '104Pd', '104Ru', '105Pd', '106Cd', '106Pd', '108Cd',
                         '108Pd', '110Cd', '110Pd', '111Cd', '112Cd', '112Sn', '113Cd', '113In', '114Cd', '114Sn',
@@ -404,10 +404,10 @@ class Atoms: #pragma: no cover
                         '179Hf', '180Hf', '180W', '182W', '183W', '184Os', '184W', '185Re', '186Os', '186W', '187Os', '187Re',
                         '188Os', '189Os', '190Os', '190Pt', '191Ir', '192Ir', '192Os', '192Pt', '194Pt', '195Pt', '196Hg',
                         '196Pt', '198Hg', '198Pt', '199Hg', '200Hg', '201Hg', '202Hg', '203Tl', '204Hg', '204Pb', '205Tl', '206Pb',
-                        '207Pb', '208Pb', '20Ne', '22Ne', '24Mg', '25Mg', '26Mg', '28Si', '29Si', '30Si', '39K', '40Ca', '41K', '44Ca',
-                        '46Ti', '47Ti', '48Ti', '49Ti', '50Cr', '50Ti', '50V', '51V', '52Cr', '53Cr', '54Cr', '63Cu', '64Zn', '65Cu', '66Zn',
+                        '207Pb', '208Pb', '20Ne', '22Ne', '24Mg', '25Mg', '26Mg', '28Si', '29Si', '30Si', 'K', '40Ca', '41K', '44Ca',
+                        '46Ti', '47Ti', '48Ti', '49Ti', '50Cr', '50Ti', '50V', '51V', '52Cr', '53Cr', '54Cr', 'Cu', '64Zn', '65Cu', '66Zn',
                         '67Zn', '68Zn', '69Ga', '70Ge', '71Ga', '72Ge', '73Ge', '74Ge', '76Ge', '76Se', '77Se', '78Se', 'Br', '81Br', '80Kr',
-                        '80Se', '82Kr', '82Se', '83Kr', '84Kr', '85Rb', '86Kr', '86Sr', '87Rb', '87Sr', '88Sr', '90Zr', '91Zr', '92Mo', '92Zr',
+                        'Se', '82Kr', '82Se', '83Kr', '84Kr', '85Rb', '86Kr', '86Sr', '87Rb', '87Sr', '88Sr', '90Zr', '91Zr', '92Mo', '92Zr',
                         '94Mo', '94Zr', '95Mo', '96Mo', '96Ru', '96Zr', '97Mo', '98Mo', '98Ru', '99Ru']
 
     atoms_covalence = {'C': (4),
@@ -554,7 +554,7 @@ class Atoms: #pragma: no cover
                           '61Ni': 0.01139913,
                           '62Ni': 0.0363464,
                           '64Ni': 0.00925519,
-                          '63Cu': 0.691515,
+                          'Cu': 0.691515,
                           '65Cu': 0.308515,
                           '64Zn': 0.491775,
                           '66Zn': 0.277398,
@@ -573,7 +573,7 @@ class Atoms: #pragma: no cover
                           '76Se': 0.093729,
                           '77Se': 0.076316,
                           '78Se': 0.237728,
-                          '80Se': 0.496141,
+                          'Se': 0.496141,
                           '82Se': 0.087322,
                           'Br': 0.50697,
                           '81Br': 0.49317,
@@ -858,19 +858,19 @@ class Atoms: #pragma: no cover
                 'Ne': ['Neon', ['20Ne', '22Ne']],
                 'Mg': ['Magnesium', ['24Mg', '26Mg', '25Mg']],
                 'Si': ['Silicon', ['28Si', '29Si', '30Si']],
-                'K': ['Potassium', ['40', '41K']],
+                'K': ['Potassium', ['40K', '41K']],
                 'Ca': ['Calcium', ['43Ca', '44Ca']],
                 'Ti': ['Titanium', ['48Ti', '46Ti', '47Ti', '49Ti', '50Ti']],
                 'Cr': ['Chromium', ['52Cr', '53Cr', '50Cr', '54Cr']],
                 'Fe': ['Iron', ['54Fe', '57Fe', '58Fe']],
                 'Mn': ['Manganese'],
                 'Ni': ['Nickel', ['58Ni', '60Ni', '62Ni', '61Ni']],
-                'Cu': ['Copper', ['63Cu', '65Cu']],
+                'Cu': ['Copper', ['65Cu']],
                 'Zn': ['Zinc', ['64Zn', '66Zn', '68Zn', '67Zn']],
                 'Ga': ['Gallium', ['69Ga', '71Ga']],
                 'Ge': ['Germanium', ['74Ge', '72Ge', '70Ge', '73Ge', '76Ge']],
                 'As': ['Arsenic'],
-                'Se': ['Selenium', ['80Se', '78Se', '76Se', '82Se', '77Se']],
+                'Se': ['Selenium', ['78Se', '76Se', '82Se', '77Se']],
                 'Br': ['Bromine', ['Br', '81Br']],
                 'Kr': ['Krypton', ['84Kr', '86Kr', '82Kr', '83Kr', '80Kr']],
                 'Rb': ['Rubidium', ['85Rb', '87Rb']],
