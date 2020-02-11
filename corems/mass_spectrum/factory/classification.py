@@ -24,8 +24,8 @@ class HeteroatomsClassification(Mapping):
         self._ms_grouped_class = dict()
         
         self.choose_mf = choose_molecular_formula
+        
         #mapping for ms peaks without any molecular formula associated
-
         self._ms_grouped_class[Labels.unassigned] = list()
 
         self.total_peaks = 0

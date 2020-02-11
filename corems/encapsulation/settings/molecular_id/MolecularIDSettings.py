@@ -149,6 +149,7 @@ class MolecularSearchSettings:
                             'Br': 0,
                             'Na': 1,
                             'F': 0,
+                            'K': 0,
                             }
 
     
