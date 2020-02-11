@@ -1,9 +1,11 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Oct 29, 2019"
 
+from threading import Thread
+from pathlib import Path
+
 from pandas import DataFrame
 import h5py
-from threading import Thread
 
 from corems.encapsulation.constant import Labels
 from corems.mass_spectra.factory.LC_Class import LCMSBase
@@ -19,6 +21,7 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
 
         Thread.__init__(self)
 
+        d_directory_location = Path(d_directory_location)
         if not d_directory_location.exists():
             raise FileNotFoundError("File does not exist: " + str(d_directory_location))
         
