@@ -322,7 +322,7 @@ def plot_resolving_power():
 
     pyplot.plot(mass_spectrum_obj.mz_exp, mass_spectrum_obj.resolving_power_calc(B, T, "low")/1000,  c='r')
 
-    pyplot.show()
+    #pyplot.show()
     #pyplot.savefig(mass_spectrum_obj.filename+'/'+"_error_dist"+'.png')
 
 def percent_assigned_peaks():
@@ -367,7 +367,7 @@ def plot_mass_spectrum():
             continue
             #pyplot.plot(mspeak.mz_exp, mspeak.abundance, 'o', c='r')
 
-    pyplot.show()                
+    #pyplot.show()                
 
 def plot_c_dbe_classes(df):
         

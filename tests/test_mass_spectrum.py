@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
     mass_spectrum_obj, kendrick_group_index = test_create_mass_spectrum()
     mass_spectrum_obj.plot_profile_and_noise_threshold()
-    pyplot.show()
+    #pyplot.show()
     
     '''
     for kmd, most_abun_kendrick_group_index in  kendrick_group_index.items():

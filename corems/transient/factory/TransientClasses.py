@@ -183,7 +183,7 @@ class Transient(TransientCalculations):
         plt.ylabel("Magnitude")
         # reset grid location index to 0
         self.location = 220
-        plt.show()
+        #plt.show()
 
     def _plot_transient(self, transient_data): # pragma: no cover
 
