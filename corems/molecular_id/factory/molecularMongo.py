@@ -1,7 +1,7 @@
 import pickle
 
 from pymongo import MongoClient
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings
+from corems.encapsulation.settings.processingSetting import MolecularSearchSettings
 
 class MolForm_Mongo:
 

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import  MolecularSearchSettings
+from corems.encapsulation.settings.processingSetting import  MolecularSearchSettings
 from corems.mass_spectrum.factory.classification import  HeteroatomsClassification, Labels
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from test_MolecularFormulaSearch import create_mass_spectrum

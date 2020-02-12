@@ -11,7 +11,7 @@ from PySide2.QtWidgets import QFileDialog, QApplication
 from PySide2.QtCore import Qt
 
 from corems.mass_spectrum.input.massList import ReadMassList
-from corems.mass_spectrum.factory.classification import HeteroatomsClassification, Labels 
+from corems.mass_spectrum.factory.classification import HeteroatomsClassification, Labels
 
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 
@@ -20,9 +20,7 @@ def class_plot(df):
     import seaborn as sns
 
     sns.set(style="white", rc={"axes.facecolor": (0, 0, 0, 0)})
-
     #sns.pairplot(df, vars=[ 'mz','abundance'],  hue="class")
-    
     g = sns.PairGrid(df, vars=[ 'mz','abundance'], hue="class")
     g = g.map_upper(sns.kdeplot)
     g = g.map_upper(sns.kdeplot)
@@ -52,14 +50,14 @@ if __name__ == "__main__":
     mass_spectrum.molecular_search_settings.usedAtoms['C'] = (1,90)
     mass_spectrum.molecular_search_settings.usedAtoms['H'] = (4,200)
     mass_spectrum.molecular_search_settings.usedAtoms['O'] = (0,22)
-    mass_spectrum.molecular_search_settings.usedAtoms['N'] = (0,0)
-    mass_spectrum.molecular_search_settings.usedAtoms['S'] = (0,0)
+    mass_spectrum.molecular_search_settings.usedAtoms['N'] = (0,1)
+    mass_spectrum.molecular_search_settings.usedAtoms['S'] = (0,1)
     mass_spectrum.molecular_search_settings.usedAtoms['Cl'] = (0,1)
     mass_spectrum.molecular_search_settings.usedAtoms['P'] = (0,0)
     mass_spectrum.molecular_search_settings.usedAtoms['Na'] = (0,0)
     mass_spectrum.molecular_search_settings.isProtonated = True
     mass_spectrum.molecular_search_settings.isRadical= False
-    mass_spectrum.molecular_search_settings.isAdduct = False
+    mass_spectrum.molecular_search_settings.isAdduct = True
 
     mass_spectrum.filter_by_max_resolving_power(15, 2)
 

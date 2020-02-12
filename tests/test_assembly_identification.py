@@ -4,14 +4,14 @@ import sys
 sys.path.append(".")
 import pytest
 
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import  MolecularLookupDictSettings, MolecularSearchSettings
+from corems.encapsulation.settings.processingSetting import  MolecularLookupDictSettings, MolecularSearchSettings
 from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration, MZDomain_Calibration
 from corems.mass_spectrum.output.export import MassSpecExport 
 from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
-from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
+from corems.transient.input.brukerSolarix import ReadbrukerSolarix
 
 def calibrate(mass_spectrum_obj):
     
@@ -404,7 +404,7 @@ if __name__ == "__main__":
     
     file_location = Path.cwd() /  "ESI_NEG_SRFA.d/"
     
-    bruker_reader = ReadBrukerSolarix(file_location)
+    bruker_reader = ReadbrukerSolarix(file_location)
 
     bruker_transient = bruker_reader.get_transient()
     

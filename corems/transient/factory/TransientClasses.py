@@ -3,7 +3,7 @@ from os.path import basename, dirname, normpath
 from matplotlib import rcParamsDefault, rcParams
 from numpy import linspace
 
-from corems.encapsulation.settings.input.ProcessingSetting import TransientSetting
+from corems.encapsulation.settings.processingSetting import TransientSetting
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
 from corems.transient.calc.TransientCalc import TransientCalculations
 import matplotlib.pyplot as plt

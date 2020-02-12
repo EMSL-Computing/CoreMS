@@ -1,7 +1,7 @@
 from copy import deepcopy
 from collections import OrderedDict
 from corems.molecular_formula.calc.MolecularFormulaCalc import MolecularFormulaCalc
-from corems.encapsulation.settings.input.ProcessingSetting import MassSpecPeakSetting
+from corems.encapsulation.settings.processingSetting import MassSpecPeakSetting
 from corems.encapsulation.constant import Atoms, Labels
 
 import re

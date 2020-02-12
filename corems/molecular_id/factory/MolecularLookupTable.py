@@ -7,7 +7,7 @@ import itertools
 import multiprocessing
 import pickle
 
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularLookupDictSettings
+from corems.encapsulation.settings.processingSetting import MolecularLookupDictSettings
 from corems.encapsulation.constant import Labels
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
 
@@ -113,7 +113,6 @@ class MolecularCombinations:
 
     def runworker(self, molecular_search_settings) :
 
-        
         print ("Querying database for existing classes")
         classes_list, class_to_create = self.check_database_get_class_list(molecular_search_settings)
         print ("Finished querying database for existing classes")

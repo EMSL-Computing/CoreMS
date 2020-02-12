@@ -19,11 +19,11 @@ __date__ = "July 9, 2019"
 class ImportLCMSThermoMSFileReader(Thread):
     
     """     Read FULL and PROFILE (it ignores all other scans) raw file data and store it return a LCMS class
-    *  Default behaviour is to load all scans numbers
+    *  Default behavior is to load all scans numbers
 
     *  set start_scan_number  and final_scan_number to change it before calling start(), or run()
 
-    *  Noise threshould will break the mass_spec.process_mass_spec() if the method in the
+    *  Noise threshold will break the mass_spec.process_mass_spec() if the method in the
     MassSpecSetting class is set to something other than Relative Abundance
     (it needs to be fixed to work with all methods)
     """

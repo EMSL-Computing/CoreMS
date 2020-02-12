@@ -10,7 +10,7 @@ import h5py
 from corems.encapsulation.constant import Labels
 from corems.mass_spectra.factory.LC_Class import LCMSBase
 from corems.encapsulation.settings.input import InputSetting
-from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
+from corems.transient.input.brukerSolarix import ReadbrukerSolarix
 
 class ReadBruker_SolarixTransientMassSpectra(Thread):
     
@@ -22,6 +22,7 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
         Thread.__init__(self)
 
         d_directory_location = Path(d_directory_location)
+        
         if not d_directory_location.exists():
             raise FileNotFoundError("File does not exist: " + str(d_directory_location))
         
@@ -65,7 +66,7 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
         
     def get_mass_spectrum(self, scan_index):
         
-        bruker_reader = ReadBrukerSolarix(self.lcms.file_location)
+        bruker_reader = ReadbrukerSolarix(self.lcms.file_location)
 
         bruker_transient = bruker_reader.get_transient(scan_index=scan_index)
 

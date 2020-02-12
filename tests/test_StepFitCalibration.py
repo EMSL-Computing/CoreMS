@@ -9,11 +9,11 @@ sys.path.append(".")
 import numpy as np
 from matplotlib import pyplot 
 
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings
+from corems.encapsulation.settings.processingSetting import MolecularSearchSettings
 from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration, MZDomain_Calibration
 #from corems.mass_spectrum.input.massList import Read_MassList
 from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
-from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
+from corems.transient.input.brukerSolarix import ReadbrukerSolarix
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 
@@ -32,7 +32,7 @@ def create_mass_spectrum(file_location):
            (See MassSpecfromFreq class for more details)
         '''
 
-    bruker_reader = ReadBrukerSolarix(file_location)
+    bruker_reader = ReadbrukerSolarix(file_location)
 
     bruker_transient = bruker_reader.get_transient()
 

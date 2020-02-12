@@ -3,7 +3,7 @@ __date__ = "Jun 24, 2019"
 
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.constant import Labels
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings
+from corems.encapsulation.settings.processingSetting import MolecularSearchSettings
 from IsoSpecPy import IsoSpecPy
 from numpy import exp
 

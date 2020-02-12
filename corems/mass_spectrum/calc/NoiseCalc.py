@@ -2,7 +2,7 @@ import time
 
 from numpy import where, average, std, isnan, inf, hstack
 
-from corems.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting
+from corems.encapsulation.settings.processingSetting import MassSpectrumSetting
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 27, 2019"

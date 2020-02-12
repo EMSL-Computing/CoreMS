@@ -11,14 +11,14 @@ from numpy import array
 from matplotlib import pyplot
 import pytest
 
-from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
-from corems.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting, TransientSetting
+from corems.transient.input.brukerSolarix import ReadbrukerSolarix
+from corems.encapsulation.settings.processingSetting import MassSpectrumSetting, TransientSetting
 
 def test_create_mass_spectrum():
     
     file_location = Path.cwd() /  "ESI_NEG_SRFA.d"
 
-    bruker_reader = ReadBrukerSolarix(file_location)
+    bruker_reader = ReadbrukerSolarix(file_location)
 
     TransientSetting.apodization_method = 'Hamming'
     bruker_transient = bruker_reader.get_transient()

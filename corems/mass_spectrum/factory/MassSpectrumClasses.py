@@ -7,8 +7,8 @@ from numpy import array, power, float64, where
 
 
 from corems.encapsulation.constant import Labels
-from corems.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting, MassSpecPeakSetting, TransientSetting
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings
+from corems.encapsulation.settings.processingSetting import MassSpectrumSetting, MassSpecPeakSetting, TransientSetting
+from corems.encapsulation.settings.processingSetting import MolecularSearchSettings
 from corems.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
 from corems.ms_peak.factory.MSPeakClasses import ICRMassPeak as MSPeak
 from corems.mass_spectrum.calc.KendrickGroup import KendrickGrouping

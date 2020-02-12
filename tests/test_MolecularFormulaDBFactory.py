@@ -14,7 +14,7 @@ from corems.encapsulation.constant import Labels
 from corems.molecular_id.factory.MolecularLookupTable import  MolecularCombinations
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL
 from corems.molecular_id.factory.molecularMongo import MolForm_Mongo
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings
+from corems.encapsulation.settings.processingSetting import MolecularSearchSettings
 
 def create_lookup_dict():
     

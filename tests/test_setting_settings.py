@@ -2,7 +2,7 @@ import sys
 sys.path.append(".")
 
 from corems.encapsulation.settings.io import settings_parsers
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularLookupDictSettings
+from corems.encapsulation.settings.processingSetting import MolecularLookupDictSettings
 
 def test_json():
       

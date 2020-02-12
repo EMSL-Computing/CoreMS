@@ -6,7 +6,7 @@
 
 from numpy import hstack, inf, isnan, poly1d, polyfit, where
 
-from corems.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting
+from corems.encapsulation.settings.processingSetting import MassSpectrumSetting
 from corems.encapsulation.constant import Labels
 
 class PeakPicking:

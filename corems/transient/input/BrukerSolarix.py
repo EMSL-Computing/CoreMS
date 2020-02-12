@@ -10,7 +10,7 @@ from corems.transient.factory.TransientClasses import Transient
 
 from corems.encapsulation.settings.input.InputSetting import d_params
 
-class ReadBrukerSolarix(object):
+class ReadbrukerSolarix(object):
     
     """
     A class used to Read a single Transient from Bruker's FT-MS acquisition station (fid, or ser)
@@ -27,7 +27,9 @@ class ReadBrukerSolarix(object):
     """
     
     def __init__(self, d_directory_location):
+        
         d_directory_location = Path(d_directory_location)
+        
         if not d_directory_location.exists():
             raise FileNotFoundError("File does not exist: " + str(d_directory_location))
 
@@ -70,7 +72,7 @@ class ReadBrukerSolarix(object):
         rts = [float(rt.text) for rt in soup.find_all('minutes')]
         tics = [float(tic.text) for tic in soup.find_all('tic')]
         scans = [int(scan.text) for scan in soup.find_all('count')]
-    
+        
         return  scans,rts, tics
        
         

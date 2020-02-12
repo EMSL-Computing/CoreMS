@@ -10,18 +10,18 @@ from pathlib import Path
 
 import pytest
 
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import  MolecularSearchSettings
+from corems.encapsulation.settings.processingSetting import  MolecularSearchSettings
 from corems.mass_spectrum.factory.classification import  HeteroatomsClassification
 from corems.mass_spectrum.input.numpyArray import ms_from_array_centroid
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
-from corems.transient.input.BrukerSolarix import ReadBrukerSolarix
+from corems.transient.input.brukerSolarix import ReadbrukerSolarix
 
 def create_mass_spectrum():
     
     file_location = Path.cwd() /  "ESI_NEG_SRFA.d"
 
-    bruker_reader = ReadBrukerSolarix(file_location)
+    bruker_reader = ReadbrukerSolarix(file_location)
 
     bruker_transient = bruker_reader.get_transient()
     

@@ -2,7 +2,7 @@ import gc
 
 from numpy import hamming, hanning, blackman, zeros, fft, sqrt, arange, where, power, absolute
 
-from corems.encapsulation.settings.input.ProcessingSetting import TransientSetting
+from corems.encapsulation.settings.processingSetting import TransientSetting
 
 
 __author__ = "Yuri E. Corilo"

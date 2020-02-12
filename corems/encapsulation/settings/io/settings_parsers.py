@@ -1,9 +1,8 @@
 import json
 from pathlib import Path
-from corems.encapsulation.settings.molecular_id.MolecularIDSettings import MolecularSearchSettings
-from corems.encapsulation.settings.input.ProcessingSetting import TransientSetting
-from corems.encapsulation.settings.input.ProcessingSetting import MassSpectrumSetting
-from corems.encapsulation.settings.input.ProcessingSetting import MassSpecPeakSetting
+from corems.encapsulation.settings.processingSetting import MolecularSearchSettings, TransientSetting
+from corems.encapsulation.settings.processingSetting import MassSpectrumSetting
+from corems.encapsulation.settings.processingSetting import MassSpecPeakSetting
 from corems.encapsulation.settings.input.InputSetting import DataInputSetting
 
 def get_dict_data_ms(mass_spec):
