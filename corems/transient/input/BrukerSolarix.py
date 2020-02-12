@@ -69,14 +69,16 @@ class ReadBrukerSolarix(object):
         
         soup = BeautifulSoup(self.scan_attr.open(),'xml')
 
-        rts = [float(rt.text) for rt in soup.find_all('minutes')]
-        tics = [float(tic.text) for tic in soup.find_all('tic')]
-        scans = [int(scan.text) for scan in soup.find_all('count')]
+        list_rt = [float(rt.text) for rt in soup.find_all('minutes')]
+        list_tic = [float(tic.text) for tic in soup.find_all('tic')]
+        list_scan = [int(scan.text) for scan in soup.find_all('count')]
+
+        dict_scan_rt_tic = dict(zip(list_scan, zip(list_rt, list_tic)))
         
-        return  scans,rts, tics
+        return dict_scan_rt_tic
        
         
-    def get_transient(self, scan_index=0):
+    def get_transient(self, scan_number=1):
 
         file_d_params = self.parse_parameters(self.parameter_filename_location)
 
@@ -98,13 +100,13 @@ class ReadBrukerSolarix(object):
             
             if self.scan_attr.exists:
                 
-                scans, rts, tics = self.get_scan_attr()
+                dict_scan_rt_tic = self.get_scan_attr()
 
-                output_parameters["scan_number"] = scans[scan_index]
+                output_parameters["scan_number"] = scan_number
 
-                output_parameters["rt"] = rts[scan_index]
+                output_parameters["rt"] = dict_scan_rt_tic.get(scan_number)[0]
 
-                output_parameters["tic"] = tics[scan_index]
+                output_parameters["tic"] = dict_scan_rt_tic.get(scan_number)[1]
         
         output_parameters["analyzer"] = "ICR"
 

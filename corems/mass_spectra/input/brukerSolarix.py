@@ -47,28 +47,39 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
         list_rt = [float(rt.text) for rt in soup.find_all('minutes')]
         list_tic = [float(tic.text) for tic in soup.find_all('tic')]
         list_scan = [int(scan.text) for scan in soup.find_all('count')]
-    
-        return list_scan, list_rt, list_tic
+
+        dict_scan_rt_tic = dict(zip(list_scan, zip(list_rt, list_tic)))
+        
+        return dict_scan_rt_tic
+       
     
     def import_mass_spectra(self):
         
-        list_scan, list_rt, list_tic = self.get_scan_attr()
+        dict_scan_rt_tic = self.get_scan_attr()
         
-        for scan_index, _ in enumerate(list_scan):
+        list_rt, list_tic  = list(), list(), 
+
+        list_scans = sorted(list(dict_scan_rt_tic.keys()))
+        
+        for scan_number in list_scans:
             
-            mass_spec = self.get_mass_spectrum(scan_index)
+            mass_spec = self.get_mass_spectrum(scan_number)
 
             self.lcms.add_mass_spectrum_for_scan(mass_spec)
 
+            list_rt.append(dict_scan_rt_tic.get(scan_number)[0])
+
+            list_tic.append(dict_scan_rt_tic.get(scan_number)[1])
+
         self.lcms.set_retention_time_list(list_rt)
         self.lcms.set_tic_list(list_tic)
-        self.lcms.set_scans_number_list(list_scan)
+        self.lcms.set_scans_number_list(list_scans)
         
-    def get_mass_spectrum(self, scan_index):
+    def get_mass_spectrum(self, scan_number):
         
         bruker_reader = ReadBrukerSolarix(self.lcms.file_location)
 
-        bruker_transient = bruker_reader.get_transient(scan_index=scan_index)
+        bruker_transient = bruker_reader.get_transient(scan_number)
 
         mass_spec = bruker_transient.get_mass_spectrum(plot_result=False, 
                                                        auto_process=self.auto_process,
