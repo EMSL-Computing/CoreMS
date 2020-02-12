@@ -67,9 +67,6 @@ def test_calibration():
             (See Docs for the structural details)  
     '''
     
-    
-    
-    
     MolecularSearchSettings.error_method = 'None'
     MolecularSearchSettings.min_mz_error = -5
     MolecularSearchSettings.max_mz_error = 5
