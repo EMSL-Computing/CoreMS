@@ -98,14 +98,14 @@ If you don't have docker installed, the easiest way is to [install docker for de
 ## Basic example
 
 ```python
-from corems.transient.input.brukerSolarix import ReadbrukerSolarix
+from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.mass_spectrum.output.export import MassSpecExport
 
 file_path= 'neg_esi_srfa_1ppm_test.d'
 
 #Bruker Solarix class reader
-bruker_reader = ReadbrukerSolarix(file_path)
+bruker_reader = ReadBrukerSolarix(file_path)
 
 #access the transient object
 bruker_transient_obj = bruker_reader.get_transient()

@@ -14,7 +14,7 @@ from corems.mass_spectra.input.massList import ReadCoremsMassSpectraText
 from corems.mass_spectrum.input.boosterHDF5 import ReadHDF_BoosterMassSpectrum
 from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
 from corems.mass_spectrum.input.massList import ReadCoremsMasslist, ReadMassList
-from corems.transient.input.brukerSolarix import ReadbrukerSolarix
+from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 
 
 def test_import_booster_mass_spectrum_hdf():
@@ -98,7 +98,7 @@ def test_import_transient():
     number_of_truncations = 0
     number_of_zero_fills = 1
 
-    bruker_reader = ReadbrukerSolarix(file_location)
+    bruker_reader = ReadBrukerSolarix(file_location)
 
     bruker_transient = bruker_reader.get_transient()
 

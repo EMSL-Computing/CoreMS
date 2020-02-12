@@ -11,7 +11,7 @@ from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
-from corems.transient.input.brukerSolarix import ReadbrukerSolarix
+from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 
 def calibrate(mass_spectrum_obj):
     
@@ -404,7 +404,7 @@ if __name__ == "__main__":
     
     file_location = Path.cwd() /  "ESI_NEG_SRFA.d/"
     
-    bruker_reader = ReadbrukerSolarix(file_location)
+    bruker_reader = ReadBrukerSolarix(file_location)
 
     bruker_transient = bruker_reader.get_transient()
     

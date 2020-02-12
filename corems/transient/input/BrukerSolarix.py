@@ -10,7 +10,7 @@ from corems.transient.factory.TransientClasses import Transient
 
 from corems.encapsulation.settings.input.InputSetting import d_params
 
-class ReadbrukerSolarix(object):
+class ReadBrukerSolarix(object):
     
     """
     A class used to Read a single Transient from Bruker's FT-MS acquisition station (fid, or ser)
