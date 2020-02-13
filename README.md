@@ -12,7 +12,7 @@ CoreMS is a Python package of high-level building blocks for mass spectrometry d
 
 ## Current Version
 
-### `4.4.0.beta`
+### `5.0.0.beta`
 
 [![pipeline status](https://gitlab.pnnl.gov/mass-spectrometry/corems/badges/master/pipeline.svg)](https://gitlab.pnnl.gov/corilo/corems/commits/master) [![coverage report](https://gitlab.pnnl.gov/mass-spectrometry/corems/badges/master/coverage.svg)](https://gitlab.pnnl.gov/corilo/corems/commits/master)
 
@@ -23,6 +23,7 @@ CoreMS is a Python package of high-level building blocks for mass spectrometry d
 - ThermoFisher (.raw)
 - Spectroswiss signal booster data-acquisition station (.hdf5)
 - MagLab ICR data-acquisition station (FT and magnitude mode) (.dat)
+- ANDI NetCDF for GC-MS (.cdf)
 - Generic mass list in profile and centroid mde (include all delimiters types and Excel formats)
 - CoreMS exported processed mass list files(excel, .csv, .txt, pandas dataframe as .pkl)
 - CoreMS self-containing Hierarchical Data Format (.hdf5)
@@ -39,6 +40,7 @@ CoreMS is a Python package of high-level building blocks for mass spectrometry d
 ### Data structure types
 
 - LC-MS
+- GC-MS
 - IMS-MS (`TODO`)
 - LC-IMS-MS (`TODO`)
 - Collections (`TODO`)
@@ -61,15 +63,15 @@ CoreMS is a Python package of high-level building blocks for mass spectrometry d
 ### Calibration
 
 - Frequency and m/z domain calibration functions:
-- Ledford equation [ref]
+- LedFord equation [ref]
 - Linear equation
 - Quadratic equation
 - Automatic search most abundant **Ox** homologue series
-- Step fit ('walking calibration") based on the ledford equation [ref]
+- Step fit ('walking calibration") based on the LedFord equation [ref]
 
 ### Molecular formulae search and assignment
 
-- Automatic local (SQLite) or external (MongoDB or Postgres) database check, generation, and search
+- Automatic local (SQLite) or external (MongoDB or PostgreSQL) database check, generation, and search
 - Automatic molecular formulae assignments algorithm for ESI(-) MS for natural organic matter analysis
 - Automatic fine isotopic structure calculation and search for all isotopes
 - Flexible Kendrick normalization base
@@ -78,10 +80,13 @@ CoreMS is a Python package of high-level building blocks for mass spectrometry d
 ### Mass spectrum simulations
 
 - Peak shape (Lorentz and Gaussian)
-- Mass error distribution(`TODO`)
+- Peak position in function of datapoints, signal to noise and resolving power (Lorentz and Gaussian)
+- Prediction of mass error distribution
 - Calculated ICR Resolving Power based on magnetic field (B), and transient time(T)
 
 ## Jupyter-CoreMS
+
+A docker image containing a custom python distribution with all dependencies and a Jupyter server with notebook examples
 
 If you don't have docker installed, the easiest way is to [install docker for desktop](https://hub.docker.com/?overlay=onboarding)
 
@@ -93,7 +98,7 @@ If you don't have docker installed, the easiest way is to [install docker for de
 
 - In your browser, open the URL address provided in the terminal: `http://127.3.2.1:8888/?token=<token>.`
 
-- Open the CoreMS-Tutorial.ipynb and follow the code
+- Open the CoreMS-Tutorial.ipynb
 
 ## Basic example
 

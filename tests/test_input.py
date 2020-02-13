@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from corems.mass_spectra.input.boosterHDF5 import ReadHDF_BoosterMassSpectra
+from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
 from corems.mass_spectra.input.brukerSolarix import ReadBruker_SolarixTransientMassSpectra
 from corems.mass_spectra.input.coremsHDF5 import ReadCoreMSHDF_MassSpectra
 from corems.mass_spectra.input.massList import ReadCoremsMassSpectraText
@@ -16,7 +17,14 @@ from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
 from corems.mass_spectrum.input.massList import ReadCoremsMasslist, ReadMassList
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 
+def test_andi_netcdf_gcms():
 
+    file_path = Path.cwd() / "tests/tests_data/gcms/" / "GCMS_FAMES_01_GCMS-01_20191023.cdf"
+
+    reader_gcms = ReadAndiNetCDF(file_path)
+	
+    reader_gcms.run()
+    
 def test_import_booster_mass_spectrum_hdf():
 
     file_path = Path.cwd() / "tests/tests_data/" / "ESFA_100k_9767-13548_chB.A_re_pc_CoAddAll_mFT.h5"
@@ -224,8 +232,9 @@ if __name__ == '__main__':
     
     #test_import_booster_mass_spectrum_hdf()
     #test_import_booster_mass_spectra_hdf()
-    test_import_lcms_from_transient()
+    #test_import_lcms_from_transient()
     #test_import_transient()
     #test_import_corems_hdf5()
     #test_import_corems_mass_list()
     #test_import_mass_list()
+    test_andi_netcdf_gcms()

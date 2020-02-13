@@ -44,11 +44,9 @@ class ReadHDF_BoosterMassSpectra(Thread):
         
         polarity = self.get_attr_data(scan,'r_h_polarity')
         
-        if polarity == 'negative scan':
-            
-            return -1
-        else:
-            return +1    
+        if polarity == 'negative scan': return -1
+        
+        else: return +1    
     
     def get_attr_data(self, scan, attr_srt):
 

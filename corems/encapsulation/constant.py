@@ -18,6 +18,7 @@ class Labels: #pragma: no cover
     midas_frequency = 'Midas_Frequency'
     thermo_centroid = 'Thermo_Centroid'
     corems_centroid = 'CoreMS_Centroid'
+    gcms_centroid = 'Thermo_Centroid'
     
     unassigned = 'unassigned'
 
