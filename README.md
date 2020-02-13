@@ -27,7 +27,7 @@ CoreMS is a Python package of high-level building blocks for mass spectrometry d
 - Generic mass list in profile and centroid mde (include all delimiters types and Excel formats)
 - CoreMS exported processed mass list files(excel, .csv, .txt, pandas dataframe as .pkl)
 - CoreMS self-containing Hierarchical Data Format (.hdf5)
-- Pandas dataframe
+- Pandas Dataframe
 
 ### Data output formats
 
@@ -76,10 +76,13 @@ CoreMS is a Python package of high-level building blocks for mass spectrometry d
 - Automatic fine isotopic structure calculation and search for all isotopes
 - Flexible Kendrick normalization base
 - Kendrick filter using density-based clustering
+- Kendrick classification
+- Heteroatoms classification and visualization
 
 ### Mass spectrum simulations
 
-- Peak shape (Lorentz and Gaussian)
+- Peak shape (Lorentz,  Gaussian, Voigt, and pseudo-Voigt)
+- Peak fitting for peak shape definition
 - Peak position in function of datapoints, signal to noise and resolving power (Lorentz and Gaussian)
 - Prediction of mass error distribution
 - Calculated ICR Resolving Power based on magnetic field (B), and transient time(T)
