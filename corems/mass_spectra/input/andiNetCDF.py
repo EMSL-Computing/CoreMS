@@ -7,6 +7,9 @@ from netCDF4 import Dataset
 
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.settings.input import InputSetting
+from corems.mass_spectra.factory.GC_Class import GCMSBase
+
+from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroid
 
 class ReadAndiNetCDF:
 
@@ -36,14 +39,13 @@ class ReadAndiNetCDF:
 
 		self.instrument_label = instrument_label
 		
-		flag_count = self.net_cdf_obj.variables.get("flag_count")[:]
-		a_d_sampling_rate = self.net_cdf_obj.variables.get("a_d_sampling_rate")[:]
-		a_d_coaddition_factor = self.net_cdf_obj.variables.get("a_d_coaddition_factor")[:]
-		
-		inter_scan_time = self.net_cdf_obj.variables.get("inter_scan_time")
-		flag_count = self.net_cdf_obj.variables.get("flag_count")[:]
-		
+		self.gcms = GCMSBase(self.file_location, analyzer, instrument_label)
+
 		#other unused variables
+		#a_d_sampling_rate = self.net_cdf_obj.variables.get("a_d_sampling_rate")[:]
+		#a_d_coaddition_factor = self.net_cdf_obj.variables.get("a_d_coaddition_factor")[:]
+		#inter_scan_time = self.net_cdf_obj.variables.get("inter_scan_time")[:]
+		#flag_count = self.net_cdf_obj.variables.get("flag_count")[:]
 		#instrument_name = ''.join(self.net_cdf_obj.variables.get("instrument_name")[:].tolist())
 		#instrument_id = self.net_cdf_obj.variables.get("instrument_id")[:]
 		#instrument_mfr = self.net_cdf_obj.variables.get("instrument_mfr")[:]
@@ -58,6 +60,7 @@ class ReadAndiNetCDF:
 		#time_range_min = self.net_cdf_obj.variables.get("time_range_min")[:]
 		#time_range_max = self.net_cdf_obj.variables.get("time_range_max")[:]
 		#scan_index_list = self.net_cdf_obj.variables.get("scan_index")[:]
+		#time_values = self.net_cdf_obj.variables.get("time_values")[:]
 		
 	@property
 
@@ -69,21 +72,18 @@ class ReadAndiNetCDF:
 			
 		else: return -1    
 
-	def get_mass_spectrum(self, scan_number, d_params):
-        
-		scan_index = scan_number
-        
-		#data_dict = {"m/z": booster_data[0],
-		#		"Abundance": booster_data[1],
-		#		"Resolving Power": None,
-		#		"S/N": None,
-		#}
+	def get_mass_spectrum(self, mz, abun, rp, d_params):
+				
+		data_dict = {Labels.mz: mz,
+				Labels.abundance: abun,
+				Labels.rp: rp,
+				Labels.s2n: None,
+		}
             
-		#data = DataFrame(data_dict)
-        
-		#mass_spec = MassSpecProfile(data, d_params, auto_process=self.auto_process)
+		mass_spec = MassSpecCentroid(data_dict, d_params)
 
-        #return mass_spec
+		return mass_spec
+
 	def run(self):
         
 		'''creates the gcms obj'''
@@ -101,7 +101,6 @@ class ReadAndiNetCDF:
 
 		mass_values = self.net_cdf_obj.variables.get("mass_values")[:]
 		intensity_values = self.net_cdf_obj.variables.get("intensity_values")[:]
-		time_values = self.net_cdf_obj.variables.get("time_values")[:]
 		resolution = self.net_cdf_obj.variables.get("resolution")[:]
 
 		finish_location = -1
@@ -115,9 +114,7 @@ class ReadAndiNetCDF:
 			start_location = finish_location - datapoints + 1
 
 			#finish_location = ms_datapoints_per_scans[start_location:last_pos]
-			if scan_index < 2: 
-				print(scan_index, datapoints, start_location, finish_location)
-			
+						
 			d_params["rt"] = list_rt[scan_index]
 
 			d_params["scan_number"] = scan_index
@@ -134,9 +131,6 @@ class ReadAndiNetCDF:
 			
 			abundance = intensity_values[start_location:finish_location]
 
-			retention_time = time_values[start_location:finish_location]
-
 			rp = resolution[start_location:finish_location]
 
-
-	
+			ms = self.get_mass_spectrum	

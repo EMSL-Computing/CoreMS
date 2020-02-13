@@ -1,10 +1,4 @@
-'''
-Created on Jun 14, 2019
-
-@author: eber373
-'''
-
-class LC_Calculations:
+class GC_Calculations:
     
     '''
     classdocs
@@ -22,4 +16,3 @@ class LC_Calculations:
         real_scan = self.scans_number[scan_index]
 
         return real_scan + 1
-    
