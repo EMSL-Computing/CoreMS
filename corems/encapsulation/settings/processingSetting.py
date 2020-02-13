@@ -117,7 +117,7 @@ class MolecularSearchSettings:
     
     adduct_atoms_pos = ['Na', 'K']
 
-    score_methods = ["S_P_lowest_error", "N_S_P_lowest_error", "lowest_error", "prop_score",
+    score_methods = ["S_P_lowest_error", "N_S_P_lowest_error", "lowest_error", "prob_score",
                      "air_filter_error", "water_filter_error", "earth_filter_error" ]
     
     score_method = "N_S_P_lowest_error"
@@ -146,10 +146,10 @@ class MolecularSearchSettings:
     ionization_type = "ESI"
 
     # empirically set / needs optimization
-    min_mz_error = -5 #ppm
+    min_ppm_error  = -5 #ppm
 
         # empirically set / needs optimization    
-    max_mz_error = 5 #ppm
+    max_ppm_error = 5 #ppm
 
     # empirically set / needs optimization set for isotopologue search
     min_abun_error = -30 # percentage 

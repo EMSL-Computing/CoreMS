@@ -4,7 +4,6 @@ __date__ = "Oct 29, 2019"
 from threading import Thread
 from pathlib import Path
 
-from pandas import DataFrame
 import h5py
 
 from corems.encapsulation.constant import Labels
@@ -65,15 +64,15 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
             
             mass_spec = self.get_mass_spectrum(scan_number)
 
-            self.lcms.add_mass_spectrum_for_scan(mass_spec)
+            self.lcms.add_mass_spectrum(mass_spec)
 
             list_rt.append(dict_scan_rt_tic.get(scan_number)[0])
 
             list_tic.append(dict_scan_rt_tic.get(scan_number)[1])
 
-        self.lcms.set_retention_time_list(list_rt)
-        self.lcms.set_tic_list(list_tic)
-        self.lcms.set_scans_number_list(list_scans)
+        self.lcms.retention_time = list_rt
+        self.lcms.tic = list_tic
+        self.lcms.scans_number = list_scans
         
     def get_mass_spectrum(self, scan_number):
         

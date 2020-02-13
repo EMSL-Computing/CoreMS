@@ -66,7 +66,7 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
         output_parameters = self.get_output_parameters(polarity, scan_index=scan_number)
 
-        mass_spec_obj = MassSpecCentroid(dataframe, output_parameters, auto_process=auto_process)
+        mass_spec_obj = MassSpecCentroid(dataframe, output_parameters)
 
         if load_settings: self.load_settings(mass_spec_obj, scan_index=scan_number, time_index=time_index)
 

@@ -41,18 +41,18 @@
         "max_abun_error": 70,
         "max_dbe": 70,
         "max_mz": 800,
-        "max_mz_error": 5,
+        "max_ppm_error": 5,
         "min_abun_error": -30,
         "min_dbe": 0,
         "min_mz": 100,
-        "min_mz_error": -5,
+        "min_ppm_error ": -5,
         "min_peaks_per_class": 15,
         "mz_error_average": 0,
         "mz_error_range": 1.5,
         "oc_filter": 1.2,
         "op_filter": 2,
         "score_method": "N_S_P_lowest_error", "score_methods": [
-            "S_P_lowest_error", "N_S_P_lowest_error", "lowest_error", "prop_score", "air_filter_error", "water_filter_error", "earth_filter_error"
+            "S_P_lowest_error", "N_S_P_lowest_error", "lowest_error", "prob_score", "air_filter_error", "water_filter_error", "earth_filter_error"
         ],
         "use_min_peaks_filter": true,
         "use_pah_line_rule": false,

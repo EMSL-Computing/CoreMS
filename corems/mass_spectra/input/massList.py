@@ -76,11 +76,11 @@ class ReadCoremsMassSpectraText(ReadCoremsMasslist, Thread):
 
             list_tic.append(mass_spec.tic)
             
-            self.lcms.add_mass_spectrum_for_scan(mass_spec)
+            self.lcms.add_mass_spectrum(mass_spec)
 
-        self.lcms.set_retention_time_list(list_rt)
-        self.lcms.set_tic_list(list_tic)
-        self.lcms.set_scans_number_list(list_scan)
+        self.lcms.retention_time = list_rt
+        self.lcms.tic_list = list_tic
+        self.lcms.scans_number = list_scan
      
     def run(self):
         '''creates the lcms obj'''

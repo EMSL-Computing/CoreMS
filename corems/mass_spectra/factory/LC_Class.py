@@ -1,14 +1,14 @@
 """
 Created on Jun 12, 2019
 """
-
+from collections.abc import Mapping
 from pathlib import Path
 from corems.mass_spectra.calc.LC_Calc import LC_Calculations
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 25, 2019"
 
-class LCMSBase(LC_Calculations):
+class LCMSBase(Mapping, LC_Calculations):
     """
     classdocs
     """
@@ -40,86 +40,81 @@ class LCMSBase(LC_Calculations):
         self.analyzer = analyzer
         self.instrument_label = instrument_label
         
-        self.retention_time_list = []
-        self.scans_number_list = []
-        self.tic_list = []
+        self._retention_time_list = []
+        self._scans_number_list = []
+        self._tic_list = []
 
-        self.ms = {}
+        self._ms = {}
         """
         key is scan number; value is MassSpectrum Class
         """
-
-    def __getitem__(self, i):
-        
-        scan_number = self.scans_number_list[i] 
-        return self.ms[scan_number]
     
+    def __len__(self):
+        
+        return len(self._ms)
+        
+    def __getitem__(self, scan_number):
+        
+        return self._ms.get(scan_number)
+
     def __iter__(self):
-        self.cur_scan = 0
-        return self 
-        
-    def __next__(self):
-        
-        i = self.cur_scan
-        if i >= len(self.scans_number_list):
-            raise StopIteration
-        self.cur_scan += 1
-        next_scan_number = self.scans_number_list[i] 
-        return self.ms[next_scan_number]
-        
-    def add_mass_spectrum_for_scan(self, mass_spec):
 
-        self.ms[mass_spec.scan_number] = mass_spec
+         return iter(self._ms.values()) 
 
-    def get_mass_spec_by_scan_number(self, scan):
+    def add_mass_spectrum(self, mass_spec):
 
-        return self.ms.get(scan)
+        self._ms[mass_spec.scan_number] = mass_spec
 
     def set_tic_list_from_data(self):
 
-        self.set_tic_list(
-            [self.ms.get(i).tic for i in self.get_scans_number()]
-        )
-
-        # self.set_tic_list([self.ms.get(i).get_sumed_signal_to_noise() for i in self.get_scans_number()])
+        self.tic = [self._ms.get(i).tic for i in self.scans_number]
+        
+        # self.set_tic_list([self._ms.get(i).get_sumed_signal_to_noise() for i in self.get_scans_number()])
 
     def set_retention_time_from_data(self):
 
         retention_time_list = []
 
-        for key_ms in sorted(self.ms.keys()):
+        for key_ms in sorted(self._ms.keys()):
 
-            retention_time_list.append(self.ms.get(key_ms).rt)
+            retention_time_list.append(self._ms.get(key_ms).rt)
 
-        self.set_retention_time_list(retention_time_list)
+        self.retention_time = retention_time_list 
 
-        # self.set_retention_time_list(sorted(self.ms.keys()))
+        # self.set_retention_time_list(sorted(self._ms.keys()))
 
     def set_scans_number_from_data(self):
-        self.set_scans_number_list(sorted(self.ms.keys()))
+        
+        self.scans_number = sorted(self._ms.keys())
 
-    def get_scans_number(self):
+    @property
+    def scans_number(self):
 
-        return self.scans_number_list
+        return self._scans_number_list
 
-    def get_retention_time(self):
+    @property
+    def retention_time(self):
 
-        return self.retention_time_list
+        return self._retention_time_list
+    
+    @property
+    def tic(self):
 
-    def get_tic(self):
+        return self._tic_list
 
-        return self.tic_list
+    @retention_time.setter
+    def retention_time(self, l):
+        # self._retention_time_list = linspace(0, 80, num=len(self._scans_number_list))
+        self._retention_time_list = l
 
-    def set_retention_time_list(self, lista):
-        # self.retention_time_list = linspace(0, 80, num=len(self.scans_number_list))
-        self.retention_time_list = lista
+    @scans_number.setter
+    def scans_number(self, l):
 
-    def set_scans_number_list(self, lista):
+        self._scans_number_list = l
 
-        self.scans_number_list = lista
+    @tic.setter
+    def tic(self, l):
 
-    def set_tic_list(self, lista):
-
-        self.tic_list = lista
+        self._tic_list = l    
 
     

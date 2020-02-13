@@ -4,6 +4,9 @@ Created on Jun 14, 2019
 @author: eber373
 '''
 
+__author__ = "Yuri E. Corilo"
+__date__ = "Jun 14, 2019"
+
 class LC_Calculations:
     
     '''

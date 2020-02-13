@@ -2,6 +2,7 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Feb 12, 2020"
 
 from pathlib import Path
+from threading import Thread
 
 from netCDF4 import Dataset
 
@@ -129,8 +130,15 @@ class ReadAndiNetCDF:
 
 			mz = mass_values[start_location:finish_location]
 			
-			abundance = intensity_values[start_location:finish_location]
+			abun = intensity_values[start_location:finish_location]
 
 			rp = resolution[start_location:finish_location]
 
-			ms = self.get_mass_spectrum	
+			mass_spec = self.get_mass_spectrum( mz, abun, rp, d_params)
+
+			self.gcms.add_mass_spectrum(mass_spec)
+
+
+		self.gcms.retention_time = list_rt
+		self.gcms.tic = list_tic
+		self.gcms.scans_number = self.list_scans	

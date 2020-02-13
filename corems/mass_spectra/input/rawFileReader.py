@@ -10,7 +10,6 @@ import clr
 clr.AddReference("ThermoFisher.CommonCore.RawFileReader")
 from ThermoFisher.CommonCore.RawFileReader import RawFileReaderAdapter
 
-from pandas import DataFrame
 from threading import Thread
 import multiprocessing
 import numpy
@@ -34,7 +33,7 @@ class ImportLCMSThermoMSFileReader(Thread):
 
         self.res = self.iRawDataPlus.SelectInstrument(0, 1)
 
-        self.LCMS = LCMSBase(file_location)
+        self.lcms = LCMSBase(file_location)
 
         self._initial_scan_number = self.iRawDataPlus.RunHeaderEx.FirstSpectrum
 
@@ -57,13 +56,13 @@ class ImportLCMSThermoMSFileReader(Thread):
         d_parameters = InputSetting.d_params(self.file_location)
         self._import_mass_spectra(d_parameters)
 
-        # return self.LCMS
+        # return self.lcms
 
     def get_mass_spectra(self,auto_process=True):
 
         d_parameters = InputSetting.d_params(self.file_location)
         self._import_mass_spectra(d_parameters, auto_process=auto_process)
-        return self.LCMS
+        return self.lcms
 
     def check_load_success(self):
         """ 0 if successful; otherwise, see Error Codes on MSFileReader Manual """
@@ -133,10 +132,10 @@ class ImportLCMSThermoMSFileReader(Thread):
             d_parameter["baselise_noise_std"] = numpy.average(array_noise_std)
 
             data_dict = {
-                "m/z": mz,
-                "Abundance": magnitude,
-                "Resolving Power": rp,
-                "S/N": l_signal_to_noise,
+                Labels.mz: mz,
+                Labels.abundance: magnitude,
+                Labels.rp: rp,
+                Labels.s2n: l_signal_to_noise,
             }
         
         else: 
@@ -150,8 +149,8 @@ class ImportLCMSThermoMSFileReader(Thread):
             mz = list(profileStream.Positions)
 
             data_dict = {
-                "m/z": mz,
-                "Abundance": magnitude,
+                Labels.mz: mz,
+                Labels.abundance: magnitude,
             }
 
 
@@ -169,7 +168,7 @@ class ImportLCMSThermoMSFileReader(Thread):
 
         d_params = InputSetting.d_params(self.file_location)
 
-        # assumes first scan is full scan
+        # assumes scans is full scan or reduced profile scan
          
         d_params["label"] = Labels.thermo_profile
 
@@ -204,13 +203,11 @@ class ImportLCMSThermoMSFileReader(Thread):
 
 
         data_dict = {
-                "m/z": mz_all,
-                "Abundance": abun_all,
+                Labels.mz: mz_all,
+                Labels.abundance: abun_all,
             }
         
-        data = DataFrame(data_dict)
-
-        mass_spec = MassSpecProfile(data, d_params, auto_process=auto_process)
+        mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process)
 
         return mass_spec
        
@@ -250,47 +247,44 @@ class ImportLCMSThermoMSFileReader(Thread):
                 if self.check_full_scan(scan_number):
 
                         data_dict = self.get_data(scan_number, d_params, "Profile")
-
-                        data = DataFrame(data_dict)
                         
                         print("loading profile scan number: ", scan_number)
                         
-                        mass_spec = MassSpecProfile(data, d_params, auto_process=auto_process)
+                        mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process)
                         
-                        self.LCMS.add_mass_spectrum_for_scan(mass_spec)
+                        self.lcms.add_mass_spectrum(mass_spec)
                 
                 else:
 
                         data_dict = self.get_data(scan_number, d_params, "Centroid")
 
-                        data = DataFrame(data_dict)
-                        
+                       
                         print("loading centroid scan number: ", scan_number)
                         
-                        mass_spec = MassSpecCentroid(data, d_params, auto_process=auto_process)
+                        mass_spec = MassSpecCentroid(data_dict, d_params)
                         
-                        self.LCMS.add_mass_spectrum_for_scan(mass_spec)
+                        self.lcms.add_mass_spectrum(mass_spec)
 
             #pool = multiprocessing.Pool(5)
             #result = pool.starmap(MassSpecCentroid, results)
             #for ms in result:
-            #self.LCMS.add_mass_spectrum_for_scan(ms)
+            #self.lcms.add_mass_spectrum(ms)
             
-            self.LCMS.set_retention_time_list(list_RetentionTimeSeconds)
-            self.LCMS.set_tic_list(list_Tics)
-            self.LCMS.set_scans_number_list(list_scans)
+            self.lcms.retention_time(list_RetentionTimeSeconds)
+            self.lcms.tic = list_Tics
+            self.lcms.scans_number = list_scans
 
     def get_lcms(self):
         """get_lc_ms_class method should only be used when using this class as a Thread, 
         otherwise use the run() method to return the LCMS class"""
 
-        if self.LCMS.get_mass_spec_by_scan_number(self._initial_scan_number):
-            return self.LCMS
+        if self.lcms.get(self._initial_scan_number):
+            return self.lcms
         else:
             self.run()
             
-            if self.LCMS.get_mass_spec_by_scan_number(self._initial_scan_number):
+            if self.lcms.get(self._initial_scan_number):
                 
-                return self.LCMS
+                return self.lcms
             else:
                 raise Exception("returning a empty LCMS class")

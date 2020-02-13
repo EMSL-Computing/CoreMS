@@ -12,7 +12,30 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
     Inherited PeakPicking and NoiseThresholdCalc ensuring its methods are 
     available to the instantiated mass spectrum class object
     '''
+    def percentile_assigned(self):
+        
+        assign_abun = 0
+        not_assign_abun = 0
+        i = 0
+        j = 0
+        for mspeak in self.sort_by_abundance():
+            
+            if mspeak.is_assigned:
+                i += 1
+                assign_abun += mspeak.abundance
+                
+            else:
+                j += 1
+                not_assign_abun += mspeak.abundance
+                   
+        total_percent = (i/(i+j))*100
+        total_relative_abundance = (assign_abun/(not_assign_abun+assign_abun)) *100
 
+        print('%i peaks assigned and %i peaks not assigned , total  = %.2f %%, relative abundance = %.2f %%' % (i, j, total_percent,total_relative_abundance  ))
+
+        return i, j, total_percent,total_relative_abundance 
+        
+        
     def resolving_power_calc(self, B, T):
         '''
         low pressure limits, 

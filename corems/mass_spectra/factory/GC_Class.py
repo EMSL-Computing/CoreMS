@@ -1,13 +1,13 @@
-"""
-Created on Jun 12, 2019
-"""
+__author__ = "Yuri E. Corilo"
+__date__ = "Feb 13, 2020"
+
+
 from collections.abc import Mapping
 
 from pathlib import Path
 from corems.mass_spectra.calc.GC_Calc import GC_Calculations
 
-__author__ = "Yuri E. Corilo"
-__date__ = "Jun 25, 2019"
+
 
 class GCMSBase(Mapping, GC_Calculations):
     """
@@ -46,7 +46,7 @@ class GCMSBase(Mapping, GC_Calculations):
         """
         key is scan number; value is MassSpectrum Class
         """
-
+    
     def __len__(self):
         
         return len(self._ms)
@@ -57,7 +57,7 @@ class GCMSBase(Mapping, GC_Calculations):
 
     def __iter__(self):
 
-         return iter(self._ms) 
+         return iter(self._ms.values())
 
     def add_mass_spectrum(self, mass_spec):
 
@@ -65,9 +65,8 @@ class GCMSBase(Mapping, GC_Calculations):
 
     def set_tic_list_from_data(self):
 
-        self.set_tic_list(
-            [self._ms.get(i).tic for i in self.scans_number]
-        )
+        self.tic = [self._ms.get(i).tic for i in self.scans_number]
+        
         # self.set_tic_list([self._ms.get(i).get_sumed_signal_to_noise() for i in self.get_scans_number()])
 
     def set_retention_time_from_data(self):
@@ -78,13 +77,13 @@ class GCMSBase(Mapping, GC_Calculations):
 
             retention_time_list.append(self._ms.get(key_ms).rt)
 
-        self.set_retention_time_list(retention_time_list)
+        self.retention_time = retention_time_list 
 
         # self.set_retention_time_list(sorted(self._ms.keys()))
 
     def set_scans_number_from_data(self):
         
-        self.set_scans_number_list(sorted(self._ms.keys()))
+        self.scans_number = sorted(self._ms.keys())
 
     @property
     def scans_number(self):
@@ -99,7 +98,7 @@ class GCMSBase(Mapping, GC_Calculations):
     @property
     def tic(self):
 
-        return self.tic_list
+        return self._tic_list
 
     @retention_time.setter
     def set_retention_time_list(self, l):
@@ -114,4 +113,4 @@ class GCMSBase(Mapping, GC_Calculations):
     @tic.setter
     def set_tic_list(self, l):
 
-        self.tic_list = l    
+        self._tic_list = l    

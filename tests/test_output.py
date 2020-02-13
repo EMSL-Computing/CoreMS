@@ -72,11 +72,9 @@ def test_export_mass_spectrum():
     exportMS.save()
     exportMS.get_pandas_df()    
 
-    
-
 
 if __name__ == "__main__":
                         
-    #test_export_mass_spectra()
+    test_export_mass_spectra()
     test_export_mass_spectrum()
     

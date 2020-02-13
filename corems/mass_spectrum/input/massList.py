@@ -31,7 +31,7 @@ class ReadCoremsMasslist(MassListBaseClass):
 
         output_parameters = self.get_output_parameters(polarity)
 
-        mass_spec_obj = MassSpecCentroid(dataframe, output_parameters, auto_process=auto_process)
+        mass_spec_obj = MassSpecCentroid(dataframe.to_dict(orient='list'), output_parameters)
 
         if loadSettings: self.load_settings(mass_spec_obj, output_parameters)
 
@@ -44,7 +44,7 @@ class ReadCoremsMasslist(MassListBaseClass):
         #check if is coreMS file
         if 'Is Isotopologue' in dataframe:
             
-            mz_exp_df = dataframe["m/z"].astype(float)
+            mz_exp_df = dataframe[Labels.mz].astype(float)
             #formula_df = dataframe.loc[:, 'C':].fillna(0)
             #\.replace({b'nan':0})
             try:
@@ -111,7 +111,7 @@ class ReadMassList(MassListBaseClass):
             
         if self.isCentroid:
             
-            mass_spec = MassSpecCentroid(dataframe, output_parameters, auto_process=auto_process)
+            mass_spec = MassSpecCentroid(dataframe.to_dict(orient='list'), output_parameters)
             
             if loadSettings: self.load_settings(mass_spec, output_parameters)
             
@@ -119,7 +119,7 @@ class ReadMassList(MassListBaseClass):
 
         else:
 
-            mass_spec = MassSpecProfile(dataframe, output_parameters, auto_process=auto_process)
+            mass_spec = MassSpecProfile(dataframe.to_dict(orient='list'), output_parameters, auto_process=auto_process)
 
             if loadSettings: self.load_settings(mass_spec, output_parameters)
 

@@ -94,7 +94,7 @@ def assign_mf_sox(mass_spectrum_obj):
     
     assignOx.run()
     
-    ClusteringFilter().remove_assigment_by_mass_error(mass_spectrum_obj)
+    ClusteringFilter().remove_assignment_by_mass_error(mass_spectrum_obj)
     #assignOx.start()
     #assignOx.join()
 
@@ -311,7 +311,7 @@ def plot_error_distribution():
                     pyplot.plot(mspeak.mz_exp, molecular_formula._assigment_mass_error, "o")
 
     pyplot.ylabel("m/z Error (ppm)")
-    pyplot.xlabel("m/z")
+    pyplot.xlabel(Labels.mz)
     pyplot.savefig(mass_spectrum_obj.filename+'/'+"_error_dist"+'.png')        
 
 def plot_resolving_power():
@@ -423,16 +423,16 @@ if __name__ == "__main__":
     #plot_resolving_power()
 
     #MolecularSearchSettings.error_method = 'None'
-    #MolecularSearchSettings.min_mz_error = -10
-    #MolecularSearchSettings.max_mz_error = 10
+    #MolecularSearchSettings.min_ppm_error  = -10
+    #MolecularSearchSettings.max_ppm_error = 10
 
     calibrate(mass_spectrum_obj)
 
     plot_mass_spectrum()
 
     #MolecularSearchSettings.error_method = 'None'
-    #MolecularSearchSettings.min_mz_error = -1
-    #MolecularSearchSettings.max_mz_error = 1
+    #MolecularSearchSettings.min_ppm_error  = -1
+    #MolecularSearchSettings.max_ppm_error = 1
     #MolecularSearchSettings.mz_error_range = 1
     #MolecularSearchSettings.mz_error_average = 0
     #MolecularSearchSettings.min_abun_error = -30 # percentage

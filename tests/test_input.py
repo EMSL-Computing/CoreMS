@@ -78,16 +78,17 @@ def test_import_lcms_from_transient():
     read_lcms.join()
 
     lcms = read_lcms.get_lcms_obj()
-    lcms.find_nearest_scan(1)
-    lcms.get_scans_number()
+    lcms.find_nearest_scan(0)
+    lcms.scans_number
     lcms.set_retention_time_from_data()
     lcms.set_tic_list_from_data()
-    lcms.get_retention_time()
-    lcms.get_tic()
+    lcms.retention_time
+    lcms.tic
     lcms[0]
     
     for ms in lcms:
         #assign mf
+        
         for mspeak in ms:
             #mspeak.mz_exp,mspeak.mz_abund 
             for mf in mspeak:
@@ -224,7 +225,7 @@ def test_import_mass_list():
 
     mass_spectrum.filter_by_s2n(100)
     
-    mass_list_reader = ReadMassList(file_location, isCentroid=False, )
+    mass_list_reader = ReadMassList(file_location, isCentroid=False,)
 
     mass_spectrum = mass_list_reader.get_mass_spectrum(polarity,auto_process=True)
 
@@ -236,5 +237,6 @@ if __name__ == '__main__':
     #test_import_transient()
     #test_import_corems_hdf5()
     #test_import_corems_mass_list()
-    #test_import_mass_list()
-    test_andi_netcdf_gcms()
+    test_import_mass_list()
+
+    #test_andi_netcdf_gcms()

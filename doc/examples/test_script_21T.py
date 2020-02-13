@@ -34,8 +34,8 @@ if __name__ == "__main__":
     plt.show()
 
     mass_spectrum.molecular_search_settings.error_method = 'None'
-    mass_spectrum.molecular_search_settings.min_mz_error = -0.4
-    mass_spectrum.molecular_search_settings.max_mz_error = 0.0
+    mass_spectrum.molecular_search_settings.min_ppm_error  = -0.4
+    mass_spectrum.molecular_search_settings.max_ppm_error = 0.0
 
     mass_spectrum.molecular_search_settings.min_dbe = 0
     mass_spectrum.molecular_search_settings.max_dbe = 30

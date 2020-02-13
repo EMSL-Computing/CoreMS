@@ -15,8 +15,8 @@ from test_MolecularFormulaSearch import create_mass_spectrum
 def test_heteroatoms_classification():
 
     MolecularSearchSettings.error_method = 'None'
-    MolecularSearchSettings.min_mz_error = -5
-    MolecularSearchSettings.max_mz_error = 3
+    MolecularSearchSettings.min_ppm_error  = -5
+    MolecularSearchSettings.max_ppm_error = 3
     MolecularSearchSettings.mz_error_range = 1
     MolecularSearchSettings.isProtonated = True 
     MolecularSearchSettings.isRadical= False 

@@ -45,13 +45,13 @@ def test_run_molecular_formula_search():
     MolecularSearchSettings.usedAtoms['Cl'] = (0,1)
     MolecularSearchSettings.isAdduct = True
 
-    MolecularSearchSettings.used_atom_valences['P'] = 3
+    MolecularSearchSettings.used_atom_valences['P'] = 1
     MolecularSearchSettings.used_atom_valences['F'] = 1
     MolecularSearchSettings.used_atom_valences['Cl'] = 0
 
     mz = [215.09269]
     abundance = [1]
-    rp, s2n = [1,1]
+    rp, s2n = [1] ,[1]
     dataname = 'one peak'
     mass_spectrum_obj = ms_from_array_centroid(mz, abundance, rp, s2n, dataname)
 
@@ -123,8 +123,8 @@ def test_priorityAssignment():
     
     
     MolecularSearchSettings.error_method = 'None'
-    MolecularSearchSettings.min_mz_error = -5
-    MolecularSearchSettings.max_mz_error = 3
+    MolecularSearchSettings.min_ppm_error  = -5
+    MolecularSearchSettings.max_ppm_error = 3
     MolecularSearchSettings.mz_error_range = 1
     MolecularSearchSettings.isProtonated = True 
     MolecularSearchSettings.isRadical= False 
@@ -150,7 +150,8 @@ def test_priorityAssignment():
 
 if __name__ == "__main__":
 
-    test_priorityAssignment()
+    test_run_molecular_formula_search()
+    #test_priorityAssignment()
     #test_molecular_formula_search_db()
     #test_run_molecular_formula_search()
     #test_mspeak_search()

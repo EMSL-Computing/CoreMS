@@ -48,7 +48,7 @@ class MassListBaseClass:
 
         #(newline="\n")
         
-        self._expected_columns = {"m/z", "Abundance", "S/N", "Resolving Power"}
+        self._expected_columns = {Labels.mz, Labels.abundance, Labels.s2n, Labels.rp}
         
         self._delimiter  = None
         

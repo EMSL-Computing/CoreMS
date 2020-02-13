@@ -1,3 +1,6 @@
+__author__ = "Yuri E. Corilo"
+__date__ = "Feb 13, 2020"
+
 class GC_Calculations:
     
     '''

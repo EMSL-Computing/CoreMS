@@ -1,9 +1,10 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Oct 29, 2019"
 
-from pandas import DataFrame
-import h5py
+
 from threading import Thread
+
+import h5py
 
 from corems.encapsulation.constant import Labels
 from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
@@ -33,11 +34,11 @@ class ReadCoreMSHDF_MassSpectra(ReadCoreMSHDF_MassSpectrum, Thread):
 
             list_tic.append(mass_spec.tic)
             
-            self.lcms.add_mass_spectrum_for_scan(mass_spec)
+            self.lcms.add_mass_spectrum(mass_spec)
 
-        self.lcms.set_retention_time_list(list_rt)
-        self.lcms.set_tic_list(list_tic)
-        self.lcms.set_scans_number_list(self.list_scans)
+        self.lcms.retention_time = list_rt
+        self.lcms.tic = list_tic
+        self.lcms.scans_number = self.list_scans
     
     def run(self):
         '''creates the lcms obj'''

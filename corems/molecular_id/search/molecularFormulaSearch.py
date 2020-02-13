@@ -346,32 +346,32 @@ class SearchMolecularFormulaWorker:
             if dif < last_dif:
                 last_dif = dif
                 closest_error = error
-                mass_spectrum_obj.molecular_search_settings.min_mz_error = closest_error - mass_spectrum_obj.molecular_search_settings.mz_error_range
-                mass_spectrum_obj.molecular_search_settings.max_mz_error = closest_error + mass_spectrum_obj.molecular_search_settings.mz_error_range
+                mass_spectrum_obj.molecular_search_settings.min_ppm_error  = closest_error - mass_spectrum_obj.molecular_search_settings.mz_error_range
+                mass_spectrum_obj.molecular_search_settings.max_ppm_error = closest_error + mass_spectrum_obj.molecular_search_settings.mz_error_range
 
         elif mass_spectrum_obj.molecular_search_settings.error_method == 'lowest':
             
             if error < last_error:
-                mass_spectrum_obj.molecular_search_settings.min_mz_error = error - mass_spectrum_obj.molecular_search_settings.mz_error_range
-                mass_spectrum_obj.molecular_search_settings.max_mz_error = error + mass_spectrum_obj.molecular_search_settings.mz_error_range
+                mass_spectrum_obj.molecular_search_settings.min_ppm_error  = error - mass_spectrum_obj.molecular_search_settings.mz_error_range
+                mass_spectrum_obj.molecular_search_settings.max_ppm_error = error + mass_spectrum_obj.molecular_search_settings.mz_error_range
                 last_error = error
                 
         
         elif mass_spectrum_obj.molecular_search_settings.error_method == 'symmetrical':
                
-               mass_spectrum_obj.molecular_search_settings.min_mz_error = mass_spectrum_obj.molecular_search_settings.mz_error_average - mass_spectrum_obj.molecular_search_settings.mz_error_range
-               mass_spectrum_obj.molecular_search_settings.max_mz_error = mass_spectrum_obj.molecular_search_settings.mz_error_average + mass_spectrum_obj.molecular_search_settings.mz_error_range
+               mass_spectrum_obj.molecular_search_settings.min_ppm_error  = mass_spectrum_obj.molecular_search_settings.mz_error_average - mass_spectrum_obj.molecular_search_settings.mz_error_range
+               mass_spectrum_obj.molecular_search_settings.max_ppm_error = mass_spectrum_obj.molecular_search_settings.mz_error_average + mass_spectrum_obj.molecular_search_settings.mz_error_range
         
         elif mass_spectrum_obj.molecular_search_settings.error_method == 'average':
 
                 nbValues += 1
                 error_average = error_average + ((error - error_average) / nbValues)
-                mass_spectrum_obj.molecular_search_settings.min_mz_error =  error_average - mass_spectrum_obj.molecular_search_settings.mz_error_range
-                mass_spectrum_obj.molecular_search_settings.max_mz_error =  error_average + mass_spectrum_obj.molecular_search_settings.mz_error_range    
+                mass_spectrum_obj.molecular_search_settings.min_ppm_error  =  error_average - mass_spectrum_obj.molecular_search_settings.mz_error_range
+                mass_spectrum_obj.molecular_search_settings.max_ppm_error =  error_average + mass_spectrum_obj.molecular_search_settings.mz_error_range    
                 
                 
         else:
-            #using set mass_spectrum_obj.molecular_search_settings.min_mz_error and max_mz_error range
+            #using set mass_spectrum_obj.molecular_search_settings.min_ppm_error  and max_ppm_error range
             pass
 
         '''returns the error based on the selected method at mass_spectrum_obj.molecular_search_settings.method
@@ -394,8 +394,8 @@ class SearchMolecularFormulaWorker:
         
         mspeak_assigned_index = list()
 
-        min_mz_error = mass_spectrum_obj.molecular_search_settings.min_mz_error
-        max_mz_error = mass_spectrum_obj.molecular_search_settings.max_mz_error
+        min_ppm_error  = mass_spectrum_obj.molecular_search_settings.min_ppm_error 
+        max_ppm_error = mass_spectrum_obj.molecular_search_settings.max_ppm_error
         
         min_abun_error = mass_spectrum_obj.molecular_search_settings.min_abun_error
         max_abun_error = mass_spectrum_obj.molecular_search_settings.max_abun_error
@@ -410,7 +410,7 @@ class SearchMolecularFormulaWorker:
                 
                 error = possible_formula._calc_assignment_mass_error(ms_peak_mz_exp)
                
-                if  min_mz_error <= error <= max_mz_error:
+                if  min_ppm_error  <= error <= max_ppm_error:
                     
                     #update the error
                     
@@ -439,7 +439,7 @@ class SearchMolecularFormulaWorker:
                                 
                                 error = isotopologue_formula._calc_assignment_mass_error(ms_peak_iso.mz_exp)    
                                 
-                                if  min_mz_error <= error <= max_mz_error:
+                                if  min_ppm_error  <= error <= max_ppm_error:
                                     
                                     #need to define error distribution for abundance measurements
                                     

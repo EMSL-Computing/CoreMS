@@ -395,9 +395,8 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     @property
     def tic(self):
         
-        if list(self.abundance_profile): return sum(self.abundance_profile)
-        else: return (sum(self.abundance))
-
+        return sum(self.abundance_profile)
+        
     def check_mspeaks_warning(self):
         import warnings
         if self.mspeaks:
@@ -558,29 +557,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         self._dict_nominal_masses_indexes = dict_nominal_masses_indexes
 
-    def percentile_assigned(self):
-        
-        assign_abun = 0
-        not_assign_abun = 0
-        i = 0
-        j = 0
-        for mspeak in self.sort_by_abundance():
-            
-            if mspeak.is_assigned:
-                i += 1
-                assign_abun += mspeak.abundance
-                
-            else:
-                j += 1
-                not_assign_abun += mspeak.abundance
-                   
-        total_percent = (i/(i+j))*100
-        total_relative_abundance = (assign_abun/(not_assign_abun+assign_abun)) *100
-
-        print('%i peaks assigned and %i peaks not assigned , total  = %.2f %%, relative abundance = %.2f %%' % (i, j, total_percent,total_relative_abundance  ))
-
-        return i, j, total_percent,total_relative_abundance 
-        
+    
     def plot_centroid(self, ax=None, c='g'):
         
         import matplotlib.pyplot as plt
@@ -722,12 +699,13 @@ class MassSpecProfile(MassSpecBase):
     see also: MassSpecBase(), MassSpecfromFreq(), MassSpecProfile()
     '''
 
-    def __init__(self, dataframe, d_params, auto_process=True, auto_noise=True, noise_bayes_est=True):
+    def __init__(self, data_dict, d_params, auto_process=True, auto_noise=True, noise_bayes_est=True):
         """
         method docs
         """
-        mz_exp = dataframe["m/z"].values
-        abundance = dataframe["Abundance"].values
+        print(data_dict.keys())
+        mz_exp = data_dict.get(Labels.mz)
+        abundance = data_dict.get(Labels.abundance)
         super().__init__(mz_exp, abundance, d_params)
         
         if auto_process:
@@ -822,8 +800,8 @@ class MassSpecCentroid(MassSpecBase):
 
     Parameters
     ----------
-    dataframe : pandas Dataframe(Series(floats))
-        contains columns [m/z, Abundance, Resolving Power, S/N] 
+    data_dict : dict {string: numpy array float64 )
+        contains keys [m/z, Abundance, Resolving Power, S/N] 
     d_params : dict{'str': float, int or str}
         
     Attributes
@@ -860,27 +838,25 @@ class MassSpecCentroid(MassSpecBase):
     see also: MassSpecBase(), MassSpecfromFreq(), MassSpecProfile()
     '''
 
-    def __init__(self, dataframe, d_params, auto_process=True):
+    def __init__(self, data_dict, d_params):
         
         """needs to simulate peak shape and pass as mz_exp and magnitude."""
-        exp_mz_centroid = dataframe["m/z"].values
-        magnitude_centroid = dataframe["Abundance"].values
         
-        self.dataframe = dataframe
-        super().__init__(exp_mz_centroid, magnitude_centroid, d_params)
+        super().__init__(None, None, d_params)
 
         self._set_parameters_objects(d_params)
+        
+        self.process_mass_spec(data_dict)
+
         if self.label == Labels.thermo_centroid:
             self._baselise_noise = d_params.get("baselise_noise")
             self._baselise_noise_std = d_params.get("baselise_noise_std")
 
-        if auto_process:
-            self.process_mass_spec(dataframe)
-            del self.dataframe
-
+            
+           
     def __simulate_profile__data__(self, exp_mz_centroid, magnitude_centroid):
         '''needs theoretical resolving power calculation and define peak shape
-        this is a quick fix to be able to plot as lines'''
+        this is a quick fix to trick a line plot be able to plot as sticks'''
         
         x, y = [], []
         for i in range(len(exp_mz_centroid)):
@@ -892,22 +868,27 @@ class MassSpecCentroid(MassSpecBase):
             y.append(0)
         return x, y
 
+    @property
+    def tic(self):
+    
+        return sum(self.abundance)
+    
     @overrides(MassSpecBase)
-    def process_mass_spec(self, dataframe):
+    def process_mass_spec(self, data_dict):
 
         ion_charge = self.polarity
-        l_exp_mz_centroid = dataframe["m/z"]
-        l_intes_centr = dataframe["Abundance"]
-        l_peak_resolving_power = dataframe["Resolving Power"]
-        l_s_n = dataframe["S/N"]
+        l_exp_mz_centroid = data_dict.get(Labels.mz)
+        l_intes_centr = data_dict.get(Labels.abundance)
+        l_peak_resolving_power = data_dict.get(Labels.rp)
+        l_s2n = data_dict.get(Labels.s2n)
 
-        for index in range(dataframe["m/z"].size):
+        for index in range(len(data_dict.get(Labels.mz))):
             self.add_mspeak(
                 ion_charge,
                 l_exp_mz_centroid[index],
                 l_intes_centr[index],
                 l_peak_resolving_power[index],
-                l_s_n[index],
+                l_s2n[index],
                 index,
             )
         

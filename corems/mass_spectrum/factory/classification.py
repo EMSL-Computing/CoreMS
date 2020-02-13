@@ -36,9 +36,9 @@ class HeteroatomsClassification(Mapping):
 
         self.min_max_abundance = (mass_spectrum.min_abundance, mass_spectrum.max_abundance)
 
-        self.min_mz_error = mass_spectrum.molecular_search_settings.min_mz_error
+        self.min_ppm_error = mass_spectrum.molecular_search_settings.min_ppm_error 
 
-        self.max_mz_error = mass_spectrum.molecular_search_settings.max_mz_error
+        self.max_ppm_error = mass_spectrum.molecular_search_settings.max_ppm_error
 
         check_assign = False
 
@@ -378,7 +378,7 @@ class HeteroatomsClassification(Mapping):
             ax.spines['left'].set_visible(True)
 
             ax.set_xlim(self.min_max_mz)
-            ax.set_ylim(self.min_mz_error, self.max_mz_error)
+            ax.set_ylim(self.min_ppm_error , self.max_ppm_error)
         
             return ax   
             

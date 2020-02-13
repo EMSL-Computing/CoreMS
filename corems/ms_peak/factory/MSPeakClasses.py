@@ -153,7 +153,7 @@ class _MSPeak(MSPeakCalculation):
         elif MolecularSearchSettings.score_method == "earth_filter_error":
             return self.molecular_formula_earth_filter()   
 
-        elif MolecularSearchSettings.score_method == "prop_score":
+        elif MolecularSearchSettings.score_method == "prob_score":
             #TODO
             raise NotImplementedError
         else:

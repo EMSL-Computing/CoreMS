@@ -5,27 +5,22 @@ __date__ = "Oct 23, 2019"
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
 from corems.encapsulation.settings.input import InputSetting
 from corems.encapsulation.constant import Labels
-from pandas import DataFrame
 
 def ms_from_array_profile(mz, abundance,  dataname, polarity=-1,  auto_process=True, auto_noise=False):
 
-    data_dict = {'m/z': mz, 'Abundance': abundance}
-    
-    df = DataFrame(data_dict)
+    data_dict = {Labels.mz: mz, Labels.abundance: abundance}
     
     output_parameters = get_output_parameters(polarity, dataname)
         
-    return MassSpecProfile(df, output_parameters, auto_process=auto_process, auto_noise=auto_noise)
+    return MassSpecProfile(data_dict, output_parameters, auto_process=auto_process, auto_noise=auto_noise)
 
 def ms_from_array_centroid(mz, abundance, rp, s2n, dataname, polarity=-1, auto_process=True):
 
-    data_dict = {'m/z': mz, 'Abundance': abundance, 'S/N' : s2n, 'Resolving Power' : rp}
+    data_dict = {Labels.mz: mz, Labels.abundance: abundance, Labels.s2n : s2n, Labels.rp: rp}
     
-    df = DataFrame(data_dict)
-
     output_parameters = get_output_parameters(polarity, dataname)
         
-    return MassSpecCentroid(df, output_parameters, auto_process=auto_process)
+    return MassSpecCentroid(data_dict, output_parameters)
     
 def get_output_parameters(polarity, file_location):
         

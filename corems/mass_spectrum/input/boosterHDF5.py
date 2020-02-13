@@ -1,5 +1,4 @@
 
-from pandas import DataFrame
 import h5py
 
 from corems.mass_spectrum.input.baseClass import MassListBaseClass
@@ -35,13 +34,11 @@ class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
         
     def get_data_profile(self, mz, abundance, auto_process, auto_noise):
 
-        data_dict = {'m/z': mz, 'Abundance': abundance}
+        data_dict = {Labels.mz: mz, Labels.abundance: abundance}
     
-        df = DataFrame(data_dict)
-        
         output_parameters = self.get_output_parameters()
             
-        return MassSpecProfile(df, output_parameters, auto_process=auto_process, auto_noise=auto_noise)
+        return MassSpecProfile(data_dict, output_parameters, auto_process=auto_process, auto_noise=auto_noise)
     
     def get_attr_data(self, scan, attr_srt):
 

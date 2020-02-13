@@ -1,7 +1,6 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Oct 29, 2019"
 
-from pandas import DataFrame
 import h5py
 from threading import Thread
 
@@ -80,11 +79,11 @@ class ReadHDF_BoosterMassSpectra(Thread):
             
             mass_spec = self.get_mass_spectrum(scan_number, d_params)
 
-            self.lcms.add_mass_spectrum_for_scan(mass_spec)
+            self.lcms.add_mass_spectrum(mass_spec)
 
-        self.lcms.set_retention_time_list(list_rt)
-        self.lcms.set_tic_list(list_tic)
-        self.lcms.set_scans_number_list(self.list_scans)
+        self.lcms.retention_time = list_rt
+        self.lcms.tic = list_tic
+        self.lcms.scans_number = self.list_scans
         
     def get_mass_spectrum(self, scan, d_params):
         
@@ -97,14 +96,14 @@ class ReadHDF_BoosterMassSpectra(Thread):
         else:
             
             data_dict = {
-                "m/z": booster_data[0],
-                "Abundance": booster_data[1],
-                "Resolving Power": None,
-                "S/N": None,
+                Labels.mz: booster_data[0],
+                Labels.abundance: booster_data[1],
+                Labels.rp: None,
+                Labels.s2n: None,
             }
             
-            data = DataFrame(data_dict)
-            mass_spec = MassSpecProfile(data, d_params, auto_process=self.auto_process)
+           
+            mass_spec = MassSpecProfile(data_dict, d_params, auto_process=self.auto_process)
 
         return mass_spec
 
@@ -116,7 +115,7 @@ class ReadHDF_BoosterMassSpectra(Thread):
             
     def get_lcms_obj(self):
         
-        if self.lcms.get_mass_spec_by_scan_number(self.initial_scan_number):
+        if self.lcms.get(self.initial_scan_number):
             return self.lcms
         else:
             raise Exception("returning a empty lcms class")

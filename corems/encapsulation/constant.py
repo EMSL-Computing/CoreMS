@@ -9,6 +9,12 @@ __date__ = 'Jun 12, 2019'
 
 class Labels: #pragma: no cover
     
+    mz = "m/z"
+    abundance = "Abundance"
+    rp = "Resolving Power"
+    s2n = "S/N"
+
+    
     label = 'label'
     bruker_profile = 'Bruker_Profile'
     thermo_profile = 'Thermo_Profile'

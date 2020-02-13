@@ -4,7 +4,7 @@ from threading import Thread
 from comtypes.automation import BSTR
 from comtypes.client import CreateObject
 from numpy import array
-from pandas import DataFrame
+
 
 from corems.encapsulation.settings.input import InputSetting
 from corems.encapsulation.constant import Labels
@@ -149,10 +149,10 @@ class ImportLCMSBrukerCompassXtract(Thread):
         # index_to_cut = self.find_index_of_mass(1200, masslist[0])
 
         data_dict = {
-            "m/z": array(masslist[0]),
-            "Abundance": array(masslist[1]),
-            "Resolving Power": None,
-            "S/N": None,
+            Labels.mz: array(masslist[0]),
+            Labels.abundance: array(masslist[1]),
+            Labels.rp: None,
+            Labels.s2n: None,
         }
 
         return data_dict
@@ -188,21 +188,21 @@ class ImportLCMSBrukerCompassXtract(Thread):
 
                 data_dict = self.get_data(spectra, scan_number)
 
-                data = DataFrame(data_dict)
-                mass_spec = MassSpecProfile(data, d_params, auto_process=self.auto_process)
+                mass_spec = MassSpecProfile(data_dict, d_params, auto_process=self.auto_process)
                 mass_spec.process_mass_spec()
-                self.lcms.add_mass_spectrum_for_scan(mass_spec)
+                
+                self.lcms.add_mass_spectrum(mass_spec)
 
-        self.lcms.set_retention_time_list(list_rt)
-        self.lcms.set_tic_list(list_Tics)
-        self.lcms.set_scans_number_list(list_scans)
+        self.lcms.retention_time = list_rt
+        self.lcms.tic = list_Tics
+        self.lcms.scans_number = list_scans 
         # return each_mass_spectrum
 
     def get_lcms_obj(self):
         """get_lc_ms_class method should only be used when using this class as a Thread, 
         otherwise use the run() method to return the lcms class"""
 
-        if self.lcms.get_mass_spec_by_scan_number(self._initial_scan_number):
+        if self.lcms.get(self._initial_scan_number):
             return self.lcms
         else:
             raise Exception("returning a empty lcms class")

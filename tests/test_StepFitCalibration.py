@@ -68,8 +68,8 @@ def test_calibration():
     '''
     
     MolecularSearchSettings.error_method = 'None'
-    MolecularSearchSettings.min_mz_error = -5
-    MolecularSearchSettings.max_mz_error = 5
+    MolecularSearchSettings.min_ppm_error  = -5
+    MolecularSearchSettings.max_ppm_error = 5
     MolecularSearchSettings.mz_error_range = 1
     MolecularSearchSettings.isProtonated = True 
     MolecularSearchSettings.isRadical= True 
@@ -98,8 +98,8 @@ def test_calibration():
     mass_spectrum.clear_molecular_formulas()
 
     MolecularSearchSettings.error_method = 'symmetrical'
-    MolecularSearchSettings.min_mz_error = -3
-    MolecularSearchSettings.max_mz_error = 3
+    MolecularSearchSettings.min_ppm_error  = -3
+    MolecularSearchSettings.max_ppm_error = 3
     MolecularSearchSettings.mz_error_range = 1
     MolecularSearchSettings.mz_error_average = 0
     MolecularSearchSettings.min_abun_error = -30 # percentage 
