@@ -7,7 +7,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from corems.mass_spectra.calc.GC_Calc import GC_Calculations
 
-
+from corems import timeit
 
 class GCMSBase(Mapping, GC_Calculations):
     """
@@ -60,7 +60,7 @@ class GCMSBase(Mapping, GC_Calculations):
          return iter(self._ms.values())
 
     def add_mass_spectrum(self, mass_spec):
-
+   
         self._ms[mass_spec.scan_number] = mass_spec
 
     def set_tic_list_from_data(self):
@@ -101,16 +101,16 @@ class GCMSBase(Mapping, GC_Calculations):
         return self._tic_list
 
     @retention_time.setter
-    def set_retention_time_list(self, l):
+    def retention_time(self, l):
         # self._retention_time_list = linspace(0, 80, num=len(self._scans_number_list))
         self._retention_time_list = l
 
     @scans_number.setter
-    def set_scans_number_list(self, l):
+    def scans_number(self, l):
 
         self._scans_number_list = l
 
     @tic.setter
-    def set_tic_list(self, l):
+    def tic(self, l):
 
         self._tic_list = l    

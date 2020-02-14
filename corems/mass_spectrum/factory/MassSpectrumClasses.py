@@ -1,6 +1,6 @@
-import time, gc
 from pathlib import Path
 from copy import deepcopy
+
 
 #from matplotlib import rcParamsDefault, rcParams
 from numpy import array, power, float64, where
@@ -846,14 +846,12 @@ class MassSpecCentroid(MassSpecBase):
 
         self._set_parameters_objects(d_params)
         
-        self.process_mass_spec(data_dict)
-
         if self.label == Labels.thermo_centroid:
             self._baselise_noise = d_params.get("baselise_noise")
             self._baselise_noise_std = d_params.get("baselise_noise_std")
 
-            
-           
+        self.process_mass_spec(data_dict)
+   
     def __simulate_profile__data__(self, exp_mz_centroid, magnitude_centroid):
         '''needs theoretical resolving power calculation and define peak shape
         this is a quick fix to trick a line plot be able to plot as sticks'''
@@ -873,24 +871,36 @@ class MassSpecCentroid(MassSpecBase):
     
         return sum(self.abundance)
     
-    @overrides(MassSpecBase)
     def process_mass_spec(self, data_dict):
-
-        ion_charge = self.polarity
-        l_exp_mz_centroid = data_dict.get(Labels.mz)
-        l_intes_centr = data_dict.get(Labels.abundance)
-        l_peak_resolving_power = data_dict.get(Labels.rp)
-        l_s2n = data_dict.get(Labels.s2n)
-
-        for index in range(len(data_dict.get(Labels.mz))):
-            self.add_mspeak(
-                ion_charge,
-                l_exp_mz_centroid[index],
-                l_intes_centr[index],
-                l_peak_resolving_power[index],
-                l_s2n[index],
-                index,
-            )
         
-        self.reset_indexes()
+        ion_charge = self.polarity
+        #l_exp_mz_centroid = data_dict.get(Labels.mz)
+        #l_intes_centr = data_dict.get(Labels.abundance)
+        #l_peak_resolving_power = data_dict.get(Labels.rp)
+        l_s2n = data_dict.get(Labels.s2n)
+        if not l_s2n: s2n = False
+
+        for index, mz in enumerate(data_dict.get(Labels.mz)):
+            
+            if s2n:
+                self.add_mspeak(
+                    ion_charge,
+                    mz,
+                    data_dict.get(Labels.abundance)[index],
+                    data_dict.get(Labels.rp)[index],
+                    l_s2n[index],
+                    index,
+                )
+
+            else:
+                self.add_mspeak(
+                    ion_charge,
+                    mz,
+                    data_dict.get(Labels.abundance)[index],
+                    data_dict.get(Labels.rp)[index],
+                    -999,
+                    index,
+                )
+                
+       
 

@@ -12,7 +12,10 @@ from corems.mass_spectra.factory.GC_Class import GCMSBase
 
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroid
 
-class ReadAndiNetCDF:
+from corems import timeit
+
+
+class ReadAndiNetCDF(Thread):
 
 	def __init__(self, file_location, analyzer='Quadruple', instrument_label='GCMS-Agilent', auto_process=True):
 		
@@ -73,6 +76,7 @@ class ReadAndiNetCDF:
 			
 		else: return -1    
 
+	
 	def get_mass_spectrum(self, mz, abun, rp, d_params):
 				
 		data_dict = {Labels.mz: mz,
@@ -82,18 +86,20 @@ class ReadAndiNetCDF:
 		}
             
 		mass_spec = MassSpecCentroid(data_dict, d_params)
-
-		return mass_spec
-
+		
+		self.gcms.add_mass_spectrum(mass_spec)
+		
 	def run(self):
         
-		'''creates the gcms obj'''
+		'''populate the gcms obj'''
 
 		d_parameters = InputSetting.d_params(self.file_location)
+		
 		self.import_mass_spectra(d_parameters)
-
+	
+	@timeit
 	def import_mass_spectra(self, d_params):
-        
+		
 		ms_datapoints_per_scans = self.net_cdf_obj.variables.get("point_count")[:]
 
 		list_tic = self.net_cdf_obj.variables.get("total_intensity")[:]	
@@ -101,8 +107,12 @@ class ReadAndiNetCDF:
 		list_rt = self.net_cdf_obj.variables.get("scan_acquisition_time")[:]
 
 		mass_values = self.net_cdf_obj.variables.get("mass_values")[:]
+		
 		intensity_values = self.net_cdf_obj.variables.get("intensity_values")[:]
+		
 		resolution = self.net_cdf_obj.variables.get("resolution")[:]
+
+		individual_rp = len(mass_values) == len(resolution)
 
 		finish_location = -1
 		
@@ -132,13 +142,18 @@ class ReadAndiNetCDF:
 			
 			abun = intensity_values[start_location:finish_location]
 
-			rp = resolution[start_location:finish_location]
+			if individual_rp: 
+				
+				rp = resolution[start_location:finish_location]
+			
+			else:
+				rp = [resolution[scan_index]] * datapoints
 
-			mass_spec = self.get_mass_spectrum( mz, abun, rp, d_params)
+			#t1 = threading.Thread(target=self.get_mass_spectrum, args=(mz, abun, rp, d_params))
+			#t1.start()
+			self.get_mass_spectrum( mz, abun, rp, d_params)
 
-			self.gcms.add_mass_spectrum(mass_spec)
-
-
+		
 		self.gcms.retention_time = list_rt
 		self.gcms.tic = list_tic
 		self.gcms.scans_number = self.list_scans	
