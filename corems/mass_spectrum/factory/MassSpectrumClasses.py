@@ -873,16 +873,19 @@ class MassSpecCentroid(MassSpecBase):
     
     def process_mass_spec(self, data_dict):
         
+        s2n = True
         ion_charge = self.polarity
         #l_exp_mz_centroid = data_dict.get(Labels.mz)
         #l_intes_centr = data_dict.get(Labels.abundance)
         #l_peak_resolving_power = data_dict.get(Labels.rp)
         l_s2n = data_dict.get(Labels.s2n)
+        
         if not l_s2n: s2n = False
 
         for index, mz in enumerate(data_dict.get(Labels.mz)):
             
             if s2n:
+                
                 self.add_mspeak(
                     ion_charge,
                     mz,
@@ -901,6 +904,8 @@ class MassSpecCentroid(MassSpecBase):
                     -999,
                     index,
                 )
+        
+        self.reset_indexes()
                 
        
 

@@ -414,7 +414,7 @@ class HeteroatomsClassification(Mapping):
         
             return ax   
 
-    def plot_dbe_vs_carbon_number(self, classe, max_c=50, max_dbe=40, dbe_incr=5, c_incr=10):
+    def plot_dbe_vs_carbon_number(self, classe, max_c=50, max_dbe=40, dbe_incr=5, c_incr=10, color="jet"):
         
         from matplotlib import pyplot as plt
         
@@ -429,7 +429,9 @@ class HeteroatomsClassification(Mapping):
             #plot data
             ax = plt.gca()
 
-            ax.scatter(carbon_number, dbe, c=abundance, alpha=0.5, cmap="jet")
+            #ax.scatter(carbon_number, dbe, c=abundance, alpha=0.5, cmap=color)
+
+            ax.scatter(carbon_number, dbe, c=color, alpha=0.5)
             
             title = "%s, %.2f %%" % (classe, abun_perc)
             ax.set_title(title)

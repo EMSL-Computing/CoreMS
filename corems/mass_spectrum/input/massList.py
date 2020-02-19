@@ -106,11 +106,11 @@ class ReadMassList(MassListBaseClass):
         self.clean_data_frame(dataframe)
         
         dataframe.rename(columns=DataInputSetting.header_translate, inplace=True)
- 
+        
         output_parameters = self.get_output_parameters(polarity)
-            
+
         if self.isCentroid:
-            
+
             mass_spec = MassSpecCentroid(dataframe.to_dict(orient='list'), output_parameters)
             
             if loadSettings: self.load_settings(mass_spec, output_parameters)

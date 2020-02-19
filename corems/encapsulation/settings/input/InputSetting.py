@@ -1,11 +1,13 @@
+from corems.encapsulation.constant import Labels
+
 class DataInputSetting:
         
         #add to this dict the VALUES to match your labels, THE ORDER WON"T MATTER
         #"column_translate" : {"m/z":"m/z", "Resolving Power":"Resolving Power", "Abundance":"Abundance" , "S/N":"S/N"}
-        header_translate = {"m/z":"m/z", 
+        header_translate = {'m/z': Labels.mz, 
                             "Resolving Power":"Resolving Power",
-                            "Res.":"Resolving Power", 
-                            'I':"Abundance",
+                            "Res.":Labels.rp, 
+                            'I':Labels.abundance,
                             "Abundance":"Abundance",
                             "Signal/Noise":"S/N",
                             "S/N":"S/N"}

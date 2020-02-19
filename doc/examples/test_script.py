@@ -50,14 +50,14 @@ if __name__ == "__main__":
     mass_spectrum.molecular_search_settings.usedAtoms['C'] = (1,90)
     mass_spectrum.molecular_search_settings.usedAtoms['H'] = (4,200)
     mass_spectrum.molecular_search_settings.usedAtoms['O'] = (0,22)
-    mass_spectrum.molecular_search_settings.usedAtoms['N'] = (0,1)
-    mass_spectrum.molecular_search_settings.usedAtoms['S'] = (0,1)
-    mass_spectrum.molecular_search_settings.usedAtoms['Cl'] = (0,1)
+    mass_spectrum.molecular_search_settings.usedAtoms['N'] = (0,0)
+    mass_spectrum.molecular_search_settings.usedAtoms['S'] = (0,0)
+    mass_spectrum.molecular_search_settings.usedAtoms['Cl'] = (0,0)
     mass_spectrum.molecular_search_settings.usedAtoms['P'] = (0,0)
     mass_spectrum.molecular_search_settings.usedAtoms['Na'] = (0,0)
     mass_spectrum.molecular_search_settings.isProtonated = True
     mass_spectrum.molecular_search_settings.isRadical= False
-    mass_spectrum.molecular_search_settings.isAdduct = True
+    mass_spectrum.molecular_search_settings.isAdduct = False
 
     mass_spectrum.filter_by_max_resolving_power(15, 2)
 
@@ -78,11 +78,22 @@ if __name__ == "__main__":
     #class_plot(dataframe)
 
     all_classes = 0
+    
+    colors = ["r","blue","g","purple","black","orange",]
+    classes = ["O7","O9","O12","O15","O18","O21",]
+    
+    color_dictionary = dict(zip(classes, colors))
 
     for classe in mass_spectrum_by_classes.get_classes(threshold_perc=0, isotopologue=False):
         
-        mass_spectrum_by_classes.plot_dbe_vs_carbon_number(classe)
-    
-        plt.show()
+#    for index, classe in enumerate(classes):
+        
+        #plt.subplot(2, 3, index+1)
+        mass_spectrum_by_classes.plot_dbe_vs_carbon_number(classe, color='g')
+
+        #mass_spectrum_by_classes.plot_ms_class(classe, color=color_dictionary.get(classe)) 
+        
+
+    plt.show()
 
     print("Sum Relative Abundance = %.2f" % all_classes)
