@@ -10,6 +10,8 @@ from corems.encapsulation.settings.input.InputSetting import DataInputSetting, d
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.settings.io import settings_parsers
 
+import chardet
+
 
 class MassListBaseClass:
     '''
@@ -78,6 +80,10 @@ class MassListBaseClass:
     def delimiter(self, delimiter):
         self._delimiter = delimiter
 
+    def encoding_detector(self,file_location):
+        with open(file_location, 'rb') as rawdata:
+            result = chardet.detect(rawdata.read(10000))
+        return result['encoding']
 
     def set_data_type(self):
 
@@ -114,7 +120,7 @@ class MassListBaseClass:
 
         if self.data_type == 'txt':
 
-            dataframe = read_csv(self.file_location, delimiter=self.delimiter, engine='python')
+            dataframe = read_csv(self.file_location, delimiter=self.delimiter,encoding=self.encoding_detector(self.file_location))
             
         elif self.data_type == 'dataframe':
 
