@@ -7,8 +7,7 @@ from copy import deepcopy
 
 from corems.encapsulation.constant import Labels
 from corems.molecular_id.factory.MolecularLookupTable import  MolecularCombinations
-from corems.molecular_id.factory.molecularSQL import MolForm_SQL as molform_db
-#from corems.molecular_id.factory.molecularMongo import MolForm_Mongo as molform_db
+from corems.molecular_id.factory.molecularSQL import MolForm_SQL
 
 last_error = 0
 last_dif = 0
@@ -21,11 +20,19 @@ class SearchMolecularFormulas:
     '''
     runworker()
     '''
-    def __init__(self, first_hit=False, find_isotopologues=True):
+    def __init__(self, sql_db=False, first_hit=False, find_isotopologues=True):
         
         self.first_hit = first_hit
         self.find_isotopologues = find_isotopologues
+        
+        if not sql_db:
 
+            self.sql_db = MolForm_SQL()
+        
+        else:
+            
+            self.sql_db = sql_db 
+    
     def __enter__(self):
 
         return self
@@ -153,7 +160,7 @@ class SearchMolecularFormulas:
 
         min_abundance = mass_spectrum_obj.min_abundance
 
-        classes = MolecularCombinations().runworker(mass_spectrum_obj.molecular_search_settings)
+        classes = MolecularCombinations(self.sql_db).runworker(mass_spectrum_obj.molecular_search_settings)
 
         classes_str = [class_tuple[0] for class_tuple in classes]
 
@@ -186,12 +193,11 @@ class SearchMolecularFormulas:
         
         min_abundance = mass_spectrum_obj.min_abundance
 
-        classes = MolecularCombinations().runworker(mass_spectrum_obj.molecular_search_settings)
+        classes = MolecularCombinations(self.sql_db).runworker(mass_spectrum_obj.molecular_search_settings)
         
         nominal_mz = ms_peak.nominal_mz_exp
 
         classes_str = [class_tuple[0] for class_tuple in classes]
-
         
         dict_res = self.get_dict_molecular_database(classes_str, [nominal_mz],  mass_spectrum_obj.molecular_search_settings)
         
@@ -211,7 +217,7 @@ class SearchMolecularFormulas:
 
         min_abundance = mass_spectrum_obj.min_abundance
 
-        classes = MolecularCombinations().runworker(mass_spectrum_obj.molecular_search_settings)
+        classes = MolecularCombinations(self.sql_db).runworker(mass_spectrum_obj.molecular_search_settings)
         
         nominal_mzs = mass_spectrum_obj.nominal_mz
 
@@ -222,7 +228,6 @@ class SearchMolecularFormulas:
         
         for classe_tuple in classes:
 
-            
             classe_str  = classe_tuple[0]
             classe_dict = classe_tuple[1]
 
@@ -300,20 +305,23 @@ class SearchMolecularFormulas:
         dict_res = {}
         
         #print (classes_str)
-        with molform_db() as sql_handle:
+        #with molform_db() as sql_handle:
 
-            if molecular_search_settings.isProtonated:
-                
-                ion_type = Labels.protonated_de_ion
+        #sql_handle = molform_db()
 
-                dict_res[ion_type] = sql_handle.get_dict_entries(classes_str, ion_type, nominal_mzs, molecular_search_settings)
-
-            if molecular_search_settings.isRadical or molecular_search_settings.isAdduct:
-
-                ion_type = Labels.radical_ion
-
-                dict_res[ion_type] = sql_handle.get_dict_entries(classes_str, ion_type, nominal_mzs,  molecular_search_settings)
+        if molecular_search_settings.isProtonated:
             
+            ion_type = Labels.protonated_de_ion
+
+            dict_res[ion_type] = self.sql_db.get_dict_entries(classes_str, ion_type, nominal_mzs, molecular_search_settings)
+
+        if molecular_search_settings.isRadical or molecular_search_settings.isAdduct:
+
+            ion_type = Labels.radical_ion
+
+            dict_res[ion_type] = self.sql_db.get_dict_entries(classes_str, ion_type, nominal_mzs,  molecular_search_settings)
+        
+        
         return dict_res
                 
             

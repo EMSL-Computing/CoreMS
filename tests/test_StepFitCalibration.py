@@ -79,9 +79,11 @@ def test_calibration():
     mass_spectrum = create_mass_spectrum(file_location)
 
     find_formula_thread = FindOxygenPeaks(mass_spectrum)
-    find_formula_thread.start()
-    find_formula_thread.join()
+    find_formula_thread.run()
+    #find_formula_thread.join()
     
+    
+
     mspeaks_results = find_formula_thread.get_list_found_peaks()
     
     calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)

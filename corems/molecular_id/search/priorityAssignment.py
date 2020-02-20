@@ -11,7 +11,7 @@ from corems.molecular_id.factory.MolecularLookupTable import MolecularCombinatio
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL as molform_db
 from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulaWorker, SearchMolecularFormulas
-#from corems.molecular_id.factory.molecularMongo import MolForm_Mongo as molform_db
+from corems.molecular_id.factory.molecularSQL import MolForm_SQL 
 
 class OxygenPriorityAssignment(Thread):
 
@@ -24,8 +24,10 @@ class OxygenPriorityAssignment(Thread):
         Thread.__init__(self)
         self.mass_spectrum_obj = mass_spectrum_obj
         #  initiated at create_molecular_database()
-        self.dict_molecular_lookup_table = None
+        #self.dict_molecular_lookup_table = None
         
+        self.sql_db = MolForm_SQL()
+
     def run(self):
         
         # get Oxygen classes dict and the associate mspeak class 
@@ -71,7 +73,7 @@ class OxygenPriorityAssignment(Thread):
 
             self.mass_spectrum_obj.molecular_search_settings.usedAtoms['O'] = (min_o, max_o)
 
-            classes = MolecularCombinations().runworker(self.mass_spectrum_obj.molecular_search_settings)
+            classes = MolecularCombinations(self.sql_db).runworker(self.mass_spectrum_obj.molecular_search_settings)
             
             classes_str = [class_tuple[0] for class_tuple in classes]
 
@@ -81,7 +83,7 @@ class OxygenPriorityAssignment(Thread):
         
         # get the most abundant peak and them every 14Da, only allow Ox and its derivatives
        
-        find_formula_thread = FindOxygenPeaks(self.mass_spectrum_obj)
+        find_formula_thread = FindOxygenPeaks(self.mass_spectrum_obj, self.sql_db)
         find_formula_thread.run()
         
         #mass spec obj indexes are set to interate over only the peaks with a molecular formula candidate
@@ -239,21 +241,22 @@ class OxygenPriorityAssignment(Thread):
         dict_res = {}
         
         #print (classes_str)
-        with molform_db() as sql_handle:
+        #with molform_db() as sql_handle:
         
-            if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
-                
-                ion_type = Labels.protonated_de_ion
-                
-                dict_res[ion_type] = sql_handle.get_dict_entries(classes_str, ion_type, nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
-                
-            if self.mass_spectrum_obj.molecular_search_settings.isRadical or self.mass_spectrum_obj.molecular_search_settings.isAdduct:
+        if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
+            
+            ion_type = Labels.protonated_de_ion
+            
+            dict_res[ion_type] = self.sql_db.get_dict_entries(classes_str, ion_type, nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
+            
+            
+        if self.mass_spectrum_obj.molecular_search_settings.isRadical or self.mass_spectrum_obj.molecular_search_settings.isAdduct:
 
-                ion_type = Labels.radical_ion
+            ion_type = Labels.radical_ion
 
-                dict_res[ion_type] = sql_handle.get_dict_entries(classes_str, ion_type, nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
-        
-            return dict_res
+            dict_res[ion_type] = self.sql_db.get_dict_entries(classes_str, ion_type, nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
+    
+        return dict_res
 
     
     def ox_classes_and_peaks_in_order_(self) -> dict:

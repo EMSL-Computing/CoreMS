@@ -53,6 +53,17 @@ class MolecularFormulaTable(Base):
 
 class MolForm_SQL:
     
+    def __init__(self, url='sqlite://', echo=False):
+
+        self.engine = create_engine(url)       
+        #self.engine = create_engine('postgresql://postgres:docker@localhost:5432/')
+        
+        Base.metadata.create_all(self.engine)
+
+        Session = sessionmaker(bind=self.engine)
+        
+        self.session = Session()
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         # make sure the dbconnection gets closed
         self.commit()
@@ -102,8 +113,6 @@ class MolForm_SQL:
         '''Known issue, when using SQLite:
          if the number of classes and nominal_m/zs are higher than 1,998 the query will fail
          Solution: use postgres or split query''' 
-        
-        
         
         print("Started molecular formula table generation")
         

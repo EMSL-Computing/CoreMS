@@ -10,10 +10,9 @@ import pickle
 from corems.encapsulation.settings.processingSetting import MolecularLookupDictSettings
 from corems.encapsulation.constant import Labels
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
+from corems.molecular_id.factory.molecularSQL import MolForm_SQL
 
-from corems.molecular_id.factory.molecularSQL import MolForm_SQL as molform_db
 #from corems.molecular_id.factory.molecularMongo import MolForm_Mongo as molform_db
-
 
 class MolecularCombinations:
      
@@ -28,7 +27,15 @@ class MolecularCombinations:
             }
         }
     '''
+    def __init__(self, sql_db = False):
 
+        if not sql_db:
+
+            self.sql_db = MolForm_SQL()
+
+        else:
+            
+            self.sql_db = sql_db 
     def check_database_get_class_list(self, molecular_search_settings):
 
         all_class_to_create = []
@@ -39,77 +46,33 @@ class MolecularCombinations:
         
         #print(classes_list)
         
-        with molform_db() as sql_db:
+        if molecular_search_settings.isProtonated:
 
-            if molecular_search_settings.isProtonated:
+            existing_classes = set(self.sql_db.get_all_classes(Labels.protonated_de_ion, molecular_search_settings))
 
-                existing_classes = set(sql_db.get_all_classes(Labels.protonated_de_ion, molecular_search_settings))
+            class_to_create = class_str_set - existing_classes
 
-                class_to_create = class_str_set - existing_classes
+            for class_str in class_to_create:
+                
+                class_tuple =  (class_str, classes_dict.get(class_str)) 
+                
+                all_class_to_create.append((class_tuple, Labels.protonated_de_ion))
 
-                for class_str in class_to_create:
-                    
-                    class_tuple =  (class_str, classes_dict.get(class_str)) 
-                    
-                    all_class_to_create.append((class_tuple, Labels.protonated_de_ion))
+        if  molecular_search_settings.isRadical or molecular_search_settings.isAdduct:
 
-            if  molecular_search_settings.isRadical or molecular_search_settings.isAdduct:
+            existing_classes = set(self.sql_db.get_all_classes(Labels.radical_ion, molecular_search_settings))
 
-                existing_classes = set(sql_db.get_all_classes(Labels.radical_ion, molecular_search_settings))
+            class_to_create = class_str_set - existing_classes
 
-                class_to_create = class_str_set - existing_classes
-
-                for class_str in class_to_create:
-                    
-                    class_tuple =  (class_str, classes_dict.get(class_str)) 
-                    
-                    all_class_to_create.append((class_tuple, Labels.radical_ion))
+            for class_str in class_to_create:
+                
+                class_tuple =  (class_str, classes_dict.get(class_str)) 
+                
+                all_class_to_create.append((class_tuple, Labels.radical_ion))
                 
         #print (existing_classes)class_str_list
 
         return [(c_s, c_d) for c_s, c_d in classes_dict.items()], all_class_to_create       
-
-    def check_database_get_class_list1(self, molecular_search_settings):
-        
-        ''' queries the molecular formula database for classes using the molecular_search_settings class settings
-            TODO
-            - too slow with SQLLite locally, need to test with online postgres
-            - change querying strategy?
-        '''
-        
-        class_to_create = []
-        
-        classes_list = self.get_classes_in_order(molecular_search_settings)
-        
-        #print('check', molecular_search_settings.isRadical, molecular_search_settings.isProtonated)
-        
-        with molform_db() as sql_db:
-
-            if molecular_search_settings.isProtonated:
-            
-                for classe_tuple in classes_list:
-
-                    if sql_db.check_entry(classe_tuple[0], Labels.protonated_de_ion, molecular_search_settings):
-                        
-                        pass
-                    
-                    else:    
-                        
-                        class_to_create.append((classe_tuple, Labels.protonated_de_ion))
-
-            if  molecular_search_settings.isRadical:
-
-                for classe_tuple in classes_list:
-                    
-                    if sql_db.check_entry(classe_tuple[0], Labels.radical_ion, molecular_search_settings):
-                        pass
-                    
-                    
-                    else:
-
-                        class_to_create.append((classe_tuple, Labels.radical_ion))
-        
-        return classes_list, class_to_create           
 
     def runworker(self, molecular_search_settings) :
 
@@ -133,15 +96,19 @@ class MolecularCombinations:
 
             print('creating database entry for %i classes' % len(class_to_create))
             
-            p = multiprocessing.Pool(number_of_process)
-            args = [(class_tuple, c_h_combinations, ion_type, settings) for class_tuple, ion_type in class_to_create]
-            p.map(CombinationsWorker(), args)
-            p.close()
-            p.join()
+            for class_tuple, ion_type in class_to_create:
 
+                #(class_tuple, c_h_combinations, ion_type, settings)
+                
+                CombinationsWorker(self.sql_db).get_combinations(class_tuple, c_h_combinations, ion_type, settings)
+
+            #p = multiprocessing.Pool(number_of_process)
+            #args = [(class_tuple, c_h_combinations, ion_type, settings) for class_tuple, ion_type in class_to_create]
+            #p.map(, args)
+            #p.close()
+            #p.join()
         
         return classes_list
-       
     
     def get_c_h_combination(self, settings):
 
@@ -290,9 +257,13 @@ class MolecularCombinations:
 class CombinationsWorker:
 
     # needs this wraper to pass the class to multiprocessing
-    def __call__(self, args):
+    
+    def __init__(self, sql_db):
+        self.sql_db = sql_db
 
-        return self.get_combinations(*args)  # ,args[1]
+    #def __call__(self, args):
+    
+    #    return self.get_combinations(*args)  # ,args[1]
 
     def get_combinations(self, classe_tuple,
                           c_h_combinations, ion_type, settings
@@ -326,9 +297,9 @@ class CombinationsWorker:
 
             par_ou_impar = self.get_h_impar_ou_par(ion_type, class_dict)
 
-            carbon_hidrogen_combination = c_h_combinations.get(par_ou_impar)
+            carbon_hydrogen_combination = c_h_combinations.get(par_ou_impar)
 
-            list_mf = self.get_mol_formulas(carbon_hidrogen_combination, ion_type, classe_tuple, 
+            list_mf = self.get_mol_formulas(carbon_hydrogen_combination, ion_type, classe_tuple, 
                                                     min_dbe, max_dbe,
                                                     min_mz, max_mz, ion_charge)
             self.insert_formula_db(list_mf, settings)
@@ -340,9 +311,9 @@ class CombinationsWorker:
             
             par_ou_impar = self.get_h_impar_ou_par(ion_type, class_dict)
 
-            carbon_hidrogen_combination = c_h_combinations.get(par_ou_impar)
+            carbon_hydrogen_combination = c_h_combinations.get(par_ou_impar)
 
-            list_mf = self.get_mol_formulas(carbon_hidrogen_combination, ion_type, classe_tuple, 
+            list_mf = self.get_mol_formulas(carbon_hydrogen_combination, ion_type, classe_tuple, 
                                                     min_dbe, max_dbe, 
                                                     min_mz, max_mz, ion_charge)
             
@@ -352,12 +323,10 @@ class CombinationsWorker:
 
         if len(list_mf) > 0:
         
-            with molform_db() as sql_handle:
-                
-                sql_handle.add_all(list_mf)
+            self.sql_db.add_all(list_mf)
         
     
-    def get_mol_formulas(self,carbon_hidrogen_combination,
+    def get_mol_formulas(self,carbon_hydrogen_combination,
                     ion_type,
                     classe_tuple,
                     min_dbe,
@@ -371,7 +340,7 @@ class CombinationsWorker:
         class_str = classe_tuple[0]
         
         list_formulas = []
-        for cada_possible in carbon_hidrogen_combination:
+        for cada_possible in carbon_hydrogen_combination:
             c_number = cada_possible[0]
             h_number = cada_possible[1]
             

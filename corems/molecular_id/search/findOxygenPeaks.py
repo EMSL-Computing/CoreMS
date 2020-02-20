@@ -6,8 +6,7 @@ from threading import Thread
 from numpy import average, std
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
-
-
+from corems.molecular_id.factory.molecularSQL import MolForm_SQL 
 
 class FindOxygenPeaks(Thread):
     
@@ -45,13 +44,20 @@ class FindOxygenPeaks(Thread):
             set_mass_spec_indexes_by_found_peaks()
                 set the mass spectrum to interate over only the selected indexes
     '''
-    def __init__(self, mass_spectrum_obj, min_O = 1, max_O = 22) :
+    def __init__(self, mass_spectrum_obj, sql_db=False, min_O = 1, max_O = 22) :
         
         Thread.__init__(self)
         
         self.mass_spectrum_obj = mass_spectrum_obj
         self.min_0 = min_O
         self.max_O = max_O
+        
+        if not sql_db:
+            
+            self.sql_db = MolForm_SQL()
+        else:
+            
+            self.sql_db = sql_db    
     
     def run(self):
         
@@ -64,7 +70,7 @@ class FindOxygenPeaks(Thread):
         #save initial settings for Ox 
         initial_ox = deepcopy(self.mass_spectrum_obj.molecular_search_settings.usedAtoms['O'])
 
-        #resets the used atoms to look only for oxygened organic compounds
+        #resets the used atoms to look only for oxygen organic compounds
         self.mass_spectrum_obj.molecular_search_settings.usedAtoms['O'] =  (self.min_0, self.max_O)
         
         self.list_found_mspeaks = []
@@ -121,7 +127,7 @@ class FindOxygenPeaks(Thread):
 
         print("Searching molecular formulas")
 
-        SearchMolecularFormulas().run_worker_ms_peak(mspeak_most_abundant, mass_spectrum_obj)
+        SearchMolecularFormulas(self.sql_db).run_worker_ms_peak(mspeak_most_abundant, mass_spectrum_obj)
         
         print("Finished searching molecular formulas")
 
@@ -145,7 +151,7 @@ class FindOxygenPeaks(Thread):
 
         mspeak_most_abundant = mass_spectrum_obj.most_abundant_mspeak
 
-        SearchMolecularFormulas().run_worker_ms_peak(mspeak_most_abundant, mass_spectrum_obj)
+        SearchMolecularFormulas(self.sql_db).run_worker_ms_peak(mspeak_most_abundant, mass_spectrum_obj)
         
         if mspeak_most_abundant:
 
@@ -210,7 +216,7 @@ class FindOxygenPeaks(Thread):
                 
                 list_most_abundant_peaks.append(mspeak_most_abundant)
         
-        SearchMolecularFormulas().run_worker_ms_peaks(list_most_abundant_peaks, mass_spectrum_obj)
+        SearchMolecularFormulas(self.sql_db).run_worker_ms_peaks(list_most_abundant_peaks, mass_spectrum_obj)
         
         return [mspeak for mspeak in list_most_abundant_peaks if mspeak]            
                 
