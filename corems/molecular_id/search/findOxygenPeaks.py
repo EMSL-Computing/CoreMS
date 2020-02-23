@@ -56,7 +56,7 @@ class FindOxygenPeaks(Thread):
             
             self.sql_db = MolForm_SQL()
         else:
-            
+
             self.sql_db = sql_db    
     
     def run(self):
@@ -228,7 +228,7 @@ class FindOxygenPeaks(Thread):
     def set_mass_spec_indexes_by_found_peaks(self):
         
         '''
-        Wanining!!!!
+        Warning!!!!
         set the mass spectrum to interate over only the selected indexes
         don not forget to call mass_spectrum_obj.reset_indexes after the job is done
         '''

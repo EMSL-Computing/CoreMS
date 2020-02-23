@@ -398,7 +398,7 @@ class Atoms: #pragma: no cover
                      '292Ts': 292.2074675,
                      '294Og': 294.2139271}
 
-    atoms_order = ['C', 'H', 'N', 'O', 'S', 'P', '13C', '34S', 'Na', 'Cl', '37Cl','Fe', 'Ca',
+    atoms_order = ['C', 'H', 'O', 'Cl', 'Na', 'S', 'N', '13C', '34S', '37Cl','Fe', 'Ca','P',
                         'V', 'I', 'Ac', 'Al', 'Ar', 'As', 'At', 'Au', 'Co', 'Cs', 'D', 'F', 'Fr','18O', '17O',
                         'He', 'Po', 'Ra', 'Rh', 'Rn', 'Be', 'Bi', 'Nb, 54Fe', '57Fe', '58Ni', '60Ni',
                         '61Ni', '62Ni', '10B', '11B', '6Li', '7Li', 'La', 'Mn', '107Ag', '109Ag', '100Mo',

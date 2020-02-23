@@ -5,13 +5,14 @@ from copy import deepcopy
 from threading import Thread
 from itertools import product
 
-from corems.encapsulation.constant import Labels
+from corems.encapsulation.constant import Labels, Atoms
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.molecular_id.factory.MolecularLookupTable import MolecularCombinations
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL as molform_db
 from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulaWorker, SearchMolecularFormulas
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL 
+
 
 class OxygenPriorityAssignment(Thread):
 
@@ -33,7 +34,6 @@ class OxygenPriorityAssignment(Thread):
         # get Oxygen classes dict and the associate mspeak class 
         # list_of_classes_min_max_dbe = self.class_and_dbes_in_order()
         # create database separated to give the user the chance to use mass spec filters
-
              
         assign_classes_order_str_dict_tuple_list = self.create_data_base()
         
@@ -48,6 +48,7 @@ class OxygenPriorityAssignment(Thread):
     def create_data_base(self):
         
         def create_molecular_database():
+            
             # checks and creates the database entries for the specified heteroatomic classes 
             
             min_o = min(self.mass_spectrum_obj, key=lambda msp: msp[0]['O'])[0]['O'] - 2
@@ -109,18 +110,59 @@ class OxygenPriorityAssignment(Thread):
         def filter_kendrick(ms_peak_indexes):
 
             if self.mass_spectrum_obj.molecular_search_settings.use_runtime_kendrick_filter:
+                
+                index_to_remove = ClusteringFilter().filter_kendrick_by_index(ms_peak_indexes, self.mass_spectrum_obj)
 
-                noise_indexes = ClusteringFilter().filter_kendrick_by_index(ms_peak_indexes, self.mass_spectrum_obj)
+                #for index in noise_indexes: self.mass_spectrum_obj[index].clear_molecular_formulas()
+            
+            for peak_index, mf_obj in index_to_remove:
+                    #print(peak_index, mf_obj)
+                    for iso_index, mf_iso in mf_obj.mspeak_mf_isotopologues_indexes:
+                        self.mass_spectrum_obj[iso_index].remove_molecular_formula(mf_iso)    
 
-                for index in noise_indexes: self.mass_spectrum_obj[index].clear_molecular_formulas()
-        
+                    self.mass_spectrum_obj[peak_index].remove_molecular_formula(mf_obj)
+                    
+                    ms_peak_indexes.remove((peak_index, mf_obj))
+
+            return ms_peak_indexes
+
         def check_min_peaks(ms_peak_indexes):
             
             if self.mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter:
 
                 if not len(ms_peak_indexes) >= self.mass_spectrum_obj.molecular_search_settings.min_peaks_per_class:
                     
-                    for index in ms_peak_indexes: self.mass_spectrum_obj[index].clear_molecular_formulas()
+                    for peak_index, mf_obj in ms_peak_indexes:
+                   
+                        self.mass_spectrum_obj[peak_index].remove_molecular_formula(mf_obj)
+
+        def filter_isotopologue(ms_peak_indexes):
+            
+            isotopologue_count_threshold = self.mass_spectrum_obj.molecular_search_settings.isotopologue_filter_threshold
+            
+            index_to_remove = []
+
+            if self.mass_spectrum_obj.molecular_search_settings.use_isotopologue_filter:
+
+                for mspeak_index, mf_obj in ms_peak_indexes:
+                
+                    if mf_obj.isotopologue_count_percentile < isotopologue_count_threshold:
+                        
+                        #need to make sure only the isotopologue is being removed before going forward,
+                        #need to modify indexes storage to include molecular formula position inside mspeak
+                                                        
+                        #removes tuple obj from initial list to be used on next filter steps
+                        ms_peak_indexes.remove((mspeak_index, mf_obj))
+                        index_to_remove.append((mspeak_index, mf_obj))
+                        index_to_remove.extend(mf_obj.mspeak_mf_isotopologues_indexes)
+
+            #iterate over all indexes to be remove and remove the mf from the mspeak 
+            for peak_index, mf_obj in index_to_remove:
+                    #print(peak_index, mf_obj)
+                    self.mass_spectrum_obj[peak_index].remove_molecular_formula(mf_obj)
+                    
+                    
+            return ms_peak_indexes        
 
         def set_min_max_dbe_by_oxygen(classe_dict):
             # calculates min and max DBE based on the Oxygen number
@@ -169,13 +211,18 @@ class OxygenPriorityAssignment(Thread):
 
                     all_assigned_indexes.extend(ms_peak_indexes)
             
-            #filter noise kendrick
-            filter_kendrick(all_assigned_indexes)
+            
+            #filter peaks by percentile threshold of found isotopologues 
+            all_assigned_indexes = filter_isotopologue(all_assigned_indexes)
+
+            #filter noise by kendrick density
+            all_assigned_indexes = filter_kendrick(all_assigned_indexes)
 
             #filter per min peaks per mono isotopic class
+            # this function should always be the last filter, 
+            # thefore no need to return remaining indexes
             check_min_peaks(all_assigned_indexes)
-            
-        
+
         #error_average = self.mass_spectrum_obj.molecular_search_settings.mz_error_average
         
         kdm_base = self.mass_spectrum_obj.mspeaks_settings.kendrick_base
@@ -191,10 +238,9 @@ class OxygenPriorityAssignment(Thread):
             classe_str  = classe_tuple[0]
             classe_dict = classe_tuple[1]
             
-            print("Started molecular formula search for class %s" % classe_str)
-            
-            is_adduct = check_adduct_class(classe_dict)    
+            is_adduct = check_adduct_class(classe_dict)
             set_min_max_dbe_by_oxygen(classe_dict)
+            
             #if len(classe_dict.keys()) == 2:
             #    if classe_dict.get('S') == 1:
             #       continue
@@ -203,7 +249,9 @@ class OxygenPriorityAssignment(Thread):
             # but +-7 should be sufficient to cover the range 
             
             if self.mass_spectrum_obj.molecular_search_settings.isProtonated and not is_adduct:
-        
+
+                    print("Started molecular formula search for class %s" % classe_str)
+
                     ion_type = Labels.protonated_de_ion
 
                     possible_formulas_dict = self.dict_molecular_lookup_table.get(ion_type).get(classe_str)
@@ -213,7 +261,9 @@ class OxygenPriorityAssignment(Thread):
                         run_search(possible_formulas_dict, self.mass_spectrum_obj, min_abundance, is_adduct=is_adduct)
 
             if self.mass_spectrum_obj.molecular_search_settings.isRadical and not is_adduct:
-                
+
+                    print("Started molecular formula search for class %s" % classe_str)
+
                     ion_type = Labels.radical_ion
                     
                     possible_formulas_dict = self.dict_molecular_lookup_table.get(ion_type).get(classe_str)
@@ -225,6 +275,8 @@ class OxygenPriorityAssignment(Thread):
             # looks for adduct, used_atom_valences should be 0 
             # this code does not support H exchance by halogen atoms
             if self.mass_spectrum_obj.molecular_search_settings.isAdduct and is_adduct:
+                
+                print("Started molecular formula search for class %s" % classe_str)
                 
                 ion_type = Labels.radical_ion
                 
@@ -240,15 +292,11 @@ class OxygenPriorityAssignment(Thread):
             
         dict_res = {}
         
-        #print (classes_str)
-        #with molform_db() as sql_handle:
-        
         if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
             
             ion_type = Labels.protonated_de_ion
             
             dict_res[ion_type] = self.sql_db.get_dict_entries(classes_str, ion_type, nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
-            
             
         if self.mass_spectrum_obj.molecular_search_settings.isRadical or self.mass_spectrum_obj.molecular_search_settings.isAdduct:
 
@@ -257,7 +305,6 @@ class OxygenPriorityAssignment(Thread):
             dict_res[ion_type] = self.sql_db.get_dict_entries(classes_str, ion_type, nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
     
         return dict_res
-
     
     def ox_classes_and_peaks_in_order_(self) -> dict:
         # order is only valid in python 3.4 and above
@@ -316,6 +363,7 @@ class OxygenPriorityAssignment(Thread):
             
             min_x = min_max_tuple[0]
             max_x = min_max_tuple[1]
+
             possible_x = [x for x in range(min_x, max_x + 1)]
             all_atoms_tuples = product(all_atoms_tuples, possible_x)
             
@@ -328,7 +376,6 @@ class OxygenPriorityAssignment(Thread):
             #important to index where the atom position is in on the tuple in all_atoms_tuples
             atoms_in_order.append(selected_atom_label)
 
-        
         classes_strings_dict_tuples, hc_class = self.get_class_strings_dict(all_atoms_tuples, atoms_in_order)
 
         combined_classes = self.combine_ox_class_with_other(atoms_in_order, classes_strings_dict_tuples, dict_ox_class_and_ms_peak)
@@ -337,7 +384,12 @@ class OxygenPriorityAssignment(Thread):
         
         oxygen_class_str_dict_tuple = [(ox_class, mspeak[0].class_dict) for ox_class, mspeak in dict_ox_class_and_ms_peak.items()] 
 
-        return  oxygen_class_str_dict_tuple + combination_classes_ordered #+ classe_in_order + hc_class
+        ## add classes together and ignores classes selected from the main series
+        for class_tuple in  combination_classes_ordered:
+            if class_tuple not in oxygen_class_str_dict_tuple:
+                oxygen_class_str_dict_tuple.append(class_tuple)
+        
+        return oxygen_class_str_dict_tuple
 
     @staticmethod
     def get_class_strings_dict(all_atoms_tuples, atoms_in_order) -> [(str, dict)]: 
@@ -376,14 +428,21 @@ class OxygenPriorityAssignment(Thread):
         #sort methods that uses the key of classes dictionary and the atoms_in_order as reference
         # c_tuple[1] = class_dict, because is one key:value map we loop through keys and get the first item only 
         # sort by len first then sort based on the atoms_in_order list
+        atoms_in_order = Atoms.atoms_order
+
         Oxygen_mfs = dict_ox_class_and_ms_peak.values()
         
-        sort_method = lambda word: (len(word[0]), [atoms_in_order.index(atom) for atom in list( word[1].keys())])
-        classe_in_order = sorted(classes_strings_dict_tuples, key = sort_method)
+        
+        #sort_method = lambda word: (len(word[0]), [atoms_in_order.index(atom) for atom in list( word[1].keys())])
+        
+        #print(classes_strings_dict_tuples)
+        #classe_in_order = sorted(classes_strings_dict_tuples, key = sort_method)
+        #print(classe_in_order)
+        
         combination = []
         
         # _ ignoring the class_str
-        for _ , other_classe_dict in classe_in_order:
+        for _ , other_classe_dict in classes_strings_dict_tuples:
           
            #combination.extend([[other_classe_str + ' ' + Oxygen_mf[0].class_label , {**other_classe_dict, **Oxygen_mf[0].class_dict}] for Oxygen_mf in Oxygen_mfs])
            combination.extend([{**other_classe_dict, **Oxygen_mf[0].class_dict} for Oxygen_mf in Oxygen_mfs])
@@ -394,7 +453,7 @@ class OxygenPriorityAssignment(Thread):
     def sort_classes( atoms_in_order, combination_tuples) -> [(str, dict)]: 
         
         join_list_of_list_classes = list()
-        atoms_in_order =  ['N','S','P', 'O'] + atoms_in_order[3:]
+        atoms_in_order =  ['N','S','P','O'] + atoms_in_order[3:]
         
         sort_method = lambda atoms_keys: [atoms_in_order.index(atoms_keys)] #(len(word[0]), print(word[1]))#[atoms_in_order.index(atom) for atom in list( word[1].keys())])
         for class_dict in combination_tuples:
