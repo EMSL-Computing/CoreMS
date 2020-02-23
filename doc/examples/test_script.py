@@ -51,8 +51,8 @@ if __name__ == "__main__":
     mass_spectrum.molecular_search_settings.usedAtoms['H'] = (4,200)
     mass_spectrum.molecular_search_settings.usedAtoms['O'] = (0,22)
     mass_spectrum.molecular_search_settings.usedAtoms['N'] = (0,0)
-    mass_spectrum.molecular_search_settings.usedAtoms['S'] = (0,0)
-    mass_spectrum.molecular_search_settings.usedAtoms['Cl'] = (0,0)
+    mass_spectrum.molecular_search_settings.usedAtoms['S'] = (0,1)
+    mass_spectrum.molecular_search_settings.usedAtoms['Cl'] = (0,1)
     mass_spectrum.molecular_search_settings.usedAtoms['P'] = (0,0)
     mass_spectrum.molecular_search_settings.usedAtoms['Na'] = (0,0)
     mass_spectrum.molecular_search_settings.isProtonated = True

@@ -55,7 +55,16 @@ class MolForm_SQL:
     
     def __init__(self, url='sqlite://', echo=False):
 
-        self.engine = create_engine(url)       
+        #self.engine = create_engine(url)       
+        directory = os.getcwd()
+       
+        if not os.path.isdir(directory+'/db'):
+                
+            os.mkdir(directory+'/db')    
+            
+        self.engine = create_engine('sqlite:///{DB}'.format(DB=directory+'/db'+'/molformulas.sqlite'), 
+                    poolclass=QueuePool)
+
         #self.engine = create_engine('postgresql://postgres:docker@localhost:5432/')
         
         Base.metadata.create_all(self.engine)
@@ -94,11 +103,14 @@ class MolForm_SQL:
     def add_all(self, sql_molform_list):
         
         self.session.add_all( [MolecularFormulaTable(sql_molform_dict)  for sql_molform_dict in sql_molform_list] )
-    
+        
+        self.commit()
+
     def add_entry(self,sql_molform): 
 
         one_formula = MolecularFormulaTable(sql_molform)  
         self.session.add(one_formula)  
+        self.commit()
 
     def commit(self):
         

@@ -79,7 +79,7 @@ class ClusteringFilter():
 
         if len(ms_peak_indexes) <= 1: return []
         
-        for index in ms_peak_indexes:
+        for index, _ in ms_peak_indexes:
            kendrick_dict["km"].append(mass_spectrum_obj[index].kendrick_mass)
            kendrick_dict["kmd"].append(mass_spectrum_obj[index].kmd)
            
@@ -111,9 +111,9 @@ class ClusteringFilter():
             else:
                 other_peaks_idx.append(ms_peak_indexes[i])    
 
-        mfs = [mass_spectrum_obj[index].best_molecular_formula_candidate.to_string for index in other_peaks_idx]
+        #mfs = [mass_spectrum_obj[index].best_molecular_formula_candidate.to_string for index in other_peaks_idx]
         
-        mfs_noise = [mass_spectrum_obj[index].best_molecular_formula_candidate.to_string for index in noise_idx]
+        #mfs_noise = [mass_spectrum_obj[index].best_molecular_formula_candidate.to_string for index in noise_idx]
         
         #print(mfs)
         #print(mfs_noise)
@@ -124,7 +124,7 @@ class ClusteringFilter():
         #plt.ylabel("kdm")
         #plt.show()
         #plt.close()
-
+        
         return noise_idx      
 
     def remove_assignment_by_mass_error(self, mass_spectrum):

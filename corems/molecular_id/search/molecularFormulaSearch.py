@@ -23,6 +23,7 @@ class SearchMolecularFormulas:
     def __init__(self, sql_db=False, first_hit=False, find_isotopologues=True):
         
         self.first_hit = first_hit
+        
         self.find_isotopologues = find_isotopologues
         
         if not sql_db:
@@ -228,6 +229,8 @@ class SearchMolecularFormulas:
         
         for classe_tuple in classes:
 
+            #add filter here and get indexes of class assigned 
+
             classe_str  = classe_tuple[0]
             classe_dict = classe_tuple[1]
 
@@ -284,6 +287,7 @@ class SearchMolecularFormulas:
             nm = mf.mz_nominal_theo
             
             if nm in possible_formulas_dict_nm.keys():
+                
                 possible_formulas_dict_nm[nm].append(mf)
             
             else:    
@@ -398,7 +402,6 @@ class SearchMolecularFormulaWorker:
         # the idea it to correlate sigma to resolving power, signal to noise and sample complexity per mz unit
         # method='distance'
         '''
-
         
         mspeak_assigned_index = list()
 
@@ -430,7 +433,7 @@ class SearchMolecularFormulaWorker:
 
                     ms_peak.add_molecular_formula(possible_formula)
                     
-                    mspeak_assigned_index.append(ms_peak.index)
+                    mspeak_assigned_index.append((ms_peak.index, possible_formula))
                     
                     if self.find_isotopologues:
                         #calculates and look for isotopologues
@@ -468,8 +471,8 @@ class SearchMolecularFormulaWorker:
                                         #add mspeaks mono isotopic index to the isotopologue MolecularFormula obj
                                         isotopologue_formula.mspeak_index_mono_isotopic = ms_peak.index
                                         
-                                        #add mspeaks isotopologue index to the mono isotopic MolecularFormula obj
-                                        possible_formula.mspeak_indexes_isotopologues.append(ms_peak_iso.index)
+                                        #add mspeaks isotopologue index to the mono isotopic MolecularFormula obj and the respective formula position  
+                                        possible_formula.mspeak_mf_isotopologues_indexes.append((ms_peak_iso.index, isotopologue_formula))
 
         return mspeak_assigned_index
 

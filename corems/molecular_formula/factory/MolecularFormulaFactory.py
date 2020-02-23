@@ -31,7 +31,7 @@ class MolecularFormula(MolecularFormulaCalc):
         self._confidence_score = None
         self.is_isotopologue = False
         self.expected_isotopologues = []
-        self.mspeak_indexes_isotopologues = []
+        self.mspeak_mf_isotopologues_indexes = []
         
         kendrick_dict_base = MassSpecPeakSetting.kendrick_base
         self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(
@@ -65,6 +65,13 @@ class MolecularFormula(MolecularFormulaCalc):
     def _from_dict(self, molecular_formula):
         
         self._d_molecular_formula = {key:val for key, val in molecular_formula.items() if val != 0}
+
+    @property
+    def isotopologue_count_percentile(self):
+        if not len(self.expected_isotopologues) == 0:
+            return (len(self.mspeak_mf_isotopologues_indexes)/len(self.expected_isotopologues))*100
+        else: 
+            return 100
 
     def _from_list(self, molecular_formula_list,  ion_type):
         # list has to be in the format 
@@ -166,9 +173,9 @@ class MolecularFormula(MolecularFormulaCalc):
         self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(
             kendrick_dict_base)
                 
-    def isotopologues(self, min_abudance, current_abundance): 
+    def isotopologues(self, min_abundance, current_abundance): 
         
-        for mf in self._cal_isotopologues(self._d_molecular_formula, min_abudance, current_abundance ):
+        for mf in self._cal_isotopologues(self._d_molecular_formula, min_abundance, current_abundance ):
 
             yield MolecularFormulaIsotopologue(*mf, self.ion_charge)
     

@@ -64,6 +64,10 @@ class _MSPeak(MSPeakCalculation):
        
         self.molecular_formulas.append(molecular_formula_obj)
     
+    def remove_molecular_formula(self, mf_obj):
+        
+        self.molecular_formulas.remove(mf_obj)
+
     def clear_molecular_formulas(self):
         
         self.molecular_formulas= []
