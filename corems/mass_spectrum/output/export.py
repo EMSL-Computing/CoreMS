@@ -129,7 +129,7 @@ class MassSpecExport(Thread):
         df.to_pickle(self.output_file.with_suffix('.pkl'))
         
         self.write_settings(self.output_file, self.mass_spectrum)
-    
+               
     def to_excel(self):
 
         columns = self.columns_label + self.get_all_used_atoms_in_ordem(self.mass_spectrum)

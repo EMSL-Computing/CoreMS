@@ -662,7 +662,8 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         
         from corems.mass_spectrum.output.export import MassSpecExport
         exportMS= MassSpecExport(self.filename, self)
-        exportMS.get_pandas_df()    
+        return exportMS.get_pandas_df()
+            
 
 
 
