@@ -317,7 +317,7 @@ class HeteroatomsClassification(Mapping):
 
         return DataFrame(dict_data_list, columns=columns)
      
-    def plot_ms_assigned_unassigned(self, assigned_color= 'g', unassigned_color = 'r'):
+    def plot_ms_assigned_unassigned(self, assigned_color= 'b', unassigned_color = 'r'):
         
         from matplotlib import pyplot as plt
         
@@ -329,11 +329,11 @@ class HeteroatomsClassification(Mapping):
         
         ax = plt.gca()
 
-        for plot_obj in ax.stem(mz_assigned,abundance_assigned, linefmt='-',  markerfmt=" ", use_line_collection =True):
+        for plot_obj in ax.stem(mz_assigned,abundance_assigned, linefmt='-',  markerfmt=" ", use_line_collection =True, label="Assigned"):
         
             plt.setp(plot_obj, 'color', assigned_color, 'linewidth', 2)
         
-        for plot_obj in ax.stem(mz_not_assigned, abundance_not_assigned, linefmt='-', markerfmt=" ",  use_line_collection =True):
+        for plot_obj in ax.stem(mz_not_assigned, abundance_not_assigned, linefmt='-', markerfmt=" ",  use_line_collection =True,label="Unassigned"):
         
             plt.setp(plot_obj, 'color', unassigned_color, 'linewidth', 2)
         
@@ -346,7 +346,7 @@ class HeteroatomsClassification(Mapping):
 
         ax.get_yaxis().set_visible(False)
         ax.spines['left'].set_visible(False)
-        
+        plt.legend()
         return ax    
 
     
