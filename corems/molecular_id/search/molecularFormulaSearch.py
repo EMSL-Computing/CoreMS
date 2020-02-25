@@ -79,9 +79,9 @@ class SearchMolecularFormulas:
 
                 if not len(ms_peak_indexes) >= mass_spectrum_obj.molecular_search_settings.min_peaks_per_class:
                     
-                    for index in ms_peak_indexes: 
+                    for index, mf_obj in ms_peak_indexes: 
                         
-                        mass_spectrum_obj[index].clear_molecular_formulas()
+                        mass_spectrum_obj[index].remove_molecular_formula(mf_obj)
 
     def check_adduct_class(self, classe_dict, mass_spectrum_obj):
             

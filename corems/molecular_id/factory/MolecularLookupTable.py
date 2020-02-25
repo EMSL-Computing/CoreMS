@@ -90,7 +90,7 @@ class MolecularCombinations:
             
             c_h_combinations= self.get_c_h_combination(settings)
             
-            number_of_process = int(multiprocessing.cpu_count()/3)
+            number_of_process = 1#int(multiprocessing.cpu_count()/3)
             print("Using %i logical CPUs for database entry generation"% number_of_process )
             #number_of_process = psutil.cpu_count(logical=False)
 
