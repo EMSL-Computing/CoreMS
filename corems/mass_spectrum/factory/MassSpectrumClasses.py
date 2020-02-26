@@ -254,7 +254,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
                 for index, mz_cal in enumerate(mz_cal_list):
                     self._mspeaks[index].mz_cal = mz_cal
             else: 
-                raise Exception( "calibrated array (%i) is not of the same size of the data (%i)" % len(mz_cal_list),  len(self._mspeaks))        
+                raise Exception( "calibrated array (%i) is not of the same size of the data (%i)" % (len(mz_cal_list),  len(self._mspeaks)))    
         
     @property
     def mz_exp(self):
