@@ -12,8 +12,8 @@ from PySide2.QtCore import Qt
 
 from corems.mass_spectrum.input.massList import ReadMassList
 from corems.mass_spectrum.factory.classification import HeteroatomsClassification, Labels
-
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
+from corems import HiddenPrints
 
 def class_plot(df):
 
@@ -63,7 +63,8 @@ if __name__ == "__main__":
 
     plt.show()
 
-    OxygenPriorityAssignment(mass_spectrum).run()
+    with HiddenPrints():
+        OxygenPriorityAssignment(mass_spectrum).run()
 
     mass_spectrum.percentile_assigned()
 

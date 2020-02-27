@@ -75,6 +75,6 @@ def test_export_mass_spectrum():
 
 if __name__ == "__main__":
                         
-    test_export_mass_spectra()
+    #test_export_mass_spectra()
     test_export_mass_spectrum()
     

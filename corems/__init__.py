@@ -1,4 +1,4 @@
-__version__ = '7.4.0.beta'
+__version__ = '7.5.0.beta'
 __doc__ = '''
 
 CoreMS - a powerful framework for mass spectrometry data processing and analysis of small molecules
@@ -77,6 +77,9 @@ Here are just a few of the things that CoreMS does well:
         - ICR Resolving Power based on magnetic field (B), and transient time(T)
 '''
 import time
+import os
+import sys
+
 def timeit(method):
 		
 		def timed(*args, **kw):
@@ -91,3 +94,14 @@ def timeit(method):
 					(method.__name__, (te - ts) * 1000))
 			return result
 		return timed
+
+
+class HiddenPrints:
+    
+    def __enter__(self):
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout.close()
+        sys.stdout = self._original_stdout  
