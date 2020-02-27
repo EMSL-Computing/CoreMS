@@ -6,12 +6,13 @@ from threading import Thread
 from itertools import product
 
 from corems.encapsulation.constant import Labels, Atoms
-from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
+from corems.molecular_id.calc.MolecularFilter import MolecularFormulaSearchFilters
 from corems.molecular_id.factory.MolecularLookupTable import MolecularCombinations
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL as molform_db
 from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulaWorker, SearchMolecularFormulas
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL 
+from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 
 
 class OxygenPriorityAssignment(Thread):
@@ -107,63 +108,6 @@ class OxygenPriorityAssignment(Thread):
 
             return any([key in classe_dict.keys() for key in self.mass_spectrum_obj.molecular_search_settings.adduct_atoms_neg])
         
-        def filter_kendrick(ms_peak_indexes):
-
-            if self.mass_spectrum_obj.molecular_search_settings.use_runtime_kendrick_filter:
-                
-                index_to_remove = ClusteringFilter().filter_kendrick_by_index(ms_peak_indexes, self.mass_spectrum_obj)
-
-                #for index in noise_indexes: self.mass_spectrum_obj[index].clear_molecular_formulas()
-            
-            for peak_index, mf_obj in index_to_remove:
-                    #print(peak_index, mf_obj)
-                    for iso_index, mf_iso in mf_obj.mspeak_mf_isotopologues_indexes:
-                        self.mass_spectrum_obj[iso_index].remove_molecular_formula(mf_iso)    
-
-                    self.mass_spectrum_obj[peak_index].remove_molecular_formula(mf_obj)
-                    
-                    ms_peak_indexes.remove((peak_index, mf_obj))
-
-            return ms_peak_indexes
-
-        def check_min_peaks(ms_peak_indexes):
-            
-            if self.mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter:
-
-                if not len(ms_peak_indexes) >= self.mass_spectrum_obj.molecular_search_settings.min_peaks_per_class:
-                    
-                    for peak_index, mf_obj in ms_peak_indexes:
-                   
-                        self.mass_spectrum_obj[peak_index].remove_molecular_formula(mf_obj)
-
-        def filter_isotopologue(ms_peak_indexes):
-            
-            isotopologue_count_threshold = self.mass_spectrum_obj.molecular_search_settings.isotopologue_filter_threshold
-            
-            index_to_remove = []
-
-            if self.mass_spectrum_obj.molecular_search_settings.use_isotopologue_filter:
-
-                for mspeak_index, mf_obj in ms_peak_indexes:
-                
-                    if mf_obj.isotopologue_count_percentile < isotopologue_count_threshold:
-                        
-                        #need to make sure only the isotopologue is being removed before going forward,
-                        #need to modify indexes storage to include molecular formula position inside mspeak
-                                                        
-                        #removes tuple obj from initial list to be used on next filter steps
-                        ms_peak_indexes.remove((mspeak_index, mf_obj))
-                        index_to_remove.append((mspeak_index, mf_obj))
-                        index_to_remove.extend(mf_obj.mspeak_mf_isotopologues_indexes)
-
-            #iterate over all indexes to be remove and remove the mf from the mspeak 
-            for peak_index, mf_obj in index_to_remove:
-                    #print(peak_index, mf_obj)
-                    self.mass_spectrum_obj[peak_index].remove_molecular_formula(mf_obj)
-                    
-                    
-            return ms_peak_indexes        
-
         def set_min_max_dbe_by_oxygen(classe_dict):
             # calculates min and max DBE based on the Oxygen number
             # ref :https://pubs.acs.org/doi/full/10.1021/ac200464q
@@ -213,15 +157,15 @@ class OxygenPriorityAssignment(Thread):
             
             
             #filter peaks by percentile threshold of found isotopologues 
-            all_assigned_indexes = filter_isotopologue(all_assigned_indexes)
+            all_assigned_indexes = MolecularFormulaSearchFilters().filter_isotopologue(all_assigned_indexes, mass_spectrum_obj)
 
             #filter noise by kendrick density
-            all_assigned_indexes = filter_kendrick(all_assigned_indexes)
+            all_assigned_indexes = MolecularFormulaSearchFilters().filter_kendrick(all_assigned_indexes, mass_spectrum_obj)
 
             #filter per min peaks per mono isotopic class
             # this function should always be the last filter, 
             # thefore no need to return remaining indexes
-            check_min_peaks(all_assigned_indexes)
+            MolecularFormulaSearchFilters().check_min_peaks(all_assigned_indexes, mass_spectrum_obj)
 
         #error_average = self.mass_spectrum_obj.molecular_search_settings.mz_error_average
         

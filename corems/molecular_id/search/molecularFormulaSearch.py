@@ -8,12 +8,16 @@ from copy import deepcopy
 from corems.encapsulation.constant import Labels
 from corems.molecular_id.factory.MolecularLookupTable import  MolecularCombinations
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL
+from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
+from corems.molecular_id.calc.MolecularFilter import MolecularFormulaSearchFilters
+
 
 last_error = 0
 last_dif = 0
 closest_error = 0
 error_average = 0
 nbValues = 0
+
 
 class SearchMolecularFormulas:
      
@@ -70,18 +74,15 @@ class SearchMolecularFormulas:
 
                 all_assigned_indexes.extend(ms_peak_indexes)
         
-        #filter per min peaks per mono isotopic class
-        self.check_min_peaks(all_assigned_indexes, mass_spectrum_obj)
-    
-    def check_min_peaks(self, ms_peak_indexes, mass_spectrum_obj):
-            
-            if  mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter:
+        all_assigned_indexes = MolecularFormulaSearchFilters().filter_isotopologue(all_assigned_indexes, mass_spectrum_obj)
 
-                if not len(ms_peak_indexes) >= mass_spectrum_obj.molecular_search_settings.min_peaks_per_class:
-                    
-                    for index, mf_obj in ms_peak_indexes: 
-                        
-                        mass_spectrum_obj[index].remove_molecular_formula(mf_obj)
+        all_assigned_indexes = MolecularFormulaSearchFilters().filter_kendrick(all_assigned_indexes, mass_spectrum_obj)
+
+        MolecularFormulaSearchFilters().check_min_peaks(all_assigned_indexes, mass_spectrum_obj)
+        #filter per min peaks per mono isotopic class
+       
+    
+           
 
     def check_adduct_class(self, classe_dict, mass_spectrum_obj):
             
@@ -90,11 +91,13 @@ class SearchMolecularFormulas:
     def run(self, classes, nominal_mz, min_abundance, 
             mass_spectrum_obj, ms_peak, dict_res):
        
-        for classe_str, class_dict in classes:
+        for classe_str, _ in classes:
             
             #is_adduct = self.check_adduct_class(classe_dict)        
             #print("classe", classe_str)
-           
+            if self.first_hit == True:
+                if ms_peak: continue
+            
             #we might need to increase the search space to -+1 m_z 
             if mass_spectrum_obj.molecular_search_settings.isRadical or mass_spectrum_obj.molecular_search_settings.isAdduct:
                 
@@ -114,10 +117,10 @@ class SearchMolecularFormulas:
                             
                             if possible_formulas:
                
-                                ms_peak_indexes = SearchMolecularFormulaWorker(find_isotopologues=self.find_isotopologues).find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak)    
+                                all_assigned_indexes = SearchMolecularFormulaWorker(find_isotopologues=self.find_isotopologues).find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak)    
                                 
-                                self.check_min_peaks(ms_peak_indexes, mass_spectrum_obj)
-
+                                MolecularFormulaSearchFilters().check_min_peaks(all_assigned_indexes, mass_spectrum_obj)
+                                
                         elif is_adduct and mass_spectrum_obj.molecular_search_settings.isAdduct:
                            
                             #replace ion_type in the molecular_formula object
@@ -125,9 +128,10 @@ class SearchMolecularFormulas:
 
                             if possible_formulas:
                
-                                ms_peak_indexes = SearchMolecularFormulaWorker(find_isotopologues=self.find_isotopologues).find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak)    
+                                all_assigned_indexes = SearchMolecularFormulaWorker(find_isotopologues=self.find_isotopologues).find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak)    
                                 
-                                self.check_min_peaks(ms_peak_indexes, mass_spectrum_obj)
+                                all_assigned_indexes = MolecularFormulaSearchFilters().filter_isotopologue(all_assigned_indexes, mass_spectrum_obj)
+
 
             if mass_spectrum_obj.molecular_search_settings.isProtonated:# and not is_adduct:
             
@@ -145,10 +149,12 @@ class SearchMolecularFormulas:
                         
                         if not is_adduct:
                             
-                            ms_peak_indexes = SearchMolecularFormulaWorker(find_isotopologues=self.find_isotopologues).find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak)
+                            all_assigned_indexes = SearchMolecularFormulaWorker(find_isotopologues=self.find_isotopologues).find_formulas(possible_formulas, min_abundance, mass_spectrum_obj, ms_peak)
 
-                            self.check_min_peaks(ms_peak_indexes, mass_spectrum_obj)
+                            all_assigned_indexes = MolecularFormulaSearchFilters().filter_isotopologue(all_assigned_indexes, mass_spectrum_obj)
 
+                            
+                            
     def run_worker_ms_peaks(self, ms_peaks, mass_spectrum_obj):
 
         #save initial settings min peaks per class filter 
@@ -276,10 +282,12 @@ class SearchMolecularFormulas:
         SearchMolecularFormulaWorker(find_isotopologues=find_isotopologues).reset_error(mass_spectrum_obj)
 
         initial_min_peak_bool = mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter
+        initial_runtime_kendrick_filter = mass_spectrum_obj.molecular_search_settings.use_runtime_kendrick_filter
         
         mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = False
         mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = False
-        
+        mass_spectrum_obj.molecular_search_settings.use_runtime_kendrick_filter = False
+
         possible_formulas_dict_nm =  {}
         
         for mf in possible_formulas_list:
@@ -298,7 +306,7 @@ class SearchMolecularFormulas:
         self.run_search(possible_formulas_dict_nm, mass_spectrum_obj, min_abundance)          
 
         mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = initial_min_peak_bool
-        mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = initial_min_peak_bool
+        mass_spectrum_obj.molecular_search_settings.use_runtime_kendrick_filter = initial_runtime_kendrick_filter
 
         mspeaks = [mspeak for mspeak in mass_spectrum_obj if mspeak.is_assigned]
         
@@ -324,7 +332,6 @@ class SearchMolecularFormulas:
             ion_type = Labels.radical_ion
 
             dict_res[ion_type] = self.sql_db.get_dict_entries(classes_str, ion_type, nominal_mzs,  molecular_search_settings)
-        
         
         return dict_res
                 

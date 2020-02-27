@@ -58,7 +58,7 @@
         "score_method": "N_S_P_lowest_error", "score_methods": [
             "S_P_lowest_error", "N_S_P_lowest_error", "lowest_error", "prob_score", "air_filter_error", "water_filter_error", "earth_filter_error"
         ],
-        "use_isotopologue_filter": true,
+        "use_isotopologue_filter": false,
         "use_min_peaks_filter": true,
         "use_pah_line_rule": false,
         "use_runtime_kendrick_filter": true,

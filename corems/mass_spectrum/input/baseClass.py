@@ -120,7 +120,7 @@ class MassListBaseClass:
 
         if self.data_type == 'txt':
 
-            dataframe = read_csv(self.file_location, delimiter=self.delimiter,encoding=self.encoding_detector(self.file_location))
+            dataframe = read_csv(self.file_location, delimiter=self.delimiter,encoding=self.encoding_detector(self.file_location), engine='python')
             
         elif self.data_type == 'dataframe':
 

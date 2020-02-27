@@ -90,7 +90,7 @@ class MolecularSearchSettings:
     
     use_isotopologue_filter = False
 
-    isotopologue_filter_threshold = 50 # percentile predicted and found 
+    isotopologue_filter_threshold = 33 # percentile predicted and found 
 
     use_runtime_kendrick_filter = True
 
