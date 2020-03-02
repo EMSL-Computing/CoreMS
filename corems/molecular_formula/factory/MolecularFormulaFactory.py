@@ -262,13 +262,13 @@ class MolecularFormula(MolecularFormulaCalc):
                 
                 return classstring + ' -R'
             
-            elif self._d_molecular_formula.get(Labels.ion_type) == Labels.adduct_ion:    
+            #elif self._d_molecular_formula.get(Labels.ion_type) == Labels.adduct_ion:    
                 
-                return classstring + ' -A'
+            #    return classstring + ' -A'
 
             else: return classstring
             
-            'dict, tuple or string'
+            #'dict, tuple or string'
         
         else:
             

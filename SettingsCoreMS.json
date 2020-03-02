@@ -38,7 +38,10 @@
         "ionization_type": "ESI", "isAdduct": true,
         "isProtonated": true,
         "isRadical": true,
-        "isotopologue_filter_threshold": 50,
+        "isotopologue_filter_atoms": [
+            "Cl", "Br"
+        ],
+        "isotopologue_filter_threshold": 33,
         "max_abun_error": 70,
         "max_dbe": 70,
         "max_mz": 800,

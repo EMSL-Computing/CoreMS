@@ -13,7 +13,7 @@ from PySide2.QtCore import Qt
 from corems.mass_spectrum.input.massList import ReadMassList
 from corems.mass_spectrum.factory.classification import HeteroatomsClassification, Labels
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
-from corems import HiddenPrints
+from corems import SuppressPrints
 
 def class_plot(df):
 
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     mass_spectrum = ReadMassList(file_location).get_mass_spectrum(polarity=-1)
     mass_spectrum.plot_centroid()
     
-    plt.show()
+    #plt.show()
 
     mass_spectrum.molecular_search_settings.error_method = 'None'
     mass_spectrum.molecular_search_settings.min_ppm_error  = -0.5
@@ -57,14 +57,15 @@ if __name__ == "__main__":
     mass_spectrum.molecular_search_settings.usedAtoms['Na'] = (0,0)
     mass_spectrum.molecular_search_settings.isProtonated = True
     mass_spectrum.molecular_search_settings.isRadical= False
-    mass_spectrum.molecular_search_settings.isAdduct = False
+    mass_spectrum.molecular_search_settings.isAdduct = True
 
+    
     mass_spectrum.filter_by_max_resolving_power(15, 2)
 
-    plt.show()
+    #plt.show()
 
-    with HiddenPrints():
-        OxygenPriorityAssignment(mass_spectrum).run()
+    #with SuppressPrints():
+    OxygenPriorityAssignment(mass_spectrum).run()
 
     mass_spectrum.percentile_assigned()
 

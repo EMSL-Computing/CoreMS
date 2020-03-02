@@ -1,4 +1,4 @@
-__version__ = '7.5.0.beta'
+__version__ = '7.6.0.beta'
 __doc__ = '''
 
 CoreMS - a powerful framework for mass spectrometry data processing and analysis of small molecules
@@ -96,7 +96,7 @@ def timeit(method):
 		return timed
 
 
-class HiddenPrints:
+class SuppressPrints:
     
     def __enter__(self):
         self._original_stdout = sys.stdout

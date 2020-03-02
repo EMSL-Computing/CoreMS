@@ -26,8 +26,7 @@ class MassSpecPeakSetting:
     
     '''needs to clear previous results from peak_picking'''
     kendrick_base =  {"C": 1, "H":2}   
-    #kendrick_base =  {"C": 1, "H":2, "O":1}   
-
+    #kendrick_base =  {"C": 1, "H":2, "O":1}
 
 class MolecularLookupDictSettings:
     
@@ -92,6 +91,8 @@ class MolecularSearchSettings:
 
     isotopologue_filter_threshold = 33 # percentile predicted and found 
 
+    isotopologue_filter_atoms = ['Cl', 'Br']
+
     use_runtime_kendrick_filter = True
 
     use_min_peaks_filter = True
@@ -100,8 +101,6 @@ class MolecularSearchSettings:
 
     db_directory = False
 
-    # look for close shell ions [M + Adduct]+ only considers metal set in the list adduct_atoms  
-    
     '''query setting'''
     ion_charge  = -1
 
@@ -117,6 +116,7 @@ class MolecularSearchSettings:
 
     max_dbe = 50
 
+    # look for close shell ions [M + Adduct]+ only considers metal set in the list adduct_atoms  
     adduct_atoms_neg = ['Cl', 'Br', 'F']
     
     adduct_atoms_pos = ['Na', 'K']

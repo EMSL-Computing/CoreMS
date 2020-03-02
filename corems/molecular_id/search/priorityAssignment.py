@@ -148,7 +148,7 @@ class OxygenPriorityAssignment(Thread):
                 if possible_formulas_nominal:
 
                     if is_adduct:
-                        
+
                             for m_formula in possible_formulas_nominal: m_formula.ion_type = Labels.adduct_ion
                         
                     ms_peak_indexes = SearchMolecularFormulaWorker().find_formulas(possible_formulas_nominal, min_abundance, mass_spectrum_obj, ms_peak)    
@@ -194,7 +194,7 @@ class OxygenPriorityAssignment(Thread):
             
             if self.mass_spectrum_obj.molecular_search_settings.isProtonated and not is_adduct:
 
-                    print("Started molecular formula search for class %s" % classe_str)
+                    print("Started molecular formula search for class %s, (de)protonated " % classe_str)
 
                     ion_type = Labels.protonated_de_ion
 
@@ -206,7 +206,7 @@ class OxygenPriorityAssignment(Thread):
 
             if self.mass_spectrum_obj.molecular_search_settings.isRadical and not is_adduct:
 
-                    print("Started molecular formula search for class %s" % classe_str)
+                    print("Started molecular formula search for class %s,  radical" % classe_str)
 
                     ion_type = Labels.radical_ion
                     
@@ -220,7 +220,7 @@ class OxygenPriorityAssignment(Thread):
             # this code does not support H exchance by halogen atoms
             if self.mass_spectrum_obj.molecular_search_settings.isAdduct and is_adduct:
                 
-                print("Started molecular formula search for class %s" % classe_str)
+                print("Started molecular formula search for class %s, adduct" % classe_str)
                 
                 ion_type = Labels.radical_ion
                 

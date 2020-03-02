@@ -37,25 +37,30 @@ class MolecularFormulaSearchFilters:
     @staticmethod
     def filter_isotopologue( ms_peak_indexes, mass_spectrum):
         
-        isotopologue_count_threshold = mass_spectrum.molecular_search_settings.isotopologue_filter_threshold
-        
         index_to_remove = []
-
+        
         if mass_spectrum.molecular_search_settings.use_isotopologue_filter:
+
+            atoms_iso_filter = mass_spectrum.molecular_search_settings.isotopologue_filter_atoms
+
+            isotopologue_count_threshold = mass_spectrum.molecular_search_settings.isotopologue_filter_threshold
 
             for mspeak_index, mf_obj in ms_peak_indexes:
             
                 if mf_obj.isotopologue_count_percentile < isotopologue_count_threshold:
                     
-                    #need to make sure only the isotopologue is being removed before going forward,
-                    #need to modify indexes storage to include molecular formula position inside mspeak
-                                                    
-                    #removes tuple obj from initial list to be used on next filter steps
-                    ms_peak_indexes.remove((mspeak_index, mf_obj))
-                    index_to_remove.append((mspeak_index, mf_obj))
-                    index_to_remove.extend(mf_obj.mspeak_mf_isotopologues_indexes)
+                    if set(mf_obj.atoms).intersection(atoms_iso_filter):
+                        
+                        #removes tuple obj from initial list to be used on next filter steps
+                        ms_peak_indexes.remove((mspeak_index, mf_obj))
+                        
+                        # current mf_obj
+                        index_to_remove.append((mspeak_index, mf_obj))
+                        # all other associated isotopolgues
+                        index_to_remove.extend(mf_obj.mspeak_mf_isotopologues_indexes)
 
         #iterate over all indexes to be remove and remove the mf from the mspeak 
+        
         
         for peak_index, mf_obj in index_to_remove:
                 #print(peak_index, mf_obj)
