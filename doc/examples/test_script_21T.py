@@ -55,7 +55,7 @@ if __name__ == "__main__":
     mass_spectrum.molecular_search_settings.isRadical= False
     mass_spectrum.molecular_search_settings.isAdduct = True
 
-    SearchMolecularFormulas(first_hit=False).run_worker_mass_spectrum(mass_spectrum)
+    SearchMolecularFormulas(mass_spectrum, first_hit=False).run_worker_mass_spectrum()
     
     mass_spectrum.percentile_assigned()
 

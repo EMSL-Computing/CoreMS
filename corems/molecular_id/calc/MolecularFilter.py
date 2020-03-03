@@ -6,21 +6,27 @@ class MolecularFormulaSearchFilters:
     def filter_kendrick( ms_peak_indexes, mass_spectrum_obj):
 
         index_to_remove = []
-
+        
         if mass_spectrum_obj.molecular_search_settings.use_runtime_kendrick_filter:
             
             index_to_remove = ClusteringFilter().filter_kendrick_by_index(ms_peak_indexes, mass_spectrum_obj)
 
             #for index in noise_indexes: self.mass_spectrum_obj[index].clear_molecular_formulas()
-        for peak_index, mf_obj in index_to_remove:
-                #print(peak_index, mf_obj)
-                for iso_index, mf_iso in mf_obj.mspeak_mf_isotopologues_indexes:
-                    mass_spectrum_obj[iso_index].remove_molecular_formula(mf_iso)    
+        
+        all_index_to_remove = []
 
-                mass_spectrum_obj[peak_index].remove_molecular_formula(mf_obj)
+        for peak_index, mf_obj in index_to_remove:
                 
                 ms_peak_indexes.remove((peak_index, mf_obj))
 
+                all_index_to_remove.extend(mf_obj.mspeak_mf_isotopologues_indexes)
+
+        all_index_to_remove =  list(set(all_index_to_remove + index_to_remove))
+
+        for peak_index, mf_obj in all_index_to_remove:
+            
+            mass_spectrum_obj[peak_index].remove_molecular_formula(mf_obj)
+            
         return ms_peak_indexes
 
     @staticmethod
@@ -38,7 +44,7 @@ class MolecularFormulaSearchFilters:
     def filter_isotopologue( ms_peak_indexes, mass_spectrum):
         
         index_to_remove = []
-        
+        #print(len(ms_peak_indexes))
         if mass_spectrum.molecular_search_settings.use_isotopologue_filter:
 
             atoms_iso_filter = mass_spectrum.molecular_search_settings.isotopologue_filter_atoms
@@ -61,9 +67,10 @@ class MolecularFormulaSearchFilters:
 
         #iterate over all indexes to be remove and remove the mf from the mspeak 
         
-        
+        #print(len(ms_peak_indexes))
         for peak_index, mf_obj in index_to_remove:
                 #print(peak_index, mf_obj)
                 mass_spectrum[peak_index].remove_molecular_formula(mf_obj)
-                
+
+        
         return ms_peak_indexes 

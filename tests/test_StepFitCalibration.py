@@ -119,7 +119,7 @@ def test_calibration():
     ClusteringFilter().filter_kendrick(mass_spectrum)
     #print(len(mass_spectrum))
    
-    SearchMolecularFormulas().run_worker_mass_spectrum(mass_spectrum)
+    SearchMolecularFormulas(mass_spectrum).run_worker_mass_spectrum()
     ClusteringFilter().remove_assignment_by_mass_error(mass_spectrum)  
 
 def test_import_ref_list():

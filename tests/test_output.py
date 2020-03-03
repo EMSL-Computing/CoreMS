@@ -14,7 +14,7 @@ def import_corems_mass_list():
 
     file_location = Path.cwd() / "tests/tests_data/" / "ESI_NEG_SRFA_COREMS.csv"
     
-    #polariy need to be set or read from the file
+    #polarity need to be set or read from the file
     
     #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
     mass_list_reader = ReadCoremsMasslist(file_location)
@@ -28,7 +28,7 @@ def import_booster_mass_spectra_hdf():
     file_path = Path.cwd() / "tests/tests_data/" / "ESFA_100k_9767-13548_chB.A_re_pc_CoAddAll_mFT.h5"
     
     if file_path.exists:
-        #polariy need to be set or read from the file
+        #polarity need to be set or read from the file
         booster_reader = ReadHDF_BoosterMassSpectra(file_path)
 
         booster_reader.start()

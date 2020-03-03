@@ -54,7 +54,7 @@ class FindOxygenPeaks(Thread):
         
         if not sql_db:
             
-            self.sql_db = MolForm_SQL()
+            self.sql_db = MolForm_SQL(mass_spectrum_obj.polarity)
         else:
 
             self.sql_db = sql_db    
@@ -127,7 +127,7 @@ class FindOxygenPeaks(Thread):
 
         print("Searching molecular formulas")
 
-        SearchMolecularFormulas(self.sql_db).run_worker_ms_peak(mspeak_most_abundant, mass_spectrum_obj)
+        SearchMolecularFormulas(mass_spectrum_obj, self.sql_db).run_worker_ms_peak(mspeak_most_abundant)
         
         print("Finished searching molecular formulas")
 
@@ -151,7 +151,7 @@ class FindOxygenPeaks(Thread):
 
         mspeak_most_abundant = mass_spectrum_obj.most_abundant_mspeak
 
-        SearchMolecularFormulas(self.sql_db).run_worker_ms_peak(mspeak_most_abundant, mass_spectrum_obj)
+        SearchMolecularFormulas(mass_spectrum_obj, self.sql_db).run_worker_ms_peak(mspeak_most_abundant)
         
         if mspeak_most_abundant:
 
@@ -216,7 +216,7 @@ class FindOxygenPeaks(Thread):
                 
                 list_most_abundant_peaks.append(mspeak_most_abundant)
         
-        SearchMolecularFormulas(self.sql_db).run_worker_ms_peaks(list_most_abundant_peaks, mass_spectrum_obj)
+        SearchMolecularFormulas(mass_spectrum_obj, self.sql_db).run_worker_ms_peaks(list_most_abundant_peaks)
         
         return [mspeak for mspeak in list_most_abundant_peaks if mspeak]            
                 

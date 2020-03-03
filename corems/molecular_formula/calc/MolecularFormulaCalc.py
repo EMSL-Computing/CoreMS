@@ -48,7 +48,7 @@ class MolecularFormulaCalc:
          
     def set_assignment_mass_error(self, error):
         
-        self._assigment_mass_error = error
+        self._assignment_mass_error = error
     
     def _calc_assignment_mass_error(self, mz_exp, method='ppm'):
         '''methodo should be ppm or ppb'''
@@ -141,7 +141,7 @@ class MolecularFormulaCalc:
 
     
     @staticmethod
-    def _cal_isotopologues(formula_dict, min_abudance, current_abundance):
+    def _cal_isotopologues(formula_dict, min_abundance, current_abundance):
         
         """
         primary function to look for isotopologues based on a monoisotopic molecular formula
@@ -159,14 +159,14 @@ class MolecularFormulaCalc:
         
         *   it might break when adding non-conventional atoms (not yet tested)
             
-        *   it needs speed optimization; update: (Using IsoSpeccPy, a C Library (fast and acurate)) 
+        *   it needs speed optimization; update: (Using IsoSpeccPy, a C Library (fast and accurate)) 
             https://github.com/MatteoLacki/IsoSpec
         """
         #this value needs to be calculated from the mass spec dinamic range
         #updated it to reflect min possible mass peak abundance
-        #min_abudance/current_abundance will only work if the isotopologue abundance is less than the monoisotopic abundance
+        #min_abundance/current_abundance will only work if the isotopologue abundance is less than the monoisotopic abundance
         #needs to be checked
-        min_relative_abundance = min_abudance/current_abundance
+        min_relative_abundance = min_abundance/current_abundance
         
         cut_off_to_IsoSpeccPy = 1 - min_relative_abundance
         isotopologue_and_pro_ratio_tuples = []
@@ -189,14 +189,14 @@ class MolecularFormulaCalc:
                 
             else:
                 
-                isotopoes_label_list = Atoms.isotopes.get(atom_label)[1]
+                isotopes_label_list = Atoms.isotopes.get(atom_label)[1]
             
-                if len(isotopoes_label_list) > 1:
+                if len(isotopes_label_list) > 1:
                     'This atom_label has two or more heavy isotope'
-                    isotopoes_labels = [i for i in isotopoes_label_list]
+                    isotopoes_labels = [i for i in isotopes_label_list]
                 else:
                     'This atom_label only has one heavy isotope'
-                    isotopoes_labels = [isotopoes_label_list[0]]
+                    isotopoes_labels = [isotopes_label_list[0]]
                 
                 #all_atoms_list.extend(isotopoes_labels) 
                 isotopoes_labels = [atom_label] + isotopoes_labels

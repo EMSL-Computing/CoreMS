@@ -48,7 +48,7 @@ def assign_mf_pox(mass_spectrum_obj):
     MolecularSearchSettings.isRadical = True
     MolecularSearchSettings.isAdduct = True
 
-    SearchMolecularFormulas(first_hit=True).run_worker_mass_spectrum(mass_spectrum_obj,)
+    SearchMolecularFormulas(mass_spectrum_obj, first_hit=True).run_worker_mass_spectrum()
 
 def assign_mf_nsox(mass_spectrum_obj):
     
@@ -70,7 +70,7 @@ def assign_mf_nsox(mass_spectrum_obj):
     MolecularSearchSettings.isRadical = True
     MolecularSearchSettings.isAdduct = True
 
-    SearchMolecularFormulas(first_hit=True).run_worker_mass_spectrum(mass_spectrum_obj,)
+    SearchMolecularFormulas(mass_spectrum_obj, first_hit=True).run_worker_mass_spectrum(mass_spectrum_obj,)
 
 def assign_mf_sox(mass_spectrum_obj):
     
@@ -120,7 +120,7 @@ def assign_mf_ox(mass_spectrum_obj):
     
     assignOx.run()
     
-    #ClusteringFilter().remove_assigment_by_mass_error(mass_spectrum_obj)
+    #ClusteringFilter().remove_assignment_by_mass_error(mass_spectrum_obj)
     #assignOx.start()
     #assignOx.join()
 
@@ -145,7 +145,7 @@ def assign_mf_nox(mass_spectrum_obj):
     
     assignOx.run()
     
-    ClusteringFilter().remove_assigment_by_mass_error(mass_spectrum_obj)
+    ClusteringFilter().remove_assignment_by_mass_error(mass_spectrum_obj)
     #assignOx.start()
     #assignOx.join()
 
@@ -171,7 +171,7 @@ def search_hc(mass_spectrum_obj):
     MolecularSearchSettings.isRadical = True
     MolecularSearchSettings.isAdduct = True
 
-    SearchMolecularFormulas(first_hit=True).run_worker_mass_spectrum(mass_spectrum_obj)
+    SearchMolecularFormulas(mass_spectrum_obj, first_hit=True).run_worker_mass_spectrum()
 
 def search_nx(mass_spectrum_obj):
 
@@ -195,7 +195,7 @@ def search_nx(mass_spectrum_obj):
     MolecularSearchSettings.isRadical = True
     MolecularSearchSettings.isAdduct = True
 
-    SearchMolecularFormulas(first_hit=True).run_worker_mass_spectrum(mass_spectrum_obj,)
+    SearchMolecularFormulas(mass_spectrum_obj,first_hit=True).run_worker_mass_spectrum()
 
 def search_mf(mass_spectrum_obj):
 
@@ -219,7 +219,7 @@ def search_mf(mass_spectrum_obj):
     MolecularSearchSettings.isRadical = True
     MolecularSearchSettings.isAdduct = True
 
-    SearchMolecularFormulas(first_hit=True).run_worker_mass_spectrum(mass_spectrum_obj,)
+    SearchMolecularFormulas(mass_spectrum_obj, first_hit=True).run_worker_mass_spectrum()
 
 def search_ox(mass_spectrum_obj):
 
@@ -232,7 +232,7 @@ def search_ox(mass_spectrum_obj):
     #MolecularSearchSettings.usedAtoms['F'] = (0, 1)
     #MolecularSearchSettings.usedAtoms['P'] = (0, 0)
     
-    SearchMolecularFormulas(first_hit=True).run_worker_mass_spectrum(mass_spectrum_obj,)
+    SearchMolecularFormulas(mass_spectrum_obj, first_hit=True).run_worker_mass_spectrum()
 
 def search_sx(mass_spectrum_obj):
 
@@ -252,7 +252,7 @@ def search_sx(mass_spectrum_obj):
     MolecularSearchSettings.min_dbe = 0
     MolecularSearchSettings.max_dbe = 50
   
-    SearchMolecularFormulas(first_hit=True).run_worker_mass_spectrum(mass_spectrum_obj,)
+    SearchMolecularFormulas(mass_spectrum_obj, first_hit=True).run_worker_mass_spectrum()
 
 def search_sox(mass_spectrum_obj):
 
@@ -263,7 +263,7 @@ def search_sox(mass_spectrum_obj):
     MolecularSearchSettings.usedAtoms['S'] = (1, 3)
     MolecularSearchSettings.usedAtoms['Cl'] = (0, 0)
     
-    SearchMolecularFormulas(first_hit=True).run_worker_mass_spectrum(mass_spectrum_obj,)
+    SearchMolecularFormulas(mass_spectrum_obj, first_hit=True).run_worker_mass_spectrum()
 
 def search_nox(mass_spectrum_obj):
 
@@ -275,7 +275,7 @@ def search_nox(mass_spectrum_obj):
     MolecularSearchSettings.usedAtoms['S'] = (0, 0)
     MolecularSearchSettings.usedAtoms['Cl'] = (0, 0)
    
-    SearchMolecularFormulas(first_hit=True).run_worker_mass_spectrum(mass_spectrum_obj,)
+    SearchMolecularFormulas(mass_spectrum_obj, first_hit=True).run_worker_mass_spectrum()
     
 def search_nsox(mass_spectrum_obj):
 
@@ -293,7 +293,7 @@ def search_nsox(mass_spectrum_obj):
     MolecularSearchSettings.isRadical = True
     MolecularSearchSettings.isAdduct = True
 
-    SearchMolecularFormulas(first_hit=True).run_worker_mass_spectrum(mass_spectrum_obj,)
+    SearchMolecularFormulas(mass_spectrum_obj, first_hit=True).run_worker_mass_spectrum()
 
 
 def plot_error_distribution():
@@ -308,10 +308,10 @@ def plot_error_distribution():
                         
                     #off_set +=  0.1
                     molecular_formula._calc_assignment_mass_error(mspeak.mz_exp)
-                    pyplot.plot(mspeak.mz_exp, molecular_formula._assigment_mass_error, "o")
+                    pyplot.plot(mspeak.mz_exp, molecular_formula._assignment_mass_error, "o")
 
     pyplot.ylabel("m/z Error (ppm)")
-    pyplot.xlabel(Labels.mz)
+    pyplot.xlabel('m/z')
     pyplot.savefig(mass_spectrum_obj.filename+'/'+"_error_dist"+'.png')        
 
 def plot_resolving_power():

@@ -106,8 +106,10 @@ class ClusteringFilter():
         other_peaks_idx = []
 
         for i in range(len(clusters)):
+            
             if clusters[i] == -1:
                 noise_idx.append(ms_peak_indexes[i])
+            
             else:
                 other_peaks_idx.append(ms_peak_indexes[i])    
 

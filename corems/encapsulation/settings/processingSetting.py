@@ -87,7 +87,7 @@ class MolecularSearchSettings:
     
     #max_mz and min_mz changes automatically with mass spectrum
     
-    use_isotopologue_filter = False
+    use_isotopologue_filter = True
 
     isotopologue_filter_threshold = 33 # percentile predicted and found 
 

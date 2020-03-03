@@ -29,13 +29,9 @@ class MolecularCombinations:
     '''
     def __init__(self, sql_db = False):
 
-        if not sql_db:
-
-            self.sql_db = MolForm_SQL()
-
-        else:
             
-            self.sql_db = sql_db 
+        self.sql_db = sql_db 
+    
     def check_database_get_class_list(self, molecular_search_settings):
 
         all_class_to_create = []

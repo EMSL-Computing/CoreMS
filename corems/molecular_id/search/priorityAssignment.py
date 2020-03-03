@@ -10,7 +10,7 @@ from corems.molecular_id.calc.MolecularFilter import MolecularFormulaSearchFilte
 from corems.molecular_id.factory.MolecularLookupTable import MolecularCombinations
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL as molform_db
 from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
-from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulaWorker, SearchMolecularFormulas
+from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulaWorker
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL 
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 
@@ -28,7 +28,7 @@ class OxygenPriorityAssignment(Thread):
         #  initiated at create_molecular_database()
         #self.dict_molecular_lookup_table = None
         
-        self.sql_db = MolForm_SQL()
+        self.sql_db = MolForm_SQL(mass_spectrum_obj.polarity)
 
     def run(self):
         

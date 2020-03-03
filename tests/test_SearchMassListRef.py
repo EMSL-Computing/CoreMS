@@ -34,7 +34,7 @@ def test_search_imported_ref_files():
 
         print(mf.to_string_formated)
     
-    ms_peaks_assigned = SearchMolecularFormulas().search_mol_formulas(mass_spectrum_obj, mf_references_list, find_isotopologues=False)
+    ms_peaks_assigned = SearchMolecularFormulas(mass_spectrum_obj).search_mol_formulas( mf_references_list, find_isotopologues=False)
 
     assert (len(ms_peaks_assigned)) > 0
 

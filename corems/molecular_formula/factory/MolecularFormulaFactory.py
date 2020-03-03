@@ -170,8 +170,7 @@ class MolecularFormula(MolecularFormulaCalc):
 
     def change_kendrick_base(self, kendrick_dict_base):
         '''kendrick_dict_base = {"C": 1, "H": 2}'''
-        self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(
-            kendrick_dict_base)
+        self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(kendrick_dict_base)
                 
     def isotopologues(self, min_abundance, current_abundance): 
         

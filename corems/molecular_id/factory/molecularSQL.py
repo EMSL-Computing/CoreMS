@@ -53,17 +53,25 @@ class MolecularFormulaTable(Base):
 
 class MolForm_SQL:
     
-    def __init__(self, url='sqlite://', echo=False):
+    def __init__(self, polarity, url='sqlite://', echo=False):
 
         #self.engine = create_engine(url)       
         directory = os.getcwd()
-       
+
+        if polarity > 0:
+            polarity_label = 'pos'
+        else:
+            polarity_label = 'neg'
+
         if not os.path.isdir(directory+'/db'):
                 
             os.mkdir(directory+'/db')    
-            
-        self.engine = create_engine('sqlite:///{DB}'.format(DB=directory+'/db'+'/molformulas.sqlite'), 
-                    poolclass=QueuePool)
+
+        url = 'sqlite:///{DB}/db/molformulas_{charge}.sqlite'.format(DB=directory, charge=polarity_label)
+
+        print(url)
+        
+        self.engine = create_engine(url, poolclass=QueuePool)
 
         #self.engine = create_engine('postgresql://postgres:docker@localhost:5432/')
         

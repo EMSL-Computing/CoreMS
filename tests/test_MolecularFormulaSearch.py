@@ -55,7 +55,7 @@ def test_run_molecular_formula_search():
     dataname = 'one peak'
     mass_spectrum_obj = ms_from_array_centroid(mz, abundance, rp, s2n, dataname)
 
-    SearchMolecularFormulas().run_worker_ms_peak(mass_spectrum_obj[0], mass_spectrum_obj)
+    SearchMolecularFormulas(mass_spectrum_obj).run_worker_ms_peak(mass_spectrum_obj[0])
     ms_peak = mass_spectrum_obj[0]
     print(ms_peak.mz_exp)
     if ms_peak.is_assigned:
@@ -76,7 +76,7 @@ def test_mspeak_search():
 
     mspeak_obj = mass_spec_obj.most_abundant_mspeak
     
-    SearchMolecularFormulas().run_worker_ms_peak(mspeak_obj, mass_spec_obj)
+    SearchMolecularFormulas(mass_spec_obj).run_worker_ms_peak(mspeak_obj)
 
     print("OK2")
     if mspeak_obj.is_assigned:
@@ -95,7 +95,7 @@ def test_molecular_formula_search_db():
     
     time1 = time.time()
     
-    SearchMolecularFormulas(first_hit=False).run_worker_mass_spectrum(mass_spec_obj)
+    SearchMolecularFormulas(mass_spec_obj, first_hit=False).run_worker_mass_spectrum()
     
     print('searching molecular formulas took %.3f seconds' % (time.time() - time1))
     
