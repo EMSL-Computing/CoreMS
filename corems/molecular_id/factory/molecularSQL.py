@@ -60,6 +60,7 @@ class MolForm_SQL:
 
         if polarity > 0:
             polarity_label = 'pos'
+        
         else:
             polarity_label = 'neg'
 
@@ -67,7 +68,10 @@ class MolForm_SQL:
                 
             os.mkdir(directory+'/db')    
 
-        url = 'sqlite:///{DB}/db/molformulas_{charge}.sqlite'.format(DB=directory, charge=polarity_label)
+        #url = 'sqlite:///{DB}/db/molformulas_{charge}.sqlite'.format(DB=directory, charge=polarity_label)
+        #url = 'sqlite:///{DB}/db/molformulas_{charge}.sqlite'.format(DB=directory, charge=polarity_label)
+        
+        url = 'postgresql://postgres:labthomson0102@172.22.113.27:5432/' 
 
         print(url)
         

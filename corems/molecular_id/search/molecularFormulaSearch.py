@@ -18,7 +18,6 @@ closest_error = 0
 error_average = 0
 nbValues = 0
 
-
 class SearchMolecularFormulas:
      
     '''
