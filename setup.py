@@ -11,7 +11,7 @@ README = (HERE / "README.md").read_text(encoding='utf-8')
 # This call to setup() does all the work
 setup(
     name="CoreMS",
-    version="8.0.1.beta",
+    version="8.0.2.beta",
     description="Object Oriented Mass Spectrometry ToolBox for Small Molecules Analysis",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -29,9 +29,10 @@ setup(
     packages=find_packages(),
     exclude_package_data={'.': ["tests", "*.win_only"]},
     include_package_data=True,
+    #package_data={'': ['../lib/*']},
     install_requires=["pandas", "numpy", "matplotlib", "scipy", 'h5py', 'sklearn', 'IsoSpecPy', 
                       'sqlalchemy', 'openpyxl', 'pymongo', 'psycopg2-binary', 'beautifulsoup4', 'lxml', 
-                      'xlrd', 'h5py'],
+                      'xlrd', 'h5py','chardet', 'netCDF4', 'python-dateutil', 'psutil'],
     # test are not yet implemented, will test dependences and syntax only for now
     setup_requires=['pytest-runner', 'wheel'],
     test_suite='pytest',
