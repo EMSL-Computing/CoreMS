@@ -25,7 +25,7 @@ class MassSpectrumSetting:
 class MassSpecPeakSetting:
     
     '''needs to clear previous results from peak_picking'''
-    kendrick_base =  {"C": 1, "H":2}   
+    kendrick_base =  {"C": 1, "H":2}
     #kendrick_base =  {"C": 1, "H":2, "O":1}
 
 class MolecularLookupDictSettings:
@@ -87,13 +87,13 @@ class MolecularSearchSettings:
     
     #max_mz and min_mz changes automatically with mass spectrum
     
-    use_isotopologue_filter = True
+    use_isotopologue_filter = False
 
     isotopologue_filter_threshold = 33 # percentile predicted and found 
 
     isotopologue_filter_atoms = ['Cl', 'Br']
 
-    use_runtime_kendrick_filter = True
+    use_runtime_kendrick_filter = False
 
     use_min_peaks_filter = True
 

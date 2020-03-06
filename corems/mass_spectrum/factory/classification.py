@@ -429,9 +429,9 @@ class HeteroatomsClassification(Mapping):
             #plot data
             ax = plt.gca()
 
-            #ax.scatter(carbon_number, dbe, c=abundance, alpha=0.5, cmap=color)
+            ax.scatter(carbon_number, dbe, c=abundance, alpha=0.5, cmap=color)
 
-            ax.scatter(carbon_number, dbe, c=color, alpha=0.5)
+            #ax.scatter(carbon_number, dbe, c=color, alpha=0.5)
             
             title = "%s, %.2f %%" % (classe, abun_perc)
             ax.set_title(title)

@@ -47,10 +47,10 @@ if __name__ == "__main__":
     mass_spectrum.molecular_search_settings.usedAtoms['S'] = (0,0)
     mass_spectrum.molecular_search_settings.usedAtoms['Cl'] = (0,0)
     mass_spectrum.molecular_search_settings.usedAtoms['P'] = (0,0)
-    mass_spectrum.molecular_search_settings.usedAtoms['Na'] = (0,0)
+    mass_spectrum.molecular_search_settings.usedAtoms['Na'] = (0,1)
     mass_spectrum.molecular_search_settings.usedAtoms['K'] = (0,0)
-    mass_spectrum.molecular_search_settings.usedAtoms['Fe'] = (0,0)
-    mass_spectrum.molecular_search_settings.usedAtoms['Se'] = (0,1)
+    mass_spectrum.molecular_search_settings.usedAtoms['Fe'] = (0,1)
+    mass_spectrum.molecular_search_settings.usedAtoms['Se'] = (0,0)
     mass_spectrum.molecular_search_settings.isProtonated = True
     mass_spectrum.molecular_search_settings.isRadical= False
     mass_spectrum.molecular_search_settings.isAdduct = True
@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
     for classe in mass_spectrum_by_classes.get_classes(threshold_perc=0, isotopologue=True):
         
-        #mass_spectrum_by_classes.plot_dbe_vs_carbon_number(classe)
+        mass_spectrum_by_classes.plot_dbe_vs_carbon_number(classe)
         #plt.show()
 
         mass_spectrum_by_classes.plot_ms_class(classe)
