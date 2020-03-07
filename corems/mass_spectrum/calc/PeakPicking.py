@@ -115,6 +115,8 @@ class PeakPicking:
 
     def cal_minima(self, mass, abund):
 
+        abund = -abund
+
         dy = abund[1:] - abund[:-1]
         
         '''replaces nan for infinity'''

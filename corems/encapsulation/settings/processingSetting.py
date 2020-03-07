@@ -28,6 +28,15 @@ class MassSpecPeakSetting:
     kendrick_base =  {"C": 1, "H":2}
     #kendrick_base =  {"C": 1, "H":2, "O":1}
 
+class GasChromatographSetting:
+    
+    
+    implemented_smooth_method = ['savgol', 'hanning', 'blackman', 'bartlett', 'flat']
+    smooth_window = 5
+    smooth_method = 'savgol'
+    
+    savgol_pol_order = 2
+    
 class MolecularLookupDictSettings:
     
     '''

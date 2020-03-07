@@ -114,3 +114,29 @@ class GCMSBase(Mapping, GC_Calculations):
     def tic(self, l):
 
         self._tic_list = l    
+
+    def plot_chromatogram(self, ax=None, color="blue"): #pragma: no cover
+        
+        import matplotlib.pyplot as plt
+
+        if ax is None:
+            ax = plt.gca()
+        
+        ax.plot(self.retention_time, self.tic, color=color)
+        ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
+        
+        return ax
+
+    def plot_smoothed_chromatogram(self, ax=None, color="green"): #pragma: no cover
+        
+        import matplotlib.pyplot as plt
+
+        if ax is None:
+
+            ax = plt.gca()
+        
+        ax.plot(self.retention_time, self.smooth_tic(), color=color)
+
+        ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
+        
+        return ax

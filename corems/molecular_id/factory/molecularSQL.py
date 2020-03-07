@@ -46,34 +46,38 @@ class MolecularFormulaTable(Base):
         self.H_C = kargs['H_C']
         self.O_C = kargs['O_C']
         self.DBE = kargs['DBE']
-       
+
+        if self.ion_charge > 0:
+            
+            __tablename__ =  'molformulas_pos'
+
+        else: 
+            __tablename__ =  'molformulas_neg'
+
     def __repr__(self):
         return "<MolecularFormulaTable(classe='%s', nominal_mass='%i', ion_type='%s', ion_charge='%i')>" % (
                                     self.classe, self.nominal_mz, self.ion_type, self.ion_charge)
 
 class MolForm_SQL:
     
-    def __init__(self, polarity, url='sqlite://', echo=False):
+    def __init__(self, polarity, url=None, echo=False):
 
         #self.engine = create_engine(url)       
         directory = os.getcwd()
 
-        if polarity > 0:
-            polarity_label = 'pos'
-        
-        else:
-            polarity_label = 'neg'
+        if not url:
+            #default to 
+            if polarity > 0:
+                polarity_label = 'pos'
+            
+            else:
+                polarity_label = 'neg'
 
-        if not os.path.isdir(directory+'/db'):
-                
-            os.mkdir(directory+'/db')    
+            if not os.path.isdir(directory+'/db'):
+                    
+                os.mkdir(directory+'/db')    
 
-        url = 'sqlite:///{DB}/db/molformulas_{charge}.sqlite'.format(DB=directory, charge=polarity_label)
-        #url = 'sqlite:///{DB}/db/molformulas_{charge}.sqlite'.format(DB=directory, charge=polarity_label)
-        
-        #url = 'postgresql://postgres:labthomson0102@172.22.113.27:5432/' 
-
-        print(url)
+            url = 'sqlite:///{DB}/db/molformulas_{charge}.sqlite'.format(DB=directory, charge=polarity_label)
         
         self.engine = create_engine(url, poolclass=QueuePool)
 

@@ -253,3 +253,4 @@ class OrbiMassPeak(_MSPeak):
 
     def set_theoretical_resolving_power(self):
         return 0       
+

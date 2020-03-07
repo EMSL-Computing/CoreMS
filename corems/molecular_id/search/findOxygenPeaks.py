@@ -158,7 +158,7 @@ class FindOxygenPeaks(Thread):
             return mspeak_most_abundant.best_molecular_formula_candidate 
             
         else:
-            raise Exception("Could not find a possible molecular formula match for the most abudant peak of m/z %.5f"%mspeak_most_abundant.mz_exp )
+            raise Exception("Could not find a possible molecular formula match for the most abundant peak of m/z %.5f"%mspeak_most_abundant.mz_exp )
         #return the first option
         #return mspeak_most_abundant[0]
     
@@ -180,8 +180,6 @@ class FindOxygenPeaks(Thread):
         mass = initial_nominal_mass
         
         nominal_masses = []
-        print('min_mz', min_mz)
-        print('max_mz', max_mz)
         while mass <= max_mz:
             #print "shit 1", mass, min_mz
             mass += (deltamz) 
