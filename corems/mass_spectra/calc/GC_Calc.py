@@ -64,33 +64,12 @@ class GC_Calculations:
 
             y = convolve(w / w.sum(), s, mode='valid')
 
-        print( [(window_len / 2 - 1), -(window_len / 2)] )
-
         return y[int(window_len / 2 - 1):int(-window_len / 2)]
         
     def smooth_tic(self,):
             
             return self.smooth(self.tic)
-            '''
-            window = GasChromatographSetting.smooth_window
-            
-            method = GasChromatographSetting.smooth_method
-
-            pol_order = GasChromatographSetting.savgol_pol_order
-            
-            if GasChromatographSetting.smooth_method == "savgol":
-                
-                return savgol_filter(self.tic, window, pol_order)
-            
-            else:
-                
-                w = eval(method+'(window)')
-                
-                y = convolve(w / w.sum(), self.tic, mode='valid')
-
-                return y[(window/2 - 1):-(window/2)]
-            '''
-    
+           
     def peaks_detector(self, mass, abund):
 
         dy = abund[1:] - abund[:-1]

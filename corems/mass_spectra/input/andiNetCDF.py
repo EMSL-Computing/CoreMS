@@ -10,7 +10,7 @@ from corems.encapsulation.constant import Labels
 from corems.encapsulation.settings.input import InputSetting
 from corems.mass_spectra.factory.GC_Class import GCMSBase
 
-from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroid
+from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroidLowRes
 
 from corems import timeit
 
@@ -76,7 +76,6 @@ class ReadAndiNetCDF(Thread):
 			
 		else: return -1    
 
-	
 	def get_mass_spectrum(self, mz, abun, rp, d_params):
 				
 		data_dict = {Labels.mz: mz,
@@ -85,7 +84,7 @@ class ReadAndiNetCDF(Thread):
 				Labels.s2n: None,
 		}
             
-		mass_spec = MassSpecCentroid(data_dict, d_params)
+		mass_spec = MassSpecCentroidLowRes(data_dict, d_params)
 		
 		self.gcms.add_mass_spectrum(mass_spec)
 		

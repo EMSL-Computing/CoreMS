@@ -788,7 +788,8 @@ class MassSpecfromFreq(MassSpecBase):
     def transient_settings(self, instance_TransientSetting):
         
         self._transient_settings =  instance_TransientSetting  
-        
+
+
 class MassSpecCentroid(MassSpecBase):
 
     '''
@@ -907,6 +908,41 @@ class MassSpecCentroid(MassSpecBase):
                 )
         
         self.reset_indexes()
-                
-       
+
+class MassSpecCentroidLowRes(MassSpecCentroid):
+
+    def __init__(self, data_dict, d_params):
+    
+        self._set_parameters_objects(d_params)
+        self._mz_exp = data_dict.get(Labels.mz)
+        self._abundance = data_dict.get(Labels.abundance)
+        
+    def __len__(self):
+        
+        return len(self.mz_exp)
+        
+    def __getitem__(self, position):
+        
+        return (self.mspeaks[position], self.abundance[position])
+
+    @property
+    def mz_exp(self):
+
+        return self._mz_exp 
+
+    @property
+    def abundance(self):
+
+        return self._abundance
+
+    def tic(self):
+    
+        return sum(self.abundance)
+
+    def mz_abun_tuples(self):
+
+        return [i for i in self]
+    
+        
+
 
