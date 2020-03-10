@@ -909,7 +909,7 @@ class MassSpecCentroid(MassSpecBase):
         
         self.reset_indexes()
 
-class MassSpecCentroidLowRes(MassSpecCentroid):
+class MassSpecCentroidLowRes(MassSpecCentroid, ):
 
     def __init__(self, data_dict, d_params):
     
@@ -935,6 +935,7 @@ class MassSpecCentroidLowRes(MassSpecCentroid):
 
         return self._abundance
 
+    @property
     def tic(self):
     
         return sum(self.abundance)
@@ -943,6 +944,15 @@ class MassSpecCentroidLowRes(MassSpecCentroid):
 
         return [i for i in self]
     
+    def mz_abun_dict(self):
+
+        return {i[0]:i[1] for i in self}
+    
+
+    def add_match_compound(self, compound):
+        
+        pass
+
         
 
 

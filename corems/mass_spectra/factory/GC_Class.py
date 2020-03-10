@@ -3,10 +3,11 @@ __date__ = "Feb 13, 2020"
 
 
 from collections.abc import Mapping
-
 from pathlib import Path
-from corems.mass_spectra.calc.GC_Calc import GC_Calculations
 
+from numpy import array
+
+from corems.mass_spectra.calc.GC_Calc import GC_Calculations
 from corems import timeit
 
 class GCMSBase(Mapping, GC_Calculations):
@@ -42,22 +43,35 @@ class GCMSBase(Mapping, GC_Calculations):
         self._scans_number_list = []
         self._tic_list = []
 
+        #all scans
         self._ms = {}
+        
+        #after peak detection
+        self.ms = {}
+        
         """
         key is scan number; value is MassSpectrum Class
         """
-    
+        
     def __len__(self):
         
-        return len(self._ms)
+        return len(self.ms)
         
     def __getitem__(self, scan_number):
         
-        return self._ms.get(scan_number)
+        return self.ms.get(scan_number)
 
     def __iter__(self):
 
-         return iter(self._ms.values())
+         return iter(self.ms.values())
+
+    def process_chromatogram(self,):
+
+        tic = self.smooth_tic()
+
+        peaks_index = self.peaks_detector(tic)
+
+        for i in peaks_index: self.ms[self.scans_number[i]] = self._ms[i]
 
     def add_mass_spectrum(self, mass_spec):
    
@@ -113,7 +127,7 @@ class GCMSBase(Mapping, GC_Calculations):
     @tic.setter
     def tic(self, l):
 
-        self._tic_list = l    
+        self._tic_list = array(l)    
 
     def plot_chromatogram(self, ax=None, color="blue"): #pragma: no cover
         

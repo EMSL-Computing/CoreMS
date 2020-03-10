@@ -159,10 +159,5 @@ class ReadAndiNetCDF(Thread):
 	
 	def get_gcms_obj(self):
         
-		if self.gcms:
-
-			return self.gcms
+		return self.gcms
 		
-		else:
-
-			raise Exception("returning a empty gcms class")

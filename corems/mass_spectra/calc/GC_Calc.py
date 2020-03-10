@@ -70,24 +70,24 @@ class GC_Calculations:
             
             return self.smooth(self.tic)
            
-    def peaks_detector(self, mass, abund):
+    def peaks_detector(self, tic):
 
-        dy = abund[1:] - abund[:-1]
+        dy = tic[1:] - tic[:-1]
         
         '''replaces nan for infinity'''
-        indices_nan = where(isnan(abund))[0]
+        indices_nan = where(isnan(tic))[0]
         
         if indices_nan.size:
             
-            abund[indices_nan] = inf
+            tic[indices_nan] = inf
             dy[where(isnan(dy))[0]] = inf
         
         indexes = where((hstack((dy, 0)) < 0) & (hstack((0, dy)) > 0))[0]
 
         if indexes.size:
             
-            return mass[indexes], abund[indexes]
-    
+            return indexes
+
     def baseline_detector(self, mass, abund):
 
         abund = -abund

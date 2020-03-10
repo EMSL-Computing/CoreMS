@@ -43,6 +43,9 @@ def andi_netcdf_gcms():
 
     gcms.plot_smoothed_chromatogram()
 
+    gcms.process_chromatogram()
+
+
 
 
 #app = QApplication(sys.argv)

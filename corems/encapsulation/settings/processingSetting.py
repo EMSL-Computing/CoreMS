@@ -37,6 +37,7 @@ class GasChromatographSetting:
     
     savgol_pol_order = 2
     
+    rt_window = 2
 class MolecularLookupDictSettings:
     
     '''
