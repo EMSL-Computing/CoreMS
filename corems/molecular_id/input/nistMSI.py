@@ -101,7 +101,7 @@ class ReadNistMSI(Thread):
                         abun = values[-2].strip(')')
 
                         dict_data['mz'].append(mz)
-                        dict_data['abundance'].append(mz)
+                        dict_data['abundance'].append(abun)
                     
                     i += 1   
                 #something else    
