@@ -26,7 +26,7 @@ class LowResMassSpectralMatch(Thread):
         # reading local file for now, 
         self.sqlLite_obj = ReadNistMSI(ref_lib_path).get_sqlLite_obj()
 
-    def cosine_match(self, mass_spec, ref_obj):
+    def cosine_correlation(self, mass_spec, ref_obj):
 
         # create dict['mz'] = abundance, for experimental data
         ms_mz_abun_dict = mass_spec.mz_abun_dict
@@ -65,7 +65,7 @@ class LowResMassSpectralMatch(Thread):
             
             for ref_obj in ref_objs:
             
-                correlation_value = self.cosine_match(gc_peak.mass_spectrum, ref_obj)
+                correlation_value = self.cosine_correlation(gc_peak.mass_spectrum, ref_obj)
 
                 gc_peak.add_compound(ref_obj, correlation_value)
         
