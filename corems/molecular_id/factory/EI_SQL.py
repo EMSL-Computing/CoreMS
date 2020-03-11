@@ -14,7 +14,7 @@ from sqlalchemy.orm.exc import MultipleResultsFound
 from sqlalchemy.pool import QueuePool
 from sqlalchemy import between
 
-from numpy import array
+from numpy import array, frombuffer
 
 Base = declarative_base()
 
@@ -58,8 +58,8 @@ class LowResolutionEICompound(Base):
         # mz and abun are numpy arrays of 64 bits integer
         # when using postgres array might be a better option
         
-        self.mz = array(dict_data.get('mz')).tobytes()
-        self.abundance = array(dict_data.get('abundance')).tobytes()
+        self.mz = array(dict_data.get('mz'), dtype='int32').tobytes()
+        self.abundance = array(dict_data.get('abundance'), dtype="int32").tobytes()
         
     def __repr__(self):
         return "<LowResolutionEICompound(name= %s , cas number = %s, formula = %s, Retention index= %.1f, Retention time= %.1f comment='%i')>" % (
@@ -140,8 +140,13 @@ class EI_LowRes_SQLite:
             print(str(e))
    
     def row_to_dict(self, row):
+            
+        row = {c.name: getattr(row, c.name) for c in row.__table__.columns}        
+        
+        row['mz'] = frombuffer(row.get('mz'), dtype="int32")
+        row['abundance'] = frombuffer(row.get('abundance'), dtype="int32")
 
-          return {c.name: str(getattr(row, c.name)) for c in row.__table__.columns}
+        return row
 
     def get_all(self,):
         

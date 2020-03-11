@@ -21,7 +21,7 @@ class ChromaPeakBase():
         self.area = None
        
         self.compounds = []
-        self._confidence_score = None
+        self.similarity_score = []
 
     def __len__(self):
         
@@ -35,17 +35,21 @@ class ChromaPeakBase():
         
         return self.compounds[position]
 
-    def add_compound(self, compounds_obj):
+    def add_compound(self, compounds_obj, similarity):
        
        self.compounds.append(compounds_obj)
-    
+       self.similarity_score.append(similarity)
+
     def remove_compound(self, compounds_obj):
         
-        self.compounds.remove(compounds_obj)
+        index = self.compounds.index(compounds_obj)
+        del self.compounds[index]
+        del self.similarity_score[index]
 
     def clear_compounds(self):
         
-        self.compounds= []
+        self.compounds = []
+        self.similarity_score = []
 
 class GCPeak(ChromaPeakBase, GCPeakCalculation):
 

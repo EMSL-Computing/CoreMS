@@ -86,7 +86,7 @@ class GCMSBase(Mapping, GC_Calculations):
             self.gcpeaks[self.scans_number[apex_index]] = GCPeak( self._ms[apex_index], i )
 
     def add_mass_spectrum(self, mass_spec):
-   
+        
         self._ms[mass_spec.scan_number] = mass_spec
 
     def set_tic_list_from_data(self):

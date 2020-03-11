@@ -28,6 +28,7 @@ class MassSpecPeakSetting:
     kendrick_base =  {"C": 1, "H":2}
     #kendrick_base =  {"C": 1, "H":2, "O":1}
 
+
 class GasChromatographSetting:
     
     
@@ -49,6 +50,10 @@ class GasChromatographSetting:
 
     #appex_minima = 
 
+class CompoundSearchSettings:
+
+    rt_window = 0.5
+    
 class MolecularLookupDictSettings:
     
     '''

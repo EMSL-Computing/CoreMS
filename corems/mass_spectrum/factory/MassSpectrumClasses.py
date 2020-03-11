@@ -924,7 +924,7 @@ class MassSpecCentroidLowRes(MassSpecCentroid, ):
         
     def __getitem__(self, position):
         
-        return (self.mspeaks[position], self.abundance[position])
+        return (self.mz_exp[position], self.abundance[position])
 
     @property
     def mz_exp(self):
@@ -949,14 +949,19 @@ class MassSpecCentroidLowRes(MassSpecCentroid, ):
         else:
             return sum(self.abundance)
     
-    
+    @property
     def mz_abun_tuples(self):
 
-        return [i for i in self]
-    
-    def mz_abun_dict(self):
+        r = lambda x: ( int(round(x[0],0), int(round(x[1],0))) )
 
-        return {i[0]:i[1] for i in self}
+        return [r(i) for i in self]
+    
+    @property
+    def mz_abun_dict(self):
+        
+        r = lambda x: int(round(x,0))
+            
+        return { r(i[0]):r(i[1]) for i in self}
     
 
     def add_match_compound(self, compound):

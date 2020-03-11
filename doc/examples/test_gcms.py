@@ -54,9 +54,9 @@ def andi_netcdf_gcms():
     #gcms.plot_baseline_subtraction()
 
     #gcms.plot_detected_baseline()
-    #lowResSearch = LowResMassSpectralMatch(gcms, ref_file_path)
+    lowResSearch = LowResMassSpectralMatch(gcms, ref_file_path)
 
-    #lowResSearch.run()
+    lowResSearch.run()
 
     
 

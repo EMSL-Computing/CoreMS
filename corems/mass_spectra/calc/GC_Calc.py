@@ -103,11 +103,11 @@ class GC_Calculations:
                 if right: 
                     j += 1
 
-                    minima = tic[j] > tic[j+1]
+                    minima = tic[j] >= tic[j+1]
 
                 else: 
                     j -= 1
-                    minima = tic[j] > tic[j-1]
+                    minima = tic[j] >= tic[j-1]
                         
 
             if right: return j

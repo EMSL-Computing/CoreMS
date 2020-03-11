@@ -150,6 +150,7 @@ class ReadAndiNetCDF(Thread):
 
 			#t1 = threading.Thread(target=self.get_mass_spectrum, args=(mz, abun, rp, d_params))
 			#t1.start()
+			
 			self.get_mass_spectrum( mz, abun, rp, d_params)
 
 		
