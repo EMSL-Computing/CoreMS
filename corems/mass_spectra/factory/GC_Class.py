@@ -8,6 +8,7 @@ from pathlib import Path
 from numpy import array
 
 from corems.mass_spectra.calc.GC_Calc import GC_Calculations
+from corems.chromatogram_peak.factory.ChromaPeakClasses import GCPeak
 from corems import timeit
 
 class GCMSBase(Mapping, GC_Calculations):
@@ -47,7 +48,8 @@ class GCMSBase(Mapping, GC_Calculations):
         self._ms = {}
         
         #after peak detection
-        self.ms = {}
+        self._processed_tic = []
+        self.gcpeaks = {}
         
         """
         key is scan number; value is MassSpectrum Class
@@ -55,23 +57,33 @@ class GCMSBase(Mapping, GC_Calculations):
         
     def __len__(self):
         
-        return len(self.ms)
+        return len(self.gcpeaks)
         
     def __getitem__(self, scan_number):
         
-        return self.ms.get(scan_number)
+        return self.gcpeaks.get(scan_number)
 
     def __iter__(self):
 
-         return iter(self.ms.values())
+         return iter(self.gcpeaks.values())
 
     def process_chromatogram(self,):
 
-        tic = self.smooth_tic()
+        tic = self.tic + self.baseline_detector(self.tic)
 
-        peaks_index = self.peaks_detector(tic)
+        self._processed_tic = self.smooth_tic(tic)
 
-        for i in peaks_index: self.ms[self.scans_number[i]] = self._ms[i]
+        for index, tic in enumerate(self._processed_tic):
+
+            self._ms[index]._processed_tic = tic
+
+        peaks_index = self.peaks_detector(self._processed_tic)
+        
+        for i in peaks_index: 
+            
+            apex_index = i[1]
+
+            self.gcpeaks[self.scans_number[apex_index]] = GCPeak( self._ms[apex_index], i )
 
     def add_mass_spectrum(self, mass_spec):
    
@@ -110,6 +122,11 @@ class GCMSBase(Mapping, GC_Calculations):
         return self._retention_time_list
     
     @property
+    def processed_tic(self):
+
+        return self._processed_tic
+
+    @property
     def tic(self):
 
         return self._tic_list
@@ -128,6 +145,27 @@ class GCMSBase(Mapping, GC_Calculations):
     def tic(self, l):
 
         self._tic_list = array(l)    
+
+    def plot_gc_peaks(self, ax=None, color="red"): #pragma: no cover
+        
+        import matplotlib.pyplot as plt
+
+        if ax is None:
+            ax = plt.gca()
+        
+        max_rts = [gc_peak.mass_spectrum.rt for gc_peak in self]
+        max_tics = [gc_peak.mass_spectrum.tic for gc_peak in self]
+
+        min_rts = [self._ms[gc_peak.start_index].rt for gc_peak in self] + [self._ms[gc_peak.final_index].rt for gc_peak in self]
+        min_tics = [self._ms[gc_peak.start_index].tic for gc_peak in self] + [self._ms[gc_peak.final_index].tic for gc_peak in self]
+        
+        ax.plot(max_rts, max_tics, color=color, linewidth=0, marker='v')
+
+        ax.plot(min_rts, min_tics, color='yellow', linewidth=0, marker='v')
+        
+        ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
+        
+        return ax
 
     def plot_chromatogram(self, ax=None, color="blue"): #pragma: no cover
         
@@ -149,7 +187,51 @@ class GCMSBase(Mapping, GC_Calculations):
 
             ax = plt.gca()
         
-        ax.plot(self.retention_time, self.smooth_tic(), color=color)
+        ax.plot(self.retention_time, self.smooth_tic(self.tic), color=color)
+
+        ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
+        
+        return ax
+
+    def plot_detected_baseline(self, ax=None, color="blue"): #pragma: no cover
+        
+        import matplotlib.pyplot as plt
+
+        if ax is None:
+
+            ax = plt.gca()
+        
+        ax.plot(self.retention_time, self.baseline_detector(self.tic), color=color)
+
+        ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
+        
+        return ax
+
+    def plot_baseline_subtraction(self, ax=None, color="black"): #pragma: no cover
+        
+        import matplotlib.pyplot as plt
+
+        if ax is None:
+
+            ax = plt.gca()
+        
+        x = self.tic + self.baseline_detector(self.tic)
+
+        ax.plot(self.retention_time, x, color=color)
+
+        ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
+        
+        return ax
+
+    def plot_processed_chromatogram(self, ax=None, color="black"):
+        
+        import matplotlib.pyplot as plt
+
+        if ax is None:
+
+            ax = plt.gca()
+        
+        ax.plot(self.retention_time, self.processed_tic, color=color)
 
         ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
         

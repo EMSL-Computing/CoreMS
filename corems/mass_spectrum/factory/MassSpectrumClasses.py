@@ -916,7 +916,8 @@ class MassSpecCentroidLowRes(MassSpecCentroid, ):
         self._set_parameters_objects(d_params)
         self._mz_exp = data_dict.get(Labels.mz)
         self._abundance = data_dict.get(Labels.abundance)
-        
+        self._processed_tic = None
+    
     def __len__(self):
         
         return len(self.mz_exp)
@@ -936,10 +937,19 @@ class MassSpecCentroidLowRes(MassSpecCentroid, ):
         return self._abundance
 
     @property
+    def processed_tic(self):
+    
+        return sum(self._processed_tic)
+    
+    @property
     def tic(self):
     
-        return sum(self.abundance)
-
+        if self._processed_tic:
+            return self._processed_tic
+        else:
+            return sum(self.abundance)
+    
+    
     def mz_abun_tuples(self):
 
         return [i for i in self]

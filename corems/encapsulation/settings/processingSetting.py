@@ -31,13 +31,24 @@ class MassSpecPeakSetting:
 class GasChromatographSetting:
     
     
-    implemented_smooth_method = ['savgol', 'hanning', 'blackman', 'bartlett', 'flat']
+    implemented_smooth_method = ['savgol', 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar']
+    
     smooth_window = 5
+    
     smooth_method = 'savgol'
     
     savgol_pol_order = 2
     
-    rt_window = 2
+    rt_window = 0.3
+    
+    tic_threshold = 1 #1-100 %
+    
+    min_peak_datapoints = 5
+   
+    max_peak_width = 0.1
+
+    #appex_minima = 
+
 class MolecularLookupDictSettings:
     
     '''

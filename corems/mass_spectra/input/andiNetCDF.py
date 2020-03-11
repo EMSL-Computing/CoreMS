@@ -103,7 +103,7 @@ class ReadAndiNetCDF(Thread):
 
 		list_tic = self.net_cdf_obj.variables.get("total_intensity")[:]	
 
-		list_rt = self.net_cdf_obj.variables.get("scan_acquisition_time")[:]
+		list_rt = self.net_cdf_obj.variables.get("scan_acquisition_time")[:]/60
 
 		mass_values = self.net_cdf_obj.variables.get("mass_values")[:]
 		

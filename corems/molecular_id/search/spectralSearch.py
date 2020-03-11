@@ -23,15 +23,23 @@ class LowResMassSpectralMatch(Thread):
         self.sqlLite_obj = ReadNistMSI(ref_lib_path).get_sqlLite_obj()
 
     def run(self):
+        
         window = GasChromatographSetting.rt_window
 
         if not self.gcms_obj:
             self.gcms_obj.process_chromatogram()
 
-        for ms in self.gcms_obj:
-            rt = ms.rt
-
-            ref_objs = self.sqlLite_obj.query_min_max_rt(rt-window, rt+window)
+        for gc_peak in self.gcms_obj:
             
-            ms.cosine_similarity(ref_objs.pair)
+            rt = gc_peak.mass_spectrum.rt
+
+            min_mat_rt = (rt-window, rt+window)    
+            
+            ref_objs = self.sqlLite_obj.query_min_max_rt(min_mat_rt)
+            
+            for ref_obj in ref_objs:
+                
+                print(gc_peak.mass_spectrum.rt, gc_peak.mass_spectrum.tic, ref_obj.get("rt"))
+
+            #ms.cosine_similarity(ref_objs.pair)
 

@@ -12,7 +12,7 @@ from PySide2.QtCore import Qt
 
 from corems.molecular_id.input.nistMSI import ReadNistMSI
 from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
-
+from corems.molecular_id.search.spectralSearch import LowResMassSpectralMatch
 
 def sql_database(file_location):
     
@@ -33,20 +33,32 @@ def andi_netcdf_gcms():
 
     file_path = Path.cwd() / "tests/tests_data/gcms/" / "GCMS_FAMES_01_GCMS-01_20191023.cdf"
 
+    ref_file_path = Path.cwd() / "tests/tests_data/gcms/" / "FAMES_REF.MSL"
+
     reader_gcms = ReadAndiNetCDF(file_path)
 	
     reader_gcms.run()
     
     gcms = reader_gcms.get_gcms_obj()
 
-    gcms.plot_chromatogram()
+    #gcms.plot_chromatogram()
 
-    gcms.plot_smoothed_chromatogram()
+    #gcms.plot_smoothed_chromatogram()
 
     gcms.process_chromatogram()
 
+    gcms.plot_processed_chromatogram()
 
+    gcms.plot_gc_peaks()
 
+    #gcms.plot_baseline_subtraction()
+
+    #gcms.plot_detected_baseline()
+    #lowResSearch = LowResMassSpectralMatch(gcms, ref_file_path)
+
+    #lowResSearch.run()
+
+    
 
 #app = QApplication(sys.argv)
 #file_dialog = QFileDialog()
