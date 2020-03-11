@@ -5,6 +5,29 @@ __date__ = "Jun 12, 2019"
 
 
 from corems.chromatogram_peak.calc.GCPeakCalc import GCPeakCalculation 
+from dataclasses import dataclass
+
+@dataclass
+class LowResCompoundRef:
+
+    def __init__(self, compounds_dict):
+    
+        self.name = compounds_dict.get("id")
+        self.ri = compounds_dict.get("RI") 
+        self.rt = compounds_dict.get("RT") 
+        self.casno  = compounds_dict.get("CASNO") 
+        self.comment  = compounds_dict.get("COMMENT") 
+        self.peaks_count = compounds_dict.get("NUM PEAKS") 
+        
+        self.mz  = compounds_dict.get('mz') 
+        self.abundance  = compounds_dict.get("abundance") 
+
+        self.source_temp_c  = compounds_dict.get("SOURCE TEMP C") 
+        self.ev  = compounds_dict.get("EV") 
+        self.formula  = compounds_dict.get("FORMULA") 
+        self.source = compounds_dict.get("SOURCE") 
+
+        self.similarity_score = None    
 
 class ChromaPeakBase():
     '''
@@ -21,38 +44,42 @@ class ChromaPeakBase():
         self.area = None
        
         self.compounds = []
-        self.similarity_score = []
+        
 
     def __len__(self):
         
         return len(self.compounds)
         
-    def __setitem__(self, position, compounds_obj):
-        
-        self.compounds[position] = compounds_obj
-
     def __getitem__(self, position):
         
         return self.compounds[position]
 
-    def add_compound(self, compounds_obj, similarity):
-       
-       self.compounds.append(compounds_obj)
-       self.similarity_score.append(similarity)
-
+    def add_compound(self, compounds_dict, similarity):
+        #implemented in child class
+        pass
     def remove_compound(self, compounds_obj):
         
-        index = self.compounds.index(compounds_obj)
-        del self.compounds[index]
-        del self.similarity_score[index]
-
+        self.compounds.remove(compounds_obj)
+        
     def clear_compounds(self):
         
         self.compounds = []
-        self.similarity_score = []
+       
+    @property
+    def highest_score_compound(self):
+        
+        return max(self, key = lambda c: c.similarity_score)
 
 class GCPeak(ChromaPeakBase, GCPeakCalculation):
 
     def __init__(self, mass_spectrum_obj, indexes):
     
         super().__init__(mass_spectrum_obj, *indexes)
+
+    def add_compound(self, compounds_dict, similarity):
+       
+       compound_obj = LowResCompoundRef(compounds_dict)
+       compound_obj.similarity_score = similarity
+       
+       self.compounds.append(compound_obj)
+       

@@ -41,23 +41,29 @@ def andi_netcdf_gcms():
     
     gcms = reader_gcms.get_gcms_obj()
 
-    #gcms.plot_chromatogram()
-
-    #gcms.plot_smoothed_chromatogram()
-
     gcms.process_chromatogram()
 
     gcms.plot_processed_chromatogram()
 
     gcms.plot_gc_peaks()
 
+    #gcms.plot_chromatogram()
+
+    #gcms.plot_smoothed_chromatogram()
+
     #gcms.plot_baseline_subtraction()
 
     #gcms.plot_detected_baseline()
+    
     lowResSearch = LowResMassSpectralMatch(gcms, ref_file_path)
 
     lowResSearch.run()
 
+    for gcms_peak in gcms:
+
+        if gcms_peak:
+            compound_obj = gcms_peak.highest_score_compound
+            print(compound_obj.name, gcms_peak.mass_spectrum.rt, compound_obj.similarity_score)
     
 
 #app = QApplication(sys.argv)

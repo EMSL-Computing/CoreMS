@@ -7,7 +7,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from scipy.spatial.distance import cosine
 
 from corems.molecular_id.input.nistMSI import ReadNistMSI
-from corems.encapsulation.settings.processingSetting import GasChromatographSetting
+from corems.encapsulation.settings.processingSetting import CompoundSearchSettings, GasChromatographSetting
 
 class LowResMassSpectralMatch(Thread):
 
@@ -50,7 +50,7 @@ class LowResMassSpectralMatch(Thread):
 
     def run(self):
         
-        window = GasChromatographSetting.rt_window
+        window = CompoundSearchSettings.rt_window
 
         if not self.gcms_obj:
             self.gcms_obj.process_chromatogram()
@@ -66,6 +66,6 @@ class LowResMassSpectralMatch(Thread):
             for ref_obj in ref_objs:
             
                 correlation_value = self.cosine_correlation(gc_peak.mass_spectrum, ref_obj)
-
-                gc_peak.add_compound(ref_obj, correlation_value)
+                if correlation_value >= CompoundSearchSettings.similarity_threshold:
+                    gc_peak.add_compound(ref_obj, correlation_value)
         
