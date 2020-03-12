@@ -153,7 +153,7 @@ if __name__ == '__main__':
     
     cores = 6
     out_put_file_name = 'Group6_Standards.csv'
-    calibrate_and_search(out_put_file_name)
+    calibrate_and_search(out_put_file_name, cores)
 
 #for gcms_peak in gcms:
 
