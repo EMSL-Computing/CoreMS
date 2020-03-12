@@ -6,6 +6,7 @@ sys.path.append("C:\\Users\\eber373\\Desenvolvimento\\Projects-Python\\CoreMS")
 
 from pathlib import Path
 
+from multiprocessing import Pool
 from matplotlib import pyplot
 from PySide2.QtWidgets import QFileDialog, QApplication
 from PySide2.QtCore import Qt
@@ -29,11 +30,7 @@ def sql_database(file_location):
     sqlLite_obj.query_min_max_ri_and_rt((1637.30, 1638.30),(17.111, 18.111)) 
 
 
-def andi_netcdf_gcms():
-
-    file_path = Path.cwd() / "tests/tests_data/gcms/" / "GCMS_FAMES_01_GCMS-01_20191023.cdf"
-
-    ref_file_path = Path.cwd() / "tests/tests_data/gcms/" / "FAMES_REF.MSL"
+def get_gcms(file_path):
 
     reader_gcms = ReadAndiNetCDF(file_path)
 	
@@ -43,9 +40,23 @@ def andi_netcdf_gcms():
 
     gcms.process_chromatogram()
 
-    gcms.plot_processed_chromatogram()
+    return gcms
 
-    gcms.plot_gc_peaks()
+def get_reference_dict():
+
+    app = QApplication(sys.argv)
+    file_dialog = QFileDialog()
+    file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+    file_path = file_dialog.getOpenFileName(None, "FAMES REF FILE", filter="*.cdf")[0]
+    app.exit()
+    
+    ref_file_path = Path.cwd() / "tests/tests_data/gcms/" / "FAMES_REF.MSL"
+
+    gcms = get_gcms(file_path)
+
+    #gcms.plot_processed_chromatogram()
+
+    #gcms.plot_gc_peaks()
 
     #gcms.plot_chromatogram()
 
@@ -59,18 +70,92 @@ def andi_netcdf_gcms():
 
     lowResSearch.run()
 
+    dict_rt_ri = {}
+
     for gcms_peak in gcms:
 
+        # has a compound matched
         if gcms_peak:
+            
             compound_obj = gcms_peak.highest_score_compound
-            print(compound_obj.name, gcms_peak.mass_spectrum.rt, compound_obj.similarity_score)
+            
+            #print(compound_obj.name, gcms_peak.mass_spectrum.rt, compound_obj.similarity_score)
+            dict_rt_ri[gcms_peak.mass_spectrum.rt] = compound_obj.ri
     
+    return dict_rt_ri
 
-#app = QApplication(sys.argv)
-#file_dialog = QFileDialog()
-#file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
-#file_location = file_dialog.getOpenFileName()[0]
-#app.quit()
+def run(args):
+    
+    file_path, ref_file_path, ref_dict = args
+    gcms = get_gcms(file_path)
+            
+    for gcms_peak in gcms:
+        
+        gcms_peak.calc_ri(ref_dict)
+        
+    lowResSearch = LowResMassSpectralMatch(gcms, ref_file_path)
+    lowResSearch.run()
 
-andi_netcdf_gcms()
-pyplot.show()
+    return gcms
+
+def calibrate_and_search(out_put_file_name, cores):
+    
+    import csv
+
+    with open(out_put_file_name, mode='w', newline='') as results_file:
+        
+        results_writer = csv.writer(results_file, delimiter=',')
+
+        results_writer.writerow(['sample_name', "compound_name", "retention_time", "tic","calculated_retention_index", "ref_retention_index", "cosine_correlation" ])
+        
+        ref_dict = get_reference_dict()
+        
+        #app = QApplication(sys.argv)
+        file_dialog = QFileDialog()
+        file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+        
+        file_locations = file_dialog.getOpenFileNames(None, "Standard Files", filter="*.cdf")
+        
+        ref_file_path = Path.cwd() / "tests/tests_data/gcms/" / "PNNLMetV20191015.MSL"
+
+        p = Pool(cores)
+
+        args = [(file_path, ref_file_path, ref_dict) for file_path in file_locations[0]]
+        
+        gcmss = p.map(run, args)
+        
+        for gcms in gcmss:
+            
+            gcms.plot_processed_chromatogram()
+
+            gcms.plot_gc_peaks()
+
+            gcms.plot_chromatogram()
+
+            gcms.plot_smoothed_chromatogram()
+
+            gcms.plot_baseline_subtraction()
+
+            gcms.plot_detected_baseline()
+
+            pyplot.show()
+
+            for gcms_peak in gcms:
+                
+                if gcms_peak:
+                    
+                    compound_obj = gcms_peak.highest_score_compound
+                
+                    results_writer.writerow([gcms.sample_name, compound_obj.name, gcms_peak.mass_spectrum.rt,gcms_peak.mass_spectrum.tic, gcms_peak.ri(), compound_obj.ri, compound_obj.similarity_score])    
+
+            
+if __name__ == '__main__':                           
+    
+    cores = 6
+    out_put_file_name = 'Group6_Standards.csv'
+    calibrate_and_search(out_put_file_name)
+
+#for gcms_peak in gcms:
+
+#        gcms_peak.calc_ri(dict_rt_ri)
+#pyplot.show()

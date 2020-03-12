@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     #settings_parsers.load_search_setting_yaml()
     #settings_parsers.load_search_setting_json()
-   
-    test_query_sql()
+    test_nist_to_sql()    
+    #test_query_sql()
     #xtest_query_mongo()
    

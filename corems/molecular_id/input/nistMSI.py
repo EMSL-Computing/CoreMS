@@ -41,8 +41,12 @@ class ReadNistMSI(Thread):
                 if not data_dict['CASNO']:
                     data_dict['CASNO'] = 0
             #print(data_dict)
-            sqlLite_obj.add_compound(data_dict)
-
+            try:
+                sqlLite_obj.add_compound(data_dict)
+            except:
+                
+                print(data_dict.get('NAME'))
+                
         
         return sqlLite_obj
 

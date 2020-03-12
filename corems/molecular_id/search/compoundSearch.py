@@ -15,7 +15,6 @@ class LowResMassSpectralMatch(Thread):
         
         '''TODO:
         '''
-
         Thread.__init__(self)
         
         self.gcms_obj = gcms_obj
@@ -66,6 +65,9 @@ class LowResMassSpectralMatch(Thread):
             for ref_obj in ref_objs:
             
                 correlation_value = self.cosine_correlation(gc_peak.mass_spectrum, ref_obj)
+                
                 if correlation_value >= CompoundSearchSettings.similarity_threshold:
                     gc_peak.add_compound(ref_obj, correlation_value)
         
+        self.sqlLite_obj.session.close()
+        self.sqlLite_obj.engine.dispose()

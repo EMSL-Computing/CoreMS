@@ -56,6 +56,8 @@ class CompoundSearchSettings:
     
     similarity_threshold = 0.8
 
+    ri_spacing = 200
+
 class MolecularLookupDictSettings:
     
     '''
