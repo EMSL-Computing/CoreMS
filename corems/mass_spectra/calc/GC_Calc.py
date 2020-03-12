@@ -134,7 +134,7 @@ class GC_Calculations:
 
             if final_index-start_index > GasChromatographSetting.min_peak_datapoints:
 
-                if (tic[index]/maximum_abundance) * 100 > GasChromatographSetting.tic_threshold:
+                if (tic[index]/maximum_abundance) * 100 > GasChromatographSetting.peak_picking_tic_threshold:
                 #if self.retention_time[final_index]-self.retention_time[start_index] < GasChromatographSetting.max_peak_width:
                         
                     yield (start_index, index, final_index)
@@ -162,6 +162,8 @@ class GC_Calculations:
         baseline.fill(nan)
 
         baseline[indexes] = tic[indexes]
+
+        baseline[baseline>GasChromatographSetting.baseline_tic_threshold] = nan
 
         s = Series(baseline).interpolate(method='nearest')
         

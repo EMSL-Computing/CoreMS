@@ -49,7 +49,7 @@ class LowResMassSpectralMatch(Thread):
 
     def run(self):
         
-        window = CompoundSearchSettings.rt_window
+        window = CompoundSearchSettings.rt_search_range
 
         if not self.gcms_obj:
             self.gcms_obj.process_chromatogram()

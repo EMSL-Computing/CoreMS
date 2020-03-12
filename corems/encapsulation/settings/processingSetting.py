@@ -40,10 +40,10 @@ class GasChromatographSetting:
     
     savgol_pol_order = 2
     
-    rt_window = 0.3
+    peak_picking_tic_threshold = 1 #1-100 %
     
-    tic_threshold = 1 #1-100 %
-    
+    baseline_tic_threshold = 5 #1-100 %
+
     min_peak_datapoints = 5
    
     max_peak_width = 0.1
@@ -52,7 +52,7 @@ class GasChromatographSetting:
 
 class CompoundSearchSettings:
 
-    rt_window = 0.5
+    rt_search_range = 0.5
     
     similarity_threshold = 0.8
 

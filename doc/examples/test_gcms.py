@@ -54,18 +54,6 @@ def get_reference_dict():
 
     gcms = get_gcms(file_path)
 
-    #gcms.plot_processed_chromatogram()
-
-    #gcms.plot_gc_peaks()
-
-    #gcms.plot_chromatogram()
-
-    #gcms.plot_smoothed_chromatogram()
-
-    #gcms.plot_baseline_subtraction()
-
-    #gcms.plot_detected_baseline()
-    
     lowResSearch = LowResMassSpectralMatch(gcms, ref_file_path)
 
     lowResSearch.run()
@@ -94,6 +82,7 @@ def run(args):
         gcms_peak.calc_ri(ref_dict)
         
     lowResSearch = LowResMassSpectralMatch(gcms, ref_file_path)
+    
     lowResSearch.run()
 
     return gcms
@@ -147,7 +136,9 @@ def calibrate_and_search(out_put_file_name, cores):
                     compound_obj = gcms_peak.highest_score_compound
                 
                     results_writer.writerow([gcms.sample_name, compound_obj.name, gcms_peak.mass_spectrum.rt,gcms_peak.mass_spectrum.tic, gcms_peak.ri(), compound_obj.ri, compound_obj.similarity_score])    
-
+                
+                else:
+                    results_writer.writerow([gcms.sample_name, None, gcms_peak.mass_spectrum.rt, gcms_peak.mass_spectrum.tic, gcms_peak.ri(), None, None])    
             
 if __name__ == '__main__':                           
     
@@ -155,7 +146,4 @@ if __name__ == '__main__':
     out_put_file_name = 'Group6_Standards.csv'
     calibrate_and_search(out_put_file_name, cores)
 
-#for gcms_peak in gcms:
 
-#        gcms_peak.calc_ri(dict_rt_ri)
-#pyplot.show()
