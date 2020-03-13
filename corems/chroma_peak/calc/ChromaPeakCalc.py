@@ -16,8 +16,11 @@ class GCPeakCalculation(object):
         return left_ri + (CompoundSearchSettings.ri_spacing * (self.rt - left_rt)/(right_rt-left_rt))
 
     def calc_ri(self, dict_ref):
+        
+        # input dict[rt:ri]
         # find left and right peaks, gets retention time for both, e calculates retention index 
-        #dict_ref has to be comprehensive enough to cover all rt range or it will fail
+        # dict_ref has to be comprehensive enough to cover all rt range or it will fail
+        # returns: Nothing but set self._ri object inside GCPeak class
         
         rts = array(list(dict_ref.keys())) 
         
