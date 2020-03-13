@@ -41,7 +41,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
         
         for mass_spectrum in self.mass_spectra:
 
-            columns = self.columns_label + self.get_all_used_atoms_in_ordem(mass_spectrum)
+            columns = self.columns_label + self.get_all_used_atoms_in_order(mass_spectrum)
             
             dict_data_list = self.get_list_dict_data(mass_spectrum)
             
@@ -59,7 +59,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
         
         for mass_spectrum in self.mass_spectra:
 
-            columns = self.columns_label + self.get_all_used_atoms_in_ordem(mass_spectrum)
+            columns = self.columns_label + self.get_all_used_atoms_in_order(mass_spectrum)
 
             dict_data_list = self.get_list_dict_data(mass_spectrum)
 
@@ -77,7 +77,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
 
         for mass_spectrum in self.mass_spectra:
             
-            columns = self.columns_label + self.get_all_used_atoms_in_ordem(mass_spectrum)
+            columns = self.columns_label + self.get_all_used_atoms_in_order(mass_spectrum)
 
             dict_data_list = self.get_list_dict_data(mass_spectrum)
 
@@ -98,7 +98,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
 
         for mass_spectrum in self.mass_spectra:
             
-            columns = self.columns_label + self.get_all_used_atoms_in_ordem(mass_spectrum)
+            columns = self.columns_label + self.get_all_used_atoms_in_order(mass_spectrum)
 
             scan_number = mass_spectrum.scan_number
 
@@ -152,7 +152,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
                 
                 setting_dicts = settings_parsers.get_dict_data_ms(mass_spectrum)
 
-                columns_labels = json.dumps(self.columns_label + self.get_all_used_atoms_in_ordem(mass_spectrum))
+                columns_labels = json.dumps(self.columns_label + self.get_all_used_atoms_in_order(mass_spectrum))
 
                 group_key = str(mass_spectrum.scan_number)
 
