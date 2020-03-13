@@ -52,43 +52,46 @@ def get_reference_dict():
     file_path = file_dialog.getOpenFileName(None, "FAMES REF FILE", filter="*.cdf")[0]
     app.exit()
     
-    ref_file_path = Path.cwd() / "tests/tests_data/gcms/" / "FAMES_REF.MSL"
+    if not file_path:
+        return  None
+    else:
+        ref_file_path = Path.cwd() / "tests/tests_data/gcms/" / "FAMES_REF.MSL"
 
-    gcms = get_gcms(file_path)
+        gcms = get_gcms(file_path)
 
-    lowResSearch = LowResMassSpectralMatch(gcms, ref_file_path, calibration=True)
+        lowResSearch = LowResMassSpectralMatch(gcms, ref_file_path, calibration=True)
 
-    lowResSearch.run()
+        lowResSearch.run()
 
-    dict_rt_ri = {}
+        dict_rt_ri = {}
 
-    for gcms_peak in gcms:
+        for gcms_peak in gcms:
 
-        # has a compound matched
-        if gcms_peak:
-            
-            compound_obj = gcms_peak.highest_score_compound
-            
-            #print(compound_obj.name, gcms_peak.mass_spectrum.rt, compound_obj.similarity_score)
-            dict_rt_ri[gcms_peak.mass_spectrum.rt] = compound_obj.ri
-    
+            # has a compound matched
+            if gcms_peak:
+                
+                compound_obj = gcms_peak.highest_score_compound
+                
+                #print(compound_obj.name, gcms_peak.mass_spectrum.rt, compound_obj.similarity_score)
+                dict_rt_ri[gcms_peak.mass_spectrum.rt] = compound_obj.ri
+        
 
-    rts = list(dict_rt_ri.keys() )
-    ris = list(dict_rt_ri.values() )
-    
-    # retention time calibration curve RT vs RI
-    poli = poly1d(polyfit(ris,rts, 1))
-    
-    # ensures all datapoint are represented up to C40 
-    RI =  array(list(range(0,4000+CompoundSearchSettings.ri_spacing, CompoundSearchSettings.ri_spacing)))
-    RT = (poli(RI))
-    
-    dict_RT_RI = dict(zip(RT, RI))
+        rts = list(dict_rt_ri.keys() )
+        ris = list(dict_rt_ri.values() )
+        
+        # retention time calibration curve RT vs RI
+        poli = poly1d(polyfit(ris,rts, 1))
+        
+        # ensures all datapoint are represented up to C40 
+        RI =  array(list(range(0,4000+CompoundSearchSettings.ri_spacing, CompoundSearchSettings.ri_spacing)))
+        RT = (poli(RI))
+        
+        dict_RT_RI = dict(zip(RT, RI))
 
-    #This will retains the experimental retention index
-    dict_RT_RI.update(dict_rt_ri)
-    
-    return dict(sorted(dict_RT_RI.items()))
+        #This will retains the experimental retention index
+        dict_RT_RI.update(dict_rt_ri)
+        
+        return dict(sorted(dict_RT_RI.items()))
 
 def run(args):
     
@@ -111,41 +114,44 @@ def calibrate_and_search(out_put_file_name, cores):
     
     ref_dict = get_reference_dict()
     
-    #app = QApplication(sys.argv)
-    file_dialog = QFileDialog()
-    file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
-    
-    file_locations = file_dialog.getOpenFileNames(None, "Standard Compounds Files", filter="*.cdf")
-    
-    ref_file_path = Path.cwd() / "tests/tests_data/gcms/" / "PNNLMetV20191015.MSL"
-
-    p = Pool(cores)
-
-    args = [(file_path, ref_file_path, ref_dict) for file_path in file_locations[0]]
-    
-    gcmss = p.map(run, args)
-    
-    for gcms in gcmss:
+    if ref_dict:
         
-        gcms.to_csv(out_put_file_name)
-        #gcms.to_excel(out_put_file_name)
-        #gcms.to_pandas(out_put_file_name)
+        file_dialog = QFileDialog()
+        file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
         
-        #df = gcms.to_dataframe()
-        
-        #gcms.plot_processed_chromatogram()
+        if file_dialog:
+            
+            file_locations = file_dialog.getOpenFileNames(None, "Standard Compounds Files", filter="*.cdf")
+            ref_file_path = Path.cwd() / "tests/tests_data/gcms/" / "PNNLMetV20191015.MSL"
 
-        #gcms.plot_gc_peaks()
+            # run in multiprocessing mode
+            p = Pool(cores)
+            args = [(file_path, ref_file_path, ref_dict) for file_path in file_locations[0]]
+            gcmss = p.map(run, args)
+            
 
-        #gcms.plot_chromatogram()
+            for gcms in gcmss:
+                
+                gcms.to_csv(out_put_file_name)
+                #gcms.to_excel(out_put_file_name)
+                #gcms.to_pandas(out_put_file_name)
+                
+                #df = gcms.get_dataframe()
+                #json_data = gcms.to_json()
+                
+                #gcms.plot_processed_chromatogram()
 
-        #gcms.plot_smoothed_chromatogram()
+                #gcms.plot_gc_peaks()
 
-        #gcms.plot_baseline_subtraction()
+                #gcms.plot_chromatogram()
 
-        #gcms.plot_detected_baseline()
+                #gcms.plot_smoothed_chromatogram()
 
-        #pyplot.show()
+                #gcms.plot_baseline_subtraction()
+
+                #gcms.plot_detected_baseline()
+
+                #pyplot.show()
 
        
 if __name__ == '__main__':                           

@@ -213,6 +213,12 @@ class GCMSBase(Mapping, GC_Calculations):
         exportMS= LowResGCMSExport(self.sample_name, self)
         return exportMS.get_pandas_df()
 
+    def to_json(self,):
+        
+        #returns pandas dataframe
+        exportMS= LowResGCMSExport(self.sample_name, self)
+        return exportMS.get_json()
+
     def plot_chromatogram(self, ax=None, color="blue"): #pragma: no cover
         
         import matplotlib.pyplot as plt
