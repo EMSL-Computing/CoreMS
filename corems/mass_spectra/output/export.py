@@ -141,7 +141,7 @@ class LowResGCMSExport():
                            'Peak Area': gc_peak.area,
                            'Retention index': gc_peak.ri,
                            'Retention index Ref':  compound_obj.ri,
-                           'Similarity Score': gc_peak.similarity_score,
+                           'Similarity Score': compound_obj.similarity_score,
                            'Compound Name' : compound_obj.name
                            } )
 
