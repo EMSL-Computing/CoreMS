@@ -12,7 +12,7 @@ from corems.encapsulation.constant import Labels
 from corems.encapsulation.settings.io import settings_parsers
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
 
-class MassSpecExport(Thread):
+class HighResMassSpecExport(Thread):
     
     '''
     TODO: add MSPeak indexes: done
@@ -36,7 +36,7 @@ class MassSpecExport(Thread):
         self.mass_spectrum = mass_spectrum
 
         # collect all assigned atoms and order them accordingly to the Atoms.atoms_order list
-        self.atoms_order_list = self.get_all_used_atoms_in_ordem(self.mass_spectrum)
+        self.atoms_order_list = self.get_all_used_atoms_in_order(self.mass_spectrum)
 
         self._init_columns()
 
@@ -96,7 +96,7 @@ class MassSpecExport(Thread):
 
     def get_pandas_df(self):
 
-        columns = self.columns_label + self.get_all_used_atoms_in_ordem(self.mass_spectrum)
+        columns = self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum)
         dict_data_list = self.get_list_dict_data(self.mass_spectrum)
         df = DataFrame(dict_data_list, columns=columns)
         df.name = self.output_file
@@ -120,7 +120,7 @@ class MassSpecExport(Thread):
     
     def to_pandas(self):
         
-        columns = self.columns_label + self.get_all_used_atoms_in_ordem(self.mass_spectrum)
+        columns = self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum)
 
         dict_data_list = self.get_list_dict_data(self.mass_spectrum)
 
@@ -132,7 +132,7 @@ class MassSpecExport(Thread):
                
     def to_excel(self):
 
-        columns = self.columns_label + self.get_all_used_atoms_in_ordem(self.mass_spectrum)
+        columns = self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum)
 
         dict_data_list = self.get_list_dict_data(self.mass_spectrum)
 
@@ -144,7 +144,7 @@ class MassSpecExport(Thread):
 
     def to_csv(self):
         
-        columns = self.columns_label + self.get_all_used_atoms_in_ordem(self.mass_spectrum)
+        columns = self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum)
 
         dict_data_list = self.get_list_dict_data(self.mass_spectrum)
 
@@ -176,7 +176,7 @@ class MassSpecExport(Thread):
             
             setting_dicts = settings_parsers.get_dict_data_ms(self.mass_spectrum)
 
-            columns_labels = json.dumps(self.columns_label + self.get_all_used_atoms_in_ordem(self.mass_spectrum))
+            columns_labels = json.dumps(self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum))
 
             if not hdf_handle.attrs.get('date_utc'):
 
@@ -263,7 +263,7 @@ class MassSpecExport(Thread):
         return dict_ms_attrs
 
 
-    def get_all_used_atoms_in_ordem(self, mass_spectrum):
+    def get_all_used_atoms_in_order(self, mass_spectrum):
 
         atoms_in_order = Atoms.atoms_order
         all_used_atoms = set()
@@ -281,7 +281,7 @@ class MassSpecExport(Thread):
 
     def list_dict_to_list(self, mass_spectrum):
         
-        column_labels = self.columns_label + self.get_all_used_atoms_in_ordem(mass_spectrum)
+        column_labels = self.columns_label + self.get_all_used_atoms_in_order(mass_spectrum)
 
         dict_list = self.get_list_dict_data(mass_spectrum)
         

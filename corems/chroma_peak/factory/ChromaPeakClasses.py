@@ -5,7 +5,7 @@ __date__ = "Jun 12, 2019"
 from dataclasses import dataclass
 
 from numpy import array
-from corems.chromatogram_peak.calc.ChromaPeakCalc import GCPeakCalculation 
+from corems.chroma_peak.calc.ChromaPeakCalc import GCPeakCalculation 
 
 
 @dataclass
@@ -15,7 +15,7 @@ class LowResCompoundRef:
         
         self.name = compounds_dict.get("id")
         self.ri = compounds_dict.get("ri")
-        self.rt = compounds_dict.get("rt") 
+        self.rt = compounds_dict.get("rt")
         self.casno  = compounds_dict.get("casno")
         self.comment  = compounds_dict.get("comment")
         self.peaks_count = compounds_dict.get("peaks_count")
@@ -45,8 +45,6 @@ class ChromaPeakBase():
         self._area = None
        
         self._compounds = []
-
-        self.rt = self.mass_spectrum.rt
    
     def __len__(self):
         
@@ -67,8 +65,19 @@ class ChromaPeakBase():
     def clear_compounds(self):
         
         self._compounds = []
-       
-    
+
+    @property   
+    def rt(self):
+        return self.mass_spectrum.rt
+
+    @property   
+    def tic(self):
+        return self.mass_spectrum.tic    
+
+    @property   
+    def area(self):
+        return self._area
+
 class GCPeak(ChromaPeakBase, GCPeakCalculation):
 
     def __init__(self, mass_spectrum_obj, indexes):
@@ -84,6 +93,7 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
        
        self._compounds.append(compound_obj)
 
+    @property
     def ri(self):
 
         return self._ri

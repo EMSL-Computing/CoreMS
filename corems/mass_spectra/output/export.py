@@ -7,12 +7,12 @@ from pathlib import Path
 from numpy import  NaN, concatenate
 from pandas import DataFrame
 
-from corems.mass_spectrum.output.export import MassSpecExport
+from corems.mass_spectrum.output.export import HighResMassSpecExport
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.settings.io import settings_parsers
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
 
-class MassSpectraExport(MassSpecExport):
+class HighResMassSpectraExport(HighResMassSpecExport):
     '''
     
     '''

@@ -5,13 +5,17 @@ from copy import deepcopy
 #from matplotlib import rcParamsDefault, rcParams
 from numpy import array, power, float64, where
 
+from corems.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
+from corems.mass_spectrum.calc.KendrickGroup import KendrickGrouping
 
 from corems.encapsulation.constant import Labels
+
+from corems.ms_peak.factory.MSPeakClasses import ICRMassPeak as MSPeak
+
 from corems.encapsulation.settings.processingSetting import MassSpectrumSetting, MassSpecPeakSetting, TransientSetting
 from corems.encapsulation.settings.processingSetting import MolecularSearchSettings
-from corems.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
-from corems.ms_peak.factory.MSPeakClasses import ICRMassPeak as MSPeak
-from corems.mass_spectrum.calc.KendrickGroup import KendrickGrouping
+
+
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
@@ -636,32 +640,32 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
     def to_excel(self, out_file_path):
         
-        from corems.mass_spectrum.output.export import MassSpecExport
-        exportMS= MassSpecExport(out_file_path, self)
+        from corems.mass_spectrum.output.export import HighResMassSpecExport
+        exportMS= HighResMassSpecExport(out_file_path, self)
         exportMS.to_excel()
 
 
     def to_hdf(self, out_file_path):
-        from corems.mass_spectrum.output.export import MassSpecExport
-        exportMS= MassSpecExport(out_file_path, self)
+        from corems.mass_spectrum.output.export import HighResMassSpecExport
+        exportMS= HighResMassSpecExport(out_file_path, self)
         exportMS.to_hdf()
 
     def to_csv(self, out_file_path):
-        from corems.mass_spectrum.output.export import MassSpecExport
-        exportMS= MassSpecExport(out_file_path, self)
+        from corems.mass_spectrum.output.export import HighResMassSpecExport
+        exportMS= HighResMassSpecExport(out_file_path, self)
         exportMS.to_csv()
         
     def to_pandas(self, out_file_path):
         #pickle dataframe (pkl extension)
-        from corems.mass_spectrum.output.export import MassSpecExport
-        exportMS= MassSpecExport(out_file_path, self)
+        from corems.mass_spectrum.output.export import HighResMassSpecExport
+        exportMS= HighResMassSpecExport(out_file_path, self)
         exportMS.to_pandas()
 
     def to_dataframe(self,):
         #returns pandas dataframe
         
-        from corems.mass_spectrum.output.export import MassSpecExport
-        exportMS= MassSpecExport(self.filename, self)
+        from corems.mass_spectrum.output.export import HighResMassSpecExport
+        exportMS= HighResMassSpecExport(self.filename, self)
         return exportMS.get_pandas_df()
             
 
@@ -909,7 +913,7 @@ class MassSpecCentroid(MassSpecBase):
         
         self.reset_indexes()
 
-class MassSpecCentroidLowRes(MassSpecCentroid, ):
+class MassSpecCentroidLowRes(MassSpecCentroid,):
 
     def __init__(self, data_dict, d_params):
     
@@ -963,11 +967,36 @@ class MassSpecCentroidLowRes(MassSpecCentroid, ):
             
         return { r(i[0]):r(i[1]) for i in self}
     
+    '''
+    def to_excel(self, out_file_path):
+    
+    
+    exportMS= HighResMassSpecExport(out_file_path, self)
+    exportMS.to_excel()
 
-    def add_match_compound(self, compound):
-        
-        pass
 
+    def to_hdf(self, out_file_path):
+        from corems.mass_spectrum.output.export import HighResMassSpecExport
+        exportMS= HighResMassSpecExport(out_file_path, self)
+        exportMS.to_hdf()
+
+    def to_csv(self, out_file_path):
+        from corems.mass_spectrum.output.export import HighResMassSpecExport
+        exportMS= HighResMassSpecExport(out_file_path, self)
+        exportMS.to_csv()
         
+    def to_pandas(self, out_file_path):
+        #pickle dataframe (pkl extension)
+        from corems.mass_spectrum.output.export import HighResMassSpecExport
+        exportMS= HighResMassSpecExport(out_file_path, self)
+        exportMS.to_pandas()
+
+    def to_dataframe(self,):
+        #returns pandas dataframe
+        
+        from corems.mass_spectrum.output.export import HighResMassSpecExport
+        exportMS= HighResMassSpecExport(self.filename, self)
+        return exportMS.get_pandas_df()
+       ''' 
 
 

@@ -8,7 +8,7 @@ from pathlib import Path
 from numpy import array
 
 from corems.mass_spectra.calc.GC_Calc import GC_Calculations
-from corems.chromatogram_peak.factory.ChromaPeakClasses import GCPeak
+from corems.chroma_peak.factory.ChromaPeakClasses import GCPeak
 from corems import timeit
 
 class GCMSBase(Mapping, GC_Calculations):
@@ -20,7 +20,7 @@ class GCMSBase(Mapping, GC_Calculations):
         
         """
         Constructor
-        file_location: text or pathlib.Path() 
+        file_location: text or pathlib.Path()
             Path object from pathlib containing the file location
         """
         

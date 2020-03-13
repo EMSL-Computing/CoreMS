@@ -11,7 +11,7 @@ from corems.encapsulation.settings.processingSetting import CompoundSearchSettin
 
 class LowResMassSpectralMatch(Thread):
 
-    def __init__(self, gcms_obj, ref_lib_path):
+    def __init__(self, gcms_obj, ref_lib_path, calibration=False):
         
         '''TODO:
         '''
@@ -21,7 +21,7 @@ class LowResMassSpectralMatch(Thread):
 
         #  initiated at create_molecular_database()
         #self.dict_molecular_lookup_table = None
-        
+        self.calibration = calibration
         # reading local file for now, 
         self.sqlLite_obj = ReadNistMSI(ref_lib_path).get_sqlLite_obj()
 
@@ -31,7 +31,7 @@ class LowResMassSpectralMatch(Thread):
         ms_mz_abun_dict = mass_spec.mz_abun_dict
 
         # create dict['mz'] = abundance, for experimental data
-        ref_mz_abun_dict = dict(zip(ref_obj.get("mz"), ref_obj.get("abundance"))) 
+        ref_mz_abun_dict = dict(zip(ref_obj.get("mz"), ref_obj.get("abundance")))
 
         #print(ref_mz_abun_dict)
         #print(ms_mz_abun_dict)
@@ -49,24 +49,38 @@ class LowResMassSpectralMatch(Thread):
 
     def run(self):
         
-        window = CompoundSearchSettings.rt_search_range
-
         if not self.gcms_obj:
+            
             self.gcms_obj.process_chromatogram()
 
         for gc_peak in self.gcms_obj:
             
-            rt = gc_peak.mass_spectrum.rt
+            if not self.calibration:
+                
+                window = CompoundSearchSettings.ri_search_range
 
-            min_mat_rt = (rt-window, rt+window)    
-            
-            ref_objs = self.sqlLite_obj.query_min_max_rt(min_mat_rt)
-            
+                ri = gc_peak.ri
+
+                min_mat_ri = (ri-window, ri+window)    
+                
+                ref_objs = self.sqlLite_obj.query_min_max_ri(min_mat_ri)
+                
+            else:
+
+                window = CompoundSearchSettings.rt_search_range
+
+                rt = gc_peak.rt
+
+                min_mat_rt = (rt-window, rt+window)    
+                
+                ref_objs = self.sqlLite_obj.query_min_max_rt(min_mat_rt)
+                
             for ref_obj in ref_objs:
             
                 correlation_value = self.cosine_correlation(gc_peak.mass_spectrum, ref_obj)
                 
                 if correlation_value >= CompoundSearchSettings.similarity_threshold:
+                    
                     gc_peak.add_compound(ref_obj, correlation_value)
         
         self.sqlLite_obj.session.close()

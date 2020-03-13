@@ -6,7 +6,7 @@ import pytest
 
 from corems.encapsulation.settings.processingSetting import  MolecularLookupDictSettings, MolecularSearchSettings
 from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration, MZDomain_Calibration
-from corems.mass_spectrum.output.export import MassSpecExport 
+from corems.mass_spectrum.output.export import HighResMassSpecExport 
 from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
@@ -473,9 +473,9 @@ if __name__ == "__main__":
     #if not os.path.isdir(mass_spectrum_obj.filename):
     #    os.mkdir(mass_spectrum_obj.filename)
     
-    #MassSpecExport(mass_spectrum_obj.filename+'/'+mass_spectrum_obj.filename, mass_spectrum_obj, 'excel').start()
+    #HighResMassSpecExport(mass_spectrum_obj.filename+'/'+mass_spectrum_obj.filename, mass_spectrum_obj, 'excel').start()
     
-    #df = MassSpecExport(mass_spectrum_obj.filename, mass_spectrum_obj, 'excel').get_pandas_df()
+    #df = HighResMassSpecExport(mass_spectrum_obj.filename, mass_spectrum_obj, 'excel').get_pandas_df()
 
     #plot_c_dbe_classes(df)
 

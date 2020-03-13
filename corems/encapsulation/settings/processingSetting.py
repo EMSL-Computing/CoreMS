@@ -31,7 +31,6 @@ class MassSpecPeakSetting:
 
 class GasChromatographSetting:
     
-    
     implemented_smooth_method = ['savgol', 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar']
     
     smooth_window = 5
@@ -40,21 +39,21 @@ class GasChromatographSetting:
     
     savgol_pol_order = 2
     
-    peak_picking_tic_threshold = 1 #1-100 %
+    peak_picking_tic_threshold = 5 #1-100 %
     
-    baseline_tic_threshold = 5 #1-100 %
+    baseline_tic_threshold = 1 #1-100 %
 
     min_peak_datapoints = 5
    
     max_peak_width = 0.1
 
-    #appex_minima = 
-
 class CompoundSearchSettings:
+
+    ri_search_range = 20
 
     rt_search_range = 0.5
     
-    similarity_threshold = 0.8
+    similarity_threshold = 0.0
 
     ri_spacing = 200
 

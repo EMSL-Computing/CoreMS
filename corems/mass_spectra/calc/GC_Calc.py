@@ -143,6 +143,10 @@ class GC_Calculations:
     
     def baseline_detector(self, tic):
 
+        baseline_tic_threshold = GasChromatographSetting.baseline_tic_threshold
+
+        maximum_abundance = max(tic)
+        
         tic = -tic
 
         dy = tic[1:] - tic[:-1]
@@ -163,7 +167,7 @@ class GC_Calculations:
 
         baseline[indexes] = tic[indexes]
 
-        baseline[baseline>GasChromatographSetting.baseline_tic_threshold] = nan
+        baseline[((baseline/maximum_abundance)*100) > baseline_tic_threshold] = nan
 
         s = Series(baseline).interpolate(method='nearest')
         

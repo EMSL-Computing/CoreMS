@@ -5,8 +5,8 @@ sys.path.append(".")
 
 import pytest
 
-from corems.mass_spectra.output.export import MassSpectraExport
-from corems.mass_spectrum.output.export import MassSpecExport
+from corems.mass_spectra.output.export import HighResMassSpectraExport
+from corems.mass_spectrum.output.export import HighResMassSpecExport
 from corems.mass_spectrum.input.massList import ReadCoremsMasslist
 from corems.mass_spectra.input.boosterHDF5 import ReadHDF_BoosterMassSpectra
 
@@ -41,7 +41,7 @@ def test_export_mass_spectra():
 
     mass_spectra = import_booster_mass_spectra_hdf()
 
-    exportMS= MassSpectraExport('NEG_ESI_SRFA_CoreMS', mass_spectra)
+    exportMS= HighResMassSpectraExport('NEG_ESI_SRFA_CoreMS', mass_spectra)
     
     exportMS.get_mass_spectra_attrs(mass_spectra)
     exportMS.get_pandas_df()
@@ -55,7 +55,7 @@ def test_export_mass_spectrum():
 
     mass_spectrum = import_corems_mass_list()
 
-    exportMS= MassSpecExport('NEG_ESI_SRFA_CoreMS', mass_spectrum)
+    exportMS= HighResMassSpecExport('NEG_ESI_SRFA_CoreMS', mass_spectrum)
 
     #exportMS.to_pandas()
     #exportMS.to_excel()
