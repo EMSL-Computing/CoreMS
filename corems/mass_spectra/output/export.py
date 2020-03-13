@@ -5,13 +5,177 @@ __date__ = "Nov 06, 2019"
 from pathlib import Path
 
 from numpy import  NaN, concatenate
-from pandas import DataFrame
+from pandas import DataFrame, ExcelWriter, read_excel
+from openpyxl import load_workbook
 
 from corems.mass_spectrum.output.export import HighResMassSpecExport
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.settings.io import settings_parsers
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
 
+class LowResGCMSExport():
+    
+    def __init__(self, out_file_path, gcms):
+        '''
+        output_type: str
+            'excel', 'csv', 'hdf5' or 'pandas'
+        '''
+        
+        self.output_file = Path(out_file_path)
+
+        self.gcms = gcms
+
+        self._init_columns()
+        
+    def _init_columns(self):
+
+        return ['Sample name', 'Retention Time', 'Retention Time Ref', 'Peak Height',
+                'Peak Area', 'Retention index', 'Retention index Ref',
+                'Similarity Score', 'Compound Name']
+    
+    def get_pandas_df(self):
+
+        columns = self._init_columns() 
+        
+        dict_data_list = self.get_list_dict_data(self.gcms)
+        
+        df = DataFrame(dict_data_list, columns=columns)
+        
+        df.name = self.gcms.sample_name
+
+        return df
+
+    @staticmethod     
+    def get_json(dict_data, nan=False):
+        
+        import json
+        return json.dumps(dict_data)
+
+    def to_pandas(self):
+        
+        columns = self._init_columns() 
+        
+        dict_data_list = self.get_list_dict_data(self.gcms)
+
+        df = DataFrame(dict_data_list, columns=columns)
+
+        df.to_pickle(self.output_file.with_suffix('.pkl'))
+        
+        self.write_settings(self.output_file, self.mass_spectrum)
+               
+    def to_excel(self, write_mode='a'):
+
+        out_put_path = self.output_file.with_suffix('.xlsx')
+
+        columns = self._init_columns() 
+        
+        dict_data_list = self.get_list_dict_data(self.gcms)
+
+        df = DataFrame(dict_data_list, columns=columns)
+
+        if write_mode == 'a' and out_put_path.exists():
+            
+            writer = ExcelWriter(out_put_path, engine='openpyxl')
+            # try to open an existing workbook
+            writer.book = load_workbook(out_put_path)
+            # copy existing sheets
+            writer.sheets = dict((ws.title, ws) for ws in writer.book.worksheets)
+            # read existing file
+            reader = read_excel(out_put_path)
+            # write out the new sheet
+            df.to_excel(writer,index=False,header=False,startrow=len(reader)+1)
+
+            writer.close()
+        else:
+        
+            df.to_excel(self.output_file.with_suffix('.xlsx'), index=False, engine='openpyxl')
+
+        self.write_settings(self.output_file, self.mass_spectrum)
+
+    def to_csv(self, write_mode='a'):
+        
+        import csv
+        
+        columns = self._init_columns() 
+        
+        dict_data_list = self.get_list_dict_data(self.gcms)
+
+        try:
+            with open(self.output_file.with_suffix('.csv'), write_mode, newline='') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=columns)
+                writer.writeheader()
+                for data in dict_data_list:
+                    writer.writerow(data)
+            
+            self.write_settings(self.output_file, self.gcms)
+        
+        except IOError as ioerror:
+            print(ioerror)                 
+    
+    
+    def write_settings(self, output_path, gcms):
+        
+        import json
+        
+        dict_setting = settings_parsers.get_dict_data_gcms(gcms)
+
+        dict_setting['analyzer'] = gcms.analyzer
+        dict_setting['instrument_label'] = gcms.instrument_label
+        dict_setting['sample_name'] = [gcms.sample_name]
+
+        with open(output_path.with_suffix('.json'), 'w', encoding='utf8', ) as outfile:
+
+            output = json.dumps(dict_setting, sort_keys=True, indent=4, separators=(',', ': '))
+            outfile.write(output)
+
+    def get_list_dict_data(self, gcms, include_no_match=True, no_match_inline=False):
+
+        dict_data_list = []
+
+        def add_match_dict_data():
+
+            dict_data_list.append( {'Sample name': gcms.sample_name,
+                           'Retention Time': gc_peak.rt,
+                           'Retention Time Ref': compound_obj.rt,
+                           'Peak Height': gc_peak.tic,
+                           'Peak Area': gc_peak.area,
+                           'Retention index': gc_peak.ri,
+                           'Retention index Ref':  compound_obj.ri,
+                           'Similarity Score': gc_peak.similarity_score,
+                           'Compound Name' : compound_obj.name
+                           } )
+
+        def add_no_match_dict_data():
+
+            dict_data_list.append( {'Sample name': gcms.sample_name,
+                           'Retention Time': gc_peak.rt,
+                           'Peak Height': gc_peak.tic,
+                           'Peak Area': gc_peak.area,
+                           'Retention index': gc_peak.ri,
+                           } )
+
+           
+        for gc_peak in gcms:
+
+            # check if there is a compound candidate 
+            if gc_peak:
+                
+                for compound_obj in gc_peak:
+                    add_match_dict_data()  # add monoisotopic peak
+
+            else:
+                # include not_match
+                if include_no_match and no_match_inline:
+                    add_no_match_dict_data()
+
+        if include_no_match and not no_match_inline:
+            for gc_peak in gcms:
+                if not gc_peak:
+                    add_no_match_dict_data()
+        
+        return dict_data_list        
+
+    
 class HighResMassSpectraExport(HighResMassSpecExport):
     '''
     
