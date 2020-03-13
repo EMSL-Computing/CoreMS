@@ -12,7 +12,7 @@ CoreMS is a Python package of high-level building blocks for mass spectrometry d
 
 ## Current Version
 
-### `9.1.0.beta`
+### `9.1.1.beta`
 
 [![pipeline status](https://gitlab.pnnl.gov/mass-spectrometry/corems/badges/master/pipeline.svg)](https://gitlab.pnnl.gov/corilo/corems/commits/master) [![coverage report](https://gitlab.pnnl.gov/mass-spectrometry/corems/badges/master/coverage.svg)](https://gitlab.pnnl.gov/corilo/corems/commits/master)
 
@@ -108,7 +108,7 @@ If you don't have docker installed, the easiest way is to [install docker for de
 ```python
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
-from corems.mass_spectrum.output.export import MassSpecExport
+from corems.mass_spectrum.output.export import HighResMassSpecExport
 
 file_path= 'neg_esi_srfa_1ppm_test.d'
 
