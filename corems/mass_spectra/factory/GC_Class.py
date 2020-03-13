@@ -9,7 +9,10 @@ from numpy import array
 
 from corems.mass_spectra.calc.GC_Calc import GC_Calculations
 from corems.chroma_peak.factory.ChromaPeakClasses import GCPeak
+from corems.mass_spectra.output.export import LowResGCMSExport
+
 from corems import timeit
+from corems.encapsulation.settings.processingSetting import CompoundSearchSettings, GasChromatographSetting
 
 class GCMSBase(Mapping, GC_Calculations):
     """
@@ -33,12 +36,11 @@ class GCMSBase(Mapping, GC_Calculations):
         self.file_location = file_location
         
         if sample_name: self.sample_name = sample_name
-        
-        #uses filename
         else: self.sample_name = file_location.stem
         
         self.analyzer = analyzer
         self.instrument_label = instrument_label
+        self._init_settings()
         
         self._retention_time_list = []
         self._scans_number_list = []
@@ -50,10 +52,14 @@ class GCMSBase(Mapping, GC_Calculations):
         #after peak detection
         self._processed_tic = []
         self.gcpeaks = {}
+
+    def _init_settings(self):
         
-        """
-        key is scan number; value is MassSpectrum Class
-        """
+        from copy import deepcopy
+        
+        self._gcms_settings  = deepcopy(GasChromatographSetting)
+        
+        self._comp_search_settings  = deepcopy(CompoundSearchSettings)
         
     def __len__(self):
         
@@ -112,6 +118,24 @@ class GCMSBase(Mapping, GC_Calculations):
         self.scans_number = sorted(self._ms.keys())
 
     @property
+    def molecular_search_settings(self):
+        return self._comp_search_settings
+
+    @molecular_search_settings.setter
+    def molecular_search_settings(self, settings_class_instance):
+        
+        self._comp_search_settings = settings_class_instance   
+
+    @property
+    def chromatogram_settings(self):
+        return self._gcms_settings
+
+    @chromatogram_settings.setter
+    def chromatogram_settings(self, settings_class_instance):
+        
+        self._gcms_settings = settings_class_instance 
+
+    @property
     def scans_number(self):
 
         return self._scans_number_list
@@ -166,6 +190,28 @@ class GCMSBase(Mapping, GC_Calculations):
         ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
         
         return ax
+
+    def to_excel(self, out_file_path, write_mode='ab'):
+        
+        exportMS= LowResGCMSExport(out_file_path, self)
+        exportMS.to_excel()
+
+    def to_csv(self, out_file_path, write_mode='ab'):
+        
+        exportMS= LowResGCMSExport(out_file_path, self)
+        exportMS.to_csv()
+        
+    def to_pandas(self, out_file_path):
+        
+        #pickle dataframe (pkl extension)
+        exportMS= LowResGCMSExport(out_file_path, self)
+        exportMS.to_pandas()
+
+    def to_dataframe(self,):
+        
+        #returns pandas dataframe
+        exportMS= LowResGCMSExport(self.sample_name, self)
+        return exportMS.get_pandas_df()
 
     def plot_chromatogram(self, ax=None, color="blue"): #pragma: no cover
         

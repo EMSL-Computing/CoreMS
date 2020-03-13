@@ -108,58 +108,46 @@ def run(args):
 def calibrate_and_search(out_put_file_name, cores):
     
     import csv
+    
+    ref_dict = get_reference_dict()
+    
+    #app = QApplication(sys.argv)
+    file_dialog = QFileDialog()
+    file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+    
+    file_locations = file_dialog.getOpenFileNames(None, "Standard Compounds Files", filter="*.cdf")
+    
+    ref_file_path = Path.cwd() / "tests/tests_data/gcms/" / "PNNLMetV20191015.MSL"
 
-    with open(out_put_file_name, mode='w', newline='') as results_file:
+    p = Pool(cores)
+
+    args = [(file_path, ref_file_path, ref_dict) for file_path in file_locations[0]]
+    
+    gcmss = p.map(run, args)
+    
+    for gcms in gcmss:
         
-        results_writer = csv.writer(results_file, delimiter=',')
-
-        results_writer.writerow(["sample_name", "retention_time", "retention_time_ref",  "abundance", "area", "retention_index", "retention_index_ref", "cosine_correlation", "compound_name" ])
+        gcms.to_csv(out_put_file_name)
+        #gcms.to_excel(out_put_file_name)
+        #gcms.to_pandas(out_put_file_name)
         
-        ref_dict = get_reference_dict()
+        #df = gcms.to_dataframe()
         
-        #app = QApplication(sys.argv)
-        file_dialog = QFileDialog()
-        file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
-        
-        file_locations = file_dialog.getOpenFileNames(None, "Standard Files", filter="*.cdf")
-        
-        ref_file_path = Path.cwd() / "tests/tests_data/gcms/" / "PNNLMetV20191015.MSL"
+        #gcms.plot_processed_chromatogram()
 
-        p = Pool(cores)
+        #gcms.plot_gc_peaks()
 
-        args = [(file_path, ref_file_path, ref_dict) for file_path in file_locations[0]]
-        
-        gcmss = p.map(run, args)
-        
-        for gcms in gcmss:
-            
-            #gcms.plot_processed_chromatogram()
+        #gcms.plot_chromatogram()
 
-            #gcms.plot_gc_peaks()
+        #gcms.plot_smoothed_chromatogram()
 
-            #gcms.plot_chromatogram()
+        #gcms.plot_baseline_subtraction()
 
-            #gcms.plot_smoothed_chromatogram()
+        #gcms.plot_detected_baseline()
 
-            #gcms.plot_baseline_subtraction()
+        #pyplot.show()
 
-            #gcms.plot_detected_baseline()
-
-            #pyplot.show()
-
-            for gcms_peak in gcms:
-                
-                if gcms_peak:
-                    
-                    for compound_obj in gcms_peak:
-                        
-                        
-                        results_writer.writerow([gcms.sample_name, gcms_peak.rt, compound_obj.rt, gcms_peak.tic, gcms_peak.area, gcms_peak.ri, compound_obj.ri, compound_obj.similarity_score, compound_obj.name])    
-                
-                else:
-                    
-                        results_writer.writerow([gcms.sample_name, gcms_peak.rt, None, gcms_peak.tic, gcms_peak.area, gcms_peak.ri, None, None, None])    
-            
+       
 if __name__ == '__main__':                           
     
     cores = 6

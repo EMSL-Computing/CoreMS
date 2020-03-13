@@ -3,7 +3,31 @@ from pathlib import Path
 from corems.encapsulation.settings.processingSetting import MolecularSearchSettings, TransientSetting
 from corems.encapsulation.settings.processingSetting import MassSpectrumSetting
 from corems.encapsulation.settings.processingSetting import MassSpecPeakSetting
+from corems.encapsulation.settings.processingSetting import GasChromatographSetting
+from corems.encapsulation.settings.processingSetting import CompoundSearchSettings
+
+
 from corems.encapsulation.settings.input.InputSetting import DataInputSetting
+from corems.encapsulation.settings.input.InputSetting import DataInputSetting
+
+
+def get_dict_data_gcms(gcms):
+
+    compoundSearchSettings = {}
+    
+    for item, value in gcms.molecular_search_settings.__dict__.items():
+        if not item.startswith('__'):
+            compoundSearchSettings[item] =  value
+    
+    gasChromatographSetting = {}
+   
+    for item, value in gcms.chromatogram_settings.__dict__.items():
+        if not item.startswith('__'):
+            gasChromatographSetting[item] =  value
+
+    return { "CompoundSearch": compoundSearchSettings,
+             "GasChromatograph": gasChromatographSetting,
+            }            
 
 def get_dict_data_ms(mass_spec):
 

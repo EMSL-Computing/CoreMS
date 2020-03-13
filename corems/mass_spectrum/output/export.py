@@ -296,6 +296,7 @@ class HighResMassSpecExport(Thread):
                 result_line[label_index] =  value   
             
             all_lines.append(result_line)
+        
         return  all_lines       
 
     
@@ -374,4 +375,6 @@ class HighResMassSpecExport(Thread):
                 if not ms_peak:
                     add_no_match_dict_data()
         
+        
+
         return dict_data_list
