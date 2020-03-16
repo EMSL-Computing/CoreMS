@@ -39,9 +39,13 @@ class GasChromatographSetting:
     
     savgol_pol_order = 2
     
-    peak_picking_tic_threshold = 5 #1-100 %
+    peak_height_max_percent = 10 #1-100 % used for baseline detection
+
+    peak_height_min_percent = 5 #1-100 % used for peak detection
     
-    baseline_tic_threshold = 1 #1-100 %
+    peak_max_prominence_percent = 0.1 #1-100 % used for baseline detection
+
+    peak_min_prominence_percent = 1 #1-100 % used for peak detection
 
     min_peak_datapoints = 5
    

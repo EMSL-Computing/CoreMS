@@ -84,8 +84,8 @@ class GC_Calculations:
             window = GasChromatographSetting.smooth_method
 
             return self.smooth(tic, window_len, window)
-           
-    def peaks_detector(self, tic):
+    
+    def peak_detector(self, tic, max_tic):
 
         def find_minima(index, right=True):
             
@@ -113,8 +113,6 @@ class GC_Calculations:
             if right: return j
             else: return j
 
-        maximum_abundance = max(tic)
-        
         dy = tic[1:] - tic[:-1]
         
         '''replaces nan for infinity'''
@@ -132,42 +130,64 @@ class GC_Calculations:
             start_index = find_minima(index, right=False)
             final_index = find_minima(index)
 
+            yield (start_index, index, final_index)
+
+    def centroid_detector(self, tic, max_tic):
+
+        peak_height_diff = lambda hi, li : ((tic[hi] - tic[li]) / max_tic )*100
+
+        for start_index, index, final_index in self.peak_detector(tic, max_tic):
+
+             #abundance min threshold        
             if final_index-start_index > GasChromatographSetting.min_peak_datapoints:
 
-                if (tic[index]/maximum_abundance) * 100 > GasChromatographSetting.peak_picking_tic_threshold:
+                if (tic[index]/max_tic) * 100 > GasChromatographSetting.peak_height_min_percent:
                 #if self.retention_time[final_index]-self.retention_time[start_index] < GasChromatographSetting.max_peak_width:
+                    
+                    #calculates prominence and filter  
+                    if  min( peak_height_diff(index,start_index), peak_height_diff(index,final_index) )> GasChromatographSetting.peak_min_prominence_percent :   
                         
-                    yield (start_index, index, final_index)
-        
-        #return indexes    
-    
+                        yield (start_index, index, final_index)
+
+    def minima_detector(self, tic, max_tic):
+
+        peak_height_diff = lambda hi, li : ((tic[hi] - tic[li]) / max_tic )*100
+
+        for start_index, index, final_index in self.peak_detector(tic, max_tic):
+
+            #abundance max threshold    
+            if (tic[index]/max_tic) * 100 < GasChromatographSetting.peak_height_max_percent:
+
+                    #calculates prominence and filter   
+                    if  min(peak_height_diff(index,start_index), peak_height_diff(index,final_index) )< GasChromatographSetting.peak_max_prominence_percent :   
+                        
+                        yield (start_index, final_index)    
+
     def baseline_detector(self, tic):
-
-        baseline_tic_threshold = GasChromatographSetting.baseline_tic_threshold
-
-        maximum_abundance = max(tic)
+            
+        #maximum_abundance = max(tic)
         
-        tic = -tic
-
-        dy = tic[1:] - tic[:-1]
+        #dy = tic[1:] - tic[:-1]
         
         '''replaces nan for infinity'''
-        indices_nan = where(isnan(tic))[0]
+        #indices_nan = where(isnan(tic))[0]
         
-        if indices_nan.size:
+        #if indices_nan.size:
             
-            tic[indices_nan] = inf
-            dy[where(isnan(dy))[0]] = inf
+        #    tic[indices_nan] = inf
+        #    dy[where(isnan(dy))[0]] = inf
         
-        indexes = where((hstack((dy, 0)) < 0) & (hstack((0, dy)) > 0))[0]
-
+        #indexes = where((hstack((dy, 0)) < 0) & (hstack((0, dy)) > 0))[0]
+        
+        indexes = list(i for i in self.minima_detector(tic, max(tic)))
+        
+        tic = -tic
+        
         baseline = empty(len(tic))
 
         baseline.fill(nan)
 
         baseline[indexes] = tic[indexes]
-
-        baseline[((baseline/maximum_abundance)*100) > baseline_tic_threshold] = nan
 
         s = Series(baseline).interpolate(method='nearest')
         

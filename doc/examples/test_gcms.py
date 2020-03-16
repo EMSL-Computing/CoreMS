@@ -139,11 +139,11 @@ def calibrate_and_search(out_put_file_name, cores):
                 #df = gcms.get_dataframe()
                 #json_data = gcms.to_json()
                 
-                #gcms.plot_processed_chromatogram()
+                gcms.plot_processed_chromatogram()
 
-                #gcms.plot_gc_peaks()
+                gcms.plot_gc_peaks()
 
-                #gcms.plot_chromatogram()
+                gcms.plot_chromatogram()
 
                 #gcms.plot_smoothed_chromatogram()
 
@@ -151,7 +151,7 @@ def calibrate_and_search(out_put_file_name, cores):
 
                 #gcms.plot_detected_baseline()
 
-                #pyplot.show()
+                pyplot.show()
 
        
 if __name__ == '__main__':                           

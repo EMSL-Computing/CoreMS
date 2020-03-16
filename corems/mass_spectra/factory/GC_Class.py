@@ -79,11 +79,13 @@ class GCMSBase(Mapping, GC_Calculations):
 
         self._processed_tic = self.smooth_tic(tic)
 
+        max_height = max(self._processed_tic)
+
         for index, tic in enumerate(self._processed_tic):
 
             self._ms[index]._processed_tic = tic
 
-        peaks_index = self.peaks_detector(self._processed_tic)
+        peaks_index = self.centroid_detector(self._processed_tic, max_height)
         
         for i in peaks_index: 
             
