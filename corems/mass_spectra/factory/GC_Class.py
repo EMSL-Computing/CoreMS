@@ -95,8 +95,6 @@ class GCMSBase(Mapping, GC_Calculations):
             
             gc_peak.calc_area(self._processed_tic, 1)
 
-            print(gc_peak.area, gc_peak._area,)
-            
             self.gcpeaks[self.scans_number[apex_index]] = gc_peak
 
             
