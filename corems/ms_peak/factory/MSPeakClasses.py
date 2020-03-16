@@ -14,6 +14,7 @@ class _MSPeak(MSPeakCalculation):
     '''
     def __init__(self, ion_charge, mz_exp, abundance, resolving_power, signal_to_noise, massspec_index, index, exp_freq=None):
 
+        #TODO add start and end of a peak index    
         # needed to create the object
         self.ion_charge = int(ion_charge)
         self._mz_exp = float(mz_exp)

@@ -1,5 +1,5 @@
 
-from numpy import array, polyfit, poly1d, where
+from numpy import array, polyfit, poly1d, where, trapz
 
 from corems.encapsulation.settings.processingSetting import CompoundSearchSettings
 
@@ -11,6 +11,13 @@ class GCPeakCalculation(object):
     '''
     classdocs
     '''
+    def calc_area(self, tic, dx):
+        
+        yy = tic[self.start_index:self.final_index]
+        
+        self._area = trapz(yy, dx = dx)
+
+
     def linear_rt(self,  left_ri,left_rt,right_rt ):
 
         return left_ri + (CompoundSearchSettings.ri_spacing * (self.rt - left_rt)/(right_rt-left_rt))

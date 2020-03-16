@@ -91,8 +91,15 @@ class GCMSBase(Mapping, GC_Calculations):
             
             apex_index = i[1]
 
-            self.gcpeaks[self.scans_number[apex_index]] = GCPeak( self._ms[apex_index], i )
+            gc_peak =  GCPeak( self._ms[apex_index], i )
+            
+            gc_peak.calc_area(self._processed_tic, 1)
 
+            print(gc_peak.area, gc_peak._area,)
+            
+            self.gcpeaks[self.scans_number[apex_index]] = gc_peak
+
+            
     def add_mass_spectrum(self, mass_spec):
         
         self._ms[mass_spec.scan_number] = mass_spec

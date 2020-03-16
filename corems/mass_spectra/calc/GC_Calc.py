@@ -169,7 +169,6 @@ class GC_Calculations:
         
         #dy = tic[1:] - tic[:-1]
         
-        '''replaces nan for infinity'''
         #indices_nan = where(isnan(tic))[0]
         
         #if indices_nan.size:
