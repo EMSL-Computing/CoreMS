@@ -2,7 +2,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 import sys
-sys.path.append("C:\\Users\\eber373\\Desenvolvimento\\Projects-Python\\CoreMS")
+sys.path.append("/Users/eber373/Desenvolvimento/CoreMS")
 
 from pathlib import Path
 
@@ -50,6 +50,7 @@ def get_reference_dict():
     file_dialog = QFileDialog()
     file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
     file_path = file_dialog.getOpenFileName(None, "FAMES REF FILE", filter="*.cdf")[0]
+    file_dialog.close()
     app.exit()
     
     if not file_path:
@@ -123,7 +124,8 @@ def calibrate_and_search(out_put_file_name, cores):
             
             file_locations = file_dialog.getOpenFileNames(None, "Standard Compounds Files", filter="*.cdf")
             ref_file_path = Path.cwd() / "tests/tests_data/gcms/" / "PNNLMetV20191015.MSL"
-
+            file_dialog.close()
+            
             # run in multiprocessing mode
             p = Pool(cores)
             args = [(file_path, ref_file_path, ref_dict) for file_path in file_locations[0]]
@@ -132,13 +134,15 @@ def calibrate_and_search(out_put_file_name, cores):
 
             for gcms in gcmss:
                 
-                gcms.to_csv(out_put_file_name)
-                #gcms.to_excel(out_put_file_name)
+                #gcms.to_csv(out_put_file_name)
+                gcms.to_excel(out_put_file_name)
                 #gcms.to_pandas(out_put_file_name)
                 
                 #df = gcms.get_dataframe()
                 #json_data = gcms.to_json()
                 
+                #print(json_data)
+
                 gcms.plot_processed_chromatogram()
 
                 gcms.plot_gc_peaks()
@@ -157,7 +161,7 @@ def calibrate_and_search(out_put_file_name, cores):
 if __name__ == '__main__':                           
     
     cores = 6
-    out_put_file_name = 'Group1_Standards.csv'
+    out_put_file_name = 'Group1_Standards'
     calibrate_and_search(out_put_file_name, cores)
 
 

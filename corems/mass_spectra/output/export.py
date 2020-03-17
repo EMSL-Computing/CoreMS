@@ -33,11 +33,11 @@ class LowResGCMSExport():
                 'Peak Area', 'Retention index', 'Retention index Ref',
                 'Similarity Score', 'Compound Name']
     
-    def get_pandas_df(self):
+    def get_pandas_df(self, highest_score=True):
 
         columns = self._init_columns() 
         
-        dict_data_list = self.get_list_dict_data(self.gcms)
+        dict_data_list = self.get_list_dict_data(self.gcms, highest_score=highest_score)
         
         df = DataFrame(dict_data_list, columns=columns)
         
@@ -45,31 +45,32 @@ class LowResGCMSExport():
 
         return df
 
-    @staticmethod     
-    def get_json(dict_data, nan=False):
+    def get_json(self, nan=False, highest_score=True):
         
         import json
-        return json.dumps(dict_data)
 
-    def to_pandas(self):
+        dict_data_list = self.get_list_dict_data(self.gcms, highest_score=highest_score)
+        return json.dumps(dict_data_list)
+
+    def to_pandas(self, highest_score=True):
         
         columns = self._init_columns() 
         
-        dict_data_list = self.get_list_dict_data(self.gcms)
+        dict_data_list = self.get_list_dict_data(self.gcms, highest_score=highest_score)
 
         df = DataFrame(dict_data_list, columns=columns)
 
         df.to_pickle(self.output_file.with_suffix('.pkl'))
         
-        self.write_settings(self.output_file, self.mass_spectrum)
+        self.write_settings(self.output_file, self.gcms)
                
-    def to_excel(self, write_mode='a'):
+    def to_excel(self, write_mode='a', highest_score=True):
 
         out_put_path = self.output_file.with_suffix('.xlsx')
 
         columns = self._init_columns() 
         
-        dict_data_list = self.get_list_dict_data(self.gcms)
+        dict_data_list = self.get_list_dict_data(self.gcms, highest_score=highest_score)
 
         df = DataFrame(dict_data_list, columns=columns)
 
@@ -90,9 +91,9 @@ class LowResGCMSExport():
         
             df.to_excel(self.output_file.with_suffix('.xlsx'), index=False, engine='openpyxl')
 
-        self.write_settings(self.output_file, self.mass_spectrum)
+        self.write_settings(self.output_file, self.gcms)
 
-    def to_csv(self, write_mode='a'):
+    def to_csv(self, write_mode='a', highest_score=True) :
         
         import csv
         
@@ -107,7 +108,7 @@ class LowResGCMSExport():
                 for data in dict_data_list:
                     writer.writerow(data)
             
-            self.write_settings(self.output_file, self.gcms)
+            self.write_settings(self.output_file, self.gcms, highest_score=highest_score)
         
         except IOError as ioerror:
             print(ioerror)                 
@@ -128,7 +129,7 @@ class LowResGCMSExport():
             output = json.dumps(dict_setting, sort_keys=True, indent=4, separators=(',', ': '))
             outfile.write(output)
 
-    def get_list_dict_data(self, gcms, include_no_match=True, no_match_inline=False):
+    def get_list_dict_data(self, gcms, include_no_match=True, no_match_inline=False, highest_score=True) :
 
         dict_data_list = []
 
@@ -160,8 +161,13 @@ class LowResGCMSExport():
             # check if there is a compound candidate 
             if gc_peak:
                 
-                for compound_obj in gc_peak:
-                    add_match_dict_data()  # add monoisotopic peak
+                if highest_score:
+                    compound_obj = gc_peak.highest_score_compound
+                    add_match_dict_data()
+                    
+                else:
+                    for compound_obj in gc_peak:
+                        add_match_dict_data()  # add monoisotopic peak
 
             else:
                 # include not_match
