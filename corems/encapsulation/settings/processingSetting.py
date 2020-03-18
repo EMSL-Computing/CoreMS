@@ -59,7 +59,6 @@ class CompoundSearchSettings:
     
     # used for calibration, spectral similarity 
     correlation_threshold = 0.8
-
     
     score_threshold = 0.0
 

@@ -57,7 +57,32 @@ class PeakPicking:
             else: raise Exception("Unknow mass spectrum type", self.label)
             
            
-    
+    def find_minima(self, apex_index, abundance, len_abundance, right=True):
+            
+            j = apex_index
+            
+
+            if right: minima = abundance[j] > abundance[j+1]
+            else: minima = abundance[j] > abundance[j-1]
+
+            while minima:
+                
+                if j == 1 or j == len_abundance -2:
+                    break
+                
+                if right: 
+                    j += 1
+
+                    minima = abundance[j] >= abundance[j+1]
+
+                else: 
+                    j -= 1
+                    minima = abundance[j] >= abundance[j-1]
+            
+            if right: return j
+            else: return j
+
+
     def calculate_resolving_power(self, intes, massa, current_index):
             
             '''this is a conservative calculation of resolving power,
@@ -137,6 +162,8 @@ class PeakPicking:
         #TODO: remove peaks that minimum is one data point from the maximum
         # to remove artifacts 
 
+        len_abundance = len(abund)
+
         abundance_threshold, factor = self.get_threshold(abund)
         # find indices of all peaks
         dy = abund[1:] - abund[:-1]
@@ -153,6 +180,7 @@ class PeakPicking:
         
         if indexes.size and abundance_threshold is not None:
             indexes = indexes[abund[indexes]/factor >= abundance_threshold]
+        
         
         for current_index in indexes: 
             
@@ -177,7 +205,17 @@ class PeakPicking:
 
             else: raise Exception("Label '%s' not recognized inside : %s" % (self.label, self.__str__()))
             
-            self.add_mspeak(self.polarity, mz_exp_centroid, abund[current_index] , peak_resolving_power, s2n, current_index, exp_freq=freq_centr)
+            end_peak_index = self.find_minima(current_index, abund, len_abundance, right=True)
+            
+            begin_peak_index = self.find_minima(current_index, abund, len_abundance, right=False)
+            
+            print(begin_peak_index,current_index,end_peak_index)
+            
+            peak_indexes = (begin_peak_index, current_index, end_peak_index)
+            
+            #TODO: calculate provenance
+            
+            self.add_mspeak(self.polarity, mz_exp_centroid, abund[current_index] , peak_resolving_power, s2n, peak_indexes, exp_freq=freq_centr)
         
     def get_threshold(self, intes):
         

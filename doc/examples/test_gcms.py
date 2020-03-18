@@ -131,11 +131,10 @@ def calibrate_and_search(out_put_file_name, cores):
             args = [(file_path, ref_file_path, ref_dict) for file_path in file_locations[0]]
             gcmss = p.map(run, args)
             
-
             for gcms in gcmss:
                 
                 #gcms.to_csv(out_put_file_name)
-                gcms.to_excel(out_put_file_name)
+                gcms.to_excel(out_put_file_name, highest_score=False)
                 #gcms.to_pandas(out_put_file_name)
                 
                 #df = gcms.get_dataframe()

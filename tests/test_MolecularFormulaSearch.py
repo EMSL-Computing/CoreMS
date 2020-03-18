@@ -37,7 +37,6 @@ def create_mass_spectrum():
 
     return mass_spectrum_obj
 
-
 def test_run_molecular_formula_search():
 
     MolecularSearchSettings.usedAtoms['F'] = (0,1)
@@ -150,8 +149,8 @@ def test_priorityAssignment():
 
 if __name__ == "__main__":
 
-    #test_run_molecular_formula_search()
+    test_run_molecular_formula_search()
     #test_priorityAssignment()
-    test_molecular_formula_search_db()
+    #test_molecular_formula_search_db()
     #test_run_molecular_formula_search()
     #test_mspeak_search()

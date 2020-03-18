@@ -198,33 +198,33 @@ class GCMSBase(Mapping, GC_Calculations):
         
         return ax
 
-    def to_excel(self, out_file_path, write_mode='ab'):
+    def to_excel(self, out_file_path, write_mode='ab', highest_score=True):
         
         exportMS= LowResGCMSExport(out_file_path, self)
-        exportMS.to_excel()
+        exportMS.to_excel(highest_score=highest_score)
 
-    def to_csv(self, out_file_path, write_mode='ab'):
+    def to_csv(self, out_file_path, write_mode='ab', highest_score=True):
         
         exportMS= LowResGCMSExport(out_file_path, self)
-        exportMS.to_csv()
+        exportMS.to_csv(highest_score=highest_score)
         
-    def to_pandas(self, out_file_path):
+    def to_pandas(self, out_file_path, highest_score=True):
         
         #pickle dataframe (pkl extension)
         exportMS= LowResGCMSExport(out_file_path, self)
-        exportMS.to_pandas()
+        exportMS.to_pandas(highest_score=highest_score)
 
-    def to_dataframe(self,):
+    def to_dataframe(self,highest_score=True):
         
         #returns pandas dataframe
         exportMS= LowResGCMSExport(self.sample_name, self)
-        return exportMS.get_pandas_df()
+        return exportMS.get_pandas_df(highest_score=highest_score)
 
-    def to_json(self,):
+    def to_json(self,highest_score=True):
         
         #returns pandas dataframe
         exportMS= LowResGCMSExport(self.sample_name, self)
-        return exportMS.get_json()
+        return exportMS.get_json(highest_score=highest_score)
 
     def plot_chromatogram(self, ax=None, color="blue"): #pragma: no cover
         

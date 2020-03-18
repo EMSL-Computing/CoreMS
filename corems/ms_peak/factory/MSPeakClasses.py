@@ -12,7 +12,8 @@ class _MSPeak(MSPeakCalculation):
     '''
     classdocs
     '''
-    def __init__(self, ion_charge, mz_exp, abundance, resolving_power, signal_to_noise, massspec_index, index, exp_freq=None):
+    def __init__(self, ion_charge, mz_exp, abundance, resolving_power, 
+                    signal_to_noise, massspec_indexes, index, exp_freq=None):
 
         #TODO add start and end of a peak index    
         # needed to create the object
@@ -22,7 +23,13 @@ class _MSPeak(MSPeakCalculation):
         self.abundance = float(abundance)
         self.resolving_power = float(resolving_power)
         self.signal_to_noise = float(signal_to_noise)
-        self.mass_spec_index = int(massspec_index)
+        
+        #profile indexes
+        self.beg_profile_index = int(massspec_indexes[0]) 
+        self.apex_profile_index = int(massspec_indexes[1])
+        self.end_profile_index = int(massspec_indexes[2]) 
+        
+        #centroid index
         self.index = int(index)
         'updated after calibration'
         self.mz_cal = None

@@ -118,7 +118,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
                     abundance,
                     resolving_power,
                     signal_to_noise,
-                    massspec_index,
+                    massspec_indexes,
                     exp_freq=None,
                 ):
 
@@ -129,7 +129,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
                 abundance,
                 resolving_power,
                 signal_to_noise,
-                massspec_index,
+                massspec_indexes,
                 len(self._mspeaks),
                 exp_freq=exp_freq,
                 
@@ -878,7 +878,10 @@ class MassSpecCentroid(MassSpecBase):
         return sum(self.abundance)
     
     def process_mass_spec(self, data_dict):
-        
+        # overwrite process_mass_spec 
+        # mspeak objs are usually added inside the PeaKPicking class 
+        # for profile and freq based data
+
         s2n = True
         ion_charge = self.polarity
         #l_exp_mz_centroid = data_dict.get(Labels.mz)
@@ -890,6 +893,9 @@ class MassSpecCentroid(MassSpecBase):
 
         for index, mz in enumerate(data_dict.get(Labels.mz)):
             
+            # centroid peak does not have start and end peak index pos
+            massspec_indexes = (0, index, 0)
+            
             if s2n:
                 
                 self.add_mspeak(
@@ -898,7 +904,7 @@ class MassSpecCentroid(MassSpecBase):
                     data_dict.get(Labels.abundance)[index],
                     data_dict.get(Labels.rp)[index],
                     l_s2n[index],
-                    index,
+                    massspec_indexes,
                 )
 
             else:
@@ -908,13 +914,15 @@ class MassSpecCentroid(MassSpecBase):
                     data_dict.get(Labels.abundance)[index],
                     data_dict.get(Labels.rp)[index],
                     -999,
-                    index,
+                    massspec_indexes,
                 )
         
         self.reset_indexes()
 
 class MassSpecCentroidLowRes(MassSpecCentroid,):
-
+    
+    '''Does not store MSPeak Objs, will iterate over mz, abundance pairs instead'''
+    
     def __init__(self, data_dict, d_params):
     
         self._set_parameters_objects(d_params)
