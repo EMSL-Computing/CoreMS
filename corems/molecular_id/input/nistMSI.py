@@ -13,6 +13,7 @@ class ReadNistMSI(Thread):
 
     def __init__(self, file_path, url='sqlite://'):
         
+        print(file_path)
         file_path = Path(file_path)
         
         if not file_path.exists():

@@ -5,6 +5,7 @@ from pathlib import Path
 from pandas import DataFrame
 from sklearn.metrics.pairwise import cosine_similarity
 from scipy.spatial.distance import cosine
+from math import exp
 
 from corems.molecular_id.input.nistMSI import ReadNistMSI
 from corems.encapsulation.settings.processingSetting import CompoundSearchSettings, GasChromatographSetting
@@ -25,6 +26,18 @@ class LowResMassSpectralMatch(Thread):
         # reading local file for now, 
         self.sqlLite_obj = ReadNistMSI(ref_lib_path).get_sqlLite_obj()
 
+    def metabolite_detector_score(self, gc_peak, ref_obj):
+
+        cosine_correlation = self.cosine_correlation(gc_peak.mass_spectrum, ref_obj)
+
+        #print(ref_obj.get('ri'), gc_peak.ri, CompoundSearchSettings.ri_window)
+
+        ri_score = exp(-((gc_peak.ri - ref_obj.get('ri'))**2 ) / (2 * CompoundSearchSettings.ri_window))
+
+        score = (cosine_correlation * (ri_score**2))**(1/3)
+
+        return score
+        
     def cosine_correlation(self, mass_spec, ref_obj):
 
         # create dict['mz'] = abundance, for experimental data
@@ -76,12 +89,27 @@ class LowResMassSpectralMatch(Thread):
                 ref_objs = self.sqlLite_obj.query_min_max_rt(min_mat_rt)
                 
             for ref_obj in ref_objs:
-            
-                correlation_value = self.cosine_correlation(gc_peak.mass_spectrum, ref_obj)
-                
-                if correlation_value >= CompoundSearchSettings.similarity_threshold:
+                # uses spectral similarly and uses a threshold to only select peaks with high data correlation
+                if self.calibration:
                     
-                    gc_peak.add_compound(ref_obj, correlation_value)
+                    correlation_value = self.cosine_correlation(gc_peak.mass_spectrum, ref_obj)
+
+                    if correlation_value >= CompoundSearchSettings.correlation_threshold:
+                    
+                        gc_peak.add_compound(ref_obj, correlation_value)
+
+                # use score, usually a combination of Retention index and Spectral Similarity
+                # Threshold is implemented by not necessarily used
+                else:
+
+                    # TODO: add other scoring methods
+                    # m/q developed methods will be implemented here
+                    score_value = self.metabolite_detector_score(gc_peak, ref_obj)    
+
+                    if score_value >= CompoundSearchSettings.score_threshold:
+                    
+                        gc_peak.add_compound(ref_obj, score_value)
+                
         
         self.sqlLite_obj.session.close()
         self.sqlLite_obj.engine.dispose()

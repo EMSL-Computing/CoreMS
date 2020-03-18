@@ -53,6 +53,7 @@ class MSPeakCalculation(object):
             
             # gaussian_pdf = lambda x0, x, s: (1/ math.sqrt(2*math.pi*math.pow(s,2))) * math.exp(-1 * math.pow(x-x0,2) / 2*math.pow(s,2) )
             model = models.VoigtModel()
+
             params = model.make_params(center=self.mz_exp, amplitude=self.abundance, sigma = σ, gamma = σ)
 
             calc_abundance = model.eval(params=params, x=mz_domain)

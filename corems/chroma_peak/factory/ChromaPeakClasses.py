@@ -89,6 +89,7 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
     def add_compound(self, compounds_dict, similarity):
        
        compound_obj = LowResCompoundRef(compounds_dict)
+       
        compound_obj.similarity_score = similarity
        
        self._compounds.append(compound_obj)

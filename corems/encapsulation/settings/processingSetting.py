@@ -57,9 +57,15 @@ class CompoundSearchSettings:
 
     rt_search_range = 0.5
     
-    similarity_threshold = 0.0
+    # used for calibration, spectral similarity 
+    correlation_threshold = 0.8
+
+    
+    score_threshold = 0.0
 
     ri_spacing = 200
+
+    ri_window = 3 # in standard deviation
 
 class MolecularLookupDictSettings:
     
