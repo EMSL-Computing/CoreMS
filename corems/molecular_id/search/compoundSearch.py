@@ -5,6 +5,7 @@ from pathlib import Path
 from pandas import DataFrame
 from sklearn.metrics.pairwise import cosine_similarity
 from scipy.spatial.distance import cosine
+from scipy.stats import pearsonr, spearmanr, kendalltau
 from math import exp
 
 from corems.molecular_id.input.nistMSI import ReadNistMSI
@@ -59,6 +60,65 @@ class LowResMassSpectralMatch(Thread):
         correlation = (1 - cosine(df.T[0], df.T[1]))
 
         return correlation
+
+    def pearson_correlation(self, mass_spec, ref_obj):
+
+        # create dict['mz'] = abundance, for experimental data
+        ms_mz_abun_dict = mass_spec.mz_abun_dict
+
+        # create dict['mz'] = abundance, for experimental data
+        ref_mz_abun_dict = dict(zip(ref_obj.get("mz"), ref_obj.get("abundance")))
+
+        # parse to dataframe, easier to zerofill and tranpose
+        df = DataFrame([ms_mz_abun_dict, ref_mz_abun_dict])
+
+        # fill missing mz with abundance 0
+        df.fillna(0, inplace=True)
+        
+        # calculate Pearson correlation
+        correlation = pearsonr(df.T[0], df.T[1])
+
+        return(correlation)
+
+    def spearman_correlation(self, mass_spec, ref_obj):
+
+        # create dict['mz'] = abundance, for experimental data
+        ms_mz_abun_dict = mass_spec.mz_abun_dict
+
+        # create dict['mz'] = abundance, for experimental data
+        ref_mz_abun_dict = dict(zip(ref_obj.get("mz"), ref_obj.get("abundance")))
+
+        # parse to dataframe, easier to zerofill and tranpose
+        df = DataFrame([ms_mz_abun_dict, ref_mz_abun_dict])
+
+        # fill missing mz with abundance 0
+        df.fillna(0, inplace=True)
+        
+        # calculate Spearman correlation
+        ### TODO - Check axis
+        correlation = spearmanr(df.T[0], df.T[1], axis=0)
+
+        return(correlation)
+
+    def kendall_tau(self, mass_spec, ref_obj):
+
+        # create dict['mz'] = abundance, for experimental data
+        ms_mz_abun_dict = mass_spec.mz_abun_dict
+
+        # create dict['mz'] = abundance, for experimental data
+        ref_mz_abun_dict = dict(zip(ref_obj.get("mz"), ref_obj.get("abundance")))
+
+        # parse to dataframe, easier to zerofill and tranpose
+        df = DataFrame([ms_mz_abun_dict, ref_mz_abun_dict])
+
+        # fill missing mz with abundance 0
+        df.fillna(0, inplace=True)
+        
+        # calculate Kendall's tau
+        correlation = kendalltau(df.T[0], df.T[1])
+
+        return(correlation)
+
 
     def run(self):
         
