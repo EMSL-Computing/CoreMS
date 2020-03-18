@@ -25,8 +25,8 @@ def test_mspeak_calculations():
     abundance = 200
     resolving_power = 1000000
     signal_to_noise = 200
-    massspec_index = 300
-    index = (0,1,0)
+    massspec_index = (299, 300, 301)
+    index = 1
     mspeak = ICRMassPeak(ion_charge, mz_exp, abundance,
                          resolving_power, signal_to_noise, massspec_index, index)
 
