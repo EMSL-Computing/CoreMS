@@ -120,10 +120,10 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
                     signal_to_noise,
                     massspec_indexes,
                     exp_freq=None,
+                    ms_parent = None,
                 ):
 
-        self._mspeaks.append(
-            MSPeak(
+        mspeak = MSPeak(
                 ion_charge,
                 mz_exp,
                 abundance,
@@ -132,9 +132,11 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
                 massspec_indexes,
                 len(self._mspeaks),
                 exp_freq=exp_freq,
+                ms_parent = ms_parent,
                 
             )
-        )
+        
+        self._mspeaks.append(mspeak)
     
     def _set_parameters_objects(self, d_params):
 
@@ -894,7 +896,7 @@ class MassSpecCentroid(MassSpecBase):
         for index, mz in enumerate(data_dict.get(Labels.mz)):
             
             # centroid peak does not have start and end peak index pos
-            massspec_indexes = (0, index, 0)
+            massspec_indexes = (index, index, index)
             
             if s2n:
                 
@@ -905,9 +907,11 @@ class MassSpecCentroid(MassSpecBase):
                     data_dict.get(Labels.rp)[index],
                     l_s2n[index],
                     massspec_indexes,
+                    ms_parent = self
                 )
 
             else:
+                
                 self.add_mspeak(
                     ion_charge,
                     mz,
@@ -915,6 +919,7 @@ class MassSpecCentroid(MassSpecBase):
                     data_dict.get(Labels.rp)[index],
                     -999,
                     massspec_indexes,
+                    ms_parent = self
                 )
         
         self.reset_indexes()

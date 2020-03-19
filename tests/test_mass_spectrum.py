@@ -64,35 +64,31 @@ def test_create_mass_spectrum():
     
     return mass_spectrum_obj, kendrick_group_index
     
+def test_mspeaks_fit():
+    
+    file_location = Path.cwd() /  "ESI_NEG_SRFA.d"
 
+    bruker_reader = ReadBrukerSolarix(file_location)
+
+    bruker_transient = bruker_reader.get_transient()
+    
+    mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
+
+    for mspeak in mass_spectrum_obj:
         
+        mspeak.plot()
+        mspeak.plot_simulation(datapoints=1000)
+        mspeak.plot_simulation()
+        
+        mspeak.plot_simulation(sim_type = "lorentz_pdf"  )
+        mspeak.plot_simulation(sim_type = "gaussian_pdf"  )
+
+        #pyplot.show()
+    
 if __name__ == "__main__":
-
-    mass_spectrum_obj, kendrick_group_index = test_create_mass_spectrum()
-    mass_spectrum_obj.plot_profile_and_noise_threshold()
-    #pyplot.show()
+    test_mspeaks_fit()
+    #mass_spectrum_obj, kendrick_group_index = test_create_mass_spectrum()
+    #mass_spectrum_obj.plot_profile_and_noise_threshold()
     
-    '''
-    for kmd, most_abun_kendrick_group_index in  kendrick_group_index.items():
     
-        print(kmd)
-        mz = [mass_spectrum_obj[i].mz_exp for i in most_abun_kendrick_group_index ]
-        abun =  [mass_spectrum_obj[i].abundance for i in most_abun_kendrick_group_index ]
-
-        pyplot.plot(mass_spectrum_obj.mz_exp_profile, mass_spectrum_obj.abundance_profile, zorder=-1)
-        pyplot.scatter(mz, abun, c='r', zorder=1)
-        
-        pyplot.show()
-
-        mz = array(mz)
-        dmz = mz - mz[-1]
-        print(dmz)
-        #pyplot.stem(mz, abun)
-        
-        kmd = [mass_spectrum_obj[i].kmd for i in most_abun_kendrick_group_index ]
-        knm =  [mass_spectrum_obj[i].knm for i in most_abun_kendrick_group_index ]
-
-        
-        pyplot.scatter(knm, kmd)
-        pyplot.show()
-    '''
+    

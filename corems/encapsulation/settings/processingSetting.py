@@ -28,15 +28,11 @@ class MassSpectrumSetting:
     
 class MassSpecPeakSetting:
     
-    '''needs to clear previous results from peak_picking'''
     kendrick_base =  {"C": 1, "H":2}
     
     peak_min_prominence_percent = 1 #1-100 % used for peak detection
 
     peak_max_prominence_percent = 0.1 #1-100 % used for baseline detection
-    
-    #kendrick_base =  {"C": 1, "H":2, "O":1}
-
 
 class GasChromatographSetting:
     
@@ -66,8 +62,7 @@ class CompoundSearchSettings:
 
     rt_search_range = 0.5
     
-    # used for calibration, spectral similarity 
-    correlation_threshold = 0.8
+    correlation_threshold = 0.8 # used for calibration, spectral similarity 
     
     score_threshold = 0.0
 
@@ -132,8 +127,6 @@ class MolecularLookupDictSettings:
 
 class MolecularSearchSettings:
     
-    #max_mz and min_mz changes automatically with mass spectrum
-    
     use_isotopologue_filter = False
 
     isotopologue_filter_threshold = 33 # percentile predicted and found 
@@ -174,7 +167,8 @@ class MolecularSearchSettings:
     score_method = "N_S_P_lowest_error"
 
     # depending on the polarity mode it looks for [M].+ , [M].-
-    # query and automatically compile and push options if it doesn't exist
+    # query and automatically compile add entry if it doesn't exist
+    
     isRadical = True
     
     # depending on the polarity mode it looks for [M + H]+ , [M - H]+
@@ -199,7 +193,7 @@ class MolecularSearchSettings:
     # empirically set / needs optimization
     min_ppm_error  = -5 #ppm
 
-        # empirically set / needs optimization    
+    # empirically set / needs optimization    
     max_ppm_error = 5 #ppm
 
     # empirically set / needs optimization set for isotopologue search
@@ -228,7 +222,7 @@ class MolecularSearchSettings:
                             'Cl': 0,
                             '37Cl': 0,
                             'Br': 0,
-                            'Na': 1,
+                            'Na': 0,
                             'F': 0,
                             'K': 0,
                             }

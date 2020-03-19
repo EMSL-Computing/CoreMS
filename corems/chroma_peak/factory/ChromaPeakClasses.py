@@ -101,9 +101,7 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
         self._compounds.append(compound_obj)
 
     @property
-    def ri(self):
-
-        return self._ri
+    def ri(self): return self._ri
 
     @property
     def highest_score_compound(self):

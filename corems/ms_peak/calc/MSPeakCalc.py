@@ -1,6 +1,6 @@
 
 from scipy.stats import norm, cauchy
-from numpy import linspace, sqrt, log
+from numpy import linspace, sqrt, log, trapz, pi
 from corems.encapsulation.constant import Atoms
 
 __author__ = "Yuri E. Corilo"
@@ -32,6 +32,16 @@ class MSPeakCalculation(object):
 
         return kmd, kendrick_mass, nominal_km
 
+    def calc_area(self, dx=1):
+        
+        if self.ms_parent:
+            
+            yy = self.ms_parent.abundance_profile[self.start_index:self.final_index]
+            
+            self._area = trapz(yy, dx = dx)
+        else:
+            print("Isolated Peak Object")
+            
     def voigt_pdf(self, datapoints=10000, delta_rp = 0, mz_overlay=0.1):
         
         from lmfit import models
@@ -54,7 +64,7 @@ class MSPeakCalculation(object):
             # gaussian_pdf = lambda x0, x, s: (1/ math.sqrt(2*math.pi*math.pow(s,2))) * math.exp(-1 * math.pow(x-x0,2) / 2*math.pow(s,2) )
             model = models.VoigtModel()
 
-            params = model.make_params(center=self.mz_exp, amplitude=self.abundance, sigma = σ, gamma = σ)
+            params = model.make_params(center=self.mz_exp, height=self.abundance, sigma = σ, gamma = σ)
 
             calc_abundance = model.eval(params=params, x=mz_domain)
 
@@ -87,7 +97,7 @@ class MSPeakCalculation(object):
             # gaussian_pdf = lambda x0, x, s: (1/ math.sqrt(2*math.pi*math.pow(s,2))) * math.exp(-1 * math.pow(x-x0,2) / 2*math.pow(s,2) )
             model = models.PseudoVoigtModel()
             
-            params = model.make_params(center=self.mz_exp, amplitude=self.abundance, sigma = σ, fraction = fraction)
+            params = model.make_params(center=self.mz_exp, height=self.abundance, sigma = σ, fraction = fraction)
 
             calc_abundance = model.eval(params=params, x=mz_domain)
 
@@ -98,7 +108,22 @@ class MSPeakCalculation(object):
             raise LookupError(
                 'resolving power is not defined, try to use set_max_resolving_power()')
 
-    def lorentz_pdf(self, datapoints=10000, delta_rp = 0, mz_overlay=0.1):
+    def get_mz_domain(self, datapoints,mz_overlay):
+
+        if not datapoints:
+                
+            mz_domain = self.ms_parent.mz_exp_profile[self.start_index: self.final_index]
+            
+        else:
+                
+            start_mz = self.ms_parent.mz_exp_profile[self.start_index] - mz_overlay
+            final_mz = self.ms_parent.mz_exp_profile[self.final_index] + mz_overlay
+                
+            mz_domain = linspace(start_mz, final_mz, datapoints)    
+
+        return mz_domain
+
+    def lorentz_pdf(self, datapoints=None, delta_rp = 0, mz_overlay=0.1):
 
         if self.resolving_power:
 
@@ -113,9 +138,9 @@ class MSPeakCalculation(object):
 
             #mz_domain = linspace(self.mz_exp - hw_base_distance,
             #                     self.mz_exp + hw_base_distance, datapoint)
-            mz_domain = linspace(self.nominal_mz_exp - mz_overlay,
-                                 self.nominal_mz_exp + 1 + mz_overlay, datapoints)
             
+            
+            mz_domain = self.get_mz_domain(datapoints, mz_overlay)    
             # gaussian_pdf = lambda x0, x, s: (1/ math.sqrt(2*math.pi*math.pow(s,2))) * math.exp(-1 * math.pow(x-x0,2) / 2*math.pow(s,2) )
             calc_abundance = cauchy.pdf(mz_domain, self.mz_exp, γ)
 
@@ -126,7 +151,7 @@ class MSPeakCalculation(object):
             raise LookupError(
                 'resolving power is not defined, try to use set_max_resolving_power()')
 
-    def gaussian_pdf(self, datapoints=10000, delta_rp = 0, mz_overlay=0.1):
+    def gaussian_pdf(self, datapoints=None, delta_rp = 0, mz_overlay=0.1):
 
         # check if MSPeak contains the resolving power info
         if self.resolving_power:
@@ -146,10 +171,10 @@ class MSPeakCalculation(object):
             #mz_domain = linspace(
             #    self.mz_exp - n_d, self.mz_exp + n_d, datapoint)
 
-            mz_domain = linspace(self.nominal_mz_exp - mz_overlay,
-                                 self.nominal_mz_exp + 1 + mz_overlay, datapoints)
-
+            mz_domain = self.get_mz_domain(datapoints, mz_overlay)    
+            
             # gaussian_pdf = lambda x0, x, s: (1/ math.sqrt(2*math.pi*math.pow(s,2))) * math.exp(-1 * math.pow(x-x0,2) / 2*math.pow(s,2) )
+            
             calc_abundance = norm.pdf(mz_domain, self.mz_exp, s)
 
             return mz_domain, (calc_abundance * self.abundance / max(calc_abundance))

@@ -194,7 +194,7 @@ class PeakPicking:
                     peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
                     s2n = intes_centr/self.baselise_noise_std
                     freq_centr = None
-                    self.add_mspeak(self.polarity, mz_exp_centroid, abund[current_index] , peak_resolving_power, s2n, peak_indexes, exp_freq=freq_centr)
+                    self.add_mspeak(self.polarity, mz_exp_centroid, abund[current_index] , peak_resolving_power, s2n, peak_indexes, exp_freq=freq_centr, ms_parent=self)
             
             else:
             
@@ -203,7 +203,7 @@ class PeakPicking:
                     
                     peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
                     s2n = intes_centr/self.baselise_noise_std
-                    self.add_mspeak(self.polarity, mz_exp_centroid, abund[current_index] , peak_resolving_power, s2n, peak_indexes, exp_freq=freq_centr)
+                    self.add_mspeak(self.polarity, mz_exp_centroid, abund[current_index] , peak_resolving_power, s2n, peak_indexes, exp_freq=freq_centr, ms_parent=self)
             
         
     def get_threshold(self, intes):

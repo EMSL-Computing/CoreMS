@@ -13,7 +13,7 @@ class _MSPeak(MSPeakCalculation):
     classdocs
     '''
     def __init__(self, ion_charge, mz_exp, abundance, resolving_power, 
-                    signal_to_noise, massspec_indexes, index, exp_freq=None):
+                    signal_to_noise, massspec_indexes, index, ms_parent=None, exp_freq=None):
 
         # needed to create the object
         self.ion_charge = int(ion_charge)
@@ -23,12 +23,15 @@ class _MSPeak(MSPeakCalculation):
         self.resolving_power = float(resolving_power)
         self.signal_to_noise = float(signal_to_noise)
         #profile indexes
-        self.beg_profile_index = int(massspec_indexes[0]) 
-        self.apex_profile_index = int(massspec_indexes[1])
-        self.end_profile_index = int(massspec_indexes[2]) 
+        self.start_index = int(massspec_indexes[0]) 
+        self.apex_index = int(massspec_indexes[1])
+        self.final_index = int(massspec_indexes[2]) 
         #centroid index
         self.index = int(index)
-        
+        self.ms_parent = ms_parent
+
+        self._area = self.calc_area()
+
         # updated after calibration'
         self.mz_cal = None
         # updated individual calculation'
@@ -91,6 +94,9 @@ class _MSPeak(MSPeakCalculation):
         self._mz_exp = mz_exp
 
     @property
+    def area(self): return self._area
+
+    @property
     def nominal_mz_exp(self): return int(self.mz_exp)
 
     @property
@@ -107,6 +113,40 @@ class _MSPeak(MSPeakCalculation):
 
         return bool(self.molecular_formulas)
     
+    def plot_simulation(self, sim_type="lorentz_pdf", ax=None, color="green",
+                            datapoints=None, delta_rp = 0, mz_overlay=0.1):
+                        
+        import matplotlib.pyplot as plt
+        
+        self.gaussian_pdf(datapoints=datapoints, delta_rp = delta_rp, mz_overlay=mz_overlay)
+        
+        if ax is None:
+                ax = plt.gca()
+        x, y = eval("self."+sim_type+"(datapoints="+str(datapoints)+", delta_rp="+str(delta_rp)+", mz_overlay="+str(mz_overlay)+")")
+        ax.plot(x, y, color=color)
+        ax.set(xlabel='m/z', ylabel='abundance')
+        
+        return ax
+        
+    def plot(self, ax=None, color="black"): #pragma: no cover
+        
+        if self.ms_parent:
+            
+            import matplotlib.pyplot as plt
+
+            if ax is None:
+                ax = plt.gca()
+            x = self.ms_parent.mz_exp_profile[self.start_index: self.final_index]
+            y =  self.ms_parent.abundance_profile[self.start_index: self.final_index]
+            
+            ax.plot(x, y, color=color)
+            ax.set(xlabel='m/z', ylabel='abundance')
+            
+            return ax
+        
+        else:
+            print("Isolated Peak Object")
+
     @property
     def number_possible_assignments(self,):
         
@@ -220,9 +260,9 @@ class _MSPeak(MSPeakCalculation):
 
 class ICRMassPeak(_MSPeak):
 
-    def __init__(self, *args, exp_freq=None):
+    def __init__(self, *args, ms_parent=None, exp_freq=None):
 
-        super().__init__(*args,exp_freq=exp_freq)
+        super().__init__(*args,exp_freq=exp_freq, ms_parent=ms_parent)
 
     def resolving_power_calc(self, B, T):
         

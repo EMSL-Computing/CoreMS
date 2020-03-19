@@ -33,7 +33,9 @@ def test_mspeak_calculations():
     mspeak.change_kendrick_base(kendrick_base)
     
     mspeak._calc_kdm(kendrick_base)
+    mspeak.calc_area()
     
+    mspeak.plot()
     mspeak.lorentz_pdf()
     mspeak.gaussian_pdf()
 
