@@ -28,7 +28,9 @@ class LowResCompoundRef:
         self.formula  = compounds_dict.get("formula") 
         self.source = compounds_dict.get("source") 
 
-        self.similarity_score = None    
+        self.similarity_score = None
+        self.ri_score = None
+        self.spectral_similarity_score = None
 
 class ChromaPeakBase():
     '''
@@ -86,13 +88,17 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
         
         self._ri = None
 
-    def add_compound(self, compounds_dict, similarity):
+    def add_compound(self, compounds_dict, spectral_similarity_score, ri_score=None, similarity_score=None):
        
-       compound_obj = LowResCompoundRef(compounds_dict)
-       
-       compound_obj.similarity_score = similarity
-       
-       self._compounds.append(compound_obj)
+        compound_obj = LowResCompoundRef(compounds_dict)
+
+        compound_obj.spectral_similarity_score = spectral_similarity_score
+
+        compound_obj.ri_score = ri_score
+
+        compound_obj.similarity_score = similarity_score
+
+        self._compounds.append(compound_obj)
 
     @property
     def ri(self):
