@@ -15,7 +15,6 @@ class _MSPeak(MSPeakCalculation):
     def __init__(self, ion_charge, mz_exp, abundance, resolving_power, 
                     signal_to_noise, massspec_indexes, index, exp_freq=None):
 
-        #TODO add start and end of a peak index    
         # needed to create the object
         self.ion_charge = int(ion_charge)
         self._mz_exp = float(mz_exp)
@@ -23,17 +22,16 @@ class _MSPeak(MSPeakCalculation):
         self.abundance = float(abundance)
         self.resolving_power = float(resolving_power)
         self.signal_to_noise = float(signal_to_noise)
-        
         #profile indexes
         self.beg_profile_index = int(massspec_indexes[0]) 
         self.apex_profile_index = int(massspec_indexes[1])
         self.end_profile_index = int(massspec_indexes[2]) 
-        
         #centroid index
         self.index = int(index)
-        'updated after calibration'
+        
+        # updated after calibration'
         self.mz_cal = None
-        'updated individual calculation'
+        # updated individual calculation'
         self.baseline_noise = None
         
         if exp_freq:
@@ -47,8 +45,9 @@ class _MSPeak(MSPeakCalculation):
 
         self.molecular_formulas = []
         self._confidence_score = None
-
+        # placeholder for found isotopologues index 
         self.isotopologue_indexes = []
+        # placeholder for found isotopologues molecular formula obj
         self.found_isotopologues = {}
 
     def __len__(self):

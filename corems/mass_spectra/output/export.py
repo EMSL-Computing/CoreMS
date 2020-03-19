@@ -30,12 +30,12 @@ class LowResGCMSExport():
     def _init_columns(self):
 
         return ['Sample name', 'Retention Time', 'Retention Time Ref', 'Peak Height',
-                'Peak Area', 'Retention index', 'Retention index Ref',
-                'Similarity Score', 'Compound Name']
+                'Peak Area', 'Retention index', 'Retention index Ref','Retention Index Score',
+                'Spectral Similarity Score', 'Similarity Score', 'Compound Name']
     
     def get_pandas_df(self, highest_score=True):
 
-        columns = self._init_columns() 
+        columns = self._init_columns()
         
         dict_data_list = self.get_list_dict_data(self.gcms, highest_score=highest_score)
         
@@ -50,6 +50,7 @@ class LowResGCMSExport():
         import json
 
         dict_data_list = self.get_list_dict_data(self.gcms, highest_score=highest_score)
+        
         return json.dumps(dict_data_list)
 
     def to_pandas(self, highest_score=True):
@@ -142,6 +143,8 @@ class LowResGCMSExport():
                            'Peak Area': gc_peak.area,
                            'Retention index': gc_peak.ri,
                            'Retention index Ref':  compound_obj.ri,
+                           'Retention Index Score': compound_obj.ri_score,
+                           'Spectral Similarity Score': compound_obj.spectral_similarity_score,
                            'Similarity Score': compound_obj.similarity_score,
                            'Compound Name' : compound_obj.name
                            } )

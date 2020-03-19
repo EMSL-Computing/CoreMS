@@ -11,9 +11,13 @@ class TransientSetting:
 class MassSpectrumSetting:
     
     threshold_method = "auto"
+    
     implemented_noise_threshold_methods = ("auto", "signal_noise", "relative_abundance")
+    
     noise_threshold_std = 6
+    
     s2n_threshold = 4
+    
     relative_abundance_threshold = 6 # from 1-100
     
     min_noise_mz = 100.0
@@ -26,6 +30,11 @@ class MassSpecPeakSetting:
     
     '''needs to clear previous results from peak_picking'''
     kendrick_base =  {"C": 1, "H":2}
+    
+    peak_min_prominence_percent = 1 #1-100 % used for peak detection
+
+    peak_max_prominence_percent = 0.1 #1-100 % used for baseline detection
+    
     #kendrick_base =  {"C": 1, "H":2, "O":1}
 
 

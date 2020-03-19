@@ -6,7 +6,7 @@
 
 from numpy import hstack, inf, isnan, poly1d, polyfit, where
 
-from corems.encapsulation.settings.processingSetting import MassSpectrumSetting
+from corems.encapsulation.settings.processingSetting import MassSpectrumSetting, MassSpecPeakSetting
 from corems.encapsulation.constant import Labels
 
 class PeakPicking:
@@ -61,7 +61,6 @@ class PeakPicking:
             
             j = apex_index
             
-
             if right: minima = abundance[j] > abundance[j+1]
             else: minima = abundance[j] > abundance[j-1]
 
@@ -81,7 +80,6 @@ class PeakPicking:
             
             if right: return j
             else: return j
-
 
     def calculate_resolving_power(self, intes, massa, current_index):
             
@@ -108,8 +106,8 @@ class PeakPicking:
             a = coefficients[0]
             b = coefficients[1]
 
-            y_intercep =  intes[index_minus] + ((intes[index_minus+1] - intes[index_minus])/2)
-            massa1 = (y_intercep -b)/a
+            y_intercept =  intes[index_minus] + ((intes[index_minus+1] - intes[index_minus])/2)
+            massa1 = (y_intercept -b)/a
 
             index_plus = current_index
             while peak_height_plus  >= target_peak_height:
@@ -125,8 +123,8 @@ class PeakPicking:
             a = coefficients[0]
             b = coefficients[1]
 
-            y_intercep =  intes[index_plus - 1] + ((intes[index_plus] - intes[index_plus - 1])/2)
-            massa2 = (y_intercep -b)/a
+            y_intercept =  intes[index_plus - 1] + ((intes[index_plus] - intes[index_plus - 1])/2)
+            massa2 = (y_intercept -b)/a
 
             if massa1 > massa2:
 
@@ -138,31 +136,35 @@ class PeakPicking:
 
             return resolvingpower
 
-    def cal_minima(self, mass, abund):
+    def cal_minima(self, mass, abun):
 
-        abund = -abund
+        abun = -abun
 
-        dy = abund[1:] - abund[:-1]
+        dy = abun[1:] - abun[:-1]
         
         '''replaces nan for infinity'''
-        indices_nan = where(isnan(abund))[0]
+        indices_nan = where(isnan(abun))[0]
         
         if indices_nan.size:
             
-            abund[indices_nan] = inf
+            abun[indices_nan] = inf
             dy[where(isnan(dy))[0]] = inf
         
         indexes = where((hstack((dy, 0)) < 0) & (hstack((0, dy)) > 0))[0]
 
         if indexes.size:
             
-            return mass[indexes], abund[indexes]
+            return mass[indexes], abun[indexes]
     
     def calc_centroid(self, mass, abund, freq):
         #TODO: remove peaks that minimum is one data point from the maximum
         # to remove artifacts 
 
         len_abundance = len(abund)
+        
+        max_abundance = max(abund)
+        
+        peak_height_diff = lambda hi, li : ((abund[hi] - abund[li]) / max_abundance )*100
 
         abundance_threshold, factor = self.get_threshold(abund)
         # find indices of all peaks
@@ -178,44 +180,31 @@ class PeakPicking:
         
         indexes = where((hstack((dy, 0)) < 0) & (hstack((0, dy)) > 0))[0]
         
+        # noise threshold
         if indexes.size and abundance_threshold is not None:
             indexes = indexes[abund[indexes]/factor >= abundance_threshold]
         
-        
         for current_index in indexes: 
             
-            if self.label == Labels.bruker_frequency:                                                               
-                
-                mz_exp_centroid, freq_centr, intes_centr = self.find_apex_fit_quadratic(mass, abund, freq, current_index)
-                peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
-                s2n = intes_centr/self.baselise_noise_std
-            
-            elif self.label == Labels.bruker_profile or self.label == Labels.booster_profile or self.label == Labels.thermo_profile: 
+            if self.label == Labels.simulated_profile: 
 
-                peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
-                mz_exp_centroid, freq_centr, intes_centr = self.find_apex_fit_quadratic(mass, abund, freq, current_index)
-                s2n = intes_centr/self.baselise_noise_std
-
-            elif self.label == Labels.simulated_profile: 
-
-                peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
-                mz_exp_centroid, intes_centr = self.use_the_max(mass, abund, current_index)
-                s2n = intes_centr/self.baselise_noise_std
-                freq_centr = None
-
-            else: raise Exception("Label '%s' not recognized inside : %s" % (self.label, self.__str__()))
+                mz_exp_centroid, intes_centr, peak_indexes = self.use_the_max(mass, abund, current_index, len_abundance, peak_height_diff)
+                if mz_exp_centroid:
+                    
+                    peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
+                    s2n = intes_centr/self.baselise_noise_std
+                    freq_centr = None
+                    self.add_mspeak(self.polarity, mz_exp_centroid, abund[current_index] , peak_resolving_power, s2n, peak_indexes, exp_freq=freq_centr)
             
-            end_peak_index = self.find_minima(current_index, abund, len_abundance, right=True)
+            else:
             
-            begin_peak_index = self.find_minima(current_index, abund, len_abundance, right=False)
+                mz_exp_centroid, freq_centr, intes_centr, peak_indexes = self.find_apex_fit_quadratic(mass, abund, freq, current_index, len_abundance, peak_height_diff)
+                if mz_exp_centroid:
+                    
+                    peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
+                    s2n = intes_centr/self.baselise_noise_std
+                    self.add_mspeak(self.polarity, mz_exp_centroid, abund[current_index] , peak_resolving_power, s2n, peak_indexes, exp_freq=freq_centr)
             
-            print(begin_peak_index,current_index,end_peak_index)
-            
-            peak_indexes = (begin_peak_index, current_index, end_peak_index)
-            
-            #TODO: calculate provenance
-            
-            self.add_mspeak(self.polarity, mz_exp_centroid, abund[current_index] , peak_resolving_power, s2n, peak_indexes, exp_freq=freq_centr)
         
     def get_threshold(self, intes):
         
@@ -242,88 +231,83 @@ class PeakPicking:
         
         return abundance_threshold, factor
         
-    def find_apex_fit_quadratic(self, mass, abund, freq, current_index):
+    def find_apex_fit_quadratic(self, mass, abund, freq, current_index, len_abundance, peak_height_diff):
         
-        list_mass = [mass[current_index - 1], mass[current_index], mass[current_index +1]]
-        list_y = [abund[current_index - 1],abund[current_index], abund[current_index +1]]
+        # calc prominence
+        peak_indexes = self.check_prominence(abund, current_index, len_abundance, peak_height_diff )
         
-        z = poly1d(polyfit(list_mass, list_y, 2))
-        a = z[2]
-        b = z[1]
-
-        calculated = -b/(2*a)
-        
-        if calculated < 1 or int(calculated) != int(list_mass[1]):
-
-            mz_exp_centroid = list_mass[1]
-        
-        else:
+        if not peak_indexes:        
             
-            mz_exp_centroid = calculated 
+            return None, None, None, None           
         
-        if self.label == Labels.bruker_frequency or self.label == Labels.midas_frequency:
+        else:    
             
-            list_freq = [freq[current_index - 1], freq[current_index], freq[current_index +1]]
-            z = poly1d(polyfit(list_freq, list_y, 2))
+            # fit parabola to three most abundant datapoints
+            list_mass = [mass[current_index - 1], mass[current_index], mass[current_index +1]]
+            list_y = [abund[current_index - 1],abund[current_index], abund[current_index +1]]
+            
+            z = poly1d(polyfit(list_mass, list_y, 2))
             a = z[2]
             b = z[1]
 
-            calculated_freq = -b/(2*a)
+            calculated = -b/(2*a)
+            
+            if calculated < 1 or int(calculated) != int(list_mass[1]):
 
-            if calculated_freq < 1 or int(calculated_freq) != freq[current_index]:
-                freq_centr = list_freq[1]
-
+                mz_exp_centroid = list_mass[1]
+            
             else:
-                freq_centr = calculated_freq
+                
+                mz_exp_centroid = calculated 
+            
+            if self.label == Labels.bruker_frequency or self.label == Labels.midas_frequency:
+                
+                # fit parabola to three most abundant frequency datapoints
+                list_freq = [freq[current_index - 1], freq[current_index], freq[current_index +1]]
+                z = poly1d(polyfit(list_freq, list_y, 2))
+                a = z[2]
+                b = z[1]
+
+                calculated_freq = -b/(2*a)
+
+                if calculated_freq < 1 or int(calculated_freq) != freq[current_index]:
+                    freq_centr = list_freq[1]
+
+                else:
+                    freq_centr = calculated_freq
+            
+            else:
+                    freq_centr = None
+                    
+            return mz_exp_centroid, freq_centr, abund[current_index], peak_indexes
+    
+    def check_prominence(self, abun, current_index, len_abundance, peak_height_diff ):
+
+        final_index = self.find_minima(current_index, abun, len_abundance, right=True)
+            
+        start_index = self.find_minima(current_index, abun, len_abundance, right=False)
+            
+        peak_indexes = (start_index, current_index, final_index)
+
+        if min( peak_height_diff(current_index,start_index), peak_height_diff(current_index,final_index) ) >  MassSpecPeakSetting.peak_min_prominence_percent :   
+            
+            return peak_indexes
         
         else:
-                freq_centr = None
-                
-        return mz_exp_centroid, freq_centr, abund[current_index]
-    
-    def use_the_max(self, mass, abund, current_index):
+            
+            return False
+
+    def use_the_max(self, mass, abund, current_index, len_abundance, peak_height_diff):
+
+        peak_indexes = self.check_prominence(abund, current_index, len_abundance, peak_height_diff )
         
-            return mass[current_index], abund[current_index]
+        if not peak_indexes:        
 
-    def old_calc_centroid(self, massa, intes, freq_exp): #pragma: no cover
-
-        #this function is too slow, may need slice and apply multi processing,
-        abundance_threshold, factor = self.get_threshold(intes)
+            return None, None, None
         
-        do_freq = freq_exp.any()
-        
-        for x in range(len(intes)-1):
-            if (intes[x]/factor) > abundance_threshold:
-                
-                if  intes[x] > intes[x +1] and intes[x] > intes[x - 1]:# and (intes[x]/factor) > abundance_threshold:#and :
-                    intes_centr = intes[x]
-                    mz_exp_centroid = massa[x]
-                    
-                    if do_freq:
-                        freq_centr = freq_exp[x]
-                    else:
-                        freq_centr = None
+        else:    
+            
+            return mass[current_index], abund[current_index], peak_indexes
 
-                    peak_resolving_power = self.calculate_resolving_power(intes, massa, x)
-
-                    #parms ion_charge, mz_exp, abundance, resolving_power, signal_to_noise, massspec_index,
-                    self.add_mspeak(self.polarity, mz_exp_centroid, intes_centr, peak_resolving_power, intes_centr/self.baselise_noise_std, x, exp_freq=freq_centr)
-
-    def calc_min(self, massa, intes, freq_exp): #pragma: no cover
-
-        #this function is too slow, may need slice and apply multi processing,
-        
-        min_mz = []
-        min_abu = list()
-        for x in range(len(intes)-1):
-                
-            if  intes[x] < intes[x +1] and intes[x] < intes[x - 1]:# and (intes[x]/factor) > abundance_threshold:#and :
-                intes_centr = intes[x]
-                mz_exp_centroid = massa[x]
-                
-                min_mz.append(mz_exp_centroid)
-                min_abu.append(intes_centr)
-        
-        return min_mz, min_abu 
 
                     

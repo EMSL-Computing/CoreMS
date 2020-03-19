@@ -3,8 +3,12 @@ from threading import Thread
 from pathlib import Path
 
 from pandas import DataFrame
-from sklearn.metrics.pairwise import cosine_similarity
+
+from numpy import power, dot
+from numpy.linalg import norm
+
 from scipy.spatial.distance import cosine
+from sklearn.metrics.pairwise import cosine_similarity
 from scipy.stats import pearsonr, spearmanr, kendalltau
 from math import exp
 
@@ -29,16 +33,53 @@ class LowResMassSpectralMatch(Thread):
 
     def metabolite_detector_score(self, gc_peak, ref_obj):
 
-        cosine_correlation = self.cosine_correlation(gc_peak.mass_spectrum, ref_obj)
+        spectral_similarity_score = self.cosine_correlation(gc_peak.mass_spectrum, ref_obj)
 
         #print(ref_obj.get('ri'), gc_peak.ri, CompoundSearchSettings.ri_window)
 
         ri_score = exp(-((gc_peak.ri - ref_obj.get('ri'))**2 ) / (2 * CompoundSearchSettings.ri_window))
 
-        score = (cosine_correlation * (ri_score**2))**(1/3)
+        similarity_score = (spectral_similarity_score * (ri_score**2))**(1/3)
 
-        return score
+        return spectral_similarity_score, ri_score, similarity_score
         
+    def weighted_cosine_correlation(self, mass_spec, ref_obj):
+        
+        a , b = 0.5, 1.3    
+        # create dict['mz'] = abundance, for experimental data
+        ms_mz_abun_dict = mass_spec.mz_abun_dict
+
+        # weight exp data 
+
+        exp_abun = list(ms_mz_abun_dict.values())
+        exp_mz = list(ms_mz_abun_dict.keys())
+
+        xc = power(exp_abun, a) *  power(exp_mz, b) 
+        
+        # track back to individual mz
+        weighted_exp_dict = dict(zip(ms_mz_abun_dict.keys(), xc))
+
+        # weight ref data
+        yc = power(ref_obj.get("abundance"), a) *  power(ref_obj.get("mz"), b) 
+        
+        ref_mz_abun_dict = dict(zip(ref_obj.get("mz"), yc))
+
+        #parse to dataframe, easier to zerofill and tranpose
+        df = DataFrame([weighted_exp_dict, ref_mz_abun_dict])
+
+        # fill missing mz with weight {abun**a}{m/z**b} to 0
+        df.fillna(0, inplace=True)
+        
+        #calculate cosine correlation, 
+        x = df.T[0]
+        y = df.T[1]
+
+        #correlation = (1 - cosine(x, y))
+        
+        correlation = dot(x, y)/(norm(x)*norm(y))
+
+        return correlation
+
     def cosine_correlation(self, mass_spec, ref_obj):
 
         # create dict['mz'] = abundance, for experimental data
@@ -57,7 +98,12 @@ class LowResMassSpectralMatch(Thread):
         df.fillna(0, inplace=True)
         
         #calculate cosine correlation, 
-        correlation = (1 - cosine(df.T[0], df.T[1]))
+        x = df.T[0]
+        y = df.T[1]
+
+        #correlation = (1 - cosine(x, y))
+        
+        correlation = dot(x, y)/(norm(x)*norm(y))
 
         return correlation
 
@@ -78,7 +124,7 @@ class LowResMassSpectralMatch(Thread):
         # calculate Pearson correlation
         correlation = pearsonr(df.T[0], df.T[1])
 
-        return(correlation)
+        return correlation
 
     def spearman_correlation(self, mass_spec, ref_obj):
 
@@ -98,7 +144,7 @@ class LowResMassSpectralMatch(Thread):
         ### TODO - Check axis
         correlation = spearmanr(df.T[0], df.T[1], axis=0)
 
-        return(correlation)
+        return correlation
 
     def kendall_tau(self, mass_spec, ref_obj):
 
@@ -117,7 +163,7 @@ class LowResMassSpectralMatch(Thread):
         # calculate Kendall's tau
         correlation = kendalltau(df.T[0], df.T[1])
 
-        return(correlation)
+        return correlation
 
 
     def run(self):
@@ -154,6 +200,7 @@ class LowResMassSpectralMatch(Thread):
                     
                     correlation_value = self.cosine_correlation(gc_peak.mass_spectrum, ref_obj)
 
+                    #print(w_correlation_value,correlation_value )
                     if correlation_value >= CompoundSearchSettings.correlation_threshold:
                     
                         gc_peak.add_compound(ref_obj, correlation_value)
@@ -164,11 +211,11 @@ class LowResMassSpectralMatch(Thread):
 
                     # TODO: add other scoring methods
                     # m/q developed methods will be implemented here
-                    score_value = self.metabolite_detector_score(gc_peak, ref_obj)    
-
-                    if score_value >= CompoundSearchSettings.score_threshold:
+                    spectral_similarity_score, ri_score, similarity_score = self.metabolite_detector_score(gc_peak, ref_obj)    
                     
-                        gc_peak.add_compound(ref_obj, score_value)
+                    if similarity_score >= CompoundSearchSettings.score_threshold:
+                    
+                        gc_peak.add_compound(ref_obj, spectral_similarity_score, ri_score, similarity_score)
                 
         
         self.sqlLite_obj.session.close()
