@@ -80,10 +80,10 @@ def test_mspeaks_fit():
         mspeak.plot_simulation(datapoints=1000)
         mspeak.plot_simulation()
         
-        mspeak.plot_simulation(sim_type = "lorentz_pdf"  )
-        mspeak.plot_simulation(sim_type = "gaussian_pdf"  )
+        #mspeak.plot_simulation(sim_type = "lorentz_pdf"  )
+        #mspeak.plot_simulation(sim_type = "gaussian_pdf"  )
 
-        #pyplot.show()
+        pyplot.show()
     
 if __name__ == "__main__":
     test_mspeaks_fit()

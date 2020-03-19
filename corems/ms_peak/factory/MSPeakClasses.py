@@ -30,7 +30,7 @@ class _MSPeak(MSPeakCalculation):
         self.index = int(index)
         self.ms_parent = ms_parent
 
-        self._area = self.calc_area()
+        #self._area = self.calc_area()
 
         # updated after calibration'
         self.mz_cal = None
@@ -114,7 +114,7 @@ class _MSPeak(MSPeakCalculation):
         return bool(self.molecular_formulas)
     
     def plot_simulation(self, sim_type="lorentz_pdf", ax=None, color="green",
-                            datapoints=None, delta_rp = 0, mz_overlay=0.1):
+                            datapoints=None, delta_rp = 0, mz_overlay=1):
                         
         import matplotlib.pyplot as plt
         

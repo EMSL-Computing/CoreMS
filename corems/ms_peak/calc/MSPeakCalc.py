@@ -39,7 +39,9 @@ class MSPeakCalculation(object):
             yy = self.ms_parent.abundance_profile[self.start_index:self.final_index]
             
             self._area = trapz(yy, dx = dx)
+        
         else:
+            
             print("Isolated Peak Object")
             
     def voigt_pdf(self, datapoints=10000, delta_rp = 0, mz_overlay=0.1):
@@ -110,20 +112,24 @@ class MSPeakCalculation(object):
 
     def get_mz_domain(self, datapoints,mz_overlay):
 
+        start_index = self.start_index - mz_overlay  if not self.start_index == 0 else 0
+        final_index = self.final_index + mz_overlay  if not self.final_index == len(self.ms_parent.mz_exp_profile) else self.final_index
+
+               
         if not datapoints:
-                
-            mz_domain = self.ms_parent.mz_exp_profile[self.start_index: self.final_index]
+               
+            mz_domain = self.ms_parent.mz_exp_profile[start_index: final_index]
             
         else:
                 
-            start_mz = self.ms_parent.mz_exp_profile[self.start_index] - mz_overlay
-            final_mz = self.ms_parent.mz_exp_profile[self.final_index] + mz_overlay
+            start_mz = self.ms_parent.mz_exp_profile[start_index] 
+            final_mz = self.ms_parent.mz_exp_profile[final_index] 
                 
             mz_domain = linspace(start_mz, final_mz, datapoints)    
 
         return mz_domain
 
-    def lorentz_pdf(self, datapoints=None, delta_rp = 0, mz_overlay=0.1):
+    def lorentz_pdf(self, datapoints=None, delta_rp = 0, mz_overlay=1):
 
         if self.resolving_power:
 
@@ -151,7 +157,7 @@ class MSPeakCalculation(object):
             raise LookupError(
                 'resolving power is not defined, try to use set_max_resolving_power()')
 
-    def gaussian_pdf(self, datapoints=None, delta_rp = 0, mz_overlay=0.1):
+    def gaussian_pdf(self, datapoints=None, delta_rp = 0, mz_overlay=1):
 
         # check if MSPeak contains the resolving power info
         if self.resolving_power:
