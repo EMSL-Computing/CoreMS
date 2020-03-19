@@ -116,16 +116,19 @@ class _MSPeak(MSPeakCalculation):
     def plot_simulation(self, sim_type="lorentz_pdf", ax=None, color="green",
                             datapoints=None, delta_rp = 0, mz_overlay=1):
                         
-        import matplotlib.pyplot as plt
+        if self.ms_parent:
         
-        if ax is None:
-                ax = plt.gca()
-        x, y = eval("self."+sim_type+"(datapoints="+str(datapoints)+", delta_rp="+str(delta_rp)+", mz_overlay="+str(mz_overlay)+")")
-        ax.plot(x, y, color=color)
-        ax.set(xlabel='m/z', ylabel='abundance')
-        
-        return ax
-        
+            import matplotlib.pyplot as plt
+            
+            if ax is None:
+                    ax = plt.gca()
+            x, y = eval("self."+sim_type+"(datapoints="+str(datapoints)+", delta_rp="+str(delta_rp)+", mz_overlay="+str(mz_overlay)+")")
+            ax.plot(x, y, color=color, label="Simulation")
+            ax.set(xlabel='m/z', ylabel='abundance')
+            
+            plt.legend()
+            return ax
+            
     def plot(self, ax=None, color="black"): #pragma: no cover
         
         if self.ms_parent:
@@ -137,9 +140,11 @@ class _MSPeak(MSPeakCalculation):
             x = self.ms_parent.mz_exp_profile[self.start_index: self.final_index]
             y =  self.ms_parent.abundance_profile[self.start_index: self.final_index]
             
-            ax.plot(x, y, color=color)
+            ax.plot(x, y, color=color, label="Data")
             ax.set(xlabel='m/z', ylabel='abundance')
-            
+        
+            plt.legend()
+        
             return ax
         
         else:
