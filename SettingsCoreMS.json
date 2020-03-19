@@ -8,7 +8,8 @@
         "kendrick_base": {
             "C": 1,
             "H": 2
-        }
+        },
+        "peak_min_prominence_percent": 1
     },
     "MassSpectrum": {
         "implemented_noise_threshold_methods": [

@@ -36,9 +36,7 @@ def test_mspeak_calculations():
     mspeak.calc_area()
     
     mspeak.plot()
-    mspeak.lorentz_pdf()
-    mspeak.gaussian_pdf()
-
+    
     assert round(mspeak.kendrick_mass, 3) == 211.887
     print( round(mspeak.kmd*100, 0)) == -89
     assert mspeak.knm == 211
