@@ -118,8 +118,6 @@ class _MSPeak(MSPeakCalculation):
                         
         import matplotlib.pyplot as plt
         
-        self.gaussian_pdf(datapoints=datapoints, delta_rp = delta_rp, mz_overlay=mz_overlay)
-        
         if ax is None:
                 ax = plt.gca()
         x, y = eval("self."+sim_type+"(datapoints="+str(datapoints)+", delta_rp="+str(delta_rp)+", mz_overlay="+str(mz_overlay)+")")

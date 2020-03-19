@@ -1,6 +1,6 @@
 
 from scipy.stats import norm, cauchy
-from numpy import linspace, sqrt, log, trapz, pi
+from numpy import linspace, sqrt, log, trapz, pi, log
 from corems.encapsulation.constant import Atoms
 
 __author__ = "Yuri E. Corilo"
@@ -44,7 +44,7 @@ class MSPeakCalculation(object):
             
             print("Isolated Peak Object")
             
-    def voigt_pdf(self, datapoints=10000, delta_rp = 0, mz_overlay=1):
+    def voigt(self, datapoints=10000, delta_rp = 0, mz_overlay=1):
         
         from lmfit import models
         
@@ -54,7 +54,7 @@ class MSPeakCalculation(object):
             self.fwhm = (self.mz_exp / (self.resolving_power + delta_rp))#self.resolving_power)
 
             # stardart deviation
-            σ = self.fwhm / 3.6013
+            sigma = self.fwhm / 3.6013
 
             # half width baseline distance
             
@@ -63,9 +63,13 @@ class MSPeakCalculation(object):
             mz_domain = self.get_mz_domain(datapoints, mz_overlay)    
             
             # gaussian_pdf = lambda x0, x, s: (1/ math.sqrt(2*math.pi*math.pow(s,2))) * math.exp(-1 * math.pow(x-x0,2) / 2*math.pow(s,2) )
+            
+            #TODO derive amplitude
+            amplitude = (sqrt(2*pi)*sigma) * self.abundance
+
             model = models.VoigtModel()
 
-            params = model.make_params(center=self.mz_exp, height=self.abundance, sigma = σ, gamma = σ)
+            params = model.make_params(center=self.mz_exp, amplitude=amplitude, sigma = sigma, gamma = sigma)
 
             calc_abundance = model.eval(params=params, x=mz_domain)
 
@@ -76,7 +80,7 @@ class MSPeakCalculation(object):
             raise LookupError(
                 'resolving power is not defined, try to use set_max_resolving_power()')
 
-    def pseudovoigt_pdf(self, datapoints=10000, delta_rp = 0, mz_overlay=1, fraction =0.5):
+    def pseudovoigt(self, datapoints=10000, delta_rp = 0, mz_overlay=1, fraction =0.5):
         
         from lmfit import models
         
@@ -86,7 +90,7 @@ class MSPeakCalculation(object):
             self.fwhm = (self.mz_exp / (self.resolving_power + delta_rp))#self.resolving_power)
 
             # stardart deviation
-            σ = self.fwhm / 2
+            sigma = self.fwhm / 2
 
             # half width baseline distance
             
@@ -97,7 +101,13 @@ class MSPeakCalculation(object):
             # gaussian_pdf = lambda x0, x, s: (1/ math.sqrt(2*math.pi*math.pow(s,2))) * math.exp(-1 * math.pow(x-x0,2) / 2*math.pow(s,2) )
             model = models.PseudoVoigtModel()
             
-            params = model.make_params(center=self.mz_exp, amplitude=self.abundance, sigma = σ, fraction = fraction)
+            # TODO derive amplitude
+            gamma = sigma
+            
+            amplitude = (sqrt(2*pi)*sigma) * self.abundance
+            amplitude = (sqrt(pi/log(2)) * (pi*sigma*self.abundance)) /( (pi*(1-gamma)) + (sqrt(pi*log(2)) * gamma) )
+
+            params = model.make_params(center=self.mz_exp, sigma = sigma)
 
             calc_abundance = model.eval(params=params, x=mz_domain)
 
@@ -127,7 +137,9 @@ class MSPeakCalculation(object):
 
         return mz_domain
 
-    def lorentz_pdf(self, datapoints=None, delta_rp = 0, mz_overlay=1):
+    def lorentz(self, datapoints=None, delta_rp = 0, mz_overlay=1):
+
+        from lmfit import models
 
         if self.resolving_power:
 
@@ -135,10 +147,10 @@ class MSPeakCalculation(object):
             self.fwhm = (self.mz_exp / (self.resolving_power + delta_rp))#self.resolving_power)
 
             # stardart deviation
-            γ = self.fwhm / 2
+            sigma = self.fwhm / 2
 
             # half width baseline distance
-            hw_base_distance = (8 * γ)
+            hw_base_distance = (8 * sigma)
 
             #mz_domain = linspace(self.mz_exp - hw_base_distance,
             #                     self.mz_exp + hw_base_distance, datapoint)
@@ -146,16 +158,22 @@ class MSPeakCalculation(object):
             
             mz_domain = self.get_mz_domain(datapoints, mz_overlay)    
             # gaussian_pdf = lambda x0, x, s: (1/ math.sqrt(2*math.pi*math.pow(s,2))) * math.exp(-1 * math.pow(x-x0,2) / 2*math.pow(s,2) )
-            calc_abundance = cauchy.pdf(mz_domain, self.mz_exp, γ)
+            model = models.LorentzianModel()
+            
+            amplitude = sigma* pi * self.abundance
 
-            return mz_domain, (calc_abundance * self.abundance / max(calc_abundance))
+            params = model.make_params(center=self.mz_exp, amplitude=amplitude, sigma = sigma)
+
+            calc_abundance = model.eval(params=params, x=mz_domain)
+
+            return mz_domain, calc_abundance
         
         else:
             
             raise LookupError(
                 'resolving power is not defined, try to use set_max_resolving_power()')
 
-    def gaussian_pdf(self, datapoints=None, delta_rp = 0, mz_overlay=1):
+    def gaussian(self, datapoints=None, delta_rp = 0, mz_overlay=1):
         from lmfit import models
 
         # check if MSPeak contains the resolving power info
