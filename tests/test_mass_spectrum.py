@@ -68,6 +68,4 @@ def test_create_mass_spectrum():
 if __name__ == "__main__":
     #mass_spectrum_obj, kendrick_group_index = test_create_mass_spectrum()
     #mass_spectrum_obj.plot_profile_and_noise_threshold()
-    
-    
-    
+    pass
