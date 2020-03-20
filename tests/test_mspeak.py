@@ -5,16 +5,32 @@ from pathlib import Path
 sys.path.append(".")
 
 from corems.ms_peak.factory.MSPeakClasses import ICRMassPeak
+from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jul 02, 2019"
 
-def simulate_peak(mspeak):
+def test_mspeaks_fit():
+    
+    from matplotlib import pyplot
+    file_location = Path.cwd() /  "ESI_NEG_SRFA.d"
 
-    mz_lo, abund_lo = mspeak.lorentz_pdf()
-    mz_gauss, abund_gauss = mspeak.gaussian_pdf()
+    bruker_reader = ReadBrukerSolarix(file_location)
 
-    return round(mz_lo[0], 3), round(mz_gauss[0], 3), round(abund_lo[0], 3), round(abund_gauss[0], 3)
+    bruker_transient = bruker_reader.get_transient()
+    
+    mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
+
+    for mspeak in mass_spectrum_obj:
+        
+        mspeak.plot()
+        #mspeak.plot_simulation(datapoints=1000)
+        #mspeak.plot_simulation()
+        #TODO datapoints 
+        mspeak.plot_simulation(sim_type = "gaussian", oversample_multiplier=10)
+        mspeak.plot_simulation(sim_type = "gaussian", color='red', oversample_multiplier=1)
+
+        pyplot.show()
  
 def test_mspeak_calculations():
 
@@ -41,14 +57,9 @@ def test_mspeak_calculations():
     print( round(mspeak.kmd*100, 0)) == -89
     assert mspeak.knm == 211
 
-    print(simulate_peak(mspeak))
-    assert simulate_peak(mspeak) == (211.9, 211.9, 0.0, 0.0)
-
     mspeak.set_theoretical_resolving_power(50, 3)
 
-    simulate_peak(mspeak)
-
-
 if __name__ == '__main__':
-
-    test_mspeak_calculations()
+    
+    test_mspeaks_fit()
+    #test_mspeak_calculations()

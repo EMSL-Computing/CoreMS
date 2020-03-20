@@ -64,29 +64,8 @@ def test_create_mass_spectrum():
     
     return mass_spectrum_obj, kendrick_group_index
     
-def test_mspeaks_fit():
-    
-    file_location = Path.cwd() /  "ESI_NEG_SRFA.d"
 
-    bruker_reader = ReadBrukerSolarix(file_location)
-
-    bruker_transient = bruker_reader.get_transient()
-    
-    mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
-
-    for mspeak in mass_spectrum_obj:
-        
-        mspeak.plot()
-        #mspeak.plot_simulation(datapoints=1000)
-        #mspeak.plot_simulation()
-        
-        mspeak.plot_simulation(sim_type = "gaussian")
-       
-
-        pyplot.show()
-    
 if __name__ == "__main__":
-    test_mspeaks_fit()
     #mass_spectrum_obj, kendrick_group_index = test_create_mass_spectrum()
     #mass_spectrum_obj.plot_profile_and_noise_threshold()
     

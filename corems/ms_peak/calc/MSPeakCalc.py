@@ -1,6 +1,6 @@
 
 from scipy.stats import norm, cauchy
-from numpy import linspace, sqrt, log, trapz, pi, log
+from numpy import linspace, sqrt, log, trapz, pi, log, poly1d, polyfit
 from corems.encapsulation.constant import Atoms
 
 __author__ = "Yuri E. Corilo"
@@ -44,7 +44,7 @@ class MSPeakCalculation(object):
             
             print("Isolated Peak Object")
             
-    def voigt(self, datapoints=10000, delta_rp = 0, mz_overlay=1):
+    def voigt(self, oversample_multiplier=1, delta_rp = 0, mz_overlay=1):
         
         from lmfit import models
         
@@ -60,7 +60,7 @@ class MSPeakCalculation(object):
             
             #mz_domain = linspace(self.mz_exp - hw_base_distance,
             #                     self.mz_exp + hw_base_distance, datapoint)
-            mz_domain = self.get_mz_domain(datapoints, mz_overlay)    
+            mz_domain = self.get_mz_domain(oversample_multiplier, mz_overlay)    
             
             # gaussian_pdf = lambda x0, x, s: (1/ math.sqrt(2*math.pi*math.pow(s,2))) * math.exp(-1 * math.pow(x-x0,2) / 2*math.pow(s,2) )
             
@@ -80,7 +80,7 @@ class MSPeakCalculation(object):
             raise LookupError(
                 'resolving power is not defined, try to use set_max_resolving_power()')
 
-    def pseudovoigt(self, datapoints=10000, delta_rp = 0, mz_overlay=1, fraction =0.5):
+    def pseudovoigt(self, oversample_multiplier=1, delta_rp = 0, mz_overlay=1, fraction =0.5):
         
         from lmfit import models
         
@@ -96,7 +96,7 @@ class MSPeakCalculation(object):
             
             #mz_domain = linspace(self.mz_exp - hw_base_distance,
             #                     self.mz_exp + hw_base_distance, datapoint)
-            mz_domain = self.get_mz_domain(datapoints, mz_overlay)    
+            mz_domain = self.get_mz_domain(oversample_multiplier, mz_overlay)    
             
             # gaussian_pdf = lambda x0, x, s: (1/ math.sqrt(2*math.pi*math.pow(s,2))) * math.exp(-1 * math.pow(x-x0,2) / 2*math.pow(s,2) )
             model = models.PseudoVoigtModel()
@@ -118,26 +118,31 @@ class MSPeakCalculation(object):
             raise LookupError(
                 'resolving power is not defined, try to use set_max_resolving_power()')
 
-    def get_mz_domain(self, datapoints,mz_overlay):
+    def get_mz_domain(self, oversample_multiplier, mz_overlay):
+        
+        import matplotlib.pyplot as plt
 
         start_index = self.start_index - mz_overlay  if not self.start_index == 0 else 0
         final_index = self.final_index + mz_overlay  if not self.final_index == len(self.ms_parent.mz_exp_profile) else self.final_index
 
-               
-        if not datapoints:
+        if oversample_multiplier == 1:
                
             mz_domain = self.ms_parent.mz_exp_profile[start_index: final_index]
             
         else:
-                
-            start_mz = self.ms_parent.mz_exp_profile[start_index] 
-            final_mz = self.ms_parent.mz_exp_profile[final_index] 
-                
-            mz_domain = linspace(start_mz, final_mz, datapoints)    
+            # we assume a linear correlation for m/z and datapoits 
+            # which is only true if the m/z range in narrow (within 1 m/z unit)
+            # this is not true for a wide m/z range
+                         
+            indexes = range(start_index, final_index+1)
+            mz = self.ms_parent.mz_exp_profile[indexes]
+            pol = poly1d(polyfit(indexes, mz, 1))
+            oversampled_indexes = linspace(start_index, final_index, (final_index-start_index) * oversample_multiplier)    
+            mz_domain = pol(oversampled_indexes)
 
         return mz_domain
 
-    def lorentz(self, datapoints=None, delta_rp = 0, mz_overlay=1):
+    def lorentz(self, oversample_multiplier=1, delta_rp = 0, mz_overlay=1):
 
         from lmfit import models
 
@@ -156,7 +161,7 @@ class MSPeakCalculation(object):
             #                     self.mz_exp + hw_base_distance, datapoint)
             
             
-            mz_domain = self.get_mz_domain(datapoints, mz_overlay)    
+            mz_domain = self.get_mz_domain(oversample_multiplier, mz_overlay)    
             # gaussian_pdf = lambda x0, x, s: (1/ math.sqrt(2*math.pi*math.pow(s,2))) * math.exp(-1 * math.pow(x-x0,2) / 2*math.pow(s,2) )
             model = models.LorentzianModel()
             
@@ -173,7 +178,7 @@ class MSPeakCalculation(object):
             raise LookupError(
                 'resolving power is not defined, try to use set_max_resolving_power()')
 
-    def gaussian(self, datapoints=None, delta_rp = 0, mz_overlay=1):
+    def gaussian(self, oversample_multiplier=None, delta_rp = 0, mz_overlay=1):
         from lmfit import models
 
         # check if MSPeak contains the resolving power info
@@ -194,7 +199,7 @@ class MSPeakCalculation(object):
             #mz_domain = linspace(
             #    self.mz_exp - n_d, self.mz_exp + n_d, datapoint)
 
-            mz_domain = self.get_mz_domain(datapoints, mz_overlay)    
+            mz_domain = self.get_mz_domain(oversample_multiplier, mz_overlay)    
             
             # gaussian_pdf = lambda x0, x, s: (1/ math.sqrt(2*math.pi*math.pow(s,2))) * math.exp(-1 * math.pow(x-x0,2) / 2*math.pow(s,2) )
             

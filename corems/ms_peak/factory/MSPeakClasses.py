@@ -114,15 +114,17 @@ class _MSPeak(MSPeakCalculation):
         return bool(self.molecular_formulas)
     
     def plot_simulation(self, sim_type="lorentz_pdf", ax=None, color="green",
-                            datapoints=None, delta_rp = 0, mz_overlay=1):
-                        
+                            oversample_multiplier=1, delta_rp = 0, mz_overlay=1):
+
+                 
         if self.ms_parent:
         
             import matplotlib.pyplot as plt
             
+            x, y = eval("self."+sim_type+"(oversample_multiplier="+str(oversample_multiplier)+", delta_rp="+str(delta_rp)+", mz_overlay="+str(mz_overlay)+")")
+            
             if ax is None:
                     ax = plt.gca()
-            x, y = eval("self."+sim_type+"(datapoints="+str(datapoints)+", delta_rp="+str(delta_rp)+", mz_overlay="+str(mz_overlay)+")")
             ax.plot(x, y, color=color, label="Simulation")
             ax.set(xlabel='m/z', ylabel='abundance')
             
