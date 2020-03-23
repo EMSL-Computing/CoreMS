@@ -6,31 +6,9 @@ from dataclasses import dataclass
 
 from numpy import array
 from corems.chroma_peak.calc.ChromaPeakCalc import GCPeakCalculation 
+from corems.molecular_id.factory.EI_SQL import LowResCompoundRef
 
 
-@dataclass
-class LowResCompoundRef:
-
-    def __init__(self, compounds_dict):
-        
-        self.name = compounds_dict.get("id")
-        self.ri = compounds_dict.get("ri")
-        self.rt = compounds_dict.get("rt")
-        self.casno  = compounds_dict.get("casno")
-        self.comment  = compounds_dict.get("comment")
-        self.peaks_count = compounds_dict.get("peaks_count")
-        
-        self.mz  = compounds_dict.get('mz') 
-        self.abundance  = compounds_dict.get("abundance") 
-
-        self.source_temp_c  = compounds_dict.get("source_temp_c") 
-        self.ev  = compounds_dict.get("ev") 
-        self.formula  = compounds_dict.get("formula") 
-        self.source = compounds_dict.get("source") 
-
-        self.similarity_score = None
-        self.ri_score = None
-        self.spectral_similarity_score = None
 
 class ChromaPeakBase():
     '''

@@ -158,7 +158,7 @@ class MolForm_SQL:
                 
             
         def add_dict_formula(formulas):
-            
+            "organize data by heteroatom classes"
             for formula in formulas:
                 
                 if formula.O and formula.P:
@@ -207,16 +207,6 @@ class MolForm_SQL:
         #TODO
         #  get all classes, ion_type, ion charge as str add to a dict or list
         #  then check if class in database
-        # 
-        #  
-        # this is way too slow, create a pos and neg table
-        #try:
-        #yes = self.session.query(MolecularFormulaTable.id).filter(MolecularFormulaTable.classe==classe).filter(MolecularFormulaTable.ion_charge == molecular_search_settings.ion_charge).scalar() is not None
-        
-        #except MultipleResultsFound as e:
-        #    yes = True
-        #except MultipleResultsFound as e:
-        #    yes = True
         yes = self.session.query(exists().where(
             (MolecularFormulaTable.classe == classe) &
             (MolecularFormulaTable.ion_type == ion_type) &
