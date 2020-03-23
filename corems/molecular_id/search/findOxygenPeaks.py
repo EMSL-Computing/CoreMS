@@ -175,7 +175,7 @@ class FindOxygenPeaks(Thread):
         
         max_mz = mass_spectrum_obj.max_mz_exp
         
-        initial_nominal_mass = molecular_formula_obj_reference.mz_nominal_theo
+        initial_nominal_mass = molecular_formula_obj_reference.mz_nominal_calc
         
         mass = initial_nominal_mass
         

@@ -48,7 +48,7 @@ def test_query_sql():
         print('ion_type', ion_type)
         classe = 'O8'
         nominal_mz = 501
-        print('total mol formulas found: ', len(sqldb.get_entries(classe, ion_type, nominal_mz, MolecularSearchSettings)))
+        print('total mol formulas found: ', len(list( sqldb.get_entries(classe, ion_type, nominal_mz, MolecularSearchSettings))))
 
     
 if __name__ == '__main__':
@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     #settings_parsers.load_search_setting_yaml()
     #settings_parsers.load_search_setting_json()
-    test_nist_to_sql()    
+    #test_nist_to_sql()    
     #test_query_sql()
     #xtest_query_mongo()
    

@@ -3,13 +3,14 @@ __date__ = "Oct 24, 2019"
 
 from threading import Thread
 from pathlib import Path
-import sys, re
+import sys, re, pickle
 
 sys.path.append('.')
 
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.constant import Atoms
+from corems.molecular_id.factory.molecularSQL import MolecularFormulaTable
 
 class ImportMassListRef():#Thread
 
@@ -23,6 +24,25 @@ class ImportMassListRef():#Thread
                 tb = sys.exc_info()[2]
                 raise FileNotFoundError(ref_file_location).with_traceback(tb)
     
+    def molecular_formula_ref( self, molecular_formula):
+
+        return MolecularFormulaTable( {"mol_formula" : pickle.dumps(molecular_formula.to_dict),
+                                    "mz" : molecular_formula.mz_calc,
+                                    "nominal_mz" : molecular_formula.mz_nominal_calc,
+                                    "ion_type" : molecular_formula.ion_type,
+                                    "ion_charge" : molecular_formula.ion_charge,
+                                    "classe" : molecular_formula.class_label,
+                                    "C" : molecular_formula.get('C'),
+                                    "H" : molecular_formula.get('H'),
+                                    "N" : molecular_formula.get('N'),
+                                    "O" : molecular_formula.get('O'),
+                                    "S" : molecular_formula.get('S'),
+                                    "P" : molecular_formula.get('P'),
+                                    "H_C" : molecular_formula.get('H')/molecular_formula.get('C'),
+                                    "O_C" : molecular_formula.get('O')/molecular_formula.get('C'),
+                                    "DBE" : molecular_formula.dbe}
+                                )
+
     def from_bruker_ref_file(self):
 
         import csv
@@ -51,7 +71,7 @@ class ImportMassListRef():#Thread
 
                     formula_dict = self.mformula_s_to_dict(ion_mol_formula)
                     
-                    list_mf_obj.append(MolecularFormula(formula_dict, ion_charge))
+                    list_mf_obj.append(self.molecular_formula_ref(MolecularFormula(formula_dict, ion_charge)))
         
         return  list_mf_obj           
 
@@ -74,7 +94,10 @@ class ImportMassListRef():#Thread
                     formula_string = list_ref[0]
                     ion_charge = int(list_ref[1])
                     ion_type = list_ref[2]
-                    list_mf_obj.append(MolecularFormula(formula_string, ion_charge, ion_type=ion_type))
+
+                    molform = MolecularFormula(formula_string, ion_charge, ion_type=ion_type)
+                    
+                    list_mf_obj.append(self.molecular_formula_ref(molform))
 
         return  list_mf_obj           
 

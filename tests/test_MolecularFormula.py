@@ -18,13 +18,13 @@ def test_molecular_formula():
     ion_charge = 1 
     formula_obj = MolecularFormula(formula_dict, ion_charge)
     print("ion_type", formula_obj.ion_type)
-    assert round(formula_obj.mz_theor,2) == round(349.886303060457,2)
+    assert round(formula_obj.mz_calc,2) == round(349.886303060457,2)
     
     min_abundance, current_abundance = 1,1 
     #print(min_abundance, current_abundance)
     isotopologues = list(formula_obj.isotopologues(0.01, current_abundance))
     
-    assert round(isotopologues[0].mz_theor,2) == round(351.883352980637,2)
+    assert round(isotopologues[0].mz_calc,2) == round(351.883352980637,2)
     assert round(isotopologues[0].prob_ratio,2) == round(0.6399334750069298,2)
     assert isotopologues[0].to_string == 'C10 O10 Cl1 37Cl1'
     
@@ -42,7 +42,7 @@ def test_molecular_formula():
     for isotopologue_obj in formula_obj.isotopologues(0.01, current_abundance):
         
         print("formula:", isotopologue_obj.to_string, 
-              "mz_theor:", isotopologue_obj.mz_theor,
+              "mz_calc:", isotopologue_obj.mz_calc,
               "prob_ratio:", isotopologue_obj.prob_ratio)
       '''
 

@@ -2,8 +2,6 @@
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
-from dataclasses import dataclass
-
 from numpy import array
 from corems.chroma_peak.calc.ChromaPeakCalc import GCPeakCalculation 
 from corems.molecular_id.factory.EI_SQL import LowResCompoundRef

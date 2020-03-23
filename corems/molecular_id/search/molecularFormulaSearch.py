@@ -4,12 +4,14 @@ __date__ = "Jul 29, 2019"
 import os, time
 from os.path import join
 from copy import deepcopy
+import pickle 
 
 from corems.encapsulation.constant import Labels
 from corems.molecular_id.factory.MolecularLookupTable import  MolecularCombinations
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.molecular_id.calc.MolecularFilter import MolecularFormulaSearchFilters
+from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 
 
 last_error = 0
@@ -110,7 +112,7 @@ class SearchMolecularFormulas:
                 
                     if possible_formulas:
                         
-                        is_adduct = self.check_adduct_class(possible_formulas[0].class_dict)
+                        is_adduct = self.check_adduct_class(pickle.loads(possible_formulas[0].id))
                         
                         if not is_adduct and self.mass_spectrum_obj.molecular_search_settings.isRadical:
                             
@@ -144,7 +146,7 @@ class SearchMolecularFormulas:
                 
                     if possible_formulas:
                         
-                        is_adduct = self.check_adduct_class(possible_formulas[0].class_dict)
+                        is_adduct = self.check_adduct_class(pickle.loads(possible_formulas[0].id))
                         
                         if not is_adduct:
                             
@@ -291,7 +293,7 @@ class SearchMolecularFormulas:
         
         for mf in possible_formulas_list:
             
-            nm = mf.mz_nominal_theo
+            nm = mf.nominal_mz
             
             if nm in possible_formulas_dict_nm.keys():
                 
@@ -395,7 +397,28 @@ class SearchMolecularFormulaWorker:
         '''returns the error based on the selected method at mass_spectrum_obj.molecular_search_settings.method
         '''    
         
+    @staticmethod
+    def calc_assignment_mass_error(mz_exp, mz_calc, method='ppm'):
         
+        '''method should be ppm or ppb'''
+         
+        if method == 'ppm':
+            multi_factor = 1000000
+        
+        elif method == 'ppb':
+            multi_factor = 1000000
+        
+        else:
+            raise Exception("method needs to be ppm or ppb, you have entered %s" % method)
+              
+        if mz_exp:
+            
+            return ((mz_calc - mz_exp)/mz_calc)*multi_factor        
+        
+        else:
+            
+            raise Exception("Please set mz_calc first")    
+
     def find_formulas(self, possible_formulas, min_abundance, 
                       mass_spectrum_obj, ms_peak):
         '''
@@ -425,7 +448,9 @@ class SearchMolecularFormulaWorker:
             
             if possible_formula:
                 
-                error = possible_formula._calc_assignment_mass_error(ms_peak_mz_exp)
+                error = self.calc_assignment_mass_error(ms_peak_mz_exp, possible_formula.mz)
+                
+                #error = possible_formula._calc_assignment_mass_error(ms_peak_mz_exp)
                
                 if  min_ppm_error  <= error <= max_ppm_error:
                     
@@ -435,22 +460,33 @@ class SearchMolecularFormulaWorker:
                    
                     #add molecular formula match to ms_peak
                     
-                    possible_formula.set_assignment_mass_error(error)
+                    # get molecular formula dict from sql obj
+                    formula_dict = pickle.loads(possible_formula.id)
 
-                    ms_peak.add_molecular_formula(possible_formula)
+                    # create the molecular formula obj to be stored
+                    molecular_formula = MolecularFormula(formula_dict, possible_formula.ion_charge)
+
+                    # set the mass error 
+                    molecular_formula.set_assignment_mass_error(error)
+
+                    # add the molecular formula obj to the mspeak obj
+                    ms_peak.add_molecular_formula(molecular_formula)
                     
-                    mspeak_assigned_index.append((ms_peak.index, possible_formula))
+                    # add the mspeak obj and it's index for tracking next assignment step
+                    mspeak_assigned_index.append((ms_peak.index, molecular_formula))
                     
                     if self.find_isotopologues:
-                        #calculates and look for isotopologues
-                        isotopologues = possible_formula.isotopologues(min_abundance, ms_peak_abundance)
                         
+                        # calculates isotopologues
+                        isotopologues = molecular_formula.isotopologues(min_abundance, ms_peak_abundance)
+                        
+                        # search for isotopologues
                         for isotopologue_formula in isotopologues:
                            
-                            possible_formula.expected_isotopologues.append(isotopologue_formula)
+                            molecular_formula.expected_isotopologues.append(isotopologue_formula)
                             #move this outside to improve preformace
                             #we need to increase the search space to -+1 m_z 
-                            first_index, last_index = mass_spectrum_obj.get_nominal_mz_first_last_indexes(isotopologue_formula.mz_nominal_theo)
+                            first_index, last_index = mass_spectrum_obj.get_nominal_mz_first_last_indexes(isotopologue_formula.mz_nominal_calc)
                             
                             for ms_peak_iso in mass_spectrum_obj[first_index:last_index]:
                                 
@@ -478,7 +514,7 @@ class SearchMolecularFormulaWorker:
                                         isotopologue_formula.mspeak_index_mono_isotopic = ms_peak.index
                                         
                                         #add mspeaks isotopologue index to the mono isotopic MolecularFormula obj and the respective formula position  
-                                        possible_formula.mspeak_mf_isotopologues_indexes.append((ms_peak_iso.index, isotopologue_formula))
+                                        molecular_formula.mspeak_mf_isotopologues_indexes.append((ms_peak_iso.index, isotopologue_formula))
 
         return mspeak_assigned_index
 

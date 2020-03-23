@@ -10,7 +10,11 @@ import pickle
 from corems.encapsulation.settings.processingSetting import MolecularLookupDictSettings
 from corems.encapsulation.constant import Labels
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
-from corems.molecular_id.factory.molecularSQL import MolForm_SQL
+
+from corems.molecular_id.factory.molecularSQL import MolForm_SQL, MolecularFormulaTable
+
+MolecularFormulaTable
+
 
 #from corems.molecular_id.factory.molecularMongo import MolForm_Mongo as molform_db
 
@@ -317,10 +321,7 @@ class CombinationsWorker:
   
     def insert_formula_db(self, list_mf, settings):
 
-        if len(list_mf) > 0:
-        
-            self.sql_db.add_all(list_mf)
-        
+        self.sql_db.add_all(list_mf)
     
     def get_mol_formulas(self,carbon_hydrogen_combination,
                     ion_type,
@@ -337,6 +338,7 @@ class CombinationsWorker:
         
         list_formulas = []
         for cada_possible in carbon_hydrogen_combination:
+            
             c_number = cada_possible[0]
             h_number = cada_possible[1]
             
@@ -350,38 +352,38 @@ class CombinationsWorker:
             formula_dict[Labels.ion_type] = ion_type
 
             molecular_formula = MolecularFormula(formula_dict, ion_charge)
-            DBE = molecular_formula.dbe
-            nominal_mass = molecular_formula.mz_nominal_theo
+            
+            mz = molecular_formula._calc_mz()
 
-            # one second overhead to create and serialize the molecular formula object
-            #DBE = self.get_DBE(formula_dict, 1)
-            #nominal_mass = int(self.getMass(formula_dict, ion_charge))
+            dbe = molecular_formula._calc_dbe()
+
+            formula_dict = molecular_formula.to_dict
+
+            nominal_mass = molecular_formula.mz_nominal_calc
 
             if min_mz <= nominal_mass <= max_mz:
                 
-                if min_dbe <= DBE <= max_dbe:
+                if min_dbe <= dbe <= max_dbe:
                     
-                    dict_results = {}
-                    dict_results['nominal_mz'] = nominal_mass
-                    dict_results['mol_formula'] =  Binary(pickle.dumps(molecular_formula))
-                    dict_results['ion_type'] = ion_type
-                    dict_results['ion_charge'] = ion_charge
-                    dict_results['classe'] = class_str
+                    dict_results = MolecularFormulaTable( {"mol_formula" : Binary(pickle.dumps(formula_dict)),
+                                    "mz" : mz,
+                                    "nominal_mz" : nominal_mass,
+                                    "ion_type" : ion_type,
+                                    "ion_charge" : ion_charge,
+                                    "classe" : class_str,
+                                    "C" : molecular_formula.get('C'),
+                                    "H" : molecular_formula.get('H'),
+                                    "N" : molecular_formula.get('N'),
+                                    "O" : molecular_formula.get('O'),
+                                    "S" : molecular_formula.get('S'),
+                                    "P" : molecular_formula.get('P'),
+                                    "H_C" : molecular_formula.get('H')/molecular_formula.get('C'),
+                                    "O_C" : molecular_formula.get('O')/molecular_formula.get('C'),
+                                    "DBE" : dbe}
+                                )
                     
-                    dict_results['C'] = molecular_formula['C']
-                    dict_results['H'] = molecular_formula['H']
-                    dict_results['N'] = molecular_formula['N']
-                    dict_results['O'] = molecular_formula['O']
-                    dict_results['S'] = molecular_formula['S']
-                    dict_results['P'] = molecular_formula['P']
-                    dict_results['O_C'] = molecular_formula['O']/molecular_formula['C']
-                    dict_results['H_C'] = molecular_formula['H']/molecular_formula['C']
-                    dict_results['DBE'] = molecular_formula.dbe
-                    
-                    list_formulas.append(dict_results)
-
-        return list_formulas
-        
+                    yield dict_results
+               
     def get_h_impar_ou_par(self, ion_type, class_dict):
 
         

@@ -193,15 +193,15 @@ class HeteroatomsClassification(Mapping):
                 
                 return [mf._calc_assignment_mass_error(mspeak.mz_exp) for mspeak in self[classe] for mf in mspeak if mf.class_label == classe]
     
-    def mz_theor(self, classe):
+    def mz_calc(self, classe):
         
         if self.choose_mf:
             
-            return [mspeak.best_molecular_formula_candidate.mz_theor for mspeak in self[classe]]
+            return [mspeak.best_molecular_formula_candidate.mz_calc for mspeak in self[classe]]
         
         else:
             
-            return [mf.mz_theor for mspeak in self[classe] for mf in mspeak if mf.class_label == classe] 
+            return [mf.mz_calc for mspeak in self[classe] for mf in mspeak if mf.class_label == classe] 
 
     def peaks_count_percentile(self, classe):
 
@@ -274,7 +274,7 @@ class HeteroatomsClassification(Mapping):
 
                         dict_result = {'mz':  ms_peak._mz_exp,
                                 'calibrated_mz': ms_peak.mz_exp,
-                                'calculated_mz': m_formula.mz_theor,
+                                'calculated_mz': m_formula.mz_calc,
                                 'abundance': ms_peak.abundance,
                                 'resolving_power': ms_peak.resolving_power,
                                 'sn':  ms_peak.signal_to_noise,

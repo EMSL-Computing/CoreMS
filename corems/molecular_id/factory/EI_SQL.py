@@ -4,9 +4,9 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Feb 12, 2020"
 
 import os 
+from dataclasses import dataclass
 
-
-from sqlalchemy import create_engine, Column, Integer, String, Float,  exists
+from sqlalchemy import create_engine, Column, Integer, String, Float,  exists, Binary
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker

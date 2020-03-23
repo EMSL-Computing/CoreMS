@@ -326,7 +326,7 @@ class HighResMassSpecExport(Thread):
             dict_result = {'Index': index,
                            'm/z':  ms_peak._mz_exp,
                            'Calibrated m/z': ms_peak.mz_exp,
-                           'Calculated m/z': m_formula.mz_theor,
+                           'Calculated m/z': m_formula.mz_calc,
                            'Peak Height': ms_peak.abundance,
                            'Resolving Power': ms_peak.resolving_power,
                            'S/N':  ms_peak.signal_to_noise,

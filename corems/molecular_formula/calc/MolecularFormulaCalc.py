@@ -13,20 +13,20 @@ class MolecularFormulaCalc:
         #T << collisional damping time 
         #T = transient time (seconds)
         #B = Magnetic Strenght (Testa)
-        return (1.274 * 10000000 * B * T) *(1/self.mz_theor)    
+        return (1.274 * 10000000 * B * T) *(1/self.mz_calc)    
 
     def _calc_resolving_power_high_pressure(self, B, t):
         #T << collisional damping time 
         # t= collisional dumping contanst
         #T = transient time (seconds)
         #B = Magnetic Strenght (Testa)
-        return (2.758 * 10000000 * B * T) *(1/self.mz_theor)    
+        return (2.758 * 10000000 * B * T) *(1/self.mz_calc)    
 
     def _calc_confidence_score(self):
         raise NotImplementedError
         
     
-    def _calc_mz_theor(self):
+    def _calc_mz(self):
         
         if self.ion_charge:
             
@@ -51,30 +51,27 @@ class MolecularFormulaCalc:
         self._assignment_mass_error = error
     
     def _calc_assignment_mass_error(self, mz_exp, method='ppm'):
-        '''methodo should be ppm or ppb'''
         
-        Hum_Milhao = 1000000
-        Hum_Bilhao = 1000000000        
-        
+        '''method should be ppm or ppb'''
+         
         if method == 'ppm':
-            mult_factor = Hum_Milhao
+            multi_factor = 1000000
         
         elif method == 'ppb':
-            mult_factor = Hum_Bilhao
+            multi_factor = 1000000
         
         else:
             raise Exception("method needs to be ppm or ppb, you have entered %s" % method)
               
         if mz_exp:
             
-            #self.parent need to have a MassSpecPeak associated with the MolecularFormula class
-            self._assignment_mass_error = ((self.mz_theor - mz_exp)/self.mz_theor)*mult_factor
+            self._assignment_mass_error = ((self.mz_calc - mz_exp)/self.mz_calc)*multi_factor
 
-            return ((self.mz_theor - mz_exp)/self.mz_theor)*mult_factor
+            return ((self.mz_calc - mz_exp)/self.mz_calc)*multi_factor
         
         else:
             
-            raise Exception("Please set mz_theor first")    
+            raise Exception("Please set mz_calc first")    
     
     def _calc_abundance_error(self, mono_abundance, iso_abundance, method='perc'):
         '''method should be ppm or ppb'''
@@ -128,7 +125,7 @@ class MolecularFormulaCalc:
         for atom in dict_base.keys():
             mass = mass + Atoms.atomic_masses.get(atom) * dict_base.get(atom)
         
-        kendrick_mass = (int(mass)/mass)*self.mz_theor
+        kendrick_mass = (int(mass)/mass)*self.mz_calc
         
         nominal_km =int(kendrick_mass)
        

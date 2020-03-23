@@ -39,9 +39,9 @@ def create_mass_spectrum():
 
 def test_run_molecular_formula_search():
 
-    MolecularSearchSettings.usedAtoms['F'] = (0,1)
-    MolecularSearchSettings.usedAtoms['P'] = (0,1)
-    MolecularSearchSettings.usedAtoms['Cl'] = (0,1)
+    MolecularSearchSettings.usedAtoms['F'] = (0,0)
+    MolecularSearchSettings.usedAtoms['P'] = (0,0)
+    MolecularSearchSettings.usedAtoms['Cl'] = (0,0)
     MolecularSearchSettings.isAdduct = True
 
     MolecularSearchSettings.used_atom_valences['P'] = 1

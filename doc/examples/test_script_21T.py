@@ -77,18 +77,18 @@ if __name__ == "__main__":
 
         mass_spectrum_by_classes.plot_mz_error_class(classe)
 
-        mz_theor_l = mass_spectrum_by_classes.mz_theor(classe)
+        mz_calc_l = mass_spectrum_by_classes.mz_calc(classe)
 
         mf_l = mass_spectrum_by_classes.molecular_formula(classe)
 
         print("# Name; m/z value; charge; ion formula; collision cross section [A^2]")
         
 
-        for index, mz_theor in enumerate(mz_theor_l):
+        for index, mz_calc in enumerate(mz_calc_l):
 
-            #print("%s : %s : %s : %.6f : 1+ : %s" %(classe, mf_l[index].class_label, mf_l[index].to_string, mz_theor, mf_l[index].to_string))
+            #print("%s : %s : %s : %.6f : 1+ : %s" %(classe, mf_l[index].class_label, mf_l[index].to_string, mz_calc, mf_l[index].to_string))
             
-            print("%s %.6f 1+ %s" %(mf_l[index].to_string.replace(' ', ''), mz_theor, mf_l[index].to_string.replace(' ', '')))
+            print("%s %.6f 1+ %s" %(mf_l[index].to_string.replace(' ', ''), mz_calc, mf_l[index].to_string.replace(' ', '')))
         
         plt.show()
 

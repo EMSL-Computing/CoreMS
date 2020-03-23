@@ -284,7 +284,7 @@ class ICRMassPeak(_MSPeak):
         '''
         return (1.274e7 * self.ion_charge * B * T)/ (self.mz_exp*self.ion_charge)
 
-    def set_theoretical_resolving_power(self, B, T):
+    def set_calcretical_resolving_power(self, B, T):
 
         self.resolving_power = self.resolving_power_calc(B, T) 
         
@@ -294,7 +294,7 @@ class TOFMassPeak(_MSPeak):
 
         super().__init__(*args,exp_freq=exp_freq)
 
-    def set_theoretical_resolving_power(self):
+    def set_calcretical_resolving_power(self):
         return 0
 
 class OrbiMassPeak(_MSPeak):
@@ -303,6 +303,6 @@ class OrbiMassPeak(_MSPeak):
 
         super().__init__(*args,exp_freq=exp_freq)
 
-    def set_theoretical_resolving_power(self):
+    def set_calcretical_resolving_power(self):
         return 0       
 

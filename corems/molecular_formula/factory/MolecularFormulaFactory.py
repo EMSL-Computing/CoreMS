@@ -124,13 +124,13 @@ class MolecularFormula(MolecularFormulaCalc):
     def dbe(self): return self._calc_dbe()
     
     @property
-    def mz_nominal_theo(self): return int(self._calc_mz_theor())
+    def mz_nominal_calc(self): return int(self._calc_mz())
 
     @property    
     def mz_error(self): return self._assignment_mass_error
     
     @property
-    def mz_theor(self): return self._calc_mz_theor()
+    def mz_calc(self): return self._calc_mz()
 
     @property
     def ion_type(self): 

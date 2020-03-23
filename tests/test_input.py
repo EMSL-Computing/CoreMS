@@ -92,7 +92,7 @@ def test_import_lcms_from_transient():
         for mspeak in ms:
             #mspeak.mz_exp,mspeak.mz_abund 
             for mf in mspeak:
-                mf.to_string, mf.mz_theor, mf.is_isotopologue    
+                mf.to_string, mf.mz_calc, mf.is_isotopologue    
                 pass
 
 
