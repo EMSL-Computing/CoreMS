@@ -303,7 +303,7 @@ class CombinationsWorker:
            
             ion_type = Labels.radical_ion
             
-            odd_or_even = self.get_h_odd_or_even(ion_type, class_dict)
+            odd_or_even = self.get_h_odd_or_even(ion_type, class_dict, settings )
 
             carbon_hydrogen_combination = c_h_combinations.get(odd_or_even)
 
