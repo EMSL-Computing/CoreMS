@@ -20,17 +20,13 @@ def test_mspeaks_fit():
     bruker_transient = bruker_reader.get_transient()
     
     mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
-
-    for mspeak in mass_spectrum_obj:
-        
-        mspeak.plot()
-        #mspeak.plot_simulation(datapoints=1000)
-        #mspeak.plot_simulation()
-        #TODO datapoints 
-        mspeak.plot_simulation(sim_type = "gaussian", oversample_multiplier=10)
-        mspeak.plot_simulation(sim_type = "gaussian", color='red', oversample_multiplier=1)
-
-        pyplot.show()
+    i = 0    
+    
+    mass_spectrum_obj[3].plot_simulation()
+    mass_spectrum_obj[3].plot_simulation(sim_type = "gaussian", oversample_multiplier=10)
+    mass_spectrum_obj[3].plot_simulation()
+  
+    #pyplot.show()
  
 def test_mspeak_calculations():
 

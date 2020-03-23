@@ -5,9 +5,9 @@ __date__ = "Jun 12, 2019"
 
 from corems.encapsulation.settings.processingSetting import MassSpecPeakSetting
 from corems.encapsulation.settings.processingSetting import MolecularSearchSettings
-
 from corems.ms_peak.calc.MSPeakCalc import MSPeakCalculation
 
+#from corems import timeit
 class _MSPeak(MSPeakCalculation):
     '''
     classdocs
@@ -113,7 +113,7 @@ class _MSPeak(MSPeakCalculation):
 
         return bool(self.molecular_formulas)
     
-    def plot_simulation(self, sim_type="lorentz_pdf", ax=None, color="green",
+    def plot_simulation(self, sim_type="lorentz", ax=None, color="green",
                             oversample_multiplier=1, delta_rp = 0, mz_overlay=1):
 
                  
@@ -130,7 +130,7 @@ class _MSPeak(MSPeakCalculation):
             
             plt.legend()
             return ax
-            
+           
     def plot(self, ax=None, color="black"): #pragma: no cover
         
         if self.ms_parent:
@@ -145,7 +145,7 @@ class _MSPeak(MSPeakCalculation):
             ax.plot(x, y, color=color, label="Data")
             ax.set(xlabel='m/z', ylabel='abundance')
         
-            plt.legend()
+            #plt.legend()
         
             return ax
         
