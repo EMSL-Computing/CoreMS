@@ -4,12 +4,11 @@ from pathlib import Path
 
 from pandas import DataFrame
 
-from numpy import power, dot
+from numpy import power, dot, absolute, subtract, sum
 from numpy.linalg import norm
-
-from scipy.spatial.distance import cosine
-from sklearn.metrics.pairwise import cosine_similarity
+from scipy.spatial.distance import cosine, jaccard, euclidean, cityblock
 from scipy.stats import pearsonr, spearmanr, kendalltau
+from sklearn.metrics.pairwise import cosine_similarity
 from math import exp
 
 from corems.molecular_id.input.nistMSI import ReadNistMSI
@@ -165,6 +164,77 @@ class LowResMassSpectralMatch(Thread):
 
         return correlation
 
+
+    def euclidean_distance(self, mass_spec, ref_obj):
+        
+        def euclidean_distance_manual(qlist,rlist):
+
+            T1=sum(subtract(qlist,rlist)**2)
+
+            T2=sum((qlist)**2)
+
+            T3=(1+T1/T2)**(-1)
+            
+        # create dict['mz'] = abundance, for experimental data
+        ms_mz_abun_dict = mass_spec.mz_abun_dict
+
+        # create dict['mz'] = abundance, for experimental data
+        ref_mz_abun_dict = dict(zip(ref_obj.get("mz"), ref_obj.get("abundance")))
+
+        # parse to dataframe, easier to zerofill and tranpose
+        df = DataFrame([ms_mz_abun_dict, ref_mz_abun_dict])
+
+        # fill missing mz with abundance 0
+        df.fillna(0, inplace=True)
+        
+        # calculate Pearson correlation
+        correlation = euclidean(df.T[0], df.T[1])
+
+        return correlation
+
+    def manhattan_distance(self, mass_spec, ref_obj):
+        
+        def mann_distance_manual(qlist,rlist):
+        
+            T1=sum(absolute(subtract(qlist,rlist)))
+            T2=sum(qlist)
+            T3=(1+T1/T2)**(-1)
+
+        # create dict['mz'] = abundance, for experimental data
+        ms_mz_abun_dict = mass_spec.mz_abun_dict
+
+        # create dict['mz'] = abundance, for experimental data
+        ref_mz_abun_dict = dict(zip(ref_obj.get("mz"), ref_obj.get("abundance")))
+
+        # parse to dataframe, easier to zerofill and tranpose
+        df = DataFrame([ms_mz_abun_dict, ref_mz_abun_dict])
+
+        # fill missing mz with abundance 0
+        df.fillna(0, inplace=True)
+        
+        # calculate Pearson correlation
+        correlation = cityblock(df.T[0], df.T[1])
+
+        return correlation
+
+    def jaccard_distance(self, mass_spec, ref_obj):
+
+        # create dict['mz'] = abundance, for experimental data
+        ms_mz_abun_dict = mass_spec.mz_abun_dict
+
+        # create dict['mz'] = abundance, for experimental data
+        ref_mz_abun_dict = dict(zip(ref_obj.get("mz"), ref_obj.get("abundance")))
+
+        # parse to dataframe, easier to zerofilland tranpose
+        df = DataFrame([ms_mz_abun_dict, ref_mz_abun_dict])
+
+        # fill missing mz with abundance 0
+        df.fillna(0, inplace=True)
+        
+        # calculate Pearson correlation
+        correlation = jaccard(df.T[0], df.T[1])
+
+        return correlation
 
     def run(self):
         
