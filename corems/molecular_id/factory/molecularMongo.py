@@ -4,7 +4,11 @@ from pymongo import MongoClient
 from corems.encapsulation.settings.processingSetting import MolecularSearchSettings
 
 class MolForm_Mongo:
-
+    
+    '''this class is outdated
+    'exists only for reference
+    '''
+    
     def __exit__(self, exc_type, exc_val, exc_tb):
         # make sure the dbconnection gets closed
         self.client.close()
