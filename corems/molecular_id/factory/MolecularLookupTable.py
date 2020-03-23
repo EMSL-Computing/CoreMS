@@ -385,7 +385,7 @@ class CombinationsWorker:
         HAS_NITROGEN = 'N' in class_dict.keys()
         HAS_PHOSPHORUS = 'P' in class_dict.keys()
 
-        number_of_halogen = self.get_total_halogen_atoms(class_dict)
+        number_of_halogen = self.get_total_halogen_atoms(class_dict, molecular_search_settings)
 
         if number_of_halogen > 0:
 
