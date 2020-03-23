@@ -525,7 +525,7 @@ class CombinationsWorker:
             
             for atom in atoms:
 
-                TEM_HALOGEN = atom in class_dict.keys(atom)
+                TEM_HALOGEN = atom in class_dict.keys()
 
                 if TEM_HALOGEN:
 
