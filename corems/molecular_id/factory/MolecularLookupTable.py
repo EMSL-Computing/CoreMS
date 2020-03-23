@@ -10,13 +10,7 @@ import pickle
 from corems.encapsulation.settings.processingSetting import MolecularLookupDictSettings
 from corems.encapsulation.constant import Labels
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
-
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL, MolecularFormulaTable
-
-MolecularFormulaTable
-
-
-#from corems.molecular_id.factory.molecularMongo import MolForm_Mongo as molform_db
 
 class MolecularCombinations:
      
@@ -237,8 +231,8 @@ class MolecularCombinations:
         
         return join_dict_classes
 
-    
-    def get_fixed_initial_number_of_hidrogen(self, min_h, odd_even):
+    @staticmethod
+    def get_fixed_initial_number_of_hidrogen( min_h, odd_even):
 
         remaining_h = min_h % 2
         
@@ -295,7 +289,7 @@ class CombinationsWorker:
 
             ion_type = Labels.protonated_de_ion
 
-            par_ou_impar = self.get_h_impar_ou_par(ion_type, class_dict)
+            par_ou_impar = self.get_h_impar_ou_par(ion_type, class_dict, settings)
 
             carbon_hydrogen_combination = c_h_combinations.get(par_ou_impar)
 
@@ -323,7 +317,8 @@ class CombinationsWorker:
 
         self.sql_db.add_all(list_mf)
     
-    def get_mol_formulas(self,carbon_hydrogen_combination,
+    @staticmethod
+    def get_mol_formulas(carbon_hydrogen_combination,
                     ion_type,
                     classe_tuple,
                     min_dbe,
@@ -384,7 +379,7 @@ class CombinationsWorker:
                     
                     yield dict_results
                
-    def get_h_impar_ou_par(self, ion_type, class_dict):
+    def get_h_impar_ou_par(self, ion_type, class_dict, molecular_search_settings):
 
         
         TEM_NITROGENIO = 'N' in class_dict.keys()
@@ -524,21 +519,22 @@ class CombinationsWorker:
 
     @staticmethod
     
-    def get_total_halogen_atoms(class_dict):
+    def get_total_halogen_atoms(class_dict, molecular_search_settings):
 
             atoms = ['F', 'Cl', 'Br', 'I']
 
             total_number = 0
-            '''
+            
             for atom in atoms:
 
-                TEM_HALOGEN = in class_dict.keys(atom)
+                TEM_HALOGEN = atom in class_dict.keys(atom)
 
                 if TEM_HALOGEN:
 
-                    valencia = Recal_Assign_Settings.selection_of_atoms.get(atom)[3]
+                    valencia = molecular_search_settings.used_atom_valences.get(atom)
 
-                    if valencia == 1:
+                    if valencia != 0:
+                        
                         total_number = total_number + class_dict.get(atom)
-            '''
+            
             return total_number    
