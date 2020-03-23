@@ -2,7 +2,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 import sys
-sys.path.append("C:\\Users\\eber373\\Desenvolvimento\\Projects-Python\\CoreMS")
+sys.path.append("./")
 
 from pathlib import Path
 
@@ -12,9 +12,7 @@ from PySide2.QtCore import Qt
 
 from corems.mass_spectra.input import rawFileReader
 from corems.mass_spectrum.factory.classification import HeteroatomsClassification, Labels
-
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
-
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 import sys
-sys.path.append("C:\\Users\\eber373\\Desenvolvimento\\Projects-Python\\CoreMS")
+sys.path.append("./")
 
 from pathlib import Path
 
