@@ -82,7 +82,7 @@ def set_settings_for_bromothymol_blue(mass_spectrum):
     mass_spectrum.molecular_search_settings.usedAtoms['O'] = (5,5)
     mass_spectrum.molecular_search_settings.usedAtoms['N'] = (0,0)
     mass_spectrum.molecular_search_settings.usedAtoms['S'] = (1,1)
-    mass_spectrum.molecular_search_settings.usedAtoms['Br'] = (4,4)
+    mass_spectrum.molecular_search_settings.usedAtoms['Br'] = (2,2)
 
     #enables the search for Br compounds 
     mass_spectrum.molecular_search_settings.adduct_atoms_neg = ['Cl', 'F']
@@ -148,7 +148,7 @@ if __name__ == "__main__":
                     
                         if mf.is_isotopologue:
                             
-                            #ax.annotate(round(mf.abundance_error,1), (mspeak.mz_exp+0.2, mspeak.abundance), label="Error (%)")
+                            #ax.annotate(round(mf.area_error,1), (mspeak.mz_exp+0.2, mspeak.abundance), label="Error (%)")
                             list_dict.append( {
                                 
                                 "Sample Name" : mass_spectrum.sample_name, 
@@ -196,10 +196,10 @@ if __name__ == "__main__":
             #            handout.append(h)
             
             #plt.legend(handout, lablout)
-            plt.xlim(685,695)
+            plt.xlim(620,630)
             plt.show()
         
-        export(list_dict, "Bromphenol Blue C19 H10 Br4 O5 S")
+        export(list_dict, "Bromphenol Blue C27 H28 Br2 O5 S1")
             
         
         # Bromothymol Blue –  C27H28Br2O5S -  622.002380
