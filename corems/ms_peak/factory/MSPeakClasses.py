@@ -3,6 +3,7 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
+from copy import deepcopy
 from corems.encapsulation.settings.processingSetting import MassSpecPeakSetting
 from corems.encapsulation.settings.processingSetting import MolecularSearchSettings
 from corems.ms_peak.calc.MSPeakCalc import MSPeakCalculation
@@ -30,7 +31,7 @@ class _MSPeak(MSPeakCalculation):
         self.index = int(index)
         self.ms_parent = ms_parent
 
-        #self._area = self.calc_area()
+        self._area = self.calc_area()
 
         # updated after calibration'
         self.mz_cal = None
@@ -71,9 +72,13 @@ class _MSPeak(MSPeakCalculation):
             kendrick_dict_base)
 
     def add_molecular_formula(self, molecular_formula_obj):
-       
-        self.molecular_formulas.append(molecular_formula_obj)
-    
+        
+        "freeze state"
+        new_mol_formula = deepcopy(molecular_formula_obj)
+
+        self.molecular_formulas.append(new_mol_formula)
+
+        return new_mol_formula
     def remove_molecular_formula(self, mf_obj):
         
         self.molecular_formulas.remove(mf_obj)

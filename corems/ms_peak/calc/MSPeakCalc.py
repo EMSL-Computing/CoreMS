@@ -34,15 +34,10 @@ class MSPeakCalculation(object):
 
     def calc_area(self, dx=1):
         
-        if self.ms_parent:
+        yy = self.ms_parent.abundance_profile[self.start_index:self.final_index]
             
-            yy = self.ms_parent.abundance_profile[self.start_index:self.final_index]
-            
-            self._area = trapz(yy, dx = dx)
+        return trapz(yy, dx = dx)
         
-        else:
-            
-            print("Isolated Peak Object")
             
     def voigt(self, oversample_multiplier=1, delta_rp = 0, mz_overlay=1):
         

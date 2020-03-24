@@ -316,10 +316,21 @@ class MolecularFormulaIsotopologue(MolecularFormula):
 
         self._abundance_error = None
 
+        self._area_error = None
+
+        
         if exp_mz:
             
             self._assignment_mass_error = self._calc_assignment_mass_error(exp_mz)
         
+        @property
+        def area_error(self):
+            return self._area_error
+
+        @area_error.setter
+        def area_error(self, error):
+            self._area_error = error 
+
         @property
         def abundance_error(self):
             return self._abundance_error

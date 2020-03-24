@@ -69,7 +69,7 @@ class MolecularFormulaCalc:
             
             raise Exception("Please set mz_calc first")    
     
-    def _calc_abundance_error(self, mono_abundance, iso_abundance, method=''):
+    def _calc_abundance_error(self, mono_abundance, iso_abundance, method='percentile'):
         '''method should be ppm, ppb or percentile'''
         
         mult_factor = 100
@@ -78,6 +78,20 @@ class MolecularFormulaCalc:
             theor_abundance = mono_abundance* self.prob_ratio
             #self.parent need to have a MassSpecPeak associated with the MolecularFormula class
             return ((theor_abundance - iso_abundance )/theor_abundance)*mult_factor
+        
+        else:
+            
+            raise Exception("Please calc_isotopologues")    
+
+    def _calc_area_error(self, mono_area, iso_area, method='percentile'):
+        '''method should be ppm, ppb or percentile'''
+        
+        mult_factor = 100
+        if self.prob_ratio:
+            
+            exp_ratio = iso_area/mono_area  
+            #self.parent need to have a MassSpecPeak associated with the MolecularFormula class
+            return ((self.prob_ratio - exp_ratio )/self.prob_ratio)*mult_factor
         
         else:
             
