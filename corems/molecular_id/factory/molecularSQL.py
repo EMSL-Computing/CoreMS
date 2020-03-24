@@ -66,23 +66,8 @@ class MolForm_SQL:
     def __init__(self, polarity, url=None, echo=False):
 
         #self.engine = create_engine(url)       
-        directory = os.getcwd()
-
-        if not url:
-            #default to 
-            if polarity > 0:
-                polarity_label = 'pos'
-            
-            else:
-                polarity_label = 'neg'
-
-            if not os.path.isdir(directory+'/db'):
-                    
-                os.mkdir(directory+'/db')    
-
-            url = 'sqlite:///{DB}/db/molformulas_{charge}.sqlite'.format(DB=directory, charge=polarity_label)
         
-        self.engine = create_engine(url, poolclass=QueuePool)
+        self.engine = self.init_engine(polarity, url)
 
         #self.engine = create_engine('postgresql://postgres:docker@localhost:5432/')
         
@@ -98,25 +83,24 @@ class MolForm_SQL:
         self.session.close()
         self.engine.dispose()
 
+    def init_engine(self, polarity, url):
+
+        directory = os.getcwd()
+        
+        if not url:
+            
+            if not os.path.isdir(directory+'/db'):
+                    
+                os.mkdir(directory+'/db')    
+
+            polarity_label = 'pos' if polarity > 0 else 'neg'
+
+            url = 'sqlite:///{DB}/db/molformulas_{charge}.sqlite'.format(DB=directory, charge=polarity_label)
+
+        return create_engine(url, poolclass=QueuePool)
+
     def __enter__(self):
         
-        directory = os.getcwd()
-       
-        if not os.path.isdir(directory+'/db'):
-                
-            os.mkdir(directory+'/db')    
-            
-        self.engine = create_engine('sqlite:///{DB}'.format(DB=directory+'/db'+'/molformulas.sqlite'), 
-                    poolclass=QueuePool)
-        
-        #self.engine = create_engine('postgresql://postgres:docker@localhost:5432/')
-        
-        Base.metadata.create_all(self.engine)
-
-        Session = sessionmaker(bind=self.engine)
-        
-        self.session = Session()
-
         return self
     
     def add_all(self, sql_molform_list):

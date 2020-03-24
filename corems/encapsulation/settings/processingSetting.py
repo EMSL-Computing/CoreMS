@@ -175,7 +175,7 @@ class MolecularSearchSettings:
     max_dbe = 50
 
     # look for close shell ions [M + Adduct]+ only considers metal set in the list adduct_atoms  
-    adduct_atoms_neg = []
+    adduct_atoms_neg = ['Cl', 'Br', 'F']
     
     adduct_atoms_pos = ['Na', 'K']
 

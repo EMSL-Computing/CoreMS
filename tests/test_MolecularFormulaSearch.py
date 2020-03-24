@@ -55,6 +55,7 @@ def test_run_molecular_formula_search():
     mass_spectrum_obj = ms_from_array_centroid(mz, abundance, rp, s2n, dataname)
 
     SearchMolecularFormulas(mass_spectrum_obj).run_worker_ms_peak(mass_spectrum_obj[0])
+    
     ms_peak = mass_spectrum_obj[0]
     print(ms_peak.mz_exp)
     if ms_peak.is_assigned:
@@ -68,6 +69,7 @@ def test_run_molecular_formula_search():
 
 def test_mspeak_search():
 
+   
     
     mass_spec_obj = create_mass_spectrum()
     
@@ -126,7 +128,7 @@ def test_priorityAssignment():
     MolecularSearchSettings.max_ppm_error = 3
     MolecularSearchSettings.mz_error_range = 1
     MolecularSearchSettings.isProtonated = True 
-    MolecularSearchSettings.isRadical= False 
+    MolecularSearchSettings.isRadical= True 
     MolecularSearchSettings.isAdduct= False 
 
     mass_spec_obj = create_mass_spectrum()
@@ -149,8 +151,8 @@ def test_priorityAssignment():
 
 if __name__ == "__main__":
 
-    test_run_molecular_formula_search()
+    #test_run_molecular_formula_search()
     #test_priorityAssignment()
     #test_molecular_formula_search_db()
-    #test_run_molecular_formula_search()
+    test_run_molecular_formula_search()
     #test_mspeak_search()

@@ -176,7 +176,7 @@ class MolecularFormula(MolecularFormulaCalc):
         
         for mf in self._cal_isotopologues(self._d_molecular_formula, min_abundance, current_abundance ):
              
-            yield MolecularFormulaIsotopologue(*mf, self.ion_charge)
+            yield MolecularFormulaIsotopologue(*mf, current_abundance, self.ion_charge)
     
     def atoms_qnt(self,atom): 
         if atom in self._d_molecular_formula:
@@ -295,16 +295,22 @@ class MolecularFormulaIsotopologue(MolecularFormula):
     '''
     classdocs
     '''
-    def __init__(self, _d_molecular_formula, prob_ratio, ion_charge, exp_mz=None):
+    def __init__(self, _d_molecular_formula, prob_ratio, mono_abundance, ion_charge, exp_mz=None):
         
         super().__init__(_d_molecular_formula,  ion_charge)
         #prob_ratio is relative to the monoisotopic peak p_isotopologue/p_mono_isotopic
+        
+        
         self.prob_ratio = prob_ratio
         
+        self.abundance_calc = mono_abundance * prob_ratio
+
         self.is_isotopologue = True
+        
         self.mspeak_index_mono_isotopic = None
 
         if exp_mz:
             
             self._assignment_mass_error = self._calc_assignment_mass_error(exp_mz)
             self._confidence_score = False
+

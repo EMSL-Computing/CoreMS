@@ -159,14 +159,13 @@ class MolecularFormulaCalc:
         *   it needs speed optimization; update: (Using IsoSpeccPy, a C Library (fast and accurate)) 
             https://github.com/MatteoLacki/IsoSpec
         """
-        #this value needs to be calculated from the mass spec dinamic range
-        #updated it to reflect min possible mass peak abundance
-        #min_abundance/current_abundance will only work if the isotopologue abundance is less than the monoisotopic abundance
-        #needs to be checked
+        # updated it to reflect min possible mass peak abundance
         
         min_relative_abundance = min_abundance/current_abundance
-        
         cut_off_to_IsoSpeccPy = 1 - min_relative_abundance
+        
+        #print(min_relative_abundance, min_abundance, current_abundance, cut_off_to_IsoSpeccPy)
+        
         isotopologue_and_pro_ratio_tuples = []
         atoms_labels = (atom for atom in formula_dict.keys() if atom != Labels.ion_type and atom != 'H')
        
@@ -230,17 +229,17 @@ class MolecularFormulaCalc:
 
             new_formulas.append({x:y for x,y in new_formula_dict.items() if y!=0})
 
-        # find where monoisotopic is
-        index_mono = new_formulas.index(formula_dict)   
-        # calculate ratio iso/mono
-        ratios = list(probs/probs[index_mono])
-        
-        # delete the monoisotopic
-        del ratios[index_mono]
-        del new_formulas[index_mono]
-
-        
-        return zip(new_formulas, ratios)
+        if (new_formulas):
+            # find where monoisotopic is
+            index_mono = new_formulas.index(formula_dict)   
+            # calculate ratio iso/mono
+            probs = list(probs/probs[index_mono])
+            
+            # delete the monoisotopic
+            del probs[index_mono]
+            del new_formulas[index_mono]
+            
+        return zip(new_formulas, probs )
     
     
     
