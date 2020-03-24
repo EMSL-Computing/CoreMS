@@ -175,7 +175,7 @@ class MolecularFormula(MolecularFormulaCalc):
     def isotopologues(self, min_abundance, current_abundance): 
         
         for mf in self._cal_isotopologues(self._d_molecular_formula, min_abundance, current_abundance ):
-
+             
             yield MolecularFormulaIsotopologue(*mf, self.ion_charge)
     
     def atoms_qnt(self,atom): 

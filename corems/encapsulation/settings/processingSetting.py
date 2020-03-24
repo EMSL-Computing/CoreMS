@@ -125,6 +125,24 @@ class MolecularLookupDictSettings:
     
         self.db_directory = None
 
+        self.used_atom_valences = {'C': 4,
+                            '13C': 4,
+                            'H': 1,
+                            'O': 2,
+                            '18O': 2,
+                            'N': 3,
+                            'S': 2,
+                            '34S': 2,
+                            'P': 3,
+                            'Cl': 1,
+                            '37Cl': 1,
+                            'Br': 1,
+                            'Na': 1,
+                            'F': 1,
+                            'K': 0,
+                            }
+        
+
 class MolecularSearchSettings:
     
     use_isotopologue_filter = False
@@ -157,7 +175,7 @@ class MolecularSearchSettings:
     max_dbe = 50
 
     # look for close shell ions [M + Adduct]+ only considers metal set in the list adduct_atoms  
-    adduct_atoms_neg = ['Cl', 'Br', 'F']
+    adduct_atoms_neg = []
     
     adduct_atoms_pos = ['Na', 'K']
 
@@ -219,10 +237,10 @@ class MolecularSearchSettings:
                             'S': 2,
                             '34S': 2,
                             'P': 3,
-                            'Cl': 0,
-                            '37Cl': 0,
-                            'Br': 0,
-                            'Na': 0,
-                            'F': 0,
-                            'K': 0,
+                            'Cl': 1,
+                            '37Cl': 1,
+                            'Br': 1,
+                            'Na': 1,
+                            'F': 1,
+                            'K': 1,
                             }

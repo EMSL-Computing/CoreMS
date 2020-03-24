@@ -490,13 +490,15 @@ class SearchMolecularFormulaWorker:
                             
                             for ms_peak_iso in mass_spectrum_obj[first_index:last_index]:
                                 
-                                error = isotopologue_formula._calc_assignment_mass_error(ms_peak_iso.mz_exp)    
+                                #error = isotopologue_formula._calc_assignment_mass_error(ms_peak_iso.mz_exp)    
+                                
+                                error = self.calc_assignment_mass_error(ms_peak_iso.mz_exp, isotopologue_formula.mz_calc)
                                 
                                 if  min_ppm_error  <= error <= max_ppm_error:
                                     
                                     #need to define error distribution for abundance measurements
                                     
-                                    abundance_error = isotopologue_formula._calc_abundance_error(ms_peak_abundance,ms_peak_iso.abundance )            
+                                    abundance_error = isotopologue_formula._calc_abundance_error(ms_peak_abundance, ms_peak_iso.abundance )            
                                     # margin of error was set empirically/ needs statistical calculation
                                     #  of margin of error for the measurement of the abundances
                                     if min_abun_error <= abundance_error <= max_abun_error:

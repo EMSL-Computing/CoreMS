@@ -14,7 +14,6 @@ class Labels: #pragma: no cover
     rp = "Resolving Power"
     s2n = "S/N"
 
-    
     label = 'label'
     bruker_profile = 'Bruker_Profile'
     thermo_profile = 'Thermo_Profile'
@@ -878,7 +877,7 @@ class Atoms: #pragma: no cover
                 'Ge': ['Germanium', ['74Ge', '72Ge', '70Ge', '73Ge', '76Ge']],
                 'As': ['Arsenic'],
                 'Se': ['Selenium', ['78Se', '76Se', '82Se', '77Se']],
-                'Br': ['Bromine', ['Br', '81Br']],
+                'Br': ['Bromine', ['81Br']],
                 'Kr': ['Krypton', ['84Kr', '86Kr', '82Kr', '83Kr', '80Kr']],
                 'Rb': ['Rubidium', ['85Rb', '87Rb']],
                 'Sr': ['Strontium', ['88Sr', '86Sr', '87Sr']],
