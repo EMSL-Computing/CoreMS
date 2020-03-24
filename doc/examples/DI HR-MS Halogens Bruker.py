@@ -40,6 +40,8 @@ def export(list_dict, export_name):
                 "Peak Datapoint Count",
                 "Resolving Power",
                 "Molecular Formula",
+                "Peak Area",
+                "Area Ratio Error",
                 "Probability Ratio",
                 "Abundance Error"
                ]
@@ -130,8 +132,8 @@ if __name__ == "__main__":
             
             mass_spectrum = get_mass_spectrum(file_location)
 
-            set_settings_for_bromothymol_blue(mass_spectrum)
-            #set_settings_for_chlorophenol_red(mass_spectrum)
+            #set_settings_for_bromothymol_blue(mass_spectrum)
+            set_settings_for_chlorophenol_red(mass_spectrum)
 
             SearchMolecularFormulas(mass_spectrum, first_hit=True).run_worker_mass_spectrum()
             
@@ -144,7 +146,7 @@ if __name__ == "__main__":
                     
                     for mf in mspeak: 
                     
-                        ax.plot(mspeak.mz_exp,mspeak.abundance, color='black', linewidth=0, marker='s', markersize = 8, label='Assigned')
+                        #ax.plot(mspeak.mz_exp,mspeak.abundance, color='black', linewidth=0, marker='s', markersize = 8, label='Assigned')
                     
                         if mf.is_isotopologue:
                             
@@ -157,9 +159,11 @@ if __name__ == "__main__":
                                 "Signal Noise Ratio" : mspeak.signal_to_noise,
                                 "Calculated m/z" : mf.mz_calc,
                                 "Experimental m/z" : mspeak.mz_exp, 
-                                "Error m/z" : mspeak.mz_exp, 
+                                "Error m/z" : mf.mz_error, 
+                                "Peak Area": mspeak.area, 
                                 "Molecular Formula" : mf.to_string,
                                 "Probability Ratio": mf.prob_ratio,
+                                "Area Ratio Error": mf.area_error,
                                 "Abundance Error": mf.abundance_error,
                                 "Peak Datapoint Count" : mspeak.final_index-mspeak.start_index
                             })
@@ -176,30 +180,33 @@ if __name__ == "__main__":
                                 "Signal Noise Ratio" : mspeak.signal_to_noise,
                                 "Calculated m/z" : mf.mz_calc,
                                 "Experimental m/z" : mspeak.mz_exp, 
-                                "Error m/z" : mspeak.mz_exp, 
+                                "Error m/z" : mf.mz_error, 
+                                "Peak Area": mspeak.area,
                                 "Molecular Formula" : mf.to_string,
                                 "Peak Datapoint Count" : mspeak.final_index-mspeak.start_index
                             })
-                        #ax.annotate(mf.to_string, (mspeak.mz_exp, mspeak.abundance))
+                        ax.annotate(mf.to_string, (mspeak.mz_exp, mspeak.abundance))
 
-                        for imf in mf.expected_isotopologues: 
+                        #for imf in mf.expected_isotopologues: 
                             
-                            ax.plot(imf.mz_calc, imf.abundance_calc, color='red', linewidth=0, marker='v', markersize = 8, label='Calculated')
+                        #    ax.plot(imf.mz_calc, imf.abundance_calc, color='red', linewidth=0, marker='v', markersize = 8, label='Calculated')
 
                             #ax.annotate(imf.to_string, (imf.mz_calc, imf.abundance_calc))
-            #hand, labl = ax.get_legend_handles_labels()
-            #handout=[]
-            #lablout=[]
-            #for h,l in zip(hand,labl):
-            #    if l not in lablout:
-            #            lablout.append(l)
-            #            handout.append(h)
             
-            #plt.legend(handout, lablout)
-            plt.xlim(620,630)
-            plt.show()
-        
-        export(list_dict, "Bromphenol Blue C27 H28 Br2 O5 S1")
+            hand, labl = ax.get_legend_handles_labels()
+            handout=[]
+            lablout=[]
+            for h,l in zip(hand,labl):
+                if l not in lablout:
+                        lablout.append(l)
+                        handout.append(h)
+            
+            plt.legend(handout, lablout)
+            plt.xlim(420,430)
+            plt.savefig(mass_spectrum.sample_name+"_formula"+".png")
+            plt.cla()
+            
+        export(list_dict, "Chlorophenol Red C19 H12 Cl2 O5 S1")
             
         
         # Bromothymol Blue –  C27H28Br2O5S -  622.002380

@@ -471,7 +471,7 @@ class SearchMolecularFormulaWorker:
 
                     # add the molecular formula obj to the mspeak obj
                     # add the mspeak obj and it's index for tracking next assignment step
-                    mspeak_assigned_index.append((ms_peak.index, molecular_formula))
+                    
                     
                     if self.find_isotopologues:
                         
@@ -518,14 +518,16 @@ class SearchMolecularFormulaWorker:
                                         isotopologue_formula.mspeak_index_mono_isotopic = ms_peak.index
                                         
                                         #add mspeaks isotopologue index to the mono isotopic MolecularFormula obj and the respective formula position  
-                                        molecular_formula.mspeak_mf_isotopologues_indexes.append((ms_peak_iso.index, isotopologue_formula))
-
-                                        #add molecular formula match to ms_peak
-                                        ms_peak_iso.add_molecular_formula(isotopologue_formula)
                                         
+                                        #add molecular formula match to ms_peak
+                                        x = ms_peak_iso.add_molecular_formula(isotopologue_formula)
+                                        
+                                        molecular_formula.mspeak_mf_isotopologues_indexes.append((ms_peak_iso.index, x))
                                         #add mspeaks mono isotopic index to the isotopologue MolecularFormula obj
 
-                    ms_peak.add_molecular_formula(molecular_formula)                    
+                    y = ms_peak.add_molecular_formula(molecular_formula)            
+
+                    mspeak_assigned_index.append((ms_peak.index, y))
 
         return mspeak_assigned_index
 

@@ -89,9 +89,13 @@ class MolecularFormulaCalc:
         mult_factor = 100
         if self.prob_ratio:
             
-            exp_ratio = iso_area/mono_area  
+            #exp_ratio = iso_area/mono_area  
+            
+            area_calc = mono_area* self.prob_ratio
+
             #self.parent need to have a MassSpecPeak associated with the MolecularFormula class
-            return ((self.prob_ratio - exp_ratio )/self.prob_ratio)*mult_factor
+            return ((area_calc - iso_area )/area_calc)*mult_factor
+            #return ((self.prob_ratio - exp_ratio )/self.prob_ratio)*mult_factor
         
         else:
             
