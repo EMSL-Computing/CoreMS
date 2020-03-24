@@ -107,6 +107,16 @@ class ImportLCMSThermoMSFileReader(Thread):
 
             raise Exception("Polarity Mode Unknown, please set it manually")
 
+    def get_scan_header(self, scan):
+        '''
+        Get full dictionary of scan header meta data, i.e. AGC status, ion injection time, etc.
+        '''
+        header = self.iRawDataPlus.GetTrailerExtraInformation(scan)
+        header_dic = {}
+        for i in numpy.arange(header):
+            header_dic.update({header.Labels[i]:header.Values[i]})
+        return header_dic
+
     def get_data(self, scan, d_parameter, scan_type):
         
         if scan_type == "Centroid":
