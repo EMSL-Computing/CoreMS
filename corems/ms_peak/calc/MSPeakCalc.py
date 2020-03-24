@@ -34,10 +34,15 @@ class MSPeakCalculation(object):
 
     def calc_area(self, dx=1):
         
-        yy = self.ms_parent.abundance_profile[self.start_index:self.final_index]
-            
-        return trapz(yy, dx = dx)
+        if self.final_index > self.start_index:
         
+            yy = self.ms_parent.abundance_profile[self.start_index:self.final_index]
+            
+            return trapz(yy, dx = dx)
+        
+        else:
+            
+            return None
             
     def voigt(self, oversample_multiplier=1, delta_rp = 0, mz_overlay=1):
         
