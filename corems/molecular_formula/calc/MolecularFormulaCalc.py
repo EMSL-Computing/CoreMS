@@ -46,10 +46,6 @@ class MolecularFormulaCalc:
             
             raise Exception("Please set ion charge first")
          
-    def set_assignment_mass_error(self, error):
-        
-        self._assignment_mass_error = error
-    
     def _calc_assignment_mass_error(self, mz_exp, method='ppm'):
         
         '''method should be ppm or ppb'''

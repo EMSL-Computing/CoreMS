@@ -170,7 +170,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         self._baselise_noise_std = d_params.get("baselise_noise_std")
 
-        if d_params.get('sample_name'): 
+        if d_params.get('sample_name') != 'Unknown': 
         
             self.sample_name = d_params.get('sample_name')
 
@@ -629,13 +629,13 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         
         return ax
 
-    def plot_mz_domain_profile(self, ax=None): #pragma: no cover
+    def plot_mz_domain_profile(self, color='green', ax=None): #pragma: no cover
         
         import matplotlib.pyplot as plt
 
         if ax is None:
             ax = plt.gca()
-        ax.plot(self.mz_exp_profile, self.abundance_profile, color="green")
+        ax.plot(self.mz_exp_profile, self.abundance_profile, color=color)
         ax.set(xlabel='m/z', ylabel='abundance')
         
         return ax

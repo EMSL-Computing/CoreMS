@@ -215,10 +215,10 @@ class MolecularSearchSettings:
     max_ppm_error = 5 #ppm
 
     # empirically set / needs optimization set for isotopologue search
-    min_abun_error = -30 # percentage 
+    min_abun_error = -100 # percentage 
     
     # empirically set / needs optimization set for isotopologue search
-    max_abun_error = 70 # percentage 
+    max_abun_error = 100 # percentage 
 
     # empirically set / needs optimization
     mz_error_range = 1.5

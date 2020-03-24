@@ -73,6 +73,8 @@ class MolecularFormula(MolecularFormulaCalc):
         else: 
             return 100
 
+    
+
     def _from_list(self, molecular_formula_list,  ion_type):
         # list has to be in the format 
         #['C', 10, 'H', 21, '13C', 1, 'Cl', 1, etc]  
@@ -128,7 +130,11 @@ class MolecularFormula(MolecularFormulaCalc):
 
     @property    
     def mz_error(self): return self._assignment_mass_error
-    
+
+    @mz_error.setter
+    def mz_error(self, error):
+        self._assignment_mass_error = error
+
     @property
     def mz_calc(self): return self._calc_mz()
 
@@ -172,11 +178,11 @@ class MolecularFormula(MolecularFormulaCalc):
         '''kendrick_dict_base = {"C": 1, "H": 2}'''
         self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(kendrick_dict_base)
                 
-    def isotopologues(self, min_abundance, current_abundance): 
+    def isotopologues(self, min_abundance, current_mono_abundance): 
         
-        for mf in self._cal_isotopologues(self._d_molecular_formula, min_abundance, current_abundance ):
+        for mf in self._cal_isotopologues(self._d_molecular_formula, min_abundance, current_mono_abundance ):
              
-            yield MolecularFormulaIsotopologue(*mf, current_abundance, self.ion_charge)
+            yield MolecularFormulaIsotopologue(*mf, current_mono_abundance, self.ion_charge)
     
     def atoms_qnt(self,atom): 
         if atom in self._d_molecular_formula:
@@ -295,11 +301,10 @@ class MolecularFormulaIsotopologue(MolecularFormula):
     '''
     classdocs
     '''
-    def __init__(self, _d_molecular_formula, prob_ratio, mono_abundance, ion_charge, exp_mz=None):
+    def __init__(self, _d_molecular_formula, prob_ratio, mono_abundance, ion_charge, exp_abundance=None, exp_mz=None):
         
         super().__init__(_d_molecular_formula,  ion_charge)
         #prob_ratio is relative to the monoisotopic peak p_isotopologue/p_mono_isotopic
-        
         
         self.prob_ratio = prob_ratio
         
@@ -309,8 +314,18 @@ class MolecularFormulaIsotopologue(MolecularFormula):
         
         self.mspeak_index_mono_isotopic = None
 
+        self._abundance_error = None
+
         if exp_mz:
             
             self._assignment_mass_error = self._calc_assignment_mass_error(exp_mz)
-            self._confidence_score = False
+        
+        @property
+        def abundance_error(self):
+            return self._abundance_error
 
+        @abundance_error.setter
+        def abundance_error(self, error):
+            self._abundance_error = error 
+        
+        

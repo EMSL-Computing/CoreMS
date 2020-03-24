@@ -467,7 +467,7 @@ class SearchMolecularFormulaWorker:
                     molecular_formula = MolecularFormula(formula_dict, possible_formula.ion_charge)
 
                     # set the mass error 
-                    molecular_formula.set_assignment_mass_error(error)
+                    molecular_formula.mz_error = error
 
                     # add the molecular formula obj to the mspeak obj
                     ms_peak.add_molecular_formula(molecular_formula)
@@ -507,7 +507,9 @@ class SearchMolecularFormulaWorker:
                                         
                                         self.set_last_error(error, mass_spectrum_obj)    
                                         
-                                        isotopologue_formula.set_assignment_mass_error(error)
+                                        isotopologue_formula.mz_error = error
+
+                                        isotopologue_formula.abundance_error = abundance_error
 
                                         #add molecular formula match to ms_peak
                                         ms_peak_iso.add_molecular_formula(isotopologue_formula)
