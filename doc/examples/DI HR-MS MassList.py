@@ -7,13 +7,12 @@ sys.path.append("./")
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-from PySide2.QtWidgets import QFileDialog, QApplication
-from PySide2.QtCore import Qt
+
 
 from corems.mass_spectrum.input.massList import ReadMassList
 from corems.mass_spectrum.factory.classification import HeteroatomsClassification, Labels
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
-from corems import SuppressPrints
+from corems import SuppressPrints, get_filename
 
 def class_plot(df):
 
@@ -29,12 +28,8 @@ def class_plot(df):
 
 if __name__ == "__main__":
     
-    app = QApplication(sys.argv)
-    file_dialog = QFileDialog()
-    file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
-    file_location = file_dialog.getOpenFileName()[0]
-    app.quit()
-
+    file_location = get_filename()
+    
     mass_spectrum = ReadMassList(file_location).get_mass_spectrum(polarity=-1)
     mass_spectrum.plot_centroid()
     
@@ -91,7 +86,7 @@ if __name__ == "__main__":
 #    for index, classe in enumerate(classes):
         
         #plt.subplot(2, 3, index+1)
-        mass_spectrum_by_classes.plot_dbe_vs_carbon_number(classe, color='g')
+        mass_spectrum_by_classes.plot_dbe_vs_carbon_number(classe, color='PuBu_r')
 
         #mass_spectrum_by_classes.plot_ms_class(classe, color=color_dictionary.get(classe)) 
         

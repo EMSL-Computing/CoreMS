@@ -6,6 +6,8 @@ from os.path import join
 from copy import deepcopy
 import pickle 
 
+import tqdm
+
 from corems.encapsulation.constant import Labels
 from corems.molecular_id.factory.MolecularLookupTable import  MolecularCombinations
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL
@@ -234,7 +236,9 @@ class SearchMolecularFormulas:
         #query database
         dict_res = self.get_dict_molecular_database(classes_str, nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
         
-        for classe_tuple in classes:
+        pbar = tqdm.tqdm(classes)
+        
+        for classe_tuple in pbar:
 
             #add filter here and get indexes of class assigned 
 
@@ -246,7 +250,9 @@ class SearchMolecularFormulas:
             is_adduct = self.check_adduct_class(classe_dict)    
             
             if self.mass_spectrum_obj.molecular_search_settings.isProtonated and not is_adduct:
-        
+                    
+                    pbar.set_description_str(desc="Started molecular formula search for class %s, (de)protonated " % classe_str, refresh=True)
+
                     ion_type = Labels.protonated_de_ion
 
                     possible_formulas = dict_res.get(ion_type).get(classe_str)
@@ -256,7 +262,9 @@ class SearchMolecularFormulas:
                         self.run_search(possible_formulas, min_abundance)    
 
             if self.mass_spectrum_obj.molecular_search_settings.isRadical and not is_adduct:
-                
+                    
+                    pbar.set_description_str(desc="Started molecular formula search for class %s, (de)protonated " % classe_str, refresh=True)
+                    
                     ion_type = Labels.radical_ion
                     
                     possible_formulas = dict_res.get(ion_type).get(classe_str)
@@ -268,6 +276,8 @@ class SearchMolecularFormulas:
             # looks for adduct, used_atom_valences should be 0 
             # this code does not support H exchance by halogen atoms
             if self.mass_spectrum_obj.molecular_search_settings.isAdduct and is_adduct:
+                
+                pbar.set_description_str(desc="Started molecular formula search for class %s, (de)protonated " % classe_str, refresh=True)
                 
                 ion_type = Labels.radical_ion
                 
@@ -524,10 +534,12 @@ class SearchMolecularFormulaWorker:
                                         
                                         molecular_formula.mspeak_mf_isotopologues_indexes.append((ms_peak_iso.index, x))
                                         #add mspeaks mono isotopic index to the isotopologue MolecularFormula obj
+                                        
 
                     y = ms_peak.add_molecular_formula(molecular_formula)            
 
                     mspeak_assigned_index.append((ms_peak.index, y))
+
 
         return mspeak_assigned_index
 

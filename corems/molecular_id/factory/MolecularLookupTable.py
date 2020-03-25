@@ -69,7 +69,9 @@ class MolecularCombinations:
         return [(c_s, c_d) for c_s, c_d in classes_dict.items()], all_class_to_create       
 
     def runworker(self, molecular_search_settings) :
-
+        
+        from tqdm import tqdm
+        
         print ("Querying database for existing classes")
         classes_list, class_to_create = self.check_database_get_class_list(molecular_search_settings)
         print ("Finished querying database for existing classes")
@@ -90,7 +92,8 @@ class MolecularCombinations:
 
             print('creating database entry for %i classes' % len(class_to_create))
             
-            for class_tuple, ion_type in class_to_create:
+            
+            for class_tuple, ion_type in tqdm(class_to_create):
 
                 #(class_tuple, c_h_combinations, ion_type, settings)
                 

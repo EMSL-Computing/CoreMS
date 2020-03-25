@@ -1,4 +1,4 @@
-__version__ = '9.10.1.beta'
+__version__ = '9.11.0.beta'
 __doc__ = '''
 
 CoreMS - a powerful framework for mass spectrometry data processing and analysis of small molecules
@@ -105,3 +105,49 @@ class SuppressPrints:
     def __exit__(self, exc_type, exc_val, exc_tb):
         sys.stdout.close()
         sys.stdout = self._original_stdout  
+
+def get_filename(app=None):
+    
+    from PySide2.QtCore import Qt
+    from PySide2.QtWidgets import QApplication, QFileDialog 
+    from pathlib import Path
+
+    app = QApplication(sys.argv)
+    file_dialog = QFileDialog()
+    file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+    file_location = file_dialog.getOpenFileName()[0]
+    
+    if file_dialog:
+        return Path(file_location)
+    else:
+        return None
+
+def get_dirnames(app=None):   
+    
+    from PySide2.QtCore import Qt
+    from PySide2.QtWidgets import QApplication, QFileDialog, QTreeView, QListView, QAbstractItemView
+    from pathlib import Path
+    
+    if not app:
+        app = QApplication(sys.argv)
+    #file_dialog = QFileDialog()
+    #file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+    #file_location = file_dialog.getOpenFileNames()
+    
+    file_dialog = QFileDialog()
+    file_dialog.setFileMode(QFileDialog.DirectoryOnly)
+    file_dialog.setOption(QFileDialog.DontUseNativeDialog, True)
+    file_view = file_dialog.findChild(QListView, 'listView')
+
+    # to make it possible to select multiple directories:
+    if file_view:
+        file_view.setSelectionMode(QAbstractItemView.MultiSelection)
+    f_tree_view = file_dialog.findChild(QTreeView)
+    if f_tree_view:
+        f_tree_view.setSelectionMode(QAbstractItemView.MultiSelection)
+
+    if file_dialog.exec():
+        paths = file_dialog.selectedFiles()
+        for path in paths:
+            yield Path(path)
+    

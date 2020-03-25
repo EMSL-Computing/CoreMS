@@ -880,6 +880,7 @@ class MassSpecCentroid(MassSpecBase):
         return sum(self.abundance)
     
     def process_mass_spec(self, data_dict):
+        import tqdm
         # overwrite process_mass_spec 
         # mspeak objs are usually added inside the PeaKPicking class 
         # for profile and freq based data
@@ -892,7 +893,9 @@ class MassSpecCentroid(MassSpecBase):
         l_s2n = data_dict.get(Labels.s2n)
         
         if not l_s2n: s2n = False
-
+        
+        print("Loading mass spectrum object")
+        
         for index, mz in enumerate(data_dict.get(Labels.mz)):
             
             # centroid peak does not have start and end peak index pos

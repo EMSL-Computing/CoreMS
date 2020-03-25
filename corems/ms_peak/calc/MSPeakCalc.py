@@ -126,7 +126,7 @@ class MSPeakCalculation(object):
         final_index = self.final_index + mz_overlay  if not self.final_index == len(self.ms_parent.mz_exp_profile) else self.final_index
 
         if oversample_multiplier == 1:
-               
+
             mz_domain = self.ms_parent.mz_exp_profile[start_index: final_index]
             
         else:
@@ -178,7 +178,7 @@ class MSPeakCalculation(object):
             raise LookupError(
                 'resolving power is not defined, try to use set_max_resolving_power()')
 
-    def gaussian(self, oversample_multiplier=None, delta_rp = 0, mz_overlay=1):
+    def gaussian(self, oversample_multiplier=1, delta_rp = 0, mz_overlay=1):
         from lmfit import models
 
         # check if MSPeak contains the resolving power info

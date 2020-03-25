@@ -8,11 +8,8 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 from numpy import unique
-from PySide2.QtCore import Qt
-from PySide2.QtWidgets import QApplication, QFileDialog, QTreeView, QListView, QAbstractItemView
 
-
-from corems import SuppressPrints
+from corems import SuppressPrints, get_dirnames
 from corems.mass_spectrum.factory.classification import HeteroatomsClassification, Labels
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
@@ -50,29 +47,6 @@ def export(list_dict, export_name):
     df.to_pickle(export_name+".pkl")
     df.to_csv(export_name+".csv", index=False)
 
-def get_dirnames():   
-    app = QApplication(sys.argv)
-    #file_dialog = QFileDialog()
-    #file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
-    #file_location = file_dialog.getOpenFileNames()
-    
-    file_dialog = QFileDialog()
-    file_dialog.setFileMode(QFileDialog.DirectoryOnly)
-    file_dialog.setOption(QFileDialog.DontUseNativeDialog, True)
-    file_view = file_dialog.findChild(QListView, 'listView')
-
-    # to make it possible to select multiple directories:
-    if file_view:
-        file_view.setSelectionMode(QAbstractItemView.MultiSelection)
-    f_tree_view = file_dialog.findChild(QTreeView)
-    if f_tree_view:
-        f_tree_view.setSelectionMode(QAbstractItemView.MultiSelection)
-
-    if file_dialog.exec():
-        paths = file_dialog.selectedFiles()
-        return paths
-    else:
-        return None
 
 def set_settings_for_bromothymol_blue(mass_spectrum):
 
@@ -117,7 +91,6 @@ def set_settings_for_chlorophenol_red(mass_spectrum):
 
     mass_spectrum.molecular_search_settings.use_min_peaks_filter = False
 
-
 if __name__ == "__main__":
     
     list_dict = []
@@ -132,8 +105,8 @@ if __name__ == "__main__":
             
             mass_spectrum = get_mass_spectrum(file_location)
 
-            #set_settings_for_bromothymol_blue(mass_spectrum)
-            set_settings_for_chlorophenol_red(mass_spectrum)
+            set_settings_for_bromothymol_blue(mass_spectrum)
+            #set_settings_for_chlorophenol_red(mass_spectrum)
 
             SearchMolecularFormulas(mass_spectrum, first_hit=True).run_worker_mass_spectrum()
             
@@ -146,11 +119,11 @@ if __name__ == "__main__":
                     
                     for mf in mspeak: 
                     
-                        #ax.plot(mspeak.mz_exp,mspeak.abundance, color='black', linewidth=0, marker='s', markersize = 8, label='Assigned')
+                        ax.plot(mspeak.mz_exp,mspeak.abundance, color='black', linewidth=0, marker='s', markersize = 8, label='Assigned')
                     
                         if mf.is_isotopologue:
                             
-                            #ax.annotate(round(mf.area_error,1), (mspeak.mz_exp+0.2, mspeak.abundance), label="Error (%)")
+                            ax.annotate(round(mf.area_error,1), (mspeak.mz_exp+0.2, mspeak.abundance), label="Error (%)")
                             list_dict.append( {
                                 
                                 "Sample Name" : mass_spectrum.sample_name, 
@@ -185,11 +158,11 @@ if __name__ == "__main__":
                                 "Molecular Formula" : mf.to_string,
                                 "Peak Datapoint Count" : mspeak.final_index-mspeak.start_index
                             })
-                        ax.annotate(mf.to_string, (mspeak.mz_exp, mspeak.abundance))
+                        #ax.annotate(mf.to_string, (mspeak.mz_exp, mspeak.abundance))
 
-                        #for imf in mf.expected_isotopologues: 
+                        for imf in mf.expected_isotopologues: 
                             
-                        #    ax.plot(imf.mz_calc, imf.abundance_calc, color='red', linewidth=0, marker='v', markersize = 8, label='Calculated')
+                            ax.plot(imf.mz_calc, imf.abundance_calc, color='red', linewidth=0, marker='v', markersize = 8, label='Calculated')
 
                             #ax.annotate(imf.to_string, (imf.mz_calc, imf.abundance_calc))
             
@@ -202,12 +175,13 @@ if __name__ == "__main__":
                         handout.append(h)
             
             plt.legend(handout, lablout)
-            plt.xlim(420,430)
-            plt.savefig(mass_spectrum.sample_name+"_formula"+".png")
+            plt.xlim(620,630)
+            #plt.show()
+            plt.savefig(mass_spectrum.sample_name+"_area"+".png")
             plt.cla()
             
-        export(list_dict, "Chlorophenol Red C19 H12 Cl2 O5 S1")
-            
+        #export(list_dict, "Chlorophenol Red C19 H12 Cl2 O5 S1")
+        #export(list_dict, "Chlorophenol Red C19 H12 Cl2 O5 S1")    
         
         # Bromothymol Blue –  C27H28Br2O5S -  622.002380
         # Bromocresol Green – C21H14Br4O5S - 693.729492

@@ -5,6 +5,8 @@ from copy import deepcopy
 from threading import Thread
 from itertools import product
 
+import tqdm
+
 from corems.encapsulation.constant import Labels, Atoms
 from corems.molecular_id.calc.MolecularFilter import MolecularFormulaSearchFilters
 from corems.molecular_id.factory.MolecularLookupTable import MolecularCombinations
@@ -177,7 +179,9 @@ class OxygenPriorityAssignment(Thread):
 
         min_abundance = self.mass_spectrum_obj.min_abundance
 
-        for classe_tuple in assign_classes_order_tuples:
+        pbar = tqdm.tqdm(assign_classes_order_tuples)
+        
+        for classe_tuple in pbar:
 
             classe_str  = classe_tuple[0]
             classe_dict = classe_tuple[1]
@@ -194,7 +198,8 @@ class OxygenPriorityAssignment(Thread):
             
             if self.mass_spectrum_obj.molecular_search_settings.isProtonated and not is_adduct:
 
-                    print("Started molecular formula search for class %s, (de)protonated " % classe_str)
+                    #tqdm.set_description_str(desc=None, refresh=True)
+                    pbar.set_description_str(desc="Started molecular formula search for class %s, (de)protonated " % classe_str, refresh=True)
 
                     ion_type = Labels.protonated_de_ion
 
@@ -206,7 +211,8 @@ class OxygenPriorityAssignment(Thread):
 
             if self.mass_spectrum_obj.molecular_search_settings.isRadical and not is_adduct:
 
-                    print("Started molecular formula search for class %s,  radical" % classe_str)
+                    #print("Started molecular formula search for class %s,  radical" % classe_str)
+                    pbar.set_description_str(desc="Started molecular formula search for class %s, radical" % classe_str, refresh=True)
 
                     ion_type = Labels.radical_ion
                     
@@ -220,7 +226,8 @@ class OxygenPriorityAssignment(Thread):
             # this code does not support H exchance by halogen atoms
             if self.mass_spectrum_obj.molecular_search_settings.isAdduct and is_adduct:
                 
-                print("Started molecular formula search for class %s, adduct" % classe_str)
+                pbar.set_description_str(desc="Started molecular formula search for class %s, adduct" % classe_str, refresh=True)
+                #print("Started molecular formula search for class %s, adduct" % classe_str)
                 
                 ion_type = Labels.radical_ion
                 
@@ -230,8 +237,7 @@ class OxygenPriorityAssignment(Thread):
 
                     run_search(possible_formulas_dict, self.mass_spectrum_obj, min_abundance, is_adduct=is_adduct)
         
-        print("Finished molecular formula search")
-    
+        
     def get_dict_molecular_database(self, classes_str, nominal_mzs):
             
         dict_res = {}
