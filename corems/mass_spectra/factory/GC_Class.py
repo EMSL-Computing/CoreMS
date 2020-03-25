@@ -11,7 +11,6 @@ from corems.mass_spectra.calc.GC_Calc import GC_Calculations
 from corems.chroma_peak.factory.ChromaPeakClasses import GCPeak
 from corems.mass_spectra.output.export import LowResGCMSExport
 
-from corems import timeit
 from corems.encapsulation.settings.processingSetting import CompoundSearchSettings, GasChromatographSetting
 
 class GCMSBase(Mapping, GC_Calculations):

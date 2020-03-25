@@ -142,11 +142,11 @@ def calibrate_and_search(out_put_file_name, cores):
                 
                 #print(json_data)
 
-                gcms.plot_processed_chromatogram()
+                #gcms.plot_processed_chromatogram()
 
-                gcms.plot_gc_peaks()
+                #gcms.plot_gc_peaks()
 
-                gcms.plot_chromatogram()
+                #gcms.plot_chromatogram()
 
                 #gcms.plot_smoothed_chromatogram()
 
@@ -154,13 +154,13 @@ def calibrate_and_search(out_put_file_name, cores):
 
                 #gcms.plot_detected_baseline()
 
-                pyplot.show()
+                #pyplot.show()
 
        
 if __name__ == '__main__':                           
     
-    cores = 6
-    out_put_file_name = 'Group1_Standards'
+    cores = 4
+    out_put_file_name = 'STD_Mix1'
     calibrate_and_search(out_put_file_name, cores)
 
 

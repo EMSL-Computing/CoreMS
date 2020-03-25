@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.exc import MultipleResultsFound
 from sqlalchemy.pool import QueuePool
-from corems import timeit
+
 
 Base = declarative_base()
 

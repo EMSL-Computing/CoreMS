@@ -115,11 +115,33 @@ def get_filename(app=None):
     app = QApplication(sys.argv)
     file_dialog = QFileDialog()
     file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
-    file_location = file_dialog.getOpenFileName()[0]
+    file_location, _ = file_dialog.getOpenFileName()
     
-    if file_dialog:
+    if file_location:
+        
         return Path(file_location)
+    
     else:
+        
+        return None
+
+def get_dirname(app=None):
+    
+    from PySide2.QtCore import Qt
+    from PySide2.QtWidgets import QApplication, QFileDialog 
+    from pathlib import Path
+
+    app = QApplication(sys.argv)
+    file_dialog = QFileDialog()
+    file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+    file_location = file_dialog.getExistingDirectory()
+    
+    if file_location:
+        
+        return Path(file_location)
+    
+    else:
+        
         return None
 
 def get_dirnames(app=None):   

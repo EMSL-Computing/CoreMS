@@ -158,7 +158,7 @@ if __name__ == "__main__":
                                 "Molecular Formula" : mf.to_string,
                                 "Peak Datapoint Count" : mspeak.final_index-mspeak.start_index
                             })
-                        #ax.annotate(mf.to_string, (mspeak.mz_exp, mspeak.abundance))
+                        #ax.annotate(mspeak.mz_exp, (mspeak.mz_exp, mspeak.abundance))
 
                         for imf in mf.expected_isotopologues: 
                             
@@ -176,11 +176,11 @@ if __name__ == "__main__":
             
             plt.legend(handout, lablout)
             plt.xlim(620,630)
-            #plt.show()
-            plt.savefig(mass_spectrum.sample_name+"_area"+".png")
+            plt.show()
+            #plt.savefig(mass_spectrum.sample_name+"_area"+".png")
             plt.cla()
             
-        #export(list_dict, "Chlorophenol Red C19 H12 Cl2 O5 S1")
+        export(list_dict, "Chlorophenol Red C19 H12 Cl2 O5 S1")
         #export(list_dict, "Chlorophenol Red C19 H12 Cl2 O5 S1")    
         
         # Bromothymol Blue –  C27H28Br2O5S -  622.002380

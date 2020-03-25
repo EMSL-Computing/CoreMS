@@ -7,15 +7,10 @@ from numpy import array, power, float64, where
 
 from corems.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
 from corems.mass_spectrum.calc.KendrickGroup import KendrickGrouping
-
 from corems.encapsulation.constant import Labels
-
 from corems.ms_peak.factory.MSPeakClasses import ICRMassPeak as MSPeak
-
 from corems.encapsulation.settings.processingSetting import MassSpectrumSetting, MassSpecPeakSetting, TransientSetting
 from corems.encapsulation.settings.processingSetting import MolecularSearchSettings
-
-
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"

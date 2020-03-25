@@ -32,7 +32,7 @@ class GC_Calculations:
         scipy.signal.savgol_filter
     
         """
-        print(window)
+        
         if x.ndim != 1:
             raise ValueError("smooth only accepts 1 dimension arrays.")
 
@@ -55,8 +55,6 @@ class GC_Calculations:
         
         
         elif window == 'boxcar':  # moving average
-            
-            print('yes')
             
             w = boxcar(window_len)
             

@@ -238,11 +238,13 @@ class LowResMassSpectralMatch(Thread):
 
     def run(self):
         
+        import tqdm
+
         if not self.gcms_obj:
             
             self.gcms_obj.process_chromatogram()
 
-        for gc_peak in self.gcms_obj:
+        for gc_peak in tqdm.tqdm(self.gcms_obj):
             
             if not self.calibration:
                 

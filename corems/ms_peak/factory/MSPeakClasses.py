@@ -8,7 +8,6 @@ from corems.encapsulation.settings.processingSetting import MassSpecPeakSetting
 from corems.encapsulation.settings.processingSetting import MolecularSearchSettings
 from corems.ms_peak.calc.MSPeakCalc import MSPeakCalculation
 
-#from corems import timeit
 class _MSPeak(MSPeakCalculation):
     '''
     classdocs

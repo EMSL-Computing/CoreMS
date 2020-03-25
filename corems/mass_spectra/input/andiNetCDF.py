@@ -12,7 +12,7 @@ from corems.mass_spectra.factory.GC_Class import GCMSBase
 
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroidLowRes
 
-from corems import timeit
+
 
 
 class ReadAndiNetCDF(Thread):
@@ -96,7 +96,6 @@ class ReadAndiNetCDF(Thread):
 		
 		self.import_mass_spectra(d_parameters)
 	
-	@timeit
 	def import_mass_spectra(self, d_params):
 		
 		ms_datapoints_per_scans = self.net_cdf_obj.variables.get("point_count")[:]
