@@ -54,7 +54,7 @@ class FindOxygenPeaks(Thread):
         
         if not sql_db:
             
-            self.sql_db = MolForm_SQL(mass_spectrum_obj.polarity)
+            self.sql_db = MolForm_SQL(mass_spectrum_obj.polarity, mass_spectrum_obj.molform_search_settings.url_database)
         else:
 
             self.sql_db = sql_db    
@@ -62,16 +62,16 @@ class FindOxygenPeaks(Thread):
     def run(self):
         
         #save initial settings min peaks per class filter 
-        initial_min_peak_bool = deepcopy(self.mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter)
+        initial_min_peak_bool = deepcopy(self.mass_spectrum_obj.molform_search_settings.use_min_peaks_filter)
 
         #deactivate the usage of min peaks per class filter
-        self.mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = False
+        self.mass_spectrum_obj.molform_search_settings.use_min_peaks_filter = False
 
         #save initial settings for Ox 
-        initial_ox = deepcopy(self.mass_spectrum_obj.molecular_search_settings.usedAtoms['O'])
+        initial_ox = deepcopy(self.mass_spectrum_obj.molform_search_settings.usedAtoms['O'])
 
         #resets the used atoms to look only for oxygen organic compounds
-        self.mass_spectrum_obj.molecular_search_settings.usedAtoms['O'] =  (self.min_0, self.max_O)
+        self.mass_spectrum_obj.molform_search_settings.usedAtoms['O'] =  (self.min_0, self.max_O)
         
         self.list_found_mspeaks = []
 
@@ -95,9 +95,9 @@ class FindOxygenPeaks(Thread):
         
         # reset indexes after done with operation that includes a filter (i.e. ClusteringFilter().filter_kendrick())
         
-        self.mass_spectrum_obj.molecular_search_settings.usedAtoms['O'] =  initial_ox
+        self.mass_spectrum_obj.molform_search_settings.usedAtoms['O'] =  initial_ox
         
-        self.mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = initial_min_peak_bool
+        self.mass_spectrum_obj.molform_search_settings.use_min_peaks_filter = initial_min_peak_bool
         
         self.mass_spectrum_obj.reset_indexes()
        

@@ -33,7 +33,7 @@ def get_dict_data_ms(mass_spec):
 
     MolecularSearchSettings = {}
     
-    for item, value in mass_spec.molecular_search_settings.__dict__.items():
+    for item, value in mass_spec.molform_search_settings.__dict__.items():
         if not item.startswith('__'):
             MolecularSearchSettings[item] =  value
     
@@ -53,7 +53,7 @@ def get_dict_data_ms(mass_spec):
         if not item.startswith('__'):
             massSpecPeakSetting[item] =  value                        
     
-    return { "MoleculaSearch": MolecularSearchSettings,
+    return { "MolFormSearch": MolecularSearchSettings,
              "Transient": transientSetting,
              "MassSpectrum": massSpectrumSetting,
              "MassSpecPeak": massSpecPeakSetting,
@@ -86,7 +86,7 @@ def get_dict_data():
         if not item.startswith('__'):
             dataInputSetting[item] =  value  
 
-    return { "MoleculaSearch": molecularSearchSettings,
+    return { "MolFormSearch": molecularSearchSettings,
              "Transient": transientSetting,
              "MassSpectrum": massSpectrumSetting,
              "MassSpecPeak": massSpecPeakSetting,
@@ -101,7 +101,7 @@ def set_dict_data_ms(data_loaded, mass_spec_obj):
                deepcopy(TransientSetting),
                deepcopy(MassSpectrumSetting),
                deepcopy(MassSpecPeakSetting)]
-    labels = ["MoleculaSearch", "Transient", "MassSpectrum", "MassSpecPeak"]
+    labels = ["MolFormSearch", "Transient", "MassSpectrum", "MassSpecPeak"]
     
     label_class = zip(labels, classes)
 
@@ -124,7 +124,7 @@ def set_dict_data_ms(data_loaded, mass_spec_obj):
 def set_dict_data(data_loaded):
     
     import warnings
-    labels = ["MoleculaSearch", "Transient", "MassSpectrum", "MassSpecPeak", "DataInput"]
+    labels = ["MolFormSearch", "Transient", "MassSpectrum", "MassSpecPeak", "DataInput"]
     classes = [MolecularSearchSettings, TransientSetting, MassSpectrumSetting, MassSpecPeakSetting, DataInputSetting]
     
     label_class = zip(labels, classes)

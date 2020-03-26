@@ -65,8 +65,6 @@ class MolForm_SQL:
     
     def __init__(self, polarity, url=None, echo=False):
 
-        #self.engine = create_engine(url)       
-        
         self.engine = self.init_engine(polarity, url)
 
         #self.engine = create_engine('postgresql://postgres:docker@localhost:5432/')

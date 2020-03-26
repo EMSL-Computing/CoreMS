@@ -231,11 +231,10 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self._settings =  instance_MassSpectrumSetting
         
     @property
-    def molecular_search_settings(self):  return self._mol_search_settings
+    def molform_search_settings(self):  return self._mol_search_settings
 
-    @molecular_search_settings.setter
-    
-    def molecular_search_settings(self, instance_MolecularSearchSettings):
+    @molform_search_settings.setter
+    def molform_search_settings(self, instance_MolecularSearchSettings):
         
         self._mol_search_settings =  instance_MolecularSearchSettings
     

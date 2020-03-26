@@ -27,7 +27,7 @@
         "s2n_threshold": 4,
         "threshold_method": "relative_abundance"
     },
-    "MoleculaSearch": {
+    "MolFormSearch": {
         "adduct_atoms_neg": [
             "Cl", "Br", "F"
         ],
@@ -37,44 +37,36 @@
         "db_directory": false,
         "error_method": "None", "hc_filter": 0.3,
         "ion_charge": -1,
-        "ionization_type": "ESI", "isAdduct": true,
+        "ionization_type": "ESI", "isAdduct": false,
         "isProtonated": true,
-        "isRadical": true,
+        "isRadical": false,
         "isotopologue_filter_atoms": [
             "Cl", "Br"
         ],
         "isotopologue_filter_threshold": 33,
         "max_abun_error": 70,
-        "max_dbe": 70,
-        "max_mz": 800,
-        "max_mz_error": 5,
-        "max_ppm_error": 5,
+        "max_dbe": 50,
+        "max_ppm_error": 3,
         "min_abun_error": -30,
         "min_dbe": 0,
-        "min_mz": 100,
-        "min_mz_error": -5,
         "min_peaks_per_class": 15,
         "min_ppm_error": -5,
-        "min_ppm_error ": -5,
         "mz_error_average": 0,
-        "mz_error_range": 1.5,
+        "mz_error_range": 1,
         "oc_filter": 1.2,
         "op_filter": 2,
         "score_method": "N_S_P_lowest_error", "score_methods": [
             "S_P_lowest_error", "N_S_P_lowest_error", "lowest_error", "prob_score", "air_filter_error", "water_filter_error", "earth_filter_error"
         ],
+        "url_database": null,
         "use_isotopologue_filter": false,
         "use_min_peaks_filter": true,
-        "use_pah_line_rule": false,
+        "use_pah_line_rule": true,
         "use_runtime_kendrick_filter": false,
         "usedAtoms": {
             "C": [
                 1,
                 100
-            ],
-            "Cl": [
-                0,
-                0
             ],
             "H": [
                 4,
@@ -82,11 +74,11 @@
             ],
             "N": [
                 0,
-                0
+                1
             ],
             "O": [
-                2,
-                19
+                4,
+                24
             ],
             "P": [
                 0,
@@ -101,16 +93,17 @@
             "13C": 4,
             "18O": 2,
             "34S": 2,
-            "37Cl": 0,
-            "Br": 0,
+            "37Cl": 1,
+            "Br": 1,
             "C": 4,
             "Cl": 0,
-            "F": 0,
+            "F": 1,
             "H": 1,
+            "K": 1,
             "N": 3,
             "Na": 1,
             "O": 2,
-            "P": 3,
+            "P": 1,
             "S": 2
         }
     },

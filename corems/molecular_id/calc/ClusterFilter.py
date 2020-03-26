@@ -73,7 +73,7 @@ class ClusteringFilter():
 
     def filter_kendrick_by_index(self, ms_peak_indexes, mass_spectrum_obj):
         
-        min_samples = mass_spectrum_obj.molecular_search_settings.min_peaks_per_class
+        min_samples = mass_spectrum_obj.molform_search_settings.min_peaks_per_class
 
         kendrick_dict = {'km': list(), 'kmd': list()}  
 

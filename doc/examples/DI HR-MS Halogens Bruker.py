@@ -50,46 +50,46 @@ def export(list_dict, export_name):
 
 def set_settings_for_bromothymol_blue(mass_spectrum):
 
-    mass_spectrum.molecular_search_settings.min_ppm_error  = -2
-    mass_spectrum.molecular_search_settings.max_ppm_error = 5
+    mass_spectrum.molform_search_settings.min_ppm_error  = -2
+    mass_spectrum.molform_search_settings.max_ppm_error = 5
 
-    mass_spectrum.molecular_search_settings.usedAtoms['C'] = (1,90)
-    mass_spectrum.molecular_search_settings.usedAtoms['H'] = (4,200)
-    mass_spectrum.molecular_search_settings.usedAtoms['O'] = (5,5)
-    mass_spectrum.molecular_search_settings.usedAtoms['N'] = (0,0)
-    mass_spectrum.molecular_search_settings.usedAtoms['S'] = (1,1)
-    mass_spectrum.molecular_search_settings.usedAtoms['Br'] = (2,2)
+    mass_spectrum.molform_search_settings.usedAtoms['C'] = (1,90)
+    mass_spectrum.molform_search_settings.usedAtoms['H'] = (4,200)
+    mass_spectrum.molform_search_settings.usedAtoms['O'] = (5,5)
+    mass_spectrum.molform_search_settings.usedAtoms['N'] = (0,0)
+    mass_spectrum.molform_search_settings.usedAtoms['S'] = (1,1)
+    mass_spectrum.molform_search_settings.usedAtoms['Br'] = (2,2)
 
     #enables the search for Br compounds 
-    mass_spectrum.molecular_search_settings.adduct_atoms_neg = ['Cl', 'F']
+    mass_spectrum.molform_search_settings.adduct_atoms_neg = ['Cl', 'F']
 
-    mass_spectrum.molecular_search_settings.isProtonated = True
-    mass_spectrum.molecular_search_settings.isRadical= False
-    mass_spectrum.molecular_search_settings.isAdduct = False
+    mass_spectrum.molform_search_settings.isProtonated = True
+    mass_spectrum.molform_search_settings.isRadical= False
+    mass_spectrum.molform_search_settings.isAdduct = False
 
-    mass_spectrum.molecular_search_settings.use_min_peaks_filter = False
+    mass_spectrum.molform_search_settings.use_min_peaks_filter = False
 
 def set_settings_for_chlorophenol_red(mass_spectrum):
     #Chlorophenol Red –  C19H12Cl2O5S -  421.978241
 
-    mass_spectrum.molecular_search_settings.min_ppm_error  = -2
-    mass_spectrum.molecular_search_settings.max_ppm_error = 5
+    mass_spectrum.molform_search_settings.min_ppm_error  = -2
+    mass_spectrum.molform_search_settings.max_ppm_error = 5
 
-    mass_spectrum.molecular_search_settings.usedAtoms['C'] = (1,90)
-    mass_spectrum.molecular_search_settings.usedAtoms['H'] = (4,200)
-    mass_spectrum.molecular_search_settings.usedAtoms['O'] = (5,5)
-    mass_spectrum.molecular_search_settings.usedAtoms['N'] = (0,0)
-    mass_spectrum.molecular_search_settings.usedAtoms['S'] = (1,1)
-    mass_spectrum.molecular_search_settings.usedAtoms['Cl'] = (2,2)
+    mass_spectrum.molform_search_settings.usedAtoms['C'] = (1,90)
+    mass_spectrum.molform_search_settings.usedAtoms['H'] = (4,200)
+    mass_spectrum.molform_search_settings.usedAtoms['O'] = (5,5)
+    mass_spectrum.molform_search_settings.usedAtoms['N'] = (0,0)
+    mass_spectrum.molform_search_settings.usedAtoms['S'] = (1,1)
+    mass_spectrum.molform_search_settings.usedAtoms['Cl'] = (2,2)
 
     #enables the search for Cl compounds 
-    mass_spectrum.molecular_search_settings.adduct_atoms_neg = ['Br', 'F']
+    mass_spectrum.molform_search_settings.adduct_atoms_neg = ['Br', 'F']
 
-    mass_spectrum.molecular_search_settings.isProtonated = True
-    mass_spectrum.molecular_search_settings.isRadical= False
-    mass_spectrum.molecular_search_settings.isAdduct = False
+    mass_spectrum.molform_search_settings.isProtonated = True
+    mass_spectrum.molform_search_settings.isRadical= False
+    mass_spectrum.molform_search_settings.isAdduct = False
 
-    mass_spectrum.molecular_search_settings.use_min_peaks_filter = False
+    mass_spectrum.molform_search_settings.use_min_peaks_filter = False
 
 if __name__ == "__main__":
     

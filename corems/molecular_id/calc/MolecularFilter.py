@@ -7,7 +7,7 @@ class MolecularFormulaSearchFilters:
 
         index_to_remove = []
         
-        if mass_spectrum_obj.molecular_search_settings.use_runtime_kendrick_filter:
+        if mass_spectrum_obj.molform_search_settings.use_runtime_kendrick_filter:
             
             index_to_remove = ClusteringFilter().filter_kendrick_by_index(ms_peak_indexes, mass_spectrum_obj)
 
@@ -32,9 +32,9 @@ class MolecularFormulaSearchFilters:
     @staticmethod
     def check_min_peaks( ms_peak_indexes, mass_spectrum):
         
-        if mass_spectrum.molecular_search_settings.use_min_peaks_filter:
+        if mass_spectrum.molform_search_settings.use_min_peaks_filter:
 
-            if not len(ms_peak_indexes) >= mass_spectrum.molecular_search_settings.min_peaks_per_class:
+            if not len(ms_peak_indexes) >= mass_spectrum.molform_search_settings.min_peaks_per_class:
                 
                 for peak_index, mf_obj in ms_peak_indexes:
                 
@@ -45,11 +45,11 @@ class MolecularFormulaSearchFilters:
         
         index_to_remove = []
         #print(len(ms_peak_indexes))
-        if mass_spectrum.molecular_search_settings.use_isotopologue_filter:
+        if mass_spectrum.molform_search_settings.use_isotopologue_filter:
 
-            atoms_iso_filter = mass_spectrum.molecular_search_settings.isotopologue_filter_atoms
+            atoms_iso_filter = mass_spectrum.molform_search_settings.isotopologue_filter_atoms
 
-            isotopologue_count_threshold = mass_spectrum.molecular_search_settings.isotopologue_filter_threshold
+            isotopologue_count_threshold = mass_spectrum.molform_search_settings.isotopologue_filter_threshold
 
             for mspeak_index, mf_obj in ms_peak_indexes:
             
