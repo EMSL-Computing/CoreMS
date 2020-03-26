@@ -145,6 +145,8 @@ class MolecularLookupDictSettings:
 
 class MolecularSearchSettings:
     
+    url_database = None
+
     use_isotopologue_filter = False
 
     isotopologue_filter_threshold = 33 # percentile predicted and found 
