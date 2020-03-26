@@ -1,4 +1,4 @@
-__version__ = '9.12.0.beta'
+__version__ = '9.13.0.beta'
 __doc__ = '''
 
 CoreMS - a powerful framework for mass spectrometry data processing and analysis of small molecules
@@ -108,7 +108,7 @@ class SuppressPrints:
 
 def get_filename(app=None):
     
-    from PySide2.QtCore import Qt
+    from PySide2.QtCore import Qt, QCoreApplication
     from PySide2.QtWidgets import QApplication, QFileDialog 
     from pathlib import Path
 
@@ -118,7 +118,7 @@ def get_filename(app=None):
     file_location, _ = file_dialog.getOpenFileName()
     
     if file_location:
-        
+        QCoreApplication.processEvents()
         return Path(file_location)
     
     else:
@@ -127,7 +127,7 @@ def get_filename(app=None):
 
 def get_dirname(app=None):
     
-    from PySide2.QtCore import Qt
+    from PySide2.QtCore import Qt, QCoreApplication
     from PySide2.QtWidgets import QApplication, QFileDialog 
     from pathlib import Path
 
@@ -137,7 +137,7 @@ def get_dirname(app=None):
     file_location = file_dialog.getExistingDirectory()
     
     if file_location:
-        
+        QCoreApplication.processEvents()
         return Path(file_location)
     
     else:
@@ -146,7 +146,7 @@ def get_dirname(app=None):
 
 def get_dirnames(app=None):   
     
-    from PySide2.QtCore import Qt
+    from PySide2.QtCore import Qt, QCoreApplication
     from PySide2.QtWidgets import QApplication, QFileDialog, QTreeView, QListView, QAbstractItemView
     from pathlib import Path
     
@@ -170,6 +170,7 @@ def get_dirnames(app=None):
 
     if file_dialog.exec():
         paths = file_dialog.selectedFiles()
+        QCoreApplication.processEvents()
         for path in paths:
             yield Path(path)
     
