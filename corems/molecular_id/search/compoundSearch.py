@@ -38,7 +38,7 @@ class LowResMassSpectralMatch(Thread):
 
         ri_score = exp(-((gc_peak.ri - ref_obj.get('ri'))**2 ) / (2 * CompoundSearchSettings.ri_window))
 
-        similarity_score = (spectral_similarity_score * (ri_score**2))**(1/3)
+        similarity_score = ((spectral_similarity_score**2) * (ri_score))**(1/3)
 
         return spectral_similarity_score, ri_score, similarity_score
         
