@@ -4,7 +4,7 @@ from pathlib import Path
 
 from pandas import DataFrame
 
-from numpy import power, dot, absolute, subtract, sum
+from numpy import power, dot, absolute, subtract, sum, intersect1d, where
 from numpy.linalg import norm
 from scipy.spatial.distance import cosine, jaccard, euclidean, cityblock
 from scipy.stats import pearsonr, spearmanr, kendalltau
@@ -105,6 +105,57 @@ class LowResMassSpectralMatch(Thread):
         correlation = dot(x, y)/(norm(x)*norm(y))
 
         return correlation
+
+    def stein_scott(self, mass_spec, ref_obj):
+
+        # create dict['mz'] = abundance, for experimental data
+        ms_mz_abun_dict = mass_spec.mz_abun_dict
+
+        # create dict['mz'] = abundance, for experimental data
+        ref_mz_abun_dict = dict(zip(ref_obj.get("mz"), ref_obj.get("abundance")))
+
+        #parse to dataframe, easier to zerofill and tranpose
+        df = DataFrame([ms_mz_abun_dict, ref_mz_abun_dict])
+
+        # fill missing mz with abundance 0
+        df.fillna(0, inplace=True)
+        
+        # format data 
+        x = df.T[0]
+        y = df.T[1]
+
+        # calculate dot product
+        Sc = sum(x * y) / dot(x, y)
+
+        # calculate length non-zero intensities
+        idx = df.T[0] > 0
+        idy = df.T[1] > 0
+        idxy = where(idx & idy)
+        Nxy = len(idxy[0])
+        Nx = len(where(idx)[0])
+
+        # subset df to remove 0
+        sub_df = df[idxy[0]]
+        sub_df = sub_df.T
+        sub_df = sub_df.reset_index(drop=True)
+
+        res = 0
+        for i in range(1, Nxy):
+            temp = (sub_df[1][i] / sub_df[1][i-1]) * (sub_df[0][i-1] / sub_df[0][i])
+
+            if temp < 1:
+                res = res + temp
+            else:
+                res = res + (1/temp)
+
+        # calculate ratio similarity
+        Sr = (1 / Nxy) * res
+
+        # calculate stein and scott
+        Scr = (Nx * Sc + Nxy * Sr) / (Nx + Nxy)
+
+        return Scr
+
 
     def pearson_correlation(self, mass_spec, ref_obj):
 
