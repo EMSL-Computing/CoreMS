@@ -89,6 +89,9 @@ class MolecularFormulaCalc:
         pass
     
     def _calc_mz_confidence(self):
+        
+        # predicted std not set, using 0.3
+        if not self._mspeak_parent.predicted_std: self._mspeak_parent.predicted_std = 0.3
 
         return  exp(-((self._mspeak_parent.mz_exp - self.mz_calc)**2 ) / (2 * self._mspeak_parent.predicted_std**2))
     def _calc_confidence_score(self):
@@ -104,69 +107,68 @@ class MolecularFormulaCalc:
         ####    Standart deviation calculated from Resolving power optimization or constant set by User 
         
         '''
-        if not self._mspeak_parent.predicted_std: return -1
-           
-        else:
-
-            if self.is_isotopologue:
-                
-                return self._calc_mz_confidence()
+        # predicted std not set, using 0.3
         
+        if self.is_isotopologue:
+            # confidence of isotopolgue is pure mz error 
+            # TODO add more features here 
+            return self._calc_mz_confidence()
+    
+        else:
+            
+            if self.expected_isotopologues:
+                dict_mz_abund_ref = {}
+                
+                # get reference data
+                for mf in self.expected_isotopologues:
+                    dict_mz_abund_ref[mf.mz_calc] = mf.abundance_calc
+                
+                dict_mz_abund_exp = {}
+                
+                accumulated_mz_score = []
+                # get experimental data
+                for mf in self.expected_isotopologues:
+                    
+                    # molecular formula has been assigned to a peak
+                    if mf._mspeak_parent:
+                        #stores mspeak abundance
+                        dict_mz_abund_exp[mf.mz_calc] = mf._mspeak_parent.abundance
+                        #calculate mz error score and store it for all the isotopologue match
+                        accumulated_mz_score.append(mf._calc_mz_confidence())
+                    
+                    else:
+                        # fill missing mz with abundance 0 and mz error score of 0
+                        dict_mz_abund_exp[mf.mz_calc] = 0.0
+                        accumulated_mz_score.append(0.0)
+
+                df = DataFrame([dict_mz_abund_exp, dict_mz_abund_ref])
+                
+                #calculate abundance correlation, 
+                # ensure data alignment
+                x = df.T[0].values
+                y = df.T[1].values
+
+                correlation = kendalltau(x, y)[0]
+                #correlation = (1 - cosine(x, y))
+            
             else:
-                
-                if self.expected_isotopologues:
-                    dict_mz_abund_ref = {}
-                    
-                    # get reference data
-                    for mf in self.expected_isotopologues:
-                        dict_mz_abund_ref[mf.mz_calc] = mf.abundance_calc
-                    
-                    dict_mz_abund_exp = {}
-                    
-                    accumulated_mz_score = []
-                    # get experimental data
-                    for mf in self.expected_isotopologues:
-                        
-                        # molecular formula has been assigned to a peak
-                        if mf._mspeak_parent:
-                            #stores mspeak abundance
-                            dict_mz_abund_exp[mf.mz_calc] = mf._mspeak_parent.abundance
-                            #calculate mz error score and store it for all the isotopologue match
-                            accumulated_mz_score.append(mf._calc_mz_confidence())
-                        
-                        else:
-                            # fill missing mz with abundance 0 and mz error score of 0
-                            dict_mz_abund_exp[mf.mz_calc] = 0.0
-                            accumulated_mz_score.append(0.0)
+                # no isotopologue expected, giving a correlation score of 0.5 but it needs optimization
+                correlation = 0.5
 
-                    df = DataFrame([dict_mz_abund_exp, dict_mz_abund_ref])
-                    
-                    #calculate abundance correlation, 
-                    # ensure data alignment
-                    x = df.T[0].values
-                    y = df.T[1].values
-
-                    correlation = kendalltau(x, y)[0]
-                    #correlation = (1 - cosine(x, y))
-                
-                else:
-                    # no isotopologue expected, giving a correlation score of 0.5 but it needs optimization
-                    correlation = 0.5
-
-                #correlation = dot(x, y)/(norm(x)*norm(y))
-                # add monoisotopic peak mz error score
-                accumulated_mz_score.append(self._calc_mz_confidence())
-                
-                average_mz_score = sum(accumulated_mz_score)/len(accumulated_mz_score)
-                
-                # calculate score with higher weight for mass error
-                score = ((correlation) * (average_mz_score**2))**(1/3)
-                
-                print("correlation",correlation)
-                print("average_mz_score",average_mz_score)
-                print("mz_score",self._calc_mz_confidence())
-                print("score",score)
-                return score
+            #correlation = dot(x, y)/(norm(x)*norm(y))
+            # add monoisotopic peak mz error score
+            accumulated_mz_score.append(self._calc_mz_confidence())
+            
+            average_mz_score = sum(accumulated_mz_score)/len(accumulated_mz_score)
+            
+            # calculate score with higher weight for mass error
+            score = ((correlation) * (average_mz_score**2))**(1/3)
+            
+            print("correlation",correlation)
+            print("average_mz_score",average_mz_score)
+            print("mz_score",self._calc_mz_confidence())
+            print("score",score)
+            return score
 
 
     def _calc_abundance_error(self, method='percentile'):
