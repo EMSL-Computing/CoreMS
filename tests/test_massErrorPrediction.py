@@ -52,7 +52,7 @@ if __name__ == "__main__":
     #for mspeak in mass_spectrum:
 
     #     for mf in mspeak:
-    #         mf._calc_confidence_score(mspeak.mz_exp, mspeak.predicted_std)
+    #         mf._calc_confidence_score()
     #    print(mspeak.predicted_std)
 
 '''

@@ -112,7 +112,7 @@ def test_molecular_formula_search_db():
             i += 1
             for mformula in mspeak:
                 mass.append(mspeak.mz_exp)
-                error.append(mformula._calc_assignment_mass_error(mspeak.mz_exp))
+                error.append(mformula._calc_assignment_mass_error())
                 abundance.append(mspeak.abundance)
         else:
             j += 1
@@ -151,8 +151,8 @@ def test_priorityAssignment():
 
 if __name__ == "__main__":
 
-    #test_run_molecular_formula_search()
+    test_run_molecular_formula_search()
     #test_priorityAssignment()
     #test_molecular_formula_search_db()
-    test_run_molecular_formula_search()
+    #test_run_molecular_formula_search()
     #test_mspeak_search()

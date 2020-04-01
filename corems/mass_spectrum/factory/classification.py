@@ -187,11 +187,11 @@ class HeteroatomsClassification(Mapping):
             
             if self.choose_mf:
                 
-                return [mspeak.best_molecular_formula_candidate._calc_assignment_mass_error(mspeak.mz_exp) for mspeak in self[classe]]
+                return [mspeak.best_molecular_formula_candidate._calc_assignment_mass_error() for mspeak in self[classe]]
             
             else:
                 
-                return [mf._calc_assignment_mass_error(mspeak.mz_exp) for mspeak in self[classe] for mf in mspeak if mf.class_label == classe]
+                return [mf._calc_assignment_mass_error() for mspeak in self[classe] for mf in mspeak if mf.class_label == classe]
     
     def mz_calc(self, classe):
         

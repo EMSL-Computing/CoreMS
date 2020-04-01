@@ -306,7 +306,7 @@ def plot_error_distribution():
                 if not molecular_formula.is_isotopologue:
                         
                     #off_set +=  0.1
-                    molecular_formula._calc_assignment_mass_error(mspeak.mz_exp)
+                    molecular_formula._calc_assignment_mass_error()
                     pyplot.plot(mspeak.mz_exp, molecular_formula._assignment_mass_error, "o")
 
     pyplot.ylabel("m/z Error (ppm)")

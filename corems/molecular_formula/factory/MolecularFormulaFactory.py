@@ -13,7 +13,7 @@ class MolecularFormula(MolecularFormulaCalc):
     '''
     classdocs
     '''
-    def __init__(self, molecular_formula, ion_charge, exp_mz=None, ion_type=None):
+    def __init__(self, molecular_formula, ion_charge, mspeak_parent=None, ion_type=None):
         
         #clear dictionary of atoms with 0 value
         
@@ -27,20 +27,19 @@ class MolecularFormula(MolecularFormulaCalc):
                 self._from_str(molecular_formula, ion_type)   
 
         self._ion_charge = ion_charge
-        self._assignment_mass_error = None
-        self._confidence_score = None
+        
         self.is_isotopologue = False
+
+        # parent mass spectrum peak obj instance
+        self._mspeak_parent = mspeak_parent
+
         self.expected_isotopologues = []
         self.mspeak_mf_isotopologues_indexes = []
         
         kendrick_dict_base = MassSpecPeakSetting.kendrick_base
         self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(
             kendrick_dict_base)  
-
-        if exp_mz:
-            self._assignment_mass_error = self._calc_assignment_mass_error(exp_mz)
-            #self._confidence_score = self._calc_confidence_score()     
-    
+        
     def __len__(self):
         
         #crash if keys are not ordered
@@ -127,11 +126,7 @@ class MolecularFormula(MolecularFormulaCalc):
     def mz_nominal_calc(self): return int(self._calc_mz())
 
     @property    
-    def mz_error(self): return self._assignment_mass_error
-
-    @mz_error.setter
-    def mz_error(self, error):
-        self._assignment_mass_error = error
+    def mz_error(self): return self._calc_assignment_mass_error()
 
     @property
     def mz_calc(self): return self._calc_mz()
@@ -232,11 +227,11 @@ class MolecularFormula(MolecularFormulaCalc):
         if self._d_molecular_formula:
             formula_list = []    
             
-            for atomo, atom_number in self._d_molecular_formula.items():
+            for atom, atom_number in self._d_molecular_formula.items():
     
-                if atomo != Labels.ion_type:
+                if atom != Labels.ion_type:
                     
-                    formula_list.append(atomo)
+                    formula_list.append(atom)
                     formula_list.append(atom_number)
     
             return formula_list
@@ -283,6 +278,7 @@ class MolecularFormula(MolecularFormulaCalc):
         if self._d_molecular_formula:
             
             class_dict = {}
+            
             for atom, qnt in self._d_molecular_formula.items():
     
                 if atom != Labels.ion_type and atom !='C' and atom !='H':
@@ -299,7 +295,7 @@ class MolecularFormulaIsotopologue(MolecularFormula):
     '''
     classdocs
     '''
-    def __init__(self, _d_molecular_formula, prob_ratio, mono_abundance, ion_charge, exp_abundance=None, exp_mz=None):
+    def __init__(self, _d_molecular_formula, prob_ratio, mono_abundance, ion_charge, mspeak_parent=None):
         
         super().__init__(_d_molecular_formula,  ion_charge)
         #prob_ratio is relative to the monoisotopic peak p_isotopologue/p_mono_isotopic
@@ -312,29 +308,13 @@ class MolecularFormulaIsotopologue(MolecularFormula):
         
         self.mspeak_index_mono_isotopic = None
 
-        self._abundance_error = None
+        # parent mass spectrum peak obj instance
+        self._mspeak_parent = mspeak_parent
 
-        self._area_error = None
-
-        
-        if exp_mz:
-            
-            self._assignment_mass_error = self._calc_assignment_mass_error(exp_mz)
-        
         @property
         def area_error(self):
-            return self._area_error
-
-        @area_error.setter
-        def area_error(self, error):
-            self._area_error = error 
+            return self._calc_area_error()
 
         @property
         def abundance_error(self):
-            return self._abundance_error
-
-        @abundance_error.setter
-        def abundance_error(self, error):
-            self._abundance_error = error 
-        
-        
+            return self._calc_abundance_error()

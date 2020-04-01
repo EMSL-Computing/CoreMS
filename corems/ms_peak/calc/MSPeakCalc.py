@@ -1,11 +1,9 @@
+__author__ = "Yuri E. Corilo"
+__date__ = "Jun 04, 2019"
 
 from scipy.stats import norm, cauchy
 from numpy import linspace, sqrt, log, trapz, pi, log, poly1d, polyfit
 from corems.encapsulation.constant import Atoms
-
-__author__ = "Yuri E. Corilo"
-__date__ = "Jun 04, 2019"
-
 
 class MSPeakCalculation(object):
 
@@ -36,7 +34,7 @@ class MSPeakCalculation(object):
         
         if self.final_index > self.start_index:
         
-            yy = self.ms_parent.abundance_profile[self.start_index:self.final_index]
+            yy = self._ms_parent.abundance_profile[self.start_index:self.final_index]
             
             return trapz(yy, dx = dx)
         
@@ -123,11 +121,11 @@ class MSPeakCalculation(object):
         import matplotlib.pyplot as plt
 
         start_index = self.start_index - mz_overlay  if not self.start_index == 0 else 0
-        final_index = self.final_index + mz_overlay  if not self.final_index == len(self.ms_parent.mz_exp_profile) else self.final_index
+        final_index = self.final_index + mz_overlay  if not self.final_index == len(self._ms_parent.mz_exp_profile) else self.final_index
 
         if oversample_multiplier == 1:
 
-            mz_domain = self.ms_parent.mz_exp_profile[start_index: final_index]
+            mz_domain = self._ms_parent.mz_exp_profile[start_index: final_index]
             
         else:
             # we assume a linear correlation for m/z and datapoits 
@@ -135,7 +133,7 @@ class MSPeakCalculation(object):
             # this is not true for a wide m/z range
                          
             indexes = range(start_index, final_index+1)
-            mz = self.ms_parent.mz_exp_profile[indexes]
+            mz = self._ms_parent.mz_exp_profile[indexes]
             pol = poly1d(polyfit(indexes, mz, 1))
             oversampled_indexes = linspace(start_index, final_index, (final_index-start_index) * oversample_multiplier)    
             mz_domain = pol(oversampled_indexes)
@@ -226,18 +224,18 @@ class MSPeakCalculation(object):
 
     def molecular_formula_lowest_error(self):
        
-       return min(self.molecular_formulas, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))
+       return min(self.molecular_formulas, key=lambda m: abs(m._calc_assignment_mass_error()))
 
     def molecular_formula_highest_prob_score(self):
        
-       return min(self.molecular_formulas, key=lambda m: abs(m._calc_confidence_score(self.mz_exp, self.predicted_std)))
+       return min(self.molecular_formulas, key=lambda m: abs(m._calc_confidence_score()))
 
     def molecular_formula_earth_filter(self, lowest_error=True):
         
         candidates = list(filter(lambda mf: mf.get("O") > 0 and mf.get("N") <=3 and mf.get("P") <= 2 and (3 * mf.get("P")) <= mf.get("O"), self.molecular_formulas))
 
         if lowest_error:
-            return min(candidates, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))
+            return min(candidates, key=lambda m: abs(m._calc_assignment_mass_error()))
         else:
             return candidates
 
@@ -246,7 +244,7 @@ class MSPeakCalculation(object):
         candidates = list(filter(lambda mf: mf.get("O") > 0 and mf.get("N") <=3 and mf.get("S") <=2 and  mf.get("P") <= 2, self.molecular_formulas))
 
         if lowest_error:
-            return min(candidates, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))
+            return min(candidates, key=lambda m: abs(m._calc_assignment_mass_error()))
         else:
             return candidates
     
@@ -255,7 +253,7 @@ class MSPeakCalculation(object):
         candidates = list(filter(lambda mf: mf.get("O") > 0 and mf.get("N") <=2 and mf.get("S") <=1 and  mf.get("P") == 0 and 3* (mf.get("S") + mf.get("N")) <= mf.get("O"), self.molecular_formulas))
         
         if lowest_error:
-            return min(candidates, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))
+            return min(candidates, key=lambda m: abs(m._calc_assignment_mass_error()))
         else:
             return candidates
 
@@ -270,7 +268,7 @@ class MSPeakCalculation(object):
         #check if list is not empty
         if list_same_s_p:
         
-            return min(list_same_s_p, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))
+            return min(list_same_s_p, key=lambda m: abs(m._calc_assignment_mass_error()))
         
         else:
         
@@ -291,11 +289,11 @@ class MSPeakCalculation(object):
                 
                 if SP_filtered_list:
                     
-                    return min(SP_filtered_list, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp))) 
+                    return min(SP_filtered_list, key=lambda m: abs(m._calc_assignment_mass_error())) 
                 
                 else:    
                     
-                    return min(list_same_N_S_P, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))            
+                    return min(list_same_N_S_P, key=lambda m: abs(m._calc_assignment_mass_error()))            
             
             else:
                 

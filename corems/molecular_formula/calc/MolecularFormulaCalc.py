@@ -50,7 +50,7 @@ class MolecularFormulaCalc:
             
             raise Exception("Please set ion charge first")
          
-    def _calc_assignment_mass_error(self, mz_exp, method='ppm'):
+    def _calc_assignment_mass_error(self, method='ppm'):
         
         '''
         ## Parameters
@@ -70,20 +70,20 @@ class MolecularFormulaCalc:
         else:
             raise Exception("method needs to be ppm or ppb, you have entered %s" % method)
               
-        if mz_exp:
+        if self._mspeak_parent.mz_exp:
             
-            self._assignment_mass_error = ((self.mz_calc - mz_exp)/self.mz_calc)*multi_factor
+            self._assignment_mass_error = ((self.mz_calc - self._mspeak_parent.mz_exp)/self.mz_calc)*multi_factor
 
-            return ((self.mz_calc - mz_exp)/self.mz_calc)*multi_factor
+            return ((self.mz_calc - self._mspeak_parent.mz_exp)/self.mz_calc)*multi_factor
         
         else:
             
             raise Exception("Please set mz_calc first")    
     
-    def _calc_fine_isotopic_similarity(self, mz_exp, predicted_std):
+    def _calc_fine_isotopic_similarity(self):
         pass
     
-    def _calc_confidence_score(self, mz_exp, predicted_std):
+    def _calc_confidence_score(self):
         '''
         ### Assumes random mass error, i.e, spectrum has to be calibrated and with zero mean
         #### TODO: Add spectral similarity 
@@ -95,18 +95,21 @@ class MolecularFormulaCalc:
         #### predicted_std:
         ####    Standart deviation calculated from Resolving power optimization or constant set by User 
         '''
-
-        if predicted_std:
-            assignment_score = exp(-((mz_exp - self.mz_calc)**2 ) / (2 * predicted_std**2))
+        if  self._mspeak_parent.predicted_std:
+            assignment_score = exp(-((self._mspeak_parent.mz_exp - self.mz_calc)**2 ) / (2 * self._mspeak_parent.predicted_std**2))
             return assignment_score
         else:
             return -1
 
         
-    def _calc_abundance_error(self, mono_abundance, iso_abundance, method='percentile'):
+    def _calc_abundance_error(self, method='percentile'):
         '''method should be ppm, ppb or percentile'''
         
         mult_factor = 100
+
+        iso_abundance = self._mspeak_parent.abundance
+        mono_abundance =self._mspeak_parent._ms_parent[self.mspeak_index_mono_isotopic].abundance
+
         if self.prob_ratio:
             
             theor_abundance = mono_abundance* self.prob_ratio
@@ -117,10 +120,14 @@ class MolecularFormulaCalc:
             
             raise Exception("Please calc_isotopologues")    
 
-    def _calc_area_error(self, mono_area, iso_area, method='percentile'):
+    def _calc_area_error(self, method='percentile'):
         '''method should be ppm, ppb or percentile'''
         
         mult_factor = 100
+        
+        iso_area = self._mspeak_parent.area
+        mono_area =self._mspeak_parent._ms_parent[self.mspeak_index_mono_isotopic].area
+
         if self.prob_ratio:
             
             if mono_area and iso_area: 
@@ -220,7 +227,6 @@ class MolecularFormulaCalc:
         
         #print(min_relative_abundance, min_abundance, current_abundance, cut_off_to_IsoSpeccPy)
         
-        isotopologue_and_pro_ratio_tuples = []
         atoms_labels = (atom for atom in formula_dict.keys() if atom != Labels.ion_type and atom != 'H')
        
         atoms_count = []

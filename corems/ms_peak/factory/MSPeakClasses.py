@@ -22,16 +22,15 @@ class _MSPeak(MSPeakCalculation):
         self.abundance = float(abundance)
         self.resolving_power = float(resolving_power)
         self.signal_to_noise = float(signal_to_noise)
-        #profile indexes
+        # profile indexes
         self.start_index = int(massspec_indexes[0]) 
         self.apex_index = int(massspec_indexes[1])
         self.final_index = int(massspec_indexes[2]) 
         #centroid index
         self.index = int(index)
-        self.ms_parent = ms_parent
-
-        self._area = self.calc_area()
-
+        # parent mass spectrum obj instance
+        self._ms_parent = ms_parent
+        
         # updated after mass error prediction'
         self.predicted_std = None
         # updated after calibration'
@@ -74,12 +73,18 @@ class _MSPeak(MSPeakCalculation):
 
     def add_molecular_formula(self, molecular_formula_obj):
         
-        "freeze state"
-        new_mol_formula = deepcopy(molecular_formula_obj)
+        # freeze state
+        molecular_formula_obj._mspeak_parent = self
+        
+        #new_mol_formula = deepcopy(molecular_formula_obj)
+        # add link mass spectrum obj instance
+        
+        #new_mol_formula.mspeak_parent = self
 
-        self.molecular_formulas.append(new_mol_formula)
+        self.molecular_formulas.append(molecular_formula_obj)
 
-        return new_mol_formula
+        return molecular_formula_obj
+
     def remove_molecular_formula(self, mf_obj):
         
         self.molecular_formulas.remove(mf_obj)
@@ -100,7 +105,7 @@ class _MSPeak(MSPeakCalculation):
         self._mz_exp = mz_exp
 
     @property
-    def area(self): return self._area
+    def area(self): return self.calc_area()
 
     @property
     def nominal_mz_exp(self): return int(self.mz_exp)
@@ -123,7 +128,7 @@ class _MSPeak(MSPeakCalculation):
                             oversample_multiplier=1, delta_rp = 0, mz_overlay=1):
 
                  
-        if self.ms_parent:
+        if self._ms_parent:
         
             import matplotlib.pyplot as plt
             
@@ -139,14 +144,14 @@ class _MSPeak(MSPeakCalculation):
            
     def plot(self, ax=None, color="black"): #pragma: no cover
         
-        if self.ms_parent:
+        if self._ms_parent:
             
             import matplotlib.pyplot as plt
 
             if ax is None:
                 ax = plt.gca()
-            x = self.ms_parent.mz_exp_profile[self.start_index: self.final_index]
-            y =  self.ms_parent.abundance_profile[self.start_index: self.final_index]
+            x = self._ms_parent.mz_exp_profile[self.start_index: self.final_index]
+            y =  self._ms_parent.abundance_profile[self.start_index: self.final_index]
             
             ax.plot(x, y, color=color, label="Data")
             ax.set(xlabel='m/z', ylabel='abundance')
@@ -161,25 +166,25 @@ class _MSPeak(MSPeakCalculation):
     @property
     def best_molecular_formula_candidate(self):
         
-        if self.ms_parent.molform_search_settings.score_method == "N_S_P_lowest_error":
+        if self._ms_parent.molform_search_settings.score_method == "N_S_P_lowest_error":
             return self.cia_score_N_S_P_error()
         
-        elif self.ms_parent.molform_search_settings.score_method == "S_P_lowest_error":
+        elif self._ms_parent.molform_search_settings.score_method == "S_P_lowest_error":
             return self.cia_score_S_P_error()
 
-        elif self.ms_parent.molform_search_settings.score_method == "lowest_error":
+        elif self._ms_parent.molform_search_settings.score_method == "lowest_error":
             return self.molecular_formula_lowest_error()    
         
-        elif self.ms_parent.molform_search_settings.score_method == "air_filter_error":
+        elif self._ms_parent.molform_search_settings.score_method == "air_filter_error":
             return self.molecular_formula_air_filter()    
 
-        elif self.ms_parent.molform_search_settings.score_method == "water_filter_error":
+        elif self._ms_parent.molform_search_settings.score_method == "water_filter_error":
             return self.molecular_formula_water_filter()    
 
-        elif self.ms_parent.molform_search_settings.score_method == "earth_filter_error":
+        elif self._ms_parent.molform_search_settings.score_method == "earth_filter_error":
             return self.molecular_formula_earth_filter()   
 
-        elif self.ms_parent.molform_search_settings.score_method == "prob_score":
+        elif self._ms_parent.molform_search_settings.score_method == "prob_score":
             #TODO
             raise NotImplementedError
         else:
@@ -187,7 +192,7 @@ class _MSPeak(MSPeakCalculation):
             raise TypeError("Unknown score method selected: % s, \
                             Please check score_method at \
                             encapsulation.settings.molecular_id.MolecularIDSettings.MolecularSearchSettings", 
-                            self.ms_parent.MolecularSearchSettings.score_method)    
+                            self._ms_parent.MolecularSearchSettings.score_method)    
 
 class ICRMassPeak(_MSPeak):
 

@@ -26,7 +26,7 @@ class MZDomain_Calibration:
                 
                 mz_exp.append(mspeak.mz_exp)
                 error.append(
-                    molecular_formula._calc_assignment_mass_error(mspeak.mz_exp))
+                    molecular_formula._calc_assignment_mass_error())
                 
                 mz_calc.append(molecular_formula.mz_calc)
 
@@ -173,7 +173,7 @@ class FreqDomain_Calibration:
 
                 freq_exp.append(mspeak.freq_exp)
                 error.append(
-                    molecular_formula._calc_assignment_mass_error(mspeak.mz_exp))
+                    molecular_formula._calc_assignment_mass_error())
                 mz_calc.append(molecular_formula.mz_calc)
                 mz_exp.append(mspeak.mz_exp)
 
