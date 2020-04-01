@@ -185,8 +185,7 @@ class _MSPeak(MSPeakCalculation):
             return self.molecular_formula_earth_filter()   
 
         elif self._ms_parent.molform_search_settings.score_method == "prob_score":
-            #TODO
-            raise NotImplementedError
+            return self.molecular_formula_highest_prob_score()
         else:
             
             raise TypeError("Unknown score method selected: % s, \
