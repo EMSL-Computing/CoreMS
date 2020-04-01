@@ -1,11 +1,16 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 24, 2019"
 
+from IsoSpecPy import IsoSpecPy
+from numpy import exp, dot, power
+from numpy.linalg import norm
+from pandas import DataFrame
+from scipy.spatial.distance import cosine
+from scipy.stats import pearsonr, spearmanr, kendalltau
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.settings.processingSetting import MolecularSearchSettings
-from IsoSpecPy import IsoSpecPy
-from numpy import exp
+
 
 class MolecularFormulaCalc:
     
@@ -83,6 +88,9 @@ class MolecularFormulaCalc:
     def _calc_fine_isotopic_similarity(self):
         pass
     
+    def _calc_mz_confidence(self):
+
+        return  exp(-((self._mspeak_parent.mz_exp - self.mz_calc)**2 ) / (2 * self._mspeak_parent.predicted_std**2))
     def _calc_confidence_score(self):
         '''
         ### Assumes random mass error, i.e, spectrum has to be calibrated and with zero mean
@@ -94,14 +102,63 @@ class MolecularFormulaCalc:
         ####    Experimental m/z 
         #### predicted_std:
         ####    Standart deviation calculated from Resolving power optimization or constant set by User 
-        '''
-        if  self._mspeak_parent.predicted_std:
-            assignment_score = exp(-((self._mspeak_parent.mz_exp - self.mz_calc)**2 ) / (2 * self._mspeak_parent.predicted_std**2))
-            return assignment_score
-        else:
-            return -1
-
         
+        '''
+        abundance_weight, b = 1.2, 0.5
+
+        if not self._mspeak_parent.predicted_std: return -1
+           
+        else:
+
+            if self.is_isotopologue:
+                
+                return self._calc_mz_confidence()
+        
+            else:
+                
+                dict_mz_abund_ref = {}
+                
+                for mf in self.expected_isotopologues:
+                    dict_mz_abund_ref[mf.mz_calc] = mf.abundance_calc#power(mf.abundance_calc, abundance_weight) *  power(mf.mz_calc, b)  
+                
+                dict_mz_abund_exp = {}
+                
+                accumulated_mz_score = []
+                for mf in self.expected_isotopologues:
+                    
+                    if mf._mspeak_parent:
+                        
+                        dict_mz_abund_exp[mf.mz_calc] = mf._mspeak_parent.abundance#power(mf._mspeak_parent.abundance, abundance_weight) * power(mf.mz_calc, b)   
+                        accumulated_mz_score.append(mf._calc_mz_confidence())
+                    
+                    else:
+                        # fill missing mz with abundance 0
+                        dict_mz_abund_exp[mf.mz_calc] = 0.0
+                        accumulated_mz_score.append(0.0)
+
+                df = DataFrame([dict_mz_abund_exp, dict_mz_abund_ref])
+                #print(df.head())
+                #calculate cosine correlation, 
+                x = df.T[0].values
+                y = df.T[1].values
+
+                correlation = kendalltau(x, y)[0]
+                #correlation = (1 - cosine(x, y))
+                
+                #correlation = dot(x, y)/(norm(x)*norm(y))
+                accumulated_mz_score.append(self._calc_mz_confidence())
+                
+                average_mz_score = sum(accumulated_mz_score)/len(accumulated_mz_score)
+                
+                score = ((correlation) * (average_mz_score**2))**(1/3)
+                
+                print("correlation",correlation)
+                print("average_mz_score",average_mz_score)
+                print("mz_score",self._calc_mz_confidence())
+                print("score",score)
+                return score  
+
+
     def _calc_abundance_error(self, method='percentile'):
         '''method should be ppm, ppb or percentile'''
         
