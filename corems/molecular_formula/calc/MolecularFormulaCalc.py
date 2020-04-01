@@ -116,35 +116,40 @@ class MolecularFormulaCalc:
         
             else:
                 
-                dict_mz_abund_ref = {}
-                
-                for mf in self.expected_isotopologues:
-                    dict_mz_abund_ref[mf.mz_calc] = mf.abundance_calc#power(mf.abundance_calc, abundance_weight) *  power(mf.mz_calc, b)  
-                
-                dict_mz_abund_exp = {}
-                
-                accumulated_mz_score = []
-                for mf in self.expected_isotopologues:
+                if self.expected_isotopologues:
+                    dict_mz_abund_ref = {}
                     
-                    if mf._mspeak_parent:
+                    for mf in self.expected_isotopologues:
+                        dict_mz_abund_ref[mf.mz_calc] = mf.abundance_calc#power(mf.abundance_calc, abundance_weight) *  power(mf.mz_calc, b)  
+                    
+                    dict_mz_abund_exp = {}
+                    
+                    accumulated_mz_score = []
+                    for mf in self.expected_isotopologues:
                         
-                        dict_mz_abund_exp[mf.mz_calc] = mf._mspeak_parent.abundance#power(mf._mspeak_parent.abundance, abundance_weight) * power(mf.mz_calc, b)   
-                        accumulated_mz_score.append(mf._calc_mz_confidence())
-                    
-                    else:
-                        # fill missing mz with abundance 0
-                        dict_mz_abund_exp[mf.mz_calc] = 0.0
-                        accumulated_mz_score.append(0.0)
+                        if mf._mspeak_parent:
+                            
+                            dict_mz_abund_exp[mf.mz_calc] = mf._mspeak_parent.abundance#power(mf._mspeak_parent.abundance, abundance_weight) * power(mf.mz_calc, b)   
+                            accumulated_mz_score.append(mf._calc_mz_confidence())
+                        
+                        else:
+                            # fill missing mz with abundance 0
+                            dict_mz_abund_exp[mf.mz_calc] = 0.0
+                            accumulated_mz_score.append(0.0)
 
-                df = DataFrame([dict_mz_abund_exp, dict_mz_abund_ref])
-                #print(df.head())
-                #calculate cosine correlation, 
-                x = df.T[0].values
-                y = df.T[1].values
+                    df = DataFrame([dict_mz_abund_exp, dict_mz_abund_ref])
+                    #print(df.head())
+                    #calculate cosine correlation, 
+                    x = df.T[0].values
+                    y = df.T[1].values
 
-                correlation = kendalltau(x, y)[0]
+                    correlation = kendalltau(x, y)[0]
                 #correlation = (1 - cosine(x, y))
                 
+                else:
+                    # no isotopologue expected, giving a correlation score of 0.5 but this needs optimization
+                    correlation = 0.5
+
                 #correlation = dot(x, y)/(norm(x)*norm(y))
                 accumulated_mz_score.append(self._calc_mz_confidence())
                 
