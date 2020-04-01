@@ -12,20 +12,19 @@ def test_error_prediction():
 
     mass_spectrum = create_mass_spectrum()
 
-    mass_error_prediction = MassErrorPrediction(mass_spectrum[0:50])
-
+    mass_error_prediction = MassErrorPrediction(mass_spectrum)
+    
     mass_error_prediction.get_results()
+
+    return mass_spectrum
 
 if __name__ == "__main__":
 
-    '''
-    mass_spectrum = create_mass_spectrum()
-    
-    df_error = test_error_prediction(mass_spectrum)
+    mass_spectrum = test_error_prediction()
     
     mass_spectrum.molform_search_settings.error_method = 'None'
-    mass_spectrum.molform_search_settings.min_ppm_error  = -3
-    mass_spectrum.molform_search_settings.max_ppm_error = 3
+    mass_spectrum.molform_search_settings.min_ppm_error  = -1
+    mass_spectrum.molform_search_settings.max_ppm_error = 0
 
     mass_spectrum.molform_search_settings.min_dbe = 0
     mass_spectrum.molform_search_settings.max_dbe = 50
@@ -49,10 +48,7 @@ if __name__ == "__main__":
 
     mass_spectrum.percentile_assigned()
 
-    #for mspeak in mass_spectrum:
+    for mspeak in mass_spectrum:
 
-    #     for mf in mspeak:
-    #         mf._calc_confidence_score()
-    #    print(mspeak.predicted_std)
-
-'''
+         for mf in mspeak:
+            mf.confidence_score
