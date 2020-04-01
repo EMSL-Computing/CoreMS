@@ -107,16 +107,16 @@ class MolecularFormulaCalc:
         ####    Standart deviation calculated from Resolving power optimization or constant set by User 
         
         '''
-        # predicted std not set, using 0.3
-        
         if self.is_isotopologue:
-            # confidence of isotopolgue is pure mz error 
+            # confidence of isotopologue is pure mz error 
             # TODO add more features here 
             return self._calc_mz_confidence()
     
         else:
             
+            # has isotopologues based on current dinamic range
             if self.expected_isotopologues:
+                
                 dict_mz_abund_ref = {}
                 
                 # get reference data
@@ -152,6 +152,7 @@ class MolecularFormulaCalc:
                 #correlation = (1 - cosine(x, y))
             
             else:
+                
                 # no isotopologue expected, giving a correlation score of 0.5 but it needs optimization
                 correlation = 0.5
 
