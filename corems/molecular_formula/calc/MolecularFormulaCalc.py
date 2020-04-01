@@ -10,16 +10,24 @@ from numpy import exp
 class MolecularFormulaCalc:
     
     def _calc_resolving_power_low_pressure(self, B, T):
-        #T << collisional damping time 
-        #T = transient time (seconds)
-        #B = Magnetic Strenght (Testa)
+        '''
+        ## Parameters
+        ----------
+        #### T << collisional damping time 
+        #### T = transient time (seconds)
+        #### B = Magnetic Strength (Testa)
+        '''
         return (1.274 * 10000000 * B * T) *(1/self.mz_calc)    
 
     def _calc_resolving_power_high_pressure(self, B, t):
-        #T << collisional damping time 
-        # t= collisional dumping constant
-        #T = transient time (seconds)
-        #B = Magnetic Strenght (Testa)
+        '''
+        ## Parameters
+        ----------
+        #### T << collisional damping time 
+        #### t= collisional dumping constant
+        #### T = transient time (seconds)
+        #### B = Magnetic Strength (Testa)
+        '''
         return (2.758 * 10000000 * B * T) *(1/self.mz_calc)    
 
     def _calc_mz(self):
@@ -44,7 +52,14 @@ class MolecularFormulaCalc:
          
     def _calc_assignment_mass_error(self, mz_exp, method='ppm'):
         
-        '''method should be ppm or ppb'''
+        '''
+        ## Parameters
+        ----------
+        #### mz_exp: float, 
+        ####       Experimental m/z 
+        #### method: string, 
+        ####       ppm or ppb
+        '''
          
         if method == 'ppm':
             multi_factor = 1000000
@@ -65,11 +80,22 @@ class MolecularFormulaCalc:
             
             raise Exception("Please set mz_calc first")    
     
+    def _calc_fine_isotopic_similarity(self, mz_exp, predicted_std):
+        pass
+    
     def _calc_confidence_score(self, mz_exp, predicted_std):
         '''
-         assumes a pure random mass error, spectrum has to be calibrated and with zero mean
-        TODO: add spectral similarity 
+        ### Assumes random mass error, i.e, spectrum has to be calibrated and with zero mean
+        #### TODO: Add spectral similarity 
+
+        ## Parameters
+        ----------
+        #### mz_exp:
+        ####    Experimental m/z 
+        #### predicted_std:
+        ####    Standart deviation calculated from Resolving power optimization or constant set by User 
         '''
+
         if predicted_std:
             assignment_score = exp(-((mz_exp - self.mz_calc)**2 ) / (2 * predicted_std**2))
             return assignment_score
@@ -168,7 +194,7 @@ class MolecularFormulaCalc:
     @staticmethod
     def _cal_isotopologues(formula_dict, min_abundance, current_abundance):
         
-        """
+        '''
         primary function to look for isotopologues based on a monoisotopic molecular formula
         INPUT {'C':10, 'H', 20, 'O', 2, etc} Atomic labels need to follow Atoms class atoms labels
         
@@ -186,7 +212,7 @@ class MolecularFormulaCalc:
             
         *   it needs speed optimization; update: (Using IsoSpeccPy, a C Library (fast and accurate)) 
             https://github.com/MatteoLacki/IsoSpec
-        """
+        '''
         # updated it to reflect min possible mass peak abundance
         
         min_relative_abundance = min_abundance/current_abundance
