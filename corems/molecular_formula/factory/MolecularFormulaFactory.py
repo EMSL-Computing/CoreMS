@@ -311,10 +311,13 @@ class MolecularFormulaIsotopologue(MolecularFormula):
         # parent mass spectrum peak obj instance
         self._mspeak_parent = mspeak_parent
 
-        @property
-        def area_error(self):
-            return self._calc_area_error()
+    
+    @property
+    def area_error(self):
+        return self._calc_area_error()
 
-        @property
-        def abundance_error(self):
-            return self._calc_abundance_error()
+    @property
+    def abundance_error(self):
+        return self._calc_abundance_error()
+
+        
