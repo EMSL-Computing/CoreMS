@@ -32,6 +32,8 @@ class _MSPeak(MSPeakCalculation):
 
         self._area = self.calc_area()
 
+        # updated after mass error prediction'
+        self.predicted_std = None
         # updated after calibration'
         self.mz_cal = None
         # updated individual calculation'
@@ -157,63 +159,27 @@ class _MSPeak(MSPeakCalculation):
             print("Isolated Peak Object")
 
     @property
-    def number_possible_assignments(self,):
-        
-        return len(self.molecular_formulas)
-    
-    def molecular_formula_lowest_error(self):
-       
-       return min(self.molecular_formulas, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))
-
-    def molecular_formula_earth_filter(self, lowest_error=True):
-        
-        candidates = list(filter(lambda mf: mf.get("O") > 0 and mf.get("N") <=3 and mf.get("P") <= 2 and (3 * mf.get("P")) <= mf.get("O"), self.molecular_formulas))
-
-        if lowest_error:
-            return min(candidates, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))
-        else:
-            return candidates
-    
-    def molecular_formula_water_filter(self, lowest_error=True):
-       
-        candidates = list(filter(lambda mf: mf.get("O") > 0 and mf.get("N") <=3 and mf.get("S") <=2 and  mf.get("P") <= 2, self.molecular_formulas))
-
-        if lowest_error:
-            return min(candidates, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))
-        else:
-            return candidates
-    
-    def molecular_formula_air_filter(self, lowest_error=True):
-       
-        candidates = list(filter(lambda mf: mf.get("O") > 0 and mf.get("N") <=2 and mf.get("S") <=1 and  mf.get("P") == 0 and 3* (mf.get("S") + mf.get("N")) <= mf.get("O"), self.molecular_formulas))
-        
-        if lowest_error:
-            return min(candidates, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))
-        else:
-            return candidates
-
-    @property
     def best_molecular_formula_candidate(self):
         
-        if MolecularSearchSettings.score_method == "N_S_P_lowest_error":
+        if self.ms_parent.molform_search_settings.score_method == "N_S_P_lowest_error":
             return self.cia_score_N_S_P_error()
         
-        elif MolecularSearchSettings.score_method == "S_P_lowest_error":
+        elif self.ms_parent.molform_search_settings.score_method == "S_P_lowest_error":
             return self.cia_score_S_P_error()
 
-        elif MolecularSearchSettings.score_method == "lowest_error":
+        elif self.ms_parent.molform_search_settings.score_method == "lowest_error":
             return self.molecular_formula_lowest_error()    
         
-        elif MolecularSearchSettings.score_method == "air_filter_error":
+        elif self.ms_parent.molform_search_settings.score_method == "air_filter_error":
             return self.molecular_formula_air_filter()    
 
-        elif MolecularSearchSettings.score_method == "water_filter_error":
+        elif self.ms_parent.molform_search_settings.score_method == "water_filter_error":
             return self.molecular_formula_water_filter()    
 
-        elif MolecularSearchSettings.score_method == "earth_filter_error":
+        elif self.ms_parent.molform_search_settings.score_method == "earth_filter_error":
             return self.molecular_formula_earth_filter()   
 
-        elif MolecularSearchSettings.score_method == "prob_score":
+        elif self.ms_parent.molform_search_settings.score_method == "prob_score":
             #TODO
             raise NotImplementedError
         else:
@@ -221,51 +187,7 @@ class _MSPeak(MSPeakCalculation):
             raise TypeError("Unknown score method selected: % s, \
                             Please check score_method at \
                             encapsulation.settings.molecular_id.MolecularIDSettings.MolecularSearchSettings", 
-                            MolecularSearchSettings.score_method)    
-
-    def cia_score_S_P_error(self):
-        #case EFormulaScore.HAcap:
-
-        lowest_S_P_mf = min(self.molecular_formulas, key=lambda mf: mf.get('S') + mf.get('P'))
-        lowest_S_P_count = lowest_S_P_mf.get("S") + lowest_S_P_mf.get("P")
-        
-        list_same_s_p = list(filter(lambda mf: mf.get('S') + mf.get('P') == lowest_S_P_count, self.molecular_formulas))
-
-        #check if list is not empty
-        if list_same_s_p:
-        
-            return min(list_same_s_p, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))
-        
-        else:
-        
-            return lowest_S_P_mf
-    
-    def cia_score_N_S_P_error(self):
-        #case EFormulaScore.HAcap:
-        if self.molecular_formulas:
-
-            lowest_N_S_P_mf = min(self.molecular_formulas, key=lambda mf: mf.get('N') + mf.get('S') + mf.get('P'))
-            lowest_N_S_P_count = lowest_N_S_P_mf.get("N") + lowest_N_S_P_mf.get("S") + lowest_N_S_P_mf.get("P")
-
-            list_same_N_S_P = list(filter(lambda mf: mf.get('N') + mf.get('S') + mf.get('P') == lowest_N_S_P_count, self.molecular_formulas))
-
-            if list_same_N_S_P:
-
-                SP_filtered_list =  list(filter(lambda mf: (mf.get("S") <= 3 ) and  (mf.get("P")  <= 1 ), list_same_N_S_P))
-                
-                if SP_filtered_list:
-                    
-                    return min(SP_filtered_list, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp))) 
-                
-                else:    
-                    
-                    return min(list_same_N_S_P, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))            
-            
-            else:
-                
-                return lowest_N_S_P_mf 
-        else:
-            raise Exception("No molecular formula associated with the mass spectrum peak at m/z: %.6f" % self.mz_exp)
+                            self.ms_parent.MolecularSearchSettings.score_method)    
 
 class ICRMassPeak(_MSPeak):
 

@@ -73,8 +73,6 @@ class MolecularFormula(MolecularFormulaCalc):
         else: 
             return 100
 
-    
-
     def _from_list(self, molecular_formula_list,  ion_type):
         # list has to be in the format 
         #['C', 10, 'H', 21, '13C', 1, 'Cl', 1, etc]  

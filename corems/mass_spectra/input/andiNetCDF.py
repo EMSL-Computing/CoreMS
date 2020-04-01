@@ -19,6 +19,8 @@ class ReadAndiNetCDF(Thread):
 
 	def __init__(self, file_location, analyzer='Quadruple', instrument_label='GCMS-Agilent', auto_process=True):
 		
+		Thread.__init__(self)
+		
 		file_location = Path(file_location)
 
 		if not file_location.exists:

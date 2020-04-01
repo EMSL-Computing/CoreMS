@@ -17,15 +17,11 @@ class MolecularFormulaCalc:
 
     def _calc_resolving_power_high_pressure(self, B, t):
         #T << collisional damping time 
-        # t= collisional dumping contanst
+        # t= collisional dumping constant
         #T = transient time (seconds)
         #B = Magnetic Strenght (Testa)
         return (2.758 * 10000000 * B * T) *(1/self.mz_calc)    
 
-    def _calc_confidence_score(self):
-        raise NotImplementedError
-        
-    
     def _calc_mz(self):
         
         if self.ion_charge:
@@ -69,6 +65,18 @@ class MolecularFormulaCalc:
             
             raise Exception("Please set mz_calc first")    
     
+    def _calc_confidence_score(self, mz_exp, predicted_std):
+        '''
+         assumes a pure random mass error, spectrum has to be calibrated and with zero mean
+        TODO: add spectral similarity 
+        '''
+        if predicted_std:
+            assignment_score = exp(-((mz_exp - self.mz_calc)**2 ) / (2 * predicted_std**2))
+            return assignment_score
+        else:
+            return -1
+
+        
     def _calc_abundance_error(self, mono_abundance, iso_abundance, method='percentile'):
         '''method should be ppm, ppb or percentile'''
         

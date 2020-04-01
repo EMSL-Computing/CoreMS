@@ -218,3 +218,87 @@ class MSPeakCalculation(object):
         else:
             raise LookupError(
                 'resolving power is not defined, try to use set_max_resolving_power()')
+    
+    @property
+    def number_possible_assignments(self,):
+        
+        return len(self.molecular_formulas)
+
+    def molecular_formula_lowest_error(self):
+       
+       return min(self.molecular_formulas, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))
+
+    def molecular_formula_highest_prob_score(self):
+       
+       return min(self.molecular_formulas, key=lambda m: abs(m._calc_confidence_score(self.mz_exp, self.predicted_std)))
+
+    def molecular_formula_earth_filter(self, lowest_error=True):
+        
+        candidates = list(filter(lambda mf: mf.get("O") > 0 and mf.get("N") <=3 and mf.get("P") <= 2 and (3 * mf.get("P")) <= mf.get("O"), self.molecular_formulas))
+
+        if lowest_error:
+            return min(candidates, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))
+        else:
+            return candidates
+
+    def molecular_formula_water_filter(self, lowest_error=True):
+       
+        candidates = list(filter(lambda mf: mf.get("O") > 0 and mf.get("N") <=3 and mf.get("S") <=2 and  mf.get("P") <= 2, self.molecular_formulas))
+
+        if lowest_error:
+            return min(candidates, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))
+        else:
+            return candidates
+    
+    def molecular_formula_air_filter(self, lowest_error=True):
+       
+        candidates = list(filter(lambda mf: mf.get("O") > 0 and mf.get("N") <=2 and mf.get("S") <=1 and  mf.get("P") == 0 and 3* (mf.get("S") + mf.get("N")) <= mf.get("O"), self.molecular_formulas))
+        
+        if lowest_error:
+            return min(candidates, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))
+        else:
+            return candidates
+
+    def cia_score_S_P_error(self):
+        #case EFormulaScore.HAcap:
+
+        lowest_S_P_mf = min(self.molecular_formulas, key=lambda mf: mf.get('S') + mf.get('P'))
+        lowest_S_P_count = lowest_S_P_mf.get("S") + lowest_S_P_mf.get("P")
+        
+        list_same_s_p = list(filter(lambda mf: mf.get('S') + mf.get('P') == lowest_S_P_count, self.molecular_formulas))
+
+        #check if list is not empty
+        if list_same_s_p:
+        
+            return min(list_same_s_p, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))
+        
+        else:
+        
+            return lowest_S_P_mf
+    
+    def cia_score_N_S_P_error(self):
+        #case EFormulaScore.HAcap:
+        if self.molecular_formulas:
+
+            lowest_N_S_P_mf = min(self.molecular_formulas, key=lambda mf: mf.get('N') + mf.get('S') + mf.get('P'))
+            lowest_N_S_P_count = lowest_N_S_P_mf.get("N") + lowest_N_S_P_mf.get("S") + lowest_N_S_P_mf.get("P")
+
+            list_same_N_S_P = list(filter(lambda mf: mf.get('N') + mf.get('S') + mf.get('P') == lowest_N_S_P_count, self.molecular_formulas))
+
+            if list_same_N_S_P:
+
+                SP_filtered_list =  list(filter(lambda mf: (mf.get("S") <= 3 ) and  (mf.get("P")  <= 1 ), list_same_N_S_P))
+                
+                if SP_filtered_list:
+                    
+                    return min(SP_filtered_list, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp))) 
+                
+                else:    
+                    
+                    return min(list_same_N_S_P, key=lambda m: abs(m._calc_assignment_mass_error(self.mz_exp)))            
+            
+            else:
+                
+                return lowest_N_S_P_mf 
+        else:
+            raise Exception("No molecular formula associated with the mass spectrum peak at m/z: %.6f" % self.mz_exp)
