@@ -224,7 +224,7 @@ class MSPeakCalculation(object):
 
     def molecular_formula_lowest_error(self):
        
-       return min(self.molecular_formulas, key=lambda m: abs(m._calc_assignment_mass_error()))
+       return min(self.molecular_formulas, key=lambda m: abs(m.mz_error))
 
     def molecular_formula_highest_prob_score(self):
        
@@ -235,7 +235,7 @@ class MSPeakCalculation(object):
         candidates = list(filter(lambda mf: mf.get("O") > 0 and mf.get("N") <=3 and mf.get("P") <= 2 and (3 * mf.get("P")) <= mf.get("O"), self.molecular_formulas))
 
         if lowest_error:
-            return min(candidates, key=lambda m: abs(m._calc_assignment_mass_error()))
+            return min(candidates, key=lambda m: abs(m.mz_error))
         else:
             return candidates
 
@@ -244,7 +244,7 @@ class MSPeakCalculation(object):
         candidates = list(filter(lambda mf: mf.get("O") > 0 and mf.get("N") <=3 and mf.get("S") <=2 and  mf.get("P") <= 2, self.molecular_formulas))
 
         if lowest_error:
-            return min(candidates, key=lambda m: abs(m._calc_assignment_mass_error()))
+            return min(candidates, key=lambda m: abs(m.mz_error))
         else:
             return candidates
     
@@ -253,7 +253,7 @@ class MSPeakCalculation(object):
         candidates = list(filter(lambda mf: mf.get("O") > 0 and mf.get("N") <=2 and mf.get("S") <=1 and  mf.get("P") == 0 and 3* (mf.get("S") + mf.get("N")) <= mf.get("O"), self.molecular_formulas))
         
         if lowest_error:
-            return min(candidates, key=lambda m: abs(m._calc_assignment_mass_error()))
+            return min(candidates, key=lambda m: abs(m.mz_error))
         else:
             return candidates
 
@@ -268,7 +268,7 @@ class MSPeakCalculation(object):
         #check if list is not empty
         if list_same_s_p:
         
-            return min(list_same_s_p, key=lambda m: abs(m._calc_assignment_mass_error()))
+            return min(list_same_s_p, key=lambda m: abs(m.mz_error))
         
         else:
         
@@ -289,11 +289,11 @@ class MSPeakCalculation(object):
                 
                 if SP_filtered_list:
                     
-                    return min(SP_filtered_list, key=lambda m: abs(m._calc_assignment_mass_error())) 
+                    return min(SP_filtered_list, key=lambda m: abs(m.mz_error)) 
                 
                 else:    
                     
-                    return min(list_same_N_S_P, key=lambda m: abs(m._calc_assignment_mass_error()))            
+                    return min(list_same_N_S_P, key=lambda m: abs(m.mz_error))            
             
             else:
                 

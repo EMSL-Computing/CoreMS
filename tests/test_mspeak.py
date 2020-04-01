@@ -53,7 +53,7 @@ def test_mspeak_calculations():
     print( round(mspeak.kmd*100, 0)) == -89
     assert mspeak.knm == 211
 
-    mspeak.set_calcretical_resolving_power(50, 3)
+    mspeak.set_calc_resolving_power(50, 3)
 
 if __name__ == '__main__':
     

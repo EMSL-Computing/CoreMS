@@ -455,7 +455,7 @@ class SearchMolecularFormulaWorker:
         
         #f = open("abundance_error.txt", "a+")    
         ms_peak_mz_exp, ms_peak_abundance = ms_peak.mz_exp, ms_peak.abundance
-        #min_error = min([pmf._calc_assignment_mass_error(ms_peak_mz_exp) for pmf in possible_formulas])
+        #min_error = min([pmf.mz_error for pmf in possible_formulas])
         
         for possible_formula in possible_formulas:
             
@@ -463,7 +463,7 @@ class SearchMolecularFormulaWorker:
                 
                 error = self.calc_error(ms_peak_mz_exp, possible_formula.mz)
                 
-                #error = possible_formula._calc_assignment_mass_error(ms_peak_mz_exp)
+                #error = possible_formula.mz_error
                
                 if  min_ppm_error  <= error <= max_ppm_error:
                     
@@ -498,8 +498,6 @@ class SearchMolecularFormulaWorker:
                             first_index, last_index = mass_spectrum_obj.get_nominal_mz_first_last_indexes(isotopologue_formula.mz_nominal_calc)
                             
                             for ms_peak_iso in mass_spectrum_obj[first_index:last_index]:
-                                
-                                #error = isotopologue_formula._calc_assignment_mass_error(ms_peak_iso.mz_exp)    
                                 
                                 error = self.calc_error(ms_peak_iso.mz_exp, isotopologue_formula.mz_calc)
                                 
