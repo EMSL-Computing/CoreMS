@@ -95,7 +95,7 @@ class MolecularFormulaCalc:
         
         print( self._mspeak_parent.predicted_std)
         
-        return  exp( power((self._mspeak_parent.mz_exp - self.mz_calc),2)  / (2 * power(self._mspeak_parent.predicted_std,2)) )
+        return  exp( -1/2 * (power((self._mspeak_parent.mz_exp - self.mz_calc),2)  / (2 * power(self._mspeak_parent.predicted_std,2)) ))
     
     def _calc_confidence_score(self):
         '''
