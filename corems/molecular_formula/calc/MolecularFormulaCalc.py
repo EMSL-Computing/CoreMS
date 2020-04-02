@@ -91,11 +91,11 @@ class MolecularFormulaCalc:
     def _calc_mz_confidence(self):
         
         # predicted std not set, using 0.3
-        if not self._mspeak_parent.predicted_std: self._mspeak_parent.predicted_std = 0.3
+        if not self._mspeak_parent.predicted_std: self._mspeak_parent.predicted_std = 0.6
         
         print( self._mspeak_parent.predicted_std)
         
-        return  exp( -1/2 * (power((self._mspeak_parent.mz_exp - self.mz_calc),2)  / (2 * power(self._mspeak_parent.predicted_std,2)) ))
+        return  exp( -1 * (power((self.mz_error),2)  / (2 * power(self._mspeak_parent.predicted_std,2)) ))
     
     def _calc_confidence_score(self):
         '''

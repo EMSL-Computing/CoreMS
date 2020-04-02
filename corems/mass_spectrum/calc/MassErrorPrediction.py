@@ -157,16 +157,16 @@ class MassErrorPrediction(Thread):
                         
                         #plot_triplets(mz_centroid,abund_centroid, mz_min_valley, abund_min_valley, sim_mz_domain, summed_peaks_abun )
 
-                        #mass_shift_ppp = self.calc_error(mz_centroid[1], peak_obj.mz_exp, 1000000)
-                        delta_mz = mz_centroid[1] - peak_obj.mz_exp
+                        mass_shift_ppp = self.calc_error(mz_centroid[1], peak_obj.mz_exp, 1000000)
+                        #delta_mz = mz_centroid[1] - peak_obj.mz_exp
                         height_shift_per = self.calc_error(abund_centroid[1], peak_obj.abundance, 100)
                         #excitation_amplitude = str(mass_spectrum_obj.filename.stem).split("ex")[1].split("pc")[0]
                         #ion_time = str(mass_spectrum_obj.filename.stem).split("0pt")[1].split("s")[0]
-                        peak_obj.predicted_std = delta_mz
+                        peak_obj.predicted_std = mass_shift_ppp
                         
                         results_list.append( {
                         "ms_index_position" : peak_obj_idx,
-                        "predicted_std": delta_mz,
+                        "predicted_std": mass_shift_ppp,
                         "mz_exp": peak_obj.mz_exp,
                         "nominal_mz_exp": peak_obj.nominal_mz_exp,
                         "predicted_mz": mz_centroid[1],

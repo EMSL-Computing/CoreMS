@@ -111,9 +111,9 @@ if __name__ == "__main__":
 
             SearchMolecularFormulas(mass_spectrum, first_hit=True).run_worker_mass_spectrum()
             
-            mass_error_prediction = MassErrorPrediction(mass_spectrum)
+            #mass_error_prediction = MassErrorPrediction(mass_spectrum)
     
-            mass_error_prediction.get_results()
+            #mass_error_prediction.get_results()
 
             ax = mass_spectrum.plot_mz_domain_profile()
             #plt.show()
@@ -147,7 +147,7 @@ if __name__ == "__main__":
                             })
                         
                         else:
-                            print('confidence', mf.confidence_score)
+                            print(mf.confidence_score)
                             print( mf.to_string, mf.mz_calc, mf.mz_error) 
                             
                             list_dict.append( {
