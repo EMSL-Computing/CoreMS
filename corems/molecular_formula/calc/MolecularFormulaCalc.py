@@ -83,7 +83,7 @@ class MolecularFormulaCalc:
         
         else:
             
-            raise Exception("Please set mz_calc first")    
+            raise Exception("No ms peak associated with the molecular formula instance %s", self)    
     
     def _calc_fine_isotopic_similarity(self):
         pass
@@ -92,8 +92,11 @@ class MolecularFormulaCalc:
         
         # predicted std not set, using 0.3
         if not self._mspeak_parent.predicted_std: self._mspeak_parent.predicted_std = 0.3
-
-        return  exp(-((self._mspeak_parent.mz_exp - self.mz_calc)**2 ) / (2 * self._mspeak_parent.predicted_std**2))
+        
+        print( self._mspeak_parent.predicted_std)
+        
+        return  exp( power((self._mspeak_parent.mz_exp - self.mz_calc),2)  / (2 * power(self._mspeak_parent.predicted_std,2)) )
+    
     def _calc_confidence_score(self):
         '''
         ### Assumes random mass error, i.e, spectrum has to be calibrated and with zero mean

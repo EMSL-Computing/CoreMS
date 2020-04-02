@@ -40,6 +40,14 @@ class MolecularFormula(MolecularFormulaCalc):
         self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(
             kendrick_dict_base)  
         
+    def __repr__(self):
+
+        return "MolecularFormula({0},{1},ion type = {2}".format(self._d_molecular_formula, self.ion_charge, self.ion_type)
+    
+    def __str__(self):
+
+        return "MolecularFormula {0}, ion_charge:{1}, ion type:{2}, m/z:{3} ".format(self.to_string, self.ion_charge, self.ion_type, self.mz_calc)
+    
     def __len__(self):
         
         #crash if keys are not ordered
