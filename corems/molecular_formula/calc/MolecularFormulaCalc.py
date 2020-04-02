@@ -115,6 +115,7 @@ class MolecularFormulaCalc:
         else:
             
             # has isotopologues based on current dinamic range
+            accumulated_mz_score = []
             if self.expected_isotopologues:
                 
                 dict_mz_abund_ref = {}
@@ -125,7 +126,6 @@ class MolecularFormulaCalc:
                 
                 dict_mz_abund_exp = {}
                 
-                accumulated_mz_score = []
                 # get experimental data
                 for mf in self.expected_isotopologues:
                     
