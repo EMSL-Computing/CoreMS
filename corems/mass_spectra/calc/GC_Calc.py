@@ -3,10 +3,10 @@ __date__ = "Feb 13, 2020"
 
 from scipy.signal import savgol_filter, boxcar
 
-from numpy import hstack, inf, isnan, where, hanning, convolve, blackman, bartlett, ones, r_, sum, empty, nan, array, nan_to_num
+from numpy import hstack, inf, isnan, where, hanning, convolve, blackman, bartlett, ones, r_, sum, empty, nan, array, nan_to_num, std, nanmean
 
 from pandas import Series
-from corems.encapsulation.settings.processingSetting import GasChromatographSetting
+
 
 class GC_Calculations:
     
@@ -42,14 +42,14 @@ class GC_Calculations:
         if window_len < 3:
             return x
 
-        if not window in GasChromatographSetting.implemented_smooth_method:
+        if not window in self.chromatogram_settings.implemented_smooth_method:
             raise ValueError("Window method should be 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
 
         s = r_[x[window_len - 1:0:-1], x, x[-1:-window_len:-1]]
         
         if window == 'savgol':
             
-            pol_order = GasChromatographSetting.savgol_pol_order
+            pol_order = self.chromatogram_settings.savgol_pol_order
             
             return savgol_filter(x, window_len, pol_order)
         
@@ -77,9 +77,9 @@ class GC_Calculations:
         
     def smooth_tic(self, tic):
             
-            window_len = GasChromatographSetting.smooth_window
+            window_len = self.chromatogram_settings.smooth_window
 
-            window = GasChromatographSetting.smooth_method
+            window = self.chromatogram_settings.smooth_method
 
             return self.smooth(tic, window_len, window)
     
@@ -132,18 +132,30 @@ class GC_Calculations:
 
     def centroid_detector(self, tic, max_tic):
 
+        if self.chromatogram_settings.noise_threshold_method == 'auto': 
+            
+            baseline = self.baseline_detector(self._processed_tic)
+
+            peak_detect_threshold = ((nanmean(baseline) + (self.chromatogram_settings.std_noise_threshold *std(baseline)))/max_tic)*100
+        
+        else:
+            
+            peak_detect_threshold = self.chromatogram_settings.peak_height_min_abun
+
+        print('peak_detect_threshold', peak_detect_threshold)
+
         peak_height_diff = lambda hi, li : ((tic[hi] - tic[li]) / max_tic )*100
 
         for start_index, index, final_index in self.peak_detector(tic, max_tic):
 
              #abundance min threshold        
-            if final_index-start_index > GasChromatographSetting.min_peak_datapoints:
+            if final_index-start_index > self.chromatogram_settings.min_peak_datapoints:
 
-                if (tic[index]/max_tic) * 100 > GasChromatographSetting.peak_height_min_percent:
-                #if self.retention_time[final_index]-self.retention_time[start_index] < GasChromatographSetting.max_peak_width:
+                if (tic[index]/max_tic) * 100 > peak_detect_threshold: #self.chromatogram_settings.peak_height_min_percent:
+                #if self.retention_time[final_index]-self.retention_time[start_index] < self.chromatogram_settings.max_peak_width:
                     
                     #calculates prominence and filter  
-                    if  min( peak_height_diff(index,start_index), peak_height_diff(index,final_index) )> GasChromatographSetting.peak_min_prominence_percent :   
+                    if  min( peak_height_diff(index,start_index), peak_height_diff(index,final_index) )> self.chromatogram_settings.peak_min_prominence_percent :   
                         
                         yield (start_index, index, final_index)
 
@@ -154,16 +166,15 @@ class GC_Calculations:
         for start_index, index, final_index in self.peak_detector(tic, max_tic):
 
             #abundance max threshold    
-            if (tic[index]/max_tic) * 100 < GasChromatographSetting.peak_height_max_percent:
+            if (tic[index]/max_tic) * 100 < self.chromatogram_settings.peak_height_max_percent:
 
                     #calculates prominence and filter   
-                    if  min(peak_height_diff(index,start_index), peak_height_diff(index,final_index) )< GasChromatographSetting.peak_max_prominence_percent :   
-                        
-                        if  max(peak_height_diff(index,start_index), peak_height_diff(index,final_index) )< GasChromatographSetting.peak_max_prominence_percent :   
+                    if  peak_height_diff(index,start_index) and peak_height_diff(index,final_index) < self.chromatogram_settings.peak_max_prominence_percent :   
                         
                             yield from (start_index, final_index)
 
     def baseline_detector(self, tic):
+        
         from matplotlib import pyplot as plt   
         
         indexes = list(i for i in self.minima_detector(tic, max(tic)))
@@ -191,7 +202,7 @@ class GC_Calculations:
         
         #plt.show()
 
-        return s
+        return -s
   
     def remove_outliers(self, data):
         

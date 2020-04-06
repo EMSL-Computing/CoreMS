@@ -1,18 +1,18 @@
-__author__ = "Yuri E. Corilo"
-__date__ = "Jul 02, 2019"
+__author__ = 'Yuri E. Corilo'
+__date__ = 'Jul 02, 2019'
 
 class TransientSetting:
     
-    implemented_apodization_function = ("Hamming", "Hanning", "Blackman")
-    apodization_method = "Hanning"
+    implemented_apodization_function = ('Hamming', 'Hanning', 'Blackman')
+    apodization_method = 'Hanning'
     number_of_truncations = 0
     number_of_zero_fills = 1
             
 class MassSpectrumSetting:
     
-    threshold_method = "auto"
+    threshold_method = 'auto'
     
-    implemented_noise_threshold_methods = ("auto", "signal_noise", "relative_abundance")
+    implemented_noise_threshold_methods = ('auto', 'signal_noise', 'relative_abundance')
     
     noise_threshold_std = 6
     
@@ -28,7 +28,7 @@ class MassSpectrumSetting:
     
 class MassSpecPeakSetting:
     
-    kendrick_base =  {"C": 1, "H":2}
+    kendrick_base =  {'C': 1, 'H':2}
     
     peak_min_prominence_percent = 1 #1-100 % used for peak detection
 
@@ -46,15 +46,22 @@ class GasChromatographSetting:
     
     peak_height_max_percent = 10 #1-100 % used for baseline detection
 
-    peak_height_min_percent = 5 #1-100 % used for peak detection
-    
     peak_max_prominence_percent = 1 #1-100 % used for baseline detection
-
-    peak_min_prominence_percent = 1 #1-100 % used for peak detection
 
     min_peak_datapoints = 5
    
     max_peak_width = 0.1
+
+    noise_threshold_method = 'auto'
+    
+    implemented_noise_threshold_methods = ('auto', 'relative_abundance')
+    
+    std_noise_threshold = 3
+
+    peak_height_min_abun = 5 #1-100 % used for peak detection
+
+    peak_min_prominence_percent = 1 #1-100 % used for peak detection
+    
 
 class CompoundSearchSettings:
 
@@ -182,10 +189,10 @@ class MolecularSearchSettings:
     
     adduct_atoms_pos = ['Na', 'K']
 
-    score_methods = ["S_P_lowest_error", "N_S_P_lowest_error", "lowest_error", "prob_score",
-                     "air_filter_error", "water_filter_error", "earth_filter_error" ]
+    score_methods = ['S_P_lowest_error', 'N_S_P_lowest_error', 'lowest_error', 'prob_score',
+                     'air_filter_error', 'water_filter_error', 'earth_filter_error' ]
     
-    score_method = "N_S_P_lowest_error"
+    score_method = 'N_S_P_lowest_error'
 
     # depending on the polarity mode it looks for [M].+ , [M].-
     # query and automatically compile add entry if it doesn't exist
@@ -209,7 +216,7 @@ class MolecularSearchSettings:
     
     isAdduct = True
 
-    ionization_type = "ESI"
+    ionization_type = 'ESI'
 
     # empirically set / needs optimization
     min_ppm_error  = -5 #ppm
