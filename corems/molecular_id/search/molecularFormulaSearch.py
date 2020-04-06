@@ -408,7 +408,7 @@ class SearchMolecularFormulaWorker:
         '''    
         
     @staticmethod
-    def calc_assignment_mass_error(mz_exp, mz_calc, method='ppm'):
+    def calc_error(mz_exp, mz_calc, method='ppm'):
         
         '''method should be ppm or ppb'''
          
@@ -418,6 +418,9 @@ class SearchMolecularFormulaWorker:
         elif method == 'ppb':
             multi_factor = 1000000
         
+        elif method == 'perc':
+            multi_factor = 100
+
         else:
             raise Exception("method needs to be ppm or ppb, you have entered %s" % method)
               
@@ -452,15 +455,15 @@ class SearchMolecularFormulaWorker:
         
         #f = open("abundance_error.txt", "a+")    
         ms_peak_mz_exp, ms_peak_abundance = ms_peak.mz_exp, ms_peak.abundance
-        #min_error = min([pmf._calc_assignment_mass_error(ms_peak_mz_exp) for pmf in possible_formulas])
+        #min_error = min([pmf.mz_error for pmf in possible_formulas])
         
         for possible_formula in possible_formulas:
             
             if possible_formula:
                 
-                error = self.calc_assignment_mass_error(ms_peak_mz_exp, possible_formula.mz)
+                error = self.calc_error(ms_peak_mz_exp, possible_formula.mz)
                 
-                #error = possible_formula._calc_assignment_mass_error(ms_peak_mz_exp)
+                #error = possible_formula.mz_error
                
                 if  min_ppm_error  <= error <= max_ppm_error:
                     
@@ -476,12 +479,8 @@ class SearchMolecularFormulaWorker:
                     # create the molecular formula obj to be stored
                     molecular_formula = MolecularFormula(formula_dict, possible_formula.ion_charge)
 
-                    # set the mass error 
-                    molecular_formula.mz_error = error
-
                     # add the molecular formula obj to the mspeak obj
                     # add the mspeak obj and it's index for tracking next assignment step
-                    
                     
                     if self.find_isotopologues:
                         
@@ -500,30 +499,29 @@ class SearchMolecularFormulaWorker:
                             
                             for ms_peak_iso in mass_spectrum_obj[first_index:last_index]:
                                 
-                                #error = isotopologue_formula._calc_assignment_mass_error(ms_peak_iso.mz_exp)    
-                                
-                                error = self.calc_assignment_mass_error(ms_peak_iso.mz_exp, isotopologue_formula.mz_calc)
+                                error = self.calc_error(ms_peak_iso.mz_exp, isotopologue_formula.mz_calc)
                                 
                                 if  min_ppm_error  <= error <= max_ppm_error:
                                     
                                     #need to define error distribution for abundance measurements
                                     
-                                    area_error = isotopologue_formula._calc_abundance_error(ms_peak_abundance, ms_peak_iso.abundance )            
+                                    #abundance_error = self.calc_error(ms_peak_abundance, ms_peak_iso.abundance,method='perc')            
 
-                                    abundance_error = isotopologue_formula._calc_area_error(ms_peak.area, ms_peak_iso.area )            
+                                    area_error = self.calc_error(ms_peak.area, ms_peak_iso.area, method='perc')
+
                                     # margin of error was set empirically/ needs statistical calculation
                                     #  of margin of error for the measurement of the abundances
-                                    if min_abun_error <= abundance_error <= max_abun_error:
+                                    if min_abun_error <= area_error <= max_abun_error:
                                         
                                         #update the error   
                                         
                                         self.set_last_error(error, mass_spectrum_obj)    
                                         
-                                        isotopologue_formula.mz_error = error
+                                        #isotopologue_formula.mz_error = error
 
-                                        isotopologue_formula.area_error = area_error
+                                        #isotopologue_formula.area_error = area_error
 
-                                        isotopologue_formula.abundance_error = abundance_error
+                                        #isotopologue_formula.abundance_error = abundance_error
 
                                         isotopologue_formula.mspeak_index_mono_isotopic = ms_peak.index
                                         

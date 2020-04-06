@@ -1,31 +1,40 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 24, 2019"
 
+from IsoSpecPy import IsoSpecPy
+from numpy import exp, dot, power
+from numpy.linalg import norm
+from pandas import DataFrame
+from scipy.spatial.distance import cosine
+from scipy.stats import pearsonr, spearmanr, kendalltau
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.settings.processingSetting import MolecularSearchSettings
-from IsoSpecPy import IsoSpecPy
-from numpy import exp
+
 
 class MolecularFormulaCalc:
     
     def _calc_resolving_power_low_pressure(self, B, T):
-        #T << collisional damping time 
-        #T = transient time (seconds)
-        #B = Magnetic Strenght (Testa)
+        '''
+        ## Parameters
+        ----------
+        #### T << collisional damping time 
+        #### T = transient time (seconds)
+        #### B = Magnetic Strength (Testa)
+        '''
         return (1.274 * 10000000 * B * T) *(1/self.mz_calc)    
 
     def _calc_resolving_power_high_pressure(self, B, t):
-        #T << collisional damping time 
-        # t= collisional dumping contanst
-        #T = transient time (seconds)
-        #B = Magnetic Strenght (Testa)
+        '''
+        ## Parameters
+        ----------
+        #### T << collisional damping time 
+        #### t= collisional dumping constant
+        #### T = transient time (seconds)
+        #### B = Magnetic Strength (Testa)
+        '''
         return (2.758 * 10000000 * B * T) *(1/self.mz_calc)    
 
-    def _calc_confidence_score(self):
-        raise NotImplementedError
-        
-    
     def _calc_mz(self):
         
         if self.ion_charge:
@@ -46,9 +55,16 @@ class MolecularFormulaCalc:
             
             raise Exception("Please set ion charge first")
          
-    def _calc_assignment_mass_error(self, mz_exp, method='ppm'):
+    def _calc_assignment_mass_error(self, method='ppm'):
         
-        '''method should be ppm or ppb'''
+        '''
+        ## Parameters
+        ----------
+        #### mz_exp: float, 
+        ####       Experimental m/z 
+        #### method: string, 
+        ####       ppm or ppb
+        '''
          
         if method == 'ppm':
             multi_factor = 1000000
@@ -59,20 +75,114 @@ class MolecularFormulaCalc:
         else:
             raise Exception("method needs to be ppm or ppb, you have entered %s" % method)
               
-        if mz_exp:
+        if self._mspeak_parent.mz_exp:
             
-            self._assignment_mass_error = ((self.mz_calc - mz_exp)/self.mz_calc)*multi_factor
+            self._assignment_mass_error = ((self.mz_calc - self._mspeak_parent.mz_exp)/self.mz_calc)*multi_factor
 
-            return ((self.mz_calc - mz_exp)/self.mz_calc)*multi_factor
+            return ((self.mz_calc - self._mspeak_parent.mz_exp)/self.mz_calc)*multi_factor
         
         else:
             
-            raise Exception("Please set mz_calc first")    
+            raise Exception("No ms peak associated with the molecular formula instance %s", self)    
     
-    def _calc_abundance_error(self, mono_abundance, iso_abundance, method='percentile'):
+    def _calc_fine_isotopic_similarity(self):
+        pass
+    
+    def _calc_mz_confidence(self, mean=0):
+        
+        # predicted std not set, using 0.3
+        if not self._mspeak_parent.predicted_std: self._mspeak_parent.predicted_std = 0.6
+        
+        print( self._mspeak_parent.predicted_std)
+        
+        return  exp( -1 * (power((self.mz_error -  mean),2)  / (2 * power(self._mspeak_parent.predicted_std,2)) ))
+    
+    def _calc_confidence_score(self):
+        '''
+        ### Assumes random mass error, i.e, spectrum has to be calibrated and with zero mean
+        #### TODO: Add spectral similarity 
+
+        ## Parameters
+        ----------
+        #### mz_exp:
+        ####    Experimental m/z 
+        #### predicted_std:
+        ####    Standart deviation calculated from Resolving power optimization or constant set by User 
+        
+        '''
+        if self.is_isotopologue:
+            # confidence of isotopologue is pure mz error 
+            # TODO add more features here 
+            return self._calc_mz_confidence()
+    
+        else:
+            
+            # has isotopologues based on current dinamic range
+            accumulated_mz_score = []
+            if self.expected_isotopologues:
+                
+                dict_mz_abund_ref = {}
+                
+                # get reference data
+                for mf in self.expected_isotopologues:
+                    dict_mz_abund_ref[mf.mz_calc] = mf.abundance_calc
+                
+                dict_mz_abund_exp = {}
+                
+                # get experimental data
+                for mf in self.expected_isotopologues:
+                    
+                    # molecular formula has been assigned to a peak
+                    if mf._mspeak_parent:
+                        #stores mspeak abundance
+                        dict_mz_abund_exp[mf.mz_calc] = mf._mspeak_parent.abundance
+                        #calculate mz error score and store it for all the isotopologue match
+                        accumulated_mz_score.append(mf._calc_mz_confidence())
+                    
+                    else:
+                        # fill missing mz with abundance 0 and mz error score of 0
+                        dict_mz_abund_exp[mf.mz_calc] = 0.0
+                        accumulated_mz_score.append(0.0)
+
+                df = DataFrame([dict_mz_abund_exp, dict_mz_abund_ref])
+                
+                #calculate abundance correlation, 
+                # ensure data alignment
+                x = df.T[0].values
+                y = df.T[1].values
+
+                correlation = kendalltau(x, y)[0]
+                #correlation = (1 - cosine(x, y))
+            
+            else:
+                
+                # no isotopologue expected, giving a correlation score of 0.5 but it needs optimization
+                correlation = 0.5
+
+            #correlation = dot(x, y)/(norm(x)*norm(y))
+            # add monoisotopic peak mz error score
+            accumulated_mz_score.append(self._calc_mz_confidence())
+            
+            average_mz_score = sum(accumulated_mz_score)/len(accumulated_mz_score)
+            
+            # calculate score with higher weight for mass error
+            score = ((correlation) * (average_mz_score**2))**(1/3)
+            
+            print("correlation",correlation)
+            print("average_mz_score",average_mz_score)
+            print("mz_score",self._calc_mz_confidence())
+            print("score",score)
+            return score
+
+
+    def _calc_abundance_error(self, method='percentile'):
         '''method should be ppm, ppb or percentile'''
         
         mult_factor = 100
+
+        iso_abundance = self._mspeak_parent.abundance
+        mono_abundance =self._mspeak_parent._ms_parent[self.mspeak_index_mono_isotopic].abundance
+
         if self.prob_ratio:
             
             theor_abundance = mono_abundance* self.prob_ratio
@@ -83,10 +193,14 @@ class MolecularFormulaCalc:
             
             raise Exception("Please calc_isotopologues")    
 
-    def _calc_area_error(self, mono_area, iso_area, method='percentile'):
+    def _calc_area_error(self, method='percentile'):
         '''method should be ppm, ppb or percentile'''
         
         mult_factor = 100
+        
+        iso_area = self._mspeak_parent.area
+        mono_area =self._mspeak_parent._ms_parent[self.mspeak_index_mono_isotopic].area
+
         if self.prob_ratio:
             
             if mono_area and iso_area: 
@@ -160,7 +274,7 @@ class MolecularFormulaCalc:
     @staticmethod
     def _cal_isotopologues(formula_dict, min_abundance, current_abundance):
         
-        """
+        '''
         primary function to look for isotopologues based on a monoisotopic molecular formula
         INPUT {'C':10, 'H', 20, 'O', 2, etc} Atomic labels need to follow Atoms class atoms labels
         
@@ -178,7 +292,7 @@ class MolecularFormulaCalc:
             
         *   it needs speed optimization; update: (Using IsoSpeccPy, a C Library (fast and accurate)) 
             https://github.com/MatteoLacki/IsoSpec
-        """
+        '''
         # updated it to reflect min possible mass peak abundance
         
         min_relative_abundance = min_abundance/current_abundance
@@ -186,7 +300,6 @@ class MolecularFormulaCalc:
         
         #print(min_relative_abundance, min_abundance, current_abundance, cut_off_to_IsoSpeccPy)
         
-        isotopologue_and_pro_ratio_tuples = []
         atoms_labels = (atom for atom in formula_dict.keys() if atom != Labels.ion_type and atom != 'H')
        
         atoms_count = []

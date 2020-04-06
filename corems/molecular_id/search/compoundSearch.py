@@ -36,9 +36,9 @@ class LowResMassSpectralMatch(Thread):
 
         #print(ref_obj.get('ri'), gc_peak.ri, CompoundSearchSettings.ri_window)
 
-        ri_score = exp(-((gc_peak.ri - ref_obj.get('ri'))**2 ) / (2 * CompoundSearchSettings.ri_window))
+        ri_score = exp(-((gc_peak.ri - ref_obj.get('ri'))**2 ) / (2 * CompoundSearchSettings.ri_window**2))
 
-        similarity_score = (spectral_similarity_score * (ri_score**2))**(1/3)
+        similarity_score = ((spectral_similarity_score**2) * (ri_score))**(1/3)
 
         return spectral_similarity_score, ri_score, similarity_score
         
@@ -166,7 +166,7 @@ class LowResMassSpectralMatch(Thread):
 
 
     def euclidean_distance(self, mass_spec, ref_obj):
-        
+
         def euclidean_distance_manual(qlist,rlist):
 
             T1=sum(subtract(qlist,rlist)**2)

@@ -301,13 +301,12 @@ def plot_error_distribution():
     for mspeak in mass_spectrum_obj:
         
         if mspeak:
-            #molecular_formula = mspeak.molecular_formula_lowest_error
-            #off_set = 0 
+            
             for molecular_formula in mspeak:
                 if not molecular_formula.is_isotopologue:
                         
                     #off_set +=  0.1
-                    molecular_formula._calc_assignment_mass_error(mspeak.mz_exp)
+                    molecular_formula.mz_error
                     pyplot.plot(mspeak.mz_exp, molecular_formula._assignment_mass_error, "o")
 
     pyplot.ylabel("m/z Error (ppm)")
@@ -346,7 +345,6 @@ def plot_mass_spectrum():
     for mspeak in mass_spectrum_obj:
         
         if  mspeak:
-            #molecular_formula = mspeak.molecular_formula_lowest_error
             #off_set = 0 
             #for molecular_formula in mspeak:
             pyplot.plot(mspeak.mz_exp, mspeak.abundance, 'o', c='g')                       

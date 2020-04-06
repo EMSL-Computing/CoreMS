@@ -24,7 +24,7 @@ class ClusteringFilter():
                 #print(mspeak.mz_exp, len(mspeak))
                 for mformula in mspeak:
                     mass_list.append(mspeak.mz_exp)
-                    error_list.append(mformula._calc_assignment_mass_error(mspeak.mz_exp))
+                    error_list.append(mformula.mz_error)
                     list_indexes_mass_spec.append(index)
         
         kendrick_dict = {'mass': mass_list, 'error': error_list}  

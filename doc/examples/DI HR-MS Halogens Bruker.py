@@ -14,6 +14,7 @@ from corems.mass_spectrum.factory.classification import HeteroatomsClassificatio
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
+from corems.mass_spectrum.calc.MassErrorPrediction import MassErrorPrediction
 
 
 def get_mass_spectrum(file_location):
@@ -104,12 +105,16 @@ if __name__ == "__main__":
             print(file_location)
             
             mass_spectrum = get_mass_spectrum(file_location)
-
+            
             set_settings_for_bromothymol_blue(mass_spectrum)
             #set_settings_for_chlorophenol_red(mass_spectrum)
 
             SearchMolecularFormulas(mass_spectrum, first_hit=True).run_worker_mass_spectrum()
             
+            #mass_error_prediction = MassErrorPrediction(mass_spectrum)
+    
+            #mass_error_prediction.get_results()
+
             ax = mass_spectrum.plot_mz_domain_profile()
             #plt.show()
             
@@ -120,7 +125,7 @@ if __name__ == "__main__":
                     for mf in mspeak: 
                     
                         ax.plot(mspeak.mz_exp,mspeak.abundance, color='black', linewidth=0, marker='s', markersize = 8, label='Assigned')
-                    
+                        
                         if mf.is_isotopologue:
                             
                             ax.annotate(round(mf.area_error,1), (mspeak.mz_exp+0.2, mspeak.abundance), label="Error (%)")
@@ -142,7 +147,7 @@ if __name__ == "__main__":
                             })
                         
                         else:
-                            
+                            print(mf.confidence_score)
                             print( mf.to_string, mf.mz_calc, mf.mz_error) 
                             
                             list_dict.append( {
