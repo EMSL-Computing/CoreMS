@@ -159,36 +159,37 @@ class GC_Calculations:
                     #calculates prominence and filter   
                     if  min(peak_height_diff(index,start_index), peak_height_diff(index,final_index) )< GasChromatographSetting.peak_max_prominence_percent :   
                         
-                        yield (start_index, final_index)    
+                        if  max(peak_height_diff(index,start_index), peak_height_diff(index,final_index) )< GasChromatographSetting.peak_max_prominence_percent :   
+                        
+                            yield from (start_index, final_index)
 
     def baseline_detector(self, tic):
-            
-        #maximum_abundance = max(tic)
-        
-        #dy = tic[1:] - tic[:-1]
-        
-        #indices_nan = where(isnan(tic))[0]
-        
-        #if indices_nan.size:
-            
-        #    tic[indices_nan] = inf
-        #    dy[where(isnan(dy))[0]] = inf
-        
-        #indexes = where((hstack((dy, 0)) < 0) & (hstack((0, dy)) > 0))[0]
+        from matplotlib import pyplot as plt   
         
         indexes = list(i for i in self.minima_detector(tic, max(tic)))
         
-        tic = -tic
+        y = -tic
         
-        baseline = empty(len(tic))
+        baseline = empty(len(y))
 
         baseline.fill(nan)
 
-        baseline[indexes] = tic[indexes]
-
-        s = Series(baseline).interpolate(method='nearest')
+        baseline[indexes] = y[indexes]
         
-        s = nan_to_num(self.smooth(s, 10, 'bartlett'))
+        #plt.plot(self.retention_time, tic)
+
+        #plt.plot(self.retention_time[indexes], tic[indexes], marker='^')
+        
+        s = Series(baseline).interpolate(method='linear', order = 3, limit_direction='forward')
+        s = Series(baseline).interpolate(method='linear', order = 3, limit_direction='backward')
+        
+        #plt.plot(self.retention_time, -s, marker='x')
+
+        #s = self.smooth(s, 10, 'blackman')
+
+        #plt.plot(self.retention_time, -s, marker='v')
+        
+        #plt.show()
 
         return s
   

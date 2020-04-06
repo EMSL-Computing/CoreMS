@@ -48,7 +48,7 @@ class GasChromatographSetting:
 
     peak_height_min_percent = 5 #1-100 % used for peak detection
     
-    peak_max_prominence_percent = 0.1 #1-100 % used for baseline detection
+    peak_max_prominence_percent = 1 #1-100 % used for baseline detection
 
     peak_min_prominence_percent = 1 #1-100 % used for peak detection
 
@@ -62,7 +62,7 @@ class CompoundSearchSettings:
 
     rt_search_range = 0.5
     
-    correlation_threshold = 0.8 # used for calibration, spectral similarity 
+    correlation_threshold = 0.95 # used for calibration, spectral similarity 
     
     score_threshold = 0.0
 
@@ -70,7 +70,7 @@ class CompoundSearchSettings:
 
     ri_window = 3 # in standard deviation
 
-class MolecularLookupDictSettings:
+class MolecularLookup0DictSettings:
     
     '''
     ### DO NOT CHANGE IT! These are used to generate the database entries 
@@ -145,7 +145,8 @@ class MolecularLookupDictSettings:
 
 class MolecularSearchSettings:
     
-    url_database = None
+    url_database = 'postgresql://postgres:labthomson0102@172.22.113.27:5432/' 
+    #url_database = None#'sqlite://'
 
     use_isotopologue_filter = False
 
