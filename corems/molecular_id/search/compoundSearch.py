@@ -237,7 +237,7 @@ class LowResMassSpectralMatch(Thread):
         return correlation
 
     def run(self):
-        
+        # TODO select the best gcms peak    
         import tqdm
 
         if not self.gcms_obj:

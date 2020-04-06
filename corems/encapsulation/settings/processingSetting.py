@@ -46,7 +46,7 @@ class GasChromatographSetting:
     
     peak_height_max_percent = 10 #1-100 % used for baseline detection
 
-    peak_max_prominence_percent = 1 #1-100 % used for baseline detection
+    peak_max_prominence_percent = 10 #1-100 % used for baseline detection
 
     min_peak_datapoints = 5
    

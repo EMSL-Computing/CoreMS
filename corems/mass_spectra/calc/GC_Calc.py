@@ -176,33 +176,32 @@ class GC_Calculations:
     def baseline_detector(self, tic):
         
         from matplotlib import pyplot as plt   
+
+        from scipy import interpolate
         
-        indexes = list(i for i in self.minima_detector(tic, max(tic)))
+        indexes = sorted(list(set(i for i in self.minima_detector(tic, max(tic)))))
         
         y = -tic
         
-        baseline = empty(len(y))
-
-        baseline.fill(nan)
-
-        baseline[indexes] = y[indexes]
+        x1 = self.retention_time[indexes]
         
-        #plt.plot(self.retention_time, tic)
+        y1 = y[indexes]
+
+        f1 = interpolate.interp1d(x1, y1, kind='quadratic',fill_value="extrapolate")
+
+        ynew1 = f1(list(self.retention_time))
+        
+        #plt.plot(self.retention_time, tic-(-1* ynew1), color='green')
 
         #plt.plot(self.retention_time[indexes], tic[indexes], marker='^')
         
-        s = Series(baseline).interpolate(method='linear', order = 3, limit_direction='forward')
-        s = Series(baseline).interpolate(method='linear', order = 3, limit_direction='backward')
-        
-        #plt.plot(self.retention_time, -s, marker='x')
-
         #s = self.smooth(s, 10, 'blackman')
 
-        #plt.plot(self.retention_time, -s, marker='v')
+        #plt.plot(self.retention_time, -s)
         
         #plt.show()
 
-        return -s
+        return -1* ynew1
   
     def remove_outliers(self, data):
         
