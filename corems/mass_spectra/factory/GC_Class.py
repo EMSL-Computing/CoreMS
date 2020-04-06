@@ -74,7 +74,7 @@ class GCMSBase(Mapping, GC_Calculations):
 
     def process_chromatogram(self,):
 
-        tic = self.tic + self.baseline_detector(self.tic)
+        tic = self.tic - self.baseline_detector(self.tic)
         
         self._processed_tic = self.smooth_tic(tic)
 
