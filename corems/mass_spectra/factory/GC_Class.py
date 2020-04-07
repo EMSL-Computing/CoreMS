@@ -13,7 +13,7 @@ from corems.mass_spectra.output.export import LowResGCMSExport
 
 from corems.encapsulation.settings.processingSetting import CompoundSearchSettings, GasChromatographSetting
 
-class GCMSBase(Mapping, GC_Calculations):
+class GCMSBase(GC_Calculations):
     """
     classdocs
     """
@@ -50,7 +50,7 @@ class GCMSBase(Mapping, GC_Calculations):
         
         #after peak detection
         self._processed_tic = []
-        self.gcpeaks = {}
+        self.gcpeaks = []
 
     def _init_settings(self):
         
@@ -66,11 +66,11 @@ class GCMSBase(Mapping, GC_Calculations):
         
     def __getitem__(self, scan_number):
         
-        return self.gcpeaks.get(scan_number)
+        return self.gcpeaks[scan_number]
 
-    def __iter__(self):
+    #def __iter__(self):
 
-         return iter(self.gcpeaks.values())
+    #     return iter(self.gcpeaks.values())
 
     def process_chromatogram(self,):
 
@@ -94,7 +94,9 @@ class GCMSBase(Mapping, GC_Calculations):
             
             gc_peak.calc_area(self._processed_tic, 1)
 
-            self.gcpeaks[self.scans_number[apex_index]] = gc_peak
+            self.gcpeaks.append(gc_peak)
+
+            #self.gcpeaks[self.scans_number[apex_index]] = gc_peak
 
             
     def add_mass_spectrum(self, mass_spec):
@@ -179,22 +181,57 @@ class GCMSBase(Mapping, GC_Calculations):
     def plot_gc_peaks(self, ax=None, color="red"): #pragma: no cover
         
         import matplotlib.pyplot as plt
-
+        fig = plt.gcf()
         if ax is None:
             ax = plt.gca()
         
         max_rts = [gc_peak.mass_spectrum.rt for gc_peak in self]
         max_tics = [gc_peak.mass_spectrum.tic for gc_peak in self]
 
-        min_rts = [self._ms[gc_peak.start_index].rt for gc_peak in self] + [self._ms[gc_peak.final_index].rt for gc_peak in self]
-        min_tics = [self._ms[gc_peak.start_index].tic for gc_peak in self] + [self._ms[gc_peak.final_index].tic for gc_peak in self]
-        
-        ax.plot(max_rts, max_tics, color=color, linewidth=0, marker='v')
+        #min_rts = [self._ms[gc_peak.start_index].rt for gc_peak in self] + [self._ms[gc_peak.final_index].rt for gc_peak in self]
+        #min_tics = [self._ms[gc_peak.start_index].tic for gc_peak in self] + [self._ms[gc_peak.final_index].tic for gc_peak in self]
+        #sc = ax.scatter(min_rts, min_tics, color='yellow', linewidth=0, marker='v')
 
-        ax.plot(min_rts, min_tics, color='yellow', linewidth=0, marker='v')
+        sc = ax.scatter(max_rts, max_tics, color=color, marker='v')
         
         ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
         
+        annot = ax.annotate("", xy=(0,0), xytext=(20,20),textcoords="offset points",
+                    bbox=dict(boxstyle="round", fc="w"),
+                    arrowprops=dict(arrowstyle="->"))
+        annot.set_visible(False)
+        annot.get_bbox_patch().set_facecolor(('lightblue'))
+        annot.get_bbox_patch().set_alpha(0.8)
+        
+        def update_annot(ind):
+            
+            pos = sc.get_offsets()[ind["ind"][0]]
+            annot.xy = pos
+            
+            text = "RT: {}\nRT Ref: {}\nRI: {}\nRI Ref: {}\nSimilarity Score: {}\nName: {}".format( " ".join([str(round(self[n].rt,2)) for n in ind["ind"]]),
+                           " ".join([str(round(self[n].highest_score_compound.rt,2) if self[n].highest_score_compound else None) for n in ind["ind"]]),
+                           " ".join([str(round(self[n].ri,2)  if self[n].ri else None) for n in ind["ind"]]),
+                           " ".join([str(round(self[n].highest_score_compound.ri,2)  if self[n].highest_score_compound else None) for n in ind["ind"]]),                           
+                           " ".join([str(round(self[n].highest_score_compound.similarity_score,4) if self[n].highest_score_compound else None) for n in ind["ind"]]),
+                           " ".join([str(self[n].highest_score_compound.name if self[n].highest_score_compound else None) for n in ind["ind"]])
+                           )
+            annot.set_text(text)
+        
+        def hover(event):
+            vis = annot.get_visible()
+            if event.inaxes == ax:
+                cont, ind = sc.contains(event)
+                if cont:
+                    update_annot(ind)
+                    annot.set_visible(True)
+                    fig.canvas.draw_idle()
+                else:
+                    if vis:
+                        annot.set_visible(False)
+                        fig.canvas.draw_idle()
+        
+        fig.canvas.mpl_connect("motion_notify_event", hover)
+
         return ax
 
     def to_excel(self, out_file_path, write_mode='ab', highest_score=True):

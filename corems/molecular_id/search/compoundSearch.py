@@ -10,7 +10,6 @@ from scipy.spatial.distance import cosine, jaccard, euclidean, cityblock
 from scipy.stats import pearsonr, spearmanr, kendalltau
 from sklearn.metrics.pairwise import cosine_similarity
 from math import exp
-
 from corems.molecular_id.input.nistMSI import ReadNistMSI
 
 

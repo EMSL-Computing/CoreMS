@@ -59,19 +59,11 @@ def get_reference_dict():
 
         gcms = get_gcms(file_path)
 
+        #gcms.plot_gc_peaks()   
+
         #gcms.plot_processed_chromatogram()
-
-        #gcms.plot_gc_peaks()
-
-        #gcms.plot_chromatogram()
-
-        #gcms.plot_smoothed_chromatogram()
-
-        #gcms.plot_baseline_subtraction()
-
-        #gcms.plot_detected_baseline()
-
-        #plt.show()
+        
+        #matplotlib.pyplot.show()
 
         lowResSearch = LowResMassSpectralMatch(gcms, ref_file_path, calibration=True)
 
@@ -111,7 +103,7 @@ def run(args):
     
     file_path, ref_file_path, ref_dict = args
     gcms = get_gcms(file_path)
-            
+    
     for gcms_peak in gcms:
         
         gcms_peak.calc_ri(ref_dict)
@@ -147,7 +139,7 @@ def calibrate_and_search(out_put_file_name, cores):
             
             for gcms in gcmss:
                 #gcms.to_csv(out_put_file_name)
-                gcms.to_excel(out_put_file_name, highest_score=False)
+                #gcms.to_excel(out_put_file_name, highest_score=False)
                 #gcms.to_pandas(out_put_file_name)
                 
                 #df = gcms.get_dataframe()
@@ -156,7 +148,7 @@ def calibrate_and_search(out_put_file_name, cores):
                 #print(json_data)
 
                 gcms.plot_processed_chromatogram()
-
+                print('ok')
                 gcms.plot_gc_peaks()
 
                 #gcms.plot_chromatogram()
@@ -167,7 +159,7 @@ def calibrate_and_search(out_put_file_name, cores):
 
                 #gcms.plot_detected_baseline()
 
-            matplotlib.pyplot.show()
+                #matplotlib.pyplot.show()
 
        
 if __name__ == '__main__':                           
