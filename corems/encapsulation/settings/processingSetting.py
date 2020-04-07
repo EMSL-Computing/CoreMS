@@ -75,9 +75,9 @@ class CompoundSearchSettings:
 
     ri_spacing = 200
 
-    ri_window = 3 # in standard deviation
+    ri_std = 3 # in standard deviation
 
-class MolecularLookup0DictSettings:
+class MolecularLookupDictSettings:
     
     '''
     ### DO NOT CHANGE IT! These are used to generate the database entries 
