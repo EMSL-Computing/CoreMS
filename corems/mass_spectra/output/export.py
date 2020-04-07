@@ -109,7 +109,7 @@ class LowResGCMSExport():
                 for data in dict_data_list:
                     writer.writerow(data)
             
-            self.write_settings(self.output_file, self.gcms, highest_score=highest_score)
+            self.write_settings(self.output_file, self.gcms)
         
         except IOError as ioerror:
             print(ioerror)                 
