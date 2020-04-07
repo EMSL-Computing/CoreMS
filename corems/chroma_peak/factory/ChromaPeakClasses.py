@@ -80,6 +80,11 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
     def ri(self): return self._ri
 
     @property
+    def highest_ss_compound(self):
+        
+        return max(self, key = lambda c: c.spectral_similarity_score)
+
+    @property
     def highest_score_compound(self):
         
         return max(self, key = lambda c: c.similarity_score)

@@ -251,7 +251,7 @@ class LowResMassSpectralMatch(Thread):
                 window = CompoundSearchSettings.ri_search_range
 
                 ri = gc_peak.ri
-
+                
                 min_mat_ri = (ri-window, ri+window)    
                 
                 ref_objs = self.sqlLite_obj.query_min_max_ri(min_mat_ri)

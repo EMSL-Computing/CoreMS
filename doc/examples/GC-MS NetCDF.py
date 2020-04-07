@@ -5,17 +5,15 @@ import sys
 sys.path.append("./")
 
 from pathlib import Path
-
 from multiprocessing import Pool
-from matplotlib import pyplot
+
+from numpy import array, polyfit, poly1d
 from PySide2.QtWidgets import QFileDialog, QApplication
 from PySide2.QtCore import Qt
 
 from corems.molecular_id.input.nistMSI import ReadNistMSI
 from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
 from corems.molecular_id.search.compoundSearch import LowResMassSpectralMatch
-
-from numpy import array, polyfit, poly1d
 from corems.encapsulation.settings.processingSetting import CompoundSearchSettings
 
 def sql_database(file_location):
@@ -33,7 +31,7 @@ def sql_database(file_location):
     sqlLite_obj.query_min_max_ri_and_rt((1637.30, 1638.30),(17.111, 18.111))
 
 def get_gcms(file_path):
-
+    
     reader_gcms = ReadAndiNetCDF(file_path)
 	
     reader_gcms.run()
@@ -56,44 +54,59 @@ def get_reference_dict():
     if not file_path:
         return  None
     else:
+        
         ref_file_path = Path.cwd() / "tests/tests_data/gcms/" / "FAMES_REF.MSL"
 
         gcms = get_gcms(file_path)
+
+        #gcms.plot_processed_chromatogram()
+
+        #gcms.plot_gc_peaks()
+
+        #gcms.plot_chromatogram()
+
+        #gcms.plot_smoothed_chromatogram()
+
+        #gcms.plot_baseline_subtraction()
+
+        #gcms.plot_detected_baseline()
+
+        #plt.show()
 
         lowResSearch = LowResMassSpectralMatch(gcms, ref_file_path, calibration=True)
 
         lowResSearch.run()
 
-        dict_rt_ri = {}
+        dict_ri_rt = {}
+
+        list_of_compound_obj = {}
 
         for gcms_peak in gcms:
 
             # has a compound matched
             if gcms_peak:
                 
-                compound_obj = gcms_peak.highest_score_compound
+                compound_obj = gcms_peak.highest_ss_compound
                 
-                #print(compound_obj.name, gcms_peak.mass_spectrum.rt, compound_obj.similarity_score)
-                dict_rt_ri[gcms_peak.mass_spectrum.rt] = compound_obj.ri
+                if not compound_obj.ri in dict_ri_rt.keys():
+                    
+                    dict_ri_rt[compound_obj.ri] = [(gcms_peak.mass_spectrum.rt, compound_obj)]
+    
+                else:
+                    
+                    dict_ri_rt[compound_obj.ri].append(gcms_peak.mass_spectrum.rt, compound_obj)
+                
+                print(compound_obj.name, gcms_peak.mass_spectrum.rt, compound_obj.spectral_similarity_score)
         
+        ris = [i for i in  dict_ri_rt.keys()]
+        rts = [max(i, key = lambda c: c[1].spectral_similarity_score)[0] for i in dict_ri_rt.values()]
+        
+        rt_ri_pairs = list(zip(rts, ris)) 
+        
+        print(rt_ri_pairs)
 
-        rts = list(dict_rt_ri.keys() )
-        ris = list(dict_rt_ri.values() )
+        return rt_ri_pairs
         
-        # retention time calibration curve RT vs RI
-        poli = poly1d(polyfit(ris,rts, 1))
-        
-        # ensures all datapoint are represented up to C40 
-        RI =  array(list(range(0,4000+CompoundSearchSettings.ri_spacing, CompoundSearchSettings.ri_spacing)))
-        RT = (poli(RI))
-        
-        dict_RT_RI = dict(zip(RT, RI))
-
-        #This will retains the experimental retention index
-        dict_RT_RI.update(dict_rt_ri)
-        
-        return dict(sorted(dict_RT_RI.items()))
-
 def run(args):
     
     file_path, ref_file_path, ref_dict = args
@@ -130,9 +143,9 @@ def calibrate_and_search(out_put_file_name, cores):
             p = Pool(cores)
             args = [(file_path, ref_file_path, ref_dict) for file_path in file_locations[0]]
             gcmss = p.map(run, args)
+            #gcmss = [run(args[0])]
             
             for gcms in gcmss:
-                
                 #gcms.to_csv(out_put_file_name)
                 gcms.to_excel(out_put_file_name, highest_score=False)
                 #gcms.to_pandas(out_put_file_name)
@@ -142,9 +155,9 @@ def calibrate_and_search(out_put_file_name, cores):
                 
                 #print(json_data)
 
-                #gcms.plot_processed_chromatogram()
+                gcms.plot_processed_chromatogram()
 
-                #gcms.plot_gc_peaks()
+                gcms.plot_gc_peaks()
 
                 #gcms.plot_chromatogram()
 
@@ -154,11 +167,13 @@ def calibrate_and_search(out_put_file_name, cores):
 
                 #gcms.plot_detected_baseline()
 
-                #pyplot.show()
+            matplotlib.pyplot.show()
 
        
 if __name__ == '__main__':                           
-    
+    import matplotlib
+    matplotlib.use('TkAgg')
+
     cores = 4
     out_put_file_name = 'STD_Mix1'
     calibrate_and_search(out_put_file_name, cores)

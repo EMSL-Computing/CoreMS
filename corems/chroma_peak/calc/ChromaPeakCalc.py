@@ -2,6 +2,7 @@
 from numpy import array, polyfit, poly1d, where, trapz
 
 from corems.encapsulation.settings.processingSetting import CompoundSearchSettings
+from bisect import bisect_left
 
 __author__ = "Yuri E. Corilo"
 __date__ = "March 11, 2020"
@@ -17,26 +18,40 @@ class GCPeakCalculation(object):
         
         self._area = trapz(yy, dx = dx)
 
+    def linear_ri(self, right_ri, left_ri,left_rt,right_rt ):
 
-    def linear_rt(self,  left_ri,left_rt,right_rt ):
+        #ri = ((right_ri -  left_ri) * (self.rt - left_rt)/ (right_rt - left_rt)) + left_ri   
 
-        return left_ri + (CompoundSearchSettings.ri_spacing * (self.rt - left_rt)/(right_rt-left_rt))
+        return left_ri + ((right_ri -  left_ri) * (self.rt - left_rt)/(right_rt-left_rt))
 
-    def calc_ri(self, dict_ref):
+    def calc_ri(self, rt_ri_pairs):
+        current_rt = self.rt
+
+        rts = [rt_ri[0] for rt_ri in rt_ri_pairs]
+        index = bisect_left(rts, current_rt)
         
-        # input dict[rt:ri]
-        # find left and right peaks, gets retention time for both, e calculates retention index 
-        # dict_ref has to be comprehensive enough to cover all rt range or it will fail
-        # returns: Nothing but set self._ri object inside GCPeak class
+        if index >= len(rt_ri_pairs):
+            index -= 1
         
-        rts = array(list(dict_ref.keys())) 
+        current_ref = rt_ri_pairs[index]
         
-        right_peak_index = where(rts >= self.rt)[0][0]
-        left_peak_index = where(rts < self.rt)[0][-1]
-
-        left_rt  = rts[left_peak_index]
-        left_ri = dict_ref[left_rt]
-
-        right_rt = rts[right_peak_index]
+        if current_rt == current_ref[0]:
+            print(current_rt, current_ref)
+            self._ri = current_ref[1]
+            return 1
+        
+        else:
+            if index == 0:
+                index += 1
             
-        self._ri = self.linear_rt(left_ri,left_rt,right_rt)
+            left_rt = rt_ri_pairs[index-1][0]
+            left_ri = rt_ri_pairs[index-1][1]
+
+            right_rt = rt_ri_pairs[index][0]
+            right_ri =rt_ri_pairs[index][1]
+
+            self._ri = self.linear_ri(right_ri, left_ri,left_rt,right_rt)
+
+            print(rt_ri_pairs[index-1], current_rt, rt_ri_pairs[index], left_ri, self._ri, right_ri)
+
+            return 1

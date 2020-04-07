@@ -60,7 +60,7 @@ class GasChromatographSetting:
 
     peak_height_min_abun = 5 #1-100 % used for peak detection
 
-    peak_min_prominence_percent = 1 #1-100 % used for peak detection
+    peak_min_prominence_percent = 0.1 #1-100 % used for peak detection
     
 
 class CompoundSearchSettings:
