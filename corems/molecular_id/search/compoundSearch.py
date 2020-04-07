@@ -12,7 +12,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from math import exp
 
 from corems.molecular_id.input.nistMSI import ReadNistMSI
-from corems.encapsulation.settings.processingSetting import CompoundSearchSettings, GasChromatographSetting
+
 
 class LowResMassSpectralMatch(Thread):
 
@@ -34,9 +34,9 @@ class LowResMassSpectralMatch(Thread):
 
         spectral_similarity_score = self.cosine_correlation(gc_peak.mass_spectrum, ref_obj)
 
-        #print(ref_obj.get('ri'), gc_peak.ri, CompoundSearchSettings.ri_window)
+        #print(ref_obj.get('ri'), gc_peak.ri, self.gcms_obj.molecular_search_settings.ri_window)
 
-        ri_score = exp(-((gc_peak.ri - ref_obj.get('ri'))**2 ) / (2 * CompoundSearchSettings.ri_window**2))
+        ri_score = exp(-1*((gc_peak.ri - ref_obj.get('ri'))**2 ) / (2 * self.gcms_obj.molecular_search_settings.ri_std**2))
 
         similarity_score = ((spectral_similarity_score**2) * (ri_score))**(1/3)
 
@@ -248,7 +248,7 @@ class LowResMassSpectralMatch(Thread):
             
             if not self.calibration:
                 
-                window = CompoundSearchSettings.ri_search_range
+                window = self.gcms_obj.molecular_search_settings.ri_search_range
 
                 ri = gc_peak.ri
                 
@@ -258,7 +258,7 @@ class LowResMassSpectralMatch(Thread):
                 
             else:
 
-                window = CompoundSearchSettings.rt_search_range
+                window = self.gcms_obj.molecular_search_settings.rt_search_range
 
                 rt = gc_peak.rt
 
@@ -270,12 +270,12 @@ class LowResMassSpectralMatch(Thread):
                 # uses spectral similarly and uses a threshold to only select peaks with high data correlation
                 if self.calibration:
                     
-                    correlation_value = self.cosine_correlation(gc_peak.mass_spectrum, ref_obj)
+                    spectral_similarity_score = self.cosine_correlation(gc_peak.mass_spectrum, ref_obj)
 
                     #print(w_correlation_value,correlation_value )
-                    if correlation_value >= CompoundSearchSettings.correlation_threshold:
+                    if spectral_similarity_score >= self.gcms_obj.molecular_search_settings.correlation_threshold:
                     
-                        gc_peak.add_compound(ref_obj, correlation_value)
+                        gc_peak.add_compound(ref_obj, spectral_similarity_score)
 
                 # use score, usually a combination of Retention index and Spectral Similarity
                 # Threshold is implemented by not necessarily used
@@ -285,7 +285,7 @@ class LowResMassSpectralMatch(Thread):
                     # m/q developed methods will be implemented here
                     spectral_similarity_score, ri_score, similarity_score = self.metabolite_detector_score(gc_peak, ref_obj)    
                     
-                    if similarity_score >= CompoundSearchSettings.score_threshold:
+                    if similarity_score >= self.gcms_obj.molecular_search_settings.score_threshold:
                     
                         gc_peak.add_compound(ref_obj, spectral_similarity_score, ri_score, similarity_score)
                 
