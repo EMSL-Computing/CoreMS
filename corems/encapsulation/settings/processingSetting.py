@@ -152,8 +152,8 @@ class MolecularLookupDictSettings:
 
 class MolecularSearchSettings:
     
-    url_database = 'postgresql://postgres:labthomson0102@172.22.113.27:5432/' 
-    #url_database = None#'sqlite://'
+    #url_database = 'postgresql://postgres:labthomson0102@172.22.113.27:5432/' 
+    url_database = None#'sqlite://'
 
     use_isotopologue_filter = False
 
