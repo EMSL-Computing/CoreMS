@@ -352,6 +352,10 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         return min([mspeak.abundance for mspeak in self.mspeaks])
     
     @property
+    def dynamic_range(self):
+        return self.max_abundance/self.min_abundance
+
+    @property
     def baselise_noise(self):
         if self._baselise_noise:
             return self._baselise_noise

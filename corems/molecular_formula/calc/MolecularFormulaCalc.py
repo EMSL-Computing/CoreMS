@@ -272,7 +272,7 @@ class MolecularFormulaCalc:
 
     
     @staticmethod
-    def _cal_isotopologues(formula_dict, min_abundance, current_abundance):
+    def _cal_isotopologues(formula_dict, min_abundance, current_abundance, ms_dynamic_range):
         
         '''
         primary function to look for isotopologues based on a monoisotopic molecular formula
@@ -295,9 +295,9 @@ class MolecularFormulaCalc:
         '''
         # updated it to reflect min possible mass peak abundance
         
-        min_relative_abundance = min_abundance/current_abundance
-        cut_off_to_IsoSpeccPy = 1 - min_relative_abundance
         
+        cut_off_to_IsoSpeccPy = 1-(1/ms_dynamic_range) 
+        print("cut_off_to_IsoSpeccPy", cut_off_to_IsoSpeccPy, current_abundance, min_abundance, ms_dynamic_range)
         #print(min_relative_abundance, min_abundance, current_abundance, cut_off_to_IsoSpeccPy)
         
         atoms_labels = (atom for atom in formula_dict.keys() if atom != Labels.ion_type and atom != 'H')
@@ -333,25 +333,29 @@ class MolecularFormulaCalc:
                 isotopoes_labels = [atom_label] + isotopoes_labels
                 
                 all_atoms_list.extend(isotopoes_labels)
-                #print(all_labels)
+                
                 masses = [Atoms.atomic_masses.get(atom_label) for atom_label in isotopoes_labels]
                 props = [Atoms.isotopic_abundance.get(atom_label) for atom_label in isotopoes_labels]
                 
                 atoms_count.append(formula_dict.get(atom_label))
                 masses_list_tuples.append(masses)
                 props_list_tuples.append(props)
-       
+
+        
+        
+
         iso = IsoSpecPy.IsoSpec(atoms_count,masses_list_tuples,props_list_tuples, cut_off_to_IsoSpeccPy )
         
         conf = iso.getConfs()
-        
         masses = conf[0]
         probs = exp(conf[1])
         molecular_formulas = conf[2]
+        #print('conf', conf)
+        #print('probs', conf[1])
         
         new_formulas = []
         
-        for isotopologue_index in range(0,len(iso),1):
+        for isotopologue_index in range(len(iso)):
             #skip_mono_isotopic 
             
             formula_list = molecular_formulas[isotopologue_index]
@@ -361,8 +365,16 @@ class MolecularFormulaCalc:
                 new_formula_dict['H'] = formula_dict.get('H')
 
             new_formulas.append({x:y for x,y in new_formula_dict.items() if y!=0})
-
-        if (new_formulas):
+        
+        # formula_dict in new_formulas check if monoisotopic is being returned
+        if new_formulas:# and formula_dict in new_formulas:
+            
+            #print(conf)    
+            #print(new_formulas)    
+            #print(atoms_count)
+            #print(all_atoms_list)
+            #print(masses_list_tuples)
+            #print(props_list_tuples)
             # find where monoisotopic is
             index_mono = new_formulas.index(formula_dict)   
             # calculate ratio iso/mono
@@ -372,7 +384,16 @@ class MolecularFormulaCalc:
             del probs[index_mono]
             del new_formulas[index_mono]
             
-        return zip(new_formulas, probs )
+            min_abundance, current_abundance
+            print('probs_exp', probs)
+            for formulas, prob in zip(new_formulas, probs):
+                
+                theor_abundance = current_abundance* prob
+                if theor_abundance > min_abundance:
+                    print(prob, theor_abundance, current_abundance)
+                    yield (formulas, prob)
+            #return zip(new_formulas, probs )
     
-    
+        #else:
+        #    return []    
     

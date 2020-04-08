@@ -485,7 +485,7 @@ class SearchMolecularFormulaWorker:
                     if self.find_isotopologues:
                         
                         # calculates isotopologues
-                        isotopologues = molecular_formula.isotopologues(min_abundance, ms_peak_abundance)
+                        isotopologues = molecular_formula.isotopologues(min_abundance, ms_peak_abundance, mass_spectrum_obj.dynamic_range)
                         
                         # search for isotopologues
                         for isotopologue_formula in isotopologues:

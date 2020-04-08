@@ -151,7 +151,7 @@ def calibrate_and_search(out_put_file_name, cores):
                 print('ok')
                 gcms.plot_gc_peaks()
 
-                #gcms.plot_chromatogram()
+                gcms.plot_chromatogram()
 
                 #gcms.plot_smoothed_chromatogram()
 
