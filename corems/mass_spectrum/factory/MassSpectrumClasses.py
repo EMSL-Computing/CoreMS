@@ -76,6 +76,8 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         self.is_calibrated = False
 
+        self.is_centroid = False
+        
     def _init_settings(self):
         
         self._mol_search_settings  = deepcopy(MolecularSearchSettings)
