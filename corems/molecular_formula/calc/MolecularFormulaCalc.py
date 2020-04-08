@@ -93,7 +93,7 @@ class MolecularFormulaCalc:
         # predicted std not set, using 0.3
         if not self._mspeak_parent.predicted_std: self._mspeak_parent.predicted_std = 0.6
         
-        print( self._mspeak_parent.predicted_std)
+        #print( self._mspeak_parent.predicted_std)
         
         return  exp( -1 * (power((self.mz_error -  mean),2)  / (2 * power(self._mspeak_parent.predicted_std,2)) ))
     
@@ -206,7 +206,7 @@ class MolecularFormulaCalc:
             if mono_area and iso_area: 
 
                 #exp_ratio = iso_area/mono_area  
-                print(mono_area, iso_area)            
+                          
                 area_calc = mono_area* self.prob_ratio
 
                 #self.parent need to have a MassSpecPeak associated with the MolecularFormula class
@@ -297,8 +297,7 @@ class MolecularFormulaCalc:
         
         
         cut_off_to_IsoSpeccPy = 1-(1/ms_dynamic_range) 
-        print("cut_off_to_IsoSpeccPy", cut_off_to_IsoSpeccPy, current_abundance, min_abundance, ms_dynamic_range)
-        #print(min_relative_abundance, min_abundance, current_abundance, cut_off_to_IsoSpeccPy)
+        #print("cut_off_to_IsoSpeccPy", cut_off_to_IsoSpeccPy, current_abundance, min_abundance, ms_dynamic_range)
         
         atoms_labels = (atom for atom in formula_dict.keys() if atom != Labels.ion_type and atom != 'H')
        
@@ -385,12 +384,12 @@ class MolecularFormulaCalc:
             del new_formulas[index_mono]
             
             min_abundance, current_abundance
-            print('probs_exp', probs)
+            #print('probs_exp', probs)
             for formulas, prob in zip(new_formulas, probs):
                 
                 theor_abundance = current_abundance* prob
                 if theor_abundance > min_abundance:
-                    print(prob, theor_abundance, current_abundance)
+                    #print(prob, theor_abundance, current_abundance)
                     yield (formulas, prob)
             #return zip(new_formulas, probs )
     

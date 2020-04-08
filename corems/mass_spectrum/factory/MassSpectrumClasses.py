@@ -857,6 +857,8 @@ class MassSpecCentroid(MassSpecBase):
             self._baselise_noise_std = d_params.get("baselise_noise_std")
 
         self.process_mass_spec(data_dict)
+
+        self.is_centroid = True
    
     def __simulate_profile__data__(self, exp_mz_centroid, magnitude_centroid):
         '''needs theoretical resolving power calculation and define peak shape

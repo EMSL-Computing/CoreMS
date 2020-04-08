@@ -423,7 +423,7 @@ class SearchMolecularFormulaWorker:
 
         else:
             raise Exception("method needs to be ppm or ppb, you have entered %s" % method)
-              
+
         if mz_exp:
             
             return ((mz_calc - mz_exp)/mz_calc)*multi_factor        
@@ -505,13 +505,15 @@ class SearchMolecularFormulaWorker:
                                     
                                     #need to define error distribution for abundance measurements
                                     
-                                    #abundance_error = self.calc_error(ms_peak_abundance, ms_peak_iso.abundance,method='perc')            
-
-                                    area_error = self.calc_error(ms_peak.area, ms_peak_iso.area, method='perc')
+                                    if mass_spectrum_obj.is_centroid:
+                                        abundance_error = self.calc_error(ms_peak_abundance, ms_peak_iso.abundance,method='perc')            
+                                    else:
+                                        abundance_error = self.calc_error(ms_peak.area, ms_peak_iso.area, method='perc')
+                                    #area_error = self.calc_error(ms_peak.area, ms_peak_iso.area, method='perc')
 
                                     # margin of error was set empirically/ needs statistical calculation
                                     #  of margin of error for the measurement of the abundances
-                                    if min_abun_error <= area_error <= max_abun_error:
+                                    if min_abun_error <= abundance_error <= max_abun_error:
                                         
                                         #update the error   
                                         

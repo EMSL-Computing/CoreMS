@@ -200,6 +200,10 @@ class MassErrorPrediction(Thread):
         df.interpolate(method ='linear', limit_direction ='backward',  inplace=True)
         df.interpolate(method ='linear', limit_direction ='forward',  inplace=True)
 
+        #TODO improve interpolation for missing data
+        #f1 = interpolate.interp1d(x1, y1, kind='quadratic',fill_value="extrapolate")
+
+        
         for peak_obj_idx in indexes_without_results:
 
             predicted_std = df.loc[peak_obj_idx].predicted_std
