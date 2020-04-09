@@ -72,19 +72,20 @@ class GCMSBase(GC_Calculations):
 
     #     return iter(self.gcpeaks.values())
 
+    
     def process_chromatogram(self,):
 
-        tic = self.tic - self.baseline_detector(self.tic)
+        #tic = self.tic - self.baseline_detector(self.tic)
         
-        self._processed_tic = self.smooth_tic(tic)
-
-        max_height = max(self._processed_tic)
+        self._processed_tic = self.smooth_tic(self.tic)
 
         for index, tic in enumerate(self._processed_tic):
 
             self._ms[index]._processed_tic = tic
 
-        peaks_index = self.centroid_detector(self._processed_tic, max_height)
+        #self.second_derivative_threshold(self._processed_tic)
+
+        peaks_index = self.centroid_detector(self._processed_tic)
         
         for i in peaks_index: 
             
@@ -97,7 +98,6 @@ class GCMSBase(GC_Calculations):
             self.gcpeaks.append(gc_peak)
 
             #self.gcpeaks[self.scans_number[apex_index]] = gc_peak
-
             
     def add_mass_spectrum(self, mass_spec):
         

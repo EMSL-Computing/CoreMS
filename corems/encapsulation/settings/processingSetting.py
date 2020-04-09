@@ -44,23 +44,23 @@ class GasChromatographSetting:
     
     savgol_pol_order = 2
     
-    peak_height_max_percent = 10 #1-100 % used for baseline detection
+    peak_height_max_percent = 10 #1-100 % used for baseline detection use 0.1 for second_derivative and 10 for other methods
 
-    peak_max_prominence_percent = 10 #1-100 % used for baseline detection
+    peak_max_prominence_percent = 1 #1-100 % used for baseline detection
 
-    min_peak_datapoints = 5
+    min_peak_datapoints = 3
    
     max_peak_width = 0.1
 
-    noise_threshold_method = 'auto'
+    noise_threshold_method = 'manual_relative_abundance'
     
-    implemented_noise_threshold_methods = ('auto', 'relative_abundance')
+    implemented_noise_threshold_methods = ('auto_relative_abundance', 'manual_relative_abundance', 'second_derivative')
     
     std_noise_threshold = 3
 
-    peak_height_min_abun = 5 #1-100 % used for peak detection
+    peak_height_min_abun = 0.2 #1-100 % used for peak detection
 
-    peak_min_prominence_percent = 0.1 #1-100 % used for peak detection
+    peak_min_prominence_percent = 1 #1-100 % used for peak detection
     
 
 class CompoundSearchSettings:
@@ -69,7 +69,7 @@ class CompoundSearchSettings:
 
     rt_search_range = 0.5
     
-    correlation_threshold = 0.95 # used for calibration, spectral similarity 
+    correlation_threshold = 0.5 # used for calibration, spectral similarity 
     
     score_threshold = 0.0
 
@@ -97,7 +97,7 @@ class MolecularLookupDictSettings:
         
         self.usedAtoms = {'C': (1, 100),
                     'H': (4, 200),
-                    'O': (0, 4),
+                    'O': (0, 22),
                     'N': (0, 0),
                     'S': (0, 0),
                     'P': (0, 0),
@@ -205,9 +205,9 @@ class MolecularSearchSettings:
 
     usedAtoms = {   'C': (1, 100),
                     'H': (4, 200),
-                    'O': (1, 22),
+                    'O': (1, 26),
                     'N': (0, 0),
-                    'S': (0, 0),
+                    'S': (0, 1),
                     'P': (0, 0),
                     'Cl': (0, 0),
                 }

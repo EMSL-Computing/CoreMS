@@ -3,7 +3,7 @@ __date__ = "Feb 13, 2020"
 
 from scipy.signal import savgol_filter, boxcar
 
-from numpy import hstack, inf, isnan, where, hanning, convolve, blackman, bartlett, ones, r_, sum, empty, nan, array, nan_to_num, std, nanmean
+from numpy import hstack, inf, isnan, where, hanning, convolve, blackman, bartlett, ones, r_, sum, empty, nan, array, nan_to_num, std, nanmean, median, average, zeros
 
 from pandas import Series
 
@@ -83,9 +83,22 @@ class GC_Calculations:
 
             return self.smooth(tic, window_len, window)
     
-    def peak_detector(self, tic, max_tic):
-
-        def find_minima(index, right=True):
+    @staticmethod
+    def derivate(data_array):
+            dy = data_array[1:] - data_array[:-1]
+        
+            '''replaces nan for infinity'''
+            indices_nan = where(isnan(data_array))[0]
+            
+            if indices_nan.size:
+                
+                data_array[indices_nan] = inf
+                dy[where(isnan(dy))[0]] = inf
+            
+            return dy
+    
+    @staticmethod
+    def find_minima(index, tic, right=True):
             
             j = index
             tic_len = len(tic)
@@ -111,53 +124,131 @@ class GC_Calculations:
             if right: return j
             else: return j
 
-        dy = tic[1:] - tic[:-1]
+    def second_derivative_threshold(self, tic, stds):
+          
+        dy = self.derivate(tic)
         
-        '''replaces nan for infinity'''
-        indices_nan = where(isnan(tic))[0]
+        dydy = self.derivate(dy)
+        dydy = hstack((dydy, 0))
+        dydy = hstack((0, dydy))
+
+        baseline = self.baseline_detector(dydy, do_interpolation=False)
         
-        if indices_nan.size:
-            
-            tic[indices_nan] = inf
-            dy[where(isnan(dy))[0]] = inf
+        threshold_median = median(baseline) - (stds * std(baseline))
         
+        #threshold_average = average(baseline) - (stds * std(baseline))
+        
+        remove_indexes = where(dydy > threshold_median)[0]
+        
+        #sorted(set(include_indexes)-set(remove_indexes))
+        #from matplotlib import pyplot as plt   
+        
+        #plt.plot(self.retention_time, dydy, color='red')
+        #plt.plot(self.retention_time, [threshold_median]*len(tic), color='red')
+        
+        #plt.scatter(self.retention_time[remove_indexes], dydy[remove_indexes], color='green')
+        
+        return remove_indexes
+        #plt.plot(self.retention_time, hstack((dy, 0)), color='green', label="First Derivative")
+        #ax = plt.gca()
+
+        #ax.plot(self.retention_time, dydy, color='red', label="Second Derivative")
+        
+        #ax.plot(self.retention_time, [median(baseline)]*len(threshold_average), color='blue', label="Baseline")
+
+        #ax.plot(self.retention_time, threshold_median, color='black', label="Auto Second Derivative Threshold")
+        
+        #ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
+        #plt.legend()
+        #plt.xlim(27.4, 27.7)
+        #plt.ylim(-50000, 300000)
+        
+        
+    def peak_detector(self, tic, max_tic):
+
+        dy = self.derivate(tic)
+
         indexes = where((hstack((dy, 0)) < 0) & (hstack((0, dy)) > 0))[0]
         
         for index in indexes:
             
-            start_index = find_minima(index, right=False)
-            final_index = find_minima(index)
+            start_index = self.find_minima(index, tic, right=False)
+            final_index = self.find_minima(index, tic)
 
             yield (start_index, index, final_index)
 
-    def centroid_detector(self, tic, max_tic):
-
-        if self.chromatogram_settings.noise_threshold_method == 'auto': 
-            
-            baseline = self.baseline_detector(self._processed_tic)
-
-            peak_detect_threshold = ((nanmean(baseline) + (self.chromatogram_settings.std_noise_threshold *std(baseline)))/max_tic)*100
+    def peak_detector_generator(self, tic, stds, method):
         
-        else:
+        if method=='manual_relative_abundance':
             
-            peak_detect_threshold = self.chromatogram_settings.peak_height_min_abun
+            tic = tic - self.baseline_detector(tic)
+            
+            max_height = max(tic)
 
-        print('peak_detect_threshold', peak_detect_threshold)
+            tic = (tic/max_height)*100
+            
+            remove_indexes = where(tic < self.chromatogram_settings.peak_height_min_abun)[0]
 
-        peak_height_diff = lambda hi, li : ((tic[hi] - tic[li]) / max_tic )*100
+            #plt.plot(self.retention_time, hstack((dy, 0)), color='green', label="First Derivative")
+            
+        elif method == 'auto_relative_abundance':
+            
+            tic = tic - self.baseline_detector(tic)
 
-        for start_index, index, final_index in self.peak_detector(tic, max_tic):
+            max_height = max(tic)
 
-             #abundance min threshold        
+            baseline = self.baseline_detector(tic)
+
+            peak_detect_threshold = ((nanmean(baseline) + (stds * std(baseline))))
+
+            remove_indexes = where(tic < peak_detect_threshold)[0]
+
+        elif method == 'second_derivative':
+            
+            max_height = max(tic)
+
+            remove_indexes = self.second_derivative_threshold(tic, stds)
+
+        else:
+            NotImplemented(method)
+        
+        peak_height_diff = lambda hi, li : ((tic[hi] - tic[li]) / max_height )*100
+        
+        dy = self.derivate(tic)
+
+        include_indexes = where((hstack((dy, 0)) < 0) & (hstack((0, dy)) > 0))[0]
+
+        final_indexes = sorted(set(include_indexes)-set(remove_indexes))
+
+        #from matplotlib import pyplot as plt   
+        
+        #plt.plot(self.retention_time, tic, color='black')
+        #plt.scatter(self.retention_time[remove_indexes], tic[remove_indexes], color='red')
+        #plt.scatter(self.retention_time[include_indexes], tic[include_indexes], color='blue')
+        #plt.scatter(self.retention_time[final_indexes], tic[final_indexes], color='blue')
+        
+        #plt.show()
+
+        for index in final_indexes:
+                
+            start_index = self.find_minima(index, tic, right=False)
+            final_index = self.find_minima(index, tic)
+            
             if final_index-start_index > self.chromatogram_settings.min_peak_datapoints:
-
-                if (tic[index]/max_tic) * 100 > peak_detect_threshold: #self.chromatogram_settings.peak_height_min_percent:
-                #if self.retention_time[final_index]-self.retention_time[start_index] < self.chromatogram_settings.max_peak_width:
+            
+               #if  min( peak_height_diff(index,start_index), peak_height_diff(index,final_index) )> self.chromatogram_settings.peak_min_prominence_percent :   
                     
-                    #calculates prominence and filter  
-                    if  min( peak_height_diff(index,start_index), peak_height_diff(index,final_index) )> self.chromatogram_settings.peak_min_prominence_percent :   
-                        
-                        yield (start_index, index, final_index)
+                    yield (start_index, index, final_index)
+
+    def centroid_detector(self, tic):
+        
+        stds = self.chromatogram_settings.std_noise_threshold
+
+        method = self.chromatogram_settings.noise_threshold_method
+            
+        peak_indexes_generator = self.peak_detector_generator(tic, stds, method)
+
+        return peak_indexes_generator
 
     def minima_detector(self, tic, max_tic):
 
@@ -173,7 +264,7 @@ class GC_Calculations:
                         
                             yield from (start_index, final_index)
 
-    def baseline_detector(self, tic):
+    def baseline_detector(self, tic, do_interpolation=True):
         
         from matplotlib import pyplot as plt   
 
@@ -187,21 +278,30 @@ class GC_Calculations:
         
         y1 = y[indexes]
 
-        f1 = interpolate.interp1d(x1, y1, kind='quadratic',fill_value="extrapolate")
-
-        ynew1 = f1(list(self.retention_time))
+        if not do_interpolation:
+            
+            y0 = zeros(tic.shape)
+            y0[indexes] = y[indexes]
+            
+            return y0
         
-        #plt.plot(self.retention_time, tic-(-1* ynew1), color='green')
+        else:    
+            
+            f1 = interpolate.interp1d(x1, y1, kind='quadratic',fill_value="extrapolate")
 
-        #plt.plot(self.retention_time[indexes], tic[indexes], marker='^')
-        
-        #s = self.smooth(s, 10, 'blackman')
+            ynew1 = f1(list(self.retention_time))
+            
+            #plt.plot(self.retention_time, tic-(-1* ynew1), color='green')
 
-        #plt.plot(self.retention_time, -s)
-        
-        #plt.show()
+            #plt.plot(self.retention_time[indexes], tic[indexes], marker='^')
+            
+            #s = self.smooth(s, 10, 'blackman')
 
-        return -1* ynew1
+            #plt.plot(self.retention_time, -s)
+            
+            #plt.show()
+
+            return -1* ynew1
   
     def remove_outliers(self, data):
         

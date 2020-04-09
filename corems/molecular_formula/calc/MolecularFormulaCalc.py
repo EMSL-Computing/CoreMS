@@ -24,7 +24,7 @@ class MolecularFormulaCalc:
         '''
         return (1.274 * 10000000 * B * T) *(1/self.mz_calc)    
 
-    def _calc_resolving_power_high_pressure(self, B, t):
+    def _calc_resolving_power_high_pressure(self, B, T):
         '''
         ## Parameters
         ----------
@@ -323,18 +323,18 @@ class MolecularFormulaCalc:
             
                 if len(isotopes_label_list) > 1:
                     'This atom_label has two or more heavy isotope'
-                    isotopoes_labels = [i for i in isotopes_label_list]
+                    isotopos_labels = [i for i in isotopes_label_list]
                 else:
                     'This atom_label only has one heavy isotope'
-                    isotopoes_labels = [isotopes_label_list[0]]
+                    isotopos_labels = [isotopes_label_list[0]]
                 
-                #all_atoms_list.extend(isotopoes_labels) 
-                isotopoes_labels = [atom_label] + isotopoes_labels
+                #all_atoms_list.extend(isotopos_labels) 
+                isotopos_labels = [atom_label] + isotopos_labels
                 
-                all_atoms_list.extend(isotopoes_labels)
+                all_atoms_list.extend(isotopos_labels)
                 
-                masses = [Atoms.atomic_masses.get(atom_label) for atom_label in isotopoes_labels]
-                props = [Atoms.isotopic_abundance.get(atom_label) for atom_label in isotopoes_labels]
+                masses = [Atoms.atomic_masses.get(atom_label) for atom_label in isotopos_labels]
+                props = [Atoms.isotopic_abundance.get(atom_label) for atom_label in isotopos_labels]
                 
                 atoms_count.append(formula_dict.get(atom_label))
                 masses_list_tuples.append(masses)

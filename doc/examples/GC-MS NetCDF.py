@@ -86,7 +86,7 @@ def get_reference_dict():
     
                 else:
                     
-                    dict_ri_rt[compound_obj.ri].append(gcms_peak.mass_spectrum.rt, compound_obj)
+                    dict_ri_rt[compound_obj.ri].append((gcms_peak.mass_spectrum.rt, compound_obj))
                 
                 print(compound_obj.name, gcms_peak.mass_spectrum.rt, compound_obj.spectral_similarity_score)
         
@@ -138,8 +138,9 @@ def calibrate_and_search(out_put_file_name, cores):
             #gcmss = [run(args[0])]
             
             for gcms in gcmss:
+                
                 #gcms.to_csv(out_put_file_name)
-                #gcms.to_excel(out_put_file_name, highest_score=False)
+                gcms.to_excel(out_put_file_name, highest_score=False)
                 #gcms.to_pandas(out_put_file_name)
                 
                 #df = gcms.get_dataframe()
@@ -159,7 +160,7 @@ def calibrate_and_search(out_put_file_name, cores):
 
                 #gcms.plot_detected_baseline()
 
-                #matplotlib.pyplot.show()
+                matplotlib.pyplot.show()
 
        
 if __name__ == '__main__':                           
@@ -167,7 +168,7 @@ if __name__ == '__main__':
     matplotlib.use('TkAgg')
 
     cores = 4
-    out_put_file_name = 'STD_Mix1'
+    out_put_file_name = 'Dataset1'
     calibrate_and_search(out_put_file_name, cores)
 
 
