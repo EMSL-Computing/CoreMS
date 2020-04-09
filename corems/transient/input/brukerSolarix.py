@@ -26,6 +26,14 @@ class ReadBrukerSolarix(object):
         Read the data and settings returning a Transient class  
     """
     
+    def __enter__(self ):
+            
+            return self.get_transient()
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+            
+        return False
+
     def __init__(self, d_directory_location):
         
         d_directory_location = Path(d_directory_location)

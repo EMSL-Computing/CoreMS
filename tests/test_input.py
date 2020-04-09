@@ -107,21 +107,22 @@ def test_import_transient():
     number_of_truncations = 0
     number_of_zero_fills = 1
 
-    bruker_reader = ReadBrukerSolarix(file_location)
+    with ReadBrukerSolarix(file_location) as bruker_transient:
+    #bruker_reader = ReadBrukerSolarix(file_location)
 
-    bruker_transient = bruker_reader.get_transient()
+        #bruker_transient = bruker_reader.get_transient()
 
-    bruker_transient.set_processing_parameter(
-        apodization_method, number_of_truncations, number_of_zero_fills
-    )
+        bruker_transient.set_processing_parameter(
+            apodization_method, number_of_truncations, number_of_zero_fills
+        )
 
-    mass_spectrum_obj = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
+        mass_spectrum_obj = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
 
-    mass_spectrum_obj.plot_profile_and_noise_threshold()
+        mass_spectrum_obj.plot_profile_and_noise_threshold()
     #pyplot.show()
 
 
-    print(mass_spectrum_obj.mspeaks[0].mz_exp, mass_spectrum_obj.mspeaks[-1].mz_exp)
+        print(mass_spectrum_obj.mspeaks[0].mz_exp, mass_spectrum_obj.mspeaks[-1].mz_exp)
 
 def test_import_corems_hdf5():
 
@@ -234,8 +235,8 @@ if __name__ == '__main__':
     #test_import_booster_mass_spectrum_hdf()
     #test_import_booster_mass_spectra_hdf()
     #test_import_lcms_from_transient()
-    #test_import_transient()
-    test_import_corems_hdf5()
+    test_import_transient()
+    #test_import_corems_hdf5()
     #test_import_corems_mass_list()
     #test_import_mass_list()
 
