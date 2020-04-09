@@ -71,7 +71,7 @@ def get_reference_dict():
 
             else:
                 
-                dict_ri_rt[compound_obj.ri].append(gcms_peak.mass_spectrum.rt, compound_obj)
+                dict_ri_rt[compound_obj.ri].append((gcms_peak.mass_spectrum.rt, compound_obj))
             
             print(compound_obj.name, gcms_peak.mass_spectrum.rt, compound_obj.spectral_similarity_score)
     
@@ -137,3 +137,6 @@ def test_run_gcms_pipeline():
 
     out_put_file_name = 'STD_Mix1'
     calibrate_and_search(out_put_file_name)
+
+if __name__ == "__main__":
+    test_run_gcms_pipeline()

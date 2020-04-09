@@ -36,7 +36,7 @@ class GCPeakCalculation(object):
         current_ref = rt_ri_pairs[index]
         
         if current_rt == current_ref[0]:
-            print(current_rt, current_ref)
+            #print(current_rt, current_ref)
             self._ri = current_ref[1]
             return 1
         
@@ -52,6 +52,6 @@ class GCPeakCalculation(object):
 
             self._ri = self.linear_ri(right_ri, left_ri,left_rt,right_rt)
 
-            print(rt_ri_pairs[index-1], current_rt, rt_ri_pairs[index], left_ri, self._ri, right_ri)
+            #print(rt_ri_pairs[index-1], current_rt, rt_ri_pairs[index], left_ri, self._ri, right_ri)
 
             return 1
