@@ -1,13 +1,17 @@
 __author__ = 'Yuri E. Corilo'
 __date__ = 'Jul 02, 2019'
 
+from dataclasses import dataclass
+
+@dataclass
 class TransientSetting:
     
     implemented_apodization_function = ('Hamming', 'Hanning', 'Blackman')
     apodization_method = 'Hanning'
     number_of_truncations = 0
     number_of_zero_fills = 1
-            
+
+@dataclass            
 class MassSpectrumSetting:
     
     threshold_method = 'auto'
@@ -25,7 +29,8 @@ class MassSpectrumSetting:
     
     min_picking_mz = 100.0
     max_picking_mz = 1200.0
-    
+
+@dataclass    
 class MassSpecPeakSetting:
     
     kendrick_base =  {'C': 1, 'H':2}
@@ -33,6 +38,7 @@ class MassSpecPeakSetting:
     peak_min_prominence_percent = 1 #1-100 % used for peak detection
 
     peak_max_prominence_percent = 0.1 #1-100 % used for baseline detection
+
 
 class GasChromatographSetting:
     
