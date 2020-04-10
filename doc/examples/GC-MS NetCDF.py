@@ -22,7 +22,7 @@ def sql_database(file_location):
 
     sqlLite_obj = ReadNistMSI(file_location).get_sqlLite_obj()
 
-    min_max_rt = (18.037, 26.037)
+    min_max_rt = (18.037, 18.037)
 
     min_max_ri = (1637.30, 1737.30)
 
