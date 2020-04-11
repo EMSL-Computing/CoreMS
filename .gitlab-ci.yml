@@ -46,8 +46,7 @@ test-source:
   artifacts:
     paths:
       - doc/coverage_html_report  
-   
-
+ 
 run-job:
   
   stage: run
