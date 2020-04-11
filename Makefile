@@ -3,9 +3,7 @@ parameters_path = parameter.json
 version := $(shell cat .bumpversion.cfg | grep current_version | cut -d= -f2 | tr -d ' ')
 stage := $(shell cat .bumpversion.cfg | grep optional_value | cut -d= -f2 | tr -d ' ') 
 
-build:
-
-	@python3 setup.py sdist
+	
 
 bump-patch:
 	
@@ -17,7 +15,7 @@ bump-minor:
 
 pypi:	
 	
-	@twine -r corems upload dist/*
+	@python3 setup.py sdist	
 	@twine upload dist/*
 
 tag:
@@ -26,7 +24,7 @@ tag:
 	@git push origin $(version).$(stage)
 	@echo tagged $(version).$(stage) and pushed
 
-docker-release:
+docker:
 
 	@echo corilo/corems:$(version).$(stage)
 	@docker build -t corilo/corems:$(version) .
