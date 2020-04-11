@@ -22,7 +22,7 @@ cache:
 stages:
   - test
   - run
-  - deploy
+  - pypi-deploy
   - build-docker
   
 test-source:
@@ -67,10 +67,9 @@ build:
     paths:
       - dist/*
 
-deployment:
+pypi:
   
-  stage: deploy
-
+  stage: pypi-deploy
   tags:
     - massspec
     - k8s 
@@ -85,13 +84,14 @@ deployment:
   only:
     - tags
 
-  stage: build-docker
+deployment:
   
+  stage: build-docker  
   tags:
     - massspec
     - k8s 
     - rcint
-    
+
   image:
     
     name: gcr.io/kaniko-project/executor:debug
