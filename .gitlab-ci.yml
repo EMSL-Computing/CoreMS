@@ -10,8 +10,8 @@ variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   TWINE_USERNAME: $PRODUCTION_USERNAME
   TWINE_PASSWORD: $PRODUCTION_PASSWORD
-  LATEST_VER: index.docker.io/corilo/corems:latest
-  MAJOR_VER: index.docker.io/corilo/corems:1.0.0
+  LATEST_VER: docker.io/corilo/corems:latest
+  MAJOR_VER: docker.io/corilo/corems:1.0.0
   DOCKER_HUB_REGISTRY: docker.io
 
 # Pip's cache doesn't store the python packages
