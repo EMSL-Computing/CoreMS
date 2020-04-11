@@ -5,7 +5,7 @@ build:
 	@python3 setup.py sdist
 
 bump-release:
-	@bumpversion minor --allow-dirty
+	@bumpversion patch --allow-dirty
 	@python3 setup.py sdist
 	@twine upload dist/*
 

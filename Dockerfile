@@ -2,8 +2,8 @@ FROM corilo/corems:base-mono-pythonnet AS base
 WORKDIR /home/CoreMS
 
 COPY corems/ /home/CoreMS/corems/
-COPY requirements.txt disclaimer.txt LICENSE README.md setup.py doc/notebooks/*.ipynb SettingsCoreMS.json /home/CoreMS/
-COPY lib/ /home/CoreMS/lib/
+COPY requirements.txt disclaimer.txt LICENSE README.md doc/notebooks/*.ipynb SettingsCoreMS.json /home/CoreMS/
+COPY ext_lib/ /home/CoreMS/ext_lib/
 COPY support_code/ /home/CoreMS/support_code/
 COPY ESI_NEG_SRFA.d/ /home/CoreMS/ESI_NEG_SRFA.d/
 
