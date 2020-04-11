@@ -1,5 +1,5 @@
 import sys
-sys.path.append("./lib")
+sys.path.append("./ext_lib")
 
 from corems.encapsulation.settings.input import InputSetting
 from corems.mass_spectra.factory.LC_Class import LCMSBase

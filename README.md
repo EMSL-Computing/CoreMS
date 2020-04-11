@@ -2,7 +2,7 @@
 
 **CoreMS** is a comprehensive mass spectrometry framework for software development and data analysis of small molecules analysis.
 
-CoreMS is a Python package of high-level building blocks for mass spectrometry data processing and software development that provides fast, flexible, and expressive data structures. The package is designed to make working with mass spectrometry software and data both easy and intuitive by removing the steep learning curve needed to accurately implement signal processing, data curation and annotation. All modules are designed using an intuitive mass spectrometric hierarchical class structure, using object-oriented programming paradigm. Each module contains classes to store the data, expose pertinent functions, and calculate conventional mass spectrometric parameters.
+Data handling and software development for modern mass spectrometry (MS) is an interdisciplinary endeavor requiring skills in computational science and a deep understanding of MS. To enable scientific software development to keep pace with fast improvements in MS technology, we have developed a Python software framework named CoreMS. The goal of the framework is to provide a fundamental, high-level basis for working with all mass spectrometry data types, allowing custom workflows for data signal processing, annotation, and curation. The data structures were designed with an intuitive, mass spectrometric hierarchical structure, thus allowing organized and easy access to the data and calculations. Moreover, CoreMS supports direct access for almost all vendors’ data formats, allowing for the centralization and automation of all data processing workflows from the raw signal to data annotation and curation.
 
 - reproducible pipeline
 - logical mass spectrometric data structure
@@ -12,9 +12,7 @@ CoreMS is a Python package of high-level building blocks for mass spectrometry d
 
 ## Current Version
 
-### `10.4.0.beta`
-
-[![pipeline status](https://gitlab.pnnl.gov/mass-spectrometry/corems/badges/master/pipeline.svg)](https://gitlab.pnnl.gov/corilo/corems/commits/master) [![coverage report](https://gitlab.pnnl.gov/mass-spectrometry/corems/badges/master/coverage.svg)](https://gitlab.pnnl.gov/corilo/corems/commits/master)
+### `10.5.1.beta`
 
 ### Data input formats
 
@@ -87,23 +85,54 @@ CoreMS is a Python package of high-level building blocks for mass spectrometry d
 - Prediction of mass error distribution
 - Calculated ICR Resolving Power based on magnetic field (B), and transient time(T)
 
+## CoreMS Installation
+    
+    ```bash
+    pip3 install corems
+    pip install corems
+    ```
+
+To be able to open thermo file a installation of pythonnet is needed:
+    - Windows: 
+    ```bash
+    pip install pythonnet
+    ```
+
+    - Mac and Linux:
+    ```bash
+    brew install mono
+    pip install pythonnet   
+    ```
+
 ## Jupyter-CoreMS
 
 A docker image containing a custom python distribution with all dependencies and a Jupyter server with notebook examples
 
 If you don't have docker installed, the easiest way is to [install docker for desktop](https://hub.docker.com/?overlay=onboarding)
 
-- Open a terminal and run:
+- Pull from Docker Registry:
 
     ```bash
-    docker run --rm -v host/dir:/home/CoreMS/data: -p 8888:8888 gitlab.pnnl.gov:4567/mass-spectrometry/corems:latest
+    docker pull corilo/corems:latest
+    docker run --rm -v host/dir:/home/CoreMS/data corems
+    ```
+
+- Build a new image:
+
+    ```bash
+    docker build . corems
+    docker run --rm -v host/dir:/home/CoreMS/data corems
     ```
 
 - In your browser, open the URL address provided in the terminal: `http://127.3.2.1:8888/?token=<token>.`
 
 - Open the CoreMS-Tutorial.ipynb
 
-## Basic example
+## Examples
+
+Examples can be found on docs/example
+
+- Basic functionality example
 
 ```python
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
@@ -166,6 +195,8 @@ for mspeak in mass_spectrum_obj.sort_by_abundance():
 mass_spectrum_obj.to_csv("filename")
 
 mass_spectrum_obj.to_hdf5("filename")
-
+# save pandas Datarame to pickle
 mass_spectrum_obj.to_pandas("filename")
+# get pandas Dataframe
+df = mass_spectrum_obj.to_dataframe("filename")
 ```

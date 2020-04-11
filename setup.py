@@ -3,42 +3,37 @@ import pathlib
 import sys
 from setuptools import setup, find_packages
 # The directory containing this file
-HERE = pathlib.Path(__file__).parent
 
 # The text of the README file
-README = (HERE / "README.md").read_text(encoding='utf-8')
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
 
 # This call to setup() does all the work
 setup(
     name="CoreMS",
-    version="10.4.0.beta",
-    description="Object Oriented Mass Spectrometry ToolBox for Small Molecules Analysis",
-    long_description=README,
+    version="10.5.1.beta",
+    description="Mass Spectrometry Framework for Small Molecules Analysis",
+    long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://gitlab.pnnl.gov/mass-spectrometry/corems/",
     author="Corilo, Yuri",
     author_email="corilo@pnnl.gov",
-    license="GNU Affero General Public License v3.0",
     classifiers=[
-        "License :: MIT License",
+        "License :: OSI Approved :: BSD License",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Development Status :: 4 - Beta"
     ],
 
-    # package_dir={'corems': 'corems'},
+    package_data={'': ['disclaimer.txt'], '': ['lib/*']},
     packages=find_packages(),
     exclude_package_data={'.': ["tests", "*.win_only"]},
     include_package_data=True,
-    install_requires=["pandas", "numpy", "matplotlib", "scipy", 'h5py', 'sklearn', 'IsoSpecPy==2.0.1', 
-                      'sqlalchemy', 'openpyxl', 'pymongo', 'psycopg2-binary', 'beautifulsoup4', 'lxml', 
-                      'xlrd', 'h5py','chardet', 'netCDF4', 'python-dateutil', 'psutil'],
-    # test are not yet implemented, will test dependence's and syntax only for now
+    install_requires=required,
     setup_requires=['pytest-runner', 'wheel'],
     test_suite='pytest',
     tests_require=['pytest'],
-    # entry_points={
-    #    "console_scripts": [
-    #        "corems=cli.__main__:main",
-    #    ]
-    # },
 )

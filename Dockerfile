@@ -1,15 +1,13 @@
-FROM gitlab.pnnl.gov:4567/mass-spectrometry/corems:corems-base-mono AS base
-
+FROM corilo/corems:base-mono-pythonnet AS base
 WORKDIR /home/CoreMS
 
 COPY corems/ /home/CoreMS/corems/
-COPY requirements.txt LICENSE README.md setup.py doc/notebooks/*.ipynb SettingsCoreMS.json /home/CoreMS/
+COPY requirements.txt disclaimer.txt LICENSE README.md setup.py doc/notebooks/*.ipynb SettingsCoreMS.json /home/CoreMS/
 COPY lib/ /home/CoreMS/lib/
 COPY support_code/ /home/CoreMS/support_code/
 COPY ESI_NEG_SRFA.d/ /home/CoreMS/ESI_NEG_SRFA.d/
 
 #RUN apt update && apt install -y --no-install-recommends  build-essential
-
 
 FROM base AS build  
 COPY --from=base /home/CoreMS /home/CoreMS

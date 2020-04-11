@@ -1,16 +1,18 @@
-__version__ = '10.4.0.beta'
+__version__ = '10.5.1.beta'
 __doc__ = '''
 
 CoreMS - a powerful framework for mass spectrometry data processing and analysis of small molecules
 =====================================================================
 
-**CoreMS** CoreMS is a Python package is a high-level building block for mass spectrometry data processing and
- software development that provides fast, flexible, and expressive data structures. The package is designed to 
- make working with mass spectrometry software and data both easy and intuitive by removing the steep learning curve
- needed to accurately implement signal processing, data curation and annotation. All modules are designed using an 
- intuitive mass spectrometric hierarchical class structure, using object-oriented programming paradigm. Each module 
- contains classes to store the data, expose pertinent functions, and calculate conventional mass spectrometric parameters. 
-
+    Data handling and software development for modern mass spectrometry (MS) is an interdisciplinary endeavor 
+    requiring skills in computational science and a deep understanding of MS. To enable scientific software development to 
+    keep pace with fast improvements in MS technology, we have developed a Python software framework named CoreMS. 
+    The goal of the framework is to provide a fundamental, high-level basis for working with all mass spectrometry 
+    data types, allowing custom workflows for data signal processing, annotation, and curation. The data structures were 
+    designed with an intuitive, mass spectrometric hierarchical structure, thus allowing organized and easy access to the
+    data and calculations. Moreover, CoreMS supports direct access for almost all vendors’ data formats, allowing for 
+    the centralization and automation of all data processing workflows from the raw signal to data annotation and 
+    curation. 
 
 Main Features
 -------------
