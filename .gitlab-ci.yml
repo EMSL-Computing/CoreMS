@@ -86,7 +86,6 @@ pypi:
   
   only:
     - tags
-    - master
 
 deployment:
   
@@ -110,7 +109,7 @@ deployment:
   
   only:
     - tags
-    - master
+    
   
 docker push:
   
