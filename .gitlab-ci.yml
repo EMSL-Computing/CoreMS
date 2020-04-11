@@ -69,13 +69,13 @@ build:
 
 deployment:
   
+  stage: deploy
+
   tags:
     - massspec
     - k8s 
     - rcint
 
-  stage: deploy
-  
   variables:
     TWINE_USERNAME: $PRODUCTION_USERNAME
     TWINE_PASSWORD: $PRODUCTION_PASSWORD
@@ -86,6 +86,11 @@ deployment:
     - tags
 
   stage: build-docker
+  
+  tags:
+    - massspec
+    - k8s 
+    - rcint
     
   image:
     
