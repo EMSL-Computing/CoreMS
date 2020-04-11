@@ -2,7 +2,7 @@
 
 **CoreMS** is a comprehensive mass spectrometry framework for software development and data analysis of small molecules analysis.
 
-    Data handling and software development for modern mass spectrometry (MS) is an interdisciplinary endeavor requiring skills in computational science and a deep understanding of MS. To enable scientific software development to keep pace with fast improvements in MS technology, we have developed a Python software framework named CoreMS. The goal of the framework is to provide a fundamental, high-level basis for working with all mass spectrometry data types, allowing custom workflows for data signal processing, annotation, and curation. The data structures were designed with an intuitive, mass spectrometric hierarchical structure, thus allowing organized and easy access to the data and calculations. Moreover, CoreMS supports direct access for almost all vendors’ data formats, allowing for the centralization and automation of all data processing workflows from the raw signal to data annotation and curation.
+Data handling and software development for modern mass spectrometry (MS) is an interdisciplinary endeavor requiring skills in computational science and a deep understanding of MS. To enable scientific software development to keep pace with fast improvements in MS technology, we have developed a Python software framework named CoreMS. The goal of the framework is to provide a fundamental, high-level basis for working with all mass spectrometry data types, allowing custom workflows for data signal processing, annotation, and curation. The data structures were designed with an intuitive, mass spectrometric hierarchical structure, thus allowing organized and easy access to the data and calculations. Moreover, CoreMS supports direct access for almost all vendors’ data formats, allowing for the centralization and automation of all data processing workflows from the raw signal to data annotation and curation.
 
 - reproducible pipeline
 - logical mass spectrometric data structure
@@ -87,18 +87,17 @@
 
 ## CoreMS Installation
     
-    ```bash
-    pip3 install corems
-    pip install corems
-    ```
+```bash
+pip install corems
+```
 
 To be able to open thermo file a installation of pythonnet is needed:
-    - Windows: 
+- Windows: 
     ```bash
     pip install pythonnet
     ```
 
-    - Mac and Linux:
+- Mac and Linux:
     ```bash
     brew install mono
     pip install pythonnet   
