@@ -18,12 +18,12 @@ cache:
   
   paths:
     - .cache/pip
-  
 
 stages:
   - test
   - run
-  - build
+  - deploy
+  - build-docker
   
 test-source:
   
@@ -47,7 +47,7 @@ test-source:
     paths:
       - doc/coverage_html_report  
  
-run-job:
+build:
   
   stage: run
   tags:
@@ -58,26 +58,34 @@ run-job:
   script:
     
     - python -V  # Print out python version for debugging
-    - pip install -r requirements.txt
-    - pip install wheel
-    - python setup.py sdist bdist_wheel
-    - python setup.py bdist_wheel
-    # an alternative approach is to install and run:
-    #- pip install dist/*
+    - pip install twine
+    - python setup.py sdist
+    - pip install dist/*
     # run the command here
 
   artifacts:
     paths:
       - dist/*
 
-docker-image:
-  stage: build
+deployment:
   
   tags:
     - massspec
     - k8s 
     - rcint
-    
+
+  stage: deploy
+  
+  variables:
+    TWINE_USERNAME: $PRODUCTION_USERNAME
+    TWINE_PASSWORD: $PRODUCTION_PASSWORD
+  
+  script:
+    - twine upload dist/*
+  only:
+    - tags
+
+  stage: build-docker
     
   image:
     
@@ -90,6 +98,7 @@ docker-image:
     - export GOOGLE_APPLICATION_CREDENTIALS=/kaniko/.docker/config.json  
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+  
     
 
 
