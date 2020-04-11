@@ -119,8 +119,8 @@ If you don't have docker installed, the easiest way is to [install docker for de
 - Build a new image:
 
     ```bash
-    docker build . corems
-    docker run --rm -v host/dir:/home/CoreMS/data corems
+    docker build -t corems:local .
+    docker run --rm -v host/dir:/home/CoreMS/data corems:local
     ```
 
 - In your browser, open the URL address provided in the terminal: `http://127.3.2.1:8888/?token=<token>.`
