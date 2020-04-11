@@ -17,18 +17,13 @@ bump-minor:
 
 pypi:	
 	
-	@twine --repository corems upload dist/*
+	@twine -r corems upload dist/*
 	@twine upload dist/*
-
-release:
-
-	@twine --repository corems
-	@twine upload dist/*	
 
 tag:
 
 	@git tag -a $(version).$(stage) -m "version $(version).$(stage)"
-	@git push $(version).$(stage)
+	@git push origin $(version).$(stage)
 	@echo tagged $(version).$(stage) and pushed
 
 docker-release:
@@ -39,5 +34,5 @@ docker-release:
 	@docker image tag corilo/corems:$(version) corilo/corems:latest
 	@docker push corilo/corems:latest
 
-tag-relase:
-	$(tag)
+
+	
