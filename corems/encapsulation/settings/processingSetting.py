@@ -127,12 +127,9 @@ class MolecularLookupDictSettings:
 
         self.isProtonated = True
 
-        #ion_charge changes automatically with mass spectrum
-        self.ion_charge = -1
-
         self.op_filter = 2
 
-        self.hc_filter = 0.3
+        self.hc_filter = 0.2
 
         self.oc_filter = 1.2
     
@@ -159,7 +156,7 @@ class MolecularLookupDictSettings:
 class MolecularSearchSettings:
     
     #url_database = 'postgresql://postgres:labthomson0102@172.22.113.27:5432/' 
-    url_database = None#'sqlite://'
+    url_database = 'sqlite://'
 
     use_isotopologue_filter = False
 
@@ -178,7 +175,7 @@ class MolecularSearchSettings:
     '''query setting'''
     ion_charge  = -1
 
-    hc_filter = 0.3
+    hc_filter = 0.2
 
     oc_filter = 1.2
 
@@ -191,7 +188,7 @@ class MolecularSearchSettings:
     max_dbe = 50
 
     # look for close shell ions [M + Adduct]+ only considers metal set in the list adduct_atoms  
-    adduct_atoms_neg = ['Cl', 'Br', 'F']
+    adduct_atoms_neg = ['Cl', 'Br']
     
     adduct_atoms_pos = ['Na', 'K']
 
