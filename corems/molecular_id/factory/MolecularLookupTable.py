@@ -26,7 +26,6 @@ class MolecularCombinations:
         }
     '''
     def __init__(self, sql_db = False):
-
             
         self.sql_db = sql_db 
     
@@ -287,7 +286,7 @@ class CombinationsWorker:
         #print("isProtonated", classe_tuple[0], isProtonated) 
         
         class_dict = classe_tuple[1]
-        #print 
+        
         if isProtonated:
 
             ion_type = Labels.protonated_de_ion
@@ -302,17 +301,18 @@ class CombinationsWorker:
             self.insert_formula_db(list_mf, settings)
             
         if isRadical:
-
            
             ion_type = Labels.radical_ion
             
             odd_or_even = self.get_h_odd_or_even(ion_type, class_dict, settings )
 
+            print("odd_or_even",odd_or_even)
+
             carbon_hydrogen_combination = c_h_combinations.get(odd_or_even)
 
-            list_mf = self.get_mol_formulas(carbon_hydrogen_combination, ion_type, classe_tuple, 
+            list_mf = list(self.get_mol_formulas(carbon_hydrogen_combination, ion_type, classe_tuple, 
                                                     min_dbe, max_dbe, 
-                                                    min_mz, max_mz, ion_charge)
+                                                    min_mz, max_mz, ion_charge))
             
             self.insert_formula_db(list_mf, settings)
   
@@ -352,9 +352,8 @@ class CombinationsWorker:
             molecular_formula = MolecularFormula(formula_dict, ion_charge)
             
             mz = molecular_formula._calc_mz()
-
             dbe = molecular_formula._calc_dbe()
-
+            
             formula_dict = molecular_formula.to_dict
 
             nominal_mass = molecular_formula.mz_nominal_calc
@@ -523,6 +522,8 @@ class CombinationsWorker:
     def get_total_halogen_atoms(class_dict, molecular_search_settings):
 
             atoms = ['F', 'Cl', 'Br', 'I']
+
+            return 0
 
             total_number = 0
             

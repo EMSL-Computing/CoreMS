@@ -167,7 +167,6 @@ class MolForm_SQL:
 
                 if formula.classe in dict_res.keys():
                     
-
                     if formula.nominal_mz in dict_res[formula.classe].keys():
                         
                         dict_res.get(formula.classe).get(formula.nominal_mz).append(formula )
@@ -232,7 +231,7 @@ class MolForm_SQL:
     def get_entries(self,classe, ion_type, nominal_mz, molecular_search_settings):
         
         mol_formulas = self.session.query(MolecularFormulaTable).filter(
-            MolecularFormulaTable.nominal_mz == nominal_mz,
+            #MolecularFormulaTable.nominal_mz == nominal_mz,
             MolecularFormulaTable.classe == classe, 
             MolecularFormulaTable.ion_type == ion_type,
             MolecularFormulaTable.DBE >= molecular_search_settings.min_dbe, 
