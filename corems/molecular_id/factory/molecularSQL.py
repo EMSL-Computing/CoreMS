@@ -128,6 +128,17 @@ class MolForm_SQL:
         
         print("Started molecular formula table generation")
         
+        def query_no_nominal(class_list):
+            
+            return self.session.query(MolecularFormulaTable).filter(
+                MolecularFormulaTable.classe.in_(class_list), 
+                MolecularFormulaTable.ion_type == ion_type,
+                MolecularFormulaTable.DBE >= molecular_search_settings.min_dbe, 
+                MolecularFormulaTable.DBE <= molecular_search_settings.max_dbe, 
+                MolecularFormulaTable.ion_charge == molecular_search_settings.ion_charge,
+                MolecularFormulaTable.O_C <= molecular_search_settings.oc_filter,
+                MolecularFormulaTable.H_C >= molecular_search_settings.hc_filter)
+
         def query(class_list):
             
             return self.session.query(MolecularFormulaTable).filter(
@@ -141,7 +152,7 @@ class MolForm_SQL:
                 MolecularFormulaTable.H_C >= molecular_search_settings.hc_filter)
                 
             
-        def add_dict_formula(formulas):
+        def add_dict_formula(formulas, check_nominal=False):
             "organize data by heteroatom classes"
             for formula in formulas:
                 
@@ -150,8 +161,13 @@ class MolForm_SQL:
                     if  not (formula.O -2)/ formula.P >= molecular_search_settings.op_filter:
                         continue
 
+                if check_nominal:
+                    if formula.nominal_mz not in nominal_mzs:
+                        continue
+
                 if formula.classe in dict_res.keys():
                     
+
                     if formula.nominal_mz in dict_res[formula.classe].keys():
                         
                         dict_res.get(formula.classe).get(formula.nominal_mz).append(formula )
@@ -169,14 +185,10 @@ class MolForm_SQL:
 
         if (len(classes) + len(nominal_mzs)) >= 993:
             
-            classes_chunk = int(len(classes)/2)
+            formulas = query_no_nominal(classes)
+            add_dict_formula(formulas, check_nominal=True)
             
-            formulas = query(classes[:classes_chunk])
-            add_dict_formula(formulas)
-            
-            formulas = query(classes[classes_chunk:])
-            add_dict_formula(formulas)
-            
+                        
         else:
 
             formulas = query(classes)
