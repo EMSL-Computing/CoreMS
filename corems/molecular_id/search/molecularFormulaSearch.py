@@ -54,12 +54,6 @@ class SearchMolecularFormulas:
 
     def run_search(self, possible_formulas_dict, min_abundance):
 
-        pf = possible_formulas_dict.get(324)
-        
-        for pfm in pf:
-        
-            print(pfm.mz, pfm.C, pfm.H, pfm.classe)
-
         all_assigned_indexes = list()
 
         for ms_peak in self.mass_spectrum_obj.sort_by_abundance():
@@ -138,13 +132,13 @@ class SearchMolecularFormulas:
                 
                 if classes_formulas: 
                     
-                    possible_formulas_adduct =self.add_adducts(possible_formulas)
+                    possible_formulas_adduct =self.add_adducts(classes_formulas)
                     
-                    possible_formulas_adduct = classes_formulas.get(nominal_mz)
-                
-                    if possible_formulas_adduct:
+                    possible_formulas = possible_formulas_adduct.get(nominal_mz)
+                    
+                    if possible_formulas:
                         
-                        all_assigned_indexes = SearchMolecularFormulaWorker(find_isotopologues=self.find_isotopologues).find_formulas(possible_formulas_adduct, min_abundance, self.mass_spectrum_obj, ms_peak)
+                        all_assigned_indexes = SearchMolecularFormulaWorker(find_isotopologues=self.find_isotopologues).find_formulas(possible_formulas, min_abundance, self.mass_spectrum_obj, ms_peak)
 
                         all_assigned_indexes = MolecularFormulaSearchFilters().filter_isotopologue(all_assigned_indexes, self.mass_spectrum_obj)
                             

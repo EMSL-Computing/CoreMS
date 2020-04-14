@@ -306,8 +306,6 @@ class CombinationsWorker:
             
             odd_or_even = self.get_h_odd_or_even(ion_type, class_dict, settings )
 
-            print("odd_or_even",odd_or_even)
-
             carbon_hydrogen_combination = c_h_combinations.get(odd_or_even)
 
             list_mf = list(self.get_mol_formulas(carbon_hydrogen_combination, ion_type, classe_tuple, 
