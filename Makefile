@@ -4,14 +4,17 @@ version := $(shell cat .bumpversion.cfg | grep current_version | cut -d= -f2 | t
 stage := $(shell cat .bumpversion.cfg | grep optional_value | cut -d= -f2 | tr -d ' ') 
 
 	
-
-bump-patch:
+major:
 	
-	@bumpversion patch --allow-dirty
+	@bumpversion major --allow-dirty
 
-bump-minor:
+minor:
 	
 	@bumpversion minor --allow-dirty
+
+patch:
+	
+	@bumpversion patch --allow-dirty
 
 pypi:	
 	
