@@ -273,8 +273,11 @@ class SearchMolecularFormulas:
         
         ion_type = Labels.adduct_ion
 
-        adduct_atoms = self.mass_spectrum_obj.molform_search_settings.adduct_atoms_neg
-        
+        if self.self.mass_spectrum_obj.polarity < 0:
+            adduct_atoms = self.mass_spectrum_obj.molform_search_settings.adduct_atoms_neg
+        else:
+            adduct_atoms = self.mass_spectrum_obj.molform_search_settings.adduct_atoms_pos
+
         new_dict = {}
         
         for nominal_mz, list_formulas in possible_formulas.items():
