@@ -15,7 +15,7 @@ class MolecularFormulaTable(Base):
     
     __tablename__ = 'molform'
 
-    id = Column( Binary, primary_key=True)
+    id = Column( String, primary_key=True)
     mz = Column(Float, nullable=False)
     nominal_mz= Column(Integer, nullable=False)
     ion_type = Column(String, nullable=False)
@@ -123,10 +123,8 @@ class MolForm_SQL:
     def get_dict_entries(self, classes, ion_type, nominal_mzs, molecular_search_settings):
         
         '''Known issue, when using SQLite:
-         if the number of classes and nominal_m/zs are higher than 1,998 the query will fail
+         if the number of classes and nominal_m/zs are higher than 999 the query will fail
          Solution: use postgres or split query''' 
-        
-        print("Started molecular formula table generation")
         
         def query_no_nominal(class_list):
             
@@ -182,7 +180,7 @@ class MolForm_SQL:
         
         dict_res = {}
 
-        if (len(classes) + len(nominal_mzs)) >= 993:
+        if (len(classes) + len(nominal_mzs)) >= 998:
             
             formulas = query_no_nominal(classes)
             add_dict_formula(formulas, check_nominal=True)
@@ -193,9 +191,6 @@ class MolForm_SQL:
             formulas = query(classes)
             add_dict_formula(formulas)
             
-            print("Finished molecular formula table generation")
-            print()
-
         return dict_res
 
     def check_entry(self,classe, ion_type, molecular_search_settings):

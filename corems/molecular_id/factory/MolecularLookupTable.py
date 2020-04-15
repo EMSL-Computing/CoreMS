@@ -1,12 +1,11 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jul 02, 2019"
 
-from bson.binary import Binary
 from copy import deepcopy
 import itertools
 import multiprocessing
 import pickle
-
+import json
 from corems.encapsulation.settings.processingSetting import MolecularLookupDictSettings
 from corems.encapsulation.constant import Labels
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
@@ -360,7 +359,7 @@ class CombinationsWorker:
                 
                 if min_dbe <= dbe <= max_dbe:
                     
-                    dict_results = MolecularFormulaTable( {"mol_formula" : Binary(pickle.dumps(formula_dict)),
+                    dict_results = MolecularFormulaTable( {"mol_formula" : json.dumps(formula_dict),
                                     "mz" : mz,
                                     "nominal_mz" : nominal_mass,
                                     "ion_type" : ion_type,
