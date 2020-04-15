@@ -7,6 +7,7 @@ from copy import deepcopy
 import pickle 
 
 import tqdm
+from sqlalchemy.types import Binary
 
 from corems.encapsulation.constant import Atoms, Labels
 from corems.molecular_id.factory.MolecularLookupTable import  MolecularCombinations
@@ -14,7 +15,7 @@ from corems.molecular_id.factory.molecularSQL import MolForm_SQL, MolecularFormu
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.molecular_id.calc.MolecularFilter import MolecularFormulaSearchFilters
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
-from sqlalchemy.types import Binary
+from corems import timeit
 
 
 last_error = 0
@@ -199,7 +200,7 @@ class SearchMolecularFormulas:
                          ms_peak, dict_res)
 
         self.mass_spectrum_obj.molform_search_settings.use_min_peaks_filter = initial_min_peak_bool
-            
+    
     def run_worker_mass_spectrum(self):
 
         #number_of_process = multiprocessing.cpu_count()
@@ -218,17 +219,16 @@ class SearchMolecularFormulas:
         classes_str = [class_tuple[0] for class_tuple in classes]
 
         #query database
-        dict_res = self.get_dict_molecular_database(classes_str, nominal_mzs, self.mass_spectrum_obj.molform_search_settings)
-        
         pbar = tqdm.tqdm(classes)
         
         for classe_tuple in pbar:
 
             #add filter here and get indexes of class assigned 
-
             classe_str  = classe_tuple[0]
             classe_dict = classe_tuple[1]
-
+            #query for the classes molecular formulas
+            dict_res = self.get_dict_molecular_database([classe_str], nominal_mzs, self.mass_spectrum_obj.molform_search_settings)
+        
             if self.mass_spectrum_obj.molform_search_settings.isProtonated:
                     
                     pbar.set_description_str(desc="Started molecular formula search for class %s, (de)protonated " % classe_str, refresh=True)
@@ -243,7 +243,7 @@ class SearchMolecularFormulas:
 
             if self.mass_spectrum_obj.molform_search_settings.isRadical:
                     
-                    pbar.set_description_str(desc="Started molecular formula search for class %s, (de)protonated " % classe_str, refresh=True)
+                    pbar.set_description_str(desc="Started molecular formula search for class %s, radical " % classe_str, refresh=True)
                     
                     ion_type = Labels.radical_ion
                     
@@ -356,7 +356,7 @@ class SearchMolecularFormulas:
         mspeaks = [mspeak for mspeak in self.mass_spectrum_obj if mspeak.is_assigned]
         
         return mspeaks
-
+    
     def get_dict_molecular_database(self, classes_str, nominal_mzs, molecular_search_settings):
             
         dict_res = {}
@@ -508,8 +508,9 @@ class SearchMolecularFormulaWorker:
                     #add molecular formula match to ms_peak
                     
                     # get molecular formula dict from sql obj
+                    #formula_dict = pickle.loads(possible_formula.id)
                     formula_dict = pickle.loads(possible_formula.id)
-
+                    
                     # create the molecular formula obj to be stored
                     molecular_formula = MolecularFormula(formula_dict, possible_formula.ion_charge)
 
@@ -540,9 +541,13 @@ class SearchMolecularFormulaWorker:
                                     #need to define error distribution for abundance measurements
                                     
                                     if mass_spectrum_obj.is_centroid:
-                                        abundance_error = self.calc_error(ms_peak_abundance, ms_peak_iso.abundance,method='perc')            
+                                        
+                                        abundance_error = self.calc_error(isotopologue_formula.abundance_calc, ms_peak_iso.abundance,method='perc')            
+                                        
                                     else:
+                                        
                                         abundance_error = self.calc_error(ms_peak.area, ms_peak_iso.area, method='perc')
+                                        
                                     #area_error = self.calc_error(ms_peak.area, ms_peak_iso.area, method='perc')
 
                                     # margin of error was set empirically/ needs statistical calculation
