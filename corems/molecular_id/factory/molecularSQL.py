@@ -30,13 +30,7 @@ class MolecularFormulaTable(Base):
     O_C = Column(Float, nullable=True)
     H_C = Column(Float, nullable=True)
     
-    if ion_charge > 0:
-            
-        __tablename__ =  'molformulas_pos'
-
-    else: 
-        
-        __tablename__ =  'molformulas_neg'
+    __tablename__ = 'molform'
 
     def __init__(self, kargs): 
         
@@ -55,13 +49,6 @@ class MolecularFormulaTable(Base):
         self.H_C = kargs['H_C']
         self.O_C = kargs['O_C']
         self.DBE = kargs['DBE']
-
-        if self.ion_charge > 0:
-            
-            __tablename__ =  'molformulas_pos'
-
-        else: 
-            __tablename__ =  'molformulas_neg'
 
     def __repr__(self):
         return "<MolecularFormulaTable(classe='%s', mz='%i', ion_type='%s', ion_charge='%i')>" % (
