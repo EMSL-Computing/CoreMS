@@ -3,7 +3,7 @@ __date__ = "Oct 24, 2019"
 
 from threading import Thread
 from pathlib import Path
-import sys, re, pickle
+import sys, re, json
 
 sys.path.append('.')
 
@@ -26,7 +26,7 @@ class ImportMassListRef():#Thread
     
     def molecular_formula_ref( self, molecular_formula):
 
-        return MolecularFormulaTable( {"mol_formula" : pickle.dumps(molecular_formula.to_dict),
+        return MolecularFormulaTable( {"mol_formula" : json.dumps(molecular_formula.to_dict),
                                     "mz" : molecular_formula.mz_calc,
                                     "nominal_mz" : molecular_formula.mz_nominal_calc,
                                     "ion_type" : molecular_formula.ion_type,
