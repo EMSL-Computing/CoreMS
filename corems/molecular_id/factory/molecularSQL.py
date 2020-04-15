@@ -13,8 +13,6 @@ Base = declarative_base()
 
 class MolecularFormulaTable(Base):  
     
-    __tablename__ = 'molform'
-
     id = Column( String, primary_key=True)
     mz = Column(Float, nullable=False)
     nominal_mz= Column(Integer, nullable=False)
@@ -32,6 +30,14 @@ class MolecularFormulaTable(Base):
     O_C = Column(Float, nullable=True)
     H_C = Column(Float, nullable=True)
     
+    if ion_charge > 0:
+            
+        __tablename__ =  'molformulas_pos'
+
+    else: 
+        
+        __tablename__ =  'molformulas_neg'
+
     def __init__(self, kargs): 
         
         self.id = kargs['mol_formula']
