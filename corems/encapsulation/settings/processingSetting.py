@@ -39,7 +39,7 @@ class MassSpecPeakSetting:
 
     peak_max_prominence_percent = 0.1 #1-100 % used for baseline detection
 
-
+@dataclass 
 class GasChromatographSetting:
     
     implemented_smooth_method = ['savgol', 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar']
@@ -68,7 +68,7 @@ class GasChromatographSetting:
 
     peak_min_prominence_percent = 1 #1-100 % used for peak detection
     
-
+@dataclass 
 class CompoundSearchSettings:
 
     ri_search_range = 20
@@ -152,7 +152,7 @@ class MolecularLookupDictSettings:
                             'K': 0,
                             }
         
-
+@dataclass 
 class MolecularSearchSettings:
     
     #url_database = 'postgresql://postgres:labthomson0102@172.22.113.27:5432/' 
@@ -175,7 +175,7 @@ class MolecularSearchSettings:
     '''query setting'''
     ion_charge  = -1
 
-    hc_filter = 0.2
+    hc_filter = 0.3
 
     oc_filter = 1.2
 

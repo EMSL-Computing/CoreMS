@@ -4,7 +4,7 @@ __date__ = "Jul 29, 2019"
 import os, time
 from os.path import join
 from copy import deepcopy
-import pickle 
+import json 
 
 import tqdm
 from sqlalchemy.types import Binary
@@ -85,7 +85,7 @@ class SearchMolecularFormulas:
         #filter per min peaks per mono isotopic class
     
     def run(self, classes, nominal_mz, min_abundance, 
-            ms_peak, dict_res):
+            ms_peak):
        
         for classe_str, _ in classes:
             
@@ -93,8 +93,10 @@ class SearchMolecularFormulas:
                 if ms_peak: continue
             
             #we might need to increase the search space to -+1 m_z 
+            dict_res = self.get_dict_molecular_database([classe_str], [nominal_mz],  self.mass_spectrum_obj.molform_search_settings)
+            
             if self.mass_spectrum_obj.molform_search_settings.isRadical:
-                
+
                 ion_type = Labels.radical_ion
                 
                 classes_formulas = dict_res.get(ion_type).get(classe_str)
@@ -157,11 +159,7 @@ class SearchMolecularFormulas:
 
         classes = MolecularCombinations(self.sql_db).runworker(self.mass_spectrum_obj.molform_search_settings)
 
-        classes_str = [class_tuple[0] for class_tuple in classes]
-
         nominal_mzs = [ms_peak.nominal_mz_exp for ms_peak in  ms_peaks]
-
-        dict_res = self.get_dict_molecular_database(classes_str, nominal_mzs, self.mass_spectrum_obj.molform_search_settings)
 
         for ms_peak in  ms_peaks:
 
@@ -171,7 +169,7 @@ class SearchMolecularFormulas:
             nominal_mz  = ms_peak.nominal_mz_exp
            
             self.run(classes, nominal_mz, min_abundance, 
-                        ms_peak, dict_res)
+                        ms_peak)
 
         self.mass_spectrum_obj.molform_search_settings.use_min_peaks_filter = initial_min_peak_bool                
                         
@@ -194,10 +192,8 @@ class SearchMolecularFormulas:
 
         classes_str = [class_tuple[0] for class_tuple in classes]
         
-        dict_res = self.get_dict_molecular_database(classes_str, [nominal_mz],  self.mass_spectrum_obj.molform_search_settings)
-        
         self.run(classes, nominal_mz, min_abundance, 
-                         ms_peak, dict_res)
+                         ms_peak)
 
         self.mass_spectrum_obj.molform_search_settings.use_min_peaks_filter = initial_min_peak_bool
     
@@ -288,7 +284,7 @@ class SearchMolecularFormulas:
 
                 for molecularFormulaTable in  list_formulas:
                     
-                    formula_dict = pickle.loads(molecularFormulaTable.id)
+                    formula_dict = json.loads(molecularFormulaTable.id)
                     
                     if adduct_atom in formula_dict.keys():
                         formula_dict[adduct_atom] += 1  
@@ -297,7 +293,7 @@ class SearchMolecularFormulas:
                     
                     mz = adduct_atom_mass + molecularFormulaTable.mz
                     nm = int(mz)
-                    new_formul_obj = MolecularFormulaTable( {"mol_formula" : pickle.dumps(formula_dict),
+                    new_formul_obj = MolecularFormulaTable( {"mol_formula" : json.dumps(formula_dict),
                                             "mz" : mz,
                                             "ion_type" : ion_type,
                                             "nominal_mz" : nm,
@@ -320,7 +316,6 @@ class SearchMolecularFormulas:
                         new_dict[nm]= [new_formul_obj]
                     
         return new_dict          
-
 
     def search_mol_formulas(self,  possible_formulas_list, find_isotopologues=True):
 
@@ -509,7 +504,7 @@ class SearchMolecularFormulaWorker:
                     
                     # get molecular formula dict from sql obj
                     #formula_dict = pickle.loads(possible_formula.id)
-                    formula_dict = pickle.loads(possible_formula.id)
+                    formula_dict = json.loads(possible_formula.id)
                     
                     # create the molecular formula obj to be stored
                     molecular_formula = MolecularFormula(formula_dict, possible_formula.ion_charge)

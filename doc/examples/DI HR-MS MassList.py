@@ -12,7 +12,9 @@ import matplotlib.pyplot as plt
 from corems.mass_spectrum.input.massList import ReadMassList
 from corems.mass_spectrum.factory.classification import HeteroatomsClassification, Labels
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
+from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems import SuppressPrints, get_filename
+
 
 def class_plot(df):
 
@@ -36,8 +38,8 @@ if __name__ == "__main__":
     #plt.show()
 
     mass_spectrum.molform_search_settings.error_method = 'None'
-    mass_spectrum.molform_search_settings.min_ppm_error  = -0.5
-    mass_spectrum.molform_search_settings.max_ppm_error = 0.5
+    mass_spectrum.molform_search_settings.min_ppm_error  = -1
+    mass_spectrum.molform_search_settings.max_ppm_error = 1
 
     mass_spectrum.molform_search_settings.min_dbe = 0
     mass_spectrum.molform_search_settings.max_dbe = 50
@@ -46,26 +48,25 @@ if __name__ == "__main__":
     mass_spectrum.molform_search_settings.usedAtoms['H'] = (4,200)
     mass_spectrum.molform_search_settings.usedAtoms['O'] = (0,22)
     mass_spectrum.molform_search_settings.usedAtoms['N'] = (0,0)
-    mass_spectrum.molform_search_settings.usedAtoms['S'] = (0,1)
-    mass_spectrum.molform_search_settings.usedAtoms['Cl'] = (0,1)
+    mass_spectrum.molform_search_settings.usedAtoms['S'] = (0,0)
+    mass_spectrum.molform_search_settings.usedAtoms['Cl'] = (0,0)
     mass_spectrum.molform_search_settings.usedAtoms['P'] = (0,0)
     mass_spectrum.molform_search_settings.usedAtoms['Na'] = (0,0)
     mass_spectrum.molform_search_settings.isProtonated = True
     mass_spectrum.molform_search_settings.isRadical= False
-    mass_spectrum.molform_search_settings.isAdduct = True
-
+    mass_spectrum.molform_search_settings.isAdduct = False
     
     mass_spectrum.filter_by_max_resolving_power(15, 2)
 
     #plt.show()
 
     #with SuppressPrints():
-    OxygenPriorityAssignment(mass_spectrum).run()
-
+    SearchMolecularFormulas(mass_spectrum, first_hit=True).run_worker_mass_spectrum()
+    #OxygenPriorityAssignment(mass_spectrum).run()
     mass_spectrum.percentile_assigned()
 
     mass_spectrum_by_classes = HeteroatomsClassification(mass_spectrum)
-
+    #plt.show()
     mass_spectrum_by_classes.plot_ms_assigned_unassigned()
 
     plt.show()

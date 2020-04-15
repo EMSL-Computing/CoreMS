@@ -16,20 +16,20 @@ from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignme
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 
 if __name__ == "__main__":
-
+    
     app = QApplication(sys.argv)
     file_dialog = QFileDialog()
     file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
     file_location = file_dialog.getOpenFileName()[0]
     app.quit()
 
+    
     mass_spectrum = rawFileReader.ImportLCMSThermoMSFileReader(file_location).get_summed_mass_spectrum(1,7)
+
     
-    #mass_spectrum = rawFileReader.ImportLCMSThermoMSFileReader(file_location).get
-    
-    mass_spectrum.plot_mz_domain_profile()
-    print("polarity", mass_spectrum.polarity)
-    plt.show()
+    #mass_spectrum.plot_mz_domain_profile()
+    #print("polarity", mass_spectrum.polarity)
+    #plt.show()
 
     mass_spectrum.molform_search_settings.error_method = 'None'
     mass_spectrum.molform_search_settings.min_ppm_error  = -0.4
@@ -41,18 +41,19 @@ if __name__ == "__main__":
     mass_spectrum.molform_search_settings.usedAtoms['C'] = (1,90)
     mass_spectrum.molform_search_settings.usedAtoms['H'] = (4,200)
     mass_spectrum.molform_search_settings.usedAtoms['O'] = (1,20)
-    mass_spectrum.molform_search_settings.usedAtoms['N'] = (0,0)
-    mass_spectrum.molform_search_settings.usedAtoms['S'] = (0,0)
+    mass_spectrum.molform_search_settings.usedAtoms['N'] = (0,3)
+    mass_spectrum.molform_search_settings.usedAtoms['S'] = (0,3)
     mass_spectrum.molform_search_settings.usedAtoms['Cl'] = (0,0)
     mass_spectrum.molform_search_settings.usedAtoms['P'] = (0,0)
-    mass_spectrum.molform_search_settings.usedAtoms['Na'] = (0,1)
+    mass_spectrum.molform_search_settings.usedAtoms['Na'] = (0,0)
     mass_spectrum.molform_search_settings.usedAtoms['K'] = (0,0)
-    mass_spectrum.molform_search_settings.usedAtoms['Fe'] = (0,1)
+    mass_spectrum.molform_search_settings.usedAtoms['Fe'] = (0,0)
     mass_spectrum.molform_search_settings.usedAtoms['Se'] = (0,0)
     mass_spectrum.molform_search_settings.isProtonated = True
     mass_spectrum.molform_search_settings.isRadical= False
     mass_spectrum.molform_search_settings.isAdduct = True
-
+    
+    
     SearchMolecularFormulas(mass_spectrum, first_hit=False).run_worker_mass_spectrum()
     
     mass_spectrum.percentile_assigned()
@@ -62,9 +63,7 @@ if __name__ == "__main__":
     mass_spectrum_by_classes.plot_ms_assigned_unassigned()
 
     plt.show()
-
     all_classes = 0
-
     for classe in mass_spectrum_by_classes.get_classes(threshold_perc=0, isotopologue=True):
         
         mass_spectrum_by_classes.plot_dbe_vs_carbon_number(classe)

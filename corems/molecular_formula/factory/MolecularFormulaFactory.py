@@ -93,7 +93,6 @@ class MolecularFormula(MolecularFormulaCalc):
         
         self._d_molecular_formula[Labels.ion_type] = ion_type
 
-    
     def _from_str(self, molecular_formula_str,  ion_type):
         # string has to be in the format 
         #'C10 H21 13C1 Cl1 37Cl1 etc'

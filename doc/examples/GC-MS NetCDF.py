@@ -148,11 +148,11 @@ def calibrate_and_search(out_put_file_name, cores):
                 
                 #print(json_data)
 
-                gcms.plot_processed_chromatogram()
-                print('ok')
-                gcms.plot_gc_peaks()
+                #gcms.plot_processed_chromatogram()
+                
+                #gcms.plot_gc_peaks()
 
-                gcms.plot_chromatogram()
+                #gcms.plot_chromatogram()
 
                 #gcms.plot_smoothed_chromatogram()
 
@@ -160,7 +160,7 @@ def calibrate_and_search(out_put_file_name, cores):
 
                 #gcms.plot_detected_baseline()
 
-                matplotlib.pyplot.show()
+                #matplotlib.pyplot.show()
 
        
 if __name__ == '__main__':                           
@@ -168,7 +168,7 @@ if __name__ == '__main__':
     matplotlib.use('TkAgg')
 
     cores = 4
-    out_put_file_name = 'Dataset1'
+    out_put_file_name = 'Group 6_Standards'
     calibrate_and_search(out_put_file_name, cores)
 
 

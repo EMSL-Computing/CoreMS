@@ -4,14 +4,13 @@ from pathlib import Path
 
 from pandas import DataFrame
 
-from numpy import power, dot, absolute, subtract, sum, intersect1d, where
+from numpy import power, dot, absolute, subtract, sum, intersect1d, where, average
 from numpy.linalg import norm
 from scipy.spatial.distance import cosine, jaccard, euclidean, cityblock
 from scipy.stats import pearsonr, spearmanr, kendalltau
 from sklearn.metrics.pairwise import cosine_similarity
 from math import exp
 from corems.molecular_id.input.nistMSI import ReadNistMSI
-
 
 class LowResMassSpectralMatch(Thread):
 
@@ -35,7 +34,7 @@ class LowResMassSpectralMatch(Thread):
 
         #print(ref_obj.get('ri'), gc_peak.ri, self.gcms_obj.molecular_search_settings.ri_window)
 
-        ri_score = exp(-1*((gc_peak.ri - ref_obj.get('ri'))**2 ) / (2 * self.gcms_obj.molecular_search_settings.ri_std**2))
+        ri_score = exp( -1*(power((gc_peak.ri - ref_obj.get('ri')), 2 )  / (2 * power(self.gcms_obj.molecular_search_settings.ri_std, 2)) ))
 
         similarity_score = ((spectral_similarity_score**2) * (ri_score))**(1/3)
 
@@ -285,17 +284,17 @@ class LowResMassSpectralMatch(Thread):
         correlation = jaccard(df.T[0], df.T[1])
 
         return correlation
-
+    #@timeit
     def run(self):
         # TODO select the best gcms peak    
         import tqdm
-
+        
         if not self.gcms_obj:
             
             self.gcms_obj.process_chromatogram()
-
+        list_cpu = []
+        
         for gc_peak in tqdm.tqdm(self.gcms_obj):
-            
             if not self.calibration:
                 
                 window = self.gcms_obj.molecular_search_settings.ri_search_range
@@ -339,6 +338,5 @@ class LowResMassSpectralMatch(Thread):
                     
                         gc_peak.add_compound(ref_obj, spectral_similarity_score, ri_score, similarity_score)
                 
-        
         self.sqlLite_obj.session.close()
         self.sqlLite_obj.engine.dispose()

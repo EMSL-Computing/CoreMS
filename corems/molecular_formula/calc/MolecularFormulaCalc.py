@@ -2,15 +2,9 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 24, 2019"
 
 from IsoSpecPy import IsoSpecPy
-from numpy import exp, dot, power
-from numpy.linalg import norm
-from pandas import DataFrame
-from scipy.spatial.distance import cosine
-from scipy.stats import pearsonr, spearmanr, kendalltau
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.settings.processingSetting import MolecularSearchSettings
-
 
 class MolecularFormulaCalc:
     
@@ -18,7 +12,7 @@ class MolecularFormulaCalc:
         '''
         ## Parameters
         ----------
-        #### T << collisional damping time 
+        #### T << collisional damping time
         #### T = transient time (seconds)
         #### B = Magnetic Strength (Testa)
         '''
@@ -89,15 +83,18 @@ class MolecularFormulaCalc:
         pass
     
     def _calc_mz_confidence(self, mean=0):
-        
+        from numpy import exp, power
         # predicted std not set, using 0.3
-        if not self._mspeak_parent.predicted_std: self._mspeak_parent.predicted_std = 0.6
+        if not self._mspeak_parent.predicted_std: self._mspeak_parent.predicted_std = 0.3
         
         #print( self._mspeak_parent.predicted_std)
         
         return  exp( -1 * (power((self.mz_error -  mean),2)  / (2 * power(self._mspeak_parent.predicted_std,2)) ))
     
     def _calc_confidence_score(self):
+        from pandas import DataFrame
+        from scipy.stats import pearsonr, spearmanr, kendalltau
+
         '''
         ### Assumes random mass error, i.e, spectrum has to be calibrated and with zero mean
         #### TODO: Add spectral similarity 
@@ -152,14 +149,13 @@ class MolecularFormulaCalc:
                 y = df.T[1].values
 
                 correlation = kendalltau(x, y)[0]
-                #correlation = (1 - cosine(x, y))
+                
             
             else:
                 
                 # no isotopologue expected, giving a correlation score of 0.5 but it needs optimization
                 correlation = 0.5
 
-            #correlation = dot(x, y)/(norm(x)*norm(y))
             # add monoisotopic peak mz error score
             accumulated_mz_score.append(self._calc_mz_confidence())
             
@@ -270,10 +266,8 @@ class MolecularFormulaCalc:
         
         return kdm, kendrick_mass, nominal_km
 
-    
-    @staticmethod
-    def _cal_isotopologues(formula_dict, min_abundance, current_abundance, ms_dynamic_range):
-        
+    def _cal_isotopologues(self, formula_dict, min_abundance, current_abundance, ms_dynamic_range):
+        from numpy import exp
         '''
         primary function to look for isotopologues based on a monoisotopic molecular formula
         INPUT {'C':10, 'H', 20, 'O', 2, etc} Atomic labels need to follow Atoms class atoms labels
@@ -341,8 +335,6 @@ class MolecularFormulaCalc:
                 props_list_tuples.append(props)
 
         
-        
-
         iso = IsoSpecPy.IsoSpec(atoms_count,masses_list_tuples,props_list_tuples, cut_off_to_IsoSpeccPy )
         
         conf = iso.getConfs()
