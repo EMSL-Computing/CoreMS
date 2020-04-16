@@ -98,9 +98,9 @@ class LowResMassSpectralMatch(Thread):
         x = df.T[0]
         y = df.T[1]
 
-        #correlation = (1 - cosine(x, y))
+        correlation = (1 - cosine(x, y))
         
-        correlation = dot(x, y)/(norm(x)*norm(y))
+        #correlation = dot(x, y)/(norm(x)*norm(y))
 
         return correlation
 

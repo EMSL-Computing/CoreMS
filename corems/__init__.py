@@ -10,7 +10,7 @@ CoreMS - a powerful framework for mass spectrometry data processing and analysis
     The goal of the framework is to provide a fundamental, high-level basis for working with all mass spectrometry 
     data types, allowing custom workflows for data signal processing, annotation, and curation. The data structures were 
     designed with an intuitive, mass spectrometric hierarchical structure, thus allowing organized and easy access to the
-    data and calculations. Moreover, CoreMS supports direct access for almost all vendors’ data formats, allowing for 
+    data and calculations. Moreover, CoreMS supports direct access for almost all vendors data formats, allowing for 
     the centralization and automation of all data processing workflows from the raw signal to data annotation and 
     curation. 
 

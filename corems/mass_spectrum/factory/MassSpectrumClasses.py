@@ -66,7 +66,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self._dict_nominal_masses_indexes  = dict()
         self._baselise_noise = None
         self._baselise_noise_std = None
-
+        self._dynamic_range = None
         #set to None: initialization occurs inside subclass MassSpecfromFreq
         self._transient_settings = None 
         self._frequency_domain = None
@@ -199,12 +199,14 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         
         self.reset_indexes()
         
+        self._dynamic_range = self.max_abundance/self.min_abundance    
+
         if not keep_profile:
             
             self._abundance *= 0
             self._mz_exp  *= 0
             self._abundance  *= 0
-    
+        
     def cal_noise_threshold(self, auto=True, bayes=False):
 
         if self.label == Labels.simulated_profile:
@@ -353,9 +355,10 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     def min_abundance(self):
         return min([mspeak.abundance for mspeak in self.mspeaks])
     
+    #takes too much cpu time 
     @property
     def dynamic_range(self):
-        return self.max_abundance/self.min_abundance
+        return self._dynamic_range
 
     @property
     def baselise_noise(self):
@@ -544,22 +547,29 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         
         min_mz_to_look = nominal_mass - overlay
         max_mz_to_look = nominal_mass+1+overlay
-        indexes = [i for i in range(len(self.mspeaks)) if min_mz_to_look <= self.mspeaks[i].mz_exp <= max_mz_to_look]
-        return indexes
-    
+        
+        return (i for i in range(len(self.mspeaks)) if min_mz_to_look <= self.mspeaks[i].mz_exp <= max_mz_to_look)
+              
+        #indexes = (i for i in range(len(self.mspeaks)) if min_mz_to_look <= self.mspeaks[i].mz_exp <= max_mz_to_look)
+        #return indexes
+
     def _set_nominal_masses_start_final_indexes(self):
         
         '''return ms peaks objs indexes(start and end) on the mass spectrum for all nominal masses'''
         dict_nominal_masses_indexes ={}
         
-        all_nominal_masses = list(set([i.nominal_mz_exp for i in self.mspeaks]))
+        all_nominal_masses = set(i.nominal_mz_exp for i in self.mspeaks)
         
         for nominal_mass in all_nominal_masses:
             
             indexes = self.get_nominal_mass_indexes(nominal_mass)
-                
-            dict_nominal_masses_indexes[nominal_mass] = (indexes[0],indexes[-1]) 
-          
+            
+            defaultvalue = None
+            first = last = next(indexes, defaultvalue)
+            for last in indexes:
+                pass
+            
+            dict_nominal_masses_indexes[nominal_mass] = (first,last) 
 
         self._dict_nominal_masses_indexes = dict_nominal_masses_indexes
 
@@ -927,8 +937,11 @@ class MassSpecCentroid(MassSpecBase):
                     ms_parent = self
                 )
         
-        self.reset_indexes()
+        self.mspeaks = self._mspeaks
+        self._dynamic_range = self.max_abundance/self.min_abundance  
+        self._set_nominal_masses_start_final_indexes()
 
+        
 class MassSpecCentroidLowRes(MassSpecCentroid,):
     
     '''Does not store MSPeak Objs, will iterate over mz, abundance pairs instead'''

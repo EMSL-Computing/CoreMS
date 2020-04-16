@@ -163,11 +163,11 @@ class MolecularFormulaCalc:
             
             # calculate score with higher weight for mass error
             score = ((correlation) * (average_mz_score**2))**(1/3)
-            
-            print("correlation",correlation)
-            print("average_mz_score",average_mz_score)
-            print("mz_score",self._calc_mz_confidence())
-            print("score",score)
+
+            #print("correlation",correlation)
+            #print("average_mz_score",average_mz_score)
+            #print("mz_score",self._calc_mz_confidence())
+            #print("score",score)
             return score
 
 

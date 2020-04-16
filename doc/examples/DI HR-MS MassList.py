@@ -5,15 +5,16 @@ import sys
 sys.path.append("./")
 
 from pathlib import Path
-
+import cProfile
 import matplotlib.pyplot as plt
 
-
+from multiprocessing import Pool,Process 
 from corems.mass_spectrum.input.massList import ReadMassList
 from corems.mass_spectrum.factory.classification import HeteroatomsClassification, Labels
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems import SuppressPrints, get_filename
+import pstats
 
 
 def class_plot(df):
@@ -28,15 +29,10 @@ def class_plot(df):
     g = g.map_diag(sns.kdeplot, lw=2)
     plt.show()
 
-if __name__ == "__main__":
-    
-    file_location = get_filename()
+def run_assignment(file_location):
     
     mass_spectrum = ReadMassList(file_location).get_mass_spectrum(polarity=-1)
-    mass_spectrum.plot_centroid()
-    
-    #plt.show()
-
+    #mass_spectrum.plot_centroid()
     mass_spectrum.molform_search_settings.error_method = 'None'
     mass_spectrum.molform_search_settings.min_ppm_error  = -1
     mass_spectrum.molform_search_settings.max_ppm_error = 1
@@ -46,7 +42,7 @@ if __name__ == "__main__":
 
     mass_spectrum.molform_search_settings.usedAtoms['C'] = (1,90)
     mass_spectrum.molform_search_settings.usedAtoms['H'] = (4,200)
-    mass_spectrum.molform_search_settings.usedAtoms['O'] = (0,22)
+    mass_spectrum.molform_search_settings.usedAtoms['O'] = (0,24)
     mass_spectrum.molform_search_settings.usedAtoms['N'] = (0,0)
     mass_spectrum.molform_search_settings.usedAtoms['S'] = (0,0)
     mass_spectrum.molform_search_settings.usedAtoms['Cl'] = (0,0)
@@ -58,40 +54,53 @@ if __name__ == "__main__":
     
     mass_spectrum.filter_by_max_resolving_power(15, 2)
 
-    #plt.show()
-
-    #with SuppressPrints():
+    
     SearchMolecularFormulas(mass_spectrum, first_hit=True).run_worker_mass_spectrum()
-    #OxygenPriorityAssignment(mass_spectrum).run()
     mass_spectrum.percentile_assigned()
 
-    mass_spectrum_by_classes = HeteroatomsClassification(mass_spectrum)
-    #plt.show()
-    mass_spectrum_by_classes.plot_ms_assigned_unassigned()
-
-    plt.show()
+    mass_spectrum_by_classes = HeteroatomsClassification(mass_spectrum, choose_molecular_formula=True)
+    return (mass_spectrum, mass_spectrum_by_classes)
+    #mass_spectrum_by_classes.plot_ms_assigned_unassigned()
 
     #dataframe = mass_spectrum_by_classes.to_dataframe()
     
     #class_plot(dataframe)
-
-    all_classes = 0
+def monitor(target):
     
-    colors = ["r","blue","g","purple","black","orange",]
-    classes = ["O7","O9","O12","O15","O18","O21",]
+    import psutil, time 
+
+    worker_process = Process(target=target)
+    worker_process.start()
+    p = psutil.Process(worker_process.pid)
+
+    # log cpu usage of `worker_process` every 10 ms
+    cpu_percents = []
+    while worker_process.is_alive():
+        cpu_percents.append(p.cpu_percent())
+        time.sleep(0.01)
+
+    worker_process.join()
+    return cpu_percents    
+
+def worker(file_location):
+
+    cProfile.runctx('run_assignment(file_location)', globals(), locals(), 'di-fticr.prof')
+    stats = pstats.Stats("topics.prof")
+    stats.strip_dirs().sort_stats("time").print_stats() 
+
+def run_multiprocess():
     
-    color_dictionary = dict(zip(classes, colors))
+    cores = 4
+    file_location = get_filename()
 
-    for classe in mass_spectrum_by_classes.get_classes(threshold_perc=0, isotopologue=False):
-        
-#    for index, classe in enumerate(classes):
-        
-        #plt.subplot(2, 3, index+1)
-        mass_spectrum_by_classes.plot_dbe_vs_carbon_number(classe, color='PuBu_r')
+    p = Pool(cores)
+    args = [(file_path) for file_path in [file_location]*1]
+    ms_collection = p.map(worker, args)
 
-        #mass_spectrum_by_classes.plot_ms_class(classe, color=color_dictionary.get(classe)) 
-        
+if __name__ == "__main__":
 
-    plt.show()
-
-    print("Sum Relative Abundance = %.2f" % all_classes)
+    run_multiprocess()
+    
+    #cpu_percents = monitor(target=run_multiprocess)
+    #print(cpu_percents)
+    

@@ -3,7 +3,14 @@ parameters_path = parameter.json
 version := $(shell cat .bumpversion.cfg | grep current_version | cut -d= -f2 | tr -d ' ')
 stage := $(shell cat .bumpversion.cfg | grep optional_value | cut -d= -f2 | tr -d ' ') 
 
-	
+cpu: 
+	pyprof2calltree -k -i $(file)
+
+mem: 
+
+	mprof run --multiprocess $(script)
+	mrprof plot
+
 major:
 	
 	@bumpversion major --allow-dirty

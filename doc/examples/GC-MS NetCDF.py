@@ -6,6 +6,7 @@ sys.path.append("./")
 
 from pathlib import Path
 from multiprocessing import Pool
+import cProfile, pstats
 
 from numpy import array, polyfit, poly1d
 from PySide2.QtWidgets import QFileDialog, QApplication
@@ -15,6 +16,7 @@ from corems.molecular_id.input.nistMSI import ReadNistMSI
 from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
 from corems.molecular_id.search.compoundSearch import LowResMassSpectralMatch
 from corems.encapsulation.settings.processingSetting import CompoundSearchSettings
+
 
 def sql_database(file_location):
     
@@ -114,6 +116,7 @@ def run(args):
 
     return gcms
 
+
 def calibrate_and_search(out_put_file_name, cores):
     
     import csv
@@ -162,7 +165,10 @@ def calibrate_and_search(out_put_file_name, cores):
 
                 #matplotlib.pyplot.show()
 
-       
+def worker(args):
+
+    cProfile.runctx('run(args)', globals(), locals(), 'gc-ms.prof')
+      
 if __name__ == '__main__':                           
     import matplotlib
     matplotlib.use('TkAgg')

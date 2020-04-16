@@ -129,7 +129,7 @@ class MolecularLookupDictSettings:
 
         self.op_filter = 2
 
-        self.hc_filter = 0.2
+        self.hc_filter = 0.3
 
         self.oc_filter = 1.2
     
@@ -154,9 +154,10 @@ class MolecularLookupDictSettings:
         
 @dataclass 
 class MolecularSearchSettings:
-    
-    #url_database = 'postgresql://postgres:labthomson0102@172.22.113.27:5432/' 
-    url_database = None#'sqlite://'
+    #corilo@molform
+    #url_database = 'postgresql://corilo@molform:LabThoMson0102@molform.postgres.database.azure.com:5432/postgres'
+    url_database = 'postgresql://postgres:labthomson0102@172.22.113.27:5432/' 
+    #url_database = 'sqlite://'
 
     use_isotopologue_filter = False
 
@@ -195,7 +196,7 @@ class MolecularSearchSettings:
     score_methods = ['S_P_lowest_error', 'N_S_P_lowest_error', 'lowest_error', 'prob_score',
                      'air_filter_error', 'water_filter_error', 'earth_filter_error' ]
     
-    score_method = 'N_S_P_lowest_error'
+    score_method = 'prob_score'
 
     # depending on the polarity mode it looks for [M].+ , [M].-
     # query and automatically compile add entry if it doesn't exist

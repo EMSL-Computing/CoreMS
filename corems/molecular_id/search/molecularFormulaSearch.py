@@ -224,7 +224,6 @@ class SearchMolecularFormulas:
             classe_dict = classe_tuple[1]
             #query for the classes molecular formulas
             dict_res = self.get_dict_molecular_database([classe_str], nominal_mzs, self.mass_spectrum_obj.molform_search_settings)
-        
             if self.mass_spectrum_obj.molform_search_settings.isProtonated:
                     
                     pbar.set_description_str(desc="Started molecular formula search for class %s, (de)protonated " % classe_str, refresh=True)

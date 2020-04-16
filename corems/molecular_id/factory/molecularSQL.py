@@ -70,12 +70,12 @@ class MolForm_SQL:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # make sure the dbconnection gets closed
+        
         self.commit()
         self.session.close()
         self.engine.dispose()
 
     def init_engine(self, polarity, url):
-
         directory = os.getcwd()
         
         if not url:
@@ -97,13 +97,12 @@ class MolForm_SQL:
     def add_all(self, sql_molform_list):
         
         self.session.add_all(sql_molform_list)
-        
         self.commit()
 
     def add_entry(self,sql_molform): 
-
+        
         self.session.add(sql_molform)  
-        self.commit()
+        self.session.commit()
 
     def commit(self):
         

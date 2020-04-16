@@ -1,4 +1,4 @@
-import pickle
+import json
 
 from pymongo import MongoClient
 from corems.encapsulation.settings.processingSetting import MolecularSearchSettings
@@ -76,15 +76,15 @@ class MolForm_Mongo:
                 
                 if formula['nominal_mz'] in dict_res[formula['classe']].keys():
                     
-                    dict_res.get(formula['classe']).get(formula['nominal_mz']).append(pickle.loads(formula['mol_formula']) )
+                    dict_res.get(formula['classe']).get(formula['nominal_mz']).append(json.loads(formula['mol_formula']) )
                 
                 else:
 
-                    dict_res.get(formula['classe'])[formula['nominal_mz']] = [pickle.loads(formula['mol_formula']) ]  
+                    dict_res.get(formula['classe'])[formula['nominal_mz']] = [json.loads(formula['mol_formula']) ]  
         
             else:
                 
-                dict_res[formula['classe']] = {formula['nominal_mz']: [pickle.loads(formula['mol_formula'])] }     
+                dict_res[formula['classe']] = {formula['nominal_mz']: [json.loads(formula['mol_formula'])] }     
         
         return dict_res
     
@@ -102,7 +102,7 @@ class MolForm_Mongo:
                                                 })
         
 
-        return [pickle.loads(formula['mol_formula']) for formula in formulas]
+        return [json.loads(formula['mol_formula']) for formula in formulas]
         
    
     def update_entry(self, entry):

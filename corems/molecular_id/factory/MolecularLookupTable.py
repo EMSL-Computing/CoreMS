@@ -297,6 +297,7 @@ class CombinationsWorker:
             list_mf = self.get_mol_formulas(carbon_hydrogen_combination, ion_type, classe_tuple, 
                                                     min_dbe, max_dbe,
                                                     min_mz, max_mz, ion_charge)
+            
             self.insert_formula_db(list_mf, settings)
             
         if isRadical:
@@ -307,9 +308,9 @@ class CombinationsWorker:
 
             carbon_hydrogen_combination = c_h_combinations.get(odd_or_even)
 
-            list_mf = list(self.get_mol_formulas(carbon_hydrogen_combination, ion_type, classe_tuple, 
-                                                    min_dbe, max_dbe, 
-                                                    min_mz, max_mz, ion_charge))
+            list_mf = self.get_mol_formulas(carbon_hydrogen_combination, ion_type, classe_tuple, 
+                                                    min_dbe, max_dbe,
+                                                    min_mz, max_mz, ion_charge)
             
             self.insert_formula_db(list_mf, settings)
   
