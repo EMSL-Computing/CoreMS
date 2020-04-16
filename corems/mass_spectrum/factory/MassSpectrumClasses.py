@@ -519,7 +519,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         
         for nominal_mass in all_nominal_masses:
             if nominal_mass not in dict_nominal_masses_count:
-                dict_nominal_masses_count[nominal_mass] = len(self.get_nominal_mass_indexes(nominal_mass))
+                dict_nominal_masses_count[nominal_mass] = len(list(self.get_nominal_mass_indexes(nominal_mass)))
 
         return dict_nominal_masses_count
 
