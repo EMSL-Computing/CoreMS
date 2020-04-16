@@ -3,7 +3,7 @@ from collections import OrderedDict
 from corems.molecular_formula.calc.MolecularFormulaCalc import MolecularFormulaCalc
 from corems.encapsulation.settings.processingSetting import MassSpecPeakSetting
 from corems.encapsulation.constant import Atoms, Labels
-
+from numpy import nan
 import re
 
 __author__ = "Yuri E. Corilo"
@@ -121,7 +121,7 @@ class MolecularFormula(MolecularFormulaCalc):
             if 'O' in self._d_molecular_formula.keys():
                 return self._d_molecular_formula.get("O")/self._d_molecular_formula.get("C")
             else:
-                return None    
+                return 0    
     
     @property
     def H_C(self): return self._d_molecular_formula.get("H")/self._d_molecular_formula.get("C")
