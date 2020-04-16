@@ -37,3 +37,9 @@ NEG_ESI_SRFA_CoreMS.corems/NEG_ESI_SRFA_CoreMS_scan0.csv
 NEG_ESI_SRFA_CoreMS.corems/NEG_ESI_SRFA_CoreMS_scan0.json
 NEG_ESI_SRFA_CoreMS.corems/NEG_ESI_SRFA_CoreMS_scan0.xlsx
 mprofile_*
+tests/tests_data/20190709_WK_CADY_Auto_S16_H1_Post_O5_1_01_36.txt
+topics.prof
+di-fticr.prof
+.pypirc
+di-fticr.prof.log
+gc-ms.prof
