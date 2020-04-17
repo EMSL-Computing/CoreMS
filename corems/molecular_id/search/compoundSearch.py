@@ -332,7 +332,7 @@ class LowResMassSpectralMatch(Thread):
 
                     # TODO: add other scoring methods
                     # m/q developed methods will be implemented here
-                    spectral_similarity_score, ri_score, similarity_score = self.metabolite_detector_score(gc_peak, ref_obj)    
+                    spectral_similarity_score, ri_score, similarity_score = self.metabolite_detector_score(gc_peak, ref_obj)   
                     
                     if similarity_score >= self.gcms_obj.molecular_search_settings.score_threshold:
                     

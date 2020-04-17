@@ -9,7 +9,7 @@ cpu:
 mem: 
 
 	mprof run --multiprocess $(script)
-	mrprof plot
+	mprof plot
 
 major:
 	

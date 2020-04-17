@@ -168,11 +168,12 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self._baselise_noise_std = d_params.get("baselise_noise_std")
 
         if d_params.get('sample_name') != 'Unknown': 
-        
+            
             self.sample_name = d_params.get('sample_name')
-
+            if not self.sample_name:
+                self.sample_name = self.filename.stem    
         else: 
-        
+            
             self.sample_name = self.filename.stem
 
     def reset_cal_therms(self, Aterm, Bterm, C, fas= 0):
