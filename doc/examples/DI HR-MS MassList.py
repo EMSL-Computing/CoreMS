@@ -13,8 +13,11 @@ from corems.mass_spectrum.input.massList import ReadMassList
 from corems.mass_spectrum.factory.classification import HeteroatomsClassification, Labels
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
-from corems import SuppressPrints, get_filename
+from corems import SuppressPrints, get_filename, get_dirname
 import pstats
+from corems.transient.input.brukerSolarix import ReadBrukerSolarix
+from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
+from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration
 
 
 def class_plot(df):
@@ -29,10 +32,31 @@ def class_plot(df):
     g = g.map_diag(sns.kdeplot, lw=2)
     plt.show()
 
+def run_bruker(file_location):
+    
+    with ReadBrukerSolarix(file_location) as transient:
+
+        mass_spectrum = transient.get_mass_spectrum(plot_result=False, auto_process=True)
+
+        #find_formula_thread = FindOxygenPeaks(mass_spectrum)
+        #find_formula_thread.run()
+        
+        #mspeaks_results = find_formula_thread.get_list_found_peaks()
+        #calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
+        #calibrate.ledford_calibration()
+        
+        #mass_spectrum.clear_molecular_formulas()
+
+        return mass_spectrum
+def get_masslist(file_location):
+
+    return(ReadMassList(file_location).get_mass_spectrum(polarity=-1))
+
 def run_assignment(file_location):
     
-    mass_spectrum = ReadMassList(file_location).get_mass_spectrum(polarity=-1)
-    #mass_spectrum.plot_centroid()
+    #mass_spectrum = run_bruker(file_location)
+    mass_spectrum = get_masslist(file_location)
+
     mass_spectrum.molform_search_settings.error_method = 'None'
     mass_spectrum.molform_search_settings.min_ppm_error  = -1
     mass_spectrum.molform_search_settings.max_ppm_error = 1
@@ -43,7 +67,7 @@ def run_assignment(file_location):
     mass_spectrum.molform_search_settings.usedAtoms['C'] = (1,90)
     mass_spectrum.molform_search_settings.usedAtoms['H'] = (4,200)
     mass_spectrum.molform_search_settings.usedAtoms['O'] = (0,24)
-    mass_spectrum.molform_search_settings.usedAtoms['N'] = (0,0)
+    mass_spectrum.molform_search_settings.usedAtoms['N'] = (0,1)
     mass_spectrum.molform_search_settings.usedAtoms['S'] = (0,0)
     mass_spectrum.molform_search_settings.usedAtoms['Cl'] = (0,0)
     mass_spectrum.molform_search_settings.usedAtoms['P'] = (0,0)
@@ -84,23 +108,27 @@ def monitor(target):
 
 def worker(file_location):
 
-    cProfile.runctx('run_assignment(file_location)', globals(), locals(), 'di-fticr.prof')
-    stats = pstats.Stats("topics.prof")
-    stats.strip_dirs().sort_stats("time").print_stats() 
+    cProfile.runctx('run_assignment(file_location)', globals(), locals(), 'di-fticr-di.prof')
+    #stats = pstats.Stats("topics.prof")
+    #stats.strip_dirs().sort_stats("time").print_stats() 
 
 def run_multiprocess():
     
     cores = 4
+    #file_location = get_dirname()
     file_location = get_filename()
-
     p = Pool(cores)
-    args = [(file_path) for file_path in [file_location]*1]
+    args = [(file_path) for file_path in [file_location]*16]
     ms_collection = p.map(worker, args)
+    p.close()
+    p.join()
+    
+    for ms in ms_collection:
+        ms[0].to_hdf('test')
 
 if __name__ == "__main__":
 
     run_multiprocess()
-    
     #cpu_percents = monitor(target=run_multiprocess)
     #print(cpu_percents)
     
