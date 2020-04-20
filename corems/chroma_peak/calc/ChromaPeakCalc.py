@@ -1,7 +1,6 @@
 
 from numpy import array, polyfit, poly1d, where, trapz
 
-from corems.encapsulation.settings.processingSetting import CompoundSearchSettings
 from bisect import bisect_left
 
 __author__ = "Yuri E. Corilo"

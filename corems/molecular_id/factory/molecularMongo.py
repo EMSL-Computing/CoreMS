@@ -1,7 +1,7 @@
 import json
 
 from pymongo import MongoClient
-from corems.encapsulation.settings.processingSetting import MolecularSearchSettings
+from corems.encapsulation.factory.parameters import MSParameters
 
 class MolForm_Mongo:
     
@@ -65,10 +65,10 @@ class MolForm_Mongo:
         formulas = self.molform_collection.find( {'classe': {"$in": classe}, 
                                                 'ion_type': ion_type,
                                                 'nominal_mz':{"$in": nominal_mzs},  
-                                                'O_C' : { '$lt': MolecularSearchSettings.oc_filter }, 
-                                                'H_C' : { '$gt': MolecularSearchSettings.hc_filter},
-                                                'DBE' : { '$gt': MolecularSearchSettings.min_dbe},
-                                                'DBE' : { '$lt': MolecularSearchSettings.max_dbe},
+                                                'O_C' : { '$lt': MSParameters.molecular_search.oc_filter }, 
+                                                'H_C' : { '$gt': MSParameters.molecular_search.hc_filter},
+                                                'DBE' : { '$gt': MSParameters.molecular_search.min_dbe},
+                                                'DBE' : { '$lt': MSParameters.molecular_search.max_dbe},
                                                 })
         for formula in formulas:
             
@@ -95,10 +95,10 @@ class MolForm_Mongo:
         formulas = self.molform_collection.find( {'classe': classe, 
                                                 'ion_type': ion_type,
                                                 'nominal_mz': nominal_mz,  
-                                                'O_C' : { '$lt': MolecularSearchSettings.oc_filter }, 
-                                                'H_C' : { '$gt': MolecularSearchSettings.hc_filter},
-                                                'DBE' : { '$gt': MolecularSearchSettings.min_dbe},
-                                                'DBE' : { '$lt': MolecularSearchSettings.max_dbe},
+                                                'O_C' : { '$lt': MSParameters.molecular_search.oc_filter }, 
+                                                'H_C' : { '$gt': MSParameters.molecular_search.hc_filter},
+                                                'DBE' : { '$gt': MSParameters.molecular_search.min_dbe},
+                                                'DBE' : { '$lt': MSParameters.molecular_search.max_dbe},
                                                 })
         
 

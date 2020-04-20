@@ -8,7 +8,7 @@ import h5py
 
 from corems.encapsulation.constant import Labels
 from corems.mass_spectra.factory.LC_Class import LCMSBase
-from corems.encapsulation.settings.input import InputSetting
+from corems.encapsulation.factory.parameters import default_parameters
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 
 class ReadBruker_SolarixTransientMassSpectra(Thread):

@@ -2,12 +2,8 @@ import gc
 
 from numpy import hamming, hanning, blackman, zeros, fft, sqrt, arange, where, power, absolute
 
-from corems.encapsulation.settings.processingSetting import TransientSetting
-
-
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
-
 
 class TransientCalculations(object):
     
@@ -21,7 +17,7 @@ class TransientCalculations(object):
         
     def zero_fill(self, transient ):
         
-        zeros_filled_transient = zeros(len(transient)*(TransientSetting.number_of_zero_fills+1))
+        zeros_filled_transient = zeros(len(transient)*(self.parameters.number_of_zero_fills+1))
                 
         zeros_filled_transient[0:len(transient)] = transient    
         
@@ -35,7 +31,7 @@ class TransientCalculations(object):
         
         data_count = len(transient)
             
-        for _ in range(TransientSetting.number_of_truncations):
+        for _ in range(self.parameters.number_of_truncations):
         
             data_count = int(data_count / 2)
          
@@ -49,7 +45,7 @@ class TransientCalculations(object):
     
     def apodization(self, transient):
         
-        apodi_method = TransientSetting.apodization_method
+        apodi_method = self.parameters.apodization_method
         
         length = len(transient)
             
@@ -109,13 +105,13 @@ class TransientCalculations(object):
         #A = fft.fft(transient)
         #A = A[0:int(len(A)/2)]
 
-        factor = int(TransientSetting.number_of_zero_fills-1)
-        if TransientSetting.number_of_zero_fills:
-            if TransientSetting.number_of_zero_fills == 1:
+        factor = int(self.parameters.number_of_zero_fills-1)
+        if self.parameters.number_of_zero_fills:
+            if self.parameters.number_of_zero_fills == 1:
                 factor = 1/2
                 
             else:
-                factor = int(1/TransientSetting.number_of_zero_fills+1)
+                factor = int(1/self.parameters.number_of_zero_fills+1)
                 
             Max_index = int(len(A)/factor)    
         

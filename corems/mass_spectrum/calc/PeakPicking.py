@@ -5,16 +5,14 @@
 
 
 from numpy import hstack, inf, isnan, poly1d, polyfit, where
-
-from corems.encapsulation.settings.processingSetting import MassSpectrumSetting, MassSpecPeakSetting
 from corems.encapsulation.constant import Labels
 
 class PeakPicking:
 
     def cut_mz_domain_peak_picking(self):
 
-        max_picking_mz = MassSpectrumSetting.max_picking_mz
-        min_picking_mz =  MassSpectrumSetting.min_picking_mz
+        max_picking_mz = self.settings.max_picking_mz
+        min_picking_mz = self.settings.min_picking_mz
         
         final =  where(self.mz_exp_profile  > min_picking_mz)[-1][-1]
         comeco =  where(self.mz_exp_profile  > min_picking_mz)[0][0]
@@ -208,22 +206,22 @@ class PeakPicking:
         
     def get_threshold(self, intes):
         
-        threshold_method = MassSpectrumSetting.threshold_method
+        threshold_method = self.settings.threshold_method
 
         if threshold_method == 'auto':
             
-            #print(MassSpectrumSetting.noise_threshold_std)
-            abundance_threshold = self.baselise_noise + (MassSpectrumSetting.noise_threshold_std * self.baselise_noise_std)
+            #print(self.settings.noise_threshold_std)
+            abundance_threshold = self.baselise_noise + (self.settings.noise_threshold_std * self.baselise_noise_std)
             factor = 1
 
         elif threshold_method == 'signal_noise':
 
-            abundance_threshold = MassSpectrumSetting.s2n_threshold
+            abundance_threshold = self.settings.s2n_threshold
             factor = self.baselise_noise_std
 
         elif threshold_method == "relative_abundance":
 
-            abundance_threshold = MassSpectrumSetting.relative_abundance_threshold
+            abundance_threshold = self.settings.relative_abundance_threshold
             factor = intes.max()/100
 
         else:
@@ -289,7 +287,7 @@ class PeakPicking:
             
         peak_indexes = (start_index, current_index, final_index)
 
-        if min( peak_height_diff(current_index,start_index), peak_height_diff(current_index,final_index) ) >  MassSpecPeakSetting.peak_min_prominence_percent :   
+        if min( peak_height_diff(current_index,start_index), peak_height_diff(current_index,final_index) ) >  self.mspeaks_settings.peak_min_prominence_percent :   
             
             return peak_indexes
         

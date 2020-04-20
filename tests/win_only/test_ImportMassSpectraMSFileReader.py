@@ -3,7 +3,7 @@ __date__ = "Jul 22, 2019"
 
 import sys
 sys.path.append(".")
-from corems.encapsulation.settings.processingSetting import MassSpectrumSetting
+from corems.encapsulation.factory.processingSetting  import MassSpectrumSetting
 from corems.mass_spectra.input.win_only.ThermoMSFileReader import ImportLCMSThermoMSFileReader
 
 

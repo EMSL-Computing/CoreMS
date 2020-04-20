@@ -4,7 +4,7 @@ __date__ = "Jun 24, 2019"
 from IsoSpecPy import IsoSpecPy
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.constant import Labels
-from corems.encapsulation.settings.processingSetting import MolecularSearchSettings
+from corems.encapsulation.factory.parameters import MSParameters
 
 class MolecularFormulaCalc:
     
@@ -237,7 +237,10 @@ class MolecularFormulaCalc:
                     
                     clean_atom = ''.join([i for i in atom if not i.isdigit()]) 
                     
-                    valencia = MolecularSearchSettings.used_atom_valences.get(clean_atom)
+                    if self._mspeak_parent:
+                        valencia = self._mspeak_parent._ms_parent.molecular_search_settings.used_atom_valences.get(clean_atom)
+                    else:
+                        valencia = MSParameters.molecular_search.used_atom_valences.get(clean_atom)
                     #valencia = Atoms.atoms_covalence.get(atom)
                     
                     if valencia and valencia > 0:

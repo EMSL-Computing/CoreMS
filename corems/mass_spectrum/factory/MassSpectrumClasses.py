@@ -9,8 +9,7 @@ from corems.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
 from corems.mass_spectrum.calc.KendrickGroup import KendrickGrouping
 from corems.encapsulation.constant import Labels
 from corems.ms_peak.factory.MSPeakClasses import ICRMassPeak as MSPeak
-from corems.encapsulation.settings.processingSetting import MassSpectrumSetting, MassSpecPeakSetting, TransientSetting
-from corems.encapsulation.settings.processingSetting import MolecularSearchSettings
+from corems.encapsulation.factory.parameters import MSParameters
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
@@ -80,12 +79,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         
     def _init_settings(self):
         
-        self._mol_search_settings  = deepcopy(MolecularSearchSettings)
-        self._mol_search_settings.ion_charge = self.polarity
-
-        self._settings  = deepcopy(MassSpectrumSetting)
-        self._mspeaks_settings  = deepcopy(MassSpecPeakSetting)
-
+        self._parameters = MSParameters()
 
     def __len__(self):
         
@@ -219,29 +213,37 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto, bayes=bayes)
 
     @property
-    def mspeaks_settings(self):  return self._mspeaks_settings
+    def parameters(self):
+        return self._parameters
+
+    @parameters.setter
+    def parameters(self, instance_GCMSParameters):
+        self._parameters = instance_GCMSParameters
+
+    @property
+    def mspeaks_settings(self):  return self.parameters.ms_peak
 
     @mspeaks_settings.setter
     
     def mspeaks_settings(self, instance_MassSpecPeakSetting):
        
-            self._mspeaks_settings =  instance_MassSpecPeakSetting
-       
+            self.parameters.ms_peak =  instance_MassSpecPeakSetting
+    
     @property
-    def settings(self):  return self._settings
+    def settings(self):  return self.parameters.mass_spectrum
 
     @settings.setter
     def settings(self, instance_MassSpectrumSetting):
         
-        self._settings =  instance_MassSpectrumSetting
-        
+        self.parameters.mass_spectrum =  instance_MassSpectrumSetting
+    
     @property
-    def molform_search_settings(self):  return self._mol_search_settings
+    def molecular_search_settings(self):  return self.parameters.molecular_search
 
-    @molform_search_settings.setter
-    def molform_search_settings(self, instance_MolecularSearchSettings):
+    @molecular_search_settings.setter
+    def molecular_search_settings(self, instance_MolecularFormulaSearchSettings):
         
-        self._mol_search_settings =  instance_MolecularSearchSettings
+        self.parameters.molecular_search =  instance_MolecularFormulaSearchSettings
     
     @property
     def freq_exp_profile(self):
@@ -477,7 +479,6 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         indexes_to_remove = [index for index, mspeak in enumerate(self.mspeaks) if  mspeak.resolving_power <= rpe(mspeak.mz_exp,mspeak.ion_charge)]
         self.filter_by_index(indexes_to_remove)
 
-
     def find_peaks(self):
         """needs to clear previous results from peak_picking"""
         self._mspeaks = list()
@@ -489,7 +490,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     def change_kendrick_base_all_mspeaks(self, kendrick_dict_base):
         """kendrick_dict_base = {"C": 1, "H": 2} or {{"C": 1, "H": 1, "O":1} etc """
         
-        MassSpecPeakSetting.kendrick_base = kendrick_dict_base
+        self.parameters.ms_peak.kendrick_base = kendrick_dict_base
         
         for mspeak in self.mspeaks:
 
@@ -614,7 +615,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             x = (self.mz_exp_profile.min(), self.mz_exp_profile.max())
             y = (self.baselise_noise, self.baselise_noise)
 
-            std = MassSpectrumSetting.noise_threshold_std
+            std = self.parameters.mass_spectrum.noise_threshold_std
             threshold = self.baselise_noise + (std * self.baselise_noise_std)
 
             if ax is None:
@@ -779,7 +780,6 @@ class MassSpecfromFreq(MassSpecBase):
         """
         super().__init__(None, magnitude, d_params)
 
-        self._transient_settings = TransientSetting()
         self._frequency_domain = frequency_domain
         self._set_mz_domain()
         
@@ -799,12 +799,12 @@ class MassSpecfromFreq(MassSpecBase):
             self._mz_exp = self._f_to_mz()
 
     @property
-    def transient_settings(self):  return self._transient_settings
+    def transient_settings(self):  return self.parameters.transient
 
     @transient_settings.setter
     def transient_settings(self, instance_TransientSetting):
         
-        self._transient_settings =  instance_TransientSetting  
+        self.parameters.transient =  instance_TransientSetting  
 
 
 class MassSpecCentroid(MassSpecBase):

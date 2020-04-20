@@ -2,9 +2,7 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Feb 13, 2020"
 
 from scipy.signal import savgol_filter, boxcar
-
 from numpy import hstack, inf, isnan, where, hanning, convolve, blackman, bartlett, ones, r_, sum, empty, nan, array, nan_to_num, std, nanmean, median, average, zeros
-
 from pandas import Series
 
 

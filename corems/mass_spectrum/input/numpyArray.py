@@ -3,7 +3,7 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Oct 23, 2019"
 
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
-from corems.encapsulation.settings.input import InputSetting
+from corems.encapsulation.factory.parameters import default_parameters
 from corems.encapsulation.constant import Labels
 
 def ms_from_array_profile(mz, abundance,  dataname, polarity=-1,  auto_process=True, auto_noise=False):
@@ -24,7 +24,7 @@ def ms_from_array_centroid(mz, abundance, rp, s2n, dataname, polarity=-1, auto_p
     
 def get_output_parameters(polarity, file_location):
         
-        d_params = InputSetting.d_params(file_location)
+        d_params = default_parameters(file_location)
         
         d_params['analyzer'] = 'Generic Simulated'
 

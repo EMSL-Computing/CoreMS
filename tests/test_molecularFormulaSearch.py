@@ -10,12 +10,12 @@ from pathlib import Path
 
 import pytest
 
-from corems.encapsulation.settings.processingSetting import  MolecularSearchSettings
 from corems.mass_spectrum.factory.classification import  HeteroatomsClassification
 from corems.mass_spectrum.input.numpyArray import ms_from_array_centroid
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
+from corems.encapsulation.factory.parameters import MSParameters
 
 def create_mass_spectrum():
     
@@ -38,15 +38,15 @@ def create_mass_spectrum():
     return mass_spectrum_obj
 
 def test_run_molecular_formula_search():
+    
+    MSParameters.molecular_search.usedAtoms['F'] = (0,0)
+    MSParameters.molecular_search.usedAtoms['P'] = (0,0)
+    MSParameters.molecular_search.usedAtoms['Cl'] = (0,0)
+    MSParameters.molecular_search.isAdduct = True
 
-    MolecularSearchSettings.usedAtoms['F'] = (0,0)
-    MolecularSearchSettings.usedAtoms['P'] = (0,0)
-    MolecularSearchSettings.usedAtoms['Cl'] = (0,0)
-    MolecularSearchSettings.isAdduct = True
-
-    MolecularSearchSettings.used_atom_valences['P'] = 1
-    MolecularSearchSettings.used_atom_valences['F'] = 1
-    MolecularSearchSettings.used_atom_valences['Cl'] = 0
+    MSParameters.molecular_search.used_atom_valences['P'] = 1
+    MSParameters.molecular_search.used_atom_valences['F'] = 1
+    MSParameters.molecular_search.used_atom_valences['Cl'] = 0
 
     mz = [215.09269]
     abundance = [1]
@@ -61,11 +61,6 @@ def test_run_molecular_formula_search():
     if ms_peak.is_assigned:
         for formula in ms_peak:
             print(formula.to_string_formated, formula.mz_error)
-
-    MolecularSearchSettings.usedAtoms['F'] = (0,0)
-    MolecularSearchSettings.usedAtoms['P'] = (0,0)
-    MolecularSearchSettings.usedAtoms['Cl'] = (0,0)
-    MolecularSearchSettings.isAdduct = False    
 
 def test_mspeak_search():
 
@@ -123,13 +118,13 @@ def test_molecular_formula_search_db():
 def test_priorityAssignment():
     
     
-    MolecularSearchSettings.error_method = 'None'
-    MolecularSearchSettings.min_ppm_error  = -5
-    MolecularSearchSettings.max_ppm_error = 3
-    MolecularSearchSettings.mz_error_range = 1
-    MolecularSearchSettings.isProtonated = True 
-    MolecularSearchSettings.isRadical= True 
-    MolecularSearchSettings.isAdduct= False 
+    MSParameters.molecular_search.error_method = 'None'
+    MSParameters.molecular_search.min_ppm_error  = -5
+    MSParameters.molecular_search.max_ppm_error = 3
+    MSParameters.molecular_search.mz_error_range = 1
+    MSParameters.molecular_search.isProtonated = True 
+    MSParameters.molecular_search.isRadical= True 
+    MSParameters.molecular_search.isAdduct= False 
 
     mass_spec_obj = create_mass_spectrum()
     

@@ -9,7 +9,7 @@ sys.path.append(".")
 import numpy as np
 from matplotlib import pyplot 
 
-from corems.encapsulation.settings.processingSetting import MolecularSearchSettings
+from corems.encapsulation.factory.parameters import MSParameters
 from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration, MZDomain_Calibration
 #from corems.mass_spectrum.input.massList import Read_MassList
 from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
@@ -67,12 +67,12 @@ def test_calibration():
             (See Docs for the structural details)  
     '''
     
-    MolecularSearchSettings.error_method = 'None'
-    MolecularSearchSettings.min_ppm_error  = -5
-    MolecularSearchSettings.max_ppm_error = 5
-    MolecularSearchSettings.mz_error_range = 1
-    MolecularSearchSettings.isProtonated = True 
-    MolecularSearchSettings.isRadical= True 
+    MSParameters.molecular_search.error_method = 'None'
+    MSParameters.molecular_search.min_ppm_error  = -5
+    MSParameters.molecular_search.max_ppm_error = 5
+    MSParameters.molecular_search.mz_error_range = 1
+    MSParameters.molecular_search.isProtonated = True 
+    MSParameters.molecular_search.isRadical= True 
 
     file_location = Path.cwd() /  "ESI_NEG_SRFA.d/"
 
@@ -97,17 +97,17 @@ def test_calibration():
     
     mass_spectrum.clear_molecular_formulas()
 
-    MolecularSearchSettings.error_method = 'symmetrical'
-    MolecularSearchSettings.min_ppm_error  = -3
-    MolecularSearchSettings.max_ppm_error = 3
-    MolecularSearchSettings.mz_error_range = 1
-    MolecularSearchSettings.mz_error_average = 0
-    MolecularSearchSettings.min_abun_error = -30 # percentage 
-    MolecularSearchSettings.max_abun_error = 70 # percentage 
-    MolecularSearchSettings.isProtonated = True 
-    MolecularSearchSettings.isRadical= True 
+    MSParameters.molecular_search.error_method = 'symmetrical'
+    MSParameters.molecular_search.min_ppm_error  = -3
+    MSParameters.molecular_search.max_ppm_error = 3
+    MSParameters.molecular_search.mz_error_range = 1
+    MSParameters.molecular_search.mz_error_average = 0
+    MSParameters.molecular_search.min_abun_error = -30 # percentage 
+    MSParameters.molecular_search.max_abun_error = 70 # percentage 
+    MSParameters.molecular_search.isProtonated = True 
+    MSParameters.molecular_search.isRadical= True 
     
-    MolecularSearchSettings.usedAtoms = {'C': (1, 100),
+    MSParameters.molecular_search.usedAtoms = {'C': (1, 100),
                  'H': (4, 200),
                  'O': (0, 20),
                  'N': (0, 1),

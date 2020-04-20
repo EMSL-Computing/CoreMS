@@ -6,7 +6,7 @@ from comtypes.client import CreateObject
 from numpy import array
 
 
-from corems.encapsulation.settings.input import InputSetting
+from corems.encapsulation.factory.parameters import default_parameters
 from corems.encapsulation.constant import Labels
 from corems.mass_spectra.factory.LC_Class import LCMSBase
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile
@@ -159,7 +159,7 @@ class ImportLCMSBrukerCompassXtract(Thread):
 
     def run(self):
         '''creates the lcms obj'''
-        d_parameters = InputSetting.d_params(self.file_location)
+        d_parameters = default_parameters(self.file_location)
         self._import_mass_spectra(d_parameters)
 
     def _import_mass_spectra(self, d_params):

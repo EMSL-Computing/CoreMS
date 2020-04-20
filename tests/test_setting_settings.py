@@ -1,17 +1,21 @@
 import sys
 sys.path.append(".")
 
-from corems.encapsulation.settings.io import settings_parsers
-from corems.encapsulation.settings.processingSetting import MolecularLookupDictSettings
+from corems.encapsulation.input import parameter_from_json
+from corems.encapsulation.output import parameter_to_json, parameter_to_dict
+from corems.encapsulation.factory.processingSetting  import MolecularLookupDictSettings
 
 def test_json():
       
-      settings_parsers.dump_search_settings_json()
-      settings_parsers.load_search_setting_json()
-
+    parameter_to_json.dump_all_settings_json()
+    parameter_to_json.dump_gcms_settings_json()
+    parameter_to_json.dump_ms_settings_json()
+   
 def test_data():
     
-    settings_parsers.get_dict_data()
+    parameter_to_dict.get_dict_ms_default_data()
+    parameter_to_dict.get_dict_gcms_default_data()
+    
 
 def test_settings_search():
 

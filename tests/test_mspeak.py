@@ -57,5 +57,5 @@ def test_mspeak_calculations():
 
 if __name__ == '__main__':
     
-    test_mspeaks_fit()
-    #test_mspeak_calculations()
+    #test_mspeaks_fit()
+    test_mspeak_calculations()

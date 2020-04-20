@@ -4,8 +4,6 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
 from copy import deepcopy
-from corems.encapsulation.settings.processingSetting import MassSpecPeakSetting
-from corems.encapsulation.settings.processingSetting import MolecularSearchSettings
 from corems.ms_peak.calc.MSPeakCalc import MSPeakCalculation
 
 class _MSPeak(MSPeakCalculation):
@@ -41,7 +39,10 @@ class _MSPeak(MSPeakCalculation):
         if exp_freq:
             self.freq_exp = float(exp_freq)
 
-        kendrick_dict_base = MassSpecPeakSetting.kendrick_base
+        if self._ms_parent is not None:
+            kendrick_dict_base = self._ms_parent.mspeaks_settings.kendrick_base
+        else:
+            kendrick_dict_base = {'C':1, 'H':2}
         self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(
             kendrick_dict_base)
  
@@ -166,32 +167,32 @@ class _MSPeak(MSPeakCalculation):
     @property
     def best_molecular_formula_candidate(self):
         
-        if self._ms_parent.molform_search_settings.score_method == "N_S_P_lowest_error":
+        if self._ms_parent.molecular_search_settings.score_method == "N_S_P_lowest_error":
             return self.cia_score_N_S_P_error()
         
-        elif self._ms_parent.molform_search_settings.score_method == "S_P_lowest_error":
+        elif self._ms_parent.molecular_search_settings.score_method == "S_P_lowest_error":
             return self.cia_score_S_P_error()
 
-        elif self._ms_parent.molform_search_settings.score_method == "lowest_error":
+        elif self._ms_parent.molecular_search_settings.score_method == "lowest_error":
             return self.molecular_formula_lowest_error()    
         
-        elif self._ms_parent.molform_search_settings.score_method == "air_filter_error":
+        elif self._ms_parent.molecular_search_settings.score_method == "air_filter_error":
             return self.molecular_formula_air_filter()    
 
-        elif self._ms_parent.molform_search_settings.score_method == "water_filter_error":
+        elif self._ms_parent.molecular_search_settings.score_method == "water_filter_error":
             return self.molecular_formula_water_filter()    
 
-        elif self._ms_parent.molform_search_settings.score_method == "earth_filter_error":
+        elif self._ms_parent.molecular_search_settings.score_method == "earth_filter_error":
             return self.molecular_formula_earth_filter()   
 
-        elif self._ms_parent.molform_search_settings.score_method == "prob_score":
+        elif self._ms_parent.molecular_search_settings.score_method == "prob_score":
             return self.molecular_formula_highest_prob_score()
         else:
             
             raise TypeError("Unknown score method selected: % s, \
                             Please check score_method at \
-                            encapsulation.settings.molecular_id.MolecularIDSettings.MolecularSearchSettings", 
-                            self._ms_parent.MolecularSearchSettings.score_method)    
+                            encapsulation.settings.molecular_id.MolecularIDSettings.MolecularFormulaSearchSettings", 
+                            self._ms_parent.parameters.molecular_search.score_method)    
 
 class ICRMassPeak(_MSPeak):
 

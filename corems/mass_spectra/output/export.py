@@ -10,7 +10,7 @@ from openpyxl import load_workbook
 
 from corems.mass_spectrum.output.export import HighResMassSpecExport
 from corems.encapsulation.constant import Atoms
-from corems.encapsulation.settings.io import settings_parsers
+from corems.encapsulation.output import parameter_to_dict
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
 
 class LowResGCMSExport():
@@ -119,7 +119,7 @@ class LowResGCMSExport():
         
         import json
         
-        dict_setting = settings_parsers.get_dict_data_gcms(gcms)
+        dict_setting = parameter_to_dict.get_dict_data_gcms(gcms)
 
         dict_setting['analyzer'] = gcms.analyzer
         dict_setting['instrument_label'] = gcms.instrument_label
@@ -323,7 +323,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
                 
                 dict_ms_attrs = self.get_mass_spec_attrs(mass_spectrum)
                 
-                setting_dicts = settings_parsers.get_dict_data_ms(mass_spectrum)
+                setting_dicts = parameter_to_dict.get_dict_data_ms(mass_spectrum)
 
                 columns_labels = json.dumps(self.columns_label + self.get_all_used_atoms_in_order(mass_spectrum))
 

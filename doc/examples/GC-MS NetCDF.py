@@ -15,8 +15,6 @@ from PySide2.QtCore import Qt
 from corems.molecular_id.input.nistMSI import ReadNistMSI
 from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
 from corems.molecular_id.search.compoundSearch import LowResMassSpectralMatch
-from corems.encapsulation.settings.processingSetting import CompoundSearchSettings
-
 
 def sql_database(file_location):
     

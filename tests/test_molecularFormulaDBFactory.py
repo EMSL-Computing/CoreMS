@@ -14,7 +14,7 @@ from corems.molecular_id.factory.MolecularLookupTable import  MolecularCombinati
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL
 from corems.molecular_id.factory.molecularMongo import MolForm_Mongo
 from corems.molecular_id.input.nistMSI import ReadNistMSI
-from corems.encapsulation.settings.processingSetting import MolecularSearchSettings
+from corems.encapsulation.factory.processingSetting  import MolecularFormulaSearchSettings
 
 
 def xtest_query_mongo():
@@ -48,13 +48,11 @@ def test_query_sql():
         print('ion_type', ion_type)
         classe = 'O8'
         nominal_mz = 501
-        print('total mol formulas found: ', len(list( sqldb.get_entries(classe, ion_type, nominal_mz, MolecularSearchSettings))))
+        print('total mol formulas found: ', len(list( sqldb.get_entries(classe, ion_type, nominal_mz, MolecularFormulaSearchSettings))))
 
     
 if __name__ == '__main__':
     
-    from corems.encapsulation.settings.io import settings_parsers
-
     #settings_parsers.load_search_setting_yaml()
     #settings_parsers.load_search_setting_json()
     #test_nist_to_sql()    

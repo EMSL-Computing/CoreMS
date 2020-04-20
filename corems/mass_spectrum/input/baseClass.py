@@ -6,11 +6,12 @@ from pathlib import Path
 
 from pandas import read_csv, read_pickle, read_excel
 
-from corems.encapsulation.settings.input.InputSetting import DataInputSetting, d_params
+from corems.encapsulation.factory.processingSetting  import DataInputSetting
+from corems.encapsulation.factory.parameters import default_parameters
 from corems.encapsulation.constant import Labels
-from corems.encapsulation.settings.io import settings_parsers
 
 import chardet
+from corems.encapsulation.input.parameter_from_json import _set_dict_data_ms
 
 
 class MassListBaseClass:
@@ -151,7 +152,7 @@ class MassListBaseClass:
                 
                 mass_spec_obj._set_parameters_objects(output_parameters)
 
-                settings_parsers.set_dict_data_ms(input_settings, mass_spec_obj)
+                _set_dict_data_ms(input_settings, mass_spec_obj)
      
         else:
             
@@ -172,7 +173,7 @@ class MassListBaseClass:
         #TODO pull attrs from json settings file in load_settings function MassSpecAttrs group and analyzer, instrument_label and sample_name
         from copy import deepcopy
         
-        output_parameters = d_params(self.file_location)
+        output_parameters = default_parameters(self.file_location)
         
         if self.isCentroid:
             output_parameters['label'] = Labels.corems_centroid
@@ -211,7 +212,7 @@ class MassListBaseClass:
         
         for column_name in dataframe.columns:
             
-            expected_column_name = DataInputSetting.header_translate.get(column_name)
+            expected_column_name = DataInputSetting().header_translate.get(column_name)
             if expected_column_name not in self._expected_columns:
                 
                 #dataframe = dataframe.drop(column_name, axis=1)
@@ -221,8 +222,8 @@ class MassListBaseClass:
     def check_columns(self, header_labels):
         
         #print(header_labels)
-        #print( DataInputSetting.header_translate.keys())
-        #inverted_name_dict = {value: key for key, value in DataInputSetting.header_translate.items()}
+        #print( DataInputSetting().header_translate.keys())
+        #inverted_name_dict = {value: key for key, value in DataInputSetting().header_translate.items()}
         
         #print(inverted_name_dict)
         
@@ -232,7 +233,7 @@ class MassListBaseClass:
             
             if not label in self._expected_columns:
                 
-                user_column_name = DataInputSetting.header_translate.get(label)
+                user_column_name = DataInputSetting().header_translate.get(label)
                 
                 if user_column_name in self._expected_columns:
                     

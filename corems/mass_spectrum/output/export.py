@@ -9,7 +9,7 @@ from pandas import DataFrame
 
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.constant import Labels
-from corems.encapsulation.settings.io import settings_parsers
+from corems.encapsulation.output import parameter_to_dict
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
 
 class HighResMassSpecExport(Thread):
@@ -107,7 +107,7 @@ class HighResMassSpecExport(Thread):
         
         import json
         
-        dict_setting = settings_parsers.get_dict_data_ms(mass_spectrum)
+        dict_setting = parameter_to_dict.get_dict_data_ms(mass_spectrum)
 
         dict_setting['MassSpecAttrs'] = self.get_mass_spec_attrs(mass_spectrum)
         dict_setting['analyzer'] = mass_spectrum.analyzer
@@ -175,7 +175,7 @@ class HighResMassSpecExport(Thread):
             
             dict_ms_attrs = self.get_mass_spec_attrs(self.mass_spectrum)
             
-            setting_dicts = settings_parsers.get_dict_data_ms(self.mass_spectrum)
+            setting_dicts = parameter_to_dict.get_dict_data_ms(self.mass_spectrum)
 
             columns_labels = json.dumps(self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum))
 

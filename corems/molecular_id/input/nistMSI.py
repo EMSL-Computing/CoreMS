@@ -45,10 +45,7 @@ class ReadNistMSI(Thread):
             try:
                 sqlLite_obj.add_compound(data_dict)
             except:
-                
                 print(data_dict.get('NAME'))
-                
-        
         return sqlLite_obj
 
     def get_compound_data_dict_list(self,):

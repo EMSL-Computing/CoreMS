@@ -4,7 +4,7 @@ import sys
 sys.path.append(".")
 import pytest
 
-from corems.encapsulation.settings.processingSetting import  MolecularLookupDictSettings, MolecularSearchSettings
+from corems.encapsulation.factory.parameters import MSParameters
 from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration, MZDomain_Calibration
 from corems.mass_spectrum.output.export import HighResMassSpecExport 
 from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
@@ -38,15 +38,15 @@ def filter_by_kendrick():
 
 def assign_mf_pox(mass_spectrum_obj):
     
-    MolecularSearchSettings.usedAtoms['O'] = (4, 20)
-    MolecularSearchSettings.usedAtoms['N'] = (0, 0)
-    MolecularSearchSettings.usedAtoms['S'] = (0, 0)
-    MolecularSearchSettings.usedAtoms['Cl'] = (0,0)
-    MolecularSearchSettings.usedAtoms['P'] = (1, 1)
+    MSParameters.molecular_search.usedAtoms['O'] = (4, 20)
+    MSParameters.molecular_search.usedAtoms['N'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['S'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['Cl'] = (0,0)
+    MSParameters.molecular_search.usedAtoms['P'] = (1, 1)
       
-    MolecularSearchSettings.isProtonated = True
-    MolecularSearchSettings.isRadical = True
-    MolecularSearchSettings.isAdduct = True
+    MSParameters.molecular_search.isProtonated = True
+    MSParameters.molecular_search.isRadical = True
+    MSParameters.molecular_search.isAdduct = True
 
     SearchMolecularFormulas(mass_spectrum_obj, first_hit=True).run_worker_mass_spectrum()
 
@@ -57,33 +57,33 @@ def assign_mf_nsox(mass_spectrum_obj):
     #print(len(mass_spectrum_obj), 'after kendrick filter')
     #print(len(mass_spectrum_obj), 'after resolving power filter')
 
-    MolecularSearchSettings.usedAtoms['O'] = (4, 20)
-    MolecularSearchSettings.usedAtoms['N'] = (1, 3)
-    MolecularSearchSettings.usedAtoms['S'] = (1, 5)
-    MolecularSearchSettings.usedAtoms['Cl'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['O'] = (4, 20)
+    MSParameters.molecular_search.usedAtoms['N'] = (1, 3)
+    MSParameters.molecular_search.usedAtoms['S'] = (1, 5)
+    MSParameters.molecular_search.usedAtoms['Cl'] = (0, 0)
         
     
-    MolecularSearchSettings.min_dbe = 0
-    MolecularSearchSettings.max_dbe = 36
+    MSParameters.molecular_search.min_dbe = 0
+    MSParameters.molecular_search.max_dbe = 36
     
-    MolecularSearchSettings.isProtonated = True
-    MolecularSearchSettings.isRadical = True
-    MolecularSearchSettings.isAdduct = True
+    MSParameters.molecular_search.isProtonated = True
+    MSParameters.molecular_search.isRadical = True
+    MSParameters.molecular_search.isAdduct = True
 
     SearchMolecularFormulas(mass_spectrum_obj, first_hit=True).run_worker_mass_spectrum(mass_spectrum_obj,)
 
 def assign_mf_sox(mass_spectrum_obj):
     
-    MolecularSearchSettings.usedAtoms['O'] = (1, 10)
-    MolecularSearchSettings.usedAtoms['N'] = (0, 0)
-    MolecularSearchSettings.usedAtoms['S'] = (0, 3)
-    MolecularSearchSettings.usedAtoms['Cl'] = (0,0)
-    MolecularSearchSettings.usedAtoms['P'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['O'] = (1, 10)
+    MSParameters.molecular_search.usedAtoms['N'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['S'] = (0, 3)
+    MSParameters.molecular_search.usedAtoms['Cl'] = (0,0)
+    MSParameters.molecular_search.usedAtoms['P'] = (0, 0)
    
     
-    MolecularSearchSettings.isProtonated = True
-    MolecularSearchSettings.isRadical = True
-    MolecularSearchSettings.isAdduct = True
+    MSParameters.molecular_search.isProtonated = True
+    MSParameters.molecular_search.isRadical = True
+    MSParameters.molecular_search.isAdduct = True
 
     assignOx = OxygenPriorityAssignment(mass_spectrum_obj)
     assignOx.create_data_base()
@@ -100,16 +100,16 @@ def assign_mf_sox(mass_spectrum_obj):
 
 def assign_mf_ox(mass_spectrum_obj):
     
-    MolecularSearchSettings.usedAtoms['O'] = (1, 10)
-    MolecularSearchSettings.usedAtoms['N'] = (0, 0)
-    MolecularSearchSettings.usedAtoms['S'] = (0, 0)
-    MolecularSearchSettings.usedAtoms['Cl'] = (0,0)
-    MolecularSearchSettings.usedAtoms['P'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['O'] = (1, 10)
+    MSParameters.molecular_search.usedAtoms['N'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['S'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['Cl'] = (0,0)
+    MSParameters.molecular_search.usedAtoms['P'] = (0, 0)
     
    
-    MolecularSearchSettings.isProtonated = True
-    MolecularSearchSettings.isRadical = True
-    MolecularSearchSettings.isAdduct = True
+    MSParameters.molecular_search.isProtonated = True
+    MSParameters.molecular_search.isRadical = True
+    MSParameters.molecular_search.isAdduct = True
 
     assignOx = OxygenPriorityAssignment(mass_spectrum_obj)
     assignOx.create_data_base()
@@ -126,15 +126,15 @@ def assign_mf_ox(mass_spectrum_obj):
 
 def assign_mf_nox(mass_spectrum_obj):
     
-    MolecularSearchSettings.usedAtoms['O'] = (1, 10)
-    MolecularSearchSettings.usedAtoms['N'] = (0, 4)
-    MolecularSearchSettings.usedAtoms['S'] = (0, 0)
-    MolecularSearchSettings.usedAtoms['Cl'] = (0, 0)
-    MolecularSearchSettings.usedAtoms['P'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['O'] = (1, 10)
+    MSParameters.molecular_search.usedAtoms['N'] = (0, 4)
+    MSParameters.molecular_search.usedAtoms['S'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['Cl'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['P'] = (0, 0)
   
-    MolecularSearchSettings.isProtonated = True
-    MolecularSearchSettings.isRadical = True
-    MolecularSearchSettings.isAdduct = True
+    MSParameters.molecular_search.isProtonated = True
+    MSParameters.molecular_search.isRadical = True
+    MSParameters.molecular_search.isAdduct = True
 
     assignOx = OxygenPriorityAssignment(mass_spectrum_obj)
     assignOx.create_data_base()
@@ -156,20 +156,20 @@ def search_hc(mass_spectrum_obj):
     #print(len(mass_spectrum_obj), 'after kendrick filter')
     #print(len(mass_spectrum_obj), 'after resolving power filter')
 
-    MolecularSearchSettings.usedAtoms['O'] = (0,0)
-    MolecularSearchSettings.usedAtoms['N'] = (0, 0)
-    MolecularSearchSettings.usedAtoms['S'] = (0, 0)
-    MolecularSearchSettings.usedAtoms['Cl'] = (0, 0)
-    #MolecularSearchSettings.usedAtoms['F'] = (0, 1)
-    #MolecularSearchSettings.usedAtoms['P'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['O'] = (0,0)
+    MSParameters.molecular_search.usedAtoms['N'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['S'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['Cl'] = (0, 0)
+    #MSParameters.molecular_search.usedAtoms['F'] = (0, 1)
+    #MSParameters.molecular_search.usedAtoms['P'] = (0, 0)
     
     
-    MolecularSearchSettings.min_dbe = 0
-    MolecularSearchSettings.max_dbe = 50
+    MSParameters.molecular_search.min_dbe = 0
+    MSParameters.molecular_search.max_dbe = 50
     
-    MolecularSearchSettings.isProtonated = True
-    MolecularSearchSettings.isRadical = True
-    MolecularSearchSettings.isAdduct = True
+    MSParameters.molecular_search.isProtonated = True
+    MSParameters.molecular_search.isRadical = True
+    MSParameters.molecular_search.isAdduct = True
 
     SearchMolecularFormulas(mass_spectrum_obj, first_hit=True).run_worker_mass_spectrum()
 
@@ -180,20 +180,20 @@ def search_nx(mass_spectrum_obj):
     #print(len(mass_spectrum_obj), 'after kendrick filter')
     #print(len(mass_spectrum_obj), 'after resolving power filter')
 
-    MolecularSearchSettings.usedAtoms['O'] = (0,0)
-    MolecularSearchSettings.usedAtoms['N'] = (1, 3)
-    MolecularSearchSettings.usedAtoms['S'] = (0, 0)
-    MolecularSearchSettings.usedAtoms['Cl'] = (0, 0)
-    #MolecularSearchSettings.usedAtoms['F'] = (0, 1)
-    #MolecularSearchSettings.usedAtoms['P'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['O'] = (0,0)
+    MSParameters.molecular_search.usedAtoms['N'] = (1, 3)
+    MSParameters.molecular_search.usedAtoms['S'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['Cl'] = (0, 0)
+    #MSParameters.molecular_search.usedAtoms['F'] = (0, 1)
+    #MSParameters.molecular_search.usedAtoms['P'] = (0, 0)
     
     
-    MolecularSearchSettings.min_dbe = 0
-    MolecularSearchSettings.max_dbe = 50
+    MSParameters.molecular_search.min_dbe = 0
+    MSParameters.molecular_search.max_dbe = 50
     
-    MolecularSearchSettings.isProtonated = True
-    MolecularSearchSettings.isRadical = True
-    MolecularSearchSettings.isAdduct = True
+    MSParameters.molecular_search.isProtonated = True
+    MSParameters.molecular_search.isRadical = True
+    MSParameters.molecular_search.isAdduct = True
 
     SearchMolecularFormulas(mass_spectrum_obj,first_hit=True).run_worker_mass_spectrum()
 
@@ -204,20 +204,20 @@ def search_mf(mass_spectrum_obj):
     #print(len(mass_spectrum_obj), 'after kendrick filter')
     #print(len(mass_spectrum_obj), 'after resolving power filter')
 
-    MolecularSearchSettings.usedAtoms['O'] = (0,0)
-    MolecularSearchSettings.usedAtoms['N'] = (0, 0)
-    MolecularSearchSettings.usedAtoms['S'] = (0, 0)
-    MolecularSearchSettings.usedAtoms['Cl'] = (0, 0)
-    #MolecularSearchSettings.usedAtoms['F'] = (0, 1)
-    #MolecularSearchSettings.usedAtoms['P'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['O'] = (0,0)
+    MSParameters.molecular_search.usedAtoms['N'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['S'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['Cl'] = (0, 0)
+    #MSParameters.molecular_search.usedAtoms['F'] = (0, 1)
+    #MSParameters.molecular_search.usedAtoms['P'] = (0, 0)
     
     
-    MolecularSearchSettings.min_dbe = 0
-    MolecularSearchSettings.max_dbe = 50
+    MSParameters.molecular_search.min_dbe = 0
+    MSParameters.molecular_search.max_dbe = 50
     
-    MolecularSearchSettings.isProtonated = True
-    MolecularSearchSettings.isRadical = True
-    MolecularSearchSettings.isAdduct = True
+    MSParameters.molecular_search.isProtonated = True
+    MSParameters.molecular_search.isRadical = True
+    MSParameters.molecular_search.isAdduct = True
 
     SearchMolecularFormulas(mass_spectrum_obj, first_hit=True).run_worker_mass_spectrum()
 
@@ -225,12 +225,12 @@ def search_ox(mass_spectrum_obj):
 
     filter_by_resolving_power()
    
-    MolecularSearchSettings.usedAtoms['O'] = (1,10)
-    MolecularSearchSettings.usedAtoms['N'] = (0, 0)
-    MolecularSearchSettings.usedAtoms['S'] = (0, 0)
-    MolecularSearchSettings.usedAtoms['Cl'] = (0, 1)
-    #MolecularSearchSettings.usedAtoms['F'] = (0, 1)
-    #MolecularSearchSettings.usedAtoms['P'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['O'] = (1,10)
+    MSParameters.molecular_search.usedAtoms['N'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['S'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['Cl'] = (0, 1)
+    #MSParameters.molecular_search.usedAtoms['F'] = (0, 1)
+    #MSParameters.molecular_search.usedAtoms['P'] = (0, 0)
     
     SearchMolecularFormulas(mass_spectrum_obj, first_hit=True).run_worker_mass_spectrum()
 
@@ -241,16 +241,16 @@ def search_sx(mass_spectrum_obj):
     #print(len(mass_spectrum_obj), 'after kendrick filter')
     #print(len(mass_spectrum_obj), 'after resolving power filter')
 
-    MolecularSearchSettings.usedAtoms['O'] = (0,0)
-    MolecularSearchSettings.usedAtoms['N'] = (0, 0)
-    MolecularSearchSettings.usedAtoms['S'] = (1, 3)
-    MolecularSearchSettings.usedAtoms['Cl'] = (0, 0)
-    #MolecularSearchSettings.usedAtoms['F'] = (0, 1)
-    #MolecularSearchSettings.usedAtoms['P'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['O'] = (0,0)
+    MSParameters.molecular_search.usedAtoms['N'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['S'] = (1, 3)
+    MSParameters.molecular_search.usedAtoms['Cl'] = (0, 0)
+    #MSParameters.molecular_search.usedAtoms['F'] = (0, 1)
+    #MSParameters.molecular_search.usedAtoms['P'] = (0, 0)
     
     
-    MolecularSearchSettings.min_dbe = 0
-    MolecularSearchSettings.max_dbe = 50
+    MSParameters.molecular_search.min_dbe = 0
+    MSParameters.molecular_search.max_dbe = 50
   
     SearchMolecularFormulas(mass_spectrum_obj, first_hit=True).run_worker_mass_spectrum()
 
@@ -258,10 +258,10 @@ def search_sox(mass_spectrum_obj):
 
     filter_by_resolving_power()
     
-    MolecularSearchSettings.usedAtoms['O'] = (1, 10)
-    MolecularSearchSettings.usedAtoms['N'] = (0, 0)
-    MolecularSearchSettings.usedAtoms['S'] = (1, 3)
-    MolecularSearchSettings.usedAtoms['Cl'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['O'] = (1, 10)
+    MSParameters.molecular_search.usedAtoms['N'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['S'] = (1, 3)
+    MSParameters.molecular_search.usedAtoms['Cl'] = (0, 0)
     
     SearchMolecularFormulas(mass_spectrum_obj, first_hit=True).run_worker_mass_spectrum()
 
@@ -270,10 +270,10 @@ def search_nox(mass_spectrum_obj):
     
     filter_by_resolving_power()
     
-    MolecularSearchSettings.usedAtoms['O'] = (1, 10)
-    MolecularSearchSettings.usedAtoms['N'] = (1, 3)
-    MolecularSearchSettings.usedAtoms['S'] = (0, 0)
-    MolecularSearchSettings.usedAtoms['Cl'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['O'] = (1, 10)
+    MSParameters.molecular_search.usedAtoms['N'] = (1, 3)
+    MSParameters.molecular_search.usedAtoms['S'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['Cl'] = (0, 0)
    
     SearchMolecularFormulas(mass_spectrum_obj, first_hit=True).run_worker_mass_spectrum()
     
@@ -281,17 +281,17 @@ def search_nsox(mass_spectrum_obj):
 
     filter_by_resolving_power()
     
-    MolecularSearchSettings.usedAtoms['O'] = (1, 10)
-    MolecularSearchSettings.usedAtoms['N'] = (1, 3)
-    MolecularSearchSettings.usedAtoms['S'] = (1, 3)
-    MolecularSearchSettings.usedAtoms['Cl'] = (0, 0)
+    MSParameters.molecular_search.usedAtoms['O'] = (1, 10)
+    MSParameters.molecular_search.usedAtoms['N'] = (1, 3)
+    MSParameters.molecular_search.usedAtoms['S'] = (1, 3)
+    MSParameters.molecular_search.usedAtoms['Cl'] = (0, 0)
     
-    MolecularSearchSettings.min_dbe = 0
-    MolecularSearchSettings.max_dbe = 50
+    MSParameters.molecular_search.min_dbe = 0
+    MSParameters.molecular_search.max_dbe = 50
     
-    MolecularSearchSettings.isProtonated = True
-    MolecularSearchSettings.isRadical = True
-    MolecularSearchSettings.isAdduct = True
+    MSParameters.molecular_search.isProtonated = True
+    MSParameters.molecular_search.isRadical = True
+    MSParameters.molecular_search.isAdduct = True
 
     SearchMolecularFormulas(mass_spectrum_obj, first_hit=True).run_worker_mass_spectrum()
 
@@ -416,25 +416,25 @@ if __name__ == "__main__":
 
     #mass_spectrum_obj.plot_profile_and_noise_threshold()
     
-    MolecularSearchSettings = MolecularSearchSettings()
+    MolecularFormulaSearchSettings = MolecularFormulaSearchSettings()
     
     #plot_resolving_power()
 
-    #MolecularSearchSettings.error_method = 'None'
-    #MolecularSearchSettings.min_ppm_error  = -10
-    #MolecularSearchSettings.max_ppm_error = 10
+    #MSParameters.molecular_search.error_method = 'None'
+    #MSParameters.molecular_search.min_ppm_error  = -10
+    #MSParameters.molecular_search.max_ppm_error = 10
 
     calibrate(mass_spectrum_obj)
 
     plot_mass_spectrum()
 
-    #MolecularSearchSettings.error_method = 'None'
-    #MolecularSearchSettings.min_ppm_error  = -1
-    #MolecularSearchSettings.max_ppm_error = 1
-    #MolecularSearchSettings.mz_error_range = 1
-    #MolecularSearchSettings.mz_error_average = 0
-    #MolecularSearchSettings.min_abun_error = -30 # percentage
-    #MolecularSearchSettings.max_abun_error = 70 # percentage
+    #MSParameters.molecular_search.error_method = 'None'
+    #MSParameters.molecular_search.min_ppm_error  = -1
+    #MSParameters.molecular_search.max_ppm_error = 1
+    #MSParameters.molecular_search.mz_error_range = 1
+    #MSParameters.molecular_search.mz_error_average = 0
+    #MSParameters.molecular_search.min_abun_error = -30 # percentage
+    #MSParameters.molecular_search.max_abun_error = 70 # percentage
 
     #assign_mf_ox(mass_spectrum_obj)
 
@@ -448,7 +448,7 @@ if __name__ == "__main__":
 
     #plot_mass_spectrum()
     
-    #print('what???', MolecularSearchSettings.min_mz, MolecularSearchSettings.max_mz)
+    #print('what???', MSParameters.molecular_search.min_mz, MSParameters.molecular_search.max_mz)
 
     #search_hc(mass_spectrum_obj)
 

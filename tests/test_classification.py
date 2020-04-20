@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from corems.encapsulation.settings.processingSetting import  MolecularSearchSettings
+from corems.encapsulation.factory.parameters import MSParameters
 from corems.mass_spectrum.factory.classification import  HeteroatomsClassification, Labels
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from test_molecularFormulaSearch import create_mass_spectrum
@@ -12,13 +12,13 @@ from test_molecularFormulaSearch import create_mass_spectrum
 
 def test_heteroatoms_classification():
 
-    MolecularSearchSettings.error_method = 'None'
-    MolecularSearchSettings.min_ppm_error  = -5
-    MolecularSearchSettings.max_ppm_error = 3
-    MolecularSearchSettings.mz_error_range = 1
-    MolecularSearchSettings.isProtonated = True 
-    MolecularSearchSettings.isRadical= False 
-    MolecularSearchSettings.isAdduct= False 
+    MSParameters.molecular_search.error_method = 'None'
+    MSParameters.molecular_search.min_ppm_error  = -5
+    MSParameters.molecular_search.max_ppm_error = 3
+    MSParameters.molecular_search.mz_error_range = 1
+    MSParameters.molecular_search.isProtonated = True 
+    MSParameters.molecular_search.isRadical= False 
+    MSParameters.molecular_search.isAdduct= False 
 
     mass_spec_obj = create_mass_spectrum()
     

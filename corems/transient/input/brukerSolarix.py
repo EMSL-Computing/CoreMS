@@ -7,8 +7,9 @@ from numpy import genfromtxt, fromstring, dtype, fromfile, frombuffer
 from xml.dom import minidom
 
 from corems.transient.factory.TransientClasses import Transient
+from corems.encapsulation.factory.parameters import default_parameters
 
-from corems.encapsulation.settings.input.InputSetting import d_params
+
 
 class ReadBrukerSolarix(object):
     
@@ -102,7 +103,7 @@ class ReadBrukerSolarix(object):
 
         # get rt, scan, and tic from scan.xml file, otherwise  using 0 defaults values 
         
-        output_parameters = deepcopy(d_params(self.d_directory_location))
+        output_parameters = deepcopy(default_parameters(self.d_directory_location))
 
         if self.transient_data_path.name == 'ser':
             
@@ -154,7 +155,7 @@ class ReadBrukerSolarix(object):
         return Transient(data, output_parameters)
 
     """
-        for key, values in d_params.items():
+        for key, values in default_parameters.items():
             print(key, values)
     """
     def fix_freq_limits(self, d_parameters):

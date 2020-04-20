@@ -5,7 +5,7 @@ from corems.mass_spectrum.input.baseClass import MassListBaseClass
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 from corems.encapsulation.constant import Labels, Atoms
-from corems.encapsulation.settings.input.InputSetting import DataInputSetting
+from corems.encapsulation.factory.processingSetting  import DataInputSetting
 
 class ReadCoremsMasslist(MassListBaseClass):
     '''
@@ -25,7 +25,7 @@ class ReadCoremsMasslist(MassListBaseClass):
         
         self.check_columns(dataframe.columns)
         
-        dataframe.rename(columns=DataInputSetting.header_translate, inplace=True)
+        dataframe.rename(columns=DataInputSetting().header_translate, inplace=True)
  
         polarity = dataframe['Ion Charge'].values[0]
 
@@ -74,7 +74,7 @@ class ReadCoremsMasslist(MassListBaseClass):
             if sum(counts) > 0:
 
                 ion_type = str(Labels.ion_type_translate.get(ion_type_df[df_index]))
-                mfobj = MolecularFormula(formula_list, int(ion_charge_df[df_index]), mass_spec_obj[ms_peak_index].mz_exp, ion_type=ion_type)
+                mfobj = MolecularFormula(formula_list, int(ion_charge_df[df_index]), mspeak_parent=mass_spec_obj[ms_peak_index] , ion_type=ion_type)
                 mfobj.is_isotopologue = bool(is_isotopologue_df[df_index])
                 mass_spec_obj[ms_peak_index].add_molecular_formula(mfobj)
 
@@ -105,7 +105,7 @@ class ReadMassList(MassListBaseClass):
             
         self.clean_data_frame(dataframe)
         
-        dataframe.rename(columns=DataInputSetting.header_translate, inplace=True)
+        dataframe.rename(columns=DataInputSetting().header_translate, inplace=True)
         
         output_parameters = self.get_output_parameters(polarity)
 

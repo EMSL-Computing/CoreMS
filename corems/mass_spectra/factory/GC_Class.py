@@ -10,8 +10,7 @@ from numpy import array
 from corems.mass_spectra.calc.GC_Calc import GC_Calculations
 from corems.chroma_peak.factory.ChromaPeakClasses import GCPeak
 from corems.mass_spectra.output.export import LowResGCMSExport
-
-from corems.encapsulation.settings.processingSetting import CompoundSearchSettings, GasChromatographSetting
+from corems.encapsulation.factory.parameters import GCMSParameters
 
 class GCMSBase(GC_Calculations):
     """
@@ -52,14 +51,11 @@ class GCMSBase(GC_Calculations):
         self._processed_tic = []
         self.gcpeaks = []
 
+    
     def _init_settings(self):
         
-        from copy import deepcopy
-        
-        self._gcms_settings  = deepcopy(GasChromatographSetting)
-        
-        self._comp_search_settings  = deepcopy(CompoundSearchSettings)
-        
+        self._parameters = GCMSParameters()
+
     def __len__(self):
         
         return len(self.gcpeaks)
@@ -71,8 +67,7 @@ class GCMSBase(GC_Calculations):
     #def __iter__(self):
 
     #     return iter(self.gcpeaks.values())
-
-    
+ 
     def process_chromatogram(self,):
 
         #tic = self.tic - self.baseline_detector(self.tic)
@@ -126,22 +121,30 @@ class GCMSBase(GC_Calculations):
         self.scans_number = sorted(self._ms.keys())
 
     @property
+    def parameter(self):
+        return self._parameters
+
+    @parameter.setter
+    def parameter(self, gcms_parameters_instance):
+        return self._parameters
+
+    @property
     def molecular_search_settings(self):
-        return self._comp_search_settings
+        return self.parameter.molecular_search
 
     @molecular_search_settings.setter
     def molecular_search_settings(self, settings_class_instance):
         
-        self._comp_search_settings = settings_class_instance   
+        self.parameter.molecular_search = settings_class_instance   
 
     @property
     def chromatogram_settings(self):
-        return self._gcms_settings
+        return self.parameter.gc_ms
 
     @chromatogram_settings.setter
     def chromatogram_settings(self, settings_class_instance):
         
-        self._gcms_settings = settings_class_instance 
+        self.parameter.gc_ms = settings_class_instance 
 
     @property
     def scans_number(self):

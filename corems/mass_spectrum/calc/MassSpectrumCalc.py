@@ -3,7 +3,6 @@ __date__ = "Jun 27, 2019"
 
 from numpy import power, multiply, sqrt, multiply, array
 from corems.mass_spectrum.calc.NoiseCalc import NoiseThresholdCalc
-
 from corems.mass_spectrum.calc.PeakPicking import PeakPicking
 
 class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):

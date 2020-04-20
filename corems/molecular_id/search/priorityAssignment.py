@@ -30,7 +30,7 @@ class OxygenPriorityAssignment(Thread):
         #  initiated at create_molecular_database()
         #self.dict_molecular_lookup_table = None
         
-        self.sql_db = MolForm_SQL(mass_spectrum_obj.polarity, mass_spectrum_obj.molform_search_settings.url_database)
+        self.sql_db = MolForm_SQL(mass_spectrum_obj.polarity, mass_spectrum_obj.molecular_search_settings.url_database)
 
     def run(self):
         
@@ -73,9 +73,9 @@ class OxygenPriorityAssignment(Thread):
             
             self.mass_spectrum_obj.reset_indexes()
 
-            #initial_ox = deepcopy(self.mass_spectrum_obj.molform_search_settings.usedAtoms)
+            #initial_ox = deepcopy(self.mass_spectrum_obj.molecular_search_settings.usedAtoms)
 
-            self.mass_spectrum_obj.molform_search_settings.usedAtoms['O'] = (min_o, max_o)
+            self.mass_spectrum_obj.molecular_search_settings.usedAtoms['O'] = (min_o, max_o)
 
             self.nominal_mzs = self.mass_spectrum_obj.nominal_mz
 
@@ -103,7 +103,7 @@ class OxygenPriorityAssignment(Thread):
         
         def check_adduct_class(classe_dict):
 
-            return any([key in classe_dict.keys() for key in self.mass_spectrum_obj.molform_search_settings.adduct_atoms_neg])
+            return any([key in classe_dict.keys() for key in self.mass_spectrum_obj.molecular_search_settings.adduct_atoms_neg])
         
         def set_min_max_dbe_by_oxygen(classe_dict):
             # calculates min and max DBE based on the Oxygen number
@@ -119,12 +119,12 @@ class OxygenPriorityAssignment(Thread):
                     if atom in classe_dict.keys():
                         Oxygen_number += classe_dict.get(atom)
 
-                self.mass_spectrum_obj.molform_search_settings.min_dbe = (Oxygen_number/3) - 0.5 
-                self.mass_spectrum_obj.molform_search_settings.max_dbe = Oxygen_number*3 + 0.5 + 2
+                self.mass_spectrum_obj.molecular_search_settings.min_dbe = (Oxygen_number/3) - 0.5 
+                self.mass_spectrum_obj.molecular_search_settings.max_dbe = Oxygen_number*3 + 0.5 + 2
             
             else:
             '''    
-            self.mass_spectrum_obj.molform_search_settings.use_pah_line_rule = True
+            self.mass_spectrum_obj.molecular_search_settings.use_pah_line_rule = True
 
         def run_search(possible_formulas_dict, mass_spectrum_obj, min_abundance):
             
@@ -160,7 +160,7 @@ class OxygenPriorityAssignment(Thread):
             # thefore no need to return remaining indexes
             MolecularFormulaSearchFilters().check_min_peaks(all_assigned_indexes, mass_spectrum_obj)
 
-        #error_average = self.mass_spectrum_obj.molform_search_settings.mz_error_average
+        #error_average = self.mass_spectrum_obj.molecular_search_settings.mz_error_average
         
         kdm_base = self.mass_spectrum_obj.mspeaks_settings.kendrick_base
         
@@ -188,7 +188,7 @@ class OxygenPriorityAssignment(Thread):
             
             dict_molecular_lookup_table = self.get_dict_molecular_database(classe_str)
 
-            if self.mass_spectrum_obj.molform_search_settings.isProtonated:
+            if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
 
                     #tqdm.set_description_str(desc=None, refresh=True)
                     pbar.set_description_str(desc="Started molecular formula search for class %s, (de)protonated " % classe_str, refresh=True)
@@ -201,7 +201,7 @@ class OxygenPriorityAssignment(Thread):
 
                         run_search(possible_formulas_dict, self.mass_spectrum_obj, min_abundance)
 
-            if self.mass_spectrum_obj.molform_search_settings.isRadical:
+            if self.mass_spectrum_obj.molecular_search_settings.isRadical:
 
                     #print("Started molecular formula search for class %s,  radical" % classe_str)
                     pbar.set_description_str(desc="Started molecular formula search for class %s, radical" % classe_str, refresh=True)
@@ -216,7 +216,7 @@ class OxygenPriorityAssignment(Thread):
 
             # looks for adduct, used_atom_valences should be 0 
             # this code does not support H exchance by halogen atoms
-            if self.mass_spectrum_obj.molform_search_settings.isAdduct:
+            if self.mass_spectrum_obj.molecular_search_settings.isAdduct:
                 
                 pbar.set_description_str(desc="Started molecular formula search for class %s, adduct" % classe_str, refresh=True)
                 #print("Started molecular formula search for class %s, adduct" % classe_str)
@@ -236,17 +236,17 @@ class OxygenPriorityAssignment(Thread):
             
         dict_res = {}
         
-        if self.mass_spectrum_obj.molform_search_settings.isProtonated:
+        if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
             
             ion_type = Labels.protonated_de_ion
             
-            dict_res[ion_type] = self.sql_db.get_dict_entries([classe_str], ion_type, self.nominal_mzs, self.mass_spectrum_obj.molform_search_settings)
+            dict_res[ion_type] = self.sql_db.get_dict_entries([classe_str], ion_type, self.nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
             
-        if self.mass_spectrum_obj.molform_search_settings.isRadical or self.mass_spectrum_obj.molform_search_settings.isAdduct:
+        if self.mass_spectrum_obj.molecular_search_settings.isRadical or self.mass_spectrum_obj.molecular_search_settings.isAdduct:
 
             ion_type = Labels.radical_ion
 
-            dict_res[ion_type] = self.sql_db.get_dict_entries([classe_str], ion_type, self.nominal_mzs, self.mass_spectrum_obj.molform_search_settings)
+            dict_res[ion_type] = self.sql_db.get_dict_entries([classe_str], ion_type, self.nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
     
         return dict_res
     
@@ -277,7 +277,7 @@ class OxygenPriorityAssignment(Thread):
         ''' structure is 
             ('HC', {'HC': 1})'''
         
-        usedAtoms = deepcopy(self.mass_spectrum_obj.molform_search_settings.usedAtoms)
+        usedAtoms = deepcopy(self.mass_spectrum_obj.molecular_search_settings.usedAtoms)
         
         usedAtoms.pop("C")
         usedAtoms.pop("H")
@@ -414,9 +414,9 @@ class OxygenPriorityAssignment(Thread):
         ion_type = Labels.adduct_ion
 
         if self.mass_spectrum_obj.polarity < 0:
-            adduct_atoms = self.mass_spectrum_obj.molform_search_settings.adduct_atoms_neg
+            adduct_atoms = self.mass_spectrum_obj.molecular_search_settings.adduct_atoms_neg
         else:
-            adduct_atoms = self.mass_spectrum_obj.molform_search_settings.adduct_atoms_pos
+            adduct_atoms = self.mass_spectrum_obj.molecular_search_settings.adduct_atoms_pos
 
         new_dict = {}
         

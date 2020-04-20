@@ -3,10 +3,11 @@ from os.path import basename, dirname, normpath
 from matplotlib import rcParamsDefault, rcParams
 from numpy import linspace
 
-from corems.encapsulation.settings.processingSetting import TransientSetting
+from corems.encapsulation.factory.parameters import MSParameters
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
 from corems.transient.calc.TransientCalc import TransientCalculations
 import matplotlib.pyplot as plt
+from copy import deepcopy
 
 
 __author__ = "Yuri E. Corilo"
@@ -76,6 +77,8 @@ class Transient(TransientCalculations):
 
         self.location = 220
 
+        self._parameters = deepcopy(MSParameters.transient)
+
     def scale_plot_size(self, factor=1.5):
 
         default_dpi = rcParamsDefault["figure.dpi"]
@@ -88,15 +91,23 @@ class Transient(TransientCalculations):
         self, apodization_method, number_of_truncations, number_of_zero_fills
     ):
 
-        TransientSetting.apodization_method = apodization_method
+        self.parameters.apodization_method = apodization_method
 
-        TransientSetting.number_of_truncations = number_of_truncations
+        self.parameters.number_of_truncations = number_of_truncations
 
-        TransientSetting.number_of_zero_fills = number_of_zero_fills
+        self.parameters.number_of_zero_fills = number_of_zero_fills
+
+    @property
+    def parameters(self):
+        return self._parameters
+
+    @parameters.setter
+    def parameters(self, instance_MSParameters):
+        self._parameters = instance_MSParameters
 
     def get_frequency_domain(self, plot_result=True):
 
-        if TransientSetting.number_of_truncations > 0:
+        if self.parameters.number_of_truncations > 0:
 
             new_time_domain = self.truncation(self._transient_data)
 
@@ -104,7 +115,7 @@ class Transient(TransientCalculations):
 
             new_time_domain = self._transient_data
 
-        if TransientSetting.apodization_method is not None:
+        if self.parameters.apodization_method is not None:
 
             new_time_domain = self.apodization(new_time_domain)
 
@@ -117,7 +128,7 @@ class Transient(TransientCalculations):
         time_domain_y_zero_filled = self.zero_fill(new_time_domain)
 
         self.transient_time = self.transient_time * (
-            TransientSetting.number_of_zero_fills + 1
+            self.parameters.number_of_zero_fills + 1
         )
 
         if plot_result:
@@ -212,7 +223,7 @@ class Transient(TransientCalculations):
         new_time_domain = self.apodization(self._transient_data)
         time_domain_y_zero_filled = self.zero_fill(new_time_domain)
         self.transient_time = self.transient_time * (
-            TransientSetting.number_of_zero_fills + 1
+            self.parameters.number_of_zero_fills + 1
         )
         time_axis = linspace(0, self.transient_time, num=len(time_domain_y_zero_filled))
         # plt.subplot(self.location)

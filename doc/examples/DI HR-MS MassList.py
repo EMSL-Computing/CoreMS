@@ -57,24 +57,24 @@ def run_assignment(file_location):
     #mass_spectrum = run_bruker(file_location)
     mass_spectrum = get_masslist(file_location)
 
-    mass_spectrum.molform_search_settings.error_method = 'None'
-    mass_spectrum.molform_search_settings.min_ppm_error  = -1
-    mass_spectrum.molform_search_settings.max_ppm_error = 1
+    mass_spectrum.molecular_search_settings.error_method = 'None'
+    mass_spectrum.molecular_search_settings.min_ppm_error  = -1
+    mass_spectrum.molecular_search_settings.max_ppm_error = 1
 
-    mass_spectrum.molform_search_settings.min_dbe = 0
-    mass_spectrum.molform_search_settings.max_dbe = 50
+    mass_spectrum.molecular_search_settings.min_dbe = 0
+    mass_spectrum.molecular_search_settings.max_dbe = 50
 
-    mass_spectrum.molform_search_settings.usedAtoms['C'] = (1,90)
-    mass_spectrum.molform_search_settings.usedAtoms['H'] = (4,200)
-    mass_spectrum.molform_search_settings.usedAtoms['O'] = (0,24)
-    mass_spectrum.molform_search_settings.usedAtoms['N'] = (0,1)
-    mass_spectrum.molform_search_settings.usedAtoms['S'] = (0,0)
-    mass_spectrum.molform_search_settings.usedAtoms['Cl'] = (0,0)
-    mass_spectrum.molform_search_settings.usedAtoms['P'] = (0,0)
-    mass_spectrum.molform_search_settings.usedAtoms['Na'] = (0,0)
-    mass_spectrum.molform_search_settings.isProtonated = True
-    mass_spectrum.molform_search_settings.isRadical= False
-    mass_spectrum.molform_search_settings.isAdduct = False
+    mass_spectrum.molecular_search_settings.usedAtoms['C'] = (1,90)
+    mass_spectrum.molecular_search_settings.usedAtoms['H'] = (4,200)
+    mass_spectrum.molecular_search_settings.usedAtoms['O'] = (0,24)
+    mass_spectrum.molecular_search_settings.usedAtoms['N'] = (0,1)
+    mass_spectrum.molecular_search_settings.usedAtoms['S'] = (0,0)
+    mass_spectrum.molecular_search_settings.usedAtoms['Cl'] = (0,0)
+    mass_spectrum.molecular_search_settings.usedAtoms['P'] = (0,0)
+    mass_spectrum.molecular_search_settings.usedAtoms['Na'] = (0,0)
+    mass_spectrum.molecular_search_settings.isProtonated = True
+    mass_spectrum.molecular_search_settings.isRadical= False
+    mass_spectrum.molecular_search_settings.isAdduct = False
     
     mass_spectrum.filter_by_max_resolving_power(15, 2)
 
@@ -118,7 +118,7 @@ def run_multiprocess():
     #file_location = get_dirname()
     file_location = get_filename()
     p = Pool(cores)
-    args = [(file_path) for file_path in [file_location]*16]
+    args = [(file_path) for file_path in [file_location]*1]
     ms_collection = p.map(worker, args)
     p.close()
     p.join()

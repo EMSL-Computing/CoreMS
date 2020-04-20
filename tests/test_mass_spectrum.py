@@ -12,7 +12,7 @@ from matplotlib import pyplot
 import pytest
 
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
-from corems.encapsulation.settings.processingSetting import MassSpectrumSetting, TransientSetting
+from corems.encapsulation.factory.processingSetting  import MassSpectrumSetting, TransientSetting
 
 def test_create_mass_spectrum():
     

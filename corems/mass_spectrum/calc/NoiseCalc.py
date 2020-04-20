@@ -2,11 +2,8 @@ import time
 
 from numpy import where, average, std, isnan, inf, hstack
 
-from corems.encapsulation.settings.processingSetting import MassSpectrumSetting
-
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 27, 2019"
-
 
 class NoiseThresholdCalc:
 
@@ -35,8 +32,8 @@ class NoiseThresholdCalc:
 
         else:
 
-            min_mz_noise = MassSpectrumSetting.min_noise_mz
-            max_mz_noise = MassSpectrumSetting.max_noise_mz
+            min_mz_noise = self.settings.min_noise_mz
+            max_mz_noise = self.settings.max_noise_mz
             
         final = where(self.mz_exp_profile > min_mz_noise)[-1][-1]
         comeco = where(self.mz_exp_profile > min_mz_noise)[0][0]

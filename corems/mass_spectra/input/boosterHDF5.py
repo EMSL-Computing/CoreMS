@@ -7,7 +7,7 @@ from threading import Thread
 from corems.encapsulation.constant import Labels
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile
 from corems.mass_spectra.factory.LC_Class import LCMSBase
-from corems.encapsulation.settings.input import InputSetting
+from corems.encapsulation.factory.parameters import default_parameters
 
 class ReadHDF_BoosterMassSpectra(Thread):
     
@@ -110,7 +110,7 @@ class ReadHDF_BoosterMassSpectra(Thread):
     def run(self):
         '''creates the lcms obj'''
 
-        d_parameters = InputSetting.d_params(self.file_location)
+        d_parameters = default_parameters(self.file_location)
         self.import_mass_spectra(d_parameters)
             
     def get_lcms_obj(self):

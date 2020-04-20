@@ -31,27 +31,27 @@ if __name__ == "__main__":
     #print("polarity", mass_spectrum.polarity)
     #plt.show()
 
-    mass_spectrum.molform_search_settings.error_method = 'None'
-    mass_spectrum.molform_search_settings.min_ppm_error  = -0.4
-    mass_spectrum.molform_search_settings.max_ppm_error = 0.0
+    mass_spectrum.molecular_search_settings.error_method = 'None'
+    mass_spectrum.molecular_search_settings.min_ppm_error  = -0.4
+    mass_spectrum.molecular_search_settings.max_ppm_error = 0.0
 
-    mass_spectrum.molform_search_settings.min_dbe = 0
-    mass_spectrum.molform_search_settings.max_dbe = 30
+    mass_spectrum.molecular_search_settings.min_dbe = 0
+    mass_spectrum.molecular_search_settings.max_dbe = 30
 
-    mass_spectrum.molform_search_settings.usedAtoms['C'] = (1,90)
-    mass_spectrum.molform_search_settings.usedAtoms['H'] = (4,200)
-    mass_spectrum.molform_search_settings.usedAtoms['O'] = (1,20)
-    mass_spectrum.molform_search_settings.usedAtoms['N'] = (0,3)
-    mass_spectrum.molform_search_settings.usedAtoms['S'] = (0,3)
-    mass_spectrum.molform_search_settings.usedAtoms['Cl'] = (0,0)
-    mass_spectrum.molform_search_settings.usedAtoms['P'] = (0,0)
-    mass_spectrum.molform_search_settings.usedAtoms['Na'] = (0,0)
-    mass_spectrum.molform_search_settings.usedAtoms['K'] = (0,0)
-    mass_spectrum.molform_search_settings.usedAtoms['Fe'] = (0,0)
-    mass_spectrum.molform_search_settings.usedAtoms['Se'] = (0,0)
-    mass_spectrum.molform_search_settings.isProtonated = True
-    mass_spectrum.molform_search_settings.isRadical= False
-    mass_spectrum.molform_search_settings.isAdduct = True
+    mass_spectrum.molecular_search_settings.usedAtoms['C'] = (1,90)
+    mass_spectrum.molecular_search_settings.usedAtoms['H'] = (4,200)
+    mass_spectrum.molecular_search_settings.usedAtoms['O'] = (1,20)
+    mass_spectrum.molecular_search_settings.usedAtoms['N'] = (0,3)
+    mass_spectrum.molecular_search_settings.usedAtoms['S'] = (0,3)
+    mass_spectrum.molecular_search_settings.usedAtoms['Cl'] = (0,0)
+    mass_spectrum.molecular_search_settings.usedAtoms['P'] = (0,0)
+    mass_spectrum.molecular_search_settings.usedAtoms['Na'] = (0,0)
+    mass_spectrum.molecular_search_settings.usedAtoms['K'] = (0,0)
+    mass_spectrum.molecular_search_settings.usedAtoms['Fe'] = (0,0)
+    mass_spectrum.molecular_search_settings.usedAtoms['Se'] = (0,0)
+    mass_spectrum.molecular_search_settings.isProtonated = True
+    mass_spectrum.molecular_search_settings.isRadical= False
+    mass_spectrum.molecular_search_settings.isAdduct = True
     
     
     SearchMolecularFormulas(mass_spectrum, first_hit=False).run_worker_mass_spectrum()

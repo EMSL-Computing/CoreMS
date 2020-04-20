@@ -4,12 +4,12 @@ import json
 from pandas import DataFrame
 import h5py
 
-from corems.encapsulation.settings.io.settings_parsers import set_dict_data_ms
+from corems.encapsulation.input.parameter_from_json import _set_dict_data_ms
 from corems.mass_spectrum.input.massList import ReadCoremsMasslist
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroid
 from corems.encapsulation.constant import Labels
-from corems.encapsulation.settings.input import InputSetting
-from corems.encapsulation.settings.input.InputSetting import DataInputSetting
+from corems.encapsulation.factory.parameters import default_parameters
+from corems.encapsulation.factory.processingSetting  import DataInputSetting
 
 
 class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
@@ -60,7 +60,7 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         if not set(['H/C', 'O/C', 'Heteroatom Class', 'Ion Type', 'Is Isotopologue']).issubset(dataframe.columns):
             raise ValueError("%s it is not a valid CoreMS file" % str(self.file_location))
         
-        dataframe.rename(columns=DataInputSetting.header_translate, inplace=True)
+        dataframe.rename(columns=DataInputSetting().header_translate, inplace=True)
  
         polarity = dataframe['Ion Charge'].values[0]
 
@@ -82,12 +82,10 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         loaded_settings = {}
         loaded_settings['MoleculaSearch'] = self.get_scan_group_attr_data(scan_index,  time_index, 'MoleculaSearchSetting')
         loaded_settings['MassSpecPeak'] = self.get_scan_group_attr_data(scan_index,  time_index, 'MassSpecPeakSetting')
-        
         loaded_settings['MassSpectrum'] = self.get_scan_group_attr_data(scan_index, time_index, 'MassSpectrumSetting')
-        
         loaded_settings['Transient'] = self.get_scan_group_attr_data(scan_index, time_index, 'TransientSetting')
         
-        set_dict_data_ms(loaded_settings, mass_spectrum)
+        _set_dict_data_ms(loaded_settings, mass_spectrum)
 
     #override baseclass  
     def get_dataframe(self, scan_index = 0, time_index = -1):
@@ -151,7 +149,7 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
     #override baseclass  
     def get_output_parameters(self, polarity, scan_index=0):
         
-        d_params = InputSetting.d_params(self.file_location)
+        d_params = default_parameters(self.file_location)
         d_params["filename_path"] = self.file_location
         d_params["scan_number"] = int(self.scans[scan_index])
         d_params['polarity'] = self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'polarity')

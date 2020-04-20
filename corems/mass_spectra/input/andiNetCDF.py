@@ -7,12 +7,9 @@ from threading import Thread
 from netCDF4 import Dataset
 
 from corems.encapsulation.constant import Labels
-from corems.encapsulation.settings.input import InputSetting
+from corems.encapsulation.factory.parameters import default_parameters
 from corems.mass_spectra.factory.GC_Class import GCMSBase
-
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroidLowRes
-
-
 
 
 class ReadAndiNetCDF(Thread):
@@ -94,14 +91,16 @@ class ReadAndiNetCDF(Thread):
         
 		'''populate the gcms obj'''
 
-		d_parameters = InputSetting.d_params(self.file_location)
+		d_parameters = default_parameters(self.file_location)
 		
 		self.import_mass_spectra(d_parameters)
 	
 	def import_mass_spectra(self, d_params):
 		
 		ms_datapoints_per_scans = self.net_cdf_obj.variables.get("point_count")[:]
-
+		
+		print(ms_datapoints_per_scans)
+		
 		list_tic = self.net_cdf_obj.variables.get("total_intensity")[:]	
 
 		list_rt = self.net_cdf_obj.variables.get("scan_acquisition_time")[:]/60

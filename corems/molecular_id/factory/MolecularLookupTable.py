@@ -6,7 +6,7 @@ import itertools
 import multiprocessing
 import pickle
 import json
-from corems.encapsulation.settings.processingSetting import MolecularLookupDictSettings
+from corems.encapsulation.factory.processingSetting  import MolecularLookupDictSettings
 from corems.encapsulation.constant import Labels
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL, MolecularFormulaTable

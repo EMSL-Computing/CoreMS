@@ -1,7 +1,6 @@
 from copy import deepcopy
 from collections import OrderedDict
 from corems.molecular_formula.calc.MolecularFormulaCalc import MolecularFormulaCalc
-from corems.encapsulation.settings.processingSetting import MassSpecPeakSetting
 from corems.encapsulation.constant import Atoms, Labels
 from numpy import nan
 import re
@@ -36,7 +35,10 @@ class MolecularFormula(MolecularFormulaCalc):
         self.expected_isotopologues = []
         self.mspeak_mf_isotopologues_indexes = []
         
-        kendrick_dict_base = MassSpecPeakSetting.kendrick_base
+        if self._mspeak_parent:
+            kendrick_dict_base = self._mspeak_parent._ms_parent.kendrick_base
+        else:
+            kendrick_dict_base = {'C':1, 'H':2}
         self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(
             kendrick_dict_base)  
         
