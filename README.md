@@ -12,7 +12,7 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 
 ## Current Version
 
-### `11.1.0.beta`
+### `11.1.1.beta`
 
 ### Data input formats
 
@@ -167,7 +167,7 @@ for mspeak in mass_spectrum_obj.sort_by_abundance():
     # same as mspeak.is_assigned -- > bool
     if  mspeak:
 
-        # get the molecular formula with the lowest highest mass accuracy
+        # get the molecular formula with the highest mass accuracy
         molecular_formula = mspeak.molecular_formula_lowest_error
 
         # plot mz and peak height, use mass_spectrum_obj.mz_exp to access all mz
