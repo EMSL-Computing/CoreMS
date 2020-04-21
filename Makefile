@@ -41,6 +41,3 @@ docker:
 	@docker push corilo/corems:$(version)
 	@docker image tag corilo/corems:$(version) corilo/corems:latest
 	@docker push corilo/corems:latest
-
-
-	

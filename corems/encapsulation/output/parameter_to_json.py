@@ -1,6 +1,6 @@
 from corems.encapsulation.output import parameter_to_dict 
 
-def dump_all_settings_json(filename='SettingsCoreMS.json'):
+def dump_all_settings_json(filename='SettingsCoreMS.json', file_path=None):
     
     from pathlib import Path
     import json
@@ -9,7 +9,8 @@ def dump_all_settings_json(filename='SettingsCoreMS.json'):
     data_dict_all = parameter_to_dict.get_dict_gcms_default_data()
     data_dict_all = parameter_to_dict.get_dict_ms_default_data()
 
-    file_path = Path.cwd() / filename 
+    if not file_path:
+        file_path = Path.cwd() / filename 
     
     with open(file_path, 'w', encoding='utf8', ) as outfile:
             
@@ -20,7 +21,7 @@ def dump_all_settings_json(filename='SettingsCoreMS.json'):
         
         outfile.write(output)
 
-def dump_ms_settings_json(filename='SettingsCoreMS.json'):
+def dump_ms_settings_json(filename='SettingsCoreMS.json', file_path=None):
     
     from pathlib import Path
     import json
@@ -28,7 +29,9 @@ def dump_ms_settings_json(filename='SettingsCoreMS.json'):
     '''        
     data_dict = parameter_to_dict.get_dict_ms_default_data()
 
-    file_path = Path.cwd() / filename 
+    if not file_path:
+        
+        file_path = Path.cwd() / filename 
     
     with open(file_path, 'w', encoding='utf8', ) as outfile:
             
@@ -39,16 +42,17 @@ def dump_ms_settings_json(filename='SettingsCoreMS.json'):
         
         outfile.write(output)
 
-def dump_gcms_settings_json(filename='SettingsCoreMS.json'):
-    
-    from pathlib import Path
-    import json
+def dump_gcms_settings_json(filename='SettingsCoreMS.json', file_path=None):
     '''Write JSON file into current directory
     '''        
-
+    from pathlib import Path
+    import json
+    
     data_dict = parameter_to_dict.get_dict_gcms_default_data()
 
-    file_path = Path.cwd() / filename 
+    if not file_path:
+        
+        file_path = Path.cwd() / filename 
     
     with open(file_path, 'w', encoding='utf8', ) as outfile:
             
