@@ -43,3 +43,5 @@ di-fticr.prof
 .pypirc
 di-fticr.prof.log
 gc-ms.prof
+di-fticr-di.prof
+di-fticr-transient.prof
