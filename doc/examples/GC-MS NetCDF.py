@@ -61,7 +61,10 @@ def get_reference_dict():
     else:
         
         gcms_ref_obj = get_gcms(file_path)
-
+        # sql_obj = start_sql_from_file()
+        #rt_ri_pairs = get_rt_ri_pairs(gcms_ref_obj,sql_obj=sql_obj)
+        # !!!!!! READ !!!!! use the previous two lines if db/pnnl_lowres_gcms_compounds.sqlite does not exist
+        # and comment the next line
         rt_ri_pairs = get_rt_ri_pairs(gcms_ref_obj)
 
         return rt_ri_pairs
