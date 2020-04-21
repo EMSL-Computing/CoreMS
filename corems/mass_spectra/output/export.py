@@ -102,10 +102,15 @@ class LowResGCMSExport():
         
         dict_data_list = self.get_list_dict_data(self.gcms)
 
+        out_put_path = self.output_file.with_suffix('.csv')
+
+        write_header = not out_put_path.exists()
+        
         try:
-            with open(self.output_file.with_suffix('.csv'), write_mode, newline='') as csvfile:
+            with open(out_put_path, write_mode, newline='') as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=columns)
-                writer.writeheader()
+                if write_header:
+                    writer.writeheader()
                 for data in dict_data_list:
                     writer.writerow(data)
             
