@@ -45,7 +45,8 @@ class MassSpecPeakSetting:
     def __post_init__(self):
         
         self.kendrick_base = {'C': 1, 'H':2}
-    
+       
+       
 @dataclass 
 class GasChromatographSetting:
     
@@ -76,34 +77,37 @@ class GasChromatographSetting:
     peak_min_prominence_percent:float = 1 #1-100 % used for peak detection
 
 
-ri_calibration_compound_names = (" [C8] Methyl Caprylate [7.812]",
-" [C10] Methyl Caprate [10.647]",
-" [C9] Methyl Pelargonate [9.248]",
-" [C12] Methyl Laurate [13.250]",
-" [C14] Methyl Myristate [15.597]",
-" [C16] Methyl Palmitate [17.723]",
-" [C18] Methyl Stearate [19.663]",
-" [C20] Methyl Eicosanoate [21.441]",
-" [C22] Methyl Docosanoate [23.082]",
-" [C24] Methyl Linocerate [24.603]",
-" [C26] Methyl Hexacosanoate [26.023]",
-" [C28] Methyl Octacosanoate [27.349]",
-" [C30] Methyl Triacontanoate [28.723]")
-
 @dataclass 
 class CompoundSearchSettings:
 
+    #url_database = 'postgresql://postgres:labthomson0102@172.22.113.27:5432/' 
+    url_database: str = None#'sqlite://'
+    
     ri_search_range:float = 20
 
-    rt_search_range:float = 0.5
+    rt_search_range:float = 0.5 #used for retention index calibration
     
     correlation_threshold:float = 0.5 # used for calibration, spectral similarity 
     
-    score_threshold:float = 0.0
+    score_threshold:float = 0.0 
 
     ri_spacing:float = 200
 
     ri_std:float = 3 # in standard deviation
+
+    ri_calibration_compound_names:tuple = (" [C8] Methyl Caprylate [7.812]",
+                                " [C10] Methyl Caprate [10.647]",
+                                " [C9] Methyl Pelargonate [9.248]",
+                                " [C12] Methyl Laurate [13.250]",
+                                " [C14] Methyl Myristate [15.597]",
+                                " [C16] Methyl Palmitate [17.723]",
+                                " [C18] Methyl Stearate [19.663]",
+                                " [C20] Methyl Eicosanoate [21.441]",
+                                " [C22] Methyl Docosanoate [23.082]",
+                                " [C24] Methyl Linocerate [24.603]",
+                                " [C26] Methyl Hexacosanoate [26.023]",
+                                " [C28] Methyl Octacosanoate [27.349]",
+                                " [C30] Methyl Triacontanoate [28.723]")
 
 @dataclass 
 class MolecularLookupDictSettings:

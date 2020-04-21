@@ -44,7 +44,7 @@ class LowResCompoundRef:
         
 class LowResolutionEICompound(Base):  
     
-    __tablename__ = 'low_res_ei_lib'
+    __tablename__ = 'pnnl_lowres_gcms_compounds'
 
     id = Column( String, primary_key=True)
     
@@ -92,14 +92,9 @@ class LowResolutionEICompound(Base):
 class EI_LowRes_SQLite:
     
     def __init__(self, url='sqlite://'):
-
-        self.engine = create_engine(url,echo=False)
-
-        # to use a online database: 
-        # comment previous statement and uncomment next 
-        # add database address    
-        #self.engine = create_engine('postgresql://postgres:docker@localhost:5432/')
         
+        self.engine = self.init_engine(url)
+
         Base.metadata.create_all(self.engine)
 
         Session = sessionmaker(bind=self.engine)
@@ -113,28 +108,22 @@ class EI_LowRes_SQLite:
         self.session.close()
         self.engine.dispose()
 
+    def init_engine(self, url):
+        
+        directory = os.getcwd()
+        
+        if not url:
+            
+            if not os.path.isdir(directory+'/db'):
+                    
+                os.mkdir(directory+'/db')    
+            
+            url = 'sqlite:///{DB}/db/pnnl_lowres_gcms_compounds.sqlite'.format(DB=directory)
+
+        return create_engine(url, poolclass=QueuePool)
+
     def __enter__(self):
         
-        
-        #local engine     
-        #directory = os.getcwd()
-        #if not os.path.isdir(directory+'/db'): os.mkdir(directory+'/db')    
-        #self.engine = create_engine('sqlite:///{DB}'.format(DB=directory+'/db'+'/ei_low_res.sqlite'), poolclass=QueuePool) 
-        
-        # in-memory
-        self.engine = create_engine('sqlite://',echo=False)
-
-        # to use a online database: 
-        # comment previous statement and uncomment next 
-        # add database address    
-        #self.engine = create_engine('postgresql://postgres:docker@localhost:5432/')
-        
-        Base.metadata.create_all(self.engine)
-
-        Session = sessionmaker(bind=self.engine)
-        
-        self.session = Session()
-
         return self
     
     def add_compound_list(self, data_dict_list):
@@ -194,6 +183,18 @@ class EI_LowRes_SQLite:
         
         return [self.row_to_dict(compound) for compound in compounds]
 
+    def query_names_and_rt(self, min_max_rt, compound_names):
+        
+        min_rt, max_rt = min_max_rt
+        
+        compounds = self.session.query(LowResolutionEICompound).filter(LowResolutionEICompound.name.in_(compound_names)).filter(
+                                        LowResolutionEICompound.rt >= min_rt,
+                                        LowResolutionEICompound.rt <= max_rt,
+                                        )
+        
+        #self.session.query.select(LowResolutionEICompound).where(between(LowResolutionEICompound.ri, min_ri, max_ri))    
+        x = [self.row_to_dict(compound) for compound in compounds]
+        return [self.row_to_dict(compound) for compound in compounds]
 
     def query_min_max_ri_and_rt(self, min_max_ri, min_max_rt, ):
         

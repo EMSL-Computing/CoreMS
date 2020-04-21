@@ -9,13 +9,12 @@ class MSParameters:
     mass_spectrum = MassSpectrumSetting()
     ms_peak =  MassSpecPeakSetting()
     data_input =  DataInputSetting()
-            
-
+  
 class GCMSParameters:
 
     molecular_search = CompoundSearchSettings()
     gc_ms = GasChromatographSetting()
-
+    
 
 def default_parameters(file_location): #pragma: no cover
 

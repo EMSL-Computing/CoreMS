@@ -12,6 +12,14 @@ class GC_Calculations:
     classdocs
     '''
     
+    def calibrate_ri(self, ref_dict):
+        
+        for gcms_peak in self:
+        
+            gcms_peak.calc_ri(ref_dict)
+
+        self.ri_pairs_ref = ref_dict
+        
     def smooth(self, x, window_len, window):
         
         """smooth the data using a window with requested size.

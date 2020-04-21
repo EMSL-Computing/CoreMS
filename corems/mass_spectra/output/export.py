@@ -120,7 +120,7 @@ class LowResGCMSExport():
         import json
         
         dict_setting = parameter_to_dict.get_dict_data_gcms(gcms)
-
+        dict_setting['calibration_rt_ri_pairs_ref'] = gcms.ri_pairs_ref
         dict_setting['analyzer'] = gcms.analyzer
         dict_setting['instrument_label'] = gcms.instrument_label
         dict_setting['sample_name'] = [gcms.sample_name]

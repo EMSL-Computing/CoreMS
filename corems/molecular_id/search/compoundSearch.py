@@ -10,11 +10,11 @@ from scipy.spatial.distance import cosine, jaccard, euclidean, cityblock
 from scipy.stats import pearsonr, spearmanr, kendalltau
 from sklearn.metrics.pairwise import cosine_similarity
 from math import exp
-from corems.molecular_id.input.nistMSI import ReadNistMSI
+from corems.molecular_id.factory.EI_SQL import EI_LowRes_SQLite
 
 class LowResMassSpectralMatch(Thread):
 
-    def __init__(self, gcms_obj, ref_lib_path, calibration=False):
+    def __init__(self, gcms_obj, sql_obj=None, calibration=False):
         
         '''TODO:
         '''
@@ -26,8 +26,11 @@ class LowResMassSpectralMatch(Thread):
         #self.dict_molecular_lookup_table = None
         self.calibration = calibration
         # reading local file for now, 
-        self.sqlLite_obj = ReadNistMSI(ref_lib_path).get_sqlLite_obj()
-
+        if not sql_obj:
+            self.sql_obj = EI_LowRes_SQLite(url=self.gcms_obj.molecular_search_settings.url_database)
+        else:
+            self.sql_obj = sql_obj
+    
     def metabolite_detector_score(self, gc_peak, ref_obj):
 
         spectral_similarity_score = self.cosine_correlation(gc_peak.mass_spectrum, ref_obj)
@@ -303,9 +306,11 @@ class LowResMassSpectralMatch(Thread):
                 
                 min_mat_ri = (ri-window, ri+window)    
                 
-                ref_objs = self.sqlLite_obj.query_min_max_ri(min_mat_ri)
+                ref_objs = self.sql_obj.query_min_max_ri(min_mat_ri)
                 
             else:
+
+                compound_names = self.gcms_obj.molecular_search_settings.ri_calibration_compound_names
 
                 window = self.gcms_obj.molecular_search_settings.rt_search_range
 
@@ -313,7 +318,7 @@ class LowResMassSpectralMatch(Thread):
 
                 min_mat_rt = (rt-window, rt+window)    
                 
-                ref_objs = self.sqlLite_obj.query_min_max_rt(min_mat_rt)
+                ref_objs = self.sql_obj.query_names_and_rt(min_mat_rt, compound_names)
                 
             for ref_obj in ref_objs:
                 # uses spectral similarly and uses a threshold to only select peaks with high data correlation
@@ -338,5 +343,5 @@ class LowResMassSpectralMatch(Thread):
                     
                         gc_peak.add_compound(ref_obj, spectral_similarity_score, ri_score, similarity_score)
                 
-        self.sqlLite_obj.session.close()
-        self.sqlLite_obj.engine.dispose()
+        self.sql_obj.session.close()
+        self.sql_obj.engine.dispose()

@@ -13,7 +13,7 @@ class ReadNistMSI(Thread):
 
     def __init__(self, file_path, url='sqlite://'):
         
-        print(file_path)
+        Thread.__init__(self)
         file_path = Path(file_path)
         
         if not file_path.exists():
@@ -46,6 +46,7 @@ class ReadNistMSI(Thread):
                 sqlLite_obj.add_compound(data_dict)
             except:
                 print(data_dict.get('NAME'))
+        
         return sqlLite_obj
 
     def get_compound_data_dict_list(self,):

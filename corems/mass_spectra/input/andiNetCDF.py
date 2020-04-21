@@ -99,8 +99,6 @@ class ReadAndiNetCDF(Thread):
 		
 		ms_datapoints_per_scans = self.net_cdf_obj.variables.get("point_count")[:]
 		
-		print(ms_datapoints_per_scans)
-		
 		list_tic = self.net_cdf_obj.variables.get("total_intensity")[:]	
 
 		list_rt = self.net_cdf_obj.variables.get("scan_acquisition_time")[:]/60

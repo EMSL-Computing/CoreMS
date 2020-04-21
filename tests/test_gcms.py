@@ -13,6 +13,13 @@ from pathlib import Path
 from corems.molecular_id.input.nistMSI import ReadNistMSI
 from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
 from corems.molecular_id.search.compoundSearch import LowResMassSpectralMatch
+from corems.mass_spectra.calc.GC_RI_Calibration import get_rt_ri_pairs
+
+def start_sql_from_file():
+    
+    ref_lib_path = Path.cwd() / "tests/tests_data/gcms/" / "PNNLMetV20191015.MSL"
+    sql_obj = ReadNistMSI(ref_lib_path).get_sqlLite_obj()
+    return sql_obj
 
 def test_sql_database():
     
@@ -44,56 +51,33 @@ def get_reference_dict():
 
     file_path = Path.cwd() / "tests/tests_data/gcms/" / "GCMS_FAMES_01_GCMS-01_20191023.cdf"
     
-        
-    ref_file_path = Path.cwd() / "tests/tests_data/gcms/" / "FAMES_REF.MSL"
-
     gcms = get_gcms(file_path)
 
-    lowResSearch = LowResMassSpectralMatch(gcms, ref_file_path, calibration=True)
+    sql_obj = start_sql_from_file()
 
-    lowResSearch.run()
-
-    dict_ri_rt = {}
-
-    list_of_compound_obj = {}
-
-    for gcms_peak in gcms:
-
-        # has a compound matched
-        if gcms_peak:
-            
-            compound_obj = gcms_peak.highest_ss_compound
-            
-            if not compound_obj.ri in dict_ri_rt.keys():
-                
-                dict_ri_rt[compound_obj.ri] = [(gcms_peak.mass_spectrum.rt, compound_obj)]
-
-            else:
-                
-                dict_ri_rt[compound_obj.ri].append((gcms_peak.mass_spectrum.rt, compound_obj))
-            
-            print(compound_obj.name, gcms_peak.mass_spectrum.rt, compound_obj.spectral_similarity_score)
+    if not file_path: return  None
     
-    ris = [i for i in  dict_ri_rt.keys()]
-    rts = [max(i, key = lambda c: c[1].spectral_similarity_score)[0] for i in dict_ri_rt.values()]
-    
-    rt_ri_pairs = list(zip(rts, ris)) 
-    
-    print(rt_ri_pairs)
+    else:
+        
+        gcms_ref_obj = get_gcms(file_path)
 
-    return rt_ri_pairs
+        rt_ri_pairs = get_rt_ri_pairs(gcms_ref_obj, sql_obj)
+
+        return rt_ri_pairs
 
 def run(args):
     
-    file_path, ref_file_path, ref_dict = args
-    gcms = get_gcms(file_path)
-            
-    for gcms_peak in gcms:
-        
-        gcms_peak.calc_ri(ref_dict)
-        
-    lowResSearch = LowResMassSpectralMatch(gcms, ref_file_path)
+    file_path, ref_dict = args
     
+    gcms = get_gcms(file_path)
+    
+    gcms.calibrate_ri(ref_dict)
+    
+    sql_obj = start_sql_from_file()
+    lowResSearch = LowResMassSpectralMatch(gcms, sql_obj=sql_obj)
+    # !!!!!! READ !!!!! use the previous two lines if db/pnnl_lowres_gcms_compounds.sqlite does not exist
+    # and comment the next line
+    #lowResSearch = LowResMassSpectralMatch(gcms)
     lowResSearch.run()
 
     return gcms
@@ -107,9 +91,7 @@ def calibrate_and_search(out_put_file_name):
     if ref_dict:
         
         file_path = Path.cwd() / "tests/tests_data/gcms/" / "GCMS_FAMES_01_GCMS-01_20191023.cdf"
-        ref_file_path = Path.cwd() / "tests/tests_data/gcms/" / "PNNLMetV20191015.MSL"
-        
-        gcms = run((file_path, ref_file_path, ref_dict))
+        gcms = run((file_path, ref_dict))
         
         gcms.to_csv(out_put_file_name)
         gcms.to_excel(out_put_file_name, highest_score=False)
@@ -134,7 +116,7 @@ def calibrate_and_search(out_put_file_name):
 
 def test_run_gcms_pipeline():
 
-    out_put_file_name = 'STD_Mix1'
+    out_put_file_name = 'test_gcms'
     calibrate_and_search(out_put_file_name)
 
 if __name__ == "__main__":

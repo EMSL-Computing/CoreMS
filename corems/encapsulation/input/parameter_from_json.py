@@ -7,10 +7,6 @@ from corems.encapsulation.factory.processingSetting  import MassSpecPeakSetting
 from corems.encapsulation.factory.processingSetting  import GasChromatographSetting
 from corems.encapsulation.factory.processingSetting  import CompoundSearchSettings
 
-
-from corems.encapsulation.factory.processingSetting  import DataInputSetting
-
-
 def load_and_set_parameters_ms(mass_spec_obj, settings_path=False):   
     
     if settings_path:
@@ -60,9 +56,10 @@ def load_and_set_parameters_gcms(gcms_obj, settings_path=False):
 def _set_dict_data_gcms(data_loaded, gcms_obj):
     
     classes = [CompoundSearchSettings(), 
-               GasChromatographSetting()
-             ]
-    labels = ["CompoundSearch", "GasChromatograph"]
+               GasChromatographSetting(),
+              ]
+
+    labels = ["MolecularSearch", "GasChromatograph"]
     
     label_class = zip(labels, classes)
 
@@ -79,7 +76,7 @@ def _set_dict_data_gcms(data_loaded, gcms_obj):
 
     gcms_obj.chromatogram_settings = classes[0]
     gcms_obj.molecular_search_settings = classes[1]
-
+   
 
 def _set_dict_data_ms(data_loaded, mass_spec_obj):
     
@@ -91,7 +88,7 @@ def _set_dict_data_ms(data_loaded, mass_spec_obj):
                MassSpecPeakSetting()
                ]
                
-    labels = ["MolFormSearch", "Transient", "MassSpectrum", "MassSpecPeak"]
+    labels = ["MolecularSearch", "Transient", "MassSpectrum", "MassSpecPeak"]
     
     label_class = zip(labels, classes)
 

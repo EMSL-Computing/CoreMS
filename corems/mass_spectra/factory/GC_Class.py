@@ -50,6 +50,7 @@ class GCMSBase(GC_Calculations):
         #after peak detection
         self._processed_tic = []
         self.gcpeaks = []
+        self.ri_pairs_ref = None
 
     
     def _init_settings(self):
