@@ -153,7 +153,7 @@ class MolecularLookupDictSettings:
         
         self.usedAtoms = {'C': (1, 100),
                     'H': (4, 200),
-                    'O': (0, 10),
+                    'O': (0, 12),
                     'N': (0, 0),
                     'S': (0, 0),
                     'P': (0, 0),
@@ -206,8 +206,7 @@ class MolecularLookupDictSettings:
         
 @dataclass 
 class MolecularFormulaSearchSettings:
-    #corilo@molform
-    #url_database = 'postgresql://postgres:labthomson0102@172.22.113.27:5432/' 
+    
     url_database: str = None#'sqlite://'
 
     use_isotopologue_filter: bool = False
