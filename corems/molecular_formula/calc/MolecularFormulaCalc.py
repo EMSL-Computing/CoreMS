@@ -2,7 +2,10 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 24, 2019"
 
 from IsoSpecPy import IsoSpecPy
-from numpy import isnan, power
+from numpy import isnan, power, exp
+from pandas import DataFrame
+from scipy.stats import pearsonr, spearmanr, kendalltau
+
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.factory.parameters import MSParameters
@@ -84,7 +87,7 @@ class MolecularFormulaCalc:
         pass
     
     def _calc_mz_confidence(self, mean=0):
-        from numpy import exp, power
+        
         # predicted std not set, using 0.3
         if not self._mspeak_parent.predicted_std: self._mspeak_parent.predicted_std = 0.3
         
@@ -93,8 +96,7 @@ class MolecularFormulaCalc:
         return  exp( -1 * (power((self.mz_error -  mean),2)  / (2 * power(self._mspeak_parent.predicted_std,2)) ))
     
     def _calc_confidence_score(self):
-        from pandas import DataFrame
-        from scipy.stats import pearsonr, spearmanr, kendalltau
+        
 
         '''
         ### Assumes random mass error, i.e, spectrum has to be calibrated and with zero mean
@@ -274,7 +276,7 @@ class MolecularFormulaCalc:
         return kdm, kendrick_mass, nominal_km
 
     def _cal_isotopologues(self, formula_dict, min_abundance, current_abundance, ms_dynamic_range):
-        from numpy import exp
+        
         '''
         primary function to look for isotopologues based on a monoisotopic molecular formula
         INPUT {'C':10, 'H', 20, 'O', 2, etc} Atomic labels need to follow Atoms class atoms labels
