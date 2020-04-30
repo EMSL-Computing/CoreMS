@@ -29,7 +29,7 @@ class DataInputSetting:
                         "Abundance":"Abundance",
                         "Signal/Noise":"S/N",
                         "S/N":"S/N"}
-                        
+
 @dataclass            
 class MassSpectrumSetting:
     
@@ -153,7 +153,7 @@ class MolecularLookupDictSettings:
         
         self.usedAtoms = {'C': (1, 100),
                     'H': (4, 200),
-                    'O': (0, 22),
+                    'O': (0, 10),
                     'N': (0, 0),
                     'S': (0, 0),
                     'P': (0, 0),

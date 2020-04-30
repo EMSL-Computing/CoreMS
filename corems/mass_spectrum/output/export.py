@@ -171,7 +171,7 @@ class HighResMassSpecExport(Thread):
 
         with h5py.File(self.output_file.with_suffix('.hdf5'), 'a') as hdf_handle:
             
-            list_results = self.list_dict_to_list(self.mass_spectrum)
+            list_results = self.list_dict_to_list(self.mass_spectrum, is_hdf5= True)
             
             dict_ms_attrs = self.get_mass_spec_attrs(self.mass_spectrum)
             
@@ -280,11 +280,11 @@ class HighResMassSpecExport(Thread):
 
         return sorted(all_used_atoms, key=sort_method)
 
-    def list_dict_to_list(self, mass_spectrum):
+    def list_dict_to_list(self, mass_spectrum, is_hdf5=False):
         
         column_labels = self.columns_label + self.get_all_used_atoms_in_order(mass_spectrum)
 
-        dict_list = self.get_list_dict_data(mass_spectrum)
+        dict_list = self.get_list_dict_data(mass_spectrum, is_hdf5=is_hdf5)
         
         all_lines = []
         for dict_res in dict_list:
@@ -302,10 +302,14 @@ class HighResMassSpecExport(Thread):
 
     
     def get_list_dict_data(self, mass_spectrum, include_no_match=True, include_isotopolgues=True,
-                           isotopologue_inline=False, no_match_inline=False):
+                           isotopologue_inline=False, no_match_inline=False, is_hdf5=False):
 
         dict_data_list = []
 
+        if is_hdf5:
+            encode = ".encode('utf-8')"
+        else:
+            encode = ""    
         def add_no_match_dict_data():
 
             dict_result = {'Index': index,
@@ -315,7 +319,7 @@ class HighResMassSpecExport(Thread):
                            'Resolving Power': ms_peak.resolving_power,
                            'S/N':  ms_peak.signal_to_noise,
                            'Ion Charge': ms_peak.ion_charge,
-                           'Heteroatom Class' : Labels.unassigned.encode('utf-8')
+                           'Heteroatom Class' : eval("Labels.unassigned{}".format(encode)),
                            }
 
             dict_data_list.append(dict_result)
@@ -335,10 +339,10 @@ class HighResMassSpecExport(Thread):
                            'Mass Error (ppm)': m_formula.mz_error,
                            'Confidence Score': m_formula.confidence_score,
                            'DBE':  m_formula.dbe,
-                           'Heteroatom Class': m_formula.class_label.encode('utf-8'),
+                           'Heteroatom Class':  eval("m_formula.class_label{}".format(encode)), 
                            'H/C':  m_formula.H_C,
                            'O/C':  m_formula.O_C,
-                           'Ion Type': m_formula.ion_type.lower().encode('utf-8'),
+                           'Ion Type': eval("m_formula.ion_type.lower(){}".format(encode)),  
                            'Is Isotopologue': int(m_formula.is_isotopologue),
                            }
 

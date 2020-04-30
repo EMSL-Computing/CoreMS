@@ -142,6 +142,7 @@ class MolecularFormula(MolecularFormulaCalc):
 
     @property
     def ion_type(self): 
+        
         ion_type = self._d_molecular_formula.get(Labels.ion_type)
         if ion_type == Labels.protonated_de_ion:
             if self.ion_charge > 0: 
