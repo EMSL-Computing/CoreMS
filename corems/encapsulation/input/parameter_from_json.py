@@ -18,14 +18,11 @@ def load_and_set_parameters_ms(mass_spec_obj, parameters_path=False):
         filename='SettingsCoreMS.json'
         file_path = Path.cwd() / filename 
 
-    if Path.exists:  
-        
-        with open(file_path, 'r', encoding='utf8',) as stream:
-            
-            stream_lines = [n for n in stream.readlines() if not '//' in n.strip()]
-            jdata = ''.join(stream_lines)
-            data_loaded = json.loads(jdata)
-            _set_dict_data_ms(data_loaded, mass_spec_obj)
+    if file_path.exists:  
+
+            with open(file_path, 'r', encoding='utf8',) as stream:
+                data_loaded = json.load(stream)
+                _set_dict_data_ms(data_loaded, mass_spec_obj)
     else:
         
         raise FileNotFoundError("Could not locate %s", file_path)   
@@ -41,18 +38,15 @@ def load_and_set_parameters_gcms(gcms_obj, parameters_path=False):
         filename='SettingsCoreMS.json'
         file_path = Path.cwd() / filename 
 
-    if Path.exists:  
-        
-        with open(file_path, 'r', encoding='utf8',) as stream:
-            
-            stream_lines = [n for n in stream.readlines() if not '//' in n.strip()]
-            jdata = ''.join(stream_lines)
-            data_loaded = json.loads(jdata)
-            _set_dict_data_gcms(data_loaded, gcms_obj)
+    if file_path.exists:  
+
+            with open(file_path, 'r', encoding='utf8',) as stream:
+                data_loaded = json.load(stream)
+                _set_dict_data_ms(data_loaded, mass_spec_obj)
     else:
         
         raise FileNotFoundError("Could not locate %s", file_path)   
-
+    
 def _set_dict_data_gcms(data_loaded, gcms_obj):
     
     classes = [GasChromatographSetting(),
@@ -101,7 +95,7 @@ def _set_dict_data_ms(data_loaded, mass_spec_obj):
             if class_data:
                 for item, value in class_data.items():
                     setattr(classe, item, value)
-
+    print(classes[0])
     mass_spec_obj.molecular_search_settings = classes[0]
     mass_spec_obj.transient_settings = classes[1]
     mass_spec_obj.settings = classes[2]
