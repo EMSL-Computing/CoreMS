@@ -4,6 +4,7 @@ __date__ = "Jun 04, 2019"
 from scipy.stats import norm, cauchy
 from numpy import linspace, sqrt, log, trapz, pi, log, poly1d, polyfit
 from corems.encapsulation.constant import Atoms
+from lmfit import models
 
 class MSPeakCalculation(object):
 
@@ -44,7 +45,7 @@ class MSPeakCalculation(object):
             
     def voigt(self, oversample_multiplier=1, delta_rp = 0, mz_overlay=1):
         
-        from lmfit import models
+        
         
         if self.resolving_power:
 
@@ -79,8 +80,6 @@ class MSPeakCalculation(object):
                 'resolving power is not defined, try to use set_max_resolving_power()')
 
     def pseudovoigt(self, oversample_multiplier=1, delta_rp = 0, mz_overlay=1, fraction =0.5):
-        
-        from lmfit import models
         
         if self.resolving_power:
 
@@ -118,8 +117,6 @@ class MSPeakCalculation(object):
 
     def get_mz_domain(self, oversample_multiplier, mz_overlay):
         
-        import matplotlib.pyplot as plt
-
         start_index = self.start_index - mz_overlay  if not self.start_index == 0 else 0
         final_index = self.final_index + mz_overlay  if not self.final_index == len(self._ms_parent.mz_exp_profile) else self.final_index
 
@@ -141,8 +138,6 @@ class MSPeakCalculation(object):
         return mz_domain
 
     def lorentz(self, oversample_multiplier=1, delta_rp = 0, mz_overlay=1):
-
-        from lmfit import models
 
         if self.resolving_power:
 
@@ -177,7 +172,7 @@ class MSPeakCalculation(object):
                 'resolving power is not defined, try to use set_max_resolving_power()')
 
     def gaussian(self, oversample_multiplier=1, delta_rp = 0, mz_overlay=1):
-        from lmfit import models
+        
 
         # check if MSPeak contains the resolving power info
         if self.resolving_power:
