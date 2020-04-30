@@ -207,11 +207,11 @@ class MolecularLookupDictSettings:
 @dataclass 
 class MolecularFormulaSearchSettings:
     
-    url_database: str = None#'sqlite://'
+    url_database: str = None
 
     use_isotopologue_filter: bool = False
 
-    isotopologue_filter_threshold:float = 33 # percentile predicted and found 
+    isotopologue_filter_threshold:float = 33
 
     isotopologue_filter_atoms:tuple = ('Cl', 'Br')
 

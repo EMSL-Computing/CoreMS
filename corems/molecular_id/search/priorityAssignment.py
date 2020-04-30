@@ -32,7 +32,7 @@ class OxygenPriorityAssignment(Thread):
         
         if not sql_db:
 
-            self.sql_db = MolForm_SQL(mass_spectrum_obj.polarity, mass_spectrum_obj.molecular_search_settings.url_database)
+            self.sql_db = MolForm_SQL(mass_spectrum_obj.polarity, url=mass_spectrum_obj.molecular_search_settings.url_database)
         
         else:
             
