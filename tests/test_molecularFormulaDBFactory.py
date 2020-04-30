@@ -50,7 +50,7 @@ def test_query_sql():
         print('total mol formulas found: ', len(list( sqldb.get_entries(classe, ion_type, nominal_mz, MolecularFormulaSearchSettings))))
 
         data= {}
-        data['mol_formula'] = "C10H21O8"
+        data['mol_formula'] = "C10H21O8888888888888888"
         data['mz'] = 213
         data['nominal_mz'] = 213
         data['ion_type'] = ion_type
