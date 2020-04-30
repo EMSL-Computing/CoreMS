@@ -44,7 +44,7 @@
             "Na",
             "K"
         ],
-        "db_directory": false,
+        "url_database": false,
         "error_method": "None",
         "hc_filter": 0.3,
         "ion_charge": -1,

@@ -79,7 +79,7 @@ class MolecularCombinations:
             settings = MolecularLookupDictSettings()
             settings.usedAtoms = deepcopy(molecular_search_settings.usedAtoms)
             settings.ion_charge = molecular_search_settings.ion_charge
-            settings.db_directory = molecular_search_settings.db_directory
+            settings.url_database = molecular_search_settings.url_database
             settings.db_jobs = molecular_search_settings.db_jobs
             c_h_combinations= self.get_c_h_combination(settings)
             

@@ -21,7 +21,7 @@ def test_settings_search():
 
     test = MolecularLookupDictSettings()
     test.usedAtoms['C'] = (0,0)
-    test.db_directory = 'test'
+    test.url_database = 'test'
 
 if __name__ == "__main__":
     

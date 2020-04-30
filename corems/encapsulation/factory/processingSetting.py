@@ -183,7 +183,7 @@ class MolecularLookupDictSettings:
 
         self.oc_filter = 1.2
     
-        self.db_directory = None
+        self.url_database = None
 
         self.db_jobs = 4
 
@@ -207,8 +207,6 @@ class MolecularLookupDictSettings:
 @dataclass 
 class MolecularFormulaSearchSettings:
     
-    url_database: str = None
-
     use_isotopologue_filter: bool = False
 
     isotopologue_filter_threshold:float = 33
@@ -221,8 +219,8 @@ class MolecularFormulaSearchSettings:
 
     min_peaks_per_class:int = 15
 
-    db_directory:str = False
-
+    url_database: str = None
+    
     db_jobs:int = 4
 
     '''query setting'''
