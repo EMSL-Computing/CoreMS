@@ -4,7 +4,7 @@ from pathlib import Path
 
 from pandas import DataFrame
 
-from numpy import power, dot, absolute, subtract, sum, intersect1d, where, average
+from numpy import power, dot, absolute, subtract, intersect1d, where, average
 from numpy.linalg import norm
 from scipy.spatial.distance import cosine, jaccard, euclidean, cityblock
 from scipy.stats import pearsonr, spearmanr, kendalltau

@@ -8,10 +8,9 @@ from pathlib import Path
 import time, sys, os, pytest
 sys.path.append(".")
 
-
 from corems.encapsulation.constant import Labels
 from corems.molecular_id.factory.MolecularLookupTable import  MolecularCombinations
-from corems.molecular_id.factory.molecularSQL import MolForm_SQL
+from corems.molecular_id.factory.molecularSQL import MolForm_SQL, MolecularFormulaTable
 from corems.molecular_id.factory.molecularMongo import MolForm_Mongo
 from corems.molecular_id.input.nistMSI import ReadNistMSI
 from corems.encapsulation.factory.processingSetting  import MolecularFormulaSearchSettings
@@ -50,7 +49,27 @@ def test_query_sql():
         nominal_mz = 501
         print('total mol formulas found: ', len(list( sqldb.get_entries(classe, ion_type, nominal_mz, MolecularFormulaSearchSettings))))
 
-    
+        data= {}
+        data['mol_formula'] = "C10H21O8"
+        data['mz'] = 213
+        data['nominal_mz'] = 213
+        data['ion_type'] = ion_type
+        data['ion_charge'] = -1
+        data['classe'] = "O8"
+        data['C'] = 1
+        data['H'] = 1
+        data['N'] = 1
+        data['O'] = 1
+        data['S'] = 1
+        data['P'] = 1
+        data['H_C'] = 1
+        data['O_C'] = 1
+        data['DBE'] = 1
+        
+        sqldb.add_entry(data)
+
+        print('total mol formulas found: ', len(list( sqldb.get_entries(classe, ion_type, nominal_mz, MolecularFormulaSearchSettings))))
+        
 if __name__ == '__main__':
     
     #settings_parsers.load_search_setting_yaml()

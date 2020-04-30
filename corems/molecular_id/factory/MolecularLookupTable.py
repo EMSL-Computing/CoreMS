@@ -9,7 +9,6 @@ import json
 from corems.encapsulation.factory.processingSetting  import MolecularLookupDictSettings
 from corems.encapsulation.constant import Labels
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
-from corems.molecular_id.factory.molecularSQL import MolForm_SQL, MolecularFormulaTable
 
 class MolecularCombinations:
      
@@ -26,7 +25,7 @@ class MolecularCombinations:
     '''
     def __init__(self, sql_db = False):
             
-        self.sql_db = sql_db 
+        self.sql_db = sql_db
     
     def check_database_get_class_list(self, molecular_search_settings):
 
@@ -81,30 +80,44 @@ class MolecularCombinations:
             settings.usedAtoms = deepcopy(molecular_search_settings.usedAtoms)
             settings.ion_charge = molecular_search_settings.ion_charge
             settings.db_directory = molecular_search_settings.db_directory
-            
+            settings.db_jobs = molecular_search_settings.db_jobs
             c_h_combinations= self.get_c_h_combination(settings)
             
-            number_of_process = int(multiprocessing.cpu_count()/3)
+            number_of_process = int(settings.db_jobs)
             print("Using %i logical CPUs for database entry generation"% number_of_process )
             #number_of_process = psutil.cpu_count(logical=False)
-
             print('creating database entry for %i classes' % len(class_to_create))
+            print()
             
-            
-            for class_tuple, ion_type in tqdm(class_to_create):
+            all_class_list = []
+            #for class_tuple, ion_type in tqdm(class_to_create):
 
                 #(class_tuple, c_h_combinations, ion_type, settings)
                 
-                CombinationsWorker(self.sql_db).get_combinations(class_tuple, c_h_combinations, ion_type, settings)
+            #    class_list= CombinationsWorker().get_combinations(class_tuple, c_h_combinations, ion_type, settings)
+            #    all_class_list.append(class_list)
 
-            #p = multiprocessing.Pool(number_of_process)
-            #args = [(class_tuple, c_h_combinations, ion_type, settings) for class_tuple, ion_type in class_to_create]
+            worker_args = [(class_tuple, c_h_combinations, ion_type, settings) for class_tuple, ion_type in class_to_create]
+            p = multiprocessing.Pool(number_of_process)
+            all_class_list = []
+            for class_list in tqdm(p.imap_unordered(CombinationsWorker(), worker_args)):
+                all_class_list.append(class_list)
             #p.map(, args)
             #p.close()
             #p.join()
         
+            self.add_to_sql_session(all_class_list)
+
+            #TODO this will slow down a bit, need to find a better way      
+            self.sql_db.commit()    
+
         return classes_list
-    
+   
+    def add_to_sql_session(self, all_class_list):
+        
+        for class_list in all_class_list:
+            self.sql_db.add_all(class_list)
+
     def get_c_h_combination(self, settings):
 
         usedAtoms = settings.usedAtoms
@@ -253,12 +266,9 @@ class CombinationsWorker:
 
     # needs this warper to pass the class to multiprocessing
     
-    def __init__(self, sql_db):
-        self.sql_db = sql_db
-
-    #def __call__(self, args):
+    def __call__(self, args):
     
-    #    return self.get_combinations(*args)  # ,args[1]
+        return self.get_combinations(*args)  # ,args[1]
 
     def get_combinations(self, classe_tuple,
                           c_h_combinations, ion_type, settings
@@ -285,7 +295,7 @@ class CombinationsWorker:
         #print("isProtonated", classe_tuple[0], isProtonated) 
         
         class_dict = classe_tuple[1]
-        
+        mf_data_list = []
         if isProtonated:
 
             ion_type = Labels.protonated_de_ion
@@ -298,8 +308,8 @@ class CombinationsWorker:
                                                     min_dbe, max_dbe,
                                                     min_mz, max_mz, ion_charge)
             
-            self.insert_formula_db(list_mf, settings)
-            
+            mf_data_list.extend(list_mf)
+
         if isRadical:
            
             ion_type = Labels.radical_ion
@@ -311,13 +321,11 @@ class CombinationsWorker:
             list_mf = self.get_mol_formulas(carbon_hydrogen_combination, ion_type, classe_tuple, 
                                                     min_dbe, max_dbe,
                                                     min_mz, max_mz, ion_charge)
-            
-            self.insert_formula_db(list_mf, settings)
-  
-    def insert_formula_db(self, list_mf, settings):
 
-        self.sql_db.add_all(list_mf)
-    
+            mf_data_list.extend(list_mf)
+        
+        return  mf_data_list   
+            
     @staticmethod
     def get_mol_formulas(carbon_hydrogen_combination,
                     ion_type,
@@ -360,7 +368,7 @@ class CombinationsWorker:
                 
                 if min_dbe <= dbe <= max_dbe:
                     
-                    dict_results = MolecularFormulaTable( {"mol_formula" : json.dumps(formula_dict),
+                    dict_results = {"mol_formula" : json.dumps(formula_dict),
                                     "mz" : mz,
                                     "nominal_mz" : nominal_mass,
                                     "ion_type" : ion_type,
@@ -375,8 +383,7 @@ class CombinationsWorker:
                                     "H_C" : molecular_formula.get('H')/molecular_formula.get('C'),
                                     "O_C" : molecular_formula.get('O')/molecular_formula.get('C'),
                                     "DBE" : dbe}
-                                )
-                    
+                                
                     yield dict_results
                
     def get_h_odd_or_even(self, ion_type, class_dict, molecular_search_settings):

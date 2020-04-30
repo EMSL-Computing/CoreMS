@@ -7,8 +7,6 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.exc import MultipleResultsFound
 from sqlalchemy.pool import QueuePool
-
-
 Base = declarative_base()
 
 class MolecularFormulaTable(Base):  
@@ -94,16 +92,14 @@ class MolForm_SQL:
         
         return self
     
-    def add_all(self, sql_molform_list):
-        
-        self.session.add_all(sql_molform_list)
-        self.commit()
+    def add_all(self, molform_list):
 
-    def add_entry(self,sql_molform): 
+        self.session.add_all((MolecularFormulaTable(data) for data in molform_list))
         
-        self.session.add(sql_molform)  
-        self.session.commit()
-
+    def add_entry(self, molform): 
+        
+        self.session.add(MolecularFormulaTable(molform))  
+        
     def commit(self):
         
         try:

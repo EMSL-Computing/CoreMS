@@ -7,6 +7,7 @@ from numpy import average, std
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL 
+from tqdm import tqdm
 
 class FindOxygenPeaks(Thread):
     
@@ -100,7 +101,9 @@ class FindOxygenPeaks(Thread):
         self.mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = initial_min_peak_bool
         
         self.mass_spectrum_obj.reset_indexes()
-       
+
+        print("Done with mass spectral peak series search")
+
     def find_most_abundant_formula(self, mass_spectrum_obj):
         '''
         find most abundant using kendrick 
@@ -127,7 +130,7 @@ class FindOxygenPeaks(Thread):
 
         print("Searching molecular formulas")
 
-        SearchMolecularFormulas(mass_spectrum_obj, self.sql_db).run_worker_ms_peak(mspeak_most_abundant)
+        SearchMolecularFormulas(mass_spectrum_obj, self.sql_db).run_worker_ms_peaks([mspeak_most_abundant])
         
         print("Finished searching molecular formulas")
 
@@ -151,7 +154,7 @@ class FindOxygenPeaks(Thread):
 
         mspeak_most_abundant = mass_spectrum_obj.most_abundant_mspeak
 
-        SearchMolecularFormulas(mass_spectrum_obj, self.sql_db).run_worker_ms_peak(mspeak_most_abundant)
+        SearchMolecularFormulas(mass_spectrum_obj, self.sql_db).run_worker_ms_peaks([mspeak_most_abundant])
         
         if mspeak_most_abundant:
 
@@ -214,8 +217,9 @@ class FindOxygenPeaks(Thread):
                 
                 list_most_abundant_peaks.append(mspeak_most_abundant)
         
+        print('Start molecular formula search')
         SearchMolecularFormulas(mass_spectrum_obj, self.sql_db).run_worker_ms_peaks(list_most_abundant_peaks)
-        
+        print('Done molecular formula search')
         return [mspeak for mspeak in list_most_abundant_peaks if mspeak]            
                 
     

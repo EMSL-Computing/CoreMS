@@ -95,7 +95,11 @@ class CompoundSearchSettings:
 
     ri_std:float = 3 # in standard deviation
 
-    ri_calibration_compound_names:tuple = (" [C8] Methyl Caprylate [7.812]",
+    ri_calibration_compound_names: List = field(default_factory=list)
+
+    def __post_init__(self):
+        
+        self.ri_calibration_compound_names = (" [C8] Methyl Caprylate [7.812]",
                                 " [C10] Methyl Caprate [10.647]",
                                 " [C9] Methyl Pelargonate [9.248]",
                                 " [C12] Methyl Laurate [13.250]",
@@ -107,7 +111,8 @@ class CompoundSearchSettings:
                                 " [C24] Methyl Linocerate [24.603]",
                                 " [C26] Methyl Hexacosanoate [26.023]",
                                 " [C28] Methyl Octacosanoate [27.349]",
-                                " [C30] Methyl Triacontanoate [28.723]")
+                                " [C30] Methyl Triacontanoate [28.72]")
+
 
 @dataclass 
 class MolecularLookupDictSettings:
@@ -163,6 +168,8 @@ class MolecularLookupDictSettings:
     
         self.db_directory = None
 
+        self.db_jobs = 4
+
         self.used_atom_valences = {'C': 4,
                             '13C': 4,
                             'H': 1,
@@ -199,6 +206,8 @@ class MolecularFormulaSearchSettings:
     min_peaks_per_class:int = 15
 
     db_directory:str = False
+
+    db_jobs:int = 4
 
     '''query setting'''
     ion_charge:int = -1
@@ -270,7 +279,7 @@ class MolecularFormulaSearchSettings:
         
         self.usedAtoms = {   'C': (1, 100),
                     'H': (4, 200),
-                    'O': (1, 26),
+                    'O': (1, 2),
                     'N': (0, 0),
                     'S': (0, 1),
                     'P': (0, 0),
