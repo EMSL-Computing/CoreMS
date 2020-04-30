@@ -19,7 +19,7 @@ import json
 
 class OxygenPriorityAssignment(Thread):
 
-    def __init__(self, mass_spectrum_obj):
+    def __init__(self, mass_spectrum_obj, sql_db=False):
         '''TODO:- add support for other atoms and adducts: Done
                 - add dbe range on search runtime : Done
                 - add docs
@@ -30,7 +30,13 @@ class OxygenPriorityAssignment(Thread):
         #  initiated at create_molecular_database()
         #self.dict_molecular_lookup_table = None
         
-        self.sql_db = MolForm_SQL(mass_spectrum_obj.polarity, mass_spectrum_obj.molecular_search_settings.url_database)
+        if not sql_db:
+
+            self.sql_db = MolForm_SQL(mass_spectrum_obj.polarity, mass_spectrum_obj.molecular_search_settings.url_database)
+        
+        else:
+            
+            self.sql_db = sql_db
 
     def run(self):
         
