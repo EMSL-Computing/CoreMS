@@ -1,7 +1,0 @@
-pylint
-pytest
-pytest-cov
-pyprof2calltree
-memory_profiler
-twine
-bumpversion

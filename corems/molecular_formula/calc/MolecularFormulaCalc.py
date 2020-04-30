@@ -2,6 +2,7 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 24, 2019"
 
 from IsoSpecPy import IsoSpecPy
+from numpy import isnan, power
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.factory.parameters import MSParameters
@@ -149,20 +150,23 @@ class MolecularFormulaCalc:
                 y = df.T[1].values
 
                 correlation = kendalltau(x, y)[0]
-                
+                if isnan(correlation):
+                    correlation = 0.000001
             
             else:
                 
                 # no isotopologue expected, giving a correlation score of 0.5 but it needs optimization
                 correlation = 0.5
 
+
             # add monoisotopic peak mz error score
             accumulated_mz_score.append(self._calc_mz_confidence())
             
             average_mz_score = sum(accumulated_mz_score)/len(accumulated_mz_score)
-            
+            if isnan(average_mz_score):
+                    average_mz_score = 0.0
             # calculate score with higher weight for mass error
-            score = ((correlation) * (average_mz_score**2))**(1/3)
+            score = power(((correlation) * (power(average_mz_score,2))),1/3)
 
             #print("correlation",correlation)
             #print("average_mz_score",average_mz_score)
