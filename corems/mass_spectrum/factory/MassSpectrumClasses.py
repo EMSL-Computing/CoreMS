@@ -10,6 +10,7 @@ from corems.mass_spectrum.calc.KendrickGroup import KendrickGrouping
 from corems.encapsulation.constant import Labels
 from corems.ms_peak.factory.MSPeakClasses import ICRMassPeak as MSPeak
 from corems.encapsulation.factory.parameters import MSParameters
+from corems.encapsulation.input.parameter_from_json import load_and_set_parameters_ms
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
@@ -219,6 +220,9 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     @parameters.setter
     def parameters(self, instance_GCMSParameters):
         self._parameters = instance_GCMSParameters
+
+    def set_parameter_from_json(self, parameters_path):
+        load_and_set_parameters_ms(self,  parameters_path=parameters_path)    
 
     @property
     def mspeaks_settings(self):  return self.parameters.ms_peak
