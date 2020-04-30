@@ -13,6 +13,23 @@ class TransientSetting:
     number_of_truncations: int = 0
     number_of_zero_fills: int = 1
 
+@dataclass
+class DataInputSetting:
+    
+    #add to this dict the VALUES to match your labels, THE ORDER WON"T MATTER
+    #"column_translate" : {"m/z":"m/z", "Resolving Power":"Resolving Power", "Abundance":"Abundance" , "S/N":"S/N"}
+    header_translate: dict = field(default_factory=dict)
+
+    def __post_init__(self):
+        
+        self.header_translate = {'m/z': Labels.mz, 
+                        "Resolving Power":"Resolving Power",
+                        "Res.":Labels.rp, 
+                        'I':Labels.abundance,
+                        "Abundance":"Abundance",
+                        "Signal/Noise":"S/N",
+                        "S/N":"S/N"}
+                        
 @dataclass            
 class MassSpectrumSetting:
     
@@ -303,22 +320,7 @@ class MolecularFormulaSearchSettings:
                             'K': 1,
                             }
 
-@dataclass
-class DataInputSetting:
-    
-    #add to this dict the VALUES to match your labels, THE ORDER WON"T MATTER
-    #"column_translate" : {"m/z":"m/z", "Resolving Power":"Resolving Power", "Abundance":"Abundance" , "S/N":"S/N"}
-    header_translate: dict = field(default_factory=dict)
 
-    def __post_init__(self):
-        
-        self.header_translate = {'m/z': Labels.mz, 
-                        "Resolving Power":"Resolving Power",
-                        "Res.":Labels.rp, 
-                        'I':Labels.abundance,
-                        "Abundance":"Abundance",
-                        "Signal/Noise":"S/N",
-                        "S/N":"S/N"}
 
                             
 if __name__ == "__main__":

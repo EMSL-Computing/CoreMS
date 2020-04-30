@@ -33,6 +33,7 @@
             "Na", "K"
         ],
         "db_directory": false,
+        "db_jobs": 4,
         "error_method": "None", "hc_filter": 0.3,
         "ion_charge": -1,
         "ionization_type": "ESI", "isAdduct": false,

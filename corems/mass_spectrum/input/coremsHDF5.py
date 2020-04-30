@@ -9,7 +9,7 @@ from corems.mass_spectrum.input.massList import ReadCoremsMasslist
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroid
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.factory.parameters import default_parameters
-from corems.encapsulation.factory.processingSetting  import DataInputSetting
+
 
 
 class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
@@ -60,7 +60,7 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         if not set(['H/C', 'O/C', 'Heteroatom Class', 'Ion Type', 'Is Isotopologue']).issubset(dataframe.columns):
             raise ValueError("%s it is not a valid CoreMS file" % str(self.file_location))
         
-        dataframe.rename(columns=DataInputSetting().header_translate, inplace=True)
+        dataframe.rename(columns=self.parameters.header_translate, inplace=True)
  
         polarity = dataframe['Ion Charge'].values[0]
 

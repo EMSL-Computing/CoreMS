@@ -23,7 +23,7 @@ def test_heteroatoms_classification():
     mass_spec_obj = create_mass_spectrum()
     
     assignOx = OxygenPriorityAssignment(mass_spec_obj) 
-
+    
     assignOx.run() 
 
     #test classification 

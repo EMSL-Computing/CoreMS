@@ -16,6 +16,7 @@ class ReadCoremsMasslist(MassListBaseClass):
     Please see MassListBaseClass for more details
     
     '''
+        
     def get_mass_spectrum(self, scan_number=0, time_index=-1, auto_process=True, loadSettings=True):
         
         dataframe = self.get_dataframe()
@@ -25,7 +26,7 @@ class ReadCoremsMasslist(MassListBaseClass):
         
         self.check_columns(dataframe.columns)
         
-        dataframe.rename(columns=DataInputSetting().header_translate, inplace=True)
+        dataframe.rename(columns=self.parameters.header_translate, inplace=True)
  
         polarity = dataframe['Ion Charge'].values[0]
 
@@ -105,7 +106,7 @@ class ReadMassList(MassListBaseClass):
             
         self.clean_data_frame(dataframe)
         
-        dataframe.rename(columns=DataInputSetting().header_translate, inplace=True)
+        dataframe.rename(columns=self.parameters.header_translate, inplace=True)
         
         output_parameters = self.get_output_parameters(polarity)
 

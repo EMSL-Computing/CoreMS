@@ -3,15 +3,14 @@ __date__ = "Nov 11, 2019"
 
 
 from pathlib import Path
-
+from copy import deepcopy
 from pandas import read_csv, read_pickle, read_excel
+import chardet
 
 from corems.encapsulation.factory.processingSetting  import DataInputSetting
 from corems.encapsulation.factory.parameters import default_parameters
 from corems.encapsulation.constant import Labels
-
-import chardet
-from corems.encapsulation.input.parameter_from_json import _set_dict_data_ms
+from corems.encapsulation.input.parameter_from_json import load_and_set_parameters_class, load_and_set_parameters_ms
 
 
 class MassListBaseClass:
@@ -64,6 +63,19 @@ class MassListBaseClass:
         self.instrument_label = instrument_label
 
         self.sample_name = sample_name
+
+        self._parameters = deepcopy(DataInputSetting())
+    
+    @property
+    def parameters(self):
+        return self._parameters
+
+    @parameters.setter
+    def parameters(self, instance_DataInputSetting):
+        self._parameters = instance_DataInputSetting
+
+    def set_parameter_from_json(self, parameters_path):
+        load_and_set_parameters_class(self, 'DataInput', self._parameters, parameters_path=parameters_path)
     
     @property
     def data_type(self):
@@ -146,13 +158,9 @@ class MassListBaseClass:
         
         if settings_file_path.exists():
             
-            with open(settings_file_path, 'r', encoding='utf8', ) as infile:
-
-                input_settings = json.load(infile)
-                
-                mass_spec_obj._set_parameters_objects(output_parameters)
-
-                _set_dict_data_ms(input_settings, mass_spec_obj)
+            load_and_set_parameters_class(self, 'DataInput', self._parameters, parameters_path=settings_file_path)
+            
+            load_and_set_parameters_ms(mass_spec_obj, parameters_path=settings_file_path)
      
         else:
             
@@ -212,7 +220,7 @@ class MassListBaseClass:
         
         for column_name in dataframe.columns:
             
-            expected_column_name = DataInputSetting().header_translate.get(column_name)
+            expected_column_name = self.parameters.header_translate.get(column_name)
             if expected_column_name not in self._expected_columns:
                 
                 #dataframe = dataframe.drop(column_name, axis=1)
@@ -222,8 +230,8 @@ class MassListBaseClass:
     def check_columns(self, header_labels):
         
         #print(header_labels)
-        #print( DataInputSetting().header_translate.keys())
-        #inverted_name_dict = {value: key for key, value in DataInputSetting().header_translate.items()}
+        #print( self.parameters.header_translate.keys())
+        #inverted_name_dict = {value: key for key, value in self.parameters.header_translate.items()}
         
         #print(inverted_name_dict)
         
@@ -233,7 +241,7 @@ class MassListBaseClass:
             
             if not label in self._expected_columns:
                 
-                user_column_name = DataInputSetting().header_translate.get(label)
+                user_column_name = self.parameters.header_translate.get(label)
                 
                 if user_column_name in self._expected_columns:
                     

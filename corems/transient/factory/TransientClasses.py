@@ -8,6 +8,7 @@ from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
 from corems.transient.calc.TransientCalc import TransientCalculations
 import matplotlib.pyplot as plt
 from copy import deepcopy
+from corems.encapsulation.input.parameter_from_json import load_and_set_parameters_class
 
 
 __author__ = "Yuri E. Corilo"
@@ -102,9 +103,12 @@ class Transient(TransientCalculations):
         return self._parameters
 
     @parameters.setter
-    def parameters(self, instance_MSParameters):
-        self._parameters = instance_MSParameters
-
+    def parameters(self, instance_TransientParameters):
+        self._parameters = instance_TransientParameters
+    
+    def set_parameter_from_json(self, parameters_path):
+        load_and_set_parameters_class(self, 'Transient', self._parameters, parameters_path=parameters_path)
+    
     def get_frequency_domain(self, plot_result=True):
 
         if self.parameters.number_of_truncations > 0:

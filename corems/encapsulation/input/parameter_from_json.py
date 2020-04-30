@@ -5,13 +5,13 @@ from corems.encapsulation.factory.processingSetting  import MolecularFormulaSear
 from corems.encapsulation.factory.processingSetting  import MassSpectrumSetting
 from corems.encapsulation.factory.processingSetting  import MassSpecPeakSetting
 from corems.encapsulation.factory.processingSetting  import GasChromatographSetting
-from corems.encapsulation.factory.processingSetting  import CompoundSearchSettings
+from corems.encapsulation.factory.processingSetting import CompoundSearchSettings, DataInputSetting
 
-def load_and_set_parameters_ms(mass_spec_obj, settings_path=False):   
+def load_and_set_parameters_ms(mass_spec_obj, parameters_path=False):   
     
-    if settings_path:
+    if parameters_path:
         
-        file_path = Path(settings_path)
+        file_path = Path(parameters_path)
 
     else:
         
@@ -30,11 +30,11 @@ def load_and_set_parameters_ms(mass_spec_obj, settings_path=False):
         
         raise FileNotFoundError("Could not locate %s", file_path)   
 
-def load_and_set_parameters_gcms(gcms_obj, settings_path=False):   
+def load_and_set_parameters_gcms(gcms_obj, parameters_path=False):   
     
-    if settings_path:
+    if parameters_path:
         
-        file_path = Path(settings_path)
+        file_path = Path(parameters_path)
 
     else:
         
@@ -106,3 +106,43 @@ def _set_dict_data_ms(data_loaded, mass_spec_obj):
     mass_spec_obj.transient_settings = classes[1]
     mass_spec_obj.settings = classes[2]
     mass_spec_obj.mspeaks_settings = classes[3]
+
+
+def load_and_set_parameters_class(target_obj, parameter_label, instance_parameters_class, parameters_path=False):   
+    
+    if parameters_path: file_path = Path(parameters_path)
+
+    else: file_path = Path.cwd() / 'SettingsCoreMS.json' 
+        
+    if Path.exists:  
+        
+        with open(file_path, 'r', encoding='utf8',) as stream:
+            
+            stream_lines = [n for n in stream.readlines() if not '//' in n.strip()]
+            jdata = ''.join(stream_lines)
+            data_loaded = json.loads(jdata)
+            _set_dict_data(data_loaded, target_obj, parameter_label, instance_parameters_class)
+    else:
+        
+        raise FileNotFoundError("Could not locate %s", file_path)  
+    
+def _set_dict_data(data_loaded, target_obj, parameter_label, instance_ParameterClass):
+    
+    classes = [instance_ParameterClass]
+               
+    labels = [parameter_label]
+    
+    label_class = zip(labels, classes)
+
+    if data_loaded:
+    
+        for label, classe in label_class:
+            class_data = data_loaded.get(label)
+            # not always we will have all the settings classes
+            # this allow a class data to be none and continue
+            # to import the other classes
+            if class_data:
+                for item, value in class_data.items():
+                    setattr(classe, item, value)
+
+    target_obj.data_input_settings = classes[0]
