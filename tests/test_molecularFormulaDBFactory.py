@@ -49,25 +49,6 @@ def test_query_sql():
         nominal_mz = 501
         print('total mol formulas found: ', len(list( sqldb.get_entries(classe, ion_type, nominal_mz, MolecularFormulaSearchSettings))))
 
-        data= {}
-        data['mol_formula'] = "C10H21O8888888888888888"
-        data['mz'] = 213
-        data['nominal_mz'] = 213
-        data['ion_type'] = ion_type
-        data['ion_charge'] = -1
-        data['classe'] = "O8"
-        data['C'] = 1
-        data['H'] = 1
-        data['N'] = 1
-        data['O'] = 1
-        data['S'] = 1
-        data['P'] = 1
-        data['H_C'] = 1
-        data['O_C'] = 1
-        data['DBE'] = 1
-        
-        sqldb.add_entry(data)
-
         print('total mol formulas found: ', len(list( sqldb.get_entries(classe, ion_type, nominal_mz, MolecularFormulaSearchSettings))))
         
 if __name__ == '__main__':
