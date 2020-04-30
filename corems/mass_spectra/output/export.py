@@ -324,7 +324,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
 
             for mass_spectrum in self.mass_spectra:
 
-                list_results = self.list_dict_to_list(mass_spectrum)
+                list_results = self.list_dict_to_list(mass_spectrum, is_hdf5=True)
                 
                 dict_ms_attrs = self.get_mass_spec_attrs(mass_spectrum)
                 
