@@ -97,8 +97,7 @@ class GasChromatographSetting:
 @dataclass 
 class CompoundSearchSettings:
 
-    #url_database = 'postgresql://postgres:labthomson0102@172.22.113.27:5432/' 
-    url_database: str = None#'sqlite://'
+    url_database: str = 'sqlite:////'
     
     ri_search_range:float = 20
 
@@ -220,7 +219,7 @@ class MolecularFormulaSearchSettings:
     min_peaks_per_class:int = 15
 
     url_database: str = None
-    
+
     db_jobs:int = 4
 
     '''query setting'''
