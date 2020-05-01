@@ -89,24 +89,26 @@ class MolecularCombinations:
             print('creating database entry for %i classes' % len(class_to_create))
             print()
             
-            all_class_list = []
-            #for class_tuple, ion_type in tqdm(class_to_create):
+            for class_tuple, ion_type in tqdm(class_to_create):
 
-                #(class_tuple, c_h_combinations, ion_type, settings)
+                (class_tuple, c_h_combinations, ion_type, settings)
                 
-            #    class_list= CombinationsWorker().get_combinations(class_tuple, c_h_combinations, ion_type, settings)
-            #    all_class_list.append(class_list)
-
-            worker_args = [(class_tuple, c_h_combinations, ion_type, settings) for class_tuple, ion_type in class_to_create]
-            p = multiprocessing.Pool(number_of_process)
-            
-            for class_list in tqdm(p.imap_unordered(CombinationsWorker(), worker_args)):
+                class_list= CombinationsWorker().get_combinations(class_tuple, c_h_combinations, ion_type, settings)
+                
                 self.add_to_sql_session(class_list)
                 self.sql_db.commit()    
+            
+
+            #worker_args = [(class_tuple, c_h_combinations, ion_type, settings) for class_tuple, ion_type in class_to_create]
+            ##p = multiprocessing.Pool(number_of_process)
+            
+            #for class_list in tqdm(p.imap_unordered(CombinationsWorker(), worker_args)):
+            #    self.add_to_sql_session(class_list)
+            #    self.sql_db.commit()    
                 
             #p.map(, args)
-            p.close()
-            p.join()
+            #p.close()
+            #p.join()
         
             
 
