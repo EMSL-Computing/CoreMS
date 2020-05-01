@@ -220,7 +220,7 @@ class MolecularFormulaSearchSettings:
 
     url_database: str = None
 
-    db_jobs:int = 8
+    db_jobs:int = 4
 
     '''query setting'''
     ion_charge:int = -1
@@ -292,8 +292,8 @@ class MolecularFormulaSearchSettings:
         
         self.usedAtoms = {   'C': (1, 100),
                     'H': (4, 200),
-                    'O': (1, 20),
-                    'N': (0, 0),
+                    'O': (1, 10),
+                    'N': (0, 1),
                     'S': (0, 1),
                     'P': (0, 0),
                     'Cl': (0, 0),

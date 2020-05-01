@@ -75,7 +75,7 @@ class MassListBaseClass:
         self._parameters = instance_DataInputSetting
 
     def set_parameter_from_json(self, parameters_path):
-        load_and_set_parameters_class(self._parameters, 'DataInput', self.parameters, parameters_path=parameters_path)
+        self._parameters = load_and_set_parameters_class('DataInput', self.parameters, parameters_path=parameters_path)
     
     @property
     def data_type(self):
@@ -158,7 +158,7 @@ class MassListBaseClass:
         
         if settings_file_path.exists():
             
-            load_and_set_parameters_class(self, 'DataInput', self._parameters, parameters_path=settings_file_path)
+            self._parameters = load_and_set_parameters_class('DataInput', self._parameters, parameters_path=settings_file_path)
             
             load_and_set_parameters_ms(mass_spec_obj, parameters_path=settings_file_path)
      

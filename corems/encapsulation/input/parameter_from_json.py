@@ -102,7 +102,7 @@ def _set_dict_data_ms(data_loaded, mass_spec_obj):
     mass_spec_obj.mspeaks_settings = classes[3]
 
 
-def load_and_set_parameters_class(target_obj, parameter_label, instance_parameters_class, parameters_path=False):   
+def load_and_set_parameters_class(parameter_label, instance_parameters_class, parameters_path=False):   
     
     if parameters_path: file_path = Path(parameters_path)
 
@@ -115,12 +115,13 @@ def load_and_set_parameters_class(target_obj, parameter_label, instance_paramete
             stream_lines = [n for n in stream.readlines() if not '//' in n.strip()]
             jdata = ''.join(stream_lines)
             data_loaded = json.loads(jdata)
-            _set_dict_data(data_loaded, target_obj, parameter_label, instance_parameters_class)
+            parameter_class = _set_dict_data(data_loaded, parameter_label, instance_parameters_class)
+            return parameter_class
     else:
         
         raise FileNotFoundError("Could not locate %s", file_path)  
     
-def _set_dict_data(data_loaded, target_obj, parameter_label, instance_ParameterClass):
+def _set_dict_data(data_loaded, parameter_label, instance_ParameterClass):
     
     classes = [instance_ParameterClass]
                
@@ -138,5 +139,5 @@ def _set_dict_data(data_loaded, target_obj, parameter_label, instance_ParameterC
             if class_data:
                 for item, value in class_data.items():
                     setattr(classe, item, value)
-
-    target_obj = classes[0]
+    
+    return classes[0]

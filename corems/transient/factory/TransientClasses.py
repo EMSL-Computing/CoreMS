@@ -107,7 +107,7 @@ class Transient(TransientCalculations):
         self._parameters = instance_TransientParameters
     
     def set_parameter_from_json(self, parameters_path):
-        load_and_set_parameters_class(self.parameters, 'Transient', self._parameters, parameters_path=parameters_path)
+        self._parameters = load_and_set_parameters_class('Transient', self._parameters, parameters_path=parameters_path)
     
     def get_frequency_domain(self, plot_result=True):
 
