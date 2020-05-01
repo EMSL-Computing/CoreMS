@@ -84,29 +84,36 @@ class MolecularCombinations:
             c_h_combinations= self.get_c_h_combination(settings)
             
             number_of_process = int(settings.db_jobs)
-            print("Using %i logical CPUs for database entry generation"% number_of_process )
-            #number_of_process = psutil.cpu_count(logical=False)
-            print('creating database entry for %i classes' % len(class_to_create))
-            print()
             
-            for class_tuple, ion_type in tqdm(class_to_create):
+            if settings.db_jobs > 1:
+                
+                print("Using %i logical CPUs for database entry generation"% number_of_process )
+                #number_of_process = psutil.cpu_count(logical=False)
+                print('creating database entry for %i classes' % len(class_to_create))
+                print()
 
-                (class_tuple, c_h_combinations, ion_type, settings)
-                
-                class_list= CombinationsWorker().get_combinations(class_tuple, c_h_combinations, ion_type, settings)
-                self.add_to_sql_session(class_list)
-                self.sql_db.commit()             #worker_args = [(class_tuple, c_h_combinations, ion_type, settings) for class_tuple, ion_type in class_to_create]
-            #p = multiprocessing.Pool(number_of_process)
-            #for class_list in tqdm(p.imap_unordered(CombinationsWorker(), worker_args)):
-            #    self.add_to_sql_session(class_list)
-            #    self.sql_db.commit()    
-                
-            #p.map(, args)
-            #p.close()
-            #p.join()
-            #TODO this will slow down a bit, need to find a better way      
+                worker_args = [(class_tuple, c_h_combinations, ion_type, settings) for class_tuple, ion_type in class_to_create]
+                p = multiprocessing.Pool(number_of_process)
+                for class_list in tqdm(p.imap_unordered(CombinationsWorker(), worker_args)):
+                    # TODO this will slow down a bit, need to find a better way      
+                    self.add_to_sql_session(class_list)
+                    self.sql_db.commit()    
+                    
+                #p.map(, args)
+                p.close()
+                p.join()
             
+            else:
+                
+                for class_tuple, ion_type in tqdm(class_to_create):
 
+                    (class_tuple, c_h_combinations, ion_type, settings)
+                
+                    class_list = CombinationsWorker().get_combinations(class_tuple, c_h_combinations, ion_type, settings)
+                    self.add_to_sql_session(class_list)
+                    self.sql_db.commit()             
+            
+            
         return classes_list
    
     def add_to_sql_session(self, class_list):
