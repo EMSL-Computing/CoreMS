@@ -29,7 +29,7 @@ class GCMSBase(GC_Calculations):
         
         if not file_location.exists():
         
-            raise FileExistsError("File does not exist: " + file_location)
+            raise FileExistsError("File does not exist: " + str(file_location))
         
         self.file_location = file_location
         
