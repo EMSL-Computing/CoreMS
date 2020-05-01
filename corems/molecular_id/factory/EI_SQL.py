@@ -162,7 +162,7 @@ class EI_LowRes_SQLite:
         return row
 
     def get_all(self,):
-        
+
         compounds = self.session.query(LowResolutionEICompound).all()
        
         return [self.row_to_dict(compound) for compound in compounds]
