@@ -95,7 +95,7 @@ def _set_dict_data_ms(data_loaded, mass_spec_obj):
             if class_data:
                 for item, value in class_data.items():
                     setattr(classe, item, value)
-    print(classes[0])
+    
     mass_spec_obj.molecular_search_settings = classes[0]
     mass_spec_obj.transient_settings = classes[1]
     mass_spec_obj.settings = classes[2]
