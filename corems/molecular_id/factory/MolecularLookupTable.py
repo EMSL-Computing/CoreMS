@@ -99,24 +99,25 @@ class MolecularCombinations:
 
             worker_args = [(class_tuple, c_h_combinations, ion_type, settings) for class_tuple, ion_type in class_to_create]
             p = multiprocessing.Pool(number_of_process)
-            all_class_list = []
+            
             for class_list in tqdm(p.imap_unordered(CombinationsWorker(), worker_args)):
-                all_class_list.append(class_list)
+                self.add_to_sql_session(class_list)
+                self.sql_db.commit()    
+                
             #p.map(, args)
-            #p.close()
-            #p.join()
+            p.close()
+            p.join()
         
-            self.add_to_sql_session(all_class_list)
+            
 
             #TODO this will slow down a bit, need to find a better way      
-            self.sql_db.commit()    
+            
 
         return classes_list
    
-    def add_to_sql_session(self, all_class_list):
+    def add_to_sql_session(self, class_list):
         
-        for class_list in all_class_list:
-            self.sql_db.add_all(class_list)
+        self.sql_db.add_all(class_list)
 
     def get_c_h_combination(self, settings):
 
