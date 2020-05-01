@@ -75,7 +75,7 @@ class MassListBaseClass:
         self._parameters = instance_DataInputSetting
 
     def set_parameter_from_json(self, parameters_path):
-        load_and_set_parameters_class(self, 'DataInput', self._parameters, parameters_path=parameters_path)
+        load_and_set_parameters_class(self._parameters, 'DataInput', self.parameters, parameters_path=parameters_path)
     
     @property
     def data_type(self):

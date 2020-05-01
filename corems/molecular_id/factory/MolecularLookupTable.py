@@ -9,6 +9,7 @@ import json
 from corems.encapsulation.factory.processingSetting  import MolecularLookupDictSettings
 from corems.encapsulation.constant import Labels
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
+from corems.molecular_id.factory.molecularSQL import MolForm_SQL
 
 class MolecularCombinations:
      
@@ -23,9 +24,9 @@ class MolecularCombinations:
             }
         }
     '''
-    def __init__(self, sql_db = False):
+    def __init__(self, sql_db = None):
             
-        self.sql_db = sql_db
+        self.sql_db = sql_db    
     
     def check_database_get_class_list(self, molecular_search_settings):
 
@@ -66,6 +67,12 @@ class MolecularCombinations:
         return [(c_s, c_d) for c_s, c_d in classes_dict.items()], all_class_to_create       
 
     def runworker(self, molecular_search_settings) :
+        
+        if not self.sql_db:
+            
+            polarity = 1 if molecular_search_settings.ion_charge > 0 else - 1
+
+            self.sql_db = MolForm_SQL(polarity, molecular_search_settings.url_database)
         
         from tqdm import tqdm
         
