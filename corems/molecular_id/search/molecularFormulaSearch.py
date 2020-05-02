@@ -129,7 +129,7 @@ class SearchMolecularFormulas:
         #query database
         pbar = tqdm.tqdm(classes)
         
-        dict_res = self.get_dict_molecular_database(classes, nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
+        dict_res = self.get_dict_molecular_database(classes_str, nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
             
         for classe_tuple in pbar:
 
@@ -197,7 +197,7 @@ class SearchMolecularFormulas:
         #query database
         pbar = tqdm.tqdm(classes)
         
-        dict_res = self.get_dict_molecular_database(classes, nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
+        dict_res = self.get_dict_molecular_database(classes_str, nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
         
         for classe_tuple in pbar:
 
