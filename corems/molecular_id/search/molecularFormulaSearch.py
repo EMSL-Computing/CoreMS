@@ -129,13 +129,14 @@ class SearchMolecularFormulas:
         #query database
         pbar = tqdm.tqdm(classes)
         
+        dict_res = self.get_dict_molecular_database(classes, nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
+            
         for classe_tuple in pbar:
 
             #add filter here and get indexes of class assigned 
             classe_str  = classe_tuple[0]
             classe_dict = classe_tuple[1]
             #query for the classes molecular formulas
-            dict_res = self.get_dict_molecular_database([classe_str], nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
             if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
                     
                     pbar.set_description_str(desc="Started molecular formula search for class %s, (de)protonated " % classe_str, refresh=True)
@@ -196,13 +197,14 @@ class SearchMolecularFormulas:
         #query database
         pbar = tqdm.tqdm(classes)
         
+        dict_res = self.get_dict_molecular_database([classes], nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
+        
         for classe_tuple in pbar:
 
             #add filter here and get indexes of class assigned 
             classe_str  = classe_tuple[0]
             classe_dict = classe_tuple[1]
             #query for the classes molecular formulas
-            dict_res = self.get_dict_molecular_database([classe_str], nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
             if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
                     
                     pbar.set_description_str(desc="Started molecular formula search for class %s, (de)protonated " % classe_str, refresh=True)
