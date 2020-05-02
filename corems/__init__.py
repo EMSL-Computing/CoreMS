@@ -1,4 +1,4 @@
-__version__ = '12.0.5.beta'
+__version__ = '12.0.6.beta'
 __doc__ = '''
 
 CoreMS - a powerful framework for mass spectrometry data processing and analysis of small molecules
@@ -175,4 +175,9 @@ def get_dirnames(app=None):
         QCoreApplication.processEvents()
         for path in paths:
             yield Path(path)
-    
+
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+        

@@ -1,5 +1,6 @@
 import pickle, os
 
+
 from sqlalchemy import create_engine, Column, Integer, Binary, String, Float, exists
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import SQLAlchemyError
@@ -7,6 +8,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.exc import MultipleResultsFound
 from sqlalchemy.pool import QueuePool
+
+from corems import chunks
 Base = declarative_base()
 
 class MolecularFormulaTable(Base):  
@@ -168,11 +171,11 @@ class MolForm_SQL:
         
         dict_res = {}
 
-        if (len(classes) + len(nominal_mzs)) >= 998:
+        if (len(classes) + len(nominal_mzs)) >= 900:
             
-            formulas = query_no_nominal(classes)
-            add_dict_formula(formulas, check_nominal=True)
-            
+            for class_chunk in chunks(classes, 900):
+                formulas = query_no_nominal(classes)
+                add_dict_formula(formulas, check_nominal=True)
                         
         else:
 

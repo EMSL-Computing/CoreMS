@@ -14,7 +14,7 @@ with open('requirements.txt') as f:
 # This call to setup() does all the work
 setup(
     name="CoreMS",
-    version="12.0.5.beta",
+    version="12.0.6.beta",
     description="Mass Spectrometry Framework for Small Molecules Analysis",
     long_description=long_description,
     long_description_content_type="text/markdown",
