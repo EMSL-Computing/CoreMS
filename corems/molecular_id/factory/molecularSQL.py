@@ -171,10 +171,10 @@ class MolForm_SQL:
         
         dict_res = {}
 
-        if (len(classes) + len(nominal_mzs)) >= 900:
+        if len(classes) > 900 or (len(classes) + len(nominal_mzs)) >= 900:
             
             for class_chunk in chunks(classes, 900):
-                formulas = query_no_nominal(classes)
+                formulas = query_no_nominal(class_chunk)
                 add_dict_formula(formulas, check_nominal=True)
                         
         else:

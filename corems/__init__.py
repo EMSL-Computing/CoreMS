@@ -1,4 +1,4 @@
-__version__ = '12.0.6.beta'
+__version__ = '12.0.9.beta'
 __doc__ = '''
 
 CoreMS - a powerful framework for mass spectrometry data processing and analysis of small molecules
