@@ -435,7 +435,7 @@ class OxygenPriorityAssignment(Thread):
 
                 for molecularFormulaTable in  list_formulas:
                     
-                    formula_dict = json.loads(molecularFormulaTable.id)
+                    formula_dict = json.loads(molecularFormulaTable.mol_formula)
                     
                     if adduct_atom in formula_dict.keys():
                         formula_dict[adduct_atom] += 1  

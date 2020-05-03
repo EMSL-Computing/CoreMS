@@ -14,7 +14,8 @@ Base = declarative_base()
 
 class MolecularFormulaTable(Base):  
     
-    id = Column( String, primary_key=True)
+    id = Column( Integer, primary_key=True)
+    mol_formula = Column( String, unique=True)
     mz = Column(Float, nullable=False)
     nominal_mz= Column(Integer, nullable=False)
     ion_type = Column(String, nullable=False)
@@ -32,24 +33,6 @@ class MolecularFormulaTable(Base):
     H_C = Column(Float, nullable=True)
     
     __tablename__ = 'molform'
-
-    def __init__(self, kargs): 
-        
-        self.id = kargs['mol_formula']
-        self.mz = kargs['mz']
-        self.nominal_mz =kargs['nominal_mz']
-        self.ion_type = kargs['ion_type']
-        self.ion_charge = kargs['ion_charge']
-        self.classe = kargs['classe']
-        self.C = kargs['C']
-        self.H = kargs['H']
-        self.N = kargs['N']
-        self.O = kargs['O']
-        self.S = kargs['S']
-        self.P = kargs['P']
-        self.H_C = kargs['H_C']
-        self.O_C = kargs['O_C']
-        self.DBE = kargs['DBE']
 
     def __repr__(self):
         return "<MolecularFormulaTable(classe='%s', mz='%i', ion_type='%s', ion_charge='%i')>" % (
@@ -97,11 +80,11 @@ class MolForm_SQL:
     
     def add_all(self, molform_list):
 
-        self.session.add_all((MolecularFormulaTable(data) for data in molform_list))
+        self.session.add_all((MolecularFormulaTable(**data) for data in molform_list))
         
     def add_entry(self, molform): 
         
-        self.session.add(MolecularFormulaTable(molform))  
+        self.session.add(MolecularFormulaTable(**molform))  
         
     def commit(self):
         

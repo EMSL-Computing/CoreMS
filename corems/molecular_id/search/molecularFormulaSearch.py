@@ -264,7 +264,7 @@ class SearchMolecularFormulas:
 
                 for molecularFormulaTable in  list_formulas:
                     
-                    formula_dict = json.loads(molecularFormulaTable.id)
+                    formula_dict = json.loads(molecularFormulaTable.mol_formula)
                     
                     if adduct_atom in formula_dict.keys():
                         formula_dict[adduct_atom] += 1  
@@ -483,8 +483,8 @@ class SearchMolecularFormulaWorker:
                     #add molecular formula match to ms_peak
                     
                     # get molecular formula dict from sql obj
-                    #formula_dict = pickle.loads(possible_formula.id)
-                    formula_dict = json.loads(possible_formula.id)
+                    #formula_dict = pickle.loads(possible_formula.mol_formula)
+                    formula_dict = json.loads(possible_formula.mol_formula)
                     
                     # create the molecular formula obj to be stored
                     molecular_formula = MolecularFormula(formula_dict, possible_formula.ion_charge)
