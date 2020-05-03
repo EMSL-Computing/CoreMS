@@ -80,8 +80,11 @@ class MolForm_SQL:
     
     def add_all(self, molform_list):
 
-        self.session.add_all((MolecularFormulaTable(**data) for data in molform_list))
-        
+        self.session.bulk_insert_mappings(MolecularFormulaTable, molform_list)
+        #self.session.add_all((MolecularFormulaTable(**data) for data in molform_list))
+        #self.engine.execute(MolecularFormulaTable.__table__.insert(),
+        #       [data for data in molform_list],autocommit=False)
+
     def add_entry(self, molform): 
         
         self.session.add(MolecularFormulaTable(**molform))  
@@ -122,7 +125,6 @@ class MolForm_SQL:
                 MolecularFormulaTable.ion_charge == molecular_search_settings.ion_charge,
                 MolecularFormulaTable.O_C <= molecular_search_settings.oc_filter,
                 MolecularFormulaTable.H_C >= molecular_search_settings.hc_filter)
-                
             
         def add_dict_formula(formulas, check_nominal=False):
             "organize data by heteroatom classes"

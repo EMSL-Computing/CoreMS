@@ -444,7 +444,7 @@ class OxygenPriorityAssignment(Thread):
                     
                     mz = adduct_atom_mass + molecularFormulaTable.mz
                     nm = int(mz)
-                    new_formul_obj = MolecularFormulaTable( {"mol_formula" : json.dumps(formula_dict),
+                    new_formul_obj = MolecularFormulaTable( **{"mol_formula" : json.dumps(formula_dict),
                                             "mz" : mz,
                                             "ion_type" : ion_type,
                                             "nominal_mz" : nm,
