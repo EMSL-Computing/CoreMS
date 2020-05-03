@@ -68,11 +68,7 @@ class MolecularCombinations:
 
     def runworker(self, molecular_search_settings) :
         
-        if not self.sql_db:
-            
-            polarity = 1 if molecular_search_settings.ion_charge > 0 else - 1
-
-            self.sql_db = MolForm_SQL(polarity, molecular_search_settings.url_database)
+        polarity = 1 if molecular_search_settings.ion_charge > 0 else - 1
         
         from tqdm import tqdm
         
@@ -99,14 +95,11 @@ class MolecularCombinations:
                 print('creating database entry for %i classes' % len(class_to_create))
                 print()
 
-                worker_args = [(class_tuple, c_h_combinations, ion_type, settings) for class_tuple, ion_type in class_to_create]
+                worker_args = [(class_tuple, c_h_combinations, ion_type, settings, polarity, molecular_search_settings.url_database) for class_tuple, ion_type in class_to_create]
                 p = multiprocessing.Pool(number_of_process)
                 for class_list in tqdm(p.imap_unordered(CombinationsWorker(), worker_args)):
-                    # TODO this will slow down a bit, need to find a better way      
-                    self.add_to_sql_session(class_list)
-                    self.sql_db.commit()    
-                    
-                #p.map(, args)
+                    pass
+                
                 p.close()
                 p.join()
             
@@ -114,19 +107,11 @@ class MolecularCombinations:
                 
                 for class_tuple, ion_type in tqdm(class_to_create):
 
-                    (class_tuple, c_h_combinations, ion_type, settings)
-                
-                    class_list = CombinationsWorker().get_combinations(class_tuple, c_h_combinations, ion_type, settings)
-                    self.add_to_sql_session(class_list)
-                    self.sql_db.commit()             
-            
+                    CombinationsWorker().get_combinations(class_tuple, c_h_combinations, ion_type, settings, polarity, molecular_search_settings.url_database)
+              
             
         return classes_list
    
-    def add_to_sql_session(self, class_list):
-        
-        self.sql_db.add_all(class_list)
-
     def get_c_h_combination(self, settings):
 
         usedAtoms = settings.usedAtoms
@@ -169,7 +154,6 @@ class MolecularCombinations:
                 )
 
         return new_list2    
-    
     
     def get_classes_in_order(self, molecular_search_settings):
         ''' structure is 
@@ -280,7 +264,7 @@ class CombinationsWorker:
         return self.get_combinations(*args)  # ,args[1]
 
     def get_combinations(self, classe_tuple,
-                          c_h_combinations, ion_type, settings
+                          c_h_combinations, ion_type, settings, polarity,url_database 
                          ):
 
         min_dbe = settings.min_dbe
@@ -333,7 +317,9 @@ class CombinationsWorker:
 
             mf_data_list.extend(list_mf)
         
-        return  mf_data_list   
+        sql_db = MolForm_SQL(polarity, url_database)
+        sql_db.add_all_core(mf_data_list)
+           
             
     @staticmethod
     def get_mol_formulas(carbon_hydrogen_combination,

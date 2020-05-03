@@ -8,13 +8,15 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.exc import MultipleResultsFound
 from sqlalchemy.pool import QueuePool
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 from corems import chunks
 Base = declarative_base()
 
+
 class MolecularFormulaTable(Base):  
     
-    id = Column( Integer, primary_key=True)
+    id = Column(Integer, primary_key = True)
     mol_formula = Column( String, unique=True)
     mz = Column(Float, nullable=False)
     nominal_mz= Column(Integer, nullable=False)
@@ -32,11 +34,7 @@ class MolecularFormulaTable(Base):
     O_C = Column(Float, nullable=True)
     H_C = Column(Float, nullable=True)
     
-    __tablename__ = 'molform'
-
-    def __repr__(self):
-        return "<MolecularFormulaTable(classe='%s', mz='%i', ion_type='%s', ion_charge='%i')>" % (
-                                    self.classe, self.mz, self.ion_type, self.ion_charge)
+    __tablename__ = 'molform2'
 
 class MolForm_SQL:
     
@@ -46,11 +44,11 @@ class MolForm_SQL:
 
         #self.engine = create_engine('postgresql://postgres:docker@localhost:5432/')
         
-        Base.metadata.create_all(self.engine)
-
         Session = sessionmaker(bind=self.engine)
-        
+
         self.session = Session()
+
+        Base.metadata.create_all(self.engine)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # make sure the dbconnection gets closed
@@ -72,19 +70,21 @@ class MolForm_SQL:
 
             url = 'sqlite:///{DB}/db/molformulas_{charge}.sqlite'.format(DB=directory, charge=polarity_label)
 
-        return create_engine(url, poolclass=QueuePool)
+        return create_engine(url)
 
     def __enter__(self):
         
         return self
     
-    def add_all(self, molform_list):
+    def add_all_core(self, molform_list):
 
-        self.session.bulk_insert_mappings(MolecularFormulaTable, molform_list)
-        #self.session.add_all((MolecularFormulaTable(**data) for data in molform_list))
-        #self.engine.execute(MolecularFormulaTable.__table__.insert(),
-        #       [data for data in molform_list],autocommit=False)
-
+        #objs = [MolecularFormulaTable(**molform) for molform in molform_list]
+        #print("ok")
+        #self.session.bulk_save_objects(objs)
+        #print("ok2")
+        self.engine.execute(MolecularFormulaTable.__table__.insert(),
+               [data for data in molform_list],autocommit=False)
+ 
     def add_entry(self, molform): 
         
         self.session.add(MolecularFormulaTable(**molform))  
@@ -125,7 +125,7 @@ class MolForm_SQL:
                 MolecularFormulaTable.ion_charge == molecular_search_settings.ion_charge,
                 MolecularFormulaTable.O_C <= molecular_search_settings.oc_filter,
                 MolecularFormulaTable.H_C >= molecular_search_settings.hc_filter)
-            
+                
         def add_dict_formula(formulas, check_nominal=False):
             "organize data by heteroatom classes"
             for formula in formulas:
@@ -177,6 +177,7 @@ class MolForm_SQL:
             (MolecularFormulaTable.classe == classe) &
             (MolecularFormulaTable.ion_type == ion_type) &
             (MolecularFormulaTable.ion_charge == molecular_search_settings.ion_charge))).scalar()
+        
         return yes
     
     
