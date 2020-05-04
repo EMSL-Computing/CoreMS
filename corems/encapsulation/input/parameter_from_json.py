@@ -112,10 +112,9 @@ def load_and_set_parameters_class(parameter_label, instance_parameters_class, pa
         
         with open(file_path, 'r', encoding='utf8',) as stream:
             
-            stream_lines = [n for n in stream.readlines() if not '//' in n.strip()]
-            jdata = ''.join(stream_lines)
-            data_loaded = json.loads(jdata)
+            data_loaded = json.load(stream)
             parameter_class = _set_dict_data(data_loaded, parameter_label, instance_parameters_class)
+            
             return parameter_class
     else:
         

@@ -70,7 +70,7 @@ class MolForm_SQL:
         
         if not url:
             
-            if not os.path.isdir(directory+'/db'):  os.mkdir(directory+'/db')    
+            if not os.path.isdir(directory+'/db'):  os.mkdir(directory+'/db')
             
             url = 'sqlite:///{DB}/db/molformulas.sqlite'.format(DB=directory)
 
