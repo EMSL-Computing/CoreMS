@@ -10,7 +10,7 @@ sys.path.append(".")
 
 from corems.encapsulation.constant import Labels
 from corems.molecular_id.factory.MolecularLookupTable import  MolecularCombinations
-from corems.molecular_id.factory.molecularSQL import MolForm_SQL, MolecularFormulaTable
+from corems.molecular_id.factory.molecularSQL import MolForm_SQL
 from corems.molecular_id.factory.molecularMongo import MolForm_Mongo
 from corems.molecular_id.input.nistMSI import ReadNistMSI
 from corems.encapsulation.factory.processingSetting  import MolecularFormulaSearchSettings

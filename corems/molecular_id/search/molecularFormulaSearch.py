@@ -11,7 +11,7 @@ from sqlalchemy.types import Binary
 
 from corems.encapsulation.constant import Atoms, Labels
 from corems.molecular_id.factory.MolecularLookupTable import  MolecularCombinations
-from corems.molecular_id.factory.molecularSQL import MolForm_SQL, MolecularFormulaTable
+from corems.molecular_id.factory.molecularSQL import MolForm_SQL, MolecularFormulaTableNeg, MolecularFormulaTablePos
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.molecular_id.calc.MolecularFilter import MolecularFormulaSearchFilters
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
@@ -251,9 +251,12 @@ class SearchMolecularFormulas:
 
         if self.mass_spectrum_obj.polarity < 0:
             adduct_atoms = self.mass_spectrum_obj.molecular_search_settings.adduct_atoms_neg
+            molform_model = MolecularFormulaTableNeg
+
         else:
             adduct_atoms = self.mass_spectrum_obj.molecular_search_settings.adduct_atoms_pos
-
+            molform_model = MolecularFormulaTablePos
+            
         new_dict = {}
         
         for nominal_mz, list_formulas in possible_formulas.items():
@@ -273,7 +276,7 @@ class SearchMolecularFormulas:
                     
                     mz = adduct_atom_mass + molecularFormulaTable.mz
                     nm = int(mz)
-                    new_formul_obj = MolecularFormulaTable( **{"mol_formula" : json.dumps(formula_dict),
+                    new_formul_obj = molform_model( **{"mol_formula" : json.dumps(formula_dict),
                                             "mz" : mz,
                                             "ion_type" : ion_type,
                                             "nominal_mz" : nm,

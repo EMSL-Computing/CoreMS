@@ -12,7 +12,7 @@ from corems.molecular_id.calc.MolecularFilter import MolecularFormulaSearchFilte
 from corems.molecular_id.factory.MolecularLookupTable import MolecularCombinations
 from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulaWorker
-from corems.molecular_id.factory.molecularSQL import MolForm_SQL, MolecularFormulaTable 
+from corems.molecular_id.factory.molecularSQL import MolForm_SQL, MolecularFormulaTableNeg, MolecularFormulaTablePos 
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 import json
 
@@ -422,8 +422,10 @@ class OxygenPriorityAssignment(Thread):
 
         if self.mass_spectrum_obj.polarity < 0:
             adduct_atoms = self.mass_spectrum_obj.molecular_search_settings.adduct_atoms_neg
+            molform_model = MolecularFormulaTableNeg
         else:
             adduct_atoms = self.mass_spectrum_obj.molecular_search_settings.adduct_atoms_pos
+            molform_model = MolecularFormulaTablePos
 
         new_dict = {}
         
@@ -444,7 +446,8 @@ class OxygenPriorityAssignment(Thread):
                     
                     mz = adduct_atom_mass + molecularFormulaTable.mz
                     nm = int(mz)
-                    new_formul_obj = MolecularFormulaTable( **{"mol_formula" : json.dumps(formula_dict),
+                    
+                    new_formul_obj = molform_model( **{"mol_formula" : json.dumps(formula_dict),
                                             "mz" : mz,
                                             "ion_type" : ion_type,
                                             "nominal_mz" : nm,
@@ -452,12 +455,12 @@ class OxygenPriorityAssignment(Thread):
                                             "classe" : molecularFormulaTable.classe,
                                             "C" : molecularFormulaTable.C,
                                             "H" : molecularFormulaTable.H,
-                                            "N" : molecularFormulaTable.H,
-                                            "O" : molecularFormulaTable.H,
-                                            "S" : molecularFormulaTable.H,
-                                            "P" : molecularFormulaTable.H,
-                                            "H_C" : molecularFormulaTable.H,
-                                            "O_C" : molecularFormulaTable.H,
+                                            "N" : molecularFormulaTable.N,
+                                            "O" : molecularFormulaTable.O,
+                                            "S" : molecularFormulaTable.S,
+                                            "P" : molecularFormulaTable.P,
+                                            "H_C" : molecularFormulaTable.H_C,
+                                            "O_C" : molecularFormulaTable.O_C,
                                             "DBE" : molecularFormulaTable.DBE,
                                             })
                     if nm in new_dict:

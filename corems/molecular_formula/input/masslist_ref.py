@@ -10,7 +10,7 @@ sys.path.append('.')
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.constant import Atoms
-from corems.molecular_id.factory.molecularSQL import MolecularFormulaTable
+from corems.molecular_id.factory.molecularSQL import MolecularFormulaTablePos, MolecularFormulaTableNeg
 
 class ImportMassListRef():#Thread
 
@@ -25,8 +25,8 @@ class ImportMassListRef():#Thread
                 raise FileNotFoundError(ref_file_location).with_traceback(tb)
     
     def molecular_formula_ref( self, molecular_formula):
-
-        return MolecularFormulaTable( **{"mol_formula" : json.dumps(molecular_formula.to_dict),
+        molform_model = MolecularFormulaTablePos if molecular_formula.ion_charge > 0 else MolecularFormulaTableNeg
+        return molform_model( **{"mol_formula" : json.dumps(molecular_formula.to_dict),
                                     "mz" : molecular_formula.mz_calc,
                                     "nominal_mz" : molecular_formula.mz_nominal_calc,
                                     "ion_type" : molecular_formula.ion_type,

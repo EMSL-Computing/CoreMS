@@ -13,9 +13,8 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from corems import chunks
 Base = declarative_base()
 
+class MolecularFormulaTablePos(Base):  
 
-class MolecularFormulaTable(Base):  
-    
     id = Column(Integer, primary_key = True)
     mol_formula = Column( String, unique=True)
     mz = Column(Float, nullable=False)
@@ -23,7 +22,7 @@ class MolecularFormulaTable(Base):
     ion_type = Column(String, nullable=False)
     ion_charge = Column(Integer, nullable=False)
     classe = Column(String, nullable=False)
-    
+
     C = Column(Integer, nullable=False)
     H = Column(Integer, nullable=True)
     N = Column(Integer, nullable=True)
@@ -34,12 +33,35 @@ class MolecularFormulaTable(Base):
     O_C = Column(Float, nullable=True)
     H_C = Column(Float, nullable=True)
     
-    __tablename__ = 'molform2'
+    __tablename__ = 'molformulas_pos'
+    
+class MolecularFormulaTableNeg(Base):  
+
+    id = Column(Integer, primary_key = True)
+    mol_formula = Column( String, unique=True)
+    mz = Column(Float, nullable=False)
+    nominal_mz= Column(Integer, nullable=False)
+    ion_type = Column(String, nullable=False)
+    ion_charge = Column(Integer, nullable=False)
+    classe = Column(String, nullable=False)
+
+    C = Column(Integer, nullable=False)
+    H = Column(Integer, nullable=True)
+    N = Column(Integer, nullable=True)
+    O = Column(Integer, nullable=True)
+    S = Column(Integer, nullable=True)
+    P = Column(Integer, nullable=True)
+    DBE = Column(Float, nullable=False)
+    O_C = Column(Float, nullable=True)
+    H_C = Column(Float, nullable=True)
+    
+    __tablename__ = 'molformulas_neg'
 
 class MolForm_SQL:
     
     def __init__(self, polarity, url=None, echo=False):
-
+        self.molform_model = MolecularFormulaTablePos if polarity > 0 else MolecularFormulaTableNeg
+        
         self.engine = self.init_engine(polarity, url)
 
         #self.engine = create_engine('postgresql://postgres:docker@localhost:5432/')
@@ -62,13 +84,9 @@ class MolForm_SQL:
         
         if not url:
             
-            if not os.path.isdir(directory+'/db'):
-                    
-                os.mkdir(directory+'/db')    
-
-            polarity_label = 'pos' if polarity > 0 else 'neg'
-
-            url = 'sqlite:///{DB}/db/molformulas_{charge}.sqlite'.format(DB=directory, charge=polarity_label)
+            if not os.path.isdir(directory+'/db'):  os.mkdir(directory+'/db')    
+            
+            url = 'sqlite:///{DB}/db/molformulas.sqlite'.format(DB=directory)
 
         return create_engine(url)
 
@@ -78,16 +96,16 @@ class MolForm_SQL:
     
     def add_all_core(self, molform_list):
 
-        #objs = [MolecularFormulaTable(**molform) for molform in molform_list]
+        #objs = [self.molform_model(**molform) for molform in molform_list]
         #print("ok")
         #self.session.bulk_save_objects(objs)
         #print("ok2")
-        self.engine.execute(MolecularFormulaTable.__table__.insert(),
+        self.engine.execute(self.molform_model.__table__.insert(),
                [data for data in molform_list],autocommit=False)
  
     def add_entry(self, molform): 
         
-        self.session.add(MolecularFormulaTable(**molform))  
+        self.session.add(self.molform_model(**molform))  
         
     def commit(self):
         
@@ -105,26 +123,26 @@ class MolForm_SQL:
         
         def query_no_nominal(class_list):
             
-            return self.session.query(MolecularFormulaTable).filter(
-                MolecularFormulaTable.classe.in_(class_list), 
-                MolecularFormulaTable.ion_type == ion_type,
-                MolecularFormulaTable.DBE >= molecular_search_settings.min_dbe, 
-                MolecularFormulaTable.DBE <= molecular_search_settings.max_dbe, 
-                MolecularFormulaTable.ion_charge == molecular_search_settings.ion_charge,
-                MolecularFormulaTable.O_C <= molecular_search_settings.oc_filter,
-                MolecularFormulaTable.H_C >= molecular_search_settings.hc_filter)
+            return self.session.query(self.molform_model).filter(
+                self.molform_model.classe.in_(class_list), 
+                self.molform_model.ion_type == ion_type,
+                self.molform_model.DBE >= molecular_search_settings.min_dbe, 
+                self.molform_model.DBE <= molecular_search_settings.max_dbe, 
+                self.molform_model.ion_charge == molecular_search_settings.ion_charge,
+                self.molform_model.O_C <= molecular_search_settings.oc_filter,
+                self.molform_model.H_C >= molecular_search_settings.hc_filter)
 
         def query(class_list):
             
-            return self.session.query(MolecularFormulaTable).filter(
-                MolecularFormulaTable.nominal_mz.in_(nominal_mzs),
-                MolecularFormulaTable.classe.in_(class_list), 
-                MolecularFormulaTable.ion_type == ion_type,
-                MolecularFormulaTable.DBE >= molecular_search_settings.min_dbe, 
-                MolecularFormulaTable.DBE <= molecular_search_settings.max_dbe, 
-                MolecularFormulaTable.ion_charge == molecular_search_settings.ion_charge,
-                MolecularFormulaTable.O_C <= molecular_search_settings.oc_filter,
-                MolecularFormulaTable.H_C >= molecular_search_settings.hc_filter)
+            return self.session.query(self.molform_model).filter(
+                self.molform_model.nominal_mz.in_(nominal_mzs),
+                self.molform_model.classe.in_(class_list), 
+                self.molform_model.ion_type == ion_type,
+                self.molform_model.DBE >= molecular_search_settings.min_dbe, 
+                self.molform_model.DBE <= molecular_search_settings.max_dbe, 
+                self.molform_model.ion_charge == molecular_search_settings.ion_charge,
+                self.molform_model.O_C <= molecular_search_settings.oc_filter,
+                self.molform_model.H_C >= molecular_search_settings.hc_filter)
                 
         def add_dict_formula(formulas, check_nominal=False):
             "organize data by heteroatom classes"
@@ -174,25 +192,25 @@ class MolForm_SQL:
         #  get all classes, ion_type, ion charge as str add to a dict or list
         #  then check if class in database
         yes = self.session.query(exists().where(
-            (MolecularFormulaTable.classe == classe) &
-            (MolecularFormulaTable.ion_type == ion_type) &
-            (MolecularFormulaTable.ion_charge == molecular_search_settings.ion_charge))).scalar()
+            (self.molform_model.classe == classe) &
+            (self.molform_model.ion_type == ion_type) &
+            (self.molform_model.ion_charge == molecular_search_settings.ion_charge))).scalar()
         
         return yes
     
     
     def get_all_classes(self, ion_type, molecular_search_settings):
         
-        query = self.session.query(MolecularFormulaTable.classe.distinct().label("classe"))
+        query = self.session.query(self.molform_model.classe.distinct().label("classe"))
         
-        classes = [row.classe for row in query.filter(MolecularFormulaTable.ion_type == ion_type,
-             MolecularFormulaTable.ion_charge == molecular_search_settings.ion_charge)]
+        classes = [row.classe for row in query.filter(self.molform_model.ion_type == ion_type,
+             self.molform_model.ion_charge == molecular_search_settings.ion_charge)]
         
         return classes  
     
     def get_all(self,):
         
-        mol_formulas = self.session.query(MolecularFormulaTable).all()
+        mol_formulas = self.session.query(self.molform_model).all()
         
         #mol_formulas = mol_formulas.filter(ion_type = ion_type)
 
@@ -202,15 +220,15 @@ class MolForm_SQL:
 
     def get_entries(self,classe, ion_type, nominal_mz, molecular_search_settings):
         
-        mol_formulas = self.session.query(MolecularFormulaTable).filter(
-            #MolecularFormulaTable.nominal_mz == nominal_mz,
-            MolecularFormulaTable.classe == classe, 
-            MolecularFormulaTable.ion_type == ion_type,
-            MolecularFormulaTable.DBE >= molecular_search_settings.min_dbe, 
-            MolecularFormulaTable.DBE <= molecular_search_settings.max_dbe, 
-            MolecularFormulaTable.ion_charge == molecular_search_settings.ion_charge,
-            MolecularFormulaTable.O_C <= molecular_search_settings.oc_filter,
-            MolecularFormulaTable.H_C >= molecular_search_settings.hc_filter,
+        mol_formulas = self.session.query(self.molform_model).filter(
+            #self.molform_model.nominal_mz == nominal_mz,
+            self.molform_model.classe == classe, 
+            self.molform_model.ion_type == ion_type,
+            self.molform_model.DBE >= molecular_search_settings.min_dbe, 
+            self.molform_model.DBE <= molecular_search_settings.max_dbe, 
+            self.molform_model.ion_charge == molecular_search_settings.ion_charge,
+            self.molform_model.O_C <= molecular_search_settings.oc_filter,
+            self.molform_model.H_C >= molecular_search_settings.hc_filter,
             )
         
         #mol_formulas = mol_formulas.filter(ion_type = ion_type)
@@ -236,7 +254,7 @@ class MolForm_SQL:
 
     def purge(self):
         '''Carefull, this will delete the entire database table'''
-        self.session.query(MolecularFormulaTable).delete()
+        self.session.query(self.molform_model).delete()
         self.session.commit()  
 
     def clear_data(self):
