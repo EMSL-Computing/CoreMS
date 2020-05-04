@@ -53,7 +53,9 @@ class OxygenPriorityAssignment(Thread):
         else:
             
             raise RuntimeError('call create_data_base() first')
-    
+
+        self.sql_db.close()   
+
     def create_data_base(self):
         
         def create_molecular_database():

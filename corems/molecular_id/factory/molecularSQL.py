@@ -184,7 +184,10 @@ class MolForm_SQL:
 
             formulas = query(classes)
             add_dict_formula(formulas)
-    
+
+        # dump all objs to memory
+        self.session.expunge_all()
+        
         return dict_res
 
     def check_entry(self,classe, ion_type, molecular_search_settings):

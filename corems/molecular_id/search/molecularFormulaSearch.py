@@ -53,6 +53,8 @@ class SearchMolecularFormulas:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         
+        self.sql_db.close()
+        
         return False
 
     def run_search(self, possible_formulas_dict, min_abundance):
@@ -115,6 +117,7 @@ class SearchMolecularFormulas:
         all_assigned_indexes = MolecularFormulaSearchFilters().filter_kendrick(all_assigned_indexes, self.mass_spectrum_obj)
 
         MolecularFormulaSearchFilters().check_min_peaks(all_assigned_indexes, self.mass_spectrum_obj)
+
                             
     def run_worker_ms_peaks(self, ms_peaks):
 
@@ -177,7 +180,9 @@ class SearchMolecularFormulas:
 
                     new_possible_formulas = self.add_adducts(possible_formulas)
                     #replace ion_type in the molecular_formula object
-                    self.run_search(new_possible_formulas, min_abundance)                 
+                    self.run_search(new_possible_formulas, min_abundance)         
+            
+        self.sql_db.close()                
                         
     def run_worker_mass_spectrum(self):
 
@@ -247,6 +252,8 @@ class SearchMolecularFormulas:
                     #replace ion_type in the molecular_formula object
                     self.run_search(new_possible_formulas, min_abundance)          
 
+        self.sql_db.close()     
+
     def add_adducts(self, possible_formulas):
         
         ion_type = Labels.adduct_ion
@@ -299,7 +306,7 @@ class SearchMolecularFormulas:
                     
                     else:
                         new_dict[nm]= [new_formul_obj]
-                    
+        
         return new_dict          
 
     def search_mol_formulas(self,  possible_formulas_list, find_isotopologues=True):
@@ -334,6 +341,8 @@ class SearchMolecularFormulas:
         self.mass_spectrum_obj.molecular_search_settings.use_runtime_kendrick_filter = initial_runtime_kendrick_filter
 
         mspeaks = [mspeak for mspeak in self.mass_spectrum_obj if mspeak.is_assigned]
+        
+        self.sql_db.close()
         
         return mspeaks
     

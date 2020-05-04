@@ -64,8 +64,6 @@ def test_run_molecular_formula_search():
 
 def test_mspeak_search():
 
-   
-    
     mass_spec_obj = create_mass_spectrum()
     
     print("OK")
@@ -147,7 +145,7 @@ def test_priorityAssignment():
 if __name__ == "__main__":
 
     #test_run_molecular_formula_search()
-    test_molecular_formula_search_db()
+    #test_molecular_formula_search_db()
     #test_molecular_formula_search_db()
     #test_run_molecular_formula_search()
-    #test_mspeak_search()
+    test_mspeak_search()

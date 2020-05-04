@@ -104,6 +104,8 @@ class FindOxygenPeaks(Thread):
 
         print("Done with mass spectral peak series search")
 
+        self.sql_db.close()
+
     def find_most_abundant_formula(self, mass_spectrum_obj):
         '''
         find most abundant using kendrick 
