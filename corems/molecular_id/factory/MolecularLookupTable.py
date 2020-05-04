@@ -324,7 +324,7 @@ class CombinationsWorker:
         
         sql_db = MolForm_SQL(polarity, url_database)
         sql_db.add_all_core(mf_data_list)
-           
+        sql_db.close()   
             
     @staticmethod
     def get_mol_formulas(carbon_hydrogen_combination,

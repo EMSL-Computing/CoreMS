@@ -8,10 +8,14 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.exc import MultipleResultsFound
-from sqlalchemy.pool import QueuePool
+from sqlalchemy.pool import QueuePool, NullPool
 from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy import event
+from sqlalchemy import exc
+
 
 from corems import chunks
+import warnings
 Base = declarative_base()
 
 class MolFormMixin(object):
@@ -50,6 +54,7 @@ class MolForm_SQL:
         
         self.engine = self.init_engine(polarity, url)
 
+        self.add_engine_pidguard(self.engine)
         #self.engine = create_engine('postgresql://postgres:docker@localhost:5432/')
         
         Session = sessionmaker(bind=self.engine)
@@ -74,7 +79,7 @@ class MolForm_SQL:
             
             url = 'sqlite:///{DB}/db/molformulas.sqlite'.format(DB=directory)
 
-        return create_engine(url)
+        return create_engine(url)# poolclass=NullPool
 
     def __enter__(self):
         
@@ -165,7 +170,7 @@ class MolForm_SQL:
 
         if len(classes) > 900 or (len(classes) + len(nominal_mzs)) >= 900:
             
-            for class_chunk in chunks(classes, 950):
+            for class_chunk in chunks(classes, 500):
                 
                 formulas = query_no_nominal(class_chunk)
                 
@@ -259,4 +264,40 @@ class MolForm_SQL:
             print ('Clear table %s' % table)
             self.session.execute(table.delete())
         self.session.commit()
+
+    def close(self):
+        # make sure the dbconnection gets closed
+        
+        self.commit()
+        self.session.close()
+        self.engine.dispose()    
+   
+    def add_engine_pidguard(self, engine):
+        """Add multiprocessing guards.
+
+        Forces a connection to be reconnected if it is detected
+        as having been shared to a sub-process.
+
+        """
+
+        @event.listens_for(engine, "connect")
+        def connect(dbapi_connection, connection_record):
+            connection_record.info['pid'] = os.getpid()
+
+        @event.listens_for(engine, "checkout")
+        def checkout(dbapi_connection, connection_record, connection_proxy):
+            pid = os.getpid()
+            if connection_record.info['pid'] != pid:
+                # substitute log.debug() or similar here as desired
+                warnings.warn(
+                    "Parent process %(orig)s forked (%(newproc)s) with an open "
+                    "database connection, "
+                    "which is being discarded and recreated." %
+                    {"newproc": pid, "orig": connection_record.info['pid']})
+                connection_record.connection = connection_proxy.connection = None
+                raise exc.DisconnectionError(
+                    "Connection record belongs to pid %s, "
+                    "attempting to check out in pid %s" %
+                    (connection_record.info['pid'], pid)
+                )    
    
