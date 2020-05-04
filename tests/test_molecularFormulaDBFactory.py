@@ -15,7 +15,6 @@ from corems.molecular_id.factory.molecularMongo import MolForm_Mongo
 from corems.molecular_id.input.nistMSI import ReadNistMSI
 from corems.encapsulation.factory.processingSetting  import MolecularFormulaSearchSettings
 
-
 def xtest_query_mongo():
     
     #from pymongo import MongoClient

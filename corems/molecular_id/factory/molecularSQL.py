@@ -1,5 +1,6 @@
 import pickle, os
 
+from sqlalchemy import text
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy import create_engine, Column, Integer, Binary, String, Float, exists
 from sqlalchemy.ext.declarative import declarative_base
@@ -131,6 +132,7 @@ class MolForm_SQL:
                 
         def add_dict_formula(formulas, check_nominal=False):
             "organize data by heteroatom classes"
+            
             for formula in formulas:
                 
                 if formula.O and formula.P:
@@ -139,8 +141,10 @@ class MolForm_SQL:
                         continue
 
                 if check_nominal:
-                    if formula.nominal_mz not in nominal_mzs:
-                        continue
+                    if len(nominal_mzs) > 999:            
+                        #filter manually
+                        if formula.nominal_mz not in nominal_mzs:
+                            continue
 
                 if formula.classe in dict_res.keys():
                     
@@ -156,20 +160,26 @@ class MolForm_SQL:
                     
                     dict_res[formula.classe] = {formula.nominal_mz: [formula] }     
 
-        
+
         dict_res = {}
 
         if len(classes) > 900 or (len(classes) + len(nominal_mzs)) >= 900:
             
-            for class_chunk in chunks(classes, 900):
+            for class_chunk in chunks(classes, 950):
+                
                 formulas = query_no_nominal(class_chunk)
+                
+                if len(nominal_mzs) < 100:
+
+                    formulas.filter(self.molform_model.nominal_mz.in_(nominal_mzs))
+                
                 add_dict_formula(formulas, check_nominal=True)
-                        
+        
         else:
 
             formulas = query(classes)
             add_dict_formula(formulas)
-            
+    
         return dict_res
 
     def check_entry(self,classe, ion_type, molecular_search_settings):

@@ -6,6 +6,9 @@ import itertools
 import multiprocessing
 import pickle
 import json
+
+from tqdm import tqdm
+        
 from corems.encapsulation.factory.processingSetting  import MolecularLookupDictSettings
 from corems.encapsulation.constant import Labels
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
@@ -26,7 +29,7 @@ class MolecularCombinations:
     '''
     def __init__(self, sql_db = None):
             
-        self.sql_db = sql_db    
+        self.sql_db = sql_db
     
     def check_database_get_class_list(self, molecular_search_settings):
 
@@ -70,8 +73,10 @@ class MolecularCombinations:
         
         polarity = 1 if molecular_search_settings.ion_charge > 0 else - 1
         
-        from tqdm import tqdm
-        
+        if not self.sql_db:
+            
+            self.sql_db = MolForm_SQL(polarity, url= molecular_search_settings.url_database)
+
         print ("Querying database for existing classes")
         classes_list, class_to_create = self.check_database_get_class_list(molecular_search_settings)
         print ("Finished querying database for existing classes")

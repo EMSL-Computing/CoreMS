@@ -37,6 +37,8 @@ class SearchMolecularFormulas:
 
         self.mass_spectrum_obj = mass_spectrum_obj
         
+        self.molform_model = MolecularFormulaTablePos if mass_spectrum_obj.polarity > 0 else MolecularFormulaTableNeg
+        
         if not sql_db:
 
             self.sql_db = MolForm_SQL(mass_spectrum_obj.polarity, mass_spectrum_obj.molecular_search_settings.url_database)
@@ -343,6 +345,7 @@ class SearchMolecularFormulas:
         #with molform_db() as sql_handle:
 
         #sql_handle = molform_db()
+
 
         if molecular_search_settings.isProtonated:
             

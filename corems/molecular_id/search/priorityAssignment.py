@@ -177,8 +177,12 @@ class OxygenPriorityAssignment(Thread):
 
         min_abundance = self.mass_spectrum_obj.min_abundance
 
+        list_classes_str = [i[0] for i in assign_classes_order_tuples]
+
         pbar = tqdm.tqdm(assign_classes_order_tuples)
         
+        dict_molecular_lookup_table = self.get_dict_molecular_database(list_classes_str)
+
         for classe_tuple in pbar:
 
             classe_str  = classe_tuple[0]
@@ -193,8 +197,6 @@ class OxygenPriorityAssignment(Thread):
             # need to add other atoms contribution to be more accurate
             # but +-7 should be sufficient to cover the range 
             
-            dict_molecular_lookup_table = self.get_dict_molecular_database(classe_str)
-
             if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
 
                     #tqdm.set_description_str(desc=None, refresh=True)
@@ -247,13 +249,13 @@ class OxygenPriorityAssignment(Thread):
             
             ion_type = Labels.protonated_de_ion
             
-            dict_res[ion_type] = self.sql_db.get_dict_entries([classe_str], ion_type, self.nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
+            dict_res[ion_type] = self.sql_db.get_dict_entries(classe_str, ion_type, self.nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
             
         if self.mass_spectrum_obj.molecular_search_settings.isRadical or self.mass_spectrum_obj.molecular_search_settings.isAdduct:
 
             ion_type = Labels.radical_ion
 
-            dict_res[ion_type] = self.sql_db.get_dict_entries([classe_str], ion_type, self.nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
+            dict_res[ion_type] = self.sql_db.get_dict_entries(classe_str, ion_type, self.nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
     
         return dict_res
     
