@@ -1,6 +1,6 @@
 import pickle, os
 
-
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy import create_engine, Column, Integer, Binary, String, Float, exists
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import SQLAlchemyError
@@ -13,9 +13,10 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from corems import chunks
 Base = declarative_base()
 
-class MolecularFormulaTablePos(Base):  
+class MolFormMixin(object):
 
-    id = Column(Integer, primary_key = True)
+    id =  Column(Integer, primary_key=True)
+    
     mol_formula = Column( String, unique=True)
     mz = Column(Float, nullable=False)
     nominal_mz= Column(Integer, nullable=False)
@@ -33,27 +34,11 @@ class MolecularFormulaTablePos(Base):
     O_C = Column(Float, nullable=True)
     H_C = Column(Float, nullable=True)
     
+class MolecularFormulaTablePos(MolFormMixin, Base):  
+
     __tablename__ = 'molformulas_pos'
     
-class MolecularFormulaTableNeg(Base):  
-
-    id = Column(Integer, primary_key = True)
-    mol_formula = Column( String, unique=True)
-    mz = Column(Float, nullable=False)
-    nominal_mz= Column(Integer, nullable=False)
-    ion_type = Column(String, nullable=False)
-    ion_charge = Column(Integer, nullable=False)
-    classe = Column(String, nullable=False)
-
-    C = Column(Integer, nullable=False)
-    H = Column(Integer, nullable=True)
-    N = Column(Integer, nullable=True)
-    O = Column(Integer, nullable=True)
-    S = Column(Integer, nullable=True)
-    P = Column(Integer, nullable=True)
-    DBE = Column(Float, nullable=False)
-    O_C = Column(Float, nullable=True)
-    H_C = Column(Float, nullable=True)
+class MolecularFormulaTableNeg(MolFormMixin, Base):  
     
     __tablename__ = 'molformulas_neg'
 
