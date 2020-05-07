@@ -17,7 +17,6 @@ from corems.molecular_id.calc.MolecularFilter import MolecularFormulaSearchFilte
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 from corems import timeit
 
-
 last_error = 0
 last_dif = 0
 closest_error = 0

@@ -91,9 +91,17 @@ class MolForm_SQL:
         #print("ok")
         #self.session.bulk_save_objects(objs)
         #print("ok2")
+        all_data = [data for data in molform_list]
+        
         self.engine.execute(self.molform_model.__table__.insert(),
                [data for data in molform_list],autocommit=False)
- 
+
+    def add_all(self, molform_list): 
+        
+        all_data = [self.molform_model(**data) for data in molform_list]
+
+        self.session.bulk_save_objects(all_data)  
+
     def add_entry(self, molform): 
         
         self.session.add(self.molform_model(**molform))  
@@ -187,7 +195,6 @@ class MolForm_SQL:
 
         # dump all objs to memory
         self.session.expunge_all()
-        
         return dict_res
 
     def check_entry(self,classe, ion_type, molecular_search_settings):
@@ -242,7 +249,7 @@ class MolForm_SQL:
 
     def update_entry(self, entry):
         
-        entry.title = "Some2016Film"  
+        entry.C = 12
         self.session.commit()
 
     def delete_entry(self, entry):

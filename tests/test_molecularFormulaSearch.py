@@ -140,10 +140,10 @@ def test_priorityAssignment():
     mass_spectrum_by_classes.atoms_ratio_all("H", "C")
 
     mass_spectrum_by_classes.atoms_ratio_all("H", "C")
-    
 
 if __name__ == "__main__":
 
+    #test_priorityAssignment()
     #test_run_molecular_formula_search()
     #test_molecular_formula_search_db()
     #test_molecular_formula_search_db()

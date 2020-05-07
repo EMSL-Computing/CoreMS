@@ -10,6 +10,7 @@ sys.path.append(".")
 
 from corems.encapsulation.constant import Labels
 from corems.molecular_id.factory.MolecularLookupTable import  MolecularCombinations
+from corems.molecular_id.factory.CreateMolFormDB import NewMolecularCombinations
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL
 from corems.molecular_id.factory.molecularMongo import MolForm_Mongo
 from corems.molecular_id.input.nistMSI import ReadNistMSI
@@ -49,12 +50,27 @@ def test_query_sql():
         print('total mol formulas found: ', len(list( sqldb.get_entries(classe, ion_type, nominal_mz, MolecularFormulaSearchSettings))))
 
         print('total mol formulas found: ', len(list( sqldb.get_entries(classe, ion_type, nominal_mz, MolecularFormulaSearchSettings))))
-        
+
+def generate_database():
+    
+    '''corems_parameters_file: Path for CoreMS JSON Parameters file
+       --jobs: Number of processes to run   
+    '''
+    
+    #url = "postgres://postgres:labthomson0102@172.22.113.27:5432/molecularform"
+    #url = "postgresql://doadmin:rn9fenbsdbwqis9v@db-postgresql-corems-do-user-7454084-0.a.db.ondigitalocean.com:25060/defaultdb?sslmode=require"
+    #url = "postgresql://postgres:qqmica@34.71.74.212/defaultdb?sslmode=require"
+    #molecular_search_settings.url_database = url
+    #molecular_search_settings.db_jobs = jobs
+    
+    molecular_search_settings = MolecularFormulaSearchSettings()
+    NewMolecularCombinations().runworker(molecular_search_settings)
+
 if __name__ == '__main__':
     
     #settings_parsers.load_search_setting_yaml()
     #settings_parsers.load_search_setting_json()
     #test_nist_to_sql()    
-    test_query_sql()
+    generate_database()
     #xtest_query_mongo()
    
