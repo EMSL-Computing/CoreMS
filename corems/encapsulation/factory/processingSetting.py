@@ -184,7 +184,7 @@ class MolecularLookupDictSettings:
     
         self.url_database = None
 
-        self.db_jobs = 4
+        self.db_jobs = 1
 
         self.used_atom_valences = {'C': 4,
                             '13C': 4,
