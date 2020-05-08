@@ -42,7 +42,7 @@ def profiled():
 
 class NewMolecularCombinations:
      
-    def __init__(self, sql_db = None, url='sqlite:///db/test_bulk.db'):
+    def __init__(self, sql_db = None, url='sqlite:///db/molformulas.sqlite'):
 
         self.engine = create_engine(url, echo = False)
         session_factory = sessionmaker(bind=self.engine )
@@ -151,17 +151,17 @@ class NewMolecularCombinations:
             
             self.add_carbonsHydrogens(settings)
             self.session.commit()
-            self.odd_ch_obj = self.get_carbonsHydrogens(settings,'odd')
-            self.odd_ch_id = [obj.id for obj in self.odd_ch_obj]
-            self.odd_ch_dict = [{'C':obj.C, 'H':obj.H} for obj in self.odd_ch_obj]
-            self.odd_ch_mass = [obj.mass for obj in self.odd_ch_obj]
-            self.odd_ch_dbe = [obj.dbe for obj in self.odd_ch_obj]
+            odd_ch_obj = self.get_carbonsHydrogens(settings,'odd')
+            self.odd_ch_id = [obj.id for obj in odd_ch_obj]
+            self.odd_ch_dict = [{'C':obj.C, 'H':obj.H} for obj in odd_ch_obj]
+            self.odd_ch_mass = [obj.mass for obj in odd_ch_obj]
+            self.odd_ch_dbe = [obj.dbe for obj in odd_ch_obj]
             
-            self.even_ch_obj = self.get_carbonsHydrogens(settings, 'even')
-            self.even_ch_id = [obj.id for obj in self.even_ch_obj]
-            self.even_ch_dict = [{'C':obj.C, 'H':obj.H} for obj in self.even_ch_obj]
-            self.even_ch_mass = [obj.mass for obj in self.even_ch_obj]
-            self.even_ch_dbe = [obj.dbe for obj in self.even_ch_obj]
+            even_ch_obj = self.get_carbonsHydrogens(settings, 'even')
+            self.even_ch_id = [obj.id for obj in even_ch_obj]
+            self.even_ch_dict = [{'C':obj.C, 'H':obj.H} for obj in even_ch_obj]
+            self.even_ch_mass = [obj.mass for obj in even_ch_obj]
+            self.even_ch_dbe = [obj.dbe for obj in even_ch_obj]
 
             for class_tuple in tqdm(class_to_create):
                 
@@ -324,6 +324,8 @@ class NewMolecularCombinations:
         
         class_str = classe_tuple[0]
         class_dict = classe_tuple[1]
+        class_json = (json.dumps(class_dict))
+        
         
         heteroAtom_obj = HeteroAtoms(name=class_str)
         
@@ -338,13 +340,11 @@ class NewMolecularCombinations:
         class_mass = self.calc_mz(class_dict)
         class_dbe = self.calc_dbe_class(class_dict)
         
-        carbonHydrogen_objs = self.odd_ch_obj if odd_even_tag == 'odd' else self.even_ch_obj 
-        carbonHydrogen_dict = self.odd_ch_dict if odd_even_tag == 'odd' else self.even_ch_dict 
         carbonHydrogen_mass = self.odd_ch_mass if odd_even_tag == 'odd' else self.even_ch_mass 
         carbonHydrogen_dbe = self.odd_ch_dbe if odd_even_tag == 'odd' else self.even_ch_dbe 
         carbonHydrogen_id = self.odd_ch_id if odd_even_tag == 'odd' else self.even_ch_id 
         
-        for index, carbonHydrogen_obj in enumerate(carbonHydrogen_objs):
+        for index, carbonHydrogen_obj in enumerate(carbonHydrogen_id):
             
             mass = carbonHydrogen_mass[index] + class_mass
             dbe =  carbonHydrogen_dbe[index] + class_dbe
@@ -361,6 +361,7 @@ class NewMolecularCombinations:
                     #                    carbonHydrogen=carbonHydrogen_obj, mass=mass, DBE=dbe)
                     
                     results.append(molecularFormula)
+        
         self.engine.execute(MolecularFormulaLink.__table__.insert(),results)
 
         #self.session.bulk_insert_mappings(MolecularFormulaLink, results)
