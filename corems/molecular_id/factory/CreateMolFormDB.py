@@ -16,6 +16,7 @@ from tqdm import tqdm
 
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import load_only
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine, func
 
@@ -41,7 +42,7 @@ def profiled():
 
 class NewMolecularCombinations:
      
-    def __init__(self, sql_db = None, url='sqlite:///'):
+    def __init__(self, sql_db = None, url='sqlite:///db/test_bulk.db'):
 
         self.engine = create_engine(url, echo = False)
         session_factory = sessionmaker(bind=self.engine )
@@ -83,7 +84,6 @@ class NewMolecularCombinations:
     def get_carbonsHydrogens(self, settings, odd_even):
         
         operator = '==' if odd_even == 'even' else '!=' 
-
         usedAtoms = settings.usedAtoms
         user_min_c, user_max_c = usedAtoms.get('C')
         user_min_h, user_max_h = usedAtoms.get('H')
@@ -93,7 +93,7 @@ class NewMolecularCombinations:
                                         "CarbonHydrogen.H >= user_min_h,"
                                         "CarbonHydrogen.C <= user_max_c,"
                                         "CarbonHydrogen.H <= user_max_h,"
-                                        "CarbonHydrogen.C % 2" + operator+ "odd_even).all()")
+                                        "CarbonHydrogen.H % 2" + operator+ "0).all()")
         
         return carbonHydrogenObjs                                        
     
@@ -109,14 +109,17 @@ class NewMolecularCombinations:
         query_obj = self.session.query(func.max(CarbonHydrogen.C).label("max_c"), 
                         func.min(CarbonHydrogen.C).label("min_c"),
                         func.max(CarbonHydrogen.H).label("max_h"),
-                        func.min(CarbonHydrogen.C).label("min_h"),
+                        func.min(CarbonHydrogen.H).label("min_h"),
                         )
 
-        database = query_obj.first()
         
+        database = query_obj.first()
+        #print(database.max_c, database.min_c, database.max_h, database.min_h)
+        #print(user_max_c, user_min_c, user_max_h, user_min_h)
         if database.max_c == user_max_c and database.min_c == user_min_c and database.max_h == user_max_h and database.min_h == user_min_h:   
             #yeah we are good, 
             pass
+            
 
         else:
             
@@ -134,7 +137,7 @@ class NewMolecularCombinations:
             self.session.add_all(carbon_hydrogen_objs)  
 
             
-
+    @timeit
     def runworker(self, molecular_search_settings):
         
         classes_list, class_to_create = self.check_database_get_class_list(molecular_search_settings)
@@ -146,16 +149,27 @@ class NewMolecularCombinations:
             settings.url_database = molecular_search_settings.url_database
             settings.db_jobs = molecular_search_settings.db_jobs
             
-            print("OK2")
             self.add_carbonsHydrogens(settings)
-            print("OK")
-            self.odd_ch = self.get_carbonsHydrogens(settings,'odd')
-            self.even_ch = self.get_carbonsHydrogens(settings, 'even')
-            print("OK3")
-            for class_index, class_tuple in tqdm(enumerate(class_to_create)):
-                
-                self.populate_combinations(class_tuple, settings, class_index)
+            self.session.commit()
+            self.odd_ch_obj = self.get_carbonsHydrogens(settings,'odd')
+            self.odd_ch_id = [obj.id for obj in self.odd_ch_obj]
+            self.odd_ch_dict = [{'C':obj.C, 'H':obj.H} for obj in self.odd_ch_obj]
+            self.odd_ch_mass = [obj.mass for obj in self.odd_ch_obj]
+            self.odd_ch_dbe = [obj.dbe for obj in self.odd_ch_obj]
             
+            self.even_ch_obj = self.get_carbonsHydrogens(settings, 'even')
+            self.even_ch_id = [obj.id for obj in self.even_ch_obj]
+            self.even_ch_dict = [{'C':obj.C, 'H':obj.H} for obj in self.even_ch_obj]
+            self.even_ch_mass = [obj.mass for obj in self.even_ch_obj]
+            self.even_ch_dbe = [obj.dbe for obj in self.even_ch_obj]
+
+            for class_tuple in tqdm(class_to_create):
+                
+                self.populate_combinations(class_tuple, settings)
+            
+            print("start commit")
+            #self.session.commit()
+            print("end commit")
         return classes_list
     
     def get_classes_in_order(self, molecular_search_settings):
@@ -270,8 +284,9 @@ class NewMolecularCombinations:
             
         return mass 
         
-    def calc_dbe(self, datadict, init_dbe=0, final_calc=True):
+    def calc_dbe_class(self, datadict):
             
+            init_dbe = 0
             for atom in datadict.keys():
                   
                 n_atom = int(datadict.get(atom))
@@ -285,26 +300,19 @@ class NewMolecularCombinations:
                     init_dbe = init_dbe + (n_atom * (valencia - 2))
                 else:
                     continue
+                
+                return (0.5 * init_dbe)
             
-            if final_calc:
-                return 1 + (0.5 * init_dbe)
-            else:    
-                return init_dbe
-
-    def populate_combinations(self, classe_tuple, settings, class_index):
+    def populate_combinations(self, classe_tuple, settings):
         
         ion_charge =  0
         
-        class_str = classe_tuple[0]
         class_dict = classe_tuple[1]
-        
+        class_str = classe_tuple[1]
         odd_or_even = self.get_h_odd_or_even(class_dict, settings)
         
-        #get_mol_formulas
-        #self.cProfile_worker((carbon_hydrogen_objs, classe_tuple, settings))
-        self.get_mol_formulas(odd_or_even, classe_tuple, settings, class_index)
-        #self.session.commit()    
-
+        self.get_mol_formulas(odd_or_even, classe_tuple, settings)
+        
     def get_or_add(self, SomeClass, kw):
             
         obj = self.session.query(SomeClass).filter_by(**kw).first()
@@ -312,77 +320,52 @@ class NewMolecularCombinations:
             obj = SomeClass(**kw)
         return obj
     
-    def get_mol_formulas(self, odd_even_tag, classe_tuple, settings, class_index):
+    def get_mol_formulas(self, odd_even_tag, classe_tuple, settings):
         
         class_str = classe_tuple[0]
         class_dict = classe_tuple[1]
         
-        #heteroAtom_obj = HeteroAtoms(name=class_str)
-        #self.session.add(heteroAtom_obj)
-        #if not heteroAtom_obj.id:
-            
-        #    heteroAtom_obj.id = self.len_existing_classes + (class_index+1) 
+        heteroAtom_obj = HeteroAtoms(name=class_str)
         
-        #results = list()
+        self.session.add(heteroAtom_obj)
+        self.session.commit()
+        
+        results = list()
         
         if 'HC' in class_dict:
             del class_dict['HC']
         
         class_mass = self.calc_mz(class_dict)
-        class_dbe = self.calc_dbe(class_dict)
+        class_dbe = self.calc_dbe_class(class_dict)
         
-        sum_init_creation = 0
-        sum_obj_creation = 0
-        
-        #self.session.query(CarbonHydrogen).filter(CarbonHydrogen.C%2 == 0).all()
-        
-        
-        self.odd_ch[0].C
-        
-        #carbonHydrogen_objs = self.odd_ch if odd_even_tag == 'even' else self.even_ch 
-        '''
-        #carbonHydrogen_objs = self.objs_carbonHydrogen[odd_even_tag]
-        #carbonHydrogen_dict = self.dict_carbonHydrogen[odd_even_tag]
+        carbonHydrogen_objs = self.odd_ch_obj if odd_even_tag == 'odd' else self.even_ch_obj 
+        carbonHydrogen_dict = self.odd_ch_dict if odd_even_tag == 'odd' else self.even_ch_dict 
+        carbonHydrogen_mass = self.odd_ch_mass if odd_even_tag == 'odd' else self.even_ch_mass 
+        carbonHydrogen_dbe = self.odd_ch_dbe if odd_even_tag == 'odd' else self.even_ch_dbe 
+        carbonHydrogen_id = self.odd_ch_id if odd_even_tag == 'odd' else self.even_ch_id 
         
         for index, carbonHydrogen_obj in enumerate(carbonHydrogen_objs):
             
-            timestart = time.time()
-            #C, H = carbonHydrogen_obj.C, carbonHydrogen_obj.H,
-            #{'C': C, 'H': H}
-            dict_ch = carbonHydrogen_dict[index]
-            timefinish = time.time()
-            sum_init_creation = sum_init_creation + (timefinish - timestart)
-
-            mass = self.calc_mz(dict_ch, class_mass)
-            
-            DBE = self.calc_dbe(dict_ch, class_dbe, final_calc=True)
-            
+            mass = carbonHydrogen_mass[index] + class_mass
+            dbe =  carbonHydrogen_dbe[index] + class_dbe
+    
             if settings.min_mz <= mass <= settings.max_mz:
                 
-                if settings.min_dbe <= DBE <= settings.max_dbe:
+                if settings.min_dbe <= dbe <= settings.max_dbe:
                     
-                    #mf = MolecularFormula(mass=mass, DBE = DBE)
-                    #mf.carbon_hydrogen = carbonHydrogen_obj
-                    timestart = time.time()
+                    molecularFormula=  {"heteroAtoms_id":heteroAtom_obj.id, 
+                            "carbonHydrogen_id":carbonHydrogen_id[index], 
+                            "mass":mass, "DBE":dbe}
                     
-                    molecularFormula = MolecularFormulaLink(heteroAtoms=heteroAtom_obj, 
-                                        carbonHydrogen=carbonHydrogen_obj, mass=mass, DBE=DBE)
+                    #molecularFormula = MolecularFormulaLink(heteroAtoms=heteroAtom_obj, 
+                    #                    carbonHydrogen=carbonHydrogen_obj, mass=mass, DBE=dbe)
                     
                     results.append(molecularFormula)
-                    
-                    sum_obj_creation = sum_obj_creation + (time.time() - timestart)
-                    #heteroAtom_obj.carbonHydrogen.append(carbonHydrogen_obj)
-                    #self.sqldb.session.add(mf)
-                    #ha = HeteroAtoms(class_label='N5')
-                    #mf = MolecularFormula(mass=203.1, DBE = 11)
-                    #ch = CarbonHydrogen(C=10, H=27)
+        self.engine.execute(MolecularFormulaLink.__table__.insert(),results)
 
-                    #mf.carbon_hydrogen = ch
-                    #ha.carbon_hydrogen.append(mf)
+        #self.session.bulk_insert_mappings(MolecularFormulaLink, results)
+        #self.session.add_all(results)
         
-        self.session.add_all(results)
-        self.session.commit()
-        '''
         
     def get_h_odd_or_even(self, class_dict, molecular_search_settings):
 
