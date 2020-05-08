@@ -1,7 +1,8 @@
 import sys
 sys.path.append(".")
+import os
 
-from sqlalchemy import create_engine, ForeignKey, Column, Integer, String, Float
+from sqlalchemy import create_engine, ForeignKey, Column, Integer, String, Float, SMALLINT
 from sqlalchemy.orm import backref, column_property, relationship
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.sql.schema import UniqueConstraint
@@ -10,9 +11,9 @@ from sqlalchemy import exc
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm.session import sessionmaker
-import os
 from sqlalchemy.sql.operators import exists
 
+from corems.encapsulation.constant import Atoms
 Base = declarative_base()
 
 class HeteroAtoms(Base):
@@ -50,19 +51,33 @@ class CarbonHydrogen(Base):
     def __repr__(self):
         return '<CarbonHydrogen Model {} C{} H{}>'.format(self.id, self.C, self.H)                     
 
+    @property
+    def mass(self):
+        return (self.C * Atoms.atomic_masses.get('C')) + (self.H * Atoms.atomic_masses.get('H'))
+
+    @property
+    def dbe(self):
+        return self.C - (self.H/2) + 1
+
+#264888.88 ms
 class MolecularFormulaLink(Base):
     
     __tablename__ = 'molecularformula'
+    __table_args__ = ( UniqueConstraint('heteroAtoms_id', 'carbonHydrogen_id', name='unique_molform'), )
     
+    #id = Column(Integer, primary_key=True,
+    #                    unique=True,
+    #                    nullable=False)
+
     heteroAtoms_id = Column(
         Integer, 
         ForeignKey('heteroAtoms.id'), 
-        primary_key = True)
+        primary_key=True)
 
     carbonHydrogen_id = Column(
         Integer, 
         ForeignKey('carbonHydrogen.id'), 
-        primary_key = True)
+        primary_key=True)
     
     mass = Column(Float)
     
@@ -72,10 +87,14 @@ class MolecularFormulaLink(Base):
 
     H = association_proxy('carbonHydrogen', 'H')
 
-    classe = association_proxy('HeteroAtoms', 'name')
+    classe = association_proxy('heteroAtoms', 'name')
 
     carbonHydrogen = relationship(CarbonHydrogen, backref=backref("heteroAtoms_assoc"))
     heteroAtoms = relationship(HeteroAtoms, backref=backref("carbonHydrogen_assoc"))
+
+    def __repr__(self):
+        
+        return '<MolecularFormulaLink Model C{} H{} {}>'.format(self.C, self.H, self.classe)       
 
 class MolForm_SQL:
     
