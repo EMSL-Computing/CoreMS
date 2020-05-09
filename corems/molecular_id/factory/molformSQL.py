@@ -93,6 +93,7 @@ class MolecularFormulaLink(Base):
     classe = association_proxy('heteroAtoms', 'name')
 
     carbonHydrogen = relationship(CarbonHydrogen, backref=backref("heteroAtoms_assoc"))
+    
     heteroAtoms = relationship(HeteroAtoms, backref=backref("carbonHydrogen_assoc"))
 
     @property
@@ -259,13 +260,9 @@ class MolForm_SQL:
 if __name__ == "__main__":
     
     molecular_search_settings = MolecularFormulaSearchSettings()
-    
     sql = MolForm_SQL()
+    query = sql.get_by_classe('{"O": 18}', molecular_search_settings)
     
-    classes = ["O18"]*10
-    print("start")
-    query = sql.get_by_classe("O18", molecular_search_settings).all()
-    print("finish")
     for i in query:
-        print(i.radical_mass(+2), i.protonated_mass(+2), i.adduct_mass(+1, "Na"))
+        print(i.radical_mass(+2), i.protonated_mass(+2), i.adduct_mass(+1, "Na"), i.formula_dict)
         
