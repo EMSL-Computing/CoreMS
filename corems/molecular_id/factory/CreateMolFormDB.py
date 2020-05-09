@@ -24,7 +24,7 @@ from corems.encapsulation.factory.processingSetting  import MolecularLookupDictS
 from corems.encapsulation.constant import Atoms
 from corems.molecular_id.factory.molformSQL import CarbonHydrogen, HeteroAtoms, MolecularFormulaLink
 from corems.encapsulation.factory.parameters import MSParameters
-from corems import timeit
+from corems import chunks, timeit
 from corems.molecular_id.factory.molformSQL import Base
 
 @contextlib.contextmanager
@@ -40,12 +40,25 @@ def profiled():
     # ps.print_callers()
     print(s.getvalue())
 
+def insert_database_worker(args):
+        
+        results, url = args
+        engine = create_engine(url, echo = False, isolation_level="AUTOCOMMIT")
+        session_factory = sessionmaker(bind=engine)
+        session = session_factory()
+
+        insert_query = MolecularFormulaLink.__table__.insert().values(results)
+        session.execute(insert_query)
+        session.close()
+        engine.dispose()
+
 class NewMolecularCombinations:
      
     def __init__(self, sql_db = None, url='sqlite:///db/molformulas.sqlite'):
 
-        self.engine = create_engine(url, echo = False)
-        session_factory = sessionmaker(bind=self.engine )
+        self.url = url
+        self.engine = create_engine(url, echo = False, isolation_level="AUTOCOMMIT")
+        session_factory = sessionmaker(bind=self.engine)
         Session = scoped_session(session_factory)
         self.session = session_factory()
         
@@ -71,9 +84,19 @@ class NewMolecularCombinations:
 
         class_to_create = class_str_set - existing_classes_str
         
-        for class_str in class_to_create:
+        class_count= len(existing_classes_objs)
             
-            class_tuple =  (class_str, classes_dict.get(class_str)) 
+        data_classes = [{"name":class_str, "id":class_count+ index + 1} for index, class_str in enumerate(class_to_create)]
+        
+        print(data_classes)
+
+        if data_classes:
+            insert_query = HeteroAtoms.__table__.insert().values(data_classes)
+            self.session.execute(insert_query)
+            
+        for index, class_str in enumerate(class_to_create):
+            
+            class_tuple =  (class_str, classes_dict.get(class_str), class_count+ index + 1) 
             
             all_class_to_create.append(class_tuple)
 
@@ -121,19 +144,28 @@ class NewMolecularCombinations:
 
         else:
             
+            current_count = self.session.query(CarbonHydrogen.C).count()
             databaseCarbon = set(self.session.query(CarbonHydrogen.C).all())
             databaseHydrogen = set(self.session.query(CarbonHydrogen.H).all())
-            
             userCarbon = set(range(user_min_c, user_max_c + 1))
             userHydrogen = set(range(user_min_h, user_max_h + 1))
-            
+            self.session.rollback()
             carbonCreate = databaseCarbon ^ userCarbon
             hydrogenCreate = databaseHydrogen ^ userHydrogen
 
-            carbon_hydrogen_objs = [CarbonHydrogen(C=i[0],H=i[1]) for i in itertools.product(carbonCreate, hydrogenCreate)]
-
-            self.session.add_all(carbon_hydrogen_objs)  
-
+            carbon_hydrogen_objs = []
+            for index, comb in enumerate(itertools.product(carbonCreate, hydrogenCreate)):
+                data = {"C":comb[0],
+                       "H":comb[1],
+                       'id':current_count + index + 1 
+                }
+                #obj = CarbonHydrogen(C=comb[0],H=comb[1])
+                #obj.id = current_count + index
+                carbon_hydrogen_objs.append(data)
+            
+            insert_query = CarbonHydrogen.__table__.insert().values(carbon_hydrogen_objs)
+            self.session.execute(insert_query)
+  
             
     @timeit
     def runworker(self, molecular_search_settings):
@@ -161,15 +193,31 @@ class NewMolecularCombinations:
             self.even_ch_mass = [obj.mass for obj in even_ch_obj]
             self.even_ch_dbe = [obj.dbe for obj in even_ch_obj]
 
+            all_results= list()
             for class_tuple in tqdm(class_to_create):
                 
-                self.populate_combinations(class_tuple, settings)
+                results = self.populate_combinations(class_tuple, settings)
+                all_results.extend(results)
+                if settings.db_jobs == 1: 
+                    if len(all_results) >= 50000:
+                        insert_query = MolecularFormulaLink.__table__.insert().values(all_results)
+                        self.session.execute(insert_query)
+                        all_results = list()
             
-            print("start commit")
-            #self.session.commit()
-            print("end commit")
+            # each chunk task ~600Mb of memory, so if using 8 processes the total free memory needs to be 5GB
+            if settings.db_jobs > 1: 
+                list_insert_chunks = list(chunks(all_results, 50000))
+                print( "Started database insert using {} iterations for a total of {} rows".format(len(list_insert_chunks), len(all_results)))
+                worker_args = [(chunk, self.url) for chunk in list_insert_chunks]
+                p = multiprocessing.Pool(settings.db_jobs)
+                for class_list in tqdm(p.imap_unordered(insert_database_worker, worker_args)):
+                    pass
+                p.close()
+                p.join()
+        
         return classes_list
     
+        
     def get_classes_in_order(self, molecular_search_settings):
         ''' structure is 
             ('HC', {'HC': 1})'''
@@ -308,7 +356,7 @@ class NewMolecularCombinations:
         class_dict = classe_tuple[1]
         odd_or_even = self.get_h_odd_or_even(class_dict, settings)
         
-        self.get_mol_formulas(odd_or_even, classe_tuple, settings)
+        return self.get_mol_formulas(odd_or_even, classe_tuple, settings)
         
     def get_or_add(self, SomeClass, kw):
             
@@ -321,11 +369,7 @@ class NewMolecularCombinations:
         
         class_str = classe_tuple[0]
         class_dict = classe_tuple[1]
-        
-        heteroAtom_obj = HeteroAtoms(name=class_str)
-        
-        self.session.add(heteroAtom_obj)
-        self.session.commit()
+        classe_id = classe_tuple[2]
         
         results = list()
         
@@ -348,7 +392,7 @@ class NewMolecularCombinations:
                 
                 if settings.min_dbe <= dbe <= settings.max_dbe:
                     
-                    molecularFormula=  {"heteroAtoms_id":heteroAtom_obj.id, 
+                    molecularFormula=  {"heteroAtoms_id":classe_id, 
                             "carbonHydrogen_id":carbonHydrogen_id[index], 
                             "mass":mass, "DBE":dbe}
                     
@@ -357,7 +401,15 @@ class NewMolecularCombinations:
                     
                     results.append(molecularFormula)
         
-        self.engine.execute(MolecularFormulaLink.__table__.insert(),results)
+        return results
+        
+        #for chunk in chunks(results, 1000):
+        #    insert_query = MolecularFormulaLink.__table__.insert().values(chunk)
+        #    self.session.execute(insert_query)
+            #self.engine.copy_from(MolecularFormulaLink.__table__.insert(),chunk)
+        #    print("done inside")
+        #print("Done")
+        #self.engine.execute(MolecularFormulaLink.__table__.insert(),results)
 
         #self.session.bulk_insert_mappings(MolecularFormulaLink, results)
         #self.session.add_all(results)

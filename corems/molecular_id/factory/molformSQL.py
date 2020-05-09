@@ -261,7 +261,7 @@ if __name__ == "__main__":
     
     molecular_search_settings = MolecularFormulaSearchSettings()
     sql = MolForm_SQL()
-    query = sql.get_by_classe('{"O": 18}', molecular_search_settings)
+    query = sql.get_by_classe('{"O": 12}', molecular_search_settings)
     
     for i in query:
         print(i.radical_mass(+2), i.protonated_mass(+2), i.adduct_mass(+1, "Na"), i.formula_dict)
