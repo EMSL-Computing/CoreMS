@@ -101,8 +101,6 @@ class NewMolecularCombinations:
 
         usedAtoms = settings.usedAtoms
 
-        self.session.query(CarbonHydrogen).distinct().all()
-
         user_min_c, user_max_c = usedAtoms.get('C')
         user_min_h, user_max_h = usedAtoms.get('H')
 
@@ -222,10 +220,9 @@ class NewMolecularCombinations:
             for each_atoms_index, atom_number in enumerate(all_atoms_tuple):
                 
                 if atom_number != 0:
-                    classe_str = (classe_str + atoms_in_order[each_atoms_index] + str(atom_number) +  ' ')
                     classe_dict[atoms_in_order[each_atoms_index]] = atom_number
-
-            classe_str = classe_str.strip()
+            
+            classe_str =json.dumps(classe_dict)
             
             if len(classe_str) > 0:
                 
@@ -241,16 +238,17 @@ class NewMolecularCombinations:
 
     @staticmethod
     def sort_classes( atoms_in_order, combination_dict) -> [str]: 
-        
+        #insures atoms are always in the order defined at atoms_in_order
         join_dict_classes = dict()
         atoms_in_order =  ['N','S','P','O'] + atoms_in_order[4:] + ['HC']
         
-        sort_method = lambda atoms_keys: [atoms_in_order.index(atoms_keys)] #(len(word[0]), print(word[1]))#[atoms_in_order.index(atom) for atom in list( word[1].keys())])
+        sort_method = lambda atoms_keys: [atoms_in_order.index(atoms_keys)] 
         for class_str, class_dict in combination_dict.items():
             
             sorted_dict_keys = sorted(class_dict, key = sort_method)
-            class_str = ' '.join([atom + str(class_dict[atom]) for atom in sorted_dict_keys])
+            #class_str = ' '.join([atom + str(class_dict[atom]) for atom in sorted_dict_keys])
             class_dict = { atom: class_dict[atom] for atom in sorted_dict_keys}
+            class_str = json.dumps(class_dict)
             join_dict_classes[class_str] =  class_dict
         
         return join_dict_classes
@@ -308,7 +306,6 @@ class NewMolecularCombinations:
         ion_charge =  0
         
         class_dict = classe_tuple[1]
-        class_str = classe_tuple[1]
         odd_or_even = self.get_h_odd_or_even(class_dict, settings)
         
         self.get_mol_formulas(odd_or_even, classe_tuple, settings)
@@ -324,8 +321,6 @@ class NewMolecularCombinations:
         
         class_str = classe_tuple[0]
         class_dict = classe_tuple[1]
-        class_json = (json.dumps(class_dict))
-        
         
         heteroAtom_obj = HeteroAtoms(name=class_str)
         
