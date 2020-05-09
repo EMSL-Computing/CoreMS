@@ -53,6 +53,7 @@ def insert_database_worker(args):
 
         insert_query = MolecularFormulaLink.__table__.insert().values(results)
         session.execute(insert_query)
+        session.commit()
         session.close()
         engine.dispose()
 
@@ -74,7 +75,6 @@ class NewMolecularCombinations:
         session_factory = sessionmaker(bind=self.engine)
         Session = scoped_session(session_factory)
         self.session = session_factory()
-        
         Base.metadata.create_all(self.engine)
     
     def cProfile_worker(self, args):
@@ -103,7 +103,6 @@ class NewMolecularCombinations:
         
         if data_classes:
             
-            print(self.chunks_count)
             list_insert_chunks = chunks(data_classes, self.chunks_count)
             for insert_chunk in  list_insert_chunks:   
                 insert_query = HeteroAtoms.__table__.insert().values(insert_chunk)
@@ -115,8 +114,6 @@ class NewMolecularCombinations:
             
             all_class_to_create.append(class_tuple)
 
-        #print (existing_classes)class_str_list
-        
         return [(c_s, c_d) for c_s, c_d in classes_dict.items()], all_class_to_create       
     
     def get_carbonsHydrogens(self, settings, odd_even):
@@ -126,15 +123,13 @@ class NewMolecularCombinations:
         user_min_c, user_max_c = usedAtoms.get('C')
         user_min_h, user_max_h = usedAtoms.get('H')
 
-        carbonHydrogenObjs =  eval("self.session.query(CarbonHydrogen).filter(" 
+        return eval("self.session.query(CarbonHydrogen).filter(" 
                                        "CarbonHydrogen.C >= user_min_c,"
                                         "CarbonHydrogen.H >= user_min_h,"
                                         "CarbonHydrogen.C <= user_max_c,"
                                         "CarbonHydrogen.H <= user_max_h,"
                                         "CarbonHydrogen.H % 2" + operator+ "0).all()")
         
-        return carbonHydrogenObjs                                        
-    
     def add_carbonsHydrogens(self, settings):
 
         usedAtoms = settings.usedAtoms
@@ -150,13 +145,10 @@ class NewMolecularCombinations:
 
         
         database = query_obj.first()
-        #print(database.max_c, database.min_c, database.max_h, database.min_h)
-        #print(user_max_c, user_min_c, user_max_h, user_min_h)
         if database.max_c == user_max_c and database.min_c == user_min_c and database.max_h == user_max_h and database.min_h == user_min_h:   
-            #yeah we are good, 
+            #all data is already available at the database
             pass
-            
-
+        
         else:
             
             current_count = self.session.query(CarbonHydrogen.C).count()
@@ -174,17 +166,14 @@ class NewMolecularCombinations:
                        "H":comb[1],
                        'id':current_count + index + 1 
                 }
-                #obj = CarbonHydrogen(C=comb[0],H=comb[1])
-                #obj.id = current_count + index
+                
                 carbon_hydrogen_objs.append(data)
             
             list_insert_chunks = chunks(carbon_hydrogen_objs, self.chunks_count)
             for insert_chunk in  list_insert_chunks:   
                 insert_query = CarbonHydrogen.__table__.insert().values(insert_chunk)
                 self.session.execute(insert_query)
-
-            
-  
+            self.session.commit(insert_query)    
             
     @timeit
     def runworker(self, molecular_search_settings):
@@ -223,7 +212,7 @@ class NewMolecularCombinations:
                         self.session.execute(insert_query)
                         all_results = list()
             
-            # each chunk task ~600Mb of memory, so if using 8 processes the total free memory needs to be 5GB
+            # each chunk takes ~600Mb of memory, so if using 8 processes the total free memory needs to be 5GB
             if settings.db_jobs > 1: 
                 list_insert_chunks = list(chunks(all_results, self.chunks_count))
                 print( "Started database insert using {} iterations for a total of {} rows".format(len(list_insert_chunks), len(all_results)))
@@ -305,7 +294,7 @@ class NewMolecularCombinations:
 
     @staticmethod
     def sort_classes( atoms_in_order, combination_dict) -> [str]: 
-        #insures atoms are always in the order defined at atoms_in_order
+        #ensures atoms are always in the order defined at atoms_in_order list
         join_dict_classes = dict()
         atoms_in_order =  ['N','S','P','O'] + atoms_in_order[4:] + ['HC']
         
@@ -313,9 +302,10 @@ class NewMolecularCombinations:
         for class_str, class_dict in combination_dict.items():
             
             sorted_dict_keys = sorted(class_dict, key = sort_method)
-            #class_str = ' '.join([atom + str(class_dict[atom]) for atom in sorted_dict_keys])
             class_dict = { atom: class_dict[atom] for atom in sorted_dict_keys}
             class_str = json.dumps(class_dict)
+            # using json for the new database, class 
+            # class_str = ' '.join([atom + str(class_dict[atom]) for atom in sorted_dict_keys])
             join_dict_classes[class_str] =  class_dict
         
         return join_dict_classes
