@@ -43,7 +43,11 @@ def profiled():
 def insert_database_worker(args):
         
         results, url = args
-        engine = create_engine(url, echo = False, isolation_level="AUTOCOMMIT")
+        if url[0:6] == 'sqlite':
+            engine = create_engine(url, echo = False)
+        else:
+            engine = create_engine(url, echo = False, isolation_level="AUTOCOMMIT")
+        
         session_factory = sessionmaker(bind=engine)
         session = session_factory()
 
@@ -56,8 +60,17 @@ class NewMolecularCombinations:
      
     def __init__(self, sql_db = None, url='sqlite:///db/molformulas.sqlite'):
 
+        print(url[0:6])
         self.url = url
-        self.engine = create_engine(url, echo = False, isolation_level="AUTOCOMMIT")
+        if url[0:6] == 'sqlite':
+            self.engine = create_engine(url, echo = False)
+            self.chunks_count = 100
+        
+        elif url[0:10] == 'postgresql' or url[0:8] == 'postgres':
+            #postgresql
+            self.chunks_count = 50000
+            self.engine = create_engine(url, echo = False, isolation_level="AUTOCOMMIT")
+        
         session_factory = sessionmaker(bind=self.engine)
         Session = scoped_session(session_factory)
         self.session = session_factory()
@@ -88,11 +101,13 @@ class NewMolecularCombinations:
             
         data_classes = [{"name":class_str, "id":class_count+ index + 1} for index, class_str in enumerate(class_to_create)]
         
-        print(data_classes)
-
         if data_classes:
-            insert_query = HeteroAtoms.__table__.insert().values(data_classes)
-            self.session.execute(insert_query)
+            
+            print(self.chunks_count)
+            list_insert_chunks = chunks(data_classes, self.chunks_count)
+            for insert_chunk in  list_insert_chunks:   
+                insert_query = HeteroAtoms.__table__.insert().values(insert_chunk)
+                self.session.execute(insert_query)
             
         for index, class_str in enumerate(class_to_create):
             
@@ -163,8 +178,12 @@ class NewMolecularCombinations:
                 #obj.id = current_count + index
                 carbon_hydrogen_objs.append(data)
             
-            insert_query = CarbonHydrogen.__table__.insert().values(carbon_hydrogen_objs)
-            self.session.execute(insert_query)
+            list_insert_chunks = chunks(carbon_hydrogen_objs, self.chunks_count)
+            for insert_chunk in  list_insert_chunks:   
+                insert_query = CarbonHydrogen.__table__.insert().values(insert_chunk)
+                self.session.execute(insert_query)
+
+            
   
             
     @timeit
@@ -199,14 +218,14 @@ class NewMolecularCombinations:
                 results = self.populate_combinations(class_tuple, settings)
                 all_results.extend(results)
                 if settings.db_jobs == 1: 
-                    if len(all_results) >= 50000:
+                    if len(all_results) >= self.chunks_count:
                         insert_query = MolecularFormulaLink.__table__.insert().values(all_results)
                         self.session.execute(insert_query)
                         all_results = list()
             
             # each chunk task ~600Mb of memory, so if using 8 processes the total free memory needs to be 5GB
             if settings.db_jobs > 1: 
-                list_insert_chunks = list(chunks(all_results, 50000))
+                list_insert_chunks = list(chunks(all_results, self.chunks_count))
                 print( "Started database insert using {} iterations for a total of {} rows".format(len(list_insert_chunks), len(all_results)))
                 worker_args = [(chunk, self.url) for chunk in list_insert_chunks]
                 p = multiprocessing.Pool(settings.db_jobs)
