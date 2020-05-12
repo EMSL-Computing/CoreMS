@@ -218,7 +218,7 @@ class MolecularFormulaSearchSettings:
 
     min_peaks_per_class:int = 15
 
-    url_database: str = None#"postgresql://postgres:labthomson0102@172.22.113.27:5432/"
+    url_database: str = None
 
     db_jobs:int = 4
 
@@ -235,7 +235,7 @@ class MolecularFormulaSearchSettings:
 
     min_dbe:float = 0
 
-    max_dbe:float = 50
+    max_dbe:float = 40
 
     # look for close shell ions [M + Adduct]+ only considers metal set in the list adduct_atoms  
     adduct_atoms_neg:tuple = ('Cl', 'Br')
@@ -256,13 +256,12 @@ class MolecularFormulaSearchSettings:
      # query and automatically compile and push options if it doesn't exist
     isProtonated:bool = True
     
-    #kendrick_base: {'C': 1, 'H':2} = field(default_factory=dict)
+    isAdduct:bool = False
+
     usedAtoms: dict = field(default_factory=dict)
     
     ''' search setting '''
     
-    isAdduct:bool = True
-
     ionization_type:str = 'ESI'
 
     # empirically set / needs optimization
@@ -285,7 +284,7 @@ class MolecularFormulaSearchSettings:
 
     mz_error_average:float = 0
 
-    #kendrick_base: {'C': 1, 'H':2} = field(default_factory=dict)
+    #used_atom_valences: {'C': 4, 'H':1, etc} = field(default_factory=dict)
     used_atom_valences: dict = field(default_factory=dict)
 
     def __post_init__(self):
@@ -295,7 +294,7 @@ class MolecularFormulaSearchSettings:
                     'O': (1, 10),
                     'N': (0, 1),
                     'S': (0, 1),
-                    'P': (0, 1),
+                    'P': (0, 0),
                     'Cl': (0, 0),
                 }
 
