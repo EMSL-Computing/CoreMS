@@ -21,6 +21,7 @@ import json
 from corems.encapsulation.factory.processingSetting import MolecularFormulaSearchSettings
 from sqlalchemy.orm.scoping import scoped_session
 from corems import chunks
+
 Base = declarative_base()
 
 class HeteroAtoms(Base):
@@ -244,7 +245,7 @@ class MolForm_SQL:
 
         # dump all objs to memory
         
-    def get_dict_by_classes(self, classes, ion_type, nominal_mzs, molecular_search_settings):
+    def get_dict_by_classes(self, classes, ion_type, nominal_mzs, molecular_search_settings, adducts=None):
         
         '''Known issue, when using SQLite:
          if the number of classes and nominal_m/zs are higher than 999 the query will fail
@@ -262,7 +263,7 @@ class MolForm_SQL:
                 MolecularFormulaLink.H <= molecular_search_settings.usedAtoms.get("H")[1], 
             )
                 
-        def add_dict_formula(formulas, ion_type, check_nominal=False):
+        def add_dict_formula(formulas, ion_type, adduct_atom=None):
             "organize data by heteroatom classes"
             dict_res = {}
 
@@ -273,7 +274,11 @@ class MolForm_SQL:
             elif ion_type == Labels.radical_ion:
                 
                 mass_conversion_type = "int(formula.radical_mass(-1))"
+
+            elif ion_type == Labels.adduct_ion and adduct_atom:
                 
+                mass_conversion_type = "int(formula.adduct_mass(-1, adduct_atom))"
+
             for formula in formulas:
                 
                 nominal_mz = eval(mass_conversion_type)
@@ -297,7 +302,7 @@ class MolForm_SQL:
                     
                     if nominal_mz in dict_res[classe].keys():
                         
-                        dict_res.get(classe).get(nominal_mz).append(formula )
+                        dict_res.get(classe).get(nominal_mz).append(formula)
                     
                     else:
 
@@ -318,6 +323,13 @@ class MolForm_SQL:
             query.filter(MolecularFormulaLink.radical_mass(-1).cast(Integer).in_(nominal_mzs))    
             return add_dict_formula(query, ion_type)
 
+        if ion_type == Labels.adduct_ion:
+            dict_res = {}
+            if adducts: 
+                for atom in adducts:
+                    query.filter(MolecularFormulaLink.adduct_mass(-1, atom).cast(Integer).in_(nominal_mzs))    
+                    dict_res[atom] = add_dict_formula(query, ion_type, adduct_atom=atom)
+                return dict_res
         # dump all objs to memory
         #self.session.expunge_all()
         
@@ -330,6 +342,7 @@ class MolForm_SQL:
             MolecularFormulaLink.classe == classe, 
             MolecularFormulaLink.DBE >= molecular_search_settings.min_dbe, 
             MolecularFormulaLink.DBE <= molecular_search_settings.max_dbe, 
+            MolecularFormulaLink.H_C >= molecular_search_settings.hc_filter,
             MolecularFormulaLink.C >= molecular_search_settings.usedAtoms.get("C")[0],
             MolecularFormulaLink.C <= molecular_search_settings.usedAtoms.get("C")[1], 
             MolecularFormulaLink.H >= molecular_search_settings.usedAtoms.get("H")[0],
