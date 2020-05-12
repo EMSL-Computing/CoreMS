@@ -113,7 +113,6 @@ class MolecularCombinations:
                 for class_tuple, ion_type in tqdm(class_to_create):
 
                     CombinationsWorker().get_combinations(class_tuple, c_h_combinations, ion_type, settings, polarity, molecular_search_settings.url_database)
-              
             
         return classes_list
    
@@ -526,22 +525,20 @@ class CombinationsWorker:
     
     def get_total_halogen_atoms(class_dict, molecular_search_settings):
 
-            atoms = ['F', 'Cl', 'Br', 'I']
+        atoms = ['F', 'Cl', 'Br', 'I']
 
-            return 0
+        total_number = 0
+        
+        for atom in atoms:
 
-            total_number = 0
-            
-            for atom in atoms:
+            TEM_HALOGEN = atom in class_dict.keys()
 
-                TEM_HALOGEN = atom in class_dict.keys()
+            if TEM_HALOGEN:
 
-                if TEM_HALOGEN:
+                valencia = molecular_search_settings.used_atom_valences.get(atom)
 
-                    valencia = molecular_search_settings.used_atom_valences.get(atom)
-
-                    if valencia != 0:
-                        
-                        total_number = total_number + class_dict.get(atom)
+                if valencia != 0:
+                    
+                    total_number = total_number + class_dict.get(atom)
             
             return total_number    

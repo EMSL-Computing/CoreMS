@@ -15,7 +15,7 @@ from corems.molecular_id.factory.molecularSQL import MolForm_SQL, MolecularFormu
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.molecular_id.calc.MolecularFilter import MolecularFormulaSearchFilters
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
-from corems import timeit
+from corems import chunks, timeit
 
 
 last_error = 0
@@ -136,6 +136,7 @@ class SearchMolecularFormulas:
         
         dict_res = self.get_dict_molecular_database(classes_str, nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
             
+        
         for classe_tuple in pbar:
 
             #add filter here and get indexes of class assigned 
@@ -199,60 +200,61 @@ class SearchMolecularFormulas:
         
         nominal_mzs = self.mass_spectrum_obj.nominal_mz
 
-        classes_str = [class_tuple[0] for class_tuple in classes]
+        for split_classes in chunks(classes, 300): 
+            
+            classes_str = [class_tuple[0] for class_tuple in split_classes]
 
-        #query database
-        pbar = tqdm.tqdm(classes)
-        
-        dict_res = self.get_dict_molecular_database(classes_str, nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
-        
-        for classe_tuple in pbar:
+            dict_res = self.get_dict_molecular_database(classes_str, nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
+            
+            pbar = tqdm.tqdm(split_classes)
 
-            #add filter here and get indexes of class assigned 
-            classe_str  = classe_tuple[0]
-            classe_dict = classe_tuple[1]
-            #query for the classes molecular formulas
-            if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
+            for classe_tuple in pbar:
+
+                #add filter here and get indexes of class assigned 
+                classe_str  = classe_tuple[0]
+                classe_dict = classe_tuple[1]
+                #query for the classes molecular formulas
+                if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
+                        
+                        pbar.set_description_str(desc="Started molecular formula search for class %s, (de)protonated " % classe_str, refresh=True)
+
+                        ion_type = Labels.protonated_de_ion
+
+                        possible_formulas = dict_res.get(ion_type).get(classe_str)
+                        
+                        if possible_formulas:
+
+                            self.run_search(possible_formulas, min_abundance)    
+
+                if self.mass_spectrum_obj.molecular_search_settings.isRadical:
+                        
+                        pbar.set_description_str(desc="Started molecular formula search for class %s, radical " % classe_str, refresh=True)
+                        
+                        ion_type = Labels.radical_ion
+                        
+                        possible_formulas = dict_res.get(ion_type).get(classe_str)
+                        
+                        if possible_formulas:
+                            
+                            self.run_search(possible_formulas, min_abundance)    
+
+                # looks for adduct, used_atom_valences should be 0 
+                # this code does not support H exchance by halogen atoms
+                if self.mass_spectrum_obj.molecular_search_settings.isAdduct:
                     
-                    pbar.set_description_str(desc="Started molecular formula search for class %s, (de)protonated " % classe_str, refresh=True)
-
-                    ion_type = Labels.protonated_de_ion
-
-                    possible_formulas = dict_res.get(ion_type).get(classe_str)
-                    
-                    if possible_formulas:
-
-                        self.run_search(possible_formulas, min_abundance)    
-
-            if self.mass_spectrum_obj.molecular_search_settings.isRadical:
-                    
-                    pbar.set_description_str(desc="Started molecular formula search for class %s, radical " % classe_str, refresh=True)
+                    pbar.set_description_str(desc="Started molecular formula search for class %s, adduct " % classe_str, refresh=True)
                     
                     ion_type = Labels.radical_ion
                     
                     possible_formulas = dict_res.get(ion_type).get(classe_str)
                     
                     if possible_formulas:
-                        
-                        self.run_search(possible_formulas, min_abundance)    
 
-            # looks for adduct, used_atom_valences should be 0 
-            # this code does not support H exchance by halogen atoms
-            if self.mass_spectrum_obj.molecular_search_settings.isAdduct:
-                
-                pbar.set_description_str(desc="Started molecular formula search for class %s, adduct " % classe_str, refresh=True)
-                
-                ion_type = Labels.radical_ion
-                
-                possible_formulas = dict_res.get(ion_type).get(classe_str)
-                
-                if possible_formulas:
+                        new_possible_formulas = self.add_adducts(possible_formulas)
+                        #replace ion_type in the molecular_formula object
+                        self.run_search(new_possible_formulas, min_abundance)          
 
-                    new_possible_formulas = self.add_adducts(possible_formulas)
-                    #replace ion_type in the molecular_formula object
-                    self.run_search(new_possible_formulas, min_abundance)          
-
-        self.sql_db.close()     
+            self.sql_db.close()     
 
     def add_adducts(self, possible_formulas):
         
