@@ -100,9 +100,9 @@ class MolecularFormulaLink(Base):
 
     classe = association_proxy('heteroAtoms', 'name')
 
-    carbonHydrogen = relationship(CarbonHydrogen, backref=backref("heteroAtoms_assoc"),lazy='subquery')
+    carbonHydrogen = relationship(CarbonHydrogen, lazy='subquery')
     
-    heteroAtoms = relationship(HeteroAtoms, backref=backref("carbonHydrogen_assoc"), lazy='subquery')
+    heteroAtoms = relationship(HeteroAtoms, lazy='subquery')
 
     @property
     def formula_dict(self):
@@ -110,6 +110,7 @@ class MolecularFormulaLink(Base):
         carbon = {'C': self.C, 'H': self.H}
         classe = json.loads(self.classe)
         return {**carbon, **classe}
+    
     @property
     def formula_string(self):
         class_dict = self.formula_dict 
@@ -130,7 +131,7 @@ class MolecularFormulaLink(Base):
 
     def __repr__(self):
         
-        return '<MolecularFormulaLink Model C{} H{} {}>'.format(self.formula_string)       
+        return '<MolecularFormulaLink Model {}>'.format(self.formula_string)       
 
 class MolForm_SQL:
     
@@ -276,7 +277,22 @@ class MolForm_SQL:
             for formula in formulas:
                 
                 nominal_mz = eval(mass_conversion_type)
+                
                 classe = formula.classe
+                
+                formula_dict = formula.formula_dict
+
+                if formula_dict.get("O"):
+                    
+                    if formula_dict.get("O")/formula_dict.get("C") >= molecular_search_settings.oc_filter:
+                        continue
+
+                    #if formula_dict.get("P"):
+
+                    #    if  not (formula_dict.get("O") -2)/ formula_dict.get("P") >= molecular_search_settings.op_filter:
+                            
+                    #        continue
+        
                 if classe in dict_res.keys():
                     
                     if nominal_mz in dict_res[classe].keys():
