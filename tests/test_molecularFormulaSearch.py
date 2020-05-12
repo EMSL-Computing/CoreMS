@@ -42,10 +42,11 @@ def test_run_molecular_formula_search():
     MSParameters.molecular_search.usedAtoms['F'] = (0,0)
     MSParameters.molecular_search.usedAtoms['P'] = (0,0)
     MSParameters.molecular_search.usedAtoms['Cl'] = (0,0)
-    MSParameters.molecular_search.isAdduct = True
+    MSParameters.molecular_search.isAdduct = False
+    MSParameters.molecular_search.isRadical = False
 
-    MSParameters.molecular_search.used_atom_valences['P'] = 1
-    MSParameters.molecular_search.used_atom_valences['F'] = 1
+    MSParameters.molecular_search.used_atom_valences['P'] = 0
+    MSParameters.molecular_search.used_atom_valences['F'] = 0
     MSParameters.molecular_search.used_atom_valences['Cl'] = 0
 
     mz = [215.09269]
@@ -85,6 +86,9 @@ def test_mspeak_search():
 
 def test_molecular_formula_search_db():
     
+    MSParameters.molecular_search.isAdduct = False
+    MSParameters.molecular_search.isRadical = False
+
     mass_spec_obj = create_mass_spectrum()
     
     time1 = time.time()
@@ -146,6 +150,6 @@ if __name__ == "__main__":
     #test_priorityAssignment()
     #test_run_molecular_formula_search()
     #test_molecular_formula_search_db()
-    #test_molecular_formula_search_db()
+    test_molecular_formula_search_db()
     #test_run_molecular_formula_search()
-    test_mspeak_search()
+    #test_mspeak_search()

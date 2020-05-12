@@ -9,14 +9,18 @@ from sqlalchemy.sql.schema import UniqueConstraint
 from sqlalchemy import exc
 
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm.session import sessionmaker
 from sqlalchemy.sql.operators import exists
 from sqlalchemy import event
 
-from corems.encapsulation.constant import Atoms
+
+from corems.encapsulation.constant import Atoms, Labels
 import json
 from corems.encapsulation.factory.processingSetting import MolecularFormulaSearchSettings
+from sqlalchemy.orm.scoping import scoped_session
+from corems import chunks
 Base = declarative_base()
 
 class HeteroAtoms(Base):
@@ -102,15 +106,27 @@ class MolecularFormulaLink(Base):
         carbon = {'C': self.C, 'H': self.H}
         classe = json.loads(self.classe)
         return {**carbon, **classe}
-    
+    @property
+    def formula_string(self):
+        class_dict = self.formula_dict 
+        class_str = ' '.join([atom + str(class_dict[atom]) for atom in class_dict.keys()])
+        return class_str.strip()
+
+    @hybrid_property
+    def H_C(self):
+        return self.H/self.C
+
+    @hybrid_method
     def adduct_mass(self, ion_charge, adduct_atom):
-        return (self.mass + (Atoms.atomic_masses.get(adduct_atom)) + (ion_charge * -1 * Atoms.electron_mass))/ion_charge
+        return (self.mass + (Atoms.atomic_masses.get(adduct_atom)) + (ion_charge * -1 * Atoms.electron_mass))/ abs(ion_charge)
 
+    @hybrid_method
     def protonated_mass(self, ion_charge):
-        return (self.mass + (ion_charge * Atoms.atomic_masses.get("H")) + (ion_charge * -1 * Atoms.electron_mass))/ion_charge
-
+        return (self.mass + (ion_charge * Atoms.atomic_masses.get("H")) + (ion_charge * -1 * Atoms.electron_mass))/abs(ion_charge)
+    
+    @hybrid_method
     def radical_mass(self, ion_charge):
-        return (self.mass + (ion_charge * -1 * Atoms.electron_mass))/ion_charge
+        return (self.mass + (ion_charge * -1 * Atoms.electron_mass))/ abs(ion_charge)
 
     def __repr__(self):
         
@@ -120,17 +136,20 @@ class MolForm_SQL:
     
     def __init__(self, url=None, echo=False):
         
+        print(url)
         self.engine = self.init_engine(url)
 
         self.add_engine_pidguard(self.engine)
-        #self.engine = create_engine('postgresql://postgres:docker@localhost:5432/')
         
-        Session = sessionmaker(bind=self.engine)
-
-        self.session = Session()
-
+        session_factory = sessionmaker(bind=self.engine)
+        
+        Session = scoped_session(session_factory)
+        
+        self.session = session_factory()
+        
         Base.metadata.create_all(self.engine)
 
+        
     def __exit__(self, exc_type, exc_val, exc_tb):
         # make sure the dbconnection gets closed
         
@@ -148,22 +167,93 @@ class MolForm_SQL:
 
     def init_engine(self, url):
         
-        directory = os.getcwd()
-        
         if not url:
+            directory = os.getcwd()
             
             if not os.path.isdir(directory+'/db'):  os.mkdir(directory+'/db')
             
             url = 'sqlite:///{DB}/db/molformulas.sqlite'.format(DB=directory)
 
-        return create_engine(url)# poolclass=NullPool
+        if url[0:6] == 'sqlite':
+            engine = create_engine(url, echo = False)
+            self.chunks_count = 100
+        
+        elif url[0:10] == 'postgresql' or url[0:8] == 'postgres':
+            #postgresql
+            self.chunks_count = 50000
+            engine = create_engine(url, echo = False, isolation_level="AUTOCOMMIT")
+        
+        return engine# poolclass=NullPool
 
     def __enter__(self):
         
         return self
     
-    def get_by_classe(self, classe, molecular_search_settings):
+    def get_dict_entries(self, classes, ion_type, nominal_mzs, molecular_search_settings):
         
+        '''Known issue, when using SQLite:
+         if the number of classes and nominal_m/zs are higher than 999 the query will fail
+         Solution: use postgres or split query''' 
+        def query_normal(class_list):
+            
+            return self.session.query(MolecularFormulaLink).filter(
+                MolecularFormulaLink.classe.in_(class_list), 
+                MolecularFormulaLink.DBE >= molecular_search_settings.min_dbe, 
+                MolecularFormulaLink.DBE <= molecular_search_settings.max_dbe, 
+                MolecularFormulaLink.C >= molecular_search_settings.usedAtoms.get("C")[0],
+                MolecularFormulaLink.C <= molecular_search_settings.usedAtoms.get("C")[1], 
+                MolecularFormulaLink.H >= molecular_search_settings.usedAtoms.get("H")[0],
+                MolecularFormulaLink.H <= molecular_search_settings.usedAtoms.get("H")[1], 
+            )
+                
+        def add_dict_formula(formulas, ion_type, check_nominal=False):
+            "organize data by heteroatom classes"
+            
+            if ion_type == Labels.protonated_de_ion:
+            
+                mass_conversion_type = "int(formula.protonated_mass(-1))"
+            
+            elif ion_type == Labels.protonated_de_ion:
+                
+                mass_conversion_type = "int(formula.radical_mass(-1))"
+                
+            for formula in formulas.yield_per(100):
+                
+                if formula.classe in dict_res.keys():
+                    
+                    if int(formula.protonated_mass(-1)) in dict_res[formula.classe].keys():
+                        
+                        dict_res.get(formula.classe).get(eval(mass_conversion_type)).append(formula )
+                    
+                    else:
+
+                        dict_res.get(formula.classe)[eval(mass_conversion_type)] = [formula ]  
+            
+                else:
+                    
+                    dict_res[formula.classe] = {eval(mass_conversion_type): [formula] }     
+
+        dict_res= {}
+
+        query = query_normal(classes)
+        
+        if ion_type == Labels.protonated_de_ion:
+            query.filter(MolecularFormulaLink.protonated_mass(-1).cast(Integer).in_(nominal_mzs))
+            dict_res[Labels.protonated_de_ion] = add_dict_formula(query, ion_type)
+
+        if ion_type == Labels.radical_ion:
+            query.filter(MolecularFormulaLink.radical_mass(-1).cast(Integer).in_(nominal_mzs))    
+            dict_res[Labels.radical_ion] = add_dict_formula(query, ion_type)
+
+            
+        # dump all objs to memory
+        #self.session.expunge_all()
+        return dict_res
+        
+        
+    def get_by_classe(self, classe, molecular_search_settings):
+         
+
         '''Known issue, when using SQLite:
          if the number of classes and nominal_m/zs are higher than 999 the query will fail
          Solution: use postgres or split query''' 
@@ -193,7 +283,7 @@ class MolForm_SQL:
     
     def get_all(self,):
         
-        mol_formulas = self.session.query(self.molform_model).all()
+        mol_formulas = self.session.query(MolecularFormulaLink).all()
         
         return mol_formulas
 
@@ -220,10 +310,10 @@ class MolForm_SQL:
             self.session.execute(table.delete())
         self.session.commit()
 
-    def close(self):
+    def close(self, commit=True):
         # make sure the dbconnection gets closed
         
-        self.commit()
+        if commit: self.commit()
         self.session.close()
         self.engine.dispose()    
    
@@ -261,8 +351,14 @@ if __name__ == "__main__":
     
     molecular_search_settings = MolecularFormulaSearchSettings()
     sql = MolForm_SQL()
-    query = sql.get_by_classe('{"O": 12}', molecular_search_settings)
-    
-    for i in query:
-        print(i.radical_mass(+2), i.protonated_mass(+2), i.adduct_mass(+1, "Na"), i.formula_dict)
-        
+    #query = sql.session.query(MolecularFormulaLink).filter_by(classe = '{"O": 12}').filter(MolecularFormulaLink.adduct_mass(+2, "Na") < 250)
+    #query = sql.get_by_classe('{"O": 12}', molecular_search_settings).filter(MolecularFormulaLink.adduct_mass(+2, "Na") < 250)
+    classes = ['{"O": 12}']*1
+    for i, classe in enumerate(classes):
+        #query = sql.get_by_classe(classe, molecular_search_settings)
+        query = sql.session.query(MolecularFormulaLink).filter_by(classe = '{"O": 12}').filter(MolecularFormulaLink.adduct_mass(+2, "Na") < 250)
+        for i in query.filter(MolecularFormulaLink.mass < 250):
+            
+            print(i.radical_mass(-1), i.protonated_mass(-1), i.adduct_mass(+2, "Na"), i.mass, i.formula_dict, i.formula_string)
+    #
+ 

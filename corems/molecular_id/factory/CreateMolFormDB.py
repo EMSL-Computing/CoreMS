@@ -4,28 +4,25 @@ __date__ = "Jul 02, 2019"
 from copy import deepcopy
 import itertools
 import multiprocessing
-import pickle
 import json
 import cProfile
 import io
 import pstats
 import contextlib
-import time
-
-from tqdm import tqdm
 
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import load_only
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine, func
+from tqdm import tqdm
 
 from corems.encapsulation.factory.processingSetting  import MolecularLookupDictSettings
 from corems.encapsulation.constant import Atoms
 from corems.molecular_id.factory.molformSQL import CarbonHydrogen, HeteroAtoms, MolecularFormulaLink
 from corems.encapsulation.factory.parameters import MSParameters
 from corems import chunks, timeit
-from corems.molecular_id.factory.molformSQL import Base
+from corems.molecular_id.factory.molformSQL import MolForm_SQL
 
 @contextlib.contextmanager
 def profiled():
@@ -50,7 +47,6 @@ def insert_database_worker(args):
         
         session_factory = sessionmaker(bind=engine)
         session = session_factory()
-
         insert_query = MolecularFormulaLink.__table__.insert().values(results)
         session.execute(insert_query)
         session.commit()
@@ -59,24 +55,14 @@ def insert_database_worker(args):
 
 class NewMolecularCombinations:
      
-    def __init__(self, sql_db = None, url='sqlite:///db/molformulas.sqlite'):
+    def __init__(self, sql_db = None):
 
-        print(url[0:6])
-        self.url = url
-        if url[0:6] == 'sqlite':
-            self.engine = create_engine(url, echo = False)
-            self.chunks_count = 100
-        
-        elif url[0:10] == 'postgresql' or url[0:8] == 'postgres':
-            #postgresql
-            self.chunks_count = 50000
-            self.engine = create_engine(url, echo = False, isolation_level="AUTOCOMMIT")
-        
-        session_factory = sessionmaker(bind=self.engine)
-        Session = scoped_session(session_factory)
-        self.session = session_factory()
-        Base.metadata.create_all(self.engine)
-    
+        if not sql_db:
+            
+            self.sql_db = MolForm_SQL()
+        else:
+            self.sql_db = sql_db
+
     def cProfile_worker(self, args):
         
         cProfile.runctx('self.get_mol_formulas(*args)', globals(), locals(), 'mf_database_cprofile.prof')
@@ -89,7 +75,7 @@ class NewMolecularCombinations:
         
         class_str_set = set(classes_dict.keys())
         
-        existing_classes_objs = self.session.query(HeteroAtoms).distinct().all()
+        existing_classes_objs = self.sql_db.session.query(HeteroAtoms).distinct().all()
         
         existing_classes_str = set([classe.name for classe in existing_classes_objs])
 
@@ -103,10 +89,10 @@ class NewMolecularCombinations:
         
         if data_classes:
             
-            list_insert_chunks = chunks(data_classes, self.chunks_count)
+            list_insert_chunks = chunks(data_classes, self.sql_db.chunks_count)
             for insert_chunk in  list_insert_chunks:   
                 insert_query = HeteroAtoms.__table__.insert().values(insert_chunk)
-                self.session.execute(insert_query)
+                self.sql_db.session.execute(insert_query)
             
         for index, class_str in enumerate(class_to_create):
             
@@ -123,7 +109,7 @@ class NewMolecularCombinations:
         user_min_c, user_max_c = usedAtoms.get('C')
         user_min_h, user_max_h = usedAtoms.get('H')
 
-        return eval("self.session.query(CarbonHydrogen).filter(" 
+        return eval("self.sql_db.session.query(CarbonHydrogen).filter(" 
                                        "CarbonHydrogen.C >= user_min_c,"
                                         "CarbonHydrogen.H >= user_min_h,"
                                         "CarbonHydrogen.C <= user_max_c,"
@@ -137,7 +123,7 @@ class NewMolecularCombinations:
         user_min_c, user_max_c = usedAtoms.get('C')
         user_min_h, user_max_h = usedAtoms.get('H')
 
-        query_obj = self.session.query(func.max(CarbonHydrogen.C).label("max_c"), 
+        query_obj = self.sql_db.session.query(func.max(CarbonHydrogen.C).label("max_c"), 
                         func.min(CarbonHydrogen.C).label("min_c"),
                         func.max(CarbonHydrogen.H).label("max_h"),
                         func.min(CarbonHydrogen.H).label("min_h"),
@@ -151,12 +137,12 @@ class NewMolecularCombinations:
         
         else:
             
-            current_count = self.session.query(CarbonHydrogen.C).count()
-            databaseCarbon = set(self.session.query(CarbonHydrogen.C).all())
-            databaseHydrogen = set(self.session.query(CarbonHydrogen.H).all())
+            current_count = self.sql_db.session.query(CarbonHydrogen.C).count()
+            databaseCarbon = set(self.sql_db.session.query(CarbonHydrogen.C).all())
+            databaseHydrogen = set(self.sql_db.session.query(CarbonHydrogen.H).all())
             userCarbon = set(range(user_min_c, user_max_c + 1))
             userHydrogen = set(range(user_min_h, user_max_h + 1))
-            self.session.rollback()
+            self.sql_db.session.rollback()
             carbonCreate = databaseCarbon ^ userCarbon
             hydrogenCreate = databaseHydrogen ^ userHydrogen
 
@@ -169,11 +155,11 @@ class NewMolecularCombinations:
                 
                 carbon_hydrogen_objs.append(data)
             
-            list_insert_chunks = chunks(carbon_hydrogen_objs, self.chunks_count)
+            list_insert_chunks = chunks(carbon_hydrogen_objs, self.sql_db.chunks_count)
             for insert_chunk in  list_insert_chunks:   
                 insert_query = CarbonHydrogen.__table__.insert().values(insert_chunk)
-                self.session.execute(insert_query)
-            self.session.commit(insert_query)    
+                self.sql_db.session.execute(insert_query)
+            self.sql_db.session.commit(insert_query)    
             
     @timeit
     def runworker(self, molecular_search_settings):
@@ -188,7 +174,7 @@ class NewMolecularCombinations:
             settings.db_jobs = molecular_search_settings.db_jobs
             
             self.add_carbonsHydrogens(settings)
-            self.session.commit()
+            self.sql_db.session.commit()
             odd_ch_obj = self.get_carbonsHydrogens(settings,'odd')
             self.odd_ch_id = [obj.id for obj in odd_ch_obj]
             self.odd_ch_dict = [{'C':obj.C, 'H':obj.H} for obj in odd_ch_obj]
@@ -207,14 +193,14 @@ class NewMolecularCombinations:
                 results = self.populate_combinations(class_tuple, settings)
                 all_results.extend(results)
                 if settings.db_jobs == 1: 
-                    if len(all_results) >= self.chunks_count:
+                    if len(all_results) >= self.sql_db.chunks_count:
                         insert_query = MolecularFormulaLink.__table__.insert().values(all_results)
-                        self.session.execute(insert_query)
+                        self.sql_db.session.execute(insert_query)
                         all_results = list()
             
             # each chunk takes ~600Mb of memory, so if using 8 processes the total free memory needs to be 5GB
             if settings.db_jobs > 1: 
-                list_insert_chunks = list(chunks(all_results, self.chunks_count))
+                list_insert_chunks = list(chunks(all_results, self.sql_db.chunks_count))
                 print( "Started database insert using {} iterations for a total of {} rows".format(len(list_insert_chunks), len(all_results)))
                 worker_args = [(chunk, self.url) for chunk in list_insert_chunks]
                 p = multiprocessing.Pool(settings.db_jobs)
@@ -369,7 +355,7 @@ class NewMolecularCombinations:
         
     def get_or_add(self, SomeClass, kw):
             
-        obj = self.session.query(SomeClass).filter_by(**kw).first()
+        obj = self.sql_db.session.query(SomeClass).filter_by(**kw).first()
         if not obj:
             obj = SomeClass(**kw)
         return obj
@@ -414,14 +400,14 @@ class NewMolecularCombinations:
         
         #for chunk in chunks(results, 1000):
         #    insert_query = MolecularFormulaLink.__table__.insert().values(chunk)
-        #    self.session.execute(insert_query)
+        #    self.sql_db.session.execute(insert_query)
             #self.engine.copy_from(MolecularFormulaLink.__table__.insert(),chunk)
         #    print("done inside")
         #print("Done")
         #self.engine.execute(MolecularFormulaLink.__table__.insert(),results)
 
-        #self.session.bulk_insert_mappings(MolecularFormulaLink, results)
-        #self.session.add_all(results)
+        #self.sql_db.session.bulk_insert_mappings(MolecularFormulaLink, results)
+        #self.sql_db.session.add_all(results)
         
         
     def get_h_odd_or_even(self, class_dict, molecular_search_settings):

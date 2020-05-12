@@ -57,7 +57,7 @@ def generate_database():
        --jobs: Number of processes to run   
     '''
     
-    #url = "postgres://postgres:labthomson0102@172.22.113.27:5432/molecularform"
+    #url = "postgresql://postgres:labthomson0102@172.22.113.27:5432/"
     #url = "postgresql://doadmin:rn9fenbsdbwqis9v@db-postgresql-corems-do-user-7454084-0.a.db.ondigitalocean.com:25060/defaultdb?sslmode=require"
     #url = "postgresql://postgres:qqmica@34.71.74.212/defaultdb?sslmode=require"
     #molecular_search_settings.url_database = url

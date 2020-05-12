@@ -17,7 +17,7 @@ class MolecularFormula(MolecularFormulaCalc):
         #clear dictionary of atoms with 0 value
         
         if   type(molecular_formula) is dict:
-                self._from_dict(molecular_formula)   
+                self._from_dict(molecular_formula, ion_type)   
         
         elif type(molecular_formula) is list:
                 self._from_list(molecular_formula, ion_type)   
@@ -71,10 +71,11 @@ class MolecularFormula(MolecularFormulaCalc):
             else:
                 return 0
                 
-    def _from_dict(self, molecular_formula):
+    def _from_dict(self, molecular_formula, ion_type):
         
         self._d_molecular_formula = {key:val for key, val in molecular_formula.items() if val != 0}
-
+        self._d_molecular_formula[Labels.ion_type] = ion_type
+        
     @property
     def isotopologue_count_percentile(self):
         if not len(self.expected_isotopologues) == 0:

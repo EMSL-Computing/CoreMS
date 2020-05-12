@@ -138,11 +138,11 @@ def worker(args):
     cProfile.runctx('run(args)', globals(), locals(), 'gc-ms.prof')
       
 if __name__ == '__main__':                           
-    import matplotlib
-    matplotlib.use('TkAgg')
+    #import matplotlib
+    #matplotlib.use('TkAgg')
 
-    cores = 4
-    out_put_file_name = 'Group 6_Standards'
-    calibrate_and_search(out_put_file_name, cores)
-
+    #cores = 4
+    #out_put_file_name = 'Group 6_Standards'
+    #calibrate_and_search(out_put_file_name, cores)
+    start_sql_from_file()
 

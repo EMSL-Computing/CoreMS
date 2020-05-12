@@ -41,7 +41,7 @@ class MassSpectrumSetting:
     
     s2n_threshold: float = 4
     
-    relative_abundance_threshold:float = 6 # from 1-100
+    relative_abundance_threshold:float = 6 # from 0-100
     
     min_noise_mz: float = 100.0
     max_noise_mz:float = 1200.0
@@ -97,7 +97,7 @@ class GasChromatographSetting:
 @dataclass 
 class CompoundSearchSettings:
 
-    url_database: str = 'sqlite:////'
+    url_database: str = 'sqlite:///db/pnnl_lowres_gcms_compounds.sqlite'
     
     ri_search_range:float = 20
 
@@ -218,7 +218,7 @@ class MolecularFormulaSearchSettings:
 
     min_peaks_per_class:int = 15
 
-    url_database: str = None
+    url_database: str = None#"postgresql://postgres:labthomson0102@172.22.113.27:5432/"
 
     db_jobs:int = 4
 
@@ -250,7 +250,7 @@ class MolecularFormulaSearchSettings:
     # depending on the polarity mode it looks for [M].+ , [M].-
     # query and automatically compile add entry if it doesn't exist
     
-    isRadical:bool = True
+    isRadical:bool = False
     
     # depending on the polarity mode it looks for [M + H]+ , [M - H]+
      # query and automatically compile and push options if it doesn't exist
@@ -292,10 +292,10 @@ class MolecularFormulaSearchSettings:
         
         self.usedAtoms = {   'C': (1, 100),
                     'H': (4, 200),
-                    'O': (1, 10),
-                    'N': (0, 1),
-                    'S': (0, 1),
-                    'P': (0, 0),
+                    'O': (1, 20),
+                    'N': (0, 3),
+                    'S': (0, 3),
+                    'P': (0, 3),
                     'Cl': (0, 0),
                 }
 
@@ -315,9 +315,6 @@ class MolecularFormulaSearchSettings:
                             'F': 1,
                             'K': 1,
                             }
-
-
-
                             
 if __name__ == "__main__":
     a = DataInputSetting()
