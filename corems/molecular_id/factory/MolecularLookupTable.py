@@ -8,11 +8,37 @@ import pickle
 import json
 
 from tqdm import tqdm
-        
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
 from corems.encapsulation.factory.processingSetting  import MolecularLookupDictSettings
 from corems.encapsulation.constant import Labels
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
-from corems.molecular_id.factory.molecularSQL import MolForm_SQL
+from corems.molecular_id.factory.molecularSQL import MolForm_SQL, MolecularFormulaTableNeg, MolecularFormulaTablePos
+from corems import chunks
+
+def insert_database_worker(args):
+    
+    mf_data_list, polarity, url = args
+    molform_model = MolecularFormulaTablePos if polarity > 0 else MolecularFormulaTableNeg
+    
+    if not url:
+            
+        url = 'sqlite:///db/molformulas.sqlite'
+
+    if url[0:6] == 'sqlite':
+        engine = create_engine(url, echo = False)
+    else:
+        engine = create_engine(url, echo = False, isolation_level="AUTOCOMMIT")
+        
+    session_factory = sessionmaker(bind=engine)
+    session = session_factory()
+    insert_query = molform_model.__table__.insert().values(mf_data_list)
+    session.execute(insert_query)
+    session.commit()
+    session.close()
+    engine.dispose()
+
 
 class MolecularCombinations:
      
@@ -93,6 +119,28 @@ class MolecularCombinations:
             
             number_of_process = int(settings.db_jobs)
             
+            all_results= list()
+            for class_tuple, ion_type in class_to_create:
+                
+                results = class_list = CombinationsWorker().get_combinations(class_tuple, c_h_combinations, ion_type, settings, polarity, molecular_search_settings.url_database)
+                all_results.extend(results)
+                if settings.db_jobs == 1: 
+                    if len(all_results) >= self.sql_db.chunks_count:
+                        insert_query = self.sql_db.add_all_core(all_results)
+                        all_results = list()
+            
+            # each chunk takes ~600Mb of memory, so if using 8 processes the total free memory needs to be 5GB
+            if settings.db_jobs > 1: 
+                list_insert_chunks = list(chunks(all_results, self.sql_db.chunks_count))
+                print( "Started database insert using {} iterations for a total of {} rows".format(len(list_insert_chunks), len(all_results)))
+                worker_args = [(chunk, polarity, settings.url_database) for chunk in list_insert_chunks]
+                p = multiprocessing.Pool(settings.db_jobs)
+                for class_list in tqdm(p.imap_unordered(insert_database_worker, worker_args)):
+                    pass
+                p.close()
+                p.join()
+
+            '''
             if settings.db_jobs > 1:
                 
                 print("Using %i logical CPUs for database entry generation"% number_of_process )
@@ -102,8 +150,9 @@ class MolecularCombinations:
 
                 worker_args = [(class_tuple, c_h_combinations, ion_type, settings, polarity, molecular_search_settings.url_database) for class_tuple, ion_type in class_to_create]
                 p = multiprocessing.Pool(number_of_process)
+                all_results = []
                 for class_list in tqdm(p.imap_unordered(CombinationsWorker(), worker_args)):
-                    pass
+                    all_results.append(class_list)
                 
                 p.close()
                 p.join()
@@ -112,8 +161,9 @@ class MolecularCombinations:
                 
                 for class_tuple, ion_type in tqdm(class_to_create):
 
-                    CombinationsWorker().get_combinations(class_tuple, c_h_combinations, ion_type, settings, polarity, molecular_search_settings.url_database)
-            
+                    class_list = CombinationsWorker().get_combinations(class_tuple, c_h_combinations, ion_type, settings, polarity, molecular_search_settings.url_database)
+            '''        
+
         return classes_list
    
     def get_c_h_combination(self, settings):
@@ -320,6 +370,8 @@ class CombinationsWorker:
                                                     min_mz, max_mz, ion_charge)
 
             mf_data_list.extend(list_mf)
+        
+        return mf_data_list
         
         sql_db = MolForm_SQL(polarity, url_database)
         sql_db.add_all_core(mf_data_list)

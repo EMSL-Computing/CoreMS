@@ -79,7 +79,17 @@ class MolForm_SQL:
             
             url = 'sqlite:///{DB}/db/molformulas.sqlite'.format(DB=directory)
 
-        return create_engine(url)# poolclass=NullPool
+        if url[0:6] == 'sqlite':
+            
+            engine = create_engine(url, echo = False)
+            self.chunks_count = 50
+        
+        else:
+            
+            engine = create_engine(url, echo = False, isolation_level="AUTOCOMMIT")
+            self.chunks_count = 30000
+        
+        return engine# poolclass=NullPool
 
     def __enter__(self):
         
