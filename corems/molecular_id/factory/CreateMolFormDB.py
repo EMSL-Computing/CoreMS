@@ -23,6 +23,7 @@ from corems.molecular_id.factory.molformSQL import CarbonHydrogen, HeteroAtoms, 
 from corems.encapsulation.factory.parameters import MSParameters
 from corems import chunks, timeit
 from corems.molecular_id.factory.molformSQL import MolForm_SQL
+import os
 
 @contextlib.contextmanager
 def profiled():
@@ -40,6 +41,11 @@ def profiled():
 def insert_database_worker(args):
         
         results, url = args
+        
+        if not url:
+            
+            url = 'sqlite:///db/molformulas.sqlite'
+
         if url[0:6] == 'sqlite':
             engine = create_engine(url, echo = False)
         else:
@@ -150,6 +156,7 @@ class NewMolecularCombinations:
             for index, comb in enumerate(itertools.product(carbonCreate, hydrogenCreate)):
                 data = {"C":comb[0],
                        "H":comb[1],
+                       "H_C":comb[1]/comb[0],
                        'id':current_count + index + 1 
                 }
                 
@@ -159,7 +166,7 @@ class NewMolecularCombinations:
             for insert_chunk in  list_insert_chunks:   
                 insert_query = CarbonHydrogen.__table__.insert().values(insert_chunk)
                 self.sql_db.session.execute(insert_query)
-            self.sql_db.session.commit(insert_query)    
+            self.sql_db.session.commit()    
             
     @timeit
     def runworker(self, molecular_search_settings):
@@ -202,7 +209,7 @@ class NewMolecularCombinations:
             if settings.db_jobs > 1: 
                 list_insert_chunks = list(chunks(all_results, self.sql_db.chunks_count))
                 print( "Started database insert using {} iterations for a total of {} rows".format(len(list_insert_chunks), len(all_results)))
-                worker_args = [(chunk, self.url) for chunk in list_insert_chunks]
+                worker_args = [(chunk, settings.url_database) for chunk in list_insert_chunks]
                 p = multiprocessing.Pool(settings.db_jobs)
                 for class_list in tqdm(p.imap_unordered(insert_database_worker, worker_args)):
                     pass

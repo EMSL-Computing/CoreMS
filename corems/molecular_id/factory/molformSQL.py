@@ -51,9 +51,11 @@ class CarbonHydrogen(Base):
     
     H = Column(Integer,  nullable=False)
     
+    H_C = Column(Float, nullable=True)
+
     heteroAtoms = relationship("HeteroAtoms",
                         secondary="molecularformula",
-                        backref=backref('carbon_hydrogen'))
+                        )
 
     def __repr__(self):
         return '<CarbonHydrogen Model {} C{} H{}>'.format(self.id, self.C, self.H)                     
@@ -94,11 +96,13 @@ class MolecularFormulaLink(Base):
 
     H = association_proxy('carbonHydrogen', 'H')
 
+    H_C = association_proxy('carbonHydrogen', 'H_C')
+
     classe = association_proxy('heteroAtoms', 'name')
 
-    carbonHydrogen = relationship(CarbonHydrogen, backref=backref("heteroAtoms_assoc"))
+    carbonHydrogen = relationship(CarbonHydrogen, backref=backref("heteroAtoms_assoc"),lazy='subquery')
     
-    heteroAtoms = relationship(HeteroAtoms, backref=backref("carbonHydrogen_assoc"))
+    heteroAtoms = relationship(HeteroAtoms, backref=backref("carbonHydrogen_assoc"), lazy='subquery')
 
     @property
     def formula_dict(self):
@@ -111,10 +115,6 @@ class MolecularFormulaLink(Base):
         class_dict = self.formula_dict 
         class_str = ' '.join([atom + str(class_dict[atom]) for atom in class_dict.keys()])
         return class_str.strip()
-
-    @hybrid_property
-    def H_C(self):
-        return self.H/self.C
 
     @hybrid_method
     def adduct_mass(self, ion_charge, adduct_atom):
@@ -130,13 +130,12 @@ class MolecularFormulaLink(Base):
 
     def __repr__(self):
         
-        return '<MolecularFormulaLink Model C{} H{} {}>'.format(self.C, self.H, self.classe)       
+        return '<MolecularFormulaLink Model C{} H{} {}>'.format(self.formula_string)       
 
 class MolForm_SQL:
     
     def __init__(self, url=None, echo=False):
         
-        print(url)
         self.engine = self.init_engine(url)
 
         self.add_engine_pidguard(self.engine)
@@ -148,7 +147,6 @@ class MolForm_SQL:
         self.session = session_factory()
         
         Base.metadata.create_all(self.engine)
-
         
     def __exit__(self, exc_type, exc_val, exc_tb):
         # make sure the dbconnection gets closed
@@ -189,7 +187,63 @@ class MolForm_SQL:
         
         return self
     
-    def get_dict_entries(self, classes, ion_type, nominal_mzs, molecular_search_settings):
+    def get_dict_by_class(self, classe, ion_type, nominal_mzs, molecular_search_settings):
+        
+        '''Known issue, when using SQLite:
+         if the number of classes and nominal_m/zs are higher than 999 the query will fail
+         Solution: use postgres or split query''' 
+        def query_normal():
+            
+            return self.session.query(MolecularFormulaLink).filter(
+                MolecularFormulaLink.classe == classe, 
+                MolecularFormulaLink.DBE >= molecular_search_settings.min_dbe, 
+                MolecularFormulaLink.DBE <= molecular_search_settings.max_dbe, 
+                MolecularFormulaLink.H_C >= molecular_search_settings.hc_filter, 
+                MolecularFormulaLink.C >= molecular_search_settings.usedAtoms.get("C")[0],
+                MolecularFormulaLink.C <= molecular_search_settings.usedAtoms.get("C")[1], 
+                MolecularFormulaLink.H >= molecular_search_settings.usedAtoms.get("H")[0],
+                MolecularFormulaLink.H <= molecular_search_settings.usedAtoms.get("H")[1], 
+            )
+                
+        def add_dict_formula(formulas, ion_type, check_nominal=False):
+            "organize data by heteroatom classes"
+            dict_res = {}
+
+            if ion_type == Labels.protonated_de_ion:
+            
+                mass_conversion_type = "int(formula.protonated_mass(-1))"
+            
+            elif ion_type == Labels.radical_ion:
+                
+                mass_conversion_type = "int(formula.radical_mass(-1))"
+                
+            for formula in formulas:
+                
+                nominal_mz = eval(mass_conversion_type)
+                
+                if nominal_mz in dict_res.keys():
+                    
+                    dict_res.get(nominal_mz).append(formula)
+                
+                else:
+
+                    dict_res[nominal_mz] = [formula]  
+
+            return dict_res
+        
+        query = query_normal()
+        if ion_type == Labels.protonated_de_ion:
+            query.filter(MolecularFormulaLink.protonated_mass(-1).cast(Integer).in_(nominal_mzs))
+            
+            return {ion_type: add_dict_formula(query, ion_type)}
+
+        if ion_type == Labels.radical_ion:
+            query.filter(MolecularFormulaLink.radical_mass(-1).cast(Integer).in_(nominal_mzs))    
+            return {ion_type: add_dict_formula(query, ion_type)}
+
+        # dump all objs to memory
+        
+    def get_dict_by_classes(self, classes, ion_type, nominal_mzs, molecular_search_settings):
         
         '''Known issue, when using SQLite:
          if the number of classes and nominal_m/zs are higher than 999 the query will fail
@@ -200,6 +254,7 @@ class MolForm_SQL:
                 MolecularFormulaLink.classe.in_(class_list), 
                 MolecularFormulaLink.DBE >= molecular_search_settings.min_dbe, 
                 MolecularFormulaLink.DBE <= molecular_search_settings.max_dbe, 
+                MolecularFormulaLink.H_C >= molecular_search_settings.hc_filter, 
                 MolecularFormulaLink.C >= molecular_search_settings.usedAtoms.get("C")[0],
                 MolecularFormulaLink.C <= molecular_search_settings.usedAtoms.get("C")[1], 
                 MolecularFormulaLink.H >= molecular_search_settings.usedAtoms.get("H")[0],
@@ -208,51 +263,49 @@ class MolForm_SQL:
                 
         def add_dict_formula(formulas, ion_type, check_nominal=False):
             "organize data by heteroatom classes"
-            
+            dict_res = {}
+
             if ion_type == Labels.protonated_de_ion:
             
                 mass_conversion_type = "int(formula.protonated_mass(-1))"
             
-            elif ion_type == Labels.protonated_de_ion:
+            elif ion_type == Labels.radical_ion:
                 
                 mass_conversion_type = "int(formula.radical_mass(-1))"
                 
-            for formula in formulas.yield_per(100):
+            for formula in formulas:
                 
-                if formula.classe in dict_res.keys():
+                nominal_mz = eval(mass_conversion_type)
+                classe = formula.classe
+                if classe in dict_res.keys():
                     
-                    if int(formula.protonated_mass(-1)) in dict_res[formula.classe].keys():
+                    if nominal_mz in dict_res[classe].keys():
                         
-                        dict_res.get(formula.classe).get(eval(mass_conversion_type)).append(formula )
+                        dict_res.get(classe).get(nominal_mz).append(formula )
                     
                     else:
 
-                        dict_res.get(formula.classe)[eval(mass_conversion_type)] = [formula ]  
+                        dict_res.get(classe)[nominal_mz] = [formula ]  
             
                 else:
                     
-                    dict_res[formula.classe] = {eval(mass_conversion_type): [formula] }     
-
-        dict_res= {}
-
-        query = query_normal(classes)
+                    dict_res[classe] = {nominal_mz: [formula] }     
+            
+            return dict_res
         
+        query = query_normal(classes)
         if ion_type == Labels.protonated_de_ion:
             query.filter(MolecularFormulaLink.protonated_mass(-1).cast(Integer).in_(nominal_mzs))
-            dict_res[Labels.protonated_de_ion] = add_dict_formula(query, ion_type)
+            return add_dict_formula(query, ion_type)
 
         if ion_type == Labels.radical_ion:
             query.filter(MolecularFormulaLink.radical_mass(-1).cast(Integer).in_(nominal_mzs))    
-            dict_res[Labels.radical_ion] = add_dict_formula(query, ion_type)
+            return add_dict_formula(query, ion_type)
 
-            
         # dump all objs to memory
         #self.session.expunge_all()
-        return dict_res
-        
         
     def get_by_classe(self, classe, molecular_search_settings):
-         
 
         '''Known issue, when using SQLite:
          if the number of classes and nominal_m/zs are higher than 999 the query will fail

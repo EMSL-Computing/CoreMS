@@ -292,10 +292,10 @@ class MolecularFormulaSearchSettings:
         
         self.usedAtoms = {   'C': (1, 100),
                     'H': (4, 200),
-                    'O': (1, 20),
-                    'N': (0, 3),
-                    'S': (0, 3),
-                    'P': (0, 3),
+                    'O': (1, 10),
+                    'N': (0, 1),
+                    'S': (0, 1),
+                    'P': (0, 1),
                     'Cl': (0, 0),
                 }
 
