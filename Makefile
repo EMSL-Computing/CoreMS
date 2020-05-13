@@ -34,10 +34,36 @@ tag:
 	@git push origin $(version).$(stage)
 	@echo tagged $(version).$(stage) and pushed
 
-docker:
+build-image:
 
 	@echo corilo/corems:$(version).$(stage)
 	@docker build -t corilo/corems:$(version) .
 	@docker push corilo/corems:$(version)
 	@docker image tag corilo/corems:$(version) corilo/corems:latest
 	@docker push corilo/corems:latest
+
+db-up:
+
+	@docker-compose up -d 
+
+db-down:
+
+	@docker-compose down
+
+db-logs:
+
+	@docker-compose logs -f
+
+db-connect:
+
+	@docker exec -it molformdb psql -U postgres
+
+all-up:
+	
+	@docker-compose -f docker-compose-jupyter.yml up	
+
+fresh-stack-up:
+
+	@docker build -t corems:local .
+	@docker-compose up -d   
+	@docker run --rm -v ./data:/home/CoreMS/data corems:local

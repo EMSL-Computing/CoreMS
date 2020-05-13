@@ -218,7 +218,7 @@ class MolecularFormulaSearchSettings:
 
     min_peaks_per_class:int = 15
 
-    url_database: str = None
+    url_database: str = "postgres://coremsdb:coremsmolform@localhost:5432/molformula"
 
     db_jobs:int = 4
 

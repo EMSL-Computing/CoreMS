@@ -14,6 +14,7 @@ doc/coverage_html_report
 corems.egg-info/  
 corems/libs/  
 core_env/  
+molformula-data/
 .vscode/  
 .pytest_cache/
 .vs/

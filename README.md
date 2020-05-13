@@ -12,7 +12,7 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 
 ## Current Version
 
-### `12.3.9.beta`
+### `13.1.0.beta`
 
 ### Data input formats
 
@@ -81,7 +81,7 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 
 - Peak shape (Lorentz,  Gaussian, Voigt, and pseudo-Voigt)
 - Peak fitting for peak shape definition
-- Peak position in function of datapoints, signal to noise and resolving power (Lorentz and Gaussian)
+- Peak position in function of data points, signal to noise and resolving power (Lorentz and Gaussian)
 - Prediction of mass error distribution
 - Calculated ICR Resolving Power based on magnetic field (B), and transient time(T)
 
@@ -90,6 +90,13 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 ```bash
 pip install corems
 ```
+
+A external database is needed to run the molecular formula assignments workflow
+    ```bash
+    docker-compose up -d   
+    ```
+    -  Database url: "postgres://coremsdb:coremsmolform@localhost:5432/molformula"
+    The database url is already set at the default on the CoreMS parameter model class
 
 To be able to open thermo file a installation of pythonnet is needed:
 - Windows: 
@@ -102,34 +109,45 @@ To be able to open thermo file a installation of pythonnet is needed:
     brew install mono
     pip install pythonnet   
     ```
+ Another option is to run the docker stack that will start the CoreMS containers(see next section)
 
-## Jupyter-CoreMS
+## Molecular Database and Jupyter Notebook
 
-A docker image containing a custom python distribution with all dependencies and a Jupyter server with notebook examples
+A docker container containing:
+- A custom python distribution will all dependencies installed
+- A Jupyter notebook server with workflow examples
+- A PostgreSQL database for the molecular formulae assignment
 
 If you don't have docker installed, the easiest way is to [install docker for desktop](https://hub.docker.com/?overlay=onboarding)
 
-- Pull from Docker Registry:
+- Start the containers from the latest built docker image (easiest way): 
 
     ```bash
-    docker pull corilo/corems:latest
-    docker run --rm -v host/dir:/home/CoreMS/data corems
+    docker-compose -f docker-compose-jupyter.yml up
     ```
 
-- Build a new image:
+- Build a new image with current changes: 
 
-    ```bash
-    docker build -t corems:local .
-    docker run --rm -v host/dir:/home/CoreMS/data corems:local
-    ```
+    1) Build the corems image:
+        ```bash
+        docker build -t corems:local .
+        ```
+    2. Start the database container:
+        ```bash
+        docker-compose up -d   
+        ```
+    3. Start the Jupyter Notebook:
+        ```bash
+        docker run --rm -v ./data:/home/CoreMS/data corems:local
+        ```
 
-- In your browser, open the URL address provided in the terminal: `http://127.3.2.1:8888/?token=<token>.`
+- Open your browser, copy and past the URL address provided in the terminal: `http://localhost:8888/?token=<token>.`
 
 - Open the CoreMS-Tutorial.ipynb
 
 ## Examples
 
-Examples can be found on docs/example
+More examples can be found under the directory docs/example
 
 - Basic functionality example
 

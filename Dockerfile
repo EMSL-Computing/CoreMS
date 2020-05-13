@@ -1,18 +1,28 @@
 FROM corilo/corems:base-mono-pythonnet AS base
-WORKDIR /home/CoreMS
+WORKDIR /home/corems
 
-COPY corems/ /home/CoreMS/corems
-COPY doc/notebooks/*.ipynb README.md disclaimer.txt requirements.txt SettingsCoreMS.json setup.py /home/CoreMS/
-COPY doc/examples /home/CoreMS/
-COPY ESI_NEG_SRFA.d/ /home/CoreMS/ESI_NEG_SRFA.d/
+COPY corems/ /home/corems/corems
+COPY README.md disclaimer.txt requirements.txt setup.py /home/corems/
+RUN python3 setup.py install
+RUN rm -f -r /home/corems/corems
+RUN rm /home/corems/setup.py
 
 #RUN apt update && apt install -y --no-install-recommends  build-essential
 
-FROM base AS build  
-COPY --from=base /home/CoreMS /home/CoreMS
-WORKDIR /home/CoreMS
+FROM base AS build
+COPY --from=base /home/corems /home/corems
+WORKDIR /home/corems
 
-RUN python3 setup.py install
+COPY doc/notebooks/*.ipynb README.md disclaimer.txt requirements.txt SettingsCoreMS.json /home/corems/
+COPY doc/examples /home/corems/examples
+COPY ESI_NEG_SRFA.d/ /home/corems/ESI_NEG_SRFA.d/
+
 RUN python3 -m pip install jupyter
-CMD jupyter notebook --ip 0.0.0.0 --no-browser --allow-root
+ENV TINI_VERSION v0.6.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/bin/tini
+RUN chmod +x /usr/bin/tini
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD jupyter notebook --port=8888 --no-browser --ip=0.0.0.0
+
+
 

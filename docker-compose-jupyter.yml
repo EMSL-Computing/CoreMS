@@ -1,0 +1,22 @@
+version: '3.1'
+
+services:
+  molformdb:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: molformula
+      POSTGRES_USER: coremsdb
+      POSTGRES_PASSWORD: coremsmolform
+    volumes:
+      - ./molformula-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+  corems_notebook:
+    image: corilo/corems:latest
+    volumes:
+      - ./data:/home/CoreMS/data
+    ports:
+      - 8888:8888
+    container_name: corems 
