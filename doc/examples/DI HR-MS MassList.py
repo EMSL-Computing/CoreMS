@@ -6,7 +6,7 @@ sys.path.append("./")
 
 from pathlib import Path
 import cProfile
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
 
 from multiprocessing import Pool,Process 
 from corems.mass_spectrum.input.massList import ReadMassList
@@ -18,19 +18,6 @@ import pstats
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
 from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration
-
-
-def class_plot(df):
-
-    import seaborn as sns
-
-    sns.set(style="white", rc={"axes.facecolor": (0, 0, 0, 0)})
-    #sns.pairplot(df, vars=[ 'mz','abundance'],  hue="class")
-    g = sns.PairGrid(df, vars=[ 'mz','abundance'], hue="class")
-    g = g.map_upper(sns.kdeplot)
-    g = g.map_upper(sns.kdeplot)
-    g = g.map_diag(sns.kdeplot, lw=2)
-    plt.show()
 
 def run_bruker(file_location):
     
@@ -61,14 +48,16 @@ def run_assignment(file_location):
     mass_spectrum.molecular_search_settings.min_ppm_error  = -1
     mass_spectrum.molecular_search_settings.max_ppm_error = 1
 
+    mass_spectrum.molecular_search_settings.url_database = "postgres://postgres:labthomson0102@172.22.113.27:5432/"
+    
     mass_spectrum.molecular_search_settings.min_dbe = 0
     mass_spectrum.molecular_search_settings.max_dbe = 50
 
     mass_spectrum.molecular_search_settings.usedAtoms['C'] = (1,90)
     mass_spectrum.molecular_search_settings.usedAtoms['H'] = (4,200)
-    mass_spectrum.molecular_search_settings.usedAtoms['O'] = (0,24)
-    mass_spectrum.molecular_search_settings.usedAtoms['N'] = (0,1)
-    mass_spectrum.molecular_search_settings.usedAtoms['S'] = (0,0)
+    mass_spectrum.molecular_search_settings.usedAtoms['O'] = (0,22)
+    mass_spectrum.molecular_search_settings.usedAtoms['N'] = (0,3)
+    mass_spectrum.molecular_search_settings.usedAtoms['S'] = (0,3)
     mass_spectrum.molecular_search_settings.usedAtoms['Cl'] = (0,0)
     mass_spectrum.molecular_search_settings.usedAtoms['P'] = (0,0)
     mass_spectrum.molecular_search_settings.usedAtoms['Na'] = (0,0)
@@ -77,16 +66,15 @@ def run_assignment(file_location):
     mass_spectrum.molecular_search_settings.isAdduct = False
     
     mass_spectrum.filter_by_max_resolving_power(15, 2)
-
-    
     SearchMolecularFormulas(mass_spectrum, first_hit=True).run_worker_mass_spectrum()
     mass_spectrum.percentile_assigned()
 
     mass_spectrum_by_classes = HeteroatomsClassification(mass_spectrum, choose_molecular_formula=True)
+    mass_spectrum_by_classes.plot_ms_assigned_unassigned()
+    
+    # plt.show()
+    # dataframe = mass_spectrum_by_classes.to_dataframe()
     return (mass_spectrum, mass_spectrum_by_classes)
-    #mass_spectrum_by_classes.plot_ms_assigned_unassigned()
-
-    #dataframe = mass_spectrum_by_classes.to_dataframe()
     
     #class_plot(dataframe)
 def monitor(target):
@@ -128,7 +116,9 @@ def run_multiprocess():
 
 if __name__ == "__main__":
 
-    run_multiprocess()
+    #run_multiprocess()
     #cpu_percents = monitor(target=run_multiprocess)
     #print(cpu_percents)
+    file_location = get_filename()
+    run_assignment(file_location)
     

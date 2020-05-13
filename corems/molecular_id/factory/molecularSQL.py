@@ -13,7 +13,7 @@ from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm.session import sessionmaker
 from sqlalchemy.sql.operators import exists
-from sqlalchemy import event
+from sqlalchemy import event, and_
 
 
 from corems.encapsulation.constant import Atoms, Labels
@@ -192,7 +192,7 @@ class MolForm_SQL:
         elif url[0:10] == 'postgresql' or url[0:8] == 'postgres':
             #postgresql
             self.chunks_count = 50000
-            engine = create_engine(url, echo = False, isolation_level="AUTOCOMMIT")
+            engine = create_engine(url, echo = False)
         
         return engine# poolclass=NullPool
 
@@ -208,21 +208,26 @@ class MolForm_SQL:
         def query_normal(class_list):
             
             return self.session.query(MolecularFormulaLink).filter(
-                MolecularFormulaLink.classe.in_(class_list), 
-                MolecularFormulaLink.DBE >= molecular_search_settings.min_dbe, 
-                MolecularFormulaLink.DBE <= molecular_search_settings.max_dbe, 
-                MolecularFormulaLink.H_C >= molecular_search_settings.hc_filter, 
-                MolecularFormulaLink.C >= molecular_search_settings.usedAtoms.get("C")[0],
-                MolecularFormulaLink.C <= molecular_search_settings.usedAtoms.get("C")[1], 
-                MolecularFormulaLink.H >= molecular_search_settings.usedAtoms.get("H")[0],
-                MolecularFormulaLink.H <= molecular_search_settings.usedAtoms.get("H")[1], 
+                and_(
+                    MolecularFormulaLink.classe.in_(class_list), 
+                    and_(
+                        MolecularFormulaLink.DBE >= molecular_search_settings.min_dbe, 
+                        MolecularFormulaLink.DBE <= molecular_search_settings.max_dbe, 
+                        and_(
+                            MolecularFormulaLink.H_C >= molecular_search_settings.hc_filter, 
+                            MolecularFormulaLink.C >= molecular_search_settings.usedAtoms.get("C")[0],
+                            MolecularFormulaLink.C <= molecular_search_settings.usedAtoms.get("C")[1], 
+                            MolecularFormulaLink.H >= molecular_search_settings.usedAtoms.get("H")[0],
+                            MolecularFormulaLink.H <= molecular_search_settings.usedAtoms.get("H")[1], 
+                        )
+                    )
+                )
             )
                 
         def add_dict_formula(formulas, ion_type, ion_charge, adduct_atom=None):
             "organize data by heteroatom classes"
             dict_res = {}
 
-            print(ion_type, 'HEREEEEEEE')
             if ion_type == Labels.protonated_de_ion:
             
                 mass_conversion_type = "int(formula.protonated_mass(ion_charge))"
@@ -276,7 +281,9 @@ class MolForm_SQL:
         
         query = query_normal(classes)
         if ion_type == Labels.protonated_de_ion:
-            query = query.filter(MolecularFormulaLink.protonated_mass(ion_charge).cast(Integer).in_(nominal_mzs))
+            query = query.filter(and_(
+                                MolecularFormulaLink.protonated_mass(ion_charge).cast(Integer).in_(nominal_mzs)
+                                ))
             return add_dict_formula(query, ion_type, ion_charge)
                                 
         if ion_type == Labels.radical_ion:
@@ -291,7 +298,7 @@ class MolForm_SQL:
                     dict_res[atom] = add_dict_formula(query, ion_type, ion_charge, adduct_atom=atom)
                 return dict_res
         # dump all objs to memory
-        #self.session.expunge_all()
+        self.session.expunge_all()
         
     def get_by_classe(self, classe, molecular_search_settings):
 

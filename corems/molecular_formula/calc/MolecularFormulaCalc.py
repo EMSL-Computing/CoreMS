@@ -60,7 +60,9 @@ class MolecularFormulaCalc:
             elif ion_type == Labels.radical_ion or ion_type == Labels.adduct_ion:   
                 return radical_mass(mass, self.ion_charge)
             else:
-                raise Exception("Does not recognize ion type: {}".format(ion_type))
+                #formula is probably ion form used for bruker ref list
+                return radical_mass(mass, self.ion_charge)
+                
         else:
             
             raise Exception("Please set ion charge first")

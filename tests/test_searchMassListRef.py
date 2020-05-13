@@ -32,7 +32,7 @@ def test_search_imported_ref_files():
 
     for mf in mf_references_list:
 
-        print(mf.mz, mf.classe)
+        print(mf.mass, mf.classe)
     
     ms_peaks_assigned = SearchMolecularFormulas(mass_spectrum_obj).search_mol_formulas( mf_references_list, find_isotopologues=False)
 

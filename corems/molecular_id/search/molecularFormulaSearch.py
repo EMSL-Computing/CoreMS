@@ -231,7 +231,7 @@ class SearchMolecularFormulas:
         
         for mf in possible_formulas_list:
             
-            nm = mf.nominal_mz
+            nm = int(mf.mass)
             
             if nm in possible_formulas_dict_nm.keys():
                 
@@ -241,8 +241,8 @@ class SearchMolecularFormulas:
                 possible_formulas_dict_nm[nm] = [mf]
 
         min_abundance = self.mass_spectrum_obj.min_abundance
-
-        self.run_search(possible_formulas_dict_nm, min_abundance)          
+        ion_type = 'unknown'
+        self.run_search(self.mass_spectrum_obj,possible_formulas_dict_nm, min_abundance, ion_type, self.mass_spectrum_obj.polarity )          
 
         self.mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = initial_min_peak_bool
         self.mass_spectrum_obj.molecular_search_settings.use_runtime_kendrick_filter = initial_runtime_kendrick_filter
@@ -375,6 +375,9 @@ class SearchMolecularFormulaWorker:
         elif ion_type == Labels.adduct_ion and adduct_atom:
             
             mass_conversion_type = "possible_formula.adduct_mass(ion_charge, adduct_atom)"
+        else:
+            
+            mass_conversion_type = "possible_formula.mass"
 
         for possible_formula in formulas:
             
