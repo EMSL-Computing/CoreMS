@@ -1,23 +1,21 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jul 29, 2019"
 
-import os, time
-from os.path import join
-from copy import deepcopy
-import json 
+import multiprocessing
 
 import tqdm
 from sqlalchemy.types import Binary
+from sqlalchemy.sql.sqltypes import Integer
 
+
+from corems import chunks, timeit
 from corems.encapsulation.constant import Atoms, Labels
-from corems.molecular_id.factory.CreateMolFormDB import NewMolecularCombinations
-from corems.molecular_id.factory.molformSQL import MolForm_SQL, MolecularFormulaLink
+from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
+from corems.molecular_id.factory.molecularSQL import MolForm_SQL, MolecularFormulaLink
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.molecular_id.calc.MolecularFilter import MolecularFormulaSearchFilters
-from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
-from corems import chunks, timeit
-from sqlalchemy.sql.sqltypes import Integer
-import multiprocessing
+from corems.molecular_id.factory.MolecularLookupTable import MolecularCombinations
+
 
 last_error = 0
 last_dif = 0
@@ -90,7 +88,7 @@ class SearchMolecularFormulas:
             if self.first_hit: 
                 
                 if ms_peak.is_assigned: continue
-        
+
             ms_peak_indexes = search_molfrom.find_formulas(get_formulas(), min_abundance, self.mass_spectrum_obj, ms_peak, ion_type, ion_charge, adduct_atom)    
 
             all_assigned_indexes.extend(ms_peak_indexes)
@@ -119,15 +117,15 @@ class SearchMolecularFormulas:
         dict_res = {}
 
         if mf_search_settings.isProtonated:
-            dict_res[Labels.protonated_de_ion] = sql_db.get_dict_by_classes(classe_str_list, Labels.protonated_de_ion, nominal_mzs, mf_search_settings)    
+            dict_res[Labels.protonated_de_ion] = sql_db.get_dict_by_classes(classe_str_list, Labels.protonated_de_ion, nominal_mzs, ion_charge, mf_search_settings)    
             
         if mf_search_settings.isRadical:
-            dict_res[Labels.radical_ion] = sql_db.get_dict_by_classes(classe_str_list, Labels.radical_ion, nominal_mzs, mf_search_settings)    
+            dict_res[Labels.radical_ion] = sql_db.get_dict_by_classes(classe_str_list, Labels.radical_ion, nominal_mzs, ion_charge,  mf_search_settings)    
 
         if mf_search_settings.isAdduct:
             
             adduct_list = mf_search_settings.adduct_atoms_neg if ion_charge < 0 else mf_search_settings.adduct_atoms_pos
-            dict_res[Labels.adduct_ion] = sql_db.get_dict_by_classes(classe_str_list, Labels.adduct_ion, nominal_mzs, mf_search_settings, adducts=adduct_list)    
+            dict_res[Labels.adduct_ion] = sql_db.get_dict_by_classes(classe_str_list, Labels.adduct_ion, nominal_mzs, ion_charge, mf_search_settings, adducts=adduct_list)    
 
         return dict_res
 
@@ -155,7 +153,7 @@ class SearchMolecularFormulas:
         SearchMolecularFormulaWorker(find_isotopologues=self.find_isotopologues).reset_error(self.mass_spectrum_obj)
 
         # check database for all possible molecular formula combinations based on the setting passed to self.mass_spectrum_obj.molecular_search_settings
-        classes = NewMolecularCombinations(self.sql_db).runworker(self.mass_spectrum_obj.molecular_search_settings)
+        classes = MolecularCombinations(self.sql_db).runworker(self.mass_spectrum_obj.molecular_search_settings)
         
         # split the database load to not blowout the memory
         # TODO add to the settings
@@ -181,7 +179,11 @@ class SearchMolecularFormulas:
 
                     pbar.set_description_str(desc="Started molecular formula search for class %s, (de)protonated " % classe_str, refresh=True)
                     
-                    self.run_search(ms_peaks, dict_res.get(ion_type).get(classe_str),
+                    candidate_formulas = dict_res.get(ion_type).get(classe_str)
+
+                    if candidate_formulas:
+                        
+                        self.run_search(ms_peaks, candidate_formulas,
                                     min_abundance, ion_type, ion_charge)
 
                 if self.mass_spectrum_obj.molecular_search_settings.isRadical:
@@ -190,9 +192,12 @@ class SearchMolecularFormulas:
                     
                     ion_type = Labels.radical_ion
                     
-                    self.run_search(ms_peaks, dict_res.get(ion_type).get(classe_str),
-                                    min_abundance, ion_type, ion_charge)
+                    candidate_formulas = dict_res.get(ion_type).get(classe_str)
 
+                    if candidate_formulas:
+
+                        self.run_search(ms_peaks, candidate_formulas,
+                                    min_abundance, ion_type, ion_charge)
                 # looks for adduct, used_atom_valences should be 0 
                 # this code does not support H exchance by halogen atoms
                 if self.mass_spectrum_obj.molecular_search_settings.isAdduct:
@@ -204,8 +209,10 @@ class SearchMolecularFormulas:
                     
                     for adduct_atom, dict_by_class in dict_atoms_formulas.items():
                         
-                        self.run_search(ms_peaks, dict_res.get(ion_type).get(classe_str),
-                                    min_abundance, ion_type, ion_charge, adduct_atom=adduct_atom)
+                        candidate_formulas = dict_res.get(ion_type).get(classe_str)
+                        if candidate_formulas:
+                            self.run_search(ms_peaks, dict_res.get(ion_type).get(classe_str),
+                                        min_abundance, ion_type, ion_charge, adduct_atom=adduct_atom)
 
         self.sql_db.close()     
 

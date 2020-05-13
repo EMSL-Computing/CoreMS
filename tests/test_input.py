@@ -100,35 +100,26 @@ def test_import_lcms_from_transient():
 def test_import_transient():
     
     # from corems.structure.input.MidasDatFile import ReadMidasDatFile
-    
     file_location = Path.cwd() / "ESI_NEG_SRFA.d"
 
-    #setting for signal processing
-    apodization_method = "Hanning"
-    number_of_truncations = 0
-    number_of_zero_fills = 1
     
-    MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
-    MSParameters.mass_spectrum.relative_abundance_threshold = 0.5
-    MSParameters.ms_peak.peak_min_prominence_percent = 0.5
-    
+    MSParameters.transient.apodization_method = "Hanning"
+    MSParameters.transient.number_of_truncations = 0
+    MSParameters.transient.number_of_zero_fills = 1
+
     with ReadBrukerSolarix(file_location) as bruker_transient:
-    #bruker_reader = ReadBrukerSolarix(file_location)
-
-        #bruker_transient = bruker_reader.get_transient()
-
-        bruker_transient.set_processing_parameter(
-            apodization_method, number_of_truncations, number_of_zero_fills
-        )
-
+        
+        MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
+        MSParameters.mass_spectrum.relative_abundance_threshold = 10
+        MSParameters.ms_peak.peak_min_prominence_percent = 1
+    
         mass_spectrum_obj = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
 
         mass_spectrum_obj.plot_profile_and_noise_threshold()
     #pyplot.show()
 
         print(len(mass_spectrum_obj))
-        
-
+    
         print(mass_spectrum_obj.mspeaks[0].mz_exp, mass_spectrum_obj.mspeaks[-1].mz_exp)
 
 def test_import_corems_hdf5():

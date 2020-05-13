@@ -10,22 +10,9 @@ sys.path.append(".")
 
 from corems.encapsulation.constant import Labels
 from corems.molecular_id.factory.MolecularLookupTable import  MolecularCombinations
-from corems.molecular_id.factory.CreateMolFormDB import NewMolecularCombinations
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL
-from corems.molecular_id.factory.molecularMongo import MolForm_Mongo
 from corems.molecular_id.input.nistMSI import ReadNistMSI
 from corems.encapsulation.factory.processingSetting  import MolecularFormulaSearchSettings
-
-def xtest_query_mongo():
-    
-    #from pymongo import MongoClient
-    #import pymongo
-    #client = MongoClient("mongodb://corems-client:esmlpnnl2019@localhost:27017/corems")
-    #db = client.corems.drop_collection('molform')
-    with MolForm_Mongo() as mongo_db:
-       formula = mongo_db.get_all()
-       print(formula[0])
-       print(pickle.loads(formula[0]['mol_formula']).mz_theor)
 
 def test_nist_to_sql():
 
@@ -39,17 +26,16 @@ def test_nist_to_sql():
 
 def test_query_sql():
 
-    polarity = -1
-    with MolForm_SQL(polarity) as sqldb:
+    with MolForm_SQL() as sqldb:
         #sqldb.clear_data()
 
         ion_type = Labels.protonated_de_ion
         print('ion_type', ion_type)
-        classe = 'O8'
-        nominal_mz = 501
-        print('total mol formulas found: ', len(list( sqldb.get_entries(classe, ion_type, nominal_mz, MolecularFormulaSearchSettings))))
-
-        print('total mol formulas found: ', len(list( sqldb.get_entries(classe, ion_type, nominal_mz, MolecularFormulaSearchSettings))))
+        classe = ['{"O": 2}']
+        nominal_mz = [301]
+        results = sqldb.get_dict_by_classes(classe, ion_type, nominal_mz, +1, MolecularFormulaSearchSettings())
+        
+        print('total mol formulas found: ', len(list( results.get(classe[0]).get(301))))
 
 def generate_database():
     
@@ -64,13 +50,15 @@ def generate_database():
     #molecular_search_settings.db_jobs = jobs
     
     molecular_search_settings = MolecularFormulaSearchSettings()
-    NewMolecularCombinations().runworker(molecular_search_settings)
+    MolecularCombinations().runworker(molecular_search_settings)
 
 if __name__ == '__main__':
     
+
+    test_query_sql()
     #settings_parsers.load_search_setting_yaml()
     #settings_parsers.load_search_setting_json()
     #test_nist_to_sql()    
-    generate_database()
+    #generate_database()
     #xtest_query_mongo()
    

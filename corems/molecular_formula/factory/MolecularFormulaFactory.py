@@ -12,18 +12,18 @@ class MolecularFormula(MolecularFormulaCalc):
     '''
     classdocs
     '''
-    def __init__(self, molecular_formula, ion_charge, mspeak_parent=None, ion_type=None):
+    def __init__(self, molecular_formula, ion_charge, ion_type=None, adduct_atom=None, mspeak_parent=None):
         
         #clear dictionary of atoms with 0 value
         
         if   type(molecular_formula) is dict:
-                self._from_dict(molecular_formula, ion_type)   
+                self._from_dict(molecular_formula, ion_type, adduct_atom)   
         
         elif type(molecular_formula) is list:
-                self._from_list(molecular_formula, ion_type)   
+                self._from_list(molecular_formula, ion_type, adduct_atom)   
         
         elif type(molecular_formula) is str:
-                self._from_str(molecular_formula, ion_type)   
+                self._from_str(molecular_formula, ion_type, adduct_atom)   
 
         self._ion_charge = ion_charge
         
@@ -71,19 +71,25 @@ class MolecularFormula(MolecularFormulaCalc):
             else:
                 return 0
                 
-    def _from_dict(self, molecular_formula, ion_type):
+    def _from_dict(self, molecular_formula, ion_type, adduct_atom):
         
         self._d_molecular_formula = {key:val for key, val in molecular_formula.items() if val != 0}
-        self._d_molecular_formula[Labels.ion_type] = ion_type
+        if ion_type:
+            self._d_molecular_formula[Labels.ion_type] = ion_type
+        if adduct_atom:
+            if adduct_atom in self._d_molecular_formula:
+                self._d_molecular_formula[adduct_atom] += 1 
+            else: self._d_molecular_formula[adduct_atom] = 1 
+
         
     @property
-    def isotopologue_count_percentile(self):
+    def isotopologue_count_percentile(self, ):
         if not len(self.expected_isotopologues) == 0:
             return (len(self.mspeak_mf_isotopologues_indexes)/len(self.expected_isotopologues))*100
         else: 
             return 100
 
-    def _from_list(self, molecular_formula_list,  ion_type):
+    def _from_list(self, molecular_formula_list, ion_type, adduct_atom):
         # list has to be in the format 
         #['C', 10, 'H', 21, '13C', 1, 'Cl', 1, etc]  
         self._d_molecular_formula = {}
@@ -95,8 +101,12 @@ class MolecularFormula(MolecularFormulaCalc):
                 self._d_molecular_formula[atoms_label] = int(atoms_count)
         
         self._d_molecular_formula[Labels.ion_type] = ion_type
+        if adduct_atom:
+            if adduct_atom in self._d_molecular_formula:
+                self._d_molecular_formula[adduct_atom] += 1 
+            else: self._d_molecular_formula[adduct_atom] = 1 
 
-    def _from_str(self, molecular_formula_str,  ion_type):
+    def _from_str(self, molecular_formula_str,  ion_type, adduct_atom):
         # string has to be in the format 
         #'C10 H21 13C1 Cl1 37Cl1 etc'
         molecular_formula_list = molecular_formula_str.split(' ')
@@ -105,7 +115,7 @@ class MolecularFormula(MolecularFormulaCalc):
             atoms_count = self.split(Atoms.atoms_order, i)
             final_formula.extend(atoms_count)
         print(final_formula)
-        self._from_list(final_formula, ion_type)
+        self._from_list(final_formula, ion_type, adduct_atom)
 
     def split(self, delimiters, string, maxsplit=0): #pragma: no cover
         
@@ -183,7 +193,7 @@ class MolecularFormula(MolecularFormulaCalc):
         self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(kendrick_dict_base)
                 
     def isotopologues(self, min_abundance, current_mono_abundance, dynamic_range): 
-        
+        # this calculation ignores the hydrogen
         for mf in self._cal_isotopologues(self._d_molecular_formula, min_abundance, current_mono_abundance, dynamic_range ):
              
             yield MolecularFormulaIsotopologue(*mf, current_mono_abundance, self.ion_charge)

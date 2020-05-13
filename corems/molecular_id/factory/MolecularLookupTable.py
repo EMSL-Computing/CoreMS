@@ -4,173 +4,234 @@ __date__ = "Jul 02, 2019"
 from copy import deepcopy
 import itertools
 import multiprocessing
-import pickle
 import json
+import cProfile
+import io
+import pstats
+import contextlib
 
+from sqlalchemy.orm import scoped_session
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import load_only
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine, func
 from tqdm import tqdm
 
 from corems.encapsulation.factory.processingSetting  import MolecularLookupDictSettings
-from corems.encapsulation.constant import Labels
-from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
+from corems.encapsulation.constant import Atoms
+from corems.molecular_id.factory.molecularSQL import CarbonHydrogen, HeteroAtoms, MolecularFormulaLink
+from corems.encapsulation.factory.parameters import MSParameters
+from corems import chunks, timeit
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL
+import os
+
+@contextlib.contextmanager
+def profiled():
+    pr = cProfile.Profile()
+    pr.enable()
+    yield
+    pr.disable()
+    s = io.StringIO()
+    ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
+    ps.print_stats()
+    # uncomment this to see who's calling what
+    # ps.print_callers()
+    print(s.getvalue())
+
+def insert_database_worker(args):
+        
+        results, url = args
+        
+        if not url:
+            
+            url = 'sqlite:///db/molformulas.sqlite'
+
+        if url[0:6] == 'sqlite':
+            engine = create_engine(url, echo = False)
+        else:
+            engine = create_engine(url, echo = False, isolation_level="AUTOCOMMIT")
+        
+        session_factory = sessionmaker(bind=engine)
+        session = session_factory()
+        insert_query = MolecularFormulaLink.__table__.insert().values(results)
+        session.execute(insert_query)
+        session.commit()
+        session.close()
+        engine.dispose()
 
 class MolecularCombinations:
      
-    '''
-    runworker()
-    Returns a dictionary of molecular formula obj inside a dict nominal masses and ion type
-        {Labels.ion_type:{
-            classes:{
-                nominal_mass:{
-                    [MolecularFormula obj,]
-                }
-            }
-        }
-    '''
     def __init__(self, sql_db = None):
-            
-        self.sql_db = sql_db    
-    
-    def check_database_get_class_list(self, molecular_search_settings):
 
+        if not sql_db:
+            
+            self.sql_db = MolForm_SQL()
+        else:
+            self.sql_db = sql_db
+
+    def cProfile_worker(self, args):
+        
+        cProfile.runctx('self.get_mol_formulas(*args)', globals(), locals(), 'mf_database_cprofile.prof')
+
+    def check_database_get_class_list(self, molecular_search_settings):
+        
         all_class_to_create = []
         
         classes_dict = self.get_classes_in_order(molecular_search_settings)
         
         class_str_set = set(classes_dict.keys())
         
-        #print(classes_list)
+        existing_classes_objs = self.sql_db.session.query(HeteroAtoms).distinct().all()
         
-        if molecular_search_settings.isProtonated:
+        existing_classes_str = set([classe.name for classe in existing_classes_objs])
 
-            existing_classes = set(self.sql_db.get_all_classes(Labels.protonated_de_ion, molecular_search_settings))
+        self.len_existing_classes = len(existing_classes_str)
 
-            class_to_create = class_str_set - existing_classes
-
-            for class_str in class_to_create:
-                
-                class_tuple =  (class_str, classes_dict.get(class_str)) 
-                
-                all_class_to_create.append((class_tuple, Labels.protonated_de_ion))
-
-        if  molecular_search_settings.isRadical or molecular_search_settings.isAdduct:
-
-            existing_classes = set(self.sql_db.get_all_classes(Labels.radical_ion, molecular_search_settings))
-
-            class_to_create = class_str_set - existing_classes
-
-            for class_str in class_to_create:
-                
-                class_tuple =  (class_str, classes_dict.get(class_str)) 
-                
-                all_class_to_create.append((class_tuple, Labels.radical_ion))
-                
-        #print (existing_classes)class_str_list
+        class_to_create = class_str_set - existing_classes_str
+        
+        class_count= len(existing_classes_objs)
+            
+        data_classes = [{"name":class_str, "id":class_count+ index + 1} for index, class_str in enumerate(class_to_create)]
+        
+        if data_classes:
+            
+            list_insert_chunks = chunks(data_classes, self.sql_db.chunks_count)
+            for insert_chunk in  list_insert_chunks:   
+                insert_query = HeteroAtoms.__table__.insert().values(insert_chunk)
+                self.sql_db.session.execute(insert_query)
+            
+        for index, class_str in enumerate(class_to_create):
+            
+            class_tuple =  (class_str, classes_dict.get(class_str), class_count+ index + 1) 
+            
+            all_class_to_create.append(class_tuple)
 
         return [(c_s, c_d) for c_s, c_d in classes_dict.items()], all_class_to_create       
-
-    def runworker(self, molecular_search_settings) :
+    
+    def get_carbonsHydrogens(self, settings, odd_even):
         
-        if not self.sql_db:
+        operator = '==' if odd_even == 'even' else '!=' 
+        usedAtoms = settings.usedAtoms
+        user_min_c, user_max_c = usedAtoms.get('C')
+        user_min_h, user_max_h = usedAtoms.get('H')
+
+        return eval("self.sql_db.session.query(CarbonHydrogen).filter(" 
+                                       "CarbonHydrogen.C >= user_min_c,"
+                                        "CarbonHydrogen.H >= user_min_h,"
+                                        "CarbonHydrogen.C <= user_max_c,"
+                                        "CarbonHydrogen.H <= user_max_h,"
+                                        "CarbonHydrogen.H % 2" + operator+ "0).all()")
+        
+    def add_carbonsHydrogens(self, settings):
+
+        usedAtoms = settings.usedAtoms
+
+        user_min_c, user_max_c = usedAtoms.get('C')
+        user_min_h, user_max_h = usedAtoms.get('H')
+
+        query_obj = self.sql_db.session.query(func.max(CarbonHydrogen.C).label("max_c"), 
+                        func.min(CarbonHydrogen.C).label("min_c"),
+                        func.max(CarbonHydrogen.H).label("max_h"),
+                        func.min(CarbonHydrogen.H).label("min_h"),
+                        )
+
+        
+        database = query_obj.first()
+        if database.max_c == user_max_c and database.min_c == user_min_c and database.max_h == user_max_h and database.min_h == user_min_h:   
+            #all data is already available at the database
+            pass
+        
+        else:
             
-            polarity = 1 if molecular_search_settings.ion_charge > 0 else - 1
+            current_count = self.sql_db.session.query(CarbonHydrogen.C).count()
+            
+            databaseCarbonHydrogen = self.sql_db.session.query(CarbonHydrogen).all()
+            
+            userCarbon = set(range(user_min_c, user_max_c + 1))
+            userHydrogen = set(range(user_min_h, user_max_h + 1))
+            
+            carbon_hydrogen_objs_database = {}
+            for obj in databaseCarbonHydrogen:
+                
+                str_data = "C:{},H:{}".format(obj.C, obj.H)
+                carbon_hydrogen_objs_database[str_data] = str_data
 
-            self.sql_db = MolForm_SQL(polarity, molecular_search_settings.url_database)
+            carbon_hydrogen_objs_to_create = {}
+            for comb in itertools.product(userCarbon, userHydrogen):
+                
+                data = {"C":comb[0],
+                       "H":comb[1],
+                       "H_C":comb[1]/comb[0],
+                }
+                str_data = "C:{},H:{}".format(comb[0],comb[1])
+                
+                if str_data in carbon_hydrogen_objs_database.keys():
+                    continue
+                else:
+                    carbon_hydrogen_objs_to_create[str_data] = data
+            
+            list_to_add = []
+            for index, dict_data in enumerate(carbon_hydrogen_objs_to_create.values()):
+                dict_data["id"] = index + current_count + 1
+                list_to_add.append(dict_data)
+            
+            if list_to_add:
+                list_insert_chunks = chunks(list_to_add, self.sql_db.chunks_count)
+                for insert_chunk in  list_insert_chunks:   
+                    insert_query = CarbonHydrogen.__table__.insert().values(insert_chunk)
+                    self.sql_db.session.execute(insert_query)
+                self.sql_db.session.commit()    
+            
+    @timeit
+    def runworker(self, molecular_search_settings):
         
-        print ("Querying database for existing classes")
         classes_list, class_to_create = self.check_database_get_class_list(molecular_search_settings)
-        print ("Finished querying database for existing classes")
-        print()
-
+        
         if class_to_create:
             
             settings = MolecularLookupDictSettings()
             settings.usedAtoms = deepcopy(molecular_search_settings.usedAtoms)
-            settings.ion_charge = molecular_search_settings.ion_charge
             settings.url_database = molecular_search_settings.url_database
             settings.db_jobs = molecular_search_settings.db_jobs
-            c_h_combinations= self.get_c_h_combination(settings)
             
-            number_of_process = int(settings.db_jobs)
+            self.add_carbonsHydrogens(settings)
+            self.sql_db.session.commit()
             
-            if settings.db_jobs > 1:
-                
-                print("Using %i logical CPUs for database entry generation"% number_of_process )
-                #number_of_process = psutil.cpu_count(logical=False)
-                print('creating database entry for %i classes' % len(class_to_create))
-                print()
+            odd_ch_obj = self.get_carbonsHydrogens(settings,'odd')
+            self.odd_ch_id = [obj.id for obj in odd_ch_obj]
+            self.odd_ch_dict = [{'C':obj.C, 'H':obj.H} for obj in odd_ch_obj]
+            self.odd_ch_mass = [obj.mass for obj in odd_ch_obj]
+            self.odd_ch_dbe = [obj.dbe for obj in odd_ch_obj]
+            
+            even_ch_obj = self.get_carbonsHydrogens(settings, 'even')
+            self.even_ch_id = [obj.id for obj in even_ch_obj]
+            self.even_ch_dict = [{'C':obj.C, 'H':obj.H} for obj in even_ch_obj]
+            self.even_ch_mass = [obj.mass for obj in even_ch_obj]
+            self.even_ch_dbe = [obj.dbe for obj in even_ch_obj]
 
-                worker_args = [(class_tuple, c_h_combinations, ion_type, settings) for class_tuple, ion_type in class_to_create]
-                p = multiprocessing.Pool(number_of_process)
-                for class_list in tqdm(p.imap_unordered(CombinationsWorker(), worker_args)):
-                    # TODO this will slow down a bit, need to find a better way      
-                    self.add_to_sql_session(class_list)
-                    self.sql_db.commit()    
-                    
-                #p.map(, args)
+            all_results= list()
+            for class_tuple in tqdm(class_to_create):
+                
+                results = self.populate_combinations(class_tuple, settings)
+                all_results.extend(results)
+                if settings.db_jobs == 1: 
+                    if len(all_results) >= self.sql_db.chunks_count:
+                        insert_query = MolecularFormulaLink.__table__.insert().values(all_results)
+                        self.sql_db.session.execute(insert_query)
+                        all_results = list()
+            
+            # each chunk takes ~600Mb of memory, so if using 8 processes the total free memory needs to be 5GB
+            if settings.db_jobs > 1: 
+                list_insert_chunks = list(chunks(all_results, self.sql_db.chunks_count))
+                print( "Started database insert using {} iterations for a total of {} rows".format(len(list_insert_chunks), len(all_results)))
+                worker_args = [(chunk, settings.url_database) for chunk in list_insert_chunks]
+                p = multiprocessing.Pool(settings.db_jobs)
+                for class_list in tqdm(p.imap_unordered(insert_database_worker, worker_args)):
+                    pass
                 p.close()
                 p.join()
-            
-            else:
-                
-                for class_tuple, ion_type in tqdm(class_to_create):
-
-                    (class_tuple, c_h_combinations, ion_type, settings)
-                
-                    class_list = CombinationsWorker().get_combinations(class_tuple, c_h_combinations, ion_type, settings)
-                    self.add_to_sql_session(class_list)
-                    self.sql_db.commit()             
-            
-            
+        
         return classes_list
-   
-    def add_to_sql_session(self, class_list):
-        
-        self.sql_db.add_all(class_list)
-
-    def get_c_h_combination(self, settings):
-
-        usedAtoms = settings.usedAtoms
-        result = {}
-        
-        min_c, max_c = usedAtoms.get('C')
-        min_h, max_h = usedAtoms.get('H')
-
-        min_h_fix = self.get_fixed_initial_number_of_hydrogen(min_h, 'odd')
-        possible_c = [c for c in range(min_c, max_c + 1)]
-
-        possible_h = [h for h in range(min_h_fix, max_h + 2, 2)]
-
-        list_products = [i for i in itertools.product(possible_c, possible_h)]
-
-        result['odd'] = list_products
-        
-        min_h_fix = self.get_fixed_initial_number_of_hydrogen(min_h, 'even')
-        possible_h = [h for h in range(min_h, max_h + 2, 2)]
-
-        list_products = [i for i in itertools.product(possible_c, possible_h)]
-
-        result['even'] = list_products
-
-        return result
-
-    def swap_class_order(self, class_first, class_second, new_list2):
-
-        if class_first in new_list2:
-
-            if class_second in new_list2:
-                n_index, s_index = (
-                    new_list2.index(class_first),
-                    new_list2.index(class_second),
-                )
-
-                new_list2[n_index], new_list2[s_index] = (
-                    new_list2[s_index],
-                    new_list2[n_index],
-                )
-
-        return new_list2    
-    
     
     def get_classes_in_order(self, molecular_search_settings):
         ''' structure is 
@@ -222,18 +283,17 @@ class MolecularCombinations:
             for each_atoms_index, atom_number in enumerate(all_atoms_tuple):
                 
                 if atom_number != 0:
-                    classe_str = (classe_str + atoms_in_order[each_atoms_index] + str(atom_number) +  ' ')
                     classe_dict[atoms_in_order[each_atoms_index]] = atom_number
+            
+            if not classe_dict:
+                classe_in_order['HC'] = {"HC": ""}
+                continue
 
-            classe_str = classe_str.strip()
+            classe_str =json.dumps(classe_dict)
             
             if len(classe_str) > 0:
                 
                 classe_in_order[classe_str] =  classe_dict
-
-            elif len(classe_str) == 0:
-
-                classe_in_order['HC'] = {'HC': ''}
         
         classe_in_order_dict = self.sort_classes(atoms_in_order, classe_in_order)
         
@@ -241,16 +301,18 @@ class MolecularCombinations:
 
     @staticmethod
     def sort_classes( atoms_in_order, combination_dict) -> [str]: 
-        
+        #ensures atoms are always in the order defined at atoms_in_order list
         join_dict_classes = dict()
         atoms_in_order =  ['N','S','P','O'] + atoms_in_order[4:] + ['HC']
         
-        sort_method = lambda atoms_keys: [atoms_in_order.index(atoms_keys)] #(len(word[0]), print(word[1]))#[atoms_in_order.index(atom) for atom in list( word[1].keys())])
+        sort_method = lambda atoms_keys: [atoms_in_order.index(atoms_keys)] 
         for class_str, class_dict in combination_dict.items():
             
             sorted_dict_keys = sorted(class_dict, key = sort_method)
-            class_str = ' '.join([atom + str(class_dict[atom]) for atom in sorted_dict_keys])
             class_dict = { atom: class_dict[atom] for atom in sorted_dict_keys}
+            class_str = json.dumps(class_dict)
+            # using json for the new database, class 
+            # class_str = ' '.join([atom + str(class_dict[atom]) for atom in sorted_dict_keys])
             join_dict_classes[class_str] =  class_dict
         
         return join_dict_classes
@@ -272,131 +334,104 @@ class MolecularCombinations:
             
             else: return remaining_h    
 
-class CombinationsWorker:
-
-    # needs this warper to pass the class to multiprocessing
-    
-    def __call__(self, args):
-    
-        return self.get_combinations(*args)  # ,args[1]
-
-    def get_combinations(self, classe_tuple,
-                          c_h_combinations, ion_type, settings
-                         ):
-
-        min_dbe = settings.min_dbe
-
-        max_dbe = settings.max_dbe
-
-        ion_charge = settings.ion_charge
+    def calc_mz(self, datadict, class_mass=0):
         
-        min_mz = settings.min_mz
+        mass = class_mass
         
-        max_mz = settings.max_mz
-        
-        isRadical = ion_type == Labels.radical_ion
-        
-        isProtonated = ion_type == Labels.protonated_de_ion
-
-        #class_dict = classe_tuple[1]
-
-        #print("isRadical", classe_tuple[0], isRadical) 
-        
-        #print("isProtonated", classe_tuple[0], isProtonated) 
-        
-        class_dict = classe_tuple[1]
-        mf_data_list = []
-        if isProtonated:
-
-            ion_type = Labels.protonated_de_ion
-
-            odd_or_even = self.get_h_odd_or_even(ion_type, class_dict, settings)
-
-            carbon_hydrogen_combination = c_h_combinations.get(odd_or_even)
-
-            list_mf = self.get_mol_formulas(carbon_hydrogen_combination, ion_type, classe_tuple, 
-                                                    min_dbe, max_dbe,
-                                                    min_mz, max_mz, ion_charge)
+        for each_atom in datadict.keys():
             
-            mf_data_list.extend(list_mf)
-
-        if isRadical:
-           
-            ion_type = Labels.radical_ion
-            
-            odd_or_even = self.get_h_odd_or_even(ion_type, class_dict, settings )
-
-            carbon_hydrogen_combination = c_h_combinations.get(odd_or_even)
-
-            list_mf = self.get_mol_formulas(carbon_hydrogen_combination, ion_type, classe_tuple, 
-                                                    min_dbe, max_dbe,
-                                                    min_mz, max_mz, ion_charge)
-
-            mf_data_list.extend(list_mf)
-        
-        return  mf_data_list   
-            
-    @staticmethod
-    def get_mol_formulas(carbon_hydrogen_combination,
-                    ion_type,
-                    classe_tuple,
-                    min_dbe,
-                    max_dbe,
-                    min_mz,
-                    max_mz, 
-                    ion_charge,
-                    ):
-        
-        class_dict = classe_tuple[1]
-        class_str = classe_tuple[0]
-        
-        list_formulas = []
-        for cada_possible in carbon_hydrogen_combination:
-            
-            c_number = cada_possible[0]
-            h_number = cada_possible[1]
-            
-            formula_dict = {}
-            for each_atom in class_dict.keys() :
-                if each_atom != 'HC':
-                    formula_dict[each_atom] = class_dict.get(each_atom)
-
-            formula_dict['C'] = c_number
-            formula_dict['H'] = h_number
-            formula_dict[Labels.ion_type] = ion_type
-
-            molecular_formula = MolecularFormula(formula_dict, ion_charge)
-            
-            mz = molecular_formula._calc_mz()
-            dbe = molecular_formula._calc_dbe()
-            
-            formula_dict = molecular_formula.to_dict
-
-            nominal_mass = molecular_formula.mz_nominal_calc
-
-            if min_mz <= nominal_mass <= max_mz:
+            if each_atom != 'HC':    
                 
-                if min_dbe <= dbe <= max_dbe:
+                mass = mass + Atoms.atomic_masses[each_atom]  *  datadict.get(each_atom)
+            
+        return mass 
+        
+    def calc_dbe_class(self, datadict):
+            
+            init_dbe = 0
+            for atom in datadict.keys():
+                  
+                n_atom = int(datadict.get(atom))
+                
+                clean_atom = ''.join([i for i in atom if not i.isdigit()]) 
+                
+                valencia = MSParameters.molecular_search.used_atom_valences.get(clean_atom)
+                
+                if valencia and valencia > 0:
+                    #print atom, valencia, n_atom, init_dbe
+                    init_dbe = init_dbe + (n_atom * (valencia - 2))
+                else:
+                    continue
+                
+            return (0.5 * init_dbe)
+            
+    def populate_combinations(self, classe_tuple, settings):
+        
+        ion_charge =  0
+        
+        class_dict = classe_tuple[1]
+        odd_or_even = self.get_h_odd_or_even(class_dict, settings)
+        
+        return self.get_mol_formulas(odd_or_even, classe_tuple, settings)
+        
+    def get_or_add(self, SomeClass, kw):
+            
+        obj = self.sql_db.session.query(SomeClass).filter_by(**kw).first()
+        if not obj:
+            obj = SomeClass(**kw)
+        return obj
+    
+    def get_mol_formulas(self, odd_even_tag, classe_tuple, settings):
+        
+        class_str = classe_tuple[0]
+        class_dict = classe_tuple[1]
+        classe_id = classe_tuple[2]
+        
+        results = list()
+        
+        if 'HC' in class_dict:
+            del class_dict['HC']
+            
+        class_dbe = self.calc_dbe_class(class_dict)    
+        class_mass = self.calc_mz(class_dict)
+        
+        carbonHydrogen_mass = self.odd_ch_mass if odd_even_tag == 'odd' else self.even_ch_mass 
+        carbonHydrogen_dbe = self.odd_ch_dbe if odd_even_tag == 'odd' else self.even_ch_dbe 
+        carbonHydrogen_id = self.odd_ch_id if odd_even_tag == 'odd' else self.even_ch_id 
+        
+        for index, carbonHydrogen_obj in enumerate(carbonHydrogen_id):
+            
+            mass = carbonHydrogen_mass[index] + class_mass
+            dbe =  carbonHydrogen_dbe[index] + class_dbe
+    
+            if settings.min_mz <= mass <= settings.max_mz:
+                
+                if settings.min_dbe <= dbe <= settings.max_dbe:
                     
-                    dict_results = {"mol_formula" : json.dumps(formula_dict),
-                                    "mz" : mz,
-                                    "nominal_mz" : nominal_mass,
-                                    "ion_type" : ion_type,
-                                    "ion_charge" : ion_charge,
-                                    "classe" : class_str,
-                                    "C" : molecular_formula.get('C'),
-                                    "H" : molecular_formula.get('H'),
-                                    "N" : molecular_formula.get('N'),
-                                    "O" : molecular_formula.get('O'),
-                                    "S" : molecular_formula.get('S'),
-                                    "P" : molecular_formula.get('P'),
-                                    "H_C" : molecular_formula.get('H')/molecular_formula.get('C'),
-                                    "O_C" : molecular_formula.get('O')/molecular_formula.get('C'),
-                                    "DBE" : dbe}
-                                
-                    yield dict_results
-               
-    def get_h_odd_or_even(self, ion_type, class_dict, molecular_search_settings):
+                    molecularFormula=  {"heteroAtoms_id":classe_id, 
+                            "carbonHydrogen_id":carbonHydrogen_id[index], 
+                            "mass":mass, "DBE":dbe}
+                    
+                    #molecularFormula = MolecularFormulaLink(heteroAtoms=heteroAtom_obj, 
+                    #                    carbonHydrogen=carbonHydrogen_obj, mass=mass, DBE=dbe)
+                    
+                    results.append(molecularFormula)
+        
+        return results
+        
+        #for chunk in chunks(results, 1000):
+        #    insert_query = MolecularFormulaLink.__table__.insert().values(chunk)
+        #    self.sql_db.session.execute(insert_query)
+            #self.engine.copy_from(MolecularFormulaLink.__table__.insert(),chunk)
+        #    print("done inside")
+        #print("Done")
+        #self.engine.execute(MolecularFormulaLink.__table__.insert(),results)
+
+        #self.sql_db.session.bulk_insert_mappings(MolecularFormulaLink, results)
+        #self.sql_db.session.add_all(results)
+        
+        
+    def get_h_odd_or_even(self, class_dict, molecular_search_settings):
 
         
         HAS_NITROGEN = 'N' in class_dict.keys()
@@ -439,33 +474,8 @@ class CombinationsWorker:
 
             remaining_n = -1
 
-        if ion_type == 'DE_OR_PROTONATED':
-            # has nitrogen and is odd hydrogen, has to start as even
-            if remaining_n > 0.0:
-                if HAS_NITROGEN or HAS_PHOSPHORUS and remaining_n > 0:
-
-                    if TEM_HALOGEN:
-                        if remaining_halogen == 0:
-                            return 'even'
-                        else:
-                            return 'odd'
-                    else:
-
-                        return 'even'
-
-            if remaining_n == 0.0:
-
-                if HAS_NITROGEN or HAS_PHOSPHORUS and remaining_n == 0:
-
-                    if TEM_HALOGEN:
-                        if remaining_halogen == 0:
-                            return 'odd'
-                        else:
-                            return 'even'
-                    else:
-                        return 'odd'
-
-            else:
+        if remaining_n > 0.0:
+            if HAS_NITROGEN or HAS_PHOSPHORUS:
 
                 if TEM_HALOGEN:
                     if remaining_halogen == 0:
@@ -475,33 +485,9 @@ class CombinationsWorker:
                 else:
                     return 'odd'
 
-        elif ion_type == 'RADICAL':
-            
-            # has nitrogen and is odd hydrogen, has to start as odd
-            if remaining_n > 0.0:
-                if HAS_NITROGEN or HAS_PHOSPHORUS:
+        elif remaining_n == 0.0:
 
-                    if TEM_HALOGEN:
-                        if remaining_halogen == 0:
-                            return 'odd'
-                        else:
-                            return 'even'
-                    else:
-                        return 'odd'
-
-            elif remaining_n == 0.0:
-
-                if HAS_NITROGEN or HAS_PHOSPHORUS:
-
-                    if TEM_HALOGEN:
-                        if remaining_halogen == 0:
-                            return 'even'
-                        else:
-                            return 'odd'
-                    else:
-                        return 'even'
-
-            else:
+            if HAS_NITROGEN or HAS_PHOSPHORUS:
 
                 if TEM_HALOGEN:
                     if remaining_halogen == 0:
@@ -511,47 +497,27 @@ class CombinationsWorker:
                 else:
                     return 'even'
 
-    def get_dbe_limits(self, classe_dict, use_pah_line_rule, formula_dict, min_dbe, max_dbe):
-
-        sum_hetero_atoms = 0
-        for i in classe_dict.keys():
-            if i != Labels.ion_type:
-
-                sum_hetero_atoms = sum_hetero_atoms + classe_dict.get(i)
-
-        if not use_pah_line_rule:
-
-            minDBE = min_dbe
-            maxDBE = max_dbe
-
         else:
 
-            minDBE = 0
-
-            maxDBE = (int(formula_dict.get('C')) + sum_hetero_atoms) * 0.9
-
-        return maxDBE, minDBE
+            if TEM_HALOGEN:
+                if remaining_halogen == 0:
+                    return 'even'
+                else:
+                    return 'odd'
+            else:
+                return 'even'
 
     @staticmethod
-    
     def get_total_halogen_atoms(class_dict, molecular_search_settings):
 
             atoms = ['F', 'Cl', 'Br', 'I']
-
-            return 0
 
             total_number = 0
             
             for atom in atoms:
 
-                TEM_HALOGEN = atom in class_dict.keys()
+                if atom in class_dict.keys():
 
-                if TEM_HALOGEN:
-
-                    valencia = molecular_search_settings.used_atom_valences.get(atom)
-
-                    if valencia != 0:
-                        
-                        total_number = total_number + class_dict.get(atom)
+                    total_number = total_number + class_dict.get(atom)
             
             return total_number    
