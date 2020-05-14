@@ -19,6 +19,15 @@ variables:
 #
 # If you want to also cache the installed packages, you have to install
 # them in a virtualenv and cache it as well.
+services:
+  - postgres
+
+variables:
+  POSTGRES_DB: molformula
+  POSTGRES_USER: coremsdb
+  POSTGRES_PASSWORD: coremsmolform
+  POSTGRES_HOST_AUTH_METHOD: trust
+  
 cache:
   
   paths:
