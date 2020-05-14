@@ -35,7 +35,7 @@ def test_query_sql():
         nominal_mz = [301]
         results = sqldb.get_dict_by_classes(classe, ion_type, nominal_mz, +1, MolecularFormulaSearchSettings())
         
-        print('total mol formulas found: ', len(list( results.get(classe[0]).get(301))))
+        #print('total mol formulas found: ', len(list( results.get(classe[0]).get(301))))
 
 def generate_database():
     
