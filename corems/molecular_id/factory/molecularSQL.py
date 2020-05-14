@@ -8,13 +8,13 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.sql.schema import UniqueConstraint
 from sqlalchemy import exc
 
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm.session import sessionmaker
 from sqlalchemy.sql.operators import exists
 from sqlalchemy import event, and_
-
+from sqlalchemy import func
 
 from corems.encapsulation.constant import Atoms, Labels
 import json
@@ -59,8 +59,6 @@ class CarbonHydrogen(Base):
     
     H = Column(Integer,  nullable=False)
     
-    H_C = Column(Float, nullable=True)
-
     heteroAtoms = relationship("HeteroAtoms",
                         secondary="molecularformula",
                         )
@@ -68,13 +66,18 @@ class CarbonHydrogen(Base):
     def __repr__(self):
         return '<CarbonHydrogen Model {} C{} H{}>'.format(self.id, self.C, self.H)                     
 
+    @declared_attr
+    def H_C(cls):
+        return column_property(cls.H.cast(Float) / cls.C.cast(Float))
+
     @property
     def mass(self):
         return (self.C * Atoms.atomic_masses.get('C')) + (self.H * Atoms.atomic_masses.get('H'))
 
-    @property
-    def dbe(self):
-        return self.C - (self.H/2) + 1
+    
+    @hybrid_property
+    def dbe(cls):
+        return float(cls.C) - float(cls.H/2) + 1
 
 #264888.88 ms
 class MolecularFormulaLink(Base):
@@ -212,8 +215,8 @@ class MolForm_SQL:
          if the number of classes and nominal_m/zs are higher than 999 the query will fail
          Solution: use postgres or split query''' 
         def query_normal(class_list):
-            
-            return self.session.query(MolecularFormulaLink).filter(
+            base_query = self.session.query(MolecularFormulaLink)
+            return base_query.filter(
                 and_(
                     MolecularFormulaLink.classe.in_(class_list), 
                     and_(
@@ -221,7 +224,7 @@ class MolForm_SQL:
                         MolecularFormulaLink.DBE <= molecular_search_settings.max_dbe, 
                         and_(
                             MolecularFormulaLink.H_C >= molecular_search_settings.min_hc_filter,
-                            MolecularFormulaLink.H_C <= molecular_search_settings.max_hc_filter,
+                            MolecularFormulaLink.H_C <= molecular_search_settings.max_hc_filter, 
                             MolecularFormulaLink.C >= molecular_search_settings.usedAtoms.get("C")[0],
                             MolecularFormulaLink.C <= molecular_search_settings.usedAtoms.get("C")[1], 
                             MolecularFormulaLink.H >= molecular_search_settings.usedAtoms.get("H")[0],

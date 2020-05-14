@@ -167,12 +167,10 @@ class MolecularCombinations:
                 H =  comb[1]
                 data = {"C":C,
                        "H":H,
-                       "H_C":H/C,
                 }
 
                 data_insert = {"C":C,
                        "H":H,
-                       "H_C":H/C,
                 }
 
                 str_data = "C:{},H:{}".format(C,H)
