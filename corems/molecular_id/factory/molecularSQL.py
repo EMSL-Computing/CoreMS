@@ -24,7 +24,6 @@ from corems import chunks
 import tqdm
 
 Base = declarative_base()
-halogens = ['F', 'Cl', 'Br', 'I']
 
 class HeteroAtoms(Base):
    
@@ -38,12 +37,14 @@ class HeteroAtoms(Base):
     
     carbonHydrogen = relationship('CarbonHydrogen', secondary = 'molecularformula')
 
-    @hybrid_property
-    def halogens_count(self):
-        return 0
-
     def __repr__(self):
         return '<HeteroAtoms Model {} class {}>'.format(self.id, self.name)      
+    
+    @property
+    def to_dict(self):
+        
+        return json.loads(self.name)
+        
 
 class CarbonHydrogen(Base):
    
@@ -121,7 +122,7 @@ class MolecularFormulaLink(Base):
             return {**carbon}
         else:
             return {**carbon, **classe}
-        
+
     @property
     def formula_string(self):
         class_dict = self.formula_dict 
@@ -130,7 +131,7 @@ class MolecularFormulaLink(Base):
 
     @property
     def classe_string(self):
-        class_dict = json.loads(self.heteroAtoms.name)
+        class_dict = json.loads(self.classe)
         class_str = ' '.join([atom + str(class_dict[atom]) for atom in class_dict.keys()])
         return class_str.strip()
 
@@ -198,7 +199,7 @@ class MolForm_SQL:
             #postgresql
             self.chunks_count = 50000
             engine = create_engine(url, echo = False)
-            print(url)
+        
         return engine# poolclass=NullPool
 
     def __enter__(self):
@@ -206,7 +207,7 @@ class MolForm_SQL:
         return self
     
     def get_dict_by_classes(self, classes, ion_type, nominal_mzs, ion_charge, molecular_search_settings, adducts=None):
-
+                                    
         '''Known issue, when using SQLite:
          if the number of classes and nominal_m/zs are higher than 999 the query will fail
          Solution: use postgres or split query''' 
@@ -219,8 +220,8 @@ class MolForm_SQL:
                         MolecularFormulaLink.DBE >= molecular_search_settings.min_dbe, 
                         MolecularFormulaLink.DBE <= molecular_search_settings.max_dbe, 
                         and_(
-                            (MolecularFormulaLink.H_C + HeteroAtoms.halogens_count) >= molecular_search_settings.min_hc_filter,
-                            (MolecularFormulaLink.H_C + HeteroAtoms.halogens_count) <= molecular_search_settings.max_hc_filter,
+                            MolecularFormulaLink.H_C >= molecular_search_settings.min_hc_filter,
+                            MolecularFormulaLink.H_C <= molecular_search_settings.max_hc_filter,
                             MolecularFormulaLink.C >= molecular_search_settings.usedAtoms.get("C")[0],
                             MolecularFormulaLink.C <= molecular_search_settings.usedAtoms.get("C")[1], 
                             MolecularFormulaLink.H >= molecular_search_settings.usedAtoms.get("H")[0],
@@ -315,8 +316,8 @@ class MolForm_SQL:
             MolecularFormulaLink.classe == classe, 
             MolecularFormulaLink.DBE >= molecular_search_settings.min_dbe, 
             MolecularFormulaLink.DBE <= molecular_search_settings.max_dbe, 
-            (MolecularFormulaLink.H_C + HeteroAtoms.halogens_count) >= molecular_search_settings.min_hc_filter,
-            (MolecularFormulaLink.H_C + HeteroAtoms.halogens_count) <= molecular_search_settings.max_hc_filter,
+            MolecularFormulaLink.H_C >= molecular_search_settings.min_hc_filter,
+            MolecularFormulaLink.H_C <= molecular_search_settings.max_hc_filter,
             MolecularFormulaLink.C >= molecular_search_settings.usedAtoms.get("C")[0],
             MolecularFormulaLink.C <= molecular_search_settings.usedAtoms.get("C")[1], 
             MolecularFormulaLink.H >= molecular_search_settings.usedAtoms.get("H")[0],
