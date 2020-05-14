@@ -159,10 +159,8 @@ class MolecularLookupDictSettings:
                     'Cl': (0, 0),
                     }
         
-        #min_mz changes automatically with mass spectrum
         self.min_mz = 100
 
-        #max_mz changes automatically with mass spectrum
         self.max_mz = 1200
 
         self.min_dbe = 0
@@ -178,7 +176,7 @@ class MolecularLookupDictSettings:
 
         self.op_filter = 2
 
-        self.hc_filter = 0.3
+        self.min_hc_filter = 0.3
 
         self.oc_filter = 1.2
     
@@ -218,14 +216,16 @@ class MolecularFormulaSearchSettings:
 
     min_peaks_per_class:int = 15
 
-    url_database: str = "postgres://coremsdb:coremsmolform@localhost:5432/molformula"
+    url_database: str = "postgresql://coremsdb:coremsmolform@localhost:5432/molformula"
 
     db_jobs:int = 4
 
     '''query setting'''
     ion_charge:int = -1
 
-    hc_filter:float = 0.3
+    min_hc_filter:float = 0.3
+
+    max_hc_filter:float = 3
 
     oc_filter:float = 1.2
 

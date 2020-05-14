@@ -67,6 +67,7 @@ class MolecularCombinations:
             
             self.sql_db = MolForm_SQL()
         else:
+            
             self.sql_db = sql_db
 
     def cProfile_worker(self, args):
@@ -106,7 +107,7 @@ class MolecularCombinations:
             
             all_class_to_create.append(class_tuple)
 
-        return [(c_s, c_d) for c_s, c_d in classes_dict.items()], all_class_to_create       
+        return [(c_s, c_d) for c_s, c_d in classes_dict.items()], all_class_to_create, existing_classes_objs       
     
     def get_carbonsHydrogens(self, settings, odd_even):
         
@@ -122,7 +123,7 @@ class MolecularCombinations:
                                         "CarbonHydrogen.H <= user_max_h,"
                                         "CarbonHydrogen.H % 2" + operator+ "0).all()")
         
-    def add_carbonsHydrogens(self, settings):
+    def add_carbonsHydrogens(self, settings, existing_classes_objs):
 
         usedAtoms = settings.usedAtoms
 
@@ -156,36 +157,90 @@ class MolecularCombinations:
                 str_data = "C:{},H:{}".format(obj.C, obj.H)
                 carbon_hydrogen_objs_database[str_data] = str_data
 
-            carbon_hydrogen_objs_to_create = {}
+            carbon_hydrogen_objs_to_create = {'even': {}, 'odd': {}}
+            
+            list_ch_obj_to_add = list()
+            i = 0
             for comb in itertools.product(userCarbon, userHydrogen):
                 
-                data = {"C":comb[0],
-                       "H":comb[1],
-                       "H_C":comb[1]/comb[0],
+                C  = comb[0]
+                H =  comb[1]
+                data = {"C":C,
+                       "H":H,
+                       "H_C":H/C,
                 }
-                str_data = "C:{},H:{}".format(comb[0],comb[1])
+
+                data_insert = {"C":C,
+                       "H":H,
+                       "H_C":H/C,
+                }
+
+                str_data = "C:{},H:{}".format(C,H)
                 
-                if str_data in carbon_hydrogen_objs_database.keys():
-                    continue
-                else:
-                    carbon_hydrogen_objs_to_create[str_data] = data
-            
-            list_to_add = []
-            for index, dict_data in enumerate(carbon_hydrogen_objs_to_create.values()):
-                dict_data["id"] = index + current_count + 1
-                list_to_add.append(dict_data)
-            
-            if list_to_add:
-                list_insert_chunks = chunks(list_to_add, self.sql_db.chunks_count)
+                if not str_data in carbon_hydrogen_objs_database.keys():
+                    
+                    label = 'even' if comb[1]%2 == 0 else 'odd'
+                    data["mass"] = (C * Atoms.atomic_masses.get('C')) + (H * Atoms.atomic_masses.get('H'))
+                    data["dbe"] = C - (H/2) + 1
+                    data["id"] = i + current_count + 1
+                    data_insert["id"] = i + current_count + 1
+                    i = i + 1 
+                    carbon_hydrogen_objs_to_create[label][str_data] = data
+                    
+                    list_ch_obj_to_add.append(data_insert)
+
+            if list_ch_obj_to_add:
+                # insert carbon hydrogen objs
+                list_insert_chunks = chunks(list_ch_obj_to_add, self.sql_db.chunks_count)
                 for insert_chunk in  list_insert_chunks:   
                     insert_query = CarbonHydrogen.__table__.insert().values(insert_chunk)
                     self.sql_db.session.execute(insert_query)
                 self.sql_db.session.commit()    
             
+                
+                list_molecular_form= list()
+                for classe_obj in existing_classes_objs:
+
+                    classe_dict = classe_obj.to_dict  
+                    classe_mass = self.calc_mz(classe_dict)
+                    classe_dbe = self.calc_dbe_class(classe_dict)
+
+                    odd_even_label = self.get_h_odd_or_even(classe_dict)
+
+                    ch_datalist = carbon_hydrogen_objs_to_create.get(odd_even_label).values()
+
+                    for ch_dict in ch_datalist:
+                        mass = ch_dict.get('mass') + classe_mass
+                        dbe = ch_dict.get('dbe') + classe_dbe
+
+                        if settings.min_mz <= mass <= settings.max_mz:
+                
+                            if settings.min_dbe <= dbe <= settings.max_dbe:
+                                
+                                list_molecular_form.append( {"heteroAtoms_id":classe_obj.id, 
+                                        "carbonHydrogen_id":ch_dict.get('id'), 
+                                        "mass":mass, "DBE":dbe})
+
+                list_insert_chunks = chunks(list_molecular_form, self.sql_db.chunks_count)
+                for insert_chunk in  list_insert_chunks:   
+                    insert_query = MolecularFormulaLink.__table__.insert().values(insert_chunk)
+                    self.sql_db.session.execute(insert_query)
+                self.sql_db.session.commit()    
+            
+                
     @timeit
     def runworker(self, molecular_search_settings):
         
-        classes_list, class_to_create = self.check_database_get_class_list(molecular_search_settings)
+        classes_list, class_to_create, existing_classes_objs = self.check_database_get_class_list(molecular_search_settings)
+        
+        settings = MolecularLookupDictSettings()
+        settings.usedAtoms = deepcopy(molecular_search_settings.usedAtoms)
+        settings.url_database = molecular_search_settings.url_database
+        settings.db_jobs = molecular_search_settings.db_jobs
+
+        self.add_carbonsHydrogens(settings, existing_classes_objs)
+        
+        print(molecular_search_settings.url_database)
         
         if class_to_create:
             
@@ -194,9 +249,7 @@ class MolecularCombinations:
             settings.url_database = molecular_search_settings.url_database
             settings.db_jobs = molecular_search_settings.db_jobs
             
-            self.add_carbonsHydrogens(settings)
             self.sql_db.session.commit()
-            
             odd_ch_obj = self.get_carbonsHydrogens(settings,'odd')
             self.odd_ch_id = [obj.id for obj in odd_ch_obj]
             self.odd_ch_dict = [{'C':obj.C, 'H':obj.H} for obj in odd_ch_obj]
@@ -338,11 +391,11 @@ class MolecularCombinations:
         
         mass = class_mass
         
-        for each_atom in datadict.keys():
+        for atom in datadict.keys():
             
-            if each_atom != 'HC':    
+            if atom != 'HC':    
                 
-                mass = mass + Atoms.atomic_masses[each_atom]  *  datadict.get(each_atom)
+                mass = mass + Atoms.atomic_masses[atom]  *  datadict.get(atom)
             
         return mass 
         
@@ -350,7 +403,10 @@ class MolecularCombinations:
             
             init_dbe = 0
             for atom in datadict.keys():
-                  
+
+                if atom == 'HC':
+                    continue  
+                
                 n_atom = int(datadict.get(atom))
                 
                 clean_atom = ''.join([i for i in atom if not i.isdigit()]) 
@@ -370,7 +426,7 @@ class MolecularCombinations:
         ion_charge =  0
         
         class_dict = classe_tuple[1]
-        odd_or_even = self.get_h_odd_or_even(class_dict, settings)
+        odd_or_even = self.get_h_odd_or_even(class_dict)
         
         return self.get_mol_formulas(odd_or_even, classe_tuple, settings)
         
@@ -380,6 +436,7 @@ class MolecularCombinations:
         if not obj:
             obj = SomeClass(**kw)
         return obj
+    
     
     def get_mol_formulas(self, odd_even_tag, classe_tuple, settings):
         
@@ -431,13 +488,13 @@ class MolecularCombinations:
         #self.sql_db.session.add_all(results)
         
         
-    def get_h_odd_or_even(self, class_dict, molecular_search_settings):
+    def get_h_odd_or_even(self, class_dict):
 
         
         HAS_NITROGEN = 'N' in class_dict.keys()
         HAS_PHOSPHORUS = 'P' in class_dict.keys()
 
-        number_of_halogen = self.get_total_halogen_atoms(class_dict, molecular_search_settings)
+        number_of_halogen = self.get_total_halogen_atoms(class_dict)
 
         if number_of_halogen > 0:
 
@@ -508,7 +565,7 @@ class MolecularCombinations:
                 return 'even'
 
     @staticmethod
-    def get_total_halogen_atoms(class_dict, molecular_search_settings):
+    def get_total_halogen_atoms(class_dict):
 
             atoms = ['F', 'Cl', 'Br', 'I']
 
