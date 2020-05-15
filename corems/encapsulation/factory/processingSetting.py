@@ -225,7 +225,7 @@ class MolecularFormulaSearchSettings:
 
     min_hc_filter:float = 0.3
 
-    max_hc_filter:float = 3
+    max_hc_filter:float = 5
 
     oc_filter:float = 1.2
 
@@ -265,10 +265,10 @@ class MolecularFormulaSearchSettings:
     ionization_type:str = 'ESI'
 
     # empirically set / needs optimization
-    min_ppm_error:float   = -5 #ppm
+    min_ppm_error:float   = -10 #ppm
 
     # empirically set / needs optimization    
-    max_ppm_error:float = 5 #ppm
+    max_ppm_error:float = 10 #ppm
 
     # empirically set / needs optimization set for isotopologue search
     min_abun_error:float = -100 # percentage 
@@ -291,7 +291,7 @@ class MolecularFormulaSearchSettings:
         
         self.usedAtoms = {   'C': (1, 100),
                     'H': (4, 200),
-                    'O': (1, 13),
+                    'O': (1, 22),
                     'N': (0, 0),
                     'S': (0, 0),
                     'P': (0, 0),
