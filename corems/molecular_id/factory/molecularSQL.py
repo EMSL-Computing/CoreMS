@@ -220,7 +220,7 @@ class MolForm_SQL:
         '''Known issue, when using SQLite:
          if the number of classes and nominal_m/zs are higher than 999 the query will fail
          Solution: use postgres or split query''' 
-        def query_normal(class_list):
+        def query_normal(class_list, len_adduct):
             
             base_query = self.session.query(MolecularFormulaLink, CarbonHydrogen, HeteroAtoms)\
                                 .filter(MolecularFormulaLink.carbonHydrogen_id == CarbonHydrogen.id)\
@@ -233,9 +233,9 @@ class MolForm_SQL:
                         MolecularFormulaLink.DBE >= molecular_search_settings.min_dbe, 
                         MolecularFormulaLink.DBE <= molecular_search_settings.max_dbe, 
                         and_(
-                            ((CarbonHydrogen.h + HeteroAtoms.halogens_count)/CarbonHydrogen.c)  >= molecular_search_settings.min_hc_filter,
-                            ((CarbonHydrogen.h + HeteroAtoms.halogens_count)/CarbonHydrogen.c)  <= molecular_search_settings.min_hc_filter,
-                            CarbonHydrogen.c >= molecular_search_settings.usedAtoms.get("C")[0],
+                            ((CarbonHydrogen.h + HeteroAtoms.halogens_count - len_adduct)/CarbonHydrogen.c)  >= molecular_search_settings.min_hc_filter,
+                            ((CarbonHydrogen.h + HeteroAtoms.halogens_count - len_adduct)/CarbonHydrogen.c)  <= molecular_search_settings.max_hc_filter,
+                            CarbonHydrogen.C >= molecular_search_settings.usedAtoms.get("C")[0],
                             CarbonHydrogen.c <= molecular_search_settings.usedAtoms.get("C")[1], 
                             CarbonHydrogen.c >= molecular_search_settings.usedAtoms.get("H")[0],
                             CarbonHydrogen.c <= molecular_search_settings.usedAtoms.get("H")[1], 
@@ -299,7 +299,12 @@ class MolForm_SQL:
             
             return dict_res
         
-        query = query_normal(classes)
+        
+        len_adducts = 0
+        if ion_type == Labels.adduct_ion:
+            len_adducts = 1
+        
+        query = query_normal(classes, len_adducts)
         if ion_type == Labels.protonated_de_ion:
             query = query.filter(and_(
                                 MolecularFormulaLink.protonated_mass(ion_charge).cast(Integer).in_(nominal_mzs)

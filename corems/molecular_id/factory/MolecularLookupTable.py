@@ -478,6 +478,7 @@ class MolecularCombinations:
         
         return results
         
+        
     def get_h_odd_or_even(self, class_dict):
 
         

@@ -218,7 +218,7 @@ class MolecularFormulaSearchSettings:
 
     url_database: str = None#"postgresql://coremsdb:coremsmolform@localhost:5432/molformula"
 
-    db_jobs:int = 4
+    db_jobs:int = 3
 
     '''query setting'''
     ion_charge:int = -1
