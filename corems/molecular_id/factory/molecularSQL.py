@@ -274,12 +274,12 @@ class MolForm_SQL:
 
                 if formula_dict.get("O"):
                     
-                    if formula_dict.get("O")/formula_dict.get("C") >= molecular_search_settings.oc_filter:
+                    if formula_dict.get("O")/formula_dict.get("C") >= molecular_search_settings.min_oc_filter:
                         continue
 
                     #if formula_dict.get("P"):
 
-                    #    if  not (formula_dict.get("O") -2)/ formula_dict.get("P") >= molecular_search_settings.op_filter:
+                    #    if  not (formula_dict.get("O") -2)/ formula_dict.get("P") >= molecular_search_settings.min_op_filter:
                             
                     #        continue
         

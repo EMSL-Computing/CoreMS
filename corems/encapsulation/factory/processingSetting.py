@@ -174,12 +174,12 @@ class MolecularLookupDictSettings:
 
         self.isProtonated = True
 
-        self.op_filter = 2
+        self.min_op_filter = 2
 
         self.min_hc_filter = 0.3
 
-        self.oc_filter = 1.2
-    
+        self.min_oc_filter = 1.2
+
         self.url_database = None
 
         self.db_jobs = 1
@@ -225,11 +225,11 @@ class MolecularFormulaSearchSettings:
 
     min_hc_filter:float = 0.3
 
-    max_hc_filter:float = 5
+    max_hc_filter:float = 3
 
-    oc_filter:float = 1.2
+    min_oc_filter:float = 1.2
 
-    op_filter:float = 2
+    min_op_filter:float = 2
     
     use_pah_line_rule:bool = False
 
