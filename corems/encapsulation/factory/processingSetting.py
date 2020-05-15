@@ -182,7 +182,7 @@ class MolecularLookupDictSettings:
     
         self.url_database = None
 
-        self.db_jobs = 4
+        self.db_jobs = 1
 
         self.used_atom_valences = {'C': 4,
                             '13C': 4,
@@ -218,7 +218,7 @@ class MolecularFormulaSearchSettings:
 
     url_database: str = "postgresql://coremsdb:coremsmolform@localhost:5432/molformula"
 
-    db_jobs:int = 4
+    db_jobs:int = 1
 
     '''query setting'''
     ion_charge:int = -1
