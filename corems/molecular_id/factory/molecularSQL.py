@@ -35,11 +35,17 @@ class HeteroAtoms(Base):
 
     name = Column(String, unique=True,  nullable=False)
     
-    carbonHydrogen = relationship('CarbonHydrogen', secondary = 'molecularformula')
+    halogensCount = Column(Integer, unique=False,  nullable=False) 
 
+    carbonHydrogen = relationship('CarbonHydrogen', secondary = 'molecularformula')
+    
     def __repr__(self):
         return '<HeteroAtoms Model {} class {}>'.format(self.id, self.name)      
     
+    @hybrid_property
+    def halogens_count(cls):
+        return cls.halogensCount.cast(Float)
+
     @property
     def to_dict(self):
         
@@ -61,20 +67,23 @@ class CarbonHydrogen(Base):
     
     heteroAtoms = relationship("HeteroAtoms",
                         secondary="molecularformula",
-                        )
+                       )
 
     def __repr__(self):
         return '<CarbonHydrogen Model {} C{} H{}>'.format(self.id, self.C, self.H)                     
-
-    @declared_attr
-    def H_C(cls):
-        return column_property(cls.H.cast(Float) / cls.C.cast(Float))
 
     @property
     def mass(self):
         return (self.C * Atoms.atomic_masses.get('C')) + (self.H * Atoms.atomic_masses.get('H'))
 
-    
+    @hybrid_property
+    def c(cls):
+        return cls.C.cast(Float)
+
+    @hybrid_property
+    def h(cls):
+        return cls.H.cast(Float)
+
     @hybrid_property
     def dbe(cls):
         return float(cls.C) - float(cls.H/2) + 1
@@ -103,18 +112,15 @@ class MolecularFormulaLink(Base):
     
     DBE = Column(Float)
     
-    C = association_proxy('carbonHydrogen', 'C')
-
-    H = association_proxy('carbonHydrogen', 'H')
-
-    H_C = association_proxy('carbonHydrogen', 'H_C')
-
-    classe = association_proxy('heteroAtoms', 'name')
-
     carbonHydrogen = relationship(CarbonHydrogen, backref=backref("heteroAtoms_assoc"))
     
     heteroAtoms = relationship(HeteroAtoms, backref=backref("carbonHydrogen_assoc"))
     
+    C = association_proxy('carbonHydrogen', 'C')
+
+    H = association_proxy('carbonHydrogen', 'H')
+
+    classe = association_proxy('heteroAtoms', 'name')
 
     @property
     def formula_dict(self):
@@ -215,20 +221,24 @@ class MolForm_SQL:
          if the number of classes and nominal_m/zs are higher than 999 the query will fail
          Solution: use postgres or split query''' 
         def query_normal(class_list):
-            base_query = self.session.query(MolecularFormulaLink)
+            
+            base_query = self.session.query(MolecularFormulaLink, CarbonHydrogen, HeteroAtoms)\
+                                .filter(MolecularFormulaLink.carbonHydrogen_id == CarbonHydrogen.id)\
+                                .filter(MolecularFormulaLink.heteroAtoms_id == HeteroAtoms.id)
+            
             return base_query.filter(
                 and_(
-                    MolecularFormulaLink.classe.in_(class_list), 
+                    HeteroAtoms.name.in_(class_list), 
                     and_(
                         MolecularFormulaLink.DBE >= molecular_search_settings.min_dbe, 
                         MolecularFormulaLink.DBE <= molecular_search_settings.max_dbe, 
                         and_(
-                            MolecularFormulaLink.H_C >= molecular_search_settings.min_hc_filter,
-                            MolecularFormulaLink.H_C <= molecular_search_settings.max_hc_filter, 
-                            MolecularFormulaLink.C >= molecular_search_settings.usedAtoms.get("C")[0],
-                            MolecularFormulaLink.C <= molecular_search_settings.usedAtoms.get("C")[1], 
-                            MolecularFormulaLink.H >= molecular_search_settings.usedAtoms.get("H")[0],
-                            MolecularFormulaLink.H <= molecular_search_settings.usedAtoms.get("H")[1], 
+                            ((CarbonHydrogen.h + HeteroAtoms.halogens_count)/CarbonHydrogen.c)  >= molecular_search_settings.min_hc_filter,
+                            ((CarbonHydrogen.h + HeteroAtoms.halogens_count)/CarbonHydrogen.c)  <= molecular_search_settings.min_hc_filter,
+                            CarbonHydrogen.c >= molecular_search_settings.usedAtoms.get("C")[0],
+                            CarbonHydrogen.c <= molecular_search_settings.usedAtoms.get("C")[1], 
+                            CarbonHydrogen.c >= molecular_search_settings.usedAtoms.get("H")[0],
+                            CarbonHydrogen.c <= molecular_search_settings.usedAtoms.get("H")[1], 
                         )
                     )
                 )
@@ -240,27 +250,27 @@ class MolForm_SQL:
 
             if ion_type == Labels.protonated_de_ion:
             
-                mass_conversion_type = "int(formula.protonated_mass(ion_charge))"
+                mass_conversion_type = "int(formula_obj.protonated_mass(ion_charge))"
             
             elif ion_type == Labels.radical_ion:
                 
-                mass_conversion_type = "int(formula.radical_mass(ion_charge))"
+                mass_conversion_type = "int(formula_obj.radical_mass(ion_charge))"
 
             elif ion_type == Labels.adduct_ion and adduct_atom:
                 
-                mass_conversion_type = "int(formula.adduct_mass(ion_charge, adduct_atom))"
+                mass_conversion_type = "int(formula_obj.adduct_mass(ion_charge, adduct_atom))"
             
-            for formula in tqdm.tqdm(formulas, desc="Loading molecular formula database"):
+            for formula_obj, ch_obj, classe_obj  in tqdm.tqdm(formulas, desc="Loading molecular formula database"):
                 
                 nominal_mz = eval(mass_conversion_type)
                 
-                classe = formula.classe
+                classe = classe_obj.name
 
                 #classe_str = formula.classe_string
                 
                 #pbar.set_description_str(desc="Loading molecular formula database for class %s " % classe_str)
                 
-                formula_dict = formula.formula_dict
+                formula_dict = formula_obj.formula_dict
 
                 if formula_dict.get("O"):
                     
@@ -277,15 +287,15 @@ class MolForm_SQL:
                     
                     if nominal_mz in dict_res[classe].keys():
                         
-                        dict_res.get(classe).get(nominal_mz).append(formula)
+                        dict_res.get(classe).get(nominal_mz).append(formula_obj)
                     
                     else:
 
-                        dict_res.get(classe)[nominal_mz] = [formula ]  
+                        dict_res.get(classe)[nominal_mz] = [formula_obj ]  
             
                 else:
                     
-                    dict_res[classe] = {nominal_mz: [formula] }     
+                    dict_res[classe] = {nominal_mz: [formula_obj] }     
             
             return dict_res
         
@@ -310,23 +320,6 @@ class MolForm_SQL:
         # dump all objs to memory
         self.session.expunge_all()
         
-    def get_by_classe(self, classe, molecular_search_settings):
-
-        '''Known issue, when using SQLite:
-         if the number of classes and nominal_m/zs are higher than 999 the query will fail
-         Solution: use postgres or split query''' 
-        return self.session.query(MolecularFormulaLink).filter(
-            MolecularFormulaLink.classe == classe, 
-            MolecularFormulaLink.DBE >= molecular_search_settings.min_dbe, 
-            MolecularFormulaLink.DBE <= molecular_search_settings.max_dbe, 
-            MolecularFormulaLink.H_C >= molecular_search_settings.min_hc_filter,
-            MolecularFormulaLink.H_C <= molecular_search_settings.max_hc_filter,
-            MolecularFormulaLink.C >= molecular_search_settings.usedAtoms.get("C")[0],
-            MolecularFormulaLink.C <= molecular_search_settings.usedAtoms.get("C")[1], 
-            MolecularFormulaLink.H >= molecular_search_settings.usedAtoms.get("H")[0],
-            MolecularFormulaLink.H <= molecular_search_settings.usedAtoms.get("H")[1], 
-            )
-
     def check_entry(self,classe, ion_type, molecular_search_settings):
         #  get all classes, ion_type, ion charge as str add to a dict or list
         #  then check if class in database
@@ -409,16 +402,26 @@ class MolForm_SQL:
 
 if __name__ == "__main__":
     
-    molecular_search_settings = MolecularFormulaSearchSettings()
-    sql = MolForm_SQL()
+    sql = MolForm_SQL(url='sqlite:///')
+    
+    dict_data = {"name": '{"O": 12}'}
+    dict_data2 = {"name": '{"O": 13}'}
+    hetero_obj = HeteroAtoms(**dict_data)
+    hetero_obj2 = HeteroAtoms(**dict_data2)
+    sql.session.add(hetero_obj)
+    sql.session.add(hetero_obj2)
+
+    print(sql.session.query(HeteroAtoms).all())
+    #molecular_search_settings = MolecularFormulaSearchSettings()
+    #sql = MolForm_SQL()
     #query = sql.session.query(MolecularFormulaLink).filter_by(classe = '{"O": 12}').filter(MolecularFormulaLink.adduct_mass(+2, "Na") < 250)
     #query = sql.get_by_classe('{"O": 12}', molecular_search_settings).filter(MolecularFormulaLink.adduct_mass(+2, "Na") < 250)
-    classes = ['{"O": 12}']*1
-    for i, classe in enumerate(classes):
+    #classes = ['{"O": 12}']*1
+    #for i, classe in enumerate(classes):
         #query = sql.get_by_classe(classe, molecular_search_settings)
-        query = sql.session.query(MolecularFormulaLink).filter_by(classe = '{"O": 12}').filter(MolecularFormulaLink.adduct_mass(+2, "Na") < 250)
-        for i in query.filter(MolecularFormulaLink.mass < 250):
+        #query = sql.session.query(MolecularFormulaLink).filter_by(classe = '{"O": 12}').filter(MolecularFormulaLink.adduct_mass(+2, "Na") < 250)
+        #for i in query.filter(MolecularFormulaLink.mass < 250):
             
-            print(i.radical_mass(-1), i.protonated_mass(-1), i.adduct_mass(+2, "Na"), i.mass, i.formula_dict, i.formula_string)
+        #    print(i.radical_mass(-1), i.protonated_mass(-1), i.adduct_mass(+2, "Na"), i.mass, i.formula_dict, i.formula_string)
     #
  
