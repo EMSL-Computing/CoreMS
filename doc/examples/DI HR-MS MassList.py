@@ -45,18 +45,18 @@ def run_assignment(file_location):
     mass_spectrum = get_masslist(file_location)
 
     mass_spectrum.molecular_search_settings.error_method = 'None'
-    mass_spectrum.molecular_search_settings.min_ppm_error  = -1
-    mass_spectrum.molecular_search_settings.max_ppm_error = 1
+    mass_spectrum.molecular_search_settings.min_ppm_error  = -3
+    mass_spectrum.molecular_search_settings.max_ppm_error = 3
 
-    mass_spectrum.molecular_search_settings.url_database = "postgres://coremsdb:coremsmolform@localhost:5432/molformula"
+    mass_spectrum.molecular_search_settings.url_database = None#"postgres://coremsdb:coremsmolform@localhost:5432/molformula"
     mass_spectrum.molecular_search_settings.min_dbe = 0
     mass_spectrum.molecular_search_settings.max_dbe = 50
 
     mass_spectrum.molecular_search_settings.usedAtoms['C'] = (1,90)
     mass_spectrum.molecular_search_settings.usedAtoms['H'] = (4,200)
-    mass_spectrum.molecular_search_settings.usedAtoms['O'] = (0,22)
-    mass_spectrum.molecular_search_settings.usedAtoms['N'] = (0,3)
-    mass_spectrum.molecular_search_settings.usedAtoms['S'] = (0,3)
+    mass_spectrum.molecular_search_settings.usedAtoms['O'] = (1,22)
+    mass_spectrum.molecular_search_settings.usedAtoms['N'] = (0,0)
+    mass_spectrum.molecular_search_settings.usedAtoms['S'] = (0,0)
     mass_spectrum.molecular_search_settings.usedAtoms['Cl'] = (0,0)
     mass_spectrum.molecular_search_settings.usedAtoms['P'] = (0,0)
     mass_spectrum.molecular_search_settings.usedAtoms['Na'] = (0,0)
@@ -64,14 +64,14 @@ def run_assignment(file_location):
     mass_spectrum.molecular_search_settings.isRadical= False
     mass_spectrum.molecular_search_settings.isAdduct = False
     
-    mass_spectrum.filter_by_max_resolving_power(15, 2)
+    #mass_spectrum.filter_by_max_resolving_power(15, 2)
     SearchMolecularFormulas(mass_spectrum, first_hit=True).run_worker_mass_spectrum()
     mass_spectrum.percentile_assigned()
-
+    mass_spectrum.to_csv("newmodel_test")
     mass_spectrum_by_classes = HeteroatomsClassification(mass_spectrum, choose_molecular_formula=True)
     mass_spectrum_by_classes.plot_ms_assigned_unassigned()
     
-    # plt.show()
+    #plt.show()
     # dataframe = mass_spectrum_by_classes.to_dataframe()
     return (mass_spectrum, mass_spectrum_by_classes)
     

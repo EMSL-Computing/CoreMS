@@ -201,7 +201,7 @@ class MolForm_SQL:
         elif url[0:10] == 'postgresql' or url[0:8] == 'postgres':
             #postgresql
             self.chunks_count = 50000
-            engine = create_engine(url, echo = False)
+            engine = create_engine(url, echo = False, isolation_level="AUTOCOMMIT")
         
         return engine# poolclass=NullPool
 
