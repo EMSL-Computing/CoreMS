@@ -196,7 +196,7 @@ class MolForm_SQL:
 
         if url[0:6] == 'sqlite':
             engine = create_engine(url, echo = False)
-            self.chunks_count = 100
+            self.chunks_count = 50
         
         elif url[0:10] == 'postgresql' or url[0:8] == 'postgres':
             #postgresql

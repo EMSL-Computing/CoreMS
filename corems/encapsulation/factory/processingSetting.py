@@ -37,7 +37,7 @@ class MassSpectrumSetting:
     
     implemented_noise_threshold_methods: tuple = ('auto', 'signal_noise', 'relative_abundance')
     
-    noise_threshold_std: int = 6
+    noise_threshold_std: int = 12
     
     s2n_threshold: float = 4
     
@@ -150,7 +150,7 @@ class MolecularLookupDictSettings:
     def __init__(self):
         
         
-        self.usedAtoms = {'C': (1, 100),
+        self.usedAtoms = {'C': (1, 90),
                     'H': (4, 200),
                     'O': (0, 12),
                     'N': (0, 0),
@@ -216,9 +216,9 @@ class MolecularFormulaSearchSettings:
 
     min_peaks_per_class:int = 15
 
-    url_database: str = "postgresql://coremsdb:coremsmolform@localhost:5432/molformula"
+    url_database: str = None#"postgresql://coremsdb:coremsmolform@localhost:5432/molformula"
 
-    db_jobs:int = 1
+    db_jobs:int = 4
 
     '''query setting'''
     ion_charge:int = -1
@@ -291,7 +291,7 @@ class MolecularFormulaSearchSettings:
         
         self.usedAtoms = {   'C': (1, 100),
                     'H': (4, 200),
-                    'O': (1, 22),
+                    'O': (1, 18),
                     'N': (0, 0),
                     'S': (0, 0),
                     'P': (0, 0),
