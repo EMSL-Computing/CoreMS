@@ -1,4 +1,4 @@
-__version__ = '12.3.7.beta'
+__version__ = '13.3.0.beta'
 __doc__ = '''
 
 CoreMS - a powerful framework for mass spectrometry data processing and analysis of small molecules
@@ -82,20 +82,20 @@ import time
 import os
 import sys
 
-def timeit(method):
+
 		
-		def timed(*args, **kw):
-			ts = time.time()
-			result = method(*args, **kw)
-			te = time.time()
-			if 'log_time' in kw:
-				name = kw.get('log_name', method.__name__.upper())
-				kw['log_time'][name] = int((te - ts) * 1000)
-			else:
-				print('%r  %2.2f ms' % \
-					(method.__name__, (te - ts) * 1000))
-			return result
-		return timed
+def timeit(method):
+    def timed(*args, **kw):
+        ts = time.time()
+        result = method(*args, **kw)
+        te = time.time()
+        if 'log_time' in kw:
+            name = kw.get('log_name', method.__name__.upper())
+            kw['log_time'][name] = int((te - ts) * 1000)
+        else:
+            print( "%r  %2.2f ms" % (method.__name__, (te - ts) * 1000))
+        return result
+    return timed
 
 
 class SuppressPrints:

@@ -12,7 +12,7 @@ from corems.molecular_id.calc.MolecularFilter import MolecularFormulaSearchFilte
 from corems.molecular_id.factory.MolecularLookupTable import MolecularCombinations
 from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulaWorker
-from corems.molecular_id.factory.molecularSQL import MolForm_SQL, MolecularFormulaTableNeg, MolecularFormulaTablePos 
+from corems.molecular_id.factory.molecularSQL import MolForm_SQL
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 import json
 
@@ -32,7 +32,7 @@ class OxygenPriorityAssignment(Thread):
         
         if not sql_db:
 
-            self.sql_db = MolForm_SQL(mass_spectrum_obj.polarity, url=mass_spectrum_obj.molecular_search_settings.url_database)
+            self.sql_db = MolForm_SQL(url=mass_spectrum_obj.molecular_search_settings.url_database)
         
         else:
             
@@ -243,24 +243,29 @@ class OxygenPriorityAssignment(Thread):
                     run_search(possible_formulas_adduct, self.mass_spectrum_obj, min_abundance)
         
         
-    def get_dict_molecular_database(self, classe_str):
-            
-        dict_res = {}
+    def get_dict_molecular_database(self, classe_str_list):
         
-        if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
-            
-            ion_type = Labels.protonated_de_ion
-            
-            dict_res[ion_type] = self.sql_db.get_dict_entries(classe_str, ion_type, self.nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
-            
-        if self.mass_spectrum_obj.molecular_search_settings.isRadical or self.mass_spectrum_obj.molecular_search_settings.isAdduct:
+        nominal_mzs = self.nominal_mzs
+        mf_search_settings = self.mass_spectrum_obj.molecular_search_settings
+        ion_charge = self.mass_spectrum_obj.polarity
 
-            ion_type = Labels.radical_ion
+        sql_db = MolForm_SQL(url=mf_search_settings.url_database)
+        
+        dict_res = {}
 
-            dict_res[ion_type] = self.sql_db.get_dict_entries(classe_str, ion_type, self.nominal_mzs, self.mass_spectrum_obj.molecular_search_settings)
-    
+        if mf_search_settings.isProtonated:
+            dict_res[Labels.protonated_de_ion] = sql_db.get_dict_by_classes(classe_str_list, Labels.protonated_de_ion, nominal_mzs, ion_charge, mf_search_settings)    
+            
+        if mf_search_settings.isRadical:
+            dict_res[Labels.radical_ion] = sql_db.get_dict_by_classes(classe_str_list, Labels.radical_ion, nominal_mzs, ion_charge, mf_search_settings)    
+
+        if mf_search_settings.isAdduct:
+            
+            adduct_list = mf_search_settings.adduct_atoms_neg if ion_charge < 0 else mf_search_settings.adduct_atoms_pos
+            dict_res[Labels.adduct_ion] = sql_db.get_dict_by_classes(classe_str_list, Labels.adduct_ion, nominal_mzs, ion_charge, mf_search_settings, adducts=adduct_list)    
+
         return dict_res
-    
+
     def ox_classes_and_peaks_in_order_(self) -> dict:
         # order is only valid in python 3.4 and above
         # change to OrderedDict if your version is lower

@@ -37,11 +37,11 @@ class MassSpectrumSetting:
     
     implemented_noise_threshold_methods: tuple = ('auto', 'signal_noise', 'relative_abundance')
     
-    noise_threshold_std: int = 6
+    noise_threshold_std: int = 12
     
     s2n_threshold: float = 4
     
-    relative_abundance_threshold:float = 6 # from 1-100
+    relative_abundance_threshold:float = 6 # from 0-100
     
     min_noise_mz: float = 100.0
     max_noise_mz:float = 1200.0
@@ -97,7 +97,7 @@ class GasChromatographSetting:
 @dataclass 
 class CompoundSearchSettings:
 
-    url_database: str = 'sqlite:////'
+    url_database: str = 'sqlite:///db/pnnl_lowres_gcms_compounds.sqlite'
     
     ri_search_range:float = 20
 
@@ -150,7 +150,7 @@ class MolecularLookupDictSettings:
     def __init__(self):
         
         
-        self.usedAtoms = {'C': (1, 100),
+        self.usedAtoms = {'C': (1, 90),
                     'H': (4, 200),
                     'O': (0, 12),
                     'N': (0, 0),
@@ -159,10 +159,8 @@ class MolecularLookupDictSettings:
                     'Cl': (0, 0),
                     }
         
-        #min_mz changes automatically with mass spectrum
         self.min_mz = 100
 
-        #max_mz changes automatically with mass spectrum
         self.max_mz = 1200
 
         self.min_dbe = 0
@@ -178,7 +176,7 @@ class MolecularLookupDictSettings:
 
         self.op_filter = 2
 
-        self.hc_filter = 0.3
+        self.min_hc_filter = 0.3
 
         self.oc_filter = 1.2
     
@@ -218,14 +216,16 @@ class MolecularFormulaSearchSettings:
 
     min_peaks_per_class:int = 15
 
-    url_database: str = None
+    url_database: str = None#"postgresql://coremsdb:coremsmolform@localhost:5432/molformula"
 
-    db_jobs:int = 1
+    db_jobs:int = 4
 
     '''query setting'''
     ion_charge:int = -1
 
-    hc_filter:float = 0.3
+    min_hc_filter:float = 0.3
+
+    max_hc_filter:float = 5
 
     oc_filter:float = 1.2
 
@@ -235,7 +235,7 @@ class MolecularFormulaSearchSettings:
 
     min_dbe:float = 0
 
-    max_dbe:float = 50
+    max_dbe:float = 40
 
     # look for close shell ions [M + Adduct]+ only considers metal set in the list adduct_atoms  
     adduct_atoms_neg:tuple = ('Cl', 'Br')
@@ -250,26 +250,25 @@ class MolecularFormulaSearchSettings:
     # depending on the polarity mode it looks for [M].+ , [M].-
     # query and automatically compile add entry if it doesn't exist
     
-    isRadical:bool = True
+    isRadical:bool = False
     
     # depending on the polarity mode it looks for [M + H]+ , [M - H]+
      # query and automatically compile and push options if it doesn't exist
     isProtonated:bool = True
     
-    #kendrick_base: {'C': 1, 'H':2} = field(default_factory=dict)
+    isAdduct:bool = False
+
     usedAtoms: dict = field(default_factory=dict)
     
     ''' search setting '''
     
-    isAdduct:bool = True
-
     ionization_type:str = 'ESI'
 
     # empirically set / needs optimization
-    min_ppm_error:float   = -5 #ppm
+    min_ppm_error:float   = -10 #ppm
 
     # empirically set / needs optimization    
-    max_ppm_error:float = 5 #ppm
+    max_ppm_error:float = 10 #ppm
 
     # empirically set / needs optimization set for isotopologue search
     min_abun_error:float = -100 # percentage 
@@ -285,16 +284,16 @@ class MolecularFormulaSearchSettings:
 
     mz_error_average:float = 0
 
-    #kendrick_base: {'C': 1, 'H':2} = field(default_factory=dict)
+    #used_atom_valences: {'C': 4, 'H':1, etc} = field(default_factory=dict)
     used_atom_valences: dict = field(default_factory=dict)
 
     def __post_init__(self):
         
         self.usedAtoms = {   'C': (1, 100),
                     'H': (4, 200),
-                    'O': (1, 10),
-                    'N': (0, 1),
-                    'S': (0, 1),
+                    'O': (1, 18),
+                    'N': (0, 0),
+                    'S': (0, 0),
                     'P': (0, 0),
                     'Cl': (0, 0),
                 }
@@ -315,9 +314,6 @@ class MolecularFormulaSearchSettings:
                             'F': 1,
                             'K': 1,
                             }
-
-
-
                             
 if __name__ == "__main__":
     a = DataInputSetting()

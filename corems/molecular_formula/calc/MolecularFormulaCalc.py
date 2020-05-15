@@ -35,10 +35,18 @@ class MolecularFormulaCalc:
 
     def _calc_mz(self):
         
+        def protonated_mass(mass, ion_charge):
+            return (mass + (ion_charge * Atoms.atomic_masses.get("H")) + (ion_charge * -1 * Atoms.electron_mass))/abs(ion_charge)
+        
+        def radical_mass(mass, ion_charge):
+            return (mass + (ion_charge * -1 * Atoms.electron_mass))/ abs(ion_charge)
+
         if self.ion_charge:
             
             mass = 0
             
+            ion_type = self._d_molecular_formula.get(Labels.ion_type)
+
             for each_atom in self._d_molecular_formula.keys() :
                 
                 if each_atom != Labels.ion_type and each_atom != 'HC':
@@ -47,8 +55,14 @@ class MolecularFormulaCalc:
                         mass = mass + Atoms.atomic_masses[each_atom]  *  self._d_molecular_formula.get(each_atom)
                     except: print(Labels.ion_type, each_atom) 
             
-            return mass + ((-1*self.ion_charge) * Atoms.electron_mass)
-        
+            if ion_type == Labels.protonated_de_ion:
+                return protonated_mass(mass, self.ion_charge)
+            elif ion_type == Labels.radical_ion or ion_type == Labels.adduct_ion:   
+                return radical_mass(mass, self.ion_charge)
+            else:
+                #formula is probably ion form used for bruker ref list
+                return radical_mass(mass, self.ion_charge)
+                
         else:
             
             raise Exception("Please set ion charge first")

@@ -10,7 +10,19 @@ sys.path.append('.')
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.constant import Atoms
-from corems.molecular_id.factory.molecularSQL import MolecularFormulaTablePos, MolecularFormulaTableNeg
+from corems.molecular_id.factory.molecularSQL import CarbonHydrogen, MolecularFormulaLink, HeteroAtoms
+
+class MolecularFormulaLinkProxy():
+        
+        def __init__(self, molecular_formula, mz):
+
+            self.C = molecular_formula.get('C')
+            self.H = molecular_formula.get('H')
+            self.H_C = molecular_formula.get('H')/molecular_formula.get('C')
+            self.classe = json.dumps(molecular_formula.class_dict)
+            self.mass =  float(mz)                       
+            self.dbe = molecular_formula.dbe
+            self.formula_dict = molecular_formula.to_dict
 
 class ImportMassListRef():#Thread
 
@@ -24,25 +36,10 @@ class ImportMassListRef():#Thread
                 tb = sys.exc_info()[2]
                 raise FileNotFoundError(ref_file_location).with_traceback(tb)
     
-    def molecular_formula_ref( self, molecular_formula):
-        molform_model = MolecularFormulaTablePos if molecular_formula.ion_charge > 0 else MolecularFormulaTableNeg
-        return molform_model( **{"mol_formula" : json.dumps(molecular_formula.to_dict),
-                                    "mz" : molecular_formula.mz_calc,
-                                    "nominal_mz" : molecular_formula.mz_nominal_calc,
-                                    "ion_type" : molecular_formula.ion_type,
-                                    "ion_charge" : molecular_formula.ion_charge,
-                                    "classe" : molecular_formula.class_label,
-                                    "C" : molecular_formula.get('C'),
-                                    "H" : molecular_formula.get('H'),
-                                    "N" : molecular_formula.get('N'),
-                                    "O" : molecular_formula.get('O'),
-                                    "S" : molecular_formula.get('S'),
-                                    "P" : molecular_formula.get('P'),
-                                    "H_C" : molecular_formula.get('H')/molecular_formula.get('C'),
-                                    "O_C" : molecular_formula.get('O')/molecular_formula.get('C'),
-                                    "DBE" : molecular_formula.dbe}
-                                )
-
+    def molecular_formula_ref( self, mz, molecular_formula):
+        
+        return MolecularFormulaLinkProxy(molecular_formula, mz)
+    
     def from_bruker_ref_file(self):
 
         import csv
@@ -66,12 +63,13 @@ class ImportMassListRef():#Thread
                     else:
                         
                         ion_charge =  -1* int(list_ref[2][:-1])
-                    
-                    ion_mol_formula = list_ref[3]
 
+                    
+                    ion_mol_formula = list_ref[0]
+                    mz = list_ref[1]
                     formula_dict = self.mformula_s_to_dict(ion_mol_formula)
                     
-                    list_mf_obj.append(self.molecular_formula_ref(MolecularFormula(formula_dict, ion_charge)))
+                    list_mf_obj.append(self.molecular_formula_ref(mz, MolecularFormula(formula_dict, ion_charge)))
         
         return  list_mf_obj           
 
@@ -147,14 +145,15 @@ class ImportMassListRef():#Thread
             all_atoms = all_atoms + all_atoms2 + single_digit_atoms_one + due_digit_atoms_one
             
             dict_res = {}
-
+            
             for each_atom_count in all_atoms:
+                
                 
                 count = re.findall(r'[0-9]{1,10000}', each_atom_count)
                 atom = ''.join(re.findall(r'[A-z]', each_atom_count))
                 
                 if atom in Atoms.atoms_order:
-                
+                    
                     if count:
                         dict_res[atom] = int(count[0])
                     else:

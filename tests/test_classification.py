@@ -6,15 +6,15 @@ import pytest
 
 from corems.encapsulation.factory.parameters import MSParameters
 from corems.mass_spectrum.factory.classification import  HeteroatomsClassification, Labels
-from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
+from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from test_molecularFormulaSearch import create_mass_spectrum
 
 
 def test_heteroatoms_classification():
 
     MSParameters.molecular_search.error_method = 'None'
-    MSParameters.molecular_search.min_ppm_error  = -5
-    MSParameters.molecular_search.max_ppm_error = 3
+    MSParameters.molecular_search.min_ppm_error  = -10
+    MSParameters.molecular_search.max_ppm_error = 10
     MSParameters.molecular_search.mz_error_range = 1
     MSParameters.molecular_search.isProtonated = True 
     MSParameters.molecular_search.isRadical= False 
@@ -22,10 +22,8 @@ def test_heteroatoms_classification():
 
     mass_spec_obj = create_mass_spectrum()
     
-    assignOx = OxygenPriorityAssignment(mass_spec_obj) 
+    assignOx = SearchMolecularFormulas(mass_spec_obj).run_worker_mass_spectrum()
     
-    assignOx.run() 
-
     #test classification 
     mass_spec_obj.percentile_assigned()
 

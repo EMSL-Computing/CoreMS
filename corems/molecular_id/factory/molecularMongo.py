@@ -66,7 +66,7 @@ class MolForm_Mongo:
                                                 'ion_type': ion_type,
                                                 'nominal_mz':{"$in": nominal_mzs},  
                                                 'O_C' : { '$lt': MSParameters.molecular_search.oc_filter }, 
-                                                'H_C' : { '$gt': MSParameters.molecular_search.hc_filter},
+                                                'H_C' : { '$gt': MSParameters.molecular_search.min_hc_filter},
                                                 'DBE' : { '$gt': MSParameters.molecular_search.min_dbe},
                                                 'DBE' : { '$lt': MSParameters.molecular_search.max_dbe},
                                                 })
@@ -96,7 +96,7 @@ class MolForm_Mongo:
                                                 'ion_type': ion_type,
                                                 'nominal_mz': nominal_mz,  
                                                 'O_C' : { '$lt': MSParameters.molecular_search.oc_filter }, 
-                                                'H_C' : { '$gt': MSParameters.molecular_search.hc_filter},
+                                                'H_C' : { '$gt': MSParameters.molecular_search.min_hc_filter},
                                                 'DBE' : { '$gt': MSParameters.molecular_search.min_dbe},
                                                 'DBE' : { '$lt': MSParameters.molecular_search.max_dbe},
                                                 })
