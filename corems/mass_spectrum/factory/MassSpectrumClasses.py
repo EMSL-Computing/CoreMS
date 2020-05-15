@@ -355,8 +355,8 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     
     @property
     def most_abundant_mspeak(self):
-        
         return max(self.mspeaks, key=lambda m: m.abundance)
+        
     
     @property
     def min_abundance(self):
