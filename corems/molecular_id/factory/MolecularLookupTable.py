@@ -91,8 +91,15 @@ class MolecularCombinations:
         class_to_create = class_str_set - existing_classes_str
         
         class_count= len(existing_classes_objs)
+
+        data_classes = list()    
+        for index, class_str in enumerate(class_to_create):
             
-        data_classes = [{"name":class_str, "id":class_count+ index + 1} for index, class_str in enumerate(class_to_create)]
+            class_dict = classes_dict.get(class_str)
+            halogen_count = self.get_total_halogen_atoms(class_dict)
+            data_classes.append({"name":class_str, "id":class_count+ index + 1, "halogensCount": halogen_count})
+        
+        #data_classes = [{"name":class_str, "id":class_count+ index + 1} for index, class_str in enumerate(class_to_create)]
         
         if data_classes:
             
@@ -467,23 +474,9 @@ class MolecularCombinations:
                             "carbonHydrogen_id":carbonHydrogen_id[index], 
                             "mass":mass, "DBE":dbe}
                     
-                    #molecularFormula = MolecularFormulaLink(heteroAtoms=heteroAtom_obj, 
-                    #                    carbonHydrogen=carbonHydrogen_obj, mass=mass, DBE=dbe)
-                    
                     results.append(molecularFormula)
         
         return results
-        
-        #for chunk in chunks(results, 1000):
-        #    insert_query = MolecularFormulaLink.__table__.insert().values(chunk)
-        #    self.sql_db.session.execute(insert_query)
-            #self.engine.copy_from(MolecularFormulaLink.__table__.insert(),chunk)
-        #    print("done inside")
-        #print("Done")
-        #self.engine.execute(MolecularFormulaLink.__table__.insert(),results)
-
-        #self.sql_db.session.bulk_insert_mappings(MolecularFormulaLink, results)
-        #self.sql_db.session.add_all(results)
         
         
     def get_h_odd_or_even(self, class_dict):
