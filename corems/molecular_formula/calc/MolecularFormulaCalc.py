@@ -185,6 +185,7 @@ class MolecularFormulaCalc:
             score = power(((correlation) * (power(average_mz_score,2))),1/3)
 
             self._isotopologue_similarity = correlation
+            self._mass_error_score = average_mz_score
             #print("correlation",correlation)
             #print("average_mz_score",average_mz_score)
             #print("mz_score",self._calc_mz_confidence())
