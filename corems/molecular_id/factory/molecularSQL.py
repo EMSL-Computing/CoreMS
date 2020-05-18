@@ -175,6 +175,8 @@ class MolForm_SQL:
         self.session = session_factory()
         
         Base.metadata.create_all(self.engine)
+
+        self.session.commit()
         
     def __exit__(self, exc_type, exc_val, exc_tb):
         # make sure the dbconnection gets closed
