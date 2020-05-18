@@ -29,6 +29,7 @@ class MolecularFormula(MolecularFormulaCalc):
         
         self.is_isotopologue = False
 
+        self._isotopologue_similarity = 0.5  
         # parent mass spectrum peak obj instance
         self._mspeak_parent = mspeak_parent
 
@@ -178,7 +179,10 @@ class MolecularFormula(MolecularFormulaCalc):
     
     @property
     def confidence_score(self): return self._calc_confidence_score() 
-        
+
+    @property
+    def isotopologue_similarity(self): return self._isotopologue_similarity    
+    
     @property
     def kmd(self): return self._kdm
 
