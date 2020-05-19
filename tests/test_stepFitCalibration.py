@@ -74,7 +74,7 @@ def test_calibration():
     MSParameters.molecular_search.isProtonated = True 
     MSParameters.molecular_search.isRadical= True 
 
-    file_location = Path.cwd() /  "ESI_NEG_SRFA.d/"
+    file_location = Path.cwd() / "tests/tests_data/ESI_NEG_SRFA.d/"
 
     mass_spectrum = create_mass_spectrum(file_location)
 

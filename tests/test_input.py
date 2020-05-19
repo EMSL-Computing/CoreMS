@@ -100,7 +100,7 @@ def test_import_lcms_from_transient():
 def test_import_transient():
     
     # from corems.structure.input.MidasDatFile import ReadMidasDatFile
-    file_location = Path.cwd() / "ESI_NEG_SRFA.d"
+    file_location = Path.cwd() / "tests/tests_data/ESI_NEG_SRFA.d/"
 
     
     MSParameters.transient.apodization_method = "Hanning"
@@ -159,7 +159,7 @@ def test_import_corems_hdf5():
 
 def test_import_corems_mass_list():
 
-    file_location = Path.cwd() / "tests/tests_data/" / "ESI_NEG_SRFA_COREMS.csv"
+    file_location = Path.cwd() / "tests/tests_data/ESI_NEG_SRFA_COREMS.csv"
     
     #polarity need to be set or read from the file
     

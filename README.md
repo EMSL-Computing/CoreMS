@@ -69,7 +69,7 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 
 ### Molecular formulae search and assignment
 
-- Automatic local (SQLite) or external (MongoDB or PostgreSQL) database check, generation, and search
+- Automatic local (SQLite) or external (PostgreSQL) database check, generation, and search
 - Automatic molecular formulae assignments algorithm for ESI(-) MS for natural organic matter analysis
 - Automatic fine isotopic structure calculation and search for all isotopes
 - Flexible Kendrick normalization base

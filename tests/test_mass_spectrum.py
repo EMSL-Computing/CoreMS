@@ -16,7 +16,7 @@ from corems.encapsulation.factory.processingSetting  import MassSpectrumSetting,
 
 def test_create_mass_spectrum():
     
-    file_location = Path.cwd() /  "ESI_NEG_SRFA.d"
+    file_location = Path.cwd() / "tests/tests_data/ESI_NEG_SRFA.d/"
 
     bruker_reader = ReadBrukerSolarix(file_location)
 
