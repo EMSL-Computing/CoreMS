@@ -91,12 +91,12 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 pip install corems
 ```
 
-A external database is needed to run the molecular formula assignments workflow
-    ```bash
-    docker-compose up -d   
-    ```
-    -  Database url: "postgres://coremsdb:coremsmolform@localhost:5432/molformula"
-    The database url is already set at the default on the CoreMS parameter model class
+A external database is needed to run the molecular formula assignments workflow:  
+```bash
+docker-compose up -d
+```
+-  Database url = "postgres://coremsdb:coremsmolform@localhost:5432/molformula"  
+    The database url is already set the default on the CoreMS parameter model class
 
 To be able to open thermo file a installation of pythonnet is needed:
 - Windows: 
