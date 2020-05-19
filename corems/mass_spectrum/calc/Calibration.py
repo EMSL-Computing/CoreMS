@@ -244,13 +244,21 @@ class MzDomainCalibration:
         mz_exp_ms = np.array(
             [mspeak.mz_exp for mspeak in mass_spectrum])  
         
+        mass_spectrum.mz_exp_profile 
+        
         if order == 1:
             mz_domain = (Pn[0] * mz_exp_ms) + Pn[1]
+            mz_profile_calc = (Pn[0] *  mass_spectrum.mz_exp_profile ) + Pn[1]
+            
         elif order == 2:
             mz_domain = (Pn[0] * (mz_exp_ms)) + \
                 (Pn[1] * np.power((mz_exp_ms), 2) + Pn[2])
+
+            mz_profile_calc = (Pn[0] * (mass_spectrum.mz_exp_profile)) + \
+                (Pn[1] * np.power((mass_spectrum.mz_exp_profile), 2) + Pn[2])
+
         mass_spectrum.mz_cal = mz_domain
-        
+        mass_spectrum.mz_cal_profile = mz_profile_calc
         return mass_spectrum
 
     def run(self):

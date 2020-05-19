@@ -70,11 +70,11 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         #set to None: initialization occurs inside subclass MassSpecfromFreq
         self._transient_settings = None 
         self._frequency_domain = None
-        
+        self._mz_cal_profile = None
+        self.is_calibrated = False
+
         self._set_parameters_objects(d_params)
         self._init_settings()
-
-        self.is_calibrated = False
 
         self.is_centroid = False
         
@@ -252,6 +252,20 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     @property
     def freq_exp_profile(self):
         return self._frequency_domain
+
+    @property
+    def mz_cal_profile(self):
+        
+        return self._mz_cal_profile
+
+    @mz_cal_profile.setter
+    def mz_cal_profile(self, mz_cal_list):
+        
+        if len(mz_cal_list) == len(self.mz_exp_profile):
+            self._mz_cal_profile = mz_cal_list
+        else:
+            raise Exception( "calibrated array (%i) is not of the same size of the data (%i)" % (len(mz_cal_list),  len(self.mz_exp_profile)))    
+        
 
     @property
     def mz_cal(self):
