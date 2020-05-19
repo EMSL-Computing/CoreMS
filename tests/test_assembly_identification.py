@@ -5,7 +5,7 @@ sys.path.append(".")
 import pytest
 
 from corems.encapsulation.factory.parameters import MSParameters
-from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration, MZDomain_Calibration
+from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration
 from corems.mass_spectrum.output.export import HighResMassSpecExport 
 from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment

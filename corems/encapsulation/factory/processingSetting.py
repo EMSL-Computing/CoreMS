@@ -49,6 +49,12 @@ class MassSpectrumSetting:
     min_picking_mz:float = 100.0
     max_picking_mz:float = 1200.0
 
+    calib_minimize_method:str = 'Powell'
+    calib_pol_order: int = 2
+    max_calib_ppm_error: float = 1
+    min_calib_ppm_error: float = -1
+    calib_sn_threshold: float = 10
+
 @dataclass    
 class MassSpecPeakSetting:
     

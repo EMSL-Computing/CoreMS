@@ -10,8 +10,8 @@ import numpy as np
 from matplotlib import pyplot 
 
 from corems.encapsulation.factory.parameters import MSParameters
-from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration, MZDomain_Calibration
-#from corems.mass_spectrum.input.massList import Read_MassList
+from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration
+from corems.mass_spectrum.calc.Calibration import MzDomainCalibration
 from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
@@ -33,24 +33,34 @@ def create_mass_spectrum(file_location):
         '''
 
     bruker_reader = ReadBrukerSolarix(file_location)
-
     bruker_transient = bruker_reader.get_transient()
 
-    mass_spectrum_obj = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
+    MSParameters.mass_spectrum.threshold_method = 'auto'
+    MSParameters.mass_spectrum.noise_threshold_std = 3
+    MSParameters.ms_peak.peak_min_prominence_percent = 0.01
+
+    mass_spectrum = bruker_transient.get_mass_spectrum(plot_result=False,
+                                                    auto_noise=True,
+                                                    auto_process=True,
+                                                    keep_profile=True)
     
-    #mass_spectrum_obj.plot_profile_and_noise_threshold()
-    
-    # polarity need to be set if reading a text file
-    #polarity = -1
-    # load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
-    #mass_list_reader = Read_MassList(file_location, polarity,  )
-    #mass_spectrum_obj  = mass_list_reader.get_mass_spectrum(auto_process=True)
-
-    return mass_spectrum_obj
+    return mass_spectrum
 
 
+def test_mz_domain_calibration():
 
-def test_calibration():
+    MSParameters.mass_spectrum.min_calib_ppm_error = -5
+    MSParameters.mass_spectrum.max_calib_ppm_error = 5
+
+    file_location = Path.cwd() / "tests/tests_data/ESI_NEG_SRFA.d/"
+
+    ref_file_location = Path.cwd() / "tests/tests_data/SRFA.ref"
+
+    mass_spectrum = create_mass_spectrum(file_location)
+
+    MzDomainCalibration(mass_spectrum, ref_file_location).run()
+
+def test_old_calibration():
     
     ''' Mass calibration test module: 
             - creates a mass spectrum object
@@ -90,13 +100,6 @@ def test_calibration():
     calibrate.quadratic(iteration=True)
     calibrate.ledford_calibration()
     
-    calibrate = MZDomain_Calibration(mass_spectrum, mspeaks_results, include_isotopologue=True)
-    calibrate.linear(iteration=True)
-    calibrate.ledford_inverted_calibration(iteration=True)
-    calibrate.quadratic(iteration=True)
-    
-    mass_spectrum.clear_molecular_formulas()
-
     MSParameters.molecular_search.error_method = 'symmetrical'
     MSParameters.molecular_search.min_ppm_error  = -3
     MSParameters.molecular_search.max_ppm_error = 3
@@ -127,5 +130,6 @@ def test_import_ref_list():
 
 if __name__ == "__main__":
     
-    test_calibration()
+    #test_old_calibration()
+    test_mz_domain_calibration()
    
