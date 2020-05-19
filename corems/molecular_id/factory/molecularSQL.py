@@ -203,6 +203,11 @@ class MolForm_SQL:
             url = 'sqlite:///{DB}/db/molformulas.sqlite'.format(DB=directory)
 
         if url[0:6] == 'sqlite':
+            self.type = 'sqlite'
+        else:
+            self.type = 'normal'
+            
+        if url[0:6] == 'sqlite':
             engine = create_engine(url, echo = False)
             self.chunks_count = 50
         
@@ -266,6 +271,9 @@ class MolForm_SQL:
                 
                 nominal_mz = eval(mass_conversion_type)
                 
+                if self.type != 'normal':
+                    if not nominal_mz in nominal_mzs:
+                        continue
                 classe = classe_obj.name
 
                 #classe_str = formula.classe_string
@@ -307,21 +315,25 @@ class MolForm_SQL:
             len_adducts = 1
         
         query = query_normal(classes, len_adducts)
+
         if ion_type == Labels.protonated_de_ion:
-            query = query.filter(and_(
+            if self.type == 'normal':
+                query = query.filter(and_(
                                 MolecularFormulaLink.protonated_mass(ion_charge).cast(Integer).in_(nominal_mzs)
                                 ))
             return add_dict_formula(query, ion_type, ion_charge)
-                                
+        
         if ion_type == Labels.radical_ion:
-            query = query.filter(MolecularFormulaLink.radical_mass(ion_charge).cast(Integer).in_(nominal_mzs))    
+            if self.type == 'normal':
+                query = query.filter(MolecularFormulaLink.radical_mass(ion_charge).cast(Integer).in_(nominal_mzs))    
             return add_dict_formula(query, ion_type, ion_charge)
-
+        
         if ion_type == Labels.adduct_ion:
             dict_res = {}
             if adducts: 
                 for atom in adducts:
-                    query = query.filter(MolecularFormulaLink.adduct_mass(ion_charge, atom).cast(Integer).in_(nominal_mzs))    
+                    if self.type == 'normal':
+                        query = query.filter(MolecularFormulaLink.adduct_mass(ion_charge, atom).cast(Integer).in_(nominal_mzs))    
                     dict_res[atom] = add_dict_formula(query, ion_type, ion_charge, adduct_atom=atom)
                 return dict_res
         # dump all objs to memory
