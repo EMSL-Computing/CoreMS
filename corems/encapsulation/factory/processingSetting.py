@@ -119,6 +119,9 @@ class CompoundSearchSettings:
 
     ri_calibration_compound_names: List = field(default_factory=list)
 
+    # calculates and export all spectral similarity methods
+    exploratory_mode = False
+    
     def __post_init__(self):
         
         self.ri_calibration_compound_names = (" [C8] Methyl Caprylate [7.812]",

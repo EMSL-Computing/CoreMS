@@ -112,9 +112,6 @@ class ReadNistMSI(Thread):
                     
                     i += 1    
         
-        #print(list_dict_data)
-        for data_dict in list_dict_data:
-            print(data_dict)
         return list_dict_data
 
         

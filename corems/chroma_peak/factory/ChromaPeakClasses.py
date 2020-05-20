@@ -6,8 +6,6 @@ from numpy import array
 from corems.chroma_peak.calc.ChromaPeakCalc import GCPeakCalculation 
 from corems.molecular_id.factory.EI_SQL import LowResCompoundRef
 
-
-
 class ChromaPeakBase():
     '''
     classdocs
@@ -64,11 +62,14 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
         
         self._ri = None
 
-    def add_compound(self, compounds_dict, spectral_similarity_score, ri_score=None, similarity_score=None):
+    def add_compound(self, compounds_dict, spectral_similarity_scores, ri_score=None, similarity_score=None):
        
         compound_obj = LowResCompoundRef(compounds_dict)
 
-        compound_obj.spectral_similarity_score = spectral_similarity_score
+        #add all spectral similarities methods as a dict
+        compound_obj.spectral_similarity_scores = spectral_similarity_scores
+        #TODO need to add spectral similarity score label in the options in the parameters encapsulation class
+        compound_obj.spectral_similarity_score = spectral_similarity_scores.get("cosine_correlation")
 
         compound_obj.ri_score = ri_score
 
@@ -77,8 +78,7 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
         self._compounds.append(compound_obj)
 
         self._compounds.sort(key=lambda c: c.similarity_score, reverse=True)
-
-
+        
     @property
     def ri(self): return self._ri
 

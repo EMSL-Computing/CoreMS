@@ -41,6 +41,7 @@ class LowResCompoundRef:
         self.similarity_score = None
         self.ri_score = None
         self.spectral_similarity_score = None
+        self.spectral_similarity_scores = {}
         
 class LowResolutionEICompound(Base):  
     

@@ -61,7 +61,7 @@ def get_reference_dict():
     else:
         
         gcms_ref_obj = get_gcms(file_path)
-        # sql_obj = start_sql_from_file()
+        #sql_obj = start_sql_from_file()
         #rt_ri_pairs = get_rt_ri_pairs(gcms_ref_obj,sql_obj=sql_obj)
         # !!!!!! READ !!!!! use the previous two lines if db/pnnl_lowres_gcms_compounds.sqlite does not exist
         # and comment the next line
@@ -77,8 +77,8 @@ def run(args):
     
     gcms.calibrate_ri(ref_dict)
     
-    # sql_obj = start_sql_from_file()
-    # lowResSearch = LowResMassSpectralMatch(gcms, sql_obj=sql_obj)
+    #sql_obj = start_sql_from_file()
+    #lowResSearch = LowResMassSpectralMatch(gcms, sql_obj=sql_obj)
     # !!!!!! READ !!!!! use the previous two lines if db/pnnl_lowres_gcms_compounds.sqlite does not exist
     # and comment the next line
     lowResSearch = LowResMassSpectralMatch(gcms)
@@ -141,8 +141,8 @@ if __name__ == '__main__':
     #import matplotlib
     #matplotlib.use('TkAgg')
 
-    #cores = 4
-    #out_put_file_name = 'Group 6_Standards'
-    #calibrate_and_search(out_put_file_name, cores)
-    start_sql_from_file()
+    cores = 4
+    out_put_file_name = 'Test'
+    calibrate_and_search(out_put_file_name, cores)
+    #start_sql_from_file()
 

@@ -11,6 +11,8 @@ from scipy.stats import pearsonr, spearmanr, kendalltau
 from sklearn.metrics.pairwise import cosine_similarity
 from math import exp
 from corems.molecular_id.factory.EI_SQL import EI_LowRes_SQLite
+from scipy import fft
+from scipy.fftpack import rfft
 
 class LowResMassSpectralMatch(Thread):
 
@@ -33,15 +35,29 @@ class LowResMassSpectralMatch(Thread):
     
     def metabolite_detector_score(self, gc_peak, ref_obj):
 
-        spectral_similarity_score = self.cosine_correlation(gc_peak.mass_spectrum, ref_obj)
+        spectral_similarity_scores = {}
+        spectral_similarity_scores["cosine_correlation"] = self.cosine_correlation(gc_peak.mass_spectrum, ref_obj)
+        
+        if self.gcms_obj.molecular_search_settings.exploratory_mode:
+            
+            spectral_similarity_scores["weighted_cosine_correlation"] = self.weighted_cosine_correlation(gc_peak.mass_spectrum, ref_obj)
+            spectral_similarity_scores["stein_scott_similarity"] = self.stein_scott(gc_peak.mass_spectrum, ref_obj)
+            spectral_similarity_scores["pearson_correlation"] = self.pearson_correlation(gc_peak.mass_spectrum, ref_obj)
+            spectral_similarity_scores["spearman_correlation"] = self.spearman_correlation(gc_peak.mass_spectrum, ref_obj)
+            spectral_similarity_scores["kendall_tau_correlation"] = self.kendall_tau(gc_peak.mass_spectrum, ref_obj)
+            spectral_similarity_scores["euclidean_distance"] = self.euclidean_distance(gc_peak.mass_spectrum, ref_obj)
+            spectral_similarity_scores["manhattan_distance"] = self.manhattan_distance(gc_peak.mass_spectrum, ref_obj)
+            spectral_similarity_scores["jaccard_distance"] = self.jaccard_distance(gc_peak.mass_spectrum, ref_obj)
+            spectral_similarity_scores["dft_correlation"] = self.dft_correlation(gc_peak.mass_spectrum, ref_obj)
+            spectral_similarity_scores["dwt_correlation"] = self.dwt_correlation(gc_peak.mass_spectrum, ref_obj)
 
         #print(ref_obj.get('ri'), gc_peak.ri, self.gcms_obj.molecular_search_settings.ri_window)
 
         ri_score = exp( -1*(power((gc_peak.ri - ref_obj.get('ri')), 2 )  / (2 * power(self.gcms_obj.molecular_search_settings.ri_std, 2)) ))
 
-        similarity_score = ((spectral_similarity_score**2) * (ri_score))**(1/3)
+        similarity_score = ((spectral_similarity_scores.get("cosine_correlation")**2) * (ri_score))**(1/3)
 
-        return spectral_similarity_score, ri_score, similarity_score
+        return spectral_similarity_scores, ri_score, similarity_score
         
     def weighted_cosine_correlation(self, mass_spec, ref_obj):
         
@@ -109,54 +125,60 @@ class LowResMassSpectralMatch(Thread):
 
     def stein_scott(self, mass_spec, ref_obj):
 
-        # create dict['mz'] = abundance, for experimental data
         ms_mz_abun_dict = mass_spec.mz_abun_dict
+ 
+        exp_abun = list(ms_mz_abun_dict.values())
+        exp_mz = list(ms_mz_abun_dict.keys())
+ 
+        ref_abun = ref_obj.get("abundance")
+        ref_mz = ref_obj.get("mz")
+ 
+        # important: I assume ref_mz and ref_abun are in order, and one-to-one; this needs to be be verified
+        ref_mz_abun_dict = dict(zip(ref_mz, ref_abun))
+ 
+        # filter out the mass values that have zero intensities in exp_mz
+        exp_mz_filtered = set([k for k in exp_mz if ms_mz_abun_dict[k] != 0])
+ 
+        # filter out the mass values that have zero intensities in ref_mz
+        ref_mz_filtered = set([k for k in ref_mz if ref_mz_abun_dict[k] != 0])
+ 
+        # find the intersection/common mass values of both ref and exp, and sort them
+        common_mz_values = sorted(list(exp_mz_filtered.intersection(ref_mz_filtered)))
 
-        # create dict['mz'] = abundance, for experimental data
-        ref_mz_abun_dict = dict(zip(ref_obj.get("mz"), ref_obj.get("abundance")))
-
-        #parse to dataframe, easier to zerofill and tranpose
-        df = DataFrame([ms_mz_abun_dict, ref_mz_abun_dict])
-
-        # fill missing mz with abundance 0
-        df.fillna(0, inplace=True)
-        
-        # format data 
-        x = df.T[0]
-        y = df.T[1]
-
-        # calculate dot product
-        Sc = sum(x * y) / dot(x, y)
-
-        # calculate length non-zero intensities
-        idx = df.T[0] > 0
-        idy = df.T[1] > 0
-        idxy = where(idx & idy)
-        Nxy = len(idxy[0])
-        Nx = len(where(idx)[0])
-
-        # subset df to remove 0
-        sub_df = df[idxy[0]]
-        sub_df = sub_df.T
-        sub_df = sub_df.reset_index(drop=True)
-
-        res = 0
-        for i in range(1, Nxy):
-            temp = (sub_df[1][i] / sub_df[1][i-1]) * (sub_df[0][i-1] / sub_df[0][i])
-
-            if temp < 1:
-                res = res + temp
+        # find the number of common mass values (after filtering 0s)
+        n_x_y = len(common_mz_values)
+ 
+        # count number of non-zero abundance/peak intensity values
+        n_x = sum(a != 0 for a in exp_abun)
+ 
+        s_r_x_y = 0
+        for i in range(1,n_x_y):
+            current_value = common_mz_values[i]
+            previous_value = common_mz_values[i-1]
+ 
+            y_i = ref_mz_abun_dict[current_value]
+            y_i_minus1 = ref_mz_abun_dict[previous_value]
+            x_i = ms_mz_abun_dict[current_value]
+            x_i_minus1 = ms_mz_abun_dict[previous_value]
+ 
+            temp_computation = (y_i/y_i_minus1) * (x_i_minus1/x_i)
+            n = 0
+            if temp_computation <= 1:
+                n = -1
             else:
-                res = res + (1/temp)
+                n = 1
+            s_r_x_y = s_r_x_y + temp_computation ** n
+ 
+        # finish the calculation of S_R(X,Y)
+        s_r_x_y = s_r_x_y / n_x_y
+ 
+        # using the existing weighted_cosine_correlation function to get S_WC(X,Y)
+        s_wc_x_y = self.weighted_cosine_correlation(mass_spec, ref_obj)
+ 
+        # final step
+        s_ss_x_y = (n_x * s_wc_x_y + n_x_y * s_r_x_y) / (n_x + n_x_y)
 
-        # calculate ratio similarity
-        Sr = (1 / Nxy) * res
-
-        # calculate stein and scott
-        Scr = (Nx * Sc + Nxy * Sr) / (Nx + Nxy)
-
-        return Scr
-
+        return s_ss_x_y
 
     def pearson_correlation(self, mass_spec, ref_obj):
 
@@ -175,7 +197,7 @@ class LowResMassSpectralMatch(Thread):
         # calculate Pearson correlation
         correlation = pearsonr(df.T[0], df.T[1])
 
-        return correlation
+        return correlation[0]
 
     def spearman_correlation(self, mass_spec, ref_obj):
 
@@ -195,7 +217,7 @@ class LowResMassSpectralMatch(Thread):
         ### TODO - Check axis
         correlation = spearmanr(df.T[0], df.T[1], axis=0)
 
-        return correlation
+        return correlation[0]
 
     def kendall_tau(self, mass_spec, ref_obj):
 
@@ -214,8 +236,7 @@ class LowResMassSpectralMatch(Thread):
         # calculate Kendall's tau
         correlation = kendalltau(df.T[0], df.T[1])
 
-        return correlation
-
+        return correlation[0]
 
     def euclidean_distance(self, mass_spec, ref_obj):
 
@@ -240,8 +261,9 @@ class LowResMassSpectralMatch(Thread):
         df.fillna(0, inplace=True)
         
         # calculate Pearson correlation
-        correlation = euclidean(df.T[0], df.T[1])
+        #correlation = euclidean(df.T[0], df.T[1])
 
+        correlation = euclidean_distance_manual(df.T[0], df.T[1])
         return correlation
 
     def manhattan_distance(self, mass_spec, ref_obj):
@@ -264,10 +286,83 @@ class LowResMassSpectralMatch(Thread):
         # fill missing mz with abundance 0
         df.fillna(0, inplace=True)
         
-        # calculate Pearson correlation
-        correlation = cityblock(df.T[0], df.T[1])
-
+        # calculate manhattan correlation
+        #correlation = cityblock(df.T[0], df.T[1])
+        correlation = mann_distance_manual(df.T[0], df.T[1])
+        
         return correlation
+
+    def dwt_correlation(self, mass_spec, ref_obj):
+
+        return 0
+        # create dict['mz'] = abundance, for experimental data
+        ms_mz_abun_dict = mass_spec.mz_abun_dict
+
+        # create dict['mz'] = abundance, for experimental data
+        ref_mz_abun_dict = dict(zip(ref_obj.get("mz"), ref_obj.get("abundance")))
+
+        # parse to dataframe, easier to zerofilland tranpose
+        df = DataFrame([ms_mz_abun_dict, ref_mz_abun_dict])
+
+        # fill missing mz with abundance 0
+        df.fillna(0, inplace=True)
+        
+        # calculate DFT correlation
+        #
+        # return correlation
+
+    def dft_correlation(self, mass_spec, ref_obj):
+
+        ms_mz_abun_dict = mass_spec.mz_abun_dict
+ 
+        exp_abun = list(ms_mz_abun_dict.values())
+        exp_mz = list(ms_mz_abun_dict.keys())
+ 
+        ref_abun = ref_obj.get("abundance")
+        ref_mz = ref_obj.get("mz")
+ 
+        # important: I assume ref_mz and ref_abun are in order, and one-to-one; this needs to be be verified
+        ref_mz_abun_dict = dict(zip(ref_mz, ref_abun))
+ 
+        # filter out the mass values that have zero intensities in exp_mz
+        exp_mz_filtered = set([k for k in exp_mz if ms_mz_abun_dict[k] != 0])
+ 
+        # filter out the mass values that have zero intensities in ref_mz
+        ref_mz_filtered = set([k for k in ref_mz if ref_mz_abun_dict[k] != 0])
+ 
+        # find the intersection/common mass values of both ref and exp, and sort them
+        
+        common_mz_values = exp_mz_filtered.intersection(ref_mz_filtered)
+        
+        # find the number of common mass values (after filtering 0s)
+        n_x_y = len(common_mz_values)
+ 
+        # count number of non-zero abundance/peak intensity values
+        n_x = sum(a != 0 for a in exp_abun)
+
+        #parse to dataframe, easier to zerofill and tranpose
+        df = DataFrame([ms_mz_abun_dict, ref_mz_abun_dict])
+ 
+        # fill missing mz with abundance 0
+        df.fillna(0, inplace=True)
+        
+        #calculate cosine correlation, 
+        x = df.T[0]
+        y = df.T[1]
+ 
+        # get the Fourier transform of x and y
+        x_dft = rfft(x)
+        y_dft = rfft(y)
+ 
+        s_dft_xy = dot(x_dft, y_dft)/(norm(x_dft)*norm(y_dft))
+ 
+        # using the existing weighted_cosine_correlation function to get S_WC(X,Y)
+        s_wc_x_y = self.weighted_cosine_correlation(mass_spec, ref_obj)
+ 
+        # final step
+        s_dft = (n_x * s_wc_x_y + n_x_y * s_dft_xy) / (n_x + n_x_y)
+
+        return s_dft
 
     def jaccard_distance(self, mass_spec, ref_obj):
 
@@ -283,7 +378,7 @@ class LowResMassSpectralMatch(Thread):
         # fill missing mz with abundance 0
         df.fillna(0, inplace=True)
         
-        # calculate Pearson correlation
+        # calculate jaccard correlation
         correlation = jaccard(df.T[0], df.T[1])
 
         return correlation
@@ -298,6 +393,7 @@ class LowResMassSpectralMatch(Thread):
         list_cpu = []
         
         for gc_peak in tqdm.tqdm(self.gcms_obj):
+            
             if not self.calibration:
                 
                 window = self.gcms_obj.molecular_search_settings.ri_search_range
@@ -324,24 +420,25 @@ class LowResMassSpectralMatch(Thread):
                 # uses spectral similarly and uses a threshold to only select peaks with high data correlation
                 if self.calibration:
                     
-                    spectral_similarity_score = self.cosine_correlation(gc_peak.mass_spectrum, ref_obj)
+                    spectral_similarity_scores = {}
+                    spectral_similarity_scores["cosine_correlation"] = self.cosine_correlation(gc_peak.mass_spectrum, ref_obj)
 
                     #print(w_correlation_value,correlation_value )
-                    if spectral_similarity_score >= self.gcms_obj.molecular_search_settings.correlation_threshold:
+                    if spectral_similarity_scores["cosine_correlation"] >= self.gcms_obj.molecular_search_settings.correlation_threshold:
                     
-                        gc_peak.add_compound(ref_obj, spectral_similarity_score)
+                        gc_peak.add_compound(ref_obj, spectral_similarity_scores)
 
                 # use score, usually a combination of Retention index and Spectral Similarity
                 # Threshold is implemented by not necessarily used
                 else:
 
-                    # TODO: add other scoring methods
                     # m/q developed methods will be implemented here
-                    spectral_similarity_score, ri_score, similarity_score = self.metabolite_detector_score(gc_peak, ref_obj)   
+                    spectral_similarity_scores, ri_score, similarity_score = self.metabolite_detector_score(gc_peak, ref_obj)   
                     
-                    if similarity_score >= self.gcms_obj.molecular_search_settings.score_threshold:
+                    #TODO need to add similarity score option in the parameters encapsulation class
+                    if spectral_similarity_scores.get("cosine_correlation") >= self.gcms_obj.molecular_search_settings.score_threshold:
                     
-                        gc_peak.add_compound(ref_obj, spectral_similarity_score, ri_score, similarity_score)
+                        gc_peak.add_compound(ref_obj, spectral_similarity_scores, ri_score, similarity_score)
                 
         self.sql_obj.session.close()
         self.sql_obj.engine.dispose()

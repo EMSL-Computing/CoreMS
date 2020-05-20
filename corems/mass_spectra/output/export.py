@@ -29,9 +29,28 @@ class LowResGCMSExport():
         
     def _init_columns(self):
 
-        return ['Sample name', 'Retention Time', 'Retention Time Ref', 'Peak Height',
+        columns =  ['Sample name', 'Retention Time', 'Retention Time Ref', 'Peak Height',
                 'Peak Area', 'Retention index', 'Retention index Ref','Retention Index Score',
-                'Spectral Similarity Score', 'Similarity Score', 'Compound Name']
+                'Similarity Score',
+                'Spectral Similarity Score',
+                'Compound Name']
+        
+        if self.gcms.molecular_search_settings.exploratory_mode:
+                
+                columns.extend(['Weighted Cosine Correlation',
+                                'Cosine Correlation',
+                                'Stein Scott Similarity',
+                                'Pearson Correlation',
+                                'Spearman Correlation',
+                                'Kendall Tau Correlation', 
+                                'Euclidean Distance',
+                                'Manhattan Distance',
+                                'Jaccard Distance',
+                                'DWT Correlation',
+                                'DFT Correlation' ])
+                                                
+        
+        return columns        
     
     def get_pandas_df(self, highest_score=True):
 
@@ -141,19 +160,36 @@ class LowResGCMSExport():
 
         def add_match_dict_data():
 
-            dict_data_list.append( {'Sample name': gcms.sample_name,
-                           'Retention Time': gc_peak.rt,
-                           'Retention Time Ref': compound_obj.rt,
-                           'Peak Height': gc_peak.tic,
-                           'Peak Area': gc_peak.area,
-                           'Retention index': gc_peak.ri,
-                           'Retention index Ref':  compound_obj.ri,
-                           'Retention Index Score': compound_obj.ri_score,
-                           'Spectral Similarity Score': compound_obj.spectral_similarity_score,
-                           'Similarity Score': compound_obj.similarity_score,
-                           'Compound Name' : compound_obj.name
-                           } )
+            out_dict = {'Sample name': gcms.sample_name,
+                        'Retention Time': gc_peak.rt,
+                        'Retention Time Ref': compound_obj.rt,
+                        'Peak Height': gc_peak.tic,
+                        'Peak Area': gc_peak.area,
+                        'Retention index': gc_peak.ri,
+                        'Retention index Ref':  compound_obj.ri,
+                        'Retention Index Score': compound_obj.ri_score,
+                        'Spectral Similarity Score': compound_obj.spectral_similarity_score,
+                        'Similarity Score': compound_obj.similarity_score,
+                        'Compound Name' : compound_obj.name
+            }    
 
+            if self.gcms.molecular_search_settings.exploratory_mode:
+                out_dict.update({
+                    'Weighted Cosine Correlation': compound_obj.spectral_similarity_scores.get("weighted_cosine_correlation"), 
+                    'Cosine Correlation': compound_obj.spectral_similarity_scores.get("cosine_correlation"), 
+                    'Stein Scott Similarity': compound_obj.spectral_similarity_scores.get("stein_scott_similarity"), 
+                    'Pearson Correlation': compound_obj.spectral_similarity_scores.get("pearson_correlation"), 
+                    'Spearman Correlation': compound_obj.spectral_similarity_scores.get("spearman_correlation"), 
+                    'Kendall Tau Correlation': compound_obj.spectral_similarity_scores.get("kendall_tau_correlation"), 
+                    'Euclidean Distance': compound_obj.spectral_similarity_scores.get("euclidean_distance"), 
+                    'Manhattan Distance': compound_obj.spectral_similarity_scores.get("manhattan_distance"),
+                    'Jaccard Distance': compound_obj.spectral_similarity_scores.get("jaccard_distance"),
+                    'DFT Correlation': compound_obj.spectral_similarity_scores.get("dft_correlation"),
+                    'DWT Correlation': compound_obj.spectral_similarity_scores.get("dwt_correlation"),
+                })
+        
+            dict_data_list.append(out_dict)
+        
         def add_no_match_dict_data():
 
             dict_data_list.append( {'Sample name': gcms.sample_name,
