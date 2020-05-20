@@ -61,11 +61,11 @@ def get_reference_dict():
     else:
         
         gcms_ref_obj = get_gcms(file_path)
-        #sql_obj = start_sql_from_file()
-        #rt_ri_pairs = get_rt_ri_pairs(gcms_ref_obj,sql_obj=sql_obj)
+        sql_obj = start_sql_from_file()
+        rt_ri_pairs = get_rt_ri_pairs(gcms_ref_obj,sql_obj=sql_obj)
         # !!!!!! READ !!!!! use the previous two lines if db/pnnl_lowres_gcms_compounds.sqlite does not exist
         # and comment the next line
-        rt_ri_pairs = get_rt_ri_pairs(gcms_ref_obj)
+        #rt_ri_pairs = get_rt_ri_pairs(gcms_ref_obj)
 
         return rt_ri_pairs
         
@@ -77,11 +77,11 @@ def run(args):
     
     gcms.calibrate_ri(ref_dict)
     
-    #sql_obj = start_sql_from_file()
-    #lowResSearch = LowResMassSpectralMatch(gcms, sql_obj=sql_obj)
+    sql_obj = start_sql_from_file()
+    lowResSearch = LowResMassSpectralMatch(gcms, sql_obj=sql_obj)
     # !!!!!! READ !!!!! use the previous two lines if db/pnnl_lowres_gcms_compounds.sqlite does not exist
     # and comment the next line
-    lowResSearch = LowResMassSpectralMatch(gcms)
+    #lowResSearch = LowResMassSpectralMatch(gcms)
     lowResSearch.run()
 
     return gcms
@@ -141,8 +141,8 @@ if __name__ == '__main__':
     #import matplotlib
     #matplotlib.use('TkAgg')
 
-    cores = 4
-    out_put_file_name = 'Test'
+    cores = 8
+    out_put_file_name = 'Group1'
     calibrate_and_search(out_put_file_name, cores)
     #start_sql_from_file()
 
