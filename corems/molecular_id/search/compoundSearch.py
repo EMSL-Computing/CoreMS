@@ -14,6 +14,8 @@ from corems.molecular_id.factory.EI_SQL import EI_LowRes_SQLite
 from scipy import fft
 from scipy.fftpack import rfft
 
+from pywt import dwt 
+
 class LowResMassSpectralMatch(Thread):
 
     def __init__(self, gcms_obj, sql_obj=None, calibration=False):
@@ -292,25 +294,6 @@ class LowResMassSpectralMatch(Thread):
         
         return correlation
 
-    def dwt_correlation(self, mass_spec, ref_obj):
-
-        return 0
-        # create dict['mz'] = abundance, for experimental data
-        ms_mz_abun_dict = mass_spec.mz_abun_dict
-
-        # create dict['mz'] = abundance, for experimental data
-        ref_mz_abun_dict = dict(zip(ref_obj.get("mz"), ref_obj.get("abundance")))
-
-        # parse to dataframe, easier to zerofilland tranpose
-        df = DataFrame([ms_mz_abun_dict, ref_mz_abun_dict])
-
-        # fill missing mz with abundance 0
-        df.fillna(0, inplace=True)
-        
-        # calculate DFT correlation
-        #
-        # return correlation
-
     def dft_correlation(self, mass_spec, ref_obj):
 
         ms_mz_abun_dict = mass_spec.mz_abun_dict
@@ -365,7 +348,12 @@ class LowResMassSpectralMatch(Thread):
         return s_dft
 
     def jaccard_distance(self, mass_spec, ref_obj):
-
+        
+        def jaccard_similarity(list1, list2):
+            intersection = len(list(set(list1).intersection(list2)))
+            union = (len(list1) + len(list2)) - intersection
+            return float(intersection) / union
+        
         # create dict['mz'] = abundance, for experimental data
         ms_mz_abun_dict = mass_spec.mz_abun_dict
 
@@ -379,9 +367,67 @@ class LowResMassSpectralMatch(Thread):
         df.fillna(0, inplace=True)
         
         # calculate jaccard correlation
-        correlation = jaccard(df.T[0], df.T[1])
-
+        #correlation = jaccard(df.T[0], df.T[1])
+        correlation = jaccard_similarity(df.T[0], df.T[1])
         return correlation
+    
+    def dwt_correlation(self, mass_spec, ref_obj):
+        #Need to have pywavelets installed
+        ms_mz_abun_dict = mass_spec.mz_abun_dict
+ 
+        exp_abun = list(ms_mz_abun_dict.values())
+        exp_mz = list(ms_mz_abun_dict.keys())
+ 
+        ref_abun = ref_obj.get("abundance")
+        ref_mz = ref_obj.get("mz")
+ 
+        # important: I assume ref_mz and ref_abun are in order, and one-to-one; this needs to be be verified
+        ref_mz_abun_dict = dict(zip(ref_mz, ref_abun))
+ 
+        # filter out the mass values that have zero intensities in exp_mz
+        exp_mz_filtered = set([k for k in exp_mz if ms_mz_abun_dict[k] != 0])
+ 
+        # filter out the mass values that have zero intensities in ref_mz
+        ref_mz_filtered = set([k for k in ref_mz if ref_mz_abun_dict[k] != 0])
+ 
+        # find the intersection/common mass values of both ref and exp, and sort them
+        common_mz_values = sorted(list(exp_mz_filtered.intersection(ref_mz_filtered)))
+                
+        # find the number of common mass values (after filtering 0s)
+        n_x_y = len(common_mz_values)
+ 
+        # count number of non-zero abundance/peak intensity values
+        n_x = sum(a != 0 for a in exp_abun)
+
+        #parse to dataframe, easier to zerofill and tranpose
+        df = DataFrame([ms_mz_abun_dict, ref_mz_abun_dict])
+ 
+        # fill missing mz with abundance 0
+        df.fillna(0, inplace=True)
+        
+        #calculate cosine correlation, 
+        x = df.T[0]
+        y = df.T[1]
+
+        #Make x and y into an array
+        x_a=list(x)
+        y_a=list(y)
+
+        # get the wavelet transform of x and y (Daubechies with a filter length of 4. Asymmetric. pywavelets function)
+        #Will only use the detail dwt (dwtDd
+        (x_dwtA,x_dwtD) = dwt(x_a,'db2')
+        (y_dwtA,y_dwtD) = dwt(y_a,'db2')
+
+        s_dwt_xy = dot(x_dwtD, y_dwtD)/(norm(x_dwtD)*norm(y_dwtD))
+ 
+        # using the existing weighted_cosine_correlation function to get S_WC(X,Y)
+        s_wc_x_y = self.weighted_cosine_correlation(mass_spec, ref_obj)
+ 
+        # final step
+        s_dwt = (n_x * s_wc_x_y + n_x_y * s_dwt_xy) / (n_x + n_x_y)
+
+        return s_dwt
+
     #@timeit
     def run(self):
         # TODO select the best gcms peak    

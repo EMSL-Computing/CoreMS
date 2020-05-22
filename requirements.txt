@@ -20,3 +20,4 @@ lmfit==1.0.0
 chardet==3.0.4
 tqdm==4.43.0
 Pyside2==5.14.1
+pywavelets
