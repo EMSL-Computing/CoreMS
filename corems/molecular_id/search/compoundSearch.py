@@ -246,7 +246,7 @@ class LowResMassSpectralMatch(Thread):
 
             T2=sum((qlist)**2)
 
-            T3=(1+T1/T2)**(-1)
+            return (1+T1/T2)**(-1)
             
         # create dict['mz'] = abundance, for experimental data
         ms_mz_abun_dict = mass_spec.mz_abun_dict
@@ -272,7 +272,7 @@ class LowResMassSpectralMatch(Thread):
         
             T1=sum(absolute(subtract(qlist,rlist)))
             T2=sum(qlist)
-            T3=(1+T1/T2)**(-1)
+            return (1+T1/T2)**(-1)
 
         # create dict['mz'] = abundance, for experimental data
         ms_mz_abun_dict = mass_spec.mz_abun_dict
