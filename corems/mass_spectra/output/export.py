@@ -45,7 +45,7 @@ class LowResGCMSExport():
                                 'Kendall Tau Correlation', 
                                 'Euclidean Distance',
                                 'Manhattan Distance',
-                                'Jaccard Distance',
+                                'Jaccard Similarity',
                                 'DWT Correlation',
                                 'DFT Correlation' ])
                                                 
@@ -183,7 +183,7 @@ class LowResGCMSExport():
                     'Kendall Tau Correlation': compound_obj.spectral_similarity_scores.get("kendall_tau_correlation"), 
                     'Euclidean Distance': compound_obj.spectral_similarity_scores.get("euclidean_distance"), 
                     'Manhattan Distance': compound_obj.spectral_similarity_scores.get("manhattan_distance"),
-                    'Jaccard Distance': compound_obj.spectral_similarity_scores.get("jaccard_distance"),
+                    'Jaccard Similarity': compound_obj.spectral_similarity_scores.get("jaccard_distance"),
                     'DFT Correlation': compound_obj.spectral_similarity_scores.get("dft_correlation"),
                     'DWT Correlation': compound_obj.spectral_similarity_scores.get("dwt_correlation"),
                 })
