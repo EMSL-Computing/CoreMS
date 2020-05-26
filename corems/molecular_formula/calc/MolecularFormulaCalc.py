@@ -133,6 +133,7 @@ class MolecularFormulaCalc:
             
             # has isotopologues based on current dinamic range
             accumulated_mz_score = []
+            
             if self.expected_isotopologues:
                 
                 dict_mz_abund_ref = {}
@@ -165,13 +166,16 @@ class MolecularFormulaCalc:
                 x = df.T[0].values
                 y = df.T[1].values
 
+
                 correlation = kendalltau(x, y)[0]
+                
                 if isnan(correlation):
+                    #print(x,y)
                     correlation = 0.000001
             
             else:
                 
-                # no isotopologue expected, giving a correlation score of 0.5 but it needs optimization
+                # no isotopologue expected, or it is a isotopologue, giving a correlation score of 0.5 but it needs optimization
                 correlation = 0.5
 
 
@@ -271,7 +275,14 @@ class MolecularFormulaCalc:
                     else:
                         continue
             
-            return 1 + (0.5 * individual_dbe)
+            dbe = 1 + (0.5 * individual_dbe)
+            
+            
+            
+            if self.ion_type == Labels.adduct_ion:
+                dbe = dbe + 0.5
+            
+            return dbe
 
     def _calc_kdm(self, dict_base):
         '''dict_base = {"C": 1, "H": 2}
