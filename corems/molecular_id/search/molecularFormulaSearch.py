@@ -126,7 +126,7 @@ class SearchMolecularFormulas:
             
             adduct_list = mf_search_settings.adduct_atoms_neg if ion_charge < 0 else mf_search_settings.adduct_atoms_pos
             dict_res[Labels.adduct_ion] = sql_db.get_dict_by_classes(classe_str_list, Labels.adduct_ion, nominal_mzs, ion_charge, mf_search_settings, adducts=adduct_list)    
-
+            
         return dict_res
 
     @timeit                    
@@ -209,9 +209,10 @@ class SearchMolecularFormulas:
                     
                     for adduct_atom, dict_by_class in dict_atoms_formulas.items():
                         
-                        candidate_formulas = dict_res.get(ion_type).get(classe_str)
+                        candidate_formulas = dict_by_class.get(classe_str)
+                        
                         if candidate_formulas:
-                            self.run_search(ms_peaks, dict_res.get(ion_type).get(classe_str),
+                            self.run_search(ms_peaks, candidate_formulas,
                                         min_abundance, ion_type, ion_charge, adduct_atom=adduct_atom)
 
         self.sql_db.close()     

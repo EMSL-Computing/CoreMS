@@ -165,7 +165,7 @@ class PeakPicking:
         peak_height_diff = lambda hi, li : ((abund[hi] - abund[li]) / max_abundance )*100
 
         abundance_threshold, factor = self.get_threshold(abund)
-        print(abundance_threshold, factor)
+        #print(abundance_threshold, factor)
         # find indices of all peaks
         dy = abund[1:] - abund[:-1]
         
