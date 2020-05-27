@@ -128,7 +128,7 @@ if __name__ == "__main__":
                         
                         if mf.is_isotopologue:
                             
-                            ax.annotate(round(mf.area_error,1), (mspeak.mz_exp+0.2, mspeak.abundance), label="Error (%)")
+                            ax.annotate(round(mf.abundance_error,1), (mspeak.mz_exp+0.2, mspeak.abundance), label="Error (%)")
                             list_dict.append( {
                                 
                                 "Sample Name" : mass_spectrum.sample_name, 
