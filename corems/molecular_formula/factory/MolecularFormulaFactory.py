@@ -200,6 +200,7 @@ class MolecularFormula(MolecularFormulaCalc):
         self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(kendrick_dict_base)
                 
     def isotopologues(self, min_abundance, current_mono_abundance, dynamic_range): 
+        
         # this calculation ignores the hydrogen
         for mf in self._cal_isotopologues(self._d_molecular_formula, min_abundance, current_mono_abundance, dynamic_range ):
              

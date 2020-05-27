@@ -15,7 +15,7 @@ from corems.molecular_id.factory.molecularSQL import MolForm_SQL, MolecularFormu
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.molecular_id.calc.MolecularFilter import MolecularFormulaSearchFilters
 from corems.molecular_id.factory.MolecularLookupTable import MolecularCombinations
-#import cProfile
+import cProfile
 
 
 last_error = 0
@@ -219,7 +219,6 @@ class SearchMolecularFormulas:
                                 self.run_search(ms_peaks, candidate_formulas,
                                             min_abundance, ion_type, ion_charge, adduct_atom=adduct_atom)
 
-        #cProfile.runctx('run()', globals(), locals(), 'di-fticr-di.prof')
         run()
         self.sql_db.close()     
 
@@ -384,6 +383,7 @@ class SearchMolecularFormulaWorker:
             elif ion_type == Labels.adduct_ion and adduct_atom:
                 
                 return possible_formula.adduct_mass(ion_charge, adduct_atom)
+            
             else:
                 
                 return possible_formula.mass
@@ -409,7 +409,7 @@ class SearchMolecularFormulaWorker:
                     formula_dict = possible_formula.formula_dict
                     # create the molecular formula obj to be stored
                     molecular_formula = MolecularFormula(formula_dict, ion_charge, ion_type=ion_type, adduct_atom=adduct_atom)
-
+                    
                     # add the molecular formula obj to the mspeak obj
                     # add the mspeak obj and it's index for tracking next assignment step
                     
@@ -421,8 +421,7 @@ class SearchMolecularFormulaWorker:
                         # search for isotopologues
                         for isotopologue_formula in isotopologues:
                             
-                            isotopologue_formula = isotopologue_formula
-
+                            
                             molecular_formula.expected_isotopologues.append(isotopologue_formula)
                             #move this outside to improve preformace
                             #we need to increase the search space to -+1 m_z 
@@ -436,13 +435,9 @@ class SearchMolecularFormulaWorker:
                                     
                                     #need to define error distribution for abundance measurements
                                     
-                                    if mass_spectrum_obj.is_centroid:
+                                    #if mass_spectrum_obj.is_centroid:
                                         
-                                        abundance_error = self.calc_error(isotopologue_formula.abundance_calc, ms_peak_iso.abundance,method='perc')            
-                                        
-                                    else:
-                                        
-                                        abundance_error = self.calc_error(ms_peak.area, ms_peak_iso.area, method='perc')
+                                    abundance_error = self.calc_error(isotopologue_formula.abundance_calc, ms_peak_iso.abundance,method='perc')            
                                         
                                     #area_error = self.calc_error(ms_peak.area, ms_peak_iso.area, method='perc')
 
@@ -474,7 +469,7 @@ class SearchMolecularFormulaWorker:
                     y = ms_peak.add_molecular_formula(molecular_formula)            
 
                     mspeak_assigned_index.append((ms_peak.index, y))
-
+                    
 
         return mspeak_assigned_index
 

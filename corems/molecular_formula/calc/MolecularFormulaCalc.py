@@ -328,7 +328,7 @@ class MolecularFormulaCalc:
         
         *   use this function to simulate mass spectrum 
             (needs resolving power calculation to be fully operational)        
-            last update on 07-19-2019, Yuri E. Corilo 
+            last update on 05-26-2020, Yuri E. Corilo 
         
         *   it might break when adding non-conventional atoms (not yet tested)
             
@@ -336,11 +336,10 @@ class MolecularFormulaCalc:
             https://github.com/MatteoLacki/IsoSpec
         '''
         # updated it to reflect min possible mass peak abundance
+        cut_off_to_IsoSpeccPy = 1-(1/ms_dynamic_range)
         
-        
-        cut_off_to_IsoSpeccPy = 1-(1/ms_dynamic_range) 
         #print("cut_off_to_IsoSpeccPy", cut_off_to_IsoSpeccPy, current_abundance, min_abundance, ms_dynamic_range)
-        
+        #print(cut_off_to_IsoSpeccPy)
         atoms_labels = (atom for atom in formula_dict.keys() if atom != Labels.ion_type and atom != 'H')
        
         atoms_count = []
@@ -381,9 +380,8 @@ class MolecularFormulaCalc:
                 atoms_count.append(formula_dict.get(atom_label))
                 masses_list_tuples.append(masses)
                 props_list_tuples.append(props)
-
         
-        iso = IsoSpecPy.IsoSpec(atoms_count,masses_list_tuples,props_list_tuples, cut_off_to_IsoSpeccPy )
+        iso = IsoSpecPy.IsoSpec(atoms_count,masses_list_tuples,props_list_tuples, cut_off_to_IsoSpeccPy)
         
         conf = iso.getConfs()
         masses = conf[0]
@@ -423,7 +421,6 @@ class MolecularFormulaCalc:
             del probs[index_mono]
             del new_formulas[index_mono]
             
-            min_abundance, current_abundance
             #print('probs_exp', probs)
             for formulas, prob in zip(new_formulas, probs):
                 
