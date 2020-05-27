@@ -107,9 +107,11 @@ class LowResMassSpectralMatch(Thread):
                     spectral_similarity_scores, ri_score, similarity_score = self.metabolite_detector_score(gc_peak, ref_obj)   
                     
                     #TODO need to add similarity score option in the parameters encapsulation class
-                    if spectral_similarity_scores.get("cosine_correlation") >= self.gcms_obj.molecular_search_settings.score_threshold:
                     
+                    if similarity_score >= self.gcms_obj.molecular_search_settings.score_threshold:
+                        
                         gc_peak.add_compound(ref_obj, spectral_similarity_scores, ri_score, similarity_score)
                 
+            
         self.sql_obj.session.close()
         self.sql_obj.engine.dispose()
