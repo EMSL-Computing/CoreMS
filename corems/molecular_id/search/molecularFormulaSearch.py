@@ -15,6 +15,7 @@ from corems.molecular_id.factory.molecularSQL import MolForm_SQL, MolecularFormu
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.molecular_id.calc.MolecularFilter import MolecularFormulaSearchFilters
 from corems.molecular_id.factory.MolecularLookupTable import MolecularCombinations
+#import cProfile
 
 
 last_error = 0
@@ -157,64 +158,69 @@ class SearchMolecularFormulas:
         
         # split the database load to not blowout the memory
         # TODO add to the settings
-        for classe_chunk in chunks(classes, 300): 
+        
+        def run():
             
-            classes_str_list = [class_tuple[0] for class_tuple in classe_chunk]
-            
-            # load the molecular formula objs binned by ion type and heteroatoms classes, {ion type:{classe:[list_formula]}}
-            # for adduct ion type a third key is added {atoms:{ion type:{classe:[list_formula]}}} 
-            dict_res = self.database_to_dict(classes_str_list, nominal_mzs, self.mass_spectrum_obj.molecular_search_settings, ion_charge)
-            
-            pbar = tqdm.tqdm(classe_chunk)
-            
-            for classe_tuple in pbar:
+            for classe_chunk in chunks(classes, 300): 
                 
-                # class string is a json serialized dict
-                classe_str  = classe_tuple[0]
-                classe_dict = classe_tuple[1]
+                classes_str_list = [class_tuple[0] for class_tuple in classe_chunk]
                 
-                if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
-                        
-                    ion_type = Labels.protonated_de_ion
+                # load the molecular formula objs binned by ion type and heteroatoms classes, {ion type:{classe:[list_formula]}}
+                # for adduct ion type a third key is added {atoms:{ion type:{classe:[list_formula]}}} 
+                dict_res = self.database_to_dict(classes_str_list, nominal_mzs, self.mass_spectrum_obj.molecular_search_settings, ion_charge)
+                
+                pbar = tqdm.tqdm(classe_chunk)
+                
+                for classe_tuple in pbar:
+                    
+                    # class string is a json serialized dict
+                    classe_str  = classe_tuple[0]
+                    classe_dict = classe_tuple[1]
+                    
+                    if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
+                            
+                        ion_type = Labels.protonated_de_ion
 
-                    pbar.set_description_str(desc="Started molecular formula search for class %s, (de)protonated " % classe_str, refresh=True)
-                    
-                    candidate_formulas = dict_res.get(ion_type).get(classe_str)
-
-                    if candidate_formulas:
+                        pbar.set_description_str(desc="Started molecular formula search for class %s, (de)protonated " % classe_str, refresh=True)
                         
-                        self.run_search(ms_peaks, candidate_formulas,
-                                    min_abundance, ion_type, ion_charge)
+                        candidate_formulas = dict_res.get(ion_type).get(classe_str)
 
-                if self.mass_spectrum_obj.molecular_search_settings.isRadical:
-                        
-                    pbar.set_description_str(desc="Started molecular formula search for class %s, radical " % classe_str, refresh=True)
-                    
-                    ion_type = Labels.radical_ion
-                    
-                    candidate_formulas = dict_res.get(ion_type).get(classe_str)
-
-                    if candidate_formulas:
-
-                        self.run_search(ms_peaks, candidate_formulas,
-                                    min_abundance, ion_type, ion_charge)
-                # looks for adduct, used_atom_valences should be 0 
-                # this code does not support H exchance by halogen atoms
-                if self.mass_spectrum_obj.molecular_search_settings.isAdduct:
-                    
-                    pbar.set_description_str(desc="Started molecular formula search for class %s, adduct " % classe_str, refresh=True)
-                    
-                    ion_type = Labels.adduct_ion
-                    dict_atoms_formulas =  dict_res.get(ion_type)
-                    
-                    for adduct_atom, dict_by_class in dict_atoms_formulas.items():
-                        
-                        candidate_formulas = dict_by_class.get(classe_str)
-                        
                         if candidate_formulas:
+                            
                             self.run_search(ms_peaks, candidate_formulas,
-                                        min_abundance, ion_type, ion_charge, adduct_atom=adduct_atom)
+                                        min_abundance, ion_type, ion_charge)
 
+                    if self.mass_spectrum_obj.molecular_search_settings.isRadical:
+                            
+                        pbar.set_description_str(desc="Started molecular formula search for class %s, radical " % classe_str, refresh=True)
+                        
+                        ion_type = Labels.radical_ion
+                        
+                        candidate_formulas = dict_res.get(ion_type).get(classe_str)
+
+                        if candidate_formulas:
+
+                            self.run_search(ms_peaks, candidate_formulas,
+                                        min_abundance, ion_type, ion_charge)
+                    # looks for adduct, used_atom_valences should be 0 
+                    # this code does not support H exchance by halogen atoms
+                    if self.mass_spectrum_obj.molecular_search_settings.isAdduct:
+                        
+                        pbar.set_description_str(desc="Started molecular formula search for class %s, adduct " % classe_str, refresh=True)
+                        
+                        ion_type = Labels.adduct_ion
+                        dict_atoms_formulas =  dict_res.get(ion_type)
+                        
+                        for adduct_atom, dict_by_class in dict_atoms_formulas.items():
+                            
+                            candidate_formulas = dict_by_class.get(classe_str)
+                            
+                            if candidate_formulas:
+                                self.run_search(ms_peaks, candidate_formulas,
+                                            min_abundance, ion_type, ion_charge, adduct_atom=adduct_atom)
+
+        #cProfile.runctx('run()', globals(), locals(), 'di-fticr-di.prof')
+        run()
         self.sql_db.close()     
 
     def search_mol_formulas(self,  possible_formulas_list, find_isotopologues=True):
@@ -365,26 +371,28 @@ class SearchMolecularFormulaWorker:
         ms_peak_mz_exp, ms_peak_abundance = ms_peak.mz_exp, ms_peak.abundance
         #min_error = min([pmf.mz_error for pmf in possible_formulas])
         
-        if ion_type == Labels.protonated_de_ion:
-            
-            mass_conversion_type = "possible_formula.protonated_mass(ion_charge)"
-            
-        elif ion_type == Labels.radical_ion:
-            
-            mass_conversion_type = "possible_formula.radical_mass(ion_charge)"
+        def mass_by_ion_type(possible_formula_obj):
 
-        elif ion_type == Labels.adduct_ion and adduct_atom:
-            
-            mass_conversion_type = "possible_formula.adduct_mass(ion_charge, adduct_atom)"
-        else:
-            
-            mass_conversion_type = "possible_formula.mass"
+            if ion_type == Labels.protonated_de_ion:
+                
+                return possible_formula_obj.protonated_mass(ion_charge)
+                
+            elif ion_type == Labels.radical_ion:
+                
+                return possible_formula_obj.radical_mass(ion_charge)
+
+            elif ion_type == Labels.adduct_ion and adduct_atom:
+                
+                return possible_formula.adduct_mass(ion_charge, adduct_atom)
+            else:
+                
+                return possible_formula.mass
 
         for possible_formula in formulas:
             
             if possible_formula:
                 
-                error = self.calc_error(ms_peak_mz_exp, eval(mass_conversion_type))
+                error = self.calc_error(ms_peak_mz_exp, mass_by_ion_type(possible_formula))
                 
                 #error = possible_formula.mz_error
                
