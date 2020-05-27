@@ -25,13 +25,11 @@ class MolecularFormula(MolecularFormulaCalc):
         elif type(molecular_formula) is str:
                 self._from_str(molecular_formula, ion_type, adduct_atom)   
 
+        
         self._ion_charge = ion_charge
         
         self.is_isotopologue = False
 
-        self._isotopologue_similarity = 0.5  
-
-        self._mass_error_score = 0.0
         # parent mass spectrum peak obj instance
         self._mspeak_parent = mspeak_parent
 
@@ -183,10 +181,10 @@ class MolecularFormula(MolecularFormulaCalc):
     def confidence_score(self): return self._calc_confidence_score() 
 
     @property
-    def isotopologue_similarity(self): return self._isotopologue_similarity    
+    def isotopologue_similarity(self): return self._calc_isotopologue_confidence()    
     
     @property
-    def mass_error_score(self): return self._mass_error_score    
+    def mass_error_score(self): return self._calc_mz_confidence()
     
     @property
     def kmd(self): return self._kdm

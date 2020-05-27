@@ -9,6 +9,7 @@ from scipy.stats import pearsonr, spearmanr, kendalltau
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.factory.parameters import MSParameters
+from corems.molecular_id.calc.SpectralSimilarity import *
 
 class MolecularFormulaCalc:
     
@@ -109,9 +110,56 @@ class MolecularFormulaCalc:
         
         return  exp( -1 * (power((self.mz_error -  mean),2)  / (2 * power(self._mspeak_parent.predicted_std,2)) ))
     
+    def _calc_isotopologue_confidence(self):
+
+        if self.is_isotopologue:
+            # confidence of isotopologue is pure mz error 
+            # TODO add more features here 
+            
+            return 0
+    
+        else:
+            
+            # has isotopologues based on current dinamic range
+            
+            if self.expected_isotopologues:
+                
+                dict_mz_abund_ref = {'mz':[], 'abundance':[]}
+                
+                # get reference data
+                for mf in self.expected_isotopologues:
+                    dict_mz_abund_ref['abundance'].append(mf.abundance_calc)
+                    dict_mz_abund_ref['mz'].append(mf.mz_calc)
+
+                dict_mz_abund_exp = {}
+                
+                # get experimental data
+                for mf in self.expected_isotopologues:
+                    
+                    # molecular formula has been assigned to a peak
+                    if mf._mspeak_parent:
+                        #stores mspeak abundance
+                        dict_mz_abund_exp[mf.mz_calc] = mf._mspeak_parent.abundance
+                       
+                    else:
+                        # fill missing mz with abundance 0 and mz error score of 0
+                        dict_mz_abund_exp[mf.mz_calc] = 0.000001
+                
+                correlation = dft_correlation(dict_mz_abund_exp, dict_mz_abund_ref)
+                
+                if isnan(correlation):
+                    print(dict_mz_abund_exp,dict_mz_abund_ref)
+                    correlation = 0.000001
+            
+            else:
+               
+                # no isotopologue expected giving a correlation score of 0.5 but it needs optimization
+                correlation = 0.5
+
+            return correlation
+
     def _calc_confidence_score(self):
         
-
         '''
         ### Assumes random mass error, i.e, spectrum has to be calibrated and with zero mean
         #### TODO: Add spectral similarity 
@@ -127,74 +175,38 @@ class MolecularFormulaCalc:
         if self.is_isotopologue:
             # confidence of isotopologue is pure mz error 
             # TODO add more features here 
-            return self._calc_mz_confidence()
-    
+            
+            isotopologue_correlation = 0.5
+            accumulated_mz_score = [self._calc_mz_confidence()]
+        
         else:
             
             # has isotopologues based on current dinamic range
             accumulated_mz_score = []
-            
             if self.expected_isotopologues:
-                
-                dict_mz_abund_ref = {}
-                
-                # get reference data
                 for mf in self.expected_isotopologues:
-                    dict_mz_abund_ref[mf.mz_calc] = mf.abundance_calc
-                
-                dict_mz_abund_exp = {}
-                
-                # get experimental data
-                for mf in self.expected_isotopologues:
-                    
                     # molecular formula has been assigned to a peak
                     if mf._mspeak_parent:
                         #stores mspeak abundance
-                        dict_mz_abund_exp[mf.mz_calc] = mf._mspeak_parent.abundance
-                        #calculate mz error score and store it for all the isotopologue match
                         accumulated_mz_score.append(mf._calc_mz_confidence())
-                    
                     else:
                         # fill missing mz with abundance 0 and mz error score of 0
-                        dict_mz_abund_exp[mf.mz_calc] = 0.0
                         accumulated_mz_score.append(0.0)
 
-                df = DataFrame([dict_mz_abund_exp, dict_mz_abund_ref])
-                
-                #calculate abundance correlation, 
-                # ensure data alignment
-                x = df.T[0].values
-                y = df.T[1].values
 
-
-                correlation = kendalltau(x, y)[0]
-                
-                if isnan(correlation):
-                    #print(x,y)
-                    correlation = 0.000001
-            
-            else:
-                
-                # no isotopologue expected, or it is a isotopologue, giving a correlation score of 0.5 but it needs optimization
-                correlation = 0.5
-
-
+            isotopologue_correlation = self._calc_isotopologue_confidence()
             # add monoisotopic peak mz error score
             accumulated_mz_score.append(self._calc_mz_confidence())
             
-            average_mz_score = sum(accumulated_mz_score)/len(accumulated_mz_score)
-            if isnan(average_mz_score):
-                    average_mz_score = 0.0
-            # calculate score with higher weight for mass error
-            score = power(((correlation) * (power(average_mz_score,2))),1/3)
+        average_mz_score = sum(accumulated_mz_score)/len(accumulated_mz_score)
+        
+        if isnan(average_mz_score):
+                average_mz_score = 0.0
+        
+        # calculate score with higher weight for mass error
+        score = power(((isotopologue_correlation) * (power(average_mz_score,2))),1/3)
 
-            self._isotopologue_similarity = correlation
-            self._mass_error_score = average_mz_score
-            #print("correlation",correlation)
-            #print("average_mz_score",average_mz_score)
-            #print("mz_score",self._calc_mz_confidence())
-            #print("score",score)
-            return score
+        return score
 
 
     def _calc_abundance_error(self, method='percentile'):
