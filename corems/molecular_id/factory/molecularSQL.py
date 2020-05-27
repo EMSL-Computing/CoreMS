@@ -255,21 +255,23 @@ class MolForm_SQL:
             "organize data by heteroatom classes"
             dict_res = {}
 
-            if ion_type == Labels.protonated_de_ion:
-            
-                mass_conversion_type = "int(formula_obj.protonated_mass(ion_charge))"
-            
-            elif ion_type == Labels.radical_ion:
+            def nominal_mass_by_ion_type(formula_obj):
                 
-                mass_conversion_type = "int(formula_obj.radical_mass(ion_charge))"
+                if ion_type == Labels.protonated_de_ion:
+                
+                    return int(formula_obj.protonated_mass(ion_charge))
+                
+                elif ion_type == Labels.radical_ion:
+                    
+                    return int(formula_obj.radical_mass(ion_charge))
 
-            elif ion_type == Labels.adduct_ion and adduct_atom:
-                
-                mass_conversion_type = "int(formula_obj.adduct_mass(ion_charge, adduct_atom))"
+                elif ion_type == Labels.adduct_ion and adduct_atom:
+                    
+                    return int(formula_obj.adduct_mass(ion_charge, adduct_atom))
             
             for formula_obj, ch_obj, classe_obj  in tqdm.tqdm(formulas, desc="Loading molecular formula database"):
                 
-                nominal_mz = eval(mass_conversion_type)
+                nominal_mz = nominal_mass_by_ion_type(formula_obj)
                 
                 if self.type != 'normal':
                     if not nominal_mz in nominal_mzs:
