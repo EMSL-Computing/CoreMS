@@ -4,7 +4,7 @@ from pywt import dwt
 from scipy.spatial.distance import cosine, jaccard, euclidean, cityblock
 from scipy.stats import pearsonr, spearmanr, kendalltau
 from sklearn.metrics.pairwise import cosine_similarity
-from numpy import power, dot, absolute, subtract, intersect1d, where, average
+from numpy import power, dot, absolute, subtract, intersect1d, where, average, corrcoef
 from numpy.linalg import norm
 from pandas import DataFrame
 
@@ -36,8 +36,8 @@ def weighted_cosine_correlation(  ms_mz_abun_dict, ref_obj):
     df.fillna(0, inplace=True)
     
     #calculate cosine correlation, 
-    x = df.T[0]
-    y = df.T[1]
+    x = df.T[0].values
+    y = df.T[1].values
 
     #correlation = (1 - cosine(x, y))
     
@@ -63,12 +63,12 @@ def cosine_correlation(  ms_mz_abun_dict, ref_obj):
     df.fillna(0, inplace=True)
     
     #calculate cosine correlation, 
-    x = df.T[0]
-    y = df.T[1]
-
-    correlation = (1 - cosine(x, y))
+    x = df.T[0].values
+    y = df.T[1].values
     
-    #correlation = dot(x, y)/(norm(x)*norm(y))
+    #correlation = (1 - cosine(x, y))
+    
+    correlation = dot(x, y)/(norm(x)*norm(y))
 
     return correlation
 
@@ -353,8 +353,8 @@ def dwt_correlation(  ms_mz_abun_dict, ref_obj):
     df.fillna(0, inplace=True)
     
     #calculate cosine correlation, 
-    x = df.T[0]
-    y = df.T[1]
+    x = df.T[0].values
+    y = df.T[1].values
 
     #Make x and y into an array
     x_a=list(x)

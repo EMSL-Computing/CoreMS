@@ -2,7 +2,7 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 24, 2019"
 
 from IsoSpecPy import IsoSpecPy
-from numpy import isnan, power, exp
+from numpy import isnan, power, exp, nextafter
 from pandas import DataFrame
 from scipy.stats import pearsonr, spearmanr, kendalltau
 
@@ -116,7 +116,7 @@ class MolecularFormulaCalc:
             # confidence of isotopologue is pure mz error 
             # TODO add more features here 
             
-            return 0
+            return 0.5
     
         else:
             
@@ -143,13 +143,17 @@ class MolecularFormulaCalc:
                        
                     else:
                         # fill missing mz with abundance 0 and mz error score of 0
-                        dict_mz_abund_exp[mf.mz_calc] = 0.000001
+                        dict_mz_abund_exp[mf.mz_calc] = nextafter(0, 1)
                 
-                correlation = dft_correlation(dict_mz_abund_exp, dict_mz_abund_ref)
+                correlation = manhattan_distance(dict_mz_abund_exp, dict_mz_abund_ref)
+                #correlation = dwt_correlation(dict_mz_abund_exp, dict_mz_abund_ref)
+                #correlation = cosine_correlation(dict_mz_abund_exp, dict_mz_abund_ref)
                 
-                if isnan(correlation):
+                if correlation == 1:
                     print(dict_mz_abund_exp,dict_mz_abund_ref)
-                    correlation = 0.000001
+                if isnan(correlation):
+                    #print(dict_mz_abund_exp,dict_mz_abund_ref)
+                    correlation = 0.00001
             
             else:
                
@@ -204,7 +208,8 @@ class MolecularFormulaCalc:
                 average_mz_score = 0.0
         
         # calculate score with higher weight for mass error
-        score = power(((isotopologue_correlation) * (power(average_mz_score,2))),1/3)
+        #score = power(((isotopologue_correlation) * (power(average_mz_score,3))),1/4)
+        score = (isotopologue_correlation*0.3) + (average_mz_score*0.7)
 
         return score
 
