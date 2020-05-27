@@ -281,8 +281,8 @@ def dft_correlation(ms_mz_abun_dict, ref_obj):
     y = df.T[1].values
 
     # get the Fourier transform of x and y
-    x_dft = rfft(x)
-    y_dft = rfft(y)
+    x_dft = rfft(x).real
+    y_dft = rfft(y).real
 
     s_dft_xy = dot(x_dft, y_dft)/(norm(x_dft)*norm(y_dft))
 
