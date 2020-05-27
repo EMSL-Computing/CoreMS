@@ -42,7 +42,7 @@ def load_and_set_parameters_gcms(gcms_obj, parameters_path=False):
 
             with open(file_path, 'r', encoding='utf8',) as stream:
                 data_loaded = json.load(stream)
-                _set_dict_data_ms(data_loaded, gcms_obj)
+                _set_dict_data_gcms(data_loaded, gcms_obj)
     else:
         
         raise FileNotFoundError("Could not locate %s", file_path)   
