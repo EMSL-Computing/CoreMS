@@ -1,5 +1,5 @@
-from scipy import fft
-from scipy.fftpack import rfft
+
+from numpy.fft import rfft
 from pywt import dwt 
 from scipy.spatial.distance import cosine, jaccard, euclidean, cityblock
 from scipy.stats import pearsonr, spearmanr, kendalltau
@@ -277,8 +277,8 @@ def dft_correlation(ms_mz_abun_dict, ref_obj):
     df.fillna(0, inplace=True)
     
     #calculate cosine correlation, 
-    x = df.T[0]
-    y = df.T[1]
+    x = df.T[0].values
+    y = df.T[1].values
 
     # get the Fourier transform of x and y
     x_dft = rfft(x)
