@@ -120,7 +120,7 @@ class CompoundSearchSettings:
     ri_calibration_compound_names: List = field(default_factory=list)
 
     # calculates and export all spectral similarity methods
-    exploratory_mode:bool = False
+    exploratory_mode:bool = True
     
     def __post_init__(self):
         

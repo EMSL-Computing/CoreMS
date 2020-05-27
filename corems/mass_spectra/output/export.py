@@ -119,7 +119,7 @@ class LowResGCMSExport():
         
         columns = self._init_columns() 
         
-        dict_data_list = self.get_list_dict_data(self.gcms)
+        dict_data_list = self.get_list_dict_data(self.gcms, highest_score=highest_score)
 
         out_put_path = self.output_file.with_suffix('.csv')
 
@@ -154,7 +154,7 @@ class LowResGCMSExport():
             output = json.dumps(dict_setting, sort_keys=True, indent=4, separators=(',', ': '))
             outfile.write(output)
 
-    def get_list_dict_data(self, gcms, include_no_match=True, no_match_inline=False, highest_score=True) :
+    def get_list_dict_data(self, gcms, include_no_match=True, no_match_inline=False, highest_score=False) :
 
         dict_data_list = []
 
