@@ -30,7 +30,7 @@ class LowResMassSpectralMatch(Thread):
     def metabolite_detector_score(self, gc_peak, ref_obj):
 
         spectral_similarity_scores = {}
-        spectral_similarity_scores["cosine_correlation"] = cosine_correlation(gc_peak.mass_spectrum, ref_obj)
+        spectral_similarity_scores["cosine_correlation"] = cosine_correlation(gc_peak.mass_spectrum.mz_abun_dict, ref_obj)
         
         if self.gcms_obj.molecular_search_settings.exploratory_mode:
             
@@ -92,7 +92,7 @@ class LowResMassSpectralMatch(Thread):
                 if self.calibration:
                     
                     spectral_similarity_scores = {}
-                    spectral_similarity_scores["cosine_correlation"] = cosine_correlation(gc_peak.mass_spectrum, ref_obj)
+                    spectral_similarity_scores["cosine_correlation"] = cosine_correlation(gc_peak.mass_spectrum.mz_abun_dict, ref_obj)
 
                     #print(w_correlation_value,correlation_value )
                     if spectral_similarity_scores["cosine_correlation"] >= self.gcms_obj.molecular_search_settings.correlation_threshold:
