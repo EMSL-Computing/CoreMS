@@ -72,62 +72,68 @@ def cosine_correlation(  ms_mz_abun_dict, ref_obj):
 
     return correlation
 
-def stein_scott(  ms_mz_abun_dict, ref_obj):
-
+def stein_scott( ms_mz_abun_dict, ref_obj):
+ 
     #ms_mz_abun_dict = mass_spec.mz_abun_dict
-
+ 
     exp_abun = list(ms_mz_abun_dict.values())
     exp_mz = list(ms_mz_abun_dict.keys())
-
+ 
     ref_abun = ref_obj.get("abundance")
     ref_mz = ref_obj.get("mz")
-
+ 
     # important: I assume ref_mz and ref_abun are in order, and one-to-one; this needs to be be verified
     ref_mz_abun_dict = dict(zip(ref_mz, ref_abun))
-
+ 
     # filter out the mass values that have zero intensities in exp_mz
     exp_mz_filtered = set([k for k in exp_mz if ms_mz_abun_dict[k] != 0])
-
+ 
     # filter out the mass values that have zero intensities in ref_mz
     ref_mz_filtered = set([k for k in ref_mz if ref_mz_abun_dict[k] != 0])
-
+ 
     # find the intersection/common mass values of both ref and exp, and sort them
     common_mz_values = sorted(list(exp_mz_filtered.intersection(ref_mz_filtered)))
-
+    
     # find the number of common mass values (after filtering 0s)
     n_x_y = len(common_mz_values)
-
+    
+    if n_x_y == 0: return 0
+    
     # count number of non-zero abundance/peak intensity values
     n_x = sum(a != 0 for a in exp_abun)
-
+ 
     s_r_x_y = 0
+    
     for i in range(1,n_x_y):
+        
         current_value = common_mz_values[i]
         previous_value = common_mz_values[i-1]
-
+ 
         y_i = ref_mz_abun_dict[current_value]
         y_i_minus1 = ref_mz_abun_dict[previous_value]
         x_i = ms_mz_abun_dict[current_value]
         x_i_minus1 = ms_mz_abun_dict[previous_value]
-
-        temp_computation = (y_i/y_i_minus1) * (x_i_minus1/x_i)
+        T1=y_i/y_i_minus1
+        T2=x_i_minus1/x_i
+        temp_computation = T1 * T2
         n = 0
-        if temp_computation <= 1:
+        if T1 > T2:
             n = -1
         else:
             n = 1
         s_r_x_y = s_r_x_y + temp_computation ** n
-
+ 
     # finish the calculation of S_R(X,Y)
+    
     s_r_x_y = s_r_x_y / n_x_y
-
     # using the existing weighted_cosine_correlation function to get S_WC(X,Y)
     s_wc_x_y = weighted_cosine_correlation(ms_mz_abun_dict, ref_obj)
-
+ 
     # final step
     s_ss_x_y = (n_x * s_wc_x_y + n_x_y * s_r_x_y) / (n_x + n_x_y)
-
+ 
     return s_ss_x_y
+ 
 
 def pearson_correlation(  ms_mz_abun_dict, ref_obj):
 
@@ -266,6 +272,8 @@ def dft_correlation(ms_mz_abun_dict, ref_obj):
     
     # find the number of common mass values (after filtering 0s)
     n_x_y = len(common_mz_values)
+    
+    if n_x_y == 0: return 0
 
     # count number of non-zero abundance/peak intensity values
     n_x = sum(a != 0 for a in exp_abun)
@@ -339,10 +347,12 @@ def dwt_correlation(  ms_mz_abun_dict, ref_obj):
 
     # find the intersection/common mass values of both ref and exp, and sort them
     common_mz_values = sorted(list(exp_mz_filtered.intersection(ref_mz_filtered)))
-            
+    
     # find the number of common mass values (after filtering 0s)
     n_x_y = len(common_mz_values)
 
+    if n_x_y == 0: return 0
+    
     # count number of non-zero abundance/peak intensity values
     n_x = sum(a != 0 for a in exp_abun)
 
