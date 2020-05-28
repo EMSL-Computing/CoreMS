@@ -61,6 +61,7 @@ class HighResMassSpecExport(Thread):
                         'Heteroatom Class',
                         'Ion Type',
                         'Is Isotopologue',
+                        'Mono Isotopic Index'
                         # 'Aromaticity Index',
                         ]
 
@@ -349,6 +350,8 @@ class HighResMassSpecExport(Thread):
                            'Ion Type': eval("m_formula.ion_type.lower(){}".format(encode)),  
                            'Is Isotopologue': int(m_formula.is_isotopologue),
                            }
+            if m_formula.is_isotopologue:
+                dict_result['Mono Isotopic Index'] = m_formula.mspeak_index_mono_isotopic
 
             for atom in self.atoms_order_list:
                 if atom in formula_dict.keys():
