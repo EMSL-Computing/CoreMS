@@ -8,13 +8,12 @@ from numpy import power, dot, absolute, subtract, intersect1d, where, average, c
 from numpy.linalg import norm
 from pandas import DataFrame
 
-def weighted_cosine_correlation(  ms_mz_abun_dict, ref_obj):
+def weighted_cosine_correlation(  ms_mz_abun_dict, ref_obj, a=0.5, b=1.3):
     
-    a , b = 0.5, 1.3    
     # create dict['mz'] = abundance, for experimental data
     #ms_mz_abun_dict = mass_spec.mz_abun_dict
 
-    # weight exp data 
+    # weight exp data
 
     exp_abun = list(ms_mz_abun_dict.values())
     exp_mz = list(ms_mz_abun_dict.keys())
@@ -104,6 +103,7 @@ def stein_scott( ms_mz_abun_dict, ref_obj):
  
     s_r_x_y = 0
     
+    a, b = 1, 0
     for i in range(1,n_x_y):
         
         current_value = common_mz_values[i]
@@ -111,26 +111,37 @@ def stein_scott( ms_mz_abun_dict, ref_obj):
  
         y_i = ref_mz_abun_dict[current_value]
         y_i_minus1 = ref_mz_abun_dict[previous_value]
+        
+        lc_current = power(y_i, a) *  power(current_value, b)
+        lc_previous = power(y_i_minus1, a) *  power(previous_value, b)
+        
         x_i = ms_mz_abun_dict[current_value]
         x_i_minus1 = ms_mz_abun_dict[previous_value]
-        T1=y_i/y_i_minus1
-        T2=x_i_minus1/x_i
+        
+        uc_current = power(x_i, a) *  power(current_value, b)
+        uc_previous = power(x_i_minus1, a) *  power(previous_value, b)
+
+        T1 = lc_current/lc_previous
+        
+        T2 = uc_previous/uc_current
+
         temp_computation = T1 * T2
+        
         n = 0
-        if T1 > T2:
-            n = -1
-        else:
+        if temp_computation <= 1:
             n = 1
-        s_r_x_y = s_r_x_y + temp_computation ** n
+        else:
+            n = -1
+        s_r_x_y = s_r_x_y + power(temp_computation,n)
  
     # finish the calculation of S_R(X,Y)
     
     s_r_x_y = s_r_x_y / n_x_y
     # using the existing weighted_cosine_correlation function to get S_WC(X,Y)
-    s_wc_x_y = weighted_cosine_correlation(ms_mz_abun_dict, ref_obj)
+    s_wc_x_y = weighted_cosine_correlation(ms_mz_abun_dict, ref_obj, a=0.5, b =3 )
  
     # final step
-    s_ss_x_y = (n_x * s_wc_x_y + n_x_y * s_r_x_y) / (n_x + n_x_y)
+    s_ss_x_y = ( (n_x * s_wc_x_y) + (n_x_y * s_r_x_y) )/ (n_x + n_x_y)
  
     return s_ss_x_y
  
@@ -352,7 +363,7 @@ def dwt_correlation(  ms_mz_abun_dict, ref_obj):
     n_x_y = len(common_mz_values)
 
     if n_x_y == 0: return 0
-    
+
     # count number of non-zero abundance/peak intensity values
     n_x = sum(a != 0 for a in exp_abun)
 
