@@ -174,9 +174,10 @@ def auto_process(jobs):
         for file_path in file_locations:
             if "FAME" in file_path:
                 calibration_file_path = file_path
-        
-        auto_calibrate_and_search(file_locations, out_put_file_name, jobs, calibration_file_path)
-        
+        if calibration_file_path:
+            auto_calibrate_and_search(file_locations, out_put_file_name, jobs, calibration_file_path)
+        else:
+            print("Could not find a calibration experimental file for {}".format(out_put_file_name))
         
 
 if __name__ == '__main__':                           
@@ -184,7 +185,7 @@ if __name__ == '__main__':
     #matplotlib.use('TkAgg')
 
     cores = 5
-    #out_put_file_name = 'Plasma_Ref_8'
-    #calibrate_and_search(out_put_file_name, cores)
+    out_put_file_name = 'Plasma_Ref_10'
+    calibrate_and_search(out_put_file_name, cores)
     #start_sql_from_file()
-    auto_process(cores)
+    #auto_process(cores)
