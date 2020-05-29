@@ -16,7 +16,8 @@ from corems.molecular_id.input.nistMSI import ReadNistMSI
 from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
 from corems.molecular_id.search.compoundSearch import LowResMassSpectralMatch
 from corems.mass_spectra.calc.GC_RI_Calibration import get_rt_ri_pairs
-
+from corems import get_dirname
+import glob
 def start_sql_from_file():
     
     ref_lib_path = Path.cwd() / "tests/tests_data/gcms/" / "PNNLMetV20191015.MSL"
@@ -47,14 +48,17 @@ def get_gcms(file_path):
 
     return gcms
 
-def get_reference_dict():
+def get_reference_dict(calibration_file_path=False):
 
-    app = QApplication(sys.argv)
-    file_dialog = QFileDialog()
-    file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
-    file_path = file_dialog.getOpenFileName(None, "FAMES REF FILE", filter="*.cdf")[0]
-    file_dialog.close()
-    app.exit()
+    if not calibration_file_path:
+        app = QApplication(sys.argv)
+        file_dialog = QFileDialog()
+        file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+        file_path = file_dialog.getOpenFileName(None, "FAMES REF FILE", filter="*.cdf")[0]
+        file_dialog.close()
+        app.exit()
+    else:
+        file_path = calibration_file_path
     
     if not file_path: return  None
     
@@ -86,7 +90,25 @@ def run(args):
 
     return gcms
 
-def calibrate_and_search(out_put_file_name, cores):
+def auto_calibrate_and_search(file_locations, out_put_file_name, jobs, calibration_file_path):
+    import csv
+    
+    ref_dict = get_reference_dict(calibration_file_path=calibration_file_path)
+    
+    if ref_dict:
+        
+            # run in multiprocessing mode
+            pool = Pool(jobs)
+            args = [(file_path, ref_dict) for file_path in file_locations[0]]
+            gcmss = pool.map(run, args)
+            pool.close()
+            pool.join()
+            for gcms in gcmss:
+                
+                gcms.to_csv(out_put_file_name, highest_score=False)
+
+
+def calibrate_and_search(out_put_file_name, jobs):
     
     import csv
     
@@ -103,7 +125,7 @@ def calibrate_and_search(out_put_file_name, cores):
             file_dialog.close()
             
             # run in multiprocessing mode
-            pool = Pool(cores)
+            pool = Pool(jobs)
             args = [(file_path, ref_dict) for file_path in file_locations[0]]
             gcmss = pool.map(run, args)
             pool.close()
@@ -136,13 +158,31 @@ def calibrate_and_search(out_put_file_name, cores):
 def worker(args):
 
     cProfile.runctx('run(args)', globals(), locals(), 'gc-ms.prof')
-      
+
+def auto_process():
+    import os
+    rootdir = get_dirname()
+    
+    out_put_file_names = list(os.walk(rootdir))[0][1]
+    for out_put_file_name in out_put_file_names:
+        file_locations = glob.glob( str((rootdir / out_put_file_name)) + "/*.cdf") 
+        
+        calibration_file_path = '' 
+        for file_path in file_locations:
+            if "FAME" in file_path:
+                calibration_file_path = file_path
+        
+        jobs = 5
+        auto_calibrate_and_search(file_locations, out_put_file_name, jobs, calibration_file_path)
+        
+        
+
 if __name__ == '__main__':                           
     #import matplotlib
     #matplotlib.use('TkAgg')
 
-    cores = 8
-    out_put_file_name = 'Group1'
-    calibrate_and_search(out_put_file_name, cores)
+    #cores = 5
+    #out_put_file_name = 'Plasma_Ref_8'
+    #calibrate_and_search(out_put_file_name, cores)
     #start_sql_from_file()
-
+    auto_process()
