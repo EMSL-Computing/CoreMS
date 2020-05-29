@@ -6,7 +6,7 @@ from pandas import DataFrame
 from math import exp
 from numpy import power
 from corems.molecular_id.factory.EI_SQL import EI_LowRes_SQLite
-from corems.molecular_id.calc.SpectralSimilarity import *
+from corems.molecular_id.calc.SpectralSimilarity import SpectralSimilarity
 
 class LowResMassSpectralMatch(Thread):
 
@@ -26,24 +26,24 @@ class LowResMassSpectralMatch(Thread):
             self.sql_obj = EI_LowRes_SQLite(url=self.gcms_obj.molecular_search_settings.url_database)
         else:
             self.sql_obj = sql_obj
-    
-    def metabolite_detector_score(self, gc_peak, ref_obj):
+
+    def metabolite_detector_score(self, gc_peak, ref_obj, spectral_simi):
 
         spectral_similarity_scores = {}
-        spectral_similarity_scores["cosine_correlation"] = cosine_correlation(gc_peak.mass_spectrum.mz_abun_dict, ref_obj)
+        spectral_similarity_scores["cosine_correlation"] = spectral_simi.cosine_correlation()
         
         if self.gcms_obj.molecular_search_settings.exploratory_mode:
             
-            spectral_similarity_scores["weighted_cosine_correlation"] = weighted_cosine_correlation(gc_peak.mass_spectrum.mz_abun_dict, ref_obj)
-            spectral_similarity_scores["stein_scott_similarity"] = stein_scott(gc_peak.mass_spectrum.mz_abun_dict, ref_obj)
-            spectral_similarity_scores["pearson_correlation"] = pearson_correlation(gc_peak.mass_spectrum.mz_abun_dict, ref_obj)
-            spectral_similarity_scores["spearman_correlation"] = spearman_correlation(gc_peak.mass_spectrum.mz_abun_dict, ref_obj)
-            spectral_similarity_scores["kendall_tau_correlation"] = kendall_tau(gc_peak.mass_spectrum.mz_abun_dict, ref_obj)
-            spectral_similarity_scores["euclidean_distance"] = euclidean_distance(gc_peak.mass_spectrum.mz_abun_dict, ref_obj)
-            spectral_similarity_scores["manhattan_distance"] = manhattan_distance(gc_peak.mass_spectrum.mz_abun_dict, ref_obj)
-            spectral_similarity_scores["jaccard_distance"] = jaccard_distance(gc_peak.mass_spectrum.mz_abun_dict, ref_obj)
-            spectral_similarity_scores["dft_correlation"] = dft_correlation(gc_peak.mass_spectrum.mz_abun_dict, ref_obj)
-            spectral_similarity_scores["dwt_correlation"] = dwt_correlation(gc_peak.mass_spectrum.mz_abun_dict, ref_obj)
+            spectral_similarity_scores["weighted_cosine_correlation"] = spectral_simi.weighted_cosine_correlation()
+            spectral_similarity_scores["stein_scott_similarity"] = spectral_simi.stein_scott()
+            spectral_similarity_scores["pearson_correlation"] = spectral_simi.pearson_correlation()
+            spectral_similarity_scores["spearman_correlation"] = spectral_simi.spearman_correlation()
+            spectral_similarity_scores["kendall_tau_correlation"] = spectral_simi.kendall_tau()
+            spectral_similarity_scores["euclidean_distance"] = spectral_simi.euclidean_distance()
+            spectral_similarity_scores["manhattan_distance"] = spectral_simi.manhattan_distance()
+            spectral_similarity_scores["jaccard_distance"] = spectral_simi.jaccard_distance()
+            spectral_similarity_scores["dft_correlation"] = spectral_simi.dft_correlation()
+            spectral_similarity_scores["dwt_correlation"] = spectral_simi.dwt_correlation()
 
         #print(ref_obj.get('ri'), gc_peak.ri, self.gcms_obj.molecular_search_settings.ri_window)
 
@@ -89,10 +89,13 @@ class LowResMassSpectralMatch(Thread):
                 
             for ref_obj in ref_objs:
                 # uses spectral similarly and uses a threshold to only select peaks with high data correlation
+                
+                spectral_simi = SpectralSimilarity(gc_peak.mass_spectrum.mz_abun_dict, ref_obj)
+
                 if self.calibration:
                     
                     spectral_similarity_scores = {}
-                    spectral_similarity_scores["cosine_correlation"] = cosine_correlation(gc_peak.mass_spectrum.mz_abun_dict, ref_obj)
+                    spectral_similarity_scores["cosine_correlation"] = spectral_simi.cosine_correlation()
 
                     #print(w_correlation_value,correlation_value )
                     if spectral_similarity_scores["cosine_correlation"] >= self.gcms_obj.molecular_search_settings.correlation_threshold:
@@ -104,7 +107,7 @@ class LowResMassSpectralMatch(Thread):
                 else:
 
                     # m/q developed methods will be implemented here
-                    spectral_similarity_scores, ri_score, similarity_score = self.metabolite_detector_score(gc_peak, ref_obj)   
+                    spectral_similarity_scores, ri_score, similarity_score = self.metabolite_detector_score(gc_peak, ref_obj, spectral_simi)   
                     
                     #TODO need to add similarity score option in the parameters encapsulation class
                     
