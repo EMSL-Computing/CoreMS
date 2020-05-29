@@ -85,7 +85,7 @@ class SpectralSimilarity():
 
         #calculate cosine correlation, 
         x = self.zero_filled_u_l[0]
-        y = self.zero_filled_u_l[0]
+        y = self.zero_filled_u_l[1]
         
         #correlation = (1 - cosine(x, y))
         
