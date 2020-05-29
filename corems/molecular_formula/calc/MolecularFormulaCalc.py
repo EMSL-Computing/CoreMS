@@ -9,7 +9,7 @@ from scipy.stats import pearsonr, spearmanr, kendalltau
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.factory.parameters import MSParameters
-from corems.molecular_id.calc.SpectralSimilarity import *
+from corems.molecular_id.calc.SpectralSimilarity import SpectralSimilarity
 
 class MolecularFormulaCalc:
     
@@ -145,7 +145,7 @@ class MolecularFormulaCalc:
                         # fill missing mz with abundance 0 and mz error score of 0
                         dict_mz_abund_exp[mf.mz_calc] = nextafter(0, 1)
                 
-                correlation = manhattan_distance(dict_mz_abund_exp, dict_mz_abund_ref)
+                correlation = SpectralSimilarity(dict_mz_abund_exp, dict_mz_abund_ref).manhattan_distance()
                 #correlation = dwt_correlation(dict_mz_abund_exp, dict_mz_abund_ref)
                 #correlation = cosine_correlation(dict_mz_abund_exp, dict_mz_abund_ref)
                 
