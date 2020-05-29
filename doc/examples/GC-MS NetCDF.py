@@ -99,7 +99,7 @@ def auto_calibrate_and_search(file_locations, out_put_file_name, jobs, calibrati
         
             # run in multiprocessing mode
             pool = Pool(jobs)
-            args = [(file_path, ref_dict) for file_path in file_locations[0]]
+            args = [(file_path, ref_dict) for file_path in file_locations]
             gcmss = pool.map(run, args)
             pool.close()
             pool.join()
@@ -159,20 +159,22 @@ def worker(args):
 
     cProfile.runctx('run(args)', globals(), locals(), 'gc-ms.prof')
 
-def auto_process():
+def auto_process(jobs):
     import os
     rootdir = get_dirname()
     
     out_put_file_names = list(os.walk(rootdir))[0][1]
+    
+    #print(out_put_file_names[0])
     for out_put_file_name in out_put_file_names:
-        file_locations = glob.glob( str((rootdir / out_put_file_name)) + "/*.cdf") 
+        #print(out_put_file_name)
         
+        file_locations = glob.glob( str((rootdir / out_put_file_name)) + "/*.cdf") 
         calibration_file_path = '' 
         for file_path in file_locations:
             if "FAME" in file_path:
                 calibration_file_path = file_path
         
-        jobs = 5
         auto_calibrate_and_search(file_locations, out_put_file_name, jobs, calibration_file_path)
         
         
@@ -181,8 +183,8 @@ if __name__ == '__main__':
     #import matplotlib
     #matplotlib.use('TkAgg')
 
-    #cores = 5
+    cores = 5
     #out_put_file_name = 'Plasma_Ref_8'
     #calibrate_and_search(out_put_file_name, cores)
     #start_sql_from_file()
-    auto_process()
+    auto_process(cores)
