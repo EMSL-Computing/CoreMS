@@ -252,8 +252,8 @@ class SpectralSimilarity():
 
         # get the wavelet transform of x and y (Daubechies with a filter length of 4. Asymmetric. pywavelets function)
         #Will only use the detail dwt (dwtDd
-        (x_dwtA,x_dwtD) = dwt(x_a,'db2')
-        (y_dwtA,y_dwtD) = dwt(y_a,'db2')
+        x_dwtD = dwt(x_a,'db2')[1]
+        y_dwtD = dwt(y_a,'db2')[1]
 
         s_dwt_xy = dot(x_dwtD, y_dwtD)/(norm(x_dwtD)*norm(y_dwtD))
 
