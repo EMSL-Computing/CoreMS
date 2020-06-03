@@ -46,10 +46,13 @@ class GCMSBase(GC_Calculations):
 
         #all scans
         self._ms = {}
-        
+        self._ms_deconvolution = {}
+
         #after peak detection
         self._processed_tic = []
         self.gcpeaks = []
+        self.gcpeaks_deconvolution = {}
+
         self.ri_pairs_ref = None
 
         self.deconv_rt_list = None

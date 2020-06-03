@@ -37,12 +37,14 @@ class GC_Calculations:
                     deconvolve_dict[mz][2].append(index)
                     deconvolve_dict[mz][3].append(ms_obj.rt)
 
+        dict_deconvolution_data = {}
+
         for mz, eic_scan_index_rt in deconvolve_dict.items():
 
             eic = eic_scan_index_rt[0]
             rt_list = eic_scan_index_rt[3]
-            self.deconv_max_tic = self._ms[index]._processed_tic
             
+            self.deconv_max_tic = self._ms[index]._processed_tic
             self.deconv_rt_list = rt_list
             self.deconv_mz = mz
 
@@ -63,16 +65,55 @@ class GC_Calculations:
                 rt_apex = [rt_list[i[1]] for i in final_indexes]
                 abundance_apex = [smooth_eic[i[1]] for i in final_indexes]
 
-                if rt_apex and mz == 51:
+                for peak_index, deconvoled_rt in enumerate(rt_apex):
                     
-                    plt.plot(rt_list, smooth_eic, label=mz)
-                    plt.plot(rt_apex, abundance_apex, linewidth= 0, c='black', marker= '^')
-                    plt.legend()
+                    deconvoled_abundance = abundance_apex[peak_index]
+                    
+                    if not deconvoled_rt in dict_deconvolution_data.keys():
+                        dict_deconvolution_data[deconvoled_rt] = [ [mz], [deconvoled_abundance], [scan_number] ]
+                    else:
+                        
+                        dict_deconvolution_data[deconvoled_rt][0].append(mz)
+                        dict_deconvolution_data[deconvoled_rt][1].append(deconvoled_abundance)  
+                        dict_deconvolution_data[deconvoled_rt][2].append(scan_number)    
 
-        #print('done')    
-        plt.show()
-        plt.close()
+                #if rt_apex and mz == 51:
+                    
+                    #plt.plot(rt_list, smooth_eic, label=mz)
+                    #plt.plot(rt_apex, abundance_apex, linewidth= 0, c='black', marker= '^')
+                    #plt.legend()
 
+        print(len(dict_deconvolution_data.keys()))
+        c = 'green'
+        
+        i = 0
+        for rt, data in dict_deconvolution_data.items():
+            
+            if len(data[0]) > 10:
+                i += 1
+                ax = plt.gca()
+
+                markerline_a, stemlines_a, baseline_a  = ax.stem(data[0], data[1], linefmt='-',  markerfmt=" ", use_line_collection =True, label=rt)
+                
+                plt.setp(markerline_a, 'color', c, 'linewidth', 2)
+                plt.setp(stemlines_a, 'color', c, 'linewidth', 2)
+                plt.setp(baseline_a, 'color', c, 'linewidth', 2)
+
+                ax.set_xlabel("$\t{m/z}$", fontsize=12)
+                ax.set_ylabel('Abundance', fontsize=12)
+                ax.tick_params(axis='both', which='major', labelsize=12)
+
+                ax.axes.spines['top'].set_visible(False)
+                ax.axes.spines['right'].set_visible(False)
+
+                ax.get_yaxis().set_visible(False)
+                ax.spines['left'].set_visible(False)
+                #plt.plot(rt_apex, abundance_apex, linewidth= 0, c='black', marker= '^')
+                plt.legend()
+                plt.show()
+            #plt.close()
+        print(i)
+        
     def calibrate_ri(self, ref_dict):
         
         if not self:
