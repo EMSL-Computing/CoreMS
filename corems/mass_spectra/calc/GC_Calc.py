@@ -89,7 +89,9 @@ class GC_Calculations:
         i = 0
         for rt, data in dict_deconvolution_data.items():
             
-            if len(data[0]) > 10:
+            norm_smooth_tic = (sum(data[1])/maximum_tic)*100
+
+            if norm_smooth_tic > self.chromatogram_settings.peak_height_min_abun and len(data[1]) > 3:
                 i += 1
                 ax = plt.gca()
 
@@ -113,7 +115,7 @@ class GC_Calculations:
                 plt.show()
             #plt.close()
         print(i)
-        
+
     def calibrate_ri(self, ref_dict):
         
         if not self:
