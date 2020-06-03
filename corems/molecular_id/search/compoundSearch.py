@@ -58,9 +58,10 @@ class LowResMassSpectralMatch(Thread):
         # TODO select the best gcms peak    
         import tqdm
         
-        if not self.gcms_obj:
+        #if not self.gcms_obj:
             
-            self.gcms_obj.process_chromatogram()
+        #    self.gcms_obj.process_chromatogram()
+        
         list_cpu = []
         
         for gc_peak in tqdm.tqdm(self.gcms_obj):

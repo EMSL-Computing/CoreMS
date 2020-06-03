@@ -52,6 +52,9 @@ class GCMSBase(GC_Calculations):
         self.gcpeaks = []
         self.ri_pairs_ref = None
 
+        self.deconv_rt_list = None
+        self.deconv_mz = None
+        self.deconv_max_tic = None
     
     def _init_settings(self):
         
@@ -81,7 +84,9 @@ class GCMSBase(GC_Calculations):
 
         #self.second_derivative_threshold(self._processed_tic)
 
-        peaks_index = self.centroid_detector(self._processed_tic)
+        self.lowres_deconvolution()
+        
+        peaks_index = self.centroid_detector(self._processed_tic, self.retention_time)
         
         for i in peaks_index: 
             

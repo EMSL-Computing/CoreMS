@@ -95,7 +95,7 @@ class GasChromatographSetting:
     
     std_noise_threshold: int = 3
 
-    peak_height_min_abun:float = 0.2 #1-100 % used for peak detection
+    peak_height_min_abun:float = 1 #1-100 % used for peak detection
 
     peak_min_prominence_percent:float = 1 #1-100 % used for peak detection
 
@@ -120,7 +120,7 @@ class CompoundSearchSettings:
     ri_calibration_compound_names: List = field(default_factory=list)
 
     # calculates and export all spectral similarity methods
-    exploratory_mode:bool = True
+    exploratory_mode:bool = False
     
     def __post_init__(self):
         

@@ -11,7 +11,68 @@ class GC_Calculations:
     '''
     classdocs
     '''
-    
+   
+    def lowres_deconvolution(self):
+        from matplotlib import pyplot as plt
+
+        deconvolve_dict = {} 
+        maximum_tic = max(self._processed_tic)
+        
+        for scan_number, ms_obj in self._ms.items():
+
+            mz_list = ms_obj.mz_exp
+            abundance_list = ms_obj.abundance
+            #add list of scan numbers
+            for index, mz in enumerate(mz_list):
+
+                #dict of mz and tuple (mass spectrum abundances index, and scan number )
+                if not mz in deconvolve_dict.keys(): 
+                   
+                    deconvolve_dict[mz] = [ [abundance_list[index]], [scan_number], [index], [ms_obj.rt] ]
+                
+                else:
+                    
+                    deconvolve_dict[mz][0].append(ms_obj.abundance[index])
+                    deconvolve_dict[mz][1].append(scan_number)
+                    deconvolve_dict[mz][2].append(index)
+                    deconvolve_dict[mz][3].append(ms_obj.rt)
+
+        for mz, eic_scan_index_rt in deconvolve_dict.items():
+
+            eic = eic_scan_index_rt[0]
+            rt_list = eic_scan_index_rt[3]
+            self.deconv_max_tic = self._ms[index]._processed_tic
+            
+            self.deconv_rt_list = rt_list
+            self.deconv_mz = mz
+
+            if len(eic) > 5:
+
+                #print(len(eic), len(rt_list))    
+                
+                smooth_eic = self.smooth_tic(eic)
+
+                include_indexes = list(self.centroid_detector(smooth_eic, rt_list))
+                
+                norm_smooth_eic = (smooth_eic/maximum_tic)*100
+                
+                remove_indexes = where(smooth_eic < self.chromatogram_settings.peak_height_min_abun)[0]
+                final_indexes = sorted(set(include_indexes)-set(remove_indexes))
+                #print(len(include_indexes), len(remove_indexes), len(final_indexes))
+                
+                rt_apex = [rt_list[i[1]] for i in final_indexes]
+                abundance_apex = [smooth_eic[i[1]] for i in final_indexes]
+
+                if rt_apex and mz == 51:
+                    
+                    plt.plot(rt_list, smooth_eic, label=mz)
+                    plt.plot(rt_apex, abundance_apex, linewidth= 0, c='black', marker= '^')
+                    plt.legend()
+
+        #print('done')    
+        plt.show()
+        plt.close()
+
     def calibrate_ri(self, ref_dict):
         
         for gcms_peak in self:
@@ -38,15 +99,16 @@ class GC_Calculations:
         scipy.signal.savgol_filter
     
         """
-        
+        x= array(x)
+
         if x.ndim != 1:
             raise ValueError("smooth only accepts 1 dimension arrays.")
 
         if x.size < window_len:
             raise ValueError("Input array needs to be bigger than window size")
 
-        if window_len < 3:
-            return x
+        #if window_len < 3:
+        #    return x
 
         if not window in self.chromatogram_settings.implemented_smooth_method:
             raise ValueError("Window method should be 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
@@ -130,7 +192,7 @@ class GC_Calculations:
             if right: return j
             else: return j
 
-    def second_derivative_threshold(self, tic, stds):
+    def second_derivative_threshold(self, tic, stds, rt):
           
         dy = self.derivate(tic)
         
@@ -138,7 +200,7 @@ class GC_Calculations:
         dydy = hstack((dydy, 0))
         dydy = hstack((0, dydy))
 
-        baseline = self.baseline_detector(dydy, do_interpolation=False)
+        baseline = self.baseline_detector(dydy, rt, do_interpolation=False)
         
         threshold_median = median(baseline) - (stds * std(baseline))
         
@@ -183,27 +245,36 @@ class GC_Calculations:
 
             yield (start_index, index, final_index)
 
-    def peak_detector_generator(self, tic, stds, method):
+    def peak_detector_generator(self, tic, stds, method, rt):
         
         if method=='manual_relative_abundance':
             
-            tic = tic - self.baseline_detector(tic)
+            tic = tic - self.baseline_detector(tic, rt)
             
-            max_height = max(tic)
+            if not self.deconv_max_tic:
+                max_height = max(tic)
+            else:
+                max_height = self.deconv_max_tic
 
-            tic = (tic/max_height)*100
+            norm_tic = (tic/max_height)*100
             
-            remove_indexes = where(tic < self.chromatogram_settings.peak_height_min_abun)[0]
+            remove_indexes = where(norm_tic < self.chromatogram_settings.peak_height_min_abun)[0]
+
+            #if self.deconv_rt_list and  self.deconv_mz == 51:
+            #    plt.plot(self.deconv_rt_list, tic, label=self.deconv_mz)
 
             #plt.plot(self.retention_time, hstack((dy, 0)), color='green', label="First Derivative")
             
         elif method == 'auto_relative_abundance':
             
-            tic = tic - self.baseline_detector(tic)
+            tic = tic - self.baseline_detector(tic, rt)
 
-            max_height = max(tic)
+            if not self.deconv_max_tic:
+                max_height = max(tic)
+            else:
+                max_height = self.deconv_max_tic
 
-            baseline = self.baseline_detector(tic)
+            baseline = self.baseline_detector(tic, rt)
 
             peak_detect_threshold = ((nanmean(baseline) + (stds * std(baseline))))
 
@@ -211,11 +282,15 @@ class GC_Calculations:
 
         elif method == 'second_derivative':
             
-            max_height = max(tic)
+            if not self.deconv_max_tic:
+                max_height = max(tic)
+            else:
+                max_height = self.deconv_max_tic
 
-            remove_indexes = self.second_derivative_threshold(tic, stds)
+            remove_indexes = self.second_derivative_threshold(tic, stds, rt)
 
         else:
+
             NotImplemented(method)
         
         peak_height_diff = lambda hi, li : ((tic[hi] - tic[li]) / max_height )*100
@@ -241,18 +316,18 @@ class GC_Calculations:
             final_index = self.find_minima(index, tic)
             
             if final_index-start_index > self.chromatogram_settings.min_peak_datapoints:
-            
-               #if  min( peak_height_diff(index,start_index), peak_height_diff(index,final_index) )> self.chromatogram_settings.peak_min_prominence_percent :   
+
+               #if min( peak_height_diff(index,start_index), peak_height_diff(index,final_index) )> self.chromatogram_settings.peak_min_prominence_percent :   
                     
                     yield (start_index, index, final_index)
 
-    def centroid_detector(self, tic):
+    def centroid_detector(self, tic, rt):
         
         stds = self.chromatogram_settings.std_noise_threshold
 
         method = self.chromatogram_settings.noise_threshold_method
             
-        peak_indexes_generator = self.peak_detector_generator(tic, stds, method)
+        peak_indexes_generator = self.peak_detector_generator(tic, stds, method, rt)
 
         return peak_indexes_generator
 
@@ -270,19 +345,29 @@ class GC_Calculations:
                         
                             yield from (start_index, final_index)
 
-    def baseline_detector(self, tic, do_interpolation=True):
+    def baseline_detector(self, tic, rt, do_interpolation=True):
         
-        from matplotlib import pyplot as plt   
+        #from matplotlib import pyplot as plt   
 
         from scipy import interpolate
         
-        indexes = sorted(list(set(i for i in self.minima_detector(tic, max(tic)))))
+        rt = array(rt)
+
+        if not self.deconv_max_tic:
+           max_tic =  max(tic)
+        else:
+            max_tic = self.deconv_max_tic
+
+        indexes = sorted(list(set(i for i in self.minima_detector(tic, max_tic))))
         
         y = -tic
         
-        x1 = self.retention_time[indexes]
+        x1 = rt[indexes]
         
         y1 = y[indexes]
+
+        if len(x1) <= 5:
+            return tic
 
         if not do_interpolation:
             
@@ -294,19 +379,21 @@ class GC_Calculations:
         else:    
             
             f1 = interpolate.interp1d(x1, y1, kind='quadratic',fill_value="extrapolate")
-
-            ynew1 = f1(list(self.retention_time))
             
-            #plt.plot(self.retention_time, tic-(-1* ynew1), color='green')
+            ynew1 = f1(list(rt))
+            
+            #if self.deconv_rt_list and  self.deconv_mz == 51:
+                
+            #    plt.plot(rt, tic-(-1* ynew1), color='green')
 
-            #plt.plot(self.retention_time[indexes], tic[indexes], marker='^')
+            #plt.plot(rt, -1* ynew1, c='black')
             
             #s = self.smooth(s, 10, 'blackman')
 
             #plt.plot(self.retention_time, -s)
             
             #plt.show()
-
+            
             return -1* ynew1
   
     def remove_outliers(self, data):
