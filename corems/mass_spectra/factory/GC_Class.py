@@ -12,6 +12,7 @@ from corems.chroma_peak.factory.ChromaPeakClasses import GCPeak
 from corems.mass_spectra.output.export import LowResGCMSExport
 from corems.encapsulation.factory.parameters import GCMSParameters
 
+
 class GCMSBase(GC_Calculations):
     """
     classdocs
@@ -85,21 +86,25 @@ class GCMSBase(GC_Calculations):
 
         #self.second_derivative_threshold(self._processed_tic)
 
-        self.lowres_deconvolution()
+        if self.chromatogram_settings.use_deconvolution:
+             
+             self.lowres_deconvolution()
 
-        #peaks_index = self.centroid_detector(self._processed_tic, self.retention_time)
+        else:
+            
+            peaks_index = self.centroid_detector(self._processed_tic, self.retention_time)
         
-        #for i in peaks_index: 
-            
-        #    apex_index = i[1]
+            for i in peaks_index: 
+                
+                apex_index = i[1]
 
-        #    gc_peak =  GCPeak( self._ms[apex_index], i )
-            
-        #    gc_peak.calc_area(self._processed_tic, 1)
+                gc_peak =  GCPeak( self._ms[apex_index], i )
+                
+                gc_peak.calc_area(self._processed_tic, 1)
 
-        #    self.gcpeaks.append(gc_peak)
+                self.gcpeaks.append(gc_peak)
 
-            #self.gcpeaks[self.scans_number[apex_index]] = gc_peak
+                #self.gcpeaks[self.scans_number[apex_index]] = gc_peak
             
     def add_mass_spectrum(self, mass_spec):
         
@@ -133,7 +138,7 @@ class GCMSBase(GC_Calculations):
 
     @parameter.setter
     def parameter(self, gcms_parameters_instance):
-        return self._parameters
+        self._parameters = gcms_parameters_instance
 
     @property
     def molecular_search_settings(self):

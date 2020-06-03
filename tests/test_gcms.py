@@ -43,7 +43,7 @@ def get_gcms(file_path):
     
     gcms = reader_gcms.get_gcms_obj()
 
-    gcms.process_chromatogram()
+    #gcms.process_chromatogram()
 
     return gcms
 
