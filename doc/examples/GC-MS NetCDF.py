@@ -16,7 +16,7 @@ from corems.molecular_id.input.nistMSI import ReadNistMSI
 from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
 from corems.molecular_id.search.compoundSearch import LowResMassSpectralMatch
 from corems.mass_spectra.calc.GC_RI_Calibration import get_rt_ri_pairs
-from corems import get_dirname
+from corems import get_dirname, get_filename
 import glob
 
 def start_sql_from_file():
@@ -36,6 +36,18 @@ def sql_database(file_location):
     sqlLite_obj.query_min_max_ri((1637.30, 1638.30))
     sqlLite_obj.query_min_max_rt((17.111, 18.111))
     sqlLite_obj.query_min_max_ri_and_rt((1637.30, 1638.30),(17.111, 18.111))
+
+def stand_alone():
+
+    file_path = get_filename()
+
+    reader_gcms = ReadAndiNetCDF(file_path)
+	
+    reader_gcms.run()
+    
+    gcms = reader_gcms.get_gcms_obj()
+
+    gcms.process_chromatogram()
 
 def get_gcms(file_path):
     
@@ -80,6 +92,8 @@ def run(args):
     
     gcms = get_gcms(file_path)
     
+    gcms.process_chromatogram()
+
     gcms.calibrate_ri(ref_dict)
     
     sql_obj = start_sql_from_file()
@@ -186,8 +200,9 @@ if __name__ == '__main__':
     #import matplotlib
     #matplotlib.use('TkAgg')
 
-    cores = 5
-    out_put_file_name = 'Plasma_Ref_10'
-    calibrate_and_search(out_put_file_name, cores)
+    #cores = 5
+    #out_put_file_name = 'Plasma_Ref_10'
+    #calibrate_and_search(out_put_file_name, cores)
     #start_sql_from_file()
     #auto_process(cores)
+    stand_alone()

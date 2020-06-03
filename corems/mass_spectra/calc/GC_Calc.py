@@ -8,7 +8,7 @@ from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroidLow
 from corems.encapsulation.constant import Labels
 from corems.chroma_peak.factory.ChromaPeakClasses import GCPeak
 from corems.encapsulation.factory.parameters import default_parameters
-
+from matplotlib import pyplot as plt
 class GC_Calculations:
     
     def lowres_deconvolution(self):
@@ -69,7 +69,6 @@ class GC_Calculations:
                     if not deconvoled_rt in dict_deconvolution_data.keys():
                         dict_deconvolution_data[deconvoled_rt] = [ [mz], [deconvoled_abundance], [scan_number] ]
                     else:
-                        
                         dict_deconvolution_data[deconvoled_rt][0].append(mz)
                         dict_deconvolution_data[deconvoled_rt][1].append(deconvoled_abundance)  
                         dict_deconvolution_data[deconvoled_rt][2].append(scan_number)    
@@ -123,8 +122,8 @@ class GC_Calculations:
                 i += 1
                 self.gcpeaks.append(gc_peak)
 
-                #tic_list.append(tic)
-                #rt_list.append(rt)
+                tic_list.append(tic)
+                rt_list.append(rt)
 
                 #ax = plt.gca()
 
@@ -148,9 +147,9 @@ class GC_Calculations:
                 #plt.show()
             #plt.close()
         
-        #plt.plot(self.retention_time, self._processed_tic)
-        #plt.plot(rt_list, tic_list, c='black', marker= '^', linewidth=0)
-        #plt.show()
+        plt.plot(self.retention_time, self._processed_tic)
+        plt.plot(rt_list, tic_list, c='black', marker= '^', linewidth=0)
+        plt.show()
         #print(i)
 
     def calibrate_ri(self, ref_dict):
