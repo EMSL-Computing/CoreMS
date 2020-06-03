@@ -11,10 +11,6 @@ from corems.encapsulation.factory.parameters import default_parameters
 
 class GC_Calculations:
     
-    '''
-    classdocs
-    '''
-   
     def lowres_deconvolution(self):
         
         deconvolve_dict = {} 
@@ -62,7 +58,6 @@ class GC_Calculations:
                 
                 remove_indexes = where(smooth_eic < self.chromatogram_settings.peak_height_min_abun)[0]
                 final_indexes = sorted(set(include_indexes)-set(remove_indexes))
-                #print(len(include_indexes), len(remove_indexes), len(final_indexes))
                 
                 rt_apex = [rt_list[i[1]] for i in final_indexes]
                 abundance_apex = [smooth_eic[i[1]] for i in final_indexes]
@@ -85,15 +80,14 @@ class GC_Calculations:
                     #plt.plot(rt_apex, abundance_apex, linewidth= 0, c='black', marker= '^')
                     #plt.legend()
 
-        print(len(dict_deconvolution_data.keys()))
-        c = 'green'
-        
         i = 0
         tic_list = []
         rt_list = []
+        
+        c = 'green'
+        
         for rt, data_list in sorted(dict_deconvolution_data.items()):
             
-
             tic = sum(data_list[1])
             
             norm_smooth_tic = (tic/maximum_tic)*100
@@ -126,13 +120,12 @@ class GC_Calculations:
                 
                 #needs to define peak start and end, passing just minus and plus one from apex pos for now
                 gc_peak =  GCPeak(ms, (i-1,i, i+1))
-
+                i += 1
                 self.gcpeaks.append(gc_peak)
 
-                tic_list.append(tic)
-                rt_list.append(rt)
+                #tic_list.append(tic)
+                #rt_list.append(rt)
 
-                i += 1
                 #ax = plt.gca()
 
                 #markerline_a, stemlines_a, baseline_a  = ax.stem(data[0], data[1], linefmt='-',  markerfmt=" ", use_line_collection =True, label=rt)
@@ -354,7 +347,6 @@ class GC_Calculations:
             #if self.deconv_rt_list and  self.deconv_mz == 51:
             #    plt.plot(self.deconv_rt_list, tic, label=self.deconv_mz)
 
-            #plt.plot(self.retention_time, hstack((dy, 0)), color='green', label="First Derivative")
             
         elif method == 'auto_relative_abundance':
             
