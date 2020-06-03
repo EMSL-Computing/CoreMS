@@ -45,7 +45,7 @@ def get_gcms(file_path):
     
     gcms = reader_gcms.get_gcms_obj()
 
-    gcms.process_chromatogram()
+    #gcms.process_chromatogram()
 
     return gcms
 
@@ -83,6 +83,7 @@ def run(args):
     gcms.calibrate_ri(ref_dict)
     
     sql_obj = start_sql_from_file()
+    
     lowResSearch = LowResMassSpectralMatch(gcms, sql_obj=sql_obj)
     # !!!!!! READ !!!!! use the previous two lines if db/pnnl_lowres_gcms_compounds.sqlite does not exist
     # and comment the next line

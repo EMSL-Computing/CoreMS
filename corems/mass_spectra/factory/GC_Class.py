@@ -72,7 +72,7 @@ class GCMSBase(GC_Calculations):
 
     #     return iter(self.gcpeaks.values())
  
-    def process_chromatogram(self,):
+    def process_chromatogram(self):
 
         #tic = self.tic - self.baseline_detector(self.tic)
         
@@ -85,7 +85,7 @@ class GCMSBase(GC_Calculations):
         #self.second_derivative_threshold(self._processed_tic)
 
         self.lowres_deconvolution()
-        
+
         peaks_index = self.centroid_detector(self._processed_tic, self.retention_time)
         
         for i in peaks_index: 

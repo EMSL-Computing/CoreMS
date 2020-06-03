@@ -75,6 +75,10 @@ class GC_Calculations:
 
     def calibrate_ri(self, ref_dict):
         
+        if not self:
+            
+            self.process_chromatogram()
+
         for gcms_peak in self:
         
             gcms_peak.calc_ri(ref_dict)
