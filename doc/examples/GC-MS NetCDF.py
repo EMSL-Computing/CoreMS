@@ -18,6 +18,7 @@ from corems.molecular_id.search.compoundSearch import LowResMassSpectralMatch
 from corems.mass_spectra.calc.GC_RI_Calibration import get_rt_ri_pairs
 from corems import get_dirname
 import glob
+
 def start_sql_from_file():
     
     ref_lib_path = Path.cwd() / "tests/tests_data/gcms/" / "PNNLMetV20191015.MSL"
@@ -44,7 +45,7 @@ def get_gcms(file_path):
     
     gcms = reader_gcms.get_gcms_obj()
 
-    gcms.process_chromatogram()
+    #gcms.process_chromatogram()
 
     return gcms
 
@@ -82,6 +83,7 @@ def run(args):
     gcms.calibrate_ri(ref_dict)
     
     sql_obj = start_sql_from_file()
+    
     lowResSearch = LowResMassSpectralMatch(gcms, sql_obj=sql_obj)
     # !!!!!! READ !!!!! use the previous two lines if db/pnnl_lowres_gcms_compounds.sqlite does not exist
     # and comment the next line
@@ -90,7 +92,7 @@ def run(args):
 
     return gcms
 
-def auto_calibrate_and_search(file_locations, out_put_file_name, jobs, calibration_file_path):
+def auto_calibrate_and_search(file_locations, output_file_name, jobs, calibration_file_path):
     import csv
     
     ref_dict = get_reference_dict(calibration_file_path=calibration_file_path)
@@ -105,7 +107,7 @@ def auto_calibrate_and_search(file_locations, out_put_file_name, jobs, calibrati
             pool.join()
             for gcms in gcmss:
                 
-                gcms.to_csv(out_put_file_name, highest_score=False)
+                gcms.to_csv(output_file_name, highest_score=False)
 
 
 def calibrate_and_search(out_put_file_name, jobs):

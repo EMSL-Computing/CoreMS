@@ -58,11 +58,20 @@ class LowResMassSpectralMatch(Thread):
         # TODO select the best gcms peak    
         import tqdm
         
+        original_use_deconvolution = self.gcms_obj.chromatogram_settings.use_deconvolution
+
         if not self.gcms_obj:
             
+            # Do not use deconvolution for the retention index calibration
+            
+            if self.calibration:
+                
+                self.gcms_obj.chromatogram_settings.use_deconvolution = False
+
             self.gcms_obj.process_chromatogram()
-        list_cpu = []
         
+        self.gcms_obj.chromatogram_settings.use_deconvolution = original_use_deconvolution
+
         for gc_peak in tqdm.tqdm(self.gcms_obj):
             
             if not self.calibration:
@@ -96,7 +105,7 @@ class LowResMassSpectralMatch(Thread):
                     
                     spectral_similarity_scores = {}
                     spectral_similarity_scores["cosine_correlation"] = spectral_simi.cosine_correlation()
-
+                    
                     #print(w_correlation_value,correlation_value )
                     if spectral_similarity_scores["cosine_correlation"] >= self.gcms_obj.molecular_search_settings.correlation_threshold:
                     

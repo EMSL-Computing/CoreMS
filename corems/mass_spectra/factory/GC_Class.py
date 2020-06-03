@@ -12,6 +12,7 @@ from corems.chroma_peak.factory.ChromaPeakClasses import GCPeak
 from corems.mass_spectra.output.export import LowResGCMSExport
 from corems.encapsulation.factory.parameters import GCMSParameters
 
+
 class GCMSBase(GC_Calculations):
     """
     classdocs
@@ -50,8 +51,12 @@ class GCMSBase(GC_Calculations):
         #after peak detection
         self._processed_tic = []
         self.gcpeaks = []
+        
         self.ri_pairs_ref = None
 
+        self.deconv_rt_list = None
+        self.deconv_mz = None
+        self.deconv_max_tic = None
     
     def _init_settings(self):
         
@@ -69,7 +74,7 @@ class GCMSBase(GC_Calculations):
 
     #     return iter(self.gcpeaks.values())
  
-    def process_chromatogram(self,):
+    def process_chromatogram(self):
 
         #tic = self.tic - self.baseline_detector(self.tic)
         
@@ -81,19 +86,25 @@ class GCMSBase(GC_Calculations):
 
         #self.second_derivative_threshold(self._processed_tic)
 
-        peaks_index = self.centroid_detector(self._processed_tic)
+        if self.chromatogram_settings.use_deconvolution:
+             
+             self.lowres_deconvolution()
+
+        else:
+            
+            peaks_index = self.centroid_detector(self._processed_tic, self.retention_time)
         
-        for i in peaks_index: 
-            
-            apex_index = i[1]
+            for i in peaks_index: 
+                
+                apex_index = i[1]
 
-            gc_peak =  GCPeak( self._ms[apex_index], i )
-            
-            gc_peak.calc_area(self._processed_tic, 1)
+                gc_peak =  GCPeak( self._ms[apex_index], i )
+                
+                gc_peak.calc_area(self._processed_tic, 1)
 
-            self.gcpeaks.append(gc_peak)
+                self.gcpeaks.append(gc_peak)
 
-            #self.gcpeaks[self.scans_number[apex_index]] = gc_peak
+                #self.gcpeaks[self.scans_number[apex_index]] = gc_peak
             
     def add_mass_spectrum(self, mass_spec):
         
@@ -127,7 +138,7 @@ class GCMSBase(GC_Calculations):
 
     @parameter.setter
     def parameter(self, gcms_parameters_instance):
-        return self._parameters
+        self._parameters = gcms_parameters_instance
 
     @property
     def molecular_search_settings(self):
