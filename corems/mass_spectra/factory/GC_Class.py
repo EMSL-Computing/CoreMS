@@ -46,13 +46,11 @@ class GCMSBase(GC_Calculations):
 
         #all scans
         self._ms = {}
-        self._ms_deconvolution = {}
-
+        
         #after peak detection
         self._processed_tic = []
         self.gcpeaks = []
-        self.gcpeaks_deconvolution = {}
-
+        
         self.ri_pairs_ref = None
 
         self.deconv_rt_list = None
@@ -89,17 +87,17 @@ class GCMSBase(GC_Calculations):
 
         self.lowres_deconvolution()
 
-        peaks_index = self.centroid_detector(self._processed_tic, self.retention_time)
+        #peaks_index = self.centroid_detector(self._processed_tic, self.retention_time)
         
-        for i in peaks_index: 
+        #for i in peaks_index: 
             
-            apex_index = i[1]
+        #    apex_index = i[1]
 
-            gc_peak =  GCPeak( self._ms[apex_index], i )
+        #    gc_peak =  GCPeak( self._ms[apex_index], i )
             
-            gc_peak.calc_area(self._processed_tic, 1)
+        #    gc_peak.calc_area(self._processed_tic, 1)
 
-            self.gcpeaks.append(gc_peak)
+        #    self.gcpeaks.append(gc_peak)
 
             #self.gcpeaks[self.scans_number[apex_index]] = gc_peak
             

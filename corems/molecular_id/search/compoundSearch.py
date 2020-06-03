@@ -97,7 +97,7 @@ class LowResMassSpectralMatch(Thread):
                     
                     spectral_similarity_scores = {}
                     spectral_similarity_scores["cosine_correlation"] = spectral_simi.cosine_correlation()
-
+                    
                     #print(w_correlation_value,correlation_value )
                     if spectral_similarity_scores["cosine_correlation"] >= self.gcms_obj.molecular_search_settings.correlation_threshold:
                     

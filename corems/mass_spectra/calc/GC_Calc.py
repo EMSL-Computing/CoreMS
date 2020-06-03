@@ -4,7 +4,10 @@ __date__ = "Feb 13, 2020"
 from scipy.signal import savgol_filter, boxcar
 from numpy import hstack, inf, isnan, where, hanning, convolve, blackman, bartlett, ones, r_, sum, empty, nan, array, nan_to_num, std, nanmean, median, average, zeros
 from pandas import Series
-
+from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroidLowRes
+from corems.encapsulation.constant import Labels
+from corems.chroma_peak.factory.ChromaPeakClasses import GCPeak
+from corems.encapsulation.factory.parameters import default_parameters
 
 class GC_Calculations:
     
@@ -13,8 +16,7 @@ class GC_Calculations:
     '''
    
     def lowres_deconvolution(self):
-        from matplotlib import pyplot as plt
-
+        
         deconvolve_dict = {} 
         maximum_tic = max(self._processed_tic)
         
@@ -48,7 +50,7 @@ class GC_Calculations:
             self.deconv_rt_list = rt_list
             self.deconv_mz = mz
 
-            if len(eic) > 5:
+            if len(eic) > 10:
 
                 #print(len(eic), len(rt_list))    
                 
@@ -87,34 +89,76 @@ class GC_Calculations:
         c = 'green'
         
         i = 0
-        for rt, data in dict_deconvolution_data.items():
+        tic_list = []
+        rt_list = []
+        for rt, data_list in sorted(dict_deconvolution_data.items()):
             
-            norm_smooth_tic = (sum(data[1])/maximum_tic)*100
 
-            if norm_smooth_tic > self.chromatogram_settings.peak_height_min_abun and len(data[1]) > 3:
-                i += 1
-                ax = plt.gca()
+            tic = sum(data_list[1])
+            
+            norm_smooth_tic = (tic/maximum_tic)*100
 
-                markerline_a, stemlines_a, baseline_a  = ax.stem(data[0], data[1], linefmt='-',  markerfmt=" ", use_line_collection =True, label=rt)
+            if norm_smooth_tic > self.chromatogram_settings.peak_height_min_abun and len(data_list[1]) > 3:
                 
-                plt.setp(markerline_a, 'color', c, 'linewidth', 2)
-                plt.setp(stemlines_a, 'color', c, 'linewidth', 2)
-                plt.setp(baseline_a, 'color', c, 'linewidth', 2)
+                scan_index = data_list[2][0]
+                
+                mz_list, abundance_list = zip(*sorted(zip(data_list[0], data_list[1])))
 
-                ax.set_xlabel("$\t{m/z}$", fontsize=12)
-                ax.set_ylabel('Abundance', fontsize=12)
-                ax.tick_params(axis='both', which='major', labelsize=12)
+                data_dict = {Labels.mz: data_list[0], Labels.abundance: data_list[1]}
+                
+                d_params = default_parameters(self._ms[scan_index]._filename)
+                
+                d_params["rt"] = rt
 
-                ax.axes.spines['top'].set_visible(False)
-                ax.axes.spines['right'].set_visible(False)
+                d_params["scan_number"] = scan_index
 
-                ax.get_yaxis().set_visible(False)
-                ax.spines['left'].set_visible(False)
+                d_params['label'] = Labels.gcms_centroid
+
+                d_params["polarity"] = self._ms[scan_index].polarity
+
+                d_params['analyzer'] = self._ms[scan_index].analyzer
+
+                d_params['instrument_label'] = self._ms[scan_index].instrument_label
+                
+                d_params["filename_path"] = self._ms[scan_index].instrument_label
+
+                ms = MassSpecCentroidLowRes(data_dict, d_params )
+                
+                #needs to define peak start and end, passing just minus and plus one from apex pos for now
+                gc_peak =  GCPeak(ms, (i-1,i, i+1))
+
+                self.gcpeaks.append(gc_peak)
+
+                tic_list.append(tic)
+                rt_list.append(rt)
+
+                i += 1
+                #ax = plt.gca()
+
+                #markerline_a, stemlines_a, baseline_a  = ax.stem(data[0], data[1], linefmt='-',  markerfmt=" ", use_line_collection =True, label=rt)
+                
+                #plt.setp(markerline_a, 'color', c, 'linewidth', 2)
+                #plt.setp(stemlines_a, 'color', c, 'linewidth', 2)
+                #plt.setp(baseline_a, 'color', c, 'linewidth', 2)
+
+                #ax.set_xlabel("$\t{m/z}$", fontsize=12)
+                #ax.set_ylabel('Abundance', fontsize=12)
+                #ax.tick_params(axis='both', which='major', labelsize=12)
+
+                #ax.axes.spines['top'].set_visible(False)
+                #ax.axes.spines['right'].set_visible(False)
+
+                #ax.get_yaxis().set_visible(False)
+                #ax.spines['left'].set_visible(False)
                 #plt.plot(rt_apex, abundance_apex, linewidth= 0, c='black', marker= '^')
-                plt.legend()
-                plt.show()
+                #plt.legend()
+                #plt.show()
             #plt.close()
-        print(i)
+        
+        #plt.plot(self.retention_time, self._processed_tic)
+        #plt.plot(rt_list, tic_list, c='black', marker= '^', linewidth=0)
+        #plt.show()
+        #print(i)
 
     def calibrate_ri(self, ref_dict):
         
