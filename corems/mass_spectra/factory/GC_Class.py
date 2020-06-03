@@ -311,7 +311,7 @@ class GCMSBase(GC_Calculations):
 
             ax = plt.gca()
         
-        ax.plot(self.retention_time, self.baseline_detector(self.tic), color=color)
+        ax.plot(self.retention_time, self.baseline_detector(self.tic, self.retention_time), color=color)
 
         ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
         
@@ -325,7 +325,7 @@ class GCMSBase(GC_Calculations):
 
             ax = plt.gca()
         
-        x = self.tic + self.baseline_detector(self.tic)
+        x = self.tic + self.baseline_detector(self.tic, self.retention_time) 
 
         ax.plot(self.retention_time, x, color=color)
 
