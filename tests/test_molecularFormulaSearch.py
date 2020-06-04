@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from corems.mass_spectrum.factory.classification import  HeteroatomsClassification
+from corems.molecular_id.factory.classification import  HeteroatomsClassification
 from corems.mass_spectrum.input.numpyArray import ms_from_array_centroid
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment

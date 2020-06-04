@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from corems.encapsulation.factory.parameters import MSParameters
-from corems.mass_spectrum.factory.classification import  HeteroatomsClassification, Labels
+from corems.molecular_id.factory.classification import  HeteroatomsClassification, Labels
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from test_molecularFormulaSearch import create_mass_spectrum
 

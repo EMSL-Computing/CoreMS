@@ -3,9 +3,13 @@ __date__ = "Jan 31, 2020"
 
 from collections.abc import Mapping
 
+from matplotlib import pyplot as plt
+from numpy import linspace
+
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.constant import Atoms
 
+flatten_list = lambda l: [item for sublist in l for item in sublist]
 
 class HeteroatomsClassification(Mapping):
     
@@ -223,23 +227,35 @@ class HeteroatomsClassification(Mapping):
             
         return [mspeak.abundance for classe in classes for mspeak in self[classe] if classe != Labels.unassigned]
 
+    def mz_exp_all(self):
+        
+        classes = self.keys()
+        
+        return flatten_list([self.mz_exp(classe) for classe in classes if classe != Labels.unassigned])
+    
+    def mz_error_all(self):
+        
+        classes = self.keys()
+        
+        return flatten_list([self.mz_error(classe) for classe in classes if classe != Labels.unassigned])
+        
     def carbon_number_all(self):
 
         classes = self.keys()
             
-        return [self.carbon_number(classe) for classe in classes if classe != Labels.unassigned]
+        return flatten_list([self.carbon_number(classe) for classe in classes if classe != Labels.unassigned])
 
     def dbe_all(self):
 
         classes = self.keys()
             
-        return [self.dbe(classe) for classe in classes if classe != Labels.unassigned]
+        return flatten_list([self.dbe(classe) for classe in classes if classe != Labels.unassigned])
 
     def atoms_ratio_all(self, numerator, denominator):
 
         classes = self.keys()
             
-        return [self.atoms_ratio(classe, numerator, denominator) for classe in classes if classe != Labels.unassigned]
+        return flatten_list([self.atoms_ratio(classe, numerator, denominator) for classe in classes if classe != Labels.unassigned])
 
     def to_dataframe(self, incluse_isotopologue=False, abundance_perc_threshold=5, include_unassigned=False):
         
@@ -319,8 +335,6 @@ class HeteroatomsClassification(Mapping):
      
     def plot_ms_assigned_unassigned(self, assigned_color= 'b', unassigned_color = 'r'):
         
-        from matplotlib import pyplot as plt
-        
         mz_assigned = self.mz_exp_assigned()
         abundance_assigned = self.abundance_assigned()
     
@@ -349,20 +363,39 @@ class HeteroatomsClassification(Mapping):
         plt.legend()
         return ax    
 
-    
-    def plot_mz_error_class(self, classe, color= 'g'):
+    def plot_mz_error(self, color= 'g'):
         
-        from matplotlib import pyplot as plt
+        ax = plt.gca()
+
+        mz_assigned = self.mz_exp_all()
+        mz_error= self.mz_error_all()
+        
+        ax.scatter( mz_assigned, mz_error, c=color)
+        
+        ax.set_xlabel("$\t{m/z}$", fontsize=12)
+        ax.set_ylabel('Error (ppm)', fontsize=12)
+        ax.tick_params(axis='both', which='major', labelsize=12)
+
+        ax.axes.spines['top'].set_visible(True)
+        ax.axes.spines['right'].set_visible(True)
+
+        ax.get_yaxis().set_visible(True)
+        ax.spines['left'].set_visible(True)
+
+        ax.set_xlim(self.min_max_mz)
+        ax.set_ylim(self.min_ppm_error , self.max_ppm_error)
+    
+        return ax
+
+    def plot_mz_error_class(self, classe, color= 'g'):
         
         if classe != Labels.unassigned:
             ax = plt.gca()
             
-            print(classe)
             abun_perc = self.abundance_count_percentile(classe)
             mz_assigned = self.mz_exp(classe)
             mz_error= self.mz_error(classe)
             
-            print(len(mz_assigned), len(mz_error))
             ax.scatter( mz_assigned, mz_error, c=color)
             
             title = "%s, %.2f %%" % (classe, abun_perc)
@@ -383,8 +416,6 @@ class HeteroatomsClassification(Mapping):
             return ax   
             
     def plot_ms_class(self, classe, color= 'g'):
-        
-        from matplotlib import pyplot as plt
         
         if classe != Labels.unassigned:
             ax = plt.gca()
@@ -412,11 +443,38 @@ class HeteroatomsClassification(Mapping):
             ax.set_xlim(self.min_max_mz)
             ax.set_ylim(self.min_max_abundance)
         
-            return ax   
+            return ax
 
-    def plot_dbe_vs_carbon_number(self, classe, max_c=50, max_dbe=40, dbe_incr=5, c_incr=10, color="jet"):
+    def plot_van_krevelen(self, classe, max_hc=2.5, max_oc=2, ticks_number=5, color="jet"):
         
-        from matplotlib import pyplot as plt
+        if classe != Labels.unassigned:
+
+            # get data 
+            abun_perc = self.abundance_count_percentile(classe)
+            hc = self.atoms_ratio(classe, "H", "C") 
+            oc = self.atoms_ratio(classe, "O", "C") 
+            abundance = self.abundance(classe)
+            
+            #plot data
+            ax = plt.gca()
+
+            ax.scatter(oc, hc, c=abundance, alpha=0.5, cmap=color)
+
+            #ax.scatter(carbon_number, dbe, c=color, alpha=0.5)
+            
+            title = "%s, %.2f %%" % (classe, abun_perc)
+            ax.set_title(title)
+            ax.set_xlabel("O/C", fontsize=16)
+            ax.set_ylabel('H/C', fontsize=16)
+            ax.tick_params(axis='both', which='major', labelsize=18)
+            ax.set_xticks(linspace(0, max_oc, ticks_number, endpoint=True))
+            ax.set_yticks(linspace(0, max_hc, ticks_number, endpoint=True))
+
+            # returns matplot axes obj and the class percentile of the relative abundance 
+            
+            return ax, abun_perc 
+            
+    def plot_dbe_vs_carbon_number(self, classe, max_c=50, max_dbe=40, dbe_incr=5, c_incr=10, color="jet"):
         
         if classe != Labels.unassigned:
 

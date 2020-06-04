@@ -11,7 +11,7 @@ from PySide2.QtWidgets import QFileDialog, QApplication
 from PySide2.QtCore import Qt
 
 from corems.mass_spectra.input import rawFileReader
-from corems.mass_spectrum.factory.classification import HeteroatomsClassification, Labels
+from corems.molecular_id.factory.classification import HeteroatomsClassification, Labels
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 
@@ -22,10 +22,8 @@ if __name__ == "__main__":
     file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
     file_location = file_dialog.getOpenFileName()[0]
     app.quit()
-
     
     mass_spectrum = rawFileReader.ImportLCMSThermoMSFileReader(file_location).get_summed_mass_spectrum(1,7)
-
     
     #mass_spectrum.plot_mz_domain_profile()
     #print("polarity", mass_spectrum.polarity)

@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from numpy import unique
 
 from corems import SuppressPrints, get_dirnames
-from corems.mass_spectrum.factory.classification import HeteroatomsClassification, Labels
+from corems.molecular_id.factory.classification import HeteroatomsClassification, Labels
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas

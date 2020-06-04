@@ -13,7 +13,7 @@ from pandas import DataFrame
 from matplotlib import pyplot as plt
 
 from corems.mass_spectrum.input.massList import ReadMassList
-from corems.mass_spectrum.factory.classification import HeteroatomsClassification, Labels
+from corems.molecular_id.factory.classification import HeteroatomsClassification, Labels
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems import SuppressPrints, get_filename, get_dirname
