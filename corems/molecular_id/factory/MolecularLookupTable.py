@@ -273,11 +273,13 @@ class MolecularCombinations:
                 results = self.populate_combinations(class_tuple, settings)
                 all_results.extend(results)
                 if settings.db_jobs == 1: 
-                    if len(all_results) >= self.sql_db.chunks_count:
-                        insert_query = MolecularFormulaLink.__table__.insert().values(all_results)
-                        self.sql_db.session.execute(insert_query)
-                        all_results = list()
-            
+                    #if len(all_results) >= self.sql_db.chunks_count:
+                        list_insert_chunks = list(chunks(results, self.sql_db.chunks_count))
+                        for chunk in list_insert_chunks:
+                            insert_query = MolecularFormulaLink.__table__.insert().values(chunk)
+                            self.sql_db.session.execute(insert_query)
+                        #all_results = list()
+            self.sql_db.session.commit()
             # each chunk takes ~600Mb of memory, so if using 8 processes the total free memory needs to be 5GB
             if settings.db_jobs > 1: 
                 list_insert_chunks = list(chunks(all_results, self.sql_db.chunks_count))
