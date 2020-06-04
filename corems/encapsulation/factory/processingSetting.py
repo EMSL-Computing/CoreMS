@@ -227,7 +227,7 @@ class MolecularFormulaSearchSettings:
 
     min_peaks_per_class:int = 15
 
-    url_database: str = "postgresql://coremsdb:coremsmolform@localhost:5432/molformula"
+    url_database: str = None#"postgresql://coremsdb:coremsmolform@localhost:5432/molformula"
 
     db_jobs:int = 3
 
@@ -302,7 +302,7 @@ class MolecularFormulaSearchSettings:
         
         self.usedAtoms = {   'C': (1, 100),
                     'H': (4, 200),
-                    'O': (1, 18),
+                    'O': (1, 22),
                     'N': (0, 0),
                     'S': (0, 0),
                     'P': (0, 0),

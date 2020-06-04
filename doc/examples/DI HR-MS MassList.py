@@ -7,7 +7,7 @@ sys.path.append("./")
 from pathlib import Path
 import cProfile
 import pstats
-from multiprocessing import Pool,Process 
+from multiprocessing import Pool, Process 
 
 from pandas import DataFrame 
 from matplotlib import pyplot as plt
@@ -51,17 +51,17 @@ def run_assignment(file_location):
     mass_spectrum.molecular_search_settings.min_ppm_error  = -1
     mass_spectrum.molecular_search_settings.max_ppm_error = 1
 
-    mass_spectrum.molecular_search_settings.url_database = None#"postgres://coremsdb:coremsmolform@localhost:5432/molformula"
+    mass_spectrum.molecular_search_settings.url_database = "postgres://coremsdb:coremsmolform@localhost:5432/molformula"
     mass_spectrum.molecular_search_settings.min_dbe = 0
     mass_spectrum.molecular_search_settings.max_dbe = 50
 
-    mass_spectrum.molecular_search_settings.usedAtoms['C'] = (1,90)
+    mass_spectrum.molecular_search_settings.usedAtoms['C'] = (1,100)
     mass_spectrum.molecular_search_settings.usedAtoms['H'] = (4,200)
     mass_spectrum.molecular_search_settings.usedAtoms['O'] = (1,22)
-    mass_spectrum.molecular_search_settings.usedAtoms['N'] = (0,1)
-    mass_spectrum.molecular_search_settings.usedAtoms['S'] = (0,1)
-    mass_spectrum.molecular_search_settings.usedAtoms['Cl'] = (0,1)
-    mass_spectrum.molecular_search_settings.usedAtoms['Br'] = (0,1)
+    mass_spectrum.molecular_search_settings.usedAtoms['N'] = (0,0)
+    mass_spectrum.molecular_search_settings.usedAtoms['S'] = (0,0)
+    mass_spectrum.molecular_search_settings.usedAtoms['Cl'] = (0,0)
+    mass_spectrum.molecular_search_settings.usedAtoms['Br'] = (0,0)
     mass_spectrum.molecular_search_settings.usedAtoms['P'] = (0,0)
     mass_spectrum.molecular_search_settings.usedAtoms['Na'] = (0,0)
     mass_spectrum.molecular_search_settings.isProtonated = True

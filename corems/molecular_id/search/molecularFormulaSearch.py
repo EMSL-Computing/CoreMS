@@ -457,6 +457,12 @@ class SearchMolecularFormulaWorker:
 
                                         isotopologue_formula.mspeak_index_mono_isotopic = ms_peak.index
                                         
+                                        mono_isotopic_formula_index = len(ms_peak)
+                                        
+                                        isotopologue_formula.mspeak_index_mono_isotopic = ms_peak.index
+                                        
+                                        isotopologue_formula.mono_isotopic_formula_index = mono_isotopic_formula_index
+                                        
                                         #add mspeaks isotopologue index to the mono isotopic MolecularFormula obj and the respective formula position  
                                         
                                         #add molecular formula match to ms_peak

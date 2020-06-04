@@ -245,8 +245,6 @@ class MolecularCombinations:
 
         self.add_carbonsHydrogens(settings, existing_classes_objs)
         
-        print(molecular_search_settings.url_database)
-        
         if class_to_create:
             
             settings = MolecularLookupDictSettings()
