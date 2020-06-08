@@ -12,7 +12,7 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 
 ## Current Version
 
-### `15.0.1.beta`
+### `15.0.2.beta`
 
 ### Data input formats
 

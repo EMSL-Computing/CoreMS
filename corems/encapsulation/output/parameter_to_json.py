@@ -1,5 +1,6 @@
 from corems.encapsulation.output import parameter_to_dict 
 
+
 def dump_all_settings_json(filename='SettingsCoreMS.json', file_path=None):
     
     from pathlib import Path

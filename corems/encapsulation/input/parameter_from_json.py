@@ -81,7 +81,7 @@ def _set_dict_data_ms(data_loaded, mass_spec_obj):
                MassSpecPeakSetting()
                ]
                
-    labels = ["MolecularSearch", "Transient", "MassSpectrum", "MassSpecPeak"]
+    labels = ["MolecularFormulaSearch", "Transient", "MassSpectrum", "MassSpecPeak"]
     
     label_class = zip(labels, classes)
 
