@@ -7,9 +7,8 @@ def dump_all_settings_json(filename='SettingsCoreMS.json', file_path=None):
     import json
     '''Write JSON file into current directory
     '''        
-    data_dict_all = parameter_to_dict.get_dict_gcms_default_data()
-    data_dict_all = parameter_to_dict.get_dict_ms_default_data()
-
+    data_dict_all = parameter_to_dict.get_dict_all_default_data()
+    
     if not file_path:
         file_path = Path.cwd() / filename 
     
