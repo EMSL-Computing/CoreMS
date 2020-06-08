@@ -74,11 +74,13 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
         compound_obj.ri_score = ri_score
 
         compound_obj.similarity_score = similarity_score
-
-        self._compounds.append(compound_obj)
-
-        self._compounds.sort(key=lambda c: c.similarity_score, reverse=True)
         
+        self._compounds.append(compound_obj)
+        
+        if similarity_score:
+            self._compounds.sort(key=lambda c: c.similarity_score, reverse=True)
+        else:
+            self._compounds.sort(key=lambda c: c.spectral_similarity_score, reverse=True)
     @property
     def ri(self): return self._ri
 

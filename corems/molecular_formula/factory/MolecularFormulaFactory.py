@@ -337,6 +337,7 @@ class MolecularFormulaIsotopologue(MolecularFormula):
         
         self.mspeak_index_mono_isotopic = None
 
+        self.mono_isotopic_formula_index = None
         # parent mass spectrum peak obj instance
         self._mspeak_parent = mspeak_parent
 

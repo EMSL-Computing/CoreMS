@@ -72,7 +72,7 @@ class MassSpecPeakSetting:
 @dataclass 
 class GasChromatographSetting:
     
-    use_deconvolution: bool = True
+    use_deconvolution: bool = False
     
     implemented_smooth_method: tuple = ('savgol', 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar')
     
@@ -96,7 +96,7 @@ class GasChromatographSetting:
     
     std_noise_threshold: int = 3
 
-    peak_height_min_abun:float = 1 #1-100 % used for peak detection
+    peak_height_min_abun:float = 0.2 #1-100 % used for peak detection
 
     peak_min_prominence_percent:float = 1 #1-100 % used for peak detection
 
@@ -108,11 +108,11 @@ class CompoundSearchSettings:
     
     ri_search_range:float = 20
 
-    rt_search_range:float = 0.5 #used for retention index calibration
+    rt_search_range:float = 1.0 #used for retention index calibration
     
     correlation_threshold:float = 0.5 # used for calibration, spectral similarity 
     
-    score_threshold:float = 0.0 
+    score_threshold:float = 0.0
 
     ri_spacing:float = 200
 
@@ -121,7 +121,7 @@ class CompoundSearchSettings:
     ri_calibration_compound_names: List = field(default_factory=list)
 
     # calculates and export all spectral similarity methods
-    exploratory_mode:bool = False
+    exploratory_mode:bool = True
     
     def __post_init__(self):
         
@@ -226,7 +226,7 @@ class MolecularFormulaSearchSettings:
 
     min_peaks_per_class:int = 15
 
-    url_database: str = "postgresql://coremsdb:coremsmolform@localhost:5432/molformula"
+    url_database: str = None#"postgresql://coremsdb:coremsmolform@localhost:5432/molformula"
 
     db_jobs:int = 3
 
@@ -301,7 +301,7 @@ class MolecularFormulaSearchSettings:
         
         self.usedAtoms = {   'C': (1, 100),
                     'H': (4, 200),
-                    'O': (1, 18),
+                    'O': (1, 22),
                     'N': (0, 0),
                     'S': (0, 0),
                     'P': (0, 0),
