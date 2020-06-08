@@ -10,7 +10,7 @@ class ChromaPeakBase():
     '''
     classdocs
     '''
-    def __init__(self, mass_spectrum_obj, start_index, index, final_index ):
+    def __init__(self, mass_spectrum_obj, start_index, index, final_index):
         
         self.start_index = start_index
         self.final_index = final_index
@@ -81,6 +81,7 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
             self._compounds.sort(key=lambda c: c.similarity_score, reverse=True)
         else:
             self._compounds.sort(key=lambda c: c.spectral_similarity_score, reverse=True)
+    
     @property
     def ri(self): return self._ri
 
@@ -90,6 +91,7 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
             return max(self, key = lambda c: c.spectral_similarity_score)
         else:
             None
+    
     @property
     def highest_score_compound(self):
         if self:
