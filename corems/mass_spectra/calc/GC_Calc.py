@@ -48,8 +48,6 @@ class GC_Calculations:
 
             if len(eic) > 10:
 
-                #print(len(eic), len(rt_list))    
-                
                 smooth_eic = self.smooth_tic(eic)
 
                 include_indexes = list(self.centroid_detector(smooth_eic, rt_list))
@@ -62,16 +60,20 @@ class GC_Calculations:
                 rt_apex = [rt_list[i[1]] for i in final_indexes]
                 abundance_apex = [smooth_eic[i[1]] for i in final_indexes]
 
-                for peak_index, deconvoled_rt in enumerate(rt_apex):
+                for initial_scan, apex_scan, final_scan in enumerate(final_indexes):
                     
-                    deconvoled_abundance = abundance_apex[peak_index]
+                    apex_rt = rt_list[apex_scan]
+                    apex_abundance = smooth_eic[apex_scan]
                     
-                    if not deconvoled_rt in dict_deconvolution_data.keys():
-                        dict_deconvolution_data[deconvoled_rt] = [ [mz], [deconvoled_abundance], [scan_number] ]
+                    if not apex_rt in dict_deconvolution_data.keys():
+                        
+                        dict_deconvolution_data[apex_rt] = [ [mz], [apex_abundance], [scan_number] ]
+                    
                     else:
-                        dict_deconvolution_data[deconvoled_rt][0].append(mz)
-                        dict_deconvolution_data[deconvoled_rt][1].append(deconvoled_abundance)  
-                        dict_deconvolution_data[deconvoled_rt][2].append(scan_number)    
+                        
+                        dict_deconvolution_data[apex_rt][0].append(mz)
+                        dict_deconvolution_data[apex_rt][1].append(apex_abundance)
+                        dict_deconvolution_data[apex_rt][2].append(scan_number)
 
                 #if rt_apex and mz == 51:
                     

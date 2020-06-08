@@ -7,9 +7,9 @@ sys.path.append("./")
 from pathlib import Path
 import cProfile
 import pstats
-from multiprocessing import Pool, Process 
+from multiprocessing import Pool, Process
 
-from pandas import DataFrame 
+from pandas import DataFrame
 from matplotlib import pyplot as plt
 
 from corems.mass_spectrum.input.massList import ReadMassList
@@ -28,16 +28,17 @@ def run_bruker(file_location):
 
         mass_spectrum = transient.get_mass_spectrum(plot_result=False, auto_process=True)
 
-        #find_formula_thread = FindOxygenPeaks(mass_spectrum)
-        #find_formula_thread.run()
+        # find_formula_thread = FindOxygenPeaks(mass_spectrum)
+        # find_formula_thread.run()
         
-        #mspeaks_results = find_formula_thread.get_list_found_peaks()
-        #calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
-        #calibrate.ledford_calibration()
+        # mspeaks_results = find_formula_thread.get_list_found_peaks()
+        # calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
+        # calibrate.ledford_calibration()
         
-        #mass_spectrum.clear_molecular_formulas()
+        # mass_spectrum.clear_molecular_formulas()
 
         return mass_spectrum
+        
 def get_masslist(file_location):
 
     return(ReadMassList(file_location).get_mass_spectrum(polarity=-1))
@@ -71,8 +72,11 @@ def run_assignment(file_location):
     #mass_spectrum.filter_by_max_resolving_power(15, 2)
     SearchMolecularFormulas(mass_spectrum, first_hit=False).run_worker_mass_spectrum()
     mass_spectrum.percentile_assigned()
+    
     mass_spectrum.to_csv("15T_Neg_ESI_SRFA")
+    
     export_calc_isotopologues(mass_spectrum, "15T_Neg_ESI_SRFA_Calc_Isotopologues")
+    
     mass_spectrum_by_classes = HeteroatomsClassification(mass_spectrum, choose_molecular_formula=True)
     mass_spectrum_by_classes.plot_ms_assigned_unassigned()
     
