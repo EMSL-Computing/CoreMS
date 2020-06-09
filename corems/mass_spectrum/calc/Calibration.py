@@ -206,6 +206,7 @@ class MzDomainCalibration:
         return rmserror
 
     def recalibrate_mass_spectrum(self, mass_spectrum, imzmeas,mzrefs,order=1):
+        
         """
         function to recalibrate the mass spectrum object
         
@@ -235,30 +236,32 @@ class MzDomainCalibration:
         elif order == 2:
             Po = [1,0,0]
         
-        minimize_method = mass_spectrum.settings.calib_minimize_method
-        res =  minimize(self.robust_calib, Po, args=(imzmeas, mzrefs, mass_spectrum,order), method=minimize_method)
-        print("minimize function completed with RMS error of: {:0.3f} ppm".format(res['fun']))
-        print("minimize function performed {:1d} fn evals and {:1d} iterations".format(res['nfev'],res['nit']))
-        Pn = res.x
-        
-        mz_exp_ms = np.array(
-            [mspeak.mz_exp for mspeak in mass_spectrum])  
-        
-        mass_spectrum.mz_exp_profile 
-        
-        if order == 1:
-            mz_domain = (Pn[0] * mz_exp_ms) + Pn[1]
-            mz_profile_calc = (Pn[0] *  mass_spectrum.mz_exp_profile ) + Pn[1]
+        if len(imzmeas) > 2:
+
+            minimize_method = mass_spectrum.settings.calib_minimize_method
+            res =  minimize(self.robust_calib, Po, args=(imzmeas, mzrefs, mass_spectrum,order), method=minimize_method)
             
-        elif order == 2:
-            mz_domain = (Pn[0] * (mz_exp_ms)) + \
-                (Pn[1] * np.power((mz_exp_ms), 2) + Pn[2])
+            print("minimize function completed with RMS error of: {:0.3f} ppm".format(res['fun']))
+            print("minimize function performed {:1d} fn evals and {:1d} iterations".format(res['nfev'],res['nit']))
+            Pn = res.x
+            
+            mz_exp_ms = np.array(
+                [mspeak.mz_exp for mspeak in mass_spectrum])  
+            
+            if order == 1:
+                mz_domain = (Pn[0] * mz_exp_ms) + Pn[1]
+                mz_profile_calc = (Pn[0] *  mass_spectrum.mz_exp_profile ) + Pn[1]
+                
+            elif order == 2:
+                mz_domain = (Pn[0] * (mz_exp_ms)) + \
+                    (Pn[1] * np.power((mz_exp_ms), 2) + Pn[2])
 
-            mz_profile_calc = (Pn[0] * (mass_spectrum.mz_exp_profile)) + \
-                (Pn[1] * np.power((mass_spectrum.mz_exp_profile), 2) + Pn[2])
+                mz_profile_calc = (Pn[0] * (mass_spectrum.mz_exp_profile)) + \
+                        (Pn[1] * np.power((mass_spectrum.mz_exp_profile), 2) + Pn[2])
 
-        mass_spectrum.mz_cal = mz_domain
-        mass_spectrum.mz_cal_profile = mz_profile_calc
+            mass_spectrum.mz_cal = mz_domain
+            mass_spectrum.mz_cal_profile = mz_profile_calc
+        
         return mass_spectrum
 
     def run(self):
