@@ -877,7 +877,7 @@ class MassSpecCentroid(MassSpecBase):
         
         """needs to simulate peak shape and pass as mz_exp and magnitude."""
         
-        super().__init__(None, None, d_params)
+        super().__init__([], [], d_params)
 
         self._set_parameters_objects(d_params)
         
