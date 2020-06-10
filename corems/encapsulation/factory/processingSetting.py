@@ -96,7 +96,7 @@ class GasChromatographSetting:
     
     std_noise_threshold: int = 3
 
-    peak_height_min_abun:float = 0.2 #1-100 % used for peak detection
+    peak_height_min_percent:float = 0.2 #1-100 % used for peak detection
 
     peak_min_prominence_percent:float = 1 #1-100 % used for peak detection
 

@@ -8,12 +8,13 @@ from pathlib import Path
 from numpy import array
 
 from corems.mass_spectra.calc.GC_Calc import GC_Calculations
+from corems.mass_spectra.calc.GC_Deconvolution import MassDevoncolution
 from corems.chroma_peak.factory.ChromaPeakClasses import GCPeak
 from corems.mass_spectra.output.export import LowResGCMSExport
 from corems.encapsulation.factory.parameters import GCMSParameters
 
 
-class GCMSBase(GC_Calculations):
+class GCMSBase(GC_Calculations, MassDevoncolution):
     """
     classdocs
     """
@@ -53,10 +54,6 @@ class GCMSBase(GC_Calculations):
         self.gcpeaks = []
         
         self.ri_pairs_ref = None
-
-        self.deconv_rt_list = None
-        self.deconv_mz = None
-        self.deconv_max_tic = None
     
     def _init_settings(self):
         
@@ -88,15 +85,16 @@ class GCMSBase(GC_Calculations):
 
         if self.chromatogram_settings.use_deconvolution:
              
-             self.lowres_deconvolution()
+             self.run_deconvolution()
 
         else:
             
             peaks_index = self.centroid_detector(self._processed_tic, self.retention_time)
         
             for i in peaks_index: 
+                
                 apex_index = i[1]
-
+                
                 gc_peak =  GCPeak( self._ms[apex_index], i )
                 
                 gc_peak.calc_area(self._processed_tic, 1)

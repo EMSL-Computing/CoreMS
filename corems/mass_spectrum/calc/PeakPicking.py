@@ -3,7 +3,6 @@
 @date: Jun 27, 2019
 '''
 
-
 from numpy import hstack, inf, isnan, poly1d, polyfit, where
 from corems.encapsulation.constant import Labels
 
