@@ -72,7 +72,7 @@ class MassSpecPeakSetting:
 @dataclass 
 class GasChromatographSetting:
     
-    use_deconvolution: bool = False
+    use_deconvolution: bool = True
     
     implemented_smooth_method: tuple = ('savgol', 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar')
     
@@ -86,7 +86,7 @@ class GasChromatographSetting:
 
     peak_max_prominence_percent:float = 1 #1-100 % used for baseline detection
 
-    min_peak_datapoints:float = 3
+    min_peak_datapoints:float = 5
    
     max_peak_width:float = 0.1
 
@@ -96,7 +96,7 @@ class GasChromatographSetting:
     
     std_noise_threshold: int = 3
 
-    peak_height_min_abun:float = 0.2 #1-100 % used for peak detection
+    peak_height_min_abun:float = 0.5 #1-100 % used for peak detection
 
     peak_min_prominence_percent:float = 1 #1-100 % used for peak detection
 

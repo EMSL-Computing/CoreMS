@@ -3,6 +3,8 @@ __date__ = "Feb 13, 2020"
 
 from scipy.signal import savgol_filter, boxcar
 from numpy import hstack, inf, isnan, where, hanning, convolve, blackman, bartlett, ones, r_, sum, empty, nan, array, nan_to_num, std, nanmean, median, average, zeros
+from numpy import poly1d, polyfit
+
 from pandas import Series
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroidLowRes
 from corems.encapsulation.constant import Labels
@@ -11,9 +13,24 @@ from corems.encapsulation.factory.parameters import default_parameters
 from matplotlib import pyplot as plt
 class GC_Calculations:
     
+    def quadratic_interpolation(self, rt_list, tic_list, apex_index):
+        
+        rt_list = array(rt_list)
+        tic_list = array(tic_list)
+        three_highest_i = [i for i in range(apex_index-1, apex_index+2)]
+        
+        z = poly1d(polyfit(rt_list[three_highest_i], tic_list[three_highest_i], 2))
+        a = z[2]
+        b = z[1]
+
+        corrected_apex_rt = -b/(2*a)
+        initial_rt = rt_list[apex_index]
+        
+        return 0 #round(initial_rt-corrected_apex_rt,2)
+
     def lowres_deconvolution(self):
         
-        deconvolve_dict = {} 
+        eic_dict = {} 
         maximum_tic = max(self._processed_tic)
         
         for scan_number, ms_obj in self._ms.items():
@@ -24,20 +41,20 @@ class GC_Calculations:
             for index, mz in enumerate(mz_list):
 
                 #dict of mz and tuple (mass spectrum abundances index, and scan number )
-                if not mz in deconvolve_dict.keys(): 
+                if not mz in eic_dict.keys(): 
                    
-                    deconvolve_dict[mz] = [ [abundance_list[index]], [scan_number], [index], [ms_obj.rt] ]
+                    eic_dict[mz] = [ [abundance_list[index]], [scan_number], [index], [ms_obj.rt] ]
                 
                 else:
                     
-                    deconvolve_dict[mz][0].append(ms_obj.abundance[index])
-                    deconvolve_dict[mz][1].append(scan_number)
-                    deconvolve_dict[mz][2].append(index)
-                    deconvolve_dict[mz][3].append(ms_obj.rt)
+                    eic_dict[mz][0].append(ms_obj.abundance[index])
+                    eic_dict[mz][1].append(scan_number)
+                    eic_dict[mz][2].append(index)
+                    eic_dict[mz][3].append(ms_obj.rt)
 
         dict_deconvolution_data = {}
 
-        for mz, eic_scan_index_rt in deconvolve_dict.items():
+        for mz, eic_scan_index_rt in eic_dict.items():
 
             eic = eic_scan_index_rt[0]
             rt_list = eic_scan_index_rt[3]
@@ -57,24 +74,41 @@ class GC_Calculations:
                 remove_indexes = where(smooth_eic < self.chromatogram_settings.peak_height_min_abun)[0]
                 final_indexes = sorted(set(include_indexes)-set(remove_indexes))
                 
-                rt_apex = [rt_list[i[1]] for i in final_indexes]
-                abundance_apex = [smooth_eic[i[1]] for i in final_indexes]
-
-                for initial_scan, apex_scan, final_scan in enumerate(final_indexes):
+                for initial_scan, apex_scan, final_scan in final_indexes:
                     
-                    apex_rt = rt_list[apex_scan]
+                    rt_corrected_therm = self.quadratic_interpolation(rt_list, smooth_eic, apex_scan)
+                    
+                    apex_rt = rt_list[apex_scan] 
                     apex_abundance = smooth_eic[apex_scan]
                     
-                    if not apex_rt in dict_deconvolution_data.keys():
+                    for scan_index in range(initial_scan, final_scan):
                         
-                        dict_deconvolution_data[apex_rt] = [ [mz], [apex_abundance], [scan_number] ]
-                    
-                    else:
-                        
-                        dict_deconvolution_data[apex_rt][0].append(mz)
-                        dict_deconvolution_data[apex_rt][1].append(apex_abundance)
-                        dict_deconvolution_data[apex_rt][2].append(scan_number)
+                        peak_rt = rt_list[scan_index]
+                        peak_abundance = smooth_eic[scan_index]
 
+                        dict_data = {peak_rt: { 'mz': [mz] , 
+                                                'abundance':[peak_abundance], 
+                                                'scan_number': [scan_index] }
+                        }
+
+                        if not apex_rt in dict_deconvolution_data.keys():
+                            
+                            dict_deconvolution_data[apex_rt] = dict_data
+                        
+                        else:
+                            
+                            if not peak_rt in dict_deconvolution_data[apex_rt].keys():
+                                
+                                dict_deconvolution_data[apex_rt][peak_rt] = dict_data.get(peak_rt)
+
+                            else:    
+                                
+                                existing_data = dict_deconvolution_data[apex_rt].get(peak_rt)
+                                
+                                existing_data['mz'].append(mz)
+                                existing_data['abundance'].append(peak_abundance)
+                                existing_data['scan_number'].append(scan_index)
+                    
                 #if rt_apex and mz == 51:
                     
                     #plt.plot(rt_list, smooth_eic, label=mz)
@@ -87,23 +121,25 @@ class GC_Calculations:
         
         c = 'green'
         
-        for rt, data_list in sorted(dict_deconvolution_data.items()):
+        for apex_rt, datadict in sorted(dict_deconvolution_data.items()):
             
-            tic = sum(data_list[1])
+            apex_data = datadict[apex_rt] 
+            
+            tic = sum(apex_data.get('abundance'))
             
             norm_smooth_tic = (tic/maximum_tic)*100
 
-            if norm_smooth_tic > self.chromatogram_settings.peak_height_min_abun and len(data_list[1]) > 3:
+            if norm_smooth_tic > self.chromatogram_settings.peak_height_min_abun and len(apex_data['mz']) > 3:
                 
-                scan_index = data_list[2][0]
+                scan_index = apex_data['scan_number'][0]
                 
-                mz_list, abundance_list = zip(*sorted(zip(data_list[0], data_list[1])))
+                mz_list, abundance_list = zip(*sorted(zip(apex_data['mz'], apex_data['abundance'])))
 
-                data_dict = {Labels.mz: data_list[0], Labels.abundance: data_list[1]}
+                data_dict = {Labels.mz: mz_list, Labels.abundance: abundance_list}
                 
                 d_params = default_parameters(self._ms[scan_index]._filename)
                 
-                d_params["rt"] = rt
+                d_params["rt"] = apex_rt
 
                 d_params["scan_number"] = scan_index
 
@@ -125,7 +161,17 @@ class GC_Calculations:
                 self.gcpeaks.append(gc_peak)
 
                 tic_list.append(tic)
-                rt_list.append(rt)
+                rt_list.append(apex_rt)
+
+                peak_rt = []
+                peak_tic = []
+                
+                for rt, each_datadict in datadict.items():
+                    
+                    peak_rt.append(rt)
+                    peak_tic.append(sum(each_datadict["abundance"]))
+                
+                peak_rt, peak_tic = zip(*sorted(zip(peak_rt, peak_tic)))
 
                 #ax = plt.gca()
 
@@ -144,7 +190,7 @@ class GC_Calculations:
 
                 #ax.get_yaxis().set_visible(False)
                 #ax.spines['left'].set_visible(False)
-                #plt.plot(rt_apex, abundance_apex, linewidth= 0, c='black', marker= '^')
+                plt.plot(peak_rt, peak_tic)
                 #plt.legend()
                 #plt.show()
             #plt.close()

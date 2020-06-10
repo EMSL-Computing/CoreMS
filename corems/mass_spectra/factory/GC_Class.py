@@ -95,7 +95,6 @@ class GCMSBase(GC_Calculations):
             peaks_index = self.centroid_detector(self._processed_tic, self.retention_time)
         
             for i in peaks_index: 
-                
                 apex_index = i[1]
 
                 gc_peak =  GCPeak( self._ms[apex_index], i )
