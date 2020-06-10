@@ -331,7 +331,7 @@ class GCMSBase(GC_Calculations, MassDevoncolution):
 
         max_prominence = self.chromatogram_settings.peak_max_prominence_percent
 
-        x = self.tic + sp.baseline_detector(self.tic, self.retention_time) 
+        x = self.tic + sp.baseline_detector(self.tic, self.retention_time, max_height, max_prominence) 
 
         ax.plot(self.retention_time, x, color=color)
 
