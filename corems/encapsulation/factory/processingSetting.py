@@ -72,7 +72,7 @@ class MassSpecPeakSetting:
 @dataclass 
 class GasChromatographSetting:
     
-    use_deconvolution: bool = True
+    use_deconvolution: bool = False
     
     implemented_smooth_method: tuple = ('savgol', 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar')
     
@@ -121,7 +121,7 @@ class CompoundSearchSettings:
     ri_calibration_compound_names: List = field(default_factory=list)
 
     # calculates and export all spectral similarity methods
-    exploratory_mode:bool = True
+    exploratory_mode:bool = False
     
     def __post_init__(self):
         
