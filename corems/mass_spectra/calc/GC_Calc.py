@@ -11,6 +11,7 @@ from corems.encapsulation.constant import Labels
 from corems.chroma_peak.factory.ChromaPeakClasses import GCPeak
 from corems.encapsulation.factory.parameters import default_parameters
 from matplotlib import pyplot as plt
+
 class GC_Calculations:
     
     def quadratic_interpolation(self, rt_list, tic_list, apex_index):
@@ -63,7 +64,7 @@ class GC_Calculations:
             self.deconv_rt_list = rt_list
             self.deconv_mz = mz
 
-            if len(eic) > 10:
+            if len(eic) > 5:
 
                 smooth_eic = self.smooth_tic(eic)
 
