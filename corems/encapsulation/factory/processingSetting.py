@@ -98,7 +98,7 @@ class GasChromatographSetting:
 
     peak_height_min_percent:float = 0.2 #1-100 % used for peak detection
 
-    peak_min_prominence_percent:float = 1 #1-100 % used for peak detection
+    peak_min_prominence_percent:float = 0.2 #1-100 % used for peak detection
 
 
 @dataclass 
