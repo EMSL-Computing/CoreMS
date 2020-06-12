@@ -8,7 +8,6 @@ from pathlib import Path
 from multiprocessing import Pool
 import cProfile
 
-from numpy import array, polyfit, poly1d
 from PySide2.QtWidgets import QFileDialog, QApplication
 from PySide2.QtCore import Qt
 

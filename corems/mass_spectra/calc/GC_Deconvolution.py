@@ -9,7 +9,7 @@ from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroidLow
 from corems.chroma_peak.factory.ChromaPeakClasses import GCPeak
 from corems.mass_spectra.calc import SignalProcessing as sp
 
-class MassDevoncolution:
+class MassDeconvolution:
 
     def run_deconvolution(self):
 
@@ -26,18 +26,17 @@ class MassDevoncolution:
         # need to change the parameter to accommodate EIC peak picking 
         # needs a better algorithm to detect start and end of a peak
         
-
         noise_std = self.chromatogram_settings.std_noise_threshold
 
         method = self.chromatogram_settings.noise_threshold_method
         
-        #peak picking
-        min_height = self.chromatogram_settings.peak_height_min_percent 
-        min_datapoints = self.chromatogram_settings.min_peak_datapoints   
+        # peak picking
+        min_height = self.chromatogram_settings.peak_height_min_percent
+        min_datapoints = self.chromatogram_settings.min_peak_datapoints
         
         # baseline detection
-        max_prominence = self.chromatogram_settings.peak_max_prominence_percent 
-        max_height = self.chromatogram_settings.peak_height_max_percent 
+        max_prominence = self.chromatogram_settings.peak_max_prominence_percent
+        max_height = self.chromatogram_settings.peak_height_max_percent
         
         peak_indexes_generator = sp.peak_detector_generator(tic, noise_std, method, rt, max_height, min_height, max_prominence, min_datapoints)
 
@@ -51,10 +50,10 @@ class MassDevoncolution:
 
             mz_list = ms_obj.mz_exp
             abundance_list = ms_obj.abundance
-            #add list of scan numbers
+            # add list of scan numbers
             for index, mz in enumerate(mz_list):
 
-                #dict of mz and tuple (mass spectrum abundances index, and scan number )
+                # dict of mz and tuple (mass spectrum abundances index, and scan number)
                 if not mz in eic_dict.keys(): 
                    
                     eic_dict[mz] = [ [abundance_list[index]], [ms_obj.rt] ]
@@ -68,16 +67,21 @@ class MassDevoncolution:
 
     def find_peaks_entity(self, eic_dict):
         
+        max_prominence = self.chromatogram_settings.peak_max_prominence_percent
+        max_height = self.chromatogram_settings.peak_height_max_percent
+
         peaks_entity_data = {}
 
         for mz, eic_scan_index_rt in eic_dict.items():
             
             eic = eic_scan_index_rt[0]
             rt_list = eic_scan_index_rt[1]
-            
-            if len(eic) > 5:
+                                    
+            if len(eic) > 10:
 
                 smooth_eic = self.smooth_tic(eic)
+
+                sp.find_minima_derivative(rt_list, smooth_eic,  max_height, max_prominence, correct_baseline=False)
 
                 include_indexes = list(self.centroid_detector(smooth_eic, rt_list))
                 
