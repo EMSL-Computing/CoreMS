@@ -195,7 +195,7 @@ class MolForm_SQL:
 
     def init_engine(self, url):
         
-        if not url:
+        if not url and url == 'None' or url == 'False':
             directory = os.getcwd()
             
             if not os.path.isdir(directory+'/db'):  os.mkdir(directory+'/db')

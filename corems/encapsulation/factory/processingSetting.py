@@ -14,9 +14,14 @@ class TransientSetting:
     number_of_zero_fills: int = 1
     
     def __post_init__(self):
-        self.number_of_truncations = int(self.number_of_truncations)
-        self.number_of_zero_fills = int(self.number_of_zero_fills)
-
+        
+        for field in dataclasses.fields(self):
+            value = getattr(self, field.name)
+            if not isinstance(value, field.type):
+                
+                value = field.type(value)
+                setattr(self, field.name, value)
+                
 @dataclasses.dataclass
 class DataInputSetting:
     

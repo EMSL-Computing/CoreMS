@@ -200,8 +200,8 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         if not keep_profile:
             
             self._abundance *= 0
-            self._mz_exp  *= 0
-            self._abundance  *= 0
+            self._mz_exp *= 0
+            self._abundance *= 0
         
     def cal_noise_threshold(self, auto=True, bayes=False):
 
@@ -218,8 +218,8 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         return self._parameters
 
     @parameters.setter
-    def parameters(self, instance_GCMSParameters):
-        self._parameters = instance_GCMSParameters
+    def parameters(self, instance_MSParameters):
+        self._parameters = instance_MSParameters
 
     def set_parameter_from_json(self, parameters_path):
         load_and_set_parameters_ms(self,  parameters_path=parameters_path)    
