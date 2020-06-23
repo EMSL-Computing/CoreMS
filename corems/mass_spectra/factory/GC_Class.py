@@ -9,6 +9,8 @@ from numpy import array
 
 from corems.mass_spectra.calc.GC_Calc import GC_Calculations
 from corems.mass_spectra.calc.GC_Deconvolution import MassDevoncolution
+from corems.mass_spectra.calc import SignalProcessing as sp
+
 from corems.chroma_peak.factory.ChromaPeakClasses import GCPeak
 from corems.mass_spectra.output.export import LowResGCMSExport
 from corems.encapsulation.factory.parameters import GCMSParameters
@@ -308,8 +310,11 @@ class GCMSBase(GC_Calculations, MassDevoncolution):
 
             ax = plt.gca()
         
-        ax.plot(self.retention_time, self.baseline_detector(self.tic, self.retention_time), color=color)
+        max_height = self.chromatogram_settings.peak_height_max_percent
+        max_prominence = self.chromatogram_settings.peak_max_prominence_percent
 
+        baseline = sp.baseline_detector(self.tic, self.retention_time, max_height,max_prominence )
+        ax.plot(self.retention_time, color=color)
         ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
         
         return ax
@@ -322,7 +327,11 @@ class GCMSBase(GC_Calculations, MassDevoncolution):
 
             ax = plt.gca()
         
-        x = self.tic + self.baseline_detector(self.tic, self.retention_time) 
+        max_height = self.chromatogram_settings.peak_height_max_percent
+
+        max_prominence = self.chromatogram_settings.peak_max_prominence_percent
+
+        x = self.tic + sp.baseline_detector(self.tic, self.retention_time, max_height, max_prominence) 
 
         ax.plot(self.retention_time, x, color=color)
 
