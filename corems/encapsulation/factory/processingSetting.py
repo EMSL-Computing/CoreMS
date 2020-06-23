@@ -1,24 +1,28 @@
 __author__ = 'Yuri E. Corilo'
 __date__ = 'Jul 02, 2019'
 
-from dataclasses import dataclass,field
+import dataclasses 
 from typing import List, Dict
 from corems.encapsulation.constant import Labels
 
-@dataclass
+@dataclasses.dataclass
 class TransientSetting:
     
     implemented_apodization_function: tuple = ('Hamming', 'Hanning', 'Blackman')
     apodization_method: str = 'Hanning'
     number_of_truncations: int = 0
     number_of_zero_fills: int = 1
+    
+    def __post_init__(self):
+        self.number_of_truncations = int(self.number_of_truncations)
+        self.number_of_zero_fills = int(self.number_of_zero_fills)
 
-@dataclass
+@dataclasses.dataclass
 class DataInputSetting:
     
     #add to this dict the VALUES to match your labels, THE ORDER WON"T MATTER
     #"column_translate" : {"m/z":"m/z", "Resolving Power":"Resolving Power", "Abundance":"Abundance" , "S/N":"S/N"}
-    header_translate: dict = field(default_factory=dict)
+    header_translate: dict = dataclasses.field(default_factory=dict)
     def __post_init__(self):
         
         self.header_translate = {'m/z': Labels.mz, 
@@ -29,7 +33,7 @@ class DataInputSetting:
                         "Signal/Noise":"S/N",
                         "S/N":"S/N"}
 
-@dataclass            
+@dataclasses.dataclass         
 class MassSpectrumSetting:
     
     threshold_method: str = 'auto'
@@ -54,10 +58,22 @@ class MassSpectrumSetting:
     min_calib_ppm_error: float = -1
     calib_sn_threshold: float = 10
 
-@dataclass    
+    do_calibration: bool = True
+
+    def __post_init__(self):
+        
+        for field in dataclasses.fields(self):
+            value = getattr(self, field.name)
+            if not isinstance(value, field.type):
+                
+                value = field.type(value)
+                setattr(self, field.name, value)
+
+
+@dataclasses.dataclass
 class MassSpecPeakSetting:
     
-    kendrick_base: Dict = field(default_factory=dict)
+    kendrick_base: Dict = dataclasses.field(default_factory=dict)
     #kendrick_base : Dict =  {'C': 1, 'H':2}
     
     peak_min_prominence_percent :float = 1 #1-100 % used for peak detection
@@ -67,12 +83,18 @@ class MassSpecPeakSetting:
     def __post_init__(self):
         
         self.kendrick_base = {'C': 1, 'H':2}
+    
+        for field in dataclasses.fields(self):
+            value = getattr(self, field.name)
+            if not isinstance(value, field.type):
+                
+                value = field.type(value)
+                setattr(self, field.name, value)
        
-       
-@dataclass 
+@dataclasses.dataclass
 class GasChromatographSetting:
     
-    use_deconvolution: bool = True
+    use_deconvolution: bool = False
     
     implemented_smooth_method: tuple = ('savgol', 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar')
     
@@ -86,7 +108,7 @@ class GasChromatographSetting:
 
     peak_max_prominence_percent:float = 1 #1-100 % used for baseline detection
 
-    min_peak_datapoints:float = 5
+    min_peak_datapoints:float = 3
    
     max_peak_width:float = 0.1
 
@@ -96,12 +118,20 @@ class GasChromatographSetting:
     
     std_noise_threshold: int = 3
 
-    peak_height_min_percent:float = 0.2 #1-100 % used for peak detection
+    peak_height_min_abun:float = 0.2 #1-100 % used for peak detection
 
     peak_min_prominence_percent:float = 1 #1-100 % used for peak detection
 
+    def __post_init__(self):
+        
+        for field in dataclasses.fields(self):
+            value = getattr(self, field.name)
+            if not isinstance(value, field.type):
+                
+                value = field.type(value)
+                setattr(self, field.name, value)
 
-@dataclass 
+@dataclasses.dataclass
 class CompoundSearchSettings:
 
     url_database: str = 'sqlite:///db/pnnl_lowres_gcms_compounds.sqlite'
@@ -118,7 +148,7 @@ class CompoundSearchSettings:
 
     ri_std:float = 3 # in standard deviation
 
-    ri_calibration_compound_names: List = field(default_factory=list)
+    ri_calibration_compound_names: List = dataclasses.field(default_factory=list)
 
     # calculates and export all spectral similarity methods
     exploratory_mode:bool = True
@@ -139,8 +169,16 @@ class CompoundSearchSettings:
                                 " [C28] Methyl Octacosanoate [27.349]",
                                 " [C30] Methyl Triacontanoate [28.72]")
 
+    def __post_init__(self):
+        
+        for field in dataclasses.fields(self):
+            value = getattr(self, field.name)
+            if not isinstance(value, field.type):
+                
+                value = field.type(value)
+                setattr(self, field.name, value)
 
-@dataclass 
+@dataclasses.dataclass
 class MolecularLookupDictSettings:
     
     '''
@@ -211,7 +249,7 @@ class MolecularLookupDictSettings:
                             'K': 0,
                             }
         
-@dataclass 
+@dataclasses.dataclass
 class MolecularFormulaSearchSettings:
     
     use_isotopologue_filter: bool = False
@@ -226,7 +264,7 @@ class MolecularFormulaSearchSettings:
 
     min_peaks_per_class:int = 15
 
-    url_database: str = "postgresql://coremsdb:coremsmolform@localhost:5432/molformula"
+    url_database: str = None#"postgresql://coremsdb:coremsmolform@localhost:5432/molformula"
 
     db_jobs:int = 3
 
@@ -268,23 +306,23 @@ class MolecularFormulaSearchSettings:
     
     isAdduct:bool = False
 
-    usedAtoms: dict = field(default_factory=dict)
+    usedAtoms: dict = dataclasses.field(default_factory=dict)
     
     ''' search setting '''
     
     ionization_type:str = 'ESI'
 
     # empirically set / needs optimization
-    min_ppm_error:float   = -10 #ppm
+    min_ppm_error:float   = -10.0 #ppm
 
     # empirically set / needs optimization    
-    max_ppm_error:float = 10 #ppm
+    max_ppm_error:float = 10.0 #ppm
 
     # empirically set / needs optimization set for isotopologue search
-    min_abun_error:float = -100 # percentage 
+    min_abun_error:float = -100.0 # percentage 
     
     # empirically set / needs optimization set for isotopologue search
-    max_abun_error:float = 100 # percentage 
+    max_abun_error:float = 100.0 # percentage 
 
     # empirically set / needs optimization
     mz_error_range:float = 1.5
@@ -292,13 +330,21 @@ class MolecularFormulaSearchSettings:
     # 'distance', 'lowest', 'symmetrical','average' 'None'
     error_method:str = 'None'
 
-    mz_error_average:float = 0
+    mz_error_average:float = 0.0
 
-    #used_atom_valences: {'C': 4, 'H':1, etc} = field(default_factory=dict)
-    used_atom_valences: dict = field(default_factory=dict)
+    #used_atom_valences: {'C': 4, 'H':1, etc} = dataclasses.field(default_factory=dict)
+    used_atom_valences: dict = dataclasses.field(default_factory=dict)
 
     def __post_init__(self):
         
+        for field in dataclasses.fields(self):
+            value = getattr(self, field.name)
+            if not isinstance(value, field.type):
+                
+                value = field.type(value)
+                setattr(self, field.name, value)
+                
+
         self.usedAtoms = {   'C': (1, 100),
                     'H': (4, 200),
                     'O': (1, 22),
