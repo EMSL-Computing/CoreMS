@@ -61,10 +61,10 @@ class HighResMassSpecExport(Thread):
                         'Heteroatom Class',
                         'Ion Type',
                         'Is Isotopologue',
-                        'Mono Isotopic Index'
+                        'Mono Isotopic Index',
                         'Molecular Formula'
-                        # 'Aromaticity Index',
                         ]
+                        
 
     @property
     def output_type(self):
