@@ -348,33 +348,22 @@ class MolecularFormulaSearchSettings:
                 
                 value = field.type(value)
                 setattr(self, field.name, value)
-                
+        
+        atoms = ['C', 'H', 'N', 'O', 'S', 'P']
+        for atom in atoms:
+             if not atom in self.usedAtoms.keys():
+                self.usedAtoms[atom] = (0,0)
 
-        self.usedAtoms = {   'C': (1, 100),
-                    'H': (4, 200),
-                    'O': (1, 22),
-                    'N': (0, 0),
-                    'S': (0, 0),
-                    'P': (0, 0),
-                    'Cl': (0, 0),
-                }
-
-        self.used_atom_valences = {'C': 4, 
-                            '13C': 4,
-                            'H': 1,
-                            'O': 2,
-                            '18O': 2,
-                            'N': 3,
-                            'S': 2,
-                            '34S': 2,
-                            'P': 3,
-                            'Cl': 1,
-                            '37Cl': 1,
-                            'Br': 1,
-                            'Na': 1,
-                            'F': 1,
-                            'K': 1,
-                            }
+        self.used_atom_valences.update({'13C': 4,
+                                        '18O': 2,
+                                        '34S': 2,
+                                        'Cl': 1,
+                                        '37Cl': 1,
+                                        'Br': 1,
+                                        'Na': 1,
+                                        'F': 1,
+                                        'K': 1,
+                                        })
                             
 if __name__ == "__main__":
     a = DataInputSetting()
