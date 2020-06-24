@@ -862,9 +862,9 @@ class MassSpecCentroid(MassSpecBase):
     '''
 
     def __init__(self, data_dict, d_params):
-        
+
         """needs to simulate peak shape and pass as mz_exp and magnitude."""
-        
+
         super().__init__([], [], d_params)
 
         self._set_parameters_objects(d_params)
@@ -876,11 +876,11 @@ class MassSpecCentroid(MassSpecBase):
         self.process_mass_spec(data_dict)
 
         self.is_centroid = True
-   
+
     def __simulate_profile__data__(self, exp_mz_centroid, magnitude_centroid):
         '''needs theoretical resolving power calculation and define peak shape
         this is a quick fix to trick a line plot be able to plot as sticks'''
-        
+
         x, y = [], []
         for i in range(len(exp_mz_centroid)):
             x.append(exp_mz_centroid[i] - 0.0000001)
@@ -892,10 +892,29 @@ class MassSpecCentroid(MassSpecBase):
         return x, y
 
     @property
+    def mz_exp_profile(self):
+
+        mz_list = []
+        for mz in self.mz_exp:
+            mz_list.append(mz - 0.0000001)
+            mz_list.append(mz)
+            mz_list.append(mz + 0.0000001)
+        return mz_list
+
+    @property
+    def abundance_profile(self):
+        ab_list = []
+        for ab in self.abundance:
+            ab_list.append(0)
+            ab_list.append(ab)
+            ab_list.append(0)
+        return ab_list
+
+    @property
     def tic(self):
-    
+
         return sum(self.abundance)
-    
+
     def process_mass_spec(self, data_dict):
         import tqdm
         # overwrite process_mass_spec 
@@ -931,7 +950,7 @@ class MassSpecCentroid(MassSpecBase):
                 )
 
             else:
-           
+
                 self.add_mspeak(
                     ion_charge,
                     mz,
@@ -939,11 +958,11 @@ class MassSpecCentroid(MassSpecBase):
                     data_dict.get(Labels.rp)[index],
                     -999,
                     massspec_indexes,
-                    ms_parent = self
+                    ms_parent=self
                 )
-        
+
         self.mspeaks = self._mspeaks
-        self._dynamic_range = self.max_abundance/self.min_abundance  
+        self._dynamic_range = self.max_abundance / self.min_abundance
         self._set_nominal_masses_start_final_indexes()
 
         
@@ -968,7 +987,7 @@ class MassSpecCentroidLowRes(MassSpecCentroid,):
 
     @property
     def mz_exp(self):
-
+        
         return self._mz_exp 
 
     @property
