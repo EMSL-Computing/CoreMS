@@ -81,9 +81,9 @@ if __name__ == "__main__":
 
         for index, mz_calc in enumerate(mz_calc_l):
 
-            #print("%s : %s : %s : %.6f : 1+ : %s" %(classe, mf_l[index].class_label, mf_l[index].to_string, mz_calc, mf_l[index].to_string))
+            #print("%s : %s : %s : %.6f : 1+ : %s" %(classe, mf_l[index].class_label, mf_l[index].string, mz_calc, mf_l[index].string))
             
-            print("%s %.6f 1+ %s" %(mf_l[index].to_string.replace(' ', ''), mz_calc, mf_l[index].to_string.replace(' ', '')))
+            print("%s %.6f 1+ %s" %(mf_l[index].string.replace(' ', ''), mz_calc, mf_l[index].string.replace(' ', '')))
         
         plt.show()
 

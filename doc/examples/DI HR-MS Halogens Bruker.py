@@ -139,7 +139,7 @@ if __name__ == "__main__":
                                 "Experimental m/z" : mspeak.mz_exp, 
                                 "Error m/z" : mf.mz_error, 
                                 "Peak Area": mspeak.area, 
-                                "Molecular Formula" : mf.to_string,
+                                "Molecular Formula" : mf.string,
                                 "Probability Ratio": mf.prob_ratio,
                                 "Area Ratio Error": mf.area_error,
                                 "Abundance Error": mf.abundance_error,
@@ -148,7 +148,7 @@ if __name__ == "__main__":
                         
                         else:
                             print(mf.confidence_score)
-                            print( mf.to_string, mf.mz_calc, mf.mz_error) 
+                            print( mf.string, mf.mz_calc, mf.mz_error) 
                             
                             list_dict.append( {
                                 
@@ -160,7 +160,7 @@ if __name__ == "__main__":
                                 "Experimental m/z" : mspeak.mz_exp, 
                                 "Error m/z" : mf.mz_error, 
                                 "Peak Area": mspeak.area,
-                                "Molecular Formula" : mf.to_string,
+                                "Molecular Formula" : mf.string,
                                 "Peak Datapoint Count" : mspeak.final_index-mspeak.start_index
                             })
                         #ax.annotate(mspeak.mz_exp, (mspeak.mz_exp, mspeak.abundance))
@@ -169,7 +169,7 @@ if __name__ == "__main__":
                             
                             ax.plot(imf.mz_calc, imf.abundance_calc, color='red', linewidth=0, marker='v', markersize = 8, label='Calculated')
 
-                            #ax.annotate(imf.to_string, (imf.mz_calc, imf.abundance_calc))
+                            #ax.annotate(imf.string, (imf.mz_calc, imf.abundance_calc))
             
             hand, labl = ax.get_legend_handles_labels()
             handout=[]

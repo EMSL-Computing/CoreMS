@@ -86,7 +86,7 @@ class FindOxygenPeaks(Thread):
         print("Start most abundant mass spectral peak search") 
         molecular_formula_obj_reference = self.find_most_abundant_formula(self.mass_spectrum_obj)
         
-        print("Select most abundant peak with molecular formula =  %s with a m/z error of %s ppm" % (molecular_formula_obj_reference.to_string, molecular_formula_obj_reference.mz_error))
+        print("Select most abundant peak with molecular formula =  %s with a m/z error of %s ppm" % (molecular_formula_obj_reference.string, molecular_formula_obj_reference.mz_error))
         
         print("Started mass spectral peak series search")
 

@@ -206,7 +206,7 @@ class MolecularCombinations:
                 list_molecular_form= list()
                 for classe_obj in existing_classes_objs:
 
-                    classe_dict = classe_obj.to_dict  
+                    classe_dict = classe_obj.to_dict()  
                     classe_mass = self.calc_mz(classe_dict)
                     classe_dbe = self.calc_dbe_class(classe_dict)
 

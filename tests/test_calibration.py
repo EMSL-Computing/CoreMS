@@ -16,8 +16,9 @@ from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
-
-def create_mass_spectrum(file_location):
+from corems.mass_spectrum.input.massList import ReadMassList
+from corems import get_filename
+def create_mass_spectrum():
     
     '''parse transient data from Bruker into a mass spectrum class object
 
@@ -31,7 +32,8 @@ def create_mass_spectrum(file_location):
         MassSpecfromFreq() class
            (See MassSpecfromFreq class for more details)
         '''
-
+    
+    file_location = Path.cwd() / "tests/tests_data/ESI_NEG_SRFA.d/"
     bruker_reader = ReadBrukerSolarix(file_location)
     bruker_transient = bruker_reader.get_transient()
 
@@ -44,30 +46,31 @@ def create_mass_spectrum(file_location):
                                                     auto_process=True,
                                                     keep_profile=True)
     
+    
     return mass_spectrum
 
 
 def test_mz_domain_calibration():
 
-    MSParameters.mass_spectrum.min_calib_ppm_error = -5
-    MSParameters.mass_spectrum.max_calib_ppm_error = 5
+    MSParameters.mass_spectrum.min_calib_ppm_error = -10
+    MSParameters.mass_spectrum.max_calib_ppm_error = 10
 
     file_location = Path.cwd() / "tests/tests_data/ESI_NEG_SRFA.d/"
 
     ref_file_location = Path.cwd() / "tests/tests_data/SRFA.ref"
 
-    mass_spectrum = create_mass_spectrum(file_location)
+    mass_spectrum = create_mass_spectrum()
 
     MzDomainCalibration(mass_spectrum, ref_file_location).run()
 
 def test_old_calibration():
     
-    ''' Mass calibration test module: 
+    ''' Mass calibration test module:
             - creates a mass spectrum object
             - find oxygen most abundant peaks separated by 14Da
             - calibrate on frequency domain using ledford equation
             - filter data based on kendrick mass with CH2O base
-            - search for all molecular formula candidates 
+            - search for all molecular formula candidates
 
         Returns
         -------
@@ -84,9 +87,7 @@ def test_old_calibration():
     MSParameters.molecular_search.isProtonated = True 
     MSParameters.molecular_search.isRadical= True 
 
-    file_location = Path.cwd() / "tests/tests_data/ESI_NEG_SRFA.d/"
-
-    mass_spectrum = create_mass_spectrum(file_location)
+    mass_spectrum = create_mass_spectrum()
 
     find_formula_thread = FindOxygenPeaks(mass_spectrum)
     find_formula_thread.run()

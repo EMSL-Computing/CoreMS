@@ -52,9 +52,9 @@ class HighResMassSpecExport(Thread):
                         'S/N',
                         'Ion Charge',
                         'Mass Error (ppm)',
-                        'Confidence Score',
                         'Mass Error Score',
                         'Isotopologue Similarity',
+                        'Confidence Score',
                         'DBE',
                         'H/C',
                         'O/C',
@@ -62,6 +62,7 @@ class HighResMassSpecExport(Thread):
                         'Ion Type',
                         'Is Isotopologue',
                         'Mono Isotopic Index'
+                        'Molecular Formula'
                         # 'Aromaticity Index',
                         ]
 
@@ -329,7 +330,7 @@ class HighResMassSpecExport(Thread):
 
         def add_match_dict_data():
 
-            formula_dict = m_formula.to_dict
+            formula_dict = m_formula.to_dict()
             
             dict_result = {'Index': index,
                            'm/z':  ms_peak._mz_exp,
@@ -349,6 +350,7 @@ class HighResMassSpecExport(Thread):
                            'O/C':  m_formula.O_C,
                            'Ion Type': eval("m_formula.ion_type.lower(){}".format(encode)),  
                            'Is Isotopologue': int(m_formula.is_isotopologue),
+                           'Molecular Formula': eval("m_formula.string{}".format(encode)) 
                            }
             if m_formula.is_isotopologue:
                 dict_result['Mono Isotopic Index'] = m_formula.mspeak_index_mono_isotopic
