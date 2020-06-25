@@ -300,10 +300,10 @@ class MolecularCombinations:
         usedAtoms.pop("C")
         usedAtoms.pop("H")
 
-        min_n, max_n = usedAtoms.get('N')
-        min_o, max_o = usedAtoms.get('O')
-        min_s, max_s = usedAtoms.get('S')
-        min_p, max_p = usedAtoms.get('P')
+        min_n, max_n = usedAtoms.get('N') if usedAtoms.get('N') else (0,0)
+        min_o, max_o = usedAtoms.get('O') if usedAtoms.get('O') else (0,0)
+        min_s, max_s = usedAtoms.get('S') if usedAtoms.get('S') else (0,0)
+        min_p, max_p = usedAtoms.get('P') if usedAtoms.get('P') else (0,0)
 
         possible_n = [n for n in range(min_n, max_n + 1)]
         possible_o = [o for o in range(min_o, max_o + 1)]

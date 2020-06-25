@@ -46,7 +46,6 @@ class HeteroAtoms(Base):
     def halogens_count(cls):
         return cls.halogensCount.cast(Float)
 
-    @property
     def to_dict(self):
         
         return json.loads(self.name)

@@ -127,7 +127,9 @@ def test_priorityAssignment():
     MSParameters.molecular_search.isProtonated = True 
     MSParameters.molecular_search.isRadical= True 
     MSParameters.molecular_search.isAdduct= False 
-
+    usedatoms = {'C': (1,100) , 'H': (4,200), 'O': (1,10)}
+    MSParameters.molecular_search.usedAtoms = usedatoms
+    
     mass_spec_obj = create_mass_spectrum()
     
     assignOx = OxygenPriorityAssignment(mass_spec_obj) 

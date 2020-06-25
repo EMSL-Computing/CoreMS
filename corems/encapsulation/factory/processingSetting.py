@@ -349,11 +349,6 @@ class MolecularFormulaSearchSettings:
                 value = field.type(value)
                 setattr(self, field.name, value)
         
-        atoms = ['C', 'H', 'N', 'O', 'S', 'P']
-        for atom in atoms:
-             if not atom in self.usedAtoms.keys():
-                self.usedAtoms[atom] = (0,0)
-
         self.used_atom_valences.update({'13C': 4,
                                         '18O': 2,
                                         '34S': 2,

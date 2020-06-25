@@ -79,14 +79,15 @@ def test_old_calibration():
             Store the results inside the mass spectrum class 
             (See Docs for the structural details)  
     '''
-    
+    usedatoms = {'C': (1,100) , 'H': (4,200), 'O': (1,10)}
+
     MSParameters.molecular_search.error_method = 'None'
     MSParameters.molecular_search.min_ppm_error  = -5
     MSParameters.molecular_search.max_ppm_error = 5
     MSParameters.molecular_search.mz_error_range = 1
     MSParameters.molecular_search.isProtonated = True 
     MSParameters.molecular_search.isRadical= True 
-
+    MSParameters.molecular_search.usedAtoms = usedatoms
     mass_spectrum = create_mass_spectrum()
 
     find_formula_thread = FindOxygenPeaks(mass_spectrum)
@@ -131,6 +132,6 @@ def test_import_ref_list():
 
 if __name__ == "__main__":
     
-    #test_old_calibration()
-    test_mz_domain_calibration()
+    test_old_calibration()
+    #test_mz_domain_calibration()
    

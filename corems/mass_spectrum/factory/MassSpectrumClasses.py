@@ -912,6 +912,9 @@ class MassSpecCentroid(MassSpecBase):
             mz_list.append(mz)
             mz_list.append(mz + 0.0000001)
         return mz_list
+    
+    @mz_exp_profile.setter
+    def mz_exp_profile(self, _mz_exp ): self._mz_exp = _mz_exp
 
     @property
     def abundance_profile(self):
@@ -921,6 +924,9 @@ class MassSpecCentroid(MassSpecBase):
             ab_list.append(ab)
             ab_list.append(0)
         return ab_list
+
+    @abundance_profile.setter
+    def abundance_profile(self, abundance ): self._abundance = abundance
 
     @property
     def tic(self):
