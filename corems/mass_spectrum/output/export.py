@@ -168,7 +168,20 @@ class HighResMassSpecExport(Thread):
         except IOError as ioerror:
             print(ioerror)
     
-   
+    def to_json(self):
+
+        columns = self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum)
+
+        dict_data_list = self.get_list_dict_data(self.mass_spectrum)    
+
+        df = DataFrame(dict_data_list, columns=columns)
+
+        #for key, values in dict_data.items():
+        #    if not values: dict_data[key] = NaN
+        
+        #output = json.dumps(dict_data, sort_keys=True, indent=4, separators=(',', ': '))
+        return df.to_json(orient='records')
+
     def to_hdf(self):
         
         import h5py
@@ -214,10 +227,10 @@ class HighResMassSpecExport(Thread):
                     #create empy dataset for missing raw data
                     raw_ms_dataset = scan_group.create_dataset('raw_ms', dtype="f8")
 
-                raw_ms_dataset.attrs['MassSpecAttrs'] = self.to_json(dict_ms_attrs)
+                raw_ms_dataset.attrs['MassSpecAttrs'] = json.dumps(dict_ms_attrs)
                 
                 if isinstance(self.mass_spectrum, MassSpecfromFreq):
-                    raw_ms_dataset.attrs['TransientSetting'] = self.to_json(setting_dicts.get('TransientSetting'))
+                    raw_ms_dataset.attrs['TransientSetting'] = json.dumps(setting_dicts.get('TransientSetting'))
 
             else:
                 
@@ -236,11 +249,11 @@ class HighResMassSpecExport(Thread):
 
             processed_dset.attrs['ColumnsLabels'] = columns_labels
             
-            processed_dset.attrs['MoleculaSearchSetting'] = self.to_json(setting_dicts.get('MoleculaSearch'))
+            processed_dset.attrs['MoleculaSearchSetting'] = json.dumps(setting_dicts.get('MoleculaSearch'))
             
-            processed_dset.attrs['MassSpecPeakSetting'] = self.to_json(setting_dicts.get('MassSpecPeak'))
+            processed_dset.attrs['MassSpecPeakSetting'] = json.dumps(setting_dicts.get('MassSpecPeak'))
 
-            processed_dset.attrs['MassSpectrumSetting'] = self.to_json(setting_dicts.get('MassSpectrum'))
+            processed_dset.attrs['MassSpectrumSetting'] = json.dumps(setting_dicts.get('MassSpectrum'))
 
     def parameters_to_json(self):
         
@@ -252,15 +265,6 @@ class HighResMassSpecExport(Thread):
         dict_setting['sample_name'] = mass_spectrum.sample_name
 
         return json.dumps(dict_setting)    
-
-    @staticmethod     
-    def to_json(dict_data, nan=False):
-        
-        #for key, values in dict_data.items():
-        #    if not values: dict_data[key] = NaN
-        
-        #output = json.dumps(dict_data, sort_keys=True, indent=4, separators=(',', ': '))
-        return json.dumps(dict_data)
 
     def get_mass_spec_attrs(self, mass_spectrum):
 
