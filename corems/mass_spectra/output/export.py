@@ -385,10 +385,10 @@ class HighResMassSpectraExport(HighResMassSpecExport):
                         #create empy dataset for missing raw data
                         raw_ms_dataset = scan_group.create_dataset('raw_ms', dtype="f8")
 
-                    raw_ms_dataset.attrs['MassSpecAttrs'] = self.to_json(dict_ms_attrs)
+                    raw_ms_dataset.attrs['MassSpecAttrs'] = json.dumps(dict_ms_attrs)
                     
                     if isinstance(mass_spectrum, MassSpecfromFreq):
-                        raw_ms_dataset.attrs['TransientSetting'] = self.to_json(setting_dicts.get('TransientSetting'))
+                        raw_ms_dataset.attrs['TransientSetting'] = json.dumps(setting_dicts.get('TransientSetting'))
 
                 else:
                     
@@ -405,8 +405,8 @@ class HighResMassSpectraExport(HighResMassSpecExport):
 
                 processed_dset.attrs['ColumnsLabels'] = columns_labels
                 
-                processed_dset.attrs['MoleculaSearchSetting'] = self.to_json(setting_dicts.get('MoleculaSearch'))
+                processed_dset.attrs['MoleculaSearchSetting'] = json.dumps(setting_dicts.get('MoleculaSearch'))
                 
-                processed_dset.attrs['MassSpecPeakSetting'] = self.to_json(setting_dicts.get('MassSpecPeak'))
+                processed_dset.attrs['MassSpecPeakSetting'] = json.dumps(setting_dicts.get('MassSpecPeak'))
 
-                processed_dset.attrs['MassSpectrumSetting'] = self.to_json(setting_dicts.get('MassSpectrum'))
+                processed_dset.attrs['MassSpectrumSetting'] = json.dumps(setting_dicts.get('MassSpectrum'))
