@@ -6,11 +6,13 @@ from pathlib import Path
 
 from numpy import string_, array, NaN, empty
 from pandas import DataFrame
+import json
 
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.output import parameter_to_dict
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
+
 
 class HighResMassSpecExport(Thread):
     
@@ -240,11 +242,20 @@ class HighResMassSpecExport(Thread):
 
             processed_dset.attrs['MassSpectrumSetting'] = self.to_json(setting_dicts.get('MassSpectrum'))
 
+    def parameters_to_json(self):
+        
+        dict_setting = parameter_to_dict.get_dict_data_ms(mass_spectrum)
+
+        dict_setting['MassSpecAttrs'] = self.get_mass_spec_attrs(mass_spectrum)
+        dict_setting['analyzer'] = mass_spectrum.analyzer
+        dict_setting['instrument_label'] = mass_spectrum.instrument_label
+        dict_setting['sample_name'] = mass_spectrum.sample_name
+
+        return json.dumps(dict_setting)    
 
     @staticmethod     
     def to_json(dict_data, nan=False):
         
-        import json
         #for key, values in dict_data.items():
         #    if not values: dict_data[key] = NaN
         

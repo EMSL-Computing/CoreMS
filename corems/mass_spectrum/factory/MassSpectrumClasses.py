@@ -691,6 +691,18 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         exportMS = HighResMassSpecExport(self.filename, self)
         return exportMS.get_pandas_df()
 
+    def to_json(self):
+        # returns pandas dataframe
+
+        from corems.mass_spectrum.output.export import HighResMassSpecExport
+        exportMS = HighResMassSpecExport(self.filename, self)
+        return exportMS.to_json()
+
+    def parameters_json(self):
+
+        from corems.mass_spectrum.output.export import HighResMassSpecExport
+        exportMS = HighResMassSpecExport(self.filename, self)
+        return exportMS.parameters_to_json()
 
 class MassSpecProfile(MassSpecBase):
     '''
