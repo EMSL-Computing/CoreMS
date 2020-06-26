@@ -5,11 +5,14 @@ import sys
 sys.path.append(".")
 from corems.encapsulation.factory.processingSetting  import MassSpectrumSetting
 from corems.mass_spectra.input.win_only.ThermoMSFileReader import ImportLCMSThermoMSFileReader
-
+from corems import get_filename
 
 if __name__ == "__main__":
 
-    file_location = "C:\\Users\\eber373\\Desktop\\data\\WK_ps_lignin_190301112616.raw"
+   
+    file_location = get_filename()
+    
+    #file_location = "C:\\Users\\eber373\\Desktop\\data\\WK_ps_lignin_190301112616.raw"
 
     lcms_reader = ImportLCMSThermoMSFileReader(file_location)
 
@@ -50,7 +53,7 @@ if __name__ == "__main__":
                print(molecular_formula.to_string)
                print(molecular_formula.mass_error)
 
-    mass_spec = lcms.get_mass_spec_by_scan_number(200)
+    mass_spec = lcms.get_mass_spec_by_scan_number(1)
     mass_spec.plot_mz_domain_profile()
     mass_spec.plot_profile_and_noise_threshold()
 
