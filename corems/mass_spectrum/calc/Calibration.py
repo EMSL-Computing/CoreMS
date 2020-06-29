@@ -9,6 +9,7 @@ Created on Wed May 13 02:16:09 2020
 import pandas as pd
 import numpy as np
 import os
+import csv
  
 # import corems modules
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
@@ -48,14 +49,16 @@ class MzDomainCalibration:
             reference mass list object.
 
         """
+        with open(refmasslist, 'r') as csvfile:
+            dialect = csv.Sniffer().sniff(csvfile.read(1024))
+            delimiter=dialect.delimiter
+
+        df_ref = pd.read_csv(refmasslist,sep=delimiter,header=None,skiprows=1)
         
-        df_ref = pd.read_csv(refmasslist,sep=' ',header=0,
-                        usecols=['#','Name;','m/z','value;'])
-        
-        df_ref = df_ref.rename({'#':'Formula',
-                            'Name;':'m/z',
-                            'm/z':'Charge',
-                            'value;':'Form2'},axis=1)
+        df_ref = df_ref.rename({0:'Formula',
+                            1:'m/z',
+                            2:'Charge',
+                            3:'Form2'},axis=1)
         
         df_ref.sort_values(by='m/z',ascending=False)
         print("Reference mass list loaded - "+str(len(df_ref))+ " calibration masses loaded.")

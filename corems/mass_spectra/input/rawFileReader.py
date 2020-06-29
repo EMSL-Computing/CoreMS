@@ -13,6 +13,10 @@ from ThermoFisher.CommonCore.RawFileReader import RawFileReaderAdapter
 from threading import Thread
 import multiprocessing
 import numpy
+import pandas as pd
+
+from tqdm import tqdm
+
 
 __author__ = "Yuri E. Corilo"
 __date__ = "July 9, 2019"
@@ -174,7 +178,8 @@ class ImportLCMSThermoMSFileReader(Thread):
        
         return  bool(not isCentroid)
 
-    def get_summed_mass_spectrum(self, initial_scan_number, final_scan_number, auto_process=True):
+    def get_summed_mass_spectrum(self, initial_scan_number, final_scan_number,
+                                 auto_process=True,pd_method=True,pd_merge_n=100):
 
         d_params = default_parameters(self.file_location)
 
@@ -184,39 +189,73 @@ class ImportLCMSThermoMSFileReader(Thread):
 
         d_params["polarity"] = self.get_polarity_mode(initial_scan_number)
         
-        all_mz = dict()
+        if pd_method:
 
-        for scan_number in range(self.initial_scan_number, self.final_scan_number + 1):
+            def sort_sum_df(df):
+                """
+                Nested function to sort dataframe and sum rows with exact matching indexes (m/z)
+                """
+                df = df.sort_index()
+                df = df.groupby(level=0).sum()
+                return df
 
-            scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan_number)
-            
-            segmentedScan = self.iRawDataPlus.GetSegmentedScanFromScanNumber(scan_number, scanStatistics)
+            # initialise empty Pandas series
+            big_df = pd.Series(index=[],dtype='float64')
 
-            len_data = segmentedScan.Positions.Length
+            for scan_number in tqdm(range(initial_scan_number, final_scan_number + 1)):
+                scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan_number)
+                segmentedScan = self.iRawDataPlus.GetSegmentedScanFromScanNumber(scan_number, scanStatistics)
+                
+                tmp_df = pd.Series(index=list(segmentedScan.Positions),
+                                    dtype='float64',data=list(segmentedScan.Intensities))
+                big_df = big_df.append(tmp_df) 
+                
+                #this allows you to merge/sum the values earlier, however it slows down a lot
+                #limited benefit unless running into memory issues
+                #for complex data it is necessary to stop the iterations getting too slow
+                if scan_number%pd_merge_n==0:
+                    big_df = sort_sum_df(big_df)    
 
-            for i in range(len_data):
+            big_df = sort_sum_df(big_df)
+            data_dict = {
+                    Labels.mz: list(big_df.index.values),
+                    Labels.abundance: list(big_df.values),
+                }
 
-                mz = segmentedScan.Positions[i]
-                abundance = segmentedScan.Intensities[i]
+        else:
+            all_mz = dict()
 
-                if mz in all_mz:
-                    all_mz[mz] = all_mz[mz] + abundance    
-                else: 
-                    all_mz[mz] = abundance
+            for scan_number in tqdm(range(initial_scan_number, final_scan_number + 1)):
+                
+                scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan_number)
+                
+                segmentedScan = self.iRawDataPlus.GetSegmentedScanFromScanNumber(scan_number, scanStatistics)
 
-        mz_all = []
-        abun_all = []
+                len_data = segmentedScan.Positions.Length
 
-        for mz in sorted (all_mz) : 
-            mz_all.append(mz)
-            abun_all.append(all_mz[mz])
+                for i in range(len_data):
+
+                    mz = segmentedScan.Positions[i]
+                    abundance = segmentedScan.Intensities[i]
+
+                    if mz in all_mz:
+                        all_mz[mz] = all_mz[mz] + abundance    
+                    else: 
+                        all_mz[mz] = abundance
+
+            mz_all = []
+            abun_all = []
+
+            for mz in sorted (all_mz) : 
+                mz_all.append(mz)
+                abun_all.append(all_mz[mz])
 
 
-        data_dict = {
-                Labels.mz: mz_all,
-                Labels.abundance: abun_all,
-            }
-        
+            data_dict = {
+                    Labels.mz: mz_all,
+                    Labels.abundance: abun_all,
+                }
+        print('Summed. Now Processing.')
         mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process)
 
         return mass_spec
@@ -298,3 +337,29 @@ class ImportLCMSThermoMSFileReader(Thread):
                 return self.lcms
             else:
                 raise Exception("returning a empty LCMS class")
+
+    def get_tic(self,plot=False):
+        """
+        Reads the TIC values for each scan from the Thermo headers
+        Returns a pandas dataframe of Scans, TICs, and Times
+        (Optionally) plots the TIC chromatogram.
+        """
+        first_scan = self._initial_scan_number
+        final_scan = self._final_scan_number
+        scanrange = range(first_scan,final_scan+1)
+
+        ms_tic = pd.DataFrame(index=scanrange,columns=['TIC','Time'])
+        for scan in scanrange:
+            scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan)
+            ms_tic.loc[scan,'TIC'] = scanStatistics.TIC
+            ms_tic.loc[scan,'Time'] = scanStatistics.StartTime
+        
+        if plot:
+            import matplotlib.pyplot as plt #maybe better in top of file?
+            fig,ax = plt.subplots(figsize=(6,3))
+            ax.plot(ms_tic['Time'],ms_tic['TIC'])
+            ax.set_xlabel('Time (min)')
+            ax.set_ylabel('TIC')
+            plt.show()
+            return ms_tic,fig
+        return ms_tic
