@@ -257,12 +257,12 @@ class HighResMassSpecExport(Thread):
 
     def parameters_to_json(self):
         
-        dict_setting = parameter_to_dict.get_dict_data_ms(mass_spectrum)
+        dict_setting = parameter_to_dict.get_dict_data_ms(self.mass_spectrum)
 
         dict_setting['MassSpecAttrs'] = self.get_mass_spec_attrs(mass_spectrum)
-        dict_setting['analyzer'] = mass_spectrum.analyzer
-        dict_setting['instrument_label'] = mass_spectrum.instrument_label
-        dict_setting['sample_name'] = mass_spectrum.sample_name
+        dict_setting['analyzer'] = self.mass_spectrum.analyzer
+        dict_setting['instrument_label'] = self.mass_spectrum.instrument_label
+        dict_setting['sample_name'] = self.mass_spectrum.sample_name
 
         return json.dumps(dict_setting)    
 
