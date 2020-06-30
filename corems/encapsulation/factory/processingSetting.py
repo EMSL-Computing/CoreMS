@@ -15,6 +15,7 @@ class TransientSetting:
     
     def __post_init__(self):
         
+        # enforce datatype
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
             if not isinstance(value, field.type):
@@ -38,6 +39,20 @@ class DataInputSetting:
                         "Signal/Noise":"S/N",
                         "S/N":"S/N"}
 
+@dataclasses.dataclass         
+class LiqChromatographSetting:
+    start_scan: int = 1
+    final_scan: int = 7
+
+    def __post_init__(self):
+        # enforce datatype
+        for field in dataclasses.fields(self):
+            value = getattr(self, field.name)
+            if not isinstance(value, field.type):
+                
+                value = field.type(value)
+                setattr(self, field.name, value)
+                
 @dataclasses.dataclass         
 class MassSpectrumSetting:
     
@@ -66,7 +81,7 @@ class MassSpectrumSetting:
     do_calibration: bool = True
 
     def __post_init__(self):
-        
+        # enforce datatype
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
             if not isinstance(value, field.type):
@@ -87,8 +102,10 @@ class MassSpecPeakSetting:
 
     def __post_init__(self):
         
-        self.kendrick_base = {'C': 1, 'H':2}
-    
+        # default to CH2
+        if not self.kendrick_base:
+            self.kendrick_base = {'C': 1, 'H':2}
+        # enforce datatype
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
             if not isinstance(value, field.type):
@@ -129,6 +146,7 @@ class GasChromatographSetting:
 
     def __post_init__(self):
         
+        # enforce datatype
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
             if not isinstance(value, field.type):
@@ -175,7 +193,7 @@ class CompoundSearchSettings:
                                 " [C30] Methyl Triacontanoate [28.72]")
 
     def __post_init__(self):
-        
+         # enforce datatype
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
             if not isinstance(value, field.type):
@@ -342,6 +360,7 @@ class MolecularFormulaSearchSettings:
 
     def __post_init__(self):
         
+        # enforce datatype
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
             if not isinstance(value, field.type):
@@ -349,11 +368,14 @@ class MolecularFormulaSearchSettings:
                 value = field.type(value)
                 setattr(self, field.name, value)
         
+        # enforce C and H if either do not exists
         if 'C' not in self.usedAtoms.keys():
             self.usedAtoms["C"] = (1,100)
         if 'H' not in self.usedAtoms.keys():
             self.usedAtoms["H"] = (1,200)
 
+        
+        # add cummon values
         self.used_atom_valences.update({'13C': 4,
                                         '18O': 2,
                                         '34S': 2,
