@@ -253,19 +253,19 @@ class MzDomainCalibration:
             
             if order == 1:
                 mz_domain = (Pn[0] * mz_exp_ms) + Pn[1]
-                if len(mass_spectrum.mz_exp_profile) > 0:
+                if not mass_spectrum.is_centroid:
                     mz_profile_calc = (Pn[0] *  mass_spectrum.mz_exp_profile ) + Pn[1]
                 
             elif order == 2:
                 mz_domain = (Pn[0] * (mz_exp_ms)) + \
                     (Pn[1] * np.power((mz_exp_ms), 2) + Pn[2])
 
-                if len(mass_spectrum.mz_exp_profile) > 0:
+                if not mass_spectrum.is_centroid:
                     mz_profile_calc = (Pn[0] * (mass_spectrum.mz_exp_profile)) + \
                             (Pn[1] * np.power((mass_spectrum.mz_exp_profile), 2) + Pn[2])
             
             mass_spectrum.mz_cal = mz_domain
-            if len(mass_spectrum.mz_exp_profile) > 0:
+            if not mass_spectrum.is_centroid:
                 mass_spectrum.mz_cal_profile = mz_profile_calc
         
         return mass_spectrum
