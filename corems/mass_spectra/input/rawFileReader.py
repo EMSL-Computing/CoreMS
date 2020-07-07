@@ -178,8 +178,8 @@ class ImportLCMSThermoMSFileReader(Thread):
        
         return  bool(not isCentroid)
 
-    def get_summed_mass_spectrum(self, initial_scan_number, final_scan_number,
-                                 auto_process=True,pd_method=True,pd_merge_n=100):
+    def get_summed_mass_spectrum(self, initial_scan_number, final_scan_number=None,
+                                 auto_process=True,pd_method=True,pd_merge_n=100): 
 
         d_params = default_parameters(self.file_location)
 
@@ -187,8 +187,18 @@ class ImportLCMSThermoMSFileReader(Thread):
          
         d_params["label"] = Labels.thermo_profile
 
-        d_params["polarity"] = self.get_polarity_mode(initial_scan_number)
-        
+        if type(initial_scan_number) is list:
+            d_params["polarity"] = self.get_polarity_mode(initial_scan_number[0])
+
+            scanrange = initial_scan_number
+        else:
+            d_params["polarity"] = self.get_polarity_mode(initial_scan_number)
+
+            if final_scan_number == None:
+                final_scan_number = self._final_scan_number
+
+            scanrange = range(initial_scan_number, final_scan_number + 1)
+
         if pd_method:
 
             def sort_sum_df(df):
@@ -202,7 +212,7 @@ class ImportLCMSThermoMSFileReader(Thread):
             # initialise empty Pandas series
             big_df = pd.Series(index=[],dtype='float64')
 
-            for scan_number in tqdm(range(initial_scan_number, final_scan_number + 1)):
+            for scan_number in tqdm(scanrange):
                 scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan_number)
                 segmentedScan = self.iRawDataPlus.GetSegmentedScanFromScanNumber(scan_number, scanStatistics)
                 
@@ -225,7 +235,7 @@ class ImportLCMSThermoMSFileReader(Thread):
         else:
             all_mz = dict()
 
-            for scan_number in tqdm(range(initial_scan_number, final_scan_number + 1)):
+            for scan_number in tqdm(scanrange):
                 
                 scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan_number)
                 
@@ -255,7 +265,9 @@ class ImportLCMSThermoMSFileReader(Thread):
                     Labels.mz: mz_all,
                     Labels.abundance: abun_all,
                 }
+
         print('Summed. Now Processing.')
+        
         mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process)
 
         return mass_spec
@@ -363,3 +375,43 @@ class ImportLCMSThermoMSFileReader(Thread):
             plt.show()
             return ms_tic,fig
         return ms_tic
+
+    def get_best_scans_idx(self,stdevs=2,method='mean',plot=False):
+        '''
+        Method to determine the best scan indexes for selective co-addition
+        Based on calculating the mean (default) of the TIC values
+        and setting an upper limit above/below that within X standard deviations.
+        Mean or median makes limited difference, it seems.
+        Empirically, 1-2 stdevs enough to filter out the worst datapoints.
+        Optionally, plot the TIC with horizontal lines for the standard dev cutoffs.
+        '''
+        tic = self.get_tic()
+
+        if method=='median':
+            tic_median = tic['TIC'].median()
+        elif method =='mean':
+            tic_median = tic['TIC'].mean()
+        else:
+            print("Method "+print(str(method))+" undefined")
+
+        tic_std = tic['TIC'].std()
+
+        upperlimit = tic_median-(stdevs*tic_std)
+        lowerlimit = tic_median+(stdevs*tic_std)
+
+        tic_filtered = tic[(tic['TIC']>upperlimit)&
+                            (tic['TIC']<lowerlimit)]
+        scans = list(tic_filtered.index.values)
+
+        if plot:
+            import matplotlib.pyplot as plt
+            fig,ax = plt.subplots(figsize=(8,4))
+            ax.plot(tic['Time'],tic['TIC'])
+            ax.axhline(y=upperlimit,c='r')
+            ax.axhline(y=lowerlimit,c='r')
+            return fig, scans
+        else:
+            return scans
+
+
+
