@@ -3,7 +3,7 @@ __date__ = 'Jul 02, 2019'
 
 import dataclasses 
 from typing import List, Dict
-from corems.encapsulation.constant import Labels
+from corems.encapsulation.constant import Atoms, Labels
 
 @dataclasses.dataclass
 class TransientSetting:
@@ -376,6 +376,11 @@ class MolecularFormulaSearchSettings:
 
         
         # add cummon values
+        current_used_atoms = self.used_atom_valences.keys()
+        for atom in Atoms.atoms_covalence.keys():
+            if atom not in current_used_atoms:
+                self.used_atom_valences[atom] = Atoms.atoms_covalence.get(atom)
+        '''
         self.used_atom_valences.update({'13C': 4,
                                         '18O': 2,
                                         '34S': 2,
@@ -386,7 +391,7 @@ class MolecularFormulaSearchSettings:
                                         'F': 1,
                                         'K': 1,
                                         })
-                            
+        '''                    
 if __name__ == "__main__":
     a = DataInputSetting()
     print(a.__dict__)
