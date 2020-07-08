@@ -117,7 +117,7 @@ class ImportLCMSThermoMSFileReader(Thread):
         '''
         header = self.iRawDataPlus.GetTrailerExtraInformation(scan)
         header_dic = {}
-        for i in numpy.arange(header):
+        for i in numpy.arange(header.Length):
             header_dic.update({header.Labels[i]:header.Values[i]})
         return header_dic
 
