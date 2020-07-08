@@ -78,6 +78,10 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         self.is_centroid = False
 
+        self.calibration_order = None
+        self.calibration_points = None
+        self.calibration_RMS = None
+
     def _init_settings(self):
 
         self._parameters = MSParameters()

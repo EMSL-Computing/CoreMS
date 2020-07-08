@@ -267,7 +267,10 @@ class MzDomainCalibration:
             mass_spectrum.mz_cal = mz_domain
             if not mass_spectrum.is_centroid:
                 mass_spectrum.mz_cal_profile = mz_profile_calc
-        
+
+            mass_spectrum.calibration_order = order
+            mass_spectrum.calibration_points = len(mzrefs)
+            mass_spectrum.calibration_RMS = float(res['fun'])
         return mass_spectrum
 
     def run(self):
