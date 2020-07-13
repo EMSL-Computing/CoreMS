@@ -230,15 +230,27 @@ class LowResGCMSExport():
                     
     def get_data_stats(self, gcms):
         
+        matched_peaks = gcms.matched_peaks
+        no_matched_peaks = gcms.no_matched_peaks
+        unique_metabolites = gcms.unique_metabolites
+        
+        peak_matchs_above_0p85 = 0
+        unique_peak_match_above_0p85 = 0
+        for match_peak in matched_peaks:
+            if match_peak.highest_score_compound.similarity_score >= 0.85:
+                peak_matchs_above_0p85+= 1
+                if  len(match_peak) == 1:
+                      unique_peak_match_above_0p85+= 1
+
         data_stats = {}
         data_stats['average_signal_noise'] = "ni"
-        data_stats['chromatogram_dynamic_range'] = "ni"
-        data_stats['total_number_peaks'] = "ni"
-        data_stats['total_peaks_matched'] = "ni"
-        data_stats['total_peaks_without_matches'] = "ni"
-        data_stats['total_matches_above_similarity_score_0'] = "ni"
-        data_stats['single_matches_above_similarity_score'] = "ni"
-        data_stats['Unique_metabolites'] = "ni"
+        data_stats['chromatogram_dynamic_range'] = gcms.dynamic_range
+        data_stats['total_number_peaks'] = len(gcms)
+        data_stats['total_peaks_matched'] = len(matched_peaks)
+        data_stats['total_peaks_without_matches'] = len(no_matched_peaks)
+        data_stats['total_matches_above_similarity_score_0.85'] = peak_matchs_above_0p85
+        data_stats['single_matches_above_similarity_score_0.85'] = unique_peak_match_above_0p85
+        data_stats['unique_metabolites'] = len(unique_metabolites)
 
         return data_stats
 
@@ -247,9 +259,9 @@ class LowResGCMSExport():
         calibration_parameters = {}
 
         calibration_parameters['calibration_rt_ri_pairs_ref'] = gcms.ri_pairs_ref
-        calibration_parameters['file_url'] = ""
-        calibration_parameters['file_id'] = ""
-        calibration_parameters['sample_name'] = ""
+        calibration_parameters['file_path'] = str(gcms.cal_file_path)
+        calibration_parameters['file_id'] = "gcms.cal_file_path_id"
+        calibration_parameters['sample_name'] = str(gcms.cal_file_path.stem)
         calibration_parameters['calibration_method'] = ""
 
         return calibration_parameters
@@ -273,15 +285,15 @@ class LowResGCMSExport():
         
         blank_parameters = {}
         
-        dict_setting['analyzer'] = gcms.analyzer
-        dict_setting['instrument_label'] = gcms.instrument_label
+        output_parameters_dict['analyzer'] = gcms.analyzer
+        output_parameters_dict['instrument_label'] = gcms.instrument_label
         
-        dict_setting['sample_name'] = gcms.sample_name
-        dict_setting['sample_id'] = gcms.id
-        dict_setting['input_data'] = gcms.file_location
-        dict_setting['output_data'] = output_path
-        dict_setting['output_data_id'] = 'ni'
-        dict_setting['corems_version'] = corems_version
+        output_parameters_dict['sample_name'] = gcms.sample_name
+        output_parameters_dict['sample_id'] = "gcms.id"
+        output_parameters_dict['input_data'] = str(gcms.file_location)
+        output_parameters_dict['output_data'] = str(output_path)
+        output_parameters_dict['output_data_id'] = 'ni'
+        output_parameters_dict['corems_version'] = corems_version
         
         output_parameters_dict["Stats"] = self.get_data_stats(gcms)
         output_parameters_dict["Calibration"] = self.get_calibration_stats(gcms)

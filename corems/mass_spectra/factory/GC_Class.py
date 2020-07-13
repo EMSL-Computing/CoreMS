@@ -56,6 +56,7 @@ class GCMSBase(GC_Calculations, MassDevoncolution):
         self.gcpeaks = []
         
         self.ri_pairs_ref = None
+        self.cal_file_path = None
     
     def _init_settings(self):
         
@@ -176,6 +177,40 @@ class GCMSBase(GC_Calculations, MassDevoncolution):
     def tic(self):
 
         return self._tic_list
+
+    @property
+    def max_tic(self):
+
+        return max([gc_peak.tic for gc_peak in self])
+
+    @property
+    def min_tic(self):
+
+        return min([gc_peak.tic for gc_peak in self])
+
+    @property
+    def dynamic_range(self):
+
+        return self.max_tic/self.min_tic
+
+    @property
+    def matched_peaks(self):
+        return [gc_peak for gc_peak in self if gc_peak]
+
+    @property
+    def unique_metabolites(self):
+        
+        metabolites = set()
+        for gc_peak in self:
+            if gc_peak:
+                for compound_obj in gc_peak:
+                     metabolites.add(compound_obj.name)
+        
+        return metabolites
+
+    @property
+    def no_matched_peaks(self):
+        return [ peak for peak in self if not peak]
 
     @retention_time.setter
     def retention_time(self, l):
