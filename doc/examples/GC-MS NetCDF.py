@@ -49,6 +49,7 @@ def stand_alone():
 
     gcms.process_chromatogram()
 
+
 def get_gcms(file_path):
     
     reader_gcms = ReadAndiNetCDF(file_path)
@@ -148,10 +149,10 @@ def calibrate_and_search(out_put_file_name, jobs):
             pool.join()
             for gcms in gcmss:
                 
-                gcms.to_csv(out_put_file_name, highest_score=False)
+                #gcms.to_csv(out_put_file_name, highest_score=False)
                 #gcms.to_excel(out_put_file_name, highest_score=False)
                 #gcms.to_pandas(out_put_file_name)
-                
+                gcms.to_hdf(highest_score=False)
                 #df = gcms.get_dataframe()
                 #json_data = gcms.to_json()
                 
@@ -200,9 +201,9 @@ if __name__ == '__main__':
     #import matplotlib
     #matplotlib.use('TkAgg')
 
-    #cores = 5
-    #out_put_file_name = 'Plasma_Ref_10'
-    #calibrate_and_search(out_put_file_name, cores)
+    cores = 5
+    out_put_file_group_name = 'Plasma_Ref_10'
+    calibrate_and_search(out_put_file_group_name, cores)
     #start_sql_from_file()
     #auto_process(cores)
-    stand_alone()
+    #stand_alone()

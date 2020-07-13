@@ -176,8 +176,16 @@ class CompoundSearchSettings:
     # calculates and export all spectral similarity methods
     exploratory_mode:bool = False
     
+  
     def __post_init__(self):
-        
+        # enforce datatype
+        for field in dataclasses.fields(self):
+            value = getattr(self, field.name)
+            if not isinstance(value, field.type):
+                
+                value = field.type(value)
+                setattr(self, field.name, value)
+
         self.ri_calibration_compound_names = (" [C8] Methyl Caprylate [7.812]",
                                 " [C10] Methyl Caprate [10.647]",
                                 " [C9] Methyl Pelargonate [9.248]",
@@ -191,15 +199,6 @@ class CompoundSearchSettings:
                                 " [C26] Methyl Hexacosanoate [26.023]",
                                 " [C28] Methyl Octacosanoate [27.349]",
                                 " [C30] Methyl Triacontanoate [28.72]")
-
-    def __post_init__(self):
-         # enforce datatype
-        for field in dataclasses.fields(self):
-            value = getattr(self, field.name)
-            if not isinstance(value, field.type):
-                
-                value = field.type(value)
-                setattr(self, field.name, value)
 
 @dataclasses.dataclass
 class MolecularLookupDictSettings:

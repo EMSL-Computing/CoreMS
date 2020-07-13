@@ -276,6 +276,12 @@ class GCMSBase(GC_Calculations, MassDevoncolution):
         exportMS= LowResGCMSExport(self.sample_name, self)
         return exportMS.get_json(highest_score=highest_score)
 
+    def to_hdf(self,highest_score=True):
+        
+        #returns pandas dataframe
+        exportMS = LowResGCMSExport(self.sample_name, self)
+        return exportMS.to_hdf(highest_score=highest_score)
+
     def plot_chromatogram(self, ax=None, color="blue"): #pragma: no cover
         
         import matplotlib.pyplot as plt
