@@ -237,10 +237,12 @@ class LowResGCMSExport():
         peak_matchs_above_0p85 = 0
         unique_peak_match_above_0p85 = 0
         for match_peak in matched_peaks:
-            if match_peak.highest_score_compound.similarity_score >= 0.85:
-                peak_matchs_above_0p85+= 1
-                if  len(match_peak) == 1:
-                      unique_peak_match_above_0p85+= 1
+            gc_peak_above_85 = 0
+            matches_above_85 = list(filter(lambda m: m.similarity_score >= 0.85, match_peak))
+            if matches_above_85:
+                peak_matchs_above_0p85 +=1
+            if len(matches_above_85) == 1:
+                unique_peak_match_above_0p85 += 1
 
         data_stats = {}
         data_stats['average_signal_noise'] = "ni"
