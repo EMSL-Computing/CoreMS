@@ -13,7 +13,8 @@ from corems.mass_spectrum.output.export import HighResMassSpecExport
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.output import parameter_to_dict
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
-from corems import __version__ as corems_version
+from corems import __version__, corems_md5
+import uuid
 
 class LowResGCMSExport():
     
@@ -54,7 +55,7 @@ class LowResGCMSExport():
         
         return columns        
     
-    def get_pandas_df(self, highest_score=True):
+    def get_pandas_df(self, highest_score=True, id_label="corems:"):
 
         columns = self._init_columns()
         
@@ -66,7 +67,7 @@ class LowResGCMSExport():
 
         return df
 
-    def get_json(self, nan=False, highest_score=True):
+    def get_json(self, nan=False, highest_score=True,  id_label="corems:"):
         
         import json
 
@@ -74,7 +75,7 @@ class LowResGCMSExport():
         
         return json.dumps(dict_data_list, sort_keys=False, indent=4, separators=(',', ': '))
 
-    def to_pandas(self, highest_score=True):
+    def to_pandas(self, highest_score=True,  id_label="corems:"):
         
         columns = self._init_columns() 
         
@@ -84,9 +85,9 @@ class LowResGCMSExport():
 
         df.to_pickle(self.output_file.with_suffix('.pkl'))
         
-        self.write_settings(self.output_file, self.gcms)
+        self.write_settings(self.output_file, self.gcms, id_label="corems:")
                
-    def to_excel(self, write_mode='a', highest_score=True):
+    def to_excel(self, write_mode='a', highest_score=True,  id_label="corems:"):
 
         out_put_path = self.output_file.with_suffix('.xlsx')
 
@@ -113,9 +114,9 @@ class LowResGCMSExport():
         
             df.to_excel(self.output_file.with_suffix('.xlsx'), index=False, engine='openpyxl')
 
-        self.write_settings(self.output_file, self.gcms)
+        self.write_settings(self.output_file, self.gcms, id_label="corems:")
 
-    def to_csv(self, highest_score=True, separate_output=False) :
+    def to_csv(self, highest_score=True, separate_output=False,  id_label="corems:") :
         
         if separate_output:
             # set write mode to write
@@ -141,12 +142,12 @@ class LowResGCMSExport():
                 for data in dict_data_list:
                     writer.writerow(data)
             
-            self.write_settings(self.output_file, self.gcms)
+            self.write_settings(self.output_file, self.gcms, id_label=id_label)
         
         except IOError as ioerror:
             print(ioerror)                 
     
-    def to_hdf(self, highest_score=False):
+    def to_hdf(self, highest_score=False, id_label="corems:"):
         
         # save sample at a time
         def add_compound(gc_peak, compound_obj):
@@ -184,8 +185,8 @@ class LowResGCMSExport():
             hdf_handle.attrs['sample_id'] = "self.gcms.id"
             hdf_handle.attrs['input_data'] = str(self.gcms.file_location)
             hdf_handle.attrs['output_data'] = str(output_path)
-            hdf_handle.attrs['output_data_id'] = "self.gcms.output_data_id"
-            hdf_handle.attrs['corems_version'] = corems_version
+            hdf_handle.attrs['output_data_id'] = id_label + uuid.uuid4().hex
+            hdf_handle.attrs['corems_version'] = __version__
 
             hdf_handle.attrs["Stats"] = json.dumps(self.get_data_stats(self.gcms), sort_keys=False, indent=4, separators=(',', ': '))
             hdf_handle.attrs["Calibration"] = json.dumps(self.get_calibration_stats(self.gcms), sort_keys=False, indent=4, separators=(',', ': '))
@@ -279,7 +280,7 @@ class LowResGCMSExport():
 
         return blank_parameters
 
-    def write_settings(self, output_path, gcms):
+    def write_settings(self, output_path, gcms, id_label="corems:"):
         
         import json
         
@@ -291,11 +292,11 @@ class LowResGCMSExport():
         output_parameters_dict['instrument_label'] = gcms.instrument_label
         
         output_parameters_dict['sample_name'] = gcms.sample_name
-        output_parameters_dict['sample_id'] = "gcms.id"
+        output_parameters_dict['sample_id'] = id_label + corems_md5(gcms.file_location)
         output_parameters_dict['input_data'] = str(gcms.file_location)
         output_parameters_dict['output_data'] = str(output_path)
-        output_parameters_dict['output_data_id'] = 'ni'
-        output_parameters_dict['corems_version'] = corems_version
+        output_parameters_dict['output_data_id'] = id_label + uuid.uuid4().hex
+        output_parameters_dict['corems_version'] = __version__
         
         output_parameters_dict["Stats"] = self.get_data_stats(gcms)
         output_parameters_dict["Calibration"] = self.get_calibration_stats(gcms)

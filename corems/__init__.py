@@ -1,4 +1,5 @@
-__version__ = '17.0.1.beta'
+__author__ = 'Yuri E. Corilo'
+__version__ = '17.1.0.beta'
 __doc__ = '''
 
 CoreMS - a powerful framework for mass spectrometry data processing and analysis of small molecules
@@ -81,7 +82,7 @@ Here are just a few of the things that CoreMS does well:
 import time
 import os
 import sys
-
+import hashlib
 
 		
 def timeit(method):
@@ -180,4 +181,11 @@ def chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
     for i in range(0, len(lst), n):
         yield lst[i:i + n]
+
+def corems_md5(fname):
+    hash_md5 = hashlib.md5()
+    with open(fname, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()        
         

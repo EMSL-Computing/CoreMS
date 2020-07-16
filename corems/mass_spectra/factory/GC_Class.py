@@ -283,39 +283,39 @@ class GCMSBase(GC_Calculations, MassDevoncolution):
 
         return ax
 
-    def to_excel(self, out_file_path, write_mode='ab', highest_score=True):
+    def to_excel(self, out_file_path, write_mode='ab', highest_score=True, id_label="corems:"):
         
         exportMS= LowResGCMSExport(out_file_path, self)
-        exportMS.to_excel(highest_score=highest_score)
+        exportMS.to_excel(highest_score=highest_score, id_label=id_label)
 
-    def to_csv(self, out_file_path, write_mode='ab', highest_score=True):
+    def to_csv(self, out_file_path, write_mode='ab', highest_score=True, id_label="corems:"):
         
         exportMS= LowResGCMSExport(out_file_path, self)
-        exportMS.to_csv(highest_score=highest_score)
+        exportMS.to_csv(highest_score=highest_score, id_label=id_label)
         
-    def to_pandas(self, out_file_path, highest_score=True):
+    def to_pandas(self, out_file_path, highest_score=True, id_label="corems:"):
         
         #pickle dataframe (pkl extension)
         exportMS= LowResGCMSExport(out_file_path, self)
-        exportMS.to_pandas(highest_score=highest_score)
+        exportMS.to_pandas(highest_score=highest_score, id_label=id_label)
 
-    def to_dataframe(self,highest_score=True):
+    def to_dataframe(self,highest_score=True, id_label="corems:"):
         
         #returns pandas dataframe
         exportMS= LowResGCMSExport(self.sample_name, self)
-        return exportMS.get_pandas_df(highest_score=highest_score)
+        return exportMS.get_pandas_df(highest_score=highest_score, id_label=id_label)
 
-    def to_json(self,highest_score=True):
+    def to_json(self,highest_score=True, id_label="corems:"):
         
         #returns pandas dataframe
         exportMS= LowResGCMSExport(self.sample_name, self)
-        return exportMS.get_json(highest_score=highest_score)
+        return exportMS.get_json(highest_score=highest_score, id_label=id_label)
 
-    def to_hdf(self,highest_score=True):
+    def to_hdf(self,highest_score=True, id_label="corems:"):
         
         #returns pandas dataframe
         exportMS = LowResGCMSExport(self.sample_name, self)
-        return exportMS.to_hdf(highest_score=highest_score)
+        return exportMS.to_hdf(highest_score=highest_score, id_label=id_label)
 
     def plot_chromatogram(self, ax=None, color="blue"): #pragma: no cover
         
