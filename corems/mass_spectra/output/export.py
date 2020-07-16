@@ -189,7 +189,7 @@ class LowResGCMSExport():
             hdf_handle.attrs['corems_version'] = __version__
 
             hdf_handle.attrs["Stats"] = json.dumps(self.get_data_stats(self.gcms), sort_keys=False, indent=4, separators=(',', ': '))
-            hdf_handle.attrs["Calibration"] = json.dumps(self.get_calibration_stats(self.gcms), sort_keys=False, indent=4, separators=(',', ': '))
+            hdf_handle.attrs["Calibration"] = json.dumps(self.get_calibration_stats(self.gcms, id_label), sort_keys=False, indent=4, separators=(',', ': '))
             hdf_handle.attrs["Blank"] = json.dumps(self.get_blank_stats(self.gcms), sort_keys=False, indent=4, separators=(',', ': '))
 
             corems_dict_setting = parameter_to_dict.get_dict_data_gcms(self.gcms)
@@ -257,13 +257,13 @@ class LowResGCMSExport():
 
         return data_stats
 
-    def get_calibration_stats(self, gcms):
+    def get_calibration_stats(self, gcms, id_label):
         
         calibration_parameters = {}
 
         calibration_parameters['calibration_rt_ri_pairs_ref'] = gcms.ri_pairs_ref
         calibration_parameters['file_path'] = str(gcms.cal_file_path)
-        calibration_parameters['file_id'] = "gcms.cal_file_path_id"
+        calibration_parameters['file_id'] = id_label + corems_md5(gcms.cal_file_path)
         calibration_parameters['sample_name'] = str(gcms.cal_file_path.stem)
         calibration_parameters['calibration_method'] = ""
 
@@ -275,7 +275,8 @@ class LowResGCMSExport():
 
         blank_parameters['sample_name'] = "ni"
         blank_parameters['blank_id'] = "ni"
-        blank_parameters['blank_url'] = "ni"
+        blank_parameters['file_path'] = "ni"
+        blank_parameters['file_id'] = "ni"
         blank_parameters['common_features_to_blank'] = "ni"
 
         return blank_parameters
@@ -292,14 +293,15 @@ class LowResGCMSExport():
         output_parameters_dict['instrument_label'] = gcms.instrument_label
         
         output_parameters_dict['sample_name'] = gcms.sample_name
-        output_parameters_dict['sample_id'] = id_label + corems_md5(gcms.file_location)
+        output_parameters_dict['sample_id'] = "sample_id"
         output_parameters_dict['input_data'] = str(gcms.file_location)
+        output_parameters_dict['input_data_id'] = id_label + corems_md5(gcms.file_location)
         output_parameters_dict['output_data'] = str(output_path)
         output_parameters_dict['output_data_id'] = id_label + uuid.uuid4().hex
         output_parameters_dict['corems_version'] = __version__
         
         output_parameters_dict["Stats"] = self.get_data_stats(gcms)
-        output_parameters_dict["Calibration"] = self.get_calibration_stats(gcms)
+        output_parameters_dict["Calibration"] = self.get_calibration_stats(gcms, id_label)
         output_parameters_dict["Blank"] = self.get_blank_stats(gcms)
 
         corems_dict_setting = parameter_to_dict.get_dict_data_gcms(gcms)
