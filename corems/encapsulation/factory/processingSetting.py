@@ -72,7 +72,7 @@ class MassSpecPeakSetting:
 @dataclass 
 class GasChromatographSetting:
     
-    use_deconvolution: bool = False
+    use_deconvolution: bool = True
     
     implemented_smooth_method: tuple = ('savgol', 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar')
     
