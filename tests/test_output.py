@@ -71,10 +71,20 @@ def test_export_mass_spectrum():
     exportMS._output_type = 'hdf5'
     exportMS.save()
     exportMS.get_pandas_df()    
+    exportMS.to_json() 
+
+    mass_spectrum.to_excel('NEG_ESI_SRFA_CoreMS')
+    mass_spectrum.to_dataframe()
+    mass_spectrum.to_csv('NEG_ESI_SRFA_CoreMS')
+    mass_spectrum.to_json()
+    mass_spectrum.to_pandas('NEG_ESI_SRFA_CoreMS')
+    
+
+    print(   )
 
 
 if __name__ == "__main__":
                         
     test_export_mass_spectra()
-    #test_export_mass_spectrum()
+    test_export_mass_spectrum()
     

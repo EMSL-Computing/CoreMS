@@ -46,7 +46,6 @@ class HeteroAtoms(Base):
     def halogens_count(cls):
         return cls.halogensCount.cast(Float)
 
-    @property
     def to_dict(self):
         
         return json.loads(self.name)
@@ -195,7 +194,7 @@ class MolForm_SQL:
 
     def init_engine(self, url):
         
-        if not url:
+        if not url or url == 'None' or url == 'False':
             directory = os.getcwd()
             
             if not os.path.isdir(directory+'/db'):  os.mkdir(directory+'/db')

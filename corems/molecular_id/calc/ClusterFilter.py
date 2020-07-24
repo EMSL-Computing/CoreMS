@@ -113,9 +113,9 @@ class ClusteringFilter():
             else:
                 other_peaks_idx.append(ms_peak_indexes[i])    
 
-        #mfs = [mass_spectrum_obj[index].best_molecular_formula_candidate.to_string for index in other_peaks_idx]
+        #mfs = [mass_spectrum_obj[index].best_molecular_formula_candidate.string for index in other_peaks_idx]
         
-        #mfs_noise = [mass_spectrum_obj[index].best_molecular_formula_candidate.to_string for index in noise_idx]
+        #mfs_noise = [mass_spectrum_obj[index].best_molecular_formula_candidate.string for index in noise_idx]
         
         #print(mfs)
         #print(mfs_noise)

@@ -12,7 +12,7 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 
 ## Current Version
 
-### `15.1.0.beta`
+### `17.2.0.beta`
 
 ### Data input formats
 
@@ -199,7 +199,7 @@ for mspeak in mass_spectrum_obj.sort_by_abundance():
             if molecular_formula.is_isotopologue:
 
                 #access the molecular formula text representation
-                print (molecular_formula.to_string)
+                print (molecular_formula.string)
 
                 #get 13C atoms count
                 print (molecular_formula['13C'])

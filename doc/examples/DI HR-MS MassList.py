@@ -119,7 +119,7 @@ def export_calc_isotopologues(mass_spectrum, out_filename):
                 if not m_formula.is_isotopologue:
                     for imf in m_formula.expected_isotopologues: 
                         
-                        formula_dict = imf.to_dict
+                        formula_dict = imf.to_dict()
                         dict_result = { "Mono Isotopic Index" : index, 
                                         "Calculated m/z": imf.mz_calc,
                                         "Calculated Peak Height" : imf.abundance_calc,

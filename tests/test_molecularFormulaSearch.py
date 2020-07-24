@@ -61,7 +61,7 @@ def test_run_molecular_formula_search():
     print(ms_peak.mz_exp)
     if ms_peak.is_assigned:
         for formula in ms_peak:
-            print(formula.to_string_formated, formula.mz_error)
+            print(formula.string_formated, formula.mz_error)
 
 def test_mspeak_search():
 
@@ -76,13 +76,13 @@ def test_mspeak_search():
     print("OK2")
     if mspeak_obj.is_assigned:
         
-        print(mspeak_obj.molecular_formula_earth_filter().to_string)
-        print(mspeak_obj.molecular_formula_water_filter().to_string)
-        print(mspeak_obj.molecular_formula_air_filter().to_string)
-        print(mspeak_obj.cia_score_S_P_error().to_string)
-        print(mspeak_obj.cia_score_N_S_P_error().to_string)
-        print(mspeak_obj.best_molecular_formula_candidate.to_string)
-        print(mspeak_obj[0].mz_error, mspeak_obj[0].to_string_formated)
+        print(mspeak_obj.molecular_formula_earth_filter().string)
+        print(mspeak_obj.molecular_formula_water_filter().string)
+        print(mspeak_obj.molecular_formula_air_filter().string)
+        print(mspeak_obj.cia_score_S_P_error().string)
+        print(mspeak_obj.cia_score_N_S_P_error().string)
+        print(mspeak_obj.best_molecular_formula_candidate.string)
+        print(mspeak_obj[0].mz_error, mspeak_obj[0].string_formated)
 
 def test_molecular_formula_search_db():
     
@@ -127,7 +127,9 @@ def test_priorityAssignment():
     MSParameters.molecular_search.isProtonated = True 
     MSParameters.molecular_search.isRadical= True 
     MSParameters.molecular_search.isAdduct= False 
-
+    usedatoms = {'C': (1,100) , 'H': (4,200), 'O': (1,10)}
+    MSParameters.molecular_search.usedAtoms = usedatoms
+    
     mass_spec_obj = create_mass_spectrum()
     
     assignOx = OxygenPriorityAssignment(mass_spec_obj) 

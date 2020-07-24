@@ -41,7 +41,7 @@ if __name__ == "__main__":
            print(ms_peak.kendrick_mass)
            #it will print the formula after the assigment 
            for molecular_formula in ms_peak:
-               print(molecular_formula.to_string)
+               print(molecular_formula.string)
     
     mass_spec = lcms.get_mass_spec_by_scan_number(1)
     mass_spec.plot_mz_domain_profile()

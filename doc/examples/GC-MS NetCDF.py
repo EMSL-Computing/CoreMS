@@ -49,6 +49,7 @@ def stand_alone():
 
     gcms.process_chromatogram()
 
+
 def get_gcms(file_path):
     
     reader_gcms = ReadAndiNetCDF(file_path)
@@ -84,17 +85,17 @@ def get_reference_dict(calibration_file_path=False):
         # and comment the next line
         #rt_ri_pairs = get_rt_ri_pairs(gcms_ref_obj)
 
-        return rt_ri_pairs
+        return rt_ri_pairs, file_path
         
 def run(args):
     
-    file_path, ref_dict = args
+    file_path, ref_dict, cal_file_path = args
     
     gcms = get_gcms(file_path)
     
     gcms.process_chromatogram()
 
-    gcms.calibrate_ri(ref_dict)
+    gcms.calibrate_ri(ref_dict, cal_file_path)
     
     sql_obj = start_sql_from_file()
     
@@ -109,13 +110,13 @@ def run(args):
 def auto_calibrate_and_search(file_locations, output_file_name, jobs, calibration_file_path):
     import csv
     
-    ref_dict = get_reference_dict(calibration_file_path=calibration_file_path)
+    ref_dict, cal_file_path = get_reference_dict(calibration_file_path=calibration_file_path)
     
     if ref_dict:
         
             # run in multiprocessing mode
             pool = Pool(jobs)
-            args = [(file_path, ref_dict) for file_path in file_locations]
+            args = [(file_path, ref_dict, cal_file_path) for file_path in file_locations]
             gcmss = pool.map(run, args)
             pool.close()
             pool.join()
@@ -128,7 +129,7 @@ def calibrate_and_search(out_put_file_name, jobs):
     
     import csv
     
-    ref_dict = get_reference_dict()
+    ref_dict, cal_file_path  = get_reference_dict()
     
     if ref_dict:
         
@@ -142,16 +143,16 @@ def calibrate_and_search(out_put_file_name, jobs):
             
             # run in multiprocessing mode
             pool = Pool(jobs)
-            args = [(file_path, ref_dict) for file_path in file_locations[0]]
+            args = [(file_path, ref_dict, cal_file_path) for file_path in file_locations[0]]
             gcmss = pool.map(run, args)
             pool.close()
             pool.join()
             for gcms in gcmss:
                 
-                gcms.to_csv(out_put_file_name, highest_score=False)
+                #gcms.to_csv(out_put_file_name, highest_score=False)
                 #gcms.to_excel(out_put_file_name, highest_score=False)
                 #gcms.to_pandas(out_put_file_name)
-                
+                gcms.to_hdf(highest_score=False)
                 #df = gcms.get_dataframe()
                 #json_data = gcms.to_json()
                 
@@ -200,9 +201,9 @@ if __name__ == '__main__':
     #import matplotlib
     #matplotlib.use('TkAgg')
 
-    #cores = 5
-    #out_put_file_name = 'Plasma_Ref_10'
-    #calibrate_and_search(out_put_file_name, cores)
+    cores = 5
+    out_put_file_group_name = 'Plasma_Ref_10'
+    calibrate_and_search(out_put_file_group_name, cores)
     #start_sql_from_file()
     #auto_process(cores)
-    stand_alone()
+    #stand_alone()

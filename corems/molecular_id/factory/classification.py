@@ -286,7 +286,7 @@ class HeteroatomsClassification(Mapping):
                         #ignores isotopologues
                         if not incluse_isotopologue and m_formula.is_isotopologue: continue
                         
-                        formula_dict = m_formula.to_dict
+                        formula_dict = m_formula.to_dict()
 
                         dict_result = {'mz':  ms_peak._mz_exp,
                                 'calibrated_mz': ms_peak.mz_exp,

@@ -22,7 +22,7 @@ class MolecularFormulaLinkProxy():
             self.classe = json.dumps(molecular_formula.class_dict)
             self.mass =  float(mz)                       
             self.dbe = molecular_formula.dbe
-            self.formula_dict = molecular_formula.to_dict
+            self.formula_dict = molecular_formula.to_dict()
 
 class ImportMassListRef():#Thread
 

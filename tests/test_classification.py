@@ -19,7 +19,12 @@ def test_heteroatoms_classification():
     MSParameters.molecular_search.isProtonated = True 
     MSParameters.molecular_search.isRadical= False 
     MSParameters.molecular_search.isAdduct= False 
-
+    
+    MSParameters.molecular_search.usedAtoms['C'] = (1, 100)
+    MSParameters.molecular_search.usedAtoms['H'] = (4, 200)
+    MSParameters.molecular_search.usedAtoms['O'] = (1, 18)
+    #MSParameters.molecular_search.usedAtoms = usedatoms
+    
     mass_spec_obj = create_mass_spectrum()
     
     assignOx = SearchMolecularFormulas(mass_spec_obj).run_worker_mass_spectrum()

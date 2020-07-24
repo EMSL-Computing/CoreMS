@@ -351,7 +351,7 @@ def plot_mass_spectrum():
 
                 #if not molecular_formula.is_isotopologue:
                 #    if molecular_formula.mspeak_indexes_isotopologues:
-                        #pyplot.annotate(molecular_formula.to_string, (mspeak.mz_exp + off_set, mspeak.abundance ))
+                        #pyplot.annotate(molecular_formula.string, (mspeak.mz_exp + off_set, mspeak.abundance ))
                         
                 #        off_set +=  0.1
                     #if molecular_formula['O'] == o:

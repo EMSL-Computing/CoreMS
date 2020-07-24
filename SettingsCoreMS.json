@@ -14,22 +14,23 @@
     },
     "MassSpectrum": {
         "calib_minimize_method": "Powell", "calib_pol_order": 2,
-        "calib_sn_threshold": 10,
+        "calib_sn_threshold": 10.0,
+        "do_calibration": true,
         "implemented_noise_threshold_methods": [
             "auto", "signal_noise", "relative_abundance"
         ],
-        "max_calib_ppm_error": 5,
+        "max_calib_ppm_error": 10,
         "max_noise_mz": 1200.0,
         "max_picking_mz": 1200.0,
-        "min_calib_ppm_error": -5,
+        "min_calib_ppm_error": -10,
         "min_noise_mz": 100.0,
         "min_picking_mz": 100.0,
         "noise_threshold_std": 3,
         "relative_abundance_threshold": 10,
-        "s2n_threshold": 4,
+        "s2n_threshold": 4.0,
         "threshold_method": "relative_abundance"
     },
-    "MolecularSearch": {
+    "MolecularFormulaSearch": {
         "adduct_atoms_neg": [
             "Cl", "Br"
         ],
@@ -44,16 +45,16 @@
         "isotopologue_filter_atoms": [
             "Cl", "Br"
         ],
-        "isotopologue_filter_threshold": 33,
+        "isotopologue_filter_threshold": 33.0,
         "max_abun_error": 70,
-        "max_dbe": 40,
-        "max_hc_filter": 3,
+        "max_dbe": 40.0,
+        "max_hc_filter": 3.0,
         "max_ppm_error": 3,
         "min_abun_error": -30,
-        "min_dbe": 0,
+        "min_dbe": 0.0,
         "min_hc_filter": 0.3,
         "min_oc_filter": 1.2,
-        "min_op_filter": 2,
+        "min_op_filter": 2.0,
         "min_peaks_per_class": 15,
         "min_ppm_error": -5,
         "mz_error_average": 0,
@@ -61,7 +62,7 @@
         "score_method": "prob_score", "score_methods": [
             "S_P_lowest_error", "N_S_P_lowest_error", "lowest_error", "prob_score", "air_filter_error", "water_filter_error", "earth_filter_error"
         ],
-        "url_database": "postgresql://coremsdb:coremsmolform@localhost:5432/molformula", "use_isotopologue_filter": false,
+        "url_database": "None", "use_isotopologue_filter": false,
         "use_min_peaks_filter": true,
         "use_pah_line_rule": true,
         "use_runtime_kendrick_filter": false,

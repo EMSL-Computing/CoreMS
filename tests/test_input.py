@@ -93,7 +93,7 @@ def test_import_lcms_from_transient():
         for mspeak in ms:
             #mspeak.mz_exp,mspeak.mz_abund 
             for mf in mspeak:
-                mf.to_string, mf.mz_calc, mf.is_isotopologue    
+                mf.string, mf.mz_calc, mf.is_isotopologue    
                 pass
 
 
@@ -139,7 +139,7 @@ def test_import_corems_hdf5():
             
             for mf in mspeak:
                 
-                print('mass_spectrum', mf.to_string)
+                print('mass_spectrum', mf.string)
     
     read_lc_ms = ReadCoreMSHDF_MassSpectra(file_location)
 
@@ -154,7 +154,7 @@ def test_import_corems_hdf5():
             
             for mf in mspeak:
                 
-                print('mass_spectra', mf.to_string)
+                print('mass_spectra', mf.string)
     
 
 def test_import_corems_mass_list():
@@ -173,7 +173,7 @@ def test_import_corems_mass_list():
         if mspeak:
             
             for mf in mspeak:
-                print(mf.to_string)
+                print(mf.string)
 
     file_location = Path.cwd() / "tests/tests_data/" /  "NEG_ESI_SRFA_CoreMS.corems"
 
@@ -190,7 +190,7 @@ def test_import_corems_mass_list():
             
             for mf in mspeak:
                 
-                print('mass_spectra', mf.to_string)                
+                print('mass_spectra', mf.string)                
 
 def test_import_mass_list():
 
@@ -233,8 +233,8 @@ if __name__ == '__main__':
     #test_import_booster_mass_spectrum_hdf()
     #test_import_booster_mass_spectra_hdf()
     #test_import_lcms_from_transient()
-    test_import_transient()
-    #test_import_corems_hdf5()
+    #test_import_transient()
+    test_import_corems_hdf5()
     #test_import_corems_mass_list()
     #test_import_mass_list()
 

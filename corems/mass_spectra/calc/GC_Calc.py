@@ -1,6 +1,7 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Feb 13, 2020"
 
+from pathlib import Path
 import numpy as np
 from pandas import Series, DataFrame
 
@@ -13,7 +14,7 @@ from matplotlib import pyplot as plt
 
 class GC_Calculations:
     
-    def calibrate_ri(self, ref_dict):
+    def calibrate_ri(self, ref_dict, cal_file_path):
         
         if not self:
             
@@ -24,6 +25,10 @@ class GC_Calculations:
             gcms_peak.calc_ri(ref_dict)
 
         self.ri_pairs_ref = ref_dict
+        self.cal_file_path = Path(cal_file_path)
+        
+        
+
         
     def smooth_tic(self, tic):
             
