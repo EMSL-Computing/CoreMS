@@ -199,9 +199,9 @@ if __name__ == '__main__':
     #import matplotlib
     #matplotlib.use('TkAgg')
 
-    #cores = 5
+    cores = 8
     #out_put_file_name = 'Plasma_Ref_10'
     #calibrate_and_search(out_put_file_name, cores)
     #start_sql_from_file()
-    #auto_process(cores)
-    stand_alone()
+    auto_process(cores)
+    #stand_alone()
