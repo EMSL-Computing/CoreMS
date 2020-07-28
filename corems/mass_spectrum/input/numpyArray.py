@@ -12,12 +12,9 @@ def ms_from_array_profile(mz, abundance,  dataname, polarity=-1,  auto_process=T
     
     output_parameters = get_output_parameters(polarity, dataname)
     
-    ms = MassSpecProfile(data_dict, output_parameters, auto_process=False, auto_noise=auto_noise)
+    output_parameters[Labels.label] = data_type
 
-    ms.label = data_type
-
-    if auto_process:
-        ms.process_mass_spec(auto_noise=auto_noise)
+    ms = MassSpecProfile(data_dict, output_parameters, auto_process=auto_process, auto_noise=auto_noise)
     
     return 
 
@@ -49,6 +46,6 @@ def get_output_parameters(polarity, file_location):
         
         d_params["rt"] = 0
 
-        d_params['label'] = Labels.simulated_profile
+        d_params[Labels.label] = Labels.simulated_profile
         
         return d_params
