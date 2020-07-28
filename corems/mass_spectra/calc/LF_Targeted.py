@@ -79,13 +79,15 @@ class LossFinderTargeted(GC_Calculations):
 
         for mz2 in spectrum:
 
-            if mz1 >= mz2 and lower <= abs(mz1-mz2) <= upper:
+            if mz1 > mz2 and lower <= abs(mz1-mz2) <= upper:
 
                 if chem not in self.offset_hits.keys():
                     self.offset_hits.update( {chem:[((mz2, mz1, Intensity[spectrum.index(mz2)] , Intensity[spectrum.index(mz1)], chem, scan_number ))]} )
 
                 else:
                     self.offset_hits[chem].append( ((mz2,mz1, Intensity[spectrum.index(mz2)] , Intensity[spectrum.index(mz1)], chem, scan_number )) )
+
+        
 
     def findpeakoffset(self, range_ref, mz_filtered, abund_filtered):
 
@@ -95,8 +97,8 @@ class LossFinderTargeted(GC_Calculations):
         
             for scan_number in mz_filtered.keys():
 
-                #while count < len(mz_filtered[scan_number])-1:
-                while count < 10:    
+                while count < len(mz_filtered[scan_number])-1:
+                #while count < 5:    
 
                     self.mz_pair_checker(chem, ref_pair[0], ref_pair[1], mz_filtered[scan_number][count], mz_filtered[scan_number], abund_filtered[scan_number], scan_number)
             
