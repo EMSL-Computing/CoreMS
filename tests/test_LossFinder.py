@@ -29,8 +29,8 @@ def run_targetedLF(file_path, ref_file):
     gcms = reader_gcms.get_gcms_obj()
     gc_ms = gcms._ms
 
-    Loss_finder.noise_cutoff = float(0.7)
-    Loss_finder.tolerance = float(5)
+    Loss_finder.noise_cutoff = float(0.85)
+    Loss_finder.tolerance = float(2)
     Loss_finder.ref_file = ref_file
 
     mz_dict, abund = Loss_finder.ms_info_get(gc_ms)
