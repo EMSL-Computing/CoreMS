@@ -4,12 +4,10 @@ import pandas as pd
 import statistics as st
 import csv
 
-
 from corems.mass_spectra.calc.GC_Calc import GC_Calculations
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroidLowRes
 from corems.chroma_peak.factory.ChromaPeakClasses import GCPeak
 from corems.mass_spectra.calc import SignalProcessing as sp
-
 
 class LossFinderTargeted(GC_Calculations):
 
@@ -18,8 +16,6 @@ class LossFinderTargeted(GC_Calculations):
         self.tolerance = float()
 
         self.noise_cutoff = float()
-        
-        self.ref_file = '/mnt/c/ubuntu_home/loss_finder/NeutralLossList.csv'
 
         self.offset_hits = {}
         

@@ -37,6 +37,8 @@ def run_targetedLF(file_path, ref_file):
         Loss_finder.noise_cutoff = float(0.7)
 
         Loss_finder.tolerance = float(5)
+        
+        Loss_finder.ref_file = ref_file
 
         mz_dict, abund = Loss_finder.ms_info_get(gc_ms)
 
@@ -52,9 +54,9 @@ def run_targetedLF(file_path, ref_file):
 
 if __name__ == '__main__':
 
+
     file_path = get_filename()
 
     ref_file = '/mnt/c/ubuntu_home/loss_finder/NeutralLossList.csv'
 
     output, mz_count = run_targetedLF(file_path, ref_file)
-
