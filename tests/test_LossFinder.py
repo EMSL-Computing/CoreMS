@@ -43,10 +43,10 @@ def run_targetedLF(file_path, ref_file):
 
     return offset_hits, Loss_finder.mz_count
 
-def test_out(LF_dict, mz_count):
+def test_out(lf_dict, mz_count):
     data = pd.DataFrame()
 
-    for chem, stats in LF_dict.items():
+    for chem, stats in lf_dict.items():
     
         data = data.append(pd.DataFrame(stats), ignore_index=True)
 
@@ -83,9 +83,9 @@ def run_LF_pipeline():
 
     ref_file = Path.cwd() / "tests/tests_data/" / "NeutralLossList.csv"
 
-    LF_dict, mz_count = run_targetedLF(file_path, ref_file)
+    lf_dict, mz_count = run_targetedLF(file_path, ref_file)
 
-    test_out(LF_dict, mz_count)
+    test_out(lf_dict, mz_count)
 
 if __name__ == '__main__':
     run_LF_pipeline()
