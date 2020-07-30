@@ -88,4 +88,5 @@ def run_LF_pipeline():
     test_out(lf_dict, mz_count)
 
 if __name__ == '__main__':
+    lf_dict = {}
     run_LF_pipeline()
