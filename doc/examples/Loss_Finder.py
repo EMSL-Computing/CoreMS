@@ -20,6 +20,7 @@ from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
 from corems import get_dirname, get_filename
 from corems.mass_spectra.factory.GC_Class import GCMSBase
 from corems.mass_spectra.calc.LF_Targeted import LossFinderTargeted
+from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecBase
 import glob
 
 def run_targetedLF(file_path, ref_file):
@@ -34,9 +35,9 @@ def run_targetedLF(file_path, ref_file):
 
         gc_ms = gcms._ms
 
-        Loss_finder.noise_cutoff = float(0.7)
+        Loss_finder.noise_cutoff = float(0.85)
 
-        Loss_finder.tolerance = float(5)
+        Loss_finder.tolerance = float(1)
         
         Loss_finder.ref_file = ref_file
 
@@ -49,6 +50,19 @@ def run_targetedLF(file_path, ref_file):
         offset_hits = Loss_finder.findpeakoffset(range_ref, mz_filtered, abund_filtered)
 
         Loss_finder.LF_out(offset_hits, Loss_finder.mz_count)
+
+        #ax = gcms.plot_gc_peaks()
+
+        #ax.savefig('lf_fig.png')
+
+        #ax = MassSpecBase.plot_mz_domain_profile(MassSpecBase)
+
+        #plt.show()
+
+        #MassSpecBase.plot_mz_domain_profile(gcms)
+        #MassSpecBase.plot_profile_and_noise_threshold(gcms)
+
+        #plt.show()
 
         return offset_hits, Loss_finder.mz_count
 
