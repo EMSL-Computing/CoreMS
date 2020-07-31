@@ -19,7 +19,7 @@ from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
 from corems.molecular_id.search.compoundSearch import LowResMassSpectralMatch
 from corems.mass_spectra.calc.LF_Targeted import LossFinderTargeted
 
-@pytest.fixture
+
 def run_targetedLF(file_path, ref_file):
 
     Loss_finder = LossFinderTargeted()
@@ -44,9 +44,9 @@ def run_targetedLF(file_path, ref_file):
 
     return offset_hits, Loss_finder.mz_count
 
-def test_out(offset_hits, mz_count):
+def test_out():
 
-    #lf_dict, mz_count = args
+    offset_hits, mz_count = run_targetedLF(file_path, ref_file)
 
     data = pd.DataFrame()
 
@@ -82,15 +82,21 @@ def test_out(offset_hits, mz_count):
 
     plt.savefig('test_LF.png')
 
-def run_LF_pipeline():
+#def run_LF_pipeline():
+#    file_path = Path.cwd() / "tests/tests_data/gcms/" / "GCMS_FAMES_01_GCMS-01_20191023.cdf"
+#
+#    ref_file = Path.cwd() / "tests/tests_data/" / "NeutralLossList.csv"
+#
+#    #offset_hits, mz_count = run_targetedLF(file_path, ref_file)
+#
+#    test_out()
+
+if __name__ == '__main__':
+
     file_path = Path.cwd() / "tests/tests_data/gcms/" / "GCMS_FAMES_01_GCMS-01_20191023.cdf"
 
     ref_file = Path.cwd() / "tests/tests_data/" / "NeutralLossList.csv"
-
-    offset_hits, mz_count = run_targetedLF(file_path, ref_file)
-
-    test_out(offset_hits, mz_count)
-
-if __name__ == '__main__':
     
-    run_LF_pipeline()
+    #run_LF_pipeline()
+
+    test_out()

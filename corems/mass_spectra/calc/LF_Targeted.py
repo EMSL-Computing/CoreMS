@@ -94,7 +94,7 @@ class LossFinderTargeted(GC_Calculations):
             for scan_number in mz_filtered.keys():
 
                 while count < len(mz_filtered[scan_number])-1:
-                #while count < 5:    
+                #while count < 2:    
 
                     self.mz_pair_checker(chem, ref_pair[0], ref_pair[1], mz_filtered[scan_number][count], mz_filtered[scan_number], abund_filtered[scan_number], scan_number)
             
