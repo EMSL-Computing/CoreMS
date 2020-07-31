@@ -46,6 +46,10 @@ def run_targetedLF(file_path, ref_file):
 
 def test_out():
 
+    file_path = Path.cwd() / "tests/tests_data/gcms/" / "GCMS_FAMES_01_GCMS-01_20191023.cdf"
+
+    ref_file = Path.cwd() / "tests/tests_data/" / "NeutralLossList.csv"
+
     offset_hits, mz_count = run_targetedLF(file_path, ref_file)
 
     data = pd.DataFrame()
@@ -92,10 +96,6 @@ def test_out():
 #    test_out()
 
 if __name__ == '__main__':
-
-    file_path = Path.cwd() / "tests/tests_data/gcms/" / "GCMS_FAMES_01_GCMS-01_20191023.cdf"
-
-    ref_file = Path.cwd() / "tests/tests_data/" / "NeutralLossList.csv"
     
     #run_LF_pipeline()
 
