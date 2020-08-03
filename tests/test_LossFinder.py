@@ -44,7 +44,7 @@ def run_targetedLF(file_path, ref_file):
 
     return offset_hits, Loss_finder.mz_count
 
-def test_out():
+def run_LF_pipeline():
 
     file_path = Path.cwd() / "tests/tests_data/gcms/" / "GCMS_FAMES_01_GCMS-01_20191023.cdf"
 
@@ -86,17 +86,6 @@ def test_out():
 
     plt.savefig('test_LF.png')
 
-#def run_LF_pipeline():
-#    file_path = Path.cwd() / "tests/tests_data/gcms/" / "GCMS_FAMES_01_GCMS-01_20191023.cdf"
-#
-#    ref_file = Path.cwd() / "tests/tests_data/" / "NeutralLossList.csv"
-#
-#    #offset_hits, mz_count = run_targetedLF(file_path, ref_file)
-#
-#    test_out()
-
 if __name__ == '__main__':
     
-    #run_LF_pipeline()
-
-    test_out()
+    run_LF_pipeline()
