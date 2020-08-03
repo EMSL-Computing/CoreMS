@@ -5,6 +5,7 @@ import statistics as st
 import csv
 
 from corems.mass_spectra.calc.GC_Calc import GC_Calculations
+from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecBase
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroidLowRes
 from corems.chroma_peak.factory.ChromaPeakClasses import GCPeak
 from corems.mass_spectra.calc import SignalProcessing as sp
@@ -24,6 +25,9 @@ class LossFinderTargeted(GC_Calculations):
         self.abund_filtered = {}
         
         self.mz_count = float()
+        
+        #self._mz_exp = MassSpecBase._mspeaks
+        #self._abundance = MassSpecBase._abundance
 
     def ms_info_get(self, mass_spectra_obj):
 
@@ -131,9 +135,9 @@ class LossFinderTargeted(GC_Calculations):
         
         plt.tight_layout()
 
-        #ax = plt.subplot()
-        #ax.spines['right'].set_visible(False)
-        #ax.spines['top'].set_visible(False)
+        ax = plt.subplot()
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
 
         for n, i in enumerate(chem):
         #Create an axis text object
@@ -146,3 +150,13 @@ class LossFinderTargeted(GC_Calculations):
                 fontsize=12)
 
         plt.show()
+
+    def plot_offset(self):
+        #MassSpecBase.plot_mz_domain_profile(MassSpecBase)
+        #MassSpecBase.plot_profile_and_noise_threshold(MassSpecBase)
+
+        #plt.show()
+
+        out = MassSpecBase.get_mz_and_abundance_peaks_tuples(MassSpecBase)
+
+        return out

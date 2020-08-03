@@ -49,7 +49,11 @@ def run_targetedLF(file_path, ref_file):
 
         offset_hits = Loss_finder.findpeakoffset(range_ref, mz_filtered, abund_filtered)
 
-        Loss_finder.LF_out(offset_hits, Loss_finder.mz_count)
+        #Loss_finder.LF_out(offset_hits, Loss_finder.mz_count)
+
+        out = Loss_finder.plot_offset()
+
+        print(out)
 
         #ax = gcms.plot_gc_peaks()
 
@@ -68,9 +72,10 @@ def run_targetedLF(file_path, ref_file):
 
 if __name__ == '__main__':
 
-
     file_path = get_filename()
 
     ref_file = '/mnt/c/ubuntu_home/loss_finder/NeutralLossList.csv'
 
     output, mz_count = run_targetedLF(file_path, ref_file)
+
+
