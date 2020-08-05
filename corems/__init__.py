@@ -1,5 +1,5 @@
 __author__ = 'Yuri E. Corilo'
-__version__ = '17.3.2.beta'
+__version__ = '17.4.1.beta'
 __doc__ = '''
 
 CoreMS - a powerful framework for mass spectrometry data processing and analysis of small molecules

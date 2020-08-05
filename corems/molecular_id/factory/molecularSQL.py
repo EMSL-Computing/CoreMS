@@ -167,8 +167,8 @@ class MolForm_SQL:
         
         self.engine = self.init_engine(url)
 
-        if not database_exists(engine.url):
-            create_database(engine.url)
+        if not database_exists(self.engine.url):
+            create_database(self.engine.url)
 
         self.add_engine_pidguard(self.engine)
         
