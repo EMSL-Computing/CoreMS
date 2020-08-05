@@ -1,7 +1,7 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 27, 2019"
 
-from numpy import power, multiply, sqrt, multiply, array
+from numpy import power, multiply, sqrt, multiply, array, mean
 from corems.mass_spectrum.calc.NoiseCalc import NoiseThresholdCalc
 from corems.mass_spectrum.calc.PeakPicking import PeakPicking
 
@@ -34,7 +34,7 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
         total_percent = (i/(i+j))*100
         total_relative_abundance = (assign_abun/(not_assign_abun+assign_abun)) *100
         if report_error:
-            rms_error = np.sqrt(np.mean(np.array(error)**2))
+            rms_error = sqrt(mean(array(error)**2))
             print('%i peaks assigned and %i peaks not assigned, total  = %.2f %%, relative abundance = %.2f %%, RMS error (best candidate) (ppm) = %.3f' % (i, j, total_percent,total_relative_abundance,rms_error  ))
             return i, j, total_percent,total_relative_abundance, rms_error
 
