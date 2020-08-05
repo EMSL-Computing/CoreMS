@@ -16,6 +16,8 @@ from sqlalchemy.sql.operators import exists
 from sqlalchemy import event, and_
 from sqlalchemy import func
 
+from sqlalchemy_utils import database_exists, create_database
+
 from corems.encapsulation.constant import Atoms, Labels
 import json
 from corems.encapsulation.factory.processingSetting import MolecularFormulaSearchSettings
@@ -159,12 +161,13 @@ class MolecularFormulaLink(Base):
         
         return '<MolecularFormulaLink Model {}>'.format(self.formula_string)       
 
+
 class MolForm_SQL:
     
     def __init__(self, url=None, echo=False):
         
         self.engine = self.init_engine(url)
-
+        
         self.add_engine_pidguard(self.engine)
         
         session_factory = sessionmaker(bind=self.engine)
@@ -183,6 +186,15 @@ class MolForm_SQL:
         self.commit()
         self.session.close()
         self.engine.dispose()
+
+    def initiate_database(self, url, database_name): #CREATION
+        
+        engine = sqlalchemy.create_engine(database_url)
+        conn = engine.connect()
+        conn.execute("commit")
+        conn.execute("create database "+database_name)
+        conn.close()
+
 
     def commit(self):
         

@@ -160,7 +160,7 @@ class LowResGCMSExport():
             compound_group.attrs["similarity_score"] = compound_obj.similarity_score
             
             compond_mz = compound_group.create_dataset('mz', data=np.array(compound_obj.mz), dtype="f8")  
-            compond_abundance = compound_group.create_dataset('abundance', data=np.array(compound_obj.mz), dtype="f8")
+            compond_abundance = compound_group.create_dataset('abundance', data=np.array(compound_obj.abundance), dtype="f8")
 
             if self.gcms.molecular_search_settings.exploratory_mode:
                 

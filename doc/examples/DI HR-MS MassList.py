@@ -71,7 +71,7 @@ def run_assignment(file_location):
     
     #mass_spectrum.filter_by_max_resolving_power(15, 2)
     SearchMolecularFormulas(mass_spectrum, first_hit=False).run_worker_mass_spectrum()
-    mass_spectrum.percentile_assigned()
+    mass_spectrum.percentile_assigned(report_error=True)
     
     mass_spectrum.to_csv("15T_Neg_ESI_SRFA")
     
