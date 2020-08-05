@@ -142,7 +142,7 @@ class GasChromatographSetting:
 
     peak_height_min_percent:float = 0.2 #1-100 % used for peak detection
 
-    peak_min_prominence_percent:float = 1 #1-100 % used for peak detection
+    peak_min_prominence_percent:float = 0.2 #1-100 % used for peak detection
 
     def __post_init__(self):
         
@@ -174,8 +174,7 @@ class CompoundSearchSettings:
     ri_calibration_compound_names: List = dataclasses.field(default_factory=list)
 
     # calculates and export all spectral similarity methods
-    exploratory_mode:bool = False
-    
+    exploratory_mode:bool = True
   
     def __post_init__(self):
         # enforce datatype
