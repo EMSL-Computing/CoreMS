@@ -418,7 +418,9 @@ class MolecularCombinations:
                 
                 valencia = MSParameters.molecular_search.used_atom_valences.get(clean_atom)
                 
-                if valencia and valencia > 0:
+                if type(valencia) is tuple:
+                    valencia = valencia[0]
+                if valencia > 0:
                     #print atom, valencia, n_atom, init_dbe
                     init_dbe = init_dbe + (n_atom * (valencia - 2))
                 else:
