@@ -16,7 +16,7 @@ def ms_from_array_profile(mz, abundance,  dataname, polarity=-1,  auto_process=T
 
     ms = MassSpecProfile(data_dict, output_parameters, auto_process=auto_process, auto_noise=auto_noise)
     
-    return 
+    return ms
 
 def ms_from_array_centroid(mz, abundance, rp, s2n, dataname, polarity=-1, auto_process=True):
 
