@@ -6,11 +6,13 @@ from pathlib import Path
 
 from numpy import string_, array, NaN, empty
 from pandas import DataFrame
+import json
 
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.output import parameter_to_dict
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
+
 
 class HighResMassSpecExport(Thread):
     
@@ -52,18 +54,19 @@ class HighResMassSpecExport(Thread):
                         'S/N',
                         'Ion Charge',
                         'Mass Error (ppm)',
-                        'Confidence Score',
                         'Mass Error Score',
                         'Isotopologue Similarity',
+                        'Confidence Score',
                         'DBE',
                         'H/C',
                         'O/C',
                         'Heteroatom Class',
                         'Ion Type',
                         'Is Isotopologue',
-                        'Mono Isotopic Index'
-                        # 'Aromaticity Index',
+                        'Mono Isotopic Index',
+                        'Molecular Formula'
                         ]
+                        
 
     @property
     def output_type(self):
@@ -165,7 +168,20 @@ class HighResMassSpecExport(Thread):
         except IOError as ioerror:
             print(ioerror)
     
-   
+    def to_json(self):
+
+        columns = self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum)
+
+        dict_data_list = self.get_list_dict_data(self.mass_spectrum)    
+
+        df = DataFrame(dict_data_list, columns=columns)
+
+        #for key, values in dict_data.items():
+        #    if not values: dict_data[key] = NaN
+        
+        #output = json.dumps(dict_data, sort_keys=True, indent=4, separators=(',', ': '))
+        return df.to_json(orient='records')
+
     def to_hdf(self):
         
         import h5py
@@ -211,10 +227,10 @@ class HighResMassSpecExport(Thread):
                     #create empy dataset for missing raw data
                     raw_ms_dataset = scan_group.create_dataset('raw_ms', dtype="f8")
 
-                raw_ms_dataset.attrs['MassSpecAttrs'] = self.to_json(dict_ms_attrs)
+                raw_ms_dataset.attrs['MassSpecAttrs'] = json.dumps(dict_ms_attrs)
                 
                 if isinstance(self.mass_spectrum, MassSpecfromFreq):
-                    raw_ms_dataset.attrs['TransientSetting'] = self.to_json(setting_dicts.get('TransientSetting'))
+                    raw_ms_dataset.attrs['TransientSetting'] = json.dumps(setting_dicts.get('TransientSetting'))
 
             else:
                 
@@ -233,22 +249,22 @@ class HighResMassSpecExport(Thread):
 
             processed_dset.attrs['ColumnsLabels'] = columns_labels
             
-            processed_dset.attrs['MoleculaSearchSetting'] = self.to_json(setting_dicts.get('MoleculaSearch'))
+            processed_dset.attrs['MoleculaSearchSetting'] = json.dumps(setting_dicts.get('MoleculaSearch'))
             
-            processed_dset.attrs['MassSpecPeakSetting'] = self.to_json(setting_dicts.get('MassSpecPeak'))
+            processed_dset.attrs['MassSpecPeakSetting'] = json.dumps(setting_dicts.get('MassSpecPeak'))
 
-            processed_dset.attrs['MassSpectrumSetting'] = self.to_json(setting_dicts.get('MassSpectrum'))
+            processed_dset.attrs['MassSpectrumSetting'] = json.dumps(setting_dicts.get('MassSpectrum'))
 
-
-    @staticmethod     
-    def to_json(dict_data, nan=False):
+    def parameters_to_json(self):
         
-        import json
-        #for key, values in dict_data.items():
-        #    if not values: dict_data[key] = NaN
-        
-        #output = json.dumps(dict_data, sort_keys=True, indent=4, separators=(',', ': '))
-        return json.dumps(dict_data)
+        dict_setting = parameter_to_dict.get_dict_data_ms(self.mass_spectrum)
+
+        dict_setting['MassSpecAttrs'] = self.get_mass_spec_attrs(self.mass_spectrum)
+        dict_setting['analyzer'] = self.mass_spectrum.analyzer
+        dict_setting['instrument_label'] = self.mass_spectrum.instrument_label
+        dict_setting['sample_name'] = self.mass_spectrum.sample_name
+
+        return json.dumps(dict_setting)    
 
     def get_mass_spec_attrs(self, mass_spectrum):
 
@@ -329,7 +345,7 @@ class HighResMassSpecExport(Thread):
 
         def add_match_dict_data():
 
-            formula_dict = m_formula.to_dict
+            formula_dict = m_formula.to_dict()
             
             dict_result = {'Index': index,
                            'm/z':  ms_peak._mz_exp,
@@ -349,6 +365,7 @@ class HighResMassSpecExport(Thread):
                            'O/C':  m_formula.O_C,
                            'Ion Type': eval("m_formula.ion_type.lower(){}".format(encode)),  
                            'Is Isotopologue': int(m_formula.is_isotopologue),
+                           'Molecular Formula': eval("m_formula.string{}".format(encode)) 
                            }
             if m_formula.is_isotopologue:
                 dict_result['Mono Isotopic Index'] = m_formula.mspeak_index_mono_isotopic

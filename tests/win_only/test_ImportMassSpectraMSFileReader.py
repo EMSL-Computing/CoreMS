@@ -50,7 +50,7 @@ if __name__ == "__main__":
            print(ms_peak.kendrick_mass)
            
            for molecular_formula in ms_peak:
-               print(molecular_formula.to_string)
+               print(molecular_formula.string)
                print(molecular_formula.mass_error)
 
     mass_spec = lcms.get_mass_spec_by_scan_number(1)

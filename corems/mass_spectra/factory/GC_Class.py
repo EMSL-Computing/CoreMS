@@ -56,6 +56,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         self.gcpeaks = []
         
         self.ri_pairs_ref = None
+        self.cal_file_path = None
     
     def _init_settings(self):
         
@@ -177,6 +178,40 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
         return self._tic_list
 
+    @property
+    def max_tic(self):
+
+        return max([gc_peak.tic for gc_peak in self])
+
+    @property
+    def min_tic(self):
+
+        return min([gc_peak.tic for gc_peak in self])
+
+    @property
+    def dynamic_range(self):
+
+        return self.max_tic/self.min_tic
+
+    @property
+    def matched_peaks(self):
+        return [gc_peak for gc_peak in self if gc_peak]
+
+    @property
+    def unique_metabolites(self):
+        
+        metabolites = set()
+        for gc_peak in self:
+            if gc_peak:
+                for compound_obj in gc_peak:
+                     metabolites.add(compound_obj.name)
+        
+        return metabolites
+
+    @property
+    def no_matched_peaks(self):
+        return [ peak for peak in self if not peak]
+
     @retention_time.setter
     def retention_time(self, l):
         # self._retention_time_list = linspace(0, 80, num=len(self._scans_number_list))
@@ -248,33 +283,39 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
         return ax
 
-    def to_excel(self, out_file_path, write_mode='ab', highest_score=True):
+    def to_excel(self, out_file_path, write_mode='ab', highest_score=True, id_label="corems:"):
         
         exportMS= LowResGCMSExport(out_file_path, self)
-        exportMS.to_excel(highest_score=highest_score)
+        exportMS.to_excel(highest_score=highest_score, id_label=id_label)
 
-    def to_csv(self, out_file_path, write_mode='ab', highest_score=True):
+    def to_csv(self, out_file_path, write_mode='ab', highest_score=True, id_label="corems:"):
         
         exportMS= LowResGCMSExport(out_file_path, self)
-        exportMS.to_csv(highest_score=highest_score)
+        exportMS.to_csv(highest_score=highest_score, id_label=id_label)
         
-    def to_pandas(self, out_file_path, highest_score=True):
+    def to_pandas(self, out_file_path, highest_score=True, id_label="corems:"):
         
         #pickle dataframe (pkl extension)
         exportMS= LowResGCMSExport(out_file_path, self)
-        exportMS.to_pandas(highest_score=highest_score)
+        exportMS.to_pandas(highest_score=highest_score, id_label=id_label)
 
-    def to_dataframe(self,highest_score=True):
+    def to_dataframe(self,highest_score=True, id_label="corems:"):
         
         #returns pandas dataframe
         exportMS= LowResGCMSExport(self.sample_name, self)
-        return exportMS.get_pandas_df(highest_score=highest_score)
+        return exportMS.get_pandas_df(highest_score=highest_score, id_label=id_label)
 
-    def to_json(self,highest_score=True):
+    def to_json(self,highest_score=True, id_label="corems:"):
         
         #returns pandas dataframe
         exportMS= LowResGCMSExport(self.sample_name, self)
-        return exportMS.get_json(highest_score=highest_score)
+        return exportMS.get_json(highest_score=highest_score, id_label=id_label)
+
+    def to_hdf(self,highest_score=True, id_label="corems:"):
+        
+        #returns pandas dataframe
+        exportMS = LowResGCMSExport(self.sample_name, self)
+        return exportMS.to_hdf(highest_score=highest_score, id_label=id_label)
 
     def plot_chromatogram(self, ax=None, color="blue"): #pragma: no cover
         

@@ -46,29 +46,29 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     _abundance : list(float)     
         This is where we store _abundance,
     _mspeaks : list(MSPeak)
-        store MSpeaks objects identified by a peak picking algorithm     
-    
+        store MSpeaks objects identified by a peak picking algorithm
+
     Relevant Methods
     ----------
     process_mass_spec()
         find or set the noise threshold base on the setting encapsulated at settings.input.ProcessingSetting.MassSpectrumSetting
         - run the peak peaking algorithm and use the method addMSPeaks() to populate _mspeaks attribute
-    
+
     see also: MassSpecCentroid(), MassSpecfromFreq(), MassSpecProfile()
     '''
     def __init__(self, mz_exp, abundance, d_params, **kwargs):
 
         self._abundance = array(abundance, dtype=float64)
         self._mz_exp = array(mz_exp, dtype=float64)
-        
-        #objects created after process_mass_spec() function
+
+        # objects created after process_mass_spec() function
         self._mspeaks = list()
-        self._dict_nominal_masses_indexes  = dict()
+        self._dict_nominal_masses_indexes = dict()
         self._baselise_noise = None
         self._baselise_noise_std = None
         self._dynamic_range = None
-        #set to None: initialization occurs inside subclass MassSpecfromFreq
-        self._transient_settings = None 
+        # set to None: initialization occurs inside subclass MassSpecfromFreq
+        self._transient_settings = None
         self._frequency_domain = None
         self._mz_cal_profile = None
         self.is_calibrated = False
@@ -77,31 +77,35 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self._init_settings()
 
         self.is_centroid = False
-        
+
+        self.calibration_order = None
+        self.calibration_points = None
+        self.calibration_RMS = None
+
     def _init_settings(self):
-        
+
         self._parameters = MSParameters()
 
     def __len__(self):
-        
+
         return len(self.mspeaks)
-        
+
     def __getitem__(self, position):
-        
+
         return self.mspeaks[position]
-    
+
     def set_indexes(self, list_indexes):
         ''' set the mass spectrum to interate over only the selected MSpeaks indexes'''
         self.mspeaks = [self._mspeaks[i] for i in list_indexes]
-        
+
         for i, mspeak in  enumerate(self.mspeaks): mspeak.index = i
-        
+
         self._set_nominal_masses_start_final_indexes()
-        
+
     def reset_indexes(self):
         ''' reset the mass spectrum to interate over all MSpeaks obj'''
         self.mspeaks = self._mspeaks
-        
+
         for i, mspeak in  enumerate(self.mspeaks): mspeak.index = i
 
         self._set_nominal_masses_start_final_indexes()
@@ -112,7 +116,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
                     signal_to_noise,
                     massspec_indexes,
                     exp_freq=None,
-                    ms_parent = None,
+                    ms_parent=None
                 ):
 
         mspeak = MSPeak(
@@ -124,12 +128,11 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
                 massspec_indexes,
                 len(self._mspeaks),
                 exp_freq=exp_freq,
-                ms_parent = ms_parent,
-                
-            )
-        
+                ms_parent=ms_parent,
+        )
+
         self._mspeaks.append(mspeak)
-    
+
     def _set_parameters_objects(self, d_params):
 
         self._calibration_terms = (
@@ -141,7 +144,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self.label = d_params.get(Labels.label)
 
         self.analyzer = d_params.get('analyzer')
-        
+
         self.instrument_label = d_params.get('instrument_label')
 
         self.polarity = int(d_params.get("polarity"))
@@ -162,55 +165,55 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         self._baselise_noise_std = d_params.get("baselise_noise_std")
 
-        if d_params.get('sample_name') != 'Unknown': 
-            
+        if d_params.get('sample_name') != 'Unknown':
+
             self.sample_name = d_params.get('sample_name')
             if not self.sample_name:
-                self.sample_name = self.filename.stem    
-        else: 
-            
+                self.sample_name = self.filename.stem
+        else:
+
             self.sample_name = self.filename.stem
 
     def reset_cal_therms(self, Aterm, Bterm, C, fas= 0):
-        
+
         self._calibration_terms = (Aterm, Bterm, C)
-        
+
         self._mz_exp = self._f_to_mz()
         self._abundance = self._abundance
         self.find_peaks()
         self.reset_indexes()
-        #self.reset_indexes()
-            
+        # self.reset_indexes()
+
     def clear_molecular_formulas(self):
-        
+
         self.check_mspeaks()
         return array([mspeak.clear_molecular_formulas() for mspeak in self.mspeaks])
 
     def process_mass_spec(self, keep_profile=True, auto_noise=True, noise_bayes_est=False):
-        
-        #from numpy import delete
+
+        # from numpy import delete
         self.cal_noise_threshold(auto=auto_noise, bayes=noise_bayes_est)
-        
+
         self.find_peaks()
-        
+
         self.reset_indexes()
-        
-        self._dynamic_range = self.max_abundance/self.min_abundance    
+
+        self._dynamic_range = self.max_abundance / self.min_abundance
 
         if not keep_profile:
-            
+
             self._abundance *= 0
-            self._mz_exp  *= 0
-            self._abundance  *= 0
-        
+            self._mz_exp *= 0
+            self._abundance *= 0
+
     def cal_noise_threshold(self, auto=True, bayes=False):
 
         if self.label == Labels.simulated_profile:
-            
+
             self._baselise_noise, self._baselise_noise_std = 0.1, 1
-        
+
         else:
-            
+
             self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto, bayes=bayes)
 
     @property
@@ -218,78 +221,78 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         return self._parameters
 
     @parameters.setter
-    def parameters(self, instance_GCMSParameters):
-        self._parameters = instance_GCMSParameters
+    def parameters(self, instance_MSParameters):
+        self._parameters = instance_MSParameters
 
     def set_parameter_from_json(self, parameters_path):
-        load_and_set_parameters_ms(self,  parameters_path=parameters_path)    
+        load_and_set_parameters_ms(self, parameters_path=parameters_path)    
 
     @property
-    def mspeaks_settings(self):  return self.parameters.ms_peak
+    def mspeaks_settings(self): return self.parameters.ms_peak
 
     @mspeaks_settings.setter
-    
     def mspeaks_settings(self, instance_MassSpecPeakSetting):
-       
-            self.parameters.ms_peak =  instance_MassSpecPeakSetting
-    
+
+            self.parameters.ms_peak = instance_MassSpecPeakSetting
+
     @property
-    def settings(self):  return self.parameters.mass_spectrum
+    def settings(self): return self.parameters.mass_spectrum
 
     @settings.setter
     def settings(self, instance_MassSpectrumSetting):
-        
+
         self.parameters.mass_spectrum =  instance_MassSpectrumSetting
-    
+
     @property
     def molecular_search_settings(self):  return self.parameters.molecular_search
 
     @molecular_search_settings.setter
     def molecular_search_settings(self, instance_MolecularFormulaSearchSettings):
-        
+
         self.parameters.molecular_search =  instance_MolecularFormulaSearchSettings
-    
+
     @property
     def freq_exp_profile(self):
         return self._frequency_domain
 
     @property
     def mz_cal_profile(self):
-        
+
         return self._mz_cal_profile
 
     @mz_cal_profile.setter
     def mz_cal_profile(self, mz_cal_list):
-        
+
         if len(mz_cal_list) == len(self.mz_exp_profile):
             self._mz_cal_profile = mz_cal_list
         else:
             raise Exception( "calibrated array (%i) is not of the same size of the data (%i)" % (len(mz_cal_list),  len(self.mz_exp_profile)))    
+
     @property
     def mz_cal(self):
         return array([mspeak.mz_cal for mspeak in self.mspeaks])
-    
+
     @mz_cal.setter
     def mz_cal(self, mz_cal_list):
-            
+
             if  len(mz_cal_list) == len(self._mspeaks):
                 self.is_calibrated = True
                 for index, mz_cal in enumerate(mz_cal_list):
                     self._mspeaks[index].mz_cal = mz_cal
             else: 
                 raise Exception( "calibrated array (%i) is not of the same size of the data (%i)" % (len(mz_cal_list),  len(self._mspeaks)))    
-        
+
     @property
     def mz_exp(self):
-        
+
         self.check_mspeaks()
-        
+
         if self.is_calibrated:
-            
+
             return array([mspeak.mz_cal for mspeak in self.mspeaks])
-        
+
         else:
-            
+
             return array([mspeak.mz_exp for mspeak in self.mspeaks])
 
     @property
@@ -300,10 +303,10 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
     @property
     def abundance_profile(self): return self._abundance
-    
+
     @abundance_profile.setter
     def abundance_profile(self, _abundance): return self._abundance
-    
+
     @property
     def abundance(self):
         self.check_mspeaks()
@@ -322,7 +325,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     def signal_to_noise(self):
         self.check_mspeaks()
         return array([mspeak.signal_to_noise for mspeak in self.mspeaks])
-    
+
     @property
     def nominal_mz(self):
 
@@ -331,14 +334,14 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             return sorted(list(self._dict_nominal_masses_indexes.keys()))
 
         else:
-            
+
             raise ValueError("Nominal indexes not yet set")    
 
     def get_mz_and_abundance_peaks_tuples(self):
 
         self.check_mspeaks()
         return [(mspeak.mz_exp, mspeak.abundance) for mspeak in self.mspeaks]
-    
+
     @property
     def kmd(self):
         self.check_mspeaks()
@@ -360,21 +363,20 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     @property
     def max_abundance(self):
         return max([mspeak.abundance for mspeak in self.mspeaks])
-    
+
     @property
     def max_signal_to_noise(self):
         return max([mspeak.signal_to_noise for mspeak in self.mspeaks])
-    
+
     @property
     def most_abundant_mspeak(self):
         return max(self.mspeaks, key=lambda m: m.abundance)
-        
-    
+
     @property
     def min_abundance(self):
         return min([mspeak.abundance for mspeak in self.mspeaks])
-    
-    #takes too much cpu time 
+
+    # takes too much cpu time 
     @property
     def dynamic_range(self):
         return self._dynamic_range
@@ -422,9 +424,9 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
     @property
     def tic(self):
-        
+
         return sum(self.abundance_profile)
-        
+
     def check_mspeaks_warning(self):
         import warnings
         if self.mspeaks:
@@ -446,9 +448,9 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         for i in indexes: self.mspeaks[i].clear_molecular_formulas()
 
     def filter_by_index(self, list_indexes):
-        
+
         self.mspeaks = [self.mspeaks[i] for i in range(len(self.mspeaks)) if i not in list_indexes]
-        
+
         for i, mspeak in  enumerate(self.mspeaks): mspeak.index = i
 
         self._set_nominal_masses_start_final_indexes()
@@ -482,7 +484,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         rpe = lambda m, z: (1.274e7 * z * B * T)/(m*z)
 
         self.check_mspeaks_warning()
-        
+
         indexes_to_remove = [index for index, mspeak in enumerate(self.mspeaks) if  mspeak.resolving_power >= rpe(mspeak.mz_exp,mspeak.ion_charge)]
         self.filter_by_index(indexes_to_remove)
 
@@ -491,7 +493,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         rpe = lambda m, z: (1.274e7 * z * B * T)/(m*z)
 
         self.check_mspeaks_warning()
-        
+
         indexes_to_remove = [index for index, mspeak in enumerate(self.mspeaks) if  mspeak.resolving_power <= rpe(mspeak.mz_exp,mspeak.ion_charge)]
         self.filter_by_index(indexes_to_remove)
 
@@ -499,42 +501,41 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         """needs to clear previous results from peak_picking"""
         self._mspeaks = list()
         """then do peak picking"""
-        
+
         self.do_peak_picking()
-        #print("A total of %i peaks were found" % len(self._mspeaks))
+        # print("A total of %i peaks were found" % len(self._mspeaks))
 
     def change_kendrick_base_all_mspeaks(self, kendrick_dict_base):
         """kendrick_dict_base = {"C": 1, "H": 2} or {{"C": 1, "H": 1, "O":1} etc """
-        
+
         self.parameters.ms_peak.kendrick_base = kendrick_dict_base
-        
+
         for mspeak in self.mspeaks:
 
             mspeak.change_kendrick_base(kendrick_dict_base)
 
     def get_nominal_mz_first_last_indexes(self, nominal_mass):
-        
+
         if self._dict_nominal_masses_indexes:
-            
+
             if nominal_mass in self._dict_nominal_masses_indexes.keys():
-                
-                    
+
                 return (self._dict_nominal_masses_indexes.get(nominal_mass)[0], self._dict_nominal_masses_indexes.get(nominal_mass)[1]+1)
-            
+
             else:
-                #import warnings
-                #uncomment warn to distribution
-                #warnings.warn("Nominal mass not found in _dict_nominal_masses_indexes, returning (0, 0) for nominal mass %i"%nominal_mass)
-                return (0,0)
+                # import warnings
+                # uncomment warn to distribution
+                # warnings.warn("Nominal mass not found in _dict_nominal_masses_indexes, returning (0, 0) for nominal mass %i"%nominal_mass)
+                return (0, 0)
         else:
             raise Exception("run process_mass_spec() function before trying to access the data")
 
     def get_masses_count_by_nominal_mass(self):
-        
-        dict_nominal_masses_count ={}
-        
+
+        dict_nominal_masses_count = {}
+
         all_nominal_masses = list(set([i.nominal_mz_exp for i in self.mspeaks]))
-        
+
         for nominal_mass in all_nominal_masses:
             if nominal_mass not in dict_nominal_masses_count:
                 dict_nominal_masses_count[nominal_mass] = len(list(self.get_nominal_mass_indexes(nominal_mass)))
@@ -542,66 +543,65 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         return dict_nominal_masses_count
 
     def datapoints_count_by_nominal_mz(self, mz_overlay=0.1):
-        
+
         dict_nominal_masses_count ={}
-        
+
         all_nominal_masses = list(set([i.nominal_mz_exp for i in self.mspeaks]))
-        
+
         for nominal_mass in all_nominal_masses:
 
             if nominal_mass not in dict_nominal_masses_count:
-                
+
                 min_mz = nominal_mass - mz_overlay
-            
+
                 max_mz = nominal_mass + 1 + mz_overlay
-                
+
                 indexes = indexes = where((self.mz_exp_profile > min_mz) & (self.mz_exp_profile < max_mz)) 
-                
+
                 dict_nominal_masses_count[nominal_mass] = indexes[0].size
 
         return dict_nominal_masses_count
 
     def get_nominal_mass_indexes(self, nominal_mass, overlay=0.1):
-        
+
         min_mz_to_look = nominal_mass - overlay
-        max_mz_to_look = nominal_mass+1+overlay
-        
+        max_mz_to_look = nominal_mass + 1 + overlay
+
         return (i for i in range(len(self.mspeaks)) if min_mz_to_look <= self.mspeaks[i].mz_exp <= max_mz_to_look)
-              
-        #indexes = (i for i in range(len(self.mspeaks)) if min_mz_to_look <= self.mspeaks[i].mz_exp <= max_mz_to_look)
-        #return indexes
+
+        # indexes = (i for i in range(len(self.mspeaks)) if min_mz_to_look <= self.mspeaks[i].mz_exp <= max_mz_to_look)
+        # return indexes
 
     def _set_nominal_masses_start_final_indexes(self):
-        
+
         '''return ms peaks objs indexes(start and end) on the mass spectrum for all nominal masses'''
         dict_nominal_masses_indexes ={}
-        
+
         all_nominal_masses = set(i.nominal_mz_exp for i in self.mspeaks)
-        
+
         for nominal_mass in all_nominal_masses:
-            
+
             indexes = self.get_nominal_mass_indexes(nominal_mass)
-            
+
             defaultvalue = None
             first = last = next(indexes, defaultvalue)
             for last in indexes:
                 pass
-            
-            dict_nominal_masses_indexes[nominal_mass] = (first,last) 
+
+            dict_nominal_masses_indexes[nominal_mass] = (first, last)
 
         self._dict_nominal_masses_indexes = dict_nominal_masses_indexes
 
-    
     def plot_centroid(self, ax=None, c='g'):
-        
+
         import matplotlib.pyplot as plt
         if self._mspeaks:
-            
+
             if ax is None:
                 ax = plt.gca()
-            
-            markerline_a, stemlines_a, baseline_a  = ax.stem(self.mz_exp, self.abundance, linefmt='-',  markerfmt=" ", use_line_collection =True)
-            
+
+            markerline_a, stemlines_a, baseline_a = ax.stem(self.mz_exp, self.abundance, linefmt='-', markerfmt=" ", use_line_collection=True)
+
             plt.setp(markerline_a, 'color', c, 'linewidth', 2)
             plt.setp(stemlines_a, 'color', c, 'linewidth', 2)
             plt.setp(baseline_a, 'color', c, 'linewidth', 2)
@@ -615,19 +615,18 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
             ax.get_yaxis().set_visible(False)
             ax.spines['left'].set_visible(False)
-            
 
         else:
 
             raise Exception("No centroid data found, please run process_mass_spec")
-        
+
         return ax
 
     def plot_profile_and_noise_threshold(self, ax=None): 
-        
+
         import matplotlib.pyplot as plt
         if self.baselise_noise and self.baselise_noise:
-            
+
             x = (self.mz_exp_profile.min(), self.mz_exp_profile.max())
             y = (self.baselise_noise, self.baselise_noise)
 
@@ -649,58 +648,65 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
             ax.get_yaxis().set_visible(False)
             ax.spines['left'].set_visible(False)
-            
 
         else:
 
             raise Exception("Calculate noise threshold first")
-        
+
         return ax
 
     def plot_mz_domain_profile(self, color='green', ax=None): #pragma: no cover
-        
+
         import matplotlib.pyplot as plt
 
         if ax is None:
             ax = plt.gca()
         ax.plot(self.mz_exp_profile, self.abundance_profile, color=color)
         ax.set(xlabel='m/z', ylabel='abundance')
-        
+
         return ax
 
     def to_excel(self, out_file_path):
-        
-        from corems.mass_spectrum.output.export import HighResMassSpecExport
-        exportMS= HighResMassSpecExport(out_file_path, self)
-        exportMS.to_excel()
 
+        from corems.mass_spectrum.output.export import HighResMassSpecExport
+        exportMS = HighResMassSpecExport(out_file_path, self)
+        exportMS.to_excel()
 
     def to_hdf(self, out_file_path):
         from corems.mass_spectrum.output.export import HighResMassSpecExport
-        exportMS= HighResMassSpecExport(out_file_path, self)
+        exportMS = HighResMassSpecExport(out_file_path, self)
         exportMS.to_hdf()
 
     def to_csv(self, out_file_path):
         from corems.mass_spectrum.output.export import HighResMassSpecExport
-        exportMS= HighResMassSpecExport(out_file_path, self)
+        exportMS = HighResMassSpecExport(out_file_path, self)
         exportMS.to_csv()
-        
+
     def to_pandas(self, out_file_path):
-        #pickle dataframe (pkl extension)
+        # pickle dataframe (pkl extension)
         from corems.mass_spectrum.output.export import HighResMassSpecExport
-        exportMS= HighResMassSpecExport(out_file_path, self)
+        exportMS = HighResMassSpecExport(out_file_path, self)
         exportMS.to_pandas()
 
     def to_dataframe(self,):
-        #returns pandas dataframe
-        
+        # returns pandas dataframe
+
         from corems.mass_spectrum.output.export import HighResMassSpecExport
-        exportMS= HighResMassSpecExport(self.filename, self)
+        exportMS = HighResMassSpecExport(self.filename, self)
         return exportMS.get_pandas_df()
-            
 
+    def to_json(self):
+        # returns pandas dataframe
 
+        from corems.mass_spectrum.output.export import HighResMassSpecExport
+        exportMS = HighResMassSpecExport(self.filename, self)
+        return exportMS.to_json()
 
+    def parameters_json(self):
+
+        from corems.mass_spectrum.output.export import HighResMassSpecExport
+        exportMS = HighResMassSpecExport(self.filename, self)
+        return exportMS.parameters_to_json()
 
 class MassSpecProfile(MassSpecBase):
     '''
@@ -715,7 +721,7 @@ class MassSpecProfile(MassSpecBase):
     dataframe : pandas Dataframe(Series(floats))
         contains columns [m/z, Abundance, Resolving Power, S/N] 
     d_params : dict{'str': float, int or str}
-        
+
     Attributes
     ----------
     _mz_exp : list(float)
@@ -723,14 +729,14 @@ class MassSpecProfile(MassSpecBase):
     _abundance : list(float)     
         This is where we store _abundance,
     _mspeaks : list(MSPeak)
-        store MSpeaks objects identified by a peak picking algorithm     
-    
+        store MSpeaks objects identified by a peak picking algorithm
+
     Relevant Methods
     ----------
     process_mass_spec()
         find or set the noise threshold base on the setting encapsulated at settings.input.ProcessingSetting.MassSpectrumSetting
         - run the peak peaking algorithm and use the method addMSPeaks() to populate _mspeaks attribute
-    
+
     see also: MassSpecBase(), MassSpecfromFreq(), MassSpecProfile()
     '''
 
@@ -738,19 +744,17 @@ class MassSpecProfile(MassSpecBase):
         """
         method docs
         """
-        #print(data_dict.keys())
+        # print(data_dict.keys())
         mz_exp = data_dict.get(Labels.mz)
         abundance = data_dict.get(Labels.abundance)
         super().__init__(mz_exp, abundance, d_params)
-        
+
         if auto_process:
             self.process_mass_spec(auto_noise)
 
-        
-
 class MassSpecfromFreq(MassSpecBase):
     '''
-    - A iterative mass spectrum class when data entry is on frequency(Hz) domain 
+    - A iterative mass spectrum class when data entry is on frequency(Hz) domain
     - Transform to m/z based on the settings stored at d_params
     - Stores the profile data and instrument settings
     - Iteration over a list of MSPeaks classes stored at the _mspeaks attributes
@@ -815,12 +819,12 @@ class MassSpecfromFreq(MassSpecBase):
             self._mz_exp = self._f_to_mz()
 
     @property
-    def transient_settings(self):  return self.parameters.transient
+    def transient_settings(self): return self.parameters.transient
 
     @transient_settings.setter
     def transient_settings(self, instance_TransientSetting):
-        
-        self.parameters.transient =  instance_TransientSetting  
+     
+        self.parameters.transient = instance_TransientSetting  
 
 
 class MassSpecCentroid(MassSpecBase):
@@ -874,9 +878,9 @@ class MassSpecCentroid(MassSpecBase):
     '''
 
     def __init__(self, data_dict, d_params):
-        
+
         """needs to simulate peak shape and pass as mz_exp and magnitude."""
-        
+
         super().__init__([], [], d_params)
 
         self._set_parameters_objects(d_params)
@@ -888,11 +892,11 @@ class MassSpecCentroid(MassSpecBase):
         self.process_mass_spec(data_dict)
 
         self.is_centroid = True
-   
+
     def __simulate_profile__data__(self, exp_mz_centroid, magnitude_centroid):
         '''needs theoretical resolving power calculation and define peak shape
         this is a quick fix to trick a line plot be able to plot as sticks'''
-        
+
         x, y = [], []
         for i in range(len(exp_mz_centroid)):
             x.append(exp_mz_centroid[i] - 0.0000001)
@@ -904,10 +908,35 @@ class MassSpecCentroid(MassSpecBase):
         return x, y
 
     @property
+    def mz_exp_profile(self):
+
+        mz_list = []
+        for mz in self.mz_exp:
+            mz_list.append(mz - 0.0000001)
+            mz_list.append(mz)
+            mz_list.append(mz + 0.0000001)
+        return mz_list
+    
+    @mz_exp_profile.setter
+    def mz_exp_profile(self, _mz_exp ): self._mz_exp = _mz_exp
+
+    @property
+    def abundance_profile(self):
+        ab_list = []
+        for ab in self.abundance:
+            ab_list.append(0)
+            ab_list.append(ab)
+            ab_list.append(0)
+        return ab_list
+
+    @abundance_profile.setter
+    def abundance_profile(self, abundance ): self._abundance = abundance
+
+    @property
     def tic(self):
-    
+
         return sum(self.abundance)
-    
+
     def process_mass_spec(self, data_dict):
         import tqdm
         # overwrite process_mass_spec 
@@ -939,11 +968,11 @@ class MassSpecCentroid(MassSpecBase):
                     data_dict.get(Labels.rp)[index],
                     l_s2n[index],
                     massspec_indexes,
-                    ms_parent = self
+                    ms_parent=self
                 )
 
             else:
-                
+
                 self.add_mspeak(
                     ion_charge,
                     mz,
@@ -951,11 +980,11 @@ class MassSpecCentroid(MassSpecBase):
                     data_dict.get(Labels.rp)[index],
                     -999,
                     massspec_indexes,
-                    ms_parent = self
+                    ms_parent=self
                 )
-        
+
         self.mspeaks = self._mspeaks
-        self._dynamic_range = self.max_abundance/self.min_abundance  
+        self._dynamic_range = self.max_abundance / self.min_abundance
         self._set_nominal_masses_start_final_indexes()
 
         
@@ -980,7 +1009,7 @@ class MassSpecCentroidLowRes(MassSpecCentroid,):
 
     @property
     def mz_exp(self):
-
+        
         return self._mz_exp 
 
     @property
