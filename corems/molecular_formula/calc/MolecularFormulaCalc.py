@@ -295,7 +295,9 @@ class MolecularFormulaCalc:
                         valencia = MSParameters.molecular_search.used_atom_valences.get(clean_atom)
                     #valencia = Atoms.atoms_covalence.get(atom)
                     
-                    if valencia and valencia > 0:
+                    if type(valencia) is tuple:
+                        valencia = valencia[0]
+                    if valencia > 0:
                         #print atom, valencia, n_atom, individual_dbe
                         individual_dbe = individual_dbe + (n_atom * (valencia - 2))
                     else:

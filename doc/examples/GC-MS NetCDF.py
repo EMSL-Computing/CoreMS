@@ -122,7 +122,8 @@ def auto_calibrate_and_search(file_locations, output_file_name, jobs, calibratio
             pool.join()
             for gcms in gcmss:
                 
-                gcms.to_csv(output_file_name, highest_score=False)
+                gcms.to_hdf(highest_score=False)
+                #gcms.to_csv(output_file_name, highest_score=False)
 
 
 def calibrate_and_search(out_put_file_name, jobs):
@@ -201,9 +202,9 @@ if __name__ == '__main__':
     #import matplotlib
     #matplotlib.use('TkAgg')
 
-    cores = 5
-    out_put_file_group_name = 'Plasma_Ref_10'
-    calibrate_and_search(out_put_file_group_name, cores)
+    cores = 8
+    #out_put_file_group_name = 'Plasma_Ref_10'
+    #calibrate_and_search(out_put_file_group_name, cores)
     #start_sql_from_file()
-    #auto_process(cores)
+    auto_process(cores)
     #stand_alone()
