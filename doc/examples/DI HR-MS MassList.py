@@ -71,7 +71,7 @@ def run_assignment(file_location):
     
     #mass_spectrum.filter_by_max_resolving_power(15, 2)
     SearchMolecularFormulas(mass_spectrum, first_hit=False).run_worker_mass_spectrum()
-    mass_spectrum.percentile_assigned()
+    mass_spectrum.percentile_assigned(report_error=True)
     
     mass_spectrum.to_csv("15T_Neg_ESI_SRFA")
     
@@ -119,7 +119,7 @@ def export_calc_isotopologues(mass_spectrum, out_filename):
                 if not m_formula.is_isotopologue:
                     for imf in m_formula.expected_isotopologues: 
                         
-                        formula_dict = imf.to_dict
+                        formula_dict = imf.to_dict()
                         dict_result = { "Mono Isotopic Index" : index, 
                                         "Calculated m/z": imf.mz_calc,
                                         "Calculated Peak Height" : imf.abundance_calc,

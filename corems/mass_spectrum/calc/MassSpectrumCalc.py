@@ -1,7 +1,7 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 27, 2019"
 
-from numpy import power, multiply, sqrt, multiply, array
+from numpy import power, multiply, sqrt, multiply, array, mean
 from corems.mass_spectrum.calc.NoiseCalc import NoiseThresholdCalc
 from corems.mass_spectrum.calc.PeakPicking import PeakPicking
 
@@ -11,17 +11,21 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
     Inherited PeakPicking and NoiseThresholdCalc ensuring its methods are 
     available to the instantiated mass spectrum class object
     '''
-    def percentile_assigned(self):
+    def percentile_assigned(self,report_error=False):
         
         assign_abun = 0
         not_assign_abun = 0
         i = 0
         j = 0
+        if report_error:
+            error = []
         for mspeak in self.sort_by_abundance():
             
             if mspeak.is_assigned:
                 i += 1
                 assign_abun += mspeak.abundance
+                if report_error:
+                    error.append(mspeak.best_molecular_formula_candidate.mz_error)
                 
             else:
                 j += 1
@@ -29,10 +33,14 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
                    
         total_percent = (i/(i+j))*100
         total_relative_abundance = (assign_abun/(not_assign_abun+assign_abun)) *100
+        if report_error:
+            rms_error = sqrt(mean(array(error)**2))
+            print('%i peaks assigned and %i peaks not assigned, total  = %.2f %%, relative abundance = %.2f %%, RMS error (best candidate) (ppm) = %.3f' % (i, j, total_percent,total_relative_abundance,rms_error  ))
+            return i, j, total_percent,total_relative_abundance, rms_error
 
-        print('%i peaks assigned and %i peaks not assigned , total  = %.2f %%, relative abundance = %.2f %%' % (i, j, total_percent,total_relative_abundance  ))
-
-        return i, j, total_percent,total_relative_abundance 
+        else:
+            print('%i peaks assigned and %i peaks not assigned, total  = %.2f %%, relative abundance = %.2f %%' % (i, j, total_percent,total_relative_abundance,))
+            return i, j, total_percent, total_relative_abundance
         
         
     def resolving_power_calc(self, B, T):

@@ -206,7 +206,7 @@ class MolecularCombinations:
                 list_molecular_form= list()
                 for classe_obj in existing_classes_objs:
 
-                    classe_dict = classe_obj.to_dict  
+                    classe_dict = classe_obj.to_dict()  
                     classe_mass = self.calc_mz(classe_dict)
                     classe_dbe = self.calc_dbe_class(classe_dict)
 
@@ -300,10 +300,10 @@ class MolecularCombinations:
         usedAtoms.pop("C")
         usedAtoms.pop("H")
 
-        min_n, max_n = usedAtoms.get('N')
-        min_o, max_o = usedAtoms.get('O')
-        min_s, max_s = usedAtoms.get('S')
-        min_p, max_p = usedAtoms.get('P')
+        min_n, max_n = usedAtoms.get('N') if usedAtoms.get('N') else (0,0)
+        min_o, max_o = usedAtoms.get('O') if usedAtoms.get('O') else (0,0)
+        min_s, max_s = usedAtoms.get('S') if usedAtoms.get('S') else (0,0)
+        min_p, max_p = usedAtoms.get('P') if usedAtoms.get('P') else (0,0)
 
         possible_n = [n for n in range(min_n, max_n + 1)]
         possible_o = [o for o in range(min_o, max_o + 1)]
@@ -418,7 +418,9 @@ class MolecularCombinations:
                 
                 valencia = MSParameters.molecular_search.used_atom_valences.get(clean_atom)
                 
-                if valencia and valencia > 0:
+                if type(valencia) is tuple:
+                    valencia = valencia[0]
+                if valencia > 0:
                     #print atom, valencia, n_atom, init_dbe
                     init_dbe = init_dbe + (n_atom * (valencia - 2))
                 else:

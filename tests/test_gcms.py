@@ -63,15 +63,15 @@ def get_reference_dict():
 
         rt_ri_pairs = get_rt_ri_pairs(gcms_ref_obj, sql_obj)
 
-        return rt_ri_pairs
+        return rt_ri_pairs, file_path
 
 def run(args):
     
-    file_path, ref_dict = args
+    file_path, ref_dict, cal_file_path = args
     
     gcms = get_gcms(file_path)
     
-    gcms.calibrate_ri(ref_dict)
+    gcms.calibrate_ri(ref_dict, cal_file_path)
     
     sql_obj = start_sql_from_file()
     lowResSearch = LowResMassSpectralMatch(gcms, sql_obj=sql_obj)
@@ -86,12 +86,12 @@ def calibrate_and_search(out_put_file_name):
     
     import csv
     
-    ref_dict = get_reference_dict()
+    ref_dict, cal_file_path = get_reference_dict()
     
     if ref_dict:
         
         file_path = Path.cwd() / "tests/tests_data/gcms/" / "GCMS_FAMES_01_GCMS-01_20191023.cdf"
-        gcms = run((file_path, ref_dict))
+        gcms = run((file_path, ref_dict, cal_file_path))
         
         gcms.to_csv(out_put_file_name)
         gcms.to_excel(out_put_file_name, highest_score=False)

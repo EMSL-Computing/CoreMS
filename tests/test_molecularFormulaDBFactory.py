@@ -57,10 +57,10 @@ def generate_database():
 if __name__ == '__main__':
     
 
-    #test_query_sql()
+    test_query_sql()
     #settings_parsers.load_search_setting_yaml()
     #settings_parsers.load_search_setting_json()
     #test_nist_to_sql()    
-    generate_database()
+    #generate_database()
     
    

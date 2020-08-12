@@ -49,7 +49,7 @@ class MolecularFormula(MolecularFormulaCalc):
     
     def __str__(self):
 
-        return "MolecularFormula {0}, ion_charge:{1}, ion type:{2}, m/z:{3} ".format(self.to_string, self.ion_charge, self.ion_type, self.mz_calc)
+        return "MolecularFormula {0}, ion_charge:{1}, ion type:{2}, m/z:{3} ".format(self.string, self.ion_charge, self.ion_type, self.mz_calc)
     
     def __len__(self):
         
@@ -217,20 +217,20 @@ class MolecularFormula(MolecularFormulaCalc):
         return ''.join([i for i in atom if not i.isdigit()])
 
     @property       
-    def to_string(self):
+    def string(self):
         
         if self._d_molecular_formula:
             formula_srt = ''
             for atom in Atoms.atoms_order:
-                if atom in self.to_dict.keys():
-                    formula_srt += atom + str(int(self.to_dict.get(atom))) + ' '
+                if atom in self.to_dict().keys():
+                    formula_srt += atom + str(int(self.to_dict().get(atom))) + ' '
             return formula_srt.strip()
         
         else:
             raise Exception("Molecular formula identification not performed yet")    
     
     @property
-    def to_string_formated(self):
+    def string_formated(self):
         
         SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
         SUP = str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹")
@@ -238,18 +238,16 @@ class MolecularFormula(MolecularFormulaCalc):
         if self._d_molecular_formula:
             formula_srt = ''
             for atom in Atoms.atoms_order:
-                if atom in self.to_dict.keys():
-                    formula_srt += atom.translate(SUP) + str(int(self.to_dict.get(atom))).translate(SUB)
+                if atom in self.to_dict().keys():
+                    formula_srt += atom.translate(SUP) + str(int(self.to_dict().get(atom))).translate(SUB)
             return formula_srt
         
         else:
             raise Exception("Molecular formula identification not performed yet")    
 
-    @property
     def to_dict(self):
         return self._d_molecular_formula
 
-    @property   
     def to_list(self):
         '''TODO ensure self._d_molecular_formula is a orderedDict'''
         
@@ -272,7 +270,7 @@ class MolecularFormula(MolecularFormulaCalc):
         
         if self._d_molecular_formula:
             
-            formulalist = self.to_list
+            formulalist = self.to_list()
             classstring = '' 
             
             for each in range(0, len(formulalist),2):
