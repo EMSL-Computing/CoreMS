@@ -94,10 +94,11 @@ class MassDeconvolution:
                 
                 for initial_scan, apex_scan, final_scan in include_indexes:
 
-                        rt_corrected_therm = self.quadratic_interpolation(rt_list, smooth_eic, apex_scan)
+                        rt_corrected_therm = 0 #self.quadratic_interpolation(rt_list, smooth_eic, apex_scan)
                         
                         ref_apex_rt = round(rt_list[apex_scan] + rt_corrected_therm,4)
                         apex_rt = rt_list[apex_scan]
+                        
                         apex_abundance = smooth_eic[apex_scan]
                         
                         #maximum_tic = apex_abundance if apex_abundance > maximum_tic else maximum_tic
