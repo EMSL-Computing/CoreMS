@@ -68,10 +68,17 @@ class MassDeconvolution:
     def find_peaks_entity(self, eic_dict):
         
         max_prominence = self.chromatogram_settings.peak_max_prominence_percent
+        
         max_height = self.chromatogram_settings.peak_height_max_percent
 
         peaks_entity_data = {}
 
+        max_eic = 0
+        for mz, eic_scan_index_rt in eic_dict.items():
+            
+            ind_max_eic = max(eic_scan_index_rt[0])
+            max_eic = ind_max_eic if ind_max_eic > max_eic else max_eic
+        
         for mz, eic_scan_index_rt in eic_dict.items():
             
             eic = eic_scan_index_rt[0]
@@ -81,9 +88,9 @@ class MassDeconvolution:
 
                 smooth_eic = self.smooth_tic(eic)
 
-                sp.find_minima_derivative(rt_list, smooth_eic,  max_height, max_prominence, correct_baseline=False)
+                include_indexes = sp.find_minima_derivative(rt_list, smooth_eic,  max_height, max_prominence, max_eic, correct_baseline=False)
 
-                include_indexes = list(self.centroid_detector(smooth_eic, rt_list))
+                #include_indexes = list(self.centroid_detector(smooth_eic, rt_list))
                 
                 for initial_scan, apex_scan, final_scan in include_indexes:
 
