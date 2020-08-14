@@ -100,7 +100,7 @@ def find_minima_derivative(domain, signal, max_height, max_prominence, max_eic, 
 
             corrected_peak_height = signal[apex_index] - pol[apex_index]
 
-            if (corrected_peak_height/max_eic)*100 > 0.1:
+            if (corrected_peak_height/max_eic)*100 > 0.01:
                 
                 #plt.plot(domain[closest_left: closest_right+1], dydy[closest_left:closest_right+1], c='black')
                 #plt.plot(domain[closest_left: closest_right+1], dy[closest_left:closest_right+1], c='red')
