@@ -114,6 +114,8 @@ class MassDeconvolution:
 
         signal_threshold = self.chromatogram_settings.eic_signal_threshold
 
+        min_peak_datapoints = self.chromatogram_settings.min_peak_datapoints
+
         correct_baseline = False
         peaks_entity_data = {}
 
@@ -128,11 +130,11 @@ class MassDeconvolution:
             eic = eic_scan_index_rt[0]
             rt_list = eic_scan_index_rt[1]
 
-            if len(eic) > 10:
+            if len(eic) >= min_peak_datapoints:
 
                 smooth_eic = self.smooth_tic(eic)
 
-                include_indexes = sp.find_minima_derivative(rt_list, smooth_eic,  max_height, max_prominence, max_eic, 
+                include_indexes = sp.find_minima_derivative(rt_list, smooth_eic,  max_height, max_prominence, max_eic, min_peak_datapoints,
                                                             signal_threshold=signal_threshold,  correct_baseline=correct_baseline)
 
                 #include_indexes = list(self.centroid_detector(smooth_eic, rt_list))
@@ -144,7 +146,7 @@ class MassDeconvolution:
                         ref_apex_rt = round(rt_list[apex_scan] + rt_corrected_therm,4)
                         
                         apex_rt = rt_list[apex_scan]
-                        apex_abundance = smooth_eic[apex_scan]
+                        # apex_abundance = smooth_eic[apex_scan]
 
                         #maximum_tic = apex_abundance if apex_abundance > maximum_tic else maximum_tic
                         
@@ -195,14 +197,13 @@ class MassDeconvolution:
     def deconvolution(self, peaks_entity_data):
         
         i = 0
-        tic_list = []
-        rt_list = []
-
+        
         domain = self.retention_time
         signal = self._processed_tic
         max_height = self.chromatogram_settings.peak_height_max_percent
         max_prominence = self.chromatogram_settings.peak_max_prominence_percent
-        
+        min_peak_datapoints = self.chromatogram_settings.min_peak_datapoints
+
         max_signal = max(signal)
         
         signal_threshold = self.chromatogram_settings.peak_height_min_percent
@@ -210,7 +211,7 @@ class MassDeconvolution:
         
         max_rt_distance = self.chromatogram_settings.max_rt_distance
 
-        include_indexes = sp.find_minima_derivative(domain, signal,  max_height, max_prominence, max_signal, 
+        include_indexes = sp.find_minima_derivative(domain, signal,  max_height, max_prominence, max_signal, min_peak_datapoints,
                                                     signal_threshold=signal_threshold, correct_baseline=correct_baseline, plot_res=False)
         
         ''' deconvolution window is defined by the TIC peak region'''
@@ -263,8 +264,8 @@ class MassDeconvolution:
                 #print(grouped_rt)
                 
                 for group, apex_rt_list in grouped_rt.items():
-                    ''' each group is a peak feature defined by the hc algorithm
-                        summing the apex data only, for now
+                    ''' each group is a peak feature defined by the hierarchical clutter algorithm
+                        
                     '''
                     group_datadict = {}
                     group_datadict['ref_apex_rt'] = []
@@ -319,7 +320,7 @@ class MassDeconvolution:
                     
                     smoothed_tic = self.smooth_signal(peak_tic)
                     
-                    include_indexes = sp.find_minima_derivative(peak_rt, smoothed_tic,  max_height, max_prominence, max_signal, 
+                    include_indexes = sp.find_minima_derivative(peak_rt, smoothed_tic,  max_height, max_prominence, max_signal, min_peak_datapoints,
                                                                             signal_threshold=signal_threshold,  correct_baseline=False, plot_res=False)
                     
                     #include_indexes = sp.find_minima_derivative(domain, signal,  max_height, max_prominence, max_signal, signal_threshold=signal_threshold, correct_baseline=correct_baseline)
@@ -330,31 +331,35 @@ class MassDeconvolution:
                     #print("end include_indexes")
                     #print(include_indexes)
                     if include_indexes:
-
+                        
                         if len(include_indexes) > 1:
-                            
+                            ''' after sum there are two apexes
+                                check if it is inside the deconvolution window, otherwise ignores it
+                            '''
+                    
                             for new_apex_index in include_indexes:
                                 
                                 if start_rt <= peak_rt[new_apex_index[1]] <= final_rt:
                                     
                                     #pass
-                                    plt.plot(peak_rt[new_apex_index[1]], smoothed_tic[new_apex_index[1]], c='red', marker= '^', linewidth=0)  
+                                    plt.plot(peak_rt[new_apex_index[1]], smoothed_tic[new_apex_index[1]], c='black', marker= '^', linewidth=0)  
                                     plt.plot(peak_rt[new_apex_index[0]:new_apex_index[2]], smoothed_tic[new_apex_index[0]:new_apex_index[2]])
 
                                 else:
-                                    
-                                    print('new apex outside deconvolution window')    
+                                    pass
+                                    # print('new apex outside deconvolution window')    
                         
                         else:
-                            
+                            ''' after sum there is on apex
+                                save it
+                            ''' 
                             new_apex_index = include_indexes[0]
-
-                            plt.plot(peak_rt[new_apex_index[1]], smoothed_tic[new_apex_index[1]], c='red', marker= '^', linewidth=0)  
-                            plt.plot(peak_rt[new_apex_index[0]:new_apex_index[2]], smoothed_tic[new_apex_index[0]:new_apex_index[2]])
+                            
+                            if start_rt <= peak_rt[new_apex_index[1]] <= final_rt:
+                                plt.plot(peak_rt[new_apex_index[1]], smoothed_tic[new_apex_index[1]], c='black', marker= '^', linewidth=0)  
+                                plt.plot(peak_rt[new_apex_index[0]:new_apex_index[2]], smoothed_tic[new_apex_index[0]:new_apex_index[2]])
                     
-                    #rt_list.append(peak_rt[include_indexes])
-                    #tic_list.append(sum(smoothed_tic))
-
+                    
             elif len(filtered_features_rt) == 1:
                 ''' only one peak feature inside deconvolution window '''
                 
@@ -401,13 +406,10 @@ class MassDeconvolution:
                 '''TODO fake indexes, area calculation will fail 
                     workaround is to calculate the area here and store the result after the gcpeak obj is created
                 '''
-                gc_peak =  GCPeak(ms, (i-1,i, i+1))
+                gc_peak =  GCPeak(ms, (i-1, i, i+1))
                 i += 1
 
                 self.gcpeaks.append(gc_peak)
-
-                tic_list.append(tic)
-                rt_list.append(ref_apex_rt)
 
                 peak_rt = []
                 peak_tic = []
@@ -418,100 +420,49 @@ class MassDeconvolution:
                         peak_rt.append(rt)
                         peak_tic.append(sum(each_datadict["abundance"]))
                     
-                #peak_rt, peak_tic = zip(*sorted(zip(peak_rt, peak_tic)))
-
-                #plt.plot(peak_rt, self.smooth_signal(peak_tic))
+                peak_rt, peak_tic = zip(*sorted(zip(peak_rt, peak_tic)))
                 
+                smoothed_tic = self.smooth_signal(peak_tic)
+
+                include_indexes = sp.find_minima_derivative(peak_rt, smoothed_tic,  max_height, max_prominence, max_signal, min_peak_datapoints,
+                                                                            signal_threshold=signal_threshold,  correct_baseline=False, plot_res=False)
+                include_indexes = list(include_indexes)   
+                 
+                if include_indexes:
+                        
+                        if len(include_indexes) > 1:
+                            ''' after sum there are two apexes
+                                check if it is inside the deconvolution window, otherwise ignores it
+                            '''
+                    
+                            for new_apex_index in include_indexes:
+                                
+                                if start_rt <= peak_rt[new_apex_index[1]] <= final_rt:
+                                    
+                                    plt.plot(peak_rt[new_apex_index[1]], smoothed_tic[new_apex_index[1]], c='red', marker= '^', linewidth=0)  
+                                    plt.plot(peak_rt[new_apex_index[0]:new_apex_index[2]], smoothed_tic[new_apex_index[0]:new_apex_index[2]])
+
+                        else:
+                            ''' after sum there is on apex
+                                save it
+                            ''' 
+                            new_apex_index = include_indexes[0]
+                            
+                            if start_rt <= peak_rt[new_apex_index[1]] <= final_rt:
+                                
+                                plt.plot(peak_rt[new_apex_index[1]], smoothed_tic[new_apex_index[1]], c='blue', marker= '^', linewidth=0)  
+                                plt.plot(peak_rt[new_apex_index[0]:new_apex_index[2]], smoothed_tic[new_apex_index[0]:new_apex_index[2]])
+                
+                #plt.plot(peak_rt, self.smooth_signal(peak_tic))
 
             else:
                 
                 #print('no data after filter')
                 pass
-        '''        
-        for apex_rt, datadict in sorted(peaks_entity_data.items()):
-            
-            if apex_rt in datadict.keys():
-                
-                apex_data = datadict[apex_rt] 
-                
-                ref_apex_rt = datadict["ref_apex_rt"]
-
-                tic = sum(apex_data.get('abundance'))
-                
-                norm_smooth_tic = (tic/ maximum_tic)*100
-
-                if norm_smooth_tic > self.chromatogram_settings.peak_height_min_percent and len(apex_data['mz']) > 3:
-                    
-                    scan_index = apex_data['scan_number'][0]
-                    
-                    mz_list, abundance_list = zip(*sorted(zip(apex_data['mz'], apex_data['abundance'])))
-
-                    data_dict = {Labels.mz: mz_list, Labels.abundance: abundance_list}
-                    
-                    d_params = default_parameters(self._ms[scan_index]._filename)
-                    
-                    d_params["rt"] = apex_rt
-
-                    d_params["scan_number"] = scan_index
-
-                    d_params['label'] = Labels.gcms_centroid
-
-                    d_params["polarity"] = self._ms[scan_index].polarity
-
-                    d_params['analyzer'] = self._ms[scan_index].analyzer
-
-                    d_params['instrument_label'] = self._ms[scan_index].instrument_label
-                    
-                    d_params["filename_path"] = self._ms[scan_index].instrument_label
-
-                    ms = MassSpecCentroidLowRes(data_dict, d_params )
-                    
-                    #needs to define peak start and end, passing just minus and plus one from apex pos for now
-                    gc_peak =  GCPeak(ms, (i-1,i, i+1))
-                    i += 1
-                    self.gcpeaks.append(gc_peak)
-
-                    tic_list.append(tic)
-                    rt_list.append(ref_apex_rt)
-
-                    peak_rt = []
-                    peak_tic = []
-                    
-                    for rt, each_datadict in datadict.items():
-                        
-                        if rt != "ref_apex_rt":
-                            peak_rt.append(rt)
-                            peak_tic.append(sum(each_datadict["abundance"]))
-                    
-                    peak_rt, peak_tic = zip(*sorted(zip(peak_rt, peak_tic)))
-
-                    #ax = plt.gca()
-
-                    #markerline_a, stemlines_a, baseline_a  = ax.stem(data[0], data[1], linefmt='-',  markerfmt=" ", use_line_collection =True, label=rt)
-                    
-                    #plt.setp(markerline_a, 'color', c, 'linewidth', 2)
-                    #plt.setp(stemlines_a, 'color', c, 'linewidth', 2)
-                    #plt.setp(baseline_a, 'color', c, 'linewidth', 2)
-
-                    #ax.set_xlabel("$\t{m/z}$", fontsize=12)
-                    #ax.set_ylabel('Abundance', fontsize=12)
-                    #ax.tick_params(axis='both', which='major', labelsize=12)
-
-                    #ax.axes.spines['top'].set_visible(False)
-                    #ax.axes.spines['right'].set_visible(False)
-
-                    #ax.get_yaxis().set_visible(False)
-                    #ax.spines['left'].set_visible(False)
-                    plt.plot(peak_rt, peak_tic)
-                    #plt.legend()
-                    #plt.show()
-                    #plt.close()
-        #self.rt_clustering(rt_list, tic_list)
         
-        '''
 
         plt.plot(self.retention_time, self._processed_tic, c='black')
-        plt.plot(rt_list, tic_list, c='black', marker= '^', linewidth=0)
+        
         plt.show()
         #print(i)
 

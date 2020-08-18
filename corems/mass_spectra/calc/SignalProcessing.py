@@ -31,7 +31,8 @@ def find_nearest_scan(data, nodes):
 
     return nodes[scan_index]
 
-def find_minima_derivative(domain, signal, max_height, max_prominence, max_signal, signal_threshold=0.2, correct_baseline=True, plot_res=False):
+def find_minima_derivative(domain, signal, max_height, max_prominence, max_signal, min_peak_datapoints,
+                           signal_threshold=0.2, correct_baseline=True, plot_res=False):
     
     pos_dy_threshold = 1
     neg_dy_threshold = 1
@@ -80,10 +81,9 @@ def find_minima_derivative(domain, signal, max_height, max_prominence, max_signa
     dy = derivate(signal)
     apex_indexes = np.where((np.hstack((dy, 0)) < 0) & (np.hstack((0, dy)) > 0))[0]
     
-    left_index = []
-    right_index = []
+    # left_index = []
+    # right_index = []
     
-   
     
     for apex_index in apex_indexes:
         
@@ -104,26 +104,27 @@ def find_minima_derivative(domain, signal, max_height, max_prominence, max_signa
             
             if (corrected_peak_height/max_signal)*100 > signal_threshold:
                 
-                if plot_res:
-                    #plt.plot(domain[closest_left: closest_right+1], dydy[closest_left:closest_right+1], c='black')
-                    #plt.plot(domain[closest_left: closest_right+1], dy[closest_left:closest_right+1], c='red')
-                    
-                    plt.plot(domain[[apex_index, apex_index]], [signal[apex_index], pol(apex_index)], c='red')
-                    #plt.plot(domain[[closest_left,apex_index,closest_right]], signal[[closest_left,apex_index,closest_right]], c='blue', linewidth='0', marker="s")    
-                    #plt.plot(domain[[closest_left,apex_index,closest_right]], pol([closest_left, apex_index, closest_right]), c='red')
-                    plt.plot(domain[closest_left: closest_right+1], signal[closest_left:closest_right+1], c='black')
-                    plt.title(str((corrected_peak_height/max_signal)*100))
-                    
-                    plt.show()
+                if (closest_right - closest_left) >= min_peak_datapoints:
+                    if plot_res:
+                        #plt.plot(domain[closest_left: closest_right+1], dydy[closest_left:closest_right+1], c='black')
+                        #plt.plot(domain[closest_left: closest_right+1], dy[closest_left:closest_right+1], c='red')
+                        
+                        plt.plot(domain[[apex_index, apex_index]], [signal[apex_index], pol(apex_index)], c='red')
+                        #plt.plot(domain[[closest_left,apex_index,closest_right]], signal[[closest_left,apex_index,closest_right]], c='blue', linewidth='0', marker="s")    
+                        #plt.plot(domain[[closest_left,apex_index,closest_right]], pol([closest_left, apex_index, closest_right]), c='red')
+                        plt.plot(domain[closest_left: closest_right+1], signal[closest_left:closest_right+1], c='black')
+                        plt.title(str((corrected_peak_height/max_signal)*100))
+                        
+                        plt.show()
 
-                #if not closest_right <= apex_index:
-                #right_index.append(closest_right)
-                #print (closest_right, apex_index)
+                    #if not closest_right <= apex_index:
+                    #right_index.append(closest_right)
+                    #print (closest_right, apex_index)
 
-                #left_index.append(closest_left)
-                #print (closest_left, apex_index)
-                #plt.show()
-                yield (closest_left, apex_index, closest_right)
+                    #left_index.append(closest_left)
+                    #print (closest_left, apex_index)
+                    #plt.show()
+                    yield (closest_left, apex_index, closest_right)
 
     
     #plt.plot(domain, dydy, c='black')
