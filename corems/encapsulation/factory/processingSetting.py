@@ -130,7 +130,7 @@ class GasChromatographSetting:
 
     peak_max_prominence_percent:float = 1 #1-100 % used for baseline detection
 
-    min_peak_datapoints:float = 3
+    min_peak_datapoints:float = 5
    
     max_peak_width:float = 0.1
 
