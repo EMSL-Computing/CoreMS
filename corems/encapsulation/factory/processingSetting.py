@@ -140,9 +140,13 @@ class GasChromatographSetting:
     
     std_noise_threshold: int = 3
 
-    peak_height_min_percent:float = 0.2 #1-100 % used for peak detection
+    peak_height_min_percent:float = 0.1 #0-100 % used for peak detection
 
-    peak_min_prominence_percent:float = 0.2 #1-100 % used for peak detection
+    peak_min_prominence_percent:float = 0.1 # 0-100 % used for peak detection
+
+    eic_signal_threshold: float = 0.01 #0-100 % used for extracted ion chromatogram peak detection
+    
+    max_rt_distance = 0.025 # minutes, max distance allowance hierarchical clutter
 
     def __post_init__(self):
         
