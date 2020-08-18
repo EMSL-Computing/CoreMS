@@ -31,7 +31,7 @@ def find_nearest_scan(data, nodes):
 
     return nodes[scan_index]
 
-def find_minima_derivative(domain, signal, max_height, max_prominence, max_eic, correct_baseline=True):
+def find_minima_derivative(domain, signal, max_height, max_prominence, max_signal, signal_threshold=0.2, correct_baseline=True):
     
     pos_dy_threshold = 1
     neg_dy_threshold = 1
@@ -44,7 +44,7 @@ def find_minima_derivative(domain, signal, max_height, max_prominence, max_eic, 
 
     dy_signal = derivate(signal)
 
-    dydy = derivate(dy_signal)
+    #dydy = derivate(dy_signal)
     
     # where returns a tuple of indexes and data type and we only need  the indexes
     right_indexes = np.where((np.hstack( (0, dy_signal)) < neg_dy_threshold))[0]
@@ -100,7 +100,7 @@ def find_minima_derivative(domain, signal, max_height, max_prominence, max_eic, 
 
             corrected_peak_height = signal[apex_index] - pol[apex_index]
 
-            if (corrected_peak_height/max_eic)*100 > 0.01:
+            if (corrected_peak_height/max_signal)*100 > signal_threshold:
                 
                 #plt.plot(domain[closest_left: closest_right+1], dydy[closest_left:closest_right+1], c='black')
                 #plt.plot(domain[closest_left: closest_right+1], dy[closest_left:closest_right+1], c='red')
