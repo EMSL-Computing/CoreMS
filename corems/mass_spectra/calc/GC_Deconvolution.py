@@ -108,11 +108,15 @@ class MassDeconvolution:
 
     
     def find_peaks_entity(self, eic_dict):
+        
         ''' combine eic with mathing rt apexes''' 
         max_prominence = self.chromatogram_settings.peak_max_prominence_percent
         
         max_height = self.chromatogram_settings.peak_height_max_percent
 
+        signal_threshold = 0.2
+
+        correct_baseline = False
         peaks_entity_data = {}
 
         max_eic = 0
@@ -130,7 +134,8 @@ class MassDeconvolution:
 
                 smooth_eic = self.smooth_tic(eic)
 
-                include_indexes = sp.find_minima_derivative(rt_list, smooth_eic,  max_height, max_prominence, max_eic, signal_threshold=0.01,  correct_baseline=False)
+                include_indexes = sp.find_minima_derivative(rt_list, smooth_eic,  max_height, max_prominence, max_eic, 
+                                                            signal_threshold=signal_threshold,  correct_baseline=correct_baseline)
 
                 #include_indexes = list(self.centroid_detector(smooth_eic, rt_list))
                 
@@ -177,6 +182,18 @@ class MassDeconvolution:
         
         return peaks_entity_data
         
+    def smooth_signal(self, signal):
+            
+        implemented_smooth_method = self.chromatogram_settings.implemented_smooth_method
+        
+        pol_order = self.chromatogram_settings.savgol_pol_order
+
+        window_len = self.chromatogram_settings.smooth_window
+
+        window = self.chromatogram_settings.smooth_method
+
+        return sp.smooth_signal(signal, window_len, window, pol_order, implemented_smooth_method)
+
     def deconvolution(self, peaks_entity_data, maximum_tic):
         
         i = 0
@@ -229,7 +246,7 @@ class MassDeconvolution:
                     Peak Fit and Calculate Peak Gaussian Similarity?
                     Currentely using flat % tic relative abundance threshold and min 3 m/z per mass spectrum
                 '''
-                if norm_smooth_tic > signal_threshold and len(apex_data['mz']) > 3:
+                if norm_smooth_tic > signal_threshold and len(apex_data['mz']) > 1:
                        
                        #print(len(apex_data['mz']))
                        filtered_features_rt.append(each_apex_rt)
@@ -239,23 +256,28 @@ class MassDeconvolution:
                 ''' more than one peak feature identified inside a TIC peak  '''
                 # plt.plot(self.retention_time[indexes_tuple[0]:indexes_tuple[2]], signal[indexes_tuple[0]:indexes_tuple[2]], c='black')
 
-                print(filtered_features_rt)
+                #print(filtered_features_rt)
                 grouped_rt = self.hc(filtered_features_rt, filtered_features_abundance, max_rt_distance=max_rt_distance)
-                print(grouped_rt)
+                #print(grouped_rt)
                 
                 for group, apex_rt_list in grouped_rt.items():
                     ''' each group is a peak feature defined by the hc algorithm
                         summing the apex data only, for now
                     '''
                     group_datadict = {}
-                    
+                    group_datadict['ref_apex_rt'] = []
+
                     for each_group_apex_rt in apex_rt_list:
                         
                         datadict = peaks_entity_data.get(each_group_apex_rt)
 
                         for rt, each_datadict in datadict.items():
                             
-                            if rt != "ref_apex_rt":
+                            if rt == "ref_apex_rt":
+                                
+                                group_datadict['ref_apex_rt'].append(each_datadict)
+                            
+                            else:
                                 
                                 if rt in group_datadict.keys():
                                     
@@ -281,23 +303,45 @@ class MassDeconvolution:
                                 else:
                                     
                                     group_datadict[rt] = each_datadict
-                                    group_datadict['ref_apex_rt'] = datadict.get('ref_apex_rt')
                             
                     peak_rt = []
                     peak_tic = []
 
+                    #print(group_datadict.get('ref_apex_rt'))
                     for rt, each_datadict in group_datadict.items():
-                        #print(each_datadict)
                         if rt != "ref_apex_rt":
                             peak_rt.append(rt)
                             peak_tic.append(sum(each_datadict["abundance"]))
                     
                     peak_rt, peak_tic = zip(*sorted(zip(peak_rt, peak_tic)))
+                    
+                    smoothed_tic = self.smooth_signal(peak_tic)
+                    print("deconvolution")
+                    include_indexes = sp.find_minima_derivative(peak_rt, smoothed_tic,  max_height, max_prominence, max_signal, signal_threshold=0.2,  correct_baseline=False)
+                    
+                    #include_indexes = sp.find_minima_derivative(domain, signal,  max_height, max_prominence, max_signal, signal_threshold=signal_threshold, correct_baseline=correct_baseline)
 
-                    plt.plot(peak_rt, peak_tic)
+                    include_indexes = list(include_indexes)
+                    #print("start include_indexes")
+                    #print(list(include_indexes))
+                    #print("end include_indexes")
+                    
+                    if len(include_indexes) > 1:
+                        
+                        for new_apex_index in include_indexes:
+                            
+                            if start_rt <= peak_rt[new_apex_index[1]] <= final_rt:
+                                
+                                plt.plot(peak_rt[new_apex_index[1]], smoothed_tic[new_apex_index[1]], c='red', marker= '^', linewidth=0)        
+                                
+                                plt.plot(peak_rt[new_apex_index[0]:new_apex_index[2]], smoothed_tic[new_apex_index[0]:new_apex_index[2]])
 
-                # peak_rt.append(rt)
-                # peak_tic.append(sum(each_datadict["abundance"]))
+                            else:
+                                
+                                print('new apex outside deconvolution window')    
+                    
+                    #rt_list.append(peak_rt[include_indexes])
+                    #tic_list.append(sum(smoothed_tic))
 
             elif len(filtered_features_rt) == 1:
                 ''' only one peak feature inside deconvolution window '''
@@ -364,7 +408,7 @@ class MassDeconvolution:
                     
                 peak_rt, peak_tic = zip(*sorted(zip(peak_rt, peak_tic)))
 
-                plt.plot(peak_rt, peak_tic)
+                plt.plot(peak_rt, self.smooth_signal(peak_tic))
                 
 
             else:

@@ -83,6 +83,8 @@ def find_minima_derivative(domain, signal, max_height, max_prominence, max_signa
     left_index = []
     right_index = []
     
+   
+    
     for apex_index in apex_indexes:
         
         index_gt_apex = np.where(end_peak >= apex_index)[0]
@@ -98,8 +100,8 @@ def find_minima_derivative(domain, signal, max_height, max_prominence, max_signa
 
             pol = poly1d(polyfit(x, y, 1))
 
-            corrected_peak_height = signal[apex_index] - pol[apex_index]
-
+            corrected_peak_height = signal[apex_index] - pol(apex_index)
+            
             if (corrected_peak_height/max_signal)*100 > signal_threshold:
                 
                 #plt.plot(domain[closest_left: closest_right+1], dydy[closest_left:closest_right+1], c='black')
@@ -117,10 +119,10 @@ def find_minima_derivative(domain, signal, max_height, max_prominence, max_signa
 
                 #left_index.append(closest_left)
                 #print (closest_left, apex_index)
-
+                #plt.show()
                 yield (closest_left, apex_index, closest_right)
 
-    #plt.plot(domain, signal, c='black')
+    
     #plt.plot(domain, dydy, c='black')
     #plt.plot(domain, np.hstack((0, dy)), c='green')
     #plt.plot(domain, [0 for i in range(len(domain))], c='blue')
