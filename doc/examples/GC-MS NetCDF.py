@@ -8,7 +8,6 @@ from pathlib import Path
 from multiprocessing import Pool
 import cProfile
 
-from numpy import array, polyfit, poly1d
 from PySide2.QtWidgets import QFileDialog, QApplication
 from PySide2.QtCore import Qt
 
@@ -30,7 +29,6 @@ def sql_database(file_location):
     sqlLite_obj = ReadNistMSI(file_location).get_sqlLite_obj()
 
     min_max_rt = (18.037, 18.037)
-
     min_max_ri = (1637.30, 1737.30)
 
     sqlLite_obj.query_min_max_ri((1637.30, 1638.30))
@@ -48,7 +46,6 @@ def stand_alone():
     gcms = reader_gcms.get_gcms_obj()
 
     gcms.process_chromatogram()
-
 
 def get_gcms(file_path):
     
@@ -202,9 +199,10 @@ if __name__ == '__main__':
     #import matplotlib
     #matplotlib.use('TkAgg')
 
+    #%%
     cores = 8
     #out_put_file_group_name = 'Plasma_Ref_10'
     #calibrate_and_search(out_put_file_group_name, cores)
     #start_sql_from_file()
-    auto_process(cores)
-    #stand_alone()
+    #auto_process(cores)
+    stand_alone()

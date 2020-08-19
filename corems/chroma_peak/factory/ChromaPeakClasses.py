@@ -2,7 +2,7 @@
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
-from numpy import array
+from numpy import array, trapz    
 from corems.chroma_peak.calc.ChromaPeakCalc import GCPeakCalculation 
 from corems.molecular_id.factory.EI_SQL import LowResCompoundRef
 
@@ -54,6 +54,7 @@ class ChromaPeakBase():
     def area(self):
         return self._area
 
+
 class GCPeak(ChromaPeakBase, GCPeakCalculation):
 
     def __init__(self, mass_spectrum_obj, indexes):
@@ -98,4 +99,22 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
             return max(self, key = lambda c: c.similarity_score)
         else: 
             return None
-                   
+
+class GCPeakDeconvolved(GCPeak):
+    
+    def __init__(self, mass_spectra, apex_index, rt_list, tic_list ):
+        
+        self._ri = None   
+
+        self.rt_list = rt_list
+        
+        self.tic_list = tic_list
+
+        self.mass_spectra = list(mass_spectra)
+
+        super().__init__(self.mass_spectra[apex_index], (0, apex_index, len(self.mass_spectra)-1))
+    
+    def calc_area(self, yy, dx):
+        '''overwrite GCPeakCalculation.calc_area and ignores yy that is used as the overall TIC 
+        '''
+        self._area = trapz(self.tics, dx = dx)

@@ -6,29 +6,144 @@ from pandas import Series, DataFrame
 
 from scipy.signal import savgol_filter, boxcar
 from scipy import interpolate
-
+from matplotlib import pyplot as plt
+from numpy import abs
+from numpy import array, poly1d, polyfit
 
 def peak_detector(tic, max_tic):
 
-        dy = derivate(tic)
+    dy = derivate(tic)
 
-        indexes = np.where((np.hstack((dy, 0)) < 0) & (np.hstack((0, dy)) > 0))[0]
+    indexes = np.where((np.hstack((dy, 0)) < 0) & (np.hstack((0, dy)) > 0))[0]
+    
+    for index in indexes:
         
-        for index in indexes:
-            
-            start_index = find_minima(index, tic, right=False)
-            final_index = find_minima(index, tic)
+        start_index = find_minima(index, tic, right=False)
+        final_index = find_minima(index, tic)
 
-            yield (start_index, index, final_index)
+        yield (start_index, index, final_index)
+
+def find_nearest_scan(data, nodes):
+
+    array_data = array(nodes)
+
+    scan_index = (abs(array_data - data)).argmin()
+
+    return nodes[scan_index]
+
+def peak_picking_first_derivative(domain, signal, max_height, max_prominence, max_signal, min_peak_datapoints,
+                           signal_threshold=0.2, correct_baseline=True, plot_res=False):
+    
+    pos_dy_threshold = 1
+    neg_dy_threshold = 1
+
+    if correct_baseline:
+        signal = signal - baseline_detector(signal, domain, max_height, max_prominence)
+
+    domain = np.array(domain)
+    signal = np.array(signal)
+
+    dy_signal = derivate(signal)
+
+    #dydy = derivate(dy_signal)
+    
+    # where returns a tuple of indexes and data type and we only need  the indexes
+    right_indexes = np.where((np.hstack( (0, dy_signal)) < neg_dy_threshold))[0]
+    left_indexes = np.where((np.hstack( (0, dy_signal)) > pos_dy_threshold))[0]
+    
+    dy_left_signal = derivate(left_indexes)  
+    dy_left_signal_zero_filled = np.hstack( (dy_left_signal,0))
+    
+    dy_right_signal = derivate(right_indexes)
+    dy_right_signal_zero_filled = np.hstack( (dy_right_signal,0))
+    
+    start_peak = []
+
+    # needs a more efficient way of doing that 
+    for index in range(1,len(dy_left_signal_zero_filled)-1):
+        delta = dy_left_signal_zero_filled[index]
+        delta_previous = dy_left_signal_zero_filled[index - 1]
+        delta_next = dy_left_signal_zero_filled[index + 1]
+        if delta == 1 and delta_previous != 1:
+            start_peak.append(left_indexes[index]-1)
+    start_peak = array(start_peak)
+    
+    end_peak = []
+    # needs a more efficient way of doing that 
+    for index in range(1,len(dy_right_signal_zero_filled)-1):
+        delta = dy_right_signal_zero_filled[index]
+        delta_previous = dy_right_signal_zero_filled[index - 1]
+        delta_next = dy_right_signal_zero_filled[index + 1]
+        if delta == 1 and delta_next != 1:
+            end_peak.append(right_indexes[index]+1)
+    end_peak = array(end_peak)
+
+    dy = derivate(signal)
+    apex_indexes = np.where((np.hstack((dy, 0)) < 0) & (np.hstack((0, dy)) > 0))[0]
+    
+    # left_index = []
+    # right_index = []
+    
+    
+    for apex_index in apex_indexes:
+        
+        index_gt_apex = np.where(end_peak >= apex_index)[0]
+        index_lt_apex = np.where(start_peak <= apex_index)[0]
+
+        if not index_gt_apex.size == 0 and not index_lt_apex.size == 0:
+
+            closest_right = find_nearest_scan(apex_index, end_peak[index_gt_apex])
+            closest_left = find_nearest_scan(apex_index,  start_peak[index_lt_apex])
+            
+            x = [closest_left, closest_right]
+            y = [signal[closest_left], signal[closest_right]]
+
+            pol = poly1d(polyfit(x, y, 1))
+
+            corrected_peak_height = signal[apex_index] - pol(apex_index)
+            
+            if (corrected_peak_height/max_signal)*100 > signal_threshold:
+                
+                if (closest_right - closest_left) >= min_peak_datapoints:
+                    if plot_res:
+                        #plt.plot(domain[closest_left: closest_right+1], dydy[closest_left:closest_right+1], c='black')
+                        #plt.plot(domain[closest_left: closest_right+1], dy[closest_left:closest_right+1], c='red')
+                        
+                        plt.plot(domain[[apex_index, apex_index]], [signal[apex_index], pol(apex_index)], c='red')
+                        #plt.plot(domain[[closest_left,apex_index,closest_right]], signal[[closest_left,apex_index,closest_right]], c='blue', linewidth='0', marker="s")    
+                        #plt.plot(domain[[closest_left,apex_index,closest_right]], pol([closest_left, apex_index, closest_right]), c='red')
+                        plt.plot(domain[closest_left: closest_right+1], signal[closest_left:closest_right+1], c='black')
+                        plt.title(str((corrected_peak_height/max_signal)*100))
+                        
+                        plt.show()
+
+                    #if not closest_right <= apex_index:
+                    #right_index.append(closest_right)
+                    #print (closest_right, apex_index)
+
+                    #left_index.append(closest_left)
+                    #print (closest_left, apex_index)
+                    #plt.show()
+                    yield (closest_left, apex_index, closest_right)
+
+    
+    #plt.plot(domain, dydy, c='black')
+    #plt.plot(domain, np.hstack((0, dy)), c='green')
+    #plt.plot(domain, [0 for i in range(len(domain))], c='blue')
+    #plt.plot(domain[right_index], signal[right_index], c='blue', linewidth='0', marker="s")
+    #plt.plot(domain[left_index], signal[left_index], c='yellow', linewidth='0', marker="^")
+    #plt.plot(domain[apex_indexes], signal[apex_indexes], c='red', linewidth='0', marker="^")
+    #plt.plot(domain[right_indexes], signal[right_indexes], c='green', linewidth='0', marker="^")
+    #plt.show()
 
 def find_minima(index, tic, right=True):
             
     j = index
-    apex_abundance = tic[index]
+    #apex_abundance = tic[index]
     tic_len = len(tic)
 
-    if right: minima = tic[j] >= tic[j+1] 
-    else: minima = tic[j] >= tic[j-1] 
+    if right: minima = tic[j] >= tic[j+1]
+    else: minima = tic[j] >= tic[j-1]
 
     while minima:
         
@@ -48,6 +163,9 @@ def find_minima(index, tic, right=True):
     else: return j
 
 def derivate(data_array):
+        
+        data_array = np.array(data_array)
+
         dy = data_array[1:] - data_array[:-1]
     
         '''replaces nan for infinity'''
@@ -62,17 +180,17 @@ def derivate(data_array):
 
 def minima_detector(tic, max_tic, peak_height_max_percent, peak_max_prominence_percent):
 
-        peak_height_diff = lambda hi, li : ((tic[hi] - tic[li]) / max_tic )*100
+    peak_height_diff = lambda hi, li : ((tic[hi] - tic[li]) / max_tic )*100
 
-        for start_index, index, final_index in peak_detector(tic, max_tic):
+    for start_index, index, final_index in peak_detector(tic, max_tic):
 
-            #abundance max threshold    
-            if (tic[index]/max_tic) * 100 < peak_height_max_percent:
+        #abundance max threshold    
+        if (tic[index]/max_tic) * 100 < peak_height_max_percent:
 
-                    #calculates prominence and filter   
-                    if  peak_height_diff(index,start_index) and peak_height_diff(index,final_index) < peak_max_prominence_percent :   
-                        
-                            yield from (start_index, final_index)
+                #calculates prominence and filter   
+                if  peak_height_diff(index,start_index) and peak_height_diff(index,final_index) < peak_max_prominence_percent :   
+                    
+                        yield from (start_index, final_index)
 
 def baseline_detector( tic, rt,  peak_height_max_percent, peak_max_prominence_percent, do_interpolation = True):
         
@@ -123,7 +241,7 @@ def peak_detector_generator(tic, stds, method, rt, max_height, min_height, max_p
         
     max_tic = max(tic)
 
-    if method=='manual_relative_abundance':
+    if method == 'manual_relative_abundance':
         
         tic = tic - baseline_detector(tic, rt, max_height, max_prominence)
         

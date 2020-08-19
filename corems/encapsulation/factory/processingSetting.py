@@ -36,6 +36,7 @@ class DataInputSetting:
                         "Res.":Labels.rp, 
                         'I':Labels.abundance,
                         "Abundance":"Abundance",
+                        "Abundance":"Peak Height",
                         "Signal/Noise":"S/N",
                         "S/N":"S/N"}
 
@@ -116,7 +117,7 @@ class MassSpecPeakSetting:
 @dataclasses.dataclass
 class GasChromatographSetting:
     
-    use_deconvolution: bool = True
+    use_deconvolution: bool = False
     
     implemented_smooth_method: tuple = ('savgol', 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar')
     
@@ -130,7 +131,7 @@ class GasChromatographSetting:
 
     peak_max_prominence_percent:float = 1 #1-100 % used for baseline detection
 
-    min_peak_datapoints:float = 3
+    min_peak_datapoints:float = 5
    
     max_peak_width:float = 0.1
 
@@ -140,9 +141,13 @@ class GasChromatographSetting:
     
     std_noise_threshold: int = 3
 
-    peak_height_min_percent:float = 0.2 #1-100 % used for peak detection
+    peak_height_min_percent:float = 0.1 #0-100 % used for peak detection
 
-    peak_min_prominence_percent:float = 0.2 #1-100 % used for peak detection
+    peak_min_prominence_percent:float = 0.1 # 0-100 % used for peak detection
+
+    eic_signal_threshold: float = 0.01 #0-100 % used for extracted ion chromatogram peak detection
+    
+    max_rt_distance = 0.025 # minutes, max distance allowance hierarchical clutter
 
     def __post_init__(self):
         
