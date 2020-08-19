@@ -36,6 +36,7 @@ class DataInputSetting:
                         "Res.":Labels.rp, 
                         'I':Labels.abundance,
                         "Abundance":"Abundance",
+                        "Abundance":"Peak Height",
                         "Signal/Noise":"S/N",
                         "S/N":"S/N"}
 
