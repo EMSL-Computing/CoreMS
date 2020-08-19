@@ -10,7 +10,7 @@ __date__ = 'Jun 12, 2019'
 class Labels: #pragma: no cover
     
     mz = "m/z"
-    abundance = "Abundance"
+    abundance = "Peak Height"
     rp = "Resolving Power"
     s2n = "S/N"
 
