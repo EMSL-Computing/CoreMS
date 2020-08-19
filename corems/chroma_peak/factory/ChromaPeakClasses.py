@@ -100,7 +100,7 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
         else: 
             return None
 
-class GCPeakDeconvolved(ChromaPeakBase, GCPeakCalculation):
+class GCPeakDeconvolved(GCPeak):
     
     def __init__(self, mass_spectra, apex_index, rt_list, tic_list ):
         
@@ -112,7 +112,7 @@ class GCPeakDeconvolved(ChromaPeakBase, GCPeakCalculation):
 
         self.mass_spectra = list(mass_spectra)
 
-        super().__init__(self.mass_spectra[apex_index], 0, apex_index, len(self.mass_spectra)-1)
+        super().__init__(self.mass_spectra[apex_index], (0, apex_index, len(self.mass_spectra)-1))
     
     def calc_area(self, yy, dx):
         '''overwrite GCPeakCalculation.calc_area and ignores yy that is used as the overall TIC 
