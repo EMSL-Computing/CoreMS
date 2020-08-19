@@ -141,7 +141,7 @@ class MassDeconvolution:
                 
                 for initial_scan, apex_scan, final_scan in include_indexes:
 
-                        rt_corrected_therm =  0 #self.quadratic_interpolation(rt_list, smooth_eic, apex_scan)
+                        rt_corrected_therm =  self.quadratic_interpolation(rt_list, smooth_eic, apex_scan)
                         
                         ref_apex_rt = round(rt_list[apex_scan] + rt_corrected_therm,4)
                         
@@ -427,7 +427,7 @@ class MassDeconvolution:
                 include_indexes = sp.find_minima_derivative(peak_rt, smoothed_tic,  max_height, max_prominence, max_signal, min_peak_datapoints,
                                                                             signal_threshold=signal_threshold,  correct_baseline=False, plot_res=False)
                 include_indexes = list(include_indexes)   
-                 
+
                 if include_indexes:
                         
                         if len(include_indexes) > 1:
@@ -439,7 +439,7 @@ class MassDeconvolution:
                                 
                                 if start_rt <= peak_rt[new_apex_index[1]] <= final_rt:
                                     
-                                    plt.plot(peak_rt[new_apex_index[1]], smoothed_tic[new_apex_index[1]], c='red', marker= '^', linewidth=0)  
+                                    plt.plot(peak_rt[new_apex_index[1]], smoothed_tic[new_apex_index[1]], c='black', marker= '^', linewidth=0)  
                                     plt.plot(peak_rt[new_apex_index[0]:new_apex_index[2]], smoothed_tic[new_apex_index[0]:new_apex_index[2]])
 
                         else:
@@ -450,7 +450,7 @@ class MassDeconvolution:
                             
                             if start_rt <= peak_rt[new_apex_index[1]] <= final_rt:
                                 
-                                plt.plot(peak_rt[new_apex_index[1]], smoothed_tic[new_apex_index[1]], c='blue', marker= '^', linewidth=0)  
+                                plt.plot(peak_rt[new_apex_index[1]], smoothed_tic[new_apex_index[1]], c='black', marker= '^', linewidth=0)  
                                 plt.plot(peak_rt[new_apex_index[0]:new_apex_index[2]], smoothed_tic[new_apex_index[0]:new_apex_index[2]])
                 
                 #plt.plot(peak_rt, self.smooth_signal(peak_tic))
