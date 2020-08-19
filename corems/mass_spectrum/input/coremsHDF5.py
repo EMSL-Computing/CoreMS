@@ -162,8 +162,8 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         d_params['Aterm'] =  self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'Aterm')
         d_params['Bterm'] =  self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'Bterm')
         d_params['Cterm'] = self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'Cterm')
-        d_params['baselise_noise'] = self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'baselise_noise')
         d_params['baselise_noise_std'] = self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'baselise_noise_std')
+        d_params['baselise_noise_std_std'] = self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'baselise_noise_std_std')
         
         d_params['analyzer'] = self.get_high_level_attr_data('analyzer')
         d_params['instrument_label'] = self.get_high_level_attr_data('instrument_label')
