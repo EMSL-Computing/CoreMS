@@ -31,7 +31,7 @@ def find_nearest_scan(data, nodes):
 
     return nodes[scan_index]
 
-def find_minima_derivative(domain, signal, max_height, max_prominence, max_signal, min_peak_datapoints,
+def peak_picking_first_derivative(domain, signal, max_height, max_prominence, max_signal, min_peak_datapoints,
                            signal_threshold=0.2, correct_baseline=True, plot_res=False):
     
     pos_dy_threshold = 1

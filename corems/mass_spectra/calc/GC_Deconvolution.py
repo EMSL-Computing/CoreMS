@@ -11,29 +11,29 @@ from corems.mass_spectra.calc import SignalProcessing as sp
 
 class MassDeconvolution:
 
-    def run_deconvolution(self):
+    def run_deconvolution(self, plot_res=False):
 
         eic_dict = self.ion_extracted_chroma(self._ms)
         
         peaks_entity_data = self.find_peaks_entity(eic_dict)
         
-        # select model peaks, create Mass Spectrum objs, GCPeak objs, store results in GC_Class gcpeaks obj 
-        self.deconvolution(peaks_entity_data)
+        ''' select model peaks, create Mass Spectrum objs, GCPeak objs, store results in GC_Class gcpeaks obj'''
+        self.deconvolution(peaks_entity_data, plot_res)
 
     def centroid_detector(self, tic, rt):
-        
-        # need to change the parameter to accommodate EIC peak picking 
-        # needs a better algorithm to detect start and end of a peak
-        
+        ''' this function has been replaced with sp.peak_picking_first_derivative
+            and it not used
+        '''
+
         noise_std = self.chromatogram_settings.std_noise_threshold
 
         method = self.chromatogram_settings.noise_threshold_method
         
-        # peak picking
+        ''' peak picking'''
         min_height = self.chromatogram_settings.peak_height_min_percent
         min_datapoints = self.chromatogram_settings.min_peak_datapoints
         
-        # baseline detection
+        ''' baseline detection'''
         max_prominence = self.chromatogram_settings.peak_max_prominence_percent
         max_height = self.chromatogram_settings.peak_height_max_percent
         
@@ -134,11 +134,9 @@ class MassDeconvolution:
 
                 smooth_eic = self.smooth_tic(eic)
 
-                include_indexes = sp.find_minima_derivative(rt_list, smooth_eic,  max_height, max_prominence, max_eic, min_peak_datapoints,
+                include_indexes = sp.peak_picking_first_derivative(rt_list, smooth_eic,  max_height, max_prominence, max_eic, min_peak_datapoints,
                                                             signal_threshold=signal_threshold,  correct_baseline=correct_baseline)
 
-                #include_indexes = list(self.centroid_detector(smooth_eic, rt_list))
-                
                 for initial_scan, apex_scan, final_scan in include_indexes:
 
                         rt_corrected_therm =  self.quadratic_interpolation(rt_list, smooth_eic, apex_scan)
@@ -224,7 +222,7 @@ class MassDeconvolution:
 
         return sp.smooth_signal(signal, window_len, window, pol_order, implemented_smooth_method)
 
-    def add_gcpeak(self, new_apex_index, start_rt, final_rt, peak_rt, smoothed_tic, datadict):
+    def add_gcpeak(self, new_apex_index, start_rt, final_rt, peak_rt, smoothed_tic, datadict, plot_res):
         
         if start_rt <= peak_rt[new_apex_index[1]] <= final_rt:
                                     
@@ -239,12 +237,11 @@ class MassDeconvolution:
             gc_peak =  GCPeakDeconvolved(mass_spectra, apex_i, rt_list, tic_list)
             self.gcpeaks.append(gc_peak)
 
-            plt.plot(gc_peak.rt_list, gc_peak.tic_list)
-            plt.plot(gc_peak.rt, gc_peak.tic, c='black', marker= '^', linewidth=0)
+            if plot_res:
+                plt.plot(gc_peak.rt_list, gc_peak.tic_list)
+                plt.plot(gc_peak.rt, gc_peak.tic, c='black', marker= '^', linewidth=0)
 
-    def deconvolution(self, peaks_entity_data):
-        
-        i = 0
+    def deconvolution(self, peaks_entity_data, plot_res):
         
         domain = self.retention_time
         signal = self._processed_tic
@@ -257,9 +254,7 @@ class MassDeconvolution:
         max_signal = max(signal)
         correct_baseline = False
         
-        
-
-        include_indexes = sp.find_minima_derivative(domain, signal,  max_height, max_prominence, max_signal, min_peak_datapoints,
+        include_indexes = sp.peak_picking_first_derivative(domain, signal,  max_height, max_prominence, max_signal, min_peak_datapoints,
                                                     signal_threshold=signal_threshold, correct_baseline=correct_baseline, plot_res=False)
         
         ''' deconvolution window is defined by the TIC peak region'''
@@ -365,7 +360,7 @@ class MassDeconvolution:
                     
                     smoothed_tic = self.smooth_signal(peak_tic)
                     
-                    include_indexes = sp.find_minima_derivative(peak_rt, smoothed_tic,  max_height, max_prominence, max_signal, min_peak_datapoints,
+                    include_indexes = sp.peak_picking_first_derivative(peak_rt, smoothed_tic,  max_height, max_prominence, max_signal, min_peak_datapoints,
                                                                             signal_threshold=signal_threshold,  correct_baseline=False, plot_res=False)
                     
                     include_indexes = list(include_indexes)
@@ -379,7 +374,7 @@ class MassDeconvolution:
                     
                             for new_apex_index in include_indexes:
                                 
-                                self.add_gcpeak(new_apex_index, start_rt, final_rt, peak_rt, smoothed_tic, group_datadict)
+                                self.add_gcpeak(new_apex_index, start_rt, final_rt, peak_rt, smoothed_tic, group_datadict, plot_res)
                                 
                         else:
                             ''' after sum there is on apex
@@ -387,7 +382,7 @@ class MassDeconvolution:
                             ''' 
                             new_apex_index = include_indexes[0]
                             
-                            self.add_gcpeak(new_apex_index, start_rt, final_rt, peak_rt, smoothed_tic, group_datadict)
+                            self.add_gcpeak(new_apex_index, start_rt, final_rt, peak_rt, smoothed_tic, group_datadict, plot_res)
 
                     
             elif len(filtered_features_rt) == 1:
@@ -411,7 +406,7 @@ class MassDeconvolution:
                 
                 smoothed_tic = self.smooth_signal(peak_tic)
 
-                include_indexes = sp.find_minima_derivative(peak_rt, smoothed_tic,  max_height, max_prominence, max_signal, min_peak_datapoints,
+                include_indexes = sp.peak_picking_first_derivative(peak_rt, smoothed_tic,  max_height, max_prominence, max_signal, min_peak_datapoints,
                                                                             signal_threshold=signal_threshold,  correct_baseline=False, plot_res=False)
                 include_indexes = list(include_indexes)   
 
@@ -423,7 +418,7 @@ class MassDeconvolution:
                             
                             for new_apex_index in include_indexes:
                                 
-                                self.add_gcpeak(new_apex_index, start_rt, final_rt, peak_rt, smoothed_tic, datadict)
+                                self.add_gcpeak(new_apex_index, start_rt, final_rt, peak_rt, smoothed_tic, datadict, plot_res)
                                
                         else:
                             ''' after sum there is one apex
@@ -432,20 +427,16 @@ class MassDeconvolution:
                         
                             new_apex_index = include_indexes[0]
 
-                            self.add_gcpeak(new_apex_index, start_rt, final_rt, peak_rt, smoothed_tic, datadict)
-                            
-
-                #plt.plot(peak_rt, self.smooth_signal(peak_tic))
-
+                            self.add_gcpeak(new_apex_index, start_rt, final_rt, peak_rt, smoothed_tic, datadict, plot_res)
+                
             else:
                 
-                #print('no data after filter')
+                # print('no data after filter')
                 pass
-
-        plt.plot(self.retention_time, self._processed_tic, c='black')
+        if plot_res:            
+            plt.plot(self.retention_time, self._processed_tic, c='black')
+            plt.show()
         
-        plt.show()
-        #print(i)
 
     
     def quadratic_interpolation(self, rt_list, tic_list, apex_index):

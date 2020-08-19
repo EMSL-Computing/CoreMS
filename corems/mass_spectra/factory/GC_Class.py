@@ -88,7 +88,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
         if self.chromatogram_settings.use_deconvolution:
              
-             self.run_deconvolution()
+             self.run_deconvolution(plot_res=True)
 
         else:
             
