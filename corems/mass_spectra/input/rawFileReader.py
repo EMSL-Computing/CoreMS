@@ -145,9 +145,9 @@ class ImportLCMSThermoMSFileReader(Thread):
             array_noise_std = (numpy.array(noise) - numpy.array(baselines)) / 3
             l_signal_to_noise = numpy.array(magnitude) / array_noise_std
 
-            d_parameter["baselise_noise"] = numpy.average(array_noise_std)
-
             d_parameter["baselise_noise_std"] = numpy.average(array_noise_std)
+
+            d_parameter["baselise_noise_std_std"] = numpy.average(array_noise_std)
 
             data_dict = {
                 Labels.mz: mz,
