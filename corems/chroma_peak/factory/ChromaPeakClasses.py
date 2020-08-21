@@ -114,7 +114,4 @@ class GCPeakDeconvolved(GCPeak):
 
         super().__init__(self.mass_spectra[apex_index], (0, apex_index, len(self.mass_spectra)-1))
     
-    def calc_area(self, yy, dx):
-        '''overwrite GCPeakCalculation.calc_area and ignores yy that is used as the overall TIC 
-        '''
-        self._area = trapz(self.tics, dx = dx)
+    

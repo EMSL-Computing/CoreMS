@@ -147,7 +147,7 @@ def calibrate_and_search(out_put_file_name, jobs):
             pool.join()
             for gcms in gcmss:
                 
-                #gcms.to_csv(out_put_file_name, highest_score=False)
+                gcms.to_csv(out_put_file_name, highest_score=False)
                 #gcms.to_excel(out_put_file_name, highest_score=False)
                 #gcms.to_pandas(out_put_file_name)
                 gcms.to_hdf(highest_score=False)
@@ -175,6 +175,7 @@ def worker(args):
     cProfile.runctx('run(args)', globals(), locals(), 'gc-ms.prof')
 
 def auto_process(jobs):
+    
     import os
     rootdir = get_dirname()
     
@@ -195,13 +196,12 @@ def auto_process(jobs):
             print("Could not find a calibration experimental file for {}".format(out_put_file_name))
         
 
-if __name__ == '__main__':                           
+if __name__ == '__main__':
     #import matplotlib
     #matplotlib.use('TkAgg')
-
     #%%
-    cores = 8
-    #out_put_file_group_name = 'Plasma_Ref_10'
+    #cores = 8
+    #out_put_file_group_name = 'Deconvolution Test'
     #calibrate_and_search(out_put_file_group_name, cores)
     #start_sql_from_file()
     #auto_process(cores)
