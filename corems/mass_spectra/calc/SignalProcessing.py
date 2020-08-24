@@ -67,7 +67,8 @@ def peak_picking_first_derivative(domain, signal, max_height, max_prominence, ma
     
     dy = derivate(signal)
     apex_indexes = np.where((np.hstack((dy, 0)) < 0) & (np.hstack((0, dy)) > 0))[0]
-    
+    min_indexes = np.where((np.hstack((dy, 0)) > 0) & (np.hstack((0, dy)) < 0))[0]
+
     # left_index = []
     # right_index = []
     
@@ -75,13 +76,17 @@ def peak_picking_first_derivative(domain, signal, max_height, max_prominence, ma
     
     for apex_index in apex_indexes:
         
-        index_gt_apex = np.where(start_peak >= apex_index)[0]
-        index_lt_apex = np.where(start_peak <= apex_index)[0]
+        #index_gt_apex = np.where(end_peak >= apex_index)[0]
+        #index_lt_apex = np.where(start_peak <= apex_index)[0]
+        index_gt_apex = np.where(min_indexes >= apex_index)[0]
+        index_lt_apex = np.where(min_indexes <= apex_index)[0]
 
         if not index_gt_apex.size == 0 and not index_lt_apex.size == 0:
 
-            closest_right = find_nearest_scan(apex_index, start_peak[index_gt_apex])
-            closest_left = find_nearest_scan(apex_index,  start_peak[index_lt_apex])
+            #closest_right = find_nearest_scan(apex_index, end_peak[index_gt_apex])
+            #closest_left = find_nearest_scan(apex_index,  start_peak[index_lt_apex])
+            closest_right = find_nearest_scan(apex_index, min_indexes[index_gt_apex])
+            closest_left = find_nearest_scan(apex_index, min_indexes[index_lt_apex])
             
             x = [closest_left, closest_right]
             y = [signal[closest_left], signal[closest_right]]
