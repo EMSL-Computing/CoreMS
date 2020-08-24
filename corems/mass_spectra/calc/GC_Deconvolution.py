@@ -1,6 +1,6 @@
 
 
-#from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt
 import numpy as np
 
 from corems.encapsulation.constant import Labels
@@ -233,20 +233,27 @@ class MassDeconvolution:
             apex_rt = peak_rt[new_apex_index[1]]
             apex_i = rt_list.index(apex_rt)
             
-            mass_spectra = (self.mass_spec_factory(rt, datadict.get(rt)) for rt in rt_list)
-            
-            gc_peak =  GCPeakDeconvolved(mass_spectra, apex_i, rt_list, tic_list)
-            
-            gc_peak.calc_area(tic_list, 1)
-            
-            self.gcpeaks.append(gc_peak)
+            '''workaround for peak picking missing some local minimas'''
+            if not apex_rt in self.processed_appexes:
+                
+                self.processed_appexes.append(apex_rt)
 
-            #if plot_res:
-            #    plt.plot(gc_peak.rt_list, gc_peak.tic_list)
-            #    plt.plot(gc_peak.rt, gc_peak.tic, c='black', marker= '^', linewidth=0)
+                mass_spectra = (self.mass_spec_factory(rt, datadict.get(rt)) for rt in rt_list)
+                
+                gc_peak =  GCPeakDeconvolved(mass_spectra, apex_i, rt_list, tic_list)
+                
+                gc_peak.calc_area(tic_list, 1)
+                
+                self.gcpeaks.append(gc_peak)
+
+                if plot_res:
+                    
+                    plt.plot(gc_peak.rt_list, gc_peak.tic_list)
+                    plt.plot(gc_peak.rt, gc_peak.tic, c='black', marker= '^', linewidth=0)
 
     def deconvolution(self, peaks_entity_data, plot_res):
         
+        plot_res = True 
         domain = self.retention_time
         signal = self._processed_tic
         max_height = self.chromatogram_settings.peak_height_max_percent
@@ -259,23 +266,25 @@ class MassDeconvolution:
         correct_baseline = False
         
         include_indexes = sp.peak_picking_first_derivative(domain, signal,  max_height, max_prominence, max_signal, min_peak_datapoints,
-                                                    signal_threshold=signal_threshold, correct_baseline=correct_baseline, plot_res=True)
+                                                    signal_threshold=signal_threshold, correct_baseline=correct_baseline, plot_res=False)
         
         ''' deconvolution window is defined by the TIC peak region'''
         all_apexes_rt = np.array(list(peaks_entity_data.keys()))
 
+        '''workaround for peak picking missing some local minimas'''
+        self.processed_appexes = []
+        
         for indexes_tuple in include_indexes:
-            
+
             start_rt = self.retention_time[indexes_tuple[0]]
-            apex_rt = self.retention_time[indexes_tuple[1]]
+            #apex_rt = self.retention_time[indexes_tuple[1]]
             final_rt = self.retention_time[indexes_tuple[2]]
 
-            
             ''' find all features within TIC peak window'''
             peak_features_indexes = np.where((all_apexes_rt > start_rt) & (all_apexes_rt < final_rt))[0]
             peak_features_rts = all_apexes_rt[peak_features_indexes]
             
-            print(start_rt, apex_rt, final_rt )
+            #print(start_rt, apex_rt, final_rt )
             
             filtered_features_rt = []
             filtered_features_abundance = []
@@ -439,9 +448,9 @@ class MassDeconvolution:
                 
                 # print('no data after filter')
                 pass
-        #if plot_res:            
-        #    plt.plot(self.retention_time, self._processed_tic, c='black')
-        #    plt.show()
+        if plot_res:            
+            plt.plot(self.retention_time, self._processed_tic, c='black')
+            plt.show()
         
 
     
