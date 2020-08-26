@@ -71,21 +71,23 @@ def peak_picking_first_derivative(domain, signal, max_height, max_prominence, ma
 
     start_peak = []
     end_peak = []
-
-
+    
     # take apex_index and move left to find start
     for index in apex_indexes:
-        index_start = index
-        index_end = index
-        while dy[index_start-1] > 0 and index_start != 0:
+        index_start = index - 1
+        index_end = index + 1
+        while dy[index_start-1] > (max(dy)*0.0005) and index_start != 0:
+        #while dy[index_start-1] > 0 and index_start != 0:
             index_start = index_start - 1
         start_peak.append(index_start)
-        while dy[index_end] < 0 and index_end != (len(dy) - 1):
+        while dy[index_end] < (min(dy)*0.0005) and index_end != (len(dy) - 1):
+        #while dy[index_end] < 0 and index_end != (len(dy) - 1):
             index_end = index_end + 1
         end_peak.append(index_end)
 
     start_peak = array(start_peak)
     end_peak = array(end_peak)
+
 
 
     # left_index = []
