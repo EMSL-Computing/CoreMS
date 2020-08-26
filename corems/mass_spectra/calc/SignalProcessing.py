@@ -34,9 +34,6 @@ def find_nearest_scan(data, nodes):
 def peak_picking_first_derivative(domain, signal, max_height, max_prominence, max_signal, min_peak_datapoints,
                            signal_threshold=0.2, correct_baseline=True, plot_res=False):
     
-    pos_dy_threshold = 0
-    neg_dy_threshold = 0
-
     if correct_baseline:
         signal = signal - baseline_detector(signal, domain, max_height, max_prominence)
 
@@ -72,6 +69,9 @@ def peak_picking_first_derivative(domain, signal, max_height, max_prominence, ma
     start_peak = []
     end_peak = []
     
+    pos_dy_threshold = max(dy)*0.0005
+    neg_dy_threshold = min(dy)*0.0005
+    len_dy = len(dy)
     # take apex_index and move left to find start
     for index in apex_indexes:
         # catch for starting position
@@ -87,12 +87,12 @@ def peak_picking_first_derivative(domain, signal, max_height, max_prominence, ma
             index_end = index + 1
 
         #while dy[index_start-1] > 0 and index_start != 0:
-        while dy[index_start-1] > (max(dy)*0.0005) and index_start > 0:
+        while dy[index_start-1] > pos_dy_threshold and index_start > 0:
             index_start = index_start - 1
         start_peak.append(index_start)
         
         #while dy[index_end] < 0 and index_end != (len(dy) - 1):
-        while dy[index_end] < (min(dy)*0.0005) and index_end != (len(dy) - 1):
+        while dy[index_end] < neg_dy_threshold and index_end != (len_dy - 1):
             index_end = index_end + 1
         end_peak.append(index_end)
 
