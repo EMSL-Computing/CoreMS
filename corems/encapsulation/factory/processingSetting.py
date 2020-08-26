@@ -95,11 +95,12 @@ class MassSpectrumSetting:
 class MassSpecPeakSetting:
     
     kendrick_base: Dict = dataclasses.field(default_factory=dict)
-    #kendrick_base : Dict =  {'C': 1, 'H':2}
     
-    peak_min_prominence_percent :float = 1 #1-100 % used for peak detection
+    # kendrick_base : Dict =  {'C': 1, 'H':2}
+    
+    peak_min_prominence_percent :float = 1 # 1-100 % used for peak detection
 
-    peak_max_prominence_percent :float = 0.1 #1-100 % used for baseline detection
+    peak_max_prominence_percent :float = 0.1 # 1-100 % used for baseline detection
 
     def __post_init__(self):
         
@@ -117,7 +118,7 @@ class MassSpecPeakSetting:
 @dataclasses.dataclass
 class GasChromatographSetting:
     
-    use_deconvolution: bool = False
+    use_deconvolution: bool = True
     
     implemented_smooth_method: tuple = ('savgol', 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar')
     
@@ -179,7 +180,7 @@ class CompoundSearchSettings:
     ri_calibration_compound_names: List = dataclasses.field(default_factory=list)
 
     # calculates and export all spectral similarity methods
-    exploratory_mode:bool = True
+    exploratory_mode:bool = False
   
     def __post_init__(self):
         # enforce datatype
