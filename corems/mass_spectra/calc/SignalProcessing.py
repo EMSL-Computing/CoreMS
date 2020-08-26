@@ -78,12 +78,12 @@ def peak_picking_first_derivative(domain, signal, max_height, max_prominence, ma
         index_end = index + 1
 
         #while dy[index_start-1] > 0 and index_start != 0:
-        while dy[index_start-1] > (max(dy)*0.0005) and index_start != 0:
+        while dy[index_start-1] > (max(dy)*0.0005) and index_start > 0:
             index_start = index_start - 1
         start_peak.append(index_start)
         
         #while dy[index_end] < 0 and index_end != (len(dy) - 1):
-        while dy[index_end] < (min(dy)*0.0005) and index_end != (len(dy) - 1):
+        while dy[index_end] < (min(dy)*0.0005) and index_end < (len(dy) - 1):
             index_end = index_end + 1
         end_peak.append(index_end)
 
