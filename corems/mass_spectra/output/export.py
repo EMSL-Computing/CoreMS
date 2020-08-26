@@ -202,6 +202,9 @@ class LowResGCMSExport():
 
             for gc_peak in self.gcms:
 
+                print(gc_peak.rt)
+                print(gc_peak.tic)
+                
                 # check if there is a compound candidate 
                 peak_group = hdf_handle.create_group(str(gc_peak.rt))
                 peak_group.attrs["deconvolution"] = int(self.gcms.chromatogram_settings.use_deconvolution)
