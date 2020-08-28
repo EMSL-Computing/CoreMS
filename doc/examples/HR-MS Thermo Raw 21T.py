@@ -23,12 +23,12 @@ if __name__ == "__main__":
     file_location = file_dialog.getOpenFileName()[0]
     app.quit()
     
-    mass_spectrum = rawFileReader.ImportLCMSThermoMSFileReader(file_location).get_summed_mass_spectrum(1,7)
-    
+    mass_spectrum = rawFileReader.ImportLCMSThermoMSFileReader(file_location).get_summed_mass_spectrum(24,67)
+    #print(mass_spectrum)
     #mass_spectrum.plot_mz_domain_profile()
     #print("polarity", mass_spectrum.polarity)
     #plt.show()
-
+    '''
     mass_spectrum.molecular_search_settings.error_method = 'None'
     mass_spectrum.molecular_search_settings.min_ppm_error  = -0.4
     mass_spectrum.molecular_search_settings.max_ppm_error = 0.0
@@ -88,3 +88,4 @@ if __name__ == "__main__":
         plt.show()
 
     print("Sum Relative Abundance = %.2f" % all_classes)
+    '''

@@ -36,6 +36,7 @@ class DataInputSetting:
                         "Res.":Labels.rp, 
                         'I':Labels.abundance,
                         "Abundance":"Abundance",
+                        "Abundance":"Peak Height",
                         "Signal/Noise":"S/N",
                         "S/N":"S/N"}
 
@@ -94,11 +95,12 @@ class MassSpectrumSetting:
 class MassSpecPeakSetting:
     
     kendrick_base: Dict = dataclasses.field(default_factory=dict)
-    #kendrick_base : Dict =  {'C': 1, 'H':2}
     
-    peak_min_prominence_percent :float = 1 #1-100 % used for peak detection
+    # kendrick_base : Dict =  {'C': 1, 'H':2}
+    
+    peak_min_prominence_percent :float = 1 # 1-100 % used for peak detection
 
-    peak_max_prominence_percent :float = 0.1 #1-100 % used for baseline detection
+    peak_max_prominence_percent :float = 0.1 # 1-100 % used for baseline detection
 
     def __post_init__(self):
         
@@ -130,7 +132,7 @@ class GasChromatographSetting:
 
     peak_max_prominence_percent:float = 1 #1-100 % used for baseline detection
 
-    min_peak_datapoints:float = 3
+    min_peak_datapoints:float = 5
    
     max_peak_width:float = 0.1
 
@@ -140,9 +142,13 @@ class GasChromatographSetting:
     
     std_noise_threshold: int = 3
 
-    peak_height_min_percent:float = 0.2 #1-100 % used for peak detection
+    peak_height_min_percent:float = 0.1 #0-100 % used for peak detection
 
-    peak_min_prominence_percent:float = 0.2 #1-100 % used for peak detection
+    peak_min_prominence_percent:float = 0.1 # 0-100 % used for peak detection
+
+    eic_signal_threshold: float = 0.01 #0-100 % used for extracted ion chromatogram peak detection
+    
+    max_rt_distance = 0.025 # minutes, max distance allowance hierarchical clutter
 
     def __post_init__(self):
         
@@ -174,7 +180,7 @@ class CompoundSearchSettings:
     ri_calibration_compound_names: List = dataclasses.field(default_factory=list)
 
     # calculates and export all spectral similarity methods
-    exploratory_mode:bool = True
+    exploratory_mode:bool = False
   
     def __post_init__(self):
         # enforce datatype

@@ -190,7 +190,7 @@ class PeakPicking:
                 if mz_exp_centroid:
                     
                     peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
-                    s2n = intes_centr/self.baselise_noise_std
+                    s2n = intes_centr/self.baselise_noise_std_std
                     freq_centr = None
                     self.add_mspeak(self.polarity, mz_exp_centroid, abund[current_index] , peak_resolving_power, s2n, peak_indexes, exp_freq=freq_centr, ms_parent=self)
             
@@ -200,7 +200,7 @@ class PeakPicking:
                 if mz_exp_centroid:
                     
                     peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
-                    s2n = intes_centr/self.baselise_noise_std
+                    s2n = intes_centr/self.baselise_noise_std_std
                     self.add_mspeak(self.polarity, mz_exp_centroid, abund[current_index] , peak_resolving_power, s2n, peak_indexes, exp_freq=freq_centr, ms_parent=self)
             
         
@@ -211,13 +211,13 @@ class PeakPicking:
         if threshold_method == 'auto':
             
             #print(self.settings.noise_threshold_std)
-            abundance_threshold = self.baselise_noise + (self.settings.noise_threshold_std * self.baselise_noise_std)
+            abundance_threshold = self.baselise_noise_std + (self.settings.noise_threshold_std * self.baselise_noise_std_std)
             factor = 1
 
         elif threshold_method == 'signal_noise':
 
             abundance_threshold = self.settings.s2n_threshold
-            factor = self.baselise_noise_std
+            factor = self.baselise_noise_std_std
 
         elif threshold_method == "relative_abundance":
 
