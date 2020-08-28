@@ -40,7 +40,7 @@ def peak_picking_first_derivative(domain, signal, max_height, max_prominence, ma
     domain = np.array(domain)
     signal = np.array(signal)
 
-    dy_signal = derivate(signal)
+    # dy_signal = derivate(signal)
 
     #dydy = derivate(dy_signal)
     
