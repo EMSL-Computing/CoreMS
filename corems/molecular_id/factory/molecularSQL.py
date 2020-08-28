@@ -16,8 +16,6 @@ from sqlalchemy.sql.operators import exists
 from sqlalchemy import event, and_
 from sqlalchemy import func
 
-from sqlalchemy_utils import database_exists, create_database
-
 from corems.encapsulation.constant import Atoms, Labels
 import json
 from corems.encapsulation.factory.processingSetting import MolecularFormulaSearchSettings
