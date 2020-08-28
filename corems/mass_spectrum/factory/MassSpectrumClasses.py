@@ -64,8 +64,8 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         # objects created after process_mass_spec() function
         self._mspeaks = list()
         self._dict_nominal_masses_indexes = dict()
-        self._baselise_noise = None
         self._baselise_noise_std = None
+        self._baselise_noise_std_std = None
         self._dynamic_range = None
         # set to None: initialization occurs inside subclass MassSpecfromFreq
         self._transient_settings = None
@@ -161,9 +161,9 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         self._dir_location = d_params.get("dir_location")
 
-        self._baselise_noise = d_params.get("baselise_noise")
-
         self._baselise_noise_std = d_params.get("baselise_noise_std")
+
+        self._baselise_noise_std_std = d_params.get("baselise_noise_std_std")
 
         if d_params.get('sample_name') != 'Unknown':
 
@@ -210,11 +210,11 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         if self.label == Labels.simulated_profile:
 
-            self._baselise_noise, self._baselise_noise_std = 0.1, 1
+            self._baselise_noise_std, self._baselise_noise_std_std = 0.1, 1
 
         else:
 
-            self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto, bayes=bayes)
+            self._baselise_noise_std, self._baselise_noise_std_std = self.run_noise_threshold_calc(auto, bayes=bayes)
 
     @property
     def parameters(self):
@@ -382,16 +382,16 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         return self._dynamic_range
 
     @property
-    def baselise_noise(self):
-        if self._baselise_noise:
-            return self._baselise_noise
+    def baselise_noise_std(self):
+        if self._baselise_noise_std:
+            return self._baselise_noise_std
         else:     
             return None
 
     @property
-    def baselise_noise_std(self):
-        if self._baselise_noise_std:
-            return self._baselise_noise_std
+    def baselise_noise_std_std(self):
+        if self._baselise_noise_std_std:
+            return self._baselise_noise_std_std
         else:     
             return None
 
@@ -625,13 +625,13 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     def plot_profile_and_noise_threshold(self, ax=None): 
 
         import matplotlib.pyplot as plt
-        if self.baselise_noise and self.baselise_noise:
+        if self.baselise_noise_std and self.baselise_noise_std:
 
             x = (self.mz_exp_profile.min(), self.mz_exp_profile.max())
-            y = (self.baselise_noise, self.baselise_noise)
+            y = (self.baselise_noise_std, self.baselise_noise_std)
 
             std = self.parameters.mass_spectrum.noise_threshold_std
-            threshold = self.baselise_noise + (std * self.baselise_noise_std)
+            threshold = self.baselise_noise_std + (std * self.baselise_noise_std_std)
 
             if ax is None:
                 ax = plt.gca()
@@ -886,8 +886,8 @@ class MassSpecCentroid(MassSpecBase):
         self._set_parameters_objects(d_params)
         
         if self.label == Labels.thermo_centroid:
-            self._baselise_noise = d_params.get("baselise_noise")
             self._baselise_noise_std = d_params.get("baselise_noise_std")
+            self._baselise_noise_std_std = d_params.get("baselise_noise_std_std")
 
         self.process_mass_spec(data_dict)
 
