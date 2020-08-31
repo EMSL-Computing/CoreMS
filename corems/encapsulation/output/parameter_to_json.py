@@ -16,7 +16,7 @@ def dump_all_settings_json(filename='SettingsCoreMS.json', file_path=None):
             
         import re
         #pretty print 
-        output = json.dumps(data_dict_all, sort_keys=True, indent=4, separators=(',', ': '))
+        output = json.dumps(data_dict_all, sort_keys=False, indent=4, separators=(',', ': '))
         output = re.sub(r'",\s+', '", ', output)
         
         outfile.write(output)
@@ -37,7 +37,7 @@ def dump_ms_settings_json(filename='SettingsCoreMS.json', file_path=None):
             
         import re
         #pretty print 
-        output = json.dumps(data_dict, sort_keys=True, indent=4, separators=(',', ': '))
+        output = json.dumps(data_dict, sort_keys=False, indent=4, separators=(',', ': '))
         output = re.sub(r'",\s+', '", ', output)
         
         outfile.write(output)
@@ -58,7 +58,7 @@ def dump_gcms_settings_json(filename='SettingsCoreMS.json', file_path=None):
             
         import re
         #pretty print 
-        output = json.dumps(data_dict, sort_keys=True, indent=4, separators=(',', ': '))
+        output = json.dumps(data_dict, sort_keys=False, indent=4, separators=(',', ': '))
         output = re.sub(r'",\s+', '", ', output)
         
         outfile.write(output)       
