@@ -266,8 +266,10 @@ class HighResMassSpecExport(Thread):
 
         import re
         #pretty print 
-        output = json.dumps(dict_setting, sort_keys=False, indent=4, separators=(',', ': '))
-        output = re.sub(r'",\s+', '", ', output)
+        output = json.dumps(dict_setting)
+        #output = json.dumps(dict_setting, sort_keys=False, indent=4, separators=(',', ': '))
+        
+        #output = re.sub(r'",\s+', '", ', output)
         
         return output
 
