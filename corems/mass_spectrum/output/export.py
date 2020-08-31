@@ -264,7 +264,12 @@ class HighResMassSpecExport(Thread):
         dict_setting['instrument_label'] = self.mass_spectrum.instrument_label
         dict_setting['sample_name'] = self.mass_spectrum.sample_name
 
-        return json.dumps(dict_setting, sort_keys=False, indent=4, separators=(',', ': ')) 
+        import re
+        #pretty print 
+        output = json.dumps(dict_setting, sort_keys=False, indent=4, separators=(',', ': '))
+        output = re.sub(r'",\s+', '", ', output)
+        
+        return output
 
     def get_mass_spec_attrs(self, mass_spectrum):
 
