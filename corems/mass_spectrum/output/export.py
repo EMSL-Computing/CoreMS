@@ -196,7 +196,7 @@ class HighResMassSpecExport(Thread):
             
             setting_dicts = parameter_to_dict.get_dict_data_ms(self.mass_spectrum)
 
-            columns_labels = json.dumps(self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum))
+            columns_labels = json.dumps(self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum), sort_keys=False, indent=4, separators=(',', ': '))
 
             if not hdf_handle.attrs.get('date_utc'):
 
@@ -230,7 +230,7 @@ class HighResMassSpecExport(Thread):
                 raw_ms_dataset.attrs['MassSpecAttrs'] = json.dumps(dict_ms_attrs)
                 
                 if isinstance(self.mass_spectrum, MassSpecfromFreq):
-                    raw_ms_dataset.attrs['TransientSetting'] = json.dumps(setting_dicts.get('TransientSetting'))
+                    raw_ms_dataset.attrs['TransientSetting'] = json.dumps(setting_dicts.get('TransientSetting'), sort_keys=False, indent=4, separators=(',', ': '))
 
             else:
                 
@@ -249,11 +249,11 @@ class HighResMassSpecExport(Thread):
 
             processed_dset.attrs['ColumnsLabels'] = columns_labels
             
-            processed_dset.attrs['MoleculaSearchSetting'] = json.dumps(setting_dicts.get('MoleculaSearch'))
+            processed_dset.attrs['MoleculaSearchSetting'] = json.dumps(setting_dicts.get('MoleculaSearch'), sort_keys=False, indent=4, separators=(',', ': '))
             
-            processed_dset.attrs['MassSpecPeakSetting'] = json.dumps(setting_dicts.get('MassSpecPeak'))
+            processed_dset.attrs['MassSpecPeakSetting'] = json.dumps(setting_dicts.get('MassSpecPeak'), sort_keys=False, indent=4, separators=(',', ': '))
 
-            processed_dset.attrs['MassSpectrumSetting'] = json.dumps(setting_dicts.get('MassSpectrum'))
+            processed_dset.attrs['MassSpectrumSetting'] = json.dumps(setting_dicts.get('MassSpectrum'), sort_keys=False, indent=4, separators=(',', ': '))
 
     def parameters_to_json(self):
         
@@ -264,7 +264,14 @@ class HighResMassSpecExport(Thread):
         dict_setting['instrument_label'] = self.mass_spectrum.instrument_label
         dict_setting['sample_name'] = self.mass_spectrum.sample_name
 
-        return json.dumps(dict_setting)    
+        import re
+        #pretty print 
+        output = json.dumps(dict_setting)
+        #output = json.dumps(dict_setting, sort_keys=False, indent=4, separators=(',', ': '))
+        
+        #output = re.sub(r'",\s+', '", ', output)
+        
+        return output
 
     def get_mass_spec_attrs(self, mass_spectrum):
 
