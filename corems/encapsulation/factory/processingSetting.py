@@ -34,11 +34,15 @@ class DataInputSetting:
         self.header_translate = {'m/z': Labels.mz, 
                         "Resolving Power":"Resolving Power",
                         "Res.":Labels.rp, 
-                        'I':Labels.abundance,
-                        "Abundance":"Abundance",
-                        "Abundance":"Peak Height",
+                        "I":Labels.abundance,
+                        "Abundance":Labels.abundance,
                         "Signal/Noise":"S/N",
-                        "S/N":"S/N"}
+                        "S/N":"S/N",
+                        "mOz":Labels.mz,
+                        "abs_abu":Labels.abundance,
+                        "sn":"S/N",
+                        "resolution":Labels.rp}
+
 
 @dataclasses.dataclass         
 class LiqChromatographSetting:
