@@ -74,7 +74,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
     #     return iter(self.gcpeaks.values())
  
-    def process_chromatogram(self):
+    def process_chromatogram(self, plot_res=False):
 
         #tic = self.tic - self.baseline_detector(self.tic)
         
@@ -88,7 +88,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
         if self.chromatogram_settings.use_deconvolution:
              
-             self.run_deconvolution(plot_res=True)
+             self.run_deconvolution(plot_res=False)
 
         else:
             
