@@ -284,8 +284,8 @@ class LowResGCMSExport():
 
         return blank_parameters
 
-    def write_settings(self, output_path, gcms, id_label="corems:"):
-        
+    def get_parameters_json(self, gcms, id_label):
+
         import json
         
         output_parameters_dict = {}
@@ -310,9 +310,15 @@ class LowResGCMSExport():
         corems_dict_setting = parameter_to_dict.get_dict_data_gcms(gcms)
         output_parameters_dict["CoreMSParameters"] = corems_dict_setting
 
+        output = json.dumps(output_parameters_dict, sort_keys=False, indent=4, separators=(',', ': '))
+
+        return output
+    
+    def write_settings(self, output_path, gcms, id_label="corems:"):
+        
         with open(output_path.with_suffix('.json'), 'w', encoding='utf8', ) as outfile:
 
-            output = json.dumps(output_parameters_dict, sort_keys=False, indent=4, separators=(',', ': '))
+            output = self.get_parameters_json(gcms, id_label)
             outfile.write(output)
 
     def get_list_dict_data(self, gcms, include_no_match=True, no_match_inline=False, highest_score=False) :

@@ -305,6 +305,18 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         exportMS= LowResGCMSExport(self.sample_name, self)
         return exportMS.get_pandas_df(highest_score=highest_score, id_label=id_label)
 
+    def processing_stats(self):
+        
+        #returns json string
+        exportMS= LowResGCMSExport(self.sample_name, self)
+        return exportMS.get_data_stats(self)
+
+    def parameters_json(self, id_label="corems:"):
+        
+        #returns json string
+        exportMS= LowResGCMSExport(self.sample_name, self)
+        return exportMS.get_parameters_json(self, id_label=id_label)
+
     def to_json(self,highest_score=True, id_label="corems:"):
         
         #returns pandas dataframe
