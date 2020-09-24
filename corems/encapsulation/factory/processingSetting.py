@@ -152,7 +152,7 @@ class GasChromatographSetting:
 
     eic_signal_threshold: float = 0.01 #0-100 % used for extracted ion chromatogram peak detection
     
-    max_rt_distance = 0.025 # minutes, max distance allowance hierarchical clutter
+    max_rt_distance: float = 0.025 # minutes, max distance allowance hierarchical clutter
 
     def __post_init__(self):
         
