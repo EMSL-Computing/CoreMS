@@ -311,11 +311,11 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         exportMS= LowResGCMSExport(self.sample_name, self)
         return exportMS.get_data_stats(self)
 
-    def parameters_json(self, id_label="corems:"):
+    def parameters_json(self, id_label="corems:", output_path=" "):
         
         #returns json string
         exportMS= LowResGCMSExport(self.sample_name, self)
-        return exportMS.get_parameters_json(self, id_label=id_label)
+        return exportMS.get_parameters_json(self, id_label, output_path)
 
     def to_json(self,highest_score=True, id_label="corems:"):
         

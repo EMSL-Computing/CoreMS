@@ -284,7 +284,7 @@ class LowResGCMSExport():
 
         return blank_parameters
 
-    def get_parameters_json(self, gcms, id_label):
+    def get_parameters_json(self, gcms, id_label, output_path):
 
         import json
         
@@ -318,7 +318,7 @@ class LowResGCMSExport():
         
         with open(output_path.with_suffix('.json'), 'w', encoding='utf8', ) as outfile:
 
-            output = self.get_parameters_json(gcms, id_label)
+            output = self.get_parameters_json(gcms, id_label, output_path)
             outfile.write(output)
 
     def get_list_dict_data(self, gcms, include_no_match=True, no_match_inline=False, highest_score=False) :
