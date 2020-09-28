@@ -24,7 +24,7 @@ __author__ = "Yuri E. Corilo"
 __date__ = "July 9, 2019"
 
 
-class ImportLCMSThermoMSFileReader(Thread):
+class ImportLCMSThermoMSFileReader():
 
     """     Read FULL mode spectra only from raw file data and store it return a LC-MS class
     *  Default behavior is to load all scans numbers
@@ -34,7 +34,7 @@ class ImportLCMSThermoMSFileReader(Thread):
 
     def __init__(self, file_location):
 
-        Thread.__init__(self)
+        # Thread.__init__(self)
 
         self.iRawDataPlus = RawFileReaderAdapter.FileFactory(file_location)
 
