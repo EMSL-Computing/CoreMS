@@ -19,7 +19,6 @@ res/data/
 dist/
 build/
 tests/
-tests/test_data/
 db/
 .git/
 .pytest_cache/
