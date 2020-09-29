@@ -27,7 +27,7 @@ from ThermoFisher.CommonCore.RawFileReader import RawFileReaderAdapter
 
 
 
-class ImportLCMSThermoMSFileReader(Thread):
+class ImportLCMSThermoMSFileReader():
 
     """     Read FULL mode spectra only from raw file data and store it return a LC-MS class
     *  Default behavior is to load all scans numbers
@@ -37,7 +37,7 @@ class ImportLCMSThermoMSFileReader(Thread):
 
     def __init__(self, file_location):
 
-        Thread.__init__(self)
+        # Thread.__init__(self)
 
         self.iRawDataPlus = RawFileReaderAdapter.FileFactory(file_location)
 
