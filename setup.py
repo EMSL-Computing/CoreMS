@@ -14,7 +14,7 @@ with open('requirements.txt') as f:
 # This call to setup() does all the work
 setup(
     name="CoreMS",
-    version="17.8.6.beta",
+    version="17.8.7.beta",
     description="Mass Spectrometry Framework for Small Molecules Analysis",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -31,7 +31,6 @@ setup(
     
     package_data={'external': ['disclaimer.txt'], '': ['ext_lib/*']},
     packages=find_packages(),
-    data_files=[('lib/site-packages/ext_lib', ["ext_lib/ThermoFisher.CommonCore.Data.dll"])],
     exclude_package_data={'.': ["tests", "*.win_only"]},
     include_package_data=True,
     install_requires=required,
