@@ -16,7 +16,8 @@ import pandas as pd
 
 from tqdm import tqdm
 
-sys.path.append("./ext_lib")
+sys.path.append(os.getenv("COREMS_EXTERNAL_LIB", "./ext_lib"))
+
 clr.AddReference("ThermoFisher.CommonCore.RawFileReader")
 from ThermoFisher.CommonCore.RawFileReader import RawFileReaderAdapter
 
