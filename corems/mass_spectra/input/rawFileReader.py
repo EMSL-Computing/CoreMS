@@ -1,8 +1,12 @@
+__author__ = "Yuri E. Corilo"
+__date__ = "July 9, 2019"
+
 import numpy
 import multiprocessing
 from threading import Thread
 import sys
 import clr
+import site
 
 from corems.encapsulation.constant import Labels
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
@@ -16,12 +20,11 @@ import pandas as pd
 
 from tqdm import tqdm
 
-sys.path.append("./ext_lib")
+sys.path.append(site.getsitepackages()[0]+ "/ext_lib")
 clr.AddReference("ThermoFisher.CommonCore.RawFileReader")
 from ThermoFisher.CommonCore.RawFileReader import RawFileReaderAdapter
 
-__author__ = "Yuri E. Corilo"
-__date__ = "July 9, 2019"
+
 
 
 class ImportLCMSThermoMSFileReader(Thread):
