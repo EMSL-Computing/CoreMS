@@ -14,6 +14,7 @@ from corems.mass_spectra.input import rawFileReader
 from corems.molecular_id.factory.classification import HeteroatomsClassification, Labels
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
+from corems.encapsulation.factory.parameters import MSParameters
 
 if __name__ == "__main__":
     
@@ -23,9 +24,13 @@ if __name__ == "__main__":
     file_location = file_dialog.getOpenFileName()[0]
     app.quit()
     
+    # MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
+    # MSParameters.mass_spectrum.relative_abundance_threshold = 10
+
     mass_spectrum = rawFileReader.ImportLCMSThermoMSFileReader(file_location).get_summed_mass_spectrum(2,8)
     #print(mass_spectrum)
-    mass_spectrum.plot_mz_domain_profile()
+    # mass_spectrum.plot_mz_domain_profile()
+    # mass_spectrum.plot_profile_and_noise_threshold()
     #print("polarity", mass_spectrum.polarity)
     plt.show()
     '''

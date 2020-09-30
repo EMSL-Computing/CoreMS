@@ -33,24 +33,24 @@ class PeakPicking:
 
     def do_peak_picking(self):
 
+            mz, abudance, freq = self.cut_mz_domain_peak_picking()
+
             if self.label == Labels.bruker_frequency or self.label == Labels.midas_frequency:
                 
-                mz, abudance, freq = self.cut_mz_domain_peak_picking()
                 self.calc_centroid(mz, abudance, freq)
             
             elif self.label == Labels.thermo_profile:
-                self.calc_centroid(self.mz_exp_profile, self.abundance_profile, self.freq_exp_profile)
+                self.calc_centroid(mz, abudance, self.freq_exp_profile)
             
             elif self.label == Labels.bruker_profile:
-                self.calc_centroid(self.mz_exp_profile, self.abundance_profile, self.freq_exp_profile)
+                self.calc_centroid(mz, abudance, self.freq_exp_profile)
             
             elif self.label == Labels.booster_profile:
-                self.calc_centroid(self.mz_exp_profile, self.abundance_profile, self.freq_exp_profile)
+                self.calc_centroid(mz, abudance, self.freq_exp_profile)
 
             elif self.label == Labels.simulated_profile:
-                self.calc_centroid(self.mz_exp_profile, self.abundance_profile, self.freq_exp_profile)
+                self.calc_centroid(mz, abudance, self.freq_exp_profile)
             
-           
             else: raise Exception("Unknow mass spectrum type", self.label)
             
            
@@ -190,7 +190,7 @@ class PeakPicking:
                 if mz_exp_centroid:
                     
                     peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
-                    s2n = intes_centr/self.baselise_noise_std_std
+                    s2n = intes_centr/self.baselise_noise_std
                     freq_centr = None
                     self.add_mspeak(self.polarity, mz_exp_centroid, abund[current_index] , peak_resolving_power, s2n, peak_indexes, exp_freq=freq_centr, ms_parent=self)
             
@@ -200,7 +200,7 @@ class PeakPicking:
                 if mz_exp_centroid:
                     
                     peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
-                    s2n = intes_centr/self.baselise_noise_std_std
+                    s2n = intes_centr/self.baselise_noise_std
                     self.add_mspeak(self.polarity, mz_exp_centroid, abund[current_index] , peak_resolving_power, s2n, peak_indexes, exp_freq=freq_centr, ms_parent=self)
             
         
@@ -211,13 +211,13 @@ class PeakPicking:
         if threshold_method == 'auto':
             
             #print(self.settings.noise_threshold_std)
-            abundance_threshold = self.baselise_noise_std + (self.settings.noise_threshold_std * self.baselise_noise_std_std)
+            abundance_threshold = self.baselise_noise + (self.settings.noise_threshold_std * self.baselise_noise_std)
             factor = 1
 
         elif threshold_method == 'signal_noise':
 
             abundance_threshold = self.settings.s2n_threshold
-            factor = self.baselise_noise_std_std
+            factor = self.baselise_noise_std
 
         elif threshold_method == "relative_abundance":
 

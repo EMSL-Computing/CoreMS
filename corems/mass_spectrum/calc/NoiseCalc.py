@@ -1,11 +1,77 @@
 import time
 
-from numpy import where, average, std, isnan, inf, hstack
+from numpy import where, average, std, isnan, inf, hstack, median
+from corems import chunks
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 27, 2019"
 
 class NoiseThresholdCalc:
+
+    def get_noise_threshold(self) -> ( (float, float), (float,float) ):
+        ''' return two tuples (min_mz, max_mz) , (noise_threshold, noise_threshold)'''
+        if self.is_centroid:
+
+            x = min(self.mz_exp), max((self.mz_exp))
+            
+            if self.settings.threshold_method == 'auto':
+                
+                abundance_threshold = self.baselise_noise_std + (self.settings.noise_threshold_std * self.baselise_noise_std)
+                y = (abundance_threshold, abundance_threshold)
+
+            elif self.settings.threshold_method == 'signal_noise':
+
+                normalized_threshold = (self.max_abundance * self.settings.s2n_threshold )/self.max_signal_to_noise
+                y = (normalized_threshold, normalized_threshold)
+            
+            elif self.settings.threshold_method == "relative_abundance":
+
+                normalized_threshold = (max(self.abundance)/100)*self.settings.relative_abundance_threshold
+                y = (normalized_threshold, normalized_threshold)    
+            
+            else:
+                    raise  Exception("%s method was not implemented, please refer to corems.mass_spectrum.calc.NoiseCalc Class" % self.settings.threshold_method)
+                
+            return x, y    
+
+        else:
+
+            if self.baselise_noise and self.baselise_noise_std:
+                
+                x = (self.mz_exp_profile.min(), self.mz_exp_profile.max())
+                y = (self.baselise_noise_std, self.baselise_noise_std)
+                
+                if self.settings.threshold_method == 'auto':
+                
+                    #print(self.settings.noise_threshold_std)
+                    abundance_threshold = self.baselise_noise_std + (self.settings.noise_threshold_std * self.baselise_noise_std)
+                    y = (abundance_threshold, abundance_threshold)
+
+                elif self.settings.threshold_method == 'signal_noise':
+
+                    max_sn = self.abundance_profile.max()/self.baselise_noise_std
+
+                    normalized_threshold = (self.abundance_profile.max() * self.settings.s2n_threshold )/max_sn
+                    y = (normalized_threshold, normalized_threshold)
+
+                elif self.settings.threshold_method == "relative_abundance":
+
+                    normalized_threshold = (self.abundance_profile.max()/100)*self.settings.relative_abundance_threshold
+                    y = (normalized_threshold, normalized_threshold)
+
+                else:
+                    raise  Exception("%s method was not implemented, \
+                        please refer to corems.mass_spectrum.calc.NoiseCalc Class" % self.settings.threshold_method)
+                
+                return x, y
+            
+            else:
+                
+                warnings.warn(
+                    "Noise Baseline and Noise std not specified,\
+                    defaulting to 0,0 run process_mass_spec() ?"
+                )    
+                return (0,0) , (0,0)
 
     def cut_mz_domain_noise(self, auto):
         
@@ -77,8 +143,9 @@ class NoiseThresholdCalc:
             
 
     def get_noise_average(self, ymincentroid, bayes=False):
-        #assumes noise to be gaussian and estimate noise level by calculating the valley 
-        # if bayes is enable it will model the valley distributuion as half-Normal and estimate the std
+        # assumes noise to be gaussian and estimate noise level by 
+        # calculating the valley. If bayes is enable it will 
+        # model the valley distributuion as half-Normal and estimate the std
         
         average_noise = (ymincentroid*2).mean()
         
@@ -119,15 +186,27 @@ class NoiseThresholdCalc:
 
 
     def run_noise_threshold_calc(self, auto, bayes=False):
-
-        Y_cut = self.cut_mz_domain_noise(auto)
         
-        if auto:
+        if self.is_centroid:
+            # calculates noise_baseline and noise_std
+            # needed to run auto noise threshold mode
+            # it is not used for signal to noise nor 
+            # relative abudance methods
+            abundances_chunks = chunks(self.abundance, 50)
+            each_min_abund = [min(x) for x in abundances_chunks]
 
-            yminima = self.get_abundance_minima_centroid(Y_cut)
-            
-            return self.get_noise_average(yminima, bayes=bayes)
-
+            return average(each_min_abund), std(each_min_abund)
+        
         else:
 
-            return self.get_noise_average(Y_cut, bayes=bayes)
+            Y_cut = self.cut_mz_domain_noise(auto)
+            
+            if auto:
+
+                yminima = self.get_abundance_minima_centroid(Y_cut)
+                
+                return self.get_noise_average(yminima, bayes=bayes)
+
+            else:
+
+                return self.get_noise_average(Y_cut, bayes=bayes)

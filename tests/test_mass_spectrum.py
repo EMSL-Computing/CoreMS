@@ -8,7 +8,6 @@ from pathlib import Path
 sys.path.append('.')
 
 from numpy import array
-from matplotlib import pyplot
 import pytest
 
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
@@ -48,6 +47,8 @@ def test_create_mass_spectrum():
     mass_spectrum_obj.reset_indexes()
     mass_spectrum_obj.filter_by_min_resolving_power(15, 3)
     mass_spectrum_obj.reset_indexes()
+    mass_spectrum_obj.filter_by_noise_threshold()
+    mass_spectrum_obj.reset_indexes()
     mass_spectrum_obj.get_mz_and_abundance_peaks_tuples()
     mass_spectrum_obj.get_masses_count_by_nominal_mass()
     mass_spectrum_obj.resolving_power_calc(12,1)
@@ -68,4 +69,5 @@ def test_create_mass_spectrum():
 if __name__ == "__main__":
     #mass_spectrum_obj, kendrick_group_index = test_create_mass_spectrum()
     #mass_spectrum_obj.plot_profile_and_noise_threshold()
+    test_create_mass_spectrum()
     pass

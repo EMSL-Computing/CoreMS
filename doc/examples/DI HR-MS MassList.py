@@ -52,7 +52,7 @@ def run_assignment(file_location):
     mass_spectrum.molecular_search_settings.min_ppm_error  = -1
     mass_spectrum.molecular_search_settings.max_ppm_error = 1
 
-    mass_spectrum.molecular_search_settings.url_database = "postgres://coremsdb:coremsmolform@localhost:5432/molformula"
+    # mass_spectrum.molecular_search_settings.url_database = "postgres://coremsdb:coremsmolform@localhost:5432/molformula"
     mass_spectrum.molecular_search_settings.min_dbe = 0
     mass_spectrum.molecular_search_settings.max_dbe = 50
 

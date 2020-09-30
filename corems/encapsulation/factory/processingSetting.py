@@ -2,7 +2,9 @@ __author__ = 'Yuri E. Corilo'
 __date__ = 'Jul 02, 2019'
 
 import dataclasses 
+import os
 from typing import List, Dict
+
 from corems.encapsulation.constant import Atoms, Labels
 
 @dataclasses.dataclass
@@ -188,6 +190,8 @@ class CompoundSearchSettings:
   
     def __post_init__(self):
         # enforce datatype
+        self.url_database = os.getenv("SPECTRAL_GCMS_DATABASE_URL", 'sqlite:///db/pnnl_lowres_gcms_compounds.sqlite')
+
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
             if not isinstance(value, field.type):
@@ -344,10 +348,10 @@ class MolecularFormulaSearchSettings:
     ionization_type:str = 'ESI'
 
     # empirically set / needs optimization
-    min_ppm_error:float   = -10.0 #ppm
+    min_ppm_error:float   = -1.0 #ppm
 
     # empirically set / needs optimization    
-    max_ppm_error:float = 10.0 #ppm
+    max_ppm_error:float = 1.0 #ppm
 
     # empirically set / needs optimization set for isotopologue search
     min_abun_error:float = -100.0 # percentage 
@@ -368,6 +372,8 @@ class MolecularFormulaSearchSettings:
 
     def __post_init__(self):
         
+        
+        self.url_database = os.getenv("COREMS_DATABASE_URL", "sqlite://db/molformula.db")
         # enforce datatype
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
@@ -388,6 +394,7 @@ class MolecularFormulaSearchSettings:
         for atom in Atoms.atoms_covalence.keys():
             if atom not in current_used_atoms:
                 self.used_atom_valences[atom] = Atoms.atoms_covalence.get(atom)
+        
         '''
         self.used_atom_valences.update({'13C': 4,
                                         '18O': 2,

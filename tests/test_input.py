@@ -6,6 +6,7 @@ sys.path.append(".")
 from pathlib import Path
 
 import pytest
+# from matplotlib import pyplot
 
 from corems.mass_spectra.input.boosterHDF5 import ReadHDF_BoosterMassSpectra
 from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
@@ -17,7 +18,6 @@ from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
 from corems.mass_spectrum.input.massList import ReadCoremsMasslist, ReadMassList
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.encapsulation.factory.parameters import MSParameters
-
 def test_andi_netcdf_gcms():
 
     file_path = Path.cwd() / "tests/tests_data/gcms/" / "GCMS_FAMES_01_GCMS-01_20191023.cdf"
@@ -111,12 +111,20 @@ def test_import_transient():
         
         MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
         MSParameters.mass_spectrum.relative_abundance_threshold = 10
+
+        #MSParameters.mass_spectrum.threshold_method = 'signal_noise'
+        #MSParameters.mass_spectrum.s2n_threshold = 50
+
+        #MSParameters.mass_spectrum.threshold_method = 'auto'
+        #MSParameters.mass_spectrum.noise_threshold_std = 32
+
         MSParameters.ms_peak.peak_min_prominence_percent = 1
     
         mass_spectrum_obj = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
 
         mass_spectrum_obj.plot_profile_and_noise_threshold()
-    #pyplot.show()
+        
+        # pyplot.show()
 
         print(len(mass_spectrum_obj))
     
@@ -204,15 +212,25 @@ def test_import_mass_list():
 
     #polarity need to be set or read from the file
     polarity = -1
-     
+
+    # MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
+    # MSParameters.mass_spectrum.relative_abundance_threshold = 10
+
+    MSParameters.mass_spectrum.threshold_method = 'signal_noise'
+    MSParameters.mass_spectrum.s2n_threshold = 100
+
+    #MSParameters.mass_spectrum.threshold_method = 'auto'
+    #MSParameters.mass_spectrum.noise_threshold_std = 6
 
     #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
     mass_list_reader = ReadMassList(file_location)
 
     mass_spectrum = mass_list_reader.get_mass_spectrum(polarity, auto_process=True)
-
+    
+    print(mass_spectrum.baselise_noise, mass_spectrum.baselise_noise_std)
     #mass_spectrum.plot_mz_domain_profile()
-
+    mass_spectrum.plot_profile_and_noise_threshold()
+    #pyplot.show()
     print(
         "number_average_molecular_weight",
         mass_spectrum.number_average_molecular_weight(),
@@ -224,9 +242,9 @@ def test_import_mass_list():
 
     mass_spectrum.filter_by_s2n(100)
     
-    mass_list_reader = ReadMassList(file_location, isCentroid=False,)
+    # mass_list_reader = ReadMassList(file_location, isCentroid=False,)
 
-    mass_spectrum = mass_list_reader.get_mass_spectrum(polarity,auto_process=True)
+    # mass_spectrum = mass_list_reader.get_mass_spectrum(polarity,auto_process=True)
 
 
 if __name__ == '__main__':
@@ -236,8 +254,8 @@ if __name__ == '__main__':
     #test_import_lcms_from_transient()
     #test_import_transient()
     #test_import_corems_hdf5()
-    test_import_corems_mass_list()
-    #test_import_mass_list()
+    #test_import_corems_mass_list()
+    test_import_mass_list()
 
     #test_andi_netcdf_gcms()
 

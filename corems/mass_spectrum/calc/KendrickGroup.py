@@ -69,7 +69,7 @@ class KendrickGrouping:
        
             #return dictionary with the keys sorted by sum of the abundances
         if sort:
-            print("YES")
+            
             return dict(sorted(kendrick_group_index.items(), key = lambda it: sum([self.mspeaks[i].abundance for i in it[1]]), reverse=False ))
         
         else:
