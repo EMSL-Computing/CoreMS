@@ -249,13 +249,13 @@ def test_import_mass_list():
 
 if __name__ == '__main__':
     
-    #test_import_booster_mass_spectrum_hdf()
+    test_import_booster_mass_spectrum_hdf()
     #test_import_booster_mass_spectra_hdf()
     #test_import_lcms_from_transient()
     #test_import_transient()
     #test_import_corems_hdf5()
     #test_import_corems_mass_list()
-    test_import_mass_list()
+    # test_import_mass_list()
 
     #test_andi_netcdf_gcms()
 

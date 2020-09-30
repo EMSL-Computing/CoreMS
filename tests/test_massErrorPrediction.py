@@ -17,3 +17,6 @@ def test_error_prediction():
     mass_error_prediction.get_results()
 
     return mass_spectrum
+
+if __name__ == "__main__":
+    test_error_prediction()

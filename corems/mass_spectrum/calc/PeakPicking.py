@@ -21,11 +21,13 @@ class PeakPicking:
         final =  where(self.mz_exp_profile < max_picking_mz)[-1][-1]
         comeco =  where(self.mz_exp_profile < max_picking_mz)[0][0]
 
-        if self.freq_exp_profile.any():
+        if self.has_frequency:
+            
+            if self.freq_exp_profile.any():
 
-            freq_domain_Y_cutoff  = self.freq_exp_profile[comeco:final]
+                freq_domain_Y_cutoff  = self.freq_exp_profile[comeco:final]
 
-            return mz_domain_X_low_cutoff[comeco:final], mz_domain_low_Y_cutoff[comeco:final], freq_domain_Y_cutoff[comeco:final]
+                return mz_domain_X_low_cutoff[comeco:final], mz_domain_low_Y_cutoff[comeco:final], freq_domain_Y_cutoff[comeco:final]
 
         else:
 

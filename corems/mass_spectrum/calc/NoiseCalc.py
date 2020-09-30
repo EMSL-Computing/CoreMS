@@ -186,7 +186,7 @@ class NoiseThresholdCalc:
 
 
     def run_noise_threshold_calc(self, auto, bayes=False):
-        
+        print(self.is_centroid)
         if self.is_centroid:
             # calculates noise_baseline and noise_std
             # needed to run auto noise threshold mode

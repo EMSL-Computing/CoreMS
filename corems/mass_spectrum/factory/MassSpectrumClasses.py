@@ -77,6 +77,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self._init_settings()
 
         self.is_centroid = False
+        self.has_frequency = False
 
         self.calibration_order = None
         self.calibration_points = None
@@ -813,9 +814,12 @@ class MassSpecfromFreq(MassSpecBase):
         super().__init__(None, magnitude, d_params)
 
         self._frequency_domain = frequency_domain
+        self.has_frequency = True
         self._set_mz_domain()
+
         
         """ use this call to automatically process data as the object is created, Setting need to be changed before initiating the class to be in effect"""
+        
         if auto_process:
             self.process_mass_spec(keep_profile=keep_profile, auto_noise=auto_noise, noise_bayes_est=noise_bayes_est)
 
