@@ -13,6 +13,8 @@ variables:
   LATEST_VER: docker.io/corilo/corems:latest
   MAJOR_VER: docker.io/corilo/corems:1.0.0
   DOCKER_HUB_REGISTRY: docker.io
+  COREMS_DATABASE_URL: postgresql://coremsdb:coremsmolform@localhost:5432/molformula
+
 
 # Pip's cache doesn't store the python packages
 # https://pip.pypa.io/en/stable/reference/pip_install/#caching
@@ -27,6 +29,7 @@ variables:
   POSTGRES_USER: coremsdb
   POSTGRES_PASSWORD: coremsmolform
   POSTGRES_HOST_AUTH_METHOD: trust
+  
   
 cache:
   
