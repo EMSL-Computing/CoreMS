@@ -198,7 +198,7 @@ class Transient(TransientCalculations):
         plt.ylabel("Magnitude")
         # reset grid location index to 0
         self.location = 220
-        plt.show()
+        # plt.show()
 
     def _plot_transient(self, transient_data): # pragma: no cover
 
@@ -220,7 +220,7 @@ class Transient(TransientCalculations):
         plt.plot(time_axis, self._transient_data, color="green")
         plt.xlabel("Time (s)")
         plt.ylabel("Magnitude")
-        plt.show()
+        # plt.show()
 
     def plot_zerofilled_transient(self): # pragma: no cover
 
@@ -234,7 +234,7 @@ class Transient(TransientCalculations):
         plt.plot(time_axis, time_domain_y_zero_filled, color="green")
         plt.xlabel("Time (s)")
         plt.ylabel("Magnitude")
-        plt.show()
+        # plt.show()
 
     def plot_apodized_transient(self):  # pragma: no cover
 
@@ -246,7 +246,7 @@ class Transient(TransientCalculations):
         plt.plot(time_axis, new_time_domain, color="green")
         plt.xlabel("Time (s)")
         plt.ylabel("Magnitude")
-        plt.show()
+        # plt.show()
 
     def plot_frequency_domain(self):  # pragma: no cover
 
@@ -256,4 +256,4 @@ class Transient(TransientCalculations):
         plt.plot(frequency_domain / 1000, magnitude, color="green")
         plt.xlabel("KHz")
         plt.ylabel("Magnitude")
-        plt.show()
+        # plt.show()

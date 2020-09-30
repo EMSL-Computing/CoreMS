@@ -379,7 +379,7 @@ class ImportLCMSThermoMSFileReader():
             ax.plot(ms_tic['Time'],ms_tic['TIC'])
             ax.set_xlabel('Time (min)')
             ax.set_ylabel('TIC')
-            plt.show()
+            # plt.show()
             return ms_tic,fig
         return ms_tic
 

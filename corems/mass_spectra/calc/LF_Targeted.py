@@ -149,7 +149,7 @@ class LossFinderTargeted(GC_Calculations):
                 color='#661D98', #Font colour and size
                 fontsize=12)
 
-        plt.show()
+        # plt.show()
 
     def plot_offset(self):
         #MassSpecBase.plot_mz_domain_profile(MassSpecBase)

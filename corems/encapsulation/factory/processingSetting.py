@@ -63,11 +63,11 @@ class LiqChromatographSetting:
 @dataclasses.dataclass         
 class MassSpectrumSetting:
     
-    threshold_method: str = 'auto'
+    threshold_method: str = 'relative_abundance'
     
     implemented_noise_threshold_methods: tuple = ('auto', 'signal_noise', 'relative_abundance')
     
-    noise_threshold_std: int = 12
+    noise_threshold_std: int = 6
     
     s2n_threshold: float = 4
     
@@ -348,10 +348,10 @@ class MolecularFormulaSearchSettings:
     ionization_type:str = 'ESI'
 
     # empirically set / needs optimization
-    min_ppm_error:float   = -1.0 #ppm
+    min_ppm_error:float   = -10.0 #ppm
 
     # empirically set / needs optimization    
-    max_ppm_error:float = 1.0 #ppm
+    max_ppm_error:float = 10.0 #ppm
 
     # empirically set / needs optimization set for isotopologue search
     min_abun_error:float = -100.0 # percentage 

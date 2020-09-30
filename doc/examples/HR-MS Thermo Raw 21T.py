@@ -32,7 +32,7 @@ if __name__ == "__main__":
     # mass_spectrum.plot_mz_domain_profile()
     # mass_spectrum.plot_profile_and_noise_threshold()
     #print("polarity", mass_spectrum.polarity)
-    plt.show()
+    # plt.show()
     '''
     mass_spectrum.molecular_search_settings.error_method = 'None'
     mass_spectrum.molecular_search_settings.min_ppm_error  = -0.4
@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
     mass_spectrum_by_classes.plot_ms_assigned_unassigned()
 
-    plt.show()
+    # plt.show()
     all_classes = 0
     for classe in mass_spectrum_by_classes.get_classes(threshold_perc=0, isotopologue=True):
         

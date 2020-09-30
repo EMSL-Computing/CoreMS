@@ -119,7 +119,6 @@ def test_molecular_formula_search_db():
 
 def test_priorityAssignment():
     
-    
     MSParameters.molecular_search.error_method = 'None'
     MSParameters.molecular_search.min_ppm_error  = -5
     MSParameters.molecular_search.max_ppm_error = 3
@@ -131,7 +130,8 @@ def test_priorityAssignment():
     MSParameters.molecular_search.usedAtoms = usedatoms
     
     mass_spec_obj = create_mass_spectrum()
-    
+    mass_spec_obj.process_mass_spec()
+
     assignOx = OxygenPriorityAssignment(mass_spec_obj) 
 
     assignOx.run() 

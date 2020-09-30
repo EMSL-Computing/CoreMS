@@ -28,7 +28,6 @@ variables:
   POSTGRES_PASSWORD: coremsmolform
   POSTGRES_HOST_AUTH_METHOD: trust
   COREMS_DATABASE_URL: postgresql://coremsdb:coremsmolform@localhost:5432/molformula
-
   
 cache:
   

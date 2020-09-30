@@ -181,7 +181,7 @@ if __name__ == "__main__":
             
             plt.legend(handout, lablout)
             plt.xlim(620,630)
-            plt.show()
+            # plt.show()
             #plt.savefig(mass_spectrum.sample_name+"_area"+".png")
             plt.cla()
             

@@ -6,7 +6,7 @@ sys.path.append(".")
 from pathlib import Path
 
 import pytest
-# from matplotlib import pyplot
+from matplotlib import pyplot
 
 from corems.mass_spectra.input.boosterHDF5 import ReadHDF_BoosterMassSpectra
 from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
@@ -18,6 +18,7 @@ from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
 from corems.mass_spectrum.input.massList import ReadCoremsMasslist, ReadMassList
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.encapsulation.factory.parameters import MSParameters
+
 def test_andi_netcdf_gcms():
 
     file_path = Path.cwd() / "tests/tests_data/gcms/" / "GCMS_FAMES_01_GCMS-01_20191023.cdf"
@@ -213,11 +214,11 @@ def test_import_mass_list():
     #polarity need to be set or read from the file
     polarity = -1
 
-    # MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
-    # MSParameters.mass_spectrum.relative_abundance_threshold = 10
+    MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
+    MSParameters.mass_spectrum.relative_abundance_threshold = 10
 
-    MSParameters.mass_spectrum.threshold_method = 'signal_noise'
-    MSParameters.mass_spectrum.s2n_threshold = 100
+    # MSParameters.mass_spectrum.threshold_method = 'signal_noise'
+    # MSParameters.mass_spectrum.s2n_threshold = 100
 
     #MSParameters.mass_spectrum.threshold_method = 'auto'
     #MSParameters.mass_spectrum.noise_threshold_std = 6
@@ -249,10 +250,10 @@ def test_import_mass_list():
 
 if __name__ == '__main__':
     
-    test_import_booster_mass_spectrum_hdf()
+    # test_import_booster_mass_spectrum_hdf()
     #test_import_booster_mass_spectra_hdf()
     #test_import_lcms_from_transient()
-    #test_import_transient()
+    test_import_transient()
     #test_import_corems_hdf5()
     #test_import_corems_mass_list()
     # test_import_mass_list()
