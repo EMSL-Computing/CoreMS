@@ -373,7 +373,7 @@ class MolecularFormulaSearchSettings:
     def __post_init__(self):
         
         
-        self.url_database = os.getenv("COREMS_DATABASE_URL", "sqlite://db/molformula.db")
+        self.url_database = os.getenv("COREMS_DATABASE_URL", "sqlite:///db/molformula.db")
         # enforce datatype
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
