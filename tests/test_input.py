@@ -214,14 +214,14 @@ def test_import_mass_list():
     #polarity need to be set or read from the file
     polarity = -1
 
-    MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
-    MSParameters.mass_spectrum.relative_abundance_threshold = 10
+    #MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
+    #MSParameters.mass_spectrum.relative_abundance_threshold = 30
 
     # MSParameters.mass_spectrum.threshold_method = 'signal_noise'
     # MSParameters.mass_spectrum.s2n_threshold = 100
 
-    #MSParameters.mass_spectrum.threshold_method = 'auto'
-    #MSParameters.mass_spectrum.noise_threshold_std = 6
+    MSParameters.mass_spectrum.threshold_method = 'auto'
+    MSParameters.mass_spectrum.noise_threshold_std = 32
 
     #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
     mass_list_reader = ReadMassList(file_location)
@@ -229,9 +229,11 @@ def test_import_mass_list():
     mass_spectrum = mass_list_reader.get_mass_spectrum(polarity, auto_process=True)
     
     print(mass_spectrum.baselise_noise, mass_spectrum.baselise_noise_std)
+    mass_spectrum.filter_by_noise_threshold()
+    print(len(mass_spectrum))
     #mass_spectrum.plot_mz_domain_profile()
     mass_spectrum.plot_profile_and_noise_threshold()
-    #pyplot.show()
+    pyplot.show()
     print(
         "number_average_molecular_weight",
         mass_spectrum.number_average_molecular_weight(),
@@ -253,10 +255,10 @@ if __name__ == '__main__':
     # test_import_booster_mass_spectrum_hdf()
     #test_import_booster_mass_spectra_hdf()
     #test_import_lcms_from_transient()
-    test_import_transient()
+    #test_import_transient()
     #test_import_corems_hdf5()
     #test_import_corems_mass_list()
-    # test_import_mass_list()
+    test_import_mass_list()
 
     #test_andi_netcdf_gcms()
 

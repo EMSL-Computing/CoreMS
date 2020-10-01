@@ -2,7 +2,7 @@ import time
 
 from numpy import where, average, std, isnan, inf, hstack, median
 from corems import chunks
-
+import warnings
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 27, 2019"
 

@@ -102,6 +102,8 @@ class FindOxygenPeaks(Thread):
         
         self.mass_spectrum_obj.reset_indexes()
 
+        self.mass_spectrum_obj.filter_by_noise_threshold()
+        
         print("Done with mass spectral peak series search")
 
         self.sql_db.close()

@@ -81,6 +81,8 @@ class OxygenPriorityAssignment(Thread):
             
             self.mass_spectrum_obj.reset_indexes()
 
+            self.mass_spectrum_obj.filter_by_noise_threshold()
+            
             #initial_ox = deepcopy(self.mass_spectrum_obj.molecular_search_settings.usedAtoms)
 
             self.mass_spectrum_obj.molecular_search_settings.usedAtoms['O'] = (min_o, max_o)

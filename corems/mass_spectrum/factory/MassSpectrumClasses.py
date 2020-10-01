@@ -191,8 +191,12 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         return array([mspeak.clear_molecular_formulas() for mspeak in self.mspeaks])
 
     def process_mass_spec(self, keep_profile=True, auto_noise=True, noise_bayes_est=False):
-
-        # from numpy import delete
+        
+        # if runned mannually make sure to rerun filter_by_noise_threshold     
+        # calculates noise threshold 
+        # do peak picking( create mspeak_objs) 
+        # reset mspeak_obj the indexes
+         
         self.cal_noise_threshold(auto=auto_noise, bayes=noise_bayes_est)
 
         self.find_peaks()
@@ -504,7 +508,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         
         self.check_mspeaks_warning()
         
-        indexes_to_remove = [index for index, mspeak in enumerate(self.mspeaks) if  mspeak.abundance >= threshold]
+        indexes_to_remove = [index for index, mspeak in enumerate(self.mspeaks) if  mspeak.abundance <= threshold]
         self.filter_by_index(indexes_to_remove)
 
     

@@ -188,6 +188,7 @@ class ImportLCMSThermoMSFileReader():
     def get_summed_mass_spectrum(self, initial_scan_number, final_scan_number=None,
                                  auto_process=True,pd_method=True,pd_merge_n=100): 
 
+        
         d_params = default_parameters(self.file_location)
 
         # assumes scans is full scan or reduced profile scan
