@@ -111,7 +111,7 @@ def test_import_transient():
     with ReadBrukerSolarix(file_location) as bruker_transient:
         
         MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
-        MSParameters.mass_spectrum.relative_abundance_threshold = 10
+        MSParameters.mass_spectrum.relative_abundance_threshold = 1
 
         #MSParameters.mass_spectrum.threshold_method = 'signal_noise'
         #MSParameters.mass_spectrum.s2n_threshold = 50
@@ -125,7 +125,11 @@ def test_import_transient():
 
         mass_spectrum_obj.plot_profile_and_noise_threshold()
         
-        # pyplot.show()
+        mass_spectrum_obj.filter_by_noise_threshold()
+
+        print(mass_spectrum_obj.get_noise_threshold())     
+        
+        pyplot.show()
 
         print(len(mass_spectrum_obj))
     
@@ -255,10 +259,10 @@ if __name__ == '__main__':
     # test_import_booster_mass_spectrum_hdf()
     #test_import_booster_mass_spectra_hdf()
     #test_import_lcms_from_transient()
-    #test_import_transient()
+    test_import_transient()
     #test_import_corems_hdf5()
     #test_import_corems_mass_list()
-    test_import_mass_list()
+    #test_import_mass_list()
 
     #test_andi_netcdf_gcms()
 
