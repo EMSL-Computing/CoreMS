@@ -62,7 +62,7 @@ def test_mz_domain_calibration():
     mass_spectrum = create_mass_spectrum()
 
     mass_spectrum.filter_by_noise_threshold()
-    
+
     MzDomainCalibration(mass_spectrum, ref_file_location).run()
 
 def test_old_calibration():
@@ -134,6 +134,6 @@ def test_import_ref_list():
 
 if __name__ == "__main__":
     
-    test_old_calibration()
-    #test_mz_domain_calibration()
+    #test_old_calibration()
+    test_mz_domain_calibration()
    

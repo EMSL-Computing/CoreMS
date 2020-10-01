@@ -280,10 +280,10 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     @mz_cal.setter
     def mz_cal(self, mz_cal_list):
 
-            if  len(mz_cal_list) == len(self._mspeaks):
+            if  len(mz_cal_list) == len(self.mspeaks):
                 self.is_calibrated = True
                 for index, mz_cal in enumerate(mz_cal_list):
-                    self._mspeaks[index].mz_cal = mz_cal
+                    self.mspeaks[index].mz_cal = mz_cal
             else: 
                 raise Exception( "calibrated array (%i) is not of the same size of the data (%i)" % (len(mz_cal_list),  len(self._mspeaks)))    
 
