@@ -26,7 +26,7 @@ class ReadAndiNetCDF(Thread):
 
 		self.file_location = file_location
 
-		self.net_cdf_obj = Dataset(file_location, "r+", format='NETCDF3_CLASSIC')
+		self.net_cdf_obj = Dataset(file_location, "r", format='NETCDF3_CLASSIC')
 
 		self.ionization_type = self.net_cdf_obj.test_ionization_mode
 
