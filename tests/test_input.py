@@ -129,7 +129,7 @@ def test_import_transient():
 
         print(mass_spectrum_obj.get_noise_threshold())     
         
-        pyplot.show()
+        # pyplot.show()
 
         print(len(mass_spectrum_obj))
     
@@ -237,7 +237,7 @@ def test_import_mass_list():
     print(len(mass_spectrum))
     #mass_spectrum.plot_mz_domain_profile()
     mass_spectrum.plot_profile_and_noise_threshold()
-    pyplot.show()
+    # pyplot.show()
     print(
         "number_average_molecular_weight",
         mass_spectrum.number_average_molecular_weight(),
