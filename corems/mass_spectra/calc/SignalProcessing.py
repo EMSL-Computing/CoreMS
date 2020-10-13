@@ -140,7 +140,7 @@ def peak_picking_first_derivative(domain, signal, max_height, max_prominence, ma
                         plt.plot(domain[closest_left: closest_right+1], signal[closest_left:closest_right+1], c='black')
                         plt.title(str((corrected_peak_height/max_signal)*100))
                         
-                        plt.show()
+                        # plt.show()
 
                     #if not closest_right <= apex_index:
                     #right_index.append(closest_right)

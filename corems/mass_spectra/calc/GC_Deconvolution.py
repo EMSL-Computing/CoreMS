@@ -450,7 +450,7 @@ class MassDeconvolution:
                 pass
         if plot_res:            
             plt.plot(self.retention_time, self._processed_tic, c='black')
-            plt.show()
+            # plt.show()
         
 
     

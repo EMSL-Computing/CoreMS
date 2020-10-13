@@ -38,13 +38,28 @@ class DataInputSetting:
                         "Res.":Labels.rp, 
                         "I":Labels.abundance,
                         "Abundance":Labels.abundance,
-                        "Signal/Noise":"S/N",
-                        "S/N":"S/N",
+                        "Signal/Noise":Labels.s2n,
+                        "S/N":Labels.s2n,
                         "mOz":Labels.mz,
                         "abs_abu":Labels.abundance,
-                        "sn":"S/N",
+                        "sn":Labels.s2n,
                         "resolution":Labels.rp}
 
+    def add_mz_label(self, label):
+        
+        self.header_translate[label] = Labels.mz
+
+    def add_peak_height_label(self, label):
+        
+        self.header_translate[label] = Labels.abundance
+
+    def add_sn_label(self, label):
+        
+        self.header_translate[label] = Labels.s2n
+
+    def add_resolving_power_label(self, label):
+        
+        self.header_translate[label] = Labels.rp
 
 @dataclasses.dataclass         
 class LiqChromatographSetting:
