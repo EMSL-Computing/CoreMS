@@ -79,7 +79,7 @@ class SearchMolecularFormulas:
             
         all_assigned_indexes = list()
 
-        molecular_search_settings = self.mass_spectrum_obj.molecular_search_settings
+        # molecular_search_settings = self.mass_spectrum_obj.molecular_search_settings
         
         search_molfrom = SearchMolecularFormulaWorker(find_isotopologues=self.find_isotopologues)
 
