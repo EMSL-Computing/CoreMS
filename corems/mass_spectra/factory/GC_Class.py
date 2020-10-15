@@ -4,6 +4,7 @@ __date__ = "Feb 13, 2020"
 
 from collections.abc import Mapping
 from pathlib import Path
+import json
 
 from numpy import array
 
@@ -391,6 +392,20 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
         
         return ax
+
+    def peaks_rt_tic(self, json_string=False):
+
+        peaks_list = dict()
+        for gcms_peak in self:
+
+            peaks_list[gcms_peak.rt] = (gcms_peak.rt_list, gcms_peak.tic_list)
+        
+        if json_string:
+            
+            return json.dumps(peaks_list)
+        
+        else:            
+            return peaks_list
 
     def plot_processed_chromatogram(self, ax=None, color="black"):
         

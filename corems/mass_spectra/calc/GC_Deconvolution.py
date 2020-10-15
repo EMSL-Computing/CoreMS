@@ -253,7 +253,7 @@ class MassDeconvolution:
 
     def deconvolution(self, peaks_entity_data, plot_res):
         
-        plot_res = True 
+        #plot_res = True 
         domain = self.retention_time
         signal = self._processed_tic
         max_height = self.chromatogram_settings.peak_height_max_percent
@@ -450,7 +450,7 @@ class MassDeconvolution:
                 pass
         if plot_res:            
             plt.plot(self.retention_time, self._processed_tic, c='black')
-            # plt.show()
+            plt.show()
         
 
     
