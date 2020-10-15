@@ -396,9 +396,10 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
     def peaks_rt_tic(self, json_string=False):
 
         peaks_list = dict()
+        
         for gcms_peak in self:
 
-            peaks_list[gcms_peak.rt] = (gcms_peak.rt_list, gcms_peak.tic_list)
+            peaks_list[gcms_peak.rt] = (list(gcms_peak.rt_list), list(gcms_peak.tic_list))
         
         if json_string:
             

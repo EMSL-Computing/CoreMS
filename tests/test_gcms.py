@@ -73,6 +73,10 @@ def run(args):
     
     gcms.calibrate_ri(ref_dict, cal_file_path)
     
+    print(gcms.peaks_rt_tic())
+
+    print(gcms.peaks_rt_tic(json_string=True))
+
     sql_obj = start_sql_from_file()
     lowResSearch = LowResMassSpectralMatch(gcms, sql_obj=sql_obj)
     # !!!!!! READ !!!!! use the previous two lines if db/pnnl_lowres_gcms_compounds.sqlite does not exist
@@ -93,6 +97,8 @@ def calibrate_and_search(out_put_file_name):
         file_path = Path.cwd() / "tests/tests_data/gcms/" / "GCMS_FAMES_01_GCMS-01_20191023.cdf"
         gcms = run((file_path, ref_dict, cal_file_path))
         
+        
+
         gcms.to_csv(out_put_file_name)
         gcms.to_excel(out_put_file_name, highest_score=False)
         gcms.to_pandas(out_put_file_name)
