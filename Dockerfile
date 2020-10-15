@@ -15,7 +15,7 @@ WORKDIR /home/corems
 
 COPY doc/notebooks/*.ipynb README.md disclaimer.txt requirements.txt SettingsCoreMS.json /home/corems/
 COPY doc/examples /home/corems/examples
-COPY tests/tests_data/ESI_NEG_SRFA.d /home/corems/ESI_NEG_SRFA.d
+
 
 RUN python3 -m pip install jupyter
 ENV TINI_VERSION v0.6.0
