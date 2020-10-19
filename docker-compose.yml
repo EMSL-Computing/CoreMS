@@ -9,6 +9,9 @@ services:
       POSTGRES_USER: coremsdb
       POSTGRES_PASSWORD: coremsmolform
     volumes:
-      - ./molformula-data:/var/lib/postgresql/data
+      - db-volume:/var/lib/postgresql/data
     ports:
       - 5432:5432
+
+volumes:
+  db-volume:
