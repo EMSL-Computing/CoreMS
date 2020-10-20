@@ -3,14 +3,11 @@ __date__ = "Feb 13, 2020"
 
 from pathlib import Path
 import numpy as np
-from pandas import Series, DataFrame
+from pandas import Series
 
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroidLowRes
-from corems.encapsulation.constant import Labels
-from corems.chroma_peak.factory.ChromaPeakClasses import GCPeak
-from corems.encapsulation.factory.parameters import default_parameters
 from corems.mass_spectra.calc import SignalProcessing as sp
-from matplotlib import pyplot as plt
+
 
 class GC_Calculations:
     

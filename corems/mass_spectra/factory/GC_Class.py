@@ -99,7 +99,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
                 
                 apex_index = i[1]
                 
-                gc_peak =  GCPeak( self._ms[apex_index], i )
+                gc_peak =  GCPeak(self, self._ms[apex_index], i )
                 
                 gc_peak.calc_area(self._processed_tic, 1)
 
