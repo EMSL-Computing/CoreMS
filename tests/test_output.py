@@ -76,7 +76,7 @@ def test_export_mass_spectrum():
     mass_spectrum.to_excel('NEG_ESI_SRFA_CoreMS')
     mass_spectrum.to_dataframe()
 
-    mass_spectrum.molecular_search_settings.score_method = "None"
+    mass_spectrum.molecular_search_settings.output_score_method = "prob_score"
     mass_spectrum.to_csv('NEG_ESI_SRFA_CoreMS_prob_score')
     
     mass_spectrum.to_json()

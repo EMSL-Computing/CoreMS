@@ -202,7 +202,11 @@ class CompoundSearchSettings:
 
     # calculates and export all spectral similarity methods
     exploratory_mode:bool = False
-  
+    
+    score_methods:tuple = ('highest_sim_score', 'highest_ss')
+    
+    output_score_method:str = 'highest_sim_score'
+
     def __post_init__(self):
         # enforce datatype
         self.url_database = os.getenv("SPECTRAL_GCMS_DATABASE_URL", 'sqlite:///db/pnnl_lowres_gcms_compounds.sqlite')

@@ -55,11 +55,11 @@ class LowResGCMSExport():
         
         return columns        
     
-    def get_pandas_df(self, highest_score=True, id_label="corems:"):
+    def get_pandas_df(self, id_label="corems:"):
 
         columns = self._init_columns()
         
-        dict_data_list = self.get_list_dict_data(self.gcms, highest_score=highest_score)
+        dict_data_list = self.get_list_dict_data(self.gcms)
         
         df = DataFrame(dict_data_list, columns=columns)
         
@@ -67,19 +67,19 @@ class LowResGCMSExport():
 
         return df
 
-    def get_json(self, nan=False, highest_score=True,  id_label="corems:"):
+    def get_json(self, nan=False, id_label="corems:"):
         
         import json
 
-        dict_data_list = self.get_list_dict_data(self.gcms, highest_score=highest_score)
+        dict_data_list = self.get_list_dict_data(self.gcms)
         
         return json.dumps(dict_data_list, sort_keys=False, indent=4, separators=(',', ': '))
 
-    def to_pandas(self, highest_score=True,  id_label="corems:"):
+    def to_pandas(self, id_label="corems:"):
         
         columns = self._init_columns() 
         
-        dict_data_list = self.get_list_dict_data(self.gcms, highest_score=highest_score)
+        dict_data_list = self.get_list_dict_data(self.gcms)
 
         df = DataFrame(dict_data_list, columns=columns)
 
@@ -87,13 +87,13 @@ class LowResGCMSExport():
         
         self.write_settings(self.output_file, self.gcms, id_label="corems:")
                
-    def to_excel(self, write_mode='a', highest_score=True,  id_label="corems:"):
+    def to_excel(self, write_mode='a', id_label="corems:"):
 
         out_put_path = self.output_file.with_suffix('.xlsx')
 
         columns = self._init_columns() 
         
-        dict_data_list = self.get_list_dict_data(self.gcms, highest_score=highest_score)
+        dict_data_list = self.get_list_dict_data(self.gcms)
 
         df = DataFrame(dict_data_list, columns=columns)
 
@@ -116,7 +116,7 @@ class LowResGCMSExport():
 
         self.write_settings(self.output_file, self.gcms, id_label="corems:")
 
-    def to_csv(self, highest_score=True, separate_output=False,  id_label="corems:") :
+    def to_csv(self, separate_output=False,  id_label="corems:") :
         
         if separate_output:
             # set write mode to write
@@ -128,7 +128,7 @@ class LowResGCMSExport():
         
         columns = self._init_columns() 
         
-        dict_data_list = self.get_list_dict_data(self.gcms, highest_score=highest_score)
+        dict_data_list = self.get_list_dict_data(self.gcms)
 
         out_put_path = self.output_file.with_suffix('.csv')
 
@@ -147,7 +147,7 @@ class LowResGCMSExport():
         except IOError as ioerror:
             print(ioerror)                 
     
-    def to_hdf(self, highest_score=False, id_label="corems:"):
+    def to_hdf(self, id_label="corems:"):
         
         # save sample at a time
         def add_compound(gc_peak, compound_obj):
@@ -200,10 +200,12 @@ class LowResGCMSExport():
             tic_dataset = hdf_handle.create_dataset('tic', data=np.array(self.gcms.tic), dtype="f8")            
             processed_tic_dataset = hdf_handle.create_dataset('processed_tic', data=np.array(self.gcms.processed_tic), dtype="f8")
 
+            output_score_method = self.gcms.molecular_search_settings.output_score_method
+
             for gc_peak in self.gcms:
 
-                print(gc_peak.rt)
-                print(gc_peak.tic)
+                # print(gc_peak.rt)
+                # print(gc_peak.tic)
                 
                 # check if there is a compound candidate 
                 peak_group = hdf_handle.create_group(str(gc_peak.rt))
@@ -222,11 +224,14 @@ class LowResGCMSExport():
 
                 if gc_peak:
 
-                    if highest_score:
-
+                    if output_score_method == 'highest_sim_score':
                         compound_obj = gc_peak.highest_score_compound
-                        add_compound(gc_peak, compound_obj)
-                        
+                        add_match_dict_data()
+
+                    elif output_score_method == 'highest_ss':
+                        compound_obj = gc_peak.highest_ss_compound
+                        add_match_dict_data()
+
                     else:
 
                         for compound_obj in gc_peak:
@@ -321,8 +326,10 @@ class LowResGCMSExport():
             output = self.get_parameters_json(gcms, id_label, output_path)
             outfile.write(output)
 
-    def get_list_dict_data(self, gcms, include_no_match=True, no_match_inline=False, highest_score=False) :
+    def get_list_dict_data(self, gcms, include_no_match=True, no_match_inline=False) :
 
+        output_score_method = gcms.molecular_search_settings.output_score_method
+        
         dict_data_list = []
 
         def add_match_dict_data():
@@ -372,8 +379,13 @@ class LowResGCMSExport():
             # check if there is a compound candidate 
             if gc_peak:
                 
-                if highest_score:
+                if output_score_method == 'highest_sim_score':
                     compound_obj = gc_peak.highest_score_compound
+                    add_match_dict_data()
+
+                elif output_score_method == 'highest_ss':
+                    
+                    compound_obj = gc_peak.highest_ss_compound
                     add_match_dict_data()
                     
                 else:

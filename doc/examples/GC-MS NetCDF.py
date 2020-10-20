@@ -119,8 +119,8 @@ def auto_calibrate_and_search(file_locations, output_file_name, jobs, calibratio
             pool.join()
             for gcms in gcmss:
                 
-                gcms.to_hdf(highest_score=False)
-                #gcms.to_csv(output_file_name, highest_score=False)
+                gcms.to_hdf()
+                #gcms.to_csv(output_file_name)
 
 
 def calibrate_and_search(out_put_file_name, jobs):
@@ -147,10 +147,10 @@ def calibrate_and_search(out_put_file_name, jobs):
             pool.join()
             for gcms in gcmss:
                 
-                gcms.to_csv(out_put_file_name, highest_score=False)
-                #gcms.to_excel(out_put_file_name, highest_score=False)
+                gcms.to_csv(out_put_file_name)
+                #gcms.to_excel(out_put_file_name)
                 #gcms.to_pandas(out_put_file_name)
-                gcms.to_hdf(highest_score=False)
+                gcms.to_hdf()
                 #df = gcms.get_dataframe()
                 #json_data = gcms.to_json()
                 

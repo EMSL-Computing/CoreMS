@@ -100,7 +100,7 @@ def calibrate_and_search(out_put_file_name):
         
 
         gcms.to_csv(out_put_file_name)
-        gcms.to_excel(out_put_file_name, highest_score=False)
+        gcms.to_excel(out_put_file_name)
         gcms.to_pandas(out_put_file_name)
         
         df = gcms.to_dataframe()
