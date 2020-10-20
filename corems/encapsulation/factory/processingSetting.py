@@ -345,6 +345,8 @@ class MolecularFormulaSearchSettings:
     
     score_method:str = 'prob_score'
 
+    output_score_method = "All Candidates"
+
     # depending on the polarity mode it looks for [M].+ , [M].-
     # query and automatically compile add entry if it doesn't exist
     

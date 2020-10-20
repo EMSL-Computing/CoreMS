@@ -385,7 +385,7 @@ class HighResMassSpecExport(Thread):
             dict_data_list.append(dict_result)
 
         score_methods = mass_spectrum.molecular_search_settings.score_methods
-        selected_score_method = mass_spectrum.molecular_search_settings.score_method
+        selected_score_method = mass_spectrum.molecular_search_settings.output_score_method
         
         if selected_score_method in score_methods:
 
