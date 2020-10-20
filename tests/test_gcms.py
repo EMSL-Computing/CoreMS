@@ -73,9 +73,9 @@ def run(args):
     
     gcms.calibrate_ri(ref_dict, cal_file_path)
     
-    print(gcms.peaks_rt_tic())
+    gcms.peaks_rt_tic()
 
-    print(gcms.peaks_rt_tic(json_string=True))
+    gcms.peaks_rt_tic(json_string=True)
 
     sql_obj = start_sql_from_file()
     lowResSearch = LowResMassSpectralMatch(gcms, sql_obj=sql_obj)
@@ -97,8 +97,6 @@ def calibrate_and_search(out_put_file_name):
         file_path = Path.cwd() / "tests/tests_data/gcms/" / "GCMS_FAMES_01_GCMS-01_20191023.cdf"
         gcms = run((file_path, ref_dict, cal_file_path))
         
-        
-
         gcms.to_csv(out_put_file_name)
         gcms.to_excel(out_put_file_name)
         gcms.to_pandas(out_put_file_name)
@@ -119,6 +117,10 @@ def calibrate_and_search(out_put_file_name):
         gcms.plot_baseline_subtraction()
 
         gcms.plot_detected_baseline()
+
+        gcms.chromatogram_settings.use_deconvolution = False
+        gcms.process_chromatogram()
+        
 
 def test_run_gcms_pipeline():
 
