@@ -27,7 +27,7 @@ if __name__ == "__main__":
     # MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
     # MSParameters.mass_spectrum.relative_abundance_threshold = 10
 
-    mass_spectrum = rawFileReader.ImportLCMSThermoMSFileReader(file_location).get_summed_mass_spectrum(2,2)
+    mass_spectrum = rawFileReader.ImportLCMSThermoMSFileReader(file_location).get_summed_mass_spectrum(2,10)
     print(mass_spectrum)
     mass_spectrum.plot_mz_domain_profile()
     # mass_spectrum.plot_profile_and_noise_threshold()

@@ -205,6 +205,20 @@ def test_import_corems_mass_list():
                 
                 print('mass_spectra', mf.string)                
 
+def test_import_thermo_profile_mass_list():
+
+    file_location = Path.cwd() / "tests/tests_data/" / "Thermo_Profile_MassList.txt" 
+    
+    mass_list_reader = ReadMassList(file_location, header_lines=7, isCentroid=False, isThermoProfile=True)
+
+    polarity = +1
+
+    mass_spectrum = mass_list_reader.get_mass_spectrum(polarity, auto_process=True, loadSettings=False)
+   
+    mass_spectrum.plot_profile_and_noise_threshold()
+    
+    pyplot.show()
+
 def test_import_mass_list():
 
     file_location = Path.cwd() / "tests/tests_data/" / "NEG_ESI_SRFA_CoreMS.xlsx"
@@ -259,7 +273,8 @@ if __name__ == '__main__':
     # test_import_booster_mass_spectrum_hdf()
     #test_import_booster_mass_spectra_hdf()
     #test_import_lcms_from_transient()
-    test_import_transient()
+    test_import_thermo_profile_mass_list()
+    #test_import_transient()
     #test_import_corems_hdf5()
     #test_import_corems_mass_list()
     #test_import_mass_list()

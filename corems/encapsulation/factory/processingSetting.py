@@ -34,13 +34,15 @@ class DataInputSetting:
     def __post_init__(self):
         
         self.header_translate = {'m/z': Labels.mz, 
+                        "mOz":Labels.mz,
+                        "Mass":Labels.mz,
                         "Resolving Power":"Resolving Power",
                         "Res.":Labels.rp, 
+                        "Intensity":Labels.abundance,
                         "I":Labels.abundance,
                         "Abundance":Labels.abundance,
                         "Signal/Noise":Labels.s2n,
                         "S/N":Labels.s2n,
-                        "mOz":Labels.mz,
                         "abs_abu":Labels.abundance,
                         "sn":Labels.s2n,
                         "resolution":Labels.rp}

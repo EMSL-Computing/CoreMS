@@ -100,17 +100,17 @@ class ReadMassList(MassListBaseClass):
         '''
         #delimiter = "  " or " " or  "," or "\t" etc  
         
-        dataframe = self.get_dataframe()
-        
-        self.check_columns(dataframe.columns)
-            
-        self.clean_data_frame(dataframe)
-        
-        dataframe.rename(columns=self.parameters.header_translate, inplace=True)
-        
-        output_parameters = self.get_output_parameters(polarity)
-
         if self.isCentroid:
+
+            dataframe = self.get_dataframe()
+        
+            self.check_columns(dataframe.columns)
+                
+            self.clean_data_frame(dataframe)
+            
+            dataframe.rename(columns=self.parameters.header_translate, inplace=True)
+            
+            output_parameters = self.get_output_parameters(polarity)
 
             mass_spec = MassSpecCentroid(dataframe.to_dict(orient='list'), output_parameters)
             
@@ -119,6 +119,16 @@ class ReadMassList(MassListBaseClass):
             return mass_spec
 
         else:
+
+            dataframe = self.get_dataframe()
+
+            self.check_columns(dataframe.columns)
+            
+            output_parameters = self.get_output_parameters(polarity)
+
+            self.clean_data_frame(dataframe)
+            
+            dataframe.rename(columns=self.parameters.header_translate, inplace=True)
 
             mass_spec = MassSpecProfile(dataframe.to_dict(orient='list'), output_parameters, auto_process=auto_process)
 
