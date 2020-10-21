@@ -204,7 +204,11 @@ class CompoundSearchSettings:
 
     # calculates and export all spectral similarity methods
     exploratory_mode:bool = False
-  
+    
+    score_methods:tuple = ('highest_sim_score', 'highest_ss')
+    
+    output_score_method:str = 'highest_sim_score'
+
     def __post_init__(self):
         # enforce datatype
         self.url_database = os.getenv("SPECTRAL_GCMS_DATABASE_URL", 'sqlite:///db/pnnl_lowres_gcms_compounds.sqlite')
@@ -346,6 +350,8 @@ class MolecularFormulaSearchSettings:
                      'air_filter_error', 'water_filter_error', 'earth_filter_error' )
     
     score_method:str = 'prob_score'
+
+    output_score_method:str = "All Candidates"
 
     # depending on the polarity mode it looks for [M].+ , [M].-
     # query and automatically compile add entry if it doesn't exist

@@ -10,12 +10,12 @@ class ChromaPeakBase():
     '''
     classdocs
     '''
-    def __init__(self, mass_spectrum_obj, start_index, index, final_index):
+    def __init__(self, chromatogram_parent, mass_spectrum_obj, start_index, index, final_index):
         
         self.start_index = start_index
         self.final_index = final_index
         self.index = int(index)
-
+        self.chromatogram_parent = chromatogram_parent
         self.mass_spectrum = mass_spectrum_obj
         'updated individual calculation'
         self._area = None
@@ -54,12 +54,20 @@ class ChromaPeakBase():
     def area(self):
         return self._area
 
+    @property
+    def rt_list(self):
+        return [self.chromatogram_parent.retention_time[i] for i in range(self.start_index, self.final_index+1) ]
+    
+    @property   
+    def tic_list(self):
+        return [self.chromatogram_parent.tic[i] for i in range(self.start_index, self.final_index+1) ]
+
 
 class GCPeak(ChromaPeakBase, GCPeakCalculation):
 
-    def __init__(self, mass_spectrum_obj, indexes):
+    def __init__(self, chromatogram_parent, mass_spectrum_obj, indexes):
     
-        super().__init__(mass_spectrum_obj, *indexes)
+        super().__init__(chromatogram_parent, mass_spectrum_obj, *indexes)
         
         self._ri = None
 
@@ -102,16 +110,22 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
 
 class GCPeakDeconvolved(GCPeak):
     
-    def __init__(self, mass_spectra, apex_index, rt_list, tic_list ):
+    def __init__(self, chromatogram_parent, mass_spectra, apex_index, rt_list, tic_list ):
         
         self._ri = None   
 
-        self.rt_list = rt_list
+        self._rt_list = rt_list
         
-        self.tic_list = tic_list
+        self._tic_list = tic_list
 
         self.mass_spectra = list(mass_spectra)
 
-        super().__init__(self.mass_spectra[apex_index], (0, apex_index, len(self.mass_spectra)-1))
+        super().__init__(chromatogram_parent, self.mass_spectra[apex_index], (0, apex_index, len(self.mass_spectra)-1))
+
+    @property
+    def rt_list(self):
+        return self._rt_list
     
-    
+    @property   
+    def tic_list(self):   
+        return self._tic_list

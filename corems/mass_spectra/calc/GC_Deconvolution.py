@@ -240,7 +240,7 @@ class MassDeconvolution:
 
                 mass_spectra = (self.mass_spec_factory(rt, datadict.get(rt)) for rt in rt_list)
                 
-                gc_peak =  GCPeakDeconvolved(mass_spectra, apex_i, rt_list, tic_list)
+                gc_peak =  GCPeakDeconvolved(self, mass_spectra, apex_i, rt_list, tic_list)
                 
                 gc_peak.calc_area(tic_list, 1)
                 

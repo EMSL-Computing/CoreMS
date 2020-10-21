@@ -37,6 +37,7 @@ class LossFinderTargeted(GC_Calculations):
         self.mz_count = sum([len(mz) for mz in mass_spectra_obj.values()])
 
         for scan_number, ms_obj in mass_spectra_obj.items():
+            
             mz_dict.update({scan_number:ms_obj.mz_exp})
             abund.update({scan_number:ms_obj.abundance})
         
