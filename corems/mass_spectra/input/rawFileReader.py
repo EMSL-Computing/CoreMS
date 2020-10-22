@@ -216,7 +216,7 @@ class ImportMassSpectraThermoMSFileReader():
 
         return mass_spec
 
-    def get_average_mass_spectrum_in_scan_range(self, first_scan:int=None, last_scan:int=None, auto_process:bool=True, ppm_tolerance:float=5.0, ms_type=MSOrderType.Ms2):
+    def get_average_mass_spectrum_in_scan_range(self, first_scan:int=None, last_scan:int=None, auto_process:bool=True, ppm_tolerance:float=5.0, ms_type=MSOrderType.Ms):
         
         firstScanNumber = self._initial_scan_number if first_scan == None else first_scan
 
