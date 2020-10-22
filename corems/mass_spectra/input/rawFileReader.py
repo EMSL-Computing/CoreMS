@@ -31,6 +31,7 @@ clr.AddReference("ThermoFisher.CommonCore.MassPrecisionEstimator")
 from ThermoFisher.CommonCore.RawFileReader import RawFileReaderAdapter
 from ThermoFisher.CommonCore.Data import ToleranceUnits, Extensions
 from ThermoFisher.CommonCore.Data.Business import MassOptions
+from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType 
 from System.Collections.Generic import List
 
 
@@ -215,7 +216,7 @@ class ImportMassSpectraThermoMSFileReader():
 
         return mass_spec
 
-    def get_average_mass_spectrum_in_scan_range(self, first_scan:int=None, last_scan:int=None, auto_process:bool=True, ppm_tolerance:float=5.0):
+    def get_average_mass_spectrum_in_scan_range(self, first_scan:int=None, last_scan:int=None, auto_process:bool=True, ppm_tolerance:float=5.0, ms_type=MSOrderType.Ms2):
         
         firstScanNumber = self._initial_scan_number if first_scan == None else first_scan
 
@@ -233,19 +234,25 @@ class ImportMassSpectraThermoMSFileReader():
             # scans within the given scan range of the same type
         scanFilter = self.iRawDataPlus.GetFilterForScanNumber(firstScanNumber)
 
+        # force it to only look for the MSType
+        scanFilter.MSOrder = ms_type
+
         averageScan = Extensions.AverageScansInScanRange(self.iRawDataPlus, firstScanNumber, lastScanNumber, scanFilter, options)
-
-        mz_list = list(averageScan.SegmentedScan.Positions)
-        abund_list = list(averageScan.SegmentedScan.Intensities)        
         
-        data_dict = {
-                    Labels.mz: mz_list,
-                    Labels.abundance: abund_list,
-                    } 
+        if averageScan:
+            mz_list = list(averageScan.SegmentedScan.Positions)
+            abund_list = list(averageScan.SegmentedScan.Intensities)        
+            
+            data_dict = {
+                        Labels.mz: mz_list,
+                        Labels.abundance: abund_list,
+                        } 
 
-        mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process)
+            mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process)
 
-        return mass_spec
+            return mass_spec
+        else:
+            raise Exception('no data found for the MSOrderType = {}'.format(ms_type) )    
     
     def get_summed_mass_spectrum(self, initial_scan_number, final_scan_number=None,
                                  auto_process=True,pd_method=True,pd_merge_n=100): 
