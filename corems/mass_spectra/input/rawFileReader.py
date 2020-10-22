@@ -20,14 +20,21 @@ import pandas as pd
 
 from tqdm import tqdm
 
-sys.path.append(site.getsitepackages()[0]+ "/ext_lib")
+# do not change the order from the imports statements and reference below 
+#sys.path.append(site.getsitepackages()[0]+ "/ext_lib")
+sys.path.append("ext_lib")
+
 clr.AddReference("ThermoFisher.CommonCore.RawFileReader")
+clr.AddReference("ThermoFisher.CommonCore.Data")
+clr.AddReference("ThermoFisher.CommonCore.MassPrecisionEstimator")
+
 from ThermoFisher.CommonCore.RawFileReader import RawFileReaderAdapter
+from ThermoFisher.CommonCore.Data import ToleranceUnits, Extensions
+from ThermoFisher.CommonCore.Data.Business import MassOptions
+from System.Collections.Generic import List
 
 
-
-
-class ImportLCMSThermoMSFileReader():
+class ImportMassSpectraThermoMSFileReader():
 
     """     Read FULL mode spectra only from raw file data and store it return a LC-MS class
     *  Default behavior is to load all scans numbers
@@ -43,8 +50,6 @@ class ImportLCMSThermoMSFileReader():
 
         self.res = self.iRawDataPlus.SelectInstrument(0, 1)
 
-        self.lcms = LCMSBase(file_location)
-
         self._initial_scan_number = self.iRawDataPlus.RunHeaderEx.FirstSpectrum
 
         self._final_scan_number = self.iRawDataPlus.RunHeaderEx.LastSpectrum
@@ -58,31 +63,6 @@ class ImportLCMSThermoMSFileReader():
     @property
     def final_scan_number(self):
         return self._final_scan_number
-
-    def run(self):
-        '''thread will automatically process mass spectrum
-        use the get_mass_spectra class to import without processing mass spectrum'''
-
-        d_parameters = default_parameters(self.file_location)
-        self._import_mass_spectra(d_parameters)
-
-        # return self.lcms
-
-    def get_mass_spectra(self, auto_process=True):
-
-        d_parameters = default_parameters(self.file_location)
-        self._import_mass_spectra(d_parameters, auto_process=auto_process)
-        return self.lcms
-
-    def check_load_success(self):
-        """ 0 if successful; otherwise, see Error Codes on MSFileReader Manual """
-        if self.res == 0:
-
-            self.break_it = False
-            return True
-        else:
-
-            raise ImportError(str(self.res))
 
     def get_filter_for_scan_num(self, scan_number):
         """Returns the closest matching run time that corresponds to scan_number for the current
@@ -176,15 +156,97 @@ class ImportLCMSThermoMSFileReader():
 
         return data_dict
 
-    def is_profile_scan_for_scan_num(self, scan_number):
+    def set_metadata(self, firstScanNumber=0, lastScanNumber=0, scans_list=False):
+    
+        d_params = default_parameters(self.file_location)
 
-        scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(
-            scan_number)
+        # assumes scans is full scan or reduced profile scan
 
-        isCentroid = scanStatistics.IsCentroidScan
+        d_params["label"] = Labels.thermo_profile
 
-        return bool(not isCentroid)
+        if scans_list:
+             d_params['scan_number'] = scans_list
+        
+             d_params["polarity"] = self.get_polarity_mode(scans_list[0])
 
+        else:    
+            
+            d_params['scan_number'] = "{}-{}".format(firstScanNumber, lastScanNumber)
+            
+            d_params["polarity"] = self.get_polarity_mode(firstScanNumber)
+        
+        d_params['analyzer'] = self.iRawDataPlus.GetInstrumentData().Model
+
+        d_params['instrument_label'] = self.iRawDataPlus.GetInstrumentData().Name
+
+        return d_params
+
+    def get_average_mass_spectrum_by_scanlist(self, scans_list, auto_process:bool=True, ppm_tolerance:float=5.0):
+        
+        d_params = self.set_metadata(scans_list=scans_list)
+
+        # assumes scans is full scan or reduced profile scan
+
+        scans = List[int]()
+        for scan in scans_list:
+            scans.Add(scan)
+        
+        # Create the mass options object that will be used when averaging the scans
+        options = MassOptions()
+        options.ToleranceUnits = ToleranceUnits.ppm
+        options.Tolerance = ppm_tolerance
+
+        # Get the scan filter for the first scan.  This scan filter will be used to located
+            # scans within the given scan range of the same type
+        
+        averageScan = Extensions.AverageScans(self.iRawDataPlus, scans, options)
+
+        len_data = averageScan.SegmentedScan.Positions.Length
+            
+        mz_list = list(averageScan.SegmentedScan.Positions)
+        abund_list = list(averageScan.SegmentedScan.Intensities)        
+        
+        data_dict = {
+                    Labels.mz: mz_list,
+                    Labels.abundance: abund_list,
+                    } 
+
+        mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process)
+
+        return mass_spec
+
+    def get_average_mass_spectrum_in_scan_range(self, first_scan:int=None, last_scan:int=None, auto_process:bool=True, ppm_tolerance:float=5.0):
+        
+        firstScanNumber = self._initial_scan_number if first_scan == None else first_scan
+
+        lastScanNumber = self._final_scan_number if last_scan == None else last_scan    
+        
+        d_params = self.set_metadata(firstScanNumber=firstScanNumber, lastScanNumber=lastScanNumber)
+        
+        # Create the mass options object that will be used when averaging the scans
+        options = MassOptions()
+
+        options.ToleranceUnits = ToleranceUnits.ppm
+        options.Tolerance = ppm_tolerance
+
+        # Get the scan filter for the first scan.  This scan filter will be used to located
+            # scans within the given scan range of the same type
+        scanFilter = self.iRawDataPlus.GetFilterForScanNumber(firstScanNumber)
+
+        averageScan = Extensions.AverageScansInScanRange(self.iRawDataPlus, firstScanNumber, lastScanNumber, scanFilter, options)
+
+        mz_list = list(averageScan.SegmentedScan.Positions)
+        abund_list = list(averageScan.SegmentedScan.Intensities)        
+        
+        data_dict = {
+                    Labels.mz: mz_list,
+                    Labels.abundance: abund_list,
+                    } 
+
+        mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process)
+
+        return mass_spec
+    
     def get_summed_mass_spectrum(self, initial_scan_number, final_scan_number=None,
                                  auto_process=True,pd_method=True,pd_merge_n=100): 
 
@@ -279,110 +341,6 @@ class ImportLCMSThermoMSFileReader():
         mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process)
 
         return mass_spec
-
-    def _import_mass_spectra(self, d_params, auto_process=True):
-
-            # if self.check_load_success():
-        """get number of scans"""
-
-        list_Tics = list()
-
-        list_RetentionTimeSeconds = list()
-
-        list_scans = list()
-
-        for scan_number in range(self.initial_scan_number, self.final_scan_number + 1):
-
-            "only import FULL scans it ignores all others"
-
-            scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(
-                scan_number)
-
-            d_params["label"] = Labels.thermo_profile
-
-            d_params["polarity"] = self.get_polarity_mode(scan_number)
-
-            d_params["rt"] = self.iRawDataPlus.RetentionTimeFromScanNumber(
-                scan_number)
-
-            d_params["scan_number"] = scan_number
-
-            list_RetentionTimeSeconds.append(d_params.get("rt"))
-
-            list_Tics.append(scanStatistics.TIC)
-
-            list_scans.append(scan_number)
-
-            if self.check_full_scan(scan_number):
-
-                data_dict = self.get_data(scan_number, d_params, "Profile")
-
-                print("loading profile scan number: ", scan_number)
-
-                mass_spec = MassSpecProfile(
-                    data_dict, d_params, auto_process=auto_process)
-
-                self.lcms.add_mass_spectrum(mass_spec)
-
-            else:
-
-                data_dict = self.get_data(scan_number, d_params, "Centroid")
-
-                print("loading centroid scan number: ", scan_number)
-
-                mass_spec = MassSpecCentroid(data_dict, d_params)
-
-                self.lcms.add_mass_spectrum(mass_spec)
-
-        #pool = multiprocessing.Pool(5)
-        #result = pool.starmap(MassSpecCentroid, results)
-        # for ms in result:
-        # self.lcms.add_mass_spectrum(ms)
-
-        self.lcms.retention_time(list_RetentionTimeSeconds)
-        self.lcms.tic = list_Tics
-        self.lcms.scans_number = list_scans
-
-    def get_lcms(self):
-        """get_lc_ms_class method should only be used when using this class as a Thread, 
-        otherwise use the run() method to return the LCMS class"""
-
-        if self.lcms.get(self._initial_scan_number):
-            return self.lcms
-        else:
-            self.run()
-
-            if self.lcms.get(self._initial_scan_number):
-
-                return self.lcms
-            else:
-                raise Exception("returning a empty LCMS class")
-
-    def get_tic(self,plot=False):
-        """
-        Reads the TIC values for each scan from the Thermo headers
-        Returns a pandas dataframe of Scans, TICs, and Times
-        (Optionally) plots the TIC chromatogram.
-        """
-        first_scan = self._initial_scan_number
-        final_scan = self._final_scan_number
-        scanrange = range(first_scan,final_scan+1)
-
-        ms_tic = pd.DataFrame(index=scanrange,columns=['TIC','Time'])
-        for scan in scanrange:
-            scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan)
-            ms_tic.loc[scan,'TIC'] = scanStatistics.TIC
-            ms_tic.loc[scan,'Time'] = scanStatistics.StartTime
-        
-        if plot:
-            import matplotlib.pyplot as plt #maybe better in top of file?
-            fig,ax = plt.subplots(figsize=(6,3))
-            ax.plot(ms_tic['Time'],ms_tic['TIC'])
-            ax.set_xlabel('Time (min)')
-            ax.set_ylabel('TIC')
-            # plt.show()
-            return ms_tic,fig
-        return ms_tic
 
     def get_best_scans_idx(self,stdevs=2,method='mean',plot=False):
         '''

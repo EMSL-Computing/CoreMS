@@ -15,7 +15,7 @@ import numpy
 __author__ = "Yuri E. Corilo"
 __date__ = "July 9, 2019"
 
-class ImportLCMSThermoMSFileReader(Thread):
+class ImportMassSpectraThermoMSFileReader(Thread):
     
     """     Read FULL and PROFILE (it ignores all other scans) raw file data and store it return a LCMS class
     *  Default behavior is to load all scans numbers
