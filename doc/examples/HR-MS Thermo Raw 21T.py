@@ -18,12 +18,13 @@ from corems.encapsulation.factory.parameters import MSParameters
 
 if __name__ == "__main__":
     
-    app = QApplication(sys.argv)
-    file_dialog = QFileDialog()
-    file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
-    file_location = file_dialog.getOpenFileName()[0]
-    app.quit()
+    #app = QApplication(sys.argv)
+    #file_dialog = QFileDialog()
+    #file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+    #file_location = file_dialog.getOpenFileName()[0]
+    #app.quit()
     
+    file_location = "tests/tests_data/SRFA_NEG_ESI_ORB.raw"
     # change parameters here
     MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
     MSParameters.mass_spectrum.relative_abundance_threshold = 1
@@ -45,5 +46,5 @@ if __name__ == "__main__":
     mass_spectrum.plot_profile_and_noise_threshold()
     
     #print("polarity", mass_spectrum.polarity)
-    plt.show()
+    plt.savefig("test.png")
    

@@ -158,7 +158,7 @@ class ImportMassSpectraThermoMSFileReader():
         return data_dict
 
     def set_metadata(self, firstScanNumber=0, lastScanNumber=0, scans_list=False):
-    
+
         d_params = default_parameters(self.file_location)
 
         # assumes scans is full scan or reduced profile scan
@@ -166,24 +166,24 @@ class ImportMassSpectraThermoMSFileReader():
         d_params["label"] = Labels.thermo_profile
 
         if scans_list:
-             d_params['scan_number'] = scans_list
-        
-             d_params["polarity"] = self.get_polarity_mode(scans_list[0])
+            d_params['scan_number'] = scans_list
 
-        else:    
-            
+            d_params["polarity"] = self.get_polarity_mode(scans_list[0])
+
+        else:
+
             d_params['scan_number'] = "{}-{}".format(firstScanNumber, lastScanNumber)
-            
+
             d_params["polarity"] = self.get_polarity_mode(firstScanNumber)
-        
+
         d_params['analyzer'] = self.iRawDataPlus.GetInstrumentData().Model
 
         d_params['instrument_label'] = self.iRawDataPlus.GetInstrumentData().Name
 
         return d_params
 
-    def get_average_mass_spectrum_by_scanlist(self, scans_list, auto_process:bool=True, ppm_tolerance:float=5.0):
-        
+    def get_average_mass_spectrum_by_scanlist(self, scans_list, auto_process: bool = True, ppm_tolerance: float = 5.0):
+
         d_params = self.set_metadata(scans_list=scans_list)
 
         # assumes scans is full scan or reduced profile scan
@@ -191,39 +191,39 @@ class ImportMassSpectraThermoMSFileReader():
         scans = List[int]()
         for scan in scans_list:
             scans.Add(scan)
-        
+
         # Create the mass options object that will be used when averaging the scans
         options = MassOptions()
         options.ToleranceUnits = ToleranceUnits.ppm
         options.Tolerance = ppm_tolerance
 
         # Get the scan filter for the first scan.  This scan filter will be used to located
-            # scans within the given scan range of the same type
-        
+        # scans within the given scan range of the same type
+
         averageScan = Extensions.AverageScans(self.iRawDataPlus, scans, options)
 
         len_data = averageScan.SegmentedScan.Positions.Length
-            
+
         mz_list = list(averageScan.SegmentedScan.Positions)
-        abund_list = list(averageScan.SegmentedScan.Intensities)        
-        
+        abund_list = list(averageScan.SegmentedScan.Intensities)
+
         data_dict = {
                     Labels.mz: mz_list,
                     Labels.abundance: abund_list,
-                    } 
+                }
 
         mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process)
 
         return mass_spec
 
-    def get_average_mass_spectrum_in_scan_range(self, first_scan:int=None, last_scan:int=None, auto_process:bool=True, ppm_tolerance:float=5.0, ms_type=MSOrderType.Ms):
-        
-        firstScanNumber = self._initial_scan_number if first_scan == None else first_scan
+    def get_average_mass_spectrum_in_scan_range(self, first_scan: int = None, last_scan: int = None, auto_process: bool = True, ppm_tolerance: float = 5.0, ms_type=MSOrderType.Ms):
 
-        lastScanNumber = self._final_scan_number if last_scan == None else last_scan    
-        
+        firstScanNumber = self._initial_scan_number if first_scan is None else first_scan
+
+        lastScanNumber = self._final_scan_number if last_scan is None else last_scan
+
         d_params = self.set_metadata(firstScanNumber=firstScanNumber, lastScanNumber=lastScanNumber)
-        
+
         # Create the mass options object that will be used when averaging the scans
         options = MassOptions()
 
@@ -231,33 +231,32 @@ class ImportMassSpectraThermoMSFileReader():
         options.Tolerance = ppm_tolerance
 
         # Get the scan filter for the first scan.  This scan filter will be used to located
-            # scans within the given scan range of the same type
+        # scans within the given scan range of the same type
         scanFilter = self.iRawDataPlus.GetFilterForScanNumber(firstScanNumber)
 
         # force it to only look for the MSType
         scanFilter.MSOrder = ms_type
 
         averageScan = Extensions.AverageScansInScanRange(self.iRawDataPlus, firstScanNumber, lastScanNumber, scanFilter, options)
-        
+
         if averageScan:
             mz_list = list(averageScan.SegmentedScan.Positions)
             abund_list = list(averageScan.SegmentedScan.Intensities)        
-            
+
             data_dict = {
                         Labels.mz: mz_list,
                         Labels.abundance: abund_list,
-                        } 
+                    }
 
             mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process)
 
             return mass_spec
         else:
-            raise Exception('no data found for the MSOrderType = {}'.format(ms_type) )    
-    
-    def get_summed_mass_spectrum(self, initial_scan_number, final_scan_number=None,
-                                 auto_process=True,pd_method=True,pd_merge_n=100): 
+            raise Exception('no data found for the MSOrderType = {}'.format(ms_type))
 
-        
+    def get_summed_mass_spectrum(self, initial_scan_number, final_scan_number=None,
+                                 auto_process=True, pd_method=True, pd_merge_n=100):
+
         d_params = default_parameters(self.file_location)
 
         # assumes scans is full scan or reduced profile scan
@@ -271,7 +270,7 @@ class ImportMassSpectraThermoMSFileReader():
         else:
             d_params["polarity"] = self.get_polarity_mode(initial_scan_number)
 
-            if final_scan_number == None:
+            if final_scan_number is None:
                 final_scan_number = self._final_scan_number
 
             scanrange = range(initial_scan_number, final_scan_number + 1)
@@ -287,35 +286,34 @@ class ImportMassSpectraThermoMSFileReader():
                 return df
 
             # initialise empty Pandas series
-            big_df = pd.Series(index=[],dtype='float64')
+            big_df = pd.Series(index=[], dtype='float64')
 
             for scan_number in tqdm(scanrange):
                 scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan_number)
                 segmentedScan = self.iRawDataPlus.GetSegmentedScanFromScanNumber(scan_number, scanStatistics)
-                
+
                 tmp_df = pd.Series(index=list(segmentedScan.Positions),
-                                    dtype='float64',data=list(segmentedScan.Intensities))
-                big_df = big_df.append(tmp_df) 
-                
-                #this allows you to merge/sum the values earlier, however it slows down a lot
-                #limited benefit unless running into memory issues
-                #for complex data it is necessary to stop the iterations getting too slow
-                if scan_number%pd_merge_n==0:
-                    big_df = sort_sum_df(big_df)    
+                                    dtype='float64', data=list(segmentedScan.Intensities))
+                big_df = big_df.append(tmp_df)
+
+                # this allows you to merge/sum the values earlier, however it slows down a lot
+                # limited benefit unless running into memory issues
+                # for complex data it is necessary to stop the iterations getting too slow
+                if scan_number % pd_merge_n == 0:
+                    big_df = sort_sum_df(big_df)
 
             big_df = sort_sum_df(big_df)
             data_dict = {
-                    Labels.mz: list(big_df.index.values),
-                    Labels.abundance: list(big_df.values),
-                }
-
+                        Labels.mz: list(big_df.index.values),
+                        Labels.abundance: list(big_df.values),
+                    }
         else:
             all_mz = dict()
 
             for scan_number in tqdm(scanrange):
-                
+
                 scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan_number)
-                
+
                 segmentedScan = self.iRawDataPlus.GetSegmentedScanFromScanNumber(scan_number, scanStatistics)
 
                 len_data = segmentedScan.Positions.Length
@@ -326,30 +324,29 @@ class ImportMassSpectraThermoMSFileReader():
                     abundance = segmentedScan.Intensities[i]
 
                     if mz in all_mz:
-                        all_mz[mz] = all_mz[mz] + abundance    
-                    else: 
+                        all_mz[mz] = all_mz[mz] + abundance
+                    else:
                         all_mz[mz] = abundance
 
             mz_all = []
             abun_all = []
 
-            for mz in sorted (all_mz) : 
+            for mz in sorted(all_mz):
                 mz_all.append(mz)
                 abun_all.append(all_mz[mz])
 
-
             data_dict = {
-                    Labels.mz: mz_all,
-                    Labels.abundance: abun_all,
-                }
+                        Labels.mz: mz_all,
+                        Labels.abundance: abun_all,
+                    }
 
         print('Summed. Now Processing.')
-        
+
         mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process)
 
         return mass_spec
 
-    def get_best_scans_idx(self,stdevs=2,method='mean',plot=False):
+    def get_best_scans_idx(self, stdevs=2, method='mean', plot=False):
         '''
         Method to determine the best scan indexes for selective co-addition
         Based on calculating the mean (default) of the TIC values
@@ -360,31 +357,27 @@ class ImportMassSpectraThermoMSFileReader():
         '''
         tic = self.get_tic()
 
-        if method=='median':
+        if method == 'median':
             tic_median = tic['TIC'].median()
-        elif method =='mean':
+        elif method == 'mean':
             tic_median = tic['TIC'].mean()
         else:
-            print("Method "+print(str(method))+" undefined")
+            print("Method " + str(method) + " undefined")
 
         tic_std = tic['TIC'].std()
 
-        upperlimit = tic_median-(stdevs*tic_std)
-        lowerlimit = tic_median+(stdevs*tic_std)
+        upperlimit = tic_median - (stdevs * tic_std)
+        lowerlimit = tic_median + (stdevs * tic_std)
 
-        tic_filtered = tic[(tic['TIC']>upperlimit)&
-                            (tic['TIC']<lowerlimit)]
+        tic_filtered = tic[(tic['TIC'] > upperlimit) & (tic['TIC'] < lowerlimit)]
         scans = list(tic_filtered.index.values)
 
         if plot:
             import matplotlib.pyplot as plt
-            fig,ax = plt.subplots(figsize=(8,4))
-            ax.plot(tic['Time'],tic['TIC'])
-            ax.axhline(y=upperlimit,c='r')
-            ax.axhline(y=lowerlimit,c='r')
+            fig, ax = plt.subplots(figsize=(8, 4))
+            ax.plot(tic['Time'], tic['TIC'])
+            ax.axhline(y=upperlimit, c='r')
+            ax.axhline(y=lowerlimit, c='r')
             return fig, scans
         else:
             return scans
-
-
-

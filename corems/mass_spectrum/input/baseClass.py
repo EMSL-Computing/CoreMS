@@ -12,7 +12,6 @@ from corems.encapsulation.factory.parameters import default_parameters
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.input.parameter_from_json import load_and_set_parameters_class, load_and_set_parameters_ms
 
-
 class MassListBaseClass:
     '''
     # The MassListBaseClass object reads mass list data types and returns the mass spectrum obj
