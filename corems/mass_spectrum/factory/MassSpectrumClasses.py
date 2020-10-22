@@ -764,6 +764,7 @@ class MassSpecProfile(MassSpecBase):
         # print(data_dict.keys())
         mz_exp = data_dict.get(Labels.mz)
         abundance = data_dict.get(Labels.abundance)
+        
         super().__init__(mz_exp, abundance, d_params)
 
         if auto_process:
