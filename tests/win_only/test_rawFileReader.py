@@ -237,7 +237,7 @@ def GetAverageSpectrum(rawFile, firstScanNumber:int, lastScanNumber:int, outputD
                 
                     for i in range(averageScan.CentroidScan.Length):
                         centroid_mz_list.append(averageScan.CentroidScan.Masses[i])
-                    
+                        averageScan.CentroidScan.Resolutions
                         abundance_mz_list.append(averageScan.CentroidScan.Intensities[i])
                         #print("  {}\t{}".format(averageScan.CentroidScan.Masses[i], averageScan.CentroidScan.Intensities[i]) )
 

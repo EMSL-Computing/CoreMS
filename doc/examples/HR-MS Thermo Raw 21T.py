@@ -26,7 +26,7 @@ if __name__ == "__main__":
     
     # change parameters here
     MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
-    # MSParameters.mass_spectrum.relative_abundance_threshold = 10
+    MSParameters.mass_spectrum.relative_abundance_threshold = 1
 
     # creates the parser obj
     parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
