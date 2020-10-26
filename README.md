@@ -49,6 +49,7 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 - Molecular Formula
 - Molecular Structure (`TODO`)
 
+---
 ## Available features
 
 ### Signal Processing
@@ -85,7 +86,8 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 - Prediction of mass error distribution
 - Calculated ICR Resolving Power based on magnetic field (B), and transient time(T)
 
-## CoreMS Installation
+---
+## CoreMS Installation 
     
 ```bash
 pip install corems
@@ -107,6 +109,7 @@ docker-compose up -d
 
     "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
 
+---
 ## Thermo Raw File Access:
 
 To be able to open thermo file a installation of pythonnet is needed:
@@ -121,9 +124,10 @@ To be able to open thermo file a installation of pythonnet is needed:
     pip install pythonnet   
     ```  
 
-Another option is to run the docker stack that will start the CoreMS containers:  
+---
+### Another option is to run the docker stack that will start the CoreMS containers:  
 
-
+---
 
 ## Molecular Database and Jupyter Notebook Containers
 
@@ -140,14 +144,16 @@ If you don't have docker installed, the easiest way is to [install docker for de
     
     - locate the volumes on corems_notebook:
 
+    ```bash
     volumes:
       - ./tests/tests_data:/home/CoreMS/data
-
+    ```
     - change "./tests/tests_data" to your data directory location
 
-        volumes:
-      - path_to_your_data_directory:/home/CoreMS/data
-
+    ```bash
+    volumes:
+      - path_to_your_data_directory:/home/corems/data
+    ```
     - then call:
     
     ```bash
@@ -173,9 +179,10 @@ If you don't have docker installed, the easiest way is to [install docker for de
 
     - Open the CoreMS-Tutorial.ipynb
 
+___
 ## Examples
 
-More examples can be found under the directory docs/example
+More examples can be found under the directory docs/example, docs/notebooks
 
 - Basic functionality example
 
