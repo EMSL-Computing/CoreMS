@@ -320,7 +320,7 @@ class MolecularFormulaSearchSettings:
 
     min_peaks_per_class:int = 15
 
-    url_database: str = "postgresql://coremsdb:coremsmolform@localhost:5432/molformula"
+    url_database: str = "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
 
     db_jobs:int = 3
 

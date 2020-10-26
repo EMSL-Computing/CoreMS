@@ -91,12 +91,23 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 pip install corems
 ```
 
-A external database is needed to run the molecular formula assignments workflow:  
+By default the molecular formula database will be generated using SQLite
+
+To use Postgresql the easiest way is to build a docker container:
+
 ```bash
 docker-compose up -d
 ```
--  Database url = "postgres://coremsdb:coremsmolform@localhost:5432/molformula"  
-    The database url is already set the default on the CoreMS parameter model class
+
+-  Change the url_database on MSParameters.molecular_search.url_database to:
+
+    "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
+
+-  Set the url_database env variable COREMS_DATABASE_URL to:
+
+    "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
+
+## Thermo Raw File Access:
 
 To be able to open thermo file a installation of pythonnet is needed:
 - Windows: 
@@ -108,10 +119,13 @@ To be able to open thermo file a installation of pythonnet is needed:
     ```bash
     brew install mono
     pip install pythonnet   
-    ```
- Another option is to run the docker stack that will start the CoreMS containers(see next section)
+    ```  
 
-## Molecular Database and Jupyter Notebook
+Another option is to run the docker stack that will start the CoreMS containers:  
+
+
+
+## Molecular Database and Jupyter Notebook Containers
 
 A docker container containing:
 - A custom python distribution will all dependencies installed
@@ -120,30 +134,44 @@ A docker container containing:
 
 If you don't have docker installed, the easiest way is to [install docker for desktop](https://hub.docker.com/?overlay=onboarding)
 
-- Start the containers from the latest built docker image (easiest way): 
+1. Start the containers using docker-compose (easiest way): 
 
+    On docker-compose-jupyter.yml there is a volume mapping for the tests_data directory with the data provided for testing, to change to your data location: 
+    
+    - locate the volumes on corems_notebook:
+
+    volumes:
+      - ./tests/tests_data:/home/CoreMS/data
+
+    - change "./tests/tests_data" to your data directory location
+
+        volumes:
+      - path_to_your_data_directory:/home/CoreMS/data
+
+    - then call:
+    
     ```bash
     docker-compose -f docker-compose-jupyter.yml up
     ```
 
-- Build a new image with current changes: 
+2. Another option is to manually build the containers: 
 
-    1) Build the corems image:
+    - Build the corems image:
         ```bash
         docker build -t corems:local .
         ```
-    2. Start the database container:
+    - Start the database container:
         ```bash
         docker-compose up -d   
         ```
-    3. Start the Jupyter Notebook:
+    - Start the Jupyter Notebook:
         ```bash
         docker run --rm -v ./data:/home/CoreMS/data corems:local
         ```
+    
+    - Open your browser, copy and past the URL address provided in the terminal: `http://localhost:8888/?token=<token>.`
 
-- Open your browser, copy and past the URL address provided in the terminal: `http://localhost:8888/?token=<token>.`
-
-- Open the CoreMS-Tutorial.ipynb
+    - Open the CoreMS-Tutorial.ipynb
 
 ## Examples
 
@@ -155,8 +183,9 @@ More examples can be found under the directory docs/example
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.mass_spectrum.output.export import HighResMassSpecExport
+from matplotlib import pyplot
 
-file_path= 'neg_esi_srfa_1ppm_test.d'
+file_path= 'tests/tests_data/ESI_NEG_SRFA.d'
 
 #Bruker Solarix class reader
 bruker_reader = ReadBrukerSolarix(file_path)
@@ -175,7 +204,7 @@ mass_spectrum_obj = bruker_transient_obj.get_mass_spectrum(plot_result=False, au
 # - search molecular formulas of correspondent calculated isotopologues,
 # - settings are stored at SearchConfig.json and can be changed directly on the file or inside the framework class
 
-SearchMolecularFormulas(first_hit=False).run_worker_mass_spectrum(mass_spectrum_obj)
+SearchMolecularFormulas(mass_spectrum_obj, first_hit=False).run_worker_mass_spectrum()
 
 # iterate over mass spectral peaks objs
 for mspeak in mass_spectrum_obj.sort_by_abundance():
@@ -211,11 +240,11 @@ for mspeak in mass_spectrum_obj.sort_by_abundance():
 #exporting data
 mass_spectrum_obj.to_csv("filename")
 
-mass_spectrum_obj.to_hdf5("filename")
+mass_spectrum_obj.to_hdf("filename")
 # save pandas Datarame to pickle
 mass_spectrum_obj.to_pandas("filename")
 # get pandas Dataframe
-df = mass_spectrum_obj.to_dataframe("filename")
+df = mass_spectrum_obj.to_dataframe()
 ```
 
 ## Disclaimer
