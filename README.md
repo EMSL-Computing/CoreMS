@@ -1,3 +1,15 @@
+# Table of Contents  
+[Introduction](#CoreMS)  
+[Version](##current-version)  
+[Data Input](##data-input-formats)  
+[Data Output](##data-output-formats)  
+[Data Structure](##data-structure-types)  
+[Features](##available-features)  
+[Installation](##corems-installation)  
+[Thermo Raw File on Mac and Linux](##thermo-raw-file-access)  
+[Jupyter Notebook and Docker containers](##molecular-database-and-jupyter-notebook-containers)  
+[Example](##molecular-database-and-jupyter-notebook-containers)  
+
 # CoreMS
 
 **CoreMS** is a comprehensive mass spectrometry framework for software development and data analysis of small molecules analysis.
