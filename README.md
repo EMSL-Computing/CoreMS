@@ -164,7 +164,7 @@ If you don't have docker installed, the easiest way is to [install docker for de
 
     On docker-compose-jupyter.yml there is a volume mapping for the tests_data directory with the data provided for testing, to change to your data location: 
     
-    - locate the volumes on corems_notebook:
+    - locate the volumes on docker-compose-jupyter.yml:
 
     ```bash
     volumes:
@@ -176,7 +176,7 @@ If you don't have docker installed, the easiest way is to [install docker for de
     volumes:
       - path_to_your_data_directory:/home/corems/data
     ```
-    - then call:
+    - save the file and then call:
     
     ```bash
     docker-compose -f docker-compose-jupyter.yml up
