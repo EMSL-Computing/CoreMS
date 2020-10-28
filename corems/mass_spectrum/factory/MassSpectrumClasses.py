@@ -209,7 +209,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
             self._abundance *= 0
             self._mz_exp *= 0
-            self._abundance *= 0
+            
 
     def cal_noise_threshold(self, auto=True, bayes=False):
 
@@ -762,13 +762,10 @@ class MassSpecProfile(MassSpecBase):
         method docs
         """
         # print(data_dict.keys())
-        mz_exp = data_dict.get(Labels.mz)
-        abundance = data_dict.get(Labels.abundance)
-        
-        super().__init__(mz_exp, abundance, d_params)
-
+        super().__init__(data_dict.get(Labels.mz), data_dict.get(Labels.abundance), d_params)
+       
         if auto_process:
-            self.process_mass_spec(auto_noise)
+            self.process_mass_spec(auto_noise=auto_noise)
 
 class MassSpecfromFreq(MassSpecBase):
     '''
