@@ -1,12 +1,12 @@
 # Table of Contents  
 - Introduction
   - [CoreMS](#CoreMS)  
-    [Current Version](#current-version)  
-    [Data Input](#data-input-formats)  
-    [Data Output](#data-output-formats)  
-    [Data Structure](#data-structure-types)  
-    [Features](#available-features)  
-    [Overview Slides](doc/CoreMS-Overview.pdf)
+  - [Current Version](#current-version)  
+  - [Data Input](#data-input-formats)  
+  - [Data Output](#data-output-formats)  
+  - [Data Structure](#data-structure-types)  
+  - [Features](#available-features)  
+  - [Overview Slides](doc/CoreMS-Overview.pdf)
 - Installation  
   - [Installation](#corems-installation)  
   - [Thermo Raw File on Mac and Linux](#thermo-raw-file-access)  
