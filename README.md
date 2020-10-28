@@ -16,6 +16,10 @@
   - [Python Examples](doc/examples)
   - [Jupyter Notebook Examples](doc/notebooks)  
 
+- Sibling Projects:     
+    - [EnviroMS](https://github.com/EMSL-Computing/EnviroMS)  
+    - [MetaMS](https://github.com/EMSL-Computing/MetaMS)  
+
 # CoreMS
 
 **CoreMS** is a comprehensive mass spectrometry framework for software development and data analysis of small molecules analysis.
