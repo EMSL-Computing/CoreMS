@@ -14,11 +14,11 @@ with open('requirements.txt') as f:
 # This call to setup() does all the work
 setup(
     name="CoreMS",
-    version="20.0.0.beta",
+    version="20.0.1.beta",
     description="Mass Spectrometry Framework for Small Molecules Analysis",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://gitlab.pnnl.gov/mass-spectrometry/corems/",
+    url="https://github.com/EMSL-Computing/CoreMS",
     author="Corilo, Yuri",
     author_email="corilo@pnnl.gov",
     classifiers=[
