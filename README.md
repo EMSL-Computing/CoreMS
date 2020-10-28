@@ -1,14 +1,18 @@
 # Table of Contents  
-[Introduction](#CoreMS)  
-[Version](##current-version)  
-[Data Input](##data-input-formats)  
-[Data Output](##data-output-formats)  
-[Data Structure](##data-structure-types)  
-[Features](##available-features)  
-[Installation](##corems-installation)  
-[Thermo Raw File on Mac and Linux](##thermo-raw-file-access)  
-[Jupyter Notebook and Docker containers](##molecular-database-and-jupyter-notebook-containers)  
-[Example](##molecular-database-and-jupyter-notebook-containers)  
+- Introduction
+  - [CoreMS](#CoreMS)  
+    [Current Version](##current-version)  
+    [Data Input](##data-input-formats)  
+    [Data Output](##data-output-formats)  
+    [Data Structure](##data-structure-types)  
+    [Features](##available-features)  
+- Installation  
+  - [Installation](##corems-installation)  
+  - [Thermo Raw File on Mac and Linux](##thermo-raw-file-access)  
+- Execution:     
+  - [Jupyter Notebook and Docker containers](##molecular-database-and-jupyter-notebook-containers)  
+  - [Example](##molecular-database-and-jupyter-notebook-containers)  
+
 
 # CoreMS
 
