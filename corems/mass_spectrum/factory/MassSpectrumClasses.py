@@ -757,7 +757,7 @@ class MassSpecProfile(MassSpecBase):
     see also: MassSpecBase(), MassSpecfromFreq(), MassSpecProfile()
     '''
 
-    def __init__(self, data_dict, d_params, auto_process=True, auto_noise=True, noise_bayes_est=True):
+    def __init__(self, data_dict, d_params, auto_process=True, auto_noise=True, noise_bayes_est=False):
         """
         method docs
         """
@@ -765,7 +765,7 @@ class MassSpecProfile(MassSpecBase):
         super().__init__(data_dict.get(Labels.mz), data_dict.get(Labels.abundance), d_params)
        
         if auto_process:
-            self.process_mass_spec(auto_noise=auto_noise)
+            self.process_mass_spec(auto_noise=auto_noise, noise_bayes_est=noise_bayes_est)
 
 class MassSpecfromFreq(MassSpecBase):
     '''
