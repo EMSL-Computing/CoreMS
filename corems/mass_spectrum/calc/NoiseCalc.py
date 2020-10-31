@@ -133,7 +133,11 @@ class NoiseThresholdCalc:
 
     def error_model_from_trace(self, trace, ymincentroid):
          
-         with pm.Model() as model2:
+        import pymc3 as pm
+        #from pymc3 import traceplot, plot_posterior
+        
+        with pm.Model() as model2:
+            
             sd = self.from_posterior('sd', trace['sd'])
             y = pm.HalfNormal('y', sd=sd, observed=ymincentroid)
             start = pm.find_MAP()
@@ -147,7 +151,7 @@ class NoiseThresholdCalc:
     def simple_model_error_dist(self,  ymincentroid):
         
         import pymc3 as pm
-        from pymc3 import traceplot, plot_posterior
+        # from pymc3 import traceplot, plot_posterior
         #import seaborn as sns
         #f, ax = pyplot.subplots(figsize=(6, 6))
         #sns.distplot(ymincentroid)
