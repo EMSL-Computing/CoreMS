@@ -111,10 +111,43 @@ class NoiseThresholdCalc:
 
         return mz_domain_low_Y_cutoff[comeco:final]
 
+    def from_posterior(self, param, samples):
+
+        import pymc3 as pm
+        import numpy as np
+        import theano.tensor as tt
+        from theano import as_op
+        from scipy.stats import gaussian_kde
+        
+        smin, smax = np.min(samples), np.max(samples)
+        width = smax - smin
+        x = np.linspace(smin, smax, 100)
+        y = gaussian_kde(samples)(x)
+        
+        # what was never sampled should have a small probability but not 0,
+        # so we'll extend the domain and use linear approximation of density on it
+        x = np.concatenate([[x[0] - 3 * width], x, [x[-1] + 3 * width]])
+        y = np.concatenate([[0], y, [0]])
+        
+        return pm.distributions.Interpolated(param, x, y)
+
+    def error_model_from_trace(self, trace, ymincentroid):
+         
+         with pm.Model() as model2:
+            sd = self.from_posterior('sd', trace['sd'])
+            y = pm.HalfNormal('y', sd=sd, observed=ymincentroid)
+            start = pm.find_MAP()
+            step = pm.NUTS() # Hamiltonian MCMC with No U-Turn Sampler
+            trace = pm.sample(1000, step, start, random_seed=123, progressbar=True, tune=1000)
+            pm.summary(trace)
+            #plot_posterior(trace)
+            #traceplot(trace)    
+            return pm.summary(trace)['mean'].values[0] 
+
     def simple_model_error_dist(self,  ymincentroid):
         
         import pymc3 as pm
-
+        from pymc3 import traceplot, plot_posterior
         #import seaborn as sns
         #f, ax = pyplot.subplots(figsize=(6, 6))
         #sns.distplot(ymincentroid)
@@ -137,8 +170,6 @@ class NoiseThresholdCalc:
             step = pm.NUTS() # Hamiltonian MCMC with No U-Turn Sampler
             trace = pm.sample(1000, step, start, random_seed=123, progressbar=True, tune=1000)
             
-            print(pm.summary(trace))
-
             return pm.summary(trace)['mean'].values[0] 
             
 
