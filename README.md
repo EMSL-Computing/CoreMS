@@ -74,14 +74,31 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 ---
 ## Available features
 
-### Signal Processing
+### FT-MS Signal Processing
 
 - Apodization, Zerofilling, and Magnitude mode FT
 - Manual and automatic noise threshold calculation
 - Peak picking using apex quadratic fitting
 - Experimental resolving power calculation
 
-### Calibration
+### GC-MS Signal Processing
+
+- Baseline detection, subtraction, smoothing 
+- m/z based Chromatogram Peak Deconvolution,
+- Manual and automatic noise threshold calculation
+- First and second derivatives peak picking methods
+- Peak Area Calculation
+
+### GC-MS Calibration
+
+- Retention Index Calibration
+
+### GC-MS Compound Identification
+
+- Automatic local (SQLite) or external (MongoDB or PostgreSQL) database check, generation, and search
+- Automatic molecular match algorithm with all spectral similarity methods 
+
+### FT-MS Calibration
 
 - Frequency and m/z domain calibration functions:
 - LedFord equation [ref]
@@ -90,7 +107,7 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 - Automatic search most abundant **Ox** homologue series
 - Step fit ('walking calibration") based on the LedFord equation [ref]
 
-### Molecular formulae search and assignment
+### FT-MS Molecular formulae search and assignment
 
 - Automatic local (SQLite) or external (PostgreSQL) database check, generation, and search
 - Automatic molecular formulae assignments algorithm for ESI(-) MS for natural organic matter analysis
@@ -100,7 +117,7 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 - Kendrick classification
 - Heteroatoms classification and visualization
 
-### Mass spectrum simulations
+### High Resolution Mass spectrum simulations
 
 - Peak shape (Lorentz,  Gaussian, Voigt, and pseudo-Voigt)
 - Peak fitting for peak shape definition
