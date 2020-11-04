@@ -168,8 +168,8 @@ class MolecularFormulaCalc:
         
         else:
             
-            # no isotopologue expected giving a correlation score of 0.5 but it needs optimization
-            correlation = 0.5
+            # no isotopologue expected giving a correlation score of 0.0 but it needs optimization
+            correlation = 0.0
 
         return correlation
 
