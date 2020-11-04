@@ -1,3 +1,4 @@
+import warnings
 warnings.filterwarnings("ignore")
 
 import sys
@@ -148,7 +149,7 @@ def calibrate_and_search(out_put_file_name, jobs):
                 
                 #print(out_put_file_name)
                 gcms.to_csv(out_put_file_name)
-                #gcms.to_excel(out_put_file_name)
+                gcms.to_excel(out_put_file_name)
                 #gcms.to_pandas(out_put_file_name)
                 gcms.to_hdf()
                 #df = gcms.get_dataframe()
