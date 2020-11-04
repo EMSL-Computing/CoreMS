@@ -121,21 +121,27 @@ class MolecularFormulaCalc:
             
             expected_isotopologues = mspeak[mformula_index].expected_isotopologues
             
+            mono_mz = mspeak[mformula_index].mz_calc
+            mono_abundance = mspeak.abundance
+
         else:
+
+            mono_mz = self.mz_calc
+            mono_abundance = self._mspeak_parent.abundance
 
             expected_isotopologues = self.expected_isotopologues
             # has isotopologues based on current dinamic range
             
         if expected_isotopologues:
             
-            dict_mz_abund_ref = {'mz':[], 'abundance':[]}
+            dict_mz_abund_ref = {'mz':[mono_mz], 'abundance':[mono_abundance]}
             
             # get reference data
             for mf in expected_isotopologues:
                 dict_mz_abund_ref['abundance'].append(mf.abundance_calc)
                 dict_mz_abund_ref['mz'].append(mf.mz_calc)
 
-            dict_mz_abund_exp = {}
+            dict_mz_abund_exp = {mono_mz:mono_abundance}
             
             # get experimental data
             for mf in expected_isotopologues:
@@ -149,7 +155,8 @@ class MolecularFormulaCalc:
                     # fill missing mz with abundance 0 and mz error score of 0
                     dict_mz_abund_exp[mf.mz_calc] = nextafter(0, 1)
             
-            correlation = SpectralSimilarity(dict_mz_abund_exp, dict_mz_abund_ref).manhattan_distance()
+            distance = SpectralSimilarity(dict_mz_abund_exp, dict_mz_abund_ref).manhattan_distance()
+            correlation = 1 - self.normalize_distance(distance, [0, 2])
             #correlation = dwt_correlation(dict_mz_abund_exp, dict_mz_abund_ref)
             #correlation = cosine_correlation(dict_mz_abund_exp, dict_mz_abund_ref)
             
@@ -165,6 +172,17 @@ class MolecularFormulaCalc:
             correlation = 0.5
 
         return correlation
+
+    def normalize_distance(self, dist, dist_range):
+    
+        result = (dist - dist_range[0]) / (dist_range[1] - dist_range[0])
+
+        if result < 0:
+            result = 0.
+        elif result > 1:
+            result = 1.
+
+        return result
 
     def _calc_confidence_score(self):
         
@@ -196,20 +214,21 @@ class MolecularFormulaCalc:
             # has isotopologues based on current dinamic range
         
         accumulated_mz_score = []
+        
         if expected_isotopologues:
             for mf in expected_isotopologues:
                 # molecular formula has been assigned to a peak
                 if mf._mspeak_parent:
                     #stores mspeak abundance
-                    accumulated_mz_score.append(mf._calc_mz_confidence())
+                    accumulated_mz_score.append(mf.mass_error_score)
                 else:
                     # fill missing mz with abundance 0 and mz error score of 0
                     accumulated_mz_score.append(0.0)
 
 
-        isotopologue_correlation = self._calc_isotopologue_confidence()
+        isotopologue_correlation = self.isotopologue_similarity
         # add monoisotopic peak mz error score
-        accumulated_mz_score.append(self._calc_mz_confidence())
+        accumulated_mz_score.append(self.mass_error_score)
             
         average_mz_score = sum(accumulated_mz_score)/len(accumulated_mz_score)
         
@@ -218,7 +237,7 @@ class MolecularFormulaCalc:
         
         # calculate score with higher weight for mass error
         #score = power(((isotopologue_correlation) * (power(average_mz_score,3))),1/4)
-        score = (isotopologue_correlation*0.3) + (average_mz_score*0.7)
+        score = (isotopologue_correlation*0.5) + (average_mz_score*0.5)
 
         return score
 

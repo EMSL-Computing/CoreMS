@@ -223,7 +223,7 @@ class MSPeakCalculation(object):
 
     def molecular_formula_highest_prob_score(self):
        
-       return min(self.molecular_formulas, key=lambda m: abs(m._calc_confidence_score()))
+       return max(self.molecular_formulas, key=lambda m: abs(m.confidence_score))
 
     def molecular_formula_earth_filter(self, lowest_error=True):
         

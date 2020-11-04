@@ -391,6 +391,8 @@ class HighResMassSpecExport(Thread):
 
             for index, ms_peak in enumerate(mass_spectrum):
                 
+                # print(ms_peak.mz_exp)
+                
                 if ms_peak:
                     
                     m_formula = ms_peak.best_molecular_formula_candidate
@@ -408,11 +410,11 @@ class HighResMassSpecExport(Thread):
                     if include_no_match and no_match_inline:
                         add_no_match_dict_data(index, ms_peak)
 
-                if include_no_match and not no_match_inline:
-                    
-                    for index, ms_peak in enumerate(mass_spectrum):
-                        if not ms_peak:
-                            add_no_match_dict_data(index, ms_peak)        
+            if include_no_match and not no_match_inline:
+                
+                for index, ms_peak in enumerate(mass_spectrum):
+                    if not ms_peak:
+                        add_no_match_dict_data(index, ms_peak)        
 
         else: 
             

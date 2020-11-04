@@ -1,4 +1,3 @@
-import warnings
 warnings.filterwarnings("ignore")
 
 import sys
@@ -120,8 +119,8 @@ def auto_calibrate_and_search(file_locations, output_file_name, jobs, calibratio
             for gcms in gcmss:
                 
                 gcms.to_hdf()
-                #gcms.to_csv(output_file_name)
-
+                gcms.to_csv(output_file_name)
+                #print(output_file_name)
 
 def calibrate_and_search(out_put_file_name, jobs):
     
@@ -147,6 +146,7 @@ def calibrate_and_search(out_put_file_name, jobs):
             pool.join()
             for gcms in gcmss:
                 
+                #print(out_put_file_name)
                 gcms.to_csv(out_put_file_name)
                 #gcms.to_excel(out_put_file_name)
                 #gcms.to_pandas(out_put_file_name)
@@ -200,9 +200,9 @@ if __name__ == '__main__':
     #import matplotlib
     #matplotlib.use('TkAgg')
     #%%
-    #cores = 8
-    #out_put_file_group_name = 'Deconvolution Test'
-    #calibrate_and_search(out_put_file_group_name, cores)
+    cores = 5
+    out_put_file_group_name = 'Group 1_Standards'
+    calibrate_and_search(out_put_file_group_name, cores)
     #start_sql_from_file()
     #auto_process(cores)
-    stand_alone()
+    #stand_alone()

@@ -27,7 +27,11 @@ class MolecularFormula(MolecularFormulaCalc):
 
         
         self._ion_charge = ion_charge
-        
+
+        self._confidence_score = None        
+        self._isotopologue_similarity = None
+        self._mass_error_score = None
+
         self.is_isotopologue = False
 
         # parent mass spectrum peak obj instance
@@ -178,13 +182,30 @@ class MolecularFormula(MolecularFormulaCalc):
     def atoms(self): return [key for key in self._d_molecular_formula.keys() if key != Labels.ion_type]
     
     @property
-    def confidence_score(self): return self._calc_confidence_score() 
+    def confidence_score(self): 
+        
+        if not self._confidence_score:
+            
+            self._confidence_score = self._calc_confidence_score() 
+        
+        return self._confidence_score
 
     @property
-    def isotopologue_similarity(self): return self._calc_isotopologue_confidence()    
+    def isotopologue_similarity(self): 
+        
+        if not self._isotopologue_similarity:
+           
+           self._isotopologue_similarity = self._calc_isotopologue_confidence()  
+       
+        return self._isotopologue_similarity
     
     @property
-    def mass_error_score(self): return self._calc_mz_confidence()
+    def mass_error_score(self): 
+        if not self._mass_error_score:
+           
+           self._mass_error_score = self._calc_mz_confidence()  
+        
+        return self._mass_error_score
     
     @property
     def kmd(self): return self._kdm
