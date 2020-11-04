@@ -207,7 +207,7 @@ class CompoundSearchSettings:
     
     score_methods:tuple = ('highest_sim_score', 'highest_ss')
     
-    output_score_method:str = 'highest_sim_score'
+    output_score_method:str = 'All'
 
     def __post_init__(self):
         # enforce datatype

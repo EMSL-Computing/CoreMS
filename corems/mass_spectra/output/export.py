@@ -10,6 +10,7 @@ from openpyxl import load_workbook
 from pandas import DataFrame, ExcelWriter, read_excel
 
 from corems.mass_spectrum.output.export import HighResMassSpecExport
+from corems.molecular_id.calc.SpectralSimilarity import methods_name
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.output import parameter_to_dict
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
@@ -48,9 +49,11 @@ class LowResGCMSExport():
                                 'Kendall Tau Correlation', 
                                 'Euclidean Distance',
                                 'Manhattan Distance',
-                                'Jaccard Similarity',
+                                'Jaccard Distance',
                                 'DWT Correlation',
                                 'DFT Correlation' ])
+
+                columns.extend(list(methods_name.values()))
                                                 
         
         return columns        
@@ -348,6 +351,7 @@ class LowResGCMSExport():
             }    
 
             if self.gcms.molecular_search_settings.exploratory_mode:
+                
                 out_dict.update({
                     'Weighted Cosine Correlation': compound_obj.spectral_similarity_scores.get("weighted_cosine_correlation"), 
                     'Cosine Correlation': compound_obj.spectral_similarity_scores.get("cosine_correlation"), 
@@ -355,12 +359,18 @@ class LowResGCMSExport():
                     'Pearson Correlation': compound_obj.spectral_similarity_scores.get("pearson_correlation"), 
                     'Spearman Correlation': compound_obj.spectral_similarity_scores.get("spearman_correlation"), 
                     'Kendall Tau Correlation': compound_obj.spectral_similarity_scores.get("kendall_tau_correlation"), 
-                    'Euclidean Distance': compound_obj.spectral_similarity_scores.get("euclidean_distance"), 
-                    'Manhattan Distance': compound_obj.spectral_similarity_scores.get("manhattan_distance"),
-                    'Jaccard Similarity': compound_obj.spectral_similarity_scores.get("jaccard_distance"),
                     'DFT Correlation': compound_obj.spectral_similarity_scores.get("dft_correlation"),
                     'DWT Correlation': compound_obj.spectral_similarity_scores.get("dwt_correlation"),
+                    'Euclidean Distance': compound_obj.spectral_similarity_scores.get("euclidean_distance"), 
+                    'Manhattan Distance': compound_obj.spectral_similarity_scores.get("manhattan_distance"),
+                    'Jaccard Distance': compound_obj.spectral_similarity_scores.get("jaccard_distance"),
                 })
+                
+                
+                for method in methods_name:
+                    
+                    out_dict[methods_name.get(method)] = compound_obj.spectral_similarity_scores.get(method)
+
         
             dict_data_list.append(out_dict)
         

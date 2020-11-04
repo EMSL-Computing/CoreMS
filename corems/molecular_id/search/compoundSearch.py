@@ -44,7 +44,7 @@ class LowResMassSpectralMatch(Thread):
             spectral_similarity_scores["jaccard_distance"] = spectral_simi.jaccard_distance()
             spectral_similarity_scores["dft_correlation"] = spectral_simi.dft_correlation()
             spectral_similarity_scores["dwt_correlation"] = spectral_simi.dwt_correlation()
-
+            spectral_similarity_scores.update(spectral_simi.extra_distances())
         #print(ref_obj.get('ri'), gc_peak.ri, self.gcms_obj.molecular_search_settings.ri_window)
 
         ri_score = exp( -1*(power((gc_peak.ri - ref_obj.get('ri')), 2 )  / (2 * power(self.gcms_obj.molecular_search_settings.ri_std, 2)) ))

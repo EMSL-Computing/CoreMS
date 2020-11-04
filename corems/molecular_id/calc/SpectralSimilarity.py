@@ -4,9 +4,85 @@ from pywt import dwt
 from scipy.spatial.distance import cosine, jaccard, euclidean, cityblock
 from scipy.stats import pearsonr, spearmanr, kendalltau
 from sklearn.metrics.pairwise import cosine_similarity
-from numpy import power, dot, absolute, subtract, intersect1d, where, average, corrcoef
+from numpy import power, dot, absolute, subtract, intersect1d, where, average, corrcoef, sqrt
+from numpy import sum as np_sum
 from numpy.linalg import norm
 from pandas import DataFrame
+import numpy as np
+
+
+methods_name = {
+    "entropy": "Entropy Distance",
+    "weighted_entropy": "Dynamic weighted entropy Distance",
+    "chebyshev": "Chebyshev Distance",
+    "squared_euclidean": "Squared Euclidean Distance",
+    "fidelity": "Fidelity Distance",
+    "matusita": "Matusita Distance",
+    "squared_chord": "Squared-chord Distance",
+    "bhattacharya_1": "Bhattacharya 1 Distance",
+    "bhattacharya_2": "Bhattacharya 2 Distance",
+    "harmonic_mean": "Harmonic mean Distance",
+    "probabilistic_symmetric_chi_squared": "Probabilistic symmetric χ2 Distance",
+    "topsoe": "Topsøe Distance",
+    "ruzicka": "Ruzicka Distance",
+    "roberts": "Roberts Distance",
+    "intersection": "Intersection Distance",
+    "motyka": "Motyka Distance",
+    "canberra": "Canberra Distance",
+    "baroni_urbani_buser": "Baroni-Urbani-Buser Distance",
+    "penrose_size": "Penrose size Distance",
+    "mean_character": "Mean character Distance",
+    "lorentzian": "Lorentzian Distance",
+    "penrose_shape": "Penrose shape Distance",
+    "clark": "Clark Distance",
+    "hellinger": "Hellinger Distance",
+    "whittaker_index_of_association": "Whittaker index of association Distance",
+    "symmetric_chi_squared": "Symmetric χ2 Distance",
+    "improved_similarity": "Improved Similarity",
+    "absolute_value": "Absolute Value Distance",
+    "spectral_contrast_angle": "Spectral Contrast Angle",
+    "wave_hedges": "Wave Hedges Distance",
+    "dice": "Dice Distance",
+    "divergence": "Divergence Distance",
+    "avg_l": "Avg (L1, L∞) Distance",
+    "vicis_symmetric_chi_squared_3": "Vicis-Symmetric χ2 3 Distance",
+    "ms_for_id_v1": "MSforID Distance version 1",
+    "ms_for_id": "MSforID Distance",
+}
+
+methods_scale = {
+    "entropy": [0, np.log(4)],
+    "weighted_entropy": [0, np.log(4)],
+    "absolute_value": [0, 2],
+    "avg_l": [0, 1.5],
+    "bhattacharya_1": [0, np.arccos(0) ** 2],
+    "bhattacharya_2": [0, np.inf],
+    "canberra": [0, np.inf],
+    "clark": [0, np.inf],
+    "divergence": [0, np.inf],
+    "euclidean": [0, np.sqrt(2)],
+    "hellinger": [0, np.inf],
+    "improved_similarity": [0, np.inf],
+    "lorentzian": [0, np.inf],
+    "manhattan": [0, 2],
+    "matusita": [0, np.sqrt(2)],
+    "mean_character": [0, 2],
+    "motyka": [-0.5, 0],
+    "ms_for_id": [-np.inf, 0],
+    "ms_for_id_v1": [0, np.inf],
+    "pearson_correlation": [-1, 1],
+    "penrose_shape": [0, np.sqrt(2)],
+    "penrose_size": [0, np.inf],
+    "probabilistic_symmetric_chi_squared": [0, 1],
+    "similarity_index": [0, np.inf],
+    "squared_chord": [0, 2],
+    "squared_euclidean": [0, 2],
+    "symmetric_chi_squared": [0, 0.5 * np.sqrt(2)],
+    "topsoe": [0, np.sqrt(2)],
+    "vicis_symmetric_chi_squared_3": [0, 2],
+    "wave_hedges": [0, np.inf],
+    "whittaker_index_of_association": [0, np.inf]
+}
 
 class SpectralSimilarity():
 
@@ -33,7 +109,7 @@ class SpectralSimilarity():
         x = df.T[0].values
         y = df.T[1].values
         
-        self.zero_filled_u_l = (x,y)
+        self.zero_filled_u_l = (x/sum(x),y/sum(y))
 
         # filter out the mass values that have zero intensities in self.exp_abun
         exp_mz_filtered = set([k for k in self.exp_mz if self.ms_mz_abun_dict[k] != 0])
@@ -144,7 +220,6 @@ class SpectralSimilarity():
         s_ss_x_y = ( (n_x * s_wc_x_y) + (self.n_x_y * s_r_x_y) )/ (n_x + self.n_x_y)
     
         return s_ss_x_y
-    
 
     def pearson_correlation(self,):
 
@@ -172,33 +247,6 @@ class SpectralSimilarity():
 
         return correlation[0]
 
-    def euclidean_distance(self):
-
-        def euclidean_distance_manual(qlist,rlist):
-
-            T1=sum(subtract(qlist,rlist)**2)
-
-            T2=sum((qlist)**2)
-
-            return (1+T1/T2)**(-1)
-        
-        correlation = euclidean_distance_manual(self.zero_filled_u_l[0], self.zero_filled_u_l[1])
-        return correlation
-
-    def manhattan_distance(self):
-        
-        def mann_distance_manual(qlist,rlist):
-        
-            T1=sum(absolute(subtract(qlist,rlist)))
-            T2=sum(qlist)
-            return (1+T1/T2)**(-1)
-
-        # calculate manhattan correlation
-        #correlation = cityblock(df.T[0], df.T[1])
-        correlation = mann_distance_manual(self.zero_filled_u_l[0], self.zero_filled_u_l[1])
-        
-        return correlation
-
     def dft_correlation(self):
 
         if self.n_x_y == 0: return 0
@@ -223,17 +271,6 @@ class SpectralSimilarity():
         s_dft = (n_x * s_wc_x_y + self.n_x_y * s_dft_xy) / (n_x + self.n_x_y)
 
         return s_dft
-
-    def jaccard_distance(self):
-        
-        def jaccard_similarity(list1, list2):
-            intersection = len(list(set(list1).intersection(list2)))
-            union = (len(list1) + len(list2)) - intersection
-            return float(intersection) / union
-        
-       
-        correlation = jaccard_similarity(self.zero_filled_u_l[0], self.zero_filled_u_l[1])
-        return correlation
 
     def dwt_correlation(self):
         
@@ -264,3 +301,50 @@ class SpectralSimilarity():
         s_dwt = (n_x * s_wc_x_y + self.n_x_y * s_dwt_xy) / (n_x + self.n_x_y)
 
         return s_dwt
+
+    def euclidean_distance(self):
+
+        #correlation = euclidean_distance_manual(self.zero_filled_u_l[0], self.zero_filled_u_l[1])
+        qlist = self.zero_filled_u_l[0]
+        rlist = self.zero_filled_u_l[1]
+
+        correlation = sqrt(np_sum(power(qlist - rlist, 2)))
+        
+        return correlation
+
+    def manhattan_distance(self):
+        
+        qlist = self.zero_filled_u_l[0]
+        rlist = self.zero_filled_u_l[1]
+
+        return np_sum(absolute(qlist - rlist))
+    
+    def jaccard_distance(self):
+        
+        def jaccard_similarity(list1, list2):
+            
+            intersection = len(list(set(list1).intersection(list2)))
+            union = (len(list1) + len(list2)) - intersection
+            return float(intersection) / union
+        
+        qlist = self.zero_filled_u_l[0]
+        rlist = self.zero_filled_u_l[1]
+        return np_sum(power(qlist - rlist, 2)) / (np_sum(power(qlist, 2)) + np_sum(power(rlist, 2)) - np_sum(qlist * rlist))
+        #correlation = jaccard_similarity(self.zero_filled_u_l[0], self.zero_filled_u_l[1])
+        #@return correlation
+    
+    def extra_distances(self):
+        from corems.molecular_id.calc import math_distance
+
+        qlist = self.zero_filled_u_l[0]
+        rlist = self.zero_filled_u_l[1]
+        
+        dict_res = {}
+        for method in methods_name:
+            function_name = method + "_distance"
+            if hasattr(math_distance, function_name):
+                f = getattr(math_distance, function_name)
+                dist = f(qlist, rlist)
+                dict_res[method] = dist
+
+        return dict_res
