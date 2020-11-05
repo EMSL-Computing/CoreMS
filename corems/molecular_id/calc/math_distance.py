@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.stats
-"exploratory module based on  Yuanyue Li code at 
-"TODO add GitHub and Paper here"
+'''exploratory module based on  Yuanyue Li code at 
+TODO add GitHub and Paper here'''
 
 def entropy_distance(p, q):
     merged = p + q
