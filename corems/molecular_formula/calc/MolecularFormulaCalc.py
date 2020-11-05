@@ -184,6 +184,44 @@ class MolecularFormulaCalc:
 
         return result
 
+    def _calc_average_mz_score(self):
+        
+        if self.is_isotopologue:
+            # confidence of isotopologue is pure mz error 
+            # TODO add more features here 
+            
+            mformula_index = self.mono_isotopic_formula_index
+            mspeak_index = self.mspeak_index_mono_isotopic
+
+            mspeak = self._mspeak_parent._ms_parent[mspeak_index]
+            
+            expected_isotopologues = mspeak[mformula_index].expected_isotopologues
+
+        else:
+            
+            expected_isotopologues = self.expected_isotopologues
+            # has isotopologues based on current dinamic range
+        
+        accumulated_mz_score = [self.mz_error_score]
+        
+        if expected_isotopologues:
+            
+            for mf in expected_isotopologues:
+                # molecular formula has been assigned to a peak
+                if mf._mspeak_parent:
+                    #stores mspeak abundance
+                    accumulated_mz_score.append(mf.mz_error_score)
+                else:
+                    # fill missing mz with abundance 0 and mz error score of 0
+                    accumulated_mz_score.append(0.0)
+
+        average_mz_score = sum(accumulated_mz_score)/len(accumulated_mz_score)
+        
+        if isnan(average_mz_score):
+                average_mz_score = 0.0
+
+        return average_mz_score       
+
     def _calc_confidence_score(self):
         
         '''
@@ -198,42 +236,10 @@ class MolecularFormulaCalc:
         ####    Standart deviation calculated from Resolving power optimization or constant set by User 
         
         '''
-        if self.is_isotopologue:
-            # confidence of isotopologue is pure mz error 
-            # TODO add more features here 
-            
-            mformula_index = self.mono_isotopic_formula_index
-            mspeak_index = self.mspeak_index_mono_isotopic
-
-            mspeak = self._mspeak_parent._ms_parent[mspeak_index]
-            
-            expected_isotopologues = mspeak[mformula_index].expected_isotopologues
-
-        else:
-            expected_isotopologues = self.expected_isotopologues
-            # has isotopologues based on current dinamic range
         
-        accumulated_mz_score = []
-        
-        if expected_isotopologues:
-            for mf in expected_isotopologues:
-                # molecular formula has been assigned to a peak
-                if mf._mspeak_parent:
-                    #stores mspeak abundance
-                    accumulated_mz_score.append(mf.mass_error_score)
-                else:
-                    # fill missing mz with abundance 0 and mz error score of 0
-                    accumulated_mz_score.append(0.0)
-
-
         isotopologue_correlation = self.isotopologue_similarity
+        average_mz_score = self.average_mz_error_score
         # add monoisotopic peak mz error score
-        accumulated_mz_score.append(self.mass_error_score)
-            
-        average_mz_score = sum(accumulated_mz_score)/len(accumulated_mz_score)
-        
-        if isnan(average_mz_score):
-                average_mz_score = 0.0
         
         # calculate score with higher weight for mass error
         #score = power(((isotopologue_correlation) * (power(average_mz_score,3))),1/4)
@@ -241,6 +247,10 @@ class MolecularFormulaCalc:
         b = self._mspeak_parent._ms_parent.molecular_search_settings.isotopologue_score_weight
         
         score = (isotopologue_correlation*b) + (average_mz_score*a)
+        
+        #if round(average_mz_score,2) == 0.00:
+        #    print(a,b, average_mz_score, isotopologue_correlation, score, isotopologue_correlation*b)
+        
 
         return score
 

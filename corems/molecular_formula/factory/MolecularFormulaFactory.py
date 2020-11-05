@@ -30,7 +30,8 @@ class MolecularFormula(MolecularFormulaCalc):
 
         self._confidence_score = None        
         self._isotopologue_similarity = None
-        self._mass_error_score = None
+        self._mz_error_score = None
+        self._mass_error_average_score = None
 
         self.is_isotopologue = False
 
@@ -184,28 +185,39 @@ class MolecularFormula(MolecularFormulaCalc):
     @property
     def confidence_score(self): 
         
-        #if not self._confidence_score:
+        if not self._confidence_score:
             
-            #self._confidence_score = self._calc_confidence_score() 
+            self._confidence_score = self._calc_confidence_score() 
         
-        return self._calc_confidence_score() 
+        return self._confidence_score
 
     @property
     def isotopologue_similarity(self): 
         
-        #if not self._isotopologue_similarity:
+        if not self._isotopologue_similarity:
            
-        #   self._isotopologue_similarity = self._calc_isotopologue_confidence()  
+           self._isotopologue_similarity = self._calc_isotopologue_confidence()  
        
-        return self._calc_isotopologue_confidence()  
+        return self._isotopologue_similarity  
     
     @property
-    def mass_error_score(self): 
-        # if not self._mass_error_score:
-           
-        #   self._mass_error_score = self._calc_mz_confidence()  
+    def average_mz_error_score(self): 
         
-        return self._calc_mz_confidence()
+        ''' includes the isotopologues'''
+        
+        if not self._mass_error_average_score:
+           
+           self._mass_error_average_score = self._calc_average_mz_score()  
+        
+        return self._mass_error_average_score
+
+    @property
+    def mz_error_score(self): 
+        if not self._mz_error_score:
+           
+           self._mz_error_score = self._calc_mz_confidence()  
+        
+        return self._mz_error_score
     
     @property
     def kmd(self): return self._kdm

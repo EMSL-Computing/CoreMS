@@ -154,7 +154,7 @@ class MzDomainCalibration:
 
     def robust_calib(self, param, imzmeas, mzrefs, mass_spectrum, order=1):
         """
-        computes the rms of mass errors to minimize when calibrating
+        computes the rms of m/z errors to minimize when calibrating
         This is adapted from from spike
 
         Parameters

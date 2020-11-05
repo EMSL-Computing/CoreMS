@@ -1,5 +1,5 @@
 __author__ = 'Yuri E. Corilo'
-__version__ = '21.0.3.beta'
+__version__ = '21.0.4.beta'
 __doc__ = '''
 CoreMS - a powerful framework for mass spectrometry data processing and analysis of small molecules
 =====================================================================
@@ -75,7 +75,7 @@ Here are just a few of the things that CoreMS does well:
         Mass spectrum simulations
 
         - Peak shape (Lorentz and Gaussian)
-        - Mass error distribution
+        - m/z error distribution
         - ICR Resolving Power based on magnetic field (B), and transient time(T)
 '''
 import time
