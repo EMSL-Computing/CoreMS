@@ -237,7 +237,10 @@ class MolecularFormulaCalc:
         
         # calculate score with higher weight for mass error
         #score = power(((isotopologue_correlation) * (power(average_mz_score,3))),1/4)
-        score = (isotopologue_correlation*0.5) + (average_mz_score*0.5)
+        a = self._mspeak_parent._ms_parent.molecular_search_settings.mz_error_score_weight
+        b = self._mspeak_parent._ms_parent.molecular_search_settings.isotopologue_score_weight
+        
+        score = (isotopologue_correlation*b) + (average_mz_score*a)
 
         return score
 

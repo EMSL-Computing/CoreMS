@@ -341,6 +341,10 @@ class MolecularFormulaSearchSettings:
 
     max_dbe:float = 40
 
+    mz_error_score_weight: float = 0.4
+    
+    isotopologue_score_weight: float = 0.6
+
     # look for close shell ions [M + Adduct]+ only considers metal set in the list adduct_atoms  
     adduct_atoms_neg:tuple = ('Cl', 'Br')
     
