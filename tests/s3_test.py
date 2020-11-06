@@ -1,8 +1,11 @@
+import sys
 import boto3
 from botocore.client import Config
 from s3path import PureS3Path, register_configuration_parameter, S3Path
 import os
 from minio import Minio
+
+sys.path.append(".")
 
 def s3_init():
 
