@@ -49,8 +49,8 @@ def run_assignment(file_location):
     mass_spectrum = get_masslist(file_location)
 
     mass_spectrum.molecular_search_settings.error_method = 'None'
-    mass_spectrum.molecular_search_settings.min_ppm_error  = -1
-    mass_spectrum.molecular_search_settings.max_ppm_error = 1
+    mass_spectrum.molecular_search_settings.min_ppm_error  = -5
+    mass_spectrum.molecular_search_settings.max_ppm_error = 5
 
     # mass_spectrum.molecular_search_settings.url_database = "postgres://coremsdb:coremsmolform@localhost:5432/molformula"
     mass_spectrum.molecular_search_settings.min_dbe = 0
@@ -72,15 +72,18 @@ def run_assignment(file_location):
     #mass_spectrum.filter_by_max_resolving_power(15, 2)
     SearchMolecularFormulas(mass_spectrum, first_hit=False).run_worker_mass_spectrum()
     mass_spectrum.percentile_assigned(report_error=True)
+    mass_spectrum.molecular_search_settings.score_method = "prob_score"
+    mass_spectrum.molecular_search_settings.output_score_method = "prob_score"
     
     mass_spectrum.to_csv("15T_Neg_ESI_SRFA")
     
-    export_calc_isotopologues(mass_spectrum, "15T_Neg_ESI_SRFA_Calc_Isotopologues")
+    #export_calc_isotopologues(mass_spectrum, "15T_Neg_ESI_SRFA_Calc_Isotopologues")
     
     mass_spectrum_by_classes = HeteroatomsClassification(mass_spectrum, choose_molecular_formula=True)
-    mass_spectrum_by_classes.plot_ms_assigned_unassigned()
-    
-    #plt.show()
+    #mass_spectrum_by_classes.plot_ms_assigned_unassigned()
+    mass_spectrum_by_classes.plot_mz_error()
+
+    plt.show()
     # dataframe = mass_spectrum_by_classes.to_dataframe()
     return (mass_spectrum, mass_spectrum_by_classes)
     

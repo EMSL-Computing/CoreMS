@@ -7,8 +7,8 @@ sys.path.append("./")
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-from PySide2.QtWidgets import QFileDialog, QApplication
-from PySide2.QtCore import Qt
+#from PySide2.QtWidgets import QFileDialog, QApplication
+#from PySide2.QtCore import Qt
 
 from corems.mass_spectra.input import rawFileReader
 from corems.molecular_id.factory.classification import HeteroatomsClassification, Labels
