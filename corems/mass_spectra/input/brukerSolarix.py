@@ -17,15 +17,24 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
     
     def __init__(self, d_directory_location, analyzer='ICR', instrument_label='15T', 
                        auto_process=True, auto_noise=True, keep_profile=False):
-
+        """
+         # Parameters
+		----------
+        file_location: text,  pathlib.Path(), or s3path.S3Path 
+            Path object from pathlib containing the file location
+        """
         Thread.__init__(self)
-
-        d_directory_location = Path(d_directory_location)
+        
+        if  isinstance(d_directory_location, str):
+			# if obj is a string it defaults to create a Path obj, pass the S3Path if needed
+            d_directory_location = Path(d_directory_location)
+        
         
         if not d_directory_location.exists():
             raise FileNotFoundError("File does not exist: " + str(d_directory_location))
         
         self.scan_attr = d_directory_location / "scan.xml"
+        
         if not self.scan_attr.exists():
             raise FileExistsError("%s does not seem to be a valid Solarix Mass Spectra Experiment,\
                                 maybe an Imaging experiment?\

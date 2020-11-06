@@ -3,8 +3,10 @@ __date__ = "Feb 12, 2020"
 
 from pathlib import Path
 from threading import Thread
+from io import BytesIO
 
 from netCDF4 import Dataset
+from s3path import S3Path
 
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.factory.parameters import default_parameters
@@ -15,19 +17,33 @@ from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroidLow
 class ReadAndiNetCDF(Thread):
 
 	def __init__(self, file_location, analyzer='Quadruple', instrument_label='GCMS-Agilent', auto_process=True):
-		
+		'''
+		 # Parameters
+		----------
+		## file_location : Path or S3Path
+        file_location is full data path
+		'''
+
 		Thread.__init__(self)
 		
-		file_location = Path(file_location)
+		if  isinstance(file_location, str):
+			# if obj is a string it defaults to create a Path obj, pass the S3Path if needed
+			self.file_location = Path(file_location)
 
 		if not file_location.exists:
 
 			raise FileNotFoundError("File does not exist at %s", file_location)
 
 		self.file_location = file_location
-
-		self.net_cdf_obj = Dataset(file_location, "r", format='NETCDF3_CLASSIC')
-
+		
+		if isinstance(file_location, S3Path):
+			bytes_io = self.file_location.open('rb').read()
+		
+			self.net_cdf_obj = Dataset(self.file_location.name, "r", diskless=True, memory=bytes_io, format='NETCDF3_CLASSIC')
+		
+		else:
+			self.net_cdf_obj = Dataset(self.file_location, "r", format='NETCDF3_CLASSIC')
+		
 		self.ionization_type = self.net_cdf_obj.test_ionization_mode
 
 		self.experiment_type = self.net_cdf_obj.experiment_type

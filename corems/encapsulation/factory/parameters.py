@@ -42,7 +42,7 @@ def default_parameters(file_location): #pragma: no cover
 
         parameters["polarity"] = 'Unknown'
 
-        parameters["filename_path"] = file_location
+        parameters["filename_path"] = str(file_location)
 
         """scan_number and rt will be need to lc ms"""
 

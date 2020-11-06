@@ -2,10 +2,13 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Nov 11, 2019"
 
 
+from io import StringIO, BytesIO
 from pathlib import Path
 from copy import deepcopy
+
 from pandas import read_csv, read_pickle, read_excel
 import chardet
+from s3path import S3Path
 
 from corems.encapsulation.factory.processingSetting import DataInputSetting
 from corems.encapsulation.factory.parameters import default_parameters
@@ -18,7 +21,7 @@ class MassListBaseClass:
 
     # Parameters
     ----------
-    ## file_location : str
+    ## file_location : Path or S3Path
         file_location is full data path
     ## * delimiter: str
         Delimeter to read text based files ("," "\t", " ", "  ", etc)
@@ -47,8 +50,8 @@ class MassListBaseClass:
     def __init__(self, file_location, isCentroid=True, analyzer='Unknown', instrument_label='Unknown',
                  sample_name=None, header_lines=0, isThermoProfile=False):
 
-        self.file_location = Path(file_location)
-
+        self.file_location = Path(file_location) if isinstance(file_location, str) else file_location
+        
         if not self.file_location.exists():
             raise FileExistsError("File does not exist: %s" % file_location)
 
@@ -108,7 +111,7 @@ class MassListBaseClass:
         self._delimiter = delimiter
 
     def encoding_detector(self, file_location):
-        with open(file_location, 'rb') as rawdata:
+        with file_location.open('rb') as rawdata:
             result = chardet.detect(rawdata.read(10000))
         return result['encoding']
 
@@ -146,18 +149,25 @@ class MassListBaseClass:
 
             self.set_data_type()
 
-        if self.data_type == 'txt':
+        if isinstance(self.file_location, S3Path):
+            # data = self.file_location.open('rb').read()
+            data = BytesIO(self.file_location.open('rb').read())
+        
+        else:
+            data = self.file_location
 
-            dataframe = read_csv(self.file_location,  skiprows= self.header_lines, delimiter=self.delimiter,
+        if self.data_type == 'txt':
+            
+            dataframe = read_csv(data,  skiprows= self.header_lines, delimiter=self.delimiter,
                                  encoding=self.encoding_detector(self.file_location), engine='python')
 
         elif self.data_type == 'dataframe':
 
-            dataframe = read_pickle(self.file_location)
+            dataframe = read_pickle(data)
 
         elif self.data_type == 'excel':
 
-            dataframe = read_excel(self.file_location)
+            dataframe = read_excel(data)
 
         else:
 

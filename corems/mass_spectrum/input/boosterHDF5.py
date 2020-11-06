@@ -1,6 +1,8 @@
 
-import h5py
+from io import BytesIO
 
+import h5py
+from s3path import S3Path
 from corems.mass_spectrum.input.baseClass import MassListBaseClass
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile
 from corems.encapsulation.constant import Labels
@@ -46,7 +48,12 @@ class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
 
     def get_polarity(self, file_location):
 
-        self.h5pydata = h5py.File(file_location, 'r')
+        if isinstance(file_location, S3Path):
+            data = BytesIO(file_location.open('rb').read())
+        else:
+            data = file_location
+        
+        self.h5pydata = h5py.File(data, 'r')
 
         self.scans = list(self.h5pydata.keys())
         

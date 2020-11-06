@@ -3,6 +3,8 @@ import json
 
 from pandas import DataFrame
 import h5py
+from io import BytesIO
+from s3path import S3Path
 
 from corems.encapsulation.input.parameter_from_json import _set_dict_data_ms
 from corems.mass_spectrum.input.massList import ReadCoremsMasslist
@@ -35,7 +37,12 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        self.h5pydata = h5py.File(self.file_location, 'r')
+        if isinstance(self.file_location, S3Path):
+            data = BytesIO(self.file_location.open('rb').read())
+        else:
+            data = self.file_location
+        
+        self.h5pydata = h5py.File(data, 'r')
 
         self.scans = list(self.h5pydata.keys())
 

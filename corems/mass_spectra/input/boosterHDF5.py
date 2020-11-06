@@ -1,8 +1,12 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Oct 29, 2019"
 
-import h5py
 from threading import Thread
+from pathlib import Path
+from io import BytesIO
+
+import h5py
+from s3path import S3Path
 
 from corems.encapsulation.constant import Labels
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile
@@ -15,11 +19,26 @@ class ReadHDF_BoosterMassSpectra(Thread):
     
     def __init__(self, file_location, analyzer='ICR', instrument_label='21T', auto_process=True):
 
+        '''
+		 # Parameters
+		----------
+		## file_location : Path or S3Path
+        file_location is full data path
+		'''
         Thread.__init__(self)
+		
+        if isinstance(file_location, str):
+			# if obj is a string it defaults to create a Path obj, pass the S3Path if needed
+            self.file_location = Path(file_location)
 
         self.lcms = LCMSBase(file_location, analyzer=analyzer,instrument_label=instrument_label)
 
-        self.hdf_obj =  h5py.File(file_location, 'r')
+        if isinstance(file_location, S3Path):
+            data = BytesIO(file_location.open('rb').read())
+        else:
+            data = file_location
+        
+        self.hdf_obj =  h5py.File(data, 'r')
 
         self.list_scans =  sorted([int(i) for i in list(self.hdf_obj.keys())])
 
@@ -36,8 +55,13 @@ class ReadHDF_BoosterMassSpectra(Thread):
         self.instrument_label = instrument_label
     
     def get_polarity(self, file_location, scan):
-
-        self.h5pydata = h5py.File(file_location, 'r')
+        
+        if isinstance(file_location, S3Path):
+            data = BytesIO(file_location.open('rb').read())
+        else:
+            data = file_location
+        
+        self.h5pydata = h5py.File(data, 'r')
 
         self.scans = list(self.h5pydata.keys())
         

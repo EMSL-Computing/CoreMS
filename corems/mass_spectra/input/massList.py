@@ -12,10 +12,21 @@ class ReadCoremsMassSpectraText(ReadCoremsMasslist, Thread):
     
     def __init__(self, file_location, analyzer='Unknown', instrument_label='Unknown'):
         
-        if not Path(file_location).exists:
+        """
+         # Parameters
+		----------
+        file_location: text,  pathlib.Path(), or s3path.S3Path 
+            Path object from pathlib containing the file location
+        """
+        
+        if  isinstance(file_location, str):
+			# if obj is a string it defaults to create a Path obj, pass the S3Path if needed
+            file_location = Path(file_location)
+
+        if not file_location.exists:
             raise FileNotFoundError("%s not found" % file_location)
         
-        if not Path(file_location).suffix == '.corems':
+        if not file_location.suffix == '.corems':
             
             raise TypeError("%s is not a valid CoreMS file" % file_location)
         

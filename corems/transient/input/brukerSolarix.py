@@ -4,7 +4,9 @@ from copy import deepcopy
 from pathlib import Path
 
 from numpy import genfromtxt, fromstring, dtype, fromfile, frombuffer
+from s3path import S3Path
 from xml.dom import minidom
+
 
 from corems.transient.factory.TransientClasses import Transient
 from corems.encapsulation.factory.parameters import default_parameters
@@ -37,7 +39,8 @@ class ReadBrukerSolarix(object):
 
     def __init__(self, d_directory_location):
         
-        d_directory_location = Path(d_directory_location)
+        if isinstance(d_directory_location, str):
+            d_directory_location = Path(d_directory_location)
         
         if not d_directory_location.exists():
             raise FileNotFoundError("File does not exist: " + str(d_directory_location))
@@ -140,17 +143,25 @@ class ReadBrukerSolarix(object):
         data_points = int(file_d_params.get("TD"))
 
         scan = output_parameters["scan_number"]
-
+        from io import BytesIO
         if self.transient_data_path.name == 'ser':
-            with open(self.transient_data_path, 'rb') as databin:
-                
-                #seek start scan data 
-                databin.seek((scan-1)*4*data_points)
-                #read scan data and parse to 32int struct
-                data = frombuffer(databin.read(4*data_points), dtype=dt)
+            
+            if isinstance(self.transient_data_path, S3Path):
+                databin = BytesIO(self.transient_data_path.open('rb').read())
+            
+            else:
+                databin = self.transient_data_path.open('rb')
+               
+            databin.seek((scan-1)*4*data_points)
+            #read scan data and parse to 32int struct
+            data = frombuffer(databin.read(4*data_points), dtype=dt)
+        
         else:
-
-            data = fromfile(self.transient_data_path.open(), dtype=dt)
+            
+            if isinstance(self.transient_data_path, S3Path):
+                data = frombuffer(self.transient_data_path.open('rb').read(), dtype=dt)
+            else:
+                data = fromfile(self.transient_data_path.open('rb').read(), dtype=dt)
         
         return Transient(data, output_parameters)
 

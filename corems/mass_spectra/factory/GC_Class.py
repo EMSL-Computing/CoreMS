@@ -25,13 +25,15 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
     def __init__(self, file_location, analyzer='Unknown', instrument_label='Unknown', sample_name=None):
         
         """
-        Constructor
-        file_location: text or pathlib.Path()
+         # Parameters
+		----------
+        file_location: text,  pathlib.Path(), or s3path.S3Path 
             Path object from pathlib containing the file location
         """
-        
-        file_location = Path(file_location)
-        
+        if  isinstance(file_location, str):
+			# if obj is a string it defaults to create a Path obj, pass the S3Path if needed
+            file_location = Path(file_location)
+
         if not file_location.exists():
         
             raise FileExistsError("File does not exist: " + str(file_location))

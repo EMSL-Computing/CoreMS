@@ -21,3 +21,4 @@ tqdm>=4.43.0
 Pyside2>=5.14.1
 pywavelets
 sqlalchemy-utils
+s3path
