@@ -39,10 +39,11 @@ def check_create_buckets(minio, buckets_list):
         if not minio.bucket_exists(bucket):
             minio.make_bucket(bucket)
 
-s3 = s3_init()
 
 if __name__ == "__main__":
-    
+
+    s3 = s3_init()
+        
     from corems.mass_spectrum.input.massList import ReadMassList
 
     filepath = "1/NEG_ESI_SRFA_CoreMS.xlsx"
