@@ -1,28 +1,29 @@
-__author__ = "Yuri E. Corilo"
-__date__ = "July 9, 2019"
-
 import numpy
 import multiprocessing
 from threading import Thread
 import sys
-import clr
 import site
+from pathlib import Path
+from io import BytesIO
+
+import clr
+from threading import Thread
+import multiprocessing
+import numpy
+import pandas as pd
+from s3path import S3Path
+from tqdm import tqdm
+
 
 from corems.encapsulation.constant import Labels
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
 from corems.mass_spectra.factory.LC_Class import LCMSBase
 from corems.encapsulation.factory.parameters import default_parameters
 
-from threading import Thread
-import multiprocessing
-import numpy
-import pandas as pd
-
-from tqdm import tqdm
 
 # do not change the order from the imports statements and reference below 
-#sys.path.append(site.getsitepackages()[0]+ "/ext_lib")
-sys.path.append("ext_lib")
+sys.path.append(site.getsitepackages()[0]+ "/ext_lib")
+# sys.path.append("ext_lib")
 
 clr.AddReference("ThermoFisher.CommonCore.RawFileReader")
 clr.AddReference("ThermoFisher.CommonCore.Data")
@@ -33,6 +34,7 @@ from ThermoFisher.CommonCore.Data import ToleranceUnits, Extensions
 from ThermoFisher.CommonCore.Data.Business import MassOptions
 from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType 
 from System.Collections.Generic import List
+
 
 
 class ImportMassSpectraThermoMSFileReader():
@@ -46,8 +48,22 @@ class ImportMassSpectraThermoMSFileReader():
     def __init__(self, file_location):
 
         # Thread.__init__(self)
+        if isinstance(file_location, str):
+            file_path = Path(file_location)
 
-        self.iRawDataPlus = RawFileReaderAdapter.FileFactory(file_location)
+        if isinstance(file_location, S3Path):
+            
+            temp_dir = Path('tmp/')
+            temp_dir.mkdir(exist_ok=True)
+
+            file_path = temp_dir / file_location.name 
+            with open(file_path,'wb') as fh:
+                fh.write(file_location.read_bytes())
+        
+        self.iRawDataPlus = RawFileReaderAdapter.FileFactory(str(file_path))
+        
+        #removing tmp file
+        file_path.unlink()
 
         self.res = self.iRawDataPlus.SelectInstrument(0, 1)
 
