@@ -110,22 +110,37 @@ def test_import_transient():
 
     with ReadBrukerSolarix(file_location) as bruker_transient:
         
-        MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
-        MSParameters.mass_spectrum.relative_abundance_threshold = 1
+        #MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
+        #MSParameters.mass_spectrum.relative_abundance_threshold = 1
 
         #MSParameters.mass_spectrum.threshold_method = 'signal_noise'
         #MSParameters.mass_spectrum.s2n_threshold = 50
 
-        #MSParameters.mass_spectrum.threshold_method = 'auto'
-        #MSParameters.mass_spectrum.noise_threshold_std = 32
+        MSParameters.mass_spectrum.threshold_method = 'auto'
+        MSParameters.mass_spectrum.noise_threshold_std = 4
 
         MSParameters.ms_peak.peak_min_prominence_percent = 1
     
         mass_spectrum_obj = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
 
-        mass_spectrum_obj.plot_profile_and_noise_threshold()
+        from corems.encapsulation.constant import Labels
+        from corems.mass_spectrum.input import numpyArray
         
-        mass_spectrum_obj.filter_by_noise_threshold()
+        mass_spectrum_test = numpyArray.ms_from_array_profile(mz=mass_spectrum_obj.mz_exp_profile,
+                                                    abundance=mass_spectrum_obj.abundance_profile,
+                                                    dataname='test',
+                                                    polarity=-1,
+                                                    data_type=Labels.booster_profile,
+                                                    )
+
+        #mass_spectrum_test.plot_mz_domain_profile()
+
+        pyplot.show()
+        mass_spectrum_test.plot_profile_and_noise_threshold()
+        
+        #mass_spectrum_test.plot_profile_and_noise_threshold()
+        
+        #mass_spectrum_obj.filter_by_noise_threshold()
 
         print(mass_spectrum_obj.get_noise_threshold())     
         
@@ -214,10 +229,20 @@ def test_import_thermo_profile_mass_list():
     polarity = +1
 
     mass_spectrum = mass_list_reader.get_mass_spectrum(polarity, auto_process=True, loadSettings=False)
-   
-    mass_spectrum.plot_profile_and_noise_threshold()
     
-    pyplot.show()
+    #mass_spectrum.plot_profile_and_noise_threshold()
+    
+    from corems.encapsulation.constant import Labels
+    from corems.mass_spectrum.input import numpyArray
+    mass_spectrum_test = numpyArray.ms_from_array_profile(mz=mass_spectrum.mz_exp_profile,
+                                                abundance=mass_spectrum.abundance_profile,
+                                                dataname='test',
+                                                polarity=-1,
+                                                data_type=Labels.booster_profile)
+
+    mass_spectrum_test.plot_mz_domain_profile()
+
+    # pyplot.show()
 
 def test_import_mass_list():
 
@@ -273,8 +298,8 @@ if __name__ == '__main__':
     # test_import_booster_mass_spectrum_hdf()
     #test_import_booster_mass_spectra_hdf()
     #test_import_lcms_from_transient()
-    test_import_thermo_profile_mass_list()
-    #test_import_transient()
+    #test_import_thermo_profile_mass_list()
+    test_import_transient()
     #test_import_corems_hdf5()
     #test_import_corems_mass_list()
     #test_import_mass_list()

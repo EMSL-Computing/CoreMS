@@ -34,7 +34,7 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 
 ## Current Version
 
-### `21.0.4.beta`
+### `22.0.0.beta`
 
 ### Data input formats
 
@@ -48,6 +48,10 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 - CoreMS exported processed mass list files(excel, .csv, .txt, pandas dataframe as .pkl)
 - CoreMS self-containing Hierarchical Data Format (.hdf5)
 - Pandas Dataframe
+
+- Support for Could Storage using s3path.S3path  
+    see examples of usage here:
+      - [S3 Support](tests/s3_test.py)
 
 ### Data output formats
 
