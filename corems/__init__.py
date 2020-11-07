@@ -1,5 +1,5 @@
 __author__ = 'Yuri E. Corilo'
-__version__ = '22.0.2.beta'
+__version__ = '22.0.3.beta'
 __doc__ = '''
 CoreMS - a powerful framework for mass spectrometry data processing and analysis of small molecules
 =====================================================================
@@ -182,9 +182,6 @@ def chunks(lst, n):
         yield lst[i:i + n]
 
 def corems_md5(fname):
-    hash_md5 = hashlib.md5()
-    with open(fname, "rb") as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            hash_md5.update(chunk)
-    return hash_md5.hexdigest()        
+    import uuid
+    return str(uuid.uuid4())
         
