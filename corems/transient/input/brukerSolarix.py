@@ -161,7 +161,7 @@ class ReadBrukerSolarix(object):
             if isinstance(self.transient_data_path, S3Path):
                 data = frombuffer(self.transient_data_path.open('rb').read(), dtype=dt)
             else:
-                data = fromfile(self.transient_data_path.open('rb').read(), dtype=dt)
+                data = fromfile(self.transient_data_path, dtype=dt)
         
         return Transient(data, output_parameters)
 

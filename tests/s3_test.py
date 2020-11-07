@@ -12,7 +12,7 @@ def s3_init():
     minio_bucket_path = PureS3Path('/')
     s3 = boto3.resource(
                 's3',
-                endpoint_url=os.environ.get("MINIO_URL", 'http://localhost:64977'),
+                endpoint_url=os.environ.get("MINIO_URL", 'http://localhost:9000'),
                 aws_access_key_id=os.environ.get("MINIO_ACCESS_KEY"),
                 aws_secret_access_key=os.environ.get("MINIO_SECRET_KEY"),
                 config=Config(signature_version='s3v4'),
@@ -24,7 +24,7 @@ def s3_init():
 def minio_init():
 
     minio = Minio(
-            os.environ.get("MINIO_URL", 'localhost:64977').replace('http://', ''),
+            os.environ.get("MINIO_URL", 'localhost:9000').replace('http://', ''),
             access_key=os.environ.get("MINIO_ACCESS_KEY"),
             secret_key=os.environ.get("MINIO_SECRET_KEY"),
             secure=False
@@ -45,15 +45,20 @@ if __name__ == "__main__":
     s3 = s3_init()
         
     from corems.mass_spectrum.input.massList import ReadMassList
+    from corems.mass_spectrum.calc.Calibration import MzDomainCalibration
 
-    filepath = "1/NEG_ESI_SRFA_CoreMS.xlsx"
+    filepath = "1/ESI_NEG_ESFA.ascii"
     s3path = S3Path('/fticr-data/' + filepath)
 
     mass_list_reader = ReadMassList(s3path)
     #mass_list_reader = ReadMassList(s3path, header_lines=7, isCentroid=False, isThermoProfile=True)
     mass_spectrum = mass_list_reader.get_mass_spectrum(-1)
-    print(mass_spectrum)
+    
+    s3path = S3Path('/fticr-data/') / "1/SRFA.ref"
 
+    mass_spectrum.filter_by_noise_threshold()
+
+    MzDomainCalibration(mass_spectrum, s3path).run()
 
 
     '''
@@ -94,7 +99,7 @@ if __name__ == "__main__":
     read_lcms = ReadBruker_SolarixTransientMassSpectra(s3path)
     read_lcms.start()
     read_lcms.join()
-    ''' 
+    
 
     from corems.encapsulation.factory.parameters import MSParameters
     from corems.mass_spectra.input import rawFileReader
@@ -125,3 +130,5 @@ if __name__ == "__main__":
 
     #print("polarity", mass_spectrum.polarity)
     plt.savefig("test.png")
+
+    ''' 

@@ -10,7 +10,9 @@ import pandas as pd
 import numpy as np
 import os
 import csv
- 
+from io import BytesIO
+
+from s3path import S3Path
 # import corems modules
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.encapsulation.factory.parameters import MSParameters
@@ -49,11 +51,24 @@ class MzDomainCalibration:
             reference mass list object.
 
         """
-        with open(refmasslist, 'r') as csvfile:
+        refmasslist = Path(refmasslist) if isinstance(refmasslist, str) else refmasslist
+        
+        if not refmasslist.exists():
+            raise FileExistsError("File does not exist: %s" % refmasslist)
+
+
+        with refmasslist.open('r') as csvfile:
             dialect = csv.Sniffer().sniff(csvfile.read(1024))
             delimiter=dialect.delimiter
 
-        df_ref = pd.read_csv(refmasslist,sep=delimiter,header=None,skiprows=1)
+        if isinstance(refmasslist, S3Path):
+            # data = self.file_location.open('rb').read()
+            data = BytesIO(refmasslist.open('rb').read())
+        
+        else:
+            data = refmasslist
+
+        df_ref = pd.read_csv(data,sep=delimiter,header=None,skiprows=1)
         
         df_ref = df_ref.rename({0:'Formula',
                             1:'m/z',
