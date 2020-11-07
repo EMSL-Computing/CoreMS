@@ -108,7 +108,7 @@ def load_and_set_parameters_class(parameter_label, instance_parameters_class, pa
 
     else: file_path = Path.cwd() / 'SettingsCoreMS.json' 
         
-    if Path.exists():  
+    if file_path.exists():
         
         with open(file_path, 'r', encoding='utf8',) as stream:
             
