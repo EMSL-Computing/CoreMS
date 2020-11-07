@@ -27,7 +27,7 @@ def import_booster_mass_spectra_hdf():
 
     file_path = Path.cwd() / "tests/tests_data/" / "ESFA_100k_9767-13548_chB.A_re_pc_CoAddAll_mFT.h5"
     
-    if file_path.exists:
+    if file_path.exists():
         #polarity need to be set or read from the file
         booster_reader = ReadHDF_BoosterMassSpectra(file_path)
 

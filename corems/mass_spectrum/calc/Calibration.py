@@ -11,6 +11,7 @@ import numpy as np
 import os
 import csv
 from io import BytesIO
+from pathlib import Path
 
 from s3path import S3Path
 # import corems modules

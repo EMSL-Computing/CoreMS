@@ -29,8 +29,8 @@ class ReadAndiNetCDF(Thread):
 		if  isinstance(file_location, str):
 			# if obj is a string it defaults to create a Path obj, pass the S3Path if needed
 			self.file_location = Path(file_location)
-
-		if not file_location.exists:
+		
+		if not self.file_location.exists():
 
 			raise FileNotFoundError("File does not exist at %s", file_location)
 

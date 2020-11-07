@@ -110,7 +110,7 @@ class ReadBrukerSolarix(object):
 
         if self.transient_data_path.name == 'ser':
             
-            if self.scan_attr.exists:
+            if self.scan_attr.exists():
                 
                 dict_scan_rt_tic = self.get_scan_attr()
 

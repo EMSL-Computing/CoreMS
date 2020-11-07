@@ -23,7 +23,7 @@ class ReadCoremsMassSpectraText(ReadCoremsMasslist, Thread):
 			# if obj is a string it defaults to create a Path obj, pass the S3Path if needed
             file_location = Path(file_location)
 
-        if not file_location.exists:
+        if not file_location.exists():
             raise FileNotFoundError("%s not found" % file_location)
         
         if not file_location.suffix == '.corems':

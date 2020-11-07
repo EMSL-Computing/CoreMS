@@ -18,7 +18,7 @@ def load_and_set_parameters_ms(mass_spec_obj, parameters_path=False):
         filename='SettingsCoreMS.json'
         file_path = Path.cwd() / filename 
 
-    if file_path.exists:  
+    if file_path.exists():  
 
             with open(file_path, 'r', encoding='utf8',) as stream:
                 data_loaded = json.load(stream)
@@ -38,7 +38,7 @@ def load_and_set_parameters_gcms(gcms_obj, parameters_path=False):
         filename='SettingsCoreMS.json'
         file_path = Path.cwd() / filename 
 
-    if file_path.exists:  
+    if file_path.exists():  
 
             with open(file_path, 'r', encoding='utf8',) as stream:
                 data_loaded = json.load(stream)
@@ -108,7 +108,7 @@ def load_and_set_parameters_class(parameter_label, instance_parameters_class, pa
 
     else: file_path = Path.cwd() / 'SettingsCoreMS.json' 
         
-    if Path.exists:  
+    if Path.exists():  
         
         with open(file_path, 'r', encoding='utf8',) as stream:
             
