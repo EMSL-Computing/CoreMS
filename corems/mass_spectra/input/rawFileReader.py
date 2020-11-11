@@ -63,7 +63,9 @@ class ImportMassSpectraThermoMSFileReader():
         self.iRawDataPlus = RawFileReaderAdapter.FileFactory(str(file_path))
         
         #removing tmp file
-        file_path.unlink()
+        
+        if isinstance(file_location, S3Path):
+            file_path.unlink()
 
         self.res = self.iRawDataPlus.SelectInstrument(0, 1)
 
