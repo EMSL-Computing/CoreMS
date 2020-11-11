@@ -12,13 +12,14 @@ class NoiseThresholdCalc:
 
     def get_noise_threshold(self) -> ( (float, float), (float,float) ):
         ''' return two tuples (min_mz, max_mz) , (noise_threshold, noise_threshold)'''
+        
         if self.is_centroid:
 
             x = min(self.mz_exp), max((self.mz_exp))
             
             if self.settings.threshold_method == 'auto':
                 
-                abundance_threshold = self.baselise_noise_std + (self.settings.noise_threshold_std * self.baselise_noise_std)
+                abundance_threshold = self.baselise_noise + (self.settings.noise_threshold_std * self.baselise_noise_std)
                 y = (abundance_threshold, abundance_threshold)
 
             elif self.settings.threshold_method == 'signal_noise':
@@ -46,7 +47,8 @@ class NoiseThresholdCalc:
                 if self.settings.threshold_method == 'auto':
                 
                     #print(self.settings.noise_threshold_std)
-                    abundance_threshold = self.baselise_noise_std + (self.settings.noise_threshold_std * self.baselise_noise_std)
+                    abundance_threshold = self.baselise_noise + (self.settings.noise_threshold_std * self.baselise_noise_std)
+                    
                     y = (abundance_threshold, abundance_threshold)
 
                 elif self.settings.threshold_method == 'signal_noise':
@@ -60,6 +62,7 @@ class NoiseThresholdCalc:
 
                     normalized_threshold = (self.abundance_profile.max()/100)*self.settings.relative_abundance_threshold
                     y = (normalized_threshold, normalized_threshold)
+                    
 
                 else:
                     raise  Exception("%s method was not implemented, \
@@ -103,8 +106,14 @@ class NoiseThresholdCalc:
         if max_mz_noise > max_mz_whole_ms:
             max_mz_noise = max_mz_whole_ms
 
-        low_mz_index = (argmax(self.mz_exp_profile <= min_mz_noise))
-        high_mz_index = (argmax(self.mz_exp_profile <= max_mz_noise))
+        #print(min_mz_noise, max_mz_noise)
+        low_mz_index = (where(self.mz_exp_profile >= min_mz_noise)[0][0])
+        #print(self.mz_exp_profile[low_mz_index])
+        # low_mz_index = (argmax(self.mz_exp_profile <= min_mz_noise))
+        
+        high_mz_index = (where(self.mz_exp_profile <= max_mz_noise)[-1][-1])
+        
+        #high_mz_index = (argmax(self.mz_exp_profile <= max_mz_noise))
         
         if high_mz_index > low_mz_index:
             # pyplot.plot(self.mz_exp_profile[low_mz_index:high_mz_index], self.abundance_profile[low_mz_index:high_mz_index])
@@ -196,29 +205,28 @@ class NoiseThresholdCalc:
         else:
             
             s_deviation = ymincentroid.std()*3 if auto else ymincentroid.std()
-        
+            
         return average_noise, s_deviation
 
     def get_abundance_minima_centroid(self, mz_cut, abun_cut):
 
         maximum = self.abundance_profile.max()
-
         threshold_min = (maximum * 1.00)
 
         y = -abun_cut
 
         dy = y[1:] - y[:-1]
-
         '''replaces NaN for Infinity'''
         indices_nan = where(isnan(y))[0]
-
+        
         if indices_nan.size:
 
             y[indices_nan] = inf
             dy[where(isnan(dy))[0]] = inf
 
+        
         indices = where((hstack((dy, 0)) < 0) & (hstack((0, dy)) > 0))[0]
-
+        
         if indices.size and threshold_min is not None:
             indices = indices[abun_cut[indices] <= threshold_min]
 

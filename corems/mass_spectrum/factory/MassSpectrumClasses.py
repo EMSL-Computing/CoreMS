@@ -64,8 +64,8 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         # objects created after process_mass_spec() function
         self._mspeaks = list()
         self._dict_nominal_masses_indexes = dict()
-        self._baselise_noise = None
-        self._baselise_noise_std = None
+        self._baselise_noise = 0.001
+        self._baselise_noise_std = 0.001
         self._dynamic_range = None
         # set to None: initialization occurs inside subclass MassSpecfromFreq
         self._transient_settings = None
@@ -221,7 +221,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         else:
 
             self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto, bayes=bayes)
-
+        
     @property
     def parameters(self):
         return self._parameters
@@ -1011,7 +1011,7 @@ class MassSpecCentroid(MassSpecBase):
         
         if self.label != Labels.thermo_centroid:
             self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto=auto_noise, bayes=noise_bayes_est)
-        
+            
 class MassSpecCentroidLowRes(MassSpecCentroid,):
     
     '''Does not store MSPeak Objs, will iterate over mz, abundance pairs instead'''

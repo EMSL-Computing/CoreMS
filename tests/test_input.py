@@ -94,15 +94,14 @@ def test_import_lcms_from_transient():
         for mspeak in ms:
             #mspeak.mz_exp,mspeak.mz_abund 
             for mf in mspeak:
-                mf.string, mf.mz_calc, mf.is_isotopologue    
+                mf.string, mf.mz_calc, mf.is_isotopologue
                 pass
-
 
 def test_import_transient():
     
     # from corems.structure.input.MidasDatFile import ReadMidasDatFile
-    file_location = Path.cwd() / "tests/tests_data/ESI_NEG_SRFA.d/"
-
+    # file_location = Path.cwd() / "tests/tests_data/SRFAII_20ppm_14Jul2020_IATp08_After_WebEx_1_01_54136.d/"
+    file_location = Path.cwd() / "tests/tests_data/ESI_NEG_SRFA.d"
     
     MSParameters.transient.apodization_method = "Hanning"
     MSParameters.transient.number_of_truncations = 0
@@ -117,38 +116,38 @@ def test_import_transient():
         #MSParameters.mass_spectrum.s2n_threshold = 50
 
         MSParameters.mass_spectrum.threshold_method = 'auto'
-        MSParameters.mass_spectrum.noise_threshold_std = 4
+        MSParameters.mass_spectrum.noise_threshold_std = 3
 
         MSParameters.ms_peak.peak_min_prominence_percent = 1
     
         mass_spectrum_obj = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
-
-        from corems.encapsulation.constant import Labels
-        from corems.mass_spectrum.input import numpyArray
+        #from corems.encapsulation.constant import Labels
+        #from corems.mass_spectrum.input import numpyArray
         
-        mass_spectrum_test = numpyArray.ms_from_array_profile(mz=mass_spectrum_obj.mz_exp_profile,
-                                                    abundance=mass_spectrum_obj.abundance_profile,
-                                                    dataname='test',
-                                                    polarity=-1,
-                                                    data_type=Labels.booster_profile,
-                                                    )
+        #mass_spectrum_test = numpyArray.ms_from_array_profile(mz=mass_spectrum_obj.mz_exp_profile,
+                                                    # abundance=mass_spectrum_obj.abundance_profile,
+                                                    # dataname='test',
+                                                    # polarity=-1,
+                                                    # data_type=Labels.booster_profile,
+                                                    # )
 
         #mass_spectrum_test.plot_mz_domain_profile()
 
+        mass_spectrum_obj.plot_profile_and_noise_threshold()
+        
         pyplot.show()
-        mass_spectrum_test.plot_profile_and_noise_threshold()
         
         #mass_spectrum_test.plot_profile_and_noise_threshold()
         
         #mass_spectrum_obj.filter_by_noise_threshold()
 
-        print(mass_spectrum_obj.get_noise_threshold())     
+        #print(mass_spectrum_obj.get_noise_threshold())     
         
         # pyplot.show()
 
-        print(len(mass_spectrum_obj))
+        #print(len(mass_spectrum_obj))
     
-        print(mass_spectrum_obj.mspeaks[0].mz_exp, mass_spectrum_obj.mspeaks[-1].mz_exp)
+        #print(mass_spectrum_obj.mspeaks[0].mz_exp, mass_spectrum_obj.mspeaks[-1].mz_exp)
 
 def test_import_corems_hdf5():
 
@@ -183,8 +182,7 @@ def test_import_corems_hdf5():
             for mf in mspeak:
                 
                 print('mass_spectra', mf.string)
-    
-
+ 
 def test_import_corems_mass_list():
 
     file_location = Path.cwd() / "tests/tests_data/ESI_NEG_SRFA_COREMS.csv"
@@ -296,10 +294,10 @@ def test_import_mass_list():
 if __name__ == '__main__':
     
     # test_import_booster_mass_spectrum_hdf()
-    #test_import_booster_mass_spectra_hdf()
+    test_import_booster_mass_spectra_hdf()
     #test_import_lcms_from_transient()
     #test_import_thermo_profile_mass_list()
-    test_import_transient()
+    # test_import_transient()
     #test_import_corems_hdf5()
     #test_import_corems_mass_list()
     #test_import_mass_list()
