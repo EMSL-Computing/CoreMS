@@ -3,7 +3,6 @@ import boto3
 from botocore.client import Config
 from s3path import PureS3Path, register_configuration_parameter, S3Path
 import os
-from minio import Minio
 
 sys.path.append(".")
 
@@ -20,25 +19,6 @@ def s3_init():
 
     register_configuration_parameter(minio_bucket_path, resource=s3)
     return s3
-
-def minio_init():
-
-    minio = Minio(
-            os.environ.get("MINIO_URL", 'localhost:9000').replace('http://', ''),
-            access_key=os.environ.get("MINIO_ACCESS_KEY"),
-            secret_key=os.environ.get("MINIO_SECRET_KEY"),
-            secure=False
-                )
-
-    return minio
-
-def check_create_buckets(minio, buckets_list):
-
-    buckets = ['fticr-data', 'gcms-data']
-    for bucket in buckets:
-        if not minio.bucket_exists(bucket):
-            minio.make_bucket(bucket)
-
 
 if __name__ == "__main__":
 
