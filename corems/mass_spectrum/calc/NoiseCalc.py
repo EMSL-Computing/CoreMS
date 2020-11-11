@@ -1,8 +1,10 @@
 import time
 
-from numpy import where, average, std, isnan, inf, hstack, median
+from numpy import where, average, std, isnan, inf, hstack, median, argmax, percentile
 from corems import chunks
 import warnings
+
+#from matplotlib import pyplot
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 27, 2019"
 
@@ -75,6 +77,9 @@ class NoiseThresholdCalc:
 
     def cut_mz_domain_noise(self, auto):
         
+        min_mz_whole_ms = self.mz_exp_profile.min()
+        max_mz_whole_ms = self.mz_exp_profile.max()
+
         if auto:
             
             # this calculation is taking too long (about 2 seconds)
@@ -87,29 +92,29 @@ class NoiseThresholdCalc:
             # need to check max mz here or it will break
             max_mz_noise = number_average_molecular_weight + 100
 
-            min_mz_whole_ms = self.mz_exp_profile.min()
-            max_mz_whole_ms = self.mz_exp_profile.max()
-
-            if min_mz_noise < min_mz_whole_ms:
-                min_mz_noise = min_mz_whole_ms
-
-            if max_mz_noise < max_mz_whole_ms:
-                max_mz_noise = max_mz_whole_ms
-
         else:
 
             min_mz_noise = self.settings.min_noise_mz
             max_mz_noise = self.settings.max_noise_mz
-            
-        final = where(self.mz_exp_profile > min_mz_noise)[-1][-1]
-        comeco = where(self.mz_exp_profile > min_mz_noise)[0][0]
 
-        mz_domain_low_Y_cutoff = self.abundance_profile[comeco:final]
+        if min_mz_noise < min_mz_whole_ms:
+            min_mz_noise = min_mz_whole_ms
 
-        final = where(self.mz_exp_profile < max_mz_noise)[-1][-1]
-        comeco = where(self.mz_exp_profile < max_mz_noise)[0][0]
+        if max_mz_noise > max_mz_whole_ms:
+            max_mz_noise = max_mz_whole_ms
 
-        return mz_domain_low_Y_cutoff[comeco:final]
+        low_mz_index = (argmax(self.mz_exp_profile <= min_mz_noise))
+        high_mz_index = (argmax(self.mz_exp_profile <= max_mz_noise))
+        
+        if high_mz_index > low_mz_index:
+            # pyplot.plot(self.mz_exp_profile[low_mz_index:high_mz_index], self.abundance_profile[low_mz_index:high_mz_index])
+            # pyplot.show()
+            return self.mz_exp_profile[high_mz_index:low_mz_index], self.abundance_profile[low_mz_index:high_mz_index]
+        else:
+            # pyplot.plot(self.mz_exp_profile[high_mz_index:low_mz_index], self.abundance_profile[high_mz_index:low_mz_index])
+            # pyplot.show()
+            return self.mz_exp_profile[high_mz_index:low_mz_index], self.abundance_profile[high_mz_index:low_mz_index]
+
 
     def from_posterior(self, param, samples):
 
@@ -177,12 +182,12 @@ class NoiseThresholdCalc:
             return pm.summary(trace)['mean'].values[0] 
             
 
-    def get_noise_average(self, ymincentroid, bayes=False):
+    def get_noise_average(self, ymincentroid, auto=True, bayes=False):
         # assumes noise to be gaussian and estimate noise level by 
         # calculating the valley. If bayes is enable it will 
         # model the valley distributuion as half-Normal and estimate the std
         
-        average_noise = (ymincentroid*2).mean()
+        average_noise = median((ymincentroid))*2 if auto else median(ymincentroid)
         
         if bayes:
             
@@ -190,17 +195,17 @@ class NoiseThresholdCalc:
         
         else:
             
-            s_deviation = ymincentroid.std() * 2
+            s_deviation = ymincentroid.std()*3 if auto else ymincentroid.std()
         
         return average_noise, s_deviation
 
-    def get_abundance_minima_centroid(self, intes):
+    def get_abundance_minima_centroid(self, mz_cut, abun_cut):
 
-        maximum = intes.max()
+        maximum = self.abundance_profile.max()
 
-        threshold_min = (maximum * 0.05)
+        threshold_min = (maximum * 1.00)
 
-        y = -intes
+        y = -abun_cut
 
         dy = y[1:] - y[:-1]
 
@@ -215,9 +220,20 @@ class NoiseThresholdCalc:
         indices = where((hstack((dy, 0)) < 0) & (hstack((0, dy)) > 0))[0]
 
         if indices.size and threshold_min is not None:
-            indices = indices[intes[indices] <= threshold_min]
+            indices = indices[abun_cut[indices] <= threshold_min]
 
-        return intes[indices]
+        # pyplot.plot(mz_cut[indices], abun_cut[indices], linewidth=0, marker='o', color='red', markersize=2)
+        # pyplot.show()
+
+        # pyplot.hist(x=abun_cut[indices], bins='auto', color='#0504aa',
+                            # alpha=0.7, rwidth=0.85)
+        
+        # cutoff = percentile(abun_cut[indices], 0.98)
+        
+        # print(cutoff)
+        
+        # pyplot.show()    
+        return abun_cut[indices]
 
 
     def run_noise_threshold_calc(self, auto, bayes=False):
@@ -234,14 +250,15 @@ class NoiseThresholdCalc:
         
         else:
 
-            Y_cut = self.cut_mz_domain_noise(auto)
+            mz_cut, abundance_cut = self.cut_mz_domain_noise(auto)
             
             if auto:
 
-                yminima = self.get_abundance_minima_centroid(Y_cut)
+                yminima = self.get_abundance_minima_centroid(mz_cut, abundance_cut)
                 
-                return self.get_noise_average(yminima, bayes=bayes)
+                return self.get_noise_average(yminima, auto=auto, bayes=bayes)
 
             else:
-
-                return self.get_noise_average(Y_cut, bayes=bayes)
+                
+                # pyplot.show()
+                return self.get_noise_average(abundance_cut,auto=auto, bayes=bayes)

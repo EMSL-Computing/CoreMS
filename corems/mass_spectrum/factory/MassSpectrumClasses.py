@@ -200,11 +200,12 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self.cal_noise_threshold(auto=auto_noise, bayes=noise_bayes_est)
 
         self.find_peaks()
-
         self.reset_indexes()
 
-        self._dynamic_range = self.max_abundance / self.min_abundance
-
+        if self.mspeaks:
+            self._dynamic_range = self.max_abundance / self.min_abundance
+        else:
+            self._dynamic_range = 0
         if not keep_profile:
 
             self._abundance *= 0
@@ -367,6 +368,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
     @property
     def max_abundance(self):
+        
         return max([mspeak.abundance for mspeak in self.mspeaks])
 
     @property
@@ -652,6 +654,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             
             if ax is None:
                 ax = plt.gca()
+            
             ax.plot(self.mz_exp_profile, self.abundance_profile, color="green")
             ax.plot(x, (baseline, baseline), color="yellow")
             ax.plot(x, y, color="red")
@@ -809,7 +812,7 @@ class MassSpecfromFreq(MassSpecBase):
     '''
 
     def __init__(self, frequency_domain, magnitude, d_params, 
-                auto_process=True, keep_profile=True, auto_noise=True, noise_bayes_est=False):
+                auto_process=True, keep_profile=True, auto_noise=False, noise_bayes_est=False):
         """
         method docs
         """
@@ -955,7 +958,7 @@ class MassSpecCentroid(MassSpecBase):
 
         return sum(self.abundance)
 
-    def process_mass_spec(self, data_dict):
+    def process_mass_spec(self, data_dict, auto_noise=True, noise_bayes_est=False):
         import tqdm
         # overwrite process_mass_spec 
         # mspeak objs are usually added inside the PeaKPicking class 
@@ -1006,11 +1009,8 @@ class MassSpecCentroid(MassSpecBase):
         self._dynamic_range = self.max_abundance / self.min_abundance
         self._set_nominal_masses_start_final_indexes()
         
-        auto = True
-        bayes= False
-        
         if self.label != Labels.thermo_centroid:
-            self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto, bayes=bayes)
+            self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto=auto_noise, bayes=noise_bayes_est)
         
 class MassSpecCentroidLowRes(MassSpecCentroid,):
     

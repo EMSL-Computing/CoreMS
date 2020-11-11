@@ -189,6 +189,7 @@ class ImportLCMSBrukerCompassXtract(Thread):
                 data_dict = self.get_data(spectra, scan_number)
 
                 mass_spec = MassSpecProfile(data_dict, d_params, auto_process=self.auto_process)
+                
                 mass_spec.process_mass_spec()
                 
                 self.lcms.add_mass_spectrum(mass_spec)
