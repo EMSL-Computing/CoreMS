@@ -33,7 +33,7 @@ def import_booster_mass_spectra_hdf():
         #polarity need to be set or read from the file
         booster_reader = ReadHDF_BoosterMassSpectra(file_path)
 
-        booster_reader.run()
+        booster_reader.start()
         booster_reader.join()
     
     return booster_reader.get_lcms_obj()
