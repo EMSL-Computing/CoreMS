@@ -2,6 +2,7 @@
 - Introduction
   - [CoreMS](#CoreMS)  
   - [Current Version](#current-version)  
+  - [Contact Information](#main-developers/contact )  
   - [Data Input](#data-input-formats)  
   - [Data Output](#data-output-formats)  
   - [Data Structure](#data-structure-types)  
@@ -35,6 +36,11 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 ## Current Version
 
 ### `22.0.8.beta`
+
+## Main Developers/Contact 
+- [Yuri. E. Corilo](mailto:corilo@pnnl.gov)  
+- [William Kew](mailto:william.kew@pnnl.gov)
+
 
 ### Data input formats
 
