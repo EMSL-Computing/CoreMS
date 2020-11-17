@@ -401,8 +401,10 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         
         for gcms_peak in self:
 
-            peaks_list[gcms_peak.rt] = (list(gcms_peak.rt_list), list(gcms_peak.tic_list))
-        
+            dict_data = {'rt': gcms_peak.rt_list, 'tic': gcms_peak.tic_list, 'mz': gcms_peak.mass_spectrum.mz_exp.tolist(), 'abundance': gcms_peak.mass_spectrum.abundance.tolist() }    
+            
+            peaks_list[gcms_peak.rt] = dict_data
+          
         if json_string:
             
             return json.dumps(peaks_list)

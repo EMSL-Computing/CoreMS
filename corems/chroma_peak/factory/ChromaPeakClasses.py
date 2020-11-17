@@ -114,9 +114,9 @@ class GCPeakDeconvolved(GCPeak):
         
         self._ri = None   
 
-        self._rt_list = rt_list
+        self._rt_list = list(rt_list)
         
-        self._tic_list = tic_list
+        self._tic_list = list(tic_list)
 
         self.mass_spectra = list(mass_spectra)
 
