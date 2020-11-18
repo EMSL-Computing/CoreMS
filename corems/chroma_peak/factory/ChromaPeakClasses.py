@@ -62,7 +62,7 @@ class ChromaPeakBase():
     def tic_list(self):
         return [self.chromatogram_parent.tic[i] for i in range(self.start_index, self.final_index+1) ]
 
-
+   
 class GCPeak(ChromaPeakBase, GCPeakCalculation):
 
     def __init__(self, chromatogram_parent, mass_spectrum_obj, indexes):
@@ -107,6 +107,13 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
             return max(self, key = lambda c: c.similarity_score)
         else: 
             return None
+
+    @property
+    def compound_names(self):
+        if self:
+            return [c.name for c in self]
+        else: 
+            return []
 
 class GCPeakDeconvolved(GCPeak):
     

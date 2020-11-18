@@ -399,18 +399,38 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
         peaks_list = dict()
         
+        all_candidates_data = {}
+
+        all_peaks_data = {}
+
         for gcms_peak in self:
 
-            dict_data = {'rt': gcms_peak.rt_list, 'tic': gcms_peak.tic_list, 'mz': gcms_peak.mass_spectrum.mz_exp.tolist(), 'abundance': gcms_peak.mass_spectrum.abundance.tolist() }    
+            dict_data = {'rt': gcms_peak.rt_list, 
+                         'tic': gcms_peak.tic_list,
+                         'mz': gcms_peak.mass_spectrum.mz_exp.tolist(), 
+                         'abundance': gcms_peak.mass_spectrum.abundance.tolist(),
+                         'candidate_names': gcms_peak.compound_names,
+                          }
             
             peaks_list[gcms_peak.rt] = dict_data
-          
+
+            for compound in gcms_peak:
+                
+                if not compound.name in all_candidates_data.keys():
+                    mz = array(compound.mz).tolist()
+                    abundance = array(compound.abundance).tolist()
+                    data = {'mz': mz, "abundance" : abundance}
+                    all_candidates_data[compound.name] = data
+                
+        all_peaks_data["peak_data"] = peaks_list
+        all_peaks_data["ref_data"] = all_candidates_data
+        
         if json_string:
             
-            return json.dumps(peaks_list)
+            return json.dumps(all_peaks_data)
         
         else:            
-            return peaks_list
+            return all_peaks_data
 
     def plot_processed_chromatogram(self, ax=None, color="black"):
         
