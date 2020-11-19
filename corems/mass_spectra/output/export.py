@@ -33,7 +33,7 @@ class LowResGCMSExport():
         
     def _init_columns(self):
 
-        columns =  ['Sample name', 'Retention Time', 'Retention Time Ref', 'Peak Height',
+        columns =  ['Sample name', 'Peak Index',  'Retention Time', 'Retention Time Ref', 'Peak Height',
                 'Peak Area', 'Retention index', 'Retention index Ref','Retention Index Score',
                 'Similarity Score',
                 'Spectral Similarity Score',
