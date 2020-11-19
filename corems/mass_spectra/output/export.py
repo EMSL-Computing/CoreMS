@@ -338,6 +338,7 @@ class LowResGCMSExport():
         def add_match_dict_data():
 
             out_dict = {'Sample name': gcms.sample_name,
+                        'Peak Index': gcpeak_index, 
                         'Retention Time': gc_peak.rt,
                         'Retention Time Ref': compound_obj.rt,
                         'Peak Height': gc_peak.tic,
@@ -377,6 +378,7 @@ class LowResGCMSExport():
         def add_no_match_dict_data():
 
             dict_data_list.append( {'Sample name': gcms.sample_name,
+                           'Peak Index': gcpeak_index,
                            'Retention Time': gc_peak.rt,
                            'Peak Height': gc_peak.tic,
                            'Peak Area': gc_peak.area,
@@ -384,7 +386,7 @@ class LowResGCMSExport():
                            } )
 
            
-        for gc_peak in gcms:
+        for gcpeak_index , gc_peak in enumerate(gcms):
 
             # check if there is a compound candidate 
             if gc_peak:
