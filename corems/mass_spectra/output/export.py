@@ -386,7 +386,7 @@ class LowResGCMSExport():
                            } )
 
            
-        for gcpeak_index , gc_peak in enumerate(gcms):
+        for gcpeak_index , gc_peak in enumerate(gcms.sorted_gcpeaks):
 
             # check if there is a compound candidate 
             if gc_peak:
@@ -410,11 +410,11 @@ class LowResGCMSExport():
                     add_no_match_dict_data()
 
         if include_no_match and not no_match_inline:
-            for gc_peak in gcms:
+            for gcpeak_index , gc_peak in enumerate(gcms.sorted_gcpeaks):
                 if not gc_peak:
                     add_no_match_dict_data()
         
-        return dict_data_list        
+        return dict_data_list
 
     
 class HighResMassSpectraExport(HighResMassSpecExport):

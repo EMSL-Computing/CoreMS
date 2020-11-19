@@ -201,6 +201,10 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         return [gc_peak for gc_peak in self if gc_peak]
 
     @property
+    def sorted_gcpeaks(self):
+        return sorted(self, key=lambda g: g.rt)
+
+    @property
     def unique_metabolites(self):
         
         metabolites = set()
@@ -403,8 +407,8 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
         all_peaks_data = {}
 
-        for gcms_peak in self:
-
+        for gcms_peak in self.sorted_gcpeaks:
+                
             dict_data = {'rt': gcms_peak.rt_list, 
                          'tic': gcms_peak.tic_list,
                          'mz': gcms_peak.mass_spectrum.mz_exp.tolist(), 
