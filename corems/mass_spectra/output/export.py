@@ -184,8 +184,8 @@ class LowResGCMSExport():
             hdf_handle.attrs['analyzer'] = self.gcms.analyzer
             hdf_handle.attrs['instrument_label'] = self.gcms.instrument_label
 
-            hdf_handle.attrs['sample_name'] = self.gcms.sample_name
             hdf_handle.attrs['sample_id'] = "self.gcms.id"
+            hdf_handle.attrs['sample_name'] = self.gcms.sample_name
             hdf_handle.attrs['input_data'] = str(self.gcms.file_location)
             hdf_handle.attrs['output_data'] = str(output_path)
             hdf_handle.attrs['output_data_id'] = id_label + uuid.uuid4().hex
@@ -295,18 +295,30 @@ class LowResGCMSExport():
     def get_parameters_json(self, gcms, id_label, output_path):
 
         import json
-        
-        output_parameters_dict = {}
-        
+
+        paramaters_path = output_path.with_suffix('.json')
+        if paramaters_path.exists():
+            with paramaters_path.open() as current_param:
+                output_parameters_dict = json.load(current_param)
+       
+        else:
+            output_parameters_dict = {}
+            
+            output_parameters_dict['sample_name'] = []
+            output_parameters_dict['sample_id'] = []
+            output_parameters_dict['input_data'] = []
+            output_parameters_dict['input_data_id'] = []
+
         blank_parameters = {}
         
         output_parameters_dict['analyzer'] = gcms.analyzer
         output_parameters_dict['instrument_label'] = gcms.instrument_label
         
-        output_parameters_dict['sample_name'] = gcms.sample_name
-        output_parameters_dict['sample_id'] = "sample_id"
-        output_parameters_dict['input_data'] = str(gcms.file_location)
-        output_parameters_dict['input_data_id'] = id_label + corems_md5(gcms.file_location)
+        output_parameters_dict['sample_name'].append(gcms.sample_name)
+        output_parameters_dict['sample_id'].append("sample_id")
+        output_parameters_dict['input_data'].append(str(gcms.file_location))
+        output_parameters_dict['input_data_id'].append(id_label + corems_md5(gcms.file_location))
+        
         output_parameters_dict['output_data'] = str(output_path)
         output_parameters_dict['output_data_id'] = id_label + uuid.uuid4().hex
         output_parameters_dict['corems_version'] = __version__
@@ -324,9 +336,10 @@ class LowResGCMSExport():
     
     def write_settings(self, output_path, gcms, id_label="corems:"):
         
-        with open(output_path.with_suffix('.json'), 'w', encoding='utf8', ) as outfile:
+        output = self.get_parameters_json(gcms, id_label, output_path)
 
-            output = self.get_parameters_json(gcms, id_label, output_path)
+        with open(output_path.with_suffix('.json'), 'w', encoding='utf8', ) as outfile:
+    
             outfile.write(output)
 
     def get_list_dict_data(self, gcms, include_no_match=True, no_match_inline=False) :
