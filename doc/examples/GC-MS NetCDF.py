@@ -149,7 +149,7 @@ def calibrate_and_search(out_put_file_name, jobs):
                 
                 #print(out_put_file_name)
                 gcms.to_csv(out_put_file_name)
-                gcms.to_excel(out_put_file_name)
+                # gcms.to_excel(out_put_file_name)
                 #gcms.to_pandas(out_put_file_name)
                 gcms.to_hdf()
                 #df = gcms.get_dataframe()
@@ -201,9 +201,9 @@ if __name__ == '__main__':
     #import matplotlib
     #matplotlib.use('TkAgg')
     #%%
-    cores = 5
-    out_put_file_group_name = 'Group 1_Standards'
-    calibrate_and_search(out_put_file_group_name, cores)
+    cores = 8
+    #out_put_file_group_name = 'Group 1_Standards'
+    #calibrate_and_search(out_put_file_group_name, cores)
     #start_sql_from_file()
-    #auto_process(cores)
+    auto_process(cores)
     #stand_alone()
