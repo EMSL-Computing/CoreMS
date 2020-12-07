@@ -188,7 +188,7 @@ class CompoundSearchSettings:
 
     url_database: str = 'sqlite:///db/pnnl_lowres_gcms_compounds.sqlite'
     
-    ri_search_range:float = 20
+    ri_search_range:float = 35
 
     rt_search_range:float = 1.0 #used for retention index calibration
     

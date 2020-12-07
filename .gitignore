@@ -1,6 +1,7 @@
 venv/ 
 .pyc  
 .pyo
+*.hdf5
 *.d  
 *.so  
 *.pkl  

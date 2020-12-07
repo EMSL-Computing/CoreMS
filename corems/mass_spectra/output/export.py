@@ -229,11 +229,11 @@ class LowResGCMSExport():
 
                     if output_score_method == 'highest_sim_score':
                         compound_obj = gc_peak.highest_score_compound
-                        add_match_dict_data()
+                        add_compound(gc_peak, compound_obj)
 
                     elif output_score_method == 'highest_ss':
                         compound_obj = gc_peak.highest_ss_compound
-                        add_match_dict_data()
+                        add_compound(gc_peak, compound_obj)
 
                     else:
 

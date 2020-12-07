@@ -22,10 +22,11 @@ class GC_Calculations:
             gcms_peak.calc_ri(ref_dict)
 
         self.ri_pairs_ref = ref_dict
-        self.cal_file_path = Path(cal_file_path)
-        
-        
-
+        if  isinstance(cal_file_path, str):
+			# if obj is a string it defaults to create a Path obj, pass the S3Path if needed
+            self.cal_file_path = Path(cal_file_path)
+        else:
+            self.cal_file_path = cal_file_path
         
     def smooth_tic(self, tic):
             
