@@ -33,7 +33,7 @@ class LowResGCMSExport():
         
     def _init_columns(self):
 
-        columns =  ['Sample name', 'Retention Time', 'Retention Time Ref', 'Peak Height',
+        columns =  ['Sample name', 'Peak Index',  'Retention Time', 'Retention Time Ref', 'Peak Height',
                 'Peak Area', 'Retention index', 'Retention index Ref','Retention Index Score',
                 'Similarity Score',
                 'Spectral Similarity Score',
@@ -338,6 +338,7 @@ class LowResGCMSExport():
         def add_match_dict_data():
 
             out_dict = {'Sample name': gcms.sample_name,
+                        'Peak Index': gcpeak_index, 
                         'Retention Time': gc_peak.rt,
                         'Retention Time Ref': compound_obj.rt,
                         'Peak Height': gc_peak.tic,
@@ -377,6 +378,7 @@ class LowResGCMSExport():
         def add_no_match_dict_data():
 
             dict_data_list.append( {'Sample name': gcms.sample_name,
+                           'Peak Index': gcpeak_index,
                            'Retention Time': gc_peak.rt,
                            'Peak Height': gc_peak.tic,
                            'Peak Area': gc_peak.area,
@@ -384,7 +386,7 @@ class LowResGCMSExport():
                            } )
 
            
-        for gc_peak in gcms:
+        for gcpeak_index , gc_peak in enumerate(gcms.sorted_gcpeaks):
 
             # check if there is a compound candidate 
             if gc_peak:
@@ -408,11 +410,11 @@ class LowResGCMSExport():
                     add_no_match_dict_data()
 
         if include_no_match and not no_match_inline:
-            for gc_peak in gcms:
+            for gcpeak_index , gc_peak in enumerate(gcms.sorted_gcpeaks):
                 if not gc_peak:
                     add_no_match_dict_data()
         
-        return dict_data_list        
+        return dict_data_list
 
     
 class HighResMassSpectraExport(HighResMassSpecExport):

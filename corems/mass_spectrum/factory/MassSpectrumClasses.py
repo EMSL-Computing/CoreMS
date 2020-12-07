@@ -1019,8 +1019,8 @@ class MassSpecCentroidLowRes(MassSpecCentroid,):
     def __init__(self, data_dict, d_params):
     
         self._set_parameters_objects(d_params)
-        self._mz_exp = data_dict.get(Labels.mz)
-        self._abundance = data_dict.get(Labels.abundance)
+        self._mz_exp = array(data_dict.get(Labels.mz))
+        self._abundance = array(data_dict.get(Labels.abundance))
         self._processed_tic = None
     
     def __len__(self):

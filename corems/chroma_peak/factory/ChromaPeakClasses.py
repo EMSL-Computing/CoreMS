@@ -62,7 +62,7 @@ class ChromaPeakBase():
     def tic_list(self):
         return [self.chromatogram_parent.tic[i] for i in range(self.start_index, self.final_index+1) ]
 
-
+   
 class GCPeak(ChromaPeakBase, GCPeakCalculation):
 
     def __init__(self, chromatogram_parent, mass_spectrum_obj, indexes):
@@ -108,15 +108,22 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
         else: 
             return None
 
+    @property
+    def compound_names(self):
+        if self:
+            return [c.name for c in self]
+        else: 
+            return []
+
 class GCPeakDeconvolved(GCPeak):
     
     def __init__(self, chromatogram_parent, mass_spectra, apex_index, rt_list, tic_list ):
         
         self._ri = None   
 
-        self._rt_list = rt_list
+        self._rt_list = list(rt_list)
         
-        self._tic_list = tic_list
+        self._tic_list = list(tic_list)
 
         self.mass_spectra = list(mass_spectra)
 

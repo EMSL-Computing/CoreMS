@@ -201,6 +201,10 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         return [gc_peak for gc_peak in self if gc_peak]
 
     @property
+    def sorted_gcpeaks(self):
+        return sorted(self, key=lambda g: g.rt)
+
+    @property
     def unique_metabolites(self):
         
         metabolites = set()
@@ -399,16 +403,38 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
         peaks_list = dict()
         
-        for gcms_peak in self:
+        all_candidates_data = {}
 
-            peaks_list[gcms_peak.rt] = (list(gcms_peak.rt_list), list(gcms_peak.tic_list))
+        all_peaks_data = {}
+
+        for gcms_peak in self.sorted_gcpeaks:
+                
+            dict_data = {'rt': gcms_peak.rt_list, 
+                         'tic': gcms_peak.tic_list,
+                         'mz': gcms_peak.mass_spectrum.mz_exp.tolist(), 
+                         'abundance': gcms_peak.mass_spectrum.abundance.tolist(),
+                         'candidate_names': gcms_peak.compound_names,
+                          }
+            
+            peaks_list[gcms_peak.rt] = dict_data
+
+            for compound in gcms_peak:
+                
+                if not compound.name in all_candidates_data.keys():
+                    mz = array(compound.mz).tolist()
+                    abundance = array(compound.abundance).tolist()
+                    data = {'mz': mz, "abundance" : abundance}
+                    all_candidates_data[compound.name] = data
+                
+        all_peaks_data["peak_data"] = peaks_list
+        all_peaks_data["ref_data"] = all_candidates_data
         
         if json_string:
             
-            return json.dumps(peaks_list)
+            return json.dumps(all_peaks_data)
         
         else:            
-            return peaks_list
+            return all_peaks_data
 
     def plot_processed_chromatogram(self, ax=None, color="black"):
         
