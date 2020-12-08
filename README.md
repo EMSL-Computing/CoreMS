@@ -35,7 +35,7 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 
 ## Current Version
 
-### `22.1.10.beta`
+### `22.1.11.beta`
 
 ## Main Developers/Contact 
 - [Yuri. E. Corilo](mailto:corilo@pnnl.gov)  
