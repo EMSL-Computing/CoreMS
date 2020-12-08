@@ -8,8 +8,6 @@ from pathlib import Path
 from multiprocessing import Pool
 import cProfile
 
-from PySide2.QtWidgets import QFileDialog, QApplication
-from PySide2.QtCore import Qt
 
 from corems.molecular_id.input.nistMSI import ReadNistMSI
 from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
@@ -60,6 +58,9 @@ def get_gcms(file_path):
     return gcms
 
 def get_reference_dict(calibration_file_path=False):
+
+    from PySide2.QtWidgets import QFileDialog, QApplication
+    from PySide2.QtCore import Qt
 
     if not calibration_file_path:
         app = QApplication(sys.argv)
@@ -124,6 +125,9 @@ def auto_calibrate_and_search(file_locations, output_file_name, jobs, calibratio
                 #print(output_file_name)
 
 def calibrate_and_search(out_put_file_name, jobs):
+
+    from PySide2.QtWidgets import QFileDialog, QApplication
+    from PySide2.QtCore import Qt
     
     import csv
     
@@ -152,6 +156,7 @@ def calibrate_and_search(out_put_file_name, jobs):
                 # gcms.to_excel(out_put_file_name)
                 #gcms.to_pandas(out_put_file_name)
                 gcms.to_hdf()
+
                 #df = gcms.get_dataframe()
                 #json_data = gcms.to_json()
                 
@@ -202,8 +207,8 @@ if __name__ == '__main__':
     #matplotlib.use('TkAgg')
     #%%
     cores = 8
-    #out_put_file_group_name = 'Group 1_Standards'
-    #calibrate_and_search(out_put_file_group_name, cores)
+    out_put_file_group_name = 'json_test'
+    calibrate_and_search(out_put_file_group_name, cores)
     #start_sql_from_file()
-    auto_process(cores)
+    #auto_process(cores)
     #stand_alone()

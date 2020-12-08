@@ -13,8 +13,7 @@ import cProfile
 
 from matplotlib import pyplot as plt
 from numpy import array, polyfit, poly1d
-from PySide2.QtWidgets import QFileDialog, QApplication
-from PySide2.QtCore import Qt
+
 
 from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
 from corems import get_dirname, get_filename

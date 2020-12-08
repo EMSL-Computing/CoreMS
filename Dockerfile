@@ -3,6 +3,7 @@ WORKDIR /home/corems
 
 COPY corems/ /home/corems/corems
 COPY README.md disclaimer.txt requirements.txt setup.py /home/corems/
+RUN pip3 install -U -r requirements.txt
 RUN python3 setup.py install
 RUN rm -f -r /home/corems/corems
 RUN rm /home/corems/setup.py
