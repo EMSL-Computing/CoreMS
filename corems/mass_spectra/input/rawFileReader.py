@@ -84,7 +84,8 @@ class ImportMassSpectraThermoMSFileReader():
         return self._final_scan_number
 
     def get_filter_for_scan_num(self, scan_number):
-        """Returns the closest matching run time that corresponds to scan_number for the current
+        """
+        Returns the closest matching run time that corresponds to scan_number for the current
         controller. This function is only supported for MS device controllers.
         e.g.  ['FTMS', '-', 'p', 'NSI', 'Full', 'ms', '[200.00-1000.00]']
         """
@@ -92,6 +93,22 @@ class ImportMassSpectraThermoMSFileReader():
             scan_number)
 
         return str(scan_label).split()
+
+    def get_all_filters(self):
+        """
+        Get all scan filters.
+        This function is only supported for MS device controllers.
+        e.g.  ['FTMS', '-', 'p', 'NSI', 'Full', 'ms', '[200.00-1000.00]']
+        """
+        scanrange = range(self._initial_scan_number,self._final_scan_number+1)
+        scanfiltersdic = {}
+        scanfilterslist = []
+        for scan_number in scanrange:
+            scan_label = self.iRawDataPlus.GetScanEventStringForScanNumber(scan_number)
+            scanfiltersdic[scan_number] = scan_label
+            scanfilterslist.append(scan_label)
+        scanfilterset = list(set(scanfilterslist))
+        return scanfiltersdic, scanfilterset
 
     def check_full_scan(self, scan_number):
         # scan_filter.ScanMode 0 = FULL
@@ -363,6 +380,34 @@ class ImportMassSpectraThermoMSFileReader():
         mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process)
 
         return mass_spec
+
+    def get_tic(self,plot=False):
+        """
+        Reads the TIC values for each scan from the Thermo headers
+        Returns a pandas dataframe of Scans, TICs, and Times
+        (Optionally) plots the TIC chromatogram.
+        """
+        first_scan = self._initial_scan_number
+        final_scan = self._final_scan_number
+        scanrange = range(first_scan,final_scan+1)
+
+        ms_tic = pd.DataFrame(index=scanrange,columns=['Time','TIC'])
+        for scan in scanrange:
+            scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan)
+            ms_tic.loc[scan,'Time'] = scanStatistics.StartTime
+            ms_tic.loc[scan,'TIC'] = scanStatistics.TIC
+
+        
+        if plot:
+            import matplotlib.pyplot as plt #maybe better in top of file?
+            fig,ax = plt.subplots(figsize=(6,3))
+            ax.plot(ms_tic['Time'],ms_tic['TIC'],label='TIC')
+            ax.set_xlabel('Time (min)')
+            ax.set_ylabel('a.u.')
+            plt.legend()
+            # plt.show()
+            return ms_tic,fig
+        return ms_tic
 
     def get_best_scans_idx(self, stdevs=2, method='mean', plot=False):
         '''
