@@ -50,7 +50,7 @@ class ReadAndiNetCDF(Thread):
 
 		self.experiment_type = self.net_cdf_obj.experiment_type
 
-		self.list_scans = self.net_cdf_obj.variables.get("actual_scan_number")[:]
+		self.list_scans = range(len(self.net_cdf_obj.variables.get("actual_scan_number")[:]))
 
 		self.initial_scan_number = self.list_scans[0]
 
