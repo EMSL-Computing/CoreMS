@@ -6,10 +6,10 @@ __date__ = "Feb 12, 2020"
 import os 
 from dataclasses import dataclass
 
-from sqlalchemy import create_engine, Column, Integer, String, Float,  exists, Binary
+from sqlalchemy import create_engine, Column, Integer, String, Float, Binary, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from sqlalchemy.pool import QueuePool
 from sqlalchemy import between
@@ -18,38 +18,28 @@ from numpy import array, frombuffer
 
 Base = declarative_base()
 
-@dataclass
-class LowResCompoundRef:
-    "this class is use to store the results inside the GCPeak class"
-    def __init__(self, compounds_dict):
-        
-        self.name = compounds_dict.get("id")
-        self.ri = compounds_dict.get("ri")
-        self.rt = compounds_dict.get("rt")
-        self.casno  = compounds_dict.get("casno")
-        self.comment  = compounds_dict.get("comment")
-        self.peaks_count = compounds_dict.get("peaks_count")
-        
-        self.mz  = compounds_dict.get('mz') 
-        self.abundance  = compounds_dict.get("abundance") 
-
-        self.source_temp_c  = compounds_dict.get("source_temp_c") 
-        self.ev  = compounds_dict.get("ev") 
-        self.formula  = compounds_dict.get("formula") 
-        self.source = compounds_dict.get("source") 
-
-        self.similarity_score = None
-        self.ri_score = None
-        self.spectral_similarity_score = None
-        self.spectral_similarity_scores = {}
-        
+class Metadatar(Base):
+    __tablename__ = 'metaDataR'
+    
+    id = Column( Integer, primary_key=True)
+    cas = Column(String, nullable=True)
+    inchikey = Column(String, nullable=False)
+    inchi = Column(String, nullable=False)
+    chebi = Column(String, nullable=True)
+    smiles = Column(String, nullable=True)
+    kegg = Column(String, nullable=True)
+    data_id = Column(Integer, ForeignKey('molecularData.id'))
+    data = relationship("LowResolutionEICompound", back_populates="metadatar")
+   
 class LowResolutionEICompound(Base):  
     
-    __tablename__ = 'pnnl_lowres_gcms_compounds'
+    __tablename__ = 'molecularData'
 
-    id = Column( String, primary_key=True)
+    id = Column( Integer, primary_key=True)
     
     name = Column(String, nullable=False)
+    classify = Column(String, nullable=True)
+
     formula = Column(String, nullable=True)
     ri = Column(Float, nullable=False)
     rt = Column(Float, nullable=False)
@@ -65,9 +55,13 @@ class LowResolutionEICompound(Base):
     mz = Column(Binary,  nullable=False)
     abundance = Column(Binary,  nullable=False)
 
+    metadatar = relationship("Metadatar", uselist=False, back_populates="data")
+
+    #metadatar = relationship('Metadatar', backref='smile', lazy='dynamic')
+
     def __init__(self, dict_data): 
         
-        self.id = dict_data.get('NAME')
+        self.id = dict_data.get('id')
         
         self.name =dict_data.get('NAME')
         self.formula = dict_data.get('FORM')
@@ -77,6 +71,8 @@ class LowResolutionEICompound(Base):
         self.source = dict_data.get('SOURCE')
         self.casno =dict_data.get('CASNO')
         self.comment = dict_data.get('COMMENT')
+
+        self.classify = dict_data.get('classify')
 
         self.peaks_count = dict_data.get('NUM PEAKS')
         
@@ -89,6 +85,50 @@ class LowResolutionEICompound(Base):
     def __repr__(self):
         return "<LowResolutionEICompound(name= %s , cas number = %s, formula = %s, Retention index= %.1f, Retention time= %.1f comment='%i')>" % (
                                     self.name, self.casno, self.formula, self.ri, self.rt, self.comment)
+@dataclass
+class MetaboliteMetadata:
+    
+    id: int
+    cas: str
+    inchikey: str
+    inchi: str
+    chebi: str
+    smiles: str
+    kegg: str
+    data_id: int
+
+@dataclass
+class LowResCompoundRef:
+    "this class is use to store the results inside the GCPeak class"
+    def __init__(self, compounds_dict):
+        
+        self.id = compounds_dict.get("id")
+        self.name = compounds_dict.get("name")
+        self.ri = compounds_dict.get("ri")
+        self.rt = compounds_dict.get("rt")
+        self.casno  = compounds_dict.get("casno")
+        self.comment  = compounds_dict.get("comment")
+        self.peaks_count = compounds_dict.get("peaks_count")
+        
+        self.mz  = compounds_dict.get('mz') 
+        self.abundance  = compounds_dict.get("abundance") 
+
+        self.source_temp_c  = compounds_dict.get("source_temp_c") 
+        self.ev  = compounds_dict.get("ev") 
+        self.formula  = compounds_dict.get("formula") 
+        self.source = compounds_dict.get("source") 
+
+        self.classify = compounds_dict.get("classify")
+
+        if compounds_dict.get("metadata"):
+            self.metadata = MetaboliteMetadata(**compounds_dict.get("metadata"))
+        else:
+            self.metadata = None
+
+        self.similarity_score = None
+        self.ri_score = None
+        self.spectral_similarity_score = None
+        self.spectral_similarity_scores = {}
 
 class EI_LowRes_SQLite:
     
@@ -110,7 +150,7 @@ class EI_LowRes_SQLite:
         self.engine.dispose()
 
     def init_engine(self, url):
-        
+       
         directory = os.getcwd()
         
         if not url:
@@ -155,12 +195,18 @@ class EI_LowRes_SQLite:
    
     def row_to_dict(self, row):
             
-        row = {c.name: getattr(row, c.name) for c in row.__table__.columns}        
+        data_dict = {c.name: getattr(row, c.name) for c in row.__table__.columns}        
         
-        row['mz'] = frombuffer(row.get('mz'), dtype="int32")
-        row['abundance'] = frombuffer(row.get('abundance'), dtype="int32")
-
-        return row
+        data_dict['mz'] = frombuffer(data_dict.get('mz'), dtype="int32")
+        data_dict['abundance'] = frombuffer(data_dict.get('abundance'), dtype="int32")
+        
+        if row.metadatar:
+            data_dict['metadata'] = {c.name: getattr(row.metadatar, c.name) for c in row.metadatar.__table__.columns}
+        
+        else:
+            data_dict['metadata'] = None
+            
+        return data_dict
 
     def get_all(self,):
 
@@ -180,7 +226,7 @@ class EI_LowRes_SQLite:
         
         min_ri, max_ri = min_max_ri
 
-        compounds = self.session.query(LowResolutionEICompound).filter(LowResolutionEICompound.ri.between(min_ri, max_ri))    
+        compounds = self.session.query(LowResolutionEICompound).filter(LowResolutionEICompound.ri.between(min_ri, max_ri)).all()
         
         return [self.row_to_dict(compound) for compound in compounds]
 
@@ -194,7 +240,8 @@ class EI_LowRes_SQLite:
                                         )
         
         #self.session.query.select(LowResolutionEICompound).where(between(LowResolutionEICompound.ri, min_ri, max_ri))    
-        x = [self.row_to_dict(compound) for compound in compounds]
+        # x = [self.row_to_dict(compound) for compound in compounds]
+        
         return [self.row_to_dict(compound) for compound in compounds]
 
     def query_min_max_ri_and_rt(self, min_max_ri, min_max_rt, ):
@@ -209,6 +256,7 @@ class EI_LowRes_SQLite:
             LowResolutionEICompound.ri >= min_rt,
             LowResolutionEICompound.ri >= max_rt,
             )
+        
         
         #self.session.query.select(LowResolutionEICompound).where(between(LowResolutionEICompound.ri, min_ri, max_ri))    
         

@@ -216,6 +216,46 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         return metabolites
 
     @property
+    def metabolites_data(self):
+        
+        metabolites = {}
+        for gc_peak in self:
+            if gc_peak:
+                for compound_obj in gc_peak:
+                     
+                    if compound_obj.name in metabolites.keys():
+                        current_score = metabolites[compound_obj.name]["highest_similarity_score"]
+                        compound_score = compound_obj.spectral_similarity_score
+                        metabolites[compound_obj.name]["highest_similarity_score"] = compound_score if compound_score > current_score else current_score
+                    
+                    else:    
+                        if compound_obj.metadata:
+                            metabolites[compound_obj.name] = {
+                                                                "name": compound_obj.name,
+                                                                "highest_similarity_score": compound_obj.spectral_similarity_score,
+                                                                "casno": compound_obj.metadata.cas,
+                                                                "kegg": compound_obj.metadata.kegg,
+                                                                "inchi": compound_obj.metadata.inchi,
+                                                                "inchi_key": compound_obj.metadata.inchikey,
+                                                                "chebi": compound_obj.metadata.chebi,
+                                                                "smiles": compound_obj.metadata.smiles
+                                                                }
+                        else:
+                            continue
+                            metabolites[compound_obj.name] = {
+                                                                "name": compound_obj.name,
+                                                                "highest_similarity_score": compound_obj.spectral_similarity_score,
+                                                                "casno": "",
+                                                                "kegg": "",
+                                                                "inchi": "",
+                                                                "inchikey": "",
+                                                                "chebi": "",
+                                                                "smiles": ""
+                                                                }                        
+                                            
+        return list(metabolites.values())
+
+    @property
     def no_matched_peaks(self):
         return [ peak for peak in self if not peak]
 
@@ -293,18 +333,24 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
     def to_excel(self, out_file_path, write_mode='ab', id_label="corems:"):
         
         exportMS= LowResGCMSExport(out_file_path, self)
-        exportMS.to_excel(id_label=id_label)
+        exportMS.to_excel(id_label=id_label, write_mode=write_mode)
 
-    def to_csv(self, out_file_path, write_mode='ab',  id_label="corems:"):
+        return out_file_path.with_suffix('.xlsx')
+
+    def to_csv(self, out_file_path, separate_output=False,  id_label="corems:"):
         
         exportMS= LowResGCMSExport(out_file_path, self)
-        exportMS.to_csv(id_label=id_label)
-        
+        exportMS.to_csv(id_label=id_label, separate_output=separate_output)
+
+        return out_file_path.with_suffix('.csv')
+
     def to_pandas(self, out_file_path, id_label="corems:"):
         
         #pickle dataframe (pkl extension)
         exportMS= LowResGCMSExport(out_file_path, self)
         exportMS.to_pandas(id_label=id_label)
+
+        return out_file_path.with_suffix('.pkl')
 
     def to_dataframe(self, id_label="corems:"):
         

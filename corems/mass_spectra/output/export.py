@@ -1,8 +1,9 @@
 __author__ = "Yuri E. Corilo"
-__date__ = "Nov 06, 2019"
+__date__ = "Dec 14, 2010"
 
 
 import csv
+import json
 from pathlib import Path
 
 from numpy import  NaN, concatenate
@@ -88,7 +89,7 @@ class LowResGCMSExport():
 
         df.to_pickle(self.output_file.with_suffix('.pkl'))
         
-        self.write_settings(self.output_file, self.gcms, id_label="corems:")
+        self.write_settings(self.output_file.with_suffix('.pkl'), self.gcms, id_label="corems:")
                
     def to_excel(self, write_mode='a', id_label="corems:"):
 
@@ -117,7 +118,7 @@ class LowResGCMSExport():
         
             df.to_excel(self.output_file.with_suffix('.xlsx'), index=False, engine='openpyxl')
 
-        self.write_settings(self.output_file, self.gcms, id_label="corems:")
+        self.write_settings(out_put_path, self.gcms, id_label="corems:")
 
     def to_csv(self, separate_output=False,  id_label="corems:") :
         
@@ -145,7 +146,7 @@ class LowResGCMSExport():
                 for data in dict_data_list:
                     writer.writerow(data)
             
-            self.write_settings(self.output_file, self.gcms, id_label=id_label)
+            self.write_settings(out_put_path, self.gcms, id_label=id_label)
         
         except IOError as ioerror:
             print(ioerror)                 
@@ -154,8 +155,9 @@ class LowResGCMSExport():
         
         # save sample at a time
         def add_compound(gc_peak, compound_obj):
-
-            compound_group = peak_group.create_group(compound_obj.name)
+            
+            modifier = compound_obj.classify if compound_obj.classify else ""
+            compound_group = peak_group.create_group(compound_obj.name +" " + modifier)
             compound_group.attrs["retention_time"] = compound_obj.rt
             compound_group.attrs["retention_index"] = compound_obj.ri
             compound_group.attrs["retention_index_score"] = compound_obj.ri_score
@@ -273,9 +275,9 @@ class LowResGCMSExport():
         calibration_parameters = {}
 
         calibration_parameters['calibration_rt_ri_pairs_ref'] = gcms.ri_pairs_ref
-        calibration_parameters['file_path'] = str(gcms.cal_file_path)
-        calibration_parameters['file_id'] = id_label + corems_md5(gcms.cal_file_path)
-        calibration_parameters['sample_name'] = str(gcms.cal_file_path.stem)
+        calibration_parameters['data_url'] = str(gcms.cal_file_path)
+        calibration_parameters['has_input'] = id_label + corems_md5(gcms.cal_file_path)
+        calibration_parameters['data_name'] = str(gcms.cal_file_path.stem)
         calibration_parameters['calibration_method'] = ""
 
         return calibration_parameters
@@ -284,57 +286,67 @@ class LowResGCMSExport():
         
         blank_parameters = {}
 
-        blank_parameters['sample_name'] = "ni"
+        blank_parameters['data_name'] = "ni"
         blank_parameters['blank_id'] = "ni"
-        blank_parameters['file_path'] = "ni"
-        blank_parameters['file_id'] = "ni"
+        blank_parameters['data_url'] = "ni"
+        blank_parameters['has_input'] = "ni"
         blank_parameters['common_features_to_blank'] = "ni"
 
         return blank_parameters
 
-    def get_parameters_json(self, gcms, id_label, output_path):
+    
+    def get_instrument_metadata(self, gcms):
 
-        import json
+        instrument_metadata = {}
 
+        instrument_metadata['analyzer'] = gcms.analyzer
+        instrument_metadata['instrument_label'] = gcms.instrument_label
+        instrument_metadata['instrument_id'] = uuid.uuid4().hex
+
+        return instrument_metadata
+
+    def get_data_metadata(self, gcms, id_label, output_path):
+        
         paramaters_path = output_path.with_suffix('.json')
+
         if paramaters_path.exists():
             with paramaters_path.open() as current_param:
-                output_parameters_dict = json.load(current_param)
-       
+                metadata = json.load(current_param)
+                data_metadata = metadata.get('Data')
         else:
-            output_parameters_dict = {}
             
-            output_parameters_dict['sample_name'] = []
-            output_parameters_dict['sample_id'] = []
-            output_parameters_dict['input_data'] = []
-            output_parameters_dict['input_data_id'] = []
+            data_metadata = {}  
+            data_metadata['data_name'] = []
+            data_metadata['input_data_url'] = []
+            data_metadata['has_input'] = []
+        
+        data_metadata['data_name'].append(gcms.sample_name)
+        data_metadata['input_data_url'].append(str(gcms.file_location))
+        data_metadata['has_input'].append(id_label + corems_md5(gcms.file_location))
+        
+        data_metadata['output_data_name'] = str(output_path.stem)
+        data_metadata['output_data_url'] = str(output_path)
+        data_metadata['has_output'] = id_label + corems_md5(output_path)
 
-        blank_parameters = {}
-        
-        output_parameters_dict['analyzer'] = gcms.analyzer
-        output_parameters_dict['instrument_label'] = gcms.instrument_label
-        
-        output_parameters_dict['sample_name'].append(gcms.sample_name)
-        output_parameters_dict['sample_id'].append("sample_id")
-        output_parameters_dict['input_data'].append(str(gcms.file_location))
-        output_parameters_dict['input_data_id'].append(id_label + corems_md5(gcms.file_location))
-        
-        output_parameters_dict['output_data'] = str(output_path)
-        output_parameters_dict['output_data_id'] = id_label + uuid.uuid4().hex
-        output_parameters_dict['corems_version'] = __version__
-        
+        return data_metadata
+
+    def get_parameters_json(self, gcms, id_label, output_path):
+
+        output_parameters_dict = {}
+        output_parameters_dict['Data'] = self.get_data_metadata(gcms, id_label, output_path)
         output_parameters_dict["Stats"] = self.get_data_stats(gcms)
         output_parameters_dict["Calibration"] = self.get_calibration_stats(gcms, id_label)
         output_parameters_dict["Blank"] = self.get_blank_stats(gcms)
-
+        output_parameters_dict["Instrument"] = self.get_instrument_metadata(gcms)
         corems_dict_setting = parameter_to_dict.get_dict_data_gcms(gcms)
+        corems_dict_setting['corems_version'] = __version__
         output_parameters_dict["CoreMSParameters"] = corems_dict_setting
-
+        output_parameters_dict["has_metabolite"] = gcms.metabolites_data
         output = json.dumps(output_parameters_dict, sort_keys=False, indent=4, separators=(',', ': '))
 
         return output
     
-    def write_settings(self, output_path, gcms, id_label="corems:"):
+    def write_settings(self, output_path, gcms, id_label="emsl:"):
         
         output = self.get_parameters_json(gcms, id_label, output_path)
 

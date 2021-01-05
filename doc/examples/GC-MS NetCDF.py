@@ -14,6 +14,8 @@ from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
 from corems.molecular_id.search.compoundSearch import LowResMassSpectralMatch
 from corems.mass_spectra.calc.GC_RI_Calibration import get_rt_ri_pairs
 from corems import get_dirname, get_filename
+
+from doc.examples.nmdc.NMDC_Metadata import create_nmdc_metadata
 import glob
 
 def start_sql_from_file():
@@ -77,12 +79,12 @@ def get_reference_dict(calibration_file_path=False):
     else:
         
         gcms_ref_obj = get_gcms(file_path)
-        sql_obj = start_sql_from_file()
-        rt_ri_pairs = get_rt_ri_pairs(gcms_ref_obj,sql_obj=sql_obj)
+        #sql_obj = start_sql_from_file()
+        rt_ri_pairs = get_rt_ri_pairs(gcms_ref_obj) #sql_obj=sql_obj)
         # !!!!!! READ !!!!! use the previous two lines if db/pnnl_lowres_gcms_compounds.sqlite does not exist
         # and comment the next line
         #rt_ri_pairs = get_rt_ri_pairs(gcms_ref_obj)
-
+        
         return rt_ri_pairs, file_path
         
 def run(args):
@@ -95,9 +97,9 @@ def run(args):
 
     gcms.calibrate_ri(ref_dict, cal_file_path)
     
-    sql_obj = start_sql_from_file()
+    #sql_obj = start_sql_from_file()
     
-    lowResSearch = LowResMassSpectralMatch(gcms, sql_obj=sql_obj)
+    lowResSearch = LowResMassSpectralMatch(gcms) #sql_obj=sql_obj)
     # !!!!!! READ !!!!! use the previous two lines if db/pnnl_lowres_gcms_compounds.sqlite does not exist
     # and comment the next line
     #lowResSearch = LowResMassSpectralMatch(gcms)
@@ -149,13 +151,19 @@ def calibrate_and_search(out_put_file_name, jobs):
             gcmss = pool.map(run, args)
             pool.close()
             pool.join()
-            for gcms in gcmss:
+            for file_index, gcms in enumerate(gcmss):
                 
+                file_path = Path(file_locations[0][file_index])
                 #print(out_put_file_name)
-                gcms.to_csv(out_put_file_name)
+                gcms.to_csv(file_path, id_label="emsl:")
+                
+                create_nmdc_metadata(file_path, gcms, file_path)
+                
+                
+
                 # gcms.to_excel(out_put_file_name)
                 #gcms.to_pandas(out_put_file_name)
-                gcms.to_hdf()
+                # gcms.to_hdf()
 
                 #df = gcms.get_dataframe()
                 #json_data = gcms.to_json()
@@ -207,8 +215,8 @@ if __name__ == '__main__':
     #matplotlib.use('TkAgg')
     #%%
     cores = 8
-    out_put_file_group_name = 'json_test'
+    out_put_file_group_name = 'sql_test'
     calibrate_and_search(out_put_file_group_name, cores)
     #start_sql_from_file()
     #auto_process(cores)
-    #stand_alone()
+    # stand_alone()

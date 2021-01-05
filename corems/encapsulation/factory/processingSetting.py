@@ -186,7 +186,7 @@ class GasChromatographSetting:
 @dataclasses.dataclass
 class CompoundSearchSettings:
 
-    url_database: str = 'sqlite:///db/pnnl_lowres_gcms_compounds.sqlite'
+    url_database: str = "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/lowres" #'postgresql://postgres:labthomson0102@172.22.113.27:5432/GCMS' # 'sqlite:///db/pnnl_lowres_gcms_compounds.sqlite'
     
     ri_search_range:float = 35
 
@@ -194,7 +194,7 @@ class CompoundSearchSettings:
     
     correlation_threshold:float = 0.5 # used for calibration, spectral similarity 
     
-    score_threshold:float = 0.0
+    score_threshold:float = 0.5
 
     ri_spacing:float = 200
 
@@ -211,7 +211,7 @@ class CompoundSearchSettings:
 
     def __post_init__(self):
         # enforce datatype
-        self.url_database = os.getenv("SPECTRAL_GCMS_DATABASE_URL", 'sqlite:///db/pnnl_lowres_gcms_compounds.sqlite')
+        # self.url_database = os.getenv("SPECTRAL_GCMS_DATABASE_URL", 'sqlite:///db/pnnl_lowres_gcms_compounds.sqlite')
 
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
@@ -220,19 +220,19 @@ class CompoundSearchSettings:
                 value = field.type(value)
                 setattr(self, field.name, value)
 
-        self.ri_calibration_compound_names = (" [C8] Methyl Caprylate [7.812]",
-                                " [C10] Methyl Caprate [10.647]",
-                                " [C9] Methyl Pelargonate [9.248]",
-                                " [C12] Methyl Laurate [13.250]",
-                                " [C14] Methyl Myristate [15.597]",
-                                " [C16] Methyl Palmitate [17.723]",
-                                " [C18] Methyl Stearate [19.663]",
-                                " [C20] Methyl Eicosanoate [21.441]",
-                                " [C22] Methyl Docosanoate [23.082]",
-                                " [C24] Methyl Linocerate [24.603]",
-                                " [C26] Methyl Hexacosanoate [26.023]",
-                                " [C28] Methyl Octacosanoate [27.349]",
-                                " [C30] Methyl Triacontanoate [28.72]")
+        self.ri_calibration_compound_names = ['Methyl Caprylate', 
+                                              'Methyl Caprate', 
+                                              'Methyl Pelargonate', 
+                                              'Methyl Laurate', 
+                                              'Methyl Myristate', 
+                                              'Methyl Palmitate', 
+                                              'Methyl Stearate', 
+                                              'Methyl Eicosanoate', 
+                                              'Methyl Docosanoate', 
+                                              'Methyl Linocerate', 
+                                              'Methyl Hexacosanoate', 
+                                              'Methyl Octacosanoate', 
+                                              'Methyl Triacontanoate']
 
 @dataclasses.dataclass
 class MolecularLookupDictSettings:
