@@ -274,45 +274,45 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
         self._tic_list = array(l)    
 
-    def plot_gc_peaks(self, ax=None, color="red"): #pragma: no cover
-        
+    def plot_gc_peaks(self, ax=None, color="red"): # pragma: no cover
+
         import matplotlib.pyplot as plt
         fig = plt.gcf()
         if ax is None:
             ax = plt.gca()
-        
+
         max_rts = [gc_peak.mass_spectrum.rt for gc_peak in self]
         max_tics = [gc_peak.mass_spectrum.tic for gc_peak in self]
 
-        #min_rts = [self._ms[gc_peak.start_index].rt for gc_peak in self] + [self._ms[gc_peak.final_index].rt for gc_peak in self]
-        #min_tics = [self._ms[gc_peak.start_index].tic for gc_peak in self] + [self._ms[gc_peak.final_index].tic for gc_peak in self]
-        #sc = ax.scatter(min_rts, min_tics, color='yellow', linewidth=0, marker='v')
+        # min_rts = [self._ms[gc_peak.start_index].rt for gc_peak in self] + [self._ms[gc_peak.final_index].rt for gc_peak in self]
+        # min_tics = [self._ms[gc_peak.start_index].tic for gc_peak in self] + [self._ms[gc_peak.final_index].tic for gc_peak in self]
+        # sc = ax.scatter(min_rts, min_tics, color='yellow', linewidth=0, marker='v')
 
         sc = ax.scatter(max_rts, max_tics, color=color, marker='v')
-        
+
         ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
-        
-        annot = ax.annotate("", xy=(0,0), xytext=(20,20),textcoords="offset points",
-                    bbox=dict(boxstyle="round", fc="w"),
-                    arrowprops=dict(arrowstyle="->"))
+
+        annot = ax.annotate("", xy=(0, 0), xytext=(20, 20), textcoords="offset points",
+                            bbox=dict(boxstyle="round", fc="w"),
+                            arrowprops=dict(arrowstyle="->"))
         annot.set_visible(False)
         annot.get_bbox_patch().set_facecolor(('lightblue'))
         annot.get_bbox_patch().set_alpha(0.8)
-        
+
         def update_annot(ind):
-            
+
             pos = sc.get_offsets()[ind["ind"][0]]
             annot.xy = pos
-            
-            text = "RT: {}\nRT Ref: {}\nRI: {}\nRI Ref: {}\nSimilarity Score: {}\nName: {}".format( " ".join([str(round(self[n].rt,2)) for n in ind["ind"]]),
-                           " ".join([str(round(self[n].highest_score_compound.rt,2) if self[n].highest_score_compound else None) for n in ind["ind"]]),
-                           " ".join([str(round(self[n].ri,2)  if self[n].ri else None) for n in ind["ind"]]),
-                           " ".join([str(round(self[n].highest_score_compound.ri,2)  if self[n].highest_score_compound else None) for n in ind["ind"]]),                           
-                           " ".join([str(round(self[n].highest_score_compound.similarity_score,4) if self[n].highest_score_compound else None) for n in ind["ind"]]),
+
+            text = "RT: {}\nRT Ref: {}\nRI: {}\nRI Ref: {}\nSimilarity Score: {}\nName: {}".format(" ".join([str(round(self[n].rt, 2)) for n in ind["ind"]]),
+                           " ".join([str(round(self[n].highest_score_compound.rt, 2) if self[n].highest_score_compound else None) for n in ind["ind"]]),
+                           " ".join([str(round(self[n].ri, 2) if self[n].ri else None) for n in ind["ind"]]),
+                           " ".join([str(round(self[n].highest_score_compound.ri, 2) if self[n].highest_score_compound else None) for n in ind["ind"]]),                           
+                           " ".join([str(round(self[n].highest_score_compound.similarity_score, 4) if self[n].highest_score_compound else None) for n in ind["ind"]]),
                            " ".join([str(self[n].highest_score_compound.name if self[n].highest_score_compound else None) for n in ind["ind"]])
                            )
             annot.set_text(text)
-        
+
         def hover(event):
             vis = annot.get_visible()
             if event.inaxes == ax:
@@ -325,87 +325,87 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
                     if vis:
                         annot.set_visible(False)
                         fig.canvas.draw_idle()
-        
+
         fig.canvas.mpl_connect("motion_notify_event", hover)
 
         return ax
 
-    def to_excel(self, out_file_path, write_mode='ab', id_label="corems:"):
-        
-        exportMS= LowResGCMSExport(out_file_path, self)
-        exportMS.to_excel(id_label=id_label, write_mode=write_mode)
+    def to_excel(self, out_file_path, write_mode='ab', write_metadata=True, id_label="corems:"):
+
+        exportMS = LowResGCMSExport(out_file_path, self)
+        exportMS.to_excel(id_label=id_label, write_mode=write_mode, write_metadata=write_metadata)
 
         return out_file_path.with_suffix('.xlsx')
 
-    def to_csv(self, out_file_path, separate_output=False,  id_label="corems:"):
-        
-        exportMS= LowResGCMSExport(out_file_path, self)
-        exportMS.to_csv(id_label=id_label, separate_output=separate_output)
+    def to_csv(self, out_file_path, separate_output=False, write_metadata=True, id_label="corems:"):
+
+        exportMS = LowResGCMSExport(out_file_path, self)
+        exportMS.to_csv(id_label=id_label, separate_output=separate_output, write_metadata=write_metadata)
 
         return out_file_path.with_suffix('.csv')
 
-    def to_pandas(self, out_file_path, id_label="corems:"):
-        
-        #pickle dataframe (pkl extension)
-        exportMS= LowResGCMSExport(out_file_path, self)
-        exportMS.to_pandas(id_label=id_label)
+    def to_pandas(self, out_file_path, write_metadata=True, id_label="corems:"):
+
+        # pickle dataframe (pkl extension)
+        exportMS = LowResGCMSExport(out_file_path, self)
+        exportMS.to_pandas(id_label=id_label, write_metadata=write_metadata)
 
         return out_file_path.with_suffix('.pkl')
 
     def to_dataframe(self, id_label="corems:"):
-        
-        #returns pandas dataframe
-        exportMS= LowResGCMSExport(self.sample_name, self)
+
+        # returns pandas dataframe
+        exportMS = LowResGCMSExport(self.sample_name, self)
         return exportMS.get_pandas_df(id_label=id_label)
 
     def processing_stats(self):
-        
-        #returns json string
-        exportMS= LowResGCMSExport(self.sample_name, self)
+
+        # returns json string
+        exportMS = LowResGCMSExport(self.sample_name, self)
         return exportMS.get_data_stats(self)
 
     def parameters_json(self, id_label="corems:", output_path=" "):
-        
-        #returns json string
-        exportMS= LowResGCMSExport(self.sample_name, self)
+
+        # returns json string
+        exportMS = LowResGCMSExport(self.sample_name, self)
         return exportMS.get_parameters_json(self, id_label, output_path)
 
     def to_json(self, id_label="corems:"):
-        
-        #returns pandas dataframe
-        exportMS= LowResGCMSExport(self.sample_name, self)
+
+        # returns pandas dataframe
+        exportMS = LowResGCMSExport(self.sample_name, self)
         return exportMS.get_json(id_label=id_label)
 
     def to_hdf(self, id_label="corems:"):
-        
-        #returns pandas dataframe
+
+        # returns pandas dataframe
         exportMS = LowResGCMSExport(self.sample_name, self)
         return exportMS.to_hdf(id_label=id_label)
 
     def plot_chromatogram(self, ax=None, color="blue"): #pragma: no cover
-        
+
         import matplotlib.pyplot as plt
 
         if ax is None:
             ax = plt.gca()
-        
+
         ax.plot(self.retention_time, self.tic, color=color)
         ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
-        
+
         return ax
 
     def plot_smoothed_chromatogram(self, ax=None, color="green"): #pragma: no cover
-        
+
         import matplotlib.pyplot as plt
 
         if ax is None:
 
             ax = plt.gca()
-        
+
         ax.plot(self.retention_time, self.smooth_tic(self.tic), color=color)
 
         ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
-        
+
         return ax
 
     def plot_detected_baseline(self, ax=None, color="blue"): #pragma: no cover

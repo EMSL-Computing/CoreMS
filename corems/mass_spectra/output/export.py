@@ -19,19 +19,19 @@ from corems import __version__, corems_md5
 import uuid
 
 class LowResGCMSExport():
-    
+
     def __init__(self, out_file_path, gcms):
         '''
         output_type: str
             'excel', 'csv', 'hdf5' or 'pandas'
         '''
-        
+
         self.output_file = Path(out_file_path)
 
         self.gcms = gcms
 
         self._init_columns()
-        
+
     def _init_columns(self):
 
         columns =  ['Sample name', 'Peak Index',  'Retention Time', 'Retention Time Ref', 'Peak Height',
@@ -39,70 +39,70 @@ class LowResGCMSExport():
                 'Similarity Score',
                 'Spectral Similarity Score',
                 'Compound Name']
-        
-        if self.gcms.molecular_search_settings.exploratory_mode:
-                
-                columns.extend(['Weighted Cosine Correlation',
-                                'Cosine Correlation',
-                                'Stein Scott Similarity',
-                                'Pearson Correlation',
-                                'Spearman Correlation',
-                                'Kendall Tau Correlation', 
-                                'Euclidean Distance',
-                                'Manhattan Distance',
-                                'Jaccard Distance',
-                                'DWT Correlation',
-                                'DFT Correlation' ])
 
-                columns.extend(list(methods_name.values()))
-                                                
-        
-        return columns        
-    
+        if self.gcms.molecular_search_settings.exploratory_mode:
+
+            columns.extend(['Weighted Cosine Correlation',
+                            'Cosine Correlation',
+                            'Stein Scott Similarity',
+                            'Pearson Correlation',
+                            'Spearman Correlation',
+                            'Kendall Tau Correlation', 
+                            'Euclidean Distance',
+                            'Manhattan Distance',
+                            'Jaccard Distance',
+                            'DWT Correlation',
+                            'DFT Correlation' ])
+
+            columns.extend(list(methods_name.values()))
+
+        return columns
+
     def get_pandas_df(self, id_label="corems:"):
 
         columns = self._init_columns()
-        
+
         dict_data_list = self.get_list_dict_data(self.gcms)
-        
+
         df = DataFrame(dict_data_list, columns=columns)
-        
+
         df.name = self.gcms.sample_name
 
         return df
 
     def get_json(self, nan=False, id_label="corems:"):
-        
+
         import json
 
         dict_data_list = self.get_list_dict_data(self.gcms)
-        
+
         return json.dumps(dict_data_list, sort_keys=False, indent=4, separators=(',', ': '))
 
-    def to_pandas(self, id_label="corems:"):
-        
-        columns = self._init_columns() 
-        
+    def to_pandas(self, write_metadata=True, id_label="corems:"):
+
+        columns = self._init_columns()
+
         dict_data_list = self.get_list_dict_data(self.gcms)
 
         df = DataFrame(dict_data_list, columns=columns)
 
         df.to_pickle(self.output_file.with_suffix('.pkl'))
-        
-        self.write_settings(self.output_file.with_suffix('.pkl'), self.gcms, id_label="corems:")
-               
-    def to_excel(self, write_mode='a', id_label="corems:"):
+
+        if write_metadata:
+            self.write_settings(self.output_file.with_suffix('.pkl'), self.gcms, id_label="corems:")
+
+    def to_excel(self, write_mode='a', write_metadata=True, id_label="corems:"):
 
         out_put_path = self.output_file.with_suffix('.xlsx')
 
-        columns = self._init_columns() 
-        
+        columns = self._init_columns()
+
         dict_data_list = self.get_list_dict_data(self.gcms)
 
         df = DataFrame(dict_data_list, columns=columns)
 
         if write_mode == 'a' and out_put_path.exists():
-            
+
             writer = ExcelWriter(out_put_path, engine='openpyxl')
             # try to open an existing workbook
             writer.book = load_workbook(out_put_path)
@@ -111,33 +111,34 @@ class LowResGCMSExport():
             # read existing file
             reader = read_excel(out_put_path)
             # write out the new sheet
-            df.to_excel(writer,index=False,header=False,startrow=len(reader)+1)
+            df.to_excel(writer, index=False, header=False, startrow=len(reader) + 1)
 
             writer.close()
         else:
-        
+
             df.to_excel(self.output_file.with_suffix('.xlsx'), index=False, engine='openpyxl')
 
-        self.write_settings(out_put_path, self.gcms, id_label="corems:")
+        if write_metadata:
+            self.write_settings(out_put_path, self.gcms, id_label=id_label)
 
-    def to_csv(self, separate_output=False,  id_label="corems:") :
-        
+    def to_csv(self, separate_output=False, write_mode="w", write_metadata=True, id_label="corems:"):
+
         if separate_output:
             # set write mode to write
             # this mode will overwrite the file without warning
-            write_mode='w'
+            write_mode = 'w'
         else:
             # set write mode to append
-            write_mode='a'
-        
-        columns = self._init_columns() 
-        
+            write_mode = 'a'
+
+        columns = self._init_columns()
+
         dict_data_list = self.get_list_dict_data(self.gcms)
 
         out_put_path = self.output_file.with_suffix('.csv')
 
         write_header = not out_put_path.exists()
-        
+
         try:
             with open(out_put_path, write_mode, newline='') as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=columns)
@@ -145,17 +146,18 @@ class LowResGCMSExport():
                     writer.writeheader()
                 for data in dict_data_list:
                     writer.writerow(data)
-            
-            self.write_settings(out_put_path, self.gcms, id_label=id_label)
-        
+
+            if write_metadata:
+                self.write_settings(out_put_path, self.gcms, id_label=id_label)
+
         except IOError as ioerror:
-            print(ioerror)                 
-    
+            print(ioerror)
+
     def to_hdf(self, id_label="corems:"):
-        
+
         # save sample at a time
         def add_compound(gc_peak, compound_obj):
-            
+
             modifier = compound_obj.classify if compound_obj.classify else ""
             compound_group = peak_group.create_group(compound_obj.name +" " + modifier)
             compound_group.attrs["retention_time"] = compound_obj.rt
@@ -163,14 +165,15 @@ class LowResGCMSExport():
             compound_group.attrs["retention_index_score"] = compound_obj.ri_score
             compound_group.attrs["spectral_similarity_score"] = compound_obj.spectral_similarity_score
             compound_group.attrs["similarity_score"] = compound_obj.similarity_score
-            
+
             compond_mz = compound_group.create_dataset('mz', data=np.array(compound_obj.mz), dtype="f8")  
             compond_abundance = compound_group.create_dataset('abundance', data=np.array(compound_obj.abundance), dtype="f8")
 
             if self.gcms.molecular_search_settings.exploratory_mode:
-                
-                compound_group.attrs['Spectral Similarities'] =  json.dumps(compound_obj.spectral_similarity_scores, sort_keys=False, indent=4, separators=(',', ': '))
-                
+
+                compound_group.attrs['Spectral Similarities'] = json.dumps(compound_obj.spectral_similarity_scores,
+                                                                           sort_keys=False, indent=4, separators=(',',':'))
+
         import h5py
         import json
         import numpy as np
@@ -199,7 +202,7 @@ class LowResGCMSExport():
 
             corems_dict_setting = parameter_to_dict.get_dict_data_gcms(self.gcms)
             hdf_handle.attrs["CoreMSParameters"] = json.dumps(corems_dict_setting, sort_keys=False, indent=4, separators=(',', ': '))
-            
+
             scans_dataset = hdf_handle.create_dataset('scans', data=np.array(self.gcms.scans_number), dtype="f8")                
             rt_dataset = hdf_handle.create_dataset('rt', data=np.array(self.gcms.retention_time), dtype="f8")                
             tic_dataset = hdf_handle.create_dataset('tic', data=np.array(self.gcms.tic), dtype="f8")            
@@ -211,11 +214,11 @@ class LowResGCMSExport():
 
                 # print(gc_peak.rt)
                 # print(gc_peak.tic)
-                
-                # check if there is a compound candidate 
+
+                # check if there is a compound candidate
                 peak_group = hdf_handle.create_group(str(gc_peak.rt))
                 peak_group.attrs["deconvolution"] = int(self.gcms.chromatogram_settings.use_deconvolution)
-                
+
                 peak_group.attrs["start_index"] = gc_peak.start_index
                 peak_group.attrs["index"] = gc_peak.index
                 peak_group.attrs["final_index"] = gc_peak.final_index
@@ -223,7 +226,7 @@ class LowResGCMSExport():
                 peak_group.attrs["retention_index"] = gc_peak.ri
                 peak_group.attrs["retention_time"] = gc_peak.rt
                 peak_group.attrs["area"] = gc_peak.area
-                
+
                 mz = peak_group.create_dataset('mz', data=np.array(gc_peak.mass_spectrum.mz_exp), dtype="f8")
                 abundance = peak_group.create_dataset('abundance', data=np.array(gc_peak.mass_spectrum.abundance), dtype="f8")
 
@@ -241,13 +244,13 @@ class LowResGCMSExport():
 
                         for compound_obj in gc_peak:
                             add_compound(gc_peak, compound_obj)
-                    
+
     def get_data_stats(self, gcms):
-        
+
         matched_peaks = gcms.matched_peaks
         no_matched_peaks = gcms.no_matched_peaks
         unique_metabolites = gcms.unique_metabolites
-        
+
         peak_matchs_above_0p85 = 0
         unique_peak_match_above_0p85 = 0
         for match_peak in matched_peaks:
@@ -283,7 +286,7 @@ class LowResGCMSExport():
         return calibration_parameters
 
     def get_blank_stats(self, gcms):
-        
+
         blank_parameters = {}
 
         blank_parameters['data_name'] = "ni"
@@ -294,7 +297,6 @@ class LowResGCMSExport():
 
         return blank_parameters
 
-    
     def get_instrument_metadata(self, gcms):
 
         instrument_metadata = {}

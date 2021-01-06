@@ -15,7 +15,7 @@ from corems.molecular_id.search.compoundSearch import LowResMassSpectralMatch
 from corems.mass_spectra.calc.GC_RI_Calibration import get_rt_ri_pairs
 from corems import get_dirname, get_filename
 
-from doc.examples.nmdc.NMDC_Metadata import create_nmdc_metadata
+from doc.examples.nmdc.NMDC_Metadata import NMDC_Metadata
 import glob
 
 def start_sql_from_file():
@@ -127,7 +127,7 @@ def auto_calibrate_and_search(file_locations, output_file_name, jobs, calibratio
             # print(output_file_name)
 
 
-def calibrate_and_search(out_put_file_name, jobs):
+def calibrate_and_search(out_put_file_name, jobs, dms_file_path="db/GC-MS Metabolomics Experiments to Process Final.xlsx", nmdc=False):
 
     from PySide2.QtWidgets import QFileDialog
     from PySide2.QtCore import Qt
@@ -150,13 +150,19 @@ def calibrate_and_search(out_put_file_name, jobs):
             gcmss = pool.map(run, args)
             pool.close()
             pool.join()
+
             for file_index, gcms in enumerate(gcmss):
 
                 file_path = Path(file_locations[0][file_index])
                 # print(out_put_file_name)
-                gcms.to_csv(file_path, id_label="emsl:")
+                if nmdc:
+                    gcms.to_csv(file_path, write_metadata=False, id_label="emsl:")
+                    nmdc = NMDC_Metadata(file_path, cal_file_path, file_path, dms_file_path)
+                    nmdc.create_nmdc_metadata(gcms)
 
-                create_nmdc_metadata(file_path, gcms, cal_file_path, file_path)
+                else:
+
+                    gcms.to_csv(out_put_file_name, write_metadata=True, id_label="emsl:")
 
                 # gcms.to_excel(out_put_file_name)
                 # gcms.to_pandas(out_put_file_name)
