@@ -227,7 +227,7 @@ class NMDC_Metadata:
                     "description": "MetaMS GC-MS metabolomics output detail CSV file",
                     "file_size_bytes": self.out_file_path.stat().st_size,
                     "md5_checksum": hashlib.md5(self.out_file_path.open('rb').read()).hexdigest(),
-                    "url": "https://data.corems.emsl.pnnl.gov",
+                    "url": "{}/{}/{}".format("https://nmdc_demo.emsl.pnnl.gov", "metabolomics", self.out_file_path.name),
                     "was_generated_by": activity_id
                     }]
 

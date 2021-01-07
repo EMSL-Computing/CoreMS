@@ -6,7 +6,7 @@ import csv
 import json
 from pathlib import Path
 
-from numpy import  NaN, concatenate
+from numpy import NaN, concatenate
 from openpyxl import load_workbook
 from pandas import DataFrame, ExcelWriter, read_excel
 
@@ -34,11 +34,20 @@ class LowResGCMSExport():
 
     def _init_columns(self):
 
-        columns =  ['Sample name', 'Peak Index',  'Retention Time', 'Retention Time Ref', 'Peak Height',
-                'Peak Area', 'Retention index', 'Retention index Ref','Retention Index Score',
-                'Similarity Score',
-                'Spectral Similarity Score',
-                'Compound Name']
+        columns = ['Sample name', 'Peak Index', 'Retention Time', 'Retention Time Ref', 'Peak Height',
+                   'Peak Area', 'Retention index', 'Retention index Ref', 'Retention Index Score',
+                   'Similarity Score',
+                   'Spectral Similarity Score',
+                   'Compound Name',
+                   "Chebi ID", "Kegg Compound ID",
+                   "Inchi", "Inchi Key",
+                   "Smiles",
+                   "Molecular Formula",
+                   "IUPAC Name",
+                   "Traditional Name",
+                   "Common Name",
+                   'Derivatization'
+                   ]
 
         if self.gcms.molecular_search_settings.exploratory_mode:
 
@@ -52,7 +61,7 @@ class LowResGCMSExport():
                             'Manhattan Distance',
                             'Jaccard Distance',
                             'DWT Correlation',
-                            'DFT Correlation' ])
+                            'DFT Correlation'])
 
             columns.extend(list(methods_name.values()))
 
@@ -274,7 +283,7 @@ class LowResGCMSExport():
         return data_stats
 
     def get_calibration_stats(self, gcms, id_label):
-        
+
         calibration_parameters = {}
 
         calibration_parameters['calibration_rt_ri_pairs_ref'] = gcms.ri_pairs_ref
@@ -308,7 +317,7 @@ class LowResGCMSExport():
         return instrument_metadata
 
     def get_data_metadata(self, gcms, id_label, output_path):
-        
+
         paramaters_path = output_path.with_suffix('.json')
 
         if paramaters_path.exists():
@@ -316,16 +325,16 @@ class LowResGCMSExport():
                 metadata = json.load(current_param)
                 data_metadata = metadata.get('Data')
         else:
-            
+
             data_metadata = {}  
             data_metadata['data_name'] = []
             data_metadata['input_data_url'] = []
             data_metadata['has_input'] = []
-        
+
         data_metadata['data_name'].append(gcms.sample_name)
         data_metadata['input_data_url'].append(str(gcms.file_location))
         data_metadata['has_input'].append(id_label + corems_md5(gcms.file_location))
-        
+
         data_metadata['output_data_name'] = str(output_path.stem)
         data_metadata['output_data_url'] = str(output_path)
         data_metadata['has_output'] = id_label + corems_md5(output_path)
@@ -347,61 +356,70 @@ class LowResGCMSExport():
         output = json.dumps(output_parameters_dict, sort_keys=False, indent=4, separators=(',', ': '))
 
         return output
-    
+
     def write_settings(self, output_path, gcms, id_label="emsl:"):
-        
+
         output = self.get_parameters_json(gcms, id_label, output_path)
 
         with open(output_path.with_suffix('.json'), 'w', encoding='utf8', ) as outfile:
-    
+
             outfile.write(output)
 
     def get_list_dict_data(self, gcms, include_no_match=True, no_match_inline=False) :
 
         output_score_method = gcms.molecular_search_settings.output_score_method
-        
+
         dict_data_list = []
 
         def add_match_dict_data():
 
+            derivatization = "{}:{}:{}".format(compound_obj.classify, compound_obj.derivativenum, compound_obj.derivatization)
             out_dict = {'Sample name': gcms.sample_name,
-                        'Peak Index': gcpeak_index, 
+                        'Peak Index': gcpeak_index,
                         'Retention Time': gc_peak.rt,
                         'Retention Time Ref': compound_obj.rt,
                         'Peak Height': gc_peak.tic,
                         'Peak Area': gc_peak.area,
                         'Retention index': gc_peak.ri,
-                        'Retention index Ref':  compound_obj.ri,
+                        'Retention index Ref': compound_obj.ri,
                         'Retention Index Score': compound_obj.ri_score,
                         'Spectral Similarity Score': compound_obj.spectral_similarity_score,
                         'Similarity Score': compound_obj.similarity_score,
-                        'Compound Name' : compound_obj.name
-            }    
+                        'Compound Name': compound_obj.name,
+                        "Chebi ID": compound_obj.metadata.chebi,
+                        "Kegg Compound ID": compound_obj.metadata.kegg,
+                        "Inchi": compound_obj.metadata.inchi,
+                        "Inchi Key": compound_obj.metadata.inchikey,
+                        "Smiles": compound_obj.metadata.smiles,
+                        "Molecular Formula": compound_obj.formula,
+                        "IUPAC Name": compound_obj.metadata.iupac_name,
+                        "Traditional Name": compound_obj.metadata.traditional_name,
+                        "Common Name": compound_obj.metadata.common_name,
+                        'Derivatization': derivatization,
+                        }
 
             if self.gcms.molecular_search_settings.exploratory_mode:
-                
+
                 out_dict.update({
-                    'Weighted Cosine Correlation': compound_obj.spectral_similarity_scores.get("weighted_cosine_correlation"), 
-                    'Cosine Correlation': compound_obj.spectral_similarity_scores.get("cosine_correlation"), 
-                    'Stein Scott Similarity': compound_obj.spectral_similarity_scores.get("stein_scott_similarity"), 
-                    'Pearson Correlation': compound_obj.spectral_similarity_scores.get("pearson_correlation"), 
-                    'Spearman Correlation': compound_obj.spectral_similarity_scores.get("spearman_correlation"), 
-                    'Kendall Tau Correlation': compound_obj.spectral_similarity_scores.get("kendall_tau_correlation"), 
+                    'Weighted Cosine Correlation': compound_obj.spectral_similarity_scores.get("weighted_cosine_correlation"),
+                    'Cosine Correlation': compound_obj.spectral_similarity_scores.get("cosine_correlation"),
+                    'Stein Scott Similarity': compound_obj.spectral_similarity_scores.get("stein_scott_similarity"),
+                    'Pearson Correlation': compound_obj.spectral_similarity_scores.get("pearson_correlation"),
+                    'Spearman Correlation': compound_obj.spectral_similarity_scores.get("spearman_correlation"),
+                    'Kendall Tau Correlation': compound_obj.spectral_similarity_scores.get("kendall_tau_correlation"),
                     'DFT Correlation': compound_obj.spectral_similarity_scores.get("dft_correlation"),
                     'DWT Correlation': compound_obj.spectral_similarity_scores.get("dwt_correlation"),
-                    'Euclidean Distance': compound_obj.spectral_similarity_scores.get("euclidean_distance"), 
+                    'Euclidean Distance': compound_obj.spectral_similarity_scores.get("euclidean_distance"),
                     'Manhattan Distance': compound_obj.spectral_similarity_scores.get("manhattan_distance"),
-                    'Jaccard Distance': compound_obj.spectral_similarity_scores.get("jaccard_distance"),
+                    'Jaccard Distance': compound_obj.spectral_similarity_scores.get("jaccard_distance")
                 })
-                
-                
+
                 for method in methods_name:
-                    
+
                     out_dict[methods_name.get(method)] = compound_obj.spectral_similarity_scores.get(method)
 
-        
             dict_data_list.append(out_dict)
-        
+
         def add_no_match_dict_data():
 
             dict_data_list.append( {'Sample name': gcms.sample_name,

@@ -8,6 +8,7 @@ import json
 
 from numpy import array
 
+
 from corems.mass_spectra.calc.GC_Calc import GC_Calculations
 from corems.mass_spectra.calc.GC_Deconvolution import MassDeconvolution
 from corems.mass_spectra.calc import SignalProcessing as sp
@@ -23,60 +24,60 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
     """
 
     def __init__(self, file_location, analyzer='Unknown', instrument_label='Unknown', sample_name=None):
-        
+
         """
          # Parameters
-		----------
+        ----------
         file_location: text,  pathlib.Path(), or s3path.S3Path 
             Path object from pathlib containing the file location
         """
-        if  isinstance(file_location, str):
-			# if obj is a string it defaults to create a Path obj, pass the S3Path if needed
+        if isinstance(file_location, str):
+            # if obj is a string it defaults to create a Path obj, pass the S3Path if needed
             file_location = Path(file_location)
 
         if not file_location.exists():
-        
+
             raise FileExistsError("File does not exist: " + str(file_location))
-        
+
         self.file_location = file_location
-        
+
         if sample_name: self.sample_name = sample_name
         else: self.sample_name = file_location.stem
-        
+
         self.analyzer = analyzer
         self.instrument_label = instrument_label
         self._init_settings()
-        
+
         self._retention_time_list = []
         self._scans_number_list = []
         self._tic_list = []
 
-        #all scans
+        # all scans
         self._ms = {}
-        
-        #after peak detection
+
+        # after peak detection
         self._processed_tic = []
         self.gcpeaks = []
-        
+
         self.ri_pairs_ref = None
         self.cal_file_path = None
-    
+
     def _init_settings(self):
-        
+
         self._parameters = GCMSParameters()
 
     def __len__(self):
-        
+
         return len(self.gcpeaks)
-        
+
     def __getitem__(self, scan_number):
-        
+
         return self.gcpeaks[scan_number]
 
-    #def __iter__(self):
+    # def __iter__(self):
 
     #     return iter(self.gcpeaks.values())
- 
+
     def process_chromatogram(self, plot_res=False):
 
         #tic = self.tic - self.baseline_detector(self.tic)
@@ -217,18 +218,18 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
     @property
     def metabolites_data(self):
-        
+
         metabolites = {}
         for gc_peak in self:
             if gc_peak:
                 for compound_obj in gc_peak:
-                     
+
                     if compound_obj.name in metabolites.keys():
                         current_score = metabolites[compound_obj.name]["highest_similarity_score"]
                         compound_score = compound_obj.spectral_similarity_score
                         metabolites[compound_obj.name]["highest_similarity_score"] = compound_score if compound_score > current_score else current_score
-                    
-                    else:    
+
+                    else:
                         if compound_obj.metadata:
                             metabolites[compound_obj.name] = {
                                                                 "name": compound_obj.name,
@@ -239,11 +240,10 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
                                                                 "inchi_key": compound_obj.metadata.inchikey,
                                                                 "chebi": compound_obj.metadata.chebi,
                                                                 "smiles": compound_obj.metadata.smiles
-                                                                }
+                                                             }
                         else:
                             continue
-                            metabolites[compound_obj.name] = {
-                                                                "name": compound_obj.name,
+                            metabolites[compound_obj.name] = {  "name": compound_obj.name,
                                                                 "highest_similarity_score": compound_obj.spectral_similarity_score,
                                                                 "casno": "",
                                                                 "kegg": "",
@@ -251,28 +251,28 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
                                                                 "inchikey": "",
                                                                 "chebi": "",
                                                                 "smiles": ""
-                                                                }                        
-                                            
+                                                                }                       
+
         return list(metabolites.values())
 
     @property
     def no_matched_peaks(self):
-        return [ peak for peak in self if not peak]
+        return [peak for peak in self if not peak]
 
     @retention_time.setter
-    def retention_time(self, l):
+    def retention_time(self, alist):
         # self._retention_time_list = linspace(0, 80, num=len(self._scans_number_list))
-        self._retention_time_list = l
+        self._retention_time_list = alist
 
     @scans_number.setter
-    def scans_number(self, l):
+    def scans_number(self, alist):
 
-        self._scans_number_list = l
+        self._scans_number_list = alist
 
     @tic.setter
-    def tic(self, l):
+    def tic(self, alist):
 
-        self._tic_list = array(l)    
+        self._tic_list = array(alist)
 
     def plot_gc_peaks(self, ax=None, color="red"): # pragma: no cover
 
@@ -332,12 +332,18 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
     def to_excel(self, out_file_path, write_mode='ab', write_metadata=True, id_label="corems:"):
 
+        if isinstance(out_file_path, str):
+            out_file_path = Path(out_file_path)
+
         exportMS = LowResGCMSExport(out_file_path, self)
         exportMS.to_excel(id_label=id_label, write_mode=write_mode, write_metadata=write_metadata)
 
         return out_file_path.with_suffix('.xlsx')
 
     def to_csv(self, out_file_path, separate_output=False, write_metadata=True, id_label="corems:"):
+
+        if isinstance(out_file_path, str):
+            out_file_path = Path(out_file_path)
 
         exportMS = LowResGCMSExport(out_file_path, self)
         exportMS.to_csv(id_label=id_label, separate_output=separate_output, write_metadata=write_metadata)
@@ -346,6 +352,8 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
     def to_pandas(self, out_file_path, write_metadata=True, id_label="corems:"):
 
+        if isinstance(out_file_path, str):
+            out_file_path = Path(out_file_path)
         # pickle dataframe (pkl extension)
         exportMS = LowResGCMSExport(out_file_path, self)
         exportMS.to_pandas(id_label=id_label, write_metadata=write_metadata)
