@@ -36,7 +36,7 @@ class Metadatar(Base):
     data_id = Column(Integer, ForeignKey('molecularData.id'))
     data = relationship("LowResolutionEICompound", back_populates="metadatar")
 
-class LowResolutionEICompound(Base):  
+class LowResolutionEICompound(Base):
 
     __tablename__ = 'molecularData'
 

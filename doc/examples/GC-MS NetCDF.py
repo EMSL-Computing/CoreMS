@@ -219,7 +219,7 @@ if __name__ == '__main__':
     # %%
     cores = 8
     out_put_file_group_name = 'sql_test'
-    calibrate_and_search(out_put_file_group_name, cores)
+    calibrate_and_search(out_put_file_group_name, cores, nmdc=True)
     # start_sql_from_file()
     # auto_process(cores)
     # stand_alone()
