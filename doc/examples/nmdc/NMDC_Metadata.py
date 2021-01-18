@@ -154,7 +154,8 @@ class DMS_Mapping():
         emsl_proposal = full_list_worksheet['A']
         dataset_id = full_list_worksheet['B']
         dataset_name = full_list_worksheet['C']
-        experiment_id = full_list_worksheet['S']
+        experiment_id = full_list_worksheet['D']
+        instrument_name = full_list_worksheet['E']
         data_dict = {}
 
         for x in range(len(dataset_id)):
@@ -163,6 +164,7 @@ class DMS_Mapping():
                 'data_id': dataset_id[x].value,
                 'experiment_id': experiment_id[x].value,
                 'emsl_proposal_id': emsl_proposal[x].value,
+                'instrument_name': instrument_name[x].value,
                 'jgi_proposal_id': emsl_jgi_dict.get(emsl_proposal[x].value)
             }
 
@@ -188,10 +190,15 @@ class NMDC_Metadata:
 
         self.dataset_mapping = DMS_Mapping(dms_file_path).get_mapping()
         self.in_file_path = Path(in_file_path)
-        self.calibration_file_path = Path(calibration_file_path)
+        self.calibration_file_path = calibration_file_path
         self.out_file_path = Path(out_file_path)
 
-    def save_nmdc_metadata(self, gcms_obj):
+    def save_nmdc_metadata(self,
+                           data_obj,
+                           nom=False,
+                           registration_path="gcms_metabolomics_data_products.json",
+                           bucket="metabolomics",
+                           repo_url="https://github.com/microbiomedata/metaMS"):
 
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data_id = self.get_dataid(self.in_file_path, self.dataset_mapping)
@@ -199,27 +206,32 @@ class NMDC_Metadata:
         was_informed_by = self.get_was_informed_by(self.in_file_path, self.dataset_mapping)
         activity_id = "{}:{}".format("nmdc", uuid.uuid4().hex)
         has_calibration = self.get_dataid(self.calibration_file_path, self.dataset_mapping)
+
         metabolomics_analysis_activity = {
 
             "activity_id": activity_id,
             "ended_at_time": now,
             "execution_resource": "EMSL-RZR",
-            "git_url": "https://github.com/microbiomedata/metaMS",
+            "git_url": repo_url,
             "has_input": data_id,
             "has_calibration": has_calibration,
             "has_output": output_id,
             "started_at_time": now,
-            "used": "Agilent_GC_MS",
+            "used": self.get_instrument_name(self.in_file_path, self.dataset_mapping),
             "was_informed_by": was_informed_by,
-            "has_metabolite_quantifications": self.get_metabolites_objs(gcms_obj)
         }
 
+        if not nom:
+
+            metabolomics_analysis_activity["has_metabolite_quantifications"] = self.get_metabolites_objs(data_obj)
+            # metabolomics_analysis_activity["has_mformula_quantifications"] = self.get_metabolites_objs(data_obj)
+
         with open(self.out_file_path.with_suffix('.json'), 'w') as metadata_output:
-            metadata_output.write(json.dumps(metabolomics_analysis_activity, indent=1))    
+            metadata_output.write(json.dumps(metabolomics_analysis_activity, indent=1))
 
-        self.add_metabolomics_data_product(output_id, activity_id)
+        self.add_metabolomics_data_product(output_id, activity_id, bucket=bucket, registration_path=registration_path)
 
-    def add_metabolomics_data_product(self, output_id, activity_id):
+    def add_metabolomics_data_product(self, output_id, activity_id, bucket, registration_path="gcms_metabolomics_data_products.json"):
 
         data_obj = [{
                     "id": output_id,
@@ -227,11 +239,11 @@ class NMDC_Metadata:
                     "description": "MetaMS GC-MS metabolomics output detail CSV file",
                     "file_size_bytes": self.out_file_path.stat().st_size,
                     "md5_checksum": hashlib.md5(self.out_file_path.open('rb').read()).hexdigest(),
-                    "url": "{}/{}/{}".format("https://nmdc_demo.emsl.pnnl.gov", "metabolomics", self.out_file_path.name),
+                    "url": "{}/{}/{}".format("https://nmdcdemo.emsl.pnnl.gov", bucket, self.out_file_path.name),
                     "was_generated_by": activity_id
                     }]
 
-        metabolomics_data_path = Path("gcms_metabolomics_data_products.json")
+        metabolomics_data_path = Path(registration_path)
 
         if metabolomics_data_path.exists():
 
@@ -246,17 +258,44 @@ class NMDC_Metadata:
             metabolomics_data_products.write(json.dumps(products, indent=1))  
 
     @staticmethod
+    def get_instrument_name(in_file_path, dataset_mapping):
+
+        if not in_file_path:
+            return None
+
+        mapping = dataset_mapping.get(in_file_path.stem)
+        if mapping:
+            data_id = mapping.get("instrument_name")
+            return "{}".format(data_id)
+        else:
+            return None
+
+    @staticmethod
     def get_dataid(in_file_path, dataset_mapping):
 
-        print(in_file_path.stem)
-        data_id = dataset_mapping.get(in_file_path.stem).get("data_id")
-        return "{}:{}_{}".format("emsl", "output", data_id)
+        if not in_file_path:
+            return None
+
+        mapping = dataset_mapping.get(in_file_path.stem)
+
+        if mapping:
+            data_id = mapping.get("data_id")
+            return "{}:{}_{}".format("emsl", "output", data_id)
+        else:
+            return None
 
     @staticmethod
     def get_was_informed_by(in_file_path, dataset_mapping):
 
-        data_id = dataset_mapping.get(in_file_path.stem).get("data_id")
-        return "{}:{}".format("emsl", data_id)
+        if not in_file_path:
+            return None
+
+        mapping = dataset_mapping.get(in_file_path.stem)
+        if mapping:
+            data_id = mapping.get("data_id")
+            return "{}:{}".format("emsl", data_id)
+        else:
+            return None
 
     @staticmethod
     def get_md5(out_file_path):
@@ -274,14 +313,22 @@ class NMDC_Metadata:
             metabolite_quantification = {}
             metabolite_quantification["highest_similarity_score"] = metabolite.get("highest_similarity_score")
             metabolite_quantification["metabolite_quantified"] = "{}:{}".format("chebi", metabolite.get("chebi"))
-            metabolite_quantification["alternate_identifiers"] = ["{}:{}".format("kegg", metabolite.get("kegg")), 
+            metabolite_quantification["alternate_identifiers"] = ["{}:{}".format("kegg", metabolite.get("kegg")),
                                                                   "{}:{}".format("cas", metabolite.get("casno"))]
 
             all_metabolites.append(metabolite_quantification)
 
         return all_metabolites
 
-    def create_nmdc_metadata(self, gcms_obj):
+    def create_nmdc_gcms_metadata(self, gcms_obj, registration_path="gcms_metabolomics_data_products.json"):
 
         # print(dataset_mapping.get('GCMS_Blank_08_GC-01_20150622'))
-        self.save_nmdc_metadata(gcms_obj)
+        bucket = "metabolomics"
+        repo_url = "https://github.com/microbiomedata/metaMS"
+        self.save_nmdc_metadata(gcms_obj, nom=False, registration_path=registration_path, bucket=bucket, repo_url=repo_url)
+
+    def create_nmdc_ftms_metadata(self, ms_obj, registration_path="ftms_nom_data_products.json"):
+        # print(dataset_mapping.get('GCMS_Blank_08_GC-01_20150622'))
+        bucket = "nom"
+        repo_url = "https://github.com/microbiomedata/enviroMS"
+        self.save_nmdc_metadata(ms_obj, nom=True, registration_path=registration_path, bucket=bucket, repo_url=repo_url)

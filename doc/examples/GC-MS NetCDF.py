@@ -158,7 +158,7 @@ def calibrate_and_search(out_put_file_name, jobs, dms_file_path="db/GC-MS Metabo
 
                     gcms.to_csv(file_path, write_metadata=False, id_label="emsl:")
                     nmdc = NMDC_Metadata(file_path, cal_file_path, file_path, dms_file_path)
-                    nmdc.create_nmdc_metadata(gcms)
+                    nmdc.create_nmdc_gcms_metadata(gcms)
 
                 else:
 
@@ -217,9 +217,9 @@ if __name__ == '__main__':
     # import matplotlib
     # matplotlib.use('TkAgg')
     # %%
-    cores = 8
+    cores = 4
     out_put_file_group_name = 'sql_test'
-    calibrate_and_search(out_put_file_group_name, cores, nmdc=True)
+    calibrate_and_search(out_put_file_group_name, cores, nmdc=False)
     # start_sql_from_file()
     # auto_process(cores)
     # stand_alone()
