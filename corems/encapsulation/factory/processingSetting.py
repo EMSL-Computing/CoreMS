@@ -351,7 +351,7 @@ class MolecularFormulaSearchSettings:
     adduct_atoms_pos: tuple = ('Na', 'K')
 
     score_methods: tuple = ('S_P_lowest_error', 'N_S_P_lowest_error', 'lowest_error', 'prob_score',
-                            'air_filter_error', 'water_filter_error', 'earth_filter_error' )
+                            'air_filter_error', 'water_filter_error', 'earth_filter_error')
 
     score_method: str = 'prob_score'
 

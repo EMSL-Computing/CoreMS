@@ -157,7 +157,7 @@ def calibrate_and_search(out_put_file_name, jobs, dms_file_path="db/GC-MS Metabo
                 if nmdc:
 
                     gcms.to_csv(file_path, write_metadata=False, id_label="emsl:")
-                    nmdc = NMDC_Metadata(file_path, cal_file_path, file_path, dms_file_path)
+                    nmdc = NMDC_Metadata(file_path, cal_file_path, file_path.with_suffix(".cvs"), dms_file_path)
                     nmdc.create_nmdc_gcms_metadata(gcms)
 
                 else:
