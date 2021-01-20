@@ -23,13 +23,18 @@ from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
 from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration
 from corems.encapsulation.constant import Atoms
+from corems.encapsulation.factory.parameters import MSParameters
 
 def run_bruker(file_location):
 
     with ReadBrukerSolarix(file_location) as transient:
 
+        MSParameters.mass_spectrum.threshold_method = 'auto'
+        MSParameters.mass_spectrum.s2n_threshold = 6
+        
         mass_spectrum = transient.get_mass_spectrum(plot_result=False, auto_process=True)
-
+        # mass_spectrum.plot_profile_and_noise_threshold()
+        # plt.show()
         # find_formula_thread = FindOxygenPeaks(mass_spectrum)
         # find_formula_thread.run()
 
@@ -47,18 +52,21 @@ def get_masslist(file_location):
 
 def set_parameters(mass_spectrum, field_strength=12, pos=False):
 
-    if field_strength > 12:
-        mass_spectrum.settings.max_calib_ppm_error = 2
-        mass_spectrum.settings.min_calib_ppm_error = 2
+    if field_strength <= 12:
+        mass_spectrum.settings.max_calib_ppm_error = 5
+        mass_spectrum.settings.min_calib_ppm_error = -5
 
         mass_spectrum.molecular_search_settings.error_method = 'None'
-        mass_spectrum.molecular_search_settings.min_ppm_error = -1
-        mass_spectrum.molecular_search_settings.max_ppm_error = 1
+        mass_spectrum.molecular_search_settings.min_ppm_error = -5
+        mass_spectrum.molecular_search_settings.max_ppm_error = 5
+
+        mass_spectrum.settings.calib_sn_threshold = 0
+        
 
     else:
 
         mass_spectrum.settings.max_calib_ppm_error = 1
-        mass_spectrum.settings.min_calib_ppm_error = 1
+        mass_spectrum.settings.min_calib_ppm_error = -1
 
         mass_spectrum.molecular_search_settings.error_method = 'None'
         mass_spectrum.molecular_search_settings.min_ppm_error = -0.5
@@ -98,7 +106,13 @@ def run_nmdc_workflow(args):
     file_location, ref_calibration_file, field_strength = args
 
     mass_spectrum, transient_time = run_bruker(file_location)
-    set_parameters(mass_spectrum, field_strength=field_strength, pos=False)
+    
+    if mass_spectrum.polarity > 0:
+        is_pos = True
+    else:
+        is_pos = False
+    
+    set_parameters(mass_spectrum, field_strength=field_strength, pos=is_pos)
 
     if ref_calibration_file:
 
@@ -235,7 +249,7 @@ def run_nmdc_data_processing():
     ref_calibration_path = False
 
     file_paths = get_dirnames()
-    ref_calibration_path = None  # Path(get_filename())
+    ref_calibration_path = Path("db/SRFA.ref")
 
     args = [(file_path, ref_calibration_path, field_strength) for file_path in file_paths]
     print(args)
@@ -271,7 +285,7 @@ if __name__ == "__main__":
     # run_multiprocess()
     # cpu_percents = monitor(target=run_multiprocess)
     # print(cpu_percents)
-    # run_nmdc_data_processing()
-    file_location = get_filename()
-    if file_location:
-        run_assignment(file_location)
+    run_nmdc_data_processing()
+    #file_location = get_filename()
+    #if file_location:
+    #    run_assignment(file_location)

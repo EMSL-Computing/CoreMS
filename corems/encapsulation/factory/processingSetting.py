@@ -99,9 +99,9 @@ class MassSpectrumSetting:
 
     calib_minimize_method: str = 'Powell'
     calib_pol_order: int = 2
-    max_calib_ppm_error: float = 1
-    min_calib_ppm_error: float = -1
-    calib_sn_threshold: float = 10
+    max_calib_ppm_error: float = 1.0
+    min_calib_ppm_error: float = -1.0
+    calib_sn_threshold: float = 2.0
 
     do_calibration: bool = True
 

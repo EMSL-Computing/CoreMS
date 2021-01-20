@@ -131,7 +131,7 @@ class DMS_Mapping():
     def __init__(self, dms_file_path) -> None:
 
         self.dms_file_path = Path(dms_file_path)
-
+      
     @staticmethod
     def get_emsl_jgi_mapping(wb):
 
