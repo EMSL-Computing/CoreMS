@@ -176,6 +176,23 @@ class DMS_Mapping():
 
         return data_dict
 
+    def get_selected_sample_list(self):
+        
+        wb = load_workbook(filename=self.dms_file_path)
+        
+        second_sheet = wb.sheetnames[1]
+        
+        #print(second_sheet)
+        full_list_worksheet = wb[second_sheet]
+
+        sample_name = full_list_worksheet['B']
+
+        instrument_name = full_list_worksheet['E']
+
+        for x in range(1, len(sample_name)):
+            
+            yield Path(sample_name[x].value), int(instrument_name[x].value.strip()[0:2])
+      
     def get_mapping(self):
 
         wb = load_workbook(filename=self.dms_file_path)
@@ -209,13 +226,14 @@ class NMDC_Metadata:
 
         metabolomics_analysis_activity = {
 
-            "activity_id": activity_id,
+            "id": activity_id,
+            "type": "ndmc:NomAnalysisActivity",
             "ended_at_time": now,
             "execution_resource": "EMSL-RZR",
             "git_url": repo_url,
-            "has_input": data_id,
+            "has_input": [data_id],
             "has_calibration": has_calibration,
-            "has_output": output_id,
+            "has_output": [output_id],
             "started_at_time": now,
             "used": self.get_instrument_name(self.in_file_path, self.dataset_mapping),
             "was_informed_by": was_informed_by,
@@ -223,6 +241,7 @@ class NMDC_Metadata:
 
         if not nom:
 
+            metabolomics_analysis_activity["type"] = "ndmc:MetabolomicsAnalysisActivity"
             metabolomics_analysis_activity["has_metabolite_quantifications"] = self.get_metabolites_objs(data_obj)
             # metabolomics_analysis_activity["has_mformula_quantifications"] = self.get_metabolites_objs(data_obj)
 
@@ -311,6 +330,8 @@ class NMDC_Metadata:
         for metabolite in gcms_obj.metabolites_data:
 
             metabolite_quantification = {}
+            
+            metabolite_quantification["type"] = "ndmc:MetaboliteQuantification"
             metabolite_quantification["highest_similarity_score"] = metabolite.get("highest_similarity_score")
             metabolite_quantification["metabolite_quantified"] = "{}:{}".format("chebi", metabolite.get("chebi"))
             metabolite_quantification["alternate_identifiers"] = ["{}:{}".format("kegg", metabolite.get("kegg")),
