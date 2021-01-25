@@ -57,40 +57,40 @@ class ChromaPeakBase():
     @property
     def rt_list(self):
         return [self.chromatogram_parent.retention_time[i] for i in range(self.start_index, self.final_index+1) ]
-    
+
     @property   
     def tic_list(self):
         return [self.chromatogram_parent.tic[i] for i in range(self.start_index, self.final_index+1) ]
 
-   
+
 class GCPeak(ChromaPeakBase, GCPeakCalculation):
 
     def __init__(self, chromatogram_parent, mass_spectrum_obj, indexes):
-    
+
         super().__init__(chromatogram_parent, mass_spectrum_obj, *indexes)
-        
+
         self._ri = None
 
     def add_compound(self, compounds_dict, spectral_similarity_scores, ri_score=None, similarity_score=None):
-       
+
         compound_obj = LowResCompoundRef(compounds_dict)
 
-        #add all spectral similarities methods as a dict
+        # add all spectral similarities methods as a dict
         compound_obj.spectral_similarity_scores = spectral_similarity_scores
-        #TODO need to add spectral similarity score label in the options in the parameters encapsulation class
+        # TODO need to add spectral similarity score label in the options in the parameters encapsulation class
         compound_obj.spectral_similarity_score = spectral_similarity_scores.get("cosine_correlation")
 
         compound_obj.ri_score = ri_score
 
         compound_obj.similarity_score = similarity_score
-        
+
         self._compounds.append(compound_obj)
-        
+
         if similarity_score:
             self._compounds.sort(key=lambda c: c.similarity_score, reverse=True)
         else:
             self._compounds.sort(key=lambda c: c.spectral_similarity_score, reverse=True)
-    
+
     @property
     def ri(self): return self._ri
 

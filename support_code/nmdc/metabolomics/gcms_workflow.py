@@ -16,6 +16,7 @@ from corems.mass_spectra.calc.GC_RI_Calibration import get_rt_ri_pairs
 from corems import get_dirname, get_filename
 
 import glob
+from nmdc.metadata.nmdc_registration import NMDC_Metadata
 
 def start_sql_from_file():
 
@@ -23,28 +24,6 @@ def start_sql_from_file():
     sql_obj = ReadNistMSI(ref_lib_path).get_sqlLite_obj()
     return sql_obj
 
-def sql_database(file_location):
-
-    sqlLite_obj = ReadNistMSI(file_location).get_sqlLite_obj()
-
-    min_max_rt = (18.037, 18.037)
-    min_max_ri = (1637.30, 1737.30)
-
-    sqlLite_obj.query_min_max_ri((1637.30, 1638.30))
-    sqlLite_obj.query_min_max_rt((17.111, 18.111))
-    sqlLite_obj.query_min_max_ri_and_rt((1637.30, 1638.30), (17.111, 18.111))
-
-def stand_alone():
-
-    file_path = get_filename()
-
-    reader_gcms = ReadAndiNetCDF(file_path)
-
-    reader_gcms.run()
-
-    gcms = reader_gcms.get_gcms_obj()
-
-    gcms.process_chromatogram()
 
 def get_gcms(file_path):
 
@@ -107,26 +86,7 @@ def run(args):
 
     return gcms
 
-def auto_calibrate_and_search(file_locations, output_file_name, jobs, calibration_file_path):
-
-    ref_dict, cal_file_path = get_reference_dict(calibration_file_path=calibration_file_path)
-
-    if ref_dict:
-
-        # run in multiprocessing mode
-        pool = Pool(jobs)
-        args = [(file_path, ref_dict, cal_file_path) for file_path in file_locations]
-        gcmss = pool.map(run, args)
-        pool.close()
-        pool.join()
-        for gcms in gcmss:
-
-            gcms.to_hdf()
-            gcms.to_csv(output_file_name)
-            # print(output_file_name)
-
-
-def calibrate_and_search(out_put_file_name, jobs):
+def calibrate_and_search(out_put_file_name, jobs, dms_file_path):
 
     from PySide2.QtWidgets import QFileDialog
     from PySide2.QtCore import Qt
@@ -153,12 +113,14 @@ def calibrate_and_search(out_put_file_name, jobs):
 
                 file_path = Path(file_locations[0][file_index])
                 # print(out_put_file_name)
-               
-                gcms.to_csv(out_put_file_name, write_metadata=True, id_label="emsl:")
+
+                gcms.to_csv(file_path, write_metadata=False, id_label="emsl:")
+                nmdc = NMDC_Metadata(file_path, cal_file_path, file_path.with_suffix(".cvs"), dms_file_path)
+                nmdc.create_nmdc_gcms_metadata(gcms)
 
                 # gcms.to_excel(out_put_file_name)
                 # gcms.to_pandas(out_put_file_name)
-                gcms.to_hdf()
+                # gcms.to_hdf()
 
                 # df = gcms.get_dataframe()
                 # json_data = gcms.to_json()
@@ -183,26 +145,6 @@ def worker(args):
 
     cProfile.runctx('run(args)', globals(), locals(), 'gc-ms.prof')
 
-def auto_process(jobs):
-
-    import os
-    rootdir = get_dirname()
-
-    out_put_file_names = list(os.walk(rootdir))[0][1]
-
-    # print(out_put_file_names[0])
-    for out_put_file_name in out_put_file_names:
-        # print(out_put_file_name)
-
-        file_locations = glob.glob(str((rootdir / out_put_file_name)) + "/*.cdf")
-        calibration_file_path = ''
-        for file_path in file_locations:
-            if "FAME" in file_path:
-                calibration_file_path = file_path
-        if calibration_file_path:
-            auto_calibrate_and_search(file_locations, out_put_file_name, jobs, calibration_file_path)
-        else:
-            print("Could not find a calibration experimental file for {}".format(out_put_file_name))
 
 
 if __name__ == '__main__':
@@ -211,7 +153,6 @@ if __name__ == '__main__':
     # %%
     cores = 4
     out_put_file_group_name = 'sql_test'
-    calibrate_and_search(out_put_file_group_name, cores)
-    # start_sql_from_file()
-    # auto_process(cores)
-    # stand_alone()
+    dms_file_path="db/GC-MS Metabolomics Experiments to Process Final.xlsx"
+    calibrate_and_search(out_put_file_group_name, cores, dms_file_path)
+   

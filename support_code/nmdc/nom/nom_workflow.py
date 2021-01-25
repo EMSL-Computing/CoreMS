@@ -22,14 +22,8 @@ from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFor
 from corems import SuppressPrints, get_filename, get_dirnames
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.mass_spectra.input import rawFileReader
-
-from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
-from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration
-from corems.encapsulation.constant import Atoms
 from corems.encapsulation.factory.parameters import MSParameters
-
-
-
+from nmdc.metadata.nmdc_registration import DMS_Mapping, NMDC_Metadata
 
 def run_bruker(file_location):
 
@@ -41,15 +35,7 @@ def run_bruker(file_location):
         mass_spectrum = transient.get_mass_spectrum(plot_result=False, auto_process=True)
         #mass_spectrum.plot_profile_and_noise_threshold()
         #plt.show()
-        # find_formula_thread = FindOxygenPeaks(mass_spectrum)
-        # find_formula_thread.run()
-
-        # mspeaks_results = find_formula_thread.get_list_found_peaks()
-        # calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
-        # calibrate.ledford_calibration()
-
-        # mass_spectrum.clear_molecular_formulas()
-
+        
         return mass_spectrum, transient.transient_time
 
 def run_thermo(file_location):
@@ -65,9 +51,6 @@ def run_thermo(file_location):
 
     return mass_spectrum, 3
 
-def get_masslist(file_location):
-
-    return(ReadMassList(file_location).get_mass_spectrum(polarity=-1))
 
 def calspec(msobj,refmasslist,order=2):
     
@@ -120,7 +103,7 @@ def set_parameters(mass_spectrum, field_strength=12, pos=False):
         mass_spectrum.molecular_search_settings.min_ppm_error = -1
         mass_spectrum.molecular_search_settings.max_ppm_error = 1
 
-        mass_spectrum.settings.calib_sn_threshold = 2
+        mass_spectrum.settings.calib_sn_threshold = 4
 
     elif field_strength == 15:
 
@@ -131,7 +114,7 @@ def set_parameters(mass_spectrum, field_strength=12, pos=False):
         mass_spectrum.molecular_search_settings.min_ppm_error = -1
         mass_spectrum.molecular_search_settings.max_ppm_error = 1
 
-        mass_spectrum.settings.calib_sn_threshold = 2
+        mass_spectrum.settings.calib_sn_threshold = 4
     
     else:
 
@@ -171,83 +154,46 @@ def set_parameters(mass_spectrum, field_strength=12, pos=False):
     mass_spectrum.molecular_search_settings.isRadical = False
     mass_spectrum.molecular_search_settings.isAdduct = False
 
-
-def run_assignment(file_location, field_strength=12):
+def run_nmdc_workflow(args):
     # mass_spectrum = get_masslist(file_location)
+    file_location, ref_calibration_file, field_strength = args
 
-    mass_spectrum, transient_time = run_bruker(file_location)
-    set_parameters(mass_spectrum, field_strength=field_strength, pos=False)
-    mass_spectrum.filter_by_max_resolving_power(field_strength, transient_time)
+    if field_strength == 21:
+
+        #return "21T", None
+        #print("{}   {}".format("21T", file_location))
+        print("{} {}  {}".format("processing", field_strength,  file_location))
+        mass_spectrum, transient_time = run_thermo(file_location)
+    
+    else:    
+        
+        print("{} {}  {}".format("processing", field_strength,  file_location))
+        mass_spectrum, transient_time = run_bruker(file_location)
+        # return "not 21T", None
+        
+    is_pos = True if mass_spectrum.polarity > 0 else False
+    
+    if len(mass_spectrum) < 30:
+
+        print("{}   {}".format("too few peaks", file_location))
+        return "too few peaks", None
+    
+    set_parameters(mass_spectrum, field_strength=field_strength, pos=is_pos)
+
+    if ref_calibration_file:
+
+        calspec(mass_spectrum, ref_calibration_file)
+        #MzDomainCalibration(mass_spectrum, ref_calibration_file).run()
+
+    #mass_spectrum.filter_by_max_resolving_power(field_strength, transient_time)
 
     SearchMolecularFormulas(mass_spectrum, first_hit=False).run_worker_mass_spectrum()
     mass_spectrum.percentile_assigned(report_error=True)
     mass_spectrum.molecular_search_settings.score_method = "prob_score"
     mass_spectrum.molecular_search_settings.output_score_method = "prob_score"
 
-    mass_spectrum.to_csv(mass_spectrum.sample_name, write_metadata=False)
-    # export_calc_isotopologues(mass_spectrum, "15T_Neg_ESI_SRFA_Calc_Isotopologues")
-
-    # mass_spectrum_by_classes = HeteroatomsClassification(mass_spectrum, choose_molecular_formula=True)
-    # mass_spectrum_by_classes.plot_ms_assigned_unassigned()
-    # mass_spectrum_by_classes.plot_mz_error()
-
-    plt.show()
-    # dataframe = mass_spectrum_by_classes.to_dataframe()
-    # return (mass_spectrum, mass_spectrum_by_classes)
-
-    # class_plot(dataframe)
-
-def get_all_used_atoms_in_order(mass_spectrum):
-
-    atoms_in_order = Atoms.atoms_order
-    all_used_atoms = set()
-    if mass_spectrum:
-        for ms_peak in mass_spectrum:
-            if ms_peak:
-                for m_formula in ms_peak:
-                    for atom in m_formula.atoms:
-                        all_used_atoms.add(atom)
-
-    def sort_method(atom):
-        return [atoms_in_order.index(atom)]
-
-    return sorted(all_used_atoms, key=sort_method)
-
-def export_calc_isotopologues(mass_spectrum, out_filename):
-
-    columns_label = ["Mono Isotopic Index", "Calculated m/z", "Calculated Peak Height", 'Heteroatom Class', "Molecular Formula" ]
-
-    atoms_order_list = get_all_used_atoms_in_order(mass_spectrum)
-
-    column_labels = columns_label + atoms_order_list
-
-    dict_data_list = []
-
-    for index, ms_peak in enumerate(mass_spectrum):
-
-        if ms_peak:
-            for m_formula in ms_peak:
-                if not m_formula.is_isotopologue:
-                    for imf in m_formula.expected_isotopologues:
-
-                        formula_dict = imf.to_dict()
-                        dict_result = {"Mono Isotopic Index": index,
-                                       "Calculated m/z": imf.mz_calc,
-                                       "Calculated Peak Height": imf.abundance_calc,
-                                       'Heteroatom Class': imf.class_label,
-                                       'H/C': imf.H_C,
-                                       'O/C': imf.O_C,
-                                       'Ion Type': imf.ion_type.lower(),
-                                       }
-
-                        for atom in atoms_order_list:
-                            if atom in formula_dict.keys():
-                                dict_result[atom] = formula_dict.get(atom)
-
-                        dict_data_list.append(dict_result)
-
-    df = DataFrame(dict_data_list, columns=column_labels)
-    df.to_csv(out_filename + ".csv", index=False)
+    return "all_good", mass_spectrum
+ 
 
 def monitor(target):
 
@@ -272,25 +218,69 @@ def worker(file_location):
     # stats = pstats.Stats("topics.prof")
     # stats.strip_dirs().sort_stats("time").print_stats()
 
-def run_multiprocess():
+def run_nom_nmdc_data_processing():
 
+    file_ext = '.raw'  # '.d' 
+    data_dir = Path("data/")
+    dms_file_path = Path("data/NOM Data to Process.xlsx")
+    
+    results_dir = Path("results/")
+    registration_path = results_dir / "ftms_nom_data_products.json"
+    failed_files = results_dir / "nom_failed_files.json"
+    pos_files = results_dir / "pos_files.json"
+
+    field_strength = 12
     cores = 4
-    # file_location = get_dirname()
-    file_location = get_filename()
-    p = Pool(cores)
-    args = [(file_path) for file_path in [file_location] * 1]
-    ms_collection = p.map(worker, args)
-    p.close()
-    p.join()
+    ref_calibration_path = False
 
-    for ms in ms_collection:
-        ms[0].to_hdf('test')
+    #file_paths = get_dirnames()
+    ref_calibration_path = Path("db/Hawkes_neg.ref")
+
+    dms_mapping = DMS_Mapping(dms_file_path)
+    selected_files = dms_mapping.get_selected_sample_list()
+    
+    failed_list = []
+    pos_list = []
+    
+    for file_name, field_strength in selected_files:
+        
+        in_file_path = data_dir / file_name / file_name.with_suffix(file_ext)    
+        
+        try:
+            
+            issue, ms = run_nmdc_workflow((in_file_path, ref_calibration_path, field_strength))
+            
+            if ms:
+                
+                file_name = Path(in_file_path.name)
+
+                output_file_path = results_dir / file_name.with_suffix('.csv')
+                ms.to_csv(output_file_path, write_metadata=False)
+
+                nmdc = NMDC_Metadata(in_file_path, ref_calibration_path, output_file_path, dms_file_path)
+                nmdc.create_nmdc_ftms_metadata(ms, registration_path)
+                
+            else:
+                print(issue)
+
+        except Exception as inst:
+            
+            print(type(inst))    # the exception instance
+            print(inst.args)     # arguments stored in .args
+            print(inst)  
+            failed_list.append(str(in_file_path))
+            
+    with failed_files.open('w') as json_file:
+
+        json_file.write(json.dumps(failed_list, indent=1))
+
 
 if __name__ == "__main__":
 
     # run_multiprocess()
     # cpu_percents = monitor(target=run_multiprocess)
     # print(cpu_percents)
-    file_location = get_filename()
-    if file_location:
-        run_assignment(file_location)
+    run_nom_nmdc_data_processing()
+    #file_location = get_filename()
+    #if file_location:
+    #    run_assignment(file_location)

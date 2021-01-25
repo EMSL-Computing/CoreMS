@@ -1,5 +1,5 @@
 __author__ = 'Yuri E. Corilo'
-__version__ = '22.1.12.beta'
+__version__ = '23.0.0.beta'
 __doc__ = '''
 CoreMS - a powerful framework for mass spectrometry data processing and analysis of small molecules
 =====================================================================
@@ -83,7 +83,6 @@ import os
 import sys
 import hashlib
 
-		
 def timeit(method):
     def timed(*args, **kw):
         ts = time.time()
@@ -99,36 +98,36 @@ def timeit(method):
 
 
 class SuppressPrints:
-    
+
     def __enter__(self):
         self._original_stdout = sys.stdout
         sys.stdout = open(os.devnull, 'w')
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         sys.stdout.close()
-        sys.stdout = self._original_stdout  
+        sys.stdout = self._original_stdout
 
 def get_filename(app=None):
-    
+
     from PySide2.QtCore import Qt, QCoreApplication
-    from PySide2.QtWidgets import QApplication, QFileDialog 
+    from PySide2.QtWidgets import QApplication, QFileDialog
     from pathlib import Path
 
     app = QApplication(sys.argv)
     file_dialog = QFileDialog()
     file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
     file_location, _ = file_dialog.getOpenFileName()
-    
+
     if file_location:
         QCoreApplication.processEvents()
         return Path(file_location)
-    
+
     else:
-        
+
         return None
 
 def get_dirname(app=None):
-    
+
     from PySide2.QtCore import Qt, QCoreApplication
     from PySide2.QtWidgets import QApplication, QFileDialog 
     from pathlib import Path
@@ -137,27 +136,27 @@ def get_dirname(app=None):
     file_dialog = QFileDialog()
     file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
     file_location = file_dialog.getExistingDirectory()
-    
+
     if file_location:
         QCoreApplication.processEvents()
         return Path(file_location)
-    
+
     else:
-        
+
         return None
 
-def get_dirnames(app=None):   
-    
+def get_dirnames(app=None):
+
     from PySide2.QtCore import Qt, QCoreApplication
     from PySide2.QtWidgets import QApplication, QFileDialog, QTreeView, QListView, QAbstractItemView
     from pathlib import Path
-    
+
     if not app:
         app = QApplication(sys.argv)
-    #file_dialog = QFileDialog()
-    #file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
-    #file_location = file_dialog.getOpenFileNames()
-    
+    # file_dialog = QFileDialog()
+    # file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+    # file_location = file_dialog.getOpenFileNames()
+
     file_dialog = QFileDialog()
     file_dialog.setFileMode(QFileDialog.DirectoryOnly)
     file_dialog.setOption(QFileDialog.DontUseNativeDialog, True)
@@ -172,6 +171,7 @@ def get_dirnames(app=None):
 
     if file_dialog.exec():
         paths = file_dialog.selectedFiles()
+
         QCoreApplication.processEvents()
         for path in paths:
             yield Path(path)
@@ -186,6 +186,5 @@ def corems_md5(fname):
     bytes_io = fname.open('rb').read()
 
     md5_returned = hashlib.sha256(bytes_io).hexdigest()
-    
+
     return "{}:{}".format("sha256", md5_returned)
-        
