@@ -253,13 +253,13 @@ class MolForm_SQL:
                             ((CarbonHydrogen.h + HeteroAtoms.halogens_count - len_adduct)/CarbonHydrogen.c)  <= molecular_search_settings.max_hc_filter,
                             CarbonHydrogen.C >= molecular_search_settings.usedAtoms.get("C")[0],
                             CarbonHydrogen.c <= molecular_search_settings.usedAtoms.get("C")[1], 
-                            CarbonHydrogen.c >= molecular_search_settings.usedAtoms.get("H")[0],
-                            CarbonHydrogen.c <= molecular_search_settings.usedAtoms.get("H")[1], 
+                            CarbonHydrogen.h >= molecular_search_settings.usedAtoms.get("H")[0],
+                            CarbonHydrogen.h <= molecular_search_settings.usedAtoms.get("H")[1], 
                         )
                     )
                 )
             )
-                
+
         def add_dict_formula(formulas, ion_type, ion_charge, adduct_atom=None):
             "organize data by heteroatom classes"
             dict_res = {}
@@ -296,6 +296,7 @@ class MolForm_SQL:
                 if formula_dict.get("O"):
                     
                     if formula_dict.get("O")/formula_dict.get("C") >= molecular_search_settings.min_oc_filter:
+                        print(formula_dict.get("O")/formula_dict.get("C"))
                         continue
 
                     #if formula_dict.get("P"):
