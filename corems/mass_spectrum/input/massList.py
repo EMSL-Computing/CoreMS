@@ -50,6 +50,7 @@ class ReadCoremsMasslist(MassListBaseClass):
             # \.replace({b'nan':0})
             formula_df = dataframe[dataframe.columns.intersection(Atoms.atoms_order)]
             formula_df.fillna(0, inplace=True)
+            formula_df.replace(b'nan', 0, inplace=True)
 
             ion_type_df = dataframe["Ion Type"]
             ion_charge_df = dataframe["Ion Charge"]
@@ -59,12 +60,10 @@ class ReadCoremsMasslist(MassListBaseClass):
 
         for df_index, mz_exp in enumerate(mz_exp_df):
 
-            counts = 0
-
             ms_peak_index = list(mass_spec_mz_exp_list).index(float(mz_exp))
 
             if 'Is Isotopologue' in dataframe:
-                
+
                 atoms = list(formula_df.columns.astype(str))
                 counts = list(formula_df.iloc[df_index].astype(int))
 
