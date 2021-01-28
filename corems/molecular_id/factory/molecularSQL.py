@@ -249,12 +249,12 @@ class MolForm_SQL:
                         MolecularFormulaLink.DBE >= molecular_search_settings.min_dbe, 
                         MolecularFormulaLink.DBE <= molecular_search_settings.max_dbe, 
                         and_(
-                            ((CarbonHydrogen.h + HeteroAtoms.halogens_count - len_adduct)/CarbonHydrogen.c)  >= molecular_search_settings.min_hc_filter,
-                            ((CarbonHydrogen.h + HeteroAtoms.halogens_count - len_adduct)/CarbonHydrogen.c)  <= molecular_search_settings.max_hc_filter,
+                            ((CarbonHydrogen.h + HeteroAtoms.halogens_count - len_adduct) / CarbonHydrogen.c) >= molecular_search_settings.min_hc_filter,
+                            ((CarbonHydrogen.h + HeteroAtoms.halogens_count - len_adduct) / CarbonHydrogen.c) <= molecular_search_settings.max_hc_filter,
                             CarbonHydrogen.C >= molecular_search_settings.usedAtoms.get("C")[0],
-                            CarbonHydrogen.c <= molecular_search_settings.usedAtoms.get("C")[1], 
+                            CarbonHydrogen.c <= molecular_search_settings.usedAtoms.get("C")[1],
                             CarbonHydrogen.h >= molecular_search_settings.usedAtoms.get("H")[0],
-                            CarbonHydrogen.h <= molecular_search_settings.usedAtoms.get("H")[1], 
+                            CarbonHydrogen.h <= molecular_search_settings.usedAtoms.get("H")[1],
                         )
                     )
                 )
