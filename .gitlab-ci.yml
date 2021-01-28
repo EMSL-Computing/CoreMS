@@ -45,7 +45,7 @@ test-source:
   
   stage: Pytest
   tags:
-    - massspec
+    - enviroms
     - k8s 
     - rcint
     
@@ -67,7 +67,7 @@ build:
   
   stage: Build Python Package
   tags:
-    - massspec
+    - enviroms
     - k8s 
     - rcint
     
@@ -87,7 +87,7 @@ build:
   
 #  stage: Push to PyPi
 #  tags:
-#    - massspec
+#    - enviroms
 #    - k8s 
 #    - rcint
 
@@ -101,7 +101,7 @@ deployment:
   
   stage: Push to Gitlab Registry
   tags:
-    - massspec
+    - enviroms
     - k8s 
     - rcint
 
@@ -123,7 +123,7 @@ deployment:
   
 #  stage: Push to Docker Hub
 #  tags:
-#    - massspec
+#    - enviroms
 #    - k8s 
 #    - rcint
 
