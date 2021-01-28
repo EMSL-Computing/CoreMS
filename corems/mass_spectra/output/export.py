@@ -90,7 +90,7 @@ class LowResGCMSExport():
 
         self.write_settings(self.output_file, self.gcms, id_label="corems:")
 
-    def to_excel(self, write_mode='a', id_label="corems:"):
+    def to_excel(self, write_mode='w', id_label="corems:"):
 
         out_put_path = self.output_file.with_suffix('.xlsx')
 
@@ -124,10 +124,10 @@ class LowResGCMSExport():
         if separate_output:
             # set write mode to write
             # this mode will overwrite the file without warning
-            write_mode='w'
+            write_mode = 'w'
         else:
             # set write mode to append
-            write_mode='a'
+            write_mode = 'a'
         
         columns = self._init_columns() 
         
@@ -333,19 +333,19 @@ class LowResGCMSExport():
         output = json.dumps(output_parameters_dict, sort_keys=False, indent=4, separators=(',', ': '))
 
         return output
-    
+
     def write_settings(self, output_path, gcms, id_label="corems:"):
-        
+
         output = self.get_parameters_json(gcms, id_label, output_path)
 
         with open(output_path.with_suffix('.json'), 'w', encoding='utf8', ) as outfile:
-    
+
             outfile.write(output)
 
     def get_list_dict_data(self, gcms, include_no_match=True, no_match_inline=False) :
 
         output_score_method = gcms.molecular_search_settings.output_score_method
-        
+
         dict_data_list = []
 
         def add_match_dict_data():
@@ -357,15 +357,15 @@ class LowResGCMSExport():
                         'Peak Height': gc_peak.tic,
                         'Peak Area': gc_peak.area,
                         'Retention index': gc_peak.ri,
-                        'Retention index Ref':  compound_obj.ri,
+                        'Retention index Ref': compound_obj.ri,
                         'Retention Index Score': compound_obj.ri_score,
                         'Spectral Similarity Score': compound_obj.spectral_similarity_score,
                         'Similarity Score': compound_obj.similarity_score,
-                        'Compound Name' : compound_obj.name
-            }    
+                        'Compound Name': compound_obj.name
+                        }
 
             if self.gcms.molecular_search_settings.exploratory_mode:
-                
+
                 out_dict.update({
                     'Weighted Cosine Correlation': compound_obj.spectral_similarity_scores.get("weighted_cosine_correlation"), 
                     'Cosine Correlation': compound_obj.spectral_similarity_scores.get("cosine_correlation"), 
@@ -380,26 +380,23 @@ class LowResGCMSExport():
                     'Jaccard Distance': compound_obj.spectral_similarity_scores.get("jaccard_distance"),
                 })
                 
-                
                 for method in methods_name:
                     
                     out_dict[methods_name.get(method)] = compound_obj.spectral_similarity_scores.get(method)
 
-        
             dict_data_list.append(out_dict)
         
         def add_no_match_dict_data():
 
-            dict_data_list.append( {'Sample name': gcms.sample_name,
-                           'Peak Index': gcpeak_index,
-                           'Retention Time': gc_peak.rt,
-                           'Peak Height': gc_peak.tic,
-                           'Peak Area': gc_peak.area,
-                           'Retention index': gc_peak.ri,
-                           } )
+            dict_data_list.append({'Sample name': gcms.sample_name,
+                                    'Peak Index': gcpeak_index,
+                                    'Retention Time': gc_peak.rt,
+                                    'Peak Height': gc_peak.tic,
+                                    'Peak Area': gc_peak.area,
+                                    'Retention index': gc_peak.ri,
+                                  })
 
-           
-        for gcpeak_index , gc_peak in enumerate(gcms.sorted_gcpeaks):
+        for gcpeak_index, gc_peak in enumerate(gcms.sorted_gcpeaks):
 
             # check if there is a compound candidate 
             if gc_peak:
