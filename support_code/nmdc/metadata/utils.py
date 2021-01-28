@@ -3,18 +3,16 @@ import hashlib
 import json
 import os
 from pathlib import Path
-
+from copy import deepcopy
 from minio import Minio
 
 import sys
 sys.path.append("./")
 
-from doc.examples.nmdc.NMDC_Metadata import DMS_Mapping
-
 
 def fix_data_registration_nom():
-    
-    #registration_path = Path("db/gcms_metabolomics_data_products.json")
+
+    # registration_path = Path("db/gcms_metabolomics_data_products.json")
     registration_path = Path("results/ftms_nom_data_products.json")
 
     metadata_path = Path("results/ftms_nom_metadata_products.json")
@@ -48,7 +46,6 @@ def fix_data_registration_nom():
 
 def fix_data_registration():
     
-    
     registration_path = Path("results/ftms_nom_data_products.json")
     #metadata_path = Path("db/gcms_metabolomics_metadata_products.json")
 
@@ -78,67 +75,80 @@ def fix_data_registration():
         #    metabolomics_data_products.write(json.dumps(url_list, indent=1))
 
 def fix_metadata_registration():
-    
-    #from copy import deepcopy
-    cvs_file_dir = Path("results/data")
-    metadata_file_dir = Path("results/metadata")
-    newmetada_file_dir = Path("results/fix_metadata")
-    
-    dms_file_path = Path("db/NOM Data to Process.xlsx")
-    
-    dms_dataset_mapping = DMS_Mapping(dms_file_path).get_mapping()
 
-    directory = cvs_file_dir
+    # from copy import deepcopy
+    # cvs_file_dir = Path("results/data")
+    metadata_file_dir = Path("results/metabolomics_metadata")
+    newmetada_file_dir = Path("results/new_metabolomics_metadata")
+
+    dms_file_path = Path("db/NOM Data to Process.xlsx")
+
+    # dms_dataset_mapping = DMS_Mapping(dms_file_path).get_mapping()
+
+    directory = metadata_file_dir
+
     for filename in os.listdir(directory):
 
-        csv_path = Path(cvs_file_dir/filename)
-        #md5_checksum = hashlib.md5(csv_path.open('rb').read()).hexdigest()
-        
-        metadata_path = metadata_file_dir / Path(csv_path.name).with_suffix('.json')
-        
+        # csv_path = Path(cvs_file_dir / filename)
+        # md5_checksum = hashlib.md5(csv_path.open('rb').read()).hexdigest()
+
+        metadata_path = metadata_file_dir / filename
+
+        # metadata_path = metadata_file_dir / Path(csv_path.name).with_suffix('.json')
+
         with metadata_path.open('r') as metabolomics_data_products:
-            
+
             metadata_dict = json.load(metabolomics_data_products)
-            
-            metadata_dict["has_output"] = [metadata_dict["has_output"]]
 
-            metadata_dict["has_input"] = [metadata_dict["has_input"]]
+            # metadata_dict["has_output"] = [metadata_dict["has_output"]]
 
-            print(metadata_path.stem)    
-            mapping = dms_dataset_mapping.get(metadata_path.stem)
+            # metadata_dict["has_input"] = [metadata_dict["has_input"]]
 
-            metadata_dict["used"] = mapping.get("instrument_name")
+            # metadata_dict["description"] = "EnviroMS FT ICR-MS natural organic matter workflow molecular formula assignment output details"
 
-            #id_dict = {"id": deepcopy(metadata_dict["activity_id"]) }
+            type_dict = {"type": "nmdc:MetabolomicsAnalysisActivity",
+                         "has_input": deepcopy([metadata_dict["has_input"]]),
+                         "has_output": deepcopy([metadata_dict["has_output"]]),
+                         }
 
-            #del metadata_dict["activity_id"]
+            # print(metadata_path.stem)
 
-            #id_dict.update(metadata_dict)
+            # mapping = dms_dataset_mapping.get(metadata_path.stem)
+
+            # metadata_dict["used"] = mapping.get("instrument_name")
+
+            # id_dict = {"id": deepcopy(metadata_dict["activity_id"]) }
+
+            del metadata_dict["has_input"]
+            del metadata_dict["has_output"]
+            # del metadata_dict["has_calibration"]
+
+            type_dict.update(metadata_dict)
 
         new_metadata = newmetada_file_dir / metadata_path.name
-        
+
         with new_metadata.open('w') as metabolomics_data_products:
 
-            metabolomics_data_products.write(json.dumps(metadata_dict, indent=1))
+            metabolomics_data_products.write(json.dumps(type_dict, indent=1))
 
 def upload_data():
-    
+
     minio = Minio(
-            "admin.nmdcdemo.emsl.pnl.gov",
-            access_key=os.environ.get("dMUv0sYh3K"),
-            secret_key=os.environ.get("xkHUzeZ8KlXaDSXI5bfoheWqqFddsLYjDE8784yB"),
-            secure=True
-                )
+                 "admin.nmdcdemo.emsl.pnl.gov",
+                 access_key=os.environ.get("dMUv0sYh3K"),
+                 secret_key=os.environ.get("xkHUzeZ8KlXaDSXI5bfoheWqqFddsLYjDE8784yB"),
+                 secure=True
+                 )
 
     filepath = Path("results/ftms_nom_data_products.json")
     s3_path = "{}/{}".format("data", filepath.name)
-    
+
     minio.fput_object('nom', s3_path, str(filepath))
-    
+
 if __name__ == "__main__":
-    
-    #fix_metadata_registration()
-    #fix_data_registration_nom()
-    #upload_data()
-    fix_data_registration()
-    
+
+    # fix_metadata_registration()
+    # fix_data_registration_nom()
+    # upload_data()
+    # fix_data_registration()
+    fix_metadata_registration()

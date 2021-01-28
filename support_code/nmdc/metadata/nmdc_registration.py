@@ -177,12 +177,12 @@ class DMS_Mapping():
         return data_dict
 
     def get_selected_sample_list(self):
-        
+
         wb = load_workbook(filename=self.dms_file_path)
-        
+
         second_sheet = wb.sheetnames[1]
-        
-        #print(second_sheet)
+
+        # print(second_sheet)
         full_list_worksheet = wb[second_sheet]
 
         sample_name = full_list_worksheet['B']
@@ -190,9 +190,9 @@ class DMS_Mapping():
         instrument_name = full_list_worksheet['E']
 
         for x in range(1, len(sample_name)):
-            
+
             yield Path(sample_name[x].value), int(instrument_name[x].value.strip()[0:2])
-      
+
     def get_mapping(self):
 
         wb = load_workbook(filename=self.dms_file_path)
@@ -253,6 +253,7 @@ class NMDC_Metadata:
     def add_metabolomics_data_product(self, output_id, activity_id, bucket, registration_path="gcms_metabolomics_data_products.json"):
 
         data_obj = [{
+                    "type": "nmdc:DataObject",
                     "id": output_id,
                     "name": self.out_file_path.name,
                     "description": "MetaMS GC-MS metabolomics output detail CSV file",
