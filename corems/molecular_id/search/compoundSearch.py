@@ -87,7 +87,7 @@ class LowResMassSpectralMatch(Thread):
             else:
 
                 compound_names = self.gcms_obj.molecular_search_settings.ri_calibration_compound_names
-
+                
                 window = self.gcms_obj.molecular_search_settings.rt_search_range
 
                 rt = gc_peak.rt
