@@ -61,47 +61,47 @@ class LowResGCMSExport():
     def get_pandas_df(self, id_label="corems:"):
 
         columns = self._init_columns()
-        
+
         dict_data_list = self.get_list_dict_data(self.gcms)
-        
+
         df = DataFrame(dict_data_list, columns=columns)
-        
+
         df.name = self.gcms.sample_name
 
         return df
 
     def get_json(self, nan=False, id_label="corems:"):
-        
+
         import json
 
         dict_data_list = self.get_list_dict_data(self.gcms)
-        
+
         return json.dumps(dict_data_list, sort_keys=False, indent=4, separators=(',', ': '))
 
     def to_pandas(self, id_label="corems:"):
-        
+
         columns = self._init_columns() 
-        
+
         dict_data_list = self.get_list_dict_data(self.gcms)
 
         df = DataFrame(dict_data_list, columns=columns)
 
         df.to_pickle(self.output_file.with_suffix('.pkl'))
-        
+
         self.write_settings(self.output_file, self.gcms, id_label="corems:")
-               
+
     def to_excel(self, write_mode='a', id_label="corems:"):
 
         out_put_path = self.output_file.with_suffix('.xlsx')
 
-        columns = self._init_columns() 
-        
+        columns = self._init_columns()
+
         dict_data_list = self.get_list_dict_data(self.gcms)
 
         df = DataFrame(dict_data_list, columns=columns)
 
         if write_mode == 'a' and out_put_path.exists():
-            
+
             writer = ExcelWriter(out_put_path, engine='openpyxl')
             # try to open an existing workbook
             writer.book = load_workbook(out_put_path)
@@ -110,17 +110,17 @@ class LowResGCMSExport():
             # read existing file
             reader = read_excel(out_put_path)
             # write out the new sheet
-            df.to_excel(writer,index=False,header=False,startrow=len(reader)+1)
+            df.to_excel(writer, index=False, header=False, startrow=len(reader) + 1)
 
             writer.close()
         else:
-        
+
             df.to_excel(self.output_file.with_suffix('.xlsx'), index=False, engine='openpyxl')
 
         self.write_settings(self.output_file, self.gcms, id_label="corems:")
 
-    def to_csv(self, separate_output=False,  id_label="corems:") :
-        
+    def to_csv(self, separate_output=False, id_label="corems:"):
+
         if separate_output:
             # set write mode to write
             # this mode will overwrite the file without warning
