@@ -41,37 +41,35 @@ class ReadCoremsMasslist(MassListBaseClass):
         return mass_spec_obj
 
     def add_molecular_formula(self, mass_spec_obj, dataframe):
-        
-        #check if is coreMS file
+
+        # check if is coreMS file
         if 'Is Isotopologue' in dataframe:
-            
+
             mz_exp_df = dataframe[Labels.mz].astype(float)
-            #formula_df = dataframe.loc[:, 'C':].fillna(0)
-            #\.replace({b'nan':0})
-            try:
-               formula_df = dataframe[dataframe.columns.intersection(Atoms.atoms_order)].replace({b'nan':0})
-            except:
-               formula_df = dataframe[dataframe.columns.intersection(Atoms.atoms_order)].fillna(0)
-            
-            ion_type_df =  dataframe["Ion Type"]
+            # formula_df = dataframe.loc[:, 'C':].fillna(0)
+            # \.replace({b'nan':0})
+            formula_df = dataframe[dataframe.columns.intersection(Atoms.atoms_order)]
+            formula_df.fillna(0, inplace=True)
+
+            ion_type_df = dataframe["Ion Type"]
             ion_charge_df = dataframe["Ion Charge"]
             is_isotopologue_df = dataframe['Is Isotopologue']
-        
+
         mass_spec_mz_exp_list = mass_spec_obj.mz_exp
-    
+
         for df_index, mz_exp in enumerate(mz_exp_df):
-            
+
             counts = 0
 
             ms_peak_index = list(mass_spec_mz_exp_list).index(float(mz_exp))
-            
+
             if 'Is Isotopologue' in dataframe:
                 
                 atoms = list(formula_df.columns.astype(str))
                 counts = list(formula_df.iloc[df_index].astype(int))
 
-                formula_list = [sub[item] for item in range(len(atoms)) 
-                                for sub in [atoms, counts]] 
+                formula_list = [sub[item] for item in range(len(atoms))
+                                for sub in [atoms, counts]]
             if sum(counts) > 0:
 
                 ion_type = str(Labels.ion_type_translate.get(ion_type_df[df_index]))
