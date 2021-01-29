@@ -93,15 +93,15 @@ class LowResolutionEICompound(Base):
 class EI_LowRes_SQLite:
     
     def __init__(self, url='sqlite://'):
-        
+
         self.engine = self.init_engine(url)
 
         Base.metadata.create_all(self.engine)
 
         Session = sessionmaker(bind=self.engine)
-        
+
         self.session = Session()
-        
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         # make sure the db connection gets closed
         # 
@@ -115,9 +115,9 @@ class EI_LowRes_SQLite:
         
         if not url:
             
-            if not os.path.isdir(directory+'/db'):
+            if not os.path.isdir(directory + '/db'):
                     
-                os.mkdir(directory+'/db')    
+                os.mkdir(directory + '/db')    
             
             url = 'sqlite:///{DB}/db/pnnl_lowres_gcms_compounds.sqlite'.format(DB=directory)
 

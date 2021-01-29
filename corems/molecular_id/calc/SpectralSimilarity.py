@@ -87,85 +87,84 @@ methods_scale = {
 class SpectralSimilarity():
 
     def __init__(self, ms_mz_abun_dict, ref_obj):
-        
+
         self.ms_mz_abun_dict = ms_mz_abun_dict
         self.ref_obj = ref_obj
-        
+
         self.exp_abun = list(self.ms_mz_abun_dict.values())
         self.exp_mz = list(self.ms_mz_abun_dict.keys())
 
         self.ref_mz = self.ref_obj.get("mz")
         self.ref_abun = self.ref_obj.get("abundance")
 
-        self.ref_mz_abun_dict = dict(zip(self.ref_mz , self.ref_abun))
+        self.ref_mz_abun_dict = dict(zip(self.ref_mz, self.ref_abun))
 
-        #parse to dataframe, easier to zerofill and tranpose
+        # parse to dataframe, easier to zerofill and tranpose
         df = DataFrame([self.ms_mz_abun_dict, self.ref_mz_abun_dict])
 
         # fill missing mz with abundance 0
         df.fillna(0, inplace=True)
-        
-        #calculate cosine correlation, 
+
+        # calculate cosine correlation,
         x = df.T[0].values
         y = df.T[1].values
-        
-        self.zero_filled_u_l = (x/sum(x),y/sum(y))
+
+        self.zero_filled_u_l = (x / sum(x), y / sum(y))
 
         # filter out the mass values that have zero intensities in self.exp_abun
         exp_mz_filtered = set([k for k in self.exp_mz if self.ms_mz_abun_dict[k] != 0])
-    
+
         # filter out the mass values that have zero intensities in self.ref_mz
         self.ref_mz_filtered = set([k for k in self.ref_mz if self.ref_mz_abun_dict[k] != 0])
-    
+
         # find the intersection/common mass values of both ref and exp, and sort them
         self.common_mz_values = sorted(list(exp_mz_filtered.intersection(self.ref_mz_filtered)))
-        
+
         # find the number of common mass values (after filtering 0s)
         self.n_x_y = len(self.common_mz_values)
-
+        # print(self.n_x_y)
 
     def weighted_cosine_correlation(self, a=0.5, b=1.3):
-        
-        # create dict['mz'] = abundance, for experimental data
-        #ms_mz_abun_dict = mass_spec.mz_abun_dict
 
+        # create dict['mz'] = abundance, for experimental data
+        # ms_mz_abun_dict = mass_spec.mz_abun_dict
         # weight exp data
 
-        xc = power(self.exp_abun, a) *  power(self.exp_abun, b) 
-        
+        xc = power(self.exp_abun, a) * power(self.exp_abun, b)
+
         # track back to individual mz
         weighted_exp_dict = dict(zip(self.ms_mz_abun_dict.keys(), xc))
 
         # weight ref data
-        yc = power(self.ref_obj.get("abundance"), a) *  power(self.ref_obj.get("mz"), b) 
-        
+        yc = power(self.ref_obj.get("abundance"), a) * power(self.ref_obj.get("mz"), b)
+
         ref_mz_abun_dict = dict(zip(self.ref_obj.get("mz"), yc))
 
-        #parse to dataframe, easier to zerofill and tranpose
+        # parse to dataframe, easier to zerofill and tranpose
         df = DataFrame([weighted_exp_dict, ref_mz_abun_dict])
 
         # fill missing mz with weight {abun**a}{m/z**b} to 0
         df.fillna(0, inplace=True)
-        
-        #calculate cosine correlation, 
+
+        # calculate cosine correlation, 
         x = df.T[0].values
         y = df.T[1].values
 
-        #correlation = (1 - cosine(x, y))
-        
-        correlation = dot(x, y)/(norm(x)*norm(y))
+        # correlation = (1 - cosine(x, y))
+
+        correlation = dot(x, y) / (norm(x) * norm(y))
 
         return correlation
 
     def cosine_correlation(self):
 
-        #calculate cosine correlation, 
+        # calculate cosine correlation,
         x = self.zero_filled_u_l[0]
         y = self.zero_filled_u_l[1]
-        
-        #correlation = (1 - cosine(x, y))
-        
-        correlation = dot(x, y)/(norm(x)*norm(y))
+
+        # correlation = (1 - cosine(x, y))
+
+        correlation = dot(x, y) / (norm(x) * norm(y))
 
         return correlation
 
@@ -180,38 +179,38 @@ class SpectralSimilarity():
         
         a, b = 1, 0
 
-        for i in range(1,self.n_x_y):
+        for i in range(1, self.n_x_y):
             
             current_value = self.common_mz_values[i]
-            previous_value = self.common_mz_values[i-1]
+            previous_value = self.common_mz_values[i - 1]
     
             y_i = self.ref_mz_abun_dict[current_value]
             y_i_minus1 = self.ref_mz_abun_dict[previous_value]
             
-            lc_current = power(y_i, a) *  power(current_value, b)
-            lc_previous = power(y_i_minus1, a) *  power(previous_value, b)
+            lc_current = power(y_i, a) * power(current_value, b)
+            lc_previous = power(y_i_minus1, a) * power(previous_value, b)
             
             x_i = self.ms_mz_abun_dict[current_value]
             x_i_minus1 = self.ms_mz_abun_dict[previous_value]
-            
-            uc_current = power(x_i, a) *  power(current_value, b)
-            uc_previous = power(x_i_minus1, a) *  power(previous_value, b)
 
-            T1 = lc_current/lc_previous
-            
-            T2 = uc_previous/uc_current
+            uc_current = power(x_i, a) * power(current_value, b)
+            uc_previous = power(x_i_minus1, a) * power(previous_value, b)
+
+            T1 = lc_current / lc_previous
+
+            T2 = uc_previous / uc_current
 
             temp_computation = T1 * T2
-            
+
             n = 0
             if temp_computation <= 1:
                 n = 1
             else:
                 n = -1
-            s_r_x_y = s_r_x_y + power(temp_computation,n)
-    
+            s_r_x_y = s_r_x_y + power(temp_computation, n)
+
         # finish the calculation of S_R(X,Y)
-        
+
         s_r_x_y = s_r_x_y / self.n_x_y
         # using the existing weighted_cosine_correlation function to get S_WC(X,Y)
         s_wc_x_y = self.weighted_cosine_correlation(a=0.5, b =3 )
@@ -253,7 +252,6 @@ class SpectralSimilarity():
 
         # count number of non-zero abundance/peak intensity values
         n_x = sum(a != 0 for a in self.exp_abun)
-
         
         x = self.zero_filled_u_l[0]
         y = self.zero_filled_u_l[1]
@@ -320,31 +318,39 @@ class SpectralSimilarity():
         return np_sum(absolute(qlist - rlist))
     
     def jaccard_distance(self):
-        
+
         def jaccard_similarity(list1, list2):
-            
+
             intersection = len(list(set(list1).intersection(list2)))
             union = (len(list1) + len(list2)) - intersection
             return float(intersection) / union
-        
+
         qlist = self.zero_filled_u_l[0]
         rlist = self.zero_filled_u_l[1]
         return np_sum(power(qlist - rlist, 2)) / (np_sum(power(qlist, 2)) + np_sum(power(rlist, 2)) - np_sum(qlist * rlist))
-        #correlation = jaccard_similarity(self.zero_filled_u_l[0], self.zero_filled_u_l[1])
-        #@return correlation
-    
+        # correlation = jaccard_similarity(self.zero_filled_u_l[0], self.zero_filled_u_l[1])
+        # @return correlation
+
     def extra_distances(self):
         from corems.molecular_id.calc import math_distance
 
         qlist = self.zero_filled_u_l[0]
         rlist = self.zero_filled_u_l[1]
-        
+
         dict_res = {}
+
         for method in methods_name:
             function_name = method + "_distance"
             if hasattr(math_distance, function_name):
                 f = getattr(math_distance, function_name)
                 dist = f(qlist, rlist)
+                # if dist == np.nan or dis == np.inf:
+                    # print(self.exp_abun)
+                    # print(self.exp_mz)
+                    #print(function_name)
+                    # print(len(self.exp_abun))
+                    # print(len(self.exp_mz))
+                    # print(self.zero_filled_u_l[1])
                 dict_res[method] = dist
 
         return dict_res

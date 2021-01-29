@@ -131,7 +131,7 @@ def calibrate_and_search(out_put_file_name, jobs):
     
     import csv
     
-    ref_dict, cal_file_path  = get_reference_dict()
+    ref_dict, cal_file_path = get_reference_dict()
     
     if ref_dict:
         
@@ -151,30 +151,30 @@ def calibrate_and_search(out_put_file_name, jobs):
             pool.join()
             for gcms in gcmss:
                 
-                #print(out_put_file_name)
+                # print(out_put_file_name)
                 gcms.to_csv(out_put_file_name)
                 # gcms.to_excel(out_put_file_name)
-                #gcms.to_pandas(out_put_file_name)
-                gcms.to_hdf()
+                # gcms.to_pandas(out_put_file_name)
+                # gcms.to_hdf()
 
-                #df = gcms.get_dataframe()
-                #json_data = gcms.to_json()
+                # df = gcms.get_dataframe()
+                # json_data = gcms.to_json()
                 
-                #print(json_data)
+                # print(json_data)
 
-                #gcms.plot_processed_chromatogram()
+                # gcms.plot_processed_chromatogram()
                 
-                #gcms.plot_gc_peaks()
+                # gcms.plot_gc_peaks()
 
-                #gcms.plot_chromatogram()
+                # gcms.plot_chromatogram()
 
-                #gcms.plot_smoothed_chromatogram()
+                # gcms.plot_smoothed_chromatogram()
 
-                #gcms.plot_baseline_subtraction()
+                # gcms.plot_baseline_subtraction()
 
-                #gcms.plot_detected_baseline()
+                # gcms.plot_detected_baseline()
 
-                #matplotlib.pyplot.show()
+                # matplotlib.pyplot.show()
 
 def worker(args):
 
@@ -203,12 +203,12 @@ def auto_process(jobs):
         
 
 if __name__ == '__main__':
-    #import matplotlib
-    #matplotlib.use('TkAgg')
+    # import matplotlib
+    # matplotlib.use('TkAgg')
     #%%
     cores = 8
-    out_put_file_group_name = 'json_test'
+    out_put_file_group_name = 'lisa_test'
     calibrate_and_search(out_put_file_group_name, cores)
-    #start_sql_from_file()
-    #auto_process(cores)
-    #stand_alone()
+    # start_sql_from_file()
+    # auto_process(cores)
+    # stand_alone()
