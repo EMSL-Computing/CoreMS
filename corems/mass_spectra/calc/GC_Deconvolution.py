@@ -140,7 +140,7 @@ class MassDeconvolution:
 
                 for initial_scan, apex_scan, final_scan in include_indexes:
 
-                        rt_corrected_therm =  self.quadratic_interpolation(rt_list, smooth_eic, apex_scan)
+                        rt_corrected_therm = self.quadratic_interpolation(rt_list, smooth_eic, apex_scan)
                         
                         ref_apex_rt = round(rt_list[apex_scan] + rt_corrected_therm,4)
                         
@@ -154,9 +154,9 @@ class MassDeconvolution:
                             peak_rt = rt_list[scan_index]
                             peak_abundance = smooth_eic[scan_index]
 
-                            dict_data = {peak_rt: { 'mz': [mz] ,
+                            dict_data = {peak_rt: {'mz': [mz],
                                                     'abundance':[peak_abundance],
-                                                    'scan_number': [scan_index] },
+                                                    'scan_number': [scan_index]},
                                         "ref_apex_rt": ref_apex_rt
                                         }
 
@@ -174,9 +174,10 @@ class MassDeconvolution:
                                     
                                     existing_data = peaks_entity_data[apex_rt].get(peak_rt)
                                     
-                                    existing_data['mz'].append(mz)
-                                    existing_data['abundance'].append(peak_abundance)
-                                    existing_data['scan_number'].append(scan_index)    
+                                    if peak_abundance > 0:
+                                        existing_data['mz'].append(mz)
+                                        existing_data['abundance'].append(peak_abundance)
+                                        existing_data['scan_number'].append(scan_index)    
         
         
         return peaks_entity_data
@@ -265,7 +266,7 @@ class MassDeconvolution:
         max_signal = max(signal)
         correct_baseline = False
         
-        include_indexes = sp.peak_picking_first_derivative(domain, signal,  max_height, max_prominence, max_signal, min_peak_datapoints,
+        include_indexes = sp.peak_picking_first_derivative(domain, signal, max_height, max_prominence, max_signal, min_peak_datapoints,
                                                     signal_threshold=signal_threshold, correct_baseline=correct_baseline, plot_res=False)
         
         ''' deconvolution window is defined by the TIC peak region'''
@@ -406,7 +407,6 @@ class MassDeconvolution:
                 each_apex_rt = filtered_features_rt[0]
 
                 datadict = peaks_entity_data.get(each_apex_rt)
-
                 
                 peak_rt = []
                 peak_tic = []
