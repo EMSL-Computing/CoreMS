@@ -1,7 +1,7 @@
 __author__ = 'Yuri E. Corilo'
 __date__ = 'Jul 02, 2019'
 
-import dataclasses 
+import dataclasses
 import os
 from typing import List, Dict
 

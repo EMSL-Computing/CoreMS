@@ -9,6 +9,7 @@ def entropy_distance(p, q):
     return entropy_increase
 
 def _weight_intensity_for_entropy(x):
+
     if sum(x) > 0:
         WEIGHT_START = 0.25
         WEIGHT_SLOPE = 0.5
@@ -581,6 +582,3 @@ def min_symmetric_chi_squared_distance(p, q):
         \min{(\sum\frac{(P_i-Q_i)^2}{P_i},\sum\frac{(P_i-Q_i)^2}{Q_i})}
     """
     return min(np.sum(np.power(p - q, 2) / p), np.sum(np.power(p - q, 2) / q))
-
-
-

@@ -10,7 +10,6 @@ from numpy.linalg import norm
 from pandas import DataFrame
 import numpy as np
 
-
 methods_name = {
     "entropy": "Entropy Distance",
     "weighted_entropy": "Dynamic weighted entropy Distance",
@@ -169,27 +168,27 @@ class SpectralSimilarity():
         return correlation
 
     def stein_scott(self):
-    
+
         if self.n_x_y == 0: return 0
-        
+
         # count number of non-zero abundance/peak intensity values
         n_x = sum(a != 0 for a in self.exp_abun)
-    
+
         s_r_x_y = 0
-        
+
         a, b = 1, 0
 
         for i in range(1, self.n_x_y):
-            
+
             current_value = self.common_mz_values[i]
             previous_value = self.common_mz_values[i - 1]
-    
+
             y_i = self.ref_mz_abun_dict[current_value]
             y_i_minus1 = self.ref_mz_abun_dict[previous_value]
-            
+
             lc_current = power(y_i, a) * power(current_value, b)
             lc_previous = power(y_i_minus1, a) * power(previous_value, b)
-            
+
             x_i = self.ms_mz_abun_dict[current_value]
             x_i_minus1 = self.ms_mz_abun_dict[previous_value]
 
@@ -213,11 +212,11 @@ class SpectralSimilarity():
 
         s_r_x_y = s_r_x_y / self.n_x_y
         # using the existing weighted_cosine_correlation function to get S_WC(X,Y)
-        s_wc_x_y = self.weighted_cosine_correlation(a=0.5, b =3 )
-    
+        s_wc_x_y = self.weighted_cosine_correlation(a=0.5, b=3)
+
         # final step
-        s_ss_x_y = ( (n_x * s_wc_x_y) + (self.n_x_y * s_r_x_y) )/ (n_x + self.n_x_y)
-    
+        s_ss_x_y = ((n_x * s_wc_x_y) + (self.n_x_y * s_r_x_y)) / (n_x + self.n_x_y)
+
         return s_ss_x_y
 
     def pearson_correlation(self,):
@@ -229,7 +228,7 @@ class SpectralSimilarity():
     def spearman_correlation(self):
 
         # calculate Spearman correlation
-        ### TODO - Check axis
+        # ## TODO - Check axis
         correlation = spearmanr(self.zero_filled_u_l[0], self.zero_filled_u_l[1], axis=0)
 
         return correlation[0]
@@ -237,10 +236,10 @@ class SpectralSimilarity():
     def kendall_tau(self):
 
         # create dict['mz'] = abundance, for experimental data
-        #self.ms_mz_abun_dict = mass_spec.mz_abun_dict
+        # self.ms_mz_abun_dict = mass_spec.mz_abun_dict
 
         # create dict['mz'] = abundance, for experimental data
-        
+
         # calculate Kendall's tau
         correlation = kendalltau(self.zero_filled_u_l[0], self.zero_filled_u_l[1])
 
@@ -248,11 +247,12 @@ class SpectralSimilarity():
 
     def dft_correlation(self):
 
-        if self.n_x_y == 0: return 0
+        if self.n_x_y == 0:
+            return 0
 
         # count number of non-zero abundance/peak intensity values
         n_x = sum(a != 0 for a in self.exp_abun)
-        
+
         x = self.zero_filled_u_l[0]
         y = self.zero_filled_u_l[1]
 
@@ -271,26 +271,27 @@ class SpectralSimilarity():
         return s_dft
 
     def dwt_correlation(self):
-        
-        if self.n_x_y == 0: return 0
+
+        if self.n_x_y == 0:
+            return 0
 
         # count number of non-zero abundance/peak intensity values
         n_x = sum(a != 0 for a in self.exp_abun)
 
-        #calculate cosine correlation, 
+        # calculate cosine correlation,
         x = self.zero_filled_u_l[0]
         y = self.zero_filled_u_l[1]
 
-        #Make x and y into an array
-        x_a=list(x)
-        y_a=list(y)
+        # Make x and y into an array
+        x_a = list(x)
+        y_a = list(y)
 
         # get the wavelet transform of x and y (Daubechies with a filter length of 4. Asymmetric. pywavelets function)
-        #Will only use the detail dwt (dwtDd
-        x_dwtD = dwt(x_a,'db2')[1]
-        y_dwtD = dwt(y_a,'db2')[1]
+        # Will only use the detail dwt (dwtDd
+        x_dwtD = dwt(x_a, 'db2')[1]
+        y_dwtD = dwt(y_a, 'db2')[1]
 
-        s_dwt_xy = dot(x_dwtD, y_dwtD)/(norm(x_dwtD)*norm(y_dwtD))
+        s_dwt_xy = dot(x_dwtD, y_dwtD) / (norm(x_dwtD) * norm(y_dwtD))
 
         # using the existing weighted_cosine_correlation function to get S_WC(X,Y)
         s_wc_x_y = self.weighted_cosine_correlation()
@@ -302,21 +303,21 @@ class SpectralSimilarity():
 
     def euclidean_distance(self):
 
-        #correlation = euclidean_distance_manual(self.zero_filled_u_l[0], self.zero_filled_u_l[1])
+        # correlation = euclidean_distance_manual(self.zero_filled_u_l[0], self.zero_filled_u_l[1])
         qlist = self.zero_filled_u_l[0]
         rlist = self.zero_filled_u_l[1]
 
         correlation = sqrt(np_sum(power(qlist - rlist, 2)))
-        
+
         return correlation
 
     def manhattan_distance(self):
-        
+
         qlist = self.zero_filled_u_l[0]
         rlist = self.zero_filled_u_l[1]
 
         return np_sum(absolute(qlist - rlist))
-    
+
     def jaccard_distance(self):
 
         def jaccard_similarity(list1, list2):
