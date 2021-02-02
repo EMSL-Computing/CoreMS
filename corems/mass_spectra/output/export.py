@@ -155,7 +155,7 @@ class LowResGCMSExport():
         # save sample at a time
         def add_compound(gc_peak, compound_obj):
 
-            compound_group = peak_group.create_group(compound_obj.name)
+            compound_group = peak_group.create_group(compound_obj.name.replace('/', ''))
             compound_group.attrs["retention_time"] = compound_obj.rt
             compound_group.attrs["retention_index"] = compound_obj.ri
             compound_group.attrs["retention_index_score"] = compound_obj.ri_score
