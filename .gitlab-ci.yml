@@ -45,9 +45,9 @@ test-source:
   
   stage: Pytest
   tags:
-    - enviroms
+    - corems
     - k8s 
-    - rcint
+    - rzr
     
   script:
     
@@ -67,9 +67,9 @@ build:
   
   stage: Build Python Package
   tags:
-    - enviroms
+    - corems
     - k8s 
-    - rcint
+    - rzr
     
   script:
     
@@ -87,9 +87,9 @@ build:
   
 #  stage: Push to PyPi
 #  tags:
-#    - enviroms
+#    - corems
 #    - k8s 
-#    - rcint
+#    - rzr
 
 #  script:
 #    - twine upload dist/*
@@ -101,9 +101,9 @@ deployment:
   
   stage: Push to Gitlab Registry
   tags:
-    - enviroms
+    - corems
     - k8s 
-    - rcint
+    - rzr
 
   image:
     
@@ -123,9 +123,9 @@ deployment:
   
 #  stage: Push to Docker Hub
 #  tags:
-#    - enviroms
+#    - corems
 #    - k8s 
-#    - rcint
+#    - rzr
 
 #  image:
     
