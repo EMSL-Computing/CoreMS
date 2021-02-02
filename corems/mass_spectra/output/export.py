@@ -168,7 +168,7 @@ class LowResGCMSExport():
         def add_compound(gc_peak, compound_obj):
 
             modifier = compound_obj.classify if compound_obj.classify else ""
-            compound_group = peak_group.create_group(compound_obj.name +" " + modifier)
+            compound_group = peak_group.create_group(compound_obj.name.replace('/', '') + " " + modifier)
             compound_group.attrs["retention_time"] = compound_obj.rt
             compound_group.attrs["retention_index"] = compound_obj.ri
             compound_group.attrs["retention_index_score"] = compound_obj.ri_score
