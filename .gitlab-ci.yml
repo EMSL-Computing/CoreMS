@@ -54,6 +54,7 @@ test-source:
     - corems
     - k8s 
     - rzr
+    - builds
     
   script:
     
@@ -76,6 +77,7 @@ build:
     - corems
     - k8s 
     - rzr
+    - builds
     
   script:
     
@@ -110,6 +112,7 @@ deployment:
     - corems
     - k8s 
     - rzr
+    - builds
 
   image:
     
