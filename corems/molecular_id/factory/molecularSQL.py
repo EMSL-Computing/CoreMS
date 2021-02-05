@@ -296,7 +296,7 @@ class MolForm_SQL:
                 if formula_dict.get("O"):
                     
                     if formula_dict.get("O")/formula_dict.get("C") >= molecular_search_settings.min_oc_filter:
-                        print(formula_dict.get("O")/formula_dict.get("C"))
+                        #print(formula_dict.get("O")/formula_dict.get("C"))
                         continue
 
                     #if formula_dict.get("P"):
