@@ -105,12 +105,11 @@ class MassDeconvolution:
         # plt.show()
         # print(Z)
 
-    
     def find_peaks_entity(self, eic_dict):
-        
-        ''' combine eic with mathing rt apexes''' 
+
+        ''' combine eic with mathing rt apexes'''
         max_prominence = self.chromatogram_settings.peak_max_prominence_percent
-        
+
         max_height = self.chromatogram_settings.peak_height_max_percent
 
         signal_threshold = self.chromatogram_settings.eic_signal_threshold
@@ -122,12 +121,12 @@ class MassDeconvolution:
 
         max_eic = 0
         for mz, eic_scan_index_rt in eic_dict.items():
-            
+
             ind_max_eic = max(eic_scan_index_rt[0])
             max_eic = ind_max_eic if ind_max_eic > max_eic else max_eic
-        
+
         for mz, eic_scan_index_rt in eic_dict.items():
-            
+
             eic = eic_scan_index_rt[0]
             rt_list = eic_scan_index_rt[1]
 
@@ -135,53 +134,54 @@ class MassDeconvolution:
 
                 smooth_eic = self.smooth_tic(eic)
 
-                include_indexes = sp.peak_picking_first_derivative(rt_list, smooth_eic,  max_height, max_prominence, max_eic, min_peak_datapoints,
-                                                            signal_threshold=signal_threshold,  correct_baseline=correct_baseline)
+                include_indexes = sp.peak_picking_first_derivative(rt_list, smooth_eic, max_height, max_prominence, max_eic, min_peak_datapoints,
+                                                                   signal_threshold=signal_threshold, correct_baseline=correct_baseline)
 
                 for initial_scan, apex_scan, final_scan in include_indexes:
 
-                        rt_corrected_therm = self.quadratic_interpolation(rt_list, smooth_eic, apex_scan)
-                        
-                        ref_apex_rt = round(rt_list[apex_scan] + rt_corrected_therm,4)
-                        
-                        apex_rt = rt_list[apex_scan]
-                        # apex_abundance = smooth_eic[apex_scan]
+                    rt_corrected_therm = self.quadratic_interpolation(rt_list, smooth_eic, apex_scan)
 
-                        #maximum_tic = apex_abundance if apex_abundance > maximum_tic else maximum_tic
-                        
-                        for scan_index in range(initial_scan, final_scan):
-                            
-                            peak_rt = rt_list[scan_index]
-                            peak_abundance = smooth_eic[scan_index]
+                    ref_apex_rt = round(rt_list[apex_scan] + rt_corrected_therm, 4)
+
+                    apex_rt = rt_list[apex_scan]
+                    # apex_abundance = smooth_eic[apex_scan]
+
+                    # maximum_tic = apex_abundance if apex_abundance > maximum_tic else maximum_tic
+
+                    for scan_index in range(initial_scan, final_scan):
+
+                        peak_rt = rt_list[scan_index]
+                        peak_abundance = smooth_eic[scan_index]
+
+                        if peak_abundance > 0:
 
                             dict_data = {peak_rt: {'mz': [mz],
-                                                    'abundance':[peak_abundance],
+                                                    'abundance': [peak_abundance],
                                                     'scan_number': [scan_index]},
-                                        "ref_apex_rt": ref_apex_rt
-                                        }
+                                                    'ref_apex_rt': ref_apex_rt
+                                                    }
 
-                            if not apex_rt in peaks_entity_data.keys():
-                                
+                            if apex_rt not in peaks_entity_data.keys():
+
                                 peaks_entity_data[apex_rt] = dict_data
-                            
+
                             else:
-                                
-                                if not peak_rt in peaks_entity_data[apex_rt].keys():
-                                    
+
+                                if peak_rt not in peaks_entity_data[apex_rt].keys():
+
                                     peaks_entity_data[apex_rt][peak_rt] = dict_data.get(peak_rt)
 
-                                else:    
-                                    
+                                else:
+
                                     existing_data = peaks_entity_data[apex_rt].get(peak_rt)
-                                    
-                                    if peak_abundance > 0:
-                                        existing_data['mz'].append(mz)
-                                        existing_data['abundance'].append(peak_abundance)
-                                        existing_data['scan_number'].append(scan_index)    
-        
-        
+
+                                    existing_data['mz'].append(mz)
+                                    existing_data['abundance'].append(peak_abundance)
+                                    existing_data['scan_number'].append(scan_index)
+
+
         return peaks_entity_data
-        
+
     def mass_spec_factory(self, rt, datadict):
 
         #tic = sum(datadict.get('abundance'))
