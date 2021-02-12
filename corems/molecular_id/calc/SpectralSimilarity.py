@@ -87,73 +87,76 @@ methods_scale = {
 class SpectralSimilarity():
 
     def __init__(self, ms_mz_abun_dict, ref_obj):
-        
+        '''   
+        ms_mz_abun_dict = [(mz: abun)i, ... ]
+        ref_obj = {'mz': [data here], 'abundance' : [data here] }
+
+        '''
         self.ms_mz_abun_dict = ms_mz_abun_dict
         self.ref_obj = ref_obj
-        
+
         self.exp_abun = list(self.ms_mz_abun_dict.values())
         self.exp_mz = list(self.ms_mz_abun_dict.keys())
 
         self.ref_mz = self.ref_obj.get("mz")
         self.ref_abun = self.ref_obj.get("abundance")
 
-        self.ref_mz_abun_dict = dict(zip(self.ref_mz , self.ref_abun))
+        self.ref_mz_abun_dict = dict(zip(self.ref_mz, self.ref_abun))
 
-        #parse to dataframe, easier to zerofill and tranpose
+        # parse to dataframe, easier to zerofill and tranpose
         df = DataFrame([self.ms_mz_abun_dict, self.ref_mz_abun_dict])
 
         # fill missing mz with abundance 0
         df.fillna(0, inplace=True)
-        
-        #calculate cosine correlation, 
+
+        # calculate cosine correlation,
         x = df.T[0].values
         y = df.T[1].values
-        
-        self.zero_filled_u_l = (x/sum(x),y/sum(y))
+
+        self.zero_filled_u_l = (x / sum(x), y / sum(y))
 
         # filter out the mass values that have zero intensities in self.exp_abun
         exp_mz_filtered = set([k for k in self.exp_mz if self.ms_mz_abun_dict[k] != 0])
-    
+
         # filter out the mass values that have zero intensities in self.ref_mz
         self.ref_mz_filtered = set([k for k in self.ref_mz if self.ref_mz_abun_dict[k] != 0])
-    
+
         # find the intersection/common mass values of both ref and exp, and sort them
         self.common_mz_values = sorted(list(exp_mz_filtered.intersection(self.ref_mz_filtered)))
-        
+
         # find the number of common mass values (after filtering 0s)
         self.n_x_y = len(self.common_mz_values)
 
-
     def weighted_cosine_correlation(self, a=0.5, b=1.3):
-        
+
         # create dict['mz'] = abundance, for experimental data
-        #ms_mz_abun_dict = mass_spec.mz_abun_dict
+        # ms_mz_abun_dict = mass_spec.mz_abun_dict
 
         # weight exp data
 
-        xc = power(self.exp_abun, a) *  power(self.exp_abun, b) 
-        
+        xc = power(self.exp_abun, a) * power(self.exp_mz, b)
+
         # track back to individual mz
         weighted_exp_dict = dict(zip(self.ms_mz_abun_dict.keys(), xc))
 
         # weight ref data
-        yc = power(self.ref_obj.get("abundance"), a) *  power(self.ref_obj.get("mz"), b) 
-        
+        yc = power(self.ref_obj.get("abundance"), a) * power(self.ref_obj.get("mz"), b)
+
         ref_mz_abun_dict = dict(zip(self.ref_obj.get("mz"), yc))
 
-        #parse to dataframe, easier to zerofill and tranpose
+        # parse to dataframe, easier to zerofill and tranpose
         df = DataFrame([weighted_exp_dict, ref_mz_abun_dict])
 
         # fill missing mz with weight {abun**a}{m/z**b} to 0
         df.fillna(0, inplace=True)
-        
-        #calculate cosine correlation, 
+
+        # calculate cosine correlation,
         x = df.T[0].values
         y = df.T[1].values
 
-        #correlation = (1 - cosine(x, y))
-        
-        correlation = dot(x, y)/(norm(x)*norm(y))
+        # correlation = (1 - cosine(x, y))
+
+        correlation = dot(x, y) / (norm(x) * norm(y))
 
         return correlation
 

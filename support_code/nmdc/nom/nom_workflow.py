@@ -31,11 +31,11 @@ def run_bruker(file_location):
 
         MSParameters.mass_spectrum.threshold_method = 'auto'
         MSParameters.mass_spectrum.s2n_threshold = 6
-        
+
         mass_spectrum = transient.get_mass_spectrum(plot_result=False, auto_process=True)
-        #mass_spectrum.plot_profile_and_noise_threshold()
-        #plt.show()
-        
+        # mass_spectrum.plot_profile_and_noise_threshold()
+        # plt.show()
+
         return mass_spectrum, transient.transient_time
 
 def run_thermo(file_location):
@@ -45,52 +45,50 @@ def run_thermo(file_location):
 
     parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
 
-    #mass_spectrum = transient.get_mass_spectrum(plot_result=False, auto_process=True)
+    # mass_spectrum = transient.get_mass_spectrum(plot_result=False, auto_process=True)
 
     mass_spectrum = parser.get_average_mass_spectrum_in_scan_range()
 
     return mass_spectrum, 3
 
 
-def calspec(msobj,refmasslist,order=2):
-    
+def calspec(msobj, refmasslist, order=2):
+
     calfn = MzDomainCalibration(msobj, refmasslist)
     ref_mass_list_fmt = calfn.load_ref_mass_list(refmasslist)
-    
-    imzmeas, mzrefs = calfn.find_calibration_points(msobj,ref_mass_list_fmt,
-                                  calib_ppm_error_threshold=(-1.0,1.0),
-                                  calib_snr_threshold=4)
 
-    
-    if len(mzrefs)<5:
-            imzmeas, mzrefs = calfn.find_calibration_points(msobj,ref_mass_list_fmt,
-                                  calib_ppm_error_threshold=(-1.5,1.5),
-                                  calib_snr_threshold=4)
-    
+    imzmeas, mzrefs = calfn.find_calibration_points(msobj, ref_mass_list_fmt,
+                                                    calib_ppm_error_threshold=(-1.0, 1.0),
+                                                    calib_snr_threshold=4)
 
-    if len(mzrefs)<5:
-            imzmeas, mzrefs = calfn.find_calibration_points(msobj,ref_mass_list_fmt,
-                                  calib_ppm_error_threshold=(-3,3),
-                                  calib_snr_threshold=4)
-    
-    if len(mzrefs)<5:
-            imzmeas, mzrefs = calfn.find_calibration_points(msobj,ref_mass_list_fmt,
-                                  calib_ppm_error_threshold=(-5,5),
-                                  calib_snr_threshold=4)    
-    
-    if len(mzrefs)<5:
-            
-            imzmeas, mzrefs = calfn.find_calibration_points(msobj,ref_mass_list_fmt,
-                                  calib_ppm_error_threshold=(-7,7),
-                                  calib_snr_threshold=4) 
+    if len(mzrefs) < 5:
+        imzmeas, mzrefs = calfn.find_calibration_points(msobj, ref_mass_list_fmt,
+                                                        calib_ppm_error_threshold=(-1.5, 1.5),
+                                                        calib_snr_threshold=4)
 
-    if len(mzrefs)<5:
-            
-            imzmeas, mzrefs = calfn.find_calibration_points(msobj,ref_mass_list_fmt,
-                                  calib_ppm_error_threshold=(-10,10),
-                                  calib_snr_threshold=4)
+    if len(mzrefs) < 5:
+        imzmeas, mzrefs = calfn.find_calibration_points(msobj, ref_mass_list_fmt,
+                                                        calib_ppm_error_threshold=(-3, 3),
+                                                        calib_snr_threshold=4)
 
-    calfn.recalibrate_mass_spectrum(msobj, imzmeas, mzrefs,order=order)
+    if len(mzrefs) < 5:
+        imzmeas, mzrefs = calfn.find_calibration_points(msobj,ref_mass_list_fmt,
+                                                        calib_ppm_error_threshold=(-5, 5),
+                                                        calib_snr_threshold=4)    
+
+    if len(mzrefs) < 5:
+
+        imzmeas, mzrefs = calfn.find_calibration_points(msobj, ref_mass_list_fmt,
+                                                        calib_ppm_error_threshold=(-7, 7),
+                                                        calib_snr_threshold=4) 
+
+    if len(mzrefs) < 5:
+
+        imzmeas, mzrefs = calfn.find_calibration_points(msobj, ref_mass_list_fmt,
+                                                        calib_ppm_error_threshold=(-10, 10),
+                                                        calib_snr_threshold=4)
+
+    calfn.recalibrate_mass_spectrum(msobj, imzmeas, mzrefs, order=order)
 
 def set_parameters(mass_spectrum, field_strength=12, pos=False):
 
@@ -115,7 +113,7 @@ def set_parameters(mass_spectrum, field_strength=12, pos=False):
         mass_spectrum.molecular_search_settings.max_ppm_error = 1
 
         mass_spectrum.settings.calib_sn_threshold = 4
-    
+    # 21T Data
     else:
 
         mass_spectrum.settings.max_calib_ppm_error = 1
@@ -160,32 +158,32 @@ def run_nmdc_workflow(args):
 
     if field_strength == 21:
 
-        #return "21T", None
-        #print("{}   {}".format("21T", file_location))
-        print("{} {}  {}".format("processing", field_strength,  file_location))
+        # return "21T", None
+        # print("{}   {}".format("21T", file_location))
+        print("{} {}  {}".format("processing", field_strength, file_location))
         mass_spectrum, transient_time = run_thermo(file_location)
-    
-    else:    
-        
-        print("{} {}  {}".format("processing", field_strength,  file_location))
+
+    else:
+
+        print("{} {}  {}".format("processing", field_strength, file_location))
         mass_spectrum, transient_time = run_bruker(file_location)
         # return "not 21T", None
-        
+
     is_pos = True if mass_spectrum.polarity > 0 else False
-    
+
     if len(mass_spectrum) < 30:
 
         print("{}   {}".format("too few peaks", file_location))
         return "too few peaks", None
-    
+
     set_parameters(mass_spectrum, field_strength=field_strength, pos=is_pos)
 
     if ref_calibration_file:
 
         calspec(mass_spectrum, ref_calibration_file)
-        #MzDomainCalibration(mass_spectrum, ref_calibration_file).run()
+        # MzDomainCalibration(mass_spectrum, ref_calibration_file).run()
 
-    #mass_spectrum.filter_by_max_resolving_power(field_strength, transient_time)
+    # mass_spectrum.filter_by_max_resolving_power(field_strength, transient_time)
 
     SearchMolecularFormulas(mass_spectrum, first_hit=False).run_worker_mass_spectrum()
     mass_spectrum.percentile_assigned(report_error=True)
@@ -193,11 +191,12 @@ def run_nmdc_workflow(args):
     mass_spectrum.molecular_search_settings.output_score_method = "prob_score"
 
     return "all_good", mass_spectrum
- 
+
 
 def monitor(target):
 
-    import psutil, time
+    import psutil
+    import time
 
     worker_process = Process(target=target)
     worker_process.start()
@@ -223,7 +222,7 @@ def run_nom_nmdc_data_processing():
     file_ext = '.raw'  # '.d' 
     data_dir = Path("data/")
     dms_file_path = Path("data/NOM Data to Process.xlsx")
-    
+
     results_dir = Path("results/")
     registration_path = results_dir / "ftms_nom_data_products.json"
     failed_files = results_dir / "nom_failed_files.json"
@@ -233,25 +232,25 @@ def run_nom_nmdc_data_processing():
     cores = 4
     ref_calibration_path = False
 
-    #file_paths = get_dirnames()
+    # file_paths = get_dirnames()
     ref_calibration_path = Path("db/Hawkes_neg.ref")
 
     dms_mapping = DMS_Mapping(dms_file_path)
     selected_files = dms_mapping.get_selected_sample_list()
-    
+
     failed_list = []
     pos_list = []
-    
+
     for file_name, field_strength in selected_files:
-        
+
         in_file_path = data_dir / file_name / file_name.with_suffix(file_ext)    
-        
+
         try:
-            
+
             issue, ms = run_nmdc_workflow((in_file_path, ref_calibration_path, field_strength))
-            
+
             if ms:
-                
+
                 file_name = Path(in_file_path.name)
 
                 output_file_path = results_dir / file_name.with_suffix('.csv')
@@ -259,17 +258,17 @@ def run_nom_nmdc_data_processing():
 
                 nmdc = NMDC_Metadata(in_file_path, ref_calibration_path, output_file_path, dms_file_path)
                 nmdc.create_nmdc_ftms_metadata(ms, registration_path)
-                
+
             else:
                 print(issue)
 
         except Exception as inst:
-            
+
             print(type(inst))    # the exception instance
             print(inst.args)     # arguments stored in .args
-            print(inst)  
+            print(inst)
             failed_list.append(str(in_file_path))
-            
+
     with failed_files.open('w') as json_file:
 
         json_file.write(json.dumps(failed_list, indent=1))
@@ -281,6 +280,6 @@ if __name__ == "__main__":
     # cpu_percents = monitor(target=run_multiprocess)
     # print(cpu_percents)
     run_nom_nmdc_data_processing()
-    #file_location = get_filename()
-    #if file_location:
+    # file_location = get_filename()
+    # if file_location:
     #    run_assignment(file_location)
