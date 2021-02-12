@@ -1,6 +1,6 @@
 # Official language image. Look for the different tagged releases at:
 # https://hub.docker.com/r/library/python/tags/
-image: gitlab.pnnl.gov:4567/mass-spectrometry/corems:corems-base
+image: code-registry.emsl.pnl.gov/mass-spectrometry/corems:corems-base
 #gitlab.pnnl.gov:4567/mass-spectrometry/corems:latest 
 #image: python:3.7.6-slim
 
@@ -34,6 +34,11 @@ cache:
   paths:
     - .cache/pip
 
+before_script:
+  - export http_proxy=http://proxy01.pnl.gov:3128
+  - export https_proxy=http://proxy01.pnl.gov:3128
+  - export no_proxy=localhost,127.0.0.1,*.pnl.gov,*.pnnl.gov,10.17.128.1,10.17,10.16,172.26
+  
 stages:
   - Pytest
   - Build Python Package
@@ -45,9 +50,10 @@ test-source:
   
   stage: Pytest
   tags:
-    - enviroms
+    - corems
     - k8s 
-    - rcint
+    - rzr
+    - builds
     
   script:
     
@@ -67,9 +73,10 @@ build:
   
   stage: Build Python Package
   tags:
-    - enviroms
+    - corems
     - k8s 
-    - rcint
+    - rzr
+    - builds
     
   script:
     
@@ -87,9 +94,9 @@ build:
   
 #  stage: Push to PyPi
 #  tags:
-#    - enviroms
+#    - corems
 #    - k8s 
-#    - rcint
+#    - rzr
 
 #  script:
 #    - twine upload dist/*
@@ -101,9 +108,10 @@ deployment:
   
   stage: Push to Gitlab Registry
   tags:
-    - enviroms
+    - corems
     - k8s 
-    - rcint
+    - rzr
+    - builds
 
   image:
     
@@ -123,9 +131,9 @@ deployment:
   
 #  stage: Push to Docker Hub
 #  tags:
-#    - enviroms
+#    - corems
 #    - k8s 
-#    - rcint
+#    - rzr
 
 #  image:
     

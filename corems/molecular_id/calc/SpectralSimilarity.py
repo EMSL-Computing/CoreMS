@@ -129,7 +129,7 @@ class SpectralSimilarity():
         # ms_mz_abun_dict = mass_spec.mz_abun_dict
         # weight exp data
 
-        xc = power(self.exp_abun, a) * power(self.exp_abun, b)
+        xc = power(self.exp_abun, a) * power(self.exp_mz, b)
 
         # track back to individual mz
         weighted_exp_dict = dict(zip(self.ms_mz_abun_dict.keys(), xc))
