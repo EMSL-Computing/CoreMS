@@ -46,6 +46,7 @@ class HighResMassSpecExport(Thread):
                               'Calibrated m/z',
                               'Calculated m/z',
                               'Peak Height',
+                              'Peak Area',
                               'Resolving Power',
                               'S/N',
                               'Ion Charge',
@@ -187,7 +188,7 @@ class HighResMassSpecExport(Thread):
 
         with h5py.File(self.output_file.with_suffix('.hdf5'), 'a') as hdf_handle:
 
-            list_results = self.list_dict_to_list(self.mass_spectrum, is_hdf5= True)
+            list_results = self.list_dict_to_list(self.mass_spectrum, is_hdf5=True)
 
             dict_ms_attrs = self.get_mass_spec_attrs(self.mass_spectrum)
 
@@ -333,11 +334,14 @@ class HighResMassSpecExport(Thread):
             encode = ""
 
         def add_no_match_dict_data(index, ms_peak):
-
+            '''
+            Export dictionary of mspeak info for unassigned (no match) data
+            '''
             dict_result = {'Index': index,
                            'm/z': ms_peak._mz_exp,
                            'Calibrated m/z': ms_peak.mz_exp,
                            'Peak Height': ms_peak.abundance,
+                           'Peak Area': ms_peak.area,
                            'Resolving Power': ms_peak.resolving_power,
                            'S/N': ms_peak.signal_to_noise,
                            'Ion Charge': ms_peak.ion_charge,
@@ -347,7 +351,9 @@ class HighResMassSpecExport(Thread):
             dict_data_list.append(dict_result)
 
         def add_match_dict_data(index, ms_peak, mformula):
-
+            '''
+            Export dictionary of mspeak info for assigned (match) data
+            '''
             formula_dict = mformula.to_dict()
 
             dict_result = {'Index': index,
@@ -355,20 +361,21 @@ class HighResMassSpecExport(Thread):
                            'Calibrated m/z': ms_peak.mz_exp,
                            'Calculated m/z': mformula.mz_calc,
                            'Peak Height': ms_peak.abundance,
+                           'Peak Area': ms_peak.area,
                            'Resolving Power': ms_peak.resolving_power,
-                           'S/N':  ms_peak.signal_to_noise,
+                           'S/N': ms_peak.signal_to_noise,
                            'Ion Charge': ms_peak.ion_charge,
                            'm/z Error (ppm)': mformula.mz_error,
                            'Confidence Score': mformula.confidence_score,
                            'Isotopologue Similarity': mformula.isotopologue_similarity,
                            'm/z Error Score': mformula.average_mz_error_score,
-                           'DBE':  mformula.dbe,
-                           'Heteroatom Class':  eval("mformula.class_label{}".format(encode)), 
-                           'H/C':  mformula.H_C,
-                           'O/C':  mformula.O_C,
-                           'Ion Type': eval("mformula.ion_type.lower(){}".format(encode)),  
+                           'DBE': mformula.dbe,
+                           'Heteroatom Class': eval("mformula.class_label{}".format(encode)),
+                           'H/C': mformula.H_C,
+                           'O/C': mformula.O_C,
+                           'Ion Type': eval("mformula.ion_type.lower(){}".format(encode)),
                            'Is Isotopologue': int(mformula.is_isotopologue),
-                           'Molecular Formula': eval("mformula.string{}".format(encode)) 
+                           'Molecular Formula': eval("mformula.string{}".format(encode))
                            }
 
             if mformula.is_isotopologue:
