@@ -296,14 +296,18 @@ class LowResGCMSExport():
 
         import json
 
+        if isinstance(output_path, str):
+            output_path = Path(output_path)
+
         paramaters_path = output_path.with_suffix('.json')
+
         if paramaters_path.exists():
             with paramaters_path.open() as current_param:
                 output_parameters_dict = json.load(current_param)
-       
+
         else:
             output_parameters_dict = {}
-            
+      
             output_parameters_dict['sample_name'] = []
             output_parameters_dict['sample_id'] = []
             output_parameters_dict['input_data'] = []
