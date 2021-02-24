@@ -1,4 +1,3 @@
-
 from numpy.fft import rfft
 from pywt import dwt 
 from scipy.spatial.distance import cosine, jaccard, euclidean, cityblock
@@ -124,8 +123,9 @@ methods_scale = {
 
 class SpectralSimilarity():
 
-    def __init__(self, ms_mz_abun_dict, ref_obj):
+    def __init__(self, ms_mz_abun_dict, ref_obj, norm_func=sum):
 
+        self.normalize_func = norm_func
         self.ms_mz_abun_dict = ms_mz_abun_dict
         self.ref_obj = ref_obj
 
@@ -138,39 +138,39 @@ class SpectralSimilarity():
         self.ref_mz_abun_dict = dict(zip(self.ref_mz, self.ref_abun))
 
         # parse to dataframe, easier to zerofill and tranpose
-        df = DataFrame([self.ms_mz_abun_dict, self.ref_mz_abun_dict])
+        self.df = DataFrame([self.ms_mz_abun_dict, self.ref_mz_abun_dict])
 
         # fill missing mz with abundance 0
-        df.fillna(0, inplace=True)
-
-        # calculate cosine correlation,
-        x = df.T[0].values
-        y = df.T[1].values
-
-        #self.zero_filled_u_l = (x / sum(x), y / sum(y))
-
-        x_with_change = x
-        x_with_change[x_with_change == 0] = 1e-10
-
-        y_with_change = y
-        y_with_change[y_with_change == 0] = 1e-10
-
-        self.zero_filled_u_l = (x / sum(x), y / sum(y), x_with_change / sum(x_with_change), y_with_change / sum(y_with_change))
-
+        x, y = self.fill_na(self.df, fill_with=1e-10)
+        
+        self.zero_filled_u_l = self.normalize(x, y, use=self.normalize_func)
+        
         # filter out the mass values that have zero intensities in self.exp_abun
         exp_mz_filtered = set([k for k in self.exp_mz if self.ms_mz_abun_dict[k] != 0])
 
         # filter out the mass values that have zero intensities in self.ref_mz
-        self.ref_mz_filtered = set([k for k in self.ref_mz if self.ref_mz_abun_dict[k] != 0])
+        ref_mz_filtered = set([k for k in self.ref_mz if self.ref_mz_abun_dict[k] != 0])
 
         # find the intersection/common mass values of both ref and exp, and sort them
-        self.common_mz_values = sorted(list(exp_mz_filtered.intersection(self.ref_mz_filtered)))
+        self.common_mz_values = sorted(list(exp_mz_filtered.intersection(ref_mz_filtered)))
 
         # find the number of common mass values (after filtering 0s)
         self.n_x_y = len(self.common_mz_values)
         # print(self.n_x_y)
 
-    def weighted_cosine_correlation(self, a=0.5, b=1.3):
+    def nan_fill(self, df, fill_with=0):
+
+        df.fillna(fill_with, inplace=True)
+        
+        return df.T[0].values, df.T[1].values
+
+    def normalize(self, x, y, normalized=sum):
+
+        u_l = (x / normalized(x), y / normalized(y) )
+
+        return u_l
+
+    def weighted_cosine_correlation(self, a=0.5, b=1.3, nanfill=1e-10):
 
         # create dict['mz'] = abundance, for experimental data
         # ms_mz_abun_dict = mass_spec.mz_abun_dict
@@ -190,12 +190,8 @@ class SpectralSimilarity():
         df = DataFrame([weighted_exp_dict, ref_mz_abun_dict])
 
         # fill missing mz with weight {abun**a}{m/z**b} to 0
-        df.fillna(0, inplace=True)
-
-        # calculate cosine correlation, 
-        x = df.T[0].values
-        y = df.T[1].values
-
+        x, y = self.fill_na(df, fill_with=nanfill)
+        
         # correlation = (1 - cosine(x, y))
 
         correlation = dot(x, y) / (norm(x) * norm(y))
@@ -205,8 +201,8 @@ class SpectralSimilarity():
     def cosine_correlation(self):
 
         # calculate cosine correlation,
-        x = self.zero_filled_u_l[2]
-        y = self.zero_filled_u_l[3]
+        x = self.zero_filled_u_l[0]
+        y = self.zero_filled_u_l[1]
 
         # correlation = (1 - cosine(x, y))
 
@@ -259,7 +255,7 @@ class SpectralSimilarity():
 
         s_r_x_y = s_r_x_y / self.n_x_y
         # using the existing weighted_cosine_correlation function to get S_WC(X,Y)
-        s_wc_x_y = self.weighted_cosine_correlation(a=0.5, b=3)
+        s_wc_x_y = self.weighted_cosine_correlation(a=0.5, b=3, nanfill=0)
 
         # final step
         s_ss_x_y = ((n_x * s_wc_x_y) + (self.n_x_y * s_r_x_y)) / (n_x + self.n_x_y)
@@ -268,7 +264,7 @@ class SpectralSimilarity():
 
     def pearson_correlation(self,):
 
-        correlation = pearsonr(self.zero_filled_u_l[2], self.zero_filled_u_l[3])
+        correlation = pearsonr(self.zero_filled_u_l[0], self.zero_filled_u_l[1])
 
         return correlation[0]
 
@@ -276,7 +272,7 @@ class SpectralSimilarity():
 
         # calculate Spearman correlation
         # ## TODO - Check axis
-        correlation = spearmanr(self.zero_filled_u_l[2], self.zero_filled_u_l[3], axis=0)
+        correlation = spearmanr(self.zero_filled_u_l[0], self.zero_filled_u_l[1], axis=0)
 
         return correlation[0]
 
@@ -288,7 +284,7 @@ class SpectralSimilarity():
         # create dict['mz'] = abundance, for experimental data
 
         # calculate Kendall's tau
-        correlation = kendalltau(self.zero_filled_u_l[2], self.zero_filled_u_l[3])
+        correlation = kendalltau(self.zero_filled_u_l[0], self.zero_filled_u_l[1])
 
         return correlation[0]
 
@@ -300,9 +296,10 @@ class SpectralSimilarity():
         # count number of non-zero abundance/peak intensity values
         n_x = sum(a != 0 for a in self.exp_abun)
 
-        x = self.zero_filled_u_l[0]
-        y = self.zero_filled_u_l[1]
-
+        x, y = self.fill_nan(self.df, fill_with=0)
+        
+        x, y = self.normalize(x, y, use=self.normalize_func)
+        
         # get the Fourier transform of x and y
         x_dft = rfft(x).real
         y_dft = rfft(y).real
@@ -310,7 +307,7 @@ class SpectralSimilarity():
         s_dft_xy = dot(x_dft, y_dft)/(norm(x_dft)*norm(y_dft))
 
         # using the existing weighted_cosine_correlation function to get S_WC(X,Y)
-        s_wc_x_y = self.weighted_cosine_correlation()
+        s_wc_x_y = self.weighted_cosine_correlation(nanfill=0)
 
         # final step
         s_dft = (n_x * s_wc_x_y + self.n_x_y * s_dft_xy) / (n_x + self.n_x_y)
@@ -326,8 +323,9 @@ class SpectralSimilarity():
         n_x = sum(a != 0 for a in self.exp_abun)
 
         # calculate cosine correlation,
-        x = self.zero_filled_u_l[0]
-        y = self.zero_filled_u_l[1]
+        x, y = self.fill_nan(self.df, fill_with=0)
+        
+        x, y = self.normalize(x, y, use=self.normalize_func)
 
         # Make x and y into an array
         x_a = list(x)
@@ -341,7 +339,7 @@ class SpectralSimilarity():
         s_dwt_xy = dot(x_dwtD, y_dwtD) / (norm(x_dwtD) * norm(y_dwtD))
 
         # using the existing weighted_cosine_correlation function to get S_WC(X,Y)
-        s_wc_x_y = self.weighted_cosine_correlation()
+        s_wc_x_y = self.weighted_cosine_correlation(nanfill=0)
 
         # final step
         s_dwt = (n_x * s_wc_x_y + self.n_x_y * s_dwt_xy) / (n_x + self.n_x_y)
@@ -351,8 +349,8 @@ class SpectralSimilarity():
     def euclidean_distance(self):
 
         # correlation = euclidean_distance_manual(self.zero_filled_u_l[0], self.zero_filled_u_l[1])
-        qlist = self.zero_filled_u_l[2]
-        rlist = self.zero_filled_u_l[3]
+        qlist = self.zero_filled_u_l[0]
+        rlist = self.zero_filled_u_l[1]
 
         correlation = sqrt(np_sum(power(qlist - rlist, 2)))
 
@@ -360,8 +358,8 @@ class SpectralSimilarity():
 
     def manhattan_distance(self):
 
-        qlist = self.zero_filled_u_l[2]
-        rlist = self.zero_filled_u_l[3]
+        qlist = self.zero_filled_u_l[0]
+        rlist = self.zero_filled_u_l[1]
 
         return np_sum(absolute(qlist - rlist))
 
@@ -373,8 +371,9 @@ class SpectralSimilarity():
             union = (len(list1) + len(list2)) - intersection
             return float(intersection) / union
 
-        qlist = self.zero_filled_u_l[2]
-        rlist = self.zero_filled_u_l[3]
+        qlist = self.zero_filled_u_l[0]
+        rlist = self.zero_filled_u_l[1]
+
         return np_sum(power(qlist - rlist, 2)) / (np_sum(power(qlist, 2)) + np_sum(power(rlist, 2)) - np_sum(qlist * rlist))
         # correlation = jaccard_similarity(self.zero_filled_u_l[0], self.zero_filled_u_l[1])
         # @return correlation
@@ -394,16 +393,18 @@ class SpectralSimilarity():
                 f = getattr(math_distance, function_name)
 
                 if function_name == "canberra_metric":
-                    qlist = self.zero_filled_u_l[0]
-                    rlist = self.zero_filled_u_l[1]
+                    
+                    x, y = self.fill_nan(self.df, fill_with=0)
+        
+                    qlist, rlist = self.normalize(x, y, use=self.normalize_func)
                     #print("qlist:")
                     #print(qlist)
                     #print("rlist:")
                     #print(rlist)
 
                 else:
-                    qlist = self.zero_filled_u_l[2]
-                    rlist = self.zero_filled_u_l[3]
+                    qlist = self.zero_filled_u_l[0]
+                    rlist = self.zero_filled_u_l[1]
 
                 dist = f(qlist, rlist)
                 #if method == "Minokowski_3":
