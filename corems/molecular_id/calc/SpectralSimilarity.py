@@ -141,9 +141,9 @@ class SpectralSimilarity():
         self.df = DataFrame([self.ms_mz_abun_dict, self.ref_mz_abun_dict])
 
         # fill missing mz with abundance 0
-        x, y = self.fill_na(self.df, fill_with=1e-10)
+        x, y = self.nan_fill(self.df, fill_with=1e-10)
         
-        self.zero_filled_u_l = self.normalize(x, y, use=self.normalize_func)
+        self.zero_filled_u_l = self.normalize(x, y, norm_func=self.normalize_func)
         
         # filter out the mass values that have zero intensities in self.exp_abun
         exp_mz_filtered = set([k for k in self.exp_mz if self.ms_mz_abun_dict[k] != 0])
@@ -164,9 +164,9 @@ class SpectralSimilarity():
         
         return df.T[0].values, df.T[1].values
 
-    def normalize(self, x, y, normalized=sum):
+    def normalize(self, x, y, norm_func=sum):
 
-        u_l = (x / normalized(x), y / normalized(y) )
+        u_l = (x / norm_func(x), y / norm_func(y) )
 
         return u_l
 
@@ -190,7 +190,7 @@ class SpectralSimilarity():
         df = DataFrame([weighted_exp_dict, ref_mz_abun_dict])
 
         # fill missing mz with weight {abun**a}{m/z**b} to 0
-        x, y = self.fill_na(df, fill_with=nanfill)
+        x, y = self.nan_fill(df, fill_with=nanfill)
         
         # correlation = (1 - cosine(x, y))
 
@@ -296,9 +296,9 @@ class SpectralSimilarity():
         # count number of non-zero abundance/peak intensity values
         n_x = sum(a != 0 for a in self.exp_abun)
 
-        x, y = self.fill_nan(self.df, fill_with=0)
+        x, y = self.nan_fill(self.df, fill_with=0)
         
-        x, y = self.normalize(x, y, use=self.normalize_func)
+        x, y = self.normalize(x, y, norm_func=self.normalize_func)
         
         # get the Fourier transform of x and y
         x_dft = rfft(x).real
@@ -323,9 +323,9 @@ class SpectralSimilarity():
         n_x = sum(a != 0 for a in self.exp_abun)
 
         # calculate cosine correlation,
-        x, y = self.fill_nan(self.df, fill_with=0)
+        x, y = self.nan_fill(self.df, fill_with=0)
         
-        x, y = self.normalize(x, y, use=self.normalize_func)
+        x, y = self.normalize(x, y, norm_func=self.normalize_func)
 
         # Make x and y into an array
         x_a = list(x)
@@ -394,9 +394,9 @@ class SpectralSimilarity():
 
                 if function_name == "canberra_metric":
                     
-                    x, y = self.fill_nan(self.df, fill_with=0)
+                    x, y = self.nan_fill(self.df, fill_with=0)
         
-                    qlist, rlist = self.normalize(x, y, use=self.normalize_func)
+                    qlist, rlist = self.normalize(x, y, norm_func=self.normalize_func)
                     #print("qlist:")
                     #print(qlist)
                     #print("rlist:")
