@@ -1,4 +1,3 @@
-
 from numpy.fft import rfft
 from pywt import dwt 
 from scipy.spatial.distance import cosine, jaccard, euclidean, cityblock
@@ -11,42 +10,81 @@ from pandas import DataFrame
 import numpy as np
 
 methods_name = {
-    "entropy": "Entropy Distance",
-    "weighted_entropy": "Dynamic weighted entropy Distance",
-    "chebyshev": "Chebyshev Distance",
-    "squared_euclidean": "Squared Euclidean Distance",
-    "fidelity": "Fidelity Distance",
-    "matusita": "Matusita Distance",
-    "squared_chord": "Squared-chord Distance",
-    "bhattacharya_1": "Bhattacharya 1 Distance",
-    "bhattacharya_2": "Bhattacharya 2 Distance",
-    "harmonic_mean": "Harmonic mean Distance",
-    "probabilistic_symmetric_chi_squared": "Probabilistic symmetric X2 Distance",
-    "topsoe": "Topsoe Distance",
-    "ruzicka": "Ruzicka Distance",
-    "roberts": "Roberts Distance",
-    "intersection": "Intersection Distance",
-    "motyka": "Motyka Distance",
-    "canberra": "Canberra Distance",
-    "baroni_urbani_buser": "Baroni-Urbani-Buser Distance",
-    "penrose_size": "Penrose size Distance",
-    "mean_character": "Mean character Distance",
-    "lorentzian": "Lorentzian Distance",
-    "penrose_shape": "Penrose shape Distance",
-    "clark": "Clark Distance",
-    "hellinger": "Hellinger Distance",
-    "whittaker_index_of_association": "Whittaker index of association Distance",
-    "symmetric_chi_squared": "Symmetric X2 Distance",
-    "improved_similarity": "Improved Similarity",
-    "absolute_value": "Absolute Value Distance",
-    "spectral_contrast_angle": "Spectral Contrast Angle",
-    "wave_hedges": "Wave Hedges Distance",
-    "dice": "Dice Distance",
-    "divergence": "Divergence Distance",
-    "avg_l": "Avg (L1, L8) Distance",
-    "vicis_symmetric_chi_squared_3": "Vicis-Symmetric X2 3 Distance",
-    "ms_for_id_v1": "MSforID Distance version 1",
-    "ms_for_id": "MSforID Distance",
+    #"entropy_distance": "Entropy Distance",
+    #"weighted_entropy_distance": "Dynamic weighted entropy Distance",
+    "chebyshev_distance": "Chebyshev Distance",
+    "squared_euclidean_distance": "Squared Euclidean Distance",
+    "fidelity_similarity": "Fidelity Similarity",
+    "matusita_distance": "Matusita Distance",
+    "squared_chord_distance": "Squared-chord Distance",
+    #"bhattacharya_1_distance": "Bhattacharya 1 Distance",
+    #"bhattacharya_2_distance": "Bhattacharya 2 Distance",
+    "harmonic_mean_similarity": "Harmonic mean Distance",
+    "Pearson_chi_squared_distance": "Pearson Chi Squared Distance",
+    "Neyman_chi_squared_distance": "Neyman Chi Squared Distance",
+    "probabilistic_symmetric_chi_squared_distance": "Probabilistic symmetric X2 Distance",
+    "topsoe_distance": "Topsoe Distance",
+    "chernoff_distance": "Chernoff Distance",
+    "ruzicka_distance": "Ruzicka Distance",
+    "roberts_distance": "Roberts Distance",
+    #"intersection_distance": "Intersection Distance",
+    "motyka_distance": "Motyka Distance",
+    "canberra_distance": "Canberra Distance",
+    "canberra_metric": "Canberra Metric",
+    "kulczynski_1_distance": "Kulczynski 1 Distance",
+    #"baroni_urbani_buser_distance": "Baroni-Urbani-Buser Distance",
+    #"penrose_size_distance": "Penrose size Distance",
+    #"mean_character_distance": "Mean character Distance",
+    "lorentzian_distance": "Lorentzian Distance",
+    #"penrose_shape_distance": "Penrose shape Distance",
+    "clark_distance": "Clark Distance",
+    "hellinger_distance": "Hellinger Distance",
+    "whittaker_index_of_association_distance": "Whittaker index of association Distance",
+    #"similarity_index_distance": "Similarity Index Distance",
+    #"improved_similarity_distance": "Improved Similarity",
+    #"absolute_value_distance": "Absolute Value Distance",
+    "spectral_contrast_angle_distance": "Spectral Contrast Angle",
+    "wave_hedges_distance": "Wave Hedges Distance",
+    "dice_similarity": "Dice Similarity",
+    "inner_product_distance": "Inner Product Distance",
+    "divergence_distance": "Divergence Distance",
+    "jensen_difference_distance": "Jensen Differences Distance",
+    "kumar_johnson_distance": "Kumar Johnson Distance",
+    "avg_l_distance": "Avg (L1, L8) Distance",
+    "vicis_wave_hadges_distance": "Vicis Wave Hadges Distance",
+    "vicis_symmetric_chi_squared_1_distance": "Vicis-Symmetric X2 1 Distance",
+    "vicis_symmetric_chi_squared_2_distance": "Vicis-Symmetric X2 2 Distance",
+    "vicis_symmetric_chi_squared_3_distance": "Vicis-Symmetric X2 3 Distance",
+    "max_symmetric_chi_squared_distance": "Max Symmetric Chi Squared Distance",
+    "min_symmetric_chi_squared_distance": "Min Symmetric Chi Squared Distance",
+    #"ms_for_id_v1": "MSforID Distance version 1",
+    #"ms_for_id": "MSforID Distance",
+    "additive_sym_chi_sq": "Additive Symmetric Chi Squared",
+    "bhattacharya_distance": "Battacharya Distance",
+    "generalized_ochai_index": "Generalized Ochai Index",
+    "gower_distance": "Gower Distance",
+    "impr_sqrt_cosine_sim": "Improved Square Root Cosine Similarity",
+    "intersection_sim": "Intersection Similarity",
+    "j_divergence": "J Divergence",
+    "jensen_shannon_index": "Jensen Shannon Index",
+    "k_divergence": "K Divergence",
+    "VW6": "VW6",
+    "VW5": "VW5",
+    "VW4": "VW4",
+    "VW3": "VW3",
+    "VW2": "VW2",
+    "VW1": "VW1",
+    "taneja_divergence": "Taneja Divergence",
+    "symmetric_chi_squared_distance": "Symmetric Chi Squared Distance",
+    "squared_chi_squared_distance": "Squared Chi Squared Distance",
+    "square_root_cosine_correlation": "Square Root Cosine Correlation",
+    "sorensen_distance": "Sorensen Distance",
+    "Minokowski_3": "Minokowski 3 Distance",
+    "Minokowski_4": "Minokowski 4 Distance",
+    "kumarjohnson_divergence": "Kumar Johnson Divergence",
+    "kumarhassebrook_similarity": "Kumar Hassebrook Similarity",
+    "kullbackleibler_divergence": "Kullback Leibler Divergence",
+    "soergel_distance": "Soergel Distance",
 }
 
 methods_scale = {
@@ -85,8 +123,9 @@ methods_scale = {
 
 class SpectralSimilarity():
 
-    def __init__(self, ms_mz_abun_dict, ref_obj):
+    def __init__(self, ms_mz_abun_dict, ref_obj, norm_func=sum):
 
+        self.normalize_func = norm_func
         self.ms_mz_abun_dict = ms_mz_abun_dict
         self.ref_obj = ref_obj
 
@@ -99,31 +138,39 @@ class SpectralSimilarity():
         self.ref_mz_abun_dict = dict(zip(self.ref_mz, self.ref_abun))
 
         # parse to dataframe, easier to zerofill and tranpose
-        df = DataFrame([self.ms_mz_abun_dict, self.ref_mz_abun_dict])
+        self.df = DataFrame([self.ms_mz_abun_dict, self.ref_mz_abun_dict])
 
         # fill missing mz with abundance 0
-        df.fillna(0, inplace=True)
-
-        # calculate cosine correlation,
-        x = df.T[0].values
-        y = df.T[1].values
-
-        self.zero_filled_u_l = (x / sum(x), y / sum(y))
-
+        x, y = self.nan_fill(self.df, fill_with=1e-10)
+        
+        self.zero_filled_u_l = self.normalize(x, y, norm_func=self.normalize_func)
+        
         # filter out the mass values that have zero intensities in self.exp_abun
         exp_mz_filtered = set([k for k in self.exp_mz if self.ms_mz_abun_dict[k] != 0])
 
         # filter out the mass values that have zero intensities in self.ref_mz
-        self.ref_mz_filtered = set([k for k in self.ref_mz if self.ref_mz_abun_dict[k] != 0])
+        ref_mz_filtered = set([k for k in self.ref_mz if self.ref_mz_abun_dict[k] != 0])
 
         # find the intersection/common mass values of both ref and exp, and sort them
-        self.common_mz_values = sorted(list(exp_mz_filtered.intersection(self.ref_mz_filtered)))
+        self.common_mz_values = sorted(list(exp_mz_filtered.intersection(ref_mz_filtered)))
 
         # find the number of common mass values (after filtering 0s)
         self.n_x_y = len(self.common_mz_values)
         # print(self.n_x_y)
 
-    def weighted_cosine_correlation(self, a=0.5, b=1.3):
+    def nan_fill(self, df, fill_with=0):
+
+        df.fillna(fill_with, inplace=True)
+        
+        return df.T[0].values, df.T[1].values
+
+    def normalize(self, x, y, norm_func=sum):
+
+        u_l = (x / norm_func(x), y / norm_func(y) )
+
+        return u_l
+
+    def weighted_cosine_correlation(self, a=0.5, b=1.3, nanfill=1e-10):
 
         # create dict['mz'] = abundance, for experimental data
         # ms_mz_abun_dict = mass_spec.mz_abun_dict
@@ -143,12 +190,8 @@ class SpectralSimilarity():
         df = DataFrame([weighted_exp_dict, ref_mz_abun_dict])
 
         # fill missing mz with weight {abun**a}{m/z**b} to 0
-        df.fillna(0, inplace=True)
-
-        # calculate cosine correlation, 
-        x = df.T[0].values
-        y = df.T[1].values
-
+        x, y = self.nan_fill(df, fill_with=nanfill)
+        
         # correlation = (1 - cosine(x, y))
 
         correlation = dot(x, y) / (norm(x) * norm(y))
@@ -212,7 +255,7 @@ class SpectralSimilarity():
 
         s_r_x_y = s_r_x_y / self.n_x_y
         # using the existing weighted_cosine_correlation function to get S_WC(X,Y)
-        s_wc_x_y = self.weighted_cosine_correlation(a=0.5, b=3)
+        s_wc_x_y = self.weighted_cosine_correlation(a=0.5, b=3, nanfill=0)
 
         # final step
         s_ss_x_y = ((n_x * s_wc_x_y) + (self.n_x_y * s_r_x_y)) / (n_x + self.n_x_y)
@@ -253,9 +296,10 @@ class SpectralSimilarity():
         # count number of non-zero abundance/peak intensity values
         n_x = sum(a != 0 for a in self.exp_abun)
 
-        x = self.zero_filled_u_l[0]
-        y = self.zero_filled_u_l[1]
-
+        x, y = self.nan_fill(self.df, fill_with=0)
+        
+        x, y = self.normalize(x, y, norm_func=self.normalize_func)
+        
         # get the Fourier transform of x and y
         x_dft = rfft(x).real
         y_dft = rfft(y).real
@@ -263,7 +307,7 @@ class SpectralSimilarity():
         s_dft_xy = dot(x_dft, y_dft)/(norm(x_dft)*norm(y_dft))
 
         # using the existing weighted_cosine_correlation function to get S_WC(X,Y)
-        s_wc_x_y = self.weighted_cosine_correlation()
+        s_wc_x_y = self.weighted_cosine_correlation(nanfill=0)
 
         # final step
         s_dft = (n_x * s_wc_x_y + self.n_x_y * s_dft_xy) / (n_x + self.n_x_y)
@@ -279,8 +323,9 @@ class SpectralSimilarity():
         n_x = sum(a != 0 for a in self.exp_abun)
 
         # calculate cosine correlation,
-        x = self.zero_filled_u_l[0]
-        y = self.zero_filled_u_l[1]
+        x, y = self.nan_fill(self.df, fill_with=0)
+        
+        x, y = self.normalize(x, y, norm_func=self.normalize_func)
 
         # Make x and y into an array
         x_a = list(x)
@@ -294,7 +339,7 @@ class SpectralSimilarity():
         s_dwt_xy = dot(x_dwtD, y_dwtD) / (norm(x_dwtD) * norm(y_dwtD))
 
         # using the existing weighted_cosine_correlation function to get S_WC(X,Y)
-        s_wc_x_y = self.weighted_cosine_correlation()
+        s_wc_x_y = self.weighted_cosine_correlation(nanfill=0)
 
         # final step
         s_dwt = (n_x * s_wc_x_y + self.n_x_y * s_dwt_xy) / (n_x + self.n_x_y)
@@ -328,6 +373,7 @@ class SpectralSimilarity():
 
         qlist = self.zero_filled_u_l[0]
         rlist = self.zero_filled_u_l[1]
+
         return np_sum(power(qlist - rlist, 2)) / (np_sum(power(qlist, 2)) + np_sum(power(rlist, 2)) - np_sum(qlist * rlist))
         # correlation = jaccard_similarity(self.zero_filled_u_l[0], self.zero_filled_u_l[1])
         # @return correlation
@@ -335,16 +381,38 @@ class SpectralSimilarity():
     def extra_distances(self):
         from corems.molecular_id.calc import math_distance
 
-        qlist = self.zero_filled_u_l[0]
-        rlist = self.zero_filled_u_l[1]
+        #qlist = self.zero_filled_u_l[2]
+        #rlist = self.zero_filled_u_l[3]
 
         dict_res = {}
 
         for method in methods_name:
-            function_name = method + "_distance"
+            #function_name = method + "_distance"
+            function_name = method
             if hasattr(math_distance, function_name):
                 f = getattr(math_distance, function_name)
+
+                if function_name == "canberra_metric":
+                    
+                    x, y = self.nan_fill(self.df, fill_with=0)
+        
+                    qlist, rlist = self.normalize(x, y, norm_func=self.normalize_func)
+                    #print("qlist:")
+                    #print(qlist)
+                    #print("rlist:")
+                    #print(rlist)
+
+                else:
+                    qlist = self.zero_filled_u_l[0]
+                    rlist = self.zero_filled_u_l[1]
+
                 dist = f(qlist, rlist)
+                #if method == "Minokowski_3":
+                #    print("qlist:")
+                #    print(qlist)
+                #    print("rlist")
+                #    print(rlist)
+                #    exit()
                 # if dist == np.nan or dis == np.inf:
                     # print(self.exp_abun)
                     # print(self.exp_mz)
