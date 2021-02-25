@@ -32,14 +32,12 @@ clr.AddReference("ThermoFisher.CommonCore.MassPrecisionEstimator")
 from ThermoFisher.CommonCore.RawFileReader import RawFileReaderAdapter
 from ThermoFisher.CommonCore.Data import ToleranceUnits, Extensions
 from ThermoFisher.CommonCore.Data.Business import MassOptions
-from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType 
+from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType
 from System.Collections.Generic import List
-
-
 
 class ImportMassSpectraThermoMSFileReader():
 
-    """     Read FULL mode spectra only from raw file data and store it return a LC-MS class
+    """  Read FULL mode spectra only from raw file data and store it return a LC-MS class
     *  Default behavior is to load all scans numbers
 
     *  set start_scan_number  and final_scan_number to change it before calling start(), or run()
@@ -52,21 +50,21 @@ class ImportMassSpectraThermoMSFileReader():
             file_path = Path(file_location)
 
         if isinstance(file_location, S3Path):
-            
+
             temp_dir = Path('tmp/')
             temp_dir.mkdir(exist_ok=True)
 
-            file_path = temp_dir / file_location.name 
-            with open(file_path,'wb') as fh:
+            file_path = temp_dir / file_location.name
+            with open(file_path, 'wb') as fh:
                 fh.write(file_location.read_bytes())
-        
+
         else:
             file_path = file_location
-            
+
         self.iRawDataPlus = RawFileReaderAdapter.FileFactory(str(file_path))
-        
-        #removing tmp file
-        
+
+        # removing tmp file
+
         if isinstance(file_location, S3Path):
             file_path.unlink()
 
@@ -103,7 +101,7 @@ class ImportMassSpectraThermoMSFileReader():
         This function is only supported for MS device controllers.
         e.g.  ['FTMS', '-', 'p', 'NSI', 'Full', 'ms', '[200.00-1000.00]']
         """
-        scanrange = range(self._initial_scan_number,self._final_scan_number+1)
+        scanrange = range(self._initial_scan_number, self._final_scan_number + 1)
         scanfiltersdic = {}
         scanfilterslist = []
         for scan_number in scanrange:
@@ -143,7 +141,7 @@ class ImportMassSpectraThermoMSFileReader():
         header = self.iRawDataPlus.GetTrailerExtraInformation(scan)
         header_dic = {}
         for i in numpy.arange(header.Length):
-            header_dic.update({header.Labels[i]:header.Values[i]})
+            header_dic.update({header.Labels[i]: header.Values[i]})
         return header_dic
 
     def get_data(self, scan, d_parameter, scan_type):
@@ -392,24 +390,24 @@ class ImportMassSpectraThermoMSFileReader():
         """
         first_scan = self._initial_scan_number
         final_scan = self._final_scan_number
-        scanrange = range(first_scan,final_scan+1)
+        scanrange = range(first_scan, final_scan + 1)
 
-        ms_tic = pd.DataFrame(index=scanrange,columns=['Time','TIC'])
+        ms_tic = pd.DataFrame(index=scanrange, columns=['Time', 'TIC'])
         for scan in scanrange:
             scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan)
-            ms_tic.loc[scan,'Time'] = scanStatistics.StartTime
-            ms_tic.loc[scan,'TIC'] = scanStatistics.TIC
+            ms_tic.loc[scan, 'Time'] = scanStatistics.StartTime
+            ms_tic.loc[scan, 'TIC'] = scanStatistics.TIC
 
-        
         if plot:
-            import matplotlib.pyplot as plt #maybe better in top of file?
-            fig,ax = plt.subplots(figsize=(6,3))
-            ax.plot(ms_tic['Time'],ms_tic['TIC'],label='TIC')
+            import matplotlib.pyplot as plt # maybe better in top of file?
+            fig, ax = plt.subplots(figsize=(6, 3))
+            ax.plot(ms_tic['Time'], ms_tic['TIC'], label='TIC')
             ax.set_xlabel('Time (min)')
             ax.set_ylabel('a.u.')
             plt.legend()
             # plt.show()
-            return ms_tic,fig
+            return ms_tic, fig
+
         return ms_tic
 
     def get_best_scans_idx(self, stdevs=2, method='mean', plot=False):
