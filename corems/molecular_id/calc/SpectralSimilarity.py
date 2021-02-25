@@ -212,7 +212,7 @@ class SpectralSimilarity():
 
     def stein_scott(self):
 
-        if self.n_x_y == 0: return 0
+        if self.n_x_y == 0: return 0, 0
 
         # count number of non-zero abundance/peak intensity values
         n_x = sum(a != 0 for a in self.exp_abun)
@@ -257,10 +257,14 @@ class SpectralSimilarity():
         # using the existing weighted_cosine_correlation function to get S_WC(X,Y)
         s_wc_x_y = self.weighted_cosine_correlation(a=0.5, b=3, nanfill=0)
 
-        # final step
         s_ss_x_y = ((n_x * s_wc_x_y) + (self.n_x_y * s_r_x_y)) / (n_x + self.n_x_y)
 
-        return s_ss_x_y
+        s_wc_x_y_nist = self.weighted_cosine_correlation(a=0.5, b=1.3, nanfill=0)
+
+        s_ss_x_y_nist = ((n_x * s_wc_x_y_nist) + (self.n_x_y * s_r_x_y)) / (n_x + self.n_x_y)    
+        # final step
+
+        return s_ss_x_y, s_ss_x_y_nist
 
     def pearson_correlation(self,):
 
@@ -402,6 +406,7 @@ class SpectralSimilarity():
                     #print("rlist:")
                     #print(rlist)
 
+                
                 else:
                     qlist = self.zero_filled_u_l[0]
                     rlist = self.zero_filled_u_l[1]

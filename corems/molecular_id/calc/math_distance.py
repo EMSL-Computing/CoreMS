@@ -681,7 +681,7 @@ def j_divergence(v, y):
         \sum_{i}(y_{i} - v_{i}) ln(\frac{y_{i}}{v_{i}})
     """
 
-    return np.sum((y - v) * np.log(y / v))
+    return np.sum((v - y) * np.log(v / y))
 
 def jensen_shannon_index(v, y):
     r"""
@@ -703,7 +703,7 @@ def k_divergence(v, y):
         \sum_{i}y_{i}ln(\frac{2y_{i}}{y_{i} + v_{i}})
     """
 
-    return np.sum(y * np.log((2 * y) / (y + v)))
+    return np.sum(v * np.log((2 * v) / (y + v)))
 
 """added by Chae"""
 def topsoe_distance(v, y):
