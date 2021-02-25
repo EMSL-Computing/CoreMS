@@ -41,8 +41,10 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
         self.file_location = file_location
 
-        if sample_name: self.sample_name = sample_name
-        else: self.sample_name = file_location.stem
+        if sample_name:
+            self.sample_name = sample_name
+        else: 
+            self.sample_name = file_location.stem
 
         self.analyzer = analyzer
         self.instrument_label = instrument_label
