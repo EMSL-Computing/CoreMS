@@ -35,7 +35,10 @@ class LowResMassSpectralMatch(Thread):
         if self.gcms_obj.molecular_search_settings.exploratory_mode:
             
             spectral_similarity_scores["weighted_cosine_correlation"] = spectral_simi.weighted_cosine_correlation()
-            spectral_similarity_scores["stein_scott_similarity"] = spectral_simi.stein_scott()
+            ss, ss_nist =  spectral_simi.stein_scott()
+            spectral_similarity_scores["stein_scott_similarity"] = ss
+            spectral_similarity_scores["stein_scott_similarity_nist"] = ss_nist
+            
             spectral_similarity_scores["pearson_correlation"] = spectral_simi.pearson_correlation()
             spectral_similarity_scores["spearman_correlation"] = spectral_simi.spearman_correlation()
             spectral_similarity_scores["kendall_tau_correlation"] = spectral_simi.kendall_tau()
