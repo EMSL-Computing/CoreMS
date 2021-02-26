@@ -203,7 +203,7 @@ class CompoundSearchSettings:
     ri_calibration_compound_names: List = dataclasses.field(default_factory=list)
 
     # calculates and export all spectral similarity methods
-    exploratory_mode:bool = True
+    exploratory_mode:bool = False
     
     score_methods:tuple = ('highest_sim_score', 'highest_ss')
     
