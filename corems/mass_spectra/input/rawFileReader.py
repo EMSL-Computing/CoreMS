@@ -21,9 +21,9 @@ from corems.mass_spectra.factory.LC_Class import LCMSBase
 from corems.encapsulation.factory.parameters import default_parameters
 
 
-# do not change the order from the imports statements and reference below 
+# do not change the order from the imports statements and reference below
 sys.path.append(site.getsitepackages()[0] + "/ext_lib")
-#sys.path.append("ext_lib")
+# sys.path.append("ext_lib")
 
 clr.AddReference("ThermoFisher.CommonCore.RawFileReader")
 clr.AddReference("ThermoFisher.CommonCore.Data")
@@ -34,8 +34,6 @@ from ThermoFisher.CommonCore.Data import ToleranceUnits, Extensions
 from ThermoFisher.CommonCore.Data.Business import MassOptions
 from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType 
 from System.Collections.Generic import List
-
-
 
 class ImportMassSpectraThermoMSFileReader():
 
@@ -52,18 +50,18 @@ class ImportMassSpectraThermoMSFileReader():
             file_path = Path(file_location)
 
         if isinstance(file_location, S3Path):
-            
+
             temp_dir = Path('tmp/')
             temp_dir.mkdir(exist_ok=True)
 
             file_path = temp_dir / file_location.name 
-            with open(file_path,'wb') as fh:
+            with open(file_path, 'wb') as fh:
                 fh.write(file_location.read_bytes())
-        
+
         self.iRawDataPlus = RawFileReaderAdapter.FileFactory(str(file_path))
-        
-        #removing tmp file
-        
+
+        #   removing tmp file
+
         if isinstance(file_location, S3Path):
             file_path.unlink()
 
@@ -100,7 +98,7 @@ class ImportMassSpectraThermoMSFileReader():
         This function is only supported for MS device controllers.
         e.g.  ['FTMS', '-', 'p', 'NSI', 'Full', 'ms', '[200.00-1000.00]']
         """
-        scanrange = range(self._initial_scan_number,self._final_scan_number+1)
+        scanrange = range(self._initial_scan_number, self._final_scan_number + 1)
         scanfiltersdic = {}
         scanfilterslist = []
         for scan_number in scanrange:
