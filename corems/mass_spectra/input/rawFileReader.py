@@ -144,6 +144,40 @@ class ImportMassSpectraThermoMSFileReader():
             header_dic.update({header.Labels[i]: header.Values[i]})
         return header_dic
 
+    def get_icr_transient_times(self, first_scan: int = None, last_scan: int = None):
+        '''
+        Return a list for transient time targets for all scans, or selected scans range
+        Resolving Power and Transient time targets based on 7T FT-ICR MS system
+        '''
+
+        res_trans_time = {"50": 0.384,
+                          "100000": 0.768,
+                          "200000": 1.536,
+                          "400000": 3.072,
+                          "750000": 6.144,
+                          "1000000": 12.288
+                          }
+
+        firstScanNumber = self._initial_scan_number if first_scan is None else first_scan
+
+        lastScanNumber = self._final_scan_number if last_scan is None else last_scan
+
+        transient_time_list = []
+
+        for scan in range(firstScanNumber, lastScanNumber):
+
+            scan_header = self.get_scan_header(scan)
+
+            rp_target = scan_header['FT Resolution:']
+
+            transient_time = res_trans_time.get(rp_target)
+
+            transient_time_list.append(transient_time)
+
+            # print(transient_time, rp_target)
+
+        return transient_time_list
+        
     def get_data(self, scan, d_parameter, scan_type):
 
         if scan_type == "Centroid":
