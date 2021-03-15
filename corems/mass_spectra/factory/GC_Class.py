@@ -26,9 +26,9 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
     def __init__(self, file_location, analyzer='Unknown', instrument_label='Unknown', sample_name=None):
 
         """
-         # Parameters
+            # Parameters
         ----------
-        file_location: text,  pathlib.Path(), or s3path.S3Path 
+        file_location: text,  pathlib.Path(), or s3path.S3Path
             Path object from pathlib containing the file location
         """
         if isinstance(file_location, str):
@@ -43,7 +43,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
         if sample_name:
             self.sample_name = sample_name
-        else: 
+        else:
             self.sample_name = file_location.stem
 
         self.analyzer = analyzer
@@ -82,44 +82,44 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
     def process_chromatogram(self, plot_res=False):
 
-        #tic = self.tic - self.baseline_detector(self.tic)
-        
+        # tic = self.tic - self.baseline_detector(self.tic)
+
         self._processed_tic = self.smooth_tic(self.tic)
 
         for index, tic in enumerate(self._processed_tic):
 
             self._ms[index]._processed_tic = tic
 
-        #self.second_derivative_threshold(self._processed_tic)
+        # self.second_derivative_threshold(self._processed_tic)
 
         if self.chromatogram_settings.use_deconvolution:
-             
-             self.run_deconvolution(plot_res=False)
+
+            self.run_deconvolution(plot_res=False)
 
         else:
-            
+
             peaks_index = self.centroid_detector(self._processed_tic, self.retention_time)
-        
-            for i in peaks_index: 
-                
+
+            for i in peaks_index:
+
                 apex_index = i[1]
-                
-                gc_peak =  GCPeak(self, self._ms[apex_index], i )
-                
+
+                gc_peak = GCPeak(self, self._ms[apex_index], i )
+
                 gc_peak.calc_area(self._processed_tic, 1)
 
                 self.gcpeaks.append(gc_peak)
 
-                #self.gcpeaks[self.scans_number[apex_index]] = gc_peak
-            
+                # self.gcpeaks[self.scans_number[apex_index]] = gc_peak
+
     def add_mass_spectrum(self, mass_spec):
-        
+
         self._ms[mass_spec.scan_number] = mass_spec
 
     def set_tic_list_from_data(self):
 
         self.tic = [self._ms.get(i).tic for i in self.scans_number]
-        
+
         # self.set_tic_list([self._ms.get(i).get_sumed_signal_to_noise() for i in self.get_scans_number()])
 
     def set_retention_time_from_data(self):
@@ -130,12 +130,12 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
             retention_time_list.append(self._ms.get(key_ms).rt)
 
-        self.retention_time = retention_time_list 
+        self.retention_time = retention_time_list
 
         # self.set_retention_time_list(sorted(self._ms.keys()))
 
     def set_scans_number_from_data(self):
-        
+
         self.scans_number = sorted(self._ms.keys())
 
     @property
@@ -152,8 +152,8 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
     @molecular_search_settings.setter
     def molecular_search_settings(self, settings_class_instance):
-        
-        self.parameter.molecular_search = settings_class_instance   
+
+        self.parameter.molecular_search = settings_class_instance
 
     @property
     def chromatogram_settings(self):
@@ -161,8 +161,8 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
     @chromatogram_settings.setter
     def chromatogram_settings(self, settings_class_instance):
-        
-        self.parameter.gc_ms = settings_class_instance 
+
+        self.parameter.gc_ms = settings_class_instance
 
     @property
     def scans_number(self):
@@ -173,7 +173,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
     def retention_time(self):
 
         return self._retention_time_list
-    
+
     @property
     def processed_tic(self):
 
@@ -197,7 +197,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
     @property
     def dynamic_range(self):
 
-        return self.max_tic/self.min_tic
+        return self.max_tic / self.min_tic
 
     @property
     def matched_peaks(self):
@@ -209,13 +209,13 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
     @property
     def unique_metabolites(self):
-        
+
         metabolites = set()
         for gc_peak in self:
             if gc_peak:
                 for compound_obj in gc_peak:
-                     metabolites.add(compound_obj.name)
-        
+                    metabolites.add(compound_obj.name)
+
         return metabolites
 
     @property
@@ -242,9 +242,8 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
                                                                 "inchi_key": compound_obj.metadata.inchikey,
                                                                 "chebi": compound_obj.metadata.chebi,
                                                                 "smiles": compound_obj.metadata.smiles
-                                                             }
+                                                              }
                         else:
-                            continue
                             metabolites[compound_obj.name] = {  "name": compound_obj.name,
                                                                 "highest_similarity_score": compound_obj.spectral_similarity_score,
                                                                 "casno": "",
@@ -276,7 +275,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
         self._tic_list = array(alist)
 
-    def plot_gc_peaks(self, ax=None, color="red"): # pragma: no cover
+    def plot_gc_peaks(self, ax=None, color="red"):  # pragma: no cover
 
         import matplotlib.pyplot as plt
         fig = plt.gcf()
@@ -404,7 +403,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
         return ax
 
-    def plot_smoothed_chromatogram(self, ax=None, color="green"): #pragma: no cover
+    def plot_smoothed_chromatogram(self, ax=None, color="green"):  #pragma: no cover
 
         import matplotlib.pyplot as plt
 
@@ -418,90 +417,90 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
         return ax
 
-    def plot_detected_baseline(self, ax=None, color="blue"): #pragma: no cover
-        
+    def plot_detected_baseline(self, ax=None, color="blue"):  # pragma: no cover
+
         import matplotlib.pyplot as plt
 
         if ax is None:
 
             ax = plt.gca()
-        
+
         max_height = self.chromatogram_settings.peak_height_max_percent
         max_prominence = self.chromatogram_settings.peak_max_prominence_percent
 
-        baseline = sp.baseline_detector(self.tic, self.retention_time, max_height,max_prominence )
+        baseline = sp.baseline_detector(self.tic, self.retention_time, max_height, max_prominence)
         ax.plot(self.retention_time, color=color)
         ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
-        
+
         return ax
 
-    def plot_baseline_subtraction(self, ax=None, color="black"): #pragma: no cover
-        
+    def plot_baseline_subtraction(self, ax=None, color="black"):  # pragma: no cover
+
         import matplotlib.pyplot as plt
 
         if ax is None:
 
             ax = plt.gca()
-        
+
         max_height = self.chromatogram_settings.peak_height_max_percent
 
         max_prominence = self.chromatogram_settings.peak_max_prominence_percent
 
-        x = self.tic + sp.baseline_detector(self.tic, self.retention_time, max_height, max_prominence) 
+        x = self.tic + sp.baseline_detector(self.tic, self.retention_time, max_height, max_prominence)
 
         ax.plot(self.retention_time, x, color=color)
 
         ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
-        
+
         return ax
 
     def peaks_rt_tic(self, json_string=False):
 
         peaks_list = dict()
-        
+
         all_candidates_data = {}
 
         all_peaks_data = {}
 
         for gcms_peak in self.sorted_gcpeaks:
-                
-            dict_data = {'rt': gcms_peak.rt_list, 
+
+            dict_data = {'rt': gcms_peak.rt_list,
                          'tic': gcms_peak.tic_list,
-                         'mz': gcms_peak.mass_spectrum.mz_exp.tolist(), 
+                         'mz': gcms_peak.mass_spectrum.mz_exp.tolist(),
                          'abundance': gcms_peak.mass_spectrum.abundance.tolist(),
                          'candidate_names': gcms_peak.compound_names,
-                          }
-            
+                         }
+
             peaks_list[gcms_peak.rt] = dict_data
 
             for compound in gcms_peak:
-                
-                if not compound.name in all_candidates_data.keys():
+
+                if compound.name not in all_candidates_data.keys():
                     mz = array(compound.mz).tolist()
                     abundance = array(compound.abundance).tolist()
-                    data = {'mz': mz, "abundance" : abundance}
+                    data = {'mz': mz, "abundance": abundance}
                     all_candidates_data[compound.name] = data
-                
+
         all_peaks_data["peak_data"] = peaks_list
         all_peaks_data["ref_data"] = all_candidates_data
-        
+
         if json_string:
-            
+
             return json.dumps(all_peaks_data)
-        
-        else:            
+
+        else:
             return all_peaks_data
 
     def plot_processed_chromatogram(self, ax=None, color="black"):
-        
+
         import matplotlib.pyplot as plt
 
         if ax is None:
 
             ax = plt.gca()
-        
+
         ax.plot(self.retention_time, self.processed_tic, color=color)
 
         ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
-        
+
         return ax

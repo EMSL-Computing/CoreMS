@@ -21,9 +21,9 @@ from corems.mass_spectra.factory.LC_Class import LCMSBase
 from corems.encapsulation.factory.parameters import default_parameters
 
 
-# do not change the order from the imports statements and reference below 
-sys.path.append(site.getsitepackages()[0]+ "/ext_lib")
-# sys.path.append("ext_lib")
+# do not change the order from the imports statements and reference below
+sys.path.append(site.getsitepackages()[0] + "/ext_lib")
+sys.path.append("ext_lib")
 
 clr.AddReference("ThermoFisher.CommonCore.RawFileReader")
 clr.AddReference("ThermoFisher.CommonCore.Data")
@@ -177,7 +177,7 @@ class ImportMassSpectraThermoMSFileReader():
             # print(transient_time, rp_target)
 
         return transient_time_list
-        
+
     def get_data(self, scan, d_parameter, scan_type):
 
         if scan_type == "Centroid":

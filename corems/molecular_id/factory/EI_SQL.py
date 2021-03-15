@@ -176,11 +176,11 @@ class EI_LowRes_SQLite:
         directory = os.getcwd()
 
         if not url:
-
+            
             if not os.path.isdir(directory + '/db'):
-
-                os.mkdir(directory + '/db')
-
+                    
+                os.mkdir(directory + '/db')    
+            
             url = 'sqlite:///{DB}/db/pnnl_lowres_gcms_compounds.sqlite'.format(DB=directory)
 
         return create_engine(url, poolclass=QueuePool)

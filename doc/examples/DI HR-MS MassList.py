@@ -29,15 +29,13 @@ from corems.encapsulation.constant import Atoms
 from corems.encapsulation.factory.parameters import MSParameters
 
 
-
-
 def run_bruker(file_location):
 
     with ReadBrukerSolarix(file_location) as transient:
 
         MSParameters.mass_spectrum.threshold_method = 'auto'
         MSParameters.mass_spectrum.s2n_threshold = 6
-        
+
         mass_spectrum = transient.get_mass_spectrum(plot_result=False, auto_process=True)
         #mass_spectrum.plot_profile_and_noise_threshold()
         #plt.show()
@@ -142,7 +140,7 @@ def set_parameters(mass_spectrum, field_strength=12, pos=False):
         mass_spectrum.molecular_search_settings.min_ppm_error = -0.5
         mass_spectrum.molecular_search_settings.max_ppm_error = 0.5
 
-    # mass_spectrum.molecular_search_settings.url_database = "postgres://coremsdb:coremsmolform@localhost:5432/molformula"
+    mass_spectrum.molecular_search_settings.url_database = None
     mass_spectrum.molecular_search_settings.min_dbe = 0
     mass_spectrum.molecular_search_settings.max_dbe = 40
 
@@ -180,6 +178,7 @@ def run_assignment(file_location, field_strength=12):
     mass_spectrum.filter_by_max_resolving_power(field_strength, transient_time)
 
     SearchMolecularFormulas(mass_spectrum, first_hit=False).run_worker_mass_spectrum()
+
     mass_spectrum.percentile_assigned(report_error=True)
     mass_spectrum.molecular_search_settings.score_method = "prob_score"
     mass_spectrum.molecular_search_settings.output_score_method = "prob_score"
@@ -191,7 +190,12 @@ def run_assignment(file_location, field_strength=12):
     # mass_spectrum_by_classes.plot_ms_assigned_unassigned()
     # mass_spectrum_by_classes.plot_mz_error()
 
-    plt.show()
+    # mass_spectrum_by_classes.plot_ms_assigned_unassigned()
+    # plt.show()
+    # mass_spectrum_by_classes.plot_mz_error()
+    # plt.show()
+    # mass_spectrum_by_classes.plot_ms_class()
+    # plt.show()
     # dataframe = mass_spectrum_by_classes.to_dataframe()
     # return (mass_spectrum, mass_spectrum_by_classes)
 
@@ -231,14 +235,14 @@ def export_calc_isotopologues(mass_spectrum, out_filename):
                     for imf in m_formula.expected_isotopologues:
 
                         formula_dict = imf.to_dict()
-                        dict_result = {"Mono Isotopic Index": index,
-                                       "Calculated m/z": imf.mz_calc,
-                                       "Calculated Peak Height": imf.abundance_calc,
-                                       'Heteroatom Class': imf.class_label,
-                                       'H/C': imf.H_C,
-                                       'O/C': imf.O_C,
-                                       'Ion Type': imf.ion_type.lower(),
-                                       }
+                        dict_result = { "Mono Isotopic Index": index,
+                                        "Calculated m/z": imf.mz_calc,
+                                        "Calculated Peak Height": imf.abundance_calc,
+                                        'Heteroatom Class': imf.class_label,
+                                        'H/C': imf.H_C,
+                                        'O/C': imf.O_C,
+                                        'Ion Type': imf.ion_type.lower(),
+                                        }
 
                         for atom in atoms_order_list:
                             if atom in formula_dict.keys():
@@ -251,7 +255,7 @@ def export_calc_isotopologues(mass_spectrum, out_filename):
 
 def monitor(target):
 
-    import psutil, time
+    import psutil, time 
 
     worker_process = Process(target=target)
     worker_process.start()
@@ -270,7 +274,7 @@ def worker(file_location):
 
     cProfile.runctx('run_assignment(file_location)', globals(), locals(), 'di-fticr-di.prof')
     # stats = pstats.Stats("topics.prof")
-    # stats.strip_dirs().sort_stats("time").print_stats()
+    # stats.strip_dirs().sort_stats("time").print_stats() 
 
 def run_multiprocess():
 

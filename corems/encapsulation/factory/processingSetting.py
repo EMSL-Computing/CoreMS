@@ -9,19 +9,19 @@ from corems.encapsulation.constant import Atoms, Labels
 
 @dataclasses.dataclass
 class TransientSetting:
-    
+
     implemented_apodization_function: tuple = ('Hamming', 'Hanning', 'Blackman')
     apodization_method: str = 'Hanning'
     number_of_truncations: int = 0
     number_of_zero_fills: int = 1
-    
+
     def __post_init__(self):
-        
+
         # enforce datatype
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
             if not isinstance(value, field.type):
-                
+
                 value = field.type(value)
                 setattr(self, field.name, value)
 
@@ -35,18 +35,18 @@ class DataInputSetting:
     def __post_init__(self):
 
         self.header_translate = {'m/z': Labels.mz, 
-                                 "mOz": Labels.mz,
-                                 "Mass": Labels.mz,
-                                 "Resolving Power": "Resolving Power",
-                                 "Res.": Labels.rp,
-                                 "Intensity": Labels.abundance,
-                                 "I": Labels.abundance,
-                                 "Abundance": Labels.abundance,
-                                 "Signal/Noise": Labels.s2n,
-                                 "S/N": Labels.s2n,
-                                 "abs_abu": Labels.abundance,
-                                 "sn": Labels.s2n,
-                                 "resolution": Labels.rp}
+                                 'mOz': Labels.mz,
+                                 'Mass': Labels.mz,
+                                 'Resolving Power': 'Resolving Power',
+                                 'Res.': Labels.rp,
+                                 'Intensity': Labels.abundance,
+                                 'I': Labels.abundance,
+                                 'Abundance': Labels.abundance,
+                                 'Signal/Noise': Labels.s2n,
+                                 'S/N': Labels.s2n,
+                                 'abs_abu': Labels.abundance,
+                                 'sn': Labels.s2n,
+                                 'resolution': Labels.rp}
 
     def add_mz_label(self, label):
 
@@ -130,7 +130,7 @@ class MassSpecPeakSetting:
 
         # default to CH2
         if not self.kendrick_base:
-            self.kendrick_base = {'C': 1, 'H':2}
+            self.kendrick_base = {'C': 1, 'H': 2}
         # enforce datatype
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
@@ -142,7 +142,7 @@ class MassSpecPeakSetting:
 @dataclasses.dataclass
 class GasChromatographSetting:
 
-    use_deconvolution: bool = True
+    use_deconvolution: bool = False
 
     implemented_smooth_method: tuple = ('savgol', 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar')
 
@@ -187,15 +187,15 @@ class GasChromatographSetting:
 @dataclasses.dataclass
 class CompoundSearchSettings:
 
-    url_database: str = "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/lowres" #'postgresql://postgres:labthomson0102@172.22.113.27:5432/GCMS' # 'sqlite:///db/pnnl_lowres_gcms_compounds.sqlite'
+    url_database: str = "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/lowres" # 'postgresql://postgres:labthomson0102@172.22.113.27:5432/GCMS' # 'sqlite:///db/pnnl_lowres_gcms_compounds.sqlite'
 
     ri_search_range: float = 35
 
     rt_search_range: float = 1.0  # used for retention index calibration
 
-    correlation_threshold: float = 0.5  # used for calibration, spectral similarity
+    correlation_threshold: float = 0.5  # used for calibration, spectral similarity 
 
-    score_threshold: float = 0.3
+    score_threshold: float = 0.0
 
     ri_spacing: float = 200
 
@@ -212,7 +212,7 @@ class CompoundSearchSettings:
 
     def __post_init__(self):
         # enforce datatype
-        # self.url_database = os.getenv("SPECTRAL_GCMS_DATABASE_URL", 'sqlite:///db/pnnl_lowres_gcms_compounds.sqlite')
+        self.url_database = os.getenv('SPECTRAL_GCMS_DATABASE_URL', 'sqlite:///db/pnnl_lowres_gcms_compounds.sqlite')
 
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
@@ -304,7 +304,7 @@ class MolecularLookupDictSettings:
                                    'F': 1,
                                    'K': 0,
                                    }
-        
+
 @dataclasses.dataclass
 class MolecularFormulaSearchSettings:
 
@@ -320,7 +320,7 @@ class MolecularFormulaSearchSettings:
 
     min_peaks_per_class: int = 15
 
-    url_database: str = "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
+    url_database: str = 'postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp'
 
     db_jobs: int = 3
 
@@ -355,7 +355,7 @@ class MolecularFormulaSearchSettings:
 
     score_method: str = 'prob_score'
 
-    output_score_method: str = "All Candidates"
+    output_score_method: str = 'All Candidates'
 
     # depending on the polarity mode it looks for [M].+ , [M].-
     # query and automatically compile add entry if it doesn't exist
@@ -377,14 +377,14 @@ class MolecularFormulaSearchSettings:
     # empirically set / needs optimization
     min_ppm_error: float = -10.0  # ppm
 
-    # empirically set / needs optimization    
+    # empirically set / needs optimization
     max_ppm_error: float = 10.0  # ppm
 
     # empirically set / needs optimization set for isotopologue search
-    min_abun_error: float = -100.0  # percentage 
+    min_abun_error: float = -100.0  # percentage
 
     # empirically set / needs optimization set for isotopologue search
-    max_abun_error: float = 100.0  # percentage 
+    max_abun_error: float = 100.0  # percentage
 
     # empirically set / needs optimization
     mz_error_range: float = 1.5
@@ -399,8 +399,7 @@ class MolecularFormulaSearchSettings:
 
     def __post_init__(self):
 
-        self.url_database = os.getenv("COREMS_DATABASE_URL", "sqlite:///db/molformula.db")
-
+        self.url_database = os.getenv('COREMS_DATABASE_URL', 'sqlite:///db/molformula.db')
         # enforce datatype
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
@@ -411,9 +410,9 @@ class MolecularFormulaSearchSettings:
 
         # enforce C and H if either do not exists
         if 'C' not in self.usedAtoms.keys():
-            self.usedAtoms["C"] = (1, 100)
+            self.usedAtoms['C'] = (1, 100)
         if 'H' not in self.usedAtoms.keys():
-            self.usedAtoms["H"] = (1, 200)
+            self.usedAtoms['H'] = (1, 200)
 
         # add cummon values
         current_used_atoms = self.used_atom_valences.keys()
@@ -432,7 +431,8 @@ class MolecularFormulaSearchSettings:
                                         'F': 1,
                                         'K': 1,
                                         })
-        '''                    
-if __name__ == "__main__":
+        '''
+
+if __name__ == '__main__':
     a = DataInputSetting()
     print(a.__dict__)

@@ -81,7 +81,7 @@ class ReadHDF_BoosterMassSpectra(Thread):
         
         for scan_number in self.list_scans:
             
-            d_params["rt"] =  list_rt.append(self.get_attr_data(scan_number, 'r_h_start_time'))
+            d_params["rt"] = list_rt.append(self.get_attr_data(scan_number, 'r_h_start_time'))
 
             d_params["scan_number"] = scan_number
 

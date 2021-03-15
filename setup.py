@@ -27,8 +27,8 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Development Status :: 4 - Beta"
     ],
-    
-    
+
+
     package_data={'external': ['disclaimer.txt'], '': ['ext_lib/*']},
     packages=find_packages(),
     exclude_package_data={'.': ["tests", "*.win_only"]},

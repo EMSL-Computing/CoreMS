@@ -48,16 +48,9 @@ class ReadCoremsMasslist(MassListBaseClass):
             mz_exp_df = dataframe[Labels.mz].astype(float)
             # formula_df = dataframe.loc[:, 'C':].fillna(0)
             # \.replace({b'nan':0})
-
-            try:
-
-                formula_df = dataframe[dataframe.columns.intersection(Atoms.atoms_order)].replace({b'nan': 0})
-
-            except:
-
-                formula_df = dataframe[dataframe.columns.intersection(Atoms.atoms_order)].fillna(0)
-
+            formula_df = dataframe[dataframe.columns.intersection(Atoms.atoms_order)]
             formula_df.fillna(0, inplace=True)
+            formula_df.replace(b'nan', 0, inplace=True)
 
             ion_type_df = dataframe["Ion Type"]
             ion_charge_df = dataframe["Ion Charge"]
@@ -73,12 +66,11 @@ class ReadCoremsMasslist(MassListBaseClass):
 
             if 'Is Isotopologue' in dataframe:
 
-                print('OK')
-                print(formula_df)
                 atoms = list(formula_df.columns.astype(str))
                 counts = list(formula_df.iloc[df_index].astype(int))
-                formula_list = [sub[item] for item in range(len(atoms)) 
-                                for sub in [atoms, counts]] 
+
+                formula_list = [sub[item] for item in range(len(atoms))
+                                for sub in [atoms, counts]]
             if sum(counts) > 0:
 
                 ion_type = str(Labels.ion_type_translate.get(ion_type_df[df_index]))
@@ -105,7 +97,7 @@ class ReadMassList(MassListBaseClass):
         polarity: int 
             +1 or -1 
         '''
-        #delimiter = "  " or " " or  "," or "\t" etc  
+        # delimiter = "  " or " " or  "," or "\t" etc  
         
         if self.isCentroid:
 

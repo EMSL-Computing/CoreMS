@@ -35,7 +35,11 @@ cache:
   paths:
     - .cache/pip
 
-
+before_script:
+  - export http_proxy=http://proxy01.pnl.gov:3128
+  - export https_proxy=http://proxy01.pnl.gov:3128
+  - export no_proxy=localhost,127.0.0.1,*.pnl.gov,*.pnnl.gov,10.17.128.1,10.17,10.16,172.26
+  
 stages:
   - Pytest
   - Build Python Package
@@ -47,10 +51,10 @@ test-source:
   
   stage: Pytest
   tags:
-    - corems
     - k8s 
     - rzr
-    - builds
+    - codebuilds
+    
     
   script:
     
@@ -70,10 +74,9 @@ build:
   
   stage: Build Python Package
   tags:
-    - corems
     - k8s 
     - rzr
-    - builds
+    - codebuilds
     
   script:
     
@@ -105,10 +108,9 @@ deployment:
   
   stage: Push to Gitlab Registry
   tags:
-    - corems
     - k8s 
     - rzr
-    - builds
+    - codebuilds
 
   image:
     

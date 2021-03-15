@@ -56,7 +56,7 @@ class LowResGCMSExport():
                             'Stein Scott Similarity',
                             'Pearson Correlation',
                             'Spearman Correlation',
-                            'Kendall Tau Correlation', 
+                            'Kendall Tau Correlation',
                             'Euclidean Distance',
                             'Manhattan Distance',
                             'Jaccard Distance',
@@ -318,6 +318,9 @@ class LowResGCMSExport():
 
     def get_data_metadata(self, gcms, id_label, output_path):
 
+        if isinstance(output_path, str):
+            output_path = Path(output_path)
+
         paramaters_path = output_path.with_suffix('.json')
 
         if paramaters_path.exists():
@@ -365,7 +368,7 @@ class LowResGCMSExport():
 
             outfile.write(output)
 
-    def get_list_dict_data(self, gcms, include_no_match=True, no_match_inline=False) :
+    def get_list_dict_data(self, gcms, include_no_match=True, no_match_inline=False):
 
         output_score_method = gcms.molecular_search_settings.output_score_method
 
@@ -413,7 +416,6 @@ class LowResGCMSExport():
                     'Manhattan Distance': compound_obj.spectral_similarity_scores.get("manhattan_distance"),
                     'Jaccard Distance': compound_obj.spectral_similarity_scores.get("jaccard_distance")
                 })
-
                 for method in methods_name:
 
                     out_dict[methods_name.get(method)] = compound_obj.spectral_similarity_scores.get(method)

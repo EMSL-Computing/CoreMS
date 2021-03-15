@@ -35,7 +35,10 @@ class LowResMassSpectralMatch(Thread):
         if self.gcms_obj.molecular_search_settings.exploratory_mode:
             
             spectral_similarity_scores["weighted_cosine_correlation"] = spectral_simi.weighted_cosine_correlation()
-            spectral_similarity_scores["stein_scott_similarity"] = spectral_simi.stein_scott()
+            ss, ss_nist =  spectral_simi.stein_scott()
+            spectral_similarity_scores["stein_scott_similarity"] = ss
+            spectral_similarity_scores["stein_scott_similarity_nist"] = ss_nist
+            
             spectral_similarity_scores["pearson_correlation"] = spectral_simi.pearson_correlation()
             spectral_similarity_scores["spearman_correlation"] = spectral_simi.spearman_correlation()
             spectral_similarity_scores["kendall_tau_correlation"] = spectral_simi.kendall_tau()
@@ -45,6 +48,7 @@ class LowResMassSpectralMatch(Thread):
             spectral_similarity_scores["dft_correlation"] = spectral_simi.dft_correlation()
             spectral_similarity_scores["dwt_correlation"] = spectral_simi.dwt_correlation()
             spectral_similarity_scores.update(spectral_simi.extra_distances())
+            #print(spectral_similarity_scores)
         #print(ref_obj.get('ri'), gc_peak.ri, self.gcms_obj.molecular_search_settings.ri_window)
 
         ri_score = exp( -1*(power((gc_peak.ri - ref_obj.get('ri')), 2 )  / (2 * power(self.gcms_obj.molecular_search_settings.ri_std, 2)) ))
@@ -117,13 +121,13 @@ class LowResMassSpectralMatch(Thread):
 
                     # m/q developed methods will be implemented here
                     spectral_similarity_scores, ri_score, similarity_score = self.metabolite_detector_score(gc_peak, ref_obj, spectral_simi)   
-                    
+
                     #TODO need to add similarity score option in the parameters encapsulation class
-                    
+
                     if similarity_score >= self.gcms_obj.molecular_search_settings.score_threshold:
-                        
+
                         gc_peak.add_compound(ref_obj, spectral_similarity_scores, ri_score, similarity_score)
-                
-            
+
+
         self.sql_obj.session.close()
         self.sql_obj.engine.dispose()

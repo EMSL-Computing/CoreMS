@@ -375,7 +375,7 @@ class MassDeconvolution:
                     smoothed_tic = self.smooth_signal(peak_tic)
 
                     include_indexes = sp.peak_picking_first_derivative(peak_rt, smoothed_tic, max_height, max_prominence, max_signal, min_peak_datapoints,
-                                                                       signal_threshold=signal_threshold,  correct_baseline=False, plot_res=False)
+                                                                       signal_threshold=signal_threshold, correct_baseline=False, plot_res=False)
 
                     include_indexes = list(include_indexes)
 
@@ -418,9 +418,9 @@ class MassDeconvolution:
 
                 smoothed_tic = self.smooth_signal(peak_tic)
 
-                include_indexes = sp.peak_picking_first_derivative(peak_rt, smoothed_tic,  max_height, max_prominence, max_signal, min_peak_datapoints,
-                                                                            signal_threshold=signal_threshold,  correct_baseline=False, plot_res=False)
-                include_indexes = list(include_indexes)   
+                include_indexes = sp.peak_picking_first_derivative(peak_rt, smoothed_tic, max_height, max_prominence, max_signal, min_peak_datapoints,
+                                                                   signal_threshold=signal_threshold, correct_baseline=False, plot_res=False)
+                include_indexes = list(include_indexes)
 
                 if include_indexes:
 
