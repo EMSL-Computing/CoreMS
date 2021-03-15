@@ -50,10 +50,10 @@ test-source:
   
   stage: Pytest
   tags:
-    - corems
     - k8s 
     - rzr
-    - builds
+    - codebuilds
+    
     
   script:
     
@@ -73,10 +73,9 @@ build:
   
   stage: Build Python Package
   tags:
-    - corems
     - k8s 
     - rzr
-    - builds
+    - codebuilds
     
   script:
     
@@ -108,10 +107,9 @@ deployment:
   
   stage: Push to Gitlab Registry
   tags:
-    - corems
     - k8s 
     - rzr
-    - builds
+    - codebuilds
 
   image:
     
