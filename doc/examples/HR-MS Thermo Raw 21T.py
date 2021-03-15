@@ -26,6 +26,10 @@ def run_thermo(file_location):
 
     parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
 
+    transient_time_list = parser.get_icr_transient_times()
+
+    print(transient_time_list)
+
     # sums all the mass spectra
     mass_spectrum = parser.get_average_mass_spectrum_in_scan_range()
 
@@ -81,7 +85,7 @@ def run_assignment(file_location):
     plt.show()
     mass_spectrum_by_classes.plot_mz_error()
     plt.show()
-    mass_spectrum_by_classes.plot_ms_class()
+    mass_spectrum_by_classes.plot_ms_class("O2")
     plt.show()
     # dataframe = mass_spectrum_by_classes.to_dataframe()
     return mass_spectrum
