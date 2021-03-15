@@ -12,6 +12,7 @@ from multiprocessing import Pool, Process
 from pandas import DataFrame
 from matplotlib import pyplot as plt
 
+from corems.mass_spectra.input import rawFileReader
 from corems.mass_spectrum.input.massList import ReadMassList
 from corems.molecular_id.factory.classification import HeteroatomsClassification, Labels
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
@@ -21,6 +22,29 @@ from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
 from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration
 from corems.encapsulation.constant import Atoms
+from corems.encapsulation.factory.parameters import MSParameters
+
+def run_thermo(file_location):
+
+    MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
+    MSParameters.mass_spectrum.relative_abundance_threshold = 1
+
+    MSParameters.mass_spectrum.threshold_method = 'auto'
+    MSParameters.mass_spectrum.s2n_threshold = 6
+
+    parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
+
+    # sums all the mass spectra
+    mass_spectrum = parser.get_average_mass_spectrum_in_scan_range()
+
+    # sums scans in selected range
+    mass_spectrum = parser.get_average_mass_spectrum_in_scan_range(first_scan=1, last_scan=5)
+
+    scans_list = [1, 4, 6, 9]
+    # sums scans in selected range
+    mass_spectrum = parser.get_average_mass_spectrum_by_scanlist(scans_list)
+
+    return mass_spectrum
 
 def run_bruker(file_location):
 
@@ -46,31 +70,34 @@ def get_masslist(file_location):
 def run_assignment(file_location):
 
     # mass_spectrum = run_bruker(file_location)
-    mass_spectrum = get_masslist(file_location)
+    # mass_spectrum = get_masslist(file_location)
+    mass_spectrum = run_thermo(file_location)
 
     mass_spectrum.molecular_search_settings.error_method = 'None'
     mass_spectrum.molecular_search_settings.min_ppm_error = -5
     mass_spectrum.molecular_search_settings.max_ppm_error = 5
 
-    # mass_spectrum.molecular_search_settings.url_database = "postgres://coremsdb:coremsmolform@localhost:5432/molformula"
+    mass_spectrum.molecular_search_settings.url_database = None
     mass_spectrum.molecular_search_settings.min_dbe = 0
     mass_spectrum.molecular_search_settings.max_dbe = 50
 
     mass_spectrum.molecular_search_settings.usedAtoms['C'] = (1, 100)
     mass_spectrum.molecular_search_settings.usedAtoms['H'] = (4, 200)
-    mass_spectrum.molecular_search_settings.usedAtoms['O'] = (1, 22)
+    mass_spectrum.molecular_search_settings.usedAtoms['O'] = (1, 30)
     mass_spectrum.molecular_search_settings.usedAtoms['N'] = (0, 0)
     mass_spectrum.molecular_search_settings.usedAtoms['S'] = (0, 0)
     mass_spectrum.molecular_search_settings.usedAtoms['Cl'] = (0, 0)
     mass_spectrum.molecular_search_settings.usedAtoms['Br'] = (0, 0)
     mass_spectrum.molecular_search_settings.usedAtoms['P'] = (0, 0)
     mass_spectrum.molecular_search_settings.usedAtoms['Na'] = (0, 0)
+
     mass_spectrum.molecular_search_settings.isProtonated = True
     mass_spectrum.molecular_search_settings.isRadical = False
     mass_spectrum.molecular_search_settings.isAdduct = False
 
     # mass_spectrum.filter_by_max_resolving_power(15, 2)
     SearchMolecularFormulas(mass_spectrum, first_hit=False).run_worker_mass_spectrum()
+
     mass_spectrum.percentile_assigned(report_error=True)
     mass_spectrum.molecular_search_settings.score_method = "prob_score"
     mass_spectrum.molecular_search_settings.output_score_method = "prob_score"
@@ -80,30 +107,33 @@ def run_assignment(file_location):
     # export_calc_isotopologues(mass_spectrum, "15T_Neg_ESI_SRFA_Calc_Isotopologues")
 
     mass_spectrum_by_classes = HeteroatomsClassification(mass_spectrum, choose_molecular_formula=True)
-    # mass_spectrum_by_classes.plot_ms_assigned_unassigned()
-    mass_spectrum_by_classes.plot_mz_error()
 
+    mass_spectrum_by_classes.plot_ms_assigned_unassigned()
+    plt.show()
+    mass_spectrum_by_classes.plot_mz_error()
+    plt.show()
+    mass_spectrum_by_classes.plot_ms_class()
     plt.show()
     # dataframe = mass_spectrum_by_classes.to_dataframe()
-    return (mass_spectrum, mass_spectrum_by_classes)
+    # return (mass_spectrum, mass_spectrum_by_classes)
 
     # class_plot(dataframe)
 
 def get_all_used_atoms_in_order(mass_spectrum):
 
-        atoms_in_order = Atoms.atoms_order
-        all_used_atoms = set()
-        if mass_spectrum:
-            for ms_peak in mass_spectrum:
-                if ms_peak:
-                    for m_formula in ms_peak:
-                        for atom in m_formula.atoms:
-                            all_used_atoms.add(atom)
+    atoms_in_order = Atoms.atoms_order
+    all_used_atoms = set()
+    if mass_spectrum:
+        for ms_peak in mass_spectrum:
+            if ms_peak:
+                for m_formula in ms_peak:
+                    for atom in m_formula.atoms:
+                        all_used_atoms.add(atom)
 
-        def sort_method(atom):
-            return [atoms_in_order.index(atom)]
+    def sort_method(atom):
+        return [atoms_in_order.index(atom)]
 
-        return sorted(all_used_atoms, key=sort_method)
+    return sorted(all_used_atoms, key=sort_method)
 
 def export_calc_isotopologues(mass_spectrum, out_filename):
 

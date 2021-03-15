@@ -7,8 +7,8 @@ sys.path.append("./")
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-#from PySide2.QtWidgets import QFileDialog, QApplication
-#from PySide2.QtCore import Qt
+# from PySide2.QtWidgets import QFileDialog, QApplication
+# from PySide2.QtCore import Qt
 
 from corems.mass_spectra.input import rawFileReader
 from corems.molecular_id.factory.classification import HeteroatomsClassification, Labels
@@ -84,7 +84,7 @@ def run_assignment(file_location):
     mass_spectrum_by_classes.plot_ms_class()
     plt.show()
     # dataframe = mass_spectrum_by_classes.to_dataframe()
-    # return (mass_spectrum, mass_spectrum_by_classes)
+    return mass_spectrum
 
     # class_plot(dataframe)
 
@@ -109,6 +109,7 @@ if __name__ == "__main__":
     plt.show()
     plt.savefig("test.png")
 
-    run_assignment(mass_spectrum)
+    mass_spectrum = run_assignment(file_location)
+
     mass_spectrum.to_csv("15T_Neg_ESI_SRFA")
     # print("polarity", mass_spectrum.polarity)
