@@ -49,7 +49,7 @@ class ImportMassSpectraThermoMSFileReader():
         if isinstance(file_location, str):
             file_path = Path(file_location)
 
-        if isinstance(file_location, S3Path):
+        elif isinstance(file_location, S3Path):
 
             temp_dir = Path('tmp/')
             temp_dir.mkdir(exist_ok=True)
@@ -57,7 +57,8 @@ class ImportMassSpectraThermoMSFileReader():
             file_path = temp_dir / file_location.name 
             with open(file_path, 'wb') as fh:
                 fh.write(file_location.read_bytes())
-
+        else:
+            file_path = file_location
         self.iRawDataPlus = RawFileReaderAdapter.FileFactory(str(file_path))
 
         #   removing tmp file
