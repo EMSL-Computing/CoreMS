@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/265072913.svg)](https://zenodo.org/badge/latestdoi/265072913)
+
 # Table of Contents  
 - Introduction
   - [CoreMS](#CoreMS)  
@@ -35,7 +37,7 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 
 ## Current Version
 
-### `22.2.0.beta`
+### `1.0.0`
 
 ## Main Developers/Contact 
 - [Yuri. E. Corilo](mailto:corilo@pnnl.gov)  
