@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4641553.svg)](https://doi.org/10.5281/zenodo.4641553)
+
 # Table of Contents  
 - Introduction
   - [CoreMS](#CoreMS)  
