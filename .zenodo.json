@@ -2,7 +2,7 @@
     "description": "CoreMS is a comprehensive mass spectrometry framework for software development and data analysis of small molecules", 
     "license": "other-open", 
     "title": "EMSL-Computing/CoreMS: CoreMS 1.0.1", 
-    "version": "v1.0.1", 
+    "version": "v1.0.0", 
     "upload_type": "software", 
     "publication_date": "2021-03-27", 
     "creators": [
