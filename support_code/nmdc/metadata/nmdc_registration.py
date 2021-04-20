@@ -210,6 +210,17 @@ class NMDC_Metadata:
         self.calibration_file_path = calibration_file_path
         self.out_file_path = Path(out_file_path)
 
+    @staticmethod
+    def get_mds_metadata(dataset_name):
+        username = os.environ.get('USER_NAME') or 'pnnl'
+        password = os.environ.get('USER_PASSWORD') or 'pnnl_password'
+
+        url_request = "https://dms2.pnl.gov/data/ax/json/list_report/dataset/{}".format(dataset_name) 
+        r = requests.get(url_request, auth=(username, password))
+        data = r.json()
+
+        return data
+        
     def save_nmdc_metadata(self,
                            data_obj,
                            nom=False,
