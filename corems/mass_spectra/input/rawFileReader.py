@@ -7,9 +7,6 @@ from pathlib import Path
 from io import BytesIO
 
 import clr
-from threading import Thread
-import multiprocessing
-import numpy
 import pandas as pd
 from s3path import S3Path
 from tqdm import tqdm
