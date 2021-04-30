@@ -30,8 +30,8 @@ class HeteroAtoms(Base):
     __tablename__ = 'heteroAtoms'
     
     id = Column(Integer, primary_key=True,
-                        unique=True,
-                        nullable=False)
+                         unique = True,
+                         nullable = False)
 
     name = Column(String, unique=True,  nullable=False)
     
@@ -85,36 +85,37 @@ class CarbonHydrogen(Base):
 
     @hybrid_property
     def dbe(cls):
+        #return cls.C.cast(Float) - (cls.H.cast(Float) / 2) + 1
         return float(cls.C) - float(cls.H/2) + 1
 
-# 264888.88 ms
+#264888.88 ms
 class MolecularFormulaLink(Base):
-
+    
     __tablename__ = 'molecularformula'
-    __table_args__ = (UniqueConstraint('heteroAtoms_id', 'carbonHydrogen_id', name='unique_molform'), )
-
-    # id = Column(Integer, primary_key=True,
+    __table_args__ = ( UniqueConstraint('heteroAtoms_id', 'carbonHydrogen_id', name='unique_molform'), )
+    
+    #id = Column(Integer, primary_key=True,
     #                    unique=True,
     #                    nullable=False)
 
     heteroAtoms_id = Column(
-        Integer,
-        ForeignKey('heteroAtoms.id'),
+        Integer, 
+        ForeignKey('heteroAtoms.id'), 
         primary_key=True)
 
     carbonHydrogen_id = Column(
-        Integer,
-        ForeignKey('carbonHydrogen.id'),
+        Integer, 
+        ForeignKey('carbonHydrogen.id'), 
         primary_key=True)
-
+    
     mass = Column(Float)
-
+    
     DBE = Column(Float)
-
+    
     carbonHydrogen = relationship(CarbonHydrogen, backref=backref("heteroAtoms_assoc"))
-
+    
     heteroAtoms = relationship(HeteroAtoms, backref=backref("carbonHydrogen_assoc"))
-
+    
     C = association_proxy('carbonHydrogen', 'C')
 
     H = association_proxy('carbonHydrogen', 'H')
@@ -123,7 +124,7 @@ class MolecularFormulaLink(Base):
 
     @property
     def formula_dict(self):
-
+        
         carbon = {'C': self.C, 'H': self.H}
         classe = json.loads(self.classe)
         if self.classe == '{"HC": ""}':
@@ -185,7 +186,7 @@ class MolForm_SQL:
         self.session.close()
         self.engine.dispose()
 
-    def initiate_database(self, url, database_name): #CREATION
+    def initiate_database(self, url, database_name):  #CREATION
         
         engine = sqlalchemy.create_engine(database_url)
         conn = engine.connect()
