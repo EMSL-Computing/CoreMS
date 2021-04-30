@@ -9,15 +9,17 @@
   - [Data Output](#data-output-formats)  
   - [Data Structure](#data-structure-types)  
   - [Features](#available-features)  
-  - [Overview Slides](doc/CoreMS-Overview.pdf)
+  - [Overview Slides](examples/CoreMS-Overview.pdf)
+  - [Framework Documentation](https://emsl-computing.github.io/CoreMS/)
 - Installation  
   - [Installation](#corems-installation)  
   - [Thermo Raw File on Mac and Linux](#thermo-raw-file-access)  
 - Execution:     
   - [Jupyter Notebook and Docker containers](#molecular-database-and-jupyter-notebook-containers)  
   - [Simple Example](#simple-script-example)  
-  - [Python Examples](doc/examples)
-  - [Jupyter Notebook Examples](doc/notebooks)  
+  - [Python Examples](examples/examples)
+  - [Jupyter Notebook Examples](examples/notebooks)  
+  
 
 - Sibling Projects:     
     - [EnviroMS](https://github.com/EMSL-Computing/EnviroMS)  

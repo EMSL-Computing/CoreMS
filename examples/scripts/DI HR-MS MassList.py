@@ -37,8 +37,8 @@ def run_bruker(file_location):
         MSParameters.mass_spectrum.s2n_threshold = 6
 
         mass_spectrum = transient.get_mass_spectrum(plot_result=False, auto_process=True)
-        #mass_spectrum.plot_profile_and_noise_threshold()
-        #plt.show()
+        # mass_spectrum.plot_profile_and_noise_threshold()
+        # plt.show()
         # find_formula_thread = FindOxygenPeaks(mass_spectrum)
         # find_formula_thread.run()
 
@@ -57,7 +57,7 @@ def run_thermo(file_location):
 
     parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
 
-    #mass_spectrum = transient.get_mass_spectrum(plot_result=False, auto_process=True)
+    # mass_spectrum = transient.get_mass_spectrum(plot_result=False, auto_process=True)
 
     mass_spectrum = parser.get_average_mass_spectrum_in_scan_range()
 
@@ -67,45 +67,42 @@ def get_masslist(file_location):
 
     return(ReadMassList(file_location).get_mass_spectrum(polarity=-1))
 
-def calspec(msobj,refmasslist,order=2):
-    
+def calspec(msobj, refmasslist, order=2):
+
     calfn = MzDomainCalibration(msobj, refmasslist)
     ref_mass_list_fmt = calfn.load_ref_mass_list(refmasslist)
-    
-    imzmeas, mzrefs = calfn.find_calibration_points(msobj,ref_mass_list_fmt,
-                                  calib_ppm_error_threshold=(-1.0,1.0),
-                                  calib_snr_threshold=4)
 
-    
-    if len(mzrefs)<5:
-            imzmeas, mzrefs = calfn.find_calibration_points(msobj,ref_mass_list_fmt,
-                                  calib_ppm_error_threshold=(-1.5,1.5),
-                                  calib_snr_threshold=4)
-    
+    imzmeas, mzrefs = calfn.find_calibration_points(msobj, ref_mass_list_fmt,
+                                                    calib_ppm_error_threshold=(-1.0, 1.0),
+                                                    calib_snr_threshold=4)
 
-    if len(mzrefs)<5:
-            imzmeas, mzrefs = calfn.find_calibration_points(msobj,ref_mass_list_fmt,
-                                  calib_ppm_error_threshold=(-3,3),
-                                  calib_snr_threshold=4)
-    
-    if len(mzrefs)<5:
-            imzmeas, mzrefs = calfn.find_calibration_points(msobj,ref_mass_list_fmt,
-                                  calib_ppm_error_threshold=(-5,5),
-                                  calib_snr_threshold=4)    
-    
-    if len(mzrefs)<5:
-            
-            imzmeas, mzrefs = calfn.find_calibration_points(msobj,ref_mass_list_fmt,
-                                  calib_ppm_error_threshold=(-7,7),
-                                  calib_snr_threshold=4) 
+    if len(mzrefs) < 5:
+        imzmeas, mzrefs = calfn.find_calibration_points(msobj, ref_mass_list_fmt,
+                                                        calib_ppm_error_threshold=(-1.5, 1.5),
+                                                        calib_snr_threshold=4)
 
-    if len(mzrefs)<5:
-            
-            imzmeas, mzrefs = calfn.find_calibration_points(msobj,ref_mass_list_fmt,
-                                  calib_ppm_error_threshold=(-10,10),
-                                  calib_snr_threshold=4)
+    if len(mzrefs) < 5:
+        imzmeas, mzrefs = calfn.find_calibration_points(msobj, ref_mass_list_fmt,
+                                                        calib_ppm_error_threshold=(-3, 3),
+                                                        calib_snr_threshold=4)
 
-    calfn.recalibrate_mass_spectrum(msobj, imzmeas, mzrefs,order=order)
+    if len(mzrefs) < 5:
+        imzmeas, mzrefs = calfn.find_calibration_points(msobj, ref_mass_list_fmt,
+                                                        calib_ppm_error_threshold=(-5, 5),
+                                                        calib_snr_threshold=4)
+
+    if len(mzrefs) < 5:
+        imzmeas, mzrefs = calfn.find_calibration_points(msobj, ref_mass_list_fmt,
+                                                        calib_ppm_error_threshold=(-7, 7),
+                                                        calib_snr_threshold=4)
+
+    if len(mzrefs) < 5:
+
+        imzmeas, mzrefs = calfn.find_calibration_points(msobj, ref_mass_list_fmt,
+                                                        calib_ppm_error_threshold=(-10, 10),
+                                                        calib_snr_threshold=4)
+
+    calfn.recalibrate_mass_spectrum(msobj, imzmeas, mzrefs, order=order)
 
 def set_parameters(mass_spectrum, field_strength=12, pos=False):
 
@@ -219,7 +216,7 @@ def get_all_used_atoms_in_order(mass_spectrum):
 
 def export_calc_isotopologues(mass_spectrum, out_filename):
 
-    columns_label = ["Mono Isotopic Index", "Calculated m/z", "Calculated Peak Height", 'Heteroatom Class', "Molecular Formula" ]
+    columns_label = ["Mono Isotopic Index", "Calculated m/z", "Calculated Peak Height", 'Heteroatom Class', "Molecular Formula"]
 
     atoms_order_list = get_all_used_atoms_in_order(mass_spectrum)
 
@@ -235,14 +232,14 @@ def export_calc_isotopologues(mass_spectrum, out_filename):
                     for imf in m_formula.expected_isotopologues:
 
                         formula_dict = imf.to_dict()
-                        dict_result = { "Mono Isotopic Index": index,
-                                        "Calculated m/z": imf.mz_calc,
-                                        "Calculated Peak Height": imf.abundance_calc,
-                                        'Heteroatom Class': imf.class_label,
-                                        'H/C': imf.H_C,
-                                        'O/C': imf.O_C,
-                                        'Ion Type': imf.ion_type.lower(),
-                                        }
+                        dict_result = {"Mono Isotopic Index": index,
+                                       "Calculated m/z": imf.mz_calc,
+                                       "Calculated Peak Height": imf.abundance_calc,
+                                       'Heteroatom Class': imf.class_label,
+                                       'H/C': imf.H_C,
+                                       'O/C': imf.O_C,
+                                       'Ion Type': imf.ion_type.lower(),
+                                       }
 
                         for atom in atoms_order_list:
                             if atom in formula_dict.keys():
@@ -255,7 +252,8 @@ def export_calc_isotopologues(mass_spectrum, out_filename):
 
 def monitor(target):
 
-    import psutil, time 
+    import psutil
+    import time
 
     worker_process = Process(target=target)
     worker_process.start()
