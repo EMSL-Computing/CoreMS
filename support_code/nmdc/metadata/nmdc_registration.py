@@ -212,6 +212,34 @@ class NMDC_Metadata:
 
     @staticmethod
     def get_mds_metadata(dataset_name):
+        ''' data: [{'#Row': '1', 
+                    'ID': 906829,
+                    'Dataset': 'ABF_Rt_43016_RNAi_48h_14152_R2_47_02_13April21_Romulus_WBEH-21-01-09',
+                    'Experiment': 'ABF_Rt_43016_RNAi_48h_14152_R2_47_02',
+                    'Campaign': 'Agile',
+                    'State': 'Complete',
+                    'Instrument': 'QEHFX03',
+                    'Created': '2021-04-14 17:46:39.200',
+                    'Comment': '',
+                    'Rating': 'Released',
+                    'Dataset Type': 'HMS-HCD-HMSn',
+                    'Operator': 'ATTA556',
+                    'Dataset Folder Path': '\\\\proto-8\\QEHFX03\\2021_2\\ABF_Rt_43016_RNAi_48h_14152_R2_47_02_13April21_Romulus_WBEH-21-01-09',
+                    'QC_Link': 'https://Proto-8.pnl.gov/QEHFX03/2021_2/ABF_Rt_43016_RNAi_48h_14152_R2_47_02_13April21_Romulus_WBEH-21-01-09/QC/index.html',
+                    'Acq Start': '2021-04-14 15:42:45.000',
+                    'Acq. End': '2021-04-14 17:42:45.000',
+                    'Acq Length': 120,
+                    'Scan Count': 61752,
+                    'File Size MB': '1654.73',
+                    'Cart Config': 'Romulus_WatersAQ_Standard_Jan2019',
+                    'LC Column': 'WBEH-21-01-09',
+                    'Separation Type': 'LC-Dionex-Formic_2hr',
+                    'Request': 959190, 
+                    'Work Package': 'XXXX',
+                    'Organism': 'Rhodosporidium_toruloides',
+                    'Tissue': None,
+                    '#DateSortKey': '2021-04-14 15:42:45.000'}] 
+        '''
         username = os.environ.get('USER_NAME') or 'pnnl'
         password = os.environ.get('USER_PASSWORD') or 'pnnl_password'
 
@@ -220,7 +248,7 @@ class NMDC_Metadata:
         data = r.json()
 
         return data
-        
+
     def save_nmdc_metadata(self,
                            data_obj,
                            nom=False,

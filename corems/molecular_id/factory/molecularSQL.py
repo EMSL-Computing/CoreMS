@@ -30,8 +30,8 @@ class HeteroAtoms(Base):
     __tablename__ = 'heteroAtoms'
     
     id = Column(Integer, primary_key=True,
-                        unique=True,
-                        nullable=False)
+                         unique = True,
+                         nullable = False)
 
     name = Column(String, unique=True,  nullable=False)
     
@@ -185,7 +185,7 @@ class MolForm_SQL:
         self.session.close()
         self.engine.dispose()
 
-    def initiate_database(self, url, database_name): #CREATION
+    def initiate_database(self, url, database_name):  #CREATION
         
         engine = sqlalchemy.create_engine(database_url)
         conn = engine.connect()
