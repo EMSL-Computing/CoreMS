@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>corems API documentation</title>
+<meta name="description" content="CoreMS - a powerful framework for mass spectrometry data processing and analysis of small molecules
+…" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Package <code>corems</code></h1>
+</header>
+<section id="section-intro">
+<h1 id="corems-a-powerful-framework-for-mass-spectrometry-data-processing-and-analysis-of-small-molecules">CoreMS - a powerful framework for mass spectrometry data processing and analysis of small molecules</h1>
+<pre><code>Data handling and software development for modern mass spectrometry (MS) is an interdisciplinary endeavor 
+requiring skills in computational science and a deep understanding of MS. To enable scientific software development to 
+keep pace with fast improvements in MS technology, we have developed a Python software framework named CoreMS. 
+The goal of the framework is to provide a fundamental, high-level basis for working with all mass spectrometry 
+data types, allowing custom workflows for data signal processing, annotation, and curation. The data structures were 
+designed with an intuitive, mass spectrometric hierarchical structure, thus allowing organized and easy access to the
+data and calculations. Moreover, CoreMS supports direct access for almost all vendors data formats, allowing for 
+the centralization and automation of all data processing workflows from the raw signal to data annotation and 
+curation.
+</code></pre>
+<h2 id="main-features">Main Features</h2>
+<p>Here are just a few of the things that CoreMS does well:</p>
+<pre><code>Data input formats
+
+- Bruker Solarix CompassXtract
+- Bruker Solarix transients, ser and fid (FT and magnitude mode)
+- ThermoFisher raw file
+- Spectroswiss Signal booster data-acquisition station HFD 5 
+- Midas (.dat) from MagLab ICR data-acquisition station (FT-magnitude mode)
+- Mass list in Profile and Centroid Mode (include all delimiters types and Excel)
+- CoreMS exported processed mass list files (Excel, csv, txt, etc)
+- Panda dataframe, processed or unprocessed
+
+Data output formats
+
+- Text Files (csv, tab separated txt, etc)
+- Microsoft Excel (.xlsx)
+- Hierarchical Data Format (.h5) (&lt;code&gt;TODO&lt;/code&gt;)
+- Pandas data frame (can be saved using pickle, h5, etc)
+
+Data structure type
+
+- GC-MS     (&lt;code&gt;TODO&lt;/code&gt;)
+- LC-MS
+- IMS-MS    (&lt;code&gt;TODO&lt;/code&gt;)
+- LC-IMS-MS (&lt;code&gt;TODO&lt;/code&gt;)
+- Transient
+- Mass Spectra
+- Mass Spectrum
+
+Available features
+
+    Signal Processing
+
+    - Apodization, Zerofilling, and Magnitude mode FT
+    - Manual and automatic noise threshold calculation
+    - Peak picking apex quadratic fitting
+    - Resolving Power calculation
+
+    Calibration
+
+    - Frequency and m/z domain calibration functions:
+    - ledford equation [ref]
+    - linear equation
+    - quadratic equation
+    - Automatic search most abundant **Ox** homologue series
+    - step fit ('walking calibration") based on the ledford equation [ref]
+
+    Molecular formulae search and assignment
+
+    - Automatic local or external database generation
+    - Automatic molecular formulae assignments for ESI(-) MS for natural organic matter analysis
+    - Automatic fine isotopic structure calculation and search
+    - Flexible Kendrick normalization base
+    - Kendrick filter using density-based clustering
+
+    Mass spectrum simulations
+
+    - Peak shape (Lorentz and Gaussian)
+    - m/z error distribution
+    - ICR Resolving Power based on magnetic field (B), and transient time(T)
+</code></pre>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">__author__ = &#39;Yuri E. Corilo&#39;
+__version__ = &#39;1.0.0&#39;
+__doc__ = &#39;&#39;&#39;
+CoreMS - a powerful framework for mass spectrometry data processing and analysis of small molecules
+=====================================================================
+
+    Data handling and software development for modern mass spectrometry (MS) is an interdisciplinary endeavor 
+    requiring skills in computational science and a deep understanding of MS. To enable scientific software development to 
+    keep pace with fast improvements in MS technology, we have developed a Python software framework named CoreMS. 
+    The goal of the framework is to provide a fundamental, high-level basis for working with all mass spectrometry 
+    data types, allowing custom workflows for data signal processing, annotation, and curation. The data structures were 
+    designed with an intuitive, mass spectrometric hierarchical structure, thus allowing organized and easy access to the
+    data and calculations. Moreover, CoreMS supports direct access for almost all vendors data formats, allowing for 
+    the centralization and automation of all data processing workflows from the raw signal to data annotation and 
+    curation. 
+
+Main Features
+-------------
+Here are just a few of the things that CoreMS does well:
+
+    Data input formats
+
+    - Bruker Solarix CompassXtract
+    - Bruker Solarix transients, ser and fid (FT and magnitude mode)
+    - ThermoFisher raw file
+    - Spectroswiss Signal booster data-acquisition station HFD 5 
+    - Midas (.dat) from MagLab ICR data-acquisition station (FT-magnitude mode)
+    - Mass list in Profile and Centroid Mode (include all delimiters types and Excel)
+    - CoreMS exported processed mass list files (Excel, csv, txt, etc)
+    - Panda dataframe, processed or unprocessed
+
+    Data output formats
+
+    - Text Files (csv, tab separated txt, etc)
+    - Microsoft Excel (.xlsx)
+    - Hierarchical Data Format (.h5) (`TODO`)
+    - Pandas data frame (can be saved using pickle, h5, etc)
+
+    Data structure type
+
+    - GC-MS     (`TODO`)
+    - LC-MS
+    - IMS-MS    (`TODO`)
+    - LC-IMS-MS (`TODO`)
+    - Transient
+    - Mass Spectra
+    - Mass Spectrum
+
+    Available features
+
+        Signal Processing
+
+        - Apodization, Zerofilling, and Magnitude mode FT
+        - Manual and automatic noise threshold calculation
+        - Peak picking apex quadratic fitting
+        - Resolving Power calculation
+
+        Calibration
+
+        - Frequency and m/z domain calibration functions:
+        - ledford equation [ref]
+        - linear equation
+        - quadratic equation
+        - Automatic search most abundant **Ox** homologue series
+        - step fit (&#39;walking calibration&#34;) based on the ledford equation [ref]
+
+        Molecular formulae search and assignment
+
+        - Automatic local or external database generation
+        - Automatic molecular formulae assignments for ESI(-) MS for natural organic matter analysis
+        - Automatic fine isotopic structure calculation and search
+        - Flexible Kendrick normalization base
+        - Kendrick filter using density-based clustering
+
+        Mass spectrum simulations
+
+        - Peak shape (Lorentz and Gaussian)
+        - m/z error distribution
+        - ICR Resolving Power based on magnetic field (B), and transient time(T)
+&#39;&#39;&#39;
+import time
+import os
+import sys
+import hashlib
+
+                
+def timeit(method):
+    def timed(*args, **kw):
+        ts = time.time()
+        result = method(*args, **kw)
+        te = time.time()
+        if &#39;log_time&#39; in kw:
+            name = kw.get(&#39;log_name&#39;, method.__name__.upper())
+            kw[&#39;log_time&#39;][name] = int((te - ts) * 1000)
+        else:
+            print( &#34;%r  %2.2f ms&#34; % (method.__name__, (te - ts) * 1000))
+        return result
+    return timed
+
+
+class SuppressPrints:
+    
+    def __enter__(self):
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, &#39;w&#39;)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout.close()
+        sys.stdout = self._original_stdout  
+
+def get_filename(app=None):
+    
+    from PySide2.QtCore import Qt, QCoreApplication
+    from PySide2.QtWidgets import QApplication, QFileDialog 
+    from pathlib import Path
+
+    app = QApplication(sys.argv)
+    file_dialog = QFileDialog()
+    file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+    file_location, _ = file_dialog.getOpenFileName()
+    
+    if file_location:
+        QCoreApplication.processEvents()
+        return Path(file_location)
+    
+    else:
+        
+        return None
+
+def get_dirname(app=None):
+    
+    from PySide2.QtCore import Qt, QCoreApplication
+    from PySide2.QtWidgets import QApplication, QFileDialog 
+    from pathlib import Path
+
+    app = QApplication(sys.argv)
+    file_dialog = QFileDialog()
+    file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+    file_location = file_dialog.getExistingDirectory()
+    
+    if file_location:
+        QCoreApplication.processEvents()
+        return Path(file_location)
+    
+    else:
+        
+        return None
+
+def get_dirnames(app=None):   
+    
+    from PySide2.QtCore import Qt, QCoreApplication
+    from PySide2.QtWidgets import QApplication, QFileDialog, QTreeView, QListView, QAbstractItemView
+    from pathlib import Path
+    
+    if not app:
+        app = QApplication(sys.argv)
+    #file_dialog = QFileDialog()
+    #file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+    #file_location = file_dialog.getOpenFileNames()
+    
+    file_dialog = QFileDialog()
+    file_dialog.setFileMode(QFileDialog.DirectoryOnly)
+    file_dialog.setOption(QFileDialog.DontUseNativeDialog, True)
+    file_view = file_dialog.findChild(QListView, &#39;listView&#39;)
+
+    # to make it possible to select multiple directories:
+    if file_view:
+        file_view.setSelectionMode(QAbstractItemView.MultiSelection)
+    f_tree_view = file_dialog.findChild(QTreeView)
+    if f_tree_view:
+        f_tree_view.setSelectionMode(QAbstractItemView.MultiSelection)
+
+    if file_dialog.exec():
+        paths = file_dialog.selectedFiles()
+        QCoreApplication.processEvents()
+        for path in paths:
+            yield Path(path)
+
+def chunks(lst, n):
+    &#34;&#34;&#34;Yield successive n-sized chunks from lst.&#34;&#34;&#34;
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
+def corems_md5(fname):
+
+    bytes_io = fname.open(&#39;rb&#39;).read()
+
+    md5_returned = hashlib.sha256(bytes_io).hexdigest()
+    
+    return &#34;{}:{}&#34;.format(&#34;sha256&#34;, md5_returned)
+        </code></pre>
+</details>
+</section>
+<section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="corems.chroma_peak" href="chroma_peak/index.html">corems.chroma_peak</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="corems.collection" href="collection/index.html">corems.collection</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="corems.encapsulation" href="encapsulation/index.html">corems.encapsulation</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="corems.mass_spectra" href="mass_spectra/index.html">corems.mass_spectra</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="corems.mass_spectrum" href="mass_spectrum/index.html">corems.mass_spectrum</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="corems.molecular_formula" href="molecular_formula/index.html">corems.molecular_formula</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="corems.molecular_id" href="molecular_id/index.html">corems.molecular_id</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="corems.ms_peak" href="ms_peak/index.html">corems.ms_peak</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="corems.transient" href="transient/index.html">corems.transient</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="corems.chunks"><code class="name flex">
+<span>def <span class="ident">chunks</span></span>(<span>lst, n)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Yield successive n-sized chunks from lst.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def chunks(lst, n):
+    &#34;&#34;&#34;Yield successive n-sized chunks from lst.&#34;&#34;&#34;
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]</code></pre>
+</details>
+</dd>
+<dt id="corems.corems_md5"><code class="name flex">
+<span>def <span class="ident">corems_md5</span></span>(<span>fname)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def corems_md5(fname):
+
+    bytes_io = fname.open(&#39;rb&#39;).read()
+
+    md5_returned = hashlib.sha256(bytes_io).hexdigest()
+    
+    return &#34;{}:{}&#34;.format(&#34;sha256&#34;, md5_returned)</code></pre>
+</details>
+</dd>
+<dt id="corems.get_dirname"><code class="name flex">
+<span>def <span class="ident">get_dirname</span></span>(<span>app=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_dirname(app=None):
+    
+    from PySide2.QtCore import Qt, QCoreApplication
+    from PySide2.QtWidgets import QApplication, QFileDialog 
+    from pathlib import Path
+
+    app = QApplication(sys.argv)
+    file_dialog = QFileDialog()
+    file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+    file_location = file_dialog.getExistingDirectory()
+    
+    if file_location:
+        QCoreApplication.processEvents()
+        return Path(file_location)
+    
+    else:
+        
+        return None</code></pre>
+</details>
+</dd>
+<dt id="corems.get_dirnames"><code class="name flex">
+<span>def <span class="ident">get_dirnames</span></span>(<span>app=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_dirnames(app=None):   
+    
+    from PySide2.QtCore import Qt, QCoreApplication
+    from PySide2.QtWidgets import QApplication, QFileDialog, QTreeView, QListView, QAbstractItemView
+    from pathlib import Path
+    
+    if not app:
+        app = QApplication(sys.argv)
+    #file_dialog = QFileDialog()
+    #file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+    #file_location = file_dialog.getOpenFileNames()
+    
+    file_dialog = QFileDialog()
+    file_dialog.setFileMode(QFileDialog.DirectoryOnly)
+    file_dialog.setOption(QFileDialog.DontUseNativeDialog, True)
+    file_view = file_dialog.findChild(QListView, &#39;listView&#39;)
+
+    # to make it possible to select multiple directories:
+    if file_view:
+        file_view.setSelectionMode(QAbstractItemView.MultiSelection)
+    f_tree_view = file_dialog.findChild(QTreeView)
+    if f_tree_view:
+        f_tree_view.setSelectionMode(QAbstractItemView.MultiSelection)
+
+    if file_dialog.exec():
+        paths = file_dialog.selectedFiles()
+        QCoreApplication.processEvents()
+        for path in paths:
+            yield Path(path)</code></pre>
+</details>
+</dd>
+<dt id="corems.get_filename"><code class="name flex">
+<span>def <span class="ident">get_filename</span></span>(<span>app=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_filename(app=None):
+    
+    from PySide2.QtCore import Qt, QCoreApplication
+    from PySide2.QtWidgets import QApplication, QFileDialog 
+    from pathlib import Path
+
+    app = QApplication(sys.argv)
+    file_dialog = QFileDialog()
+    file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+    file_location, _ = file_dialog.getOpenFileName()
+    
+    if file_location:
+        QCoreApplication.processEvents()
+        return Path(file_location)
+    
+    else:
+        
+        return None</code></pre>
+</details>
+</dd>
+<dt id="corems.timeit"><code class="name flex">
+<span>def <span class="ident">timeit</span></span>(<span>method)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def timeit(method):
+    def timed(*args, **kw):
+        ts = time.time()
+        result = method(*args, **kw)
+        te = time.time()
+        if &#39;log_time&#39; in kw:
+            name = kw.get(&#39;log_name&#39;, method.__name__.upper())
+            kw[&#39;log_time&#39;][name] = int((te - ts) * 1000)
+        else:
+            print( &#34;%r  %2.2f ms&#34; % (method.__name__, (te - ts) * 1000))
+        return result
+    return timed</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="corems.SuppressPrints"><code class="flex name class">
+<span>class <span class="ident">SuppressPrints</span></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SuppressPrints:
+    
+    def __enter__(self):
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, &#39;w&#39;)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout.close()
+        sys.stdout = self._original_stdout  </code></pre>
+</details>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul>
+<li><a href="#corems-a-powerful-framework-for-mass-spectrometry-data-processing-and-analysis-of-small-molecules">CoreMS - a powerful framework for mass spectrometry data processing and analysis of small molecules</a><ul>
+<li><a href="#main-features">Main Features</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="corems.chroma_peak" href="chroma_peak/index.html">corems.chroma_peak</a></code></li>
+<li><code><a title="corems.collection" href="collection/index.html">corems.collection</a></code></li>
+<li><code><a title="corems.encapsulation" href="encapsulation/index.html">corems.encapsulation</a></code></li>
+<li><code><a title="corems.mass_spectra" href="mass_spectra/index.html">corems.mass_spectra</a></code></li>
+<li><code><a title="corems.mass_spectrum" href="mass_spectrum/index.html">corems.mass_spectrum</a></code></li>
+<li><code><a title="corems.molecular_formula" href="molecular_formula/index.html">corems.molecular_formula</a></code></li>
+<li><code><a title="corems.molecular_id" href="molecular_id/index.html">corems.molecular_id</a></code></li>
+<li><code><a title="corems.ms_peak" href="ms_peak/index.html">corems.ms_peak</a></code></li>
+<li><code><a title="corems.transient" href="transient/index.html">corems.transient</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="two-column">
+<li><code><a title="corems.chunks" href="#corems.chunks">chunks</a></code></li>
+<li><code><a title="corems.corems_md5" href="#corems.corems_md5">corems_md5</a></code></li>
+<li><code><a title="corems.get_dirname" href="#corems.get_dirname">get_dirname</a></code></li>
+<li><code><a title="corems.get_dirnames" href="#corems.get_dirnames">get_dirnames</a></code></li>
+<li><code><a title="corems.get_filename" href="#corems.get_filename">get_filename</a></code></li>
+<li><code><a title="corems.timeit" href="#corems.timeit">timeit</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="corems.SuppressPrints" href="#corems.SuppressPrints">SuppressPrints</a></code></h4>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>
