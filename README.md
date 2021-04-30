@@ -10,7 +10,7 @@
   - [Data Structure](#data-structure-types)  
   - [Features](#available-features)  
   - [Overview Slides](examples/CoreMS-Overview.pdf)
-  - [Framework Documentation](docs/index.html)
+  - [Framework Documentation](docs/corems/index.html)
 - Installation  
   - [Installation](#corems-installation)  
   - [Thermo Raw File on Mac and Linux](#thermo-raw-file-access)  
