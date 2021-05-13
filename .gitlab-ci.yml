@@ -1,6 +1,6 @@
 # Official language image. Look for the different tagged releases at:
 # https://hub.docker.com/r/library/python/tags/
-image: code-registry.emsl.pnl.gov/mass-spectrometry/corems:corems-base
+image: corilo/corems:corems-base
 #gitlab.pnnl.gov:4567/mass-spectrometry/corems:latest 
 #image: python:3.7.6-slim
 

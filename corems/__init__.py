@@ -1,5 +1,5 @@
 __author__ = 'Yuri E. Corilo'
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 __doc__ = '''
 [![DOI](https://zenodo.org/badge/265072913.svg)](https://zenodo.org/badge/latestdoi/265072913)
 
@@ -42,7 +42,7 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 
 ## Current Version
 
-### `1.0.0`
+### `1.0.1`
 
 ## Main Developers/Contact 
 - [Yuri. E. Corilo](mailto:corilo@pnnl.gov)  
@@ -312,7 +312,7 @@ df = mass_spectrum_obj.to_dataframe()
 ## Citing CoreMS
 
 If you use CoreMS in your work, please use the following citation:
-Version [1.0.0 Release on GitHub](https://github.com/EMSL-Computing/CoreMS/releases/tag/1.0.0), archived on Zenodo:  
+Version [1.0.1 Release on GitHub](https://github.com/EMSL-Computing/CoreMS/releases/tag/1.0.1), archived on Zenodo:  
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4641553.svg)](https://doi.org/10.5281/zenodo.4641553)
 ```
