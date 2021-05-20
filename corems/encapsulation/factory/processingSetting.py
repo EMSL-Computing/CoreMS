@@ -359,6 +359,8 @@ class MolecularFormulaSearchSettings:
 
     score_method: str = 'prob_score'
 
+    output_min_score: float = 1
+
     output_score_method: str = 'All Candidates'
 
     # depending on the polarity mode it looks for [M].+ , [M].-
