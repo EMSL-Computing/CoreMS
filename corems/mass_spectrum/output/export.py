@@ -429,7 +429,7 @@ class HighResMassSpecExport(Thread):
                     # m_formula = ms_peak.molecular_formula_lowest_error
                     for m_formula in ms_peak:
 
-                        if mass_spectrum.molecular_search_settings.output_min_score == "prob_score":
+                        if mass_spectrum.molecular_search_settings.output_score_method == "prob_score":
 
                             if m_formula.confidence_score > mass_spectrum.molecular_search_settings.output_min_score:
 
