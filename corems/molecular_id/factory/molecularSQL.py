@@ -277,7 +277,7 @@ class MolForm_SQL:
                     
                     return int(formula_obj.adduct_mass(ion_charge, adduct_atom))
             
-            for formula_obj, ch_obj, classe_obj  in tqdm.tqdm(formulas, desc="Loading molecular formula database"):
+            for formula_obj, ch_obj, classe_obj in tqdm.tqdm(formulas, desc="Loading molecular formula database"):
                 
                 nominal_mz = nominal_mass_by_ion_type(formula_obj)
                 
@@ -286,18 +286,20 @@ class MolForm_SQL:
                         continue
                 classe = classe_obj.name
 
-                #classe_str = formula.classe_string
+                # classe_str = formula.classe_string
                 
-                #pbar.set_description_str(desc="Loading molecular formula database for class %s " % classe_str)
+                # pbar.set_description_str(desc="Loading molecular formula database for class %s " % classe_str)
                 
                 formula_dict = formula_obj.formula_dict
 
                 if formula_dict.get("O"):
                     
-                    if formula_dict.get("O")/formula_dict.get("C") >= molecular_search_settings.min_oc_filter:
-                        #print(formula_dict.get("O")/formula_dict.get("C"))
+                    if formula_dict.get("O") / formula_dict.get("C") >= molecular_search_settings.max_oc_filter:
+                        print(formula_dict.get("O") / formula_dict.get("C"), molecular_search_settings.max_oc_filter)
                         continue
-
+                    elif formula_dict.get("O") / formula_dict.get("C") <= molecular_search_settings.min_oc_filter:
+                        print(formula_dict.get("O") / formula_dict.get("C"), molecular_search_settings.min_oc_filter)
+                        continue
                     #if formula_dict.get("P"):
 
                     #    if  not (formula_dict.get("O") -2)/ formula_dict.get("P") >= molecular_search_settings.min_op_filter:

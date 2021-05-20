@@ -284,6 +284,8 @@ class MolecularLookupDictSettings:
 
         self.min_oc_filter = 1.2
 
+        self.max_oc_filter = 0.0
+
         self.url_database = None
 
         self.db_jobs = 1
@@ -331,7 +333,9 @@ class MolecularFormulaSearchSettings:
 
     max_hc_filter: float = 3
 
-    min_oc_filter: float = 1.2
+    min_oc_filter: float = 0.0
+
+    max_oc_filter: float = 1.2
 
     min_op_filter: float = 2
 

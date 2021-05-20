@@ -42,7 +42,7 @@ class LowResCompoundRef:
         self.ri_score = None
         self.spectral_similarity_score = None
         self.spectral_similarity_scores = {}
-        
+
 class LowResolutionEICompound(Base):  
     
     __tablename__ = 'pnnl_lowres_gcms_compounds'
@@ -185,15 +185,15 @@ class EI_LowRes_SQLite:
         return [self.row_to_dict(compound) for compound in compounds]
 
     def query_names_and_rt(self, min_max_rt, compound_names):
-        
+
         min_rt, max_rt = min_max_rt
-        
+
         compounds = self.session.query(LowResolutionEICompound).filter(LowResolutionEICompound.name.in_(compound_names)).filter(
-                                        LowResolutionEICompound.rt >= min_rt,
-                                        LowResolutionEICompound.rt <= max_rt,
-                                        )
-        
-        #self.session.query.select(LowResolutionEICompound).where(between(LowResolutionEICompound.ri, min_ri, max_ri))    
+                                       LowResolutionEICompound.rt >= min_rt,
+                                       LowResolutionEICompound.rt <= max_rt,
+                                       )
+
+        # self.session.query.select(LowResolutionEICompound).where(between(LowResolutionEICompound.ri, min_ri, max_ri))    
         x = [self.row_to_dict(compound) for compound in compounds]
         return [self.row_to_dict(compound) for compound in compounds]
 
