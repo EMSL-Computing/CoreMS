@@ -119,6 +119,10 @@ class MassSpectrumSetting:
 class MassSpecPeakSetting:
 
     kendrick_base: Dict = dataclasses.field(default_factory=dict)
+    
+    kendrick_rounding_method: str = 'floor' # 'floor', 'ceil' or 'round' are valid methods for calculating nominal kendrick mass
+    
+    implemented_kendrick_rounding_methods : tuple = ('floor','ceil','round')
 
     # kendrick_base : Dict =  {'C': 1, 'H':2}
 
