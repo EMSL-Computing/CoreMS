@@ -361,6 +361,8 @@ class MolecularFormulaSearchSettings:
 
     score_method: str = 'prob_score'
 
+    output_min_score: float = 1
+
     output_score_method: str = 'All Candidates'
 
     output_min_score: float = 0.1
