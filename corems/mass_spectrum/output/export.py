@@ -417,7 +417,7 @@ class HighResMassSpecExport(Thread):
                         add_no_match_dict_data(index, ms_peak)        
 
         else: 
-            
+
             for index, ms_peak in enumerate(mass_spectrum):
 
                 # check if there is a molecular formula candidate for the msPeak
