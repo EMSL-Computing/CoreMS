@@ -172,7 +172,7 @@ class HighResMassSpecExport(Thread):
 
         columns = self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum)
 
-        dict_data_list = self.get_list_dict_data(self.mass_spectrum)    
+        dict_data_list = self.get_list_dict_data(self.mass_spectrum)
 
         df = DataFrame(dict_data_list, columns=columns)
 
@@ -407,6 +407,7 @@ class HighResMassSpecExport(Thread):
                                 iso_ms_peak = mass_spectrum[iso_mspeak_index]
                                 add_match_dict_data(iso_mspeak_index, iso_ms_peak, iso_mf_formula)
                 else:
+                    
                     if include_no_match and no_match_inline:
                         add_no_match_dict_data(index, ms_peak)
 
@@ -435,6 +436,9 @@ class HighResMassSpecExport(Thread):
                                         add_match_dict_data(index, ms_peak, m_formula)
                                 else:
                                     add_match_dict_data(index, ms_peak, m_formula)  # add monoisotopic peak
+                            
+                            else:
+                                    add_no_match_dict_data(index, ms_peak)   
 
                         else:
                             if m_formula.is_isotopologue:  # isotopologues inline
