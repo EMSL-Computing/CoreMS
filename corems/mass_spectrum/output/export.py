@@ -326,7 +326,6 @@ class HighResMassSpecExport(Thread):
         
         return  all_lines       
 
-    
     def get_list_dict_data(self, mass_spectrum, include_no_match=True, include_isotopologues=True,
                            isotopologue_inline=False, no_match_inline=False, is_hdf5=False):
 
@@ -335,7 +334,8 @@ class HighResMassSpecExport(Thread):
         if is_hdf5:
             encode = ".encode('utf-8')"
         else:
-            encode = ""    
+            encode = ""
+
         def add_no_match_dict_data(index, ms_peak):
 
             dict_result = {'Index': index,
@@ -353,7 +353,7 @@ class HighResMassSpecExport(Thread):
         def add_match_dict_data(index, ms_peak, mformula):
 
             formula_dict = mformula.to_dict()
-            
+
             dict_result = {'Index': index,
                            'm/z':  ms_peak._mz_exp,
                            'Calibrated m/z': ms_peak.mz_exp,
@@ -388,7 +388,11 @@ class HighResMassSpecExport(Thread):
         selected_score_method = mass_spectrum.molecular_search_settings.output_score_method
         
         if selected_score_method in score_methods:
-
+            
+            #temp set score method as the one chosen in the output
+            current_method = mass_spectrum.molecular_search_settings.score_method
+            mass_spectrum.molecular_search_settings.score_method = selected_score_method
+            
             for index, ms_peak in enumerate(mass_spectrum):
                 
                 # print(ms_peak.mz_exp)
@@ -415,7 +419,10 @@ class HighResMassSpecExport(Thread):
                 
                 for index, ms_peak in enumerate(mass_spectrum):
                     if not ms_peak:
-                        add_no_match_dict_data(index, ms_peak)        
+                        add_no_match_dict_data(index, ms_peak)     
+            
+            #reset score method as the one chosen in the output
+            mass_spectrum.molecular_search_settings.score_method = current_method
 
         else: 
 
@@ -437,6 +444,7 @@ class HighResMassSpecExport(Thread):
                                 else:
                                     add_match_dict_data(index, ms_peak, m_formula)  # add monoisotopic peak
                             
+                            # cutoff because of low score
                             else:
                                     add_no_match_dict_data(index, ms_peak)   
 
@@ -461,5 +469,6 @@ class HighResMassSpecExport(Thread):
                 for index, ms_peak in enumerate(mass_spectrum):
                     if not ms_peak:
                         add_no_match_dict_data(index, ms_peak)
+        
         
         return dict_data_list
