@@ -4,7 +4,9 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
 from copy import deepcopy
+from numpy import nan
 from corems.ms_peak.calc.MSPeakCalc import MSPeakCalculation
+from numpy import NaN
 
 class _MSPeak(MSPeakCalculation):
     '''
@@ -100,13 +102,17 @@ class _MSPeak(MSPeakCalculation):
             return self.mz_cal
         else:
             return self._mz_exp
-    
+
     @mz_exp.setter
     def mz_exp(self, mz_exp):
         self._mz_exp = mz_exp
 
     @property
-    def area(self): return self.calc_area()
+    def area(self): 
+        if self._ms_parent.is_centroid:
+            return nan
+        else:    
+            return self.calc_area()
 
     @property
     def nominal_mz_exp(self): return int(self.mz_exp)

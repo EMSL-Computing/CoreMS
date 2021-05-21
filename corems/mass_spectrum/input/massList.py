@@ -14,20 +14,20 @@ class ReadCoremsMasslist(MassListBaseClass):
 
     **Only available for centroid mass spectrum type: it will ignore the parameter **isCentroid** 
     Please see MassListBaseClass for more details
-    
+
     '''
-        
+
     def get_mass_spectrum(self, scan_number=0, time_index=-1, auto_process=True, loadSettings=True):
-        
+
         dataframe = self.get_dataframe()
-       
+
         if not set(['H/C', 'O/C', 'Heteroatom Class', 'Ion Type', 'Is Isotopologue']).issubset(dataframe.columns):
             raise ValueError("%s it is not a valid CoreMS file" % str(self.file_location))
-        
+
         self.check_columns(dataframe.columns)
-        
+
         dataframe.rename(columns=self.parameters.header_translate, inplace=True)
- 
+
         polarity = dataframe['Ion Charge'].values[0]
 
         output_parameters = self.get_output_parameters(polarity)
@@ -37,7 +37,7 @@ class ReadCoremsMasslist(MassListBaseClass):
         if loadSettings: self.load_settings(mass_spec_obj, output_parameters)
 
         self.add_molecular_formula(mass_spec_obj, dataframe)
-        
+
         return mass_spec_obj
 
     def add_molecular_formula(self, mass_spec_obj, dataframe):
@@ -59,6 +59,8 @@ class ReadCoremsMasslist(MassListBaseClass):
         mass_spec_mz_exp_list = mass_spec_obj.mz_exp
 
         for df_index, mz_exp in enumerate(mz_exp_df):
+
+            counts = 0
 
             ms_peak_index = list(mass_spec_mz_exp_list).index(float(mz_exp))
 
@@ -95,7 +97,7 @@ class ReadMassList(MassListBaseClass):
         polarity: int 
             +1 or -1 
         '''
-        #delimiter = "  " or " " or  "," or "\t" etc  
+        # delimiter = "  " or " " or  "," or "\t" etc  
         
         if self.isCentroid:
 

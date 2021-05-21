@@ -156,10 +156,10 @@ class MassDeconvolution:
                         if peak_abundance > 0:
 
                             dict_data = {peak_rt: {'mz': [mz],
-                                                    'abundance': [peak_abundance],
-                                                    'scan_number': [scan_index]},
-                                                    'ref_apex_rt': ref_apex_rt
-                                                    }
+                                                   'abundance': [peak_abundance],
+                                                   'scan_number': [scan_index]},
+                                                   'ref_apex_rt': ref_apex_rt
+                                                   }
 
                             if apex_rt not in peaks_entity_data.keys():
 
@@ -178,7 +178,6 @@ class MassDeconvolution:
                                     existing_data['mz'].append(mz)
                                     existing_data['abundance'].append(peak_abundance)
                                     existing_data['scan_number'].append(scan_index)
-
 
         return peaks_entity_data
 
@@ -235,7 +234,7 @@ class MassDeconvolution:
             apex_i = rt_list.index(apex_rt)
 
             '''workaround for peak picking missing some local minimas'''
-            if not apex_rt in self.processed_appexes:
+            if apex_rt not in self.processed_appexes:
 
                 self.processed_appexes.append(apex_rt)
 
@@ -375,8 +374,8 @@ class MassDeconvolution:
 
                     smoothed_tic = self.smooth_signal(peak_tic)
 
-                    include_indexes = sp.peak_picking_first_derivative(peak_rt, smoothed_tic,  max_height, max_prominence, max_signal, min_peak_datapoints,
-                                                                            signal_threshold=signal_threshold,  correct_baseline=False, plot_res=False)
+                    include_indexes = sp.peak_picking_first_derivative(peak_rt, smoothed_tic, max_height, max_prominence, max_signal, min_peak_datapoints,
+                                                                       signal_threshold=signal_threshold, correct_baseline=False, plot_res=False)
 
                     include_indexes = list(include_indexes)
 
@@ -419,9 +418,9 @@ class MassDeconvolution:
 
                 smoothed_tic = self.smooth_signal(peak_tic)
 
-                include_indexes = sp.peak_picking_first_derivative(peak_rt, smoothed_tic,  max_height, max_prominence, max_signal, min_peak_datapoints,
-                                                                            signal_threshold=signal_threshold,  correct_baseline=False, plot_res=False)
-                include_indexes = list(include_indexes)   
+                include_indexes = sp.peak_picking_first_derivative(peak_rt, smoothed_tic, max_height, max_prominence, max_signal, min_peak_datapoints,
+                                                                   signal_threshold=signal_threshold, correct_baseline=False, plot_res=False)
+                include_indexes = list(include_indexes)
 
                 if include_indexes:
 

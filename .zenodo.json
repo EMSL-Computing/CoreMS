@@ -2,7 +2,7 @@
     "description": "CoreMS is a comprehensive mass spectrometry framework for software development and data analysis of small molecules", 
     "license": "other-open", 
     "title": "EMSL-Computing/CoreMS: CoreMS 1.0.0", 
-    "version": "1.1.0", 
+    "version": "v1.0.0", 
     "upload_type": "software", 
     "publication_date": "2021-03-27", 
     "creators": [
@@ -14,13 +14,13 @@
         },
         {
             "name": "Lee Ann McCue"
-        }         
+        }                
     ], 
     "access_right": "open", 
     "related_identifiers": [
         {
             "scheme": "url", 
-            "identifier": "https://github.com/EMSL-Computing/CoreMS/tree/v1.0.1", 
+            "identifier": "https://github.com/EMSL-Computing/CoreMS/tree/v1.0.0", 
             "relation": "isSupplementTo"
         }, 
         {

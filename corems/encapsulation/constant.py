@@ -904,7 +904,7 @@ class Atoms: #pragma: no cover
                 'Ta': ['Tantalum'],
                 'W': ['Tungsten', ['184W', '186W', '182W', '183W']],
                 'Re': ['Rhenium', ['187Re', '185Re']],
-                'Os': ['Osmium', ['192OS', '190Os', '189Os', '188Os', '187Os', '186Os']],
+                'Os': ['Osmium', ['192Os', '190Os', '189Os', '188Os', '187Os', '186Os']],
                 'Ir': ['Iridium', ['193Ir', '191Ir']],
                 'Pt': ['Platinum', ['195Pt', '194Pt', '196Pt', '198Pt', '192Pt']],
                 'Au': ['Gold'],

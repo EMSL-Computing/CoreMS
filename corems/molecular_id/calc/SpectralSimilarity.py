@@ -391,22 +391,21 @@ class SpectralSimilarity():
         dict_res = {}
 
         for method in methods_name:
-            #function_name = method + "_distance"
+            # function_name = method + "_distance"
             function_name = method
             if hasattr(math_distance, function_name):
                 f = getattr(math_distance, function_name)
 
                 if function_name == "canberra_metric":
-                    
-                    x, y = self.nan_fill(self.df, fill_with=0)
-        
-                    qlist, rlist = self.normalize(x, y, norm_func=self.normalize_func)
-                    #print("qlist:")
-                    #print(qlist)
-                    #print("rlist:")
-                    #print(rlist)
 
-                
+                    x, y = self.nan_fill(self.df, fill_with=0)
+
+                    qlist, rlist = self.normalize(x, y, norm_func=self.normalize_func)
+                    # print("qlist:")
+                    # print(qlist)
+                    # print("rlist:")
+                    # print(rlist)
+
                 else:
                     qlist = self.zero_filled_u_l[0]
                     rlist = self.zero_filled_u_l[1]

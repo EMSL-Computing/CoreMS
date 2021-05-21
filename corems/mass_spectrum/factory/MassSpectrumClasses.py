@@ -686,27 +686,27 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         return ax
 
-    def to_excel(self, out_file_path):
+    def to_excel(self, out_file_path, write_metadata=True):
 
         from corems.mass_spectrum.output.export import HighResMassSpecExport
         exportMS = HighResMassSpecExport(out_file_path, self)
-        exportMS.to_excel()
+        exportMS.to_excel(write_metadata=write_metadata)
 
     def to_hdf(self, out_file_path):
         from corems.mass_spectrum.output.export import HighResMassSpecExport
         exportMS = HighResMassSpecExport(out_file_path, self)
         exportMS.to_hdf()
 
-    def to_csv(self, out_file_path):
+    def to_csv(self, out_file_path, write_metadata=True):
         from corems.mass_spectrum.output.export import HighResMassSpecExport
         exportMS = HighResMassSpecExport(out_file_path, self)
-        exportMS.to_csv()
+        exportMS.to_csv(write_metadata=write_metadata)
 
-    def to_pandas(self, out_file_path):
+    def to_pandas(self, out_file_path, write_metadata=True):
         # pickle dataframe (pkl extension)
         from corems.mass_spectrum.output.export import HighResMassSpecExport
         exportMS = HighResMassSpecExport(out_file_path, self)
-        exportMS.to_pandas()
+        exportMS.to_pandas(write_metadata=write_metadata)
 
     def to_dataframe(self,):
         # returns pandas dataframe

@@ -137,7 +137,7 @@ class MzDomainCalibration:
 
         min_calib_ppm_error = calib_ppm_error_threshold[0]
         max_calib_ppm_error = calib_ppm_error_threshold[1]
-
+        
         df_raw = mass_spectrum.to_dataframe()
         
         imzmeas = [] 
@@ -154,6 +154,7 @@ class MzDomainCalibration:
             # optionally further subset that based on minimum S/N, RP, Peak Height
             # to ensure only valid points are utilized
             # in this example, only a S/N threshold is implemented.
+            
             tmpdf = tmpdf[tmpdf['S/N']>calib_snr_threshold]
             
             # only use the calibration point if only one peak is within the thresholds

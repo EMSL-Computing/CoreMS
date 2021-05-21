@@ -14,28 +14,27 @@ from corems.mass_spectra.input.boosterHDF5 import ReadHDF_BoosterMassSpectra
 def import_corems_mass_list():
 
     file_location = Path.cwd() / "tests/tests_data/" / "ESI_NEG_SRFA_COREMS.csv"
-    
-    #polarity need to be set or read from the file
-    
-    #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
+
+    # polarity need to be set or read from the file
+
+    # load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
     mass_list_reader = ReadCoremsMasslist(file_location)
 
     mass_spectrum = mass_list_reader.get_mass_spectrum()
 
-    
     return mass_spectrum
 
 def import_booster_mass_spectra_hdf():
 
     file_path = Path.cwd() / "tests/tests_data/" / "ESFA_100k_9767-13548_chB.A_re_pc_CoAddAll_mFT.h5"
-    
+
     if file_path.exists():
-        #polarity need to be set or read from the file
+        # polarity need to be set or read from the file
         booster_reader = ReadHDF_BoosterMassSpectra(file_path)
 
         booster_reader.start()
         booster_reader.join()
-    
+
     return booster_reader.get_lcms_obj()
 
 
@@ -43,8 +42,8 @@ def test_export_mass_spectra():
 
     mass_spectra = import_booster_mass_spectra_hdf()
 
-    exportMS= HighResMassSpectraExport('NEG_ESI_SRFA_CoreMS', mass_spectra)
-    
+    exportMS = HighResMassSpectraExport('NEG_ESI_SRFA_CoreMS', mass_spectra)
+
     exportMS.get_mass_spectra_attrs(mass_spectra)
     exportMS.get_pandas_df()
     exportMS.to_pandas()
@@ -57,12 +56,12 @@ def test_export_mass_spectrum():
 
     mass_spectrum = import_corems_mass_list()
 
-    exportMS= HighResMassSpecExport('NEG_ESI_SRFA_CoreMS', mass_spectrum)
+    exportMS = HighResMassSpecExport('NEG_ESI_SRFA_CoreMS', mass_spectrum)
 
-    #exportMS.to_pandas()
-    #exportMS.to_excel()
-    #exportMS.to_csv()
-    #exportMS.to_hdf()
+    # exportMS.to_pandas()
+    # exportMS.to_excel()
+    # exportMS.to_csv()
+    # exportMS.to_hdf()
 
     exportMS._output_type = 'excel'
     exportMS.save()
@@ -80,16 +79,11 @@ def test_export_mass_spectrum():
 
     mass_spectrum.molecular_search_settings.output_score_method = "prob_score"
     mass_spectrum.to_csv('NEG_ESI_SRFA_CoreMS_prob_score')
-    
+
     mass_spectrum.to_json()
     mass_spectrum.to_pandas('NEG_ESI_SRFA_CoreMS')
-    
-
-    print(   )
-
 
 if __name__ == "__main__":
-                        
-    test_export_mass_spectra()
-    #test_export_mass_spectrum()
-    
+                  
+    # test_export_mass_spectra()
+    test_export_mass_spectrum()

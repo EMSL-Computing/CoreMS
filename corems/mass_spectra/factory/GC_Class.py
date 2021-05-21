@@ -8,6 +8,7 @@ import json
 
 from numpy import array
 
+
 from corems.mass_spectra.calc.GC_Calc import GC_Calculations
 from corems.mass_spectra.calc.GC_Deconvolution import MassDeconvolution
 from corems.mass_spectra.calc import SignalProcessing as sp
@@ -40,8 +41,10 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
         self.file_location = file_location
 
-        if sample_name: self.sample_name = sample_name
-        else: self.sample_name = file_location.stem
+        if sample_name:
+            self.sample_name = sample_name
+        else:
+            self.sample_name = file_location.stem
 
         self.analyzer = analyzer
         self.instrument_label = instrument_label
@@ -216,23 +219,61 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         return metabolites
 
     @property
+    def metabolites_data(self):
+
+        metabolites = {}
+        for gc_peak in self:
+            if gc_peak:
+                for compound_obj in gc_peak:
+
+                    if compound_obj.name in metabolites.keys():
+                        current_score = metabolites[compound_obj.name]["highest_similarity_score"]
+                        compound_score = compound_obj.spectral_similarity_score
+                        metabolites[compound_obj.name]["highest_similarity_score"] = compound_score if compound_score > current_score else current_score
+
+                    else:
+                        if compound_obj.metadata:
+                            metabolites[compound_obj.name] = {
+                                                                "name": compound_obj.name,
+                                                                "highest_similarity_score": compound_obj.spectral_similarity_score,
+                                                                "casno": compound_obj.metadata.cas,
+                                                                "kegg": compound_obj.metadata.kegg,
+                                                                "inchi": compound_obj.metadata.inchi,
+                                                                "inchi_key": compound_obj.metadata.inchikey,
+                                                                "chebi": compound_obj.metadata.chebi,
+                                                                "smiles": compound_obj.metadata.smiles
+                                                              }
+                        else:
+                            metabolites[compound_obj.name] = {  "name": compound_obj.name,
+                                                                "highest_similarity_score": compound_obj.spectral_similarity_score,
+                                                                "casno": "",
+                                                                "kegg": "",
+                                                                "inchi": "",
+                                                                "inchikey": "",
+                                                                "chebi": "",
+                                                                "smiles": ""
+                                                                }                       
+
+        return list(metabolites.values())
+
+    @property
     def no_matched_peaks(self):
         return [peak for peak in self if not peak]
 
     @retention_time.setter
-    def retention_time(self, l):
+    def retention_time(self, alist):
         # self._retention_time_list = linspace(0, 80, num=len(self._scans_number_list))
-        self._retention_time_list = l
+        self._retention_time_list = alist
 
     @scans_number.setter
-    def scans_number(self, l):
+    def scans_number(self, alist):
 
-        self._scans_number_list = l
+        self._scans_number_list = alist
 
     @tic.setter
-    def tic(self,l):
+    def tic(self, alist):
 
-        self._tic_list = array(l)    
+        self._tic_list = array(alist)
 
     def plot_gc_peaks(self, ax=None, color="red"):  # pragma: no cover
 
@@ -290,21 +331,35 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
         return ax
 
-    def to_excel(self, out_file_path, write_mode='ab', id_label="corems:"):
+    def to_excel(self, out_file_path, write_mode='ab', write_metadata=True, id_label="corems:"):
+
+        if isinstance(out_file_path, str):
+            out_file_path = Path(out_file_path)
 
         exportMS = LowResGCMSExport(out_file_path, self)
-        exportMS.to_excel(id_label=id_label)
+        exportMS.to_excel(id_label=id_label, write_mode=write_mode, write_metadata=write_metadata)
 
-    def to_csv(self, out_file_path, write_mode='ab', id_label="corems:"):
+        return out_file_path.with_suffix('.xlsx')
+
+    def to_csv(self, out_file_path, separate_output=False, write_metadata=True, id_label="corems:"):
+
+        if isinstance(out_file_path, str):
+            out_file_path = Path(out_file_path)
 
         exportMS = LowResGCMSExport(out_file_path, self)
-        exportMS.to_csv(id_label=id_label)
+        exportMS.to_csv(id_label=id_label, separate_output=separate_output, write_metadata=write_metadata)
 
-    def to_pandas(self, out_file_path, id_label="corems:"):
+        return out_file_path.with_suffix('.csv')
 
+    def to_pandas(self, out_file_path, write_metadata=True, id_label="corems:"):
+
+        if isinstance(out_file_path, str):
+            out_file_path = Path(out_file_path)
         # pickle dataframe (pkl extension)
         exportMS = LowResGCMSExport(out_file_path, self)
-        exportMS.to_pandas(id_label=id_label)
+        exportMS.to_pandas(id_label=id_label, write_metadata=write_metadata)
+
+        return out_file_path.with_suffix('.pkl')
 
     def to_dataframe(self, id_label="corems:"):
 
@@ -336,7 +391,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         exportMS = LowResGCMSExport(self.sample_name, self)
         return exportMS.to_hdf(id_label=id_label)
 
-    def plot_chromatogram(self, ax=None, color="blue"):  # pragma: no cover
+    def plot_chromatogram(self, ax=None, color="blue"): #pragma: no cover
 
         import matplotlib.pyplot as plt
 
@@ -348,7 +403,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
         return ax
 
-    def plot_smoothed_chromatogram(self, ax=None, color="green"):  # pragma: no cover
+    def plot_smoothed_chromatogram(self, ax=None, color="green"):  #pragma: no cover
 
         import matplotlib.pyplot as plt
 

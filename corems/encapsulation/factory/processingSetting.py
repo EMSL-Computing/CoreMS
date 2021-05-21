@@ -28,8 +28,8 @@ class TransientSetting:
 @dataclasses.dataclass
 class DataInputSetting:
 
-    # add to this dict the VALUES to match your labels, THE ORDER WON'T MATTER
-    # 'column_translate' : {'m/z':'m/z', 'Resolving Power':'Resolving Power', 'Abundance':'Abundance' , 'S/N':'S/N'}
+    # add to this dict the VALUES to match your labels, THE ORDER WON"T MATTER
+    # "column_translate" : {"m/z":"m/z", "Resolving Power":"Resolving Power", "Abundance":"Abundance" , "S/N":"S/N"}
     header_translate: dict = dataclasses.field(default_factory=dict)
 
     def __post_init__(self):
@@ -99,9 +99,9 @@ class MassSpectrumSetting:
 
     calib_minimize_method: str = 'Powell'
     calib_pol_order: int = 2
-    max_calib_ppm_error: float = 1
-    min_calib_ppm_error: float = -1
-    calib_sn_threshold: float = 10
+    max_calib_ppm_error: float = 1.0
+    min_calib_ppm_error: float = -1.0
+    calib_sn_threshold: float = 2.0
 
     do_calibration: bool = True
 
@@ -119,6 +119,10 @@ class MassSpectrumSetting:
 class MassSpecPeakSetting:
 
     kendrick_base: Dict = dataclasses.field(default_factory=dict)
+    
+    kendrick_rounding_method: str = 'floor' # 'floor', 'ceil' or 'round' are valid methods for calculating nominal kendrick mass
+    
+    implemented_kendrick_rounding_methods : tuple = ('floor','ceil','round')
 
     # kendrick_base : Dict =  {'C': 1, 'H':2}
 
@@ -187,7 +191,7 @@ class GasChromatographSetting:
 @dataclasses.dataclass
 class CompoundSearchSettings:
 
-    url_database: str = 'sqlite:///db/pnnl_lowres_gcms_compounds.sqlite'
+    url_database: str = "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/lowres" # 'postgresql://postgres:labthomson0102@172.22.113.27:5432/GCMS' # 'sqlite:///db/pnnl_lowres_gcms_compounds.sqlite'
 
     ri_search_range: float = 35
 
@@ -221,19 +225,19 @@ class CompoundSearchSettings:
                 value = field.type(value)
                 setattr(self, field.name, value)
 
-        self.ri_calibration_compound_names = (' [C8] Methyl Caprylate [7.812]',
-                                ' [C10] Methyl Caprate [10.647]',
-                                ' [C9] Methyl Pelargonate [9.248]',
-                                ' [C12] Methyl Laurate [13.250]',
-                                ' [C14] Methyl Myristate [15.597]',
-                                ' [C16] Methyl Palmitate [17.723]',
-                                ' [C18] Methyl Stearate [19.663]',
-                                ' [C20] Methyl Eicosanoate [21.441]',
-                                ' [C22] Methyl Docosanoate [23.082]',
-                                ' [C24] Methyl Linocerate [24.603]',
-                                ' [C26] Methyl Hexacosanoate [26.023]',
-                                ' [C28] Methyl Octacosanoate [27.349]',
-                                ' [C30] Methyl Triacontanoate [28.72]')
+        self.ri_calibration_compound_names = ['Methyl Caprylate', 
+                                              'Methyl Caprate', 
+                                              'Methyl Pelargonate', 
+                                              'Methyl Laurate', 
+                                              'Methyl Myristate', 
+                                              'Methyl Palmitate', 
+                                              'Methyl Stearate', 
+                                              'Methyl Eicosanoate', 
+                                              'Methyl Docosanoate', 
+                                              'Methyl Linocerate', 
+                                              'Methyl Hexacosanoate', 
+                                              'Methyl Octacosanoate', 
+                                              'Methyl Triacontanoate']
 
 @dataclasses.dataclass
 class MolecularLookupDictSettings:
