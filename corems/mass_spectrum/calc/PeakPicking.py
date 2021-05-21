@@ -21,11 +21,13 @@ class PeakPicking:
         max_final =  where(self.mz_exp_profile < max_picking_mz)[-1][-1]
         max_comeco =  where(self.mz_exp_profile < max_picking_mz)[0][0]
 
+
         if self.has_frequency:
-            
+
             if self.freq_exp_profile.any():
 
-                freq_domain_low_Y_cutoff  = self.freq_exp_profile[min_comeco:min_final]
+                freq_domain_low_Y_cutoff = self.freq_exp_profile[min_comeco:min_final]
+
 
                 return mz_domain_X_low_cutoff[max_comeco:max_final], mz_domain_low_Y_cutoff[max_comeco:max_final], freq_domain_low_Y_cutoff[max_comeco:max_final]
 
@@ -35,27 +37,26 @@ class PeakPicking:
 
     def do_peak_picking(self):
 
-            mz, abudance, freq = self.cut_mz_domain_peak_picking()
+        mz, abudance, freq = self.cut_mz_domain_peak_picking()
 
-            if self.label == Labels.bruker_frequency or self.label == Labels.midas_frequency:
-                
-                self.calc_centroid(mz, abudance, freq)
-            
-            elif self.label == Labels.thermo_profile:
-                self.calc_centroid(mz, abudance, self.freq_exp_profile)
-            
-            elif self.label == Labels.bruker_profile:
-                self.calc_centroid(mz, abudance, self.freq_exp_profile)
-            
-            elif self.label == Labels.booster_profile:
-                self.calc_centroid(mz, abudance, self.freq_exp_profile)
+        if self.label == Labels.bruker_frequency or self.label == Labels.midas_frequency:
 
-            elif self.label == Labels.simulated_profile:
-                self.calc_centroid(mz, abudance, self.freq_exp_profile)
-            
-            else: raise Exception("Unknow mass spectrum type", self.label)
-            
-           
+            self.calc_centroid(mz, abudance, freq)
+
+        elif self.label == Labels.thermo_profile:
+            self.calc_centroid(mz, abudance, self.freq_exp_profile)
+
+        elif self.label == Labels.bruker_profile:
+            self.calc_centroid(mz, abudance, self.freq_exp_profile)
+
+        elif self.label == Labels.booster_profile:
+            self.calc_centroid(mz, abudance, self.freq_exp_profile)
+
+        elif self.label == Labels.simulated_profile:
+            self.calc_centroid(mz, abudance, self.freq_exp_profile)
+
+        else: raise Exception("Unknow mass spectrum type", self.label)
+
     def find_minima(self, apex_index, abundance, len_abundance, right=True):
             
             j = apex_index

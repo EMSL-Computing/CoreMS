@@ -28,7 +28,6 @@ class Metadatar(Base):
     chebi = Column(String, nullable=True)
     smiles = Column(String, nullable=True)
     kegg = Column(String, nullable=True)
-
     iupac_name = Column(String, nullable=True)
     traditional_name = Column(String, nullable=True)
     common_name = Column(String, nullable=True)
@@ -253,9 +252,9 @@ class EI_LowRes_SQLite:
         return [self.row_to_dict(compound) for compound in compounds]
 
     def query_names_and_rt(self, min_max_rt, compound_names):
-        
+
         min_rt, max_rt = min_max_rt
-        
+
         compounds = self.session.query(LowResolutionEICompound).filter(LowResolutionEICompound.name.in_(compound_names)).filter(
                                         LowResolutionEICompound.rt >= min_rt,
                                         LowResolutionEICompound.rt <= max_rt,

@@ -309,11 +309,13 @@ df = mass_spectrum_obj.to_dataframe()
 ## Citing CoreMS
 
 If you use CoreMS in your work, please use the following citation:
+
 Version [1.0.0 Release on GitHub](https://github.com/EMSL-Computing/CoreMS/releases/tag/v1.0.0), archived on Zenodo:  
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4641553.svg)](https://doi.org/10.5281/zenodo.4641553)
 ```
 Yuri E. Corilo, William R. Kew, Lee Ann McCue (2021, March 27). EMSL-Computing/CoreMS: CoreMS 1.0.0 (Version v1.0.0), as developed on Github. Zenodo. http://doi.org/10.5281/zenodo.4641553
+
 ```
 ## Disclaimer
 
