@@ -452,8 +452,8 @@ class HighResMassSpecExport(Thread):
                             if m_formula.is_isotopologue:  # isotopologues inline
                                 if include_isotopologues and isotopologue_inline:
                                     add_match_dict_data(index, ms_peak, m_formula)
-                                else:
-                                    add_match_dict_data(index, ms_peak, m_formula)  # add monoisotopic peak
+                            else:
+                                add_match_dict_data(index, ms_peak, m_formula)  # add monoisotopic peak
                 else:
                     # include not_match
                     if include_no_match and no_match_inline:
