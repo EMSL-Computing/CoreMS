@@ -110,9 +110,9 @@ class HighResMassSpecExport(Thread):
         return df
 
     def write_settings(self, output_path, mass_spectrum):
-        
+
         import json
-        
+
         dict_setting = parameter_to_dict.get_dict_data_ms(mass_spectrum)
 
         dict_setting['MassSpecAttrs'] = self.get_mass_spec_attrs(mass_spectrum)
@@ -434,7 +434,7 @@ class HighResMassSpecExport(Thread):
                     # m_formula = ms_peak.molecular_formula_lowest_error
                     for m_formula in ms_peak:
 
-                        if mass_spectrum.molecular_search_settings.output_score_method == "prob_score":
+                        if mass_spectrum.molecular_search_settings.output_min_score > 0:
 
                             if m_formula.confidence_score >= mass_spectrum.molecular_search_settings.output_min_score:
 
