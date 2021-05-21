@@ -187,7 +187,7 @@ class MolecularFormula(MolecularFormulaCalc):
         
         if not self._confidence_score:
             
-            self._confidence_score = self._calc_confidence_score() 
+            self._confidence_score = self._calc_confidence_score()
         
         return self._confidence_score
 
