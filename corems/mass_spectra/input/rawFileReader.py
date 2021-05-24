@@ -34,10 +34,9 @@ from System.Collections.Generic import List
 
 class ImportMassSpectraThermoMSFileReader():
 
-    """  Read FULL mode spectra only from raw file data and store it return a LC-MS class
-    *  Default behavior is to load all scans numbers
-
-    *  set start_scan_number  and final_scan_number to change it before calling start(), or run()
+    """  Collection of methdos to import Summed/Averaged mass spectrum from Thermo's raw file
+         Currently only for profile mode data
+         Returns MassSpecProfile object
     """
 
     def __init__(self, file_location):
@@ -263,6 +262,8 @@ class ImportMassSpectraThermoMSFileReader():
         scans_list: list[int]
         auto_process: bool
             If true performs peak picking, and noise threshold calculation after creation of mass spectrum object
+        Returns:
+            MassSpecProfile
         """
 
         d_params = self.set_metadata(scans_list=scans_list)
@@ -306,6 +307,8 @@ class ImportMassSpectraThermoMSFileReader():
             If true performs peak picking, and noise threshold calculation after creation of mass spectrum object
         ms_type: MSOrderType.MS
             Type of mass spectrum scan, default for full scan acquisition
+         Returns:
+            MassSpecProfile    
         """
 
         firstScanNumber = self._initial_scan_number if first_scan is None else first_scan
@@ -355,6 +358,8 @@ class ImportMassSpectraThermoMSFileReader():
         pd_method: bool
             If true uses pandas to align and sum data
             Else: Assumes data is aligned and sum each data point across all mass spectra
+        Returns:
+            MassSpecProfile    
         """
 
         d_params = default_parameters(self.file_location)

@@ -357,7 +357,7 @@ class HighResMassSpecExport(Thread):
             formula_dict = mformula.to_dict()
 
             dict_result = {'Index': index,
-                           'm/z':  ms_peak._mz_exp,
+                           'm/z': ms_peak._mz_exp,
                            'Calibrated m/z': ms_peak.mz_exp,
                            'Calculated m/z': mformula.mz_calc,
                            'Peak Height': ms_peak.abundance,
