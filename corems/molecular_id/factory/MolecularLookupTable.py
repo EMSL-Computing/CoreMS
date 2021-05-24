@@ -17,7 +17,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine, func
 from tqdm import tqdm
 
-from corems.encapsulation.factory.processingSetting  import MolecularLookupDictSettings
+from corems.encapsulation.factory.processingSetting import MolecularLookupDictSettings
 from corems.encapsulation.constant import Atoms
 from corems.molecular_id.factory.molecularSQL import CarbonHydrogen, HeteroAtoms, MolecularFormulaLink
 from corems.encapsulation.factory.parameters import MSParameters
@@ -98,26 +98,26 @@ class MolecularCombinations:
             class_dict = classes_dict.get(class_str)
             halogen_count = self.get_total_halogen_atoms(class_dict)
             data_classes.append({"name":class_str, "id":class_count+ index + 1, "halogensCount": halogen_count})
-        
+
         #data_classes = [{"name":class_str, "id":class_count+ index + 1} for index, class_str in enumerate(class_to_create)]
-        
+
         if data_classes:
-            
+
             list_insert_chunks = chunks(data_classes, self.sql_db.chunks_count)
             for insert_chunk in  list_insert_chunks:   
                 insert_query = HeteroAtoms.__table__.insert().values(insert_chunk)
                 self.sql_db.session.execute(insert_query)
-            
+
         for index, class_str in enumerate(class_to_create):
-            
-            class_tuple =  (class_str, classes_dict.get(class_str), class_count+ index + 1) 
-            
+
+            class_tuple = (class_str, classes_dict.get(class_str), class_count+ index + 1)
+
             all_class_to_create.append(class_tuple)
 
         return [(c_s, c_d) for c_s, c_d in classes_dict.items()], all_class_to_create, existing_classes_objs       
-    
+
     def get_carbonsHydrogens(self, settings, odd_even):
-        
+
         operator = '==' if odd_even == 'even' else '!=' 
         usedAtoms = settings.usedAtoms
         user_min_c, user_max_c = usedAtoms.get('C')
@@ -129,7 +129,7 @@ class MolecularCombinations:
                                         "CarbonHydrogen.C <= user_max_c,"
                                         "CarbonHydrogen.H <= user_max_h,"
                                         "CarbonHydrogen.H % 2" + operator+ "0).all()")
-        
+
     def add_carbonsHydrogens(self, settings, existing_classes_objs):
 
         usedAtoms = settings.usedAtoms
@@ -143,14 +143,14 @@ class MolecularCombinations:
                         func.min(CarbonHydrogen.H).label("min_h"),
                         )
 
-        
+
         database = query_obj.first()
         if database.max_c == user_max_c and database.min_c == user_min_c and database.max_h == user_max_h and database.min_h == user_min_h:   
             #all data is already available at the database
             pass
-        
+
         else:
-            
+
             current_count = self.sql_db.session.query(CarbonHydrogen.C).count()
             
             databaseCarbonHydrogen = self.sql_db.session.query(CarbonHydrogen).all()

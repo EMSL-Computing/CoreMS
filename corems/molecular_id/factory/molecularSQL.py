@@ -26,47 +26,47 @@ import tqdm
 Base = declarative_base()
 
 class HeteroAtoms(Base):
-   
+
     __tablename__ = 'heteroAtoms'
-    
+
     id = Column(Integer, primary_key=True,
                          unique = True,
                          nullable = False)
 
-    name = Column(String, unique=True,  nullable=False)
-    
-    halogensCount = Column(Integer, unique=False,  nullable=False) 
+    name = Column(String, unique=True, nullable=False)
 
-    carbonHydrogen = relationship('CarbonHydrogen', secondary = 'molecularformula')
-    
+    halogensCount = Column(Integer, unique=False, nullable=False)
+
+    carbonHydrogen = relationship('CarbonHydrogen', secondary='molecularformula')
+
     def __repr__(self):
         return '<HeteroAtoms Model {} class {}>'.format(self.id, self.name)      
-    
+
     @hybrid_property
     def halogens_count(cls):
         return cls.halogensCount.cast(Float)
 
     def to_dict(self):
-        
+
         return json.loads(self.name)
-        
+
 
 class CarbonHydrogen(Base):
-   
+
     __tablename__ = 'carbonHydrogen'
-    __table_args__ = ( UniqueConstraint('C', 'H', name='unique_c_h'), )
+    __table_args__ = (UniqueConstraint('C', 'H', name='unique_c_h'), )
 
     id = Column(Integer, primary_key=True,
-                        unique=True,
-                        nullable=False)
+                unique=True,
+                nullable=False)
 
     C = Column(Integer, nullable=False)
-    
-    H = Column(Integer,  nullable=False)
-    
+
+    H = Column(Integer, nullable=False)
+
     heteroAtoms = relationship("HeteroAtoms",
-                        secondary="molecularformula",
-                       )
+                               secondary="molecularformula",
+                               )
 
     def __repr__(self):
         return '<CarbonHydrogen Model {} C{} H{}>'.format(self.id, self.C, self.H)                     
@@ -85,36 +85,35 @@ class CarbonHydrogen(Base):
 
     @hybrid_property
     def dbe(cls):
-        return float(cls.C) - float(cls.H/2) + 1
+        # return cls.C.cast(Float) - (cls.H.cast(Float) / 2) + 1
+        return float(cls.C) - float(cls.H / 2) + 1
 
-#264888.88 ms
+# 264888.88 ms
 class MolecularFormulaLink(Base):
-    
+
     __tablename__ = 'molecularformula'
-    __table_args__ = ( UniqueConstraint('heteroAtoms_id', 'carbonHydrogen_id', name='unique_molform'), )
-    
-    #id = Column(Integer, primary_key=True,
+    __table_args__ = (UniqueConstraint('heteroAtoms_id', 'carbonHydrogen_id', name='unique_molform'), )
+
+    # id = Column(Integer, primary_key=True,
     #                    unique=True,
     #                    nullable=False)
 
-    heteroAtoms_id = Column(
-        Integer, 
-        ForeignKey('heteroAtoms.id'), 
-        primary_key=True)
+    heteroAtoms_id = Column(Integer,
+                            ForeignKey('heteroAtoms.id'),
+                            primary_key=True)
 
-    carbonHydrogen_id = Column(
-        Integer, 
-        ForeignKey('carbonHydrogen.id'), 
-        primary_key=True)
-    
+    carbonHydrogen_id = Column(Integer,
+                               ForeignKey('carbonHydrogen.id'), 
+                               primary_key=True)
+
     mass = Column(Float)
-    
+
     DBE = Column(Float)
-    
+
     carbonHydrogen = relationship(CarbonHydrogen, backref=backref("heteroAtoms_assoc"))
-    
+
     heteroAtoms = relationship(HeteroAtoms, backref=backref("carbonHydrogen_assoc"))
-    
+
     C = association_proxy('carbonHydrogen', 'C')
 
     H = association_proxy('carbonHydrogen', 'H')
@@ -123,7 +122,7 @@ class MolecularFormulaLink(Base):
 
     @property
     def formula_dict(self):
-        
+
         carbon = {'C': self.C, 'H': self.H}
         classe = json.loads(self.classe)
         if self.classe == '{"HC": ""}':
@@ -133,7 +132,7 @@ class MolecularFormulaLink(Base):
 
     @property
     def formula_string(self):
-        class_dict = self.formula_dict 
+        class_dict = self.formula_dict
         class_str = ' '.join([atom + str(class_dict[atom]) for atom in class_dict.keys()])
         return class_str.strip()
 
@@ -150,52 +149,51 @@ class MolecularFormulaLink(Base):
     @hybrid_method
     def protonated_mass(self, ion_charge):
         return (self.mass + (ion_charge * Atoms.atomic_masses.get("H")) + (ion_charge * -1 * Atoms.electron_mass))/abs(ion_charge)
-    
+
     @hybrid_method
     def radical_mass(self, ion_charge):
         return (self.mass + (ion_charge * -1 * Atoms.electron_mass))/ abs(ion_charge)
 
     def __repr__(self):
-        
+
         return '<MolecularFormulaLink Model {}>'.format(self.formula_string)       
 
 
 class MolForm_SQL:
-    
+
     def __init__(self, url=None, echo=False):
-        
+
         self.engine = self.init_engine(url)
-        
+
         self.add_engine_pidguard(self.engine)
-        
+
         session_factory = sessionmaker(bind=self.engine)
-        
+
         Session = scoped_session(session_factory)
-        
+
         self.session = session_factory()
-        
+
         Base.metadata.create_all(self.engine)
 
         self.session.commit()
-        
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         # make sure the dbconnection gets closed
-        
+
         self.commit()
         self.session.close()
         self.engine.dispose()
 
     def initiate_database(self, url, database_name):  #CREATION
-        
-        engine = sqlalchemy.create_engine(database_url)
+
+        engine = create_engine(url)
         conn = engine.connect()
         conn.execute("commit")
-        conn.execute("create database "+database_name)
+        conn.execute("create database " + database_name)
         conn.close()
 
-
     def commit(self):
-        
+
         try:
             self.session.commit()  
         except SQLAlchemyError as e:
@@ -203,12 +201,13 @@ class MolForm_SQL:
             print(str(e))
 
     def init_engine(self, url):
-        
+
         if not url or url == 'None' or url == 'False':
             directory = os.getcwd()
-            
-            if not os.path.isdir(directory+'/db'):  os.mkdir(directory+'/db')
-            
+
+            if not os.path.isdir(directory + '/db'):
+                os.mkdir(directory + '/db')
+
             url = 'sqlite:///{DB}/db/molformulas.sqlite'.format(DB=directory)
 
         if url[0:6] == 'sqlite':
@@ -278,7 +277,7 @@ class MolForm_SQL:
                     
                     return int(formula_obj.adduct_mass(ion_charge, adduct_atom))
             
-            for formula_obj, ch_obj, classe_obj  in tqdm.tqdm(formulas, desc="Loading molecular formula database"):
+            for formula_obj, ch_obj, classe_obj in tqdm.tqdm(formulas, desc="Loading molecular formula database"):
                 
                 nominal_mz = nominal_mass_by_ion_type(formula_obj)
                 
@@ -287,18 +286,20 @@ class MolForm_SQL:
                         continue
                 classe = classe_obj.name
 
-                #classe_str = formula.classe_string
+                # classe_str = formula.classe_string
                 
-                #pbar.set_description_str(desc="Loading molecular formula database for class %s " % classe_str)
+                # pbar.set_description_str(desc="Loading molecular formula database for class %s " % classe_str)
                 
                 formula_dict = formula_obj.formula_dict
 
                 if formula_dict.get("O"):
                     
-                    if formula_dict.get("O")/formula_dict.get("C") >= molecular_search_settings.min_oc_filter:
-                        #print(formula_dict.get("O")/formula_dict.get("C"))
+                    if formula_dict.get("O") / formula_dict.get("C") >= molecular_search_settings.max_oc_filter:
+                        # print(formula_dict.get("O") / formula_dict.get("C"), molecular_search_settings.max_oc_filter)
                         continue
-
+                    elif formula_dict.get("O") / formula_dict.get("C") <= molecular_search_settings.min_oc_filter:
+                        # print(formula_dict.get("O") / formula_dict.get("C"), molecular_search_settings.min_oc_filter)
+                        continue
                     #if formula_dict.get("P"):
 
                     #    if  not (formula_dict.get("O") -2)/ formula_dict.get("P") >= molecular_search_settings.min_op_filter:

@@ -14,8 +14,8 @@ FROM base AS build
 COPY --from=base /home/corems /home/corems
 WORKDIR /home/corems
 
-COPY doc/notebooks/*.ipynb README.md disclaimer.txt requirements.txt SettingsCoreMS.json /home/corems/
-COPY doc/examples /home/corems/examples
+COPY examples/notebooks/*.ipynb README.md disclaimer.txt requirements.txt SettingsCoreMS.json /home/corems/
+COPY examples/scripts /home/corems/examples
 
 
 RUN python3 -m pip install jupyter

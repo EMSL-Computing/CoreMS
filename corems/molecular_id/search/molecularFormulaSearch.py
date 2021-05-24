@@ -64,7 +64,7 @@ class SearchMolecularFormulas:
             defect_mass = ms_peak.mz_exp - nominal_mz
             nominal_masses = [nominal_mz]
 
-            if (defect_mass) >= 1-nominal_overlay:
+            if (defect_mass) >= 1 - nominal_overlay:
                 nominal_masses.append(nominal_mz + 1)
             elif (defect_mass) <= nominal_overlay:
                 nominal_masses.append(nominal_mz - 1)
@@ -72,7 +72,7 @@ class SearchMolecularFormulas:
             list_formulas_candidates = []
 
             for nominal_mass in nominal_masses:
-                if nominal_mass in query.keys():   
+                if nominal_mass in query.keys():
                     list_formulas_candidates.extend(query.get(nominal_mass))
 
             return list_formulas_candidates
