@@ -312,6 +312,8 @@ class MolecularLookupDictSettings:
 
         self.min_oc_filter = 1.2
 
+        self.max_oc_filter = 0.0
+
         self.url_database = None
 
         self.db_jobs = 1
@@ -359,7 +361,9 @@ class MolecularFormulaSearchSettings:
 
     max_hc_filter: float = 3
 
-    min_oc_filter: float = 1.2
+    min_oc_filter: float = 0.0
+
+    max_oc_filter: float = 1.2
 
     min_op_filter: float = 2
 
@@ -382,6 +386,8 @@ class MolecularFormulaSearchSettings:
                             &#39;air_filter_error&#39;, &#39;water_filter_error&#39;, &#39;earth_filter_error&#39;)
 
     score_method: str = &#39;prob_score&#39;
+
+    output_min_score: float = 0.1
 
     output_score_method: str = &#39;All Candidates&#39;
 
@@ -1015,10 +1021,10 @@ if __name__ == &#39;__main__&#39;:
 </dd>
 <dt id="corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings"><code class="flex name class">
 <span>class <span class="ident">MolecularFormulaSearchSettings</span></span>
-<span>(</span><span>use_isotopologue_filter: bool = False, isotopologue_filter_threshold: float = 33, isotopologue_filter_atoms: tuple = ('Cl', 'Br'), use_runtime_kendrick_filter: bool = False, use_min_peaks_filter: bool = True, min_peaks_per_class: int = 15, url_database: str = 'postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp', db_jobs: int = 3, ion_charge: int = -1, min_hc_filter: float = 0.3, max_hc_filter: float = 3, min_oc_filter: float = 1.2, min_op_filter: float = 2, use_pah_line_rule: bool = False, min_dbe: float = 0, max_dbe: float = 40, mz_error_score_weight: float = 0.6, isotopologue_score_weight: float = 0.4, adduct_atoms_neg: tuple = ('Cl', 'Br'), adduct_atoms_pos: tuple = ('Na', 'K'), score_methods: tuple = ('S_P_lowest_error', 'N_S_P_lowest_error', 'lowest_error', 'prob_score', 'air_filter_error', 'water_filter_error', 'earth_filter_error'), score_method: str = 'prob_score', output_score_method: str = 'All Candidates', isRadical: bool = False, isProtonated: bool = True, isAdduct: bool = False, usedAtoms: dict = &lt;factory&gt;, ionization_type: str = 'ESI', min_ppm_error: float = -10.0, max_ppm_error: float = 10.0, min_abun_error: float = -100.0, max_abun_error: float = 100.0, mz_error_range: float = 1.5, error_method: str = 'None', mz_error_average: float = 0.0, used_atom_valences: dict = &lt;factory&gt;)</span>
+<span>(</span><span>use_isotopologue_filter: bool = False, isotopologue_filter_threshold: float = 33, isotopologue_filter_atoms: tuple = ('Cl', 'Br'), use_runtime_kendrick_filter: bool = False, use_min_peaks_filter: bool = True, min_peaks_per_class: int = 15, url_database: str = 'postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp', db_jobs: int = 3, ion_charge: int = -1, min_hc_filter: float = 0.3, max_hc_filter: float = 3, min_oc_filter: float = 0.0, max_oc_filter: float = 1.2, min_op_filter: float = 2, use_pah_line_rule: bool = False, min_dbe: float = 0, max_dbe: float = 40, mz_error_score_weight: float = 0.6, isotopologue_score_weight: float = 0.4, adduct_atoms_neg: tuple = ('Cl', 'Br'), adduct_atoms_pos: tuple = ('Na', 'K'), score_methods: tuple = ('S_P_lowest_error', 'N_S_P_lowest_error', 'lowest_error', 'prob_score', 'air_filter_error', 'water_filter_error', 'earth_filter_error'), score_method: str = 'prob_score', output_min_score: float = 0.1, output_score_method: str = 'All Candidates', isRadical: bool = False, isProtonated: bool = True, isAdduct: bool = False, usedAtoms: dict = &lt;factory&gt;, ionization_type: str = 'ESI', min_ppm_error: float = -10.0, max_ppm_error: float = 10.0, min_abun_error: float = -100.0, max_abun_error: float = 100.0, mz_error_range: float = 1.5, error_method: str = 'None', mz_error_average: float = 0.0, used_atom_valences: dict = &lt;factory&gt;)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>MolecularFormulaSearchSettings(use_isotopologue_filter: bool = False, isotopologue_filter_threshold: float = 33, isotopologue_filter_atoms: tuple = ('Cl', 'Br'), use_runtime_kendrick_filter: bool = False, use_min_peaks_filter: bool = True, min_peaks_per_class: int = 15, url_database: str = 'postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp', db_jobs: int = 3, ion_charge: int = -1, min_hc_filter: float = 0.3, max_hc_filter: float = 3, min_oc_filter: float = 1.2, min_op_filter: float = 2, use_pah_line_rule: bool = False, min_dbe: float = 0, max_dbe: float = 40, mz_error_score_weight: float = 0.6, isotopologue_score_weight: float = 0.4, adduct_atoms_neg: tuple = ('Cl', 'Br'), adduct_atoms_pos: tuple = ('Na', 'K'), score_methods: tuple = ('S_P_lowest_error', 'N_S_P_lowest_error', 'lowest_error', 'prob_score', 'air_filter_error', 'water_filter_error', 'earth_filter_error'), score_method: str = 'prob_score', output_score_method: str = 'All Candidates', isRadical: bool = False, isProtonated: bool = True, isAdduct: bool = False, usedAtoms: dict = <factory>, ionization_type: str = 'ESI', min_ppm_error: float = -10.0, max_ppm_error: float = 10.0, min_abun_error: float = -100.0, max_abun_error: float = 100.0, mz_error_range: float = 1.5, error_method: str = 'None', mz_error_average: float = 0.0, used_atom_valences: dict = <factory>)</p></div>
+<div class="desc"><p>MolecularFormulaSearchSettings(use_isotopologue_filter: bool = False, isotopologue_filter_threshold: float = 33, isotopologue_filter_atoms: tuple = ('Cl', 'Br'), use_runtime_kendrick_filter: bool = False, use_min_peaks_filter: bool = True, min_peaks_per_class: int = 15, url_database: str = 'postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp', db_jobs: int = 3, ion_charge: int = -1, min_hc_filter: float = 0.3, max_hc_filter: float = 3, min_oc_filter: float = 0.0, max_oc_filter: float = 1.2, min_op_filter: float = 2, use_pah_line_rule: bool = False, min_dbe: float = 0, max_dbe: float = 40, mz_error_score_weight: float = 0.6, isotopologue_score_weight: float = 0.4, adduct_atoms_neg: tuple = ('Cl', 'Br'), adduct_atoms_pos: tuple = ('Na', 'K'), score_methods: tuple = ('S_P_lowest_error', 'N_S_P_lowest_error', 'lowest_error', 'prob_score', 'air_filter_error', 'water_filter_error', 'earth_filter_error'), score_method: str = 'prob_score', output_min_score: float = 0.1, output_score_method: str = 'All Candidates', isRadical: bool = False, isProtonated: bool = True, isAdduct: bool = False, usedAtoms: dict = <factory>, ionization_type: str = 'ESI', min_ppm_error: float = -10.0, max_ppm_error: float = 10.0, min_abun_error: float = -100.0, max_abun_error: float = 100.0, mz_error_range: float = 1.5, error_method: str = 'None', mz_error_average: float = 0.0, used_atom_valences: dict = <factory>)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1048,7 +1054,9 @@ if __name__ == &#39;__main__&#39;:
 
     max_hc_filter: float = 3
 
-    min_oc_filter: float = 1.2
+    min_oc_filter: float = 0.0
+
+    max_oc_filter: float = 1.2
 
     min_op_filter: float = 2
 
@@ -1071,6 +1079,8 @@ if __name__ == &#39;__main__&#39;:
                             &#39;air_filter_error&#39;, &#39;water_filter_error&#39;, &#39;earth_filter_error&#39;)
 
     score_method: str = &#39;prob_score&#39;
+
+    output_min_score: float = 0.1
 
     output_score_method: str = &#39;All Candidates&#39;
 
@@ -1212,6 +1222,10 @@ if __name__ == &#39;__main__&#39;:
 <dd>
 <div class="desc"></div>
 </dd>
+<dt id="corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.max_oc_filter"><code class="name">var <span class="ident">max_oc_filter</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.max_ppm_error"><code class="name">var <span class="ident">max_ppm_error</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
@@ -1253,6 +1267,10 @@ if __name__ == &#39;__main__&#39;:
 <div class="desc"></div>
 </dd>
 <dt id="corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.mz_error_score_weight"><code class="name">var <span class="ident">mz_error_score_weight</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.output_min_score"><code class="name">var <span class="ident">output_min_score</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1362,6 +1380,8 @@ if __name__ == &#39;__main__&#39;:
         self.min_hc_filter = 0.3
 
         self.min_oc_filter = 1.2
+
+        self.max_oc_filter = 0.0
 
         self.url_database = None
 
@@ -1548,6 +1568,7 @@ if __name__ == &#39;__main__&#39;:
 <li><code><a title="corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.max_abun_error" href="#corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.max_abun_error">max_abun_error</a></code></li>
 <li><code><a title="corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.max_dbe" href="#corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.max_dbe">max_dbe</a></code></li>
 <li><code><a title="corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.max_hc_filter" href="#corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.max_hc_filter">max_hc_filter</a></code></li>
+<li><code><a title="corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.max_oc_filter" href="#corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.max_oc_filter">max_oc_filter</a></code></li>
 <li><code><a title="corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.max_ppm_error" href="#corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.max_ppm_error">max_ppm_error</a></code></li>
 <li><code><a title="corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.min_abun_error" href="#corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.min_abun_error">min_abun_error</a></code></li>
 <li><code><a title="corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.min_dbe" href="#corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.min_dbe">min_dbe</a></code></li>
@@ -1559,6 +1580,7 @@ if __name__ == &#39;__main__&#39;:
 <li><code><a title="corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.mz_error_average" href="#corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.mz_error_average">mz_error_average</a></code></li>
 <li><code><a title="corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.mz_error_range" href="#corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.mz_error_range">mz_error_range</a></code></li>
 <li><code><a title="corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.mz_error_score_weight" href="#corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.mz_error_score_weight">mz_error_score_weight</a></code></li>
+<li><code><a title="corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.output_min_score" href="#corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.output_min_score">output_min_score</a></code></li>
 <li><code><a title="corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.output_score_method" href="#corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.output_score_method">output_score_method</a></code></li>
 <li><code><a title="corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.score_method" href="#corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.score_method">score_method</a></code></li>
 <li><code><a title="corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.score_methods" href="#corems.encapsulation.factory.processingSetting.MolecularFormulaSearchSettings.score_methods">score_methods</a></code></li>

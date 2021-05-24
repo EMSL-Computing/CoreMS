@@ -38,17 +38,17 @@ from corems.molecular_id.calc.SpectralSimilarity import SpectralSimilarity
 class LowResMassSpectralMatch(Thread):
 
     def __init__(self, gcms_obj, sql_obj=None, calibration=False):
-        
+
         &#39;&#39;&#39;TODO:
         &#39;&#39;&#39;
         Thread.__init__(self)
-        
+
         self.gcms_obj = gcms_obj
 
         #  initiated at create_molecular_database()
         #self.dict_molecular_lookup_table = None
         self.calibration = calibration
-        # reading local file for now, 
+        # reading local file for now,
         if not sql_obj:
             self.sql_obj = EI_LowRes_SQLite(url=self.gcms_obj.molecular_search_settings.url_database)
         else:
@@ -58,14 +58,14 @@ class LowResMassSpectralMatch(Thread):
 
         spectral_similarity_scores = {}
         spectral_similarity_scores[&#34;cosine_correlation&#34;] = spectral_simi.cosine_correlation()
-        
+
         if self.gcms_obj.molecular_search_settings.exploratory_mode:
-            
+
             spectral_similarity_scores[&#34;weighted_cosine_correlation&#34;] = spectral_simi.weighted_cosine_correlation()
-            ss, ss_nist =  spectral_simi.stein_scott()
+            ss, ss_nist = spectral_simi.stein_scott()
             spectral_similarity_scores[&#34;stein_scott_similarity&#34;] = ss
             spectral_similarity_scores[&#34;stein_scott_similarity_nist&#34;] = ss_nist
-            
+
             spectral_similarity_scores[&#34;pearson_correlation&#34;] = spectral_simi.pearson_correlation()
             spectral_similarity_scores[&#34;spearman_correlation&#34;] = spectral_simi.spearman_correlation()
             spectral_similarity_scores[&#34;kendall_tau_correlation&#34;] = spectral_simi.kendall_tau()
@@ -75,32 +75,32 @@ class LowResMassSpectralMatch(Thread):
             spectral_similarity_scores[&#34;dft_correlation&#34;] = spectral_simi.dft_correlation()
             spectral_similarity_scores[&#34;dwt_correlation&#34;] = spectral_simi.dwt_correlation()
             spectral_similarity_scores.update(spectral_simi.extra_distances())
-            #print(spectral_similarity_scores)
-        #print(ref_obj.get(&#39;ri&#39;), gc_peak.ri, self.gcms_obj.molecular_search_settings.ri_window)
+            # print(spectral_similarity_scores)
+        # print(ref_obj.get(&#39;ri&#39;), gc_peak.ri, self.gcms_obj.molecular_search_settings.ri_window)
 
-        ri_score = exp( -1*(power((gc_peak.ri - ref_obj.get(&#39;ri&#39;)), 2 )  / (2 * power(self.gcms_obj.molecular_search_settings.ri_std, 2)) ))
+        ri_score = exp(-1 * (power((gc_peak.ri - ref_obj.get(&#39;ri&#39;)), 2) / (2 * power(self.gcms_obj.molecular_search_settings.ri_std, 2))))
 
-        similarity_score = ((spectral_similarity_scores.get(&#34;cosine_correlation&#34;)**2) * (ri_score))**(1/3)
+        similarity_score = ((spectral_similarity_scores.get(&#34;cosine_correlation&#34;)**2) * (ri_score))**(1 / 3)
 
         return spectral_similarity_scores, ri_score, similarity_score
-        
-    #@timeit
+
+    # @timeit
     def run(self):
         # TODO select the best gcms peak    
         import tqdm
-        
+
         original_use_deconvolution = self.gcms_obj.chromatogram_settings.use_deconvolution
 
         if not self.gcms_obj:
-            
+
             # Do not use deconvolution for the retention index calibration
-            
+
             if self.calibration:
-                
+
                 self.gcms_obj.chromatogram_settings.use_deconvolution = False
 
             self.gcms_obj.process_chromatogram()
-        
+
         self.gcms_obj.chromatogram_settings.use_deconvolution = original_use_deconvolution
 
         for gc_peak in tqdm.tqdm(self.gcms_obj):
@@ -186,17 +186,17 @@ by overriding the run() method in a subclass.</p>
 <pre><code class="python">class LowResMassSpectralMatch(Thread):
 
     def __init__(self, gcms_obj, sql_obj=None, calibration=False):
-        
+
         &#39;&#39;&#39;TODO:
         &#39;&#39;&#39;
         Thread.__init__(self)
-        
+
         self.gcms_obj = gcms_obj
 
         #  initiated at create_molecular_database()
         #self.dict_molecular_lookup_table = None
         self.calibration = calibration
-        # reading local file for now, 
+        # reading local file for now,
         if not sql_obj:
             self.sql_obj = EI_LowRes_SQLite(url=self.gcms_obj.molecular_search_settings.url_database)
         else:
@@ -206,14 +206,14 @@ by overriding the run() method in a subclass.</p>
 
         spectral_similarity_scores = {}
         spectral_similarity_scores[&#34;cosine_correlation&#34;] = spectral_simi.cosine_correlation()
-        
+
         if self.gcms_obj.molecular_search_settings.exploratory_mode:
-            
+
             spectral_similarity_scores[&#34;weighted_cosine_correlation&#34;] = spectral_simi.weighted_cosine_correlation()
-            ss, ss_nist =  spectral_simi.stein_scott()
+            ss, ss_nist = spectral_simi.stein_scott()
             spectral_similarity_scores[&#34;stein_scott_similarity&#34;] = ss
             spectral_similarity_scores[&#34;stein_scott_similarity_nist&#34;] = ss_nist
-            
+
             spectral_similarity_scores[&#34;pearson_correlation&#34;] = spectral_simi.pearson_correlation()
             spectral_similarity_scores[&#34;spearman_correlation&#34;] = spectral_simi.spearman_correlation()
             spectral_similarity_scores[&#34;kendall_tau_correlation&#34;] = spectral_simi.kendall_tau()
@@ -223,32 +223,32 @@ by overriding the run() method in a subclass.</p>
             spectral_similarity_scores[&#34;dft_correlation&#34;] = spectral_simi.dft_correlation()
             spectral_similarity_scores[&#34;dwt_correlation&#34;] = spectral_simi.dwt_correlation()
             spectral_similarity_scores.update(spectral_simi.extra_distances())
-            #print(spectral_similarity_scores)
-        #print(ref_obj.get(&#39;ri&#39;), gc_peak.ri, self.gcms_obj.molecular_search_settings.ri_window)
+            # print(spectral_similarity_scores)
+        # print(ref_obj.get(&#39;ri&#39;), gc_peak.ri, self.gcms_obj.molecular_search_settings.ri_window)
 
-        ri_score = exp( -1*(power((gc_peak.ri - ref_obj.get(&#39;ri&#39;)), 2 )  / (2 * power(self.gcms_obj.molecular_search_settings.ri_std, 2)) ))
+        ri_score = exp(-1 * (power((gc_peak.ri - ref_obj.get(&#39;ri&#39;)), 2) / (2 * power(self.gcms_obj.molecular_search_settings.ri_std, 2))))
 
-        similarity_score = ((spectral_similarity_scores.get(&#34;cosine_correlation&#34;)**2) * (ri_score))**(1/3)
+        similarity_score = ((spectral_similarity_scores.get(&#34;cosine_correlation&#34;)**2) * (ri_score))**(1 / 3)
 
         return spectral_similarity_scores, ri_score, similarity_score
-        
-    #@timeit
+
+    # @timeit
     def run(self):
         # TODO select the best gcms peak    
         import tqdm
-        
+
         original_use_deconvolution = self.gcms_obj.chromatogram_settings.use_deconvolution
 
         if not self.gcms_obj:
-            
+
             # Do not use deconvolution for the retention index calibration
-            
+
             if self.calibration:
-                
+
                 self.gcms_obj.chromatogram_settings.use_deconvolution = False
 
             self.gcms_obj.process_chromatogram()
-        
+
         self.gcms_obj.chromatogram_settings.use_deconvolution = original_use_deconvolution
 
         for gc_peak in tqdm.tqdm(self.gcms_obj):
@@ -326,14 +326,14 @@ by overriding the run() method in a subclass.</p>
 
     spectral_similarity_scores = {}
     spectral_similarity_scores[&#34;cosine_correlation&#34;] = spectral_simi.cosine_correlation()
-    
+
     if self.gcms_obj.molecular_search_settings.exploratory_mode:
-        
+
         spectral_similarity_scores[&#34;weighted_cosine_correlation&#34;] = spectral_simi.weighted_cosine_correlation()
-        ss, ss_nist =  spectral_simi.stein_scott()
+        ss, ss_nist = spectral_simi.stein_scott()
         spectral_similarity_scores[&#34;stein_scott_similarity&#34;] = ss
         spectral_similarity_scores[&#34;stein_scott_similarity_nist&#34;] = ss_nist
-        
+
         spectral_similarity_scores[&#34;pearson_correlation&#34;] = spectral_simi.pearson_correlation()
         spectral_similarity_scores[&#34;spearman_correlation&#34;] = spectral_simi.spearman_correlation()
         spectral_similarity_scores[&#34;kendall_tau_correlation&#34;] = spectral_simi.kendall_tau()
@@ -343,12 +343,12 @@ by overriding the run() method in a subclass.</p>
         spectral_similarity_scores[&#34;dft_correlation&#34;] = spectral_simi.dft_correlation()
         spectral_similarity_scores[&#34;dwt_correlation&#34;] = spectral_simi.dwt_correlation()
         spectral_similarity_scores.update(spectral_simi.extra_distances())
-        #print(spectral_similarity_scores)
-    #print(ref_obj.get(&#39;ri&#39;), gc_peak.ri, self.gcms_obj.molecular_search_settings.ri_window)
+        # print(spectral_similarity_scores)
+    # print(ref_obj.get(&#39;ri&#39;), gc_peak.ri, self.gcms_obj.molecular_search_settings.ri_window)
 
-    ri_score = exp( -1*(power((gc_peak.ri - ref_obj.get(&#39;ri&#39;)), 2 )  / (2 * power(self.gcms_obj.molecular_search_settings.ri_std, 2)) ))
+    ri_score = exp(-1 * (power((gc_peak.ri - ref_obj.get(&#39;ri&#39;)), 2) / (2 * power(self.gcms_obj.molecular_search_settings.ri_std, 2))))
 
-    similarity_score = ((spectral_similarity_scores.get(&#34;cosine_correlation&#34;)**2) * (ri_score))**(1/3)
+    similarity_score = ((spectral_similarity_scores.get(&#34;cosine_correlation&#34;)**2) * (ri_score))**(1 / 3)
 
     return spectral_similarity_scores, ri_score, similarity_score</code></pre>
 </details>
@@ -369,19 +369,19 @@ from the args and kwargs arguments, respectively.</p></div>
 <pre><code class="python">def run(self):
     # TODO select the best gcms peak    
     import tqdm
-    
+
     original_use_deconvolution = self.gcms_obj.chromatogram_settings.use_deconvolution
 
     if not self.gcms_obj:
-        
+
         # Do not use deconvolution for the retention index calibration
-        
+
         if self.calibration:
-            
+
             self.gcms_obj.chromatogram_settings.use_deconvolution = False
 
         self.gcms_obj.process_chromatogram()
-    
+
     self.gcms_obj.chromatogram_settings.use_deconvolution = original_use_deconvolution
 
     for gc_peak in tqdm.tqdm(self.gcms_obj):

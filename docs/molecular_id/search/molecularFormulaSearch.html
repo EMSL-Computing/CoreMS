@@ -92,7 +92,7 @@ class SearchMolecularFormulas:
             defect_mass = ms_peak.mz_exp - nominal_mz
             nominal_masses = [nominal_mz]
 
-            if (defect_mass) &gt;= 1-nominal_overlay:
+            if (defect_mass) &gt;= 1 - nominal_overlay:
                 nominal_masses.append(nominal_mz + 1)
             elif (defect_mass) &lt;= nominal_overlay:
                 nominal_masses.append(nominal_mz - 1)
@@ -100,7 +100,7 @@ class SearchMolecularFormulas:
             list_formulas_candidates = []
 
             for nominal_mass in nominal_masses:
-                if nominal_mass in query.keys():   
+                if nominal_mass in query.keys():
                     list_formulas_candidates.extend(query.get(nominal_mass))
 
             return list_formulas_candidates
@@ -1043,7 +1043,7 @@ def calc_error(mz_exp, mz_calc, method=&#39;ppm&#39;):
             defect_mass = ms_peak.mz_exp - nominal_mz
             nominal_masses = [nominal_mz]
 
-            if (defect_mass) &gt;= 1-nominal_overlay:
+            if (defect_mass) &gt;= 1 - nominal_overlay:
                 nominal_masses.append(nominal_mz + 1)
             elif (defect_mass) &lt;= nominal_overlay:
                 nominal_masses.append(nominal_mz - 1)
@@ -1051,7 +1051,7 @@ def calc_error(mz_exp, mz_calc, method=&#39;ppm&#39;):
             list_formulas_candidates = []
 
             for nominal_mass in nominal_masses:
-                if nominal_mass in query.keys():   
+                if nominal_mass in query.keys():
                     list_formulas_candidates.extend(query.get(nominal_mass))
 
             return list_formulas_candidates
@@ -1312,7 +1312,7 @@ def database_to_dict(classe_str_list, nominal_mzs, mf_search_settings, ion_charg
         defect_mass = ms_peak.mz_exp - nominal_mz
         nominal_masses = [nominal_mz]
 
-        if (defect_mass) &gt;= 1-nominal_overlay:
+        if (defect_mass) &gt;= 1 - nominal_overlay:
             nominal_masses.append(nominal_mz + 1)
         elif (defect_mass) &lt;= nominal_overlay:
             nominal_masses.append(nominal_mz - 1)
@@ -1320,7 +1320,7 @@ def database_to_dict(classe_str_list, nominal_mzs, mf_search_settings, ion_charg
         list_formulas_candidates = []
 
         for nominal_mass in nominal_masses:
-            if nominal_mass in query.keys():   
+            if nominal_mass in query.keys():
                 list_formulas_candidates.extend(query.get(nominal_mass))
 
         return list_formulas_candidates
