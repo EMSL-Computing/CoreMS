@@ -214,6 +214,8 @@ class CompoundSearchSettings:
 
     output_score_method: str = 'All'
 
+    
+
     def __post_init__(self):
         # enforce datatype
         self.url_database = os.getenv('SPECTRAL_GCMS_DATABASE_URL', 'sqlite:///db/pnnl_lowres_gcms_compounds.sqlite')
@@ -363,9 +365,11 @@ class MolecularFormulaSearchSettings:
 
     score_method: str = 'prob_score'
 
-    output_min_score: float = 1
+    output_min_score: float = 0.1
 
     output_score_method: str = 'All Candidates'
+
+    output_min_score: float = 0.1
 
     # depending on the polarity mode it looks for [M].+ , [M].-
     # query and automatically compile add entry if it doesn't exist

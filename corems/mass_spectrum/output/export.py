@@ -391,11 +391,11 @@ class HighResMassSpecExport(Thread):
         selected_score_method = mass_spectrum.molecular_search_settings.output_score_method
 
         if selected_score_method in score_methods:
-            
-            #temp set score method as the one chosen in the output
+
+            # temp set score method as the one chosen in the output
             current_method = mass_spectrum.molecular_search_settings.score_method
             mass_spectrum.molecular_search_settings.score_method = selected_score_method
-            
+
             for index, ms_peak in enumerate(mass_spectrum):
 
                 # print(ms_peak.mz_exp)
@@ -414,7 +414,7 @@ class HighResMassSpecExport(Thread):
                                 iso_ms_peak = mass_spectrum[iso_mspeak_index]
                                 add_match_dict_data(iso_mspeak_index, iso_ms_peak, iso_mf_formula)
                 else:
-                    
+
                     if include_no_match and no_match_inline:
                         add_no_match_dict_data(index, ms_peak)
 
@@ -423,9 +423,10 @@ class HighResMassSpecExport(Thread):
                 for index, ms_peak in enumerate(mass_spectrum):
                     if not ms_peak:
                         add_no_match_dict_data(index, ms_peak)     
-            
-            #reset score method as the one chosen in the output
+            # reset score method as the one chosen in the output
             mass_spectrum.molecular_search_settings.score_method = current_method
+
+        else:
 
             for index, ms_peak in enumerate(mass_spectrum):
 
@@ -435,7 +436,7 @@ class HighResMassSpecExport(Thread):
                     # m_formula = ms_peak.molecular_formula_lowest_error
                     for m_formula in ms_peak:
 
-                        if mass_spectrum.molecular_search_settings.output_score_method == "prob_score":
+                        if mass_spectrum.molecular_search_settings.output_min_score > 0:
 
                             if m_formula.confidence_score >= mass_spectrum.molecular_search_settings.output_min_score:
 
@@ -444,17 +445,17 @@ class HighResMassSpecExport(Thread):
                                         add_match_dict_data(index, ms_peak, m_formula)
                                 else:
                                     add_match_dict_data(index, ms_peak, m_formula)  # add monoisotopic peak
-                            
+
                             # cutoff because of low score
                             else:
-                                    add_no_match_dict_data(index, ms_peak)   
+                                add_no_match_dict_data(index, ms_peak)
 
                         else:
                             if m_formula.is_isotopologue:  # isotopologues inline
                                 if include_isotopologues and isotopologue_inline:
                                     add_match_dict_data(index, ms_peak, m_formula)
-                                else:
-                                    add_match_dict_data(index, ms_peak, m_formula)  # add monoisotopic peak
+                            else:
+                                add_match_dict_data(index, ms_peak, m_formula)  # add monoisotopic peak
                 else:
                     # include not_match
                     if include_no_match and no_match_inline:
@@ -471,4 +472,8 @@ class HighResMassSpecExport(Thread):
                     if not ms_peak:
                         add_no_match_dict_data(index, ms_peak)
 
-        return dict_data_list
+        # remove duplicated add_match data possibly introduced on the output_score_filter step
+        res = []
+        [res.append(x) for x in dict_data_list if x not in res]
+
+        return res
