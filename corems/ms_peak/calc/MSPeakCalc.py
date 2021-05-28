@@ -20,7 +20,7 @@ class MSPeakCalculation:
     def _calc_kdm(self, dict_base):
         '''dict_base = {"C": 1, "H": 2}
         '''
-        if self._ms_parent.mspeaks_settings:
+        if self._ms_parent:
             # msPeak obj does have a ms object parent
             kendrick_rounding_method = self._ms_parent.mspeaks_settings.kendrick_rounding_method  # rounding method can be one of floor, ceil or round
             # msPeak obj does not have a ms object parent
