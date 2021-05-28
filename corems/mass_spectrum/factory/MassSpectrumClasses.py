@@ -63,6 +63,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         # objects created after process_mass_spec() function
         self._mspeaks = list()
+        self.mspeaks = list()
         self._dict_nominal_masses_indexes = dict()
         self._baselise_noise = 0.001
         self._baselise_noise_std = 0.001
