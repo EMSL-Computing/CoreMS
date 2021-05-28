@@ -20,8 +20,13 @@ class MSPeakCalculation:
     def _calc_kdm(self, dict_base):
         '''dict_base = {"C": 1, "H": 2}
         '''
-        kendrick_rounding_method = self._ms_parent.mspeaks_settings.kendrick_rounding_method # rounding method can be one of floor, ceil or round
-
+        if self._ms_parent.mspeaks_settings:
+            # msPeak obj does have a ms object parent
+            kendrick_rounding_method = self._ms_parent.mspeaks_settings.kendrick_rounding_method  # rounding method can be one of floor, ceil or round
+            # msPeak obj does not have a ms object parent
+        else:
+            kendrick_rounding_method = MSParameters.ms_peak.kendrick_rounding_method
+        
         mass = 0
         for atom in dict_base.keys():
             mass += Atoms.atomic_masses.get(atom) * dict_base.get(atom)
