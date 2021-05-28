@@ -1,0 +1,162 @@
+# Official language image. Look for the different tagged releases at:
+# https://hub.docker.com/r/library/python/tags/
+image: code-registry.emsl.pnl.gov/mass-spectrometry/corems:corems-base
+
+#gitlab.pnnl.gov:4567/mass-spectrometry/corems:latest 
+#image: python:3.7.6-slim
+
+# Change pip's cache directory to be inside the project directory since we can
+# only cache local items.
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  TWINE_USERNAME: $PRODUCTION_USERNAME
+  TWINE_PASSWORD: $PRODUCTION_PASSWORD
+  LATEST_VER: docker.io/corilo/corems:latest
+  MAJOR_VER: docker.io/corilo/corems:1.0.0
+  DOCKER_HUB_REGISTRY: docker.io
+
+# Pip's cache doesn't store the python packages
+# https://pip.pypa.io/en/stable/reference/pip_install/#caching
+#
+# If you want to also cache the installed packages, you have to install
+# them in a virtualenv and cache it as well.
+services:
+  - postgres
+
+variables:
+  POSTGRES_DB: molformula
+  POSTGRES_USER: coremsdb
+  POSTGRES_PASSWORD: coremsmolform
+  POSTGRES_HOST_AUTH_METHOD: trust
+  COREMS_DATABASE_URL: postgresql://coremsdb:coremsmolform@localhost:5432/molformula
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  
+  paths:
+    - .cache/pip
+
+before_script:
+  - export http_proxy=http://proxy01.pnl.gov:3128
+  - export https_proxy=http://proxy01.pnl.gov:3128
+  - export no_proxy=localhost,127.0.0.1,*.pnl.gov,*.pnnl.gov,10.17.128.1,10.17,10.16,172.26
+  
+stages:
+  - Pytest
+  - Build Python Package
+  - Push to PyPi
+  - Push to Gitlab Registry
+  - Push to Docker Hub
+  
+test-source:
+  
+  stage: Pytest
+  tags:
+    - k8s 
+    - rzr
+    - codebuilds
+    
+    
+  script:
+    
+    - python -V  # Print out python version for debugging
+    - pip install -r requirements.txt
+    - pip install pytest
+    - pip install pytest-cov
+    - ls .
+    - python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
+    - pytest
+  
+  artifacts:
+    paths:
+      - doc/coverage_html_report  
+ 
+build:
+  
+  stage: Build Python Package
+  tags:
+    - k8s 
+    - rzr
+    - codebuilds
+    
+  script:
+    
+    - python -V  # Print out python version for debugging
+    - pip install twine
+    - python setup.py sdist
+    - pip install dist/*
+    # run the command here
+
+  artifacts:
+    paths:
+      - dist/*
+
+#pypi:
+  
+#  stage: Push to PyPi
+#  tags:
+#    - corems
+#    - k8s 
+#    - rzr
+
+#  script:
+#    - twine upload dist/*
+  
+#  only:
+#    - tags
+
+deployment:
+  
+  stage: Push to Gitlab Registry
+  tags:
+    - k8s 
+    - rzr
+    - codebuilds
+
+  image:
+    
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  
+  script:
+    
+    - export DOCKER_CONFIG=/kaniko/.docker/
+    - export GOOGLE_APPLICATION_CREDENTIALS=/kaniko/.docker/config.json  
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+  
+  only:
+    - master
+#docker push:
+  
+#  stage: Push to Docker Hub
+#  tags:
+#    - corems
+#    - k8s 
+#    - rzr
+
+#  image:
+    
+#    name: gcr.io/kaniko-project/executor:debug
+#    entrypoint: [""]
+  
+#  script:
+#    - export DOCKER_CONFIG=/kaniko/.docker/
+#    - export GOOGLE_APPLICATION_CREDENTIALS=/kaniko/.docker/config.json  
+#    - echo "{\"auths\":{\"$DOCKER_HUB_REGISTRY\":{\"username\":\"$DOCKER_HUB_USER\",\"password\":\"$DOCKER_HUB_PASSWORD\"}}}" > /kaniko/.docker/config.json
+#    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $MAJOR_VER
+  
+#  only:
+#    - master
+    
+
+#pages:
+#  script:
+#    - pip install sphinx sphinx-rtd-theme
+#    - cd doc ; make html
+#    - mv build/html/ ../public/
+#  artifacts:
+#    paths:
+#      - public
+#  only:
+#    - master

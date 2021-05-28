@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<method>
+<submethods>
+<submethod program="apexControl" revision="0">
+<name>1907_Neg_ESI_Cady_SRFA_IAT50ms_8MW</name>
+<files>
+<file name="apexAcquisition.method"/>
+</files>
+</submethod>
+<submethod program="HyStar_LC" revision="0">
+<name>7min_DI</name>
+<files>
+<file name="hystar.method"/>
+</files>
+</submethod>
+</submethods>
+<locked>false</locked>
+<readonly>true</readonly>
+<comment></comment>
+</method>

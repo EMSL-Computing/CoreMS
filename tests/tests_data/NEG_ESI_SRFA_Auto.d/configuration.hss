@@ -1,0 +1,18 @@
+<?xml  version='1.0'?>
+<!--Version: 6.2-->
+<root>
+  <GeneralData Author="" Description="" />
+  <AdditionalData>
+    <SelectedWorkflow>LCMS</SelectedWorkflow>
+  </AdditionalData>
+  <ModuleInfo ModuleName="Bruker FTICR MS	4da4d09d-9e98-416b-a885-4354723d661a" ModuleDescription="" ModuleIndex="1" PluginVersion="2" CfgFileType="MS" ModuleSettings="&lt;!--?xml version=&quot;1.0&quot;?--&gt;&#xD;&#xA;&lt;root&gt;&lt;Description Value=&quot;Setting for MS&quot;/&gt;&lt;Interface Short=&quot;compass&quot; Long=&quot;internal software connection&quot;/&gt;&lt;PluginProperties&gt;&lt;PluginVersion&gt;2.0&lt;/PluginVersion&gt;&lt;ModuleName&gt;&lt;/ModuleName&gt;&lt;SetToStandby&gt;True&lt;/SetToStandby&gt;&lt;ShutDownOnExit&gt;True&lt;/ShutDownOnExit&gt;&lt;ErrorShutDown&gt;True&lt;/ErrorShutDown&gt;&lt;/PluginProperties&gt;&lt;CategoryOffered&gt;&lt;CategoryType Name=&quot;MSControl&quot; Type=&quot;MS&quot; DisplayName=&quot;solariX SN:272500.00031&quot;/&gt;&lt;/CategoryOffered&gt;&lt;Parameters SerialNo=&quot;272500.00031&quot; Type=&quot;ftms-series&quot; ProductName=&quot;solariX&quot;/&gt;&lt;/root&gt;&#xD;&#xA;">
+    <DeviceInfo Name="MSControl" Additional="" Type="MS" Category="MS" MainPump="False" TimeOffset="0" DisplayName="solariX SN:272500.00031">
+      <!--Version: 1.0-->
+    </DeviceInfo>
+  </ModuleInfo>
+  <ModuleInfo ModuleName="BDal RS232 Event	ef4f7ab3-57d3-44ca-a300-e5d53d37a788" ModuleDescription="" ModuleIndex="2" PluginVersion="2" CfgFileType="EVENT" ModuleSettings="&lt;!--?xml  version='1.0'?--&gt;&lt;root&gt;&lt;Interface Short=&quot;COM1&quot; Long=&quot;connected via COM1&quot; /&gt;&lt;PluginProperties&gt;&lt;PluginVersion&gt;2.0&lt;/PluginVersion&gt;&lt;ModuleName&gt;BDal RS232 Event	ef4f7ab3-57d3-44ca-a300-e5d53d37a788&lt;/ModuleName&gt;&lt;/PluginProperties&gt;&lt;CategoryOffered&gt;&lt;CategoryType DisplayName=&quot;RS232-Event&quot; Name=&quot;ComEvent&quot; Type=&quot;EVENT&quot; /&gt;&lt;/CategoryOffered&gt;&lt;PluginInfo Port=&quot;COM1&quot; Invert=&quot;False&quot; /&gt;&lt;/root&gt;">
+    <DeviceInfo Name="ComEvent" Additional="" Type="EVENT" Category="EVENT" MainPump="False" TimeOffset="0" DisplayName="RS232-Event">
+      <!--Version: 1.0-->
+    </DeviceInfo>
+  </ModuleInfo>
+</root>

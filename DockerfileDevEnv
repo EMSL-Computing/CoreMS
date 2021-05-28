@@ -1,0 +1,7 @@
+FROM corilo/corems:base-mono-pythonnet
+
+WORKDIR /home/corems
+
+COPY requirements.txt /home/corems/
+RUN pip3 install -r requirements.txt
+RUN rm /home/corems/requirements.txt
