@@ -422,8 +422,7 @@ class HighResMassSpecExport(Thread):
 
                 for index, ms_peak in enumerate(mass_spectrum):
                     if not ms_peak:
-                        add_no_match_dict_data(index, ms_peak)
-
+                        add_no_match_dict_data(index, ms_peak)     
             # reset score method as the one chosen in the output
             mass_spectrum.molecular_search_settings.score_method = current_method
 

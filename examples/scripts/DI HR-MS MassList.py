@@ -92,7 +92,6 @@ def calspec(msobj, refmasslist, order=2):
                                                         calib_snr_threshold=4)
 
     if len(mzrefs) < 5:
-
         imzmeas, mzrefs = calfn.find_calibration_points(msobj, ref_mass_list_fmt,
                                                         calib_ppm_error_threshold=(-7, 7),
                                                         calib_snr_threshold=4)

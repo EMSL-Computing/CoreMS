@@ -28,7 +28,6 @@ class Metadatar(Base):
     chebi = Column(String, nullable=True)
     smiles = Column(String, nullable=True)
     kegg = Column(String, nullable=True)
-
     iupac_name = Column(String, nullable=True)
     traditional_name = Column(String, nullable=True)
     common_name = Column(String, nullable=True)

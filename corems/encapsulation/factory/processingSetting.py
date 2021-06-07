@@ -119,6 +119,10 @@ class MassSpectrumSetting:
 class MassSpecPeakSetting:
 
     kendrick_base: Dict = dataclasses.field(default_factory=dict)
+    
+    kendrick_rounding_method: str = 'floor' # 'floor', 'ceil' or 'round' are valid methods for calculating nominal kendrick mass
+    
+    implemented_kendrick_rounding_methods : tuple = ('floor','ceil','round')
 
     # kendrick_base : Dict =  {'C': 1, 'H':2}
 
@@ -209,6 +213,8 @@ class CompoundSearchSettings:
     score_methods: tuple = ('highest_sim_score', 'highest_ss')
 
     output_score_method: str = 'All'
+
+    
 
     def __post_init__(self):
         # enforce datatype
@@ -362,6 +368,8 @@ class MolecularFormulaSearchSettings:
     output_min_score: float = 0.1
 
     output_score_method: str = 'All Candidates'
+
+    output_min_score: float = 0.1
 
     # depending on the polarity mode it looks for [M].+ , [M].-
     # query and automatically compile add entry if it doesn't exist

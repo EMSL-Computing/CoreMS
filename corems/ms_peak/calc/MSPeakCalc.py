@@ -5,12 +5,13 @@ import warnings
 
 
 from scipy.stats import norm, cauchy
-from numpy import linspace, sqrt, log, trapz, pi, log, poly1d, polyfit,flip, square,exp, nan
+from numpy import linspace, sqrt, log, trapz, pi, log, poly1d, polyfit,flip, square,exp, nan, ceil, rint, floor
 from corems.encapsulation.constant import Atoms
+from corems.encapsulation.factory.parameters import MSParameters
 from lmfit import models
 import pyswarm
 
-class MSPeakCalculation(object):
+class MSPeakCalculation:
 
     '''
     classdocs
@@ -19,14 +20,33 @@ class MSPeakCalculation(object):
     def _calc_kdm(self, dict_base):
         '''dict_base = {"C": 1, "H": 2}
         '''
-
+        if self._ms_parent:
+            # msPeak obj does have a ms object parent
+            kendrick_rounding_method = self._ms_parent.mspeaks_settings.kendrick_rounding_method  # rounding method can be one of floor, ceil or round
+            # msPeak obj does not have a ms object parent
+        else:
+            kendrick_rounding_method = MSParameters.ms_peak.kendrick_rounding_method
+        
         mass = 0
         for atom in dict_base.keys():
             mass += Atoms.atomic_masses.get(atom) * dict_base.get(atom)
 
         kendrick_mass = (int(mass) / mass) * self.mz_exp
 
-        nominal_km = int(kendrick_mass)
+        if kendrick_rounding_method == 'ceil':
+
+            nominal_km = ceil(kendrick_mass)
+
+        elif kendrick_rounding_method == 'round': 
+
+            nominal_km = rint(kendrick_mass)
+
+        elif kendrick_rounding_method == 'floor':
+
+            nominal_km = floor(kendrick_mass)
+
+        else:
+            raise  Exception("%s method was not implemented, please refer to corems.ms_peak.calc.MSPeakCalc Class" % kendrick_rounding_method)
 
         kmd = (nominal_km - kendrick_mass) 
 
