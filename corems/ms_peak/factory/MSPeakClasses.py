@@ -13,8 +13,9 @@ class _MSPeak(MSPeakCalculation):
     classdocs
     '''
     def __init__(self, ion_charge, mz_exp, abundance, resolving_power, 
-                    signal_to_noise, massspec_indexes, index, ms_parent=None, exp_freq=None):
+                 signal_to_noise, massspec_indexes, index, ms_parent=None, exp_freq=None):
 
+        self._ms_parent = ms_parent
         # needed to create the object
         self.ion_charge = int(ion_charge)
         self._mz_exp = float(mz_exp)
@@ -26,18 +27,17 @@ class _MSPeak(MSPeakCalculation):
         self.start_index = int(massspec_indexes[0]) 
         self.apex_index = int(massspec_indexes[1])
         self.final_index = int(massspec_indexes[2]) 
-        #centroid index
+        # centroid index
         self.index = int(index)
         # parent mass spectrum obj instance
-        self._ms_parent = ms_parent
-        
+
         # updated after mass error prediction'
         self.predicted_std = None
         # updated after calibration'
         self.mz_cal = None
         # updated individual calculation'
         self.baseline_noise = None
-        
+
         if exp_freq:
             self.freq_exp = float(exp_freq)
 
@@ -47,7 +47,7 @@ class _MSPeak(MSPeakCalculation):
             kendrick_dict_base = {'C':1, 'H':2}
         self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(
             kendrick_dict_base)
- 
+
         'updated after molecular formula ID'
 
         self.molecular_formulas = []
@@ -58,15 +58,15 @@ class _MSPeak(MSPeakCalculation):
         self.found_isotopologues = {}
 
     def __len__(self):
-        
+
         return len(self.molecular_formulas)
-        
+
     def __setitem__(self, position, molecular_formula_obj):
-        
+
         self.molecular_formulas[position] = molecular_formula_obj
 
     def __getitem__(self, position):
-        
+
         return self.molecular_formulas[position]
 
     def change_kendrick_base(self, kendrick_dict_base):
@@ -75,27 +75,27 @@ class _MSPeak(MSPeakCalculation):
             kendrick_dict_base)
 
     def add_molecular_formula(self, molecular_formula_obj):
-        
+
         # freeze state
         molecular_formula_obj._mspeak_parent = self
-        
-        #new_mol_formula = deepcopy(molecular_formula_obj)
+
+        # new_mol_formula = deepcopy(molecular_formula_obj)
         # add link mass spectrum obj instance
-        
-        #new_mol_formula.mspeak_parent = self
+
+        # new_mol_formula.mspeak_parent = self
 
         self.molecular_formulas.append(molecular_formula_obj)
 
         return molecular_formula_obj
 
     def remove_molecular_formula(self, mf_obj):
-        
+
         self.molecular_formulas.remove(mf_obj)
 
     def clear_molecular_formulas(self):
-        
-        self.molecular_formulas= []
-    
+
+        self.molecular_formulas = []
+
     @property
     def mz_exp(self):
         if self.mz_cal:
@@ -125,48 +125,48 @@ class _MSPeak(MSPeakCalculation):
 
     @property
     def knm(self): return self._nominal_km
-    
+
     @property
     def is_assigned(self):
 
         return bool(self.molecular_formulas)
-    
-    def plot_simulation(self, sim_type="lorentz", ax=None, color="green",
-                            oversample_multiplier=1, delta_rp = 0, mz_overlay=1):
 
-                 
+    def plot_simulation(self, sim_type="lorentz", ax=None, color="green",
+                        oversample_multiplier=1, delta_rp = 0, mz_overlay=1):
+
+
         if self._ms_parent:
-        
+
             import matplotlib.pyplot as plt
-            
+
             x, y = eval("self."+sim_type+"(oversample_multiplier="+str(oversample_multiplier)+", delta_rp="+str(delta_rp)+", mz_overlay="+str(mz_overlay)+")")
-            
+
             if ax is None:
                     ax = plt.gca()
             ax.plot(x, y, color=color, label="Simulation")
             ax.set(xlabel='m/z', ylabel='abundance')
-            
+
             plt.legend()
             return ax
-           
+
     def plot(self, ax=None, color="black"): #pragma: no cover
-        
+
         if self._ms_parent:
-            
+
             import matplotlib.pyplot as plt
 
             if ax is None:
                 ax = plt.gca()
             x = self._ms_parent.mz_exp_profile[self.start_index: self.final_index]
             y =  self._ms_parent.abundance_profile[self.start_index: self.final_index]
-            
+
             ax.plot(x, y, color=color, label="Data")
             ax.set(xlabel='m/z', ylabel='abundance')
-        
+
             #plt.legend()
-        
+
             return ax
-        
+
         else:
             print("Isolated Peak Object")
 

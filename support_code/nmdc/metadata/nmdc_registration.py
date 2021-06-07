@@ -131,7 +131,7 @@ class DMS_Mapping():
     def __init__(self, dms_file_path) -> None:
 
         self.dms_file_path = Path(dms_file_path)
-      
+
     @staticmethod
     def get_emsl_jgi_mapping(wb):
 
@@ -220,7 +220,7 @@ class NMDC_Metadata:
         data = r.json()
 
         return data
-        
+
     def save_nmdc_metadata(self,
                            data_obj,
                            nom=False,
@@ -342,7 +342,7 @@ class NMDC_Metadata:
         for metabolite in gcms_obj.metabolites_data:
 
             metabolite_quantification = {}
-            
+
             metabolite_quantification["type"] = "ndmc:MetaboliteQuantification"
             metabolite_quantification["highest_similarity_score"] = metabolite.get("highest_similarity_score")
             metabolite_quantification["metabolite_quantified"] = "{}:{}".format("chebi", metabolite.get("chebi"))
