@@ -55,3 +55,8 @@ results/
 .devcontainer/devcontainer.json
 db/20210203_Peak212_Neg_HR.raw
 db/PNNLMetV20201027.MSL
+data/ftms_nom_data_products.json
+data/ftms_nom_metadata_products.json
+data/ftms_nom_nmdc_data.csv
+data/nom_failed_files.json
+db/molformula.db
