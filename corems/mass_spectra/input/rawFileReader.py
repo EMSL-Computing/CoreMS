@@ -1,3 +1,6 @@
+__author__ = "Yuri E. Corilo"
+__date__ = "Jun 09, 2021"
+
 import numpy as np
 import sys
 import site
@@ -15,7 +18,7 @@ from corems.mass_spectra.calc.MZSearch import MZSearch
 from corems.encapsulation.factory.parameters import default_parameters
 
 
-# do not change the order from the imports statements and reference below
+# do not change the order from the imports statements and reference ThermoFisher below
 sys.path.append(site.getsitepackages()[0] + '/ext_lib')
 sys.path.append('ext_lib')
 
@@ -526,7 +529,8 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
         # force it to only look for the MSType
         scanFilter.MSOrder = ms_type
 
-        averageScan = Extensions.AverageScansInScanRange(self.iRawDataPlus, firstScanNumber, lastScanNumber, scanFilter, options)
+        averageScan = Extensions.AverageScansInScanRange(self.iRawDataPlus, firstScanNumber, lastScanNumber,
+                                                         scanFilter, options)
 
         if averageScan:
             mz_list = list(averageScan.SegmentedScan.Positions)

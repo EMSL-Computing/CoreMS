@@ -1,3 +1,6 @@
+__author__ = "Yuri E. Corilo"
+__date__ = "Jun 09, 20201"
+
 import clr
 from dataclasses import dataclass
 import sys

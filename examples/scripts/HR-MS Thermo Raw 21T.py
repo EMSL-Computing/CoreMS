@@ -1,3 +1,6 @@
+__author__ = "Yuri E. Corilo"
+__date__ = "Jun 09, 2021"
+
 import warnings
 warnings.filterwarnings("ignore")
 
