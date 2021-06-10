@@ -31,7 +31,7 @@ def run_thermo(file_location):
 
     parser.get_tic(plot=True)
     print(parser.get_all_filters())
-    
+
     transient_time_list = parser.get_icr_transient_times()
 
     print(transient_time_list)
