@@ -1,30 +1,26 @@
 import numpy
-import multiprocessing
-from threading import Thread
 import sys
 import site
 from pathlib import Path
-from io import BytesIO
 
 import clr
 import pandas as pd
 from s3path import S3Path
 from tqdm import tqdm
 
-
 from corems.encapsulation.constant import Labels
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
-from corems.mass_spectra.factory.LC_Class import LCMSBase
+from corems.mass_spectra.calc.MZSearch import MZSearch
 from corems.encapsulation.factory.parameters import default_parameters
 
 
 # do not change the order from the imports statements and reference below
-sys.path.append(site.getsitepackages()[0] + "/ext_lib")
-sys.path.append("ext_lib")
+sys.path.append(site.getsitepackages()[0] + '/ext_lib')
+sys.path.append('ext_lib')
 
-clr.AddReference("ThermoFisher.CommonCore.RawFileReader")
-clr.AddReference("ThermoFisher.CommonCore.Data")
-clr.AddReference("ThermoFisher.CommonCore.MassPrecisionEstimator")
+clr.AddReference('ThermoFisher.CommonCore.RawFileReader')
+clr.AddReference('ThermoFisher.CommonCore.Data')
+clr.AddReference('ThermoFisher.CommonCore.MassPrecisionEstimator')
 
 from ThermoFisher.CommonCore.RawFileReader import RawFileReaderAdapter
 from ThermoFisher.CommonCore.Data import ToleranceUnits, Extensions
@@ -33,23 +29,24 @@ from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType
 from System.Collections.Generic import List
 
 class ImportDataDependentThermoMSFileReader():
-    
-    """  Collection of methdos to import LC data dependent acquisition from Thermo's raw file
-         Intended do create the LCMS object --> ChromaPeaks --> MSobj FullScan --> Dependent MS/MS Obj 
-    """
-    def __init__(self, file_location, start_scan = -1, final_scan = -1, selected_mzs = None, enforce_target_ms2=True):
+
+    '''  Collection of methdos to import LC data dependent acquisition from Thermo's raw file
+         Intended do create the LCMS object --> ChromaPeaks --> MSobj FullScan --> Dependent MS/MS Obj
+    '''
+    def __init__(self, file_location: str, start_scan: int = -1, final_scan: int = -1,
+                 selected_mzs: [float] = None, enforce_target_ms2: bool = True):
         '''
         target_mzs: list[float] monoisotopic target m/z  or None
             Details: None will defalt to depends scans selected m/
-        file_location: str, Path, or S3Path      
+        file_location: str, Path, or S3Path
         enforce_target_ms2: bool
-            only perform EIC for target_mz if the m/z was selected as precursor for ms2 
-        start_scan: int 
-            default -1 will select the lowest available 
-        end_scan: int 
+            only perform EIC for target_mz if the m/z was selected as precursor for ms2
+        start_scan: int
+            default -1 will select the lowest available
+        end_scan: int
             default -1 will select the highest available
-        '''     
-     
+        '''
+
         # Thread.__init__(self)
         if isinstance(file_location, str):
             file_path = Path(file_location)
@@ -64,11 +61,11 @@ class ImportDataDependentThermoMSFileReader():
                 fh.write(file_location.read_bytes())
         else:
             file_path = file_location
-        
+
         self.iRawDataPlus = RawFileReaderAdapter.FileFactory(str(file_path))
 
         # removing tmp file
-        #if isinstance(file_location, S3Path):
+        # if isinstance(file_location, S3Path):
         #    file_path.unlink()
 
         self.res = self.iRawDataPlus.SelectInstrument(0, 1)
@@ -94,10 +91,10 @@ class ImportDataDependentThermoMSFileReader():
             return self._selected_mzs
 
         def get_precursors_list(self):
+            '''returns a set of unique precursors m/z'''
+            precursors_mzs = set()
 
-            precursors_mzs = []
-
-            for scan in range(self.start_scan, self.final_scan): 
+            for scan in range(self.start_scan, self.final_scan):
 
                 scan_filter = self.iRawDataPlus.GetFilterForScanNumber(scan)
 
@@ -111,11 +108,11 @@ class ImportDataDependentThermoMSFileReader():
 
                         precursor_mz = scan_dependent_detail.PrecursorMassArray
 
-                        precursors_mzs.append(precursor_mz)
+                        precursors_mzs.add(precursor_mz)
 
             return precursors_mzs
 
-        def _init_target_mz(self, selected_mzs, enforce_target_ms2):
+        def _init_target_mz(self, selected_mzs: [float], enforce_target_ms2: bool):
 
             tolerance_ppm = 5  # needs to change it encapsulation settings
 
@@ -130,23 +127,19 @@ class ImportDataDependentThermoMSFileReader():
                 self._selected_mzs = selected_mzs
 
             else:
-                # search the selected m/z list in the percursors m/z with a ms/ms experiment
+                # search the selected m/z list in the precursors m/z with a ms/ms experiment
 
                 searchmz = MZSearch(precursors_mzs, selected_mzs, 1000)
                 searchmz.start()
                 searchmz.join()
                 self._selected_mzs = searchmz.results.keys()
-                
-
-                # searching for precursor m/a whinthin margin or error
-
 
 class ImportMassSpectraThermoMSFileReader():
 
-    """  Collection of methdos to import Summed/Averaged mass spectrum from Thermo's raw file
+    '''  Collection of methdos to import Summed/Averaged mass spectrum from Thermo's raw file
          Currently only for profile mode data
          Returns MassSpecProfile object
-    """
+    '''
 
     def __init__(self, file_location):
 
@@ -164,7 +157,7 @@ class ImportMassSpectraThermoMSFileReader():
                 fh.write(file_location.read_bytes())
         else:
             file_path = file_location
-        
+
         self.iRawDataPlus = RawFileReaderAdapter.FileFactory(str(file_path))
 
         # removing tmp file
@@ -189,22 +182,22 @@ class ImportMassSpectraThermoMSFileReader():
         return self._final_scan_number
 
     def get_filter_for_scan_num(self, scan_number):
-        """
+        '''
         Returns the closest matching run time that corresponds to scan_number for the current
         controller. This function is only supported for MS device controllers.
         e.g.  ['FTMS', '-', 'p', 'NSI', 'Full', 'ms', '[200.00-1000.00]']
-        """
+        '''
         scan_label = self.iRawDataPlus.GetScanEventStringForScanNumber(
             scan_number)
 
         return str(scan_label).split()
 
     def get_all_filters(self):
-        """
+        '''
         Get all scan filters.
         This function is only supported for MS device controllers.
         e.g.  ['FTMS', '-', 'p', 'NSI', 'Full', 'ms', '[200.00-1000.00]']
-        """
+        '''
         scanrange = range(self._initial_scan_number, self._final_scan_number + 1)
         scanfiltersdic = {}
         scanfilterslist = []
@@ -225,18 +218,18 @@ class ImportMassSpectraThermoMSFileReader():
 
         polarity_symbol = self.get_filter_for_scan_num(scan_number)[1]
 
-        if polarity_symbol == "+":
+        if polarity_symbol == '+':
 
             return 1
-            # return "POSITIVE_ION_MODE"
+            # return 'POSITIVE_ION_MODE'
 
-        elif polarity_symbol == "-":
+        elif polarity_symbol == '-':
 
             return -1
 
         else:
 
-            raise Exception("Polarity Mode Unknown, please set it manually")
+            raise Exception('Polarity Mode Unknown, please set it manually')
 
     def get_scan_header(self, scan):
         '''
@@ -254,12 +247,12 @@ class ImportMassSpectraThermoMSFileReader():
         Resolving Power and Transient time targets based on 7T FT-ICR MS system
         '''
 
-        res_trans_time = {"50": 0.384,
-                          "100000": 0.768,
-                          "200000": 1.536,
-                          "400000": 3.072,
-                          "750000": 6.144,
-                          "1000000": 12.288
+        res_trans_time = {'50': 0.384,
+                          '100000': 0.768,
+                          '200000': 1.536,
+                          '400000': 3.072,
+                          '750000': 6.144,
+                          '1000000': 12.288
                           }
 
         firstScanNumber = self._initial_scan_number if first_scan is None else first_scan
@@ -284,7 +277,7 @@ class ImportMassSpectraThermoMSFileReader():
 
     def get_data(self, scan, d_parameter, scan_type):
 
-        if scan_type == "Centroid":
+        if scan_type == 'Centroid':
 
             centroidStream = self.iRawDataPlus.GetCentroidStream(scan, False)
 
@@ -302,9 +295,9 @@ class ImportMassSpectraThermoMSFileReader():
             array_noise_std = (numpy.array(noise) - numpy.array(baselines)) / 3
             l_signal_to_noise = numpy.array(magnitude) / array_noise_std
 
-            d_parameter["baselise_noise"] = numpy.average(array_noise_std)
+            d_parameter['baselise_noise'] = numpy.average(array_noise_std)
 
-            d_parameter["baselise_noise_std"] = numpy.std(array_noise_std)
+            d_parameter['baselise_noise_std'] = numpy.std(array_noise_std)
 
             data_dict = {
                 Labels.mz: mz,
@@ -332,30 +325,30 @@ class ImportMassSpectraThermoMSFileReader():
         return data_dict
 
     def set_metadata(self, firstScanNumber=0, lastScanNumber=0, scans_list=False):
-        """
+        '''
         Collect metadata to be ingested in the mass spectrum object
 
         scans_list: list[int] or false
         lastScanNumber: int
         firstScanNumber: int
-        """
+        '''
 
         d_params = default_parameters(self.file_location)
 
         # assumes scans is full scan or reduced profile scan
 
-        d_params["label"] = Labels.thermo_profile
+        d_params['label'] = Labels.thermo_profile
 
         if scans_list:
             d_params['scan_number'] = scans_list
 
-            d_params["polarity"] = self.get_polarity_mode(scans_list[0])
+            d_params['polarity'] = self.get_polarity_mode(scans_list[0])
 
         else:
 
-            d_params['scan_number'] = "{}-{}".format(firstScanNumber, lastScanNumber)
+            d_params['scan_number'] = '{}-{}'.format(firstScanNumber, lastScanNumber)
 
-            d_params["polarity"] = self.get_polarity_mode(firstScanNumber)
+            d_params['polarity'] = self.get_polarity_mode(firstScanNumber)
 
         d_params['analyzer'] = self.iRawDataPlus.GetInstrumentData().Model
 
@@ -365,14 +358,14 @@ class ImportMassSpectraThermoMSFileReader():
 
     def get_average_mass_spectrum_by_scanlist(self, scans_list, auto_process: bool = True, ppm_tolerance: float = 5.0):
 
-        """
+        '''
         Averages selected scans mass spectra using Thermo's AverageScans method
         scans_list: list[int]
         auto_process: bool
             If true performs peak picking, and noise threshold calculation after creation of mass spectrum object
         Returns:
             MassSpecProfile
-        """
+        '''
 
         d_params = self.set_metadata(scans_list=scans_list)
 
@@ -405,9 +398,11 @@ class ImportMassSpectraThermoMSFileReader():
 
         return mass_spec
 
-    def get_average_mass_spectrum_in_scan_range(self, first_scan: int = None, last_scan: int = None, auto_process: bool = True, ppm_tolerance: float = 5.0, ms_type=0):
+    def get_average_mass_spectrum_in_scan_range(self, first_scan: int = None, last_scan: int = None,
+                                                auto_process: bool = True, ppm_tolerance: float = 5.0,
+                                                ms_type: str = 0):
 
-        """
+        '''
         Averages mass spectra over a scan range using Thermo's AverageScansInScanRange method
         first_scan: int
         last_scan: int
@@ -416,8 +411,8 @@ class ImportMassSpectraThermoMSFileReader():
         ms_type: MSOrderType.MS
             Type of mass spectrum scan, default for full scan acquisition
          Returns:
-            MassSpecProfile    
-        """
+            MassSpecProfile
+        '''
 
         firstScanNumber = self._initial_scan_number if first_scan is None else first_scan
 
@@ -437,7 +432,6 @@ class ImportMassSpectraThermoMSFileReader():
 
         # force it to only look for the MSType
         scanFilter.MSOrder = ms_type
-        
 
         averageScan = Extensions.AverageScansInScanRange(self.iRawDataPlus, firstScanNumber, lastScanNumber, scanFilter, options)
 
@@ -458,7 +452,7 @@ class ImportMassSpectraThermoMSFileReader():
     def get_summed_mass_spectrum(self, initial_scan_number, final_scan_number=None,
                                  auto_process=True, pd_method=True, pd_merge_n=100):
 
-        """
+        '''
         Manually sum mass spectrum over a scan range
         initial_scan_number: int
         final_scan_number: int
@@ -469,20 +463,20 @@ class ImportMassSpectraThermoMSFileReader():
             Else: Assumes data is aligned and sum each data point across all mass spectra
         Returns:
             MassSpecProfile    
-        """
+        '''
 
         d_params = default_parameters(self.file_location)
 
         # assumes scans is full scan or reduced profile scan
 
-        d_params["label"] = Labels.thermo_profile
+        d_params['label'] = Labels.thermo_profile
 
         if type(initial_scan_number) is list:
-            d_params["polarity"] = self.get_polarity_mode(initial_scan_number[0])
+            d_params['polarity'] = self.get_polarity_mode(initial_scan_number[0])
 
             scanrange = initial_scan_number
         else:
-            d_params["polarity"] = self.get_polarity_mode(initial_scan_number)
+            d_params['polarity'] = self.get_polarity_mode(initial_scan_number)
 
             if final_scan_number is None:
                 final_scan_number = self._final_scan_number
@@ -492,9 +486,9 @@ class ImportMassSpectraThermoMSFileReader():
         if pd_method:
 
             def sort_sum_df(df):
-                """
+                '''
                 Nested function to sort dataframe and sum rows with exact matching indexes (m/z)
-                """
+                '''
                 df = df.sort_index()
                 df = df.groupby(level=0).sum()
                 return df
@@ -559,11 +553,11 @@ class ImportMassSpectraThermoMSFileReader():
         return mass_spec
 
     def get_tic(self, plot=False, filter='MS'):
-        """
+        '''
         Reads the TIC values for each scan from the Thermo headers
         Returns a pandas dataframe of Scans, TICs, and Times
         (Optionally) plots the TIC chromatogram.
-        """
+        '''
         first_scan = self._initial_scan_number
         final_scan = self._final_scan_number
         scanrange = range(first_scan, final_scan + 1)
@@ -603,7 +597,7 @@ class ImportMassSpectraThermoMSFileReader():
         elif method == 'mean':
             tic_median = tic['TIC'].mean()
         else:
-            print("Method " + str(method) + " undefined")
+            print('Method ' + str(method) + ' undefined')
 
         tic_std = tic['TIC'].std()
 

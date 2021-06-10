@@ -76,7 +76,7 @@ class MZSearch(Thread):
     @tolerance.setter
     def tolerance(self, tolerance):
         '''
-         method: string, 
+         method: string,
             ppm or ppb
         '''
         if tolerance < 0:
@@ -112,9 +112,9 @@ class MZSearch(Thread):
         '''
         Parameters
         ----------
-        calculated_mz: float, 
+        calculated_mz: float,
         exp_mz:float
-        method: string, 
+        method: string,
             ppm or ppb
         '''
         if method == 'ppm':
@@ -127,7 +127,7 @@ class MZSearch(Thread):
             raise Exception("method needs to be ppm or ppb, \
                              you have entered %s" % method)
 
-        return ((exp_mz-calculated_mz)/calculated_mz)*multi_factor
+        return ((exp_mz - calculated_mz) / calculated_mz) * multi_factor
 
     @staticmethod
     def check_ppm_error(tolerance, error):
