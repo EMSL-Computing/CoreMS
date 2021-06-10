@@ -8,6 +8,7 @@ import pandas as pd
 from s3path import S3Path
 from tqdm import tqdm
 
+
 from corems.encapsulation.constant import Labels
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
 from corems.mass_spectra.calc.MZSearch import MZSearch
@@ -24,7 +25,9 @@ clr.AddReference('ThermoFisher.CommonCore.MassPrecisionEstimator')
 
 from ThermoFisher.CommonCore.RawFileReader import RawFileReaderAdapter
 from ThermoFisher.CommonCore.Data import ToleranceUnits, Extensions
-from ThermoFisher.CommonCore.Data.Business import MassOptions
+from ThermoFisher.CommonCore.Data.Business import ChromatogramTraceSettings, TraceType, MassOptions
+from ThermoFisher.CommonCore.Data.Business import ChromatogramSignal, Range
+from ThermoFisher.CommonCore.Data.Interfaces import IChromatogramSettings
 from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType
 from System.Collections.Generic import List
 
@@ -133,6 +136,112 @@ class ImportDataDependentThermoMSFileReader():
                 searchmz.start()
                 searchmz.join()
                 self._selected_mzs = searchmz.results.keys()
+
+        def get_tic(start_scan=-1, end_scan=-1, ms_type='MS', plot=False) -> dict:
+
+            '''ms_type: str ('MS', MS2')
+            start_scan: int default -1 will select the lowest available
+            end_scan: int default -1 will select the highest available
+            returns:
+                chroma: dict
+                {
+                Scan: [int]
+                    original thermo scan number
+                Time: [floats]
+                    list of retention times
+                TIC: [floats]
+                    total ion chromatogram
+                }
+            '''
+
+            settings = ChromatogramTraceSettings(TraceType.TIC)
+            settings.Filter = ms_type
+
+            chroma_settings = IChromatogramSettings(settings)
+
+            data = self.iRawDataPlus.GetChromatogramData(chroma_settings,
+                                                         start_scan, end_scan)
+
+            trace = ChromatogramSignal.FromChromatogramData(data)
+            rt = []
+            tic = []
+            data = {'TIME': [], 'SCAN': [], 'TIC': []}
+
+            if trace[0].Length > 0:
+
+                for i in range(trace[1].Length):
+                    # print(trace[0].HasBasePeakData,trace[0].EndTime )
+
+                    # print("  {} - {}, {}".format( i, trace[0].Times[i], trace[0].Intensities[i] ))
+                    data['Time'].append(trace[0].Times[i])
+                    data['TIC'].append(trace[0].Intensities[i])
+                    data['Scan'].append(trace[0].Scans[i])
+
+                chroma = pd.DataFrame(data)
+
+                if plot:
+                    import matplotlib.pyplot as plt
+                    fig, ax = plt.subplots(figsize=(6, 3))
+                    ax.plot(chroma['Time'], chroma['TIC'], label='TIC')
+                    ax.set_xlabel('Time (min)')
+                    ax.set_ylabel('a.u.')
+                    plt.legend()
+                    # plt.show()
+                    return chroma, ax
+                return chroma
+
+            else:
+                return None
+
+        def get_ei_chromatograms(target_mzs: list[float], ppm_tolerance=1000, start_scan=-1, end_scan=-1, ms_type='MS'):
+
+            '''ms_type: str ('MS', MS2')
+            start_scan: int default -1 will select the lowest available
+            end_scan: int default -1 will select the highest available
+            '''
+
+            options = MassOptions()
+            options.ToleranceUnits = ToleranceUnits.ppm
+            options.Tolerance = ppm_tolerance
+
+            all_chroma_settings = []
+            for target_mz in target_mzs:
+
+                settings = ChromatogramTraceSettings(TraceType.MassRange)
+                settings.Filter = ms_type
+                settings.MassRanges = [Range(target_mz, target_mz)]
+
+                chroma_settings = IChromatogramSettings(settings)
+
+            all_chroma_settings.append(chroma_settings)
+
+            # chroma_settings2 = IChromatogramSettings(settings)
+            # print(chroma_settings.FragmentMass)
+            # print(chroma_settings.FragmentMass)
+            # print(chroma_settings)
+            # print(chroma_settings)
+
+            data = self.iRawDataPlus.GetChromatogramData(all_chroma_settings,
+                                                         start_scan, end_scan, options)
+
+            trace = ChromatogramSignal.FromChromatogramData(data)
+
+            if trace[0].Length > 0:
+
+                print("Base Peak chromatogram ({} points)".format(trace[0].Length))
+                rt = []
+                tic = []
+                scans = []
+                for i in range(trace[1].Length):
+                    # print(trace[0].HasBasePeakData,trace[0].EndTime )
+
+                    # print("  {} - {}, {}".format( i, trace[0].Times[i], trace[0].Intensities[i] ))
+                    rt.append(trace[0].Times[i])
+                    tic.append(trace[0].Intensities[i])
+                    scans.append(trace[0].Scans[i]))
+
+                # plot_chroma(rt, tic)
+                # plt.show()
 
 class ImportMassSpectraThermoMSFileReader():
 
@@ -563,21 +672,21 @@ class ImportMassSpectraThermoMSFileReader():
         scanrange = range(first_scan, final_scan + 1)
 
         ms_tic = pd.DataFrame(index=scanrange, columns=['Time', 'TIC'])
-        
+
         for scan in scanrange:
             scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan)
             ms_tic.loc[scan, 'Time'] = scanStatistics.StartTime
             ms_tic.loc[scan, 'TIC'] = scanStatistics.TIC
 
         if plot:
-            import matplotlib.pyplot as plt  # maybe better in top of file?
+            import matplotlib.pyplot as plt
             fig, ax = plt.subplots(figsize=(6, 3))
             ax.plot(ms_tic['Time'], ms_tic['TIC'], label='TIC')
             ax.set_xlabel('Time (min)')
             ax.set_ylabel('a.u.')
             plt.legend()
             # plt.show()
-            return ms_tic, fig
+            return ms_tic, ax
 
         return ms_tic
 

@@ -292,35 +292,38 @@ def get_ei_chromatogram(IRawDataPlus, target_mz, ppm_tolerance=1000, start_scan=
     #print(chroma_settings.FragmentMass)
     #print(chroma_settings)
     #print(chroma_settings)
- 
+
     data = IRawDataPlus.GetChromatogramData( [chroma_settings, chroma_settings2], start_scan, end_scan, options)
 
     trace = ChromatogramSignal.FromChromatogramData(data)
-    
+
     if trace[1].Length > 0:
-        
+
         print("Base Peak chromatogram ({} points)".format( trace[0].Length))
         rt = []
         tic = []
+        scan = []
         for i in range(trace[1].Length):
-            #print(trace[0].HasBasePeakData,trace[0].EndTime )
-            
-            #print("  {} - {}, {}".format( i, trace[0].Times[i], trace[0].Intensities[i] ))
+            # print(trace[0].HasBasePeakData,trace[0].EndTime )
+
+            # print("  {} - {}, {}".format( i, trace[0].Times[i], trace[0].Intensities[i] ))
             rt.append(trace[1].Times[i])
             tic.append(trace[1].Intensities[i])
+            scan.append(trace[1].Scans[i])
+
         plot_chroma(rt, tic)
         plt.show()
-    
+
     if trace[0].Length > 0:
-        
+
         print("Base Peak chromatogram ({} points)".format( trace[0].Length))
-        
+
         rt = []
         tic = []
         for i in range(trace[0].Length):
-            #print(trace[0].HasBasePeakData,trace[0].EndTime )
-            
-            #print("  {} - {}, {}".format( i, trace[0].Times[i], trace[0].Intensities[i] ))
+            # print(trace[0].HasBasePeakData,trace[0].EndTime )
+
+            # print("  {} - {}, {}".format( i, trace[0].Times[i], trace[0].Intensities[i] ))
             rt.append(trace[0].Times[i])
             tic.append(trace[0].Intensities[i])
         plot_chroma(rt, tic)
