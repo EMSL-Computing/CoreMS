@@ -92,121 +92,54 @@ class ImportDataDependentThermoMSFileReader():
         @property
         def selected_mzs(self):
             return self._selected_mzs
-        
-        @staticmethod
-        def calc_mass_error(target_mz, precursor_mz, method='ppm'):
-            '''
-            Parameters
-            ----------
-            target_mz: float, 
-            precursor_mz:float
-            method: string, 
-                ppm or ppb
-            '''
-            if method == 'ppm':
-                multi_factor = 1000000
-            
-            elif method == 'ppb':
-                multi_factor = 1000000
-            
-            else:
-                raise Exception("method needs to be ppm or ppb, you have entered %s" % method)
-                
-            return ((target_mz - precursor_mz)/target_mz)*multi_factor
-
-        @staticmethod
-        def check_ppm_error(tolerance, error):
-            return True if -tolerance <=error < tolerance else False 
 
         def get_precursors_list(self):
-                
+
             precursors_mzs = []
 
             for scan in range(self.start_scan, self.final_scan): 
-                
+
                 scan_filter = self.iRawDataPlus.GetFilterForScanNumber(scan)
 
                 MSOrder = scan_filter.MSOrder
 
                 if MSOrder == MSOrderType.Ms:
-                    
-                    iScanDependentDetailArray = iRawDataPlus.GetScanDependents(scan, 5)
+
+                    iScanDependentDetailArray = self.iRawDataPlus.GetScanDependents(scan, 5)
 
                     for scan_dependent_detail in iScanDependentDetailArray:
 
                         precursor_mz = scan_dependent_detail.PrecursorMassArray
 
                         precursors_mzs.append(precursor_mz)
-            
+
             return precursors_mzs
 
-        def get_nominal_percursor(self, precursors_mzs) -> dict:
-                
-            dict_nominal_precursors = {}
-            
-            for precursos_mz in precursors_mzs:
-                
-                nominal_mz = int(precursos_mz)
-                
-                if nominal_mz not in dict_nominal_precursors.keys():
-                    dict_nominal[int(precursos_mz)] = precursos_mz
-                else: 
-                    dict_nominal_precursors[int(precursos_mz)].append(precursos_mz)   
-            
-            return dict_nominal_precursors
-        
-        def search_selected_percursors(self, dict_nominal_precursors, selected_mz, offset) -> None:
-                
-            nominal_selected_mz = int(selected_mz) + offset
-            matched_n_precursors = dict_nominal_precursors.get(nominal_selected_mz)
-            
-            for precursor_mz in matched_n_precursors:
-                error = calc_mass_error(selected_mz, precursor_mz)
-                if check_ppm_error(error):
-                    self._selected_mzs.append(selected_mz)
-
         def _init_target_mz(self, selected_mzs, enforce_target_ms2):
-            
+
             tolerance_ppm = 5  # needs to change it encapsulation settings
-            
+
             precursors_mzs = self.get_precursors_list()
 
             if not selected_mzs:
-                # no selected m/z list provided, default to use the precursos m/z  
+                # no selected m/z list provided, default to use the precursos m/z
                 self._selected_mzs = precursors_mzs
-            
+
             elif not enforce_target_ms2:
                 # selected m/z list provided, and not enforcing being selected as precursor
                 self._selected_mzs = selected_mzs
 
-            else:                
-                # search the selected m/z list in the percursors m/z with a ms/ms experiment  
+            else:
+                # search the selected m/z list in the percursors m/z with a ms/ms experiment
+
+                searchmz = MZSearch(precursors_mzs, selected_mzs, 1000)
+                searchmz.start()
+                searchmz.join()
+                self._selected_mzs = searchmz.results.keys()
                 
-                # this step speeds up the process of search by creating a nominal dict 
-                dict_nominal_precursors = self.get_nominal_percursor(precursors_mzs)  
 
-                # searching for precursor m/a whinthin margin or error    
-                for selected_mz in selected_mzs:
-                    
-                    nominal_selected_mz = int(selected_mz)
-                    
-                    if nominal_selected_mz in dict_nominal_precursors.keys():
-                        
-                        self.search_selected_percursors(dict_nominal_precursors, selected_mz, 0) 
+                # searching for precursor m/a whinthin margin or error
 
-                    elif nominal_selected_mz -1  in dict_nominal_precursors.keys():        
-                        
-                        self.search_selected_percursors(dict_nominal_precursors, selected_mz, -1) 
-                    
-                    elif nominal_selected_mz + 1  in dict_nominal_precursors.keys():        
-                        
-                        self.search_selected_percursors(dict_nominal_precursors, selected_mz, +1) 
-                    
-                    else:
-                        
-                        continue
-
-           
 
 class ImportMassSpectraThermoMSFileReader():
 
