@@ -32,6 +32,182 @@ from ThermoFisher.CommonCore.Data.Business import MassOptions
 from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType
 from System.Collections.Generic import List
 
+class ImportDataDependentThermoMSFileReader():
+    
+    """  Collection of methdos to import LC data dependent acquisition from Thermo's raw file
+         Intended do create the LCMS object --> ChromaPeaks --> MSobj FullScan --> Dependent MS/MS Obj 
+    """
+    def __init__(self, file_location, start_scan = -1, final_scan = -1, selected_mzs = None, enforce_target_ms2=True):
+        '''
+        target_mzs: list[float] monoisotopic target m/z  or None
+            Details: None will defalt to depends scans selected m/
+        file_location: str, Path, or S3Path      
+        enforce_target_ms2: bool
+            only perform EIC for target_mz if the m/z was selected as precursor for ms2 
+        start_scan: int 
+            default -1 will select the lowest available 
+        end_scan: int 
+            default -1 will select the highest available
+        '''     
+     
+        # Thread.__init__(self)
+        if isinstance(file_location, str):
+            file_path = Path(file_location)
+
+        elif isinstance(file_location, S3Path):
+
+            temp_dir = Path('tmp/')
+            temp_dir.mkdir(exist_ok=True)
+
+            file_path = temp_dir / file_location.name
+            with open(file_path, 'wb') as fh:
+                fh.write(file_location.read_bytes())
+        else:
+            file_path = file_location
+        
+        self.iRawDataPlus = RawFileReaderAdapter.FileFactory(str(file_path))
+
+        # removing tmp file
+        #if isinstance(file_location, S3Path):
+        #    file_path.unlink()
+
+        self.res = self.iRawDataPlus.SelectInstrument(0, 1)
+
+        self._start_scan = self.iRawDataPlus.RunHeaderEx.FirstSpectrum
+
+        self._end_scan = self.iRawDataPlus.RunHeaderEx.LastSpectrum
+
+        self._selected_mzs = self._init_target_ms(selected_mzs, enforce_target_ms2)
+
+        self.file_path = file_path
+
+        @property
+        def start_scan(self):
+            return self._start_scan
+
+        @property
+        def final_scan(self):
+            return self._end_scan
+
+        @property
+        def selected_mzs(self):
+            return self._selected_mzs
+        
+        @staticmethod
+        def calc_mass_error(target_mz, precursor_mz, method='ppm'):
+            '''
+            Parameters
+            ----------
+            target_mz: float, 
+            precursor_mz:float
+            method: string, 
+                ppm or ppb
+            '''
+            if method == 'ppm':
+                multi_factor = 1000000
+            
+            elif method == 'ppb':
+                multi_factor = 1000000
+            
+            else:
+                raise Exception("method needs to be ppm or ppb, you have entered %s" % method)
+                
+            return ((target_mz - precursor_mz)/target_mz)*multi_factor
+
+        @staticmethod
+        def check_ppm_error(tolerance, error):
+            return True if -tolerance <=error < tolerance else False 
+
+        def get_precursors_list(self):
+                
+            precursors_mzs = []
+
+            for scan in range(self.start_scan, self.final_scan): 
+                
+                scan_filter = self.iRawDataPlus.GetFilterForScanNumber(scan)
+
+                MSOrder = scan_filter.MSOrder
+
+                if MSOrder == MSOrderType.Ms:
+                    
+                    iScanDependentDetailArray = iRawDataPlus.GetScanDependents(scan, 5)
+
+                    for scan_dependent_detail in iScanDependentDetailArray:
+
+                        precursor_mz = scan_dependent_detail.PrecursorMassArray
+
+                        precursors_mzs.append(precursor_mz)
+            
+            return precursors_mzs
+
+        def get_nominal_percursor(self, precursors_mzs) -> dict:
+                
+            dict_nominal_precursors = {}
+            
+            for precursos_mz in precursors_mzs:
+                
+                nominal_mz = int(precursos_mz)
+                
+                if nominal_mz not in dict_nominal_precursors.keys():
+                    dict_nominal[int(precursos_mz)] = precursos_mz
+                else: 
+                    dict_nominal_precursors[int(precursos_mz)].append(precursos_mz)   
+            
+            return dict_nominal_precursors
+        
+        def search_selected_percursors(self, dict_nominal_precursors, selected_mz, offset) -> None:
+                
+            nominal_selected_mz = int(selected_mz) + offset
+            matched_n_precursors = dict_nominal_precursors.get(nominal_selected_mz)
+            
+            for precursor_mz in matched_n_precursors:
+                error = calc_mass_error(selected_mz, precursor_mz)
+                if check_ppm_error(error):
+                    self._selected_mzs.append(selected_mz)
+
+        def _init_target_mz(self, selected_mzs, enforce_target_ms2):
+            
+            tolerance_ppm = 5  # needs to change it encapsulation settings
+            
+            precursors_mzs = self.get_precursors_list()
+
+            if not selected_mzs:
+                # no selected m/z list provided, default to use the precursos m/z  
+                self._selected_mzs = precursors_mzs
+            
+            elif not enforce_target_ms2:
+                # selected m/z list provided, and not enforcing being selected as precursor
+                self._selected_mzs = selected_mzs
+
+            else:                
+                # search the selected m/z list in the percursors m/z with a ms/ms experiment  
+                
+                # this step speeds up the process of search by creating a nominal dict 
+                dict_nominal_precursors = self.get_nominal_percursor(precursors_mzs)  
+
+                # searching for precursor m/a whinthin margin or error    
+                for selected_mz in selected_mzs:
+                    
+                    nominal_selected_mz = int(selected_mz)
+                    
+                    if nominal_selected_mz in dict_nominal_precursors.keys():
+                        
+                        self.search_selected_percursors(dict_nominal_precursors, selected_mz, 0) 
+
+                    elif nominal_selected_mz -1  in dict_nominal_precursors.keys():        
+                        
+                        self.search_selected_percursors(dict_nominal_precursors, selected_mz, -1) 
+                    
+                    elif nominal_selected_mz + 1  in dict_nominal_precursors.keys():        
+                        
+                        self.search_selected_percursors(dict_nominal_precursors, selected_mz, +1) 
+                    
+                    else:
+                        
+                        continue
+
+           
+
 class ImportMassSpectraThermoMSFileReader():
 
     """  Collection of methdos to import Summed/Averaged mass spectrum from Thermo's raw file
@@ -55,6 +231,7 @@ class ImportMassSpectraThermoMSFileReader():
                 fh.write(file_location.read_bytes())
         else:
             file_path = file_location
+        
         self.iRawDataPlus = RawFileReaderAdapter.FileFactory(str(file_path))
 
         # removing tmp file
@@ -295,7 +472,7 @@ class ImportMassSpectraThermoMSFileReader():
 
         return mass_spec
 
-    def get_average_mass_spectrum_in_scan_range(self, first_scan: int = None, last_scan: int = None, auto_process: bool = True, ppm_tolerance: float = 5.0, ms_type=MSOrderType.Ms):
+    def get_average_mass_spectrum_in_scan_range(self, first_scan: int = None, last_scan: int = None, auto_process: bool = True, ppm_tolerance: float = 5.0, ms_type=0):
 
         """
         Averages mass spectra over a scan range using Thermo's AverageScansInScanRange method
@@ -327,6 +504,7 @@ class ImportMassSpectraThermoMSFileReader():
 
         # force it to only look for the MSType
         scanFilter.MSOrder = ms_type
+        
 
         averageScan = Extensions.AverageScansInScanRange(self.iRawDataPlus, firstScanNumber, lastScanNumber, scanFilter, options)
 
@@ -447,7 +625,7 @@ class ImportMassSpectraThermoMSFileReader():
 
         return mass_spec
 
-    def get_tic(self, plot=False):
+    def get_tic(self, plot=False, filter='MS'):
         """
         Reads the TIC values for each scan from the Thermo headers
         Returns a pandas dataframe of Scans, TICs, and Times
@@ -458,6 +636,7 @@ class ImportMassSpectraThermoMSFileReader():
         scanrange = range(first_scan, final_scan + 1)
 
         ms_tic = pd.DataFrame(index=scanrange, columns=['Time', 'TIC'])
+        
         for scan in scanrange:
             scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan)
             ms_tic.loc[scan, 'Time'] = scanStatistics.StartTime

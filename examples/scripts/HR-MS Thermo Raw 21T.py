@@ -26,6 +26,9 @@ def run_thermo(file_location):
 
     parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
 
+    parser.get_tic(plot=True)
+    print(parser.get_all_filters())
+    
     transient_time_list = parser.get_icr_transient_times()
 
     print(transient_time_list)
@@ -115,5 +118,5 @@ if __name__ == "__main__":
 
     mass_spectrum = run_assignment(file_location)
 
-    mass_spectrum.to_csv("15T_Neg_ESI_SRFA")
+    mass_spectrum.to_csv(mass_spectrum.sample_name)
     # print("polarity", mass_spectrum.polarity)
