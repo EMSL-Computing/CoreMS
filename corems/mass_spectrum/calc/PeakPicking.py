@@ -184,7 +184,12 @@ class PeakPicking:
         # noise threshold
         if indexes.size and abundance_threshold is not None:
             indexes = indexes[abund[indexes]/factor >= abundance_threshold]
-            
+        # filter out 'peaks' within 3 points of the spectrum limits
+        #remove entries within 3 points of upper limit
+        indexes = [x for x in indexes if (len_abundance-x)>3]
+        #remove entries within 3 points of zero
+        indexes = [x for x in indexes if x>3]
+    
         for current_index in indexes: 
             
             if self.label == Labels.simulated_profile: 
@@ -201,8 +206,11 @@ class PeakPicking:
             
                 mz_exp_centroid, freq_centr, intes_centr, peak_indexes = self.find_apex_fit_quadratic(mass, abund, freq, current_index, len_abundance, peak_height_diff)
                 if mz_exp_centroid:
-                    
-                    peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
+                    try:
+                        peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
+                    except IndexError: 
+                        print('index error, skipping peak')
+                        continue
                     s2n = intes_centr/self.baselise_noise_std
                     self.add_mspeak(self.polarity, mz_exp_centroid, abund[current_index] , peak_resolving_power, s2n, peak_indexes, exp_freq=freq_centr, ms_parent=self)
             
