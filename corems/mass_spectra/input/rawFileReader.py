@@ -11,7 +11,7 @@ import pandas as pd
 from s3path import S3Path
 from tqdm import tqdm
 
-from corems import Vector
+from typing import List
 from corems.encapsulation.constant import Labels
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
 from corems.mass_spectra.calc.MZSearch import MZSearch
@@ -142,8 +142,23 @@ class ThermoBaseClass:
             header_dic.update({header.Labels[i]: header.Values[i]})
         return header_dic
 
-    def get_ei_chromatograms(self, target_mzs: list, ppm_tolerance=1000,
-                             start_scan=-1, end_scan=-1, ms_type='MS'):
+    @staticmethod
+    def get_rt_time_from_trace(trace) -> (List[float], List[float]):
+        '''trace: ThermoFisher.CommonCore.Data.Business.ChromatogramSignal'''
+        rt = []
+        tic = []
+
+        for i in range(trace.Length):
+            # print(trace[0].HasBasePeakData,trace[0].EndTime )
+
+            # print("  {} - {}, {}".format( i, trace[0].Times[i], trace[0].Intensities[i] ))
+            rt.append(trace.Times[i])
+            tic.append(trace.Intensities[i])
+            # scans.append(trace[0].Scans[i])
+        return rt, tic
+
+    def get_eics(self, target_mzs: list, ppm_tolerance=5,
+                 start_scan=-1, end_scan=-1, ms_type='MS', plot=False, ax=None):
 
         '''ms_type: str ('MS', MS2')
         start_scan: int default -1 will select the lowest available
@@ -175,7 +190,7 @@ class ThermoBaseClass:
 
             chroma_settings = IChromatogramSettings(settings)
 
-        all_chroma_settings.append(chroma_settings)
+            all_chroma_settings.append(chroma_settings)
 
         # chroma_settings2 = IChromatogramSettings(settings)
         # print(chroma_settings.FragmentMass)
@@ -186,20 +201,57 @@ class ThermoBaseClass:
         data = self.iRawDataPlus.GetChromatogramData(all_chroma_settings,
                                                      start_scan, end_scan, options)
 
-        trace = ChromatogramSignal.FromChromatogramData(data)
+        traces = ChromatogramSignal.FromChromatogramData(data)
 
-        if trace[0].Length > 0:
+        if plot:
+            from matplotlib.transforms import Bbox
+            import matplotlib.pyplot as plt
+            if not ax:
+                # ax = plt.gca()
+                # ax.clear()
+                fig, ax = plt.subplots()
+                ax.set_prop_cycle(color=plt.cm.gist_rainbow(np.linspace(0, 1, len(traces))))
+
+            for i, trace in enumerate(traces):
+                if trace.Length > 0:
+                    rt, ic = self.get_rt_time_from_trace(trace)
+                    ax.plot(rt, ic, label="{:.5f}".format(target_mzs[i]))
+
+            ax.set_xlabel('Time (min)')
+            ax.set_ylabel('a.u.')
+            ax.set_title(ms_type + ' EIC')
+            ax.tick_params(axis='both', which='major', labelsize=12)
+            ax.axes.spines['top'].set_visible(False)
+            ax.axes.spines['right'].set_visible(False)
+
+            legend = ax.legend(loc="upper left", bbox_to_anchor=(1.02, 0, 0.07, 1))
+            fig.subplots_adjust(right=0.76)
+            d = {"down": 30, "up": -30}
+
+            def func(evt):
+                if legend.contains(evt):
+                    bbox = legend.get_bbox_to_anchor()
+                    bbox = Bbox.from_bounds(bbox.x0, bbox.y0 + d[evt.button], bbox.width, bbox.height)
+                    tr = legend.axes.transAxes.inverted()
+                    legend.set_bbox_to_anchor(bbox.transformed(tr))
+                    fig.canvas.draw_idle()
+
+            fig.canvas.mpl_connect("scroll_event", func)        
+            # plt.show()
+            return traces, ax
+
+        if traces[0].Length > 0:
 
             rt = []
             tic = []
             scans = []
-            for i in range(trace[1].Length):
+            for i in range(traces[0].Length):
                 # print(trace[0].HasBasePeakData,trace[0].EndTime )
 
                 # print("  {} - {}, {}".format( i, trace[0].Times[i], trace[0].Intensities[i] ))
-                rt.append(trace[0].Times[i])
-                tic.append(trace[0].Intensities[i])
-                scans.append(trace[0].Scans[i])
+                rt.append(traces[0].Times[i])
+                tic.append(traces[0].Intensities[i])
+                scans.append(traces[0].Scans[i])
 
             # plot_chroma(rt, tic)
             # plt.show()
@@ -270,7 +322,7 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass):
     '''
 
     def __init__(self, file_location: str, start_scan: int = -1, end_scan: int = -1,
-                 selected_mzs: Vector = None, enforce_target_ms2: bool = True):
+                 selected_mzs: List[float] = None, enforce_target_ms2: bool = True, tolerance_ppm: float = 5.0):
         '''
         target_mzs: list[float] monoisotopic target m/z  or None
             Details: None will defalt to depends scans selected m/
@@ -284,16 +336,18 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass):
         '''
         super().__init__(file_location)
 
-        self._selected_mzs = self._init_target_mz(selected_mzs, enforce_target_ms2)
-        print(self._selected_mzs)
+        self._selected_mzs = self._init_target_mz(selected_mzs, enforce_target_ms2, tolerance_ppm)
 
     @property
-    def selected_mzs(self) -> Vector:
-        return self._selected_mzs
+    def selected_mzs(self) -> List[float]:
+        return list(self._selected_mzs)
 
-    def get_precursors_list(self):
-        '''returns a set of unique precursors m/z'''
-        activation_type = 5
+    def get_precursors_list(self, precision_decimals=6):
+        '''returns a set of unique precursors m/z
+        precision_decimals: int
+            change this parameters does not seem to affect the number of dependent scans selected
+            needs more investigation
+        '''
 
         precursors_mzs = set()
 
@@ -305,7 +359,7 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass):
 
             if MSOrder == MSOrderType.Ms:
 
-                scanDependents = self.iRawDataPlus.GetScanDependents(scan, 5)
+                scanDependents = self.iRawDataPlus.GetScanDependents(scan, precision_decimals)
 
                 for scan_dependent_detail in scanDependents.ScanDependentDetailArray:
 
@@ -315,15 +369,13 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass):
 
         return precursors_mzs
 
-    def _init_target_mz(self, selected_mzs: Vector, enforce_target_ms2: Vector):
-
-        tolerance_ppm = 5  # needs to change it encapsulation settings
+    def _init_target_mz(self, selected_mzs: List[float], enforce_target_ms2: List[float], tolerance_ppm: float):
 
         precursors_mzs = self.get_precursors_list()
 
         if selected_mzs is None:
             # no selected m/z list provided, default to use the precursos m/z
-            print('OK')
+
             return precursors_mzs
 
         elif selected_mzs and enforce_target_ms2 is False:
@@ -333,7 +385,7 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass):
         elif selected_mzs and enforce_target_ms2:
             # search the selected m/z list in the precursors m/z with a ms/ms experiment
 
-            searchmz = MZSearch(precursors_mzs, selected_mzs, 1000)
+            searchmz = MZSearch(precursors_mzs, selected_mzs, tolerance_ppm)
             searchmz.start()
             searchmz.join()
             return searchmz.results.keys()

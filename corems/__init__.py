@@ -348,9 +348,6 @@ import os
 import sys
 import hashlib
 
-from typing import List
-
-Vector = List[float]
 
 def timeit(method):
     def timed(*args, **kw):

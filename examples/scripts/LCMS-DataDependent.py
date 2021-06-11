@@ -17,14 +17,18 @@ def run_thermo(file_location):
 
     parser = rawFileReader.ImportDataDependentThermoMSFileReader(file_location)
 
-    parser.get_tic(ms_type='MS', plot=True)
+    parser.get_tic(ms_type='MS', plot=False)
 
-    parser.get_tic(ms_type='MS2', plot=True)
+    parser.get_tic(ms_type='MS2', plot=False)
 
-    #plt.show()
+    plt.show()
 
-    print(parser.selected_mzs)
+    # print(len(parser.selected_mzs))
 
+    parser.get_eics(parser.selected_mzs[0:100],
+                    ppm_tolerance=1,
+                    plot=True)
+    plt.show()
     # print(parser.get_all_filters())
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@ __date__ = "Jun 09, 2021"
 
 from threading import Thread
 from dataclasses import dataclass
-from corems import Vector
+from typing import List
 
 @dataclass
 class SearchResults:
@@ -15,7 +15,7 @@ class SearchResults:
 
 class MZSearch(Thread):
 
-    def __init__(self, exp_mzs: Vector, calculated_mzs: Vector, tolerance, method="ppm"):
+    def __init__(self, exp_mzs: List[float], calculated_mzs: List[float], tolerance, method="ppm"):
         '''
         Parameters
         ----------
