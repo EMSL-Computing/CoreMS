@@ -34,12 +34,12 @@ from ThermoFisher.CommonCore.Data.Interfaces import IChromatogramSettings
 from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType
 from System.Collections.Generic import List
 
-
-
 class ThermoBaseClass:
 
     def __init__(self, file_location):
-
+        ''' file_location: srt pathlib.Path or s3path.S3Path
+                Thermo Raw file path
+        '''
         # Thread.__init__(self)
         if isinstance(file_location, str):
             file_path = Path(file_location)
@@ -74,7 +74,7 @@ class ThermoBaseClass:
         return self._end_scan
 
     def remove_temp_file(self):
-        '''if the path is from S3Path data cannot be serialized to byte stream and
+        '''if the path is from S3Path data cannot be serialized to io.ByteStream and
            a temporary copy is stored at the temp dir
            use this function only at the end of your execution scrip
            some LCMS class methods depend on this file
@@ -285,6 +285,7 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass):
         super().__init__(file_location)
 
         self._selected_mzs = self._init_target_mz(selected_mzs, enforce_target_ms2)
+        print(self._selected_mzs)
 
     @property
     def selected_mzs(self) -> Vector:
@@ -292,6 +293,8 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass):
 
     def get_precursors_list(self):
         '''returns a set of unique precursors m/z'''
+        activation_type = 5
+
         precursors_mzs = set()
 
         for scan in range(self.start_scan, self.end_scan):
@@ -306,33 +309,34 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass):
 
                 for scan_dependent_detail in scanDependents.ScanDependentDetailArray:
 
-                    precursor_mz = scan_dependent_detail.PrecursorMassArray
+                    for precursor_mz in scan_dependent_detail.PrecursorMassArray:
 
-                    precursors_mzs.add(precursor_mz)
+                        precursors_mzs.add(precursor_mz)
 
         return precursors_mzs
 
-    def _init_target_mz(self, selected_mzs: list, enforce_target_ms2: list):
+    def _init_target_mz(self, selected_mzs: Vector, enforce_target_ms2: Vector):
 
         tolerance_ppm = 5  # needs to change it encapsulation settings
 
         precursors_mzs = self.get_precursors_list()
 
-        if not selected_mzs:
+        if selected_mzs is None:
             # no selected m/z list provided, default to use the precursos m/z
-            self._selected_mzs = precursors_mzs
+            print('OK')
+            return precursors_mzs
 
-        elif not enforce_target_ms2:
+        elif selected_mzs and enforce_target_ms2 is False:
             # selected m/z list provided, and not enforcing being selected as precursor
-            self._selected_mzs = selected_mzs
+            return selected_mzs
 
-        else:
+        elif selected_mzs and enforce_target_ms2:
             # search the selected m/z list in the precursors m/z with a ms/ms experiment
 
             searchmz = MZSearch(precursors_mzs, selected_mzs, 1000)
             searchmz.start()
             searchmz.join()
-            self._selected_mzs = searchmz.results.keys()
+            return searchmz.results.keys()
 
 class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
 
