@@ -11,7 +11,7 @@ import pandas as pd
 from s3path import S3Path
 from tqdm import tqdm
 
-
+from corems import Vector
 from corems.encapsulation.constant import Labels
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
 from corems.mass_spectra.calc.MZSearch import MZSearch
@@ -33,6 +33,8 @@ from ThermoFisher.CommonCore.Data.Business import ChromatogramSignal, Range
 from ThermoFisher.CommonCore.Data.Interfaces import IChromatogramSettings
 from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType
 from System.Collections.Generic import List
+
+
 
 class ThermoBaseClass:
 
@@ -250,7 +252,7 @@ class ThermoBaseClass:
                     ax = plt.gca()
                     # fig, ax = plt.subplots(figsize=(6, 3))
 
-                ax.plot(chroma['Time'], chroma['TIC'], label='TIC')
+                ax.plot(chroma['Time'], chroma['TIC'], label=ms_type + ' TIC')
                 ax.set_xlabel('Time (min)')
                 ax.set_ylabel('a.u.')
                 plt.legend()
@@ -267,8 +269,8 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass):
          Intended do create the LCMS object --> ChromaPeaks --> MSobj FullScan --> Dependent MS/MS Obj
     '''
 
-    def __init__(self, file_location: str, start_scan: int = -1, final_scan: int = -1,
-                 selected_mzs: [float] = None, enforce_target_ms2: bool = True):
+    def __init__(self, file_location: str, start_scan: int = -1, end_scan: int = -1,
+                 selected_mzs: Vector = None, enforce_target_ms2: bool = True):
         '''
         target_mzs: list[float] monoisotopic target m/z  or None
             Details: None will defalt to depends scans selected m/
@@ -282,55 +284,55 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass):
         '''
         super().__init__(file_location)
 
-        self._selected_mzs = self._init_target_ms(selected_mzs, enforce_target_ms2)
+        self._selected_mzs = self._init_target_mz(selected_mzs, enforce_target_ms2)
 
-        @property
-        def selected_mzs(self):
-            return self._selected_mzs
+    @property
+    def selected_mzs(self) -> Vector:
+        return self._selected_mzs
 
-        def get_precursors_list(self):
-            '''returns a set of unique precursors m/z'''
-            precursors_mzs = set()
+    def get_precursors_list(self):
+        '''returns a set of unique precursors m/z'''
+        precursors_mzs = set()
 
-            for scan in range(self.start_scan, self.final_scan):
+        for scan in range(self.start_scan, self.end_scan):
 
-                scan_filter = self.iRawDataPlus.GetFilterForScanNumber(scan)
+            scan_filter = self.iRawDataPlus.GetFilterForScanNumber(scan)
 
-                MSOrder = scan_filter.MSOrder
+            MSOrder = scan_filter.MSOrder
 
-                if MSOrder == MSOrderType.Ms:
+            if MSOrder == MSOrderType.Ms:
 
-                    iScanDependentDetailArray = self.iRawDataPlus.GetScanDependents(scan, 5)
+                scanDependents = self.iRawDataPlus.GetScanDependents(scan, 5)
 
-                    for scan_dependent_detail in iScanDependentDetailArray:
+                for scan_dependent_detail in scanDependents.ScanDependentDetailArray:
 
-                        precursor_mz = scan_dependent_detail.PrecursorMassArray
+                    precursor_mz = scan_dependent_detail.PrecursorMassArray
 
-                        precursors_mzs.add(precursor_mz)
+                    precursors_mzs.add(precursor_mz)
 
-            return precursors_mzs
+        return precursors_mzs
 
-        def _init_target_mz(self, selected_mzs: [float], enforce_target_ms2: bool):
+    def _init_target_mz(self, selected_mzs: list, enforce_target_ms2: list):
 
-            tolerance_ppm = 5  # needs to change it encapsulation settings
+        tolerance_ppm = 5  # needs to change it encapsulation settings
 
-            precursors_mzs = self.get_precursors_list()
+        precursors_mzs = self.get_precursors_list()
 
-            if not selected_mzs:
-                # no selected m/z list provided, default to use the precursos m/z
-                self._selected_mzs = precursors_mzs
+        if not selected_mzs:
+            # no selected m/z list provided, default to use the precursos m/z
+            self._selected_mzs = precursors_mzs
 
-            elif not enforce_target_ms2:
-                # selected m/z list provided, and not enforcing being selected as precursor
-                self._selected_mzs = selected_mzs
+        elif not enforce_target_ms2:
+            # selected m/z list provided, and not enforcing being selected as precursor
+            self._selected_mzs = selected_mzs
 
-            else:
-                # search the selected m/z list in the precursors m/z with a ms/ms experiment
+        else:
+            # search the selected m/z list in the precursors m/z with a ms/ms experiment
 
-                searchmz = MZSearch(precursors_mzs, selected_mzs, 1000)
-                searchmz.start()
-                searchmz.join()
-                self._selected_mzs = searchmz.results.keys()
+            searchmz = MZSearch(precursors_mzs, selected_mzs, 1000)
+            searchmz.start()
+            searchmz.join()
+            self._selected_mzs = searchmz.results.keys()
 
 class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
 
