@@ -21,7 +21,9 @@ def run_thermo(file_location):
 
     parser.get_tic(ms_type='MS2', plot=True)
 
-    plt.show()
+    #plt.show()
+
+    print(parser.selected_mzs)
 
     # print(parser.get_all_filters())
 
