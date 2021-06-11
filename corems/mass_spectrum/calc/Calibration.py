@@ -5,7 +5,7 @@ Created on Wed May 13 02:16:09 2020
 @author: Will Kew
 """
 
-### import modules
+# import modules
 import pandas as pd
 import numpy as np
 import os
@@ -25,16 +25,15 @@ from scipy.optimize import minimize
 class MzDomainCalibration:
 
     def __init__(self, mass_spectrum, ref_masslist):
-        
+
         self.mass_spectrum = mass_spectrum
 
         # define reference mass list - bruker .ref format
         self.ref_mass_list_path = ref_masslist
 
-        self.mass_spectrum.mz_cal = self.mass_spectrum.mz_exp    
-    
-        print("MS Obj loaded - "+str(len(mass_spectrum.mspeaks))+" peaks found.")
+        self.mass_spectrum.mz_cal = self.mass_spectrum.mz_exp
 
+        print("MS Obj loaded - " + str(len(mass_spectrum.mspeaks)) + " peaks found.")
 
     def load_ref_mass_list(self, refmasslist):
         """

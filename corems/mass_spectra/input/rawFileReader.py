@@ -140,7 +140,7 @@ class ThermoBaseClass:
             header_dic.update({header.Labels[i]: header.Values[i]})
         return header_dic
 
-    def get_ei_chromatograms(self, target_mzs: list[float], ppm_tolerance=1000,
+    def get_ei_chromatograms(self, target_mzs: list, ppm_tolerance=1000,
                              start_scan=-1, end_scan=-1, ms_type='MS'):
 
         '''ms_type: str ('MS', MS2')
@@ -202,7 +202,7 @@ class ThermoBaseClass:
             # plot_chroma(rt, tic)
             # plt.show()
 
-    def get_tic(self, start_scan=-1, end_scan=-1, ms_type='MS', plot=False) -> dict:
+    def get_tic(self, start_scan=-1, end_scan=-1, ms_type='MS', plot=False, ax=None) -> dict:
 
         '''ms_type: str ('MS', MS2')
         start_scan: int default -1 will select the lowest available
@@ -224,7 +224,7 @@ class ThermoBaseClass:
 
         chroma_settings = IChromatogramSettings(settings)
 
-        data = self.iRawDataPlus.GetChromatogramData(chroma_settings,
+        data = self.iRawDataPlus.GetChromatogramData([chroma_settings],
                                                      start_scan, end_scan)
 
         trace = ChromatogramSignal.FromChromatogramData(data)
@@ -234,7 +234,7 @@ class ThermoBaseClass:
 
         if trace[0].Length > 0:
 
-            for i in range(trace[1].Length):
+            for i in range(trace[0].Length):
                 # print(trace[0].HasBasePeakData,trace[0].EndTime )
 
                 # print("  {} - {}, {}".format( i, trace[0].Times[i], trace[0].Intensities[i] ))
@@ -245,8 +245,11 @@ class ThermoBaseClass:
             chroma = pd.DataFrame(data)
 
             if plot:
-                import matplotlib.pyplot as plt
-                fig, ax = plt.subplots(figsize=(6, 3))
+                if not ax:
+                    import matplotlib.pyplot as plt
+                    ax = plt.gca()
+                    # fig, ax = plt.subplots(figsize=(6, 3))
+
                 ax.plot(chroma['Time'], chroma['TIC'], label='TIC')
                 ax.set_xlabel('Time (min)')
                 ax.set_ylabel('a.u.')
@@ -658,7 +661,7 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
         Empirically, 1-2 stdevs enough to filter out the worst datapoints.
         Optionally, plot the TIC with horizontal lines for the standard dev cutoffs.
         '''
-        tic = pd.Dataframe(self.get_tic())
+        tic = pd.Dataframe(self.get_tic(plot=plot))
 
         if method == 'median':
             tic_median = tic['TIC'].median()

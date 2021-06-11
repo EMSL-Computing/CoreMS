@@ -171,13 +171,3 @@ class MZSearch(Thread):
                     self.results[calculated_mz] = [new_match]
                 else:
                     self.results[calculated_mz].append(new_match)
-
-
-exp = [212.121, 232.121, 232.122, 234.123, 123.34]
-calculated = [212.12101, 232.1213]
-
-searchmz = MZSearch(exp, calculated, 1000)
-searchmz.start()
-searchmz.join()
-
-print(searchmz.results)
