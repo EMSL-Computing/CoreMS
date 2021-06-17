@@ -848,7 +848,6 @@ class MassSpecfromFreq(MassSpecBase):
      
         self.parameters.transient = instance_TransientSetting  
 
-
 class MassSpecCentroid(MassSpecBase):
 
     '''

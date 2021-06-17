@@ -34,8 +34,8 @@ from System.Collections.Generic import List
 
 class ImportMassSpectraThermoMSFileReader():
 
-    """  Collection of methdos to import Summed/Averaged mass spectrum from Thermo's raw file
-         Currently only for profile mode data
+    """  Collection of methods to import Summed/Averaged mass spectrum from Thermo's raw file
+         Currently only profile mode data are supported
          Returns MassSpecProfile object
     """
 
@@ -53,8 +53,10 @@ class ImportMassSpectraThermoMSFileReader():
             file_path = temp_dir / file_location.name
             with open(file_path, 'wb') as fh:
                 fh.write(file_location.read_bytes())
+
         else:
             file_path = file_location
+
         self.iRawDataPlus = RawFileReaderAdapter.FileFactory(str(file_path))
 
         # removing tmp file

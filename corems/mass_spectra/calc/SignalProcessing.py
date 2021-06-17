@@ -15,9 +15,9 @@ def peak_detector(tic, max_tic):
     dy = derivate(tic)
 
     indexes = np.where((np.hstack((dy, 0)) < 0) & (np.hstack((0, dy)) > 0))[0]
-    
+
     for index in indexes:
-        
+
         start_index = find_minima(index, tic, right=False)
         final_index = find_minima(index, tic)
 
@@ -32,7 +32,7 @@ def find_nearest_scan(data, nodes):
     return nodes[scan_index]
 
 def peak_picking_first_derivative(domain, signal, max_height, max_prominence, max_signal, min_peak_datapoints,
-                           signal_threshold=0.2, correct_baseline=True, plot_res=False):
+                                  signal_threshold=0.2, correct_baseline=True, plot_res=False):
     
     if correct_baseline:
         signal = signal - baseline_detector(signal, domain, max_height, max_prominence)
@@ -132,13 +132,13 @@ def peak_picking_first_derivative(domain, signal, max_height, max_prominence, ma
                     if plot_res:
 
                         # plt.plot(domain[closest_left: closest_right+1], dydy[closest_left:closest_right+1], c='black')
-                        plt.plot(domain[closest_left: closest_right+1], dy[closest_left:closest_right+1], c='red')
+                        plt.plot(domain[closest_left: closest_right + 1], dy[closest_left:closest_right + 1], c='red')
                         plt.plot(domain[[apex_index, apex_index]], [signal[apex_index], pol(apex_index)], c='red')
                         plt.plot(domain[start_peak], signal[start_peak], c='blue', linewidth='0', marker="^")
                         # plt.plot(domain[[closest_left,apex_index,closest_right]], signal[[closest_left,apex_index,closest_right]], c='blue', linewidth='0', marker="s")    
                         # plt.plot(domain[[closest_left,apex_index,closest_right]], pol([closest_left, apex_index, closest_right]), c='red')
-                        plt.plot(domain[closest_left: closest_right+1], signal[closest_left:closest_right+1], c='black')
-                        plt.title(str((corrected_peak_height/max_signal)*100))
+                        plt.plot(domain[closest_left: closest_right + 1], signal[closest_left:closest_right + 1], c='black')
+                        plt.title(str((corrected_peak_height / max_signal) * 100))
                         
                         # plt.show()
 
@@ -380,7 +380,7 @@ def smooth_signal(x, window_len, window, pol_order, implemented_smooth_method):
         
     else:
         
-        w = eval( window + '(window_len)')
+        w = eval(window + '(window_len)')
 
         y = np.convolve(w / w.sum(), s, mode='valid')
 
