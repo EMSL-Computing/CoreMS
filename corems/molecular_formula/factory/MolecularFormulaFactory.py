@@ -1,8 +1,6 @@
-from copy import deepcopy
-from collections import OrderedDict
 from corems.molecular_formula.calc.MolecularFormulaCalc import MolecularFormulaCalc
 from corems.encapsulation.constant import Atoms, Labels
-from numpy import nan
+
 import re
 
 __author__ = "Yuri E. Corilo"
@@ -14,7 +12,7 @@ class MolecularFormula(MolecularFormulaCalc):
     '''
     def __init__(self, molecular_formula, ion_charge, ion_type=None, adduct_atom=None, mspeak_parent=None):
         
-        #clear dictionary of atoms with 0 value
+        # clear dictionary of atoms with 0 value
         
         if   type(molecular_formula) is dict:
                 self._from_dict(molecular_formula, ion_type, adduct_atom)   
@@ -58,16 +56,16 @@ class MolecularFormula(MolecularFormulaCalc):
     
     def __len__(self):
         
-        #crash if keys are not ordered
-            return len(self._d_molecular_formula.keys())
+        # crash if keys are not ordered
+        return len(self._d_molecular_formula.keys())
         
     def __getitem__(self, atom):
         
-            #atom = list(self._d_molecular_formula.keys())[position]
-            if atom in self._d_molecular_formula.keys():
-                return self._d_molecular_formula[atom]
-            else:
-                return 0
+        # atom = list(self._d_molecular_formula.keys())[position]
+        if atom in self._d_molecular_formula.keys():
+            return self._d_molecular_formula[atom]
+        else:
+            return 0
     
     def get(self, atom):
         

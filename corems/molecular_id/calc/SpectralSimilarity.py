@@ -161,14 +161,16 @@ class SpectralSimilarity():
     def nan_fill(self, df, fill_with=0):
 
         df.fillna(fill_with, inplace=True)
-        
+
         return df.T[0].values, df.T[1].values
 
     def normalize(self, x, y, norm_func=sum):
 
-        u_l = (x / norm_func(x), y / norm_func(y) )
-
-        return u_l
+        if norm_func is not None:
+            u_l = (x / norm_func(x), y / norm_func(y))
+            return u_l
+        else:
+            return (x, y)
 
     def weighted_cosine_correlation(self, a=0.5, b=1.3, nanfill=1e-10):
 
@@ -191,7 +193,7 @@ class SpectralSimilarity():
 
         # fill missing mz with weight {abun**a}{m/z**b} to 0
         x, y = self.nan_fill(df, fill_with=nanfill)
-        
+
         # correlation = (1 - cosine(x, y))
 
         correlation = dot(x, y) / (norm(x) * norm(y))

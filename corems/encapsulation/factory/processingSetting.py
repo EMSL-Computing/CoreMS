@@ -162,7 +162,8 @@ class GasChromatographSetting:
 
     noise_threshold_method: str = 'manual_relative_abundance'
 
-    implemented_noise_threshold_methods: tuple = ('auto_relative_abundance', 'manual_relative_abundance', 'second_derivative')
+    implemented_noise_threshold_methods: tuple = ('auto_relative_abundance', 'manual_relative_abundance', 
+                                                  'second_derivative')
 
     std_noise_threshold: int = 3
 

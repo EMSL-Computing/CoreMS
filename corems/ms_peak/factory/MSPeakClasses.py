@@ -87,20 +87,20 @@ class _MSPeak(MSPeakCalculation):
         return molecular_formula_obj
 
     def remove_molecular_formula(self, mf_obj):
-        
+
         self.molecular_formulas.remove(mf_obj)
 
     def clear_molecular_formulas(self):
-        
-        self.molecular_formulas= []
-    
+
+        self.molecular_formulas = []
+
     @property
     def mz_exp(self):
         if self.mz_cal:
             return self.mz_cal
         else:
             return self._mz_exp
-    
+
     @mz_exp.setter
     def mz_exp(self, mz_exp):
         self._mz_exp = mz_exp
