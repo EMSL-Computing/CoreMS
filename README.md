@@ -306,6 +306,15 @@ mass_spectrum_obj.to_pandas("filename")
 # get pandas Dataframe
 df = mass_spectrum_obj.to_dataframe()
 ```
+## UML Diagrams
+
+- Direct Infusion FT-MS:   
+
+    ![FT-MS UML Diagram](docs/uml/Direct_Infusion_FTMS_Data_Model.png)
+- GC-MS:  
+
+    ![GC-MS UML Diagram](docs/uml/GC_MS_Data_Model.png)
+
 ## Citing CoreMS
 
 If you use CoreMS in your work, please use the following citation:
