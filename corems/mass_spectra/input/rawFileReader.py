@@ -143,7 +143,7 @@ class ThermoBaseClass:
         return header_dic
 
     @staticmethod
-    def get_rt_time_from_trace(trace) -> (List[float], List[float]):
+    def get_rt_time_from_trace(trace) -> List[List[float]]:
         '''trace: ThermoFisher.CommonCore.Data.Business.ChromatogramSignal'''
         rt = []
         tic = []
@@ -512,7 +512,7 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
 
         return d_params
 
-    def get_average_mass_spectrum_by_scanlist(self, scans_list: [int], auto_process: bool = True,
+    def get_average_mass_spectrum_by_scanlist(self, scans_list: List[int], auto_process: bool = True,
                                               ppm_tolerance: float = 5.0):
 
         '''
