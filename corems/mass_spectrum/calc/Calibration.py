@@ -32,7 +32,8 @@ class MzDomainCalibration:
         self.ref_mass_list_path = ref_masslist
 
         self.mass_spectrum.mz_cal = self.mass_spectrum.mz_exp    
-    
+        self.mass_spectrum.mz_cal_profile = self.mass_spectrum._mz_exp  
+        
         print("MS Obj loaded - "+str(len(mass_spectrum.mspeaks))+" peaks found.")
 
 

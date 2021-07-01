@@ -61,7 +61,6 @@ class MSPeakCalculation:
         uses provided mz_domain to accurately integrate areas independent of digital resolution
         '''
         if self.final_index > self.start_index:
-
             yy = self._ms_parent.abundance_profile[self.start_index:self.final_index]
             xx = self._ms_parent.mz_exp_profile[self.start_index:self.final_index]
             xx = flip(xx)

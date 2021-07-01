@@ -272,8 +272,8 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
     @mz_cal_profile.setter
     def mz_cal_profile(self, mz_cal_list):
-
-        if len(mz_cal_list) == len(self.mz_exp_profile):
+        
+        if len(mz_cal_list) == len(self._mz_exp):
             self._mz_cal_profile = mz_cal_list
         else:
             raise Exception( "calibrated array (%i) is not of the same size of the data (%i)" % (len(mz_cal_list),  len(self.mz_exp_profile)))    
