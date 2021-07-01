@@ -258,10 +258,6 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self.parameters.molecular_search =  instance_MolecularFormulaSearchSettings
 
     @property
-    def freq_exp_profile(self):
-        return self._frequency_domain
-
-    @property
     def mz_cal_profile(self):
 
         return self._mz_cal_profile
@@ -302,16 +298,23 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             return array([mspeak.mz_exp for mspeak in self.mspeaks])
 
     @property
+    def freq_exp_profile(self):
+        return self._frequency_domain
+    
+    @freq_exp_profile.setter
+    def freq_exp_profile(self, new_data): self._frequency_domain = array(new_data)
+
+    @property
     def mz_exp_profile(self): return self._mz_exp
 
     @mz_exp_profile.setter
-    def mz_exp_profile(self, _mz_exp ): self._mz_exp = _mz_exp
+    def mz_exp_profile(self, new_data ): self._mz_exp = array(new_data)
 
     @property
     def abundance_profile(self): return self._abundance
 
     @abundance_profile.setter
-    def abundance_profile(self, _abundance): return self._abundance
+    def abundance_profile(self, new_data): self._abundance = array(new_data)
 
     @property
     def abundance(self):
