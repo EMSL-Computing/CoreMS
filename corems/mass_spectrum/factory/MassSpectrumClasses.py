@@ -306,8 +306,14 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             return array([mspeak.mz_exp for mspeak in self.mspeaks])
 
     @property
-    def mz_exp_profile(self): return self._mz_exp
-
+    def mz_exp_profile(self): 
+        if self.is_calibrated:
+        
+            return self.mz_cal_profile
+        
+        else:
+            return self._mz_exp
+    
     @mz_exp_profile.setter
     def mz_exp_profile(self, _mz_exp ): self._mz_exp = array(_mz_exp)
 
