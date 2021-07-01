@@ -72,7 +72,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
         return len(self.gcpeaks)
 
-    def __getitem__(self, scan_number):
+    def __getitem__(self, scan_number) -> GCPeak:
 
         return self.gcpeaks[scan_number]
 

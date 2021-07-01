@@ -26,7 +26,7 @@ class ChromaPeakBase():
         
         return len(self._compounds)
         
-    def __getitem__(self, position):
+    def __getitem__(self, position) -> LowResCompoundRef:
         
         return self._compounds[position]
 

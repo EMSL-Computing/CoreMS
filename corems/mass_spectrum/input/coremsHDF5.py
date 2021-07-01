@@ -60,7 +60,7 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         
         mass_spectrum.abundance_profile = abundance_profile
 
-    def get_mass_spectrum(self, scan_number=0, time_index=-1, auto_process=True, load_settings=True, load_raw = True):
+    def get_mass_spectrum(self, scan_number=0, time_index=-1, auto_process=True, load_settings=True, load_raw = True) -> MassSpecCentroid:
         
         dataframe = self.get_dataframe(scan_number, time_index=time_index)
         

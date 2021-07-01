@@ -17,7 +17,7 @@ class ReadCoremsMasslist(MassListBaseClass):
 
     '''
 
-    def get_mass_spectrum(self, scan_number=0, time_index=-1, auto_process=True, loadSettings=True):
+    def get_mass_spectrum(self, scan_number=0, time_index=-1, auto_process=True, loadSettings=True) -> MassSpecCentroid:
 
         dataframe = self.get_dataframe()
 
