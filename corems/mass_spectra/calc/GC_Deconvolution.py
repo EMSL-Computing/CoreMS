@@ -115,6 +115,8 @@ class MassDeconvolution:
         signal_threshold = self.chromatogram_settings.eic_signal_threshold
 
         min_peak_datapoints = self.chromatogram_settings.min_peak_datapoints
+        
+        peak_derivative_threshold = self.chromatogram_settings.peak_derivative_threshold
 
         correct_baseline = False
         peaks_entity_data = {}
@@ -135,6 +137,7 @@ class MassDeconvolution:
                 smooth_eic = self.smooth_tic(eic)
 
                 include_indexes = sp.peak_picking_first_derivative(rt_list, smooth_eic, max_height, max_prominence, max_eic, min_peak_datapoints,
+                                                                   peak_derivative_threshold, 
                                                                    signal_threshold=signal_threshold, correct_baseline=correct_baseline)
 
                 for initial_scan, apex_scan, final_scan in include_indexes:
@@ -261,12 +264,14 @@ class MassDeconvolution:
         min_peak_datapoints = self.chromatogram_settings.min_peak_datapoints
         signal_threshold = self.chromatogram_settings.peak_height_min_percent
         max_rt_distance = self.chromatogram_settings.max_rt_distance
+        peak_derivative_threshold = self.chromatogram_settings.peak_derivative_threshold
 
         max_signal = max(signal)
         correct_baseline = False
 
         include_indexes = sp.peak_picking_first_derivative(domain, signal, max_height, max_prominence, max_signal, min_peak_datapoints,
-                                                           signal_threshold=signal_threshold, correct_baseline=correct_baseline, plot_res=False)
+                                                           peak_derivative_threshold, signal_threshold=signal_threshold, 
+                                                            correct_baseline=correct_baseline, plot_res=False)
 
         ''' deconvolution window is defined by the TIC peak region'''
         all_apexes_rt = np.array(list(peaks_entity_data.keys()))
@@ -375,6 +380,7 @@ class MassDeconvolution:
                     smoothed_tic = self.smooth_signal(peak_tic)
 
                     include_indexes = sp.peak_picking_first_derivative(peak_rt, smoothed_tic, max_height, max_prominence, max_signal, min_peak_datapoints,
+                                                                       peak_derivative_threshold,
                                                                        signal_threshold=signal_threshold, correct_baseline=False, plot_res=False)
 
                     include_indexes = list(include_indexes)
@@ -419,6 +425,7 @@ class MassDeconvolution:
                 smoothed_tic = self.smooth_signal(peak_tic)
 
                 include_indexes = sp.peak_picking_first_derivative(peak_rt, smoothed_tic, max_height, max_prominence, max_signal, min_peak_datapoints,
+                                                                   peak_derivative_threshold,
                                                                    signal_threshold=signal_threshold, correct_baseline=False, plot_res=False)
                 include_indexes = list(include_indexes)
 

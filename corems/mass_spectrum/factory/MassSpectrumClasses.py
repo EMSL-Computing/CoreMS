@@ -261,6 +261,9 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     @property
     def freq_exp_profile(self):
         return self._frequency_domain
+    
+    @freq_exp_profile.setter
+    def freq_exp_profile(self, _frequency_domain): self._frequency_domain = array(_frequency_domain)
 
     @property
     def mz_cal_profile(self):
@@ -306,14 +309,14 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     def mz_exp_profile(self): return self._mz_exp
 
     @mz_exp_profile.setter
-    def mz_exp_profile(self, _mz_exp ): self._mz_exp = _mz_exp
+    def mz_exp_profile(self, _mz_exp ): self._mz_exp = array(_mz_exp)
 
     @property
     def abundance_profile(self): return self._abundance
 
     @abundance_profile.setter
-    def abundance_profile(self, _abundance): return self._abundance
-
+    def abundance_profile(self, _abundance): self._abundance = array(_abundance)
+   
     @property
     def abundance(self):
         self.check_mspeaks()
@@ -466,25 +469,25 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     def filter_by_mz(self, min_mz, max_mz):
 
         self.check_mspeaks_warning()
-        indexes = [index for index, mspeak in enumerate(self.mspeaks) if min_mz <= mspeak.mz_exp <= max_mz]
+        indexes = [index for index, mspeak in enumerate(self.mspeaks) if not min_mz <= mspeak.mz_exp <= max_mz]
         self.filter_by_index(indexes)
 
     def filter_by_s2n(self, min_s2n, max_s2n=False):
 
         self.check_mspeaks_warning()
-        if not max_s2n:
-            max_s2n = self.max_signal_to_noise
-
-        self.check_mspeaks_warning()
-        indexes = [index for index, mspeak in enumerate(self.mspeaks) if min_s2n <= mspeak.signal_to_noise <= max_s2n ]
+        if max_s2n:
+            indexes = [index for index, mspeak in enumerate(self.mspeaks) if not min_s2n <= mspeak.signal_to_noise <= max_s2n ]
+        else:
+            indexes = [index for index, mspeak in enumerate(self.mspeaks) if mspeak.signal_to_noise <= min_s2n ]
         self.filter_by_index(indexes)
 
     def filter_by_abundance(self, min_abund, max_abund=False):
 
         self.check_mspeaks_warning()
-        if not max_abund:
-            max_abund = self.max_abundance
-        indexes = [index for index, mspeak in enumerate(self.mspeaks) if min_abund <= mspeak.abundance <= max_abund]
+        if max_abund:
+            indexes = [index for index, mspeak in enumerate(self.mspeaks) if not min_abund <= mspeak.abundance <= max_abund]
+        else:
+            indexes = [index for index, mspeak in enumerate(self.mspeaks) if mspeak.abundance <= min_abund]
         self.filter_by_index(indexes)
 
     def filter_by_max_resolving_power(self, B, T):

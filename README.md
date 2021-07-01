@@ -39,7 +39,7 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 
 ## Current Version
 
-### `2.1.1.beta`
+### `2.2.0.beta`
 
 ## Main Developers/Contact 
 - [Yuri. E. Corilo](mailto:corilo@pnnl.gov)  
@@ -281,6 +281,8 @@ for mspeak in mass_spectrum_obj.sort_by_abundance():
         # and mass_spectrum_obj.mz_exp_profile to access mz with all available datapoints
         pyplot.plot(mspeak.mz_exp, mspeak.abundance, 'o', c='g')
 
+        #or use 
+        mspeak.plot(color="black", derivative=True, deriv_color='red')
         # iterate over all molecular formulae associated with the ms peaks obj
         for molecular_formula in mspeak:
 

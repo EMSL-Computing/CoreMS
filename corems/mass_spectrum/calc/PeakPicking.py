@@ -3,8 +3,11 @@
 @date: Jun 27, 2019
 '''
 
+from typing import Literal
+from matplotlib import pyplot
 from numpy import hstack, inf, isnan, poly1d, polyfit, where
 from corems.encapsulation.constant import Labels
+from corems.mass_spectra.calc import SignalProcessing as sp
 
 class PeakPicking:
 
@@ -20,7 +23,6 @@ class PeakPicking:
 
         max_final =  where(self.mz_exp_profile < max_picking_mz)[-1][-1]
         max_comeco =  where(self.mz_exp_profile < max_picking_mz)[0][0]
-
 
         if self.has_frequency:
 
@@ -38,7 +40,12 @@ class PeakPicking:
     def do_peak_picking(self):
 
         mz, abudance, freq = self.cut_mz_domain_peak_picking()
+        
+        self.mz_exp_profile = mz
+        self.abundance_profile = abudance
+        self.freq_exp_profile = freq
 
+        
         if self.label == Labels.bruker_frequency or self.label == Labels.midas_frequency:
 
             self.calc_centroid(mz, abudance, freq)
@@ -157,9 +164,52 @@ class PeakPicking:
             return mass[indexes], abun[indexes]
     
     def calc_centroid(self, mass, abund, freq):
-        #TODO: remove peaks that minimum is one data point from the maximum
-        # to remove artifacts 
+        
+        max_height = self.mspeaks_settings.peak_height_max_percent
+        max_prominence = self.mspeaks_settings.peak_max_prominence_percent
+        min_peak_datapoints = self.mspeaks_settings.min_peak_datapoints
+        peak_derivative_threshold = self.mspeaks_settings.peak_derivative_threshold
+        max_abun = max(abund)
+        peak_height_diff = lambda hi, li : ((abund[hi] - abund[li]) / max_abun ) * 100
+                    
+        domain = mass
+        signal = abund
+        len_signal = len(signal)
+        
+        signal_threshold, factor = self.get_threshold(abund)
+        max_signal = factor
 
+        correct_baseline = False
+
+        include_indexes = sp.peak_picking_first_derivative(domain, signal, max_height, max_prominence, max_signal, 
+                                                           min_peak_datapoints,
+                                                           peak_derivative_threshold,
+                                                           signal_threshold=signal_threshold, 
+                                                           correct_baseline=correct_baseline, 
+                                                           abun_norm=1,
+                                                           plot_res=False)
+
+        for indexes_tuple in include_indexes:
+            
+            apex_index = indexes_tuple[1]
+            
+            mz_exp_centroid, freq_centr, intes_centr = self.find_apex_fit_quadratic(mass, abund, freq, apex_index)
+
+            if mz_exp_centroid:
+                
+                peak_indexes = self.check_prominence(abund, apex_index, len_signal, peak_height_diff )
+                
+                if peak_indexes:
+                    
+                    peak_resolving_power = self.calculate_resolving_power( abund, mass, apex_index)
+                    s2n = intes_centr/self.baselise_noise_std
+                    self.add_mspeak(self.polarity, mz_exp_centroid, abund[apex_index] , peak_resolving_power, s2n, indexes_tuple, exp_freq=freq_centr, ms_parent=self)
+                #pyplot.plot(domain[start_index: final_index + 1], signal[start_index:final_index + 1], c='black')
+                #pyplot.show()
+
+    def calc_centroid_legacy(self, mass, abund, freq):
+        pass
+    '''
         len_abundance = len(abund)
         
         max_abundance = max(abund)
@@ -171,7 +221,7 @@ class PeakPicking:
         # find indices of all peaks
         dy = abund[1:] - abund[:-1]
         
-        '''replaces nan for infinity'''
+        replaces nan for infinity
         indices_nan = where(isnan(abund))[0]
         
         if indices_nan.size:
@@ -213,7 +263,7 @@ class PeakPicking:
                         continue
                     s2n = intes_centr/self.baselise_noise_std
                     self.add_mspeak(self.polarity, mz_exp_centroid, abund[current_index] , peak_resolving_power, s2n, peak_indexes, exp_freq=freq_centr, ms_parent=self)
-            
+    '''    
         
     def get_threshold(self, intes):
         
@@ -240,63 +290,62 @@ class PeakPicking:
         
         return abundance_threshold, factor
         
-    def find_apex_fit_quadratic(self, mass, abund, freq, current_index, len_abundance, peak_height_diff):
-        
+    def find_apex_fit_quadratic(self, mass, abund, freq, current_index):
         # calc prominence
-        peak_indexes = self.check_prominence(abund, current_index, len_abundance, peak_height_diff )
+        #peak_indexes = self.check_prominence(abund, current_index, len_abundance, peak_height_diff )
         
-        if not peak_indexes:        
+        #if not peak_indexes:        
             
-            return None, None, None, None           
+        #    return None, None, None, None           
         
-        else:    
+        #else:    
             
-            # fit parabola to three most abundant datapoints
-            list_mass = [mass[current_index - 1], mass[current_index], mass[current_index +1]]
-            list_y = [abund[current_index - 1],abund[current_index], abund[current_index +1]]
+        # fit parabola to three most abundant datapoints
+        list_mass = [mass[current_index - 1], mass[current_index], mass[current_index +1]]
+        list_y = [abund[current_index - 1],abund[current_index], abund[current_index +1]]
+        
+        z = poly1d(polyfit(list_mass, list_y, 2))
+        a = z[2]
+        b = z[1]
+
+        calculated = -b/(2*a)
+        
+        if calculated < 1 or int(calculated) != int(list_mass[1]):
+
+            mz_exp_centroid = list_mass[1]
+        
+        else:
             
-            z = poly1d(polyfit(list_mass, list_y, 2))
+            mz_exp_centroid = calculated 
+        
+        if self.label == Labels.bruker_frequency or self.label == Labels.midas_frequency:
+            
+            # fit parabola to three most abundant frequency datapoints
+            list_freq = [freq[current_index - 1], freq[current_index], freq[current_index +1]]
+            z = poly1d(polyfit(list_freq, list_y, 2))
             a = z[2]
             b = z[1]
 
-            calculated = -b/(2*a)
-            
-            if calculated < 1 or int(calculated) != int(list_mass[1]):
+            calculated_freq = -b/(2*a)
 
-                mz_exp_centroid = list_mass[1]
-            
+            if calculated_freq < 1 or int(calculated_freq) != freq[current_index]:
+                freq_centr = list_freq[1]
+
             else:
+                freq_centr = calculated_freq
+        
+        else:
+                freq_centr = None
                 
-                mz_exp_centroid = calculated 
-            
-            if self.label == Labels.bruker_frequency or self.label == Labels.midas_frequency:
-                
-                # fit parabola to three most abundant frequency datapoints
-                list_freq = [freq[current_index - 1], freq[current_index], freq[current_index +1]]
-                z = poly1d(polyfit(list_freq, list_y, 2))
-                a = z[2]
-                b = z[1]
-
-                calculated_freq = -b/(2*a)
-
-                if calculated_freq < 1 or int(calculated_freq) != freq[current_index]:
-                    freq_centr = list_freq[1]
-
-                else:
-                    freq_centr = calculated_freq
-            
-            else:
-                    freq_centr = None
-                    
-            return mz_exp_centroid, freq_centr, abund[current_index], peak_indexes
+        return mz_exp_centroid, freq_centr, abund[current_index]
     
-    def check_prominence(self, abun, current_index, len_abundance, peak_height_diff ):
+    def check_prominence(self, abun, current_index, len_abundance, peak_height_diff ) -> tuple or Literal[False]:
 
         final_index = self.find_minima(current_index, abun, len_abundance, right=True)
             
         start_index = self.find_minima(current_index, abun, len_abundance, right=False)
             
-        peak_indexes = (start_index, current_index, final_index)
+        peak_indexes = (current_index-1, current_index, current_index+1)
 
         if min( peak_height_diff(current_index,start_index), peak_height_diff(current_index,final_index) ) >  self.mspeaks_settings.peak_min_prominence_percent :   
             

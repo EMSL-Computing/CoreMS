@@ -113,7 +113,7 @@ class ReadHDF_BoosterMassSpectra(Thread):
         
         booster_data = self.hdf_obj[str(scan)]
         
-        if booster_data.shape[0] is not 2:
+        if booster_data.shape[0] != 2:
             
             raise NotImplementedError('opening transient, needs read raw file here, get bandwidth, create transient class and then the mass spectrum')
        

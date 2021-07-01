@@ -31,8 +31,11 @@ def find_nearest_scan(data, nodes):
 
     return nodes[scan_index]
 
-def peak_picking_first_derivative(domain, signal, max_height, max_prominence, max_signal, min_peak_datapoints,
-                                  signal_threshold=0.2, correct_baseline=True, plot_res=False):
+def peak_picking_first_derivative(domain, signal, max_height, max_prominence, max_signal, 
+                                  min_peak_datapoints,
+                                  peak_derivative_thresould,
+                                  signal_threshold=0.1, correct_baseline=True, plot_res=False, 
+                                  abun_norm=100, check_abundance=False):
     
     if correct_baseline:
         signal = signal - baseline_detector(signal, domain, max_height, max_prominence)
@@ -40,41 +43,26 @@ def peak_picking_first_derivative(domain, signal, max_height, max_prominence, ma
     domain = np.array(domain)
     signal = np.array(signal)
 
-    # dy_signal = derivate(signal)
 
-    # dydy = derivate(dy_signal)
-    
-    # where returns a tuple of indexes and data type and we only need  the indexes
-    # right_indexes = np.where((np.hstack( (0, dy_signal)) < neg_dy_threshold))[0]
-    # left_indexes = np.where((np.hstack( (0, dy_signal)) > pos_dy_threshold))[0]
-  
-    # dy_left_signal = derivate(left_indexes)  
-    # dy_left_signal_zero_filled = np.hstack( (dy_left_signal,0))
-
-    # start_peak = []
-
-    # needs a more efficient way of doing that 
-    # for index in range(1,len(dy_left_signal_zero_filled)-1):
-    #    delta = dy_left_signal_zero_filled[index]
-    #    delta_previous = dy_left_signal_zero_filled[index - 1]
-    #    delta_next = dy_left_signal_zero_filled[index + 1]
-    #    if delta == 1 and delta_previous != 1:
-    #        start_peak.append(left_indexes[index]-1)
-    # start_peak = array(start_peak)
 
     dy = derivate(signal)
     apex_indexes = np.where((np.hstack((dy, 0)) < 0) & (np.hstack((0, dy)) > 0))[0]
     # min_indexes = np.where((np.hstack((dy, 0)) > 0) & (np.hstack((0, dy)) < 0))[0]
-
+    
+    if apex_indexes.size and apex_indexes is not None:
+            apex_indexes = apex_indexes[signal[apex_indexes]/max_signal >= signal_threshold]
+            
+    signal = signal/max(signal)
     start_peak = []
     end_peak = []
 
-    pos_dy_threshold = max(dy) * 0.0005
-    neg_dy_threshold = min(dy) * 0.0005
+    pos_dy_threshold = peak_derivative_thresould  #max(dy) * peak_derivative_thresould
+    neg_dy_threshold = -peak_derivative_thresould #min(dy) * peak_derivative_thresould
     len_dy = len(dy)
     # take apex_index and move left to find start
     for index in apex_indexes:
         # catch for starting position
+        
         if index == 0:
             index_start = index
         else:
@@ -98,14 +86,28 @@ def peak_picking_first_derivative(domain, signal, max_height, max_prominence, ma
 
     start_peak = array(start_peak)
     end_peak = array(end_peak)
-
+    
     # left_index = []
     # right_index = []
 
     last_closest_right = 0
+    
+    def check_corrected_abundance():
+        
+        x = [closest_left, closest_right]
+        y = [signal[closest_left], signal[closest_right]]
+        
+        pol = poly1d(polyfit(x, y, 1))
+
+        corrected_peak_height = signal[apex_index] - pol(apex_index)
+
+        if (corrected_peak_height / max_signal) * abun_norm > signal_threshold:
+            return corrected_peak_height
+        else:
+            return False
 
     for apex_index in apex_indexes:
-
+        #print(apex_index, len(apex_indexes))
         index_gt_apex = np.where(end_peak >= apex_index)[0]
         index_lt_apex = np.where(start_peak <= apex_index)[0]
         # index_gt_apex = np.where(min_indexes >= apex_index)[0]
@@ -117,44 +119,41 @@ def peak_picking_first_derivative(domain, signal, max_height, max_prominence, ma
             closest_left = find_nearest_scan(apex_index,  start_peak[index_lt_apex])
             # closest_right = find_nearest_scan(apex_index, min_indexes[index_gt_apex])
             # closest_left = find_nearest_scan(apex_index, min_indexes[index_lt_apex])
+            if check_abundance:
+                corrected_peak_height = check_corrected_abundance()
+            else:
+                corrected_peak_height = signal[apex_index]
 
-            x = [closest_left, closest_right]
-            y = [signal[closest_left], signal[closest_right]]
+            if (closest_right - closest_left) >= min_peak_datapoints:
 
-            pol = poly1d(polyfit(x, y, 1))
+                if plot_res:
 
-            corrected_peak_height = signal[apex_index] - pol(apex_index)
+                    # plt.plot(domain[closest_left: closest_right+1], dydy[closest_left:closest_right+1], c='black')
+                    plt.plot(domain[closest_left: closest_right + 1], dy[closest_left:closest_right + 1], c='red')
+                    #plt.plot(domain[[apex_index, apex_index]], [signal[apex_index], pol(apex_index)], c='red')
+                    #plt.plot(domain[start_peak], signal[start_peak], c='blue', linewidth='0', marker="^")
+                    # plt.plot(domain[[closest_left,apex_index,closest_right]], signal[[closest_left,apex_index,closest_right]], c='blue', linewidth='0', marker="s")    
+                    # plt.plot(domain[[closest_left,apex_index,closest_right]], pol([closest_left, apex_index, closest_right]), c='red')
+                    plt.plot(domain[closest_left: closest_right + 1], signal[closest_left:closest_right + 1], c='black')
+                    plt.title(str((corrected_peak_height / max_signal) * 100))
+                    
+                    plt.show()
 
-            if (corrected_peak_height / max_signal) * 100 > signal_threshold:
+                # if not closest_right <= apex_index:
+                #right_index.append(closest_right)
+                #print (closest_right, apex_index)
 
-                if (closest_right - closest_left) >= min_peak_datapoints:
-
-                    if plot_res:
-
-                        # plt.plot(domain[closest_left: closest_right+1], dydy[closest_left:closest_right+1], c='black')
-                        plt.plot(domain[closest_left: closest_right + 1], dy[closest_left:closest_right + 1], c='red')
-                        plt.plot(domain[[apex_index, apex_index]], [signal[apex_index], pol(apex_index)], c='red')
-                        plt.plot(domain[start_peak], signal[start_peak], c='blue', linewidth='0', marker="^")
-                        # plt.plot(domain[[closest_left,apex_index,closest_right]], signal[[closest_left,apex_index,closest_right]], c='blue', linewidth='0', marker="s")    
-                        # plt.plot(domain[[closest_left,apex_index,closest_right]], pol([closest_left, apex_index, closest_right]), c='red')
-                        plt.plot(domain[closest_left: closest_right + 1], signal[closest_left:closest_right + 1], c='black')
-                        plt.title(str((corrected_peak_height / max_signal) * 100))
-                        
-                        # plt.show()
-
-                    # if not closest_right <= apex_index:
-                    #right_index.append(closest_right)
-                    #print (closest_right, apex_index)
-
-                    #left_index.append(closest_left)
-                    #print (closest_left, apex_index)
-                    #plt.show()
-                    #if closest_left < last_closest_right:
-                    #    closest_left = last_closest_right
-                        
-                    yield (closest_left, apex_index, closest_right)
-                    last_closest_right = closest_right
+                #left_index.append(closest_left)
+                #print (closest_left, apex_index)
+                #plt.show()
+                #if closest_left < last_closest_right:
+                #    closest_left = last_closest_right
+                
+        
+                yield (closest_left, apex_index, closest_right)
+                last_closest_right = closest_right
     
+                
     #plt.plot(domain, dydy, c='black')
     #plt.plot(domain, np.hstack((0, dy)), c='green')
     #plt.plot(domain, [0 for i in range(len(domain))], c='blue')

@@ -4,8 +4,10 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
 from copy import deepcopy
+from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 from numpy import nan
 from corems.ms_peak.calc.MSPeakCalc import MSPeakCalculation
+from corems.mass_spectra.calc import SignalProcessing as sp
 from numpy import NaN
 
 class _MSPeak(MSPeakCalculation):
@@ -13,7 +15,7 @@ class _MSPeak(MSPeakCalculation):
     classdocs
     '''
     def __init__(self, ion_charge, mz_exp, abundance, resolving_power, 
-                 signal_to_noise, massspec_indexes, index, ms_parent=None, exp_freq=None):
+                 signal_to_noise, indexes, index, ms_parent=None, exp_freq=None):
 
         self._ms_parent = ms_parent
         # needed to create the object
@@ -24,10 +26,11 @@ class _MSPeak(MSPeakCalculation):
         self.resolving_power = float(resolving_power)
         self.signal_to_noise = float(signal_to_noise)
         # profile indexes
-        self.start_index = int(massspec_indexes[0]) 
-        self.apex_index = int(massspec_indexes[1])
-        self.final_index = int(massspec_indexes[2]) 
-        # centroid index
+        self.start_index = int(indexes[0]) 
+        self.apex_index = int(indexes[1])
+        self.final_index = int(indexes[2]) 
+        
+        #mass spec obj index
         self.index = int(index)
         # parent mass spectrum obj instance
 
@@ -65,7 +68,7 @@ class _MSPeak(MSPeakCalculation):
 
         self.molecular_formulas[position] = molecular_formula_obj
 
-    def __getitem__(self, position):
+    def __getitem__(self, position) -> MolecularFormula:
 
         return self.molecular_formulas[position]
 
@@ -127,7 +130,7 @@ class _MSPeak(MSPeakCalculation):
     def knm(self): return self._nominal_km
 
     @property
-    def is_assigned(self):
+    def is_assigned(self) -> bool:
 
         return bool(self.molecular_formulas)
 
@@ -149,8 +152,8 @@ class _MSPeak(MSPeakCalculation):
             plt.legend()
             return ax
 
-    def plot(self, ax=None, color="black"): #pragma: no cover
-
+    def plot(self, ax=None, color="black", derivative=True, deriv_color='red'): #pragma: no cover
+        
         if self._ms_parent:
 
             import matplotlib.pyplot as plt
@@ -158,17 +161,22 @@ class _MSPeak(MSPeakCalculation):
             if ax is None:
                 ax = plt.gca()
             x = self._ms_parent.mz_exp_profile[self.start_index: self.final_index]
-            y =  self._ms_parent.abundance_profile[self.start_index: self.final_index]
+            y = self._ms_parent.abundance_profile[self.start_index: self.final_index]
 
             ax.plot(x, y, color=color, label="Data")
             ax.set(xlabel='m/z', ylabel='abundance')
-
+            if derivative and not self._ms_parent.is_centroid:
+                dy = sp.derivate(self._ms_parent.abundance_profile[self.start_index: self.final_index+1])
+                ax.plot(x, dy, c=deriv_color)
+            else:
+                ax.plot((self.mz_exp, self.mz_exp),(0, self.abundance), color=color, label="Data")
+                            
             #plt.legend()
 
             return ax
 
         else:
-            print("Isolated Peak Object")
+            print("Centroid Peak Object")
 
     @property
     def best_molecular_formula_candidate(self):

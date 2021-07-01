@@ -125,11 +125,16 @@ class MassSpecPeakSetting:
     implemented_kendrick_rounding_methods : tuple = ('floor','ceil','round')
 
     # kendrick_base : Dict =  {'C': 1, 'H':2}
+    peak_derivative_threshold: float =  0.0 # define derivative crossing threshould 0-1
 
-    peak_min_prominence_percent: float = 1  # 1-100 % used for peak detection
+    peak_min_prominence_percent: float = 0.1  # 1-100 % used for peak detection
+
+    min_peak_datapoints: float = 5 # 0-inf used for peak detection
 
     peak_max_prominence_percent: float = 0.1  # 1-100 % used for baseline detection
 
+    peak_height_max_percent: float = 10  # 1-100 % used for baseline detection
+    
     def __post_init__(self):
 
         # default to CH2
@@ -155,6 +160,8 @@ class GasChromatographSetting:
     smooth_method: str = 'savgol'
 
     savgol_pol_order: int = 2
+
+    peak_derivative_threshold:float = 0.0005
 
     peak_height_max_percent: float = 10  # 1-100 % used for baseline detection use 0.1 for second_derivative and 10 for other methods
 
