@@ -3,7 +3,7 @@
 @date: Jun 27, 2019
 '''
 
-from typing import Literal
+
 from matplotlib import pyplot
 from numpy import hstack, inf, isnan, poly1d, polyfit, where
 from corems.encapsulation.constant import Labels
@@ -339,7 +339,7 @@ class PeakPicking:
                 
         return mz_exp_centroid, freq_centr, abund[current_index]
     
-    def check_prominence(self, abun, current_index, len_abundance, peak_height_diff ) -> tuple or Literal[False]:
+    def check_prominence(self, abun, current_index, len_abundance, peak_height_diff ) -> tuple or False:
 
         final_index = self.find_minima(current_index, abun, len_abundance, right=True)
             
