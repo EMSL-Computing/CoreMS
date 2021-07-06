@@ -343,6 +343,10 @@ class MolecularFormulaSearchSettings:
     '''query setting'''
     ion_charge: int = -1
 
+    min_mz: float = 100
+
+    max_mz: float = 1200
+
     min_hc_filter: float = 0.3
 
     max_hc_filter: float = 3

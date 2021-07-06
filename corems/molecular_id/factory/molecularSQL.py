@@ -254,6 +254,10 @@ class MolForm_SQL:
                             CarbonHydrogen.c <= molecular_search_settings.usedAtoms.get("C")[1],
                             CarbonHydrogen.h >= molecular_search_settings.usedAtoms.get("H")[0],
                             CarbonHydrogen.h <= molecular_search_settings.usedAtoms.get("H")[1],
+                            and_(
+                                MolecularFormulaLink.mass >= molecular_search_settings.min_mz,
+                                MolecularFormulaLink.mass <= molecular_search_settings.max_mz
+                            )
                         )
                     )
                 )
