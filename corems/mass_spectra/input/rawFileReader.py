@@ -145,17 +145,8 @@ class ThermoBaseClass:
     @staticmethod
     def get_rt_time_from_trace(trace) -> List[List[float]]:
         '''trace: ThermoFisher.CommonCore.Data.Business.ChromatogramSignal'''
-        rt = []
-        tic = []
-
-        for i in range(trace.Length):
-            # print(trace[0].HasBasePeakData,trace[0].EndTime )
-
-            # print("  {} - {}, {}".format( i, trace[0].Times[i], trace[0].Intensities[i] ))
-            rt.append(trace.Times[i])
-            tic.append(trace.Intensities[i])
-            # scans.append(trace[0].Scans[i])
-        return rt, tic
+        return list(trace.Times), list(trace.Intensities), list(trace.Scans)
+        
 
     def get_eics(self, target_mzs: list, ppm_tolerance=5,
                  start_scan=-1, end_scan=-1, ms_type='MS', plot=False, ax=None):
@@ -203,6 +194,8 @@ class ThermoBaseClass:
 
         traces = ChromatogramSignal.FromChromatogramData(data)
 
+        chroma = {}    
+       
         if plot:
             from matplotlib.transforms import Bbox
             import matplotlib.pyplot as plt
@@ -211,11 +204,6 @@ class ThermoBaseClass:
                 # ax.clear()
                 fig, ax = plt.subplots()
                 ax.set_prop_cycle(color=plt.cm.gist_rainbow(np.linspace(0, 1, len(traces))))
-
-            for i, trace in enumerate(traces):
-                if trace.Length > 0:
-                    rt, ic = self.get_rt_time_from_trace(trace)
-                    ax.plot(rt, ic, label="{:.5f}".format(target_mzs[i]))
 
             ax.set_xlabel('Time (min)')
             ax.set_ylabel('a.u.')
@@ -238,10 +226,18 @@ class ThermoBaseClass:
 
             fig.canvas.mpl_connect("scroll_event", func)        
             # plt.show()
-            return traces, ax
-
-        if traces[0].Length > 0:
-
+        
+        for i, trace in enumerate(traces):
+            if trace.Length > 0:
+                rt, ic, scans  = self.get_rt_time_from_trace(trace)
+                chroma[target_mzs[i]] = {'Scans' : scans, 'Time': rt, 'ECI': ic}
+                if plot:
+                    ax.plot(rt, ic, label="{:.5f}".format(target_mzs[i]))    
+                    
+        if plot:
+            return chroma, ax
+        else:
+            return chroma, None     
             rt = []
             tic = []
             scans = []
@@ -253,6 +249,7 @@ class ThermoBaseClass:
                 tic.append(traces[0].Intensities[i])
                 scans.append(traces[0].Scans[i])
 
+            return traces
             # plot_chroma(rt, tic)
             # plt.show()
 

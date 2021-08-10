@@ -14,7 +14,9 @@ from corems.mass_spectra.input import rawFileReader
 from corems import get_filename
 
 def run_thermo(file_location):
-
+    
+    print(file_location)
+    
     parser = rawFileReader.ImportDataDependentThermoMSFileReader(file_location)
 
     parser.get_tic(ms_type='MS', plot=False)
@@ -23,17 +25,22 @@ def run_thermo(file_location):
 
     plt.show()
 
-    # print(len(parser.selected_mzs))
+    # get selected data dependent mzs 
+    target_mzs = parser.selected_mzs
 
-    parser.get_eics(parser.selected_mzs[0:100],
+    data = parser.get_eics(target_mzs[300:301],
                     ppm_tolerance=1,
-                    plot=True)
+                    plot=False)
+    print(data)
+
     plt.show()
     # print(parser.get_all_filters())
 
 if __name__ == "__main__":
-    dirpath = "C:\\Users\\eber373\\Desktop\\Data\\LCMS\\RAW Files\\HILIC"
-    filepath = "\\NEG\\LCMS_5191_CapDev_HILIC_Mix1_NEG_30Apr2021.raw"
+    
+    dirpath = "/Users/eber373/OneDrive - PNNL/Documents/Data/LCMS/RAW Files/C18/1st run/NEG/"
+    
+    filepath = "LCMS_5191_CapDev_C18_Mix1_NEG_28Apr2021.raw"
     # run_multiprocess()
     # cpu_percents = monitor(target=run_multiprocess)
     # print(cpu_percents)
