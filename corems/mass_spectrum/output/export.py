@@ -327,7 +327,7 @@ class HighResMassSpecExport(Thread):
         return  all_lines       
 
     def get_list_dict_data(self, mass_spectrum, include_no_match=True, include_isotopologues=True,
-                           isotopologue_inline=False, no_match_inline=False, is_hdf5=False):
+                           isotopologue_inline=True, no_match_inline=False, is_hdf5=False):
 
         dict_data_list = []
 
