@@ -66,8 +66,44 @@ class DataInputSetting:
 
 @dataclasses.dataclass
 class LiqChromatographSetting:
+    '''
+    enforce_target_ms2: bool
+            only perform EIC for target_mz if the m/z was selected as precursor for ms2
+    start_scan: int
+        default -1 will select the lowest available
+    end_scan: int
+        default -1 will select the highest available
+    '''
+    
     start_scan: int = 1
+    
     final_scan: int = 7
+        
+    eic_tolerance_ppm: int = 5
+    
+    enforce_target_ms2: bool = True
+
+    smooth_window: int = 5
+
+    smooth_method: str = 'savgol'
+
+    savgol_pol_order: int = 2
+
+    peak_height_max_percent: float = 10  # 1-100 % used for baseline detection use 0.1 for second_derivative and 10 for other methods
+
+    peak_max_prominence_percent: float = 1  # 1-100 % used for baseline detection
+
+    min_peak_datapoints: float = 5
+
+    noise_threshold_method: str = 'manual_relative_abundance'
+
+    implemented_noise_threshold_methods: tuple = ('auto_relative_abundance', 'manual_relative_abundance', 'second_derivative')
+
+    std_noise_threshold: int = 3
+
+    peak_height_min_percent: float = 0.1  # 0-100 % used for peak detection
+
+    eic_signal_threshold: float = 0.01  # 0-100 % used for extracted ion chromatogram peak detection
 
     def __post_init__(self):
         # enforce datatype
@@ -113,7 +149,6 @@ class MassSpectrumSetting:
 
                 value = field.type(value)
                 setattr(self, field.name, value)
-
 
 @dataclasses.dataclass
 class MassSpecPeakSetting:

@@ -373,6 +373,25 @@ class SuppressPrints:
         sys.stdout.close()
         sys.stdout = self._original_stdout
 
+def get_filenames(app=None):
+
+    from PySide2.QtCore import Qt, QCoreApplication
+    from PySide2.QtWidgets import QApplication, QFileDialog
+    from pathlib import Path
+
+    app = QApplication(sys.argv)
+    file_dialog = QFileDialog()
+    file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+    file_location, _ = file_dialog.getOpenFileNames()
+
+    if file_location:
+        QCoreApplication.processEvents()
+        return file_location
+
+    else:
+
+        return None
+
 def get_filename(app=None):
 
     from PySide2.QtCore import Qt, QCoreApplication

@@ -6,7 +6,7 @@ import sys
 sys.path.append(".")
 
 from corems.mass_spectra.calc.MZSearch import MZSearch
-from corems.transient.input.brukerSolarix import ReadBrukerSolarix
+
 
 def test_mzsearch():
 

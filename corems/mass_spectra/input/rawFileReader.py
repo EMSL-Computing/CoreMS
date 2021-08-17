@@ -1,6 +1,7 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 09, 2021"
 
+from corems.mass_spectra.calc.LC_Calc import LC_Calculations
 import numpy as np
 import sys
 import site
@@ -312,14 +313,15 @@ class ThermoBaseClass:
         else:
             return None
 
-class ImportDataDependentThermoMSFileReader(ThermoBaseClass):
+class ImportDataDependentThermoMSFileReader(ThermoBaseClass, LC_Calculations):
 
     '''  Collection of methdos to import LC data dependent acquisition from Thermo's raw file
          Intended do create the LCMS object --> ChromaPeaks --> MSobj FullScan --> Dependent MS/MS Obj
     '''
 
     def __init__(self, file_location: str, start_scan: int = -1, end_scan: int = -1,
-                 selected_mzs: List[float] = None, enforce_target_ms2: bool = True, tolerance_ppm: float = 5.0):
+                 selected_mzs: List[float] = None, enforce_target_ms2: bool = True, 
+                 eic_tolerance_ppm: float = 5.0):
         '''
         target_mzs: list[float] monoisotopic target m/z  or None
             Details: None will defalt to depends scans selected m/
@@ -333,7 +335,7 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass):
         '''
         super().__init__(file_location)
 
-        self._selected_mzs = self._init_target_mz(selected_mzs, enforce_target_ms2, tolerance_ppm)
+        self._selected_mzs = self._init_target_mz(selected_mzs, enforce_target_ms2, eic_tolerance_ppm)
 
     @property
     def selected_mzs(self) -> List[float]:

@@ -30,11 +30,11 @@ def run_thermo(file_location):
 
     data = parser.get_eics(target_mzs[300:301],
                     ppm_tolerance=1,
-                    plot=False)
-    print(data)
+                    plot=True)
+    #print(data)
 
     plt.show()
-    # print(parser.get_all_filters())
+    #print(parser.get_all_filters())
 
 if __name__ == "__main__":
     
