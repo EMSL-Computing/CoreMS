@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 
-def merge_files(file_paths: list, output_filename:str, variable='Peak Height'):
+def merge_files(file_paths: list, output_filename:str, variable: str = 'Peak Height'):
 
         master_data_dict = []
         list_filenames = []
