@@ -242,6 +242,16 @@ def test_import_thermo_profile_mass_list():
 
     # pyplot.show()
 
+def test_import_maglab_pks():
+
+    file_location = Path.cwd() / "tests/tests_data/" / "SRFA.pks"
+    
+    mass_list_reader = ReadMassList(file_location)
+
+    polarity = -1
+
+    mass_list_reader.get_mass_spectrum(polarity)
+    
 def test_import_mass_list():
 
     file_location = Path.cwd() / "tests/tests_data/" / "NEG_ESI_SRFA_CoreMS.xlsx"
@@ -294,13 +304,13 @@ def test_import_mass_list():
 if __name__ == '__main__':
     
     # test_import_booster_mass_spectrum_hdf()
-    test_import_booster_mass_spectra_hdf()
+    # test_import_booster_mass_spectra_hdf()
     #test_import_lcms_from_transient()
     #test_import_thermo_profile_mass_list()
     # test_import_transient()
     #test_import_corems_hdf5()
     #test_import_corems_mass_list()
     #test_import_mass_list()
-
+    test_import_maglab_pks()
     #test_andi_netcdf_gcms()
 
