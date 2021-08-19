@@ -90,9 +90,9 @@ class MolecularFormulaCalc:
               
         if self._mspeak_parent.mz_exp:
             
-            self._assignment_mass_error = ((self.mz_calc - self._mspeak_parent.mz_exp)/self.mz_calc)*multi_factor
+            self._assignment_mass_error = ((self._mspeak_parent.mz_exp - self.mz_calc )/self.mz_calc)*multi_factor
 
-            return ((self.mz_calc - self._mspeak_parent.mz_exp)/self.mz_calc)*multi_factor
+            return ((self._mspeak_parent.mz_exp - self.mz_calc)/self.mz_calc)*multi_factor
         
         else:
             
