@@ -18,7 +18,7 @@ class KendrickGrouping:
 
     def calc_error(self, current, test):
         
-        return ((current-test)/current)*1e6
+        return ((test-current)/current)*1e6
   
     
     def populate_kendrick_index_dict_error(self, list_indexes, sort=True):

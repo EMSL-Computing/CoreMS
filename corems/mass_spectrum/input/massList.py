@@ -102,7 +102,7 @@ class ReadMassList(MassListBaseClass):
         if self.isCentroid:
 
             dataframe = self.get_dataframe()
-        
+
             self.check_columns(dataframe.columns)
                 
             self.clean_data_frame(dataframe)

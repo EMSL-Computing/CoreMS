@@ -145,11 +145,12 @@ class MzDomainCalibration:
         for mzref in df_ref['m/z']:
 
             # find all peaks within a defined ppm error threshold
-            tmpdf = df_raw[((df_raw['m/z'] - mzref) / df_raw['m/z']) * 1e6 < max_calib_ppm_error]
-            tmpdf = tmpdf[((tmpdf['m/z'] - mzref) / tmpdf['m/z']) * 1e6 > min_calib_ppm_error]
+            tmpdf = df_raw[((df_raw['m/z']-mzref)/df_raw['m/z'])*1e6<max_calib_ppm_error]
 
-            # tmpdf = df_raw[(abs(df_raw['m/z']-mzref)/df_raw['m/z'])*1e6 < calib_ppm_error_threshold]
-
+            tmpdf = tmpdf[((tmpdf['m/z']-mzref)/tmpdf['m/z'])*1e6>min_calib_ppm_error]
+            
+            #tmpdf = df_raw[(abs(df_raw['m/z']-mzref)/df_raw['m/z'])*1e6 < calib_ppm_error_threshold]
+            
             # optionally further subset that based on minimum S/N, RP, Peak Height
             # to ensure only valid points are utilized
             # in this example, only a S/N threshold is implemented.

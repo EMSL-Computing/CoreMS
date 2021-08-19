@@ -8,6 +8,7 @@ from copy import deepcopy
 
 from pandas import read_csv, read_pickle, read_excel
 import chardet
+from pandas.core.frame import DataFrame
 from s3path import S3Path
 
 from corems.encapsulation.factory.processingSetting import DataInputSetting
@@ -139,6 +140,13 @@ class MassListBaseClass:
         elif self.file_location.suffix == '.pkl':
 
             self.data_type = 'dataframe'
+
+        elif self.file_location.suffix == '.pks':
+
+            self.data_type = 'pks'
+            self.delimiter = '          '
+            self.header_lines = 9
+            
         else:
             raise TypeError(
                 "Data type could not be automatically recognized for %s; please set data type and delimiter manually." % self.file_location.name)
@@ -160,6 +168,27 @@ class MassListBaseClass:
             
             dataframe = read_csv(data,  skiprows= self.header_lines, delimiter=self.delimiter,
                                  encoding=self.encoding_detector(self.file_location), engine='python')
+
+        elif self.data_type == 'pks':
+            
+            names=["m/z", "I", "Scaled Peak Height", "Resolving Power", "Frequency", 'S/N']
+            
+            clean_data = []
+            
+            with self.file_location.open() as maglabfile:
+                for i in  maglabfile.readlines()[8:-1]:
+                    
+                    clean_data.append(i.split())
+            
+            dataframe = DataFrame(clean_data, columns=names)
+            
+            #dataframe = read_csv(data,  skiprows= self.header_lines, delimiter=self.delimiter,
+            #                     encoding=self.encoding_detector(self.file_location), engine='python',
+            #                     header=None)
+            #dataframe.columns = names
+            #print(dataframe)
+            #dataframe = read_csv(data,  skiprows= self.header_lines, delimiter=self.delimiter,
+            #                     encoding=self.encoding_detector(self.file_location), engine='python')
 
         elif self.data_type == 'dataframe':
 

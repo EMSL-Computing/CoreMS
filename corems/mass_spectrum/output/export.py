@@ -465,7 +465,8 @@ class HighResMassSpecExport(Thread):
                 for index, ms_peak in enumerate(mass_spectrum):
                     for m_formula in ms_peak:
                         if m_formula.is_isotopologue:
-                            add_match_dict_data(index, ms_peak, m_formula)
+                            if m_formula.confidence_score >= mass_spectrum.molecular_search_settings.output_min_score:
+                                add_match_dict_data(index, ms_peak, m_formula)
 
             if include_no_match and not no_match_inline:
                 for index, ms_peak in enumerate(mass_spectrum):

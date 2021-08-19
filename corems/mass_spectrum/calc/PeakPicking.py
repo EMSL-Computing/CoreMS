@@ -39,6 +39,10 @@ class PeakPicking:
 
         mz, abudance, freq = self.cut_mz_domain_peak_picking()
 
+        self.mz_exp_profile = mz
+        self.abundance_profile = abudance
+        self.freq_exp_profile = freq
+        
         if self.label == Labels.bruker_frequency or self.label == Labels.midas_frequency:
 
             self.calc_centroid(mz, abudance, freq)

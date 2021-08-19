@@ -138,9 +138,9 @@ class HighResMassSpecExport(Thread):
         return df
 
     def write_settings(self, output_path, mass_spectrum):
-        
+
         import json
-        
+
         dict_setting = parameter_to_dict.get_dict_data_ms(mass_spectrum)
 
         dict_setting[&#39;MassSpecAttrs&#39;] = self.get_mass_spec_attrs(mass_spectrum)
@@ -200,7 +200,7 @@ class HighResMassSpecExport(Thread):
 
         columns = self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum)
 
-        dict_data_list = self.get_list_dict_data(self.mass_spectrum)    
+        dict_data_list = self.get_list_dict_data(self.mass_spectrum)
 
         df = DataFrame(dict_data_list, columns=columns)
 
@@ -354,7 +354,6 @@ class HighResMassSpecExport(Thread):
         
         return  all_lines       
 
-    
     def get_list_dict_data(self, mass_spectrum, include_no_match=True, include_isotopologues=True,
                            isotopologue_inline=False, no_match_inline=False, is_hdf5=False):
 
@@ -363,7 +362,8 @@ class HighResMassSpecExport(Thread):
         if is_hdf5:
             encode = &#34;.encode(&#39;utf-8&#39;)&#34;
         else:
-            encode = &#34;&#34;    
+            encode = &#34;&#34;
+
         def add_no_match_dict_data(index, ms_peak):
 
             dict_result = {&#39;Index&#39;: index,
@@ -381,7 +381,7 @@ class HighResMassSpecExport(Thread):
         def add_match_dict_data(index, ms_peak, mformula):
 
             formula_dict = mformula.to_dict()
-            
+
             dict_result = {&#39;Index&#39;: index,
                            &#39;m/z&#39;:  ms_peak._mz_exp,
                            &#39;Calibrated m/z&#39;: ms_peak.mz_exp,
@@ -394,15 +394,15 @@ class HighResMassSpecExport(Thread):
                            &#39;Confidence Score&#39;: mformula.confidence_score,
                            &#39;Isotopologue Similarity&#39;: mformula.isotopologue_similarity,
                            &#39;m/z Error Score&#39;: mformula.average_mz_error_score,
-                           &#39;DBE&#39;:  mformula.dbe,
-                           &#39;Heteroatom Class&#39;:  eval(&#34;mformula.class_label{}&#34;.format(encode)), 
-                           &#39;H/C&#39;:  mformula.H_C,
-                           &#39;O/C&#39;:  mformula.O_C,
-                           &#39;Ion Type&#39;: eval(&#34;mformula.ion_type.lower(){}&#34;.format(encode)),  
+                           &#39;DBE&#39;: mformula.dbe,
+                           &#39;Heteroatom Class&#39;: eval(&#34;mformula.class_label{}&#34;.format(encode)),
+                           &#39;H/C&#39;: mformula.H_C,
+                           &#39;O/C&#39;: mformula.O_C,
+                           &#39;Ion Type&#39;: eval(&#34;mformula.ion_type.lower(){}&#34;.format(encode)),
                            &#39;Is Isotopologue&#39;: int(mformula.is_isotopologue),
-                           &#39;Molecular Formula&#39;: eval(&#34;mformula.string{}&#34;.format(encode)) 
+                           &#39;Molecular Formula&#39;: eval(&#34;mformula.string{}&#34;.format(encode))
                            }
-            
+
             if mformula.is_isotopologue:
                 dict_result[&#39;Mono Isotopic Index&#39;] = mformula.mspeak_index_mono_isotopic
 
@@ -414,52 +414,74 @@ class HighResMassSpecExport(Thread):
 
         score_methods = mass_spectrum.molecular_search_settings.score_methods
         selected_score_method = mass_spectrum.molecular_search_settings.output_score_method
-        
+
         if selected_score_method in score_methods:
 
+            # temp set score method as the one chosen in the output
+            current_method = mass_spectrum.molecular_search_settings.score_method
+            mass_spectrum.molecular_search_settings.score_method = selected_score_method
+
             for index, ms_peak in enumerate(mass_spectrum):
-                
+
                 # print(ms_peak.mz_exp)
-                
+
                 if ms_peak:
-                    
+
                     m_formula = ms_peak.best_molecular_formula_candidate
-                    
+
                     if m_formula:
-                        
+
                         if not m_formula.is_isotopologue:
-                            
+
                             add_match_dict_data(index, ms_peak, m_formula)
-                            
+
                             for iso_mspeak_index, iso_mf_formula in m_formula.mspeak_mf_isotopologues_indexes:
                                 iso_ms_peak = mass_spectrum[iso_mspeak_index]
                                 add_match_dict_data(iso_mspeak_index, iso_ms_peak, iso_mf_formula)
                 else:
+
                     if include_no_match and no_match_inline:
                         add_no_match_dict_data(index, ms_peak)
 
             if include_no_match and not no_match_inline:
-                
+
                 for index, ms_peak in enumerate(mass_spectrum):
                     if not ms_peak:
-                        add_no_match_dict_data(index, ms_peak)        
+                        add_no_match_dict_data(index, ms_peak)     
 
-        else: 
-            
+            # reset score method as the one chosen in the output
+            mass_spectrum.molecular_search_settings.score_method = current_method
+
+        else:
+
             for index, ms_peak in enumerate(mass_spectrum):
 
                 # check if there is a molecular formula candidate for the msPeak
-                    
+
                 if ms_peak:
-                    #m_formula = ms_peak.molecular_formula_lowest_error
+                    # m_formula = ms_peak.molecular_formula_lowest_error
                     for m_formula in ms_peak:
 
-                        if m_formula.is_isotopologue:  # isotopologues inline
-                            if include_isotopologues and isotopologue_inline:
-                                add_match_dict_data(index, ms_peak, m_formula)
-                        else:
-                            add_match_dict_data(index, ms_peak, m_formula)  # add monoisotopic peak
+                        if mass_spectrum.molecular_search_settings.output_min_score &gt; 0:
 
+                            if m_formula.confidence_score &gt;= mass_spectrum.molecular_search_settings.output_min_score:
+
+                                if m_formula.is_isotopologue:  # isotopologues inline
+                                    if include_isotopologues and isotopologue_inline:
+                                        add_match_dict_data(index, ms_peak, m_formula)
+                                else:
+                                    add_match_dict_data(index, ms_peak, m_formula)  # add monoisotopic peak
+
+                            # cutoff because of low score
+                            else:
+                                add_no_match_dict_data(index, ms_peak)
+
+                        else:
+                            if m_formula.is_isotopologue:  # isotopologues inline
+                                if include_isotopologues and isotopologue_inline:
+                                    add_match_dict_data(index, ms_peak, m_formula)
+                            else:
+                                add_match_dict_data(index, ms_peak, m_formula)  # add monoisotopic peak
                 else:
                     # include not_match
                     if include_no_match and no_match_inline:
@@ -475,8 +497,12 @@ class HighResMassSpecExport(Thread):
                 for index, ms_peak in enumerate(mass_spectrum):
                     if not ms_peak:
                         add_no_match_dict_data(index, ms_peak)
-        
-        return dict_data_list</code></pre>
+
+        # remove duplicated add_match data possibly introduced on the output_score_filter step
+        res = []
+        [res.append(x) for x in dict_data_list if x not in res]
+
+        return res</code></pre>
 </details>
 </section>
 <section>
@@ -597,9 +623,9 @@ class HighResMassSpecExport(Thread):
         return df
 
     def write_settings(self, output_path, mass_spectrum):
-        
+
         import json
-        
+
         dict_setting = parameter_to_dict.get_dict_data_ms(mass_spectrum)
 
         dict_setting[&#39;MassSpecAttrs&#39;] = self.get_mass_spec_attrs(mass_spectrum)
@@ -659,7 +685,7 @@ class HighResMassSpecExport(Thread):
 
         columns = self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum)
 
-        dict_data_list = self.get_list_dict_data(self.mass_spectrum)    
+        dict_data_list = self.get_list_dict_data(self.mass_spectrum)
 
         df = DataFrame(dict_data_list, columns=columns)
 
@@ -813,7 +839,6 @@ class HighResMassSpecExport(Thread):
         
         return  all_lines       
 
-    
     def get_list_dict_data(self, mass_spectrum, include_no_match=True, include_isotopologues=True,
                            isotopologue_inline=False, no_match_inline=False, is_hdf5=False):
 
@@ -822,7 +847,8 @@ class HighResMassSpecExport(Thread):
         if is_hdf5:
             encode = &#34;.encode(&#39;utf-8&#39;)&#34;
         else:
-            encode = &#34;&#34;    
+            encode = &#34;&#34;
+
         def add_no_match_dict_data(index, ms_peak):
 
             dict_result = {&#39;Index&#39;: index,
@@ -840,7 +866,7 @@ class HighResMassSpecExport(Thread):
         def add_match_dict_data(index, ms_peak, mformula):
 
             formula_dict = mformula.to_dict()
-            
+
             dict_result = {&#39;Index&#39;: index,
                            &#39;m/z&#39;:  ms_peak._mz_exp,
                            &#39;Calibrated m/z&#39;: ms_peak.mz_exp,
@@ -853,15 +879,15 @@ class HighResMassSpecExport(Thread):
                            &#39;Confidence Score&#39;: mformula.confidence_score,
                            &#39;Isotopologue Similarity&#39;: mformula.isotopologue_similarity,
                            &#39;m/z Error Score&#39;: mformula.average_mz_error_score,
-                           &#39;DBE&#39;:  mformula.dbe,
-                           &#39;Heteroatom Class&#39;:  eval(&#34;mformula.class_label{}&#34;.format(encode)), 
-                           &#39;H/C&#39;:  mformula.H_C,
-                           &#39;O/C&#39;:  mformula.O_C,
-                           &#39;Ion Type&#39;: eval(&#34;mformula.ion_type.lower(){}&#34;.format(encode)),  
+                           &#39;DBE&#39;: mformula.dbe,
+                           &#39;Heteroatom Class&#39;: eval(&#34;mformula.class_label{}&#34;.format(encode)),
+                           &#39;H/C&#39;: mformula.H_C,
+                           &#39;O/C&#39;: mformula.O_C,
+                           &#39;Ion Type&#39;: eval(&#34;mformula.ion_type.lower(){}&#34;.format(encode)),
                            &#39;Is Isotopologue&#39;: int(mformula.is_isotopologue),
-                           &#39;Molecular Formula&#39;: eval(&#34;mformula.string{}&#34;.format(encode)) 
+                           &#39;Molecular Formula&#39;: eval(&#34;mformula.string{}&#34;.format(encode))
                            }
-            
+
             if mformula.is_isotopologue:
                 dict_result[&#39;Mono Isotopic Index&#39;] = mformula.mspeak_index_mono_isotopic
 
@@ -873,52 +899,74 @@ class HighResMassSpecExport(Thread):
 
         score_methods = mass_spectrum.molecular_search_settings.score_methods
         selected_score_method = mass_spectrum.molecular_search_settings.output_score_method
-        
+
         if selected_score_method in score_methods:
 
+            # temp set score method as the one chosen in the output
+            current_method = mass_spectrum.molecular_search_settings.score_method
+            mass_spectrum.molecular_search_settings.score_method = selected_score_method
+
             for index, ms_peak in enumerate(mass_spectrum):
-                
+
                 # print(ms_peak.mz_exp)
-                
+
                 if ms_peak:
-                    
+
                     m_formula = ms_peak.best_molecular_formula_candidate
-                    
+
                     if m_formula:
-                        
+
                         if not m_formula.is_isotopologue:
-                            
+
                             add_match_dict_data(index, ms_peak, m_formula)
-                            
+
                             for iso_mspeak_index, iso_mf_formula in m_formula.mspeak_mf_isotopologues_indexes:
                                 iso_ms_peak = mass_spectrum[iso_mspeak_index]
                                 add_match_dict_data(iso_mspeak_index, iso_ms_peak, iso_mf_formula)
                 else:
+
                     if include_no_match and no_match_inline:
                         add_no_match_dict_data(index, ms_peak)
 
             if include_no_match and not no_match_inline:
-                
+
                 for index, ms_peak in enumerate(mass_spectrum):
                     if not ms_peak:
-                        add_no_match_dict_data(index, ms_peak)        
+                        add_no_match_dict_data(index, ms_peak)     
 
-        else: 
-            
+            # reset score method as the one chosen in the output
+            mass_spectrum.molecular_search_settings.score_method = current_method
+
+        else:
+
             for index, ms_peak in enumerate(mass_spectrum):
 
                 # check if there is a molecular formula candidate for the msPeak
-                    
+
                 if ms_peak:
-                    #m_formula = ms_peak.molecular_formula_lowest_error
+                    # m_formula = ms_peak.molecular_formula_lowest_error
                     for m_formula in ms_peak:
 
-                        if m_formula.is_isotopologue:  # isotopologues inline
-                            if include_isotopologues and isotopologue_inline:
-                                add_match_dict_data(index, ms_peak, m_formula)
-                        else:
-                            add_match_dict_data(index, ms_peak, m_formula)  # add monoisotopic peak
+                        if mass_spectrum.molecular_search_settings.output_min_score &gt; 0:
 
+                            if m_formula.confidence_score &gt;= mass_spectrum.molecular_search_settings.output_min_score:
+
+                                if m_formula.is_isotopologue:  # isotopologues inline
+                                    if include_isotopologues and isotopologue_inline:
+                                        add_match_dict_data(index, ms_peak, m_formula)
+                                else:
+                                    add_match_dict_data(index, ms_peak, m_formula)  # add monoisotopic peak
+
+                            # cutoff because of low score
+                            else:
+                                add_no_match_dict_data(index, ms_peak)
+
+                        else:
+                            if m_formula.is_isotopologue:  # isotopologues inline
+                                if include_isotopologues and isotopologue_inline:
+                                    add_match_dict_data(index, ms_peak, m_formula)
+                            else:
+                                add_match_dict_data(index, ms_peak, m_formula)  # add monoisotopic peak
                 else:
                     # include not_match
                     if include_no_match and no_match_inline:
@@ -934,8 +982,12 @@ class HighResMassSpecExport(Thread):
                 for index, ms_peak in enumerate(mass_spectrum):
                     if not ms_peak:
                         add_no_match_dict_data(index, ms_peak)
-        
-        return dict_data_list</code></pre>
+
+        # remove duplicated add_match data possibly introduced on the output_score_filter step
+        res = []
+        [res.append(x) for x in dict_data_list if x not in res]
+
+        return res</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1005,7 +1057,8 @@ def output_type(self):
     if is_hdf5:
         encode = &#34;.encode(&#39;utf-8&#39;)&#34;
     else:
-        encode = &#34;&#34;    
+        encode = &#34;&#34;
+
     def add_no_match_dict_data(index, ms_peak):
 
         dict_result = {&#39;Index&#39;: index,
@@ -1023,7 +1076,7 @@ def output_type(self):
     def add_match_dict_data(index, ms_peak, mformula):
 
         formula_dict = mformula.to_dict()
-        
+
         dict_result = {&#39;Index&#39;: index,
                        &#39;m/z&#39;:  ms_peak._mz_exp,
                        &#39;Calibrated m/z&#39;: ms_peak.mz_exp,
@@ -1036,15 +1089,15 @@ def output_type(self):
                        &#39;Confidence Score&#39;: mformula.confidence_score,
                        &#39;Isotopologue Similarity&#39;: mformula.isotopologue_similarity,
                        &#39;m/z Error Score&#39;: mformula.average_mz_error_score,
-                       &#39;DBE&#39;:  mformula.dbe,
-                       &#39;Heteroatom Class&#39;:  eval(&#34;mformula.class_label{}&#34;.format(encode)), 
-                       &#39;H/C&#39;:  mformula.H_C,
-                       &#39;O/C&#39;:  mformula.O_C,
-                       &#39;Ion Type&#39;: eval(&#34;mformula.ion_type.lower(){}&#34;.format(encode)),  
+                       &#39;DBE&#39;: mformula.dbe,
+                       &#39;Heteroatom Class&#39;: eval(&#34;mformula.class_label{}&#34;.format(encode)),
+                       &#39;H/C&#39;: mformula.H_C,
+                       &#39;O/C&#39;: mformula.O_C,
+                       &#39;Ion Type&#39;: eval(&#34;mformula.ion_type.lower(){}&#34;.format(encode)),
                        &#39;Is Isotopologue&#39;: int(mformula.is_isotopologue),
-                       &#39;Molecular Formula&#39;: eval(&#34;mformula.string{}&#34;.format(encode)) 
+                       &#39;Molecular Formula&#39;: eval(&#34;mformula.string{}&#34;.format(encode))
                        }
-        
+
         if mformula.is_isotopologue:
             dict_result[&#39;Mono Isotopic Index&#39;] = mformula.mspeak_index_mono_isotopic
 
@@ -1056,52 +1109,74 @@ def output_type(self):
 
     score_methods = mass_spectrum.molecular_search_settings.score_methods
     selected_score_method = mass_spectrum.molecular_search_settings.output_score_method
-    
+
     if selected_score_method in score_methods:
 
+        # temp set score method as the one chosen in the output
+        current_method = mass_spectrum.molecular_search_settings.score_method
+        mass_spectrum.molecular_search_settings.score_method = selected_score_method
+
         for index, ms_peak in enumerate(mass_spectrum):
-            
+
             # print(ms_peak.mz_exp)
-            
+
             if ms_peak:
-                
+
                 m_formula = ms_peak.best_molecular_formula_candidate
-                
+
                 if m_formula:
-                    
+
                     if not m_formula.is_isotopologue:
-                        
+
                         add_match_dict_data(index, ms_peak, m_formula)
-                        
+
                         for iso_mspeak_index, iso_mf_formula in m_formula.mspeak_mf_isotopologues_indexes:
                             iso_ms_peak = mass_spectrum[iso_mspeak_index]
                             add_match_dict_data(iso_mspeak_index, iso_ms_peak, iso_mf_formula)
             else:
+
                 if include_no_match and no_match_inline:
                     add_no_match_dict_data(index, ms_peak)
 
         if include_no_match and not no_match_inline:
-            
+
             for index, ms_peak in enumerate(mass_spectrum):
                 if not ms_peak:
-                    add_no_match_dict_data(index, ms_peak)        
+                    add_no_match_dict_data(index, ms_peak)     
 
-    else: 
-        
+        # reset score method as the one chosen in the output
+        mass_spectrum.molecular_search_settings.score_method = current_method
+
+    else:
+
         for index, ms_peak in enumerate(mass_spectrum):
 
             # check if there is a molecular formula candidate for the msPeak
-                
+
             if ms_peak:
-                #m_formula = ms_peak.molecular_formula_lowest_error
+                # m_formula = ms_peak.molecular_formula_lowest_error
                 for m_formula in ms_peak:
 
-                    if m_formula.is_isotopologue:  # isotopologues inline
-                        if include_isotopologues and isotopologue_inline:
-                            add_match_dict_data(index, ms_peak, m_formula)
-                    else:
-                        add_match_dict_data(index, ms_peak, m_formula)  # add monoisotopic peak
+                    if mass_spectrum.molecular_search_settings.output_min_score &gt; 0:
 
+                        if m_formula.confidence_score &gt;= mass_spectrum.molecular_search_settings.output_min_score:
+
+                            if m_formula.is_isotopologue:  # isotopologues inline
+                                if include_isotopologues and isotopologue_inline:
+                                    add_match_dict_data(index, ms_peak, m_formula)
+                            else:
+                                add_match_dict_data(index, ms_peak, m_formula)  # add monoisotopic peak
+
+                        # cutoff because of low score
+                        else:
+                            add_no_match_dict_data(index, ms_peak)
+
+                    else:
+                        if m_formula.is_isotopologue:  # isotopologues inline
+                            if include_isotopologues and isotopologue_inline:
+                                add_match_dict_data(index, ms_peak, m_formula)
+                        else:
+                            add_match_dict_data(index, ms_peak, m_formula)  # add monoisotopic peak
             else:
                 # include not_match
                 if include_no_match and no_match_inline:
@@ -1117,8 +1192,12 @@ def output_type(self):
             for index, ms_peak in enumerate(mass_spectrum):
                 if not ms_peak:
                     add_no_match_dict_data(index, ms_peak)
-    
-    return dict_data_list</code></pre>
+
+    # remove duplicated add_match data possibly introduced on the output_score_filter step
+    res = []
+    [res.append(x) for x in dict_data_list if x not in res]
+
+    return res</code></pre>
 </details>
 </dd>
 <dt id="corems.mass_spectrum.output.export.HighResMassSpecExport.get_mass_spec_attrs"><code class="name flex">
@@ -1411,7 +1490,7 @@ call exportMS.start()</p></div>
 
     columns = self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum)
 
-    dict_data_list = self.get_list_dict_data(self.mass_spectrum)    
+    dict_data_list = self.get_list_dict_data(self.mass_spectrum)
 
     df = DataFrame(dict_data_list, columns=columns)
 
@@ -1454,9 +1533,9 @@ call exportMS.start()</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def write_settings(self, output_path, mass_spectrum):
-    
+
     import json
-    
+
     dict_setting = parameter_to_dict.get_dict_data_ms(mass_spectrum)
 
     dict_setting[&#39;MassSpecAttrs&#39;] = self.get_mass_spec_attrs(mass_spectrum)

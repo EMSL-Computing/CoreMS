@@ -53,6 +53,7 @@ class ThermoBaseClass:
             file_path = temp_dir / file_location.name
             with open(file_path, 'wb') as fh:
                 fh.write(file_location.read_bytes())
+
         else:
             file_path = file_location
 
@@ -522,6 +523,15 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
         Returns:
             MassSpecProfile
         '''
+
+        """
+        Averages selected scans mass spectra using Thermo's AverageScans method
+        scans_list: list[int]
+        auto_process: bool
+            If true performs peak picking, and noise threshold calculation after creation of mass spectrum object
+        Returns:
+            MassSpecProfile
+        """
 
         d_params = self.set_metadata(scans_list=scans_list)
 

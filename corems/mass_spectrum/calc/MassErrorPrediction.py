@@ -238,7 +238,7 @@ class MassErrorPrediction(Thread):
 
     def calc_error(self, mass_ref, mass_sim, factor):
 
-        return ((mass_ref-mass_sim)/mass_ref)*factor
+        return (mass_sim-mass_ref/mass_ref)*factor
 
     def find_peak_apex(self, mass, abund):
 
