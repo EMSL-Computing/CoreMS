@@ -120,8 +120,8 @@ def test_molecular_formula_search_db():
 def test_priorityAssignment():
     
     MSParameters.molecular_search.error_method = 'None'
-    MSParameters.molecular_search.min_ppm_error  = -5
-    MSParameters.molecular_search.max_ppm_error = 3
+    MSParameters.molecular_search.min_ppm_error  = -3
+    MSParameters.molecular_search.max_ppm_error = 5
     MSParameters.molecular_search.mz_error_range = 1
     MSParameters.molecular_search.isProtonated = True 
     MSParameters.molecular_search.isRadical= True 
