@@ -2,6 +2,7 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jul 02, 2019"
 
 import sys
+
 sys.path.append(".")
 from pathlib import Path
 
@@ -250,8 +251,8 @@ def test_import_maglab_pks():
 
     polarity = -1
 
-    mass_list_reader.get_mass_spectrum(polarity)
-    
+    mass_spectrum = mass_list_reader.get_mass_spectrum(polarity)
+
 def test_import_mass_list():
 
     file_location = Path.cwd() / "tests/tests_data/" / "NEG_ESI_SRFA_CoreMS.xlsx"

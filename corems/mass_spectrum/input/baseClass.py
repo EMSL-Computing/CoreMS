@@ -175,7 +175,7 @@ class MassListBaseClass:
             
             clean_data = []
             
-            with open(self.file_location, 'r') as maglabfile:
+            with self.file_location.open() as maglabfile:
                 for i in  maglabfile.readlines()[8:-1]:
                     
                     clean_data.append(i.split())
