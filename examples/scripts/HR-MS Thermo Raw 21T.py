@@ -19,10 +19,10 @@ from corems.encapsulation.factory.parameters import MSParameters
 def run_thermo(file_location):
 
     MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
-    MSParameters.mass_spectrum.relative_abundance_threshold = 1
+    MSParameters.mass_spectrum.relative_abundance_threshold = 0.1
 
-    MSParameters.mass_spectrum.threshold_method = 'auto'
-    MSParameters.mass_spectrum.s2n_threshold = 6
+    #MSParameters.mass_spectrum.threshold_method = 'auto'
+    #MSParameters.mass_spectrum.s2n_threshold = 6
 
     parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
 
@@ -36,7 +36,7 @@ def run_thermo(file_location):
     # sums scans in selected range
     mass_spectrum = parser.get_average_mass_spectrum_in_scan_range(first_scan=1, last_scan=5)
 
-    scans_list = [1, 4, 6, 9]
+    scans_list = [1]
     # sums scans in selected range
     mass_spectrum = parser.get_average_mass_spectrum_by_scanlist(scans_list)
 
@@ -105,9 +105,12 @@ if __name__ == "__main__":
 
     mass_spectrum = run_thermo(file_location)
 
-    mass_spectrum.plot_mz_domain_profile()
+    ax =mass_spectrum.plot_mz_domain_profile()
+
+    for mspeak in mass_spectrum:
+        mspeak.plot(ax=ax)
     plt.show()
-    plt.savefig("test.png")
+    #plt.savefig("test.png")
 
     mass_spectrum.plot_profile_and_noise_threshold()
     plt.show()

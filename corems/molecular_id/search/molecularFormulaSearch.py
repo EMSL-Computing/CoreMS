@@ -334,7 +334,7 @@ class SearchMolecularFormulaWorker:
 
         if mz_exp:
 
-            return ((mz_calc - mz_exp) / mz_calc) * multi_factor
+            return ((mz_exp - mz_calc) / mz_calc) * multi_factor
 
         else:
 
