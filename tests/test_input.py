@@ -1,6 +1,7 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jul 02, 2019"
 
+
 import sys
 
 sys.path.append(".")
@@ -9,6 +10,7 @@ from pathlib import Path
 import pytest
 from matplotlib import pyplot
 
+from corems.mass_spectrum.calc.Calibration import MzDomainCalibration
 from corems.mass_spectra.input.boosterHDF5 import ReadHDF_BoosterMassSpectra
 from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
 from corems.mass_spectra.input.brukerSolarix import ReadBruker_SolarixTransientMassSpectra
@@ -247,11 +249,18 @@ def test_import_maglab_pks():
 
     file_location = Path.cwd() / "tests/tests_data/" / "SRFA.pks"
     
+    ref_file_location = Path.cwd() / "tests/tests_data/SRFA.ref"
+
     mass_list_reader = ReadMassList(file_location)
 
     polarity = -1
 
+    #MSParameters.mass_spectrum.min_calib_ppm_error = 3
+    #MSParameters.mass_spectrum.max_calib_ppm_error = 4
+
     mass_spectrum = mass_list_reader.get_mass_spectrum(polarity)
+
+    #MzDomainCalibration(mass_spectrum, ref_file_location).run()
 
 def test_import_mass_list():
 
