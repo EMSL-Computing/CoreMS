@@ -1,4 +1,4 @@
-from corems.encapsulation.factory.processingSetting  import MolecularFormulaSearchSettings, TransientSetting, MassSpecPeakSetting, MassSpectrumSetting
+from corems.encapsulation.factory.processingSetting  import LiquidChromatographSetting, MolecularFormulaSearchSettings, TransientSetting, MassSpecPeakSetting, MassSpectrumSetting
 from corems.encapsulation.factory.processingSetting  import CompoundSearchSettings, GasChromatographSetting
 from corems.encapsulation.factory.processingSetting  import DataInputSetting
 
@@ -14,6 +14,10 @@ class GCMSParameters:
 
     molecular_search = CompoundSearchSettings()
     gc_ms = GasChromatographSetting()
+
+class LCMSParameters:
+
+    lc_ms = LiquidChromatographSetting()
 
 
 def default_parameters(file_location):  # pragma: no cover

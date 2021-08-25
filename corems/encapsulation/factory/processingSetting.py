@@ -65,7 +65,7 @@ class DataInputSetting:
         self.header_translate[label] = Labels.rp
 
 @dataclasses.dataclass
-class LiqChromatographSetting:
+class LiquidChromatographSetting:
     '''
     enforce_target_ms2: bool
             only perform EIC for target_mz if the m/z was selected as precursor for ms2

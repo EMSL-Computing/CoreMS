@@ -16,7 +16,7 @@ from typing import List
 from corems.encapsulation.constant import Labels
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
 from corems.mass_spectra.calc.MZSearch import MZSearch
-from corems.encapsulation.factory.parameters import default_parameters
+from corems.encapsulation.factory.parameters import LCMSParameters, default_parameters
 
 
 # do not change the order from the imports statements and reference ThermoFisher below
@@ -35,7 +35,7 @@ from ThermoFisher.CommonCore.Data.Interfaces import IChromatogramSettings
 from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType
 from System.Collections.Generic import List
 
-class ThermoBaseClass:
+class ThermoBaseClass():
 
     def __init__(self, file_location):
         ''' file_location: srt pathlib.Path or s3path.S3Path
@@ -66,6 +66,26 @@ class ThermoBaseClass:
         self._end_scan = self.iRawDataPlus.RunHeaderEx.LastSpectrum
 
         self.file_path = file_location
+
+    def _init_settings(self):
+
+        self._parameters = LCMSParameters()
+
+    @property
+    def parameters(self):
+        return self._parameters
+
+    @parameters.setter
+    def parameters(self, instance_LCMSParameters):
+        self._parameters = instance_LCMSParameters
+
+    @property
+    def chromatogram_settings(self): return self.parameters.lc_ms
+
+    @chromatogram_settings.setter
+    def chromatogram_settings(self, instance_LiquidChromatographSetting):
+
+        self.parameters.lc_ms =  instance_LiquidChromatographSetting
 
     @property
     def start_scan(self):
