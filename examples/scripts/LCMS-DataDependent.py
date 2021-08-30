@@ -25,8 +25,9 @@ def run_thermo(file_location):
     parser.chromatogram_settings.smooth_window = 5
     parser.chromatogram_settings.min_peak_datapoints = 5
     parser.chromatogram_settings.peak_height_min_percent = 0.1
-    parser.chromatogram_settings.eic_signal_threshold = 0.01
-    parser.chromatogram_settings.eic_tolerance_ppm = 1
+
+    parser.chromatogram_settings.eic_signal_threshold = 0.1
+    parser.chromatogram_settings.eic_tolerance_ppm = 5
     parser.chromatogram_settings.enforce_target_ms2 = True
 
     tic_data, ax_tic = parser.get_tic(ms_type='MS', smooth=True, plot=True)
@@ -47,8 +48,8 @@ def run_thermo(file_location):
     # get selected data dependent mzs 
     target_mzs = parser.selected_mzs
 
-    data = parser.get_eics(target_mzs[0:1000],
-                    ppm_tolerance=1,
+    data = parser.get_eics(target_mzs,
+                    smooth=True,
                     plot=True,
                     ax=ax_tic)
     

@@ -1,5 +1,5 @@
 __author__ = 'Yuri E. Corilo'
-__version__ = '2.2.0.beta'
+__version__ = '2.3.0.beta'
 __doc__ = '''
 [![DOI](https://zenodo.org/badge/265072913.svg)](https://zenodo.org/badge/latestdoi/265072913)
 

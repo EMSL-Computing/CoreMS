@@ -179,8 +179,7 @@ class ThermoBaseClass():
         return list(trace.Times), list(trace.Intensities), list(trace.Scans)
         
 
-    def get_eics(self, target_mzs: list, ppm_tolerance=5,
-                 ms_type='MS', plot=False, ax=None):
+    def get_eics(self, target_mzs: list, ms_type='MS', smooth=False, plot=False, ax=None):
 
         '''ms_type: str ('MS', MS2')
         start_scan: int default -1 will select the lowest available
@@ -200,7 +199,7 @@ class ThermoBaseClass():
         
         options = MassOptions()
         options.ToleranceUnits = ToleranceUnits.ppm
-        options.Tolerance = ppm_tolerance
+        options.Tolerance = self.chromatogram_settings.eic_tolerance_ppm
 
         all_chroma_settings = []
 
@@ -262,10 +261,13 @@ class ThermoBaseClass():
         
         for i, trace in enumerate(traces):
             if trace.Length > 0:
-                rt, ic, scans  = self.get_rt_time_from_trace(trace)
-                chroma[target_mzs[i]] = {'Scans' : scans, 'Time': rt, 'ECI': ic}
+                rt, eic, scans  = self.get_rt_time_from_trace(trace)
+                if smooth:
+                    eic= self.smooth_tic(eic)
+                
+                chroma[target_mzs[i]] = {'Scans' : scans, 'Time': rt, 'ECI': eic}
                 if plot:
-                    ax.plot(rt, ic, label="{:.5f}".format(target_mzs[i]))    
+                    ax.plot(rt, eic, label="{:.5f}".format(target_mzs[i]))    
                     
         if plot:
             return chroma, ax
