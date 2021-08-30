@@ -230,7 +230,7 @@ class ThermoBaseClass():
                 ax.set_prop_cycle(color=plt.cm.gist_rainbow(np.linspace(0, 1, len(traces))))
             else:
                 fig = plt.gcf()    
-                
+
             ax.set_xlabel('Time (min)')
             ax.set_ylabel('a.u.')
             ax.set_title(ms_type + ' EIC')
@@ -279,7 +279,7 @@ class ThermoBaseClass():
             # plot_chroma(rt, tic)
             # plt.show()
 
-    def get_tic(self, start_scan=-1, end_scan=-1, ms_type='MS', plot=False, ax=None) -> dict:
+    def get_tic(self, start_scan=-1, end_scan=-1, ms_type='MS', smooth=False, plot=False, ax=None) -> dict:
 
         '''ms_type: str ('MS', MS2')
         start_scan: int default -1 will select the lowest available
@@ -320,6 +320,9 @@ class ThermoBaseClass():
                 data['Scan'].append(trace[0].Scans[i])
 
             chroma = pd.DataFrame(data)
+            if smooth:
+                
+                chroma['TIC']= self.smooth_tic(data['TIC'])
 
             if plot:
                 if not ax:
@@ -327,7 +330,7 @@ class ThermoBaseClass():
                     ax = plt.gca()
                     # fig, ax = plt.subplots(figsize=(6, 3))
 
-                ax.plot(chroma['Time'], chroma['TIC'], label=ms_type + ' TIC')
+                ax.plot(chroma['Time'], chroma['TIC'], label=ms_type + ' TIC')    
                 ax.set_xlabel('Time (min)')
                 ax.set_ylabel('a.u.')
                 plt.legend()

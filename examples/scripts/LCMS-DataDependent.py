@@ -19,13 +19,18 @@ def run_thermo(file_location):
     
     parser = rawFileReader.ImportDataDependentThermoMSFileReader(file_location)
 
-    tic_data, ax_tic = parser.get_tic(ms_type='MS', plot=True)
+    tic_data, ax_tic = parser.get_tic(ms_type='MS', smooth=True, plot=True)
 
     ms2_tic, ax_ms2_tic = parser.get_tic(ms_type='MS2', plot=False)
 
-    centroid_tic = parser.centroid_detector(tic_data['TIC'], tic_data['Time'])
+    tic = tic_data['TIC']
+    rt = tic_data['Time']
+    
+    centroid_tic = parser.centroid_detector(rt, tic)
     
     for i in centroid_tic:
+        apex_index = i[1]
+        ax_tic.plot(rt[apex_index], tic[apex_index], marker='x', linewidth=0)
         print(i)
     #print(data)
 

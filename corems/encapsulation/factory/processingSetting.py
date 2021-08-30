@@ -87,6 +87,8 @@ class LiquidChromatographSetting:
 
     smooth_method: str = 'savgol'
 
+    implemented_smooth_method: tuple = ('savgol', 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar')
+
     savgol_pol_order: int = 2
 
     peak_height_max_percent: float = 10  # 1-100 % used for baseline detection use 0.1 for second_derivative and 10 for other methods

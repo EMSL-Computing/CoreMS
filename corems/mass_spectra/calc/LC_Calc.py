@@ -26,7 +26,7 @@ class LC_Calculations:
 
         return sp.smooth_signal(tic, window_len, window, pol_order, implemented_smooth_method)
 
-    def centroid_detector(self, tic, rt):
+    def centroid_detector(self, rt, tic):
         
         noise_std = self.chromatogram_settings.std_noise_threshold
 
