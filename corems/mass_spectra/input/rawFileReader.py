@@ -67,6 +67,8 @@ class ThermoBaseClass():
 
         self.file_path = file_location
 
+        self._init_settings()
+
     def _init_settings(self):
 
         self._parameters = LCMSParameters()
@@ -226,7 +228,9 @@ class ThermoBaseClass():
                 # ax.clear()
                 fig, ax = plt.subplots()
                 ax.set_prop_cycle(color=plt.cm.gist_rainbow(np.linspace(0, 1, len(traces))))
-
+            else:
+                fig = plt.gcf()    
+                
             ax.set_xlabel('Time (min)')
             ax.set_ylabel('a.u.')
             ax.set_title(ms_type + ' EIC')
@@ -329,10 +333,11 @@ class ThermoBaseClass():
                 plt.legend()
                 # plt.show()
                 return chroma, ax
-            return chroma
+            
+            return chroma, None
 
         else:
-            return None
+            return None, None
 
 class ImportDataDependentThermoMSFileReader(ThermoBaseClass, LC_Calculations):
 

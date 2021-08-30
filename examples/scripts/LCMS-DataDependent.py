@@ -19,20 +19,24 @@ def run_thermo(file_location):
     
     parser = rawFileReader.ImportDataDependentThermoMSFileReader(file_location)
 
-    parser.get_tic(ms_type='MS', plot=False)
+    tic_data, ax_tic = parser.get_tic(ms_type='MS', plot=True)
 
-    parser.get_tic(ms_type='MS2', plot=False)
+    ms2_tic, ax_ms2_tic = parser.get_tic(ms_type='MS2', plot=False)
 
-    plt.show()
+    centroid_tic = parser.centroid_detector(tic_data['TIC'], tic_data['Time'])
+    
+    for i in centroid_tic:
+        print(i)
+    #print(data)
 
     # get selected data dependent mzs 
     target_mzs = parser.selected_mzs
 
-    data = parser.get_eics(target_mzs[300:301],
+    data = parser.get_eics(target_mzs[0:1000],
                     ppm_tolerance=1,
-                    plot=True)
-    #print(data)
-
+                    plot=True,
+                    ax=ax_tic)
+    
     plt.show()
     #print(parser.get_all_filters())
 
