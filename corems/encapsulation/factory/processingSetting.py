@@ -73,13 +73,21 @@ class LiquidChromatographSetting:
         default -1 will select the lowest available
     end_scan: int
         default -1 will select the highest available
+    peak_height_max_percent: float
+        1-100 % used for baseline detection use 0.1 for second_derivative and 10 for other methods    
+    peak_max_prominence_percent: float
+        1-100 % used for baseline detection
+    peak_height_min_percent: float
+        0-100 % used for peak detection
+    eic_signal_threshold: 
+        0-100 % used for extracted ion chromatogram peak detection
     '''
     
-    start_scan: int = 1
+    start_scan: int = -1
     
-    final_scan: int = 7
+    final_scan: int = -1
         
-    eic_tolerance_ppm: int = 5
+    eic_tolerance_ppm: float = 5
     
     enforce_target_ms2: bool = True
 
@@ -91,9 +99,9 @@ class LiquidChromatographSetting:
 
     savgol_pol_order: int = 2
 
-    peak_height_max_percent: float = 10  # 1-100 % used for baseline detection use 0.1 for second_derivative and 10 for other methods
+    peak_height_max_percent: float = 10  
 
-    peak_max_prominence_percent: float = 1  # 1-100 % used for baseline detection
+    peak_max_prominence_percent: float = 1
 
     min_peak_datapoints: float = 5
 
@@ -103,9 +111,9 @@ class LiquidChromatographSetting:
 
     std_noise_threshold: int = 3
 
-    peak_height_min_percent: float = 0.1  # 0-100 % used for peak detection
+    peak_height_min_percent: float = 0.1  
 
-    eic_signal_threshold: float = 0.01  # 0-100 % used for extracted ion chromatogram peak detection
+    eic_signal_threshold: float = 0.01  
 
     def __post_init__(self):
         # enforce datatype

@@ -348,21 +348,17 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass, LC_Calculations):
          Intended do create the LCMS object --> ChromaPeaks --> MSobj FullScan --> Dependent MS/MS Obj
     '''
 
-    def __init__(self, file_location: str, start_scan: int = -1, end_scan: int = -1,
-                 selected_mzs: List[float] = None, enforce_target_ms2: bool = True, 
-                 eic_tolerance_ppm: float = 5.0):
+    def __init__(self, file_location: str, selected_mzs: List[float] = None):
         '''
         target_mzs: list[float] monoisotopic target m/z  or None
             Details: None will defalt to depends scans selected m/
         file_location: str, Path, or S3Path
-        enforce_target_ms2: bool
-            only perform EIC for target_mz if the m/z was selected as precursor for ms2
-        start_scan: int
-            default -1 will select the lowest available
-        end_scan: int
-            default -1 will select the highest available
+        
         '''
         super().__init__(file_location)
+        
+        eic_tolerance_ppm = self.chromatogram_settings.eic_tolerance_ppm
+        enforce_target_ms2 = self.chromatogram_settings.enforce_target_ms2
 
         self._selected_mzs = self._init_target_mz(selected_mzs, enforce_target_ms2, eic_tolerance_ppm)
 
