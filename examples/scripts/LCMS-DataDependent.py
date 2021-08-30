@@ -19,6 +19,9 @@ def run_thermo(file_location):
     
     parser = rawFileReader.ImportDataDependentThermoMSFileReader(file_location)
 
+    parser.chromatogram_settings.start_scan = -1
+    parser.chromatogram_settings.end_scan = -1
+
     parser.chromatogram_settings.smooth_window = 5
     parser.chromatogram_settings.min_peak_datapoints = 5
     parser.chromatogram_settings.peak_height_min_percent = 0.1

@@ -85,7 +85,7 @@ class LiquidChromatographSetting:
     
     start_scan: int = -1
     
-    final_scan: int = -1
+    end_scan: int = -1
         
     eic_tolerance_ppm: float = 5
     

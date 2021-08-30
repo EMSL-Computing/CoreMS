@@ -60,11 +60,7 @@ class ThermoBaseClass():
         self.iRawDataPlus = RawFileReaderAdapter.FileFactory(str(file_path))
 
         self.res = self.iRawDataPlus.SelectInstrument(0, 1)
-
-        self._start_scan = self.iRawDataPlus.RunHeaderEx.FirstSpectrum
-
-        self._end_scan = self.iRawDataPlus.RunHeaderEx.LastSpectrum
-
+        
         self.file_path = file_location
 
         self._init_settings()
@@ -91,11 +87,21 @@ class ThermoBaseClass():
 
     @property
     def start_scan(self):
-        return self._start_scan
+        
+        if self.chromatogram_settings.start_scan == -1:
+            return self.iRawDataPlus.RunHeaderEx.FirstSpectrum
+        else:
+           return self.chromatogram_settings.start_scan
+      
 
     @property
     def end_scan(self):
-        return self._end_scan
+          
+        if self.chromatogram_settings.end_scan == -1:
+            return self.iRawDataPlus.RunHeaderEx.LastSpectrum   
+        else:        
+            return self.chromatogram_settings.end_scan
+        
 
     def remove_temp_file(self):
         '''if the path is from S3Path data cannot be serialized to io.ByteStream and
@@ -146,7 +152,8 @@ class ThermoBaseClass():
         This function is only supported for MS device controllers.
         e.g.  ['FTMS', '-', 'p', 'NSI', 'Full', 'ms', '[200.00-1000.00]']
         '''
-        scanrange = range(self._start_scan, self._end_scan + 1)
+        
+        scanrange = range(self.start_scan, self.end_scan + 1)
         scanfiltersdic = {}
         scanfilterslist = []
         for scan_number in scanrange:
@@ -173,7 +180,7 @@ class ThermoBaseClass():
         
 
     def get_eics(self, target_mzs: list, ppm_tolerance=5,
-                 start_scan=-1, end_scan=-1, ms_type='MS', plot=False, ax=None):
+                 ms_type='MS', plot=False, ax=None):
 
         '''ms_type: str ('MS', MS2')
         start_scan: int default -1 will select the lowest available
@@ -190,7 +197,7 @@ class ThermoBaseClass():
                                             total ion chromatogram
                                         }
         '''
-
+        
         options = MassOptions()
         options.ToleranceUnits = ToleranceUnits.ppm
         options.Tolerance = ppm_tolerance
@@ -214,7 +221,7 @@ class ThermoBaseClass():
         # print(chroma_settings)
 
         data = self.iRawDataPlus.GetChromatogramData(all_chroma_settings,
-                                                     start_scan, end_scan, options)
+                                                     self.start_scan, self.end_scan, options)
 
         traces = ChromatogramSignal.FromChromatogramData(data)
 
@@ -279,7 +286,7 @@ class ThermoBaseClass():
             # plot_chroma(rt, tic)
             # plt.show()
 
-    def get_tic(self, start_scan=-1, end_scan=-1, ms_type='MS', smooth=False, plot=False, ax=None) -> dict:
+    def get_tic(self, ms_type='MS', smooth=False, plot=False, ax=None) -> dict:
 
         '''ms_type: str ('MS', MS2')
         start_scan: int default -1 will select the lowest available
@@ -288,7 +295,7 @@ class ThermoBaseClass():
             chroma: dict
             {
             Scan: [int]
-                original thermo scan number
+                original thermo scan numberMS
             Time: [floats]
                 list of retention times
             TIC: [floats]
@@ -302,7 +309,7 @@ class ThermoBaseClass():
         chroma_settings = IChromatogramSettings(settings)
 
         data = self.iRawDataPlus.GetChromatogramData([chroma_settings],
-                                                     start_scan, end_scan)
+                                                     self.start_scan, self.end_scan)
 
         trace = ChromatogramSignal.FromChromatogramData(data)
         rt = []
@@ -421,12 +428,12 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
          Returns MassSpecProfile object
     '''
 
-    def get_icr_transient_times(self, first_scan: int = None, last_scan: int = None):
+    def get_icr_transient_times(self):
         '''
         Return a list for transient time targets for all scans, or selected scans range
         Resolving Power and Transient time targets based on 7T FT-ICR MS system
         '''
-
+        
         res_trans_time = {'50': 0.384,
                           '100000': 0.768,
                           '200000': 1.536,
@@ -435,9 +442,9 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
                           '1000000': 12.288
                           }
 
-        firstScanNumber = self._start_scan if first_scan is None else first_scan
+        firstScanNumber = self.start_scan
 
-        lastScanNumber = self._end_scan if last_scan is None else last_scan
+        lastScanNumber = self.end_scan
 
         transient_time_list = []
 
@@ -588,14 +595,13 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
 
         return mass_spec
 
-    def get_average_mass_spectrum_in_scan_range(self, first_scan: int = None, last_scan: int = None,
-                                                auto_process: bool = True, ppm_tolerance: float = 5.0,
+    def get_average_mass_spectrum_in_scan_range(self, auto_process: bool = True, ppm_tolerance: float = 5.0,
                                                 ms_type: str = 0):
 
         '''
         Averages mass spectra over a scan range using Thermo's AverageScansInScanRange method
-        first_scan: int
-        last_scan: int
+        start_scan: int
+        end_scan: int
         auto_process: bool
             If true performs peak picking, and noise threshold calculation after creation of mass spectrum object
         ms_type: MSOrderType.MS
@@ -604,11 +610,8 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
             MassSpecProfile
         '''
 
-        firstScanNumber = self._start_scan if first_scan is None else first_scan
-
-        lastScanNumber = self._end_scan if last_scan is None else last_scan
-
-        d_params = self.set_metadata(firstScanNumber=firstScanNumber, lastScanNumber=lastScanNumber)
+        d_params = self.set_metadata(firstScanNumber=self.start_scan,
+                                     lastScanNumber=self.end_scan)
 
         # Create the mass options object that will be used when averaging the scans
         options = MassOptions()
@@ -618,12 +621,13 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
 
         # Get the scan filter for the first scan.  This scan filter will be used to located
         # scans within the given scan range of the same type
-        scanFilter = self.iRawDataPlus.GetFilterForScanNumber(firstScanNumber)
+        scanFilter = self.iRawDataPlus.GetFilterForScanNumber(self.start_scan)
 
         # force it to only look for the MSType
         scanFilter.MSOrder = ms_type
 
-        averageScan = Extensions.AverageScansInScanRange(self.iRawDataPlus, firstScanNumber, lastScanNumber,
+        averageScan = Extensions.AverageScansInScanRange(self.iRawDataPlus, 
+                                                         self.start_scan, self.end_scan,
                                                          scanFilter, options)
 
         if averageScan:
@@ -640,8 +644,7 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
         else:
             raise Exception('no data found for the MSOrderType = {}'.format(ms_type))
 
-    def get_summed_mass_spectrum(self, start_scan: int, end_scan: int = None,
-                                 auto_process=True, pd_method=True, pd_merge_n=100):
+    def get_summed_mass_spectrum(self, auto_process=True, pd_method=True, pd_merge_n=100):
 
         '''
         Manually sum mass spectrum over a scan range
@@ -655,24 +658,21 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
         Returns:
             MassSpecProfile
         '''
-
+        
         d_params = default_parameters(self.file_path)
 
         # assumes scans is full scan or reduced profile scan
 
         d_params['label'] = Labels.thermo_profile
 
-        if type(start_scan) is list:
-            d_params['polarity'] = self.get_polarity_mode(start_scan[0])
+        if type(self.start_scan) is list:
+            d_params['polarity'] = self.get_polarity_mode(self.start_scan[0])
 
-            scanrange = start_scan
+            scanrange = self.start_scan
         else:
-            d_params['polarity'] = self.get_polarity_mode(start_scan)
+            d_params['polarity'] = self.get_polarity_mode(self.start_scan)
 
-            if end_scan is None:
-                end_scan = self._end_scan
-
-            scanrange = range(start_scan, end_scan + 1)
+            scanrange = range(self.start_scan, self.end_scan + 1)
 
         if pd_method:
 
