@@ -3,6 +3,7 @@
 @date: Jun 27, 2019
 '''
 
+import math
 from numpy import hstack, inf, isnan, poly1d, polyfit, where
 from corems.encapsulation.constant import Labels
 
@@ -255,7 +256,11 @@ class PeakPicking:
 
             calculated = -b/(2*a)
             
-            if calculated < 1 or int(calculated) != int(list_mass[1]):
+            if math.isnan(calculated):
+                
+                mz_exp_centroid = list_mass[1]
+
+            elif calculated < 1 or int(calculated) != int(list_mass[1]):
 
                 mz_exp_centroid = list_mass[1]
             
