@@ -97,6 +97,9 @@ def run_assignment(file_location):
     mass_spectrum.molecular_search_settings.score_method = "prob_score"
     mass_spectrum.molecular_search_settings.output_score_method = "prob_score"
 
+    mass_spectrum.plot_profile_and_noise_threshold()
+    plt.show()
+    
     mass_spectrum.to_csv(mass_spectrum.sample_name)
 
     # export_calc_isotopologues(mass_spectrum, "15T_Neg_ESI_SRFA_Calc_Isotopologues")
@@ -109,6 +112,7 @@ def run_assignment(file_location):
     plt.show()
     mass_spectrum_by_classes.plot_ms_class('O12')
     plt.show()
+    
     
     # dataframe = mass_spectrum_by_classes.to_dataframe()
     # return (mass_spectrum, mass_spectrum_by_classes)

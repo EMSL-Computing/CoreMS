@@ -257,7 +257,7 @@ class PeakPicking:
             calculated = -b/(2*a)
             
             if math.isnan(calculated):
-                
+
                 mz_exp_centroid = list_mass[1]
 
             elif calculated < 1 or int(calculated) != int(list_mass[1]):
@@ -278,6 +278,11 @@ class PeakPicking:
 
                 calculated_freq = -b/(2*a)
 
+
+                if math.isnan(calculated_freq):
+                    print(calculated_freq)
+                    freq_centr = list_freq[1]
+
                 if calculated_freq < 1 or int(calculated_freq) != freq[current_index]:
                     freq_centr = list_freq[1]
 
@@ -286,7 +291,7 @@ class PeakPicking:
             
             else:
                     freq_centr = None
-                    
+
             return mz_exp_centroid, freq_centr, abund[current_index], peak_indexes
     
     def check_prominence(self, abun, current_index, len_abundance, peak_height_diff ):
