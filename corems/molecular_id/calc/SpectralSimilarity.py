@@ -1,3 +1,6 @@
+__author__ = "Yuri E. Corilo"
+__date__ = "Jun 09, 2021"
+
 from numpy.fft import rfft
 from pywt import dwt 
 from scipy.spatial.distance import cosine, jaccard, euclidean, cityblock

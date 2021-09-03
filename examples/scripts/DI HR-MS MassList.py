@@ -1,4 +1,6 @@
 import warnings
+
+from pandas.core.frame import DataFrame
 warnings.filterwarnings("ignore")
 
 import sys
@@ -10,7 +12,7 @@ import json
 import pstats
 from multiprocessing import Pool, Process
 
-from pandas import DataFrame
+import pandas as pd
 from matplotlib import pyplot as plt
 
 from corems.mass_spectrum.calc.Calibration import MzDomainCalibration
@@ -19,7 +21,7 @@ from corems.mass_spectrum.input.massList import ReadMassList
 from corems.molecular_id.factory.classification import HeteroatomsClassification, Labels
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
-from corems import SuppressPrints, get_filename, get_dirnames
+from corems import SuppressPrints, get_dirname, get_filename, get_dirnames, get_filenames
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.mass_spectra.input import rawFileReader
 
@@ -108,8 +110,8 @@ def set_parameters(mass_spectrum, field_strength=12, pos=False):
 
     if field_strength == 12:
 
-        mass_spectrum.settings.max_calib_ppm_error = 10
-        mass_spectrum.settings.min_calib_ppm_error = -10
+        mass_spectrum.settings.max_calib_ppm_error = 5
+        mass_spectrum.settings.min_calib_ppm_error = -5
 
         mass_spectrum.molecular_search_settings.error_method = 'None'
         mass_spectrum.molecular_search_settings.min_ppm_error = -1
@@ -166,21 +168,101 @@ def set_parameters(mass_spectrum, field_strength=12, pos=False):
     mass_spectrum.molecular_search_settings.isRadical = False
     mass_spectrum.molecular_search_settings.isAdduct = False
 
+def merge_files(file_paths: list, variable='Peak Height'):
+
+    master_data_dict = []
+    list_filenames = []
+    for filepath in file_paths:
+        
+        filepath = Path(filepath)
+        
+        with filepath.open('r') as f:
+            
+            data = json.loads(json.load(f))
+            
+            df = DataFrame(data)
+            idx = df.groupby(['Molecular Formula'])['Confidence Score'].transform(max) == df['Confidence Score']
+
+            df = df[idx]
+            df.fillna(0, inplace=True)
+
+            name_column = "{} ({})".format(variable, filepath.stem)
+            df.rename({variable: name_column}, inplace=True, axis=1)
+
+            list_filenames.append(name_column)
+            master_data_dict.extend(df.to_dict('records'))
+
+    formula_dict = {}
+    for record in master_data_dict:
+        molecular_formula = record.get('Molecular Formula')
+        
+        if molecular_formula in formula_dict.keys():
+            formula_dict[molecular_formula].append(record)
+        else:
+            formula_dict[molecular_formula] = [record]
+    
+    def dict_mean(dict_list, average_keys):
+        mean_dict = {}
+        
+        for key in average_keys:
+            
+            mean_dict[key] = sum(d[key] for d in dict_list) / len(dict_list)
+        
+        return mean_dict
+        
+    average_records = []
+    
+    average_keys = ['m/z', 'Calibrated m/z', 'Calculated m/z', 'Peak Area', 'Resolving Power', 'S/N', 'm/z Error (ppm)', 'm/z Error Score', 
+                    'Isotopologue Similarity', 'Mono Isotopic Index', 'Confidence Score']
+    average_keys.extend(list_filenames)
+
+    for formula, records in formula_dict.items():
+        
+        #mean_dict = dict_mean(records, average_keys)
+        mean_dict = {}
+        for record in  records: 
+            #get the selected variable
+            for filename in list_filenames:
+                if filename in record.keys():
+                    mean_dict[filename] = record[filename]
+            
+        for record in  records: 
+            #than get the rest of the data
+            for key in record.keys():
+                if key not in average_keys:
+                    mean_dict[key] = record[key]
+    
+        average_records.append(mean_dict)                
+    master_df = pd.DataFrame(average_records)
+    
+    master_df.set_index('Molecular Formula', inplace=True)
+    print(master_df)
+
+    master_df.to_csv('{}.csv')
+    #grouped = master_df.groupby(["Molecular Formula", "Sample Name", "Peak Height"])
+    
+   
 
 def run_assignment(file_location, field_strength=12):
-    # mass_spectrum = get_masslist(file_location)
+    #mass_spectrum = get_masslist(file_location)
 
     mass_spectrum, transient_time = run_bruker(file_location)
     set_parameters(mass_spectrum, field_strength=field_strength, pos=False)
-    mass_spectrum.filter_by_max_resolving_power(field_strength, transient_time)
+    #mass_spectrum.filter_by_max_resolving_power(field_strength, transient_time)
 
     SearchMolecularFormulas(mass_spectrum, first_hit=False).run_worker_mass_spectrum()
 
     mass_spectrum.percentile_assigned(report_error=True)
+    
+    mass_spectrum.to_csv(mass_spectrum.sample_name, write_metadata=False)
+    
     mass_spectrum.molecular_search_settings.score_method = "prob_score"
     mass_spectrum.molecular_search_settings.output_score_method = "prob_score"
+    data_table = mass_spectrum.to_json()
 
-    mass_spectrum.to_csv(mass_spectrum.sample_name, write_metadata=False)
+    with open(mass_spectrum.sample_name + '.json', 'w') as outfile:
+        json.dump(data_table, outfile)
+
     # export_calc_isotopologues(mass_spectrum, "15T_Neg_ESI_SRFA_Calc_Isotopologues")
 
     # mass_spectrum_by_classes = HeteroatomsClassification(mass_spectrum, choose_molecular_formula=True)
@@ -293,6 +375,7 @@ if __name__ == "__main__":
     # run_multiprocess()
     # cpu_percents = monitor(target=run_multiprocess)
     # print(cpu_percents)
-    file_location = get_filename()
+    file_location = get_filenames()
     if file_location:
-        run_assignment(file_location)
+        merge_files(file_location)
+        #run_assignment(file_location)

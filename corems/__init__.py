@@ -1,5 +1,5 @@
 __author__ = 'Yuri E. Corilo'
-__version__ = '2.2.0.beta'
+__version__ = '2.4.0.beta'
 __doc__ = '''
 [![DOI](https://zenodo.org/badge/265072913.svg)](https://zenodo.org/badge/latestdoi/265072913)
 
@@ -348,6 +348,7 @@ import os
 import sys
 import hashlib
 
+
 def timeit(method):
     def timed(*args, **kw):
         ts = time.time()
@@ -357,7 +358,7 @@ def timeit(method):
             name = kw.get('log_name', method.__name__.upper())
             kw['log_time'][name] = int((te - ts) * 1000)
         else:
-            print( "%r  %2.2f ms" % (method.__name__, (te - ts) * 1000))
+            print("%r  %2.2f ms" % (method.__name__, (te - ts) * 1000))
         return result
     return timed
 
@@ -371,6 +372,25 @@ class SuppressPrints:
     def __exit__(self, exc_type, exc_val, exc_tb):
         sys.stdout.close()
         sys.stdout = self._original_stdout
+
+def get_filenames(app=None):
+
+    from PySide2.QtCore import Qt, QCoreApplication
+    from PySide2.QtWidgets import QApplication, QFileDialog
+    from pathlib import Path
+
+    app = QApplication(sys.argv)
+    file_dialog = QFileDialog()
+    file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+    file_location, _ = file_dialog.getOpenFileNames()
+
+    if file_location:
+        QCoreApplication.processEvents()
+        return file_location
+
+    else:
+
+        return None
 
 def get_filename(app=None):
 

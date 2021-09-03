@@ -1,3 +1,6 @@
+__author__ = "Yuri E. Corilo"
+__date__ = "Jun 09, 2021"
+
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -26,6 +29,15 @@ def run_thermo(file_location):
 
     parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
 
+    parser.chromatogram_settings.start_scan = -1
+    parser.chromatogram_settings.end_scan = -1
+    
+    tic_data, ax = parser.get_tic(ms_type='MS', plot=True)
+
+    plt.show()
+
+    print(parser.get_all_filters())
+
     transient_time_list = parser.get_icr_transient_times()
 
     print(transient_time_list)
@@ -34,8 +46,11 @@ def run_thermo(file_location):
     mass_spectrum = parser.get_average_mass_spectrum_in_scan_range()
 
     # sums scans in selected range
-    mass_spectrum = parser.get_average_mass_spectrum_in_scan_range(first_scan=1, last_scan=5)
-
+    parser.chromatogram_settings.start_scan = 1
+    parser.chromatogram_settings.end_scan = 10
+    
+    mass_spectrum = parser.get_average_mass_spectrum_in_scan_range()
+    
     scans_list = [1]
     # sums scans in selected range
     mass_spectrum = parser.get_average_mass_spectrum_by_scanlist(scans_list)
@@ -107,16 +122,16 @@ if __name__ == "__main__":
 
     ax =mass_spectrum.plot_mz_domain_profile()
 
-    for mspeak in mass_spectrum:
-        mspeak.plot(ax=ax)
-    plt.show()
+    #for mspeak in mass_spectrum:
+    #    mspeak.plot(ax=ax)
+    #plt.show()
     #plt.savefig("test.png")
 
-    mass_spectrum.plot_profile_and_noise_threshold()
-    plt.show()
-    plt.savefig("test.png")
+    #mass_spectrum.plot_profile_and_noise_threshold()
+    #plt.show()
+    #plt.savefig("test.png")
 
     mass_spectrum = run_assignment(file_location)
 
-    mass_spectrum.to_csv("15T_Neg_ESI_SRFA")
+    mass_spectrum.to_csv(mass_spectrum.sample_name)
     # print("polarity", mass_spectrum.polarity)
