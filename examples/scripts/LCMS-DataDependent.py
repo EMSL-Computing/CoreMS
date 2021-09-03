@@ -33,7 +33,7 @@ def run_thermo(file_location):
 
     tic_data, ax_tic = parser.get_tic(ms_type='MS', peak_detection=True, smooth=True, plot=True)
 
-    ms2_tic, ax_ms2_tic = parser.get_tic(ms_type='MS2', plot=False)
+    ms2_tic, ax_ms2_tic = parser.get_tic(ms_type='MS2', peak_detection=False, plot=False)
 
     #print(data)
 
