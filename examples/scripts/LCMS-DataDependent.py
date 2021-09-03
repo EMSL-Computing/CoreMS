@@ -31,7 +31,8 @@ def run_thermo(file_location):
     parser.chromatogram_settings.eic_tolerance_ppm = 5
     parser.chromatogram_settings.enforce_target_ms2 = True
 
-    tic_data, ax_tic = parser.get_tic(ms_type='MS', peak_detection=True, smooth=True, plot=True)
+    tic_data, ax_tic = parser.get_tic(ms_type='MS', peak_detection=True, 
+                                      smooth=True, plot=False)
 
     ms2_tic, ax_ms2_tic = parser.get_tic(ms_type='MS2', peak_detection=False, plot=False)
 
@@ -44,9 +45,11 @@ def run_thermo(file_location):
                                         tic_data,
                                         smooth=True,
                                         plot=True,
+                                        legend=False,
                                         peak_detection=True,
                                         ax=ax_tic)
     
+    ax_eic.plot(tic_data['Time'], tic_data['TIC'], c='black')
     #print(parser.get_all_filters())
 
     plt.show()

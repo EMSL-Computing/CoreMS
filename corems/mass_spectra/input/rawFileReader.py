@@ -180,7 +180,7 @@ class ThermoBaseClass():
         return list(trace.Times), list(trace.Intensities), list(trace.Scans)
         
 
-    def get_eics(self, target_mzs: list, tic_data: dict, ms_type='MS', peak_detection=True, smooth=True, plot=False, ax=None):
+    def get_eics(self, target_mzs: list, tic_data: dict, ms_type='MS', peak_detection=True, smooth=True, plot=False, ax=None, legend=False):
 
         '''ms_type: str ('MS', MS2')
         start_scan: int default -1 will select the lowest available
@@ -234,30 +234,11 @@ class ThermoBaseClass():
                 # ax = plt.gca()
                 # ax.clear()
                 fig, ax = plt.subplots()
-                ax.set_prop_cycle(color=plt.cm.gist_rainbow(np.linspace(0, 1, len(traces))))
+                
             else:
                 fig = plt.gcf()    
 
-            ax.set_xlabel('Time (min)')
-            ax.set_ylabel('a.u.')
-            ax.set_title(ms_type + ' EIC')
-            ax.tick_params(axis='both', which='major', labelsize=12)
-            ax.axes.spines['top'].set_visible(False)
-            ax.axes.spines['right'].set_visible(False)
-
-            legend = ax.legend(loc="upper left", bbox_to_anchor=(1.02, 0, 0.07, 1))
-            fig.subplots_adjust(right=0.76)
-            d = {"down": 30, "up": -30}
-
-            def func(evt):
-                if legend.contains(evt):
-                    bbox = legend.get_bbox_to_anchor()
-                    bbox = Bbox.from_bounds(bbox.x0, bbox.y0 + d[evt.button], bbox.width, bbox.height)
-                    tr = legend.axes.transAxes.inverted()
-                    legend.set_bbox_to_anchor(bbox.transformed(tr))
-                    fig.canvas.draw_idle()
-
-            fig.canvas.mpl_connect("scroll_event", func)        
+                
             # plt.show()
         
         for i, trace in enumerate(traces):
@@ -289,7 +270,28 @@ class ThermoBaseClass():
                         ax.plot(time[apex_index], eic[apex_index], marker='x', linewidth=0)
 
         if plot:
-            
+            ax.set_xlabel('Time (min)')
+            ax.set_ylabel('a.u.')
+            ax.set_title(ms_type + ' EIC')
+            ax.tick_params(axis='both', which='major', labelsize=12)
+            ax.axes.spines['top'].set_visible(False)
+            ax.axes.spines['right'].set_visible(False)
+
+            if legend:
+                legend = ax.legend(loc="upper left", bbox_to_anchor=(1.02, 0, 0.07, 1))
+                fig.subplots_adjust(right=0.76)
+                #ax.set_prop_cycle(color=plt.cm.gist_rainbow(np.linspace(0, 1, len(traces))))
+                
+                d = {"down": 30, "up": -30}
+                def func(evt):
+                    if legend.contains(evt):
+                        bbox = legend.get_bbox_to_anchor()
+                        bbox = Bbox.from_bounds(bbox.x0, bbox.y0 + d[evt.button], bbox.width, bbox.height)
+                        tr = legend.axes.transAxes.inverted()
+                        legend.set_bbox_to_anchor(bbox.transformed(tr))
+                        fig.canvas.draw_idle()
+
+                fig.canvas.mpl_connect("scroll_event", func)    
             return chroma, ax
         else:
             return chroma, None     
