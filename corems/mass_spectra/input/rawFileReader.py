@@ -180,7 +180,8 @@ class ThermoBaseClass():
         return list(trace.Times), list(trace.Intensities), list(trace.Scans)
         
 
-    def get_eics(self, target_mzs: list, tic_data: dict, ms_type='MS', peak_detection=True, smooth=True, plot=False, ax=None):
+    def get_eics(self, target_mzs: list, tic_data: dict, ms_type='MS', 
+                peak_detection=True, smooth=True, plot=False, ax=None) -> dict:
 
         '''ms_type: str ('MS', MS2')
         start_scan: int default -1 will select the lowest available

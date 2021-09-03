@@ -47,10 +47,14 @@ class LC_Calculations:
 
         min_peak_datapoints = self.chromatogram_settings.min_peak_datapoints
 
+        peak_derivative_threshold = self.chromatogram_settings.peak_derivative_threshold
+
         correct_baseline = False
 
-        include_indexes = sp.peak_picking_first_derivative(rt, eic, max_height, max_prominence, max_eic, min_peak_datapoints,
-                                                                   signal_threshold=signal_threshold, correct_baseline=correct_baseline)
+        include_indexes = sp.peak_picking_first_derivative(rt, eic, max_height, max_prominence, max_eic,
+                                                           min_peak_datapoints, peak_derivative_threshold,
+                                                           signal_threshold=signal_threshold,
+                                                           correct_baseline=correct_baseline)
 
         return include_indexes
 

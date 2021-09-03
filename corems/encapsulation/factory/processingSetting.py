@@ -103,6 +103,8 @@ class LiquidChromatographSetting:
 
     peak_max_prominence_percent: float = 1
 
+    peak_derivative_threshold:float = 0.0005
+
     min_peak_datapoints: float = 5
 
     noise_threshold_method: str = 'manual_relative_abundance'

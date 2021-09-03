@@ -27,7 +27,7 @@ def run_thermo(file_location):
     parser.chromatogram_settings.min_peak_datapoints = 3
     parser.chromatogram_settings.peak_height_min_percent = 0.1
 
-    parser.chromatogram_settings.eic_signal_threshold = 0.1
+    parser.chromatogram_settings.eic_signal_threshold = 0.01
     parser.chromatogram_settings.eic_tolerance_ppm = 5
     parser.chromatogram_settings.enforce_target_ms2 = True
 
