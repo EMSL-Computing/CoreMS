@@ -1,6 +1,7 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 09, 2021"
 
+
 from corems.mass_spectra.calc.LC_Calc import LC_Calculations
 import numpy as np
 import sys
@@ -179,7 +180,7 @@ class ThermoBaseClass():
         return list(trace.Times), list(trace.Intensities), list(trace.Scans)
         
 
-    def get_eics(self, target_mzs: list, ms_type='MS', smooth=False, plot=False, ax=None):
+    def get_eics(self, target_mzs: list, tic_data: dict, ms_type='MS', peak_detection=True, smooth=True, plot=False, ax=None):
 
         '''ms_type: str ('MS', MS2')
         start_scan: int default -1 will select the lowest available
@@ -264,12 +265,31 @@ class ThermoBaseClass():
                 rt, eic, scans  = self.get_rt_time_from_trace(trace)
                 if smooth:
                     eic= self.smooth_tic(eic)
-                
-                chroma[target_mzs[i]] = {'Scans' : scans, 'Time': rt, 'ECI': eic}
+    
+                chroma[target_mzs[i]] = {'Scans' : scans, 'Time': rt, 'EIC': eic }
                 if plot:
-                    ax.plot(rt, eic, label="{:.5f}".format(target_mzs[i]))    
-                    
+                    ax.plot(rt, eic, label="{:.5f}".format(target_mzs[i]))
+
+        if peak_detection:
+            
+            #max_eic = self.get_max_eic(chroma)
+            max_signal = max(tic_data['TIC'])
+            for eic_data in chroma.values():
+               
+                eic = eic_data.get("EIC")
+                time = eic_data.get("Time")
+
+                centroid_eics = self.eic_centroid_detector(time, eic, max_signal)
+                eic_data['Apexes']= [i for i in centroid_eics]
+                
+                if plot:
+                    for peak_indexes in eic_data['Apexes']:
+                        
+                        apex_index = peak_indexes[1]
+                        ax.plot(time[apex_index], eic[apex_index], marker='x', linewidth=0)
+
         if plot:
+            
             return chroma, ax
         else:
             return chroma, None     
@@ -288,7 +308,7 @@ class ThermoBaseClass():
             # plot_chroma(rt, tic)
             # plt.show()
 
-    def get_tic(self, ms_type='MS', smooth=False, plot=False, ax=None) -> dict:
+    def get_tic(self, ms_type='MS', peak_detection=True, smooth=True, plot=False, ax=None) -> dict:
 
         '''ms_type: str ('MS', MS2')
         start_scan: int default -1 will select the lowest available
@@ -314,9 +334,8 @@ class ThermoBaseClass():
                                                      self.start_scan, self.end_scan)
 
         trace = ChromatogramSignal.FromChromatogramData(data)
-        rt = []
-        tic = []
-        data = {'Time': [], 'Scan': [], 'TIC': []}
+        
+        data = {'Time': [], 'Scan': [], 'TIC': [], 'Apexes': []}
 
         if trace[0].Length > 0:
 
@@ -327,11 +346,15 @@ class ThermoBaseClass():
                 data['Time'].append(trace[0].Times[i])
                 data['TIC'].append(trace[0].Intensities[i])
                 data['Scan'].append(trace[0].Scans[i])
-
-            chroma = pd.DataFrame(data)
+            
             if smooth:
                 
-                chroma['TIC']= self.smooth_tic(data['TIC'])
+                data['TIC']= self.smooth_tic(data['TIC'])
+
+            if peak_detection:
+                
+                centroid_peak_indexes = [i for i in self.centroid_detector(data['Time'], data['TIC'])]
+                data['Apexes'] = centroid_peak_indexes
 
             if plot:
                 if not ax:
@@ -339,14 +362,20 @@ class ThermoBaseClass():
                     ax = plt.gca()
                     # fig, ax = plt.subplots(figsize=(6, 3))
 
-                ax.plot(chroma['Time'], chroma['TIC'], label=ms_type + ' TIC')    
+                ax.plot(data['Time'], data['TIC'], label=ms_type + ' TIC')    
                 ax.set_xlabel('Time (min)')
                 ax.set_ylabel('a.u.')
+                if peak_detection:
+                    for peak_indexes in data['Apexes']:
+                        
+                        apex_index = peak_indexes[1]
+                        ax.plot(data['Time'][apex_index], data['TIC'][apex_index], marker='x', linewidth=0)
+                    
                 plt.legend()
                 # plt.show()
-                return chroma, ax
+                return data, ax
             
-            return chroma, None
+            return data, None
 
         else:
             return None, None
@@ -732,6 +761,7 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
             abun_all = []
 
             for mz in sorted(all_mz):
+                
                 mz_all.append(mz)
                 abun_all.append(all_mz[mz])
 
