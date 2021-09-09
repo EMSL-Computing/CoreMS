@@ -49,7 +49,12 @@ def run_thermo(file_location):
                                         peak_detection=True,
                                         ax=ax_tic)
     
-    ax_eic.plot(tic_data['Time'], tic_data['TIC'], c='black')
+    ax_eic.plot(tic_data.time, tic_data.tic, c='black')
+
+    for mz, eic_data in eics_data.items():
+
+        print(mz, eic_data.apexes)
+    
     #print(parser.get_all_filters())
 
     plt.show()

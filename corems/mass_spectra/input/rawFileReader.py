@@ -2,6 +2,9 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 09, 2021"
 
 
+from dataclasses import dataclass, field
+
+from matplotlib import axes
 from corems.mass_spectra.calc.LC_Calc import LC_Calculations
 import numpy as np
 import sys
@@ -13,7 +16,7 @@ import pandas as pd
 from s3path import S3Path
 from tqdm import tqdm
 
-from typing import List
+from typing import Dict, List, Tuple
 from corems.encapsulation.constant import Labels
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
 from corems.mass_spectra.calc.MZSearch import MZSearch
@@ -36,6 +39,42 @@ from ThermoFisher.CommonCore.Data.Interfaces import IChromatogramSettings
 from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType
 from System.Collections.Generic import List
 
+@dataclass
+class TIC_Data:
+     '''
+    Scans: [int]
+        original thermo scan numbers
+    Time: [floats]
+        list of retention times
+    TIC: [floats]
+        total ion chromatogram
+    Apexes: [int]    
+        original thermo apex scan number after peak picking 
+     '''
+     
+     scans : List[int] = field(default_factory=list)
+     time : List[float] = field(default_factory=list)
+     tic : List[float] = field(default_factory=list)
+     apexes : List[int] = field(default_factory=list)
+
+@dataclass
+class EIC_Data:
+     '''
+    Scans: [int]
+        original thermo scan numbers
+    Time: [floats]
+        list of retention times
+    EIC: [floats]
+        extracted ion chromatogram
+    Apexes: [int]    
+        original thermo apex scan number after peak picking 
+     '''
+     
+     scans : List[int] = field(default_factory=list)
+     time : List[float] = field(default_factory=list)
+     eic : List[float] = field(default_factory=list)
+     apexes : List[int] = field(default_factory=list)
+     
 class ThermoBaseClass():
 
     def __init__(self, file_location):
@@ -180,7 +219,9 @@ class ThermoBaseClass():
         return list(trace.Times), list(trace.Intensities), list(trace.Scans)
         
 
-    def get_eics(self, target_mzs: list, tic_data: dict, ms_type='MS', peak_detection=True, smooth=True, plot=False, ax=None, legend=False):
+    def get_eics(self, target_mzs: list, tic_data: dict, ms_type='MS', 
+                 peak_detection=True, smooth=True, plot=False, 
+                 ax=None, legend=False) -> Tuple[Dict[float, EIC_Data], axes.Axes]:
 
         '''ms_type: str ('MS', MS2')
         start_scan: int default -1 will select the lowest available
@@ -188,14 +229,17 @@ class ThermoBaseClass():
 
         returns:
 
-            chroma: dict{target_mz: dict{
-                                        Scan: [int]
-                                            original thermo scan number
+            chroma: dict{target_mz: EIC_Data(
+                                        Scans: [int]
+                                            original thermo scan numbers
                                         Time: [floats]
                                             list of retention times
                                         TIC: [floats]
                                             total ion chromatogram
-                                        }
+                                        Apexes: [int]    
+                                            original thermo apex scan number after peak picking 
+                                        )
+                                        
         '''
         
         options = MassOptions()
@@ -247,24 +291,26 @@ class ThermoBaseClass():
                 if smooth:
                     eic= self.smooth_tic(eic)
     
-                chroma[target_mzs[i]] = {'Scans' : scans, 'Time': rt, 'EIC': eic }
+                chroma[target_mzs[i]] = EIC_Data(scans=scans, time=rt, eic= eic)
                 if plot:
                     ax.plot(rt, eic, label="{:.5f}".format(target_mzs[i]))
 
         if peak_detection:
             
             #max_eic = self.get_max_eic(chroma)
-            max_signal = max(tic_data['TIC'])
+            max_signal = max(tic_data.tic)
             for eic_data in chroma.values():
                
-                eic = eic_data.get("EIC")
-                time = eic_data.get("Time")
+                eic = eic_data.eic
+                time = eic_data.time
 
+                if len(eic) != len(tic_data.tic):
+                    print("oh nooo")
                 centroid_eics = self.eic_centroid_detector(time, eic, max_signal)
-                eic_data['Apexes']= [i for i in centroid_eics]
+                eic_data.apexes = [i for i in centroid_eics]
                 
                 if plot:
-                    for peak_indexes in eic_data['Apexes']:
+                    for peak_indexes in eic_data.apexes:
                         
                         apex_index = peak_indexes[1]
                         ax.plot(time[apex_index], eic[apex_index], marker='x', linewidth=0)
@@ -281,7 +327,7 @@ class ThermoBaseClass():
                 legend = ax.legend(loc="upper left", bbox_to_anchor=(1.02, 0, 0.07, 1))
                 fig.subplots_adjust(right=0.76)
                 #ax.set_prop_cycle(color=plt.cm.gist_rainbow(np.linspace(0, 1, len(traces))))
-                
+
                 d = {"down": 30, "up": -30}
                 def func(evt):
                     if legend.contains(evt):
@@ -310,7 +356,8 @@ class ThermoBaseClass():
             # plot_chroma(rt, tic)
             # plt.show()
 
-    def get_tic(self, ms_type='MS', peak_detection=True, smooth=True, plot=False, ax=None) -> dict:
+    def get_tic(self, ms_type='MS', peak_detection=True, 
+                smooth=True, plot=False, ax=None) -> Tuple[Dict[float, TIC_Data], axes.Axes]:
 
         '''ms_type: str ('MS', MS2')
         start_scan: int default -1 will select the lowest available
@@ -324,6 +371,8 @@ class ThermoBaseClass():
                 list of retention times
             TIC: [floats]
                 total ion chromatogram
+            Apexes: [int]    
+                original thermo apex scan number after peak picking     
             }
         '''
 
@@ -337,7 +386,7 @@ class ThermoBaseClass():
 
         trace = ChromatogramSignal.FromChromatogramData(data)
         
-        data = {'Time': [], 'Scan': [], 'TIC': [], 'Apexes': []}
+        data = TIC_Data(time= [], scans= [], tic= [], apexes= [])
 
         if trace[0].Length > 0:
 
@@ -345,18 +394,18 @@ class ThermoBaseClass():
                 # print(trace[0].HasBasePeakData,trace[0].EndTime )
 
                 # print("  {} - {}, {}".format( i, trace[0].Times[i], trace[0].Intensities[i] ))
-                data['Time'].append(trace[0].Times[i])
-                data['TIC'].append(trace[0].Intensities[i])
-                data['Scan'].append(trace[0].Scans[i])
+                data.time.append(trace[0].Times[i])
+                data.tic.append(trace[0].Intensities[i])
+                data.scans.append(trace[0].Scans[i])
             
             if smooth:
                 
-                data['TIC']= self.smooth_tic(data['TIC'])
+                data.tic= self.smooth_tic(data.tic)
 
             if peak_detection:
                 
-                centroid_peak_indexes = [i for i in self.centroid_detector(data['Time'], data['TIC'])]
-                data['Apexes'] = centroid_peak_indexes
+                centroid_peak_indexes = [i for i in self.centroid_detector(data.time, data.tic)]
+                data.apexes = centroid_peak_indexes
 
             if plot:
                 if not ax:
@@ -364,14 +413,14 @@ class ThermoBaseClass():
                     ax = plt.gca()
                     # fig, ax = plt.subplots(figsize=(6, 3))
 
-                ax.plot(data['Time'], data['TIC'], label=ms_type + ' TIC')    
+                ax.plot(data.time, data.tic, label=ms_type + ' TIC')    
                 ax.set_xlabel('Time (min)')
                 ax.set_ylabel('a.u.')
                 if peak_detection:
                     for peak_indexes in data['Apexes']:
                         
                         apex_index = peak_indexes[1]
-                        ax.plot(data['Time'][apex_index], data['TIC'][apex_index], marker='x', linewidth=0)
+                        ax.plot(data.time[apex_index], data.tic[apex_index], marker='x', linewidth=0)
                     
                 plt.legend()
                 # plt.show()
