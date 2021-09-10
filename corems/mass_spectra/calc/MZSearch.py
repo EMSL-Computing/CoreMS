@@ -15,7 +15,7 @@ class SearchResults:
 
 class MZSearch(Thread):
 
-    def __init__(self, exp_mzs: List[float], calculated_mzs: List[float], tolerance, method="ppm"):
+    def __init__(self, exp_mzs: List[float], calculated_mzs: List[float], tolerance, method="ppm", average_target_mz=True):
         '''
         Parameters
         ----------
@@ -31,10 +31,18 @@ class MZSearch(Thread):
         self._matched_mz = {}
 
         self._calculated_mzs = calculated_mzs
-        self._exp_mzs = exp_mzs
 
+        self._matched_mz = {}
+
+        self._averaged_target_mz = []
+
+        self._exp_mzs = exp_mzs
+        
         self.tolerance = tolerance
         self.method = method
+
+        if average_target_mz:
+            self.colapse_calculated()
 
     @property
     def results(self):
@@ -44,11 +52,22 @@ class MZSearch(Thread):
         return self._matched_mz
 
     @property
+    def averaged_target_mz(self):
+        ''' [float]
+            contains the average target m/z to be searched against
+        '''
+        return self._averaged_target_mz
+
+    @property
     def calculated_mzs(self):
         ''' [float]
             contains the mz target to be searched against
         '''
-        return self._calculated_mzs
+        if self.averaged_target_mz:
+            return sorted(self.averaged_target_mz)
+        else:    
+            
+            return sorted(list(self._calculated_mzs))
 
     @property
     def exp_mzs(self):
@@ -85,6 +104,66 @@ class MZSearch(Thread):
             raise ValueError("Tolerance needs to be a positive number")
         self._tolerance = tolerance
 
+    def colapse_calculated(self):
+        
+        if len(self.calculated_mzs) > 1:
+            all_mz = []
+            subset = set()
+            
+            i = -1
+            while True:
+                
+                i = i +1
+                
+                if i == len(self.calculated_mzs)-1:
+                    all_mz.append({i})
+                    #print(i, 'break1')
+                    break
+                
+                if i >= len(self.calculated_mzs)-1:
+                    #print(i, 'break2')
+                    break
+
+                error = self.calc_mz_error(self.calculated_mzs[i], self.calculated_mzs[i+1])
+
+                check_error = self.check_ppm_error(self.tolerance, error)
+                
+                if not check_error:
+                    start_list = {i}
+
+                else:
+
+                    start_list = set()
+
+                while check_error:
+                    
+                    start_list.add(i)
+                    start_list.add(i+1)
+
+                    i = i + 1    
+                    
+                    if i == len(self.calculated_mzs)-1:
+                        start_list.add(i)
+                        print(i, 'break3')
+                        break
+
+                    
+                    error = self.calc_mz_error(self.calculated_mzs[i], self.calculated_mzs[i+1])
+                    check_error = self.check_ppm_error(self.tolerance, error)
+                
+                if start_list:
+                    all_mz.append(start_list)
+            
+            results = []
+            for each in all_mz:
+                #print(each)
+                mzs = [self.calculated_mzs[i] for i in each]
+                results.append(sum(mzs)/len(mzs))
+            
+            #print(results)
+            self._averaged_target_mz = results
+            
+
     def run(self):
 
         dict_nominal_exp_mz = self.get_nominal_exp(self.exp_mzs)
@@ -95,15 +174,15 @@ class MZSearch(Thread):
 
             if nominal_selected_mz in dict_nominal_exp_mz.keys():
 
-                self.search_mz(dict_nominal_exp_mz, calculated_mz, 0)
+                self.search_mz(self.results, dict_nominal_exp_mz, calculated_mz, 0)
 
             elif nominal_selected_mz - 1 in dict_nominal_exp_mz.keys():
 
-                self.search_mz(dict_nominal_exp_mz, calculated_mz, -1)
+                self.search_mz(self.results, dict_nominal_exp_mz, calculated_mz, -1)
 
             elif nominal_selected_mz + 1 in dict_nominal_exp_mz.keys():
 
-                self.search_mz(dict_nominal_exp_mz, calculated_mz, +1)
+                self.search_mz(self.results, dict_nominal_exp_mz, calculated_mz, +1)
 
             else:
 
@@ -150,23 +229,30 @@ class MZSearch(Thread):
 
         return dict_nominal_exp_mz
 
-    def search_mz(self, dict_nominal_exp_mz, calculated_mz, offset) -> None:
+    def search_mz(self, results, dict_nominal_exp_mz, calculated_mz, offset) -> None:
 
         nominal_calculated_mz = int(calculated_mz) + offset
         matched_n_precursors = dict_nominal_exp_mz.get(nominal_calculated_mz)
 
         for precursor_mz in matched_n_precursors:
+            
             error = self.calc_mz_error(calculated_mz, precursor_mz,
                                        method=self.method)
 
+            
             if self.check_ppm_error(self.tolerance, error):
 
                 new_match = SearchResults(calculated_mz,
                                           precursor_mz,
                                           error,
                                           self.tolerance)
+                
+                if calculated_mz not in results.keys():
+                    
+                    results[calculated_mz] = [new_match]
 
-                if calculated_mz not in self.results.keys():
-                    self.results[calculated_mz] = [new_match]
                 else:
-                    self.results[calculated_mz].append(new_match)
+
+                    results[calculated_mz].append(new_match)
+        
+        

@@ -91,6 +91,8 @@ class LiquidChromatographSetting:
     
     enforce_target_ms2: bool = True
 
+    average_target_mz: bool = True
+
     smooth_window: int = 5
 
     smooth_method: str = 'savgol'

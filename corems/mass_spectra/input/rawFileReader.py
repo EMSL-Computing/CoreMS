@@ -316,6 +316,7 @@ class ThermoBaseClass():
                         ax.plot(time[apex_index], eic[apex_index], marker='x', linewidth=0)
 
         if plot:
+            
             ax.set_xlabel('Time (min)')
             ax.set_ylabel('a.u.')
             ax.set_title(ms_type + ' EIC')
@@ -448,8 +449,10 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass, LC_Calculations):
         
         eic_tolerance_ppm = self.chromatogram_settings.eic_tolerance_ppm
         enforce_target_ms2 = self.chromatogram_settings.enforce_target_ms2
-
-        self._selected_mzs = self._init_target_mz(selected_mzs, enforce_target_ms2, eic_tolerance_ppm)
+        average_target_mz = self.chromatogram_settings.average_target_mz
+        
+        self._selected_mzs = self._init_target_mz(selected_mzs, enforce_target_ms2, 
+                                                  eic_tolerance_ppm, average_target_mz)
 
     @property
     def selected_mzs(self) -> List[float]:
@@ -482,14 +485,21 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass, LC_Calculations):
 
         return precursors_mzs
 
-    def _init_target_mz(self, selected_mzs: List[float], enforce_target_ms2: List[float], tolerance_ppm: float):
+    def _init_target_mz(self, selected_mzs: List[float], enforce_target_ms2: bool, 
+                        tolerance_ppm: float, average_target_mz: bool):
 
         precursors_mzs = self.get_precursors_list()
-
+        
         if selected_mzs is None:
             # no selected m/z list provided, default to use the precursos m/z
+            if average_target_mz:
+                searchmz = MZSearch(precursors_mzs, precursors_mzs, tolerance_ppm, average_target_mz=average_target_mz)
+                return searchmz.averaged_target_mz
+            else:
+                return precursors_mzs
+            #searchmz.start()
+            #searchmz.join()
 
-            return precursors_mzs
 
         elif selected_mzs and enforce_target_ms2 is False:
             # selected m/z list provided, and not enforcing being selected as precursor
@@ -497,8 +507,8 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass, LC_Calculations):
 
         elif selected_mzs and enforce_target_ms2:
             # search the selected m/z list in the precursors m/z with a ms/ms experiment
-
-            searchmz = MZSearch(precursors_mzs, selected_mzs, tolerance_ppm)
+            
+            searchmz = MZSearch(precursors_mzs, selected_mzs, tolerance_ppm, average_target_mz=average_target_mz)
             searchmz.start()
             searchmz.join()
             return searchmz.results.keys()
