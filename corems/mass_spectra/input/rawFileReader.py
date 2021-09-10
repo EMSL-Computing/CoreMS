@@ -3,6 +3,7 @@ __date__ = "Jun 09, 2021"
 
 
 from dataclasses import dataclass, field
+from warnings import warn
 
 from matplotlib import axes
 from corems.mass_spectra.calc.LC_Calc import LC_Calculations
@@ -299,13 +300,15 @@ class ThermoBaseClass():
             
             #max_eic = self.get_max_eic(chroma)
             max_signal = max(tic_data.tic)
+            
             for eic_data in chroma.values():
                
                 eic = eic_data.eic
                 time = eic_data.time
 
                 if len(eic) != len(tic_data.tic):
-                    print("oh nooo")
+                    warn("The software assumes same lenth of TIC and EIC, this does not seems to be the case and the results mass spectrum selected by the scan number might not be correct")
+                
                 centroid_eics = self.eic_centroid_detector(time, eic, max_signal)
                 eic_data.apexes = [i for i in centroid_eics]
                 
