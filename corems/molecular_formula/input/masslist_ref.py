@@ -43,7 +43,7 @@ class ImportMassListRef():#Thread
         
         return MolecularFormulaLinkProxy(molecular_formula, mz)
     
-    def from_lcms_lib_file(self, ion_charge, ion_type) -> Dict[str, List[MolecularFormula]]:
+    def from_lcms_lib_file(self, ion_charge: float, ion_type: str) -> Dict[str, List[MolecularFormula]]:
         '''
          return Dict[standard_name, List[MolecularFormula]]:
             standard_name: str
