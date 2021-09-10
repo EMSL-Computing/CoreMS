@@ -12,11 +12,12 @@ class MolecularFormula(MolecularFormulaCalc):
     '''
     classdocs
     '''
-    def __init__(self, molecular_formula, ion_charge, ion_type=None, adduct_atom=None, mspeak_parent=None):
+    def __init__(self, molecular_formula, ion_charge, ion_type=None, 
+                adduct_atom=None, mspeak_parent=None, name=None, kegg_id=None, cas=None):
         
         #clear dictionary of atoms with 0 value
         
-        if   type(molecular_formula) is dict:
+        if  type(molecular_formula) is dict:
                 self._from_dict(molecular_formula, ion_type, adduct_atom)   
         
         elif type(molecular_formula) is list:
@@ -25,6 +26,9 @@ class MolecularFormula(MolecularFormulaCalc):
         elif type(molecular_formula) is str:
                 self._from_str(molecular_formula, ion_type, adduct_atom)   
 
+        self._name = name
+        self._kegg_id = kegg_id
+        self._cas = cas
         
         self._ion_charge = ion_charge
 
@@ -68,7 +72,6 @@ class MolecularFormula(MolecularFormulaCalc):
                 return self._d_molecular_formula[atom]
             else:
                 return 0
-    
     def get(self, atom):
         
             #atom = list(self._d_molecular_formula.keys())[position]
@@ -80,14 +83,27 @@ class MolecularFormula(MolecularFormulaCalc):
     def _from_dict(self, molecular_formula, ion_type, adduct_atom):
         
         self._d_molecular_formula = {key:val for key, val in molecular_formula.items() if val != 0}
+        
         if ion_type:
             self._d_molecular_formula[Labels.ion_type] = ion_type
+            
         if adduct_atom:
             if adduct_atom in self._d_molecular_formula:
                 self._d_molecular_formula[adduct_atom] += 1 
             else: self._d_molecular_formula[adduct_atom] = 1 
 
-        
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def kegg_id(self):
+        return self._kegg_id
+    
+    @property
+    def cas(self):
+        return self.cas
+
     @property
     def isotopologue_count_percentile(self, ):
         if not len(self.expected_isotopologues) == 0:
@@ -103,6 +119,7 @@ class MolecularFormula(MolecularFormulaCalc):
             
             atoms_label =  molecular_formula_list[each]
             atoms_count = int(molecular_formula_list[each+1])
+            
             if atoms_count > 0:
                 self._d_molecular_formula[atoms_label] = int(atoms_count)
         

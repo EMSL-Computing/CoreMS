@@ -58,6 +58,7 @@ class MolecularFormulaCalc:
             
             if ion_type == Labels.protonated_de_ion:
                 return protonated_mass(mass, self.ion_charge)
+            
             elif ion_type == Labels.radical_ion or ion_type == Labels.adduct_ion:   
                 return radical_mass(mass, self.ion_charge)
             else:

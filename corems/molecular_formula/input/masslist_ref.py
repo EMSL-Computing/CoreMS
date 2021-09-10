@@ -5,6 +5,8 @@ from threading import Thread
 from pathlib import Path
 import sys, re, json
 
+import pandas as pd
+
 sys.path.append('.')
 
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
@@ -40,6 +42,34 @@ class ImportMassListRef():#Thread
         
         return MolecularFormulaLinkProxy(molecular_formula, mz)
     
+    def from_lcms_lib_file(self, ion_charge, ion_type):
+
+        with open(self.ref_file_location) as ref_f:
+            
+            df = pd.read_csv(ref_f, header=0,  encoding= 'unicode_escape')
+            
+            print(df)
+
+            for index, row in df.iterrows():
+                
+                formula_s = row["Neutral Formula"]
+                formula_dict = self.mformula_s_to_dict(formula_s, ion_type)
+                name = row["Compound Name"]
+                kegg_id = row["KEGG ID"]
+                file = row["NEW MIX"]
+                cas = row["NEW MIX"]
+                #print(row["Neutral Formula"], formula_dict)
+                molf_formula = MolecularFormula(formula_dict, ion_charge, ion_type, 
+                                                name=name, kegg_id=kegg_id, cas=cas)
+                if round(molf_formula.mz_calc, 4) != round(row['Mass Adduct -H'],4):
+                    print(formula_s)
+                    print(round(molf_formula.mz_calc, 4) , round(row['Mass Adduct -H'],4))
+                #print(formula_s, formula_dict)
+                #if molf_formula.ion_type != 'de-protonated':
+                #    print( 'ha', molf_formula.ion_type )
+                #print(formula_dict)
+                #print(row['c1'], row['c2'])
+
     def from_bruker_ref_file(self):
 
         import csv
@@ -110,7 +140,7 @@ class ImportMassListRef():#Thread
         counts = re.split(regexPattern, string, maxsplit)  #pragma: no cover
         return isotopes, counts
 
-    def mformula_s_to_dict(self, s_mformulatring):
+    def mformula_s_to_dict(self, s_mformulatring, iontype='unknown'):
         
         ''' 
             Converts a molecular formula string to a dict
@@ -135,14 +165,13 @@ class ImportMassListRef():#Thread
             
             #find the case Br2
             all_atoms2 = re.findall(r'[A-Z]{1}[a-z]{1}[0-9]{1,10000}', s_mformulatring)
-
             #find the case N
-            single_digit_atoms_one = re.findall(r'[A-Z]{1}(?![0-9])(?![A-Z])', s_mformulatring)
-
+            single_digit_atoms_one = re.findall(r'[A-Z]{1}(?![0-9])(?![a-z])', s_mformulatring)
+            #print(single_digit_atoms_one)
             #find the case Na
             due_digit_atoms_one = re.findall(r'[A-Z]{1}[a-z]{1}(?![0-9])', s_mformulatring)
-
-            all_atoms = all_atoms + all_atoms2 + single_digit_atoms_one + due_digit_atoms_one
+            
+            all_atoms = all_atoms + all_atoms2 + due_digit_atoms_one +single_digit_atoms_one
             
             dict_res = {}
             
@@ -164,7 +193,7 @@ class ImportMassListRef():#Thread
                     tb = sys.exc_info()[2]
                     raise TypeError("Atom %s does not exist in Atoms.atoms_order list" % atom).with_traceback(tb)
             
-            dict_res[Labels.ion_type]  =  'unknown'
+            dict_res[Labels.ion_type]  = iontype
 
             return dict_res
         
