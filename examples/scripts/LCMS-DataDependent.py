@@ -123,7 +123,7 @@ if __name__ == "__main__":
         #loop trought a directory, find and match mix name to raw file, 
         # search eic, do peak picking, for target compounds, currently enforcing parent ion selected to MS2, 
         # to change settings, chage  LCMSParameters.lc_ms parameters inside run_thermo() function:
-        # TODO, search correspondent MS1 for m/z, 
+        # TODO, search correspondent MS1 for m/z on peaks found, (sum 3 datapoints?)
         #       do molecular formula search on MS1 level, than get candidates and MF assiggment scores,
         # calculates fragment masses, and based on the highest score molecular formuyla calculate fragment formula 
         auto_process(mf_references_dict, dirpath)
