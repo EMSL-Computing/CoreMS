@@ -4,6 +4,7 @@ __date__ = "Oct 24, 2019"
 from threading import Thread
 from pathlib import Path
 import sys, re, json
+from typing import Dict, List
 
 import pandas as pd
 
@@ -42,8 +43,17 @@ class ImportMassListRef():#Thread
         
         return MolecularFormulaLinkProxy(molecular_formula, mz)
     
-    def from_lcms_lib_file(self, ion_charge, ion_type):
-
+    def from_lcms_lib_file(self, ion_charge, ion_type) -> Dict[str, List[MolecularFormula]]:
+        '''
+         return Dict[standard_name, List[MolecularFormula]]:
+            standard_name: str
+                name of the molecular standard mix 
+            MolecularFormula: class
+                corems molecular formula class    
+        '''
+        
+        data = {}
+        
         with open(self.ref_file_location) as ref_f:
             
             df = pd.read_csv(ref_f, header=0,  encoding= 'unicode_escape')
@@ -56,19 +66,26 @@ class ImportMassListRef():#Thread
                 formula_dict = self.mformula_s_to_dict(formula_s, ion_type)
                 name = row["Compound Name"]
                 kegg_id = row["KEGG ID"]
-                file = row["NEW MIX"]
+                standard_name = row["NEW MIX"]
                 cas = row["NEW MIX"]
                 #print(row["Neutral Formula"], formula_dict)
                 molf_formula = MolecularFormula(formula_dict, ion_charge, ion_type, 
                                                 name=name, kegg_id=kegg_id, cas=cas)
-                if round(molf_formula.mz_calc, 4) != round(row['Mass Adduct -H'],4):
-                    print(formula_s)
-                    print(round(molf_formula.mz_calc, 4) , round(row['Mass Adduct -H'],4))
+                #if round(molf_formula.mz_calc, 4) != round(row['Mass Adduct -H'],4):
+                #    print(formula_s)
+                #    print(round(molf_formula.mz_calc, 4) , round(row['Mass Adduct -H'],4))
+        
+                if standard_name in data.keys():
+                    data[standard_name].append(molf_formula)
+                else:
+                    data[standard_name] = [molf_formula]
                 #print(formula_s, formula_dict)
                 #if molf_formula.ion_type != 'de-protonated':
                 #    print( 'ha', molf_formula.ion_type )
                 #print(formula_dict)
                 #print(row['c1'], row['c2'])
+        
+        return data
 
     def from_bruker_ref_file(self):
 

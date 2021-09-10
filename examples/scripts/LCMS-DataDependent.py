@@ -74,7 +74,7 @@ def read_lib(ref_filepath:Path):
 
      ion_charge = -1   
      iontype = Labels.protonated_de_ion
-     mf_references_list = ImportMassListRef(ref_filepath).from_lcms_lib_file(ion_charge, iontype)
+     mf_references_dict = ImportMassListRef(ref_filepath).from_lcms_lib_file(ion_charge, iontype)
 
 if __name__ == "__main__":
     
