@@ -1,8 +1,9 @@
 
 
 
+
 from logging import warn
-from typing import List
+from typing import Dict, List
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -18,6 +19,7 @@ import pandas as pd
 # from PySide2.QtCore import Qt
 
 from corems.encapsulation.factory.parameters import LCMSParameters, MSParameters
+from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 from corems.molecular_formula.input.masslist_ref import ImportMassListRef
 from corems.encapsulation.constant import Labels
 from corems.mass_spectra.input import rawFileReader
@@ -50,7 +52,7 @@ def run_thermo(file_location, target_mzs: List[float]):
     #print(data)
 
     # get selected data dependent mzs 
-    target_mzs = sorted(parser.selected_mzs)
+    target_mzs = parser.selected_mzs
 
     eics_data, ax_eic = parser.get_eics(target_mzs,
                                         tic_data,
@@ -62,18 +64,8 @@ def run_thermo(file_location, target_mzs: List[float]):
     
 
     #ax_eic.plot(tic_data.time, tic_data.tic, c='black')
-
-    for mz, eic_data in eics_data.items():
-
-        if eic_data.apexes:
-            
-            print("m/z = {}, peaks indexes = {}, retention times = {}".format(mz, eic_data.apexes, [eic_data.time[apex[1]] for apex in eic_data.apexes]) )
-            #print(mz, eic_data.apexes, [eic_data.time[apex[1]] for apex in eic_data.apexes])
-    print()
-    print()
-    #print(parser.get_all_filters())
-
-    plt.show()
+    return eics_data
+    
 
 def read_lib(ref_filepath:Path):
 
@@ -84,24 +76,53 @@ def read_lib(ref_filepath:Path):
 
     return mf_references_dict
 
-def auto_process(mf_references_dict, datadir):
+def auto_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormula]]], datadir: Path):
 
+    error = lambda x, ref: (x - ref)/ref * 1000000 
+    
+    #((self._mspeak_parent.mz_exp - self.mz_calc)/self.mz_calc)*multi_factor
     import os
     rootdir = datadir
 
     for mix_name in mf_references_dict.keys():
         file_locations = glob.glob(str(rootdir) + "/*.raw")
         file_paths = []
+        
         for file_path in file_locations:
             if mix_name in file_path:
                 file_paths.append(file_path)
+        
         if file_paths:
             for file_path in file_paths:
-                target_mzs = [mf.mz_calc for mf in mf_references_dict.get(mix_name)]
+                
+                dict_tarrget_mzs = mf_references_dict.get(mix_name)    
+                #mf_list = [mf for mf in mf_references_dict.get(mix_name)]
+
+                target_mzs = dict_tarrget_mzs.keys()
+                
                 #print(target_mzs)
-                run_thermo(file_path, target_mzs)
+                eics_data = run_thermo(file_path, target_mzs)
+
+                for mz, eic_data in eics_data.items():
+
+                    if eic_data.apexes:
+                        
+                        possible_mf = dict_tarrget_mzs.get(mz)
+                            
+                        print("m/z =  {}, formulas = {}, names = {},  peaks indexes = {}, retention times = {}".format(mz,
+                                    [mf_obj.string for mf_obj in possible_mf],
+                                    [mf_obj.name for mf_obj in possible_mf],
+                                    eic_data.apexes,
+                                    [eic_data.time[apex[1]] for apex in eic_data.apexes]) )
+                            #print(mz, eic_data.apexes, [eic_data.time[apex[1]] for apex in eic_data.apexes])
+                print()
+                print()
+                #print(parser.get_all_filters())
+                #plt.show()
+
         else:
             warn("Could not find a any raw data with mix name: {}".format(mix_name))
+
 if __name__ == "__main__":
     
     dirpath = "/Users/eber373/OneDrive - PNNL/Documents/Data/LCMS/RAW Files/C18/1st run/NEG/"

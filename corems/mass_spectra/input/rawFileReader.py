@@ -69,13 +69,14 @@ class EIC_Data:
         extracted ion chromatogram
     Apexes: [int]    
         original thermo apex scan number after peak picking 
+    
      '''
      
      scans : List[int] = field(default_factory=list)
      time : List[float] = field(default_factory=list)
      eic : List[float] = field(default_factory=list)
      apexes : List[int] = field(default_factory=list)
-     
+    
 class ThermoBaseClass():
 
     def __init__(self, file_location):
@@ -295,7 +296,7 @@ class ThermoBaseClass():
                 chroma[target_mzs[i]] = EIC_Data(scans=scans, time=rt, eic= eic)
                 if plot:
                     ax.plot(rt, eic, label="{:.5f}".format(target_mzs[i]))
-
+            
         if peak_detection:
             
             #max_eic = self.get_max_eic(chroma)
@@ -514,7 +515,7 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass, LC_Calculations):
             searchmz = MZSearch(precursors_mzs, selected_mzs, tolerance_ppm, average_target_mz=average_target_mz)
             searchmz.start()
             searchmz.join()
-            return searchmz.results.keys()
+            return sorted(searchmz.results.keys())
 
 class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
 

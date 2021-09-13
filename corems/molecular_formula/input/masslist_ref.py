@@ -43,9 +43,11 @@ class ImportMassListRef():#Thread
         
         return MolecularFormulaLinkProxy(molecular_formula, mz)
     
-    def from_lcms_lib_file(self, ion_charge: float, ion_type: str) -> Dict[str, List[MolecularFormula]]:
+    def from_lcms_lib_file(self, ion_charge: float, ion_type: str) -> Dict [str, Dict[float, List[MolecularFormula] ] ]:
         '''
-         return Dict[standard_name, List[MolecularFormula]]:
+         return Dict[standard_name, Dict[m/z, List[MolecularFormula]]]:
+            m/z: float:
+                target m/z 
             standard_name: str
                 name of the molecular standard mix 
             MolecularFormula: class
@@ -76,9 +78,18 @@ class ImportMassListRef():#Thread
                 #    print(round(molf_formula.mz_calc, 4) , round(row['Mass Adduct -H'],4))
         
                 if standard_name in data.keys():
-                    data[standard_name].append(molf_formula)
+
+                    mz_calc = molf_formula.mz_calc
+                    
+                    if mz_calc in data.get(standard_name).keys():
+                       
+                       data.get(standard_name).get(mz_calc).append(molf_formula)
+                    
+                    else:   
+                        data[standard_name][mz_calc] = [molf_formula]
                 else:
-                    data[standard_name] = [molf_formula]
+                    
+                    data[standard_name] = {molf_formula.mz_calc: [molf_formula]}
                 #print(formula_s, formula_dict)
                 #if molf_formula.ion_type != 'de-protonated':
                 #    print( 'ha', molf_formula.ion_type )
