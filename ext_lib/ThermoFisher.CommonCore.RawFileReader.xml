@@ -1136,7 +1136,7 @@
             Data for a particular device, from an instrument method.
             </summary>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.InstrumentMethodDataAccess.OpenStream(ThermoFisher.CommonCore.RawFileReader.IOleStorage,System.String)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.InstrumentMethodDataAccess.OpenStream(OpenMcdf.CFStorage,System.String)">
             <summary>
             Opens a stream on created storage
             </summary>
@@ -1144,7 +1144,7 @@
             <param name="streamName">The stream within the device</param>
             <returns>Access to the requested stream</returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.InstrumentMethodDataAccess.GetStreamNames(ThermoFisher.CommonCore.RawFileReader.IOleStorage)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.InstrumentMethodDataAccess.GetStreamNames(OpenMcdf.CFStorage)">
             <summary>
             get stream names.
             </summary>
@@ -1167,7 +1167,7 @@
             Other streams (private to the instrument) may also be created.
             </summary>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.InstrumentMethodDataAccess.Open(ThermoFisher.CommonCore.RawFileReader.IOleStorage)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.InstrumentMethodDataAccess.Open(OpenMcdf.CFStorage)">
             <summary>
             Open the streams for the device, and retrieve the text description.
             </summary>
@@ -1198,14 +1198,6 @@
             <summary>
             Gets the error message.
             </summary>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.DeviceStorage.GetStorageNames(ThermoFisher.CommonCore.RawFileReader.IOleStorage,ThermoFisher.CommonCore.RawFileReader.StgType)">
-            <summary>
-            Get the list of storage names, of a particular storage type
-            </summary>
-            <param name="storage">Storage to open</param>
-            <param name="storageType">Type of storage</param>
-            <returns>The names of the storages</returns>
         </member>
         <member name="T:ThermoFisher.CommonCore.RawFileReader.DeviceStorage.FileHeaderErrors">
             <summary>
@@ -2799,6 +2791,11 @@
             UVPD meta filter.
             </summary>
         </member>
+        <member name="F:ThermoFisher.CommonCore.RawFileReader.Facade.Constants.ScanFilterEnums.MetaFilterType.Msn">
+            <summary>
+            Msn meta filter.
+            </summary>
+        </member>
         <member name="T:ThermoFisher.CommonCore.RawFileReader.Facade.Constants.ScanFilterEnums.OffOnTypes">
             <summary>
                 For raw file types whose "Off" value is 0.
@@ -3872,6 +3869,25 @@
                 Special device that has no scan data, but status log only (HN)
             </summary>
         </member>
+        <member name="T:ThermoFisher.CommonCore.RawFileReader.Facade.DeviceContainer">
+            <summary>
+            The device container allow a mimmally initalized version of the device to exists
+            which can support version checks or other needs.
+            All "large data" is perfomed on first access of the FullDevice.
+            "PartialDevice" can be used in a dispose call, as unititze items from
+            "FullDevice" will not need to be disposed.
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.RawFileReader.Facade.DeviceContainer.PartialDevice">
+            <summary>
+            Gets or sets an instance of the device that has been minimally initialized
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.RawFileReader.Facade.DeviceContainer.FullDevice">
+            <summary>
+            Gets or sets an instance of the device, which contains all data.
+            </summary>
+        </member>
         <member name="T:ThermoFisher.CommonCore.RawFileReader.Facade.FileHeaderLoader">
             <summary>
             The file header loader. Reads an Xcalibur file header.
@@ -3956,6 +3972,11 @@
             Profile data may be needed
             </summary>
         </member>
+        <member name="F:ThermoFisher.CommonCore.RawFileReader.Facade.Interfaces.PacketFeatures.Debug">
+            <summary>
+            Debug data may be needed
+            </summary>
+        </member>
         <member name="F:ThermoFisher.CommonCore.RawFileReader.Facade.Interfaces.PacketFeatures.All">
             <summary>
             Return all data
@@ -4000,6 +4021,14 @@
             <summary>
             Gets or sets a value indicating whether this was initialized when the file was in acquisition.
             </summary>
+        </member>
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.Facade.Interfaces.IDevice.Initialize">
+            <summary>
+            Support for lazy init of device.
+            Device construction does "some work" to validate a device.
+            Any "heavy data decoding" is delayed until the device is first used.
+            </summary>
+            <returns>The device</returns>
         </member>
         <member name="M:ThermoFisher.CommonCore.RawFileReader.Facade.Interfaces.IDevice.GetScanIndex(System.Int32)">
             <summary>
@@ -5795,10 +5824,10 @@
             The method gets all the log entries' value pair at the specified index.
             </summary>
             <param name="index">
-            The index.
+            The index into the "status log header" for this field.
             </param>
             <returns>
-            The all the log entries' value pair at the specified index.
+            All the log entries' value pair at the specified index.
             </returns>
         </member>
         <member name="M:ThermoFisher.CommonCore.RawFileReader.Facade.Interfaces.IStatusLog.GetStatusRecordByIndex(System.Int32)">
@@ -5814,7 +5843,7 @@
             Gets the (raw) status log data at a given index in the log.
             Designed for efficiency, this method does not convert logs to display string format.
             </summary>
-            <param name="index">Index (from 0 to "GetStatusLogEntriesCount() -1")</param>
+            <param name="index">Index (from 0 to "RunHeader.StatusLogCount -1")</param>
             <returns>Log data at the given index</returns>
         </member>
         <member name="M:ThermoFisher.CommonCore.RawFileReader.Facade.Interfaces.IStatusLog.GetStatusLogEntryByRetentionTime(System.Double)">
@@ -5831,6 +5860,14 @@
             That is, the numeric items.
             </summary>
             <returns>Labels names are returned by "Key" and the index into the log is "Value".</returns>
+        </member>
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.Facade.Interfaces.IStatusLog.GetSortedStatusLogEntryByIndex(System.Int32)">
+            <summary>
+            Get a status log record from the sorted log
+            which fixes out of order or duplictae instrument data
+            </summary>
+            <param name="index"></param>
+            <returns>The log entry</returns>
         </member>
         <member name="T:ThermoFisher.CommonCore.RawFileReader.Facade.Interfaces.IUserIdStamp">
             <summary>
@@ -6448,7 +6485,7 @@
             <param name="virtualControllerInfos">The list of virtual controller information.</param>
             <returns>The index into the table of controllers</returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Facade.RawFileLoaderHelper.GetVirtualControllerInfo(ThermoFisher.CommonCore.RawFileReader.Facade.RawFileLoader,ThermoFisher.CommonCore.Data.Business.Device,System.Int32,System.Collections.Generic.IReadOnlyList{ThermoFisher.CommonCore.RawFileReader.StructWrappers.VirtualControllerInfo},System.Lazy{ThermoFisher.CommonCore.RawFileReader.Facade.Interfaces.IDevice}[],ThermoFisher.CommonCore.RawFileReader.Facade.Interfaces.IDevice@)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.Facade.RawFileLoaderHelper.GetVirtualControllerInfo(ThermoFisher.CommonCore.RawFileReader.Facade.RawFileLoader,ThermoFisher.CommonCore.Data.Business.Device,System.Int32,System.Collections.Generic.IReadOnlyList{ThermoFisher.CommonCore.RawFileReader.StructWrappers.VirtualControllerInfo},ThermoFisher.CommonCore.RawFileReader.Facade.DeviceContainer[],ThermoFisher.CommonCore.RawFileReader.Facade.Interfaces.IDevice@)">
             <summary>
             get virtual controller info.
             </summary>
@@ -8933,7 +8970,7 @@
             Create chromatogram construction tool for one trace
             </summary>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.MsChromatogramSettingsConverter.CalculateMassRange(ThermoFisher.CommonCore.Data.Business.MassOptions,ThermoFisher.CommonCore.Data.Business.Range[],System.Int32,System.Boolean)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.MsChromatogramSettingsConverter.CalculateMassRange(ThermoFisher.CommonCore.Data.Business.MassOptions,ThermoFisher.CommonCore.Data.Interfaces.IRangeAccess[],System.Int32,System.Boolean)">
             <summary>
             calculate (final) mass range for chromatogram, by adding tolerance for single ion mode.
             Single ion mode is detected as "high mass == 0.0" or "low and high are same".
@@ -8995,7 +9032,7 @@
             An object to create the desired chromatogram.
             </returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.MsChromatogramSettingsConverter.CreateBasePeakMassOverMassRangeChromatogram(System.Double,System.Double,ThermoFisher.CommonCore.Data.Business.MassOptions,ThermoFisher.CommonCore.Data.Interfaces.IChromatogramSettings,ThermoFisher.CommonCore.Data.Business.Range[],System.Int32)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.MsChromatogramSettingsConverter.CreateBasePeakMassOverMassRangeChromatogram(System.Double,System.Double,ThermoFisher.CommonCore.Data.Business.MassOptions,ThermoFisher.CommonCore.Data.Interfaces.IChromatogramSettings,ThermoFisher.CommonCore.Data.Interfaces.IRangeAccess[],System.Int32)">
             <summary>
             Create delivery, which will generate a chromatogram with the base peak mass over a Mass Range
             </summary>
@@ -9017,7 +9054,7 @@
             An object to create the desired chromatogram.
             </returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.MsChromatogramSettingsConverter.CreateBasePeakOverMassRangeChromatogram(System.Double,System.Double,ThermoFisher.CommonCore.Data.Business.MassOptions,ThermoFisher.CommonCore.Data.Interfaces.IChromatogramSettings,ThermoFisher.CommonCore.Data.Business.Range[],System.Int32)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.MsChromatogramSettingsConverter.CreateBasePeakOverMassRangeChromatogram(System.Double,System.Double,ThermoFisher.CommonCore.Data.Business.MassOptions,ThermoFisher.CommonCore.Data.Interfaces.IChromatogramSettings,ThermoFisher.CommonCore.Data.Interfaces.IRangeAccess[],System.Int32)">
             <summary>
             Create delivery, which will generate a chromatogram with base peak intensity over a Mass Range
             </summary>
@@ -9091,7 +9128,7 @@
             Tic chromatogram generator
             </returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.MsChromatogramSettingsConverter.CreateMassRangeChromatogram(System.Double,System.Double,ThermoFisher.CommonCore.Data.Business.MassOptions,ThermoFisher.CommonCore.Data.Interfaces.IChromatogramSettings,ThermoFisher.CommonCore.Data.Business.Range[],System.Int32)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.MsChromatogramSettingsConverter.CreateMassRangeChromatogram(System.Double,System.Double,ThermoFisher.CommonCore.Data.Business.MassOptions,ThermoFisher.CommonCore.Data.Interfaces.IChromatogramSettings,ThermoFisher.CommonCore.Data.Interfaces.IRangeAccess[],System.Int32)">
             <summary>
             Create delivery, which will generate a Mass Range Chromatogram (XIC)
             </summary>
@@ -9199,11 +9236,6 @@
         <member name="T:ThermoFisher.CommonCore.RawFileReader.NamespaceDoc">
             <summary>
             Contains factories to read various Xcalibur data system files.
-            </summary>
-        </member>
-        <member name="T:ThermoFisher.CommonCore.RawFileReader.NativeMethods">
-            <summary>
-            The native methods, pulled from OLE 32 DLL.
             </summary>
         </member>
         <member name="T:ThermoFisher.CommonCore.RawFileReader.StreamSeek">
@@ -9322,214 +9354,6 @@
             therefore the method reduces time and resources used in an allocation and free operation.
             </summary>
         </member>
-        <member name="T:ThermoFisher.CommonCore.RawFileReader.IOleStorage">
-            <summary>
-            IOleStorage interface.
-            </summary>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStorage.CreateStream(System.String,ThermoFisher.CommonCore.RawFileReader.StgMode,System.Int32,System.Int32)">
-            <summary>
-            create OLE stream.
-            </summary>
-            <param name="pwcsName">
-            The stream name.
-            </param>
-            <param name="grfMode">
-            The storage mode.
-            </param>
-            <param name="reserved1">
-            The reserved 1.
-            </param>
-            <param name="reserved2">
-            The reserved 2.
-            </param>
-            <returns>
-            The <see cref="T:ThermoFisher.CommonCore.RawFileReader.IOleStream"/>.
-            </returns>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStorage.OpenStream(System.String,System.IntPtr,ThermoFisher.CommonCore.RawFileReader.StgMode,System.Int32)">
-            <summary>
-            open a stream.
-            </summary>
-            <param name="pwcsName">
-            The stream name.
-            </param>
-            <param name="reserved1">
-            The reserved 1.
-            </param>
-            <param name="grfMode">
-            The mode.
-            </param>
-            <param name="reserved2">
-            The reserved 2.
-            </param>
-            <returns>
-            The <see cref="T:ThermoFisher.CommonCore.RawFileReader.IOleStream"/>.
-            </returns>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStorage.CreateStorage(System.String,ThermoFisher.CommonCore.RawFileReader.StgMode,System.Int32,System.Int32)">
-            <summary>
-            create a storage.
-            </summary>
-            <param name="pwcsName">
-            The name.
-            </param>
-            <param name="grfMode">
-            The mode.
-            </param>
-            <param name="reserved1">
-            The reserved 1.
-            </param>
-            <param name="reserved2">
-            The reserved 2.
-            </param>
-            <returns>
-            The <see cref="T:ThermoFisher.CommonCore.RawFileReader.IOleStorage"/>.
-            </returns>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStorage.OpenStorage(System.String,ThermoFisher.CommonCore.RawFileReader.IOleStorage,ThermoFisher.CommonCore.RawFileReader.StgMode,System.IntPtr,System.Int32)">
-            <summary>
-            Opens an existing storage object with the specified name according to
-             the specified access mode. The name must not exceed 31 characters
-             in length (not including the string terminator).
-             The 000 through 01f characters, serving as the
-             first character of the stream/storage name, are reserved for use by OLE.
-             This is a compound file restriction, not a structured storage restriction.
-            </summary>
-            <param name="pwcsName">
-            A pointer to a wide character null-terminated Unicode string that 
-            contains the name of the storage object to open. 
-            The 000 through 01f characters, serving as the first character
-             of the stream/storage name, are reserved for use by OLE. 
-            This is a compound file restriction, not a structured storage restriction.
-             It is ignored if <c>pstgPriority</c> is non-NULL.
-            </param>
-            <param name="pstgPriority">
-            Priority Must be NULL. A non-NULL value will return STG_E_INVALIDPARAMETER.
-            </param>
-            <param name="grfMode">
-            Specifies the access mode to use when opening the storage object. For descriptions of the possible values, see STGM Constants. Other modes you choose must at least specify STGM_SHARE_EXCLUSIVE when calling this method.
-            </param>
-            <param name="snbExclude">
-            Exclude Must be NULL. A non-NULL value will return STG_E_INVALIDPARAMETER.
-            </param>
-            <param name="reserved">
-            Reserved for future use; must be zero.
-            </param>
-            <returns>
-            The <see cref="T:ThermoFisher.CommonCore.RawFileReader.IOleStorage"/>.
-            </returns>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStorage.CopyTo(System.Int32,System.Guid@,System.IntPtr,ThermoFisher.CommonCore.RawFileReader.IOleStorage)">
-            <summary>
-            The CopyTo method copies the entire contents of an open storage object to another storage object.
-            </summary>
-            <param name="ciidExclude">The number of elements in the array pointed to by <c>rgiidExclude</c>.
-             If <c>rgiidExclude</c> is NULL, then <c>ciidExclude</c> is ignored.</param>
-            <param name="rgiidExclude">An array of interface identifiers (IIDs) that either the caller
-             knows about and does not want copied or that the storage object does not support,
-             but whose state the caller will later explicitly copy. The array can include IStorage,
-             indicating that only stream objects are to be copied, and IStream, indicating that only storage
-             objects are to be copied. An array length of zero indicates that only the state exposed by the IStorage
-             object is to be copied; all other interfaces on the object are to be ignored.
-             Passing NULL indicates that all interfaces on the object are to be copied.</param>
-            <param name="snbExclude">A string name block (refer to SNB) that specifies a block of storage 
-            or stream objects that are not to be copied to the destination. These elements are not created at the destination.
-             If IID_IStorage is in the <c>rgiidExclude</c> array, this parameter is ignored. This parameter may be NULL.</param>
-            <param name="pstgDest">A pointer to the open storage object into which this storage object is to be copied.
-             The destination storage object can be a different implementation of the IStorage interface from the source storage object.
-             Thus, IStorage::CopyTo can use only publicly available methods of the destination storage object.
-            If <c>pstgDest</c> is open in transacted mode, it can be reverted by calling its IStorage::Revert method.</param>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStorage.MoveElementsTo(System.String,ThermoFisher.CommonCore.RawFileReader.IOleStorage,System.String,ThermoFisher.CommonCore.RawFileReader.StgMove)">
-            <summary>
-            The MoveElementTo method copies or moves a sub-storage or stream from this
-             storage object to another storage object.
-            </summary>
-            <param name="pwcsName">Pointer to a wide character null-terminated Unicode string that contains the name of the element
-             in this storage object to be moved or copied.</param>
-            <param name="pstgDest">IStorage pointer to the destination storage object.</param>
-            <param name="pwcsNewName">Pointer to a wide character null-terminated unicode string that contains the new name for the element in its new storage object.</param>
-            <param name="grfFlags">Specifies whether the operation should be a move (STGMOVE_MOVE) or a copy (STGMOVE_COPY). See the STGMOVE enumeration.</param>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStorage.Commit(ThermoFisher.CommonCore.RawFileReader.StgCommit)">
-            <summary>
-            The Commit method ensures that any changes made to a storage object open 
-            in transacted mode are reflected in the parent storage.
-             For non-root storage objects in direct mode, 
-            this method has no effect. For a root storage, it reflects the changes
-             in the actual device; for example, a file on disk. For a root storage object opened 
-            in direct mode, always call the IStorage::Commit method prior to Release. 
-            IStorage::Commit flushes all memory buffers to the disk for a root storage
-             in direct mode and will return an error code upon failure. Although Release
-             also flushes memory buffers to disk, it has no capacity to return any error
-             codes upon failure. Therefore, calling 
-            Release without first calling Commit causes indeterminate results.
-            </summary>
-            <param name="grfCommitFlags">Controls how the changes are committed to the storage object.
-            See the STGC enumeration for a definition of these values.</param>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStorage.Revert">
-            <summary>
-            The Revert method discards all changes that have been made to the storage object since the last commit operation.
-            </summary>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStorage.EnumElements(System.Int32,System.IntPtr,System.Int32)">
-            <summary>
-            The method retrieves a pointer to an enumerator
-             object that can be used to enumerate the storage
-             and stream objects contained within this storage object.
-            </summary>
-            <param name="reserved1">Reserved 1 is Reserved for future use; must be zero.</param>
-            <param name="reserved2">Reserved for future use; must be NULL.</param>
-            <param name="reserved3">Reserved for future use; must be zero.</param>
-            <returns>Pointer to <c>IEnumSTATSTG*</c> pointer variable
-            that receives the interface pointer to the new enumerator object.</returns>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStorage.DestroyElement(System.String)">
-            <summary>
-            The DestroyElement method removes the specified storage or stream from this storage object.
-            </summary>
-            <param name="pwcsName">A pointer to a wide character null-terminated Unicode string that contains
-            the name of the storage or stream to be removed.</param>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStorage.RenameElement(System.String,System.String)">
-            <summary>
-            The RenameElement method renames the specified sub-storage or stream in this storage object.
-            </summary>
-            <param name="pwcsOldName">Pointer to a wide character null-terminated Unicode string that contains the name of the sub-storage or stream to be changed.</param>
-            <param name="pwcsNewName">Pointer to a wide character null-terminated Unicode string that contains the new name for the specified sub-storage or stream.</param>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStorage.SetElementTimes(System.String,System.Runtime.InteropServices.ComTypes.FILETIME@,System.Runtime.InteropServices.ComTypes.FILETIME@,System.Runtime.InteropServices.ComTypes.FILETIME@)">
-            <summary>
-            The SetElementTimes method sets the modification, access, and creation times of the specified storage element, if the underlying file system supports this method.
-            </summary>
-            <param name="pwcsName">The name of the storage object element whose times are to be modified. If NULL, the time is set on the root storage rather than one of its elements.</param>
-            <param name="pctime">Either the new creation time for the element or NULL if the creation time is not to be modified.</param>
-            <param name="patime">Either the new access time for the element or NULL if the access time is not to be modified.</param>
-            <param name="pmtime">Either the new modification time for the element or NULL if the modification time is not to be modified.</param>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStorage.SetClass(System.Guid@)">
-            <summary>
-            The SetClass method assigns the specified class identifier (CLSID) to this storage object.
-            </summary>
-            <param name="clsid">The CLSID that is to be associated with the storage object.</param>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStorage.SetStateBits(System.Int32,System.Int32)">
-            <summary>
-             stores up to 32 bits of state information in this storage object. This method is reserved for future use.
-            </summary>
-            <param name="grfStateBits">Specifies the new values of the bits to set. No legal values are defined for these bits; they are all reserved for future use and must not be used by applications.</param>
-            <param name="grfMask">A binary mask indicating which bits in <c>grfStateBits</c> are significant in this call.</param>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStorage.Stat(System.Runtime.InteropServices.ComTypes.STATSTG@,ThermoFisher.CommonCore.RawFileReader.StatFlag)">
-            <summary>
-            The Stat method retrieves the STATSTG structure for this open storage object.
-            </summary>
-            <param name="pstatstg">On return, pointer to a STATSTG structure where this method places information about the open storage object. This parameter is NULL if an error occurs.</param>
-            <param name="grfStatFlag">Specifies that some of the members in the STATSTG structure are not returned, thus saving a memory allocation operation.
-            Values are taken from the STATFLAG enumeration.</param>
-        </member>
         <member name="T:ThermoFisher.CommonCore.RawFileReader.LockType">
             <summary>
             The LOCKTYPE enumeration values indicate the type of locking requested
@@ -9580,149 +9404,6 @@
             <summary>
             Indicates that the storage element is a stream object.
             </summary>
-        </member>
-        <member name="T:ThermoFisher.CommonCore.RawFileReader.IOleStream">
-            <summary>
-            Replacement for UCOMIOleStream (and ComTypes.IOleStream) interface.
-            for Read() and Write().
-            </summary>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStream.Read(System.Byte[],System.UInt32,System.UInt32@)">
-            <summary>
-            Reads a specified number of bytes from the stream object into memory starting at the current seek pointer.
-            </summary>
-            <param name="pv">A pointer to the buffer which the stream data is read into.</param>
-            <param name="cb">The number of bytes of data to read from the stream object.</param>
-            <param name="pcbRead">[out] Returns the actual number of bytes read from the stream object.</param>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStream.Write(System.Byte[],System.UInt32,System.UInt32@)">
-            <summary>
-             writes a specified number of bytes into the stream object starting at the current seek pointer.
-            </summary>
-            <param name="pv">A pointer to the buffer that contains the data that is to be written to the stream.
-             A valid pointer must be provided for this parameter even when <code>cb</code> is zero.</param>
-            <param name="cb">The number of bytes of data to attempt to write into the stream. This value can be zero.</param>
-            <param name="pcbWritten">[out] Returns the actual number of bytes written to the stream object. </param>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStream.Seek(System.Int64,ThermoFisher.CommonCore.RawFileReader.StreamSeek)">
-            <summary>
-            changes the seek pointer to a new location.
-             The new location is relative to either the beginning of the stream,
-             the end of the stream, or the current seek pointer. 
-            </summary>
-            <param name="dlibMove">The displacement to be added to the location 
-            indicated by the <c>origin</c> parameter. If <c>dwOrigin</c> is STREAM_SEEK_SET,
-             this is interpreted as an unsigned value rather than a signed value.</param>
-            <param name="origin">The origin for the displacement specified in <c>dlibMove</c>.
-             The origin can be the beginning of the file (STREAM_SEEK_SET),
-             the current seek pointer (STREAM_SEEK_CUR), or the end of the file (STREAM_SEEK_END).
-             For more information about values, see the STREAM_SEEK enumeration.</param>
-            <returns> the value of the new seek pointer from the beginning of the stream.</returns>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStream.SetSize(System.Int64)">
-            <summary>
-            changes the size of the stream object.
-            </summary>
-            <param name="libNewSize">Specifies the new size, in bytes, of the stream.</param>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStream.CopyTo(ThermoFisher.CommonCore.RawFileReader.IOleStream,System.Int64,System.Int64@)">
-            <summary>
-            The CopyTo method copies a specified number of bytes
-             from the current seek pointer in the stream to the current seek pointer in another stream.
-            </summary>
-            <param name="pstm">A pointer to the destination stream. The stream pointed to by <c>pstm</c>
-             can be a new stream or a clone of the source stream.</param>
-            <param name="cb">The number of bytes to copy from the source stream.</param>
-            <param name="pcbRead">A pointer to the location where this method writes the actual
-             number of bytes read from the source. You can set this pointer to NULL.
-             In this case, this method does not provide the actual number of bytes read.</param>
-            <returns> the actual number of bytes written to the destination.</returns>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStream.Commit(ThermoFisher.CommonCore.RawFileReader.StgCommit)">
-            <summary>
-             ensures that any changes made to a stream object open in transacted mode are reflected in the parent storage
-            . If the stream object is open in direct mode, IStream::Commit has
-             no effect other than flushing all memory buffers to the next-level storage object.
-             The COM compound file implementation of streams does not support opening streams in transacted mode.
-            </summary>
-            <param name="grfCommitFlags">Controls how the changes for the stream object are committed.
-            See the STGC enumeration for a definition of these values.</param>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStream.Revert">
-            <summary>
-            discards all changes that have been made to a transacted stream since the last IStream::Commit call. On streams open in
-             direct mode and streams using the COM compound file implementation of IStream::Revert, this method has no effect.
-            </summary>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStream.LockRegion(System.Int64,System.Int64,ThermoFisher.CommonCore.RawFileReader.LockType)">
-            <summary>
-            restricts access to a specified range of bytes in the stream.
-            Supporting this functionality is optional since some file systems do not provide it.
-            </summary>
-            <param name="libOffset">Integer that specifies the byte offset for the beginning of the range.</param>
-            <param name="cb">Integer that specifies the length of the range, in bytes, to be restricted.</param>
-            <param name="lockType">Specifies the restrictions being requested on accessing the range.</param>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStream.UnlockRegion(System.Int64,System.Int64,ThermoFisher.CommonCore.RawFileReader.LockType)">
-            <summary>
-            removes the access restriction on a range of bytes previously restricted with IStream::LockRegion.
-            </summary>
-            <param name="libOffset">Specifies the byte offset for the beginning of the range.</param>
-            <param name="cb">Specifies, in bytes, the length of the range to be restricted.</param>
-            <param name="lockType">Specifies the access restrictions previously placed on the range.</param>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStream.Stat(System.Runtime.InteropServices.ComTypes.STATSTG@,ThermoFisher.CommonCore.RawFileReader.StatFlag)">
-            <summary>
-            retrieves the STATSTG structure for this stream.
-            </summary>
-            <param name="pstatstg">Pointer to a STATSTG structure where this method places information about this stream object.</param>
-            <param name="grfStatFlag">Specifies that this method does not return some of the members in the STATSTG structure,
-            thus saving a memory allocation operation. Values are taken from the STATFLAG enumeration.</param>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IOleStream.Clone">
-            <summary>
-            creates a new stream object with its own seek pointer that references the same bytes as the original stream.
-            </summary>
-            <returns> pointer to the new stream object.</returns>
-        </member>
-        <member name="T:ThermoFisher.CommonCore.RawFileReader.IEnumSTATSTG">
-            <summary>
-            <c>IEnumSTATSTG</c> interface.
-            </summary>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IEnumSTATSTG.Next(System.Int32,System.Runtime.InteropServices.ComTypes.STATSTG[],System.Int32@)">
-            <summary>
-             retrieves a specified number of STATSTG structures,
-             that follow in the enumeration sequence. If there are fewer than the requested
-             number of STATSTG structures that remain in the enumeration sequence,
-             it retrieves the remaining STATSTG structures.
-            </summary>
-            <param name="celt">The number of STATSTG structures requested.</param>
-            <param name="rgelt">An array of STATSTG structures returned.</param>
-            <param name="pceltFetched">The number of STATSTG structures retrieved in the <c>rgelt</c> parameter.</param>
-            <returns>S_OK on success</returns>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IEnumSTATSTG.Skip(System.Int32)">
-            <summary>
-             skips a specified number of STATSTG structures in the enumeration sequence.
-            </summary>
-            <param name="celt">The number of STATSTG structures to skip.</param>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IEnumSTATSTG.Reset">
-            <summary>
-            resets the enumeration sequence to the beginning of the STATSTG structure array.
-            </summary>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.IEnumSTATSTG.Clone">
-            <summary>
-            creates a new enumerator that contains the same enumeration state as the current
-             STATSTG structure enumerator. Using this method, a client
-             can record a particular point in the enumeration
-             sequence and then return to that point at a later time.
-             The new enumerator supports the same <c>IEnumSTATSTG</c> interface.
-            </summary>
-            <returns>A pointer to the variable that receives the <c>IEnumSTATSTG</c> interface pointer.
-            If the method is unsuccessful, the value of the <c>ppenum</c> parameter is undefined.</returns>
         </member>
         <member name="T:ThermoFisher.CommonCore.RawFileReader.StgMode">
             <summary>
@@ -10759,9 +10440,9 @@
         </member>
         <member name="M:ThermoFisher.CommonCore.RawFileReader.RawFileAccessBase.GetStatusLogEntriesCount">
             <summary>
-            returns the number of entries n the current instrument's status log
+            returns the number of entries in the current instrument's status log
             </summary>
-            <returns>the number of entries n the current instrument's status log</returns>
+            <returns>the number of entries in the current instrument's status log</returns>
         </member>
         <member name="M:ThermoFisher.CommonCore.RawFileReader.RawFileAccessBase.GetStatusLogForRetentionTime(System.Double)">
             <summary>
@@ -10864,6 +10545,15 @@
         <member name="M:ThermoFisher.CommonCore.RawFileReader.RawFileAccessBase.GetStatusLogEntry(System.Int32)">
             <summary>
             Gets the (raw) status log data at a given index in the log.
+            Designed for efficiency, this method does not convert logs to display string format.
+            </summary>
+            <param name="index">Index (from 0 to "RunHeaderEx.StatusLogCount"-1)</param>
+            <returns>Log data at the given index</returns>
+        </member>
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.RawFileAccessBase.GetSortedStatusLogEntry(System.Int32)">
+            <summary>
+            Gets the (raw) status log data at a given index in the sorted log.
+            The form of the log removes duplicate and out of order times
             Designed for efficiency, this method does not convert logs to display string format.
             </summary>
             <param name="index">Index (from 0 to "GetStatusLogEntriesCount() -1")</param>
@@ -11091,6 +10781,22 @@
             <param name="scanNumber">The scan who's mass intensity data are needed</param>
             <returns>Mass and intensity values from the scan.</returns>
         </member>
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.RawFileAccessBase.GetAdditionalScanData(System.Int32)">
+            <summary>
+            Gets additional (binary) data from a scan.
+            The format of this data is custom (per instrument) and can be decoded into
+            objects by a specific decoder for the detector type.
+            </summary>
+            <param name="scan">Scan whose data is needed</param>
+        </member>
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.RawFileAccessBase.GetExtendedScanData(System.Int32)">
+            <summary>
+            Gets additional (binary) data from a scan.
+            The format of this data is custom (per instrument) and can be decoded into
+            objects by a specific decoder for the detector type.
+            </summary>
+            <param name="scan">Scan whose data is needed</param>
+        </member>
         <member name="M:ThermoFisher.CommonCore.RawFileReader.RawFileAccessBase.Dispose">
             <summary>
             Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -11109,7 +10815,7 @@
         </member>
         <member name="M:ThermoFisher.CommonCore.RawFileReader.RawFileReaderAdapter.FileFactory(System.String)">
             <summary>
-            Create an IRawDataPlus interface to read data from a raw file
+            Create an IRawDataExtended interface to read data from a raw file
             </summary>
             <param name="fileName">File to open</param>
             <returns>Interface to read data from file</returns>
@@ -11870,16 +11576,6 @@
             </summary>
             <param name="fileName">Name of the file.</param>
             <param name="mmfInfo">store the mapped disk file information.</param>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Readers.MemoryMappedRawFile.CreateMemoryMappedFileSecurity">
-            <summary>
-            create memory mapped file security token.
-            This is a slow method (needs to access user's permissions)
-            but can be static, as the user's permission doesn't change.
-            </summary>
-            <returns>
-            The <see cref="T:System.IO.MemoryMappedFiles.MemoryMappedFileSecurity"/>.
-            </returns>
         </member>
         <member name="M:ThermoFisher.CommonCore.RawFileReader.Readers.MemoryMappedRawFile.OpenExistMemoryMappedFile(System.String,System.String,ThermoFisher.CommonCore.RawFileReader.Readers.MemoryMappedFileAccessMode,System.IO.MemoryMappedFiles.MemoryMappedFile@)">
             <summary>
@@ -12847,7 +12543,7 @@
             For additional read/write examples see version in "foundation Apps" project.
             </summary>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.StreamIo.#ctor(ThermoFisher.CommonCore.RawFileReader.IOleStream)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.StreamIo.#ctor(System.IO.Stream)">
             <summary>
             Initializes a new instance of the <see cref="T:ThermoFisher.CommonCore.RawFileReader.StreamIo"/> class.
             </summary>
@@ -13192,7 +12888,7 @@
             <param name="errors">Any errors that occur during calculation</param>
             <returns>True if successful</returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.FileHeader.UpdateFileHeaderChecksum(ThermoFisher.CommonCore.RawFileReader.IOleStorage,ThermoFisher.CommonCore.RawFileReader.Writers.DeviceErrors)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.FileHeader.UpdateFileHeaderChecksum(OpenMcdf.CFStorage,ThermoFisher.CommonCore.RawFileReader.Writers.DeviceErrors)">
             <summary>
             Updates the file header checksum.
             </summary>
@@ -13235,9 +12931,15 @@
         </member>
         <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.FileHeader.IsValidRevision">
             <summary>
-            Determines whether [is valid revision].
+            Determines whether this is a valid revision.
             </summary>
             <returns>True it's a valid file revision; false otherwise.</returns>
+        </member>
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.FileHeader.IsNewerRevision">
+            <summary>
+            Test if this may be a valid file but with a newer format.
+            </summary>
+            <returns>true: if the file version > the version complied into of the software that's running.</returns>
         </member>
         <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.FileHeader.ResetChecksum">
             <summary>
@@ -16880,6 +16582,16 @@
             Gets the noise and baselines.
             </summary>
         </member>
+        <member name="P:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.IMsPacket.DebugData">
+            <summary>
+            Gets the debug data for a scan.
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.IMsPacket.ExtendedData">
+            <summary>
+            Gets the debug data for a scan.
+            </summary>
+        </member>
         <member name="T:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.IPacket">
             <summary>
             The Packet interface.
@@ -17078,6 +16790,16 @@
             Gets the profile blob.
             </summary>
         </member>
+        <member name="P:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.LTFT.AdvancedPacketBase.DebugBlob">
+            <summary>
+            Gets the Debug blob.
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.LTFT.AdvancedPacketBase.ExtendedDataBlob">
+            <summary>
+            Gets the extended scan data
+            </summary>
+        </member>
         <member name="P:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.LTFT.AdvancedPacketBase.ReferencePeakArray">
             <summary>
             Gets the reference peak array.
@@ -17113,6 +16835,17 @@
             Gets the packet scan data features.
             </summary>
         </member>
+        <member name="P:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.LTFT.AdvancedPacketBase.DebugData">
+            <summary>
+            Gets the debug data for this scan.
+            If there is no data, returns an empty array.
+            </summary>
+        </member>
+        <member name="T:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.LTFT.AdvancedPacketBase.EmptyExtendedScanData">
+            <summary>
+            class to define a safe data structure for "no data"
+            </summary>
+        </member>
         <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.LTFT.AdvancedPacketBase.Load(ThermoFisher.CommonCore.RawFileReader.Facade.Interfaces.IMemMapReader,System.Int64,System.Int32)">
             <summary>
             Load (from file).
@@ -17129,6 +16862,95 @@
             <returns>
             The number of bytes read
             </returns>
+        </member>
+        <member name="T:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.LTFT.AdvancedPacketBase.ExtendedScanDataClass">
+            <summary>
+            Class to decode additional data saved with a scan
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.LTFT.AdvancedPacketBase.ExtendedScanDataClass.Transients">
+            <summary>
+            Gets the transients
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.LTFT.AdvancedPacketBase.ExtendedScanDataClass.DataSegments">
+            <summary>
+            Gets the data segments
+            </summary>
+        </member>
+        <member name="T:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.LTFT.AdvancedPacketBase.ExtendedScanDataClass.DataSegment">
+            <summary>
+            Debug segment contains sub segments.
+            Each has a header, followed by a block of data
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.LTFT.AdvancedPacketBase.ExtendedScanDataClass.DataSegment.Header">
+            <summary>
+            Gets the header, which can be ued in an instrument specific way to decode this data
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.LTFT.AdvancedPacketBase.ExtendedScanDataClass.DataSegment.Bytes">
+            <summary>
+            Gets the data in this segment
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.LTFT.AdvancedPacketBase.ExtendedScanDataClass.DataSegment.FileBytes">
+            <summary>
+            Gets the data from the raw file.
+            </summary>
+        </member>
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.LTFT.AdvancedPacketBase.ExtendedScanDataClass.DataSegment.Init(ThermoFisher.CommonCore.RawFileReader.Facade.Interfaces.IMemMapReader,System.Int64,System.Int32)">
+            <summary>
+            Initialize this object, to lazy read the data
+            </summary>
+            <param name="viewer"></param>
+            <param name="offset"></param>
+            <param name="length"></param>
+        </member>
+        <member name="T:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.LTFT.AdvancedPacketBase.ExtendedScanDataClass.Transient">
+            <summary>
+            Gets a transient from the raw file
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.LTFT.AdvancedPacketBase.ExtendedScanDataClass.Transient.Header">
+            <summary>
+            Gets an instrument specific transient header
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.LTFT.AdvancedPacketBase.ExtendedScanDataClass.Transient.Data">
+            <summary>
+            Gets the data for this transient
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.LTFT.AdvancedPacketBase.ExtendedScanDataClass.Transient.FileData">
+            <summary>
+            Gets transient data from the raw file.
+            </summary>
+        </member>
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.LTFT.AdvancedPacketBase.ExtendedScanDataClass.Transient.Init(ThermoFisher.CommonCore.RawFileReader.Facade.Interfaces.IMemMapReader,System.Int64,System.Int32)">
+            <summary>
+            Create a lazy loader for this data
+            </summary>
+            <param name="viewer">access to the raw file</param>
+            <param name="offset">offset into the view</param>
+            <param name="blockWords">Size of the data in 32 bit words.</param>
+        </member>
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.LTFT.AdvancedPacketBase.ExtendedScanDataClass.#ctor(ThermoFisher.CommonCore.RawFileReader.Facade.Interfaces.IMemMapReader,System.Int64,System.UInt32)">
+            <summary>
+            constructs a class to get extended scan data
+            </summary>
+            <param name="viewer">view itto the raw file</param>
+            <param name="offset">offset into the view</param>
+            <param name="words">length of the data in 32 bit words</param>
+        </member>
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.LTFT.AdvancedPacketBase.ExtendedScanDataClass.InitializeDebugBlocks(ThermoFisher.CommonCore.RawFileReader.Facade.Interfaces.IMemMapReader,System.Int64,System.UInt32)">
+            <summary>
+            Prepare to return charge envelopes and centroid annotations. Call this once and in advance of accessing properties.
+            </summary>
+            <param name="viewer">The byte buffer being marked as debug section in the orbitrap scan</param>
+            <param name="offset">offset into view for this data</param>
+            <param name="words">number of 32 bit words in this data</param>
+            <returns>Returns true on success, false if the data structure doesn't match the demands. Keep in mind that missing APD info is fine.</returns>
         </member>
         <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.LTFT.AdvancedPacketBase.CompressCentroids(ThermoFisher.CommonCore.Data.Interfaces.IMsInstrumentData)">
             <summary>
@@ -18072,6 +17894,18 @@
         <member name="P:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.SimplePacketBase.LabelPeaks">
             <summary>
             Gets the label peaks.
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.SimplePacketBase.DebugData">
+            <summary>
+            Gets the debug data for a scan.
+            Always empty for simple packets
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.SimplePacketBase.ExtendedData">
+            <summary>
+            Gets the debug data for a scan.
+            Always empty for simple packets
             </summary>
         </member>
         <member name="P:ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.SimplePacketBase.NoiseAndBaselines">
@@ -25081,7 +24915,9 @@
         </member>
         <member name="P:ThermoFisher.CommonCore.RawFileReader.StructWrappers.SortedStatusLogCollection.Count">
             <summary>
-                Gets the count.
+            Gets the count (of sorted items).
+            This may be lower than the number of records in the file
+            as duplicate time values are eliminated.
             </summary>
         </member>
         <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.SortedStatusLogCollection.AddStatusBlob(System.Single,ThermoFisher.CommonCore.RawFileReader.StructWrappers.GenericMaps.LabelValueBlob,System.Boolean)">
@@ -25119,6 +24955,17 @@
             </returns>
         </member>
         <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.SortedStatusLogCollection.GetBlobEntry(System.Int32)">
+            <summary>
+            get a blob entry, with time stamp.
+            </summary>
+            <param name="index">
+            The index.
+            </param>
+            <returns>
+            A tuple, containing time (float) and LabelValueBlob.
+            </returns>
+        </member>
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.SortedStatusLogCollection.GetSortedBlobEntry(System.Int32)">
             <summary>
             get a blob entry, with time stamp.
             </summary>
@@ -25353,6 +25200,17 @@
         <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.StatusLog.GetStatusLogEntryByIndex(System.Int32)">
             <summary>
             get (raw) status log entry by index.
+            </summary>
+            <param name="index">
+            The index.
+            </param>
+            <returns>
+            The <see cref="T:ThermoFisher.CommonCore.Data.Interfaces.IStatusLogEntry"/>.
+            </returns>
+        </member>
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.StatusLog.GetSortedStatusLogEntryByIndex(System.Int32)">
+            <summary>
+            get (raw) status log entry by index into the sorted (data validated) collection
             </summary>
             <param name="index">
             The index.
@@ -25663,6 +25521,12 @@
             <param name="isInAcquisition">Flag indicates that it's in acquisition or not</param>
             <param name="oldRev">Flag indicates that the reading data is old LCQ data or not</param>
         </member>
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.VirtualDevices.DeviceBase.BaseDataInitialization">
+            <summary>
+            This must be called at the start of any derived class initlaize sequence.
+            Minimial construction work is done before this initializrion, incase the device never used by this app instance.
+            </summary>
+        </member>
         <member name="P:ThermoFisher.CommonCore.RawFileReader.StructWrappers.VirtualDevices.DeviceBase.OffsetOfEndOfDevice">
             <summary>
             Gets or sets the absolute position of the end of this device data.
@@ -25748,6 +25612,13 @@
             <exception cref="T:System.Exception">
             If the scan number is not in range.
             </exception>
+        </member>
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.VirtualDevices.DeviceBase.Initialize">
+            <summary>
+            Initalize device after construction, for use by Lazy pattern.
+            Must be implemented in derived devices.
+            </summary>
+            <returns>The initialized device</returns>
         </member>
         <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.VirtualDevices.DeviceBase.GetSegmentPeaks(System.Int32,System.Int32@,System.Int32@,ThermoFisher.CommonCore.RawFileReader.StructWrappers.Packets.IPacket@,System.Boolean)">
             <summary>
@@ -26029,6 +25900,14 @@
             </param>
             <param name="isInAcquisition">Set if this file is being created</param>
             <param name="oldRev">Set if this file version is from a legacy data system</param>
+        </member>
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.VirtualDevices.MassSpecDevice.Initialize">
+            <summary>
+            Initializer, desigened for use by Lazy load pattern.
+            Base object can be created to perform version checks.
+            When device needs to be used for the first time, Initialize is called.
+            </summary>
+            <returns>The initialized device</returns>
         </member>
         <member name="P:ThermoFisher.CommonCore.RawFileReader.StructWrappers.VirtualDevices.MassSpecDevice.NumScanEvents">
             <summary>
@@ -26325,6 +26204,13 @@
             <returns>
             The simplified (mass/intensity) data.
             </returns>
+        </member>
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.VirtualDevices.MassSpecDevice.GetExtendedScanData(System.Int32)">
+            <summary>
+            Gets the extended scan data for a scan
+            </summary>
+            <param name="scanNumber">scan number who's data is needed</param>
+            <returns>The extended data</returns>
         </member>
         <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.VirtualDevices.MassSpecDevice.GetTrailerExtra(System.Int32)">
             <summary>
@@ -27148,10 +27034,11 @@
             </summary>
             <param name="runHeaderStruct">The run header structure.</param>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.VirtualDevices.RunHeader.Initialize">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.VirtualDevices.RunHeader.Initialize(System.Int16)">
             <summary>
             Initializes this instance.
             </summary>
+            <param name="revision">sets the revision of the device data format</param>
         </member>
         <member name="M:ThermoFisher.CommonCore.RawFileReader.StructWrappers.VirtualDevices.RunHeader.IncrementNumStatusLog">
             <summary>
@@ -27675,13 +27562,6 @@
             </summary>
             <returns>An array of internal structures size</returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Utilities.ShowSecurity(System.Security.AccessControl.MutexSecurity,ThermoFisher.CommonCore.RawFileReader.Writers.DeviceErrors)">
-            <summary>
-            Show mutex security.
-            </summary>
-            <param name="security"> The mutex security. </param>
-            <param name="errors"> The errors. </param>
-        </member>
         <member name="M:ThermoFisher.CommonCore.RawFileReader.Utilities.RetryOpenMutex(System.String,System.Boolean@,ThermoFisher.CommonCore.RawFileReader.Writers.DeviceErrors)">
             <summary>
             The try reopen mutex.
@@ -27727,7 +27607,7 @@
             The <see cref="T:System.Boolean"/>.
             </returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.AuditTrailExtension.Save(ThermoFisher.CommonCore.RawFileReader.StructWrappers.OldLCQ.AuditTrail,ThermoFisher.CommonCore.RawFileReader.IOleStream,ThermoFisher.CommonCore.RawFileReader.Writers.DeviceErrors)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.AuditTrailExtension.Save(ThermoFisher.CommonCore.RawFileReader.StructWrappers.OldLCQ.AuditTrail,System.IO.Stream,ThermoFisher.CommonCore.RawFileReader.Writers.DeviceErrors)">
             <summary>
             Saves the audit trailer to IOleStream.
             </summary>
@@ -27860,7 +27740,7 @@
             There are 3 types of generic header - Status log, Trailer extra and Tune
             </summary>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.BaseDeviceWriter.#ctor(ThermoFisher.CommonCore.Data.Business.Device,System.Int32,System.String,System.Int32,System.Boolean)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.BaseDeviceWriter.#ctor(ThermoFisher.CommonCore.Data.Business.Device,System.Int32,System.String,System.Int32,System.Boolean,System.Int16)">
             <summary>
             Initializes a new instance of the <see cref="T:ThermoFisher.CommonCore.RawFileReader.Writers.BaseDeviceWriter"/> class.
             </summary>
@@ -27869,6 +27749,7 @@
             <param name="rawFileName">Name of the raw file.</param>
             <param name="fileRevision">The file revision.</param>
             <param name="inAcquisition">if set to <c>true</c> [in acquisition].</param>
+            <param name="runHeaderRevision">Revision code for the device (set in run header). Default 1</param>
         </member>
         <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.BaseDeviceWriter.WriteInstrumentInfo(ThermoFisher.CommonCore.Data.IInstrumentDataAccess)">
             <summary>
@@ -27967,12 +27848,14 @@
             <param name="inAcquisition">if set to <c>true</c> [in acquisition].</param>
             <returns>True obtained a validate control index; otherwise False.</returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.BaseDeviceWriter.InitializeRunHeader(ThermoFisher.CommonCore.RawFileReader.StructWrappers.VirtualControllerInfo,System.Int32)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.BaseDeviceWriter.InitializeRunHeader(ThermoFisher.CommonCore.RawFileReader.StructWrappers.VirtualControllerInfo,System.Int32,System.Int16)">
             <summary>
             Initializes the run header.
             </summary>
             <param name="deviceInfo">The device information.</param>
             <param name="registeredDeviceIndex">Index of the registered device.</param>
+            <returns>true if OK</returns>
+            <param name="revision">Revision code</param>
             <returns>true if OK</returns>
         </member>
         <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.BaseDeviceWriter.WriteStatusLog(System.IO.BinaryWriter,System.Single,System.Byte[])">
@@ -28735,11 +28618,15 @@
             <param name="fileName">Connect to a "in-acquisition" raw file</param>
             <returns>A device writer to write PDA data to the disk file</returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.DeviceWriterAdapter.CreateMassSpecDeviceWriter(System.String)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.DeviceWriterAdapter.CreateMassSpecDeviceWriter(System.String,ThermoFisher.CommonCore.Data.Business.SpectrumPacketType)">
             <summary>
             Creates the mass spec device writer.
             </summary>
             <param name="fileName">Name of the file.</param>
+            <param name="highestTypeUsed">If > 1: Defines the highest packet type that this device may use.
+            By default this is 1, as that was the value used in original "version 66" raw files.
+            All apps linked to any version of this dll can decode such files.
+            New devices may have new data types, which can only be decoded by (matching) newer versions of this code.</param>
             <returns>A device writer to write mass spec data to the disk file</returns>
         </member>
         <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.DeviceWriterAdapter.CreateOtherDeviceWriter(System.String)">
@@ -28832,7 +28719,7 @@
             The <see cref="T:System.Boolean"/>.
             </returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.FileHeaderExtension.CalcChecksum(ThermoFisher.CommonCore.RawFileReader.IOleStorage,System.UInt32@,System.String@)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.FileHeaderExtension.CalcChecksum(OpenMcdf.CFStorage,System.UInt32@,System.String@)">
             <summary>
             Calculates the instrument method file checksum. It's duplicating exactly the Xcalibur checksum for compound doc file.
             </summary>
@@ -29074,7 +28961,7 @@
             Generic type headers.
             </summary>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.MassSpecDeviceWriter.#ctor(ThermoFisher.CommonCore.Data.Business.Device,System.Int32,System.String,System.Boolean,System.Int32)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.MassSpecDeviceWriter.#ctor(ThermoFisher.CommonCore.Data.Business.Device,System.Int32,System.String,System.Boolean,System.Int32,ThermoFisher.CommonCore.Data.Business.SpectrumPacketType)">
             <summary>
             Initializes a new instance of the <see cref="T:ThermoFisher.CommonCore.RawFileReader.Writers.MassSpecDeviceWriter"/> class.
             </summary>
@@ -29083,6 +28970,13 @@
             <param name="rawFileName">Name of the raw file.</param>
             <param name="inAcquisition">if set to <c>true</c> [in acquisition].</param>
             <param name="fileRevision">The file revision.</param>
+            <param name="finalPacketType">The final known packet type (at the time of writing). 
+            For example: If the MS is compiled against a newer raw file DLL, needed for it's new format,
+            then the value saved in a file could be a higher value than that compiled into some data processing application
+            built 2 years earlier. On opening the MS data, the raw file reader returns an Error to that application.
+            The application should then issue a message telling the customer to upgrade.
+            An instrument may set this to a lower value (the highest format required for the current acquisition method),
+            to signal that older format data is in the file, even if the device was compiled against a newer DLL.</param>
         </member>
         <member name="P:ThermoFisher.CommonCore.RawFileReader.Writers.MassSpecDeviceWriter.IsPreparedForRun">
             <summary>
@@ -29365,7 +29259,7 @@
             Gets the file header for the instrument method file
             </summary>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodBuilder.CreateDeviceMethodStorage(ThermoFisher.CommonCore.RawFileReader.IOleStorage,System.String,ThermoFisher.CommonCore.RawFileReader.Writers.DeviceErrors)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodBuilder.CreateDeviceMethodStorage(OpenMcdf.CFStorage,System.String,ThermoFisher.CommonCore.RawFileReader.Writers.DeviceErrors)">
             <summary>
             Creates a device method storage.
             </summary>
@@ -29374,7 +29268,7 @@
             <param name="errors">Stores the error information if error occurs.</param>
             <returns>Device method storage. </returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodBuilder.SaveAuditTrail(ThermoFisher.CommonCore.RawFileReader.IOleStorage,ThermoFisher.CommonCore.RawFileReader.StructWrappers.OldLCQ.AuditTrail,ThermoFisher.CommonCore.RawFileReader.Writers.DeviceErrors)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodBuilder.SaveAuditTrail(OpenMcdf.CFStorage,ThermoFisher.CommonCore.RawFileReader.StructWrappers.OldLCQ.AuditTrail,ThermoFisher.CommonCore.RawFileReader.Writers.DeviceErrors)">
             <summary>
             Saves the audit trail. 
             </summary>
@@ -29383,7 +29277,7 @@
             <param name="errors">Stores the error information if error occurs.</param>
             <returns>True if audit trail is saved successfully; otherwise false. </returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodBuilder.SaveFileHeader(ThermoFisher.CommonCore.RawFileReader.IOleStorage,ThermoFisher.CommonCore.RawFileReader.StructWrappers.FileHeader,System.DateTime,ThermoFisher.CommonCore.RawFileReader.Writers.DeviceErrors)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodBuilder.SaveFileHeader(OpenMcdf.CFStorage,ThermoFisher.CommonCore.RawFileReader.StructWrappers.FileHeader,System.DateTime,ThermoFisher.CommonCore.RawFileReader.Writers.DeviceErrors)">
             <summary>
             Saves the file header to stream.
             </summary>
@@ -29393,7 +29287,7 @@
             <param name="errors">Stores the error information if error occurs.</param>
             <returns>True if file header saved successfully; otherwise false. </returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodBuilder.SaveDeviceMethod(ThermoFisher.CommonCore.Data.Interfaces.IDeviceMethod,ThermoFisher.CommonCore.RawFileReader.IOleStorage,ThermoFisher.CommonCore.RawFileReader.Writers.DeviceErrors)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodBuilder.SaveDeviceMethod(ThermoFisher.CommonCore.Data.Interfaces.IDeviceMethod,OpenMcdf.CFStorage,ThermoFisher.CommonCore.RawFileReader.Writers.DeviceErrors)">
             <summary>
             Saves the device method to stream.
             </summary>
@@ -29402,7 +29296,7 @@
             <param name="errors">Stores the error information if error occurs.</param>
             <returns>True if the device method saved successfully; otherwise false.</returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodBuilder.SaveMethodStreams(ThermoFisher.CommonCore.RawFileReader.IOleStorage,System.Collections.Generic.Dictionary{System.String,System.Byte[]},ThermoFisher.CommonCore.RawFileReader.Writers.DeviceErrors)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodBuilder.SaveMethodStreams(OpenMcdf.CFStorage,System.Collections.Generic.Dictionary{System.String,System.Byte[]},ThermoFisher.CommonCore.RawFileReader.Writers.DeviceErrors)">
             <summary>
             Saves the device method streams, i.e. "Text", "Data, etc. <para/>
             If the stream value is NULL, it will save an empty stream.
@@ -29456,49 +29350,7 @@
             Provides common methods to deal with IOleStorage and IOleStream.
             </summary>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodHelper.OpenDocFile(System.String,ThermoFisher.CommonCore.RawFileReader.StgMode)">
-            <summary>
-            Opens an existing compound document file (instrument method file).
-            </summary>
-            <param name="fileName">Name of the file.</param>
-            <param name="accessModes">Specifies the access mode to use when opening the compound document file. </param>
-            <returns>The root storage object. </returns>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodHelper.CreateDocFile(System.String)">
-            <summary>
-            Creates the compound document file (instrument method file) with a specified file name.
-            </summary>
-            <param name="fileName">Name of the file.</param>
-            <returns>The root storage object (IOleStorage).</returns>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodHelper.CreateStorage(ThermoFisher.CommonCore.RawFileReader.IOleStorage,System.String)">
-            <summary>
-            Creates a storage (Device method).
-            </summary>
-            <param name="storage"> The storage. </param>
-            <param name="storageName"> Name of the device storage. </param>
-            <returns>IOleStorage object (Device method). </returns>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodHelper.OpenStorage(ThermoFisher.CommonCore.RawFileReader.IOleStorage,System.String,ThermoFisher.CommonCore.RawFileReader.StgMode)">
-            <summary>
-            Opens an existing storage (Device method).
-            </summary>
-            <param name="storage">The storage.</param>
-            <param name="storageName">Name of the storage.</param>
-            <param name="accessModes">Specifies the access mode to use when opening the storage object. </param>
-            <returns>Device storage.</returns>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodHelper.TryCatchSaveStreamData(System.Func{ThermoFisher.CommonCore.RawFileReader.IOleStream,ThermoFisher.CommonCore.RawFileReader.Writers.DeviceErrors,System.Boolean},ThermoFisher.CommonCore.RawFileReader.IOleStorage,System.String,ThermoFisher.CommonCore.RawFileReader.Writers.DeviceErrors)">
-            <summary>
-            Saves the device stream data to the compound storage.
-            </summary>
-            <param name="method">The method.</param>
-            <param name="storage">The storage (either the root storage or device method).</param>
-            <param name="streamName">Name of the stream data.</param>
-            <param name="error">Stores the last error information.</param>
-            <returns>True if data saved successfully; otherwise false. </returns>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodHelper.TryCatchReadStreamData(ThermoFisher.CommonCore.RawFileReader.IOleStorage,System.String,System.Byte[]@,System.String@)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodHelper.TryCatchReadStreamData(OpenMcdf.CFStorage,System.String,System.Byte[]@,System.String@)">
             <summary>
             Reads the device stream data from the storage.
             </summary>
@@ -29508,21 +29360,17 @@
             <param name="errorMessage">Returns the error information if error occurs.</param>
             <returns>True if data saved successfully; otherwise false. </returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodHelper.WriteInt(ThermoFisher.CommonCore.RawFileReader.IOleStream,System.Int32)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodHelper.TryCatchSaveStreamData(System.Func{System.IO.Stream,ThermoFisher.CommonCore.RawFileReader.Writers.DeviceErrors,System.Boolean},OpenMcdf.CFStorage,System.String,ThermoFisher.CommonCore.RawFileReader.Writers.DeviceErrors)">
             <summary>
-            Writes the integer 4-byte value to stream.
+            Saves the device stream data to the compound storage.
             </summary>
-            <param name="stream">The data stream.</param>
-            <param name="value">The value.</param>
+            <param name="method">The method.</param>
+            <param name="storage">The storage (either the root storage or device method).</param>
+            <param name="streamName">Name of the stream data.</param>
+            <param name="error">Stores the last error information.</param>
+            <returns>True if data saved successfully; otherwise false. </returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodHelper.WriteBytes(ThermoFisher.CommonCore.RawFileReader.IOleStream,System.Byte[])">
-            <summary>
-            Writes the bytes to the stream.
-            </summary>
-            <param name="stream">The data stream.</param>
-            <param name="value">The value in byte array.</param>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodHelper.Save(ThermoFisher.CommonCore.RawFileReader.StructWrappers.FileHeader,ThermoFisher.CommonCore.RawFileReader.IOleStream,ThermoFisher.CommonCore.RawFileReader.Writers.DeviceErrors)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodHelper.Save(ThermoFisher.CommonCore.RawFileReader.StructWrappers.FileHeader,System.IO.Stream,ThermoFisher.CommonCore.RawFileReader.Writers.DeviceErrors)">
             <summary>
             Saves the file header to the IOleStream.
             </summary>
@@ -29531,23 +29379,11 @@
             <param name="errors">Stores the error information if error occurs.</param>
             <returns>True if the file header saved successfully; otherwise false. </returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodHelper.Release(ThermoFisher.CommonCore.RawFileReader.IOleStorage)">
+        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodHelper.CreateDocFile">
             <summary>
-            Releases the specified storage.
+            Creates the compound document file (instrument method file) with a specified file name.
             </summary>
-            <param name="storage">The storage.</param>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodHelper.Release(ThermoFisher.CommonCore.RawFileReader.IOleStream)">
-            <summary>
-            Releases the specified stream.
-            </summary>
-            <param name="stream">The stream.</param>
-        </member>
-        <member name="M:ThermoFisher.CommonCore.RawFileReader.Writers.OleInstrumentMethodHelper.Release(ThermoFisher.CommonCore.RawFileReader.IEnumSTATSTG)">
-            <summary>
-            Releases the specified enumerator for STATSTG structures.
-            </summary>
-            <param name="en">The enumerator.</param>
+            <returns>The root storage object (IOleStorage).</returns>
         </member>
         <member name="T:ThermoFisher.CommonCore.RawFileReader.Writers.PdaDeviceWriter">
             <summary>
