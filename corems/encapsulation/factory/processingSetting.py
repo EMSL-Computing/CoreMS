@@ -139,10 +139,10 @@ class MassSpectrumSetting:
 
     relative_abundance_threshold: float = 6  # from 0-100
 
-    min_noise_mz: float = 100.0
+    min_noise_mz: float = 50
     max_noise_mz: float = 1200.0
 
-    min_picking_mz: float = 100.0
+    min_picking_mz: float = 50
     max_picking_mz: float = 1200.0
 
     calib_minimize_method: str = 'Powell'

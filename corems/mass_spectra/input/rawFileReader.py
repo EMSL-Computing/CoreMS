@@ -361,7 +361,7 @@ class ThermoBaseClass():
             # plot_chroma(rt, tic)
             # plt.show()
 
-    def get_tic(self, ms_type='MS', peak_detection=True, 
+    def get_tic(self, ms_type='ms', peak_detection=True, 
                 smooth=True, plot=False, ax=None) -> Tuple[Dict[float, TIC_Data], axes.Axes]:
 
         '''ms_type: str ('MS', MS2')
@@ -397,19 +397,23 @@ class ThermoBaseClass():
 
             for i in range(trace[0].Length):
                 # print(trace[0].HasBasePeakData,trace[0].EndTime )
-
+                
                 # print("  {} - {}, {}".format( i, trace[0].Times[i], trace[0].Intensities[i] ))
                 data.time.append(trace[0].Times[i])
                 data.tic.append(trace[0].Intensities[i])
                 data.scans.append(trace[0].Scans[i])
-            
+
+                #print(trace[0].Scans[i])
             if smooth:
                 
                 data.tic= self.smooth_tic(data.tic)
+            else:
+                data.tic= np.array(data.tic)
 
             if peak_detection:
                 
                 centroid_peak_indexes = [i for i in self.centroid_detector(data.time, data.tic)]
+                
                 data.apexes = centroid_peak_indexes
 
             if plot:
@@ -422,7 +426,7 @@ class ThermoBaseClass():
                 ax.set_xlabel('Time (min)')
                 ax.set_ylabel('a.u.')
                 if peak_detection:
-                    for peak_indexes in data['Apexes']:
+                    for peak_indexes in data.apexes:
                         
                         apex_index = peak_indexes[1]
                         ax.plot(data.time[apex_index], data.tic[apex_index], marker='x', linewidth=0)
@@ -435,6 +439,141 @@ class ThermoBaseClass():
 
         else:
             return None, None
+
+    def get_average_mass_spectrum_by_scanlist(self, scans_list: List[int], auto_process: bool = True,
+                                              ppm_tolerance: float = 5.0) -> MassSpecProfile:
+
+        '''
+        Averages selected scans mass spectra using Thermo's AverageScans method
+        scans_list: list[int]
+        auto_process: bool
+            If true performs peak picking, and noise threshold calculation after creation of mass spectrum object
+        Returns:
+            MassSpecProfile
+        '''
+
+        """
+        Averages selected scans mass spectra using Thermo's AverageScans method
+        scans_list: list[int]
+        auto_process: bool
+            If true performs peak picking, and noise threshold calculation after creation of mass spectrum object
+        Returns:
+            MassSpecProfile
+        """
+
+        d_params = self.set_metadata(scans_list=scans_list)
+
+        # assumes scans is full scan or reduced profile scan
+
+        scans = List[int]()
+        for scan in scans_list:
+            scans.Add(scan)
+
+        # Create the mass options object that will be used when averaging the scans
+        options = MassOptions()
+        options.ToleranceUnits = ToleranceUnits.ppm
+        options.Tolerance = ppm_tolerance
+
+        # Get the scan filter for the first scan.  This scan filter will be used to located
+        # scans within the given scan range of the same type
+
+        averageScan = Extensions.AverageScans(self.iRawDataPlus, scans, options)
+
+        len_data = averageScan.SegmentedScan.Positions.Length
+
+        mz_list = list(averageScan.SegmentedScan.Positions)
+        abund_list = list(averageScan.SegmentedScan.Intensities)
+
+        data_dict = {Labels.mz: mz_list,
+                     Labels.abundance: abund_list,
+                     }
+
+        mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process)
+
+        return mass_spec
+
+    def get_average_mass_spectrum_in_scan_range(self, auto_process: bool = True, ppm_tolerance: float = 5.0,
+                                                ms_type: int = 0) -> MassSpecProfile:
+
+        '''
+        Averages mass spectra over a scan range using Thermo's AverageScansInScanRange method
+        start_scan: int
+        end_scan: int
+        auto_process: bool
+            If true performs peak picking, and noise threshold calculation after creation of mass spectrum object
+        ms_type: MSOrderType.MS
+            Type of mass spectrum scan, default for full scan acquisition
+         Returns:
+            MassSpecProfile
+        '''
+
+        d_params = self.set_metadata(firstScanNumber=self.start_scan,
+                                     lastScanNumber=self.end_scan)
+
+        # Create the mass options object that will be used when averaging the scans
+        options = MassOptions()
+
+        options.ToleranceUnits = ToleranceUnits.ppm
+        options.Tolerance = ppm_tolerance
+
+        # Get the scan filter for the first scan.  This scan filter will be used to located
+        # scans within the given scan range of the same type
+        scanFilter = self.iRawDataPlus.GetFilterForScanNumber(self.start_scan)
+
+        # force it to only look for the MSType
+        scanFilter.MSOrder = ms_type
+
+        averageScan = Extensions.AverageScansInScanRange(self.iRawDataPlus, 
+                                                         self.start_scan, self.end_scan,
+                                                         scanFilter, options)
+        
+        if averageScan:
+            mz_list = list(averageScan.SegmentedScan.Positions)
+            abund_list = list(averageScan.SegmentedScan.Intensities)
+
+            data_dict = {Labels.mz: mz_list,
+                         Labels.abundance: abund_list,
+                         }
+
+            
+            mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process)
+
+            return mass_spec
+        else:
+            raise Exception('no data found for the MSOrderType = {}'.format(ms_type))
+
+   
+    def set_metadata(self, firstScanNumber=0, lastScanNumber=0, scans_list=False):
+        '''
+        Collect metadata to be ingested in the mass spectrum object
+
+        scans_list: list[int] or false
+        lastScanNumber: int
+        firstScanNumber: int
+        '''
+
+        d_params = default_parameters(self.file_path)
+
+        # assumes scans is full scan or reduced profile scan
+
+        d_params['label'] = Labels.thermo_profile
+
+        if scans_list:
+            d_params['scan_number'] = scans_list
+
+            d_params['polarity'] = self.get_polarity_mode(scans_list[0])
+
+        else:
+
+            d_params['scan_number'] = '{}-{}'.format(firstScanNumber, lastScanNumber)
+
+            d_params['polarity'] = self.get_polarity_mode(firstScanNumber)
+
+        d_params['analyzer'] = self.iRawDataPlus.GetInstrumentData().Model
+
+        d_params['instrument_label'] = self.iRawDataPlus.GetInstrumentData().Name
+
+        return d_params    
 
 class ImportDataDependentThermoMSFileReader(ThermoBaseClass, LC_Calculations):
 
@@ -558,189 +697,7 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
 
         return transient_time_list
 
-    def get_data(self, scan: int, d_parameter: dict, scan_type: str):
-
-        if scan_type == 'Centroid':
-
-            centroidStream = self.iRawDataPlus.GetCentroidStream(scan, False)
-
-            noise = list(centroidStream.Noises)
-
-            baselines = list(centroidStream.Baselines)
-
-            rp = list(centroidStream.Resolutions)
-
-            magnitude = list(centroidStream.Intensities)
-
-            mz = list(centroidStream.Masses)
-
-            # charge = scans_labels[5]
-            array_noise_std = (np.array(noise) - np.array(baselines)) / 3
-            l_signal_to_noise = np.array(magnitude) / array_noise_std
-
-            d_parameter['baselise_noise'] = np.average(array_noise_std)
-
-            d_parameter['baselise_noise_std'] = np.std(array_noise_std)
-
-            data_dict = {
-                Labels.mz: mz,
-                Labels.abundance: magnitude,
-                Labels.rp: rp,
-                Labels.s2n: l_signal_to_noise,
-            }
-
-        else:
-
-            scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan)
-
-            profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(
-                scan, scanStatistics)
-
-            magnitude = list(profileStream.Intensities)
-
-            mz = list(profileStream.Positions)
-
-            data_dict = {
-                Labels.mz: mz,
-                Labels.abundance: magnitude,
-            }
-
-        return data_dict
-
-    def set_metadata(self, firstScanNumber=0, lastScanNumber=0, scans_list=False):
-        '''
-        Collect metadata to be ingested in the mass spectrum object
-
-        scans_list: list[int] or false
-        lastScanNumber: int
-        firstScanNumber: int
-        '''
-
-        d_params = default_parameters(self.file_path)
-
-        # assumes scans is full scan or reduced profile scan
-
-        d_params['label'] = Labels.thermo_profile
-
-        if scans_list:
-            d_params['scan_number'] = scans_list
-
-            d_params['polarity'] = self.get_polarity_mode(scans_list[0])
-
-        else:
-
-            d_params['scan_number'] = '{}-{}'.format(firstScanNumber, lastScanNumber)
-
-            d_params['polarity'] = self.get_polarity_mode(firstScanNumber)
-
-        d_params['analyzer'] = self.iRawDataPlus.GetInstrumentData().Model
-
-        d_params['instrument_label'] = self.iRawDataPlus.GetInstrumentData().Name
-
-        return d_params
-
-    def get_average_mass_spectrum_by_scanlist(self, scans_list: List[int], auto_process: bool = True,
-                                              ppm_tolerance: float = 5.0):
-
-        '''
-        Averages selected scans mass spectra using Thermo's AverageScans method
-        scans_list: list[int]
-        auto_process: bool
-            If true performs peak picking, and noise threshold calculation after creation of mass spectrum object
-        Returns:
-            MassSpecProfile
-        '''
-
-        """
-        Averages selected scans mass spectra using Thermo's AverageScans method
-        scans_list: list[int]
-        auto_process: bool
-            If true performs peak picking, and noise threshold calculation after creation of mass spectrum object
-        Returns:
-            MassSpecProfile
-        """
-
-        d_params = self.set_metadata(scans_list=scans_list)
-
-        # assumes scans is full scan or reduced profile scan
-
-        scans = List[int]()
-        for scan in scans_list:
-            scans.Add(scan)
-
-        # Create the mass options object that will be used when averaging the scans
-        options = MassOptions()
-        options.ToleranceUnits = ToleranceUnits.ppm
-        options.Tolerance = ppm_tolerance
-
-        # Get the scan filter for the first scan.  This scan filter will be used to located
-        # scans within the given scan range of the same type
-
-        averageScan = Extensions.AverageScans(self.iRawDataPlus, scans, options)
-
-        len_data = averageScan.SegmentedScan.Positions.Length
-
-        mz_list = list(averageScan.SegmentedScan.Positions)
-        abund_list = list(averageScan.SegmentedScan.Intensities)
-
-        data_dict = {Labels.mz: mz_list,
-                     Labels.abundance: abund_list,
-                     }
-
-        mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process)
-
-        return mass_spec
-
-    def get_average_mass_spectrum_in_scan_range(self, auto_process: bool = True, ppm_tolerance: float = 5.0,
-                                                ms_type: str = 0):
-
-        '''
-        Averages mass spectra over a scan range using Thermo's AverageScansInScanRange method
-        start_scan: int
-        end_scan: int
-        auto_process: bool
-            If true performs peak picking, and noise threshold calculation after creation of mass spectrum object
-        ms_type: MSOrderType.MS
-            Type of mass spectrum scan, default for full scan acquisition
-         Returns:
-            MassSpecProfile
-        '''
-
-        d_params = self.set_metadata(firstScanNumber=self.start_scan,
-                                     lastScanNumber=self.end_scan)
-
-        # Create the mass options object that will be used when averaging the scans
-        options = MassOptions()
-
-        options.ToleranceUnits = ToleranceUnits.ppm
-        options.Tolerance = ppm_tolerance
-
-        # Get the scan filter for the first scan.  This scan filter will be used to located
-        # scans within the given scan range of the same type
-        scanFilter = self.iRawDataPlus.GetFilterForScanNumber(self.start_scan)
-
-        # force it to only look for the MSType
-        scanFilter.MSOrder = ms_type
-
-        averageScan = Extensions.AverageScansInScanRange(self.iRawDataPlus, 
-                                                         self.start_scan, self.end_scan,
-                                                         scanFilter, options)
-
-        if averageScan:
-            mz_list = list(averageScan.SegmentedScan.Positions)
-            abund_list = list(averageScan.SegmentedScan.Intensities)
-
-            data_dict = {Labels.mz: mz_list,
-                         Labels.abundance: abund_list,
-                         }
-
-            mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process)
-
-            return mass_spec
-        else:
-            raise Exception('no data found for the MSOrderType = {}'.format(ms_type))
-
-    def get_summed_mass_spectrum(self, auto_process=True, pd_method=True, pd_merge_n=100):
+    def get_summed_mass_spectrum(self, auto_process=True, pd_method=True, pd_merge_n=100) -> MassSpecProfile:
 
         '''
         Manually sum mass spectrum over a scan range
@@ -840,6 +797,58 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
 
         return mass_spec
 
+    def get_data(self, scan: int, d_parameter: dict, scan_type: str):
+
+        if scan_type == 'Centroid':
+
+            centroidStream = self.iRawDataPlus.GetCentroidStream(scan, False)
+
+            noise = list(centroidStream.Noises)
+
+            baselines = list(centroidStream.Baselines)
+
+            rp = list(centroidStream.Resolutions)
+
+            magnitude = list(centroidStream.Intensities)
+
+            mz = list(centroidStream.Masses)
+
+            # charge = scans_labels[5]
+            array_noise_std = (np.array(noise) - np.array(baselines)) / 3
+            l_signal_to_noise = np.array(magnitude) / array_noise_std
+
+            d_parameter['baselise_noise'] = np.average(array_noise_std)
+
+            d_parameter['baselise_noise_std'] = np.std(array_noise_std)
+
+            data_dict = {
+                Labels.mz: mz,
+                Labels.abundance: magnitude,
+                Labels.rp: rp,
+                Labels.s2n: l_signal_to_noise,
+            }
+
+        else:
+
+            scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan)
+
+            profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(
+                scan, scanStatistics)
+
+            magnitude = list(profileStream.Intensities)
+
+            mz = list(profileStream.Positions)
+
+            data_dict = {
+                Labels.mz: mz,
+                Labels.abundance: magnitude,
+            }
+
+        return data_dict
+
+   
+
+    
     def get_best_scans_idx(self, stdevs=2, method='mean', plot=False):
         '''
         Method to determine the best scan indexes for selective co-addition

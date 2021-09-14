@@ -222,7 +222,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         else:
 
             self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto, bayes=bayes)
-        
+
     @property
     def parameters(self):
         return self._parameters
@@ -401,6 +401,9 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
     @property
     def baselise_noise_std(self):
+
+        if self._baselise_noise_std == 0:
+            return self._baselise_noise_std
         if self._baselise_noise_std:
             return self._baselise_noise_std
         else:     

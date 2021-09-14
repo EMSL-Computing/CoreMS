@@ -215,6 +215,7 @@ class PeakPicking:
                     except IndexError: 
                         print('index error, skipping peak')
                         continue
+                    
                     s2n = intes_centr/self.baselise_noise_std
                     self.add_mspeak(self.polarity, mz_exp_centroid, abund[current_index] , peak_resolving_power, s2n, peak_indexes, exp_freq=freq_centr, ms_parent=self)
             

@@ -2,8 +2,10 @@
 
 
 
+from ast import parse
 from logging import warn
-from typing import Dict, List
+import re
+from typing import Dict, List, Tuple
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -25,7 +27,7 @@ from corems.encapsulation.constant import Labels
 from corems.mass_spectra.input import rawFileReader
 from corems import get_dirname, get_filename
 
-def run_thermo(file_location, target_mzs: List[float]):
+def run_thermo(file_location, target_mzs: List[float]) -> Tuple[Dict[float, rawFileReader.EIC_Data], rawFileReader.ImportDataDependentThermoMSFileReader]:
     
     print(file_location)
     
@@ -44,10 +46,10 @@ def run_thermo(file_location, target_mzs: List[float]):
     
     parser = rawFileReader.ImportDataDependentThermoMSFileReader(file_location, target_mzs)
 
-    tic_data, ax_tic = parser.get_tic(ms_type='MS', peak_detection=True, 
-                                      smooth=True, plot=False)
-
-    ms2_tic, ax_ms2_tic = parser.get_tic(ms_type='MS2', peak_detection=False, plot=False)
+    tic_data, ax_tic = parser.get_tic(ms_type='MS !d', peak_detection=True, 
+                                      smooth=True, plot=True)
+    
+    #ms2_tic, ax_ms2_tic = parser.get_tic(ms_type='MS2', peak_detection=False, plot=False)
 
     #print(data)
 
@@ -57,14 +59,14 @@ def run_thermo(file_location, target_mzs: List[float]):
     eics_data, ax_eic = parser.get_eics(target_mzs,
                                         tic_data,
                                         smooth=True,
-                                        plot=False,
+                                        plot=True,
                                         legend=False,
                                         peak_detection=True,
                                         ax=ax_tic)
     
-
+    plt.show()
     #ax_eic.plot(tic_data.time, tic_data.tic, c='black')
-    return eics_data
+    return eics_data, parser
     
 
 def read_lib(ref_filepath:Path):
@@ -76,11 +78,46 @@ def read_lib(ref_filepath:Path):
 
     return mf_references_dict
 
+def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormula]]], datapath: Path):
+
+    #get mix name from filename
+    current_mix = (re.findall(r'Mix[0-9]{1,2}', str(datapath)))[0]
+
+    #get target compounds mz and molecular formulas
+    dict_tarrget_mzs = mf_references_dict.get(current_mix)   
+    
+    target_mzs = dict_tarrget_mzs.keys()
+
+    eics_data, parser = run_thermo(datapath, target_mzs)
+
+    for mz, eic_data in eics_data.items():
+        
+        possible_mf = dict_tarrget_mzs.get(mz)
+
+        if eic_data.apexes:                    
+           
+            print("m/z =  {}, formulas = {}, names = {},  peaks indexes = {}, retention times = {}, abundance = {}".format(mz,
+                                                                                    [mf_obj.string for mf_obj in possible_mf],
+                                                                                    [mf_obj.name for mf_obj in possible_mf],
+                                                                                    eic_data.apexes,
+                                                                                    [eic_data.time[apex[1]] for apex in eic_data.apexes],
+                                                                                    [eic_data.eic[apex[1]] for apex in eic_data.apexes]) )
+
+            for peak_index in eic_data.apexes:
+            #sum 3 spectrum to get better signal to noise
+                
+                apex_index = peak_index[1]
+                original_scan = eic_data.scans[apex_index]
+                
+                parser.chromatogram_settings.start_scan = original_scan
+                parser.chromatogram_settings.end_scan = original_scan
+                
+                mass_spec = parser.get_average_mass_spectrum_in_scan_range()
+                if mass_spec:
+                    mass_spec.plot_mz_domain_profile()
+                    plt.show()
 def auto_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormula]]], datadir: Path):
 
-    error = lambda x, ref: (x - ref)/ref * 1000000 
-    
-    #((self._mspeak_parent.mz_exp - self.mz_calc)/self.mz_calc)*multi_factor
     import os
     rootdir = datadir
 
@@ -102,7 +139,7 @@ def auto_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormula
                 target_mzs = dict_tarrget_mzs.keys()
                 
                 #print(target_mzs)
-                eics_data = run_thermo(file_path, target_mzs)
+                eics_data, parser = run_thermo(file_path, target_mzs)
 
                 for mz, eic_data in eics_data.items():
 
@@ -142,12 +179,12 @@ if __name__ == "__main__":
         
         #get the list of molecular formulas objects for each stardard compound maped by mix name
         mf_references_dict = read_lib(ref_file_location)
-        
+        single_process(mf_references_dict, file_location)
         #loop trought a directory, find and match mix name to raw file, 
         # search eic, do peak picking, for target compounds, currently enforcing parent ion selected to MS2, 
         # to change settings, chage  LCMSParameters.lc_ms parameters inside run_thermo() function:
         # TODO, search correspondent MS1 for m/z on peaks found, (sum 3 datapoints?)
         #       do molecular formula search on MS1 level, than get candidates and MF assiggment scores,
         # calculates fragment masses, and based on the highest score molecular formuyla calculate fragment formula 
-        auto_process(mf_references_dict, dirpath)
+        #auto_process(mf_references_dict, dirpath)
         #run_thermo(file_location)
