@@ -39,7 +39,7 @@ def run_thermo(file_location, target_mzs: List[float]):
 
     LCMSParameters.lc_ms.eic_signal_threshold = 0.1
     LCMSParameters.lc_ms.eic_tolerance_ppm = 5
-    LCMSParameters.lc_ms.enforce_target_ms2 = True
+    LCMSParameters.lc_ms.enforce_target_ms2 = False
     LCMSParameters.lc_ms.average_target_mz = False
     
     parser = rawFileReader.ImportDataDependentThermoMSFileReader(file_location, target_mzs)
@@ -85,6 +85,7 @@ def auto_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormula
     rootdir = datadir
 
     for mix_name in mf_references_dict.keys():
+        
         file_locations = glob.glob(str(rootdir) + "/*.raw")
         file_paths = []
         
@@ -109,11 +110,12 @@ def auto_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormula
                         
                         possible_mf = dict_tarrget_mzs.get(mz)
                             
-                        print("m/z =  {}, formulas = {}, names = {},  peaks indexes = {}, retention times = {}".format(mz,
+                        print("m/z =  {}, formulas = {}, names = {},  peaks indexes = {}, retention times = {}, abundance = {}".format(mz,
                                     [mf_obj.string for mf_obj in possible_mf],
                                     [mf_obj.name for mf_obj in possible_mf],
                                     eic_data.apexes,
-                                    [eic_data.time[apex[1]] for apex in eic_data.apexes]) )
+                                    [eic_data.time[apex[1]] for apex in eic_data.apexes],
+                                    [eic_data.eic[apex[1]] for apex in eic_data.apexes]) )
                             #print(mz, eic_data.apexes, [eic_data.time[apex[1]] for apex in eic_data.apexes])
                 print()
                 print()
