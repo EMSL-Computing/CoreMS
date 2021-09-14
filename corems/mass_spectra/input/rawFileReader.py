@@ -221,7 +221,7 @@ class ThermoBaseClass():
         return list(trace.Times), list(trace.Intensities), list(trace.Scans)
         
 
-    def get_eics(self, target_mzs: list, tic_data: dict, ms_type='MS', 
+    def get_eics(self, target_mzs: list, tic_data: dict, ms_type='MS !d', 
                  peak_detection=True, smooth=True, plot=False, 
                  ax=None, legend=False) -> Tuple[Dict[float, EIC_Data], axes.Axes]:
 
@@ -361,7 +361,7 @@ class ThermoBaseClass():
             # plot_chroma(rt, tic)
             # plt.show()
 
-    def get_tic(self, ms_type='ms', peak_detection=True, 
+    def get_tic(self, ms_type='MS !d', peak_detection=True, 
                 smooth=True, plot=False, ax=None) -> Tuple[Dict[float, TIC_Data], axes.Axes]:
 
         '''ms_type: str ('MS', MS2')

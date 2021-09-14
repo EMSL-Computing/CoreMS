@@ -116,6 +116,7 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
                 if mass_spec:
                     mass_spec.plot_mz_domain_profile()
                     plt.show()
+                    
 def auto_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormula]]], datadir: Path):
 
     import os
