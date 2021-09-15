@@ -90,8 +90,13 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
 
     eics_data, parser = run_thermo(datapath, target_mzs)
 
+    #need to convert this to a lcms object
+    scan_number_mass_spectrum = {}
+    
+    # mz is from calculate mz
     for mz, eic_data in eics_data.items():
         
+        #all possible m/z from the same mix, should be one per m/z as per current lib
         possible_mf = dict_tarrget_mzs.get(mz)
 
         if eic_data.apexes:                    
@@ -114,9 +119,22 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
                 
                 mass_spec = parser.get_average_mass_spectrum_in_scan_range()
                 if mass_spec:
-                    mass_spec.plot_mz_domain_profile()
-                    plt.show()
                     
+                    if original_scan not in scan_number_mass_spectrum.keys():
+                        scan_number_mass_spectrum[original_scan] = [mass_spec, possible_mf]
+                        mass_spec.plot_mz_domain_profile()
+                        #plt.show()
+                    
+                    else:
+                        scan_number_mass_spectrum[original_scan][1].extend(possible_mf)
+    
+    # TODO: create lcms and add dependent scans based on scan number 
+    # Search molecular formulas on the mass spectrum, might need to use ProxyObject?
+    # Add Adducts search, right now only working for de or protonated species
+    for scan, ms_mf in scan_number_mass_spectrum.items():
+        
+        print(scan, ms_mf[1])
+
 def auto_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormula]]], datadir: Path):
 
     import os
