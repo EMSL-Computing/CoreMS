@@ -10,7 +10,7 @@ import pandas as pd
 
 sys.path.append('.')
 
-from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
+from corems.molecular_formula.factory.MolecularFormulaFactory import LCMSLibRefMolecularFormula, MolecularFormula 
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.constant import Atoms
 from corems.molecular_id.factory.molecularSQL import CarbonHydrogen, MolecularFormulaLink, HeteroAtoms
@@ -26,6 +26,10 @@ class MolecularFormulaLinkProxy():
             self.mass =  float(mz)                       
             self.dbe = molecular_formula.dbe
             self.formula_dict = molecular_formula.to_dict()
+        
+        def to_dict(self):
+            return self.formula_dict
+
 
 class ImportMassListRef():#Thread
 
@@ -43,7 +47,7 @@ class ImportMassListRef():#Thread
         
         return MolecularFormulaLinkProxy(molecular_formula, mz)
     
-    def from_lcms_lib_file(self, ion_charge: float, ion_type: str) -> Dict [str, Dict[float, List[MolecularFormula] ] ]:
+    def from_lcms_lib_file(self, ion_charge: float, ion_types: List[str]) -> Dict [str, Dict[float, List[LCMSLibRefMolecularFormula] ] ]:
         '''
          return Dict[standard_name, Dict[m/z, List[MolecularFormula]]]:
             m/z: float:
@@ -65,13 +69,13 @@ class ImportMassListRef():#Thread
             for index, row in df.iterrows():
                 
                 formula_s = row["Neutral Formula"]
-                formula_dict = self.mformula_s_to_dict(formula_s, ion_type)
+                formula_dict = self.mformula_s_to_dict(formula_s, Labels.neutral)
                 name = row["Compound Name"]
                 kegg_id = row["KEGG ID"]
                 standard_name = row["NEW MIX"]
                 cas = row["NEW MIX"]
                 #print(row["Neutral Formula"], formula_dict)
-                molf_formula = MolecularFormula(formula_dict, ion_charge, ion_type, 
+                molf_formula = LCMSLibRefMolecularFormula(formula_dict, ion_charge, Labels.neutral, 
                                                 name=name, kegg_id=kegg_id, cas=cas)
                 #if round(molf_formula.mz_calc, 4) != round(row['Mass Adduct -H'],4):
                 #    print(formula_s)
@@ -79,7 +83,8 @@ class ImportMassListRef():#Thread
         
                 if standard_name in data.keys():
 
-                    mz_calc = molf_formula.mz_calc
+                    #TODO change it to target ion types and add ion type in the data structure   
+                    mz_calc = molf_formula.protonated_mz
                     
                     if mz_calc in data.get(standard_name).keys():
                        
@@ -98,7 +103,7 @@ class ImportMassListRef():#Thread
         
         return data
 
-    def from_bruker_ref_file(self):
+    def from_bruker_ref_file(self) -> List[MolecularFormula]:
 
         import csv
         
@@ -124,10 +129,10 @@ class ImportMassListRef():#Thread
 
                     
                     ion_mol_formula = list_ref[0]
-                    mz = list_ref[1]
+                    mz = float(list_ref[1])
                     formula_dict = self.mformula_s_to_dict(ion_mol_formula)
                     
-                    list_mf_obj.append(self.molecular_formula_ref(mz, MolecularFormula(formula_dict, ion_charge)))
+                    list_mf_obj.append(MolecularFormula(formula_dict, ion_charge, external_mz=mz))
         
         return  list_mf_obj           
 

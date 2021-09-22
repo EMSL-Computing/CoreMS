@@ -408,6 +408,7 @@ class ThermoBaseClass():
                 
                 data.tic= self.smooth_tic(data.tic)
             else:
+                
                 data.tic= np.array(data.tic)
 
             if peak_detection:

@@ -92,7 +92,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         return len(self.mspeaks)
 
-    def __getitem__(self, position):
+    def __getitem__(self, position) -> MSPeak:
 
         return self.mspeaks[position]
 

@@ -20,6 +20,7 @@ import pandas as pd
 # from PySide2.QtWidgets import QFileDialog, QApplication
 # from PySide2.QtCore import Qt
 
+from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.encapsulation.factory.parameters import LCMSParameters, MSParameters
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 from corems.molecular_formula.input.masslist_ref import ImportMassListRef
@@ -72,9 +73,10 @@ def run_thermo(file_location, target_mzs: List[float]) -> Tuple[Dict[float, rawF
 def read_lib(ref_filepath:Path):
 
     ion_charge = -1   
-    iontype = Labels.protonated_de_ion
+
+    iontypes = [Labels.protonated_de_ion]
     
-    mf_references_dict = ImportMassListRef(ref_filepath).from_lcms_lib_file(ion_charge, iontype)
+    mf_references_dict = ImportMassListRef(ref_filepath).from_lcms_lib_file(ion_charge, iontypes)
 
     return mf_references_dict
 
@@ -109,7 +111,7 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
                                                                                     [eic_data.eic[apex[1]] for apex in eic_data.apexes]) )
 
             for peak_index in eic_data.apexes:
-            #sum 3 spectrum to get better signal to noise
+           
                 
                 apex_index = peak_index[1]
                 original_scan = eic_data.scans[apex_index]
@@ -131,9 +133,22 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
     # TODO: create lcms and add dependent scans based on scan number 
     # Search molecular formulas on the mass spectrum, might need to use ProxyObject?
     # Add Adducts search, right now only working for de or protonated species
+    
+    ion_type = Labels.protonated_de_ion
+    
     for scan, ms_mf in scan_number_mass_spectrum.items():
         
-        print(scan, ms_mf[1])
+        mass_spectcrum_obj = ms_mf[0]
+        mf_references_list = ms_mf[1]
+        
+        ms_peaks_assigned = SearchMolecularFormulas(mass_spectcrum_obj).search_mol_formulas( mf_references_list, ion_type, find_isotopologues=True)
+        
+        for peak in ms_peaks_assigned:
+            
+            print([(mf.mz_error, mf.confidence_score, mf.isotopologue_similarity)  for mf in peak])
+        
+        #print(ms_peaks_assigned)
+        
 
 def auto_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormula]]], datadir: Path):
 

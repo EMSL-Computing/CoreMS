@@ -34,36 +34,54 @@ class MolecularFormulaCalc:
         '''
         return (2.758 * 10000000 * B * T) *(1/self.mz_calc)    
 
+    def _adduct_mz(self, adduct_atom, ion_charge):
+            return (self.neutral_mass + (Atoms.atomic_masses.get(adduct_atom)) + (ion_charge * -1 * Atoms.electron_mass))/ abs(ion_charge)
+
+    def _protonated_mz(self, ion_charge):
+            return (self.neutral_mass + (ion_charge * Atoms.atomic_masses.get("H")) + (ion_charge * -1 * Atoms.electron_mass))/abs(ion_charge)
+
+    def _radical_mz(self, ion_charge):
+            return (self.neutral_mass + (ion_charge * -1 * Atoms.electron_mass))/ abs(ion_charge)
+
+    def _neutral_mass(self):
+        
+        mass = 0
+
+        for each_atom in self._d_molecular_formula.keys() :
+                
+            if each_atom != Labels.ion_type and each_atom != 'HC':
+                
+                try:
+                
+                    mass = mass + Atoms.atomic_masses[each_atom]  *  self._d_molecular_formula.get(each_atom)
+                
+                except: print(Labels.ion_type, each_atom) 
+        
+        return mass
+
     def _calc_mz(self):
         
-        def protonated_mass(mass, ion_charge):
-            return (mass + (ion_charge * Atoms.atomic_masses.get("H")) + (ion_charge * -1 * Atoms.electron_mass))/abs(ion_charge)
-        
-        def radical_mass(mass, ion_charge):
-            return (mass + (ion_charge * -1 * Atoms.electron_mass))/ abs(ion_charge)
-
         if self.ion_charge:
             
-            mass = 0
+            if self._external_mz:
+                return self._external_mz
             
-            ion_type = self._d_molecular_formula.get(Labels.ion_type)
-
-            for each_atom in self._d_molecular_formula.keys() :
-                
-                if each_atom != Labels.ion_type and each_atom != 'HC':
-                    
-                    try:
-                        mass = mass + Atoms.atomic_masses[each_atom]  *  self._d_molecular_formula.get(each_atom)
-                    except: print(Labels.ion_type, each_atom) 
-            
-            if ion_type == Labels.protonated_de_ion:
-                return protonated_mass(mass, self.ion_charge)
-            
-            elif ion_type == Labels.radical_ion or ion_type == Labels.adduct_ion:   
-                return radical_mass(mass, self.ion_charge)
             else:
-                #formula is probably ion form used for bruker ref list
-                return radical_mass(mass, self.ion_charge)
+                ion_type = self._d_molecular_formula.get(Labels.ion_type)
+
+                if ion_type == Labels.protonated_de_ion:
+                    return self.protonated_mz
+                
+                elif ion_type == Labels.radical_ion or ion_type == Labels.adduct_ion:   
+                    return self.radical_mz
+                
+                elif ion_type == Labels.neutral:
+                
+                    return self.neutral_mass
+                
+                else:
+                    #formula is probably ion form used for bruker ref list
+                    return self.neutral_mass
                 
         else:
             
@@ -352,7 +370,7 @@ class MolecularFormulaCalc:
         for atom in dict_base.keys():
             mass = mass + Atoms.atomic_masses.get(atom) * dict_base.get(atom)
         
-        kendrick_mass = (int(mass)/mass)*self.mz_calc
+        kendrick_mass = (int(mass)/mass)* self.mz_calc
         
         nominal_km =int(kendrick_mass)
        

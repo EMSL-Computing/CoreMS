@@ -9,6 +9,7 @@ import cProfile
 import io
 import pstats
 import contextlib
+from typing import Dict
 
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
@@ -358,7 +359,7 @@ class MolecularCombinations:
         return classe_in_order_dict
 
     @staticmethod
-    def sort_classes( atoms_in_order, combination_dict) -> [str]: 
+    def sort_classes( atoms_in_order, combination_dict) -> Dict[str, Dict[str, int]]: 
         #ensures atoms are always in the order defined at atoms_in_order list
         join_dict_classes = dict()
         atoms_in_order =  ['N','S','P','O'] + atoms_in_order[4:] + ['HC']

@@ -32,6 +32,7 @@ class Labels: #pragma: no cover
     protonated = "protonated"
     de_protonated = "de-protonated"
     adduct_ion = "ADDUCT"
+    neutral = 'neutral'
     ion_type = 'IonType'
 
     ion_type_translate = { 'protonated': 'DE_OR_PROTONATED',
