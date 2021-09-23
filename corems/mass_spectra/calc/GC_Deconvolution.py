@@ -54,12 +54,12 @@ class MassDeconvolution:
                 # dict of mz and tuple (mass spectrum abundances index, and scan number)
                 if mz not in eic_dict.keys():
 
-                    eic_dict[mz] = [[abundance_list[index]], [ms_obj.rt] ]
+                    eic_dict[mz] = [[abundance_list[index]], [ms_obj.retention_time] ]
 
                 else:
 
                     eic_dict[mz][0].append(ms_obj.abundance[index])
-                    eic_dict[mz][1].append(ms_obj.rt)
+                    eic_dict[mz][1].append(ms_obj.retention_time)
 
         return eic_dict
 
@@ -249,7 +249,7 @@ class MassDeconvolution:
                 if plot_res:
 
                     plt.plot(gc_peak.rt_list, gc_peak.tic_list)
-                    plt.plot(gc_peak.rt, gc_peak.tic, c='black', marker= '^', linewidth=0)
+                    plt.plot(gc_peak.retention_time, gc_peak.tic, c='black', marker= '^', linewidth=0)
 
     def deconvolution(self, peaks_entity_data, plot_res):
 

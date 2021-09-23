@@ -80,7 +80,7 @@ class LCMSBase(Mapping, LC_Calculations):
 
         for key_ms in sorted(self._ms.keys()):
 
-            retention_time_list.append(self._ms.get(key_ms).rt)
+            retention_time_list.append(self._ms.get(key_ms).retention_time)
 
         self.retention_time = retention_time_list 
 

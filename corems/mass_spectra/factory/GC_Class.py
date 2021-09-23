@@ -128,7 +128,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
         for key_ms in sorted(self._ms.keys()):
 
-            retention_time_list.append(self._ms.get(key_ms).rt)
+            retention_time_list.append(self._ms.get(key_ms).retention_time)
 
         self.retention_time = retention_time_list
 
@@ -205,7 +205,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
     @property
     def sorted_gcpeaks(self):
-        return sorted(self, key=lambda g: g.rt)
+        return sorted(self, key=lambda g: g.retention_time)
 
     @property
     def unique_metabolites(self):
@@ -282,10 +282,10 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         if ax is None:
             ax = plt.gca()
 
-        max_rts = [gc_peak.mass_spectrum.rt for gc_peak in self]
+        max_rts = [gc_peak.mass_spectrum.retention_time for gc_peak in self]
         max_tics = [gc_peak.mass_spectrum.tic for gc_peak in self]
 
-        # min_rts = [self._ms[gc_peak.start_index].rt for gc_peak in self] + [self._ms[gc_peak.final_index].rt for gc_peak in self]
+        # min_rts = [self._ms[gc_peak.start_index].retention_time for gc_peak in self] + [self._ms[gc_peak.final_index].retention_time for gc_peak in self]
         # min_tics = [self._ms[gc_peak.start_index].tic for gc_peak in self] + [self._ms[gc_peak.final_index].tic for gc_peak in self]
         # sc = ax.scatter(min_rts, min_tics, color='yellow', linewidth=0, marker='v')
 
@@ -305,8 +305,8 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
             pos = sc.get_offsets()[ind["ind"][0]]
             annot.xy = pos
 
-            text = "RT: {}\nRT Ref: {}\nRI: {}\nRI Ref: {}\nSimilarity Score: {}\nName: {}".format(" ".join([str(round(self[n].rt, 2)) for n in ind["ind"]]),
-                           " ".join([str(round(self[n].highest_score_compound.rt, 2) if self[n].highest_score_compound else None) for n in ind["ind"]]),
+            text = "RT: {}\nRT Ref: {}\nRI: {}\nRI Ref: {}\nSimilarity Score: {}\nName: {}".format(" ".join([str(round(self[n].retention_time, 2)) for n in ind["ind"]]),
+                           " ".join([str(round(self[n].highest_score_compound.retention_time, 2) if self[n].highest_score_compound else None) for n in ind["ind"]]),
                            " ".join([str(round(self[n].ri, 2) if self[n].ri else None) for n in ind["ind"]]),
                            " ".join([str(round(self[n].highest_score_compound.ri, 2) if self[n].highest_score_compound else None) for n in ind["ind"]]),                           
                            " ".join([str(round(self[n].highest_score_compound.similarity_score, 4) if self[n].highest_score_compound else None) for n in ind["ind"]]),
@@ -471,7 +471,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
                          'candidate_names': gcms_peak.compound_names,
                          }
 
-            peaks_list[gcms_peak.rt] = dict_data
+            peaks_list[gcms_peak.retention_time] = dict_data
 
             for compound in gcms_peak:
 

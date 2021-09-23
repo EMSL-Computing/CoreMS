@@ -275,7 +275,7 @@ class HighResMassSpecExport(Thread):
 
         dict_ms_attrs = {}
         dict_ms_attrs['polarity'] = mass_spectrum.polarity
-        dict_ms_attrs['rt'] = mass_spectrum.rt
+        dict_ms_attrs['rt'] = mass_spectrum.retention_time
         dict_ms_attrs['tic'] = mass_spectrum.tic
         dict_ms_attrs['mobility_scan'] = mass_spectrum.mobility_scan
         dict_ms_attrs['mobility_rt'] = mass_spectrum.mobility_rt

@@ -43,8 +43,8 @@ class ChromaPeakBase():
         self._compounds = []
 
     @property   
-    def rt(self):
-        return self.mass_spectrum.rt
+    def retention_time(self):
+        return self.mass_spectrum.retention_time
 
     @property   
     def tic(self):
