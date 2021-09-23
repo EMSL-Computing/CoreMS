@@ -153,7 +153,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         self.scan_number = d_params.get("scan_number")
 
-        self.rt = d_params.get("rt")
+        self.retention_time = d_params.get("rt")
 
         self.mobility_rt = d_params.get("mobility_rt")
 

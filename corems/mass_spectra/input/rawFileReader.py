@@ -529,6 +529,7 @@ class ThermoBaseClass():
                                                          scanFilter, options)
         
         if averageScan:
+            
             mz_list = list(averageScan.SegmentedScan.Positions)
             abund_list = list(averageScan.SegmentedScan.Intensities)
 

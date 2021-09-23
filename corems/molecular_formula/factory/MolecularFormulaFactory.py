@@ -412,13 +412,34 @@ class LCMSLibRefMolecularFormula(MolecularFormulaBase):
     def name(self):
         return self._name
 
+    @name.setter
+    def name(self, name):
+        if isinstance(name, str):
+            self._name = name
+        else:
+            raise TypeError('name: {} should be type string')    
+
     @property
     def kegg_id(self):
         return self._kegg_id
     
+    @kegg_id.setter
+    def kegg_id(self, kegg_id):
+        if isinstance(kegg_id, str):
+            self._kegg_id = kegg_id
+        else:
+            raise TypeError('name: {} should be type string') 
+
     @property
     def cas(self):
-        return self.cas    
+        return self._cas    
+    
+    @cas.setter
+    def cas(self, cas):
+        if isinstance(cas, str):
+            self._cas = cas
+        else:
+            raise TypeError('name: {} should be type string') 
     
 class MolecularFormula(MolecularFormulaBase):
 

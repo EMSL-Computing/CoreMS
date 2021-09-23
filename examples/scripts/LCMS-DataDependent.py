@@ -114,6 +114,7 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
            
                 
                 apex_index = peak_index[1]
+                retention_time = eic_data.time[apex_index]
                 original_scan = eic_data.scans[apex_index]
                 
                 parser.chromatogram_settings.start_scan = original_scan
@@ -123,6 +124,7 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
                 if mass_spec:
                     
                     if original_scan not in scan_number_mass_spectrum.keys():
+                        mass_spec.retention_time = retention_time
                         scan_number_mass_spectrum[original_scan] = [mass_spec, possible_mf]
                         mass_spec.plot_mz_domain_profile()
                         #plt.show()
@@ -145,7 +147,9 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
         
         for peak in ms_peaks_assigned:
             
-            print([(mf.mz_error, mf.confidence_score, mf.isotopologue_similarity)  for mf in peak])
+            for mf in peak:
+                if not mf.is_isotopologue:
+                    print(mass_spectcrum_obj.retention_time, mf.name, mf.mz_error, mf.confidence_score, mf.isotopologue_similarity)  
         
         #print(ms_peaks_assigned)
         
