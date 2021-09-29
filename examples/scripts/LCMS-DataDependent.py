@@ -23,6 +23,7 @@ import pandas as pd
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.encapsulation.factory.parameters import LCMSParameters, MSParameters
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
+from corems.mass_spectra.calc.MZSearch import MZSearch
 from corems.molecular_formula.input.masslist_ref import ImportMassListRef
 from corems.encapsulation.constant import Labels
 from corems.mass_spectra.input import rawFileReader
@@ -57,8 +58,6 @@ def run_thermo(file_location, target_mzs: List[float]) -> Tuple[Dict[float, rawF
     # get selected data dependent mzs 
     target_mzs = parser.selected_mzs
     
-    print(target_mzs)
-
     eics_data, ax_eic = parser.get_eics(target_mzs,
                                         tic_data,
                                         smooth=True,
@@ -94,7 +93,7 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
 
     eics_data, parser = run_thermo(datapath, target_mzs)
 
-    #need to convert this to a lcms object
+    #TODO need to convert this to a lcms object
     scan_number_mass_spectrum = {}
     
     # mz is from calculate mz
@@ -102,13 +101,13 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
         
         #all possible m/z from the same mix, should be one per m/z as per current lib
         possible_mf = dict_tarrget_mzs.get(mz)
-
+        
         if eic_data.apexes:                    
-           
-            print("m/z =  {}, formulas = {}, names = {},  peaks indexes = {}, retention times = {}, abundance = {}".format(mz,
+            
+            print("m/z =  {}, formulas = {}, names = {}, peaks indexes = {}, retention times = {}, abundance = {}".format(mz,
                                                                                     [mf_obj.string for mf_obj in possible_mf],
                                                                                     [mf_obj.name for mf_obj in possible_mf],
-                                                                                    eic_data.apexes,
+                                                                                    [eic_data.scans[apex[1]] for apex in eic_data.apexes],
                                                                                     [eic_data.time[apex[1]] for apex in eic_data.apexes],
                                                                                     [eic_data.eic[apex[1]] for apex in eic_data.apexes]) )
 
@@ -119,20 +118,25 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
                 retention_time = eic_data.time[apex_index]
                 original_scan = eic_data.scans[apex_index]
                 
-                parser.chromatogram_settings.start_scan = original_scan
-                parser.chromatogram_settings.end_scan = original_scan
-                
-                mass_spec = parser.get_average_mass_spectrum_in_scan_range()
-                if mass_spec:
+                if original_scan in scan_number_mass_spectrum.keys():
                     
-                    if original_scan not in scan_number_mass_spectrum.keys():
-                        mass_spec.retention_time = retention_time
-                        scan_number_mass_spectrum[original_scan] = [mass_spec, possible_mf]
-                        mass_spec.plot_mz_domain_profile()
-                        #plt.show()
+                    scan_number_mass_spectrum[original_scan][1].extend(possible_mf)
+
                     
-                    else:
-                        scan_number_mass_spectrum[original_scan][1].extend(possible_mf)
+                else:
+                    
+                    parser.chromatogram_settings.start_scan = original_scan
+                    parser.chromatogram_settings.end_scan = original_scan
+                    
+                    mass_spec = parser.get_average_mass_spectrum_in_scan_range()
+                    mass_spec.min_ppm_error = - LCMSParameters.lc_ms.eic_tolerance_ppm
+                    mass_spec.max_ppm_error = LCMSParameters.lc_ms.eic_tolerance_ppm
+
+                    mass_spec.retention_time = retention_time
+                    scan_number_mass_spectrum[original_scan] = [mass_spec, [i for i in possible_mf]]
+                    #mass_spec.plot_mz_domain_profile()
+                    #plt.show()
+                    
     
     # TODO: create lcms and add dependent scans based on scan number 
     # Search molecular formulas on the mass spectrum, might need to use ProxyObject?
@@ -140,7 +144,7 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
     
     ion_type = Labels.protonated_de_ion
     
-    precision_decimals = 4
+    precision_decimals = 0
 
     for scan, ms_mf in scan_number_mass_spectrum.items():
         
@@ -148,22 +152,63 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
 
         mass_spectcrum_obj = ms_mf[0]
         mf_references_list = ms_mf[1]
+        
+        percursordata = {}
 
-        print()       
-
+        for scan_dependent_detail in dependent_scans.ScanDependentDetailArray:
+            
+            for precursor_mz in scan_dependent_detail.PrecursorMassArray:
+                
+                percursordata[precursor_mz] = scan_dependent_detail.ScanIndex
+        
+        #print(scan, [(mf.name, mf.mz_calc) for mf in mf_references_list], percursordata)
+        #print()
+        #print(scan, mass_spectcrum_obj.retention_time)
+        #print(mf_references_list)
         ms_peaks_assigned = SearchMolecularFormulas(mass_spectcrum_obj).search_mol_formulas( mf_references_list, ion_type, find_isotopologues=True)
         
+        #for precursor_mz in percursordata.keys():
+                   
         for peak in ms_peaks_assigned:
             
             for mf in peak:
+                
                 if not mf.is_isotopologue:
-                    print(mass_spectcrum_obj.retention_time, mf.name, mf.mz_calc, mf.mz_error, mf.confidence_score, mf.isotopologue_similarity)  
-        
-        if  ms_peaks_assigned:
+                
+                        #error = MZSearch.calc_mz_error(mf.mz_calc, precursor_mz)
+
+                        #check_error = MZSearch.check_ppm_error(LCMSParameters.lc_ms.eic_tolerance_ppm, error)
+                        
+                        #if check_error:
+                        print('YEAHHHHH')
+                        print(scan, mass_spectcrum_obj.retention_time, mf.name, mf.mz_calc, mf.mz_error, mf.confidence_score, mf.isotopologue_similarity)  
+                        print(peak.mz_exp, precursor_mz, percursordata.get(peak.mz_exp))
+                        
+                        dependent_scans = parser.iRawDataPlus.GetScanDependents(scan, precision_decimals)
+                        
+                        for scan_dependent_detail in dependent_scans.ScanDependentDetailArray:
+                            print([(precursor_mz,scan_dependent_detail.ScanIndex, scan_dependent_detail.IsolationWidthArray[index],  scan_dependent_detail.FilterString) for index, precursor_mz in enumerate(scan_dependent_detail.PrecursorMassArray)])
+                            
+                            parser.chromatogram_settings.start_scan = scan_dependent_detail.ScanIndex
+                            parser.chromatogram_settings.end_scan = scan_dependent_detail.ScanIndex
+                            
+                            ms_mass_spec = parser.get_centroid_msms_data(scan_dependent_detail.ScanIndex)
+                            ms_mass_spec.plot_mz_domain_profile()
+                            plt.show()      
+                        #mass_spectcrum_obj.plot_mz_domain_profile()  
+                        
+        #if  ms_peaks_assigned:
             
-            print([(i.ScanIndex, [i for i in i.PrecursorMassArray]) for i in dependent_scans.ScanDependentDetailArray])
+            #print(mass_spectcrum_obj.retention_time)
+        #    for peak in ms_peaks_assigned:
+        #        for mf in peak:
+        #            print(peak.mz_exp, mf.mz_calc)
+
+            #mass_spectcrum_obj.to_csv("{:.2f}".format(mass_spectcrum_obj.retention_time).replace('.', "-"))
+        #    print()
+        #    print([(i.ScanIndex, [i for i in i.PrecursorMassArray]) for i in dependent_scans.ScanDependentDetailArray])
         
-        print()       
+        #print()       
         #print(ms_peaks_assigned)
         
 

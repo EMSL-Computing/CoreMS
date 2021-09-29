@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from warnings import warn
 
 from matplotlib import axes
+
 from corems.mass_spectra.calc.LC_Calc import LC_Calculations
 import numpy as np
 import sys
@@ -493,6 +494,42 @@ class ThermoBaseClass():
 
         return mass_spec
 
+    def get_centroid_msms_data(self, scan):
+        
+        d_params = self.set_metadata(scans_list=[scan], label=Labels.thermo_centroid)
+
+        centroidStream = self.iRawDataPlus.GetCentroidStream(scan, False)
+
+        noise = list(centroidStream.Noises)
+
+        baselines = list(centroidStream.Baselines)
+
+        rp = list(centroidStream.Resolutions)
+
+        magnitude = list(centroidStream.Intensities)
+
+        mz = list(centroidStream.Masses)
+
+        # charge = scans_labels[5]
+        array_noise_std = (np.array(noise) - np.array(baselines)) / 3
+        l_signal_to_noise = np.array(magnitude) / array_noise_std
+
+        d_params['baselise_noise'] = np.average(array_noise_std)
+
+        d_params['baselise_noise_std'] = np.std(array_noise_std)
+
+        data_dict = {
+            Labels.mz: mz,
+            Labels.abundance: magnitude,
+            Labels.rp: rp,
+            Labels.s2n: list(l_signal_to_noise)
+        }
+
+        mass_spec = MassSpecCentroid(data_dict, d_params)
+
+        return mass_spec
+
+
     def get_average_mass_spectrum_in_scan_range(self, auto_process: bool = True, ppm_tolerance: float = 5.0,
                                                 ms_type: int = 0) -> MassSpecProfile:
 
@@ -545,7 +582,7 @@ class ThermoBaseClass():
             raise Exception('no data found for the MSOrderType = {}'.format(ms_type))
 
    
-    def set_metadata(self, firstScanNumber=0, lastScanNumber=0, scans_list=False):
+    def set_metadata(self, firstScanNumber=0, lastScanNumber=0, scans_list=False, label=Labels.thermo_profile):
         '''
         Collect metadata to be ingested in the mass spectrum object
 
@@ -558,7 +595,7 @@ class ThermoBaseClass():
 
         # assumes scans is full scan or reduced profile scan
 
-        d_params['label'] = Labels.thermo_profile
+        d_params['label'] = label
 
         if scans_list:
             d_params['scan_number'] = scans_list
@@ -596,6 +633,7 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass, LC_Calculations):
         enforce_target_ms2 = self.chromatogram_settings.enforce_target_ms2
         average_target_mz = self.chromatogram_settings.average_target_mz
         
+        print('TOLERANCE = {} ppm'.format(eic_tolerance_ppm))
         self._selected_mzs = self._init_target_mz(selected_mzs, enforce_target_ms2, 
                                                   eic_tolerance_ppm, average_target_mz)
 
@@ -603,7 +641,7 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass, LC_Calculations):
     def selected_mzs(self) -> List[float]:
         return list(self._selected_mzs)
 
-    def get_precursors_list(self, precision_decimals=4):
+    def get_precursors_list(self, precision_decimals=0):
         '''returns a set of unique precursors m/z
         precision_decimals: int
             change this parameters does not seem to affect the number of dependent scans selected
@@ -652,7 +690,7 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass, LC_Calculations):
 
         elif selected_mzs and enforce_target_ms2:
             # search the selected m/z list in the precursors m/z with a ms/ms experiment
-            
+            print("YEAHHHHH")
             searchmz = MZSearch(precursors_mzs, selected_mzs, tolerance_ppm, average_target_mz=average_target_mz)
             searchmz.start()
             searchmz.join()

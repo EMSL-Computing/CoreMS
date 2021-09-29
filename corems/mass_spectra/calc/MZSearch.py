@@ -38,7 +38,7 @@ class MZSearch(Thread):
 
         self._exp_mzs = exp_mzs
         
-        self.tolerance = tolerance
+        self._tolerance = tolerance
         self.method = method
 
         if average_target_mz:
@@ -125,6 +125,8 @@ class MZSearch(Thread):
                     break
 
                 error = self.calc_mz_error(self.calculated_mzs[i], self.calculated_mzs[i+1])
+                
+                print(self.tolerance)
 
                 check_error = self.check_ppm_error(self.tolerance, error)
                 
@@ -239,7 +241,6 @@ class MZSearch(Thread):
             error = self.calc_mz_error(calculated_mz, precursor_mz,
                                        method=self.method)
 
-            
             if self.check_ppm_error(self.tolerance, error):
 
                 new_match = SearchResults(calculated_mz,
