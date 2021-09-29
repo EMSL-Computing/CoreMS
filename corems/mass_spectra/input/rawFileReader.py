@@ -603,7 +603,7 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass, LC_Calculations):
     def selected_mzs(self) -> List[float]:
         return list(self._selected_mzs)
 
-    def get_precursors_list(self, precision_decimals=6):
+    def get_precursors_list(self, precision_decimals=4):
         '''returns a set of unique precursors m/z
         precision_decimals: int
             change this parameters does not seem to affect the number of dependent scans selected

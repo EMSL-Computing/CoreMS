@@ -73,7 +73,7 @@ class ImportMassListRef():#Thread
                 name = row["Compound Name"]
                 kegg_id = row["KEGG ID"]
                 standard_name = row["NEW MIX"]
-                cas = row["NEW MIX"]
+                cas = row["KEGG ID"]
                 #print(row["Neutral Formula"], formula_dict)
                 molf_formula = LCMSLibRefMolecularFormula(formula_dict, ion_charge, Labels.neutral, 
                                                 name=name, kegg_id=kegg_id, cas=cas)
