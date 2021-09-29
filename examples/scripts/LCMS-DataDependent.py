@@ -42,7 +42,7 @@ def run_thermo(file_location, target_mzs: List[float]) -> Tuple[Dict[float, rawF
 
     LCMSParameters.lc_ms.eic_signal_threshold = 0.1
     LCMSParameters.lc_ms.eic_tolerance_ppm = 5
-    LCMSParameters.lc_ms.enforce_target_ms2 = False
+    LCMSParameters.lc_ms.enforce_target_ms2 = True
     LCMSParameters.lc_ms.average_target_mz = False
     
     parser = rawFileReader.ImportDataDependentThermoMSFileReader(file_location, target_mzs)
@@ -56,6 +56,8 @@ def run_thermo(file_location, target_mzs: List[float]) -> Tuple[Dict[float, rawF
 
     # get selected data dependent mzs 
     target_mzs = parser.selected_mzs
+    
+    print(target_mzs)
 
     eics_data, ax_eic = parser.get_eics(target_mzs,
                                         tic_data,
@@ -138,19 +140,30 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
     
     ion_type = Labels.protonated_de_ion
     
+    precision_decimals = 4
+
     for scan, ms_mf in scan_number_mass_spectrum.items():
         
+        dependent_scans = parser.iRawDataPlus.GetScanDependents(scan, precision_decimals)
+
         mass_spectcrum_obj = ms_mf[0]
         mf_references_list = ms_mf[1]
-        
+
+        print()       
+
         ms_peaks_assigned = SearchMolecularFormulas(mass_spectcrum_obj).search_mol_formulas( mf_references_list, ion_type, find_isotopologues=True)
         
         for peak in ms_peaks_assigned:
             
             for mf in peak:
                 if not mf.is_isotopologue:
-                    print(mass_spectcrum_obj.retention_time, mf.name, mf.mz_error, mf.confidence_score, mf.isotopologue_similarity)  
+                    print(mass_spectcrum_obj.retention_time, mf.name, mf.mz_calc, mf.mz_error, mf.confidence_score, mf.isotopologue_similarity)  
         
+        if  ms_peaks_assigned:
+            
+            print([(i.ScanIndex, [i for i in i.PrecursorMassArray]) for i in dependent_scans.ScanDependentDetailArray])
+        
+        print()       
         #print(ms_peaks_assigned)
         
 
