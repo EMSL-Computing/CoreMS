@@ -84,12 +84,9 @@ def read_lib(ref_filepath:Path):
 
     return mf_references_dict
 
-def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormula]]], datapath: Path):
+def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormula]]], datapath: Path, current_mix: str):
 
     plt.rcParams["figure.figsize"] = (16,8)
-
-    #get mix name from filename
-    current_mix = (re.findall(r'Mix[0-9]{1,2}', str(datapath)))[0]
 
     #get target compounds mz and molecular formulas
     dict_tarrget_mzs = mf_references_dict.get(current_mix)   
@@ -145,8 +142,8 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
                     
     
     # TODO: create lcms and add dependent scans based on scan number 
-    # Search molecular formulas on the mass spectrum, might need to use ProxyObject?
     # Add Adducts search, right now only working for de or protonated species
+    # Export function with csv files
     
     ion_type = Labels.protonated_de_ion
     
@@ -303,32 +300,8 @@ def auto_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormula
         if file_paths:
             for file_path in file_paths:
                 
-                dict_tarrget_mzs = mf_references_dict.get(mix_name)    
-                #mf_list = [mf for mf in mf_references_dict.get(mix_name)]
-
-                target_mzs = dict_tarrget_mzs.keys()
+                single_process(mf_references_dict, file_path, current_mix)
                 
-                #print(target_mzs)
-                eics_data, parser = run_thermo(file_path, target_mzs)
-
-                for mz, eic_data in eics_data.items():
-
-                    if eic_data.apexes:
-                        
-                        possible_mf = dict_tarrget_mzs.get(mz)
-                            
-                        print("m/z =  {}, formulas = {}, names = {},  peaks indexes = {}, retention times = {}, abundance = {}".format(mz,
-                                    [mf_obj.string for mf_obj in possible_mf],
-                                    [mf_obj.name for mf_obj in possible_mf],
-                                    eic_data.apexes,
-                                    [eic_data.time[apex[1]] for apex in eic_data.apexes],
-                                    [eic_data.eic[apex[1]] for apex in eic_data.apexes]) )
-                            #print(mz, eic_data.apexes, [eic_data.time[apex[1]] for apex in eic_data.apexes])
-                print()
-                print()
-                #print(parser.get_all_filters())
-                #plt.show()
-
         else:
             warn("Could not find a any raw data with mix name: {}".format(mix_name))
 
@@ -347,9 +320,12 @@ if __name__ == "__main__":
     
     if file_location:
         
+        #get mix name from filename
+        current_mix = (re.findall(r'Mix[0-9]{1,2}', str(file_location)))[0]
+
         #get the list of molecular formulas objects for each stardard compound maped by mix name
         mf_references_dict = read_lib(ref_file_location)
-        single_process(mf_references_dict, file_location)
+        single_process(mf_references_dict, file_location, current_mix)
         #loop trought a directory, find and match mix name to raw file, 
         # search eic, do peak picking, for target compounds, currently enforcing parent ion selected to MS2, 
         # to change settings, chage  LCMSParameters.lc_ms parameters inside run_thermo() function:
