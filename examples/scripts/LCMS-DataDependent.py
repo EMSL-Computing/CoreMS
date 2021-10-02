@@ -7,6 +7,8 @@ from logging import warn
 import re
 from typing import Dict, List, Tuple
 import warnings
+
+import numpy as np
 warnings.filterwarnings("ignore")
 
 import sys
@@ -43,7 +45,7 @@ def run_thermo(file_location, target_mzs: List[float]) -> Tuple[Dict[float, rawF
 
     LCMSParameters.lc_ms.eic_signal_threshold = 0.1
     LCMSParameters.lc_ms.eic_tolerance_ppm = 5
-    LCMSParameters.lc_ms.enforce_target_ms2 = True
+    LCMSParameters.lc_ms.enforce_target_ms2 = False
     LCMSParameters.lc_ms.average_target_mz = False
     
     parser = rawFileReader.ImportDataDependentThermoMSFileReader(file_location, target_mzs)
@@ -66,6 +68,7 @@ def run_thermo(file_location, target_mzs: List[float]) -> Tuple[Dict[float, rawF
                                         peak_detection=True,
                                         ax=ax_tic)
     
+    plt.tight_layout()
     plt.show()
     #ax_eic.plot(tic_data.time, tic_data.tic, c='black')
     return eics_data, parser
@@ -82,6 +85,8 @@ def read_lib(ref_filepath:Path):
     return mf_references_dict
 
 def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormula]]], datapath: Path):
+
+    plt.rcParams["figure.figsize"] = (16,8)
 
     #get mix name from filename
     current_mix = (re.findall(r'Mix[0-9]{1,2}', str(datapath)))[0]
@@ -129,6 +134,7 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
                     parser.chromatogram_settings.end_scan = original_scan
                     
                     mass_spec = parser.get_average_mass_spectrum_in_scan_range()
+                    
                     mass_spec.min_ppm_error = - LCMSParameters.lc_ms.eic_tolerance_ppm
                     mass_spec.max_ppm_error = LCMSParameters.lc_ms.eic_tolerance_ppm
 
@@ -168,8 +174,34 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
         ms_peaks_assigned = SearchMolecularFormulas(mass_spectcrum_obj).search_mol_formulas( mf_references_list, ion_type, find_isotopologues=True)
         
         #for precursor_mz in percursordata.keys():
-                   
-        for peak in ms_peaks_assigned:
+        
+        ax = mass_spectcrum_obj.plot_mz_domain_profile() 
+        is_assigned = False
+        target_title = 'Target Molecule(s) = '
+        for peak in mass_spectcrum_obj:
+            
+            for mf in peak:
+                is_assigned = True
+                
+                if not mf.is_isotopologue:
+                    target_title += "{}-{} m/z = {:.4f}".format(mf.name, mf.string_formated, mf.protonated_mz)
+                
+                annotation = "Mol. Form = {}\nm\z = {:.4f}\nerror = {:.4f}\nconfidence score = {:.2f}\nisotopologue score = {:.2f}".format(mf.string_formated, peak.mz_exp, mf.mz_error, mf.confidence_score, mf.isotopologue_similarity)
+                ax.annotate(annotation , xy=(peak.mz_exp, peak.abundance),
+                                            xytext=(+3, np.sign(peak.abundance)*-40), textcoords="offset points",
+                                            horizontalalignment="left",
+                                            verticalalignment="bottom" if peak.abundance > 0 else "top")
+
+        
+        if is_assigned:
+            
+            ax.set_title("Retention Time = {:.3f} {}".format(mass_spectcrum_obj.retention_time, target_title), fontsize=9,)
+            plt.tight_layout()
+            plt.show()                    
+        else:
+            plt.cla()
+
+        for peak in mass_spectcrum_obj:
             
             for mf in peak:
                 
@@ -187,15 +219,57 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
                         dependent_scans = parser.iRawDataPlus.GetScanDependents(scan, precision_decimals)
                         
                         for scan_dependent_detail in dependent_scans.ScanDependentDetailArray:
-                            print([(precursor_mz,scan_dependent_detail.ScanIndex, scan_dependent_detail.IsolationWidthArray[index],  scan_dependent_detail.FilterString) for index, precursor_mz in enumerate(scan_dependent_detail.PrecursorMassArray)])
                             
-                            parser.chromatogram_settings.start_scan = scan_dependent_detail.ScanIndex
-                            parser.chromatogram_settings.end_scan = scan_dependent_detail.ScanIndex
+                            for index, precursor_mz in enumerate(scan_dependent_detail.PrecursorMassArray):
+                                
+                                error_ppm_window = (scan_dependent_detail.IsolationWidthArray[index]/precursor_mz) *1000000
+
+                                error = MZSearch.calc_mz_error(mf.mz_calc, precursor_mz)
+
+                                check_error = MZSearch.check_ppm_error(error_ppm_window, error)
+
+                                if  check_error:
+                                    
+                                    print(precursor_mz,scan_dependent_detail.ScanIndex, scan_dependent_detail.IsolationWidthArray[index],  scan_dependent_detail.FilterString)
                             
-                            ms_mass_spec = parser.get_centroid_msms_data(scan_dependent_detail.ScanIndex)
-                            ms_mass_spec.plot_mz_domain_profile()
-                            plt.show()      
-                        #mass_spectcrum_obj.plot_mz_domain_profile()  
+                                    parser.chromatogram_settings.start_scan = scan_dependent_detail.ScanIndex
+                                    parser.chromatogram_settings.end_scan = scan_dependent_detail.ScanIndex
+                                    
+                                    ms2_mass_spec = parser.get_centroid_msms_data(scan_dependent_detail.ScanIndex)
+                                    ax = ms2_mass_spec.plot_mz_domain_profile()
+                                    
+                                    ax.set_title("Retention Time = {:.2f}, Precursor m/z = {:.4f}, Isolation window m/z = {:.1f} \
+                                                 Target Molecule = {} m/z = {:.4f} Molecular formula {}\n  ".format(mass_spec.retention_time,
+                                                                                                                precursor_mz, scan_dependent_detail.IsolationWidthArray[index],
+                                                                                                                mf.name, mf.mz_calc, mf.string_formated), fontsize=9,)
+                                                                                                    
+                                    #ms_peaks_assigned = SearchMolecularFormulas(mass_spectcrum_obj).search_mol_formulas( mf_references_list, ion_type, find_isotopologues=True)
+                                        
+                                    used_atoms = {'C' : (1, mf.get('C')), 'H': (2, mf.get('H')) }    
+                                    for atoms, value in mf.class_dict.items():
+                                        used_atoms[atoms] = (0, value)
+                                    print(used_atoms)
+                                    
+                                    ms2_mass_spec.molecular_search_settings.usedAtoms = used_atoms
+                                    ms2_mass_spec.molecular_search_settings.min_ppm_error = -15 #parser.chromatogram_settings.eic_tolerance_ppm
+                                    ms2_mass_spec.molecular_search_settings.max_ppm_error = 15 #parser.chromatogram_settings.eic_tolerance_ppm
+                                    ms2_mass_spec.molecular_search_settings.use_min_peaks_filter = False
+                                    ms2_mass_spec.molecular_search_settings.use_runtime_kendrick_filter = False
+                                    ms2_mass_spec.molecular_search_settings.isRadical = False
+                                    SearchMolecularFormulas(ms2_mass_spec, find_isotopologues=False).run_worker_mass_spectrum()
+
+                                    for msmspeak in ms2_mass_spec:
+                                        print(msmspeak.mz_exp)    
+                                        for mf_msms in msmspeak:
+                                            annotation = "{} {:.4f}".format(mf_msms.string_formated, mf_msms.mz_error)
+                                            ax.annotate(annotation , xy=(msmspeak.mz_exp, msmspeak.abundance),
+                                                xytext=(-3, np.sign(msmspeak.abundance)*-3), textcoords="offset points",
+                                                horizontalalignment="left",
+                                                verticalalignment="bottom" if msmspeak.abundance > 0 else "top")
+                                            print(mf_msms, mf_msms.mz_error)
+                                    
+                                    plt.tight_layout()
+                                    plt.show()    
                         
         #if  ms_peaks_assigned:
             
