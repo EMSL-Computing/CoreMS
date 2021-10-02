@@ -40,10 +40,10 @@ def run_thermo(file_location, target_mzs: List[float]) -> Tuple[Dict[float, rawF
 
     LCMSParameters.lc_ms.smooth_window = 5
     
-    LCMSParameters.lc_ms.min_peak_datapoints = 3
+    LCMSParameters.lc_ms.min_peak_datapoints = 5
     LCMSParameters.lc_ms.peak_height_min_percent = 0.1
 
-    LCMSParameters.lc_ms.eic_signal_threshold = 0.1
+    LCMSParameters.lc_ms.eic_signal_threshold = 1
     LCMSParameters.lc_ms.eic_tolerance_ppm = 5
     LCMSParameters.lc_ms.enforce_target_ms2 = False
     LCMSParameters.lc_ms.average_target_mz = False
@@ -135,8 +135,8 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
                     
                     mass_spec = parser.get_average_mass_spectrum_in_scan_range()
                     
-                    mass_spec.min_ppm_error = - LCMSParameters.lc_ms.eic_tolerance_ppm
-                    mass_spec.max_ppm_error = LCMSParameters.lc_ms.eic_tolerance_ppm
+                    mass_spec.min_ppm_error = - 5
+                    mass_spec.max_ppm_error = 5
 
                     mass_spec.retention_time = retention_time
                     scan_number_mass_spectrum[original_scan] = [mass_spec, [i for i in possible_mf]]
