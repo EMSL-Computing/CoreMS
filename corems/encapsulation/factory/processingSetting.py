@@ -316,7 +316,7 @@ class MolecularLookupDictSettings:
                           'Cl': (0, 0),
                           }
 
-        self.min_mz = 100
+        self.min_mz = 50
 
         self.max_mz = 1200
 

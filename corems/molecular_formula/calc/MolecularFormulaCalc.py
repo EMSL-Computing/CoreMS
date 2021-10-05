@@ -203,6 +203,30 @@ class MolecularFormulaCalc:
 
         return result
 
+    def subtract_formula(self, formula_obj):
+        
+        subtraction = {}
+        for atom, value in self.to_dict().items():
+            if atom != Labels.ion_type:
+                if formula_obj.get(atom):
+                    value_subtraction = value - formula_obj.get(atom)
+                    if value - formula_obj.get(atom) > 0:
+                        subtraction[atom] = value - formula_obj.get(atom)
+                else:
+                    subtraction[atom] = value
+                    
+        SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
+        SUP = str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹")
+        
+        formula_srt = ''
+        for atom in Atoms.atoms_order:
+            if atom in subtraction.keys():
+                formula_srt += atom.translate(SUP) + str(int(subtraction.get(atom))).translate(SUB)
+        return formula_srt
+            
+        return (subtraction)
+        
+
     def _calc_average_mz_score(self):
         
         if self.is_isotopologue:

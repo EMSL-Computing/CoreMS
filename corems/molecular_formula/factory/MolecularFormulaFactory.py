@@ -425,10 +425,12 @@ class LCMSLibRefMolecularFormula(MolecularFormulaBase):
     
     @kegg_id.setter
     def kegg_id(self, kegg_id):
-        if isinstance(kegg_id, str):
-            self._kegg_id = kegg_id
-        else:
-            raise TypeError('name: {} should be type string') 
+        self._kegg_id = kegg_id
+        #if isinstance(kegg_id, str):
+        #    self._kegg_id = kegg_id
+        #else:
+        #    print(kegg_id)
+        #    raise TypeError('name: {} should be type string') 
 
     @property
     def cas(self):
@@ -436,10 +438,11 @@ class LCMSLibRefMolecularFormula(MolecularFormulaBase):
     
     @cas.setter
     def cas(self, cas):
-        if isinstance(cas, str):
-            self._cas = cas
-        else:
-            raise TypeError('name: {} should be type string') 
+        self._cas = cas
+        #if isinstance(cas, str):
+        #    self._cas = cas
+        #else:
+        #    raise TypeError('name: {} should be type string') 
     
 class MolecularFormula(MolecularFormulaBase):
 
