@@ -424,7 +424,7 @@ class ThermoBaseClass():
                     ax = plt.gca()
                     # fig, ax = plt.subplots(figsize=(6, 3))
 
-                ax.plot(data.time, data.tic, label=ms_type + ' TIC')    
+                ax.plot(data.time, data.tic, label=' TIC')    
                 ax.set_xlabel('Time (min)')
                 ax.set_ylabel('a.u.')
                 if peak_detection:
@@ -433,7 +433,7 @@ class ThermoBaseClass():
                         apex_index = peak_indexes[1]
                         ax.plot(data.time[apex_index], data.tic[apex_index], marker='x', linewidth=0)
                     
-                plt.legend()
+                
                 # plt.show()
                 return data, ax
             
@@ -525,8 +525,11 @@ class ThermoBaseClass():
             Labels.s2n: list(l_signal_to_noise)
         }
 
-        mass_spec = MassSpecCentroid(data_dict, d_params)
-
+        
+        mass_spec = MassSpecCentroid(data_dict, d_params, auto_process=False)
+        mass_spec.settings.threshold_method = 'relative_abundance'
+        mass_spec.settings.relative_abundance_threshold = 1
+        mass_spec.process_mass_spec()
         return mass_spec
 
 

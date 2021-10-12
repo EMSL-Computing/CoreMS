@@ -163,7 +163,7 @@ class DataDependentLCMS(LC_Calculations):
 
     def add_peak(self, mass_spectrum):
         
-        self._lcmspeaks.append(mass_spectrum)    
+        self._lcmspeaks.append(mass_spectrum)
 
     @property
     def scans_number(self):

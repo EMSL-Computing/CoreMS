@@ -84,13 +84,13 @@ def run_thermo(file_location, target_mzs: List[float]) -> Tuple[Dict[float, rawF
     LCMSParameters.lc_ms.min_peak_datapoints = 3
     LCMSParameters.lc_ms.peak_height_min_percent = 1
 
-    LCMSParameters.lc_ms.eic_signal_threshold = 1
+    LCMSParameters.lc_ms.eic_signal_threshold = 0.1
     LCMSParameters.lc_ms.eic_tolerance_ppm = 5
     LCMSParameters.lc_ms.enforce_target_ms2 = False
     LCMSParameters.lc_ms.average_target_mz = False
     
     parser = rawFileReader.ImportDataDependentThermoMSFileReader(file_location, target_mzs)
-
+    
     tic_data, ax_tic = parser.get_tic(ms_type='MS !d', peak_detection=True, 
                                       smooth=True, plot=False)
     
@@ -109,7 +109,9 @@ def run_thermo(file_location, target_mzs: List[float]) -> Tuple[Dict[float, rawF
                                         peak_detection=True,
                                         ax=ax_tic)
     
+    #plt.legend()
     #plt.tight_layout()
+    #plt.title("")
     #plt.show()
     #ax_eic.plot(tic_data.time, tic_data.tic, c='black')
     return eics_data, parser
@@ -117,7 +119,7 @@ def run_thermo(file_location, target_mzs: List[float]) -> Tuple[Dict[float, rawF
 
 def read_lib(ref_filepath:Path):
 
-    ion_charge = 1   
+    ion_charge = -1   
 
     iontypes = [Labels.protonated_de_ion]
     
@@ -199,7 +201,7 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
                     #mass_spec.plot_mz_domain_profile()
                     #plt.show()
                     
-    _write_frame_to_new_sheet(path_to_file="C18 2nd run POS Results.xlsx", sheet_name='all_eic_results', data=results_list)
+    _write_frame_to_new_sheet(path_to_file="HILIC NEG Results.xlsx", sheet_name='all_eic_results', data=results_list)
     # TODO: create lcms and add dependent scans based on scan number 
     # Add Adducts search, right now only working for de or protonated species
     # Export function with csv files
@@ -253,7 +255,7 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
         
         if is_assigned:
             
-            dir = Path(str(datapath.parent).replace('RAW Files', 'Results'))
+            dir = Path(str(datapath.parent).replace('RAW Files', 'Results MS2 Noise Threshould'))
             if not dir.exists():
                 dir.mkdir(parents=True, exist_ok=True)
 
@@ -263,7 +265,7 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
             plt.tight_layout()
             #plt.show()
             plt.savefig(str(dir) + '/' + ms1_output_file + '.png')
-            plt.cla()
+            plt.clf()
 
            
         
@@ -273,7 +275,7 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
         
         else:
             
-            plt.cla()
+            plt.clf()
 
         for peak in mass_spectcrum_obj:
             
@@ -374,7 +376,7 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
                                         'MS1 Output': ms1_output_file, 'MS2 Output': ms2_output_file}
                                     
                                     
-                                    dir = Path(str(datapath.parent).replace('RAW Files', 'Results'))
+                                    dir = Path(str(datapath.parent).replace('RAW Files', 'Results MS2 Noise Threshould'))
                                     
                                     if not dir.exists():
                                         dir.mkdir(parents=True, exist_ok=True)
@@ -392,8 +394,9 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
                                             
                                     plt.tight_layout()
                                     plt.savefig(str(dir) + '/' + ms2_output_file+'.png')
-                                    plt.cla()
-                                    #plt.show()  
+                                    #plt.show() 
+                                    plt.clf()
+                                     
 
                         # save results without the fragmentation
                         if not selected_for_ms2:
@@ -466,11 +469,11 @@ def auto_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormula
 
     for molecule_name, data in dict_res.items():
 
-        _write_frame_to_new_sheet(path_to_file= 'C18 2nd run POS Results.xlsx', sheet_name='molecular_formula_results', data=data)
+        _write_frame_to_new_sheet(path_to_file= 'HILIC NEG Results.xlsx', sheet_name='molecular_formula_results', data=data)
 
 if __name__ == "__main__":
     
-    dirpath = "/Users/eber373/OneDrive - PNNL/Documents/Data/LCMS/RAW Files/C18/2nd Run/POS/"
+    dirpath = "/Users/eber373/OneDrive - PNNL/Documents/Data/LCMS/RAW Files/HILIC/NEG/"
     ref_dirpath = "/Users/eber373/OneDrive - PNNL/Documents/Data/LCMS/"
     filename = "LCMS_5191_CapDev_C18_Mix1_NEG_28Apr2021.raw"
     ref_filename = "LCMS_StantardLibrary.csv"
@@ -489,14 +492,14 @@ if __name__ == "__main__":
     # to change settings, chage  LCMSParameters.lc_ms parameters inside run_thermo() function:
         
     auto_process(mf_references_dict, dirpath)
-    
+    #mf_results_dic = {}
     #if file_location:
         
         #get mix name from filename
     #    current_mix = (re.findall(r'Mix[0-9]{1,2}', str(file_location)))[0]
 
         
-        #single_process(mf_references_dict, file_location, current_mix)
+    #    single_process(mf_references_dict, file_location, current_mix, mf_results_dic)
         #loop trought a directory, find and match mix name to raw file, 
         # search eic, do peak picking, for target compounds, currently enforcing parent ion selected to MS2, 
         # to change settings, chage  LCMSParameters.lc_ms parameters inside run_thermo() function:

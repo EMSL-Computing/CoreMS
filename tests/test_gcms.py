@@ -128,4 +128,5 @@ def test_run_gcms_pipeline():
     calibrate_and_search(out_put_file_name)
 
 if __name__ == "__main__":
+    #test_sql_database()
     test_run_gcms_pipeline()

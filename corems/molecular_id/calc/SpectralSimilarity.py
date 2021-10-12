@@ -252,6 +252,7 @@ class SpectralSimilarity():
                 n = 1
             else:
                 n = -1
+            
             s_r_x_y = s_r_x_y + power(temp_computation, n)
 
         # finish the calculation of S_R(X,Y)
