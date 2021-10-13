@@ -988,7 +988,9 @@ class MassSpecCentroid(MassSpecBase):
         
         print("Loading mass spectrum object")
         
-        abundance_threshold, factor = self.get_threshold(data_dict.get(Labels.abundance))
+        abun = data_dict.get(Labels.abundance)
+        
+        abundance_threshold, factor = self.get_threshold(abun)
         
         for index, mz in enumerate(data_dict.get(Labels.mz)):
             

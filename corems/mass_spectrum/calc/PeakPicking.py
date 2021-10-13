@@ -232,10 +232,12 @@ class PeakPicking:
             
             if self.is_centroid:
                 warn("Auto threshould is disabled for centroid data, returning 0")
-                return 0
+                factor = 1
+                abundance_threshold = 0
             #print(self.settings.noise_threshold_std)
-            abundance_threshold = self.baselise_noise + (self.settings.noise_threshold_std * self.baselise_noise_std)
-            factor = 1
+            else:
+                abundance_threshold = self.baselise_noise + (self.settings.noise_threshold_std * self.baselise_noise_std)
+                factor = 1
 
         elif threshold_method == 'signal_noise':
 
