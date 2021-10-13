@@ -905,7 +905,7 @@ class MassSpecCentroid(MassSpecBase):
     see also: MassSpecBase(), MassSpecfromFreq(), MassSpecProfile()
     '''
 
-    def __init__(self, data_dict, d_params, auto_process=False):
+    def __init__(self, data_dict, d_params, auto_process=True):
 
         """needs to simulate peak shape and pass as mz_exp and magnitude."""
 
