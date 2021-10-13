@@ -5,7 +5,7 @@
 
 from logging import warn
 from numpy import hstack, inf, isnan, poly1d, polyfit, where, array
-
+from numpy import float as npfloat
 from corems.encapsulation.constant import Labels
 
 class PeakPicking:
@@ -224,8 +224,8 @@ class PeakPicking:
         
     def get_threshold(self, intes):
         
-        intes = array(intes)
-        print
+        intes = array(intes).astype(npfloat)
+       
         threshold_method = self.settings.threshold_method
 
         if threshold_method == 'auto':
@@ -233,7 +233,7 @@ class PeakPicking:
             if self.is_centroid:
                 warn("Auto threshould is disabled for centroid data, returning 0")
                 factor = 1
-                abundance_threshold = 0
+                abundance_threshold = 1e-20
             #print(self.settings.noise_threshold_std)
             else:
                 abundance_threshold = self.baselise_noise + (self.settings.noise_threshold_std * self.baselise_noise_std)

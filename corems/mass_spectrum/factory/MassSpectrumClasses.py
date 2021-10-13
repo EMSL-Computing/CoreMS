@@ -4,6 +4,7 @@ from copy import deepcopy
 
 #from matplotlib import rcParamsDefault, rcParams
 from numpy import array, power, float64, where
+from numpy import float as np_float
 
 from corems.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
 from corems.mass_spectrum.calc.KendrickGroup import KendrickGrouping
@@ -982,13 +983,13 @@ class MassSpecCentroid(MassSpecBase):
         #l_exp_mz_centroid = data_dict.get(Labels.mz)
         #l_intes_centr = data_dict.get(Labels.abundance)
         #l_peak_resolving_power = data_dict.get(Labels.rp)
-        l_s2n = data_dict.get(Labels.s2n)
+        l_s2n = list(data_dict.get(Labels.s2n))
         
         if not l_s2n: s2n = False
         
         print("Loading mass spectrum object")
         
-        abun = data_dict.get(Labels.abundance)
+        abun = array(data_dict.get(Labels.abundance)).astype(np_float)
         
         abundance_threshold, factor = self.get_threshold(abun)
         
@@ -999,14 +1000,14 @@ class MassSpecCentroid(MassSpecBase):
             
             if s2n:
                 
-                if data_dict.get(Labels.abundance)[index]/factor >= abundance_threshold:
+                if abun[index]/factor >= abundance_threshold:
 
                     self.add_mspeak(
                         ion_charge,
                         mz,
-                        data_dict.get(Labels.abundance)[index],
-                        data_dict.get(Labels.rp)[index],
-                        l_s2n[index],
+                        abun[index],
+                        float(data_dict.get(Labels.rp)[index]),
+                        float(l_s2n[index]),
                         massspec_indexes,
                         ms_parent=self
                     )
@@ -1018,8 +1019,8 @@ class MassSpecCentroid(MassSpecBase):
                     self.add_mspeak(
                         ion_charge,
                         mz,
-                        data_dict.get(Labels.abundance)[index],
-                        data_dict.get(Labels.rp)[index],
+                        abun[index],
+                        float(data_dict.get(Labels.rp)[index]),
                         -999,
                         massspec_indexes,
                         ms_parent=self
