@@ -8,15 +8,16 @@ import re
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 24, 2019"
 
-class MolecularFormula(MolecularFormulaCalc):
+class MolecularFormulaBase(MolecularFormulaCalc):
     '''
     classdocs
     '''
-    def __init__(self, molecular_formula, ion_charge, ion_type=None, adduct_atom=None, mspeak_parent=None):
+    def __init__(self, molecular_formula, ion_charge, ion_type=None, 
+                adduct_atom=None, mspeak_parent=None, external_mz=None):
         
         #clear dictionary of atoms with 0 value
         
-        if   type(molecular_formula) is dict:
+        if  type(molecular_formula) is dict:
                 self._from_dict(molecular_formula, ion_type, adduct_atom)   
         
         elif type(molecular_formula) is list:
@@ -26,15 +27,16 @@ class MolecularFormula(MolecularFormulaCalc):
                 self._from_str(molecular_formula, ion_type, adduct_atom)   
 
         
+        
         self._ion_charge = ion_charge
-
+        self._external_mz = external_mz
         self._confidence_score = None        
         self._isotopologue_similarity = None
         self._mz_error_score = None
         self._mass_error_average_score = None
 
         self.is_isotopologue = False
-
+        
         # parent mass spectrum peak obj instance
         self._mspeak_parent = mspeak_parent
 
@@ -68,7 +70,6 @@ class MolecularFormula(MolecularFormulaCalc):
                 return self._d_molecular_formula[atom]
             else:
                 return 0
-    
     def get(self, atom):
         
             #atom = list(self._d_molecular_formula.keys())[position]
@@ -80,20 +81,14 @@ class MolecularFormula(MolecularFormulaCalc):
     def _from_dict(self, molecular_formula, ion_type, adduct_atom):
         
         self._d_molecular_formula = {key:val for key, val in molecular_formula.items() if val != 0}
+        
         if ion_type:
             self._d_molecular_formula[Labels.ion_type] = ion_type
+            
         if adduct_atom:
             if adduct_atom in self._d_molecular_formula:
                 self._d_molecular_formula[adduct_atom] += 1 
             else: self._d_molecular_formula[adduct_atom] = 1 
-
-        
-    @property
-    def isotopologue_count_percentile(self, ):
-        if not len(self.expected_isotopologues) == 0:
-            return (len(self.mspeak_mf_isotopologues_indexes)/len(self.expected_isotopologues))*100
-        else: 
-            return 100
 
     def _from_list(self, molecular_formula_list, ion_type, adduct_atom):
         # list has to be in the format 
@@ -103,6 +98,7 @@ class MolecularFormula(MolecularFormulaCalc):
             
             atoms_label =  molecular_formula_list[each]
             atoms_count = int(molecular_formula_list[each+1])
+            
             if atoms_count > 0:
                 self._d_molecular_formula[atoms_label] = int(atoms_count)
         
@@ -135,6 +131,13 @@ class MolecularFormula(MolecularFormulaCalc):
         return [isotopes[0], int(counts[1])]
 
     @property
+    def isotopologue_count_percentile(self, ):
+        if not len(self.expected_isotopologues) == 0:
+            return (len(self.mspeak_mf_isotopologues_indexes)/len(self.expected_isotopologues))*100
+        else: 
+            return 100
+
+    @property
     def O_C(self): 
             
             if 'O' in self._d_molecular_formula.keys():
@@ -156,6 +159,17 @@ class MolecularFormula(MolecularFormulaCalc):
 
     @property
     def mz_calc(self): return self._calc_mz()
+
+    @property
+    def protonated_mz(self): return self._protonated_mz(self.ion_charge)
+    
+    @property
+    def radical_mz(self): return self._radical_mz(self.ion_charge)
+    
+    @property
+    def neutral_mass(self): return self._neutral_mass()
+    
+    def adduct_mz(self, adduct_atom): return self._adduct_mz(adduct_atom, self.ion_charge)
 
     @property
     def ion_type(self): 
@@ -350,7 +364,7 @@ class MolecularFormula(MolecularFormulaCalc):
         raise Exception("Molecular formula identification not performed yet")           
     
 
-class MolecularFormulaIsotopologue(MolecularFormula):
+class MolecularFormulaIsotopologue(MolecularFormulaBase):
         
     '''
     classdocs
@@ -381,4 +395,58 @@ class MolecularFormulaIsotopologue(MolecularFormula):
     def abundance_error(self):
         return self._calc_abundance_error()
 
+class LCMSLibRefMolecularFormula(MolecularFormulaBase):
+
+    
+    def __init__(self, molecular_formula, ion_charge, ion_type=None, 
+                    adduct_atom=None, mspeak_parent=None, name=None, kegg_id=None, cas=None) -> None:
         
+        super().__init__(molecular_formula, ion_charge, ion_type=ion_type, 
+                    adduct_atom=adduct_atom, mspeak_parent=mspeak_parent)
+
+        self._name = name
+        self._kegg_id = kegg_id
+        self._cas = cas    
+    
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        if isinstance(name, str):
+            self._name = name
+        else:
+            raise TypeError('name: {} should be type string')    
+
+    @property
+    def kegg_id(self):
+        return self._kegg_id
+    
+    @kegg_id.setter
+    def kegg_id(self, kegg_id):
+        self._kegg_id = kegg_id
+        #if isinstance(kegg_id, str):
+        #    self._kegg_id = kegg_id
+        #else:
+        #    print(kegg_id)
+        #    raise TypeError('name: {} should be type string') 
+
+    @property
+    def cas(self):
+        return self._cas    
+    
+    @cas.setter
+    def cas(self, cas):
+        self._cas = cas
+        #if isinstance(cas, str):
+        #    self._cas = cas
+        #else:
+        #    raise TypeError('name: {} should be type string') 
+    
+class MolecularFormula(MolecularFormulaBase):
+
+       def __init__(self, molecular_formula, ion_charge, ion_type=None, 
+                    adduct_atom=None, mspeak_parent=None, external_mz=False):
+            super().__init__(molecular_formula, ion_charge, ion_type=ion_type, 
+                    adduct_atom=adduct_atom, mspeak_parent=mspeak_parent, external_mz=external_mz)

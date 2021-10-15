@@ -6,6 +6,7 @@ from numpy import array, trapz
 from corems.chroma_peak.calc.ChromaPeakCalc import GCPeakCalculation 
 from corems.molecular_id.factory.EI_SQL import LowResCompoundRef
 
+
 class ChromaPeakBase():
     '''
     classdocs
@@ -19,32 +20,10 @@ class ChromaPeakBase():
         self.mass_spectrum = mass_spectrum_obj
         'updated individual calculation'
         self._area = None
-       
-        self._compounds = []
    
-    def __len__(self):
-        
-        return len(self._compounds)
-        
-    def __getitem__(self, position):
-        
-        return self._compounds[position]
-
-    def add_compound(self, compounds_dict, similarity):
-        #implemented in child class
-        pass
-
-    def remove_compound(self, compounds_obj):
-        
-        self._compounds.remove(compounds_obj)
-        
-    def clear_compounds(self):
-        
-        self._compounds = []
-
     @property   
-    def rt(self):
-        return self.mass_spectrum.rt
+    def retention_time(self):
+        return self.mass_spectrum.retention_time
 
     @property   
     def tic(self):
@@ -62,14 +41,50 @@ class ChromaPeakBase():
     def tic_list(self):
         return [self.chromatogram_parent.tic[i] for i in range(self.start_index, self.final_index+1) ]
 
+class DataDependentPeak(ChromaPeakBase):
+
+    def __init__(self, chromatogram_parent, mass_spectrum_obj, indexes):
+
+        super().__init__(chromatogram_parent, mass_spectrum_obj, *indexes)    
+        
+    def __len__(self):
+        
+        return len(self._dependent_mass_spectra)
+        
+    def __getitem__(self, position):
+        
+        return self._dependent_mass_spectra[position]
+
+    def add_dependent_mass_spectrum(self, mass_spectrum):
+        
+        self._dependent_mass_spectra.append(mass_spectrum)
+
 
 class GCPeak(ChromaPeakBase, GCPeakCalculation):
 
     def __init__(self, chromatogram_parent, mass_spectrum_obj, indexes):
 
-        super().__init__(chromatogram_parent, mass_spectrum_obj, *indexes)
+        self._compounds = []
 
         self._ri = None
+
+        super().__init__(chromatogram_parent, mass_spectrum_obj, *indexes)
+
+    def __len__(self):
+        
+        return len(self._compounds)
+        
+    def __getitem__(self, position):
+        
+        return self._compounds[position]
+
+    def remove_compound(self, compounds_obj):
+        
+        self._compounds.remove(compounds_obj)
+        
+    def clear_compounds(self):
+        
+        self._compounds = []
 
     def add_compound(self, compounds_dict, spectral_similarity_scores, ri_score=None, similarity_score=None):
 

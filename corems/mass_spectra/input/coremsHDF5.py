@@ -30,7 +30,7 @@ class ReadCoreMSHDF_MassSpectra(ReadCoreMSHDF_MassSpectrum, Thread):
             
             mass_spec = self.get_mass_spectrum(scan_number)
 
-            list_rt.append(mass_spec.rt)
+            list_rt.append(mass_spec.retention_time)
 
             list_tic.append(mass_spec.tic)
             

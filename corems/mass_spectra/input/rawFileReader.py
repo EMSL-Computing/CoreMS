@@ -1,6 +1,12 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 09, 2021"
 
+
+from dataclasses import dataclass, field
+from warnings import warn
+
+from matplotlib import axes
+
 from corems.mass_spectra.calc.LC_Calc import LC_Calculations
 import numpy as np
 import sys
@@ -12,7 +18,7 @@ import pandas as pd
 from s3path import S3Path
 from tqdm import tqdm
 
-from typing import List
+from typing import Dict, List, Tuple
 from corems.encapsulation.constant import Labels
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
 from corems.mass_spectra.calc.MZSearch import MZSearch
@@ -35,6 +41,43 @@ from ThermoFisher.CommonCore.Data.Interfaces import IChromatogramSettings
 from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType
 from System.Collections.Generic import List
 
+@dataclass
+class TIC_Data:
+     '''
+    Scans: [int]
+        original thermo scan numbers
+    Time: [floats]
+        list of retention times
+    TIC: [floats]
+        total ion chromatogram
+    Apexes: [int]    
+        original thermo apex scan number after peak picking 
+     '''
+     
+     scans : List[int] = field(default_factory=list)
+     time : List[float] = field(default_factory=list)
+     tic : List[float] = field(default_factory=list)
+     apexes : List[int] = field(default_factory=list)
+
+@dataclass
+class EIC_Data:
+     '''
+    Scans: [int]
+        original thermo scan numbers
+    Time: [floats]
+        list of retention times
+    EIC: [floats]
+        extracted ion chromatogram
+    Apexes: [int]    
+        original thermo apex scan number after peak picking 
+    
+     '''
+     
+     scans : List[int] = field(default_factory=list)
+     time : List[float] = field(default_factory=list)
+     eic : List[float] = field(default_factory=list)
+     apexes : List[int] = field(default_factory=list)
+    
 class ThermoBaseClass():
 
     def __init__(self, file_location):
@@ -60,12 +103,10 @@ class ThermoBaseClass():
         self.iRawDataPlus = RawFileReaderAdapter.FileFactory(str(file_path))
 
         self.res = self.iRawDataPlus.SelectInstrument(0, 1)
-
-        self._start_scan = self.iRawDataPlus.RunHeaderEx.FirstSpectrum
-
-        self._end_scan = self.iRawDataPlus.RunHeaderEx.LastSpectrum
-
+        
         self.file_path = file_location
+
+        self._init_settings()
 
     def _init_settings(self):
 
@@ -89,11 +130,21 @@ class ThermoBaseClass():
 
     @property
     def start_scan(self):
-        return self._start_scan
+        
+        if self.chromatogram_settings.start_scan == -1:
+            return self.iRawDataPlus.RunHeaderEx.FirstSpectrum
+        else:
+           return self.chromatogram_settings.start_scan
+      
 
     @property
     def end_scan(self):
-        return self._end_scan
+          
+        if self.chromatogram_settings.end_scan == -1:
+            return self.iRawDataPlus.RunHeaderEx.LastSpectrum   
+        else:        
+            return self.chromatogram_settings.end_scan
+        
 
     def remove_temp_file(self):
         '''if the path is from S3Path data cannot be serialized to io.ByteStream and
@@ -144,7 +195,8 @@ class ThermoBaseClass():
         This function is only supported for MS device controllers.
         e.g.  ['FTMS', '-', 'p', 'NSI', 'Full', 'ms', '[200.00-1000.00]']
         '''
-        scanrange = range(self._start_scan, self._end_scan + 1)
+        
+        scanrange = range(self.start_scan, self.end_scan + 1)
         scanfiltersdic = {}
         scanfilterslist = []
         for scan_number in scanrange:
@@ -170,8 +222,9 @@ class ThermoBaseClass():
         return list(trace.Times), list(trace.Intensities), list(trace.Scans)
         
 
-    def get_eics(self, target_mzs: list, ppm_tolerance=5,
-                 start_scan=-1, end_scan=-1, ms_type='MS', plot=False, ax=None):
+    def get_eics(self, target_mzs: list, tic_data: dict, ms_type='MS !d', 
+                 peak_detection=True, smooth=True, plot=False, 
+                 ax=None, legend=False) -> Tuple[Dict[float, EIC_Data], axes.Axes]:
 
         '''ms_type: str ('MS', MS2')
         start_scan: int default -1 will select the lowest available
@@ -179,19 +232,22 @@ class ThermoBaseClass():
 
         returns:
 
-            chroma: dict{target_mz: dict{
-                                        Scan: [int]
-                                            original thermo scan number
+            chroma: dict{target_mz: EIC_Data(
+                                        Scans: [int]
+                                            original thermo scan numbers
                                         Time: [floats]
                                             list of retention times
                                         TIC: [floats]
                                             total ion chromatogram
-                                        }
+                                        Apexes: [int]    
+                                            original thermo apex scan number after peak picking 
+                                        )
+                                        
         '''
-
+        
         options = MassOptions()
         options.ToleranceUnits = ToleranceUnits.ppm
-        options.Tolerance = ppm_tolerance
+        options.Tolerance = self.chromatogram_settings.eic_tolerance_ppm
 
         all_chroma_settings = []
 
@@ -212,7 +268,7 @@ class ThermoBaseClass():
         # print(chroma_settings)
 
         data = self.iRawDataPlus.GetChromatogramData(all_chroma_settings,
-                                                     start_scan, end_scan, options)
+                                                     self.start_scan, self.end_scan, options)
 
         traces = ChromatogramSignal.FromChromatogramData(data)
 
@@ -225,8 +281,47 @@ class ThermoBaseClass():
                 # ax = plt.gca()
                 # ax.clear()
                 fig, ax = plt.subplots()
-                ax.set_prop_cycle(color=plt.cm.gist_rainbow(np.linspace(0, 1, len(traces))))
+                
+            else:
+                fig = plt.gcf()    
 
+                
+            # plt.show()
+        
+        for i, trace in enumerate(traces):
+            if trace.Length > 0:
+                rt, eic, scans  = self.get_rt_time_from_trace(trace)
+                if smooth:
+                    eic= self.smooth_tic(eic)
+    
+                chroma[target_mzs[i]] = EIC_Data(scans=scans, time=rt, eic= eic)
+                if plot:
+                    ax.plot(rt, eic, label="{:.5f}".format(target_mzs[i]))
+            
+        if peak_detection:
+            
+            #max_eic = self.get_max_eic(chroma)
+            max_signal = max(tic_data.tic)
+            
+            for eic_data in chroma.values():
+               
+                eic = eic_data.eic
+                time = eic_data.time
+
+                if len(eic) != len(tic_data.tic):
+                    warn("The software assumes same lenth of TIC and EIC, this does not seems to be the case and the results mass spectrum selected by the scan number might not be correct")
+                
+                centroid_eics = self.eic_centroid_detector(time, eic, max_signal)
+                eic_data.apexes = [i for i in centroid_eics]
+                
+                if plot:
+                    for peak_indexes in eic_data.apexes:
+                        
+                        apex_index = peak_indexes[1]
+                        ax.plot(time[apex_index], eic[apex_index], marker='x', linewidth=0)
+
+        if plot:
+            
             ax.set_xlabel('Time (min)')
             ax.set_ylabel('a.u.')
             ax.set_title(ms_type + ' EIC')
@@ -234,29 +329,21 @@ class ThermoBaseClass():
             ax.axes.spines['top'].set_visible(False)
             ax.axes.spines['right'].set_visible(False)
 
-            legend = ax.legend(loc="upper left", bbox_to_anchor=(1.02, 0, 0.07, 1))
-            fig.subplots_adjust(right=0.76)
-            d = {"down": 30, "up": -30}
+            if legend:
+                legend = ax.legend(loc="upper left", bbox_to_anchor=(1.02, 0, 0.07, 1))
+                fig.subplots_adjust(right=0.76)
+                #ax.set_prop_cycle(color=plt.cm.gist_rainbow(np.linspace(0, 1, len(traces))))
 
-            def func(evt):
-                if legend.contains(evt):
-                    bbox = legend.get_bbox_to_anchor()
-                    bbox = Bbox.from_bounds(bbox.x0, bbox.y0 + d[evt.button], bbox.width, bbox.height)
-                    tr = legend.axes.transAxes.inverted()
-                    legend.set_bbox_to_anchor(bbox.transformed(tr))
-                    fig.canvas.draw_idle()
+                d = {"down": 30, "up": -30}
+                def func(evt):
+                    if legend.contains(evt):
+                        bbox = legend.get_bbox_to_anchor()
+                        bbox = Bbox.from_bounds(bbox.x0, bbox.y0 + d[evt.button], bbox.width, bbox.height)
+                        tr = legend.axes.transAxes.inverted()
+                        legend.set_bbox_to_anchor(bbox.transformed(tr))
+                        fig.canvas.draw_idle()
 
-            fig.canvas.mpl_connect("scroll_event", func)        
-            # plt.show()
-        
-        for i, trace in enumerate(traces):
-            if trace.Length > 0:
-                rt, ic, scans  = self.get_rt_time_from_trace(trace)
-                chroma[target_mzs[i]] = {'Scans' : scans, 'Time': rt, 'ECI': ic}
-                if plot:
-                    ax.plot(rt, ic, label="{:.5f}".format(target_mzs[i]))    
-                    
-        if plot:
+                fig.canvas.mpl_connect("scroll_event", func)    
             return chroma, ax
         else:
             return chroma, None     
@@ -275,7 +362,8 @@ class ThermoBaseClass():
             # plot_chroma(rt, tic)
             # plt.show()
 
-    def get_tic(self, start_scan=-1, end_scan=-1, ms_type='MS', plot=False, ax=None) -> dict:
+    def get_tic(self, ms_type='MS !d', peak_detection=True, 
+                smooth=True, plot=False, ax=None) -> Tuple[Dict[float, TIC_Data], axes.Axes]:
 
         '''ms_type: str ('MS', MS2')
         start_scan: int default -1 will select the lowest available
@@ -284,11 +372,13 @@ class ThermoBaseClass():
             chroma: dict
             {
             Scan: [int]
-                original thermo scan number
+                original thermo scan numberMS
             Time: [floats]
                 list of retention times
             TIC: [floats]
                 total ion chromatogram
+            Apexes: [int]    
+                original thermo apex scan number after peak picking     
             }
         '''
 
@@ -298,24 +388,35 @@ class ThermoBaseClass():
         chroma_settings = IChromatogramSettings(settings)
 
         data = self.iRawDataPlus.GetChromatogramData([chroma_settings],
-                                                     start_scan, end_scan)
+                                                     self.start_scan, self.end_scan)
 
         trace = ChromatogramSignal.FromChromatogramData(data)
-        rt = []
-        tic = []
-        data = {'Time': [], 'Scan': [], 'TIC': []}
+        
+        data = TIC_Data(time= [], scans= [], tic= [], apexes= [])
 
         if trace[0].Length > 0:
 
             for i in range(trace[0].Length):
                 # print(trace[0].HasBasePeakData,trace[0].EndTime )
-
+                
                 # print("  {} - {}, {}".format( i, trace[0].Times[i], trace[0].Intensities[i] ))
-                data['Time'].append(trace[0].Times[i])
-                data['TIC'].append(trace[0].Intensities[i])
-                data['Scan'].append(trace[0].Scans[i])
+                data.time.append(trace[0].Times[i])
+                data.tic.append(trace[0].Intensities[i])
+                data.scans.append(trace[0].Scans[i])
 
-            chroma = pd.DataFrame(data)
+                #print(trace[0].Scans[i])
+            if smooth:
+                
+                data.tic= self.smooth_tic(data.tic)
+            else:
+                
+                data.tic= np.array(data.tic)
+
+            if peak_detection:
+                
+                centroid_peak_indexes = [i for i in self.centroid_detector(data.time, data.tic)]
+                
+                data.apexes = centroid_peak_indexes
 
             if plot:
                 if not ax:
@@ -323,217 +424,26 @@ class ThermoBaseClass():
                     ax = plt.gca()
                     # fig, ax = plt.subplots(figsize=(6, 3))
 
-                ax.plot(chroma['Time'], chroma['TIC'], label=ms_type + ' TIC')
+                ax.plot(data.time, data.tic, label=' TIC')    
                 ax.set_xlabel('Time (min)')
                 ax.set_ylabel('a.u.')
-                plt.legend()
+                if peak_detection:
+                    for peak_indexes in data.apexes:
+                        
+                        apex_index = peak_indexes[1]
+                        ax.plot(data.time[apex_index], data.tic[apex_index], marker='x', linewidth=0)
+                    
+                
                 # plt.show()
-                return chroma, ax
-            return chroma
+                return data, ax
+            
+            return data, None
 
         else:
-            return None
-
-class ImportDataDependentThermoMSFileReader(ThermoBaseClass, LC_Calculations):
-
-    '''  Collection of methdos to import LC data dependent acquisition from Thermo's raw file
-         Intended do create the LCMS object --> ChromaPeaks --> MSobj FullScan --> Dependent MS/MS Obj
-    '''
-
-    def __init__(self, file_location: str, start_scan: int = -1, end_scan: int = -1,
-                 selected_mzs: List[float] = None, enforce_target_ms2: bool = True, 
-                 eic_tolerance_ppm: float = 5.0):
-        '''
-        target_mzs: list[float] monoisotopic target m/z  or None
-            Details: None will defalt to depends scans selected m/
-        file_location: str, Path, or S3Path
-        enforce_target_ms2: bool
-            only perform EIC for target_mz if the m/z was selected as precursor for ms2
-        start_scan: int
-            default -1 will select the lowest available
-        end_scan: int
-            default -1 will select the highest available
-        '''
-        super().__init__(file_location)
-
-        self._selected_mzs = self._init_target_mz(selected_mzs, enforce_target_ms2, eic_tolerance_ppm)
-
-    @property
-    def selected_mzs(self) -> List[float]:
-        return list(self._selected_mzs)
-
-    def get_precursors_list(self, precision_decimals=6):
-        '''returns a set of unique precursors m/z
-        precision_decimals: int
-            change this parameters does not seem to affect the number of dependent scans selected
-            needs more investigation
-        '''
-
-        precursors_mzs = set()
-
-        for scan in range(self.start_scan, self.end_scan):
-
-            scan_filter = self.iRawDataPlus.GetFilterForScanNumber(scan)
-
-            MSOrder = scan_filter.MSOrder
-
-            if MSOrder == MSOrderType.Ms:
-
-                scanDependents = self.iRawDataPlus.GetScanDependents(scan, precision_decimals)
-
-                for scan_dependent_detail in scanDependents.ScanDependentDetailArray:
-
-                    for precursor_mz in scan_dependent_detail.PrecursorMassArray:
-
-                        precursors_mzs.add(precursor_mz)
-
-        return precursors_mzs
-
-    def _init_target_mz(self, selected_mzs: List[float], enforce_target_ms2: List[float], tolerance_ppm: float):
-
-        precursors_mzs = self.get_precursors_list()
-
-        if selected_mzs is None:
-            # no selected m/z list provided, default to use the precursos m/z
-
-            return precursors_mzs
-
-        elif selected_mzs and enforce_target_ms2 is False:
-            # selected m/z list provided, and not enforcing being selected as precursor
-            return selected_mzs
-
-        elif selected_mzs and enforce_target_ms2:
-            # search the selected m/z list in the precursors m/z with a ms/ms experiment
-
-            searchmz = MZSearch(precursors_mzs, selected_mzs, tolerance_ppm)
-            searchmz.start()
-            searchmz.join()
-            return searchmz.results.keys()
-
-class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
-
-    '''  Collection of methdos to import Summed/Averaged mass spectrum from Thermo's raw file
-         Currently only for profile mode data
-         Returns MassSpecProfile object
-    '''
-
-    def get_icr_transient_times(self, first_scan: int = None, last_scan: int = None):
-        '''
-        Return a list for transient time targets for all scans, or selected scans range
-        Resolving Power and Transient time targets based on 7T FT-ICR MS system
-        '''
-
-        res_trans_time = {'50': 0.384,
-                          '100000': 0.768,
-                          '200000': 1.536,
-                          '400000': 3.072,
-                          '750000': 6.144,
-                          '1000000': 12.288
-                          }
-
-        firstScanNumber = self._start_scan if first_scan is None else first_scan
-
-        lastScanNumber = self._end_scan if last_scan is None else last_scan
-
-        transient_time_list = []
-
-        for scan in range(firstScanNumber, lastScanNumber):
-
-            scan_header = self.get_scan_header(scan)
-
-            rp_target = scan_header['FT Resolution:']
-
-            transient_time = res_trans_time.get(rp_target)
-
-            transient_time_list.append(transient_time)
-
-            # print(transient_time, rp_target)
-
-        return transient_time_list
-
-    def get_data(self, scan: int, d_parameter: dict, scan_type: str):
-
-        if scan_type == 'Centroid':
-
-            centroidStream = self.iRawDataPlus.GetCentroidStream(scan, False)
-
-            noise = list(centroidStream.Noises)
-
-            baselines = list(centroidStream.Baselines)
-
-            rp = list(centroidStream.Resolutions)
-
-            magnitude = list(centroidStream.Intensities)
-
-            mz = list(centroidStream.Masses)
-
-            # charge = scans_labels[5]
-            array_noise_std = (np.array(noise) - np.array(baselines)) / 3
-            l_signal_to_noise = np.array(magnitude) / array_noise_std
-
-            d_parameter['baselise_noise'] = np.average(array_noise_std)
-
-            d_parameter['baselise_noise_std'] = np.std(array_noise_std)
-
-            data_dict = {
-                Labels.mz: mz,
-                Labels.abundance: magnitude,
-                Labels.rp: rp,
-                Labels.s2n: l_signal_to_noise,
-            }
-
-        else:
-
-            scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan)
-
-            profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(
-                scan, scanStatistics)
-
-            magnitude = list(profileStream.Intensities)
-
-            mz = list(profileStream.Positions)
-
-            data_dict = {
-                Labels.mz: mz,
-                Labels.abundance: magnitude,
-            }
-
-        return data_dict
-
-    def set_metadata(self, firstScanNumber=0, lastScanNumber=0, scans_list=False):
-        '''
-        Collect metadata to be ingested in the mass spectrum object
-
-        scans_list: list[int] or false
-        lastScanNumber: int
-        firstScanNumber: int
-        '''
-
-        d_params = default_parameters(self.file_path)
-
-        # assumes scans is full scan or reduced profile scan
-
-        d_params['label'] = Labels.thermo_profile
-
-        if scans_list:
-            d_params['scan_number'] = scans_list
-
-            d_params['polarity'] = self.get_polarity_mode(scans_list[0])
-
-        else:
-
-            d_params['scan_number'] = '{}-{}'.format(firstScanNumber, lastScanNumber)
-
-            d_params['polarity'] = self.get_polarity_mode(firstScanNumber)
-
-        d_params['analyzer'] = self.iRawDataPlus.GetInstrumentData().Model
-
-        d_params['instrument_label'] = self.iRawDataPlus.GetInstrumentData().Name
-
-        return d_params
+            return None, None
 
     def get_average_mass_spectrum_by_scanlist(self, scans_list: List[int], auto_process: bool = True,
-                                              ppm_tolerance: float = 5.0):
+                                              ppm_tolerance: float = 5.0) -> MassSpecProfile:
 
         '''
         Averages selected scans mass spectra using Thermo's AverageScans method
@@ -584,14 +494,52 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
 
         return mass_spec
 
-    def get_average_mass_spectrum_in_scan_range(self, first_scan: int = None, last_scan: int = None,
-                                                auto_process: bool = True, ppm_tolerance: float = 5.0,
-                                                ms_type: str = 0):
+    def get_centroid_msms_data(self, scan):
+        
+        d_params = self.set_metadata(scans_list=[scan], label=Labels.thermo_centroid)
+
+        centroidStream = self.iRawDataPlus.GetCentroidStream(scan, False)
+
+        noise = list(centroidStream.Noises)
+
+        baselines = list(centroidStream.Baselines)
+
+        rp = list(centroidStream.Resolutions)
+
+        magnitude = list(centroidStream.Intensities)
+
+        mz = list(centroidStream.Masses)
+
+        # charge = scans_labels[5]
+        array_noise_std = (np.array(noise) - np.array(baselines)) / 3
+        l_signal_to_noise = np.array(magnitude) / array_noise_std
+
+        d_params['baselise_noise'] = np.average(array_noise_std)
+
+        d_params['baselise_noise_std'] = np.std(array_noise_std)
+
+        data_dict = {
+            Labels.mz: mz,
+            Labels.abundance: magnitude,
+            Labels.rp: rp,
+            Labels.s2n: list(l_signal_to_noise)
+        }
+
+        
+        mass_spec = MassSpecCentroid(data_dict, d_params, auto_process=False)
+        mass_spec.settings.threshold_method = 'relative_abundance'
+        mass_spec.settings.relative_abundance_threshold = 1
+        mass_spec.process_mass_spec()
+        return mass_spec
+
+
+    def get_average_mass_spectrum_in_scan_range(self, auto_process: bool = True, ppm_tolerance: float = 5.0,
+                                                ms_type: int = 0) -> MassSpecProfile:
 
         '''
         Averages mass spectra over a scan range using Thermo's AverageScansInScanRange method
-        first_scan: int
-        last_scan: int
+        start_scan: int
+        end_scan: int
         auto_process: bool
             If true performs peak picking, and noise threshold calculation after creation of mass spectrum object
         ms_type: MSOrderType.MS
@@ -600,11 +548,8 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
             MassSpecProfile
         '''
 
-        firstScanNumber = self._start_scan if first_scan is None else first_scan
-
-        lastScanNumber = self._end_scan if last_scan is None else last_scan
-
-        d_params = self.set_metadata(firstScanNumber=firstScanNumber, lastScanNumber=lastScanNumber)
+        d_params = self.set_metadata(firstScanNumber=self.start_scan,
+                                     lastScanNumber=self.end_scan)
 
         # Create the mass options object that will be used when averaging the scans
         options = MassOptions()
@@ -614,15 +559,17 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
 
         # Get the scan filter for the first scan.  This scan filter will be used to located
         # scans within the given scan range of the same type
-        scanFilter = self.iRawDataPlus.GetFilterForScanNumber(firstScanNumber)
+        scanFilter = self.iRawDataPlus.GetFilterForScanNumber(self.start_scan)
 
         # force it to only look for the MSType
         scanFilter.MSOrder = ms_type
 
-        averageScan = Extensions.AverageScansInScanRange(self.iRawDataPlus, firstScanNumber, lastScanNumber,
+        averageScan = Extensions.AverageScansInScanRange(self.iRawDataPlus, 
+                                                         self.start_scan, self.end_scan,
                                                          scanFilter, options)
-
+        
         if averageScan:
+            
             mz_list = list(averageScan.SegmentedScan.Positions)
             abund_list = list(averageScan.SegmentedScan.Intensities)
 
@@ -630,14 +577,170 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
                          Labels.abundance: abund_list,
                          }
 
+            
             mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process)
 
             return mass_spec
         else:
             raise Exception('no data found for the MSOrderType = {}'.format(ms_type))
 
-    def get_summed_mass_spectrum(self, start_scan: int, end_scan: int = None,
-                                 auto_process=True, pd_method=True, pd_merge_n=100):
+   
+    def set_metadata(self, firstScanNumber=0, lastScanNumber=0, scans_list=False, label=Labels.thermo_profile):
+        '''
+        Collect metadata to be ingested in the mass spectrum object
+
+        scans_list: list[int] or false
+        lastScanNumber: int
+        firstScanNumber: int
+        '''
+
+        d_params = default_parameters(self.file_path)
+
+        # assumes scans is full scan or reduced profile scan
+
+        d_params['label'] = label
+
+        if scans_list:
+            d_params['scan_number'] = scans_list
+
+            d_params['polarity'] = self.get_polarity_mode(scans_list[0])
+
+        else:
+
+            d_params['scan_number'] = '{}-{}'.format(firstScanNumber, lastScanNumber)
+
+            d_params['polarity'] = self.get_polarity_mode(firstScanNumber)
+
+        d_params['analyzer'] = self.iRawDataPlus.GetInstrumentData().Model
+
+        d_params['instrument_label'] = self.iRawDataPlus.GetInstrumentData().Name
+
+        return d_params    
+
+class ImportDataDependentThermoMSFileReader(ThermoBaseClass, LC_Calculations):
+
+    '''  Collection of methdos to import LC data dependent acquisition from Thermo's raw file
+         Intended do create the LCMS object --> ChromaPeaks --> MSobj FullScan --> Dependent MS/MS Obj
+    '''
+
+    def __init__(self, file_location: str, selected_mzs: List[float] = None):
+        '''
+        target_mzs: list[float] monoisotopic target m/z  or None
+            Details: None will defalt to depends scans selected m/
+        file_location: str, Path, or S3Path
+        
+        '''
+        super().__init__(file_location)
+        
+        eic_tolerance_ppm = self.chromatogram_settings.eic_tolerance_ppm
+        enforce_target_ms2 = self.chromatogram_settings.enforce_target_ms2
+        average_target_mz = self.chromatogram_settings.average_target_mz
+        
+        print('TOLERANCE = {} ppm'.format(eic_tolerance_ppm))
+        self._selected_mzs = self._init_target_mz(selected_mzs, enforce_target_ms2, 
+                                                  eic_tolerance_ppm, average_target_mz)
+
+    @property
+    def selected_mzs(self) -> List[float]:
+        return list(self._selected_mzs)
+
+    def get_precursors_list(self, precision_decimals=0):
+        '''returns a set of unique precursors m/z
+        precision_decimals: int
+            change this parameters does not seem to affect the number of dependent scans selected
+            needs more investigation
+        '''
+
+        precursors_mzs = set()
+
+        for scan in range(self.start_scan, self.end_scan):
+
+            scan_filter = self.iRawDataPlus.GetFilterForScanNumber(scan)
+
+            MSOrder = scan_filter.MSOrder
+
+            if MSOrder == MSOrderType.Ms:
+
+                scanDependents = self.iRawDataPlus.GetScanDependents(scan, precision_decimals)
+
+                for scan_dependent_detail in scanDependents.ScanDependentDetailArray:
+
+                    for precursor_mz in scan_dependent_detail.PrecursorMassArray:
+
+                        precursors_mzs.add(precursor_mz)
+
+        return precursors_mzs
+
+    def _init_target_mz(self, selected_mzs: List[float], enforce_target_ms2: bool, 
+                        tolerance_ppm: float, average_target_mz: bool):
+
+        precursors_mzs = self.get_precursors_list()
+        
+        if selected_mzs is None:
+            # no selected m/z list provided, default to use the precursos m/z
+            if average_target_mz:
+                searchmz = MZSearch(precursors_mzs, precursors_mzs, tolerance_ppm, average_target_mz=average_target_mz)
+                return searchmz.averaged_target_mz
+            else:
+                return precursors_mzs
+            #searchmz.start()
+            #searchmz.join()
+
+
+        elif selected_mzs and enforce_target_ms2 is False:
+            # selected m/z list provided, and not enforcing being selected as precursor
+            return selected_mzs
+
+        elif selected_mzs and enforce_target_ms2:
+            # search the selected m/z list in the precursors m/z with a ms/ms experiment
+            print("YEAHHHHH")
+            searchmz = MZSearch(precursors_mzs, selected_mzs, tolerance_ppm, average_target_mz=average_target_mz)
+            searchmz.start()
+            searchmz.join()
+            return sorted(searchmz.results.keys())
+
+class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
+
+    '''  Collection of methdos to import Summed/Averaged mass spectrum from Thermo's raw file
+         Currently only for profile mode data
+         Returns MassSpecProfile object
+    '''
+
+    def get_icr_transient_times(self):
+        '''
+        Return a list for transient time targets for all scans, or selected scans range
+        Resolving Power and Transient time targets based on 7T FT-ICR MS system
+        '''
+        
+        res_trans_time = {'50': 0.384,
+                          '100000': 0.768,
+                          '200000': 1.536,
+                          '400000': 3.072,
+                          '750000': 6.144,
+                          '1000000': 12.288
+                          }
+
+        firstScanNumber = self.start_scan
+
+        lastScanNumber = self.end_scan
+
+        transient_time_list = []
+
+        for scan in range(firstScanNumber, lastScanNumber):
+
+            scan_header = self.get_scan_header(scan)
+
+            rp_target = scan_header['FT Resolution:']
+
+            transient_time = res_trans_time.get(rp_target)
+
+            transient_time_list.append(transient_time)
+
+            # print(transient_time, rp_target)
+
+        return transient_time_list
+
+    def get_summed_mass_spectrum(self, auto_process=True, pd_method=True, pd_merge_n=100) -> MassSpecProfile:
 
         '''
         Manually sum mass spectrum over a scan range
@@ -651,24 +754,21 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
         Returns:
             MassSpecProfile
         '''
-
+        
         d_params = default_parameters(self.file_path)
 
         # assumes scans is full scan or reduced profile scan
 
         d_params['label'] = Labels.thermo_profile
 
-        if type(start_scan) is list:
-            d_params['polarity'] = self.get_polarity_mode(start_scan[0])
+        if type(self.start_scan) is list:
+            d_params['polarity'] = self.get_polarity_mode(self.start_scan[0])
 
-            scanrange = start_scan
+            scanrange = self.start_scan
         else:
-            d_params['polarity'] = self.get_polarity_mode(start_scan)
+            d_params['polarity'] = self.get_polarity_mode(self.start_scan)
 
-            if end_scan is None:
-                end_scan = self._end_scan
-
-            scanrange = range(start_scan, end_scan + 1)
+            scanrange = range(self.start_scan, self.end_scan + 1)
 
         if pd_method:
 
@@ -726,6 +826,7 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
             abun_all = []
 
             for mz in sorted(all_mz):
+                
                 mz_all.append(mz)
                 abun_all.append(all_mz[mz])
 
@@ -739,6 +840,58 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
 
         return mass_spec
 
+    def get_data(self, scan: int, d_parameter: dict, scan_type: str):
+
+        if scan_type == 'Centroid':
+
+            centroidStream = self.iRawDataPlus.GetCentroidStream(scan, False)
+
+            noise = list(centroidStream.Noises)
+
+            baselines = list(centroidStream.Baselines)
+
+            rp = list(centroidStream.Resolutions)
+
+            magnitude = list(centroidStream.Intensities)
+
+            mz = list(centroidStream.Masses)
+
+            # charge = scans_labels[5]
+            array_noise_std = (np.array(noise) - np.array(baselines)) / 3
+            l_signal_to_noise = np.array(magnitude) / array_noise_std
+
+            d_parameter['baselise_noise'] = np.average(array_noise_std)
+
+            d_parameter['baselise_noise_std'] = np.std(array_noise_std)
+
+            data_dict = {
+                Labels.mz: mz,
+                Labels.abundance: magnitude,
+                Labels.rp: rp,
+                Labels.s2n: l_signal_to_noise,
+            }
+
+        else:
+
+            scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan)
+
+            profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(
+                scan, scanStatistics)
+
+            magnitude = list(profileStream.Intensities)
+
+            mz = list(profileStream.Positions)
+
+            data_dict = {
+                Labels.mz: mz,
+                Labels.abundance: magnitude,
+            }
+
+        return data_dict
+
+   
+
+    
     def get_best_scans_idx(self, stdevs=2, method='mean', plot=False):
         '''
         Method to determine the best scan indexes for selective co-addition

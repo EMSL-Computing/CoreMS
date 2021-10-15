@@ -3,7 +3,9 @@
 @date: Jun 27, 2019
 '''
 
-from numpy import hstack, inf, isnan, poly1d, polyfit, where
+from logging import warn
+from numpy import hstack, inf, isnan, poly1d, polyfit, where, array
+from numpy import float as npfloat
 from corems.encapsulation.constant import Labels
 
 class PeakPicking:
@@ -215,19 +217,27 @@ class PeakPicking:
                     except IndexError: 
                         print('index error, skipping peak')
                         continue
+                    
                     s2n = intes_centr/self.baselise_noise_std
                     self.add_mspeak(self.polarity, mz_exp_centroid, abund[current_index] , peak_resolving_power, s2n, peak_indexes, exp_freq=freq_centr, ms_parent=self)
             
         
     def get_threshold(self, intes):
         
+        intes = array(intes).astype(npfloat)
+       
         threshold_method = self.settings.threshold_method
 
         if threshold_method == 'auto':
             
+            if self.is_centroid:
+                warn("Auto threshould is disabled for centroid data, returning 0")
+                factor = 1
+                abundance_threshold = 1e-20
             #print(self.settings.noise_threshold_std)
-            abundance_threshold = self.baselise_noise + (self.settings.noise_threshold_std * self.baselise_noise_std)
-            factor = 1
+            else:
+                abundance_threshold = self.baselise_noise + (self.settings.noise_threshold_std * self.baselise_noise_std)
+                factor = 1
 
         elif threshold_method == 'signal_noise':
 

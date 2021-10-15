@@ -4,6 +4,7 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
 from copy import deepcopy
+from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 from numpy import nan
 from corems.ms_peak.calc.MSPeakCalc import MSPeakCalculation
 from numpy import NaN
@@ -65,7 +66,7 @@ class _MSPeak(MSPeakCalculation):
 
         self.molecular_formulas[position] = molecular_formula_obj
 
-    def __getitem__(self, position):
+    def __getitem__(self, position) -> MolecularFormula:
 
         return self.molecular_formulas[position]
 

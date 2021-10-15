@@ -1,9 +1,11 @@
+
 import os, sys
 from pathlib import Path
 sys.path.append(".")
 
 from corems.molecular_formula.input.masslist_ref import ImportMassListRef
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
+from corems.encapsulation.constant import Labels
 
 import pytest
 
@@ -32,9 +34,11 @@ def test_search_imported_ref_files():
 
     for mf in mf_references_list:
 
-        print(mf.mass, mf.classe)
+        print(mf.mz_calc, mf.class_label)
     
-    ms_peaks_assigned = SearchMolecularFormulas(mass_spectrum_obj).search_mol_formulas( mf_references_list, find_isotopologues=False)
+    ion_type = 'unknown'
+
+    ms_peaks_assigned = SearchMolecularFormulas(mass_spectrum_obj).search_mol_formulas( mf_references_list, ion_type, neutral_molform=False, find_isotopologues=False)
 
     assert (len(ms_peaks_assigned)) > 0
 

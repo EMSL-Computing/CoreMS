@@ -120,8 +120,7 @@ class MolecularFormulaLink(Base):
 
     classe = association_proxy('heteroAtoms', 'name')
 
-    @property
-    def formula_dict(self):
+    def to_dict(self):
 
         carbon = {'C': self.C, 'H': self.H}
         classe = json.loads(self.classe)
@@ -132,7 +131,7 @@ class MolecularFormulaLink(Base):
 
     @property
     def formula_string(self):
-        class_dict = self.formula_dict
+        class_dict = self.to_dict()
         class_str = ' '.join([atom + str(class_dict[atom]) for atom in class_dict.keys()])
         return class_str.strip()
 
@@ -143,15 +142,15 @@ class MolecularFormulaLink(Base):
         return class_str.strip()
 
     @hybrid_method
-    def adduct_mass(self, ion_charge, adduct_atom):
+    def _adduct_mz(self, ion_charge, adduct_atom):
         return (self.mass + (Atoms.atomic_masses.get(adduct_atom)) + (ion_charge * -1 * Atoms.electron_mass))/ abs(ion_charge)
 
     @hybrid_method
-    def protonated_mass(self, ion_charge):
+    def _protonated_mz(self, ion_charge):
         return (self.mass + (ion_charge * Atoms.atomic_masses.get("H")) + (ion_charge * -1 * Atoms.electron_mass))/abs(ion_charge)
 
     @hybrid_method
-    def radical_mass(self, ion_charge):
+    def _radical_mz(self, ion_charge):
         return (self.mass + (ion_charge * -1 * Atoms.electron_mass))/ abs(ion_charge)
 
     def __repr__(self):
@@ -267,15 +266,15 @@ class MolForm_SQL:
                 
                 if ion_type == Labels.protonated_de_ion:
                 
-                    return int(formula_obj.protonated_mass(ion_charge))
+                    return int(formula_obj._protonated_mz(ion_charge))
                 
                 elif ion_type == Labels.radical_ion:
                     
-                    return int(formula_obj.radical_mass(ion_charge))
+                    return int(formula_obj._radical_mz(ion_charge))
 
                 elif ion_type == Labels.adduct_ion and adduct_atom:
                     
-                    return int(formula_obj.adduct_mass(ion_charge, adduct_atom))
+                    return int(formula_obj._adduct_mz(ion_charge, adduct_atom))
             
             for formula_obj, ch_obj, classe_obj in tqdm.tqdm(formulas, desc="Loading molecular formula database"):
                 
@@ -290,7 +289,7 @@ class MolForm_SQL:
                 
                 # pbar.set_description_str(desc="Loading molecular formula database for class %s " % classe_str)
                 
-                formula_dict = formula_obj.formula_dict
+                formula_dict = formula_obj.to_dict()
 
                 if formula_dict.get("O"):
                     
@@ -332,13 +331,13 @@ class MolForm_SQL:
         if ion_type == Labels.protonated_de_ion:
             if self.type == 'normal':
                 query = query.filter(and_(
-                                MolecularFormulaLink.protonated_mass(ion_charge).cast(Integer).in_(nominal_mzs)
+                                MolecularFormulaLink._protonated_mz(ion_charge).cast(Integer).in_(nominal_mzs)
                                 ))
             return add_dict_formula(query, ion_type, ion_charge)
         
         if ion_type == Labels.radical_ion:
             if self.type == 'normal':
-                query = query.filter(MolecularFormulaLink.radical_mass(ion_charge).cast(Integer).in_(nominal_mzs))    
+                query = query.filter(MolecularFormulaLink._radical_mz(ion_charge).cast(Integer).in_(nominal_mzs))    
             return add_dict_formula(query, ion_type, ion_charge)
         
         if ion_type == Labels.adduct_ion:
@@ -346,7 +345,7 @@ class MolForm_SQL:
             if adducts: 
                 for atom in adducts:
                     if self.type == 'normal':
-                        query = query.filter(MolecularFormulaLink.adduct_mass(ion_charge, atom).cast(Integer).in_(nominal_mzs))    
+                        query = query.filter(MolecularFormulaLink._adduct_mz(ion_charge, atom).cast(Integer).in_(nominal_mzs))    
                     dict_res[atom] = add_dict_formula(query, ion_type, ion_charge, adduct_atom=atom)
                 return dict_res
         # dump all objs to memory
@@ -446,14 +445,14 @@ if __name__ == "__main__":
     print(sql.session.query(HeteroAtoms).all())
     #molecular_search_settings = MolecularFormulaSearchSettings()
     #sql = MolForm_SQL()
-    #query = sql.session.query(MolecularFormulaLink).filter_by(classe = '{"O": 12}').filter(MolecularFormulaLink.adduct_mass(+2, "Na") < 250)
-    #query = sql.get_by_classe('{"O": 12}', molecular_search_settings).filter(MolecularFormulaLink.adduct_mass(+2, "Na") < 250)
+    #query = sql.session.query(MolecularFormulaLink).filter_by(classe = '{"O": 12}').filter(MolecularFormulaLink._adduct_mz(+2, "Na") < 250)
+    #query = sql.get_by_classe('{"O": 12}', molecular_search_settings).filter(MolecularFormulaLink._adduct_mz(+2, "Na") < 250)
     #classes = ['{"O": 12}']*1
     #for i, classe in enumerate(classes):
         #query = sql.get_by_classe(classe, molecular_search_settings)
-        #query = sql.session.query(MolecularFormulaLink).filter_by(classe = '{"O": 12}').filter(MolecularFormulaLink.adduct_mass(+2, "Na") < 250)
+        #query = sql.session.query(MolecularFormulaLink).filter_by(classe = '{"O": 12}').filter(MolecularFormulaLink._adduct_mz(+2, "Na") < 250)
         #for i in query.filter(MolecularFormulaLink.mass < 250):
             
-        #    print(i.radical_mass(-1), i.protonated_mass(-1), i.adduct_mass(+2, "Na"), i.mass, i.formula_dict, i.formula_string)
+        #    print(i._radical_mz(-1), i._protonated_mz(-1), i._adduct_mz(+2, "Na"), i.mass, i.to_dict(), i.formula_string)
     #
  

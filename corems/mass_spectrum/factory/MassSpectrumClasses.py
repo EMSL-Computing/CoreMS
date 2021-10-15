@@ -4,6 +4,7 @@ from copy import deepcopy
 
 #from matplotlib import rcParamsDefault, rcParams
 from numpy import array, power, float64, where
+from numpy import float as np_float
 
 from corems.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
 from corems.mass_spectrum.calc.KendrickGroup import KendrickGrouping
@@ -92,7 +93,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         return len(self.mspeaks)
 
-    def __getitem__(self, position):
+    def __getitem__(self, position) -> MSPeak:
 
         return self.mspeaks[position]
 
@@ -153,7 +154,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         self.scan_number = d_params.get("scan_number")
 
-        self.rt = d_params.get("rt")
+        self.retention_time = d_params.get("rt")
 
         self.mobility_rt = d_params.get("mobility_rt")
 
@@ -222,7 +223,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         else:
 
             self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto, bayes=bayes)
-        
+
     @property
     def parameters(self):
         return self._parameters
@@ -401,6 +402,9 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
     @property
     def baselise_noise_std(self):
+
+        if self._baselise_noise_std == 0:
+            return self._baselise_noise_std
         if self._baselise_noise_std:
             return self._baselise_noise_std
         else:     
@@ -902,7 +906,7 @@ class MassSpecCentroid(MassSpecBase):
     see also: MassSpecBase(), MassSpecfromFreq(), MassSpecProfile()
     '''
 
-    def __init__(self, data_dict, d_params):
+    def __init__(self, data_dict, d_params, auto_process=True):
 
         """needs to simulate peak shape and pass as mz_exp and magnitude."""
 
@@ -915,8 +919,11 @@ class MassSpecCentroid(MassSpecBase):
             self._baselise_noise_std = d_params.get("baselise_noise_std")
 
         self.is_centroid = True
+        self.data_dict = data_dict
 
-        self.process_mass_spec(data_dict)
+        if auto_process:
+            self.process_mass_spec()
+            
 
     def __simulate_profile__data__(self, exp_mz_centroid, magnitude_centroid):
         '''needs theoretical resolving power calculation and define peak shape
@@ -962,23 +969,29 @@ class MassSpecCentroid(MassSpecBase):
 
         return sum(self.abundance)
 
-    def process_mass_spec(self, data_dict, auto_noise=True, noise_bayes_est=False):
+   
+
+    def process_mass_spec(self, auto_noise=True, noise_bayes_est=False):
         import tqdm
         # overwrite process_mass_spec 
         # mspeak objs are usually added inside the PeaKPicking class 
         # for profile and freq based data
         
-
+        data_dict = self.data_dict
         s2n = True
         ion_charge = self.polarity
         #l_exp_mz_centroid = data_dict.get(Labels.mz)
         #l_intes_centr = data_dict.get(Labels.abundance)
         #l_peak_resolving_power = data_dict.get(Labels.rp)
-        l_s2n = data_dict.get(Labels.s2n)
+        l_s2n = list(data_dict.get(Labels.s2n))
         
         if not l_s2n: s2n = False
         
         print("Loading mass spectrum object")
+        
+        abun = array(data_dict.get(Labels.abundance)).astype(np_float)
+        
+        abundance_threshold, factor = self.get_threshold(abun)
         
         for index, mz in enumerate(data_dict.get(Labels.mz)):
             
@@ -987,27 +1000,31 @@ class MassSpecCentroid(MassSpecBase):
             
             if s2n:
                 
-                self.add_mspeak(
-                    ion_charge,
-                    mz,
-                    data_dict.get(Labels.abundance)[index],
-                    data_dict.get(Labels.rp)[index],
-                    l_s2n[index],
-                    massspec_indexes,
-                    ms_parent=self
-                )
+                if abun[index]/factor >= abundance_threshold:
+
+                    self.add_mspeak(
+                        ion_charge,
+                        mz,
+                        abun[index],
+                        float(data_dict.get(Labels.rp)[index]),
+                        float(l_s2n[index]),
+                        massspec_indexes,
+                        ms_parent=self
+                    )
 
             else:
 
-                self.add_mspeak(
-                    ion_charge,
-                    mz,
-                    data_dict.get(Labels.abundance)[index],
-                    data_dict.get(Labels.rp)[index],
-                    -999,
-                    massspec_indexes,
-                    ms_parent=self
-                )
+                if data_dict.get(Labels.abundance)[index]/factor >= abundance_threshold:
+
+                    self.add_mspeak(
+                        ion_charge,
+                        mz,
+                        abun[index],
+                        float(data_dict.get(Labels.rp)[index]),
+                        -999,
+                        massspec_indexes,
+                        ms_parent=self
+                    )
 
         self.mspeaks = self._mspeaks
         self._dynamic_range = self.max_abundance / self.min_abundance
@@ -1015,7 +1032,8 @@ class MassSpecCentroid(MassSpecBase):
         
         if self.label != Labels.thermo_centroid:
             self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto=auto_noise, bayes=noise_bayes_est)
-            
+        
+        del self.data_dict    
 class MassSpecCentroidLowRes(MassSpecCentroid,):
     
     '''Does not store MSPeak Objs, will iterate over mz, abundance pairs instead'''
