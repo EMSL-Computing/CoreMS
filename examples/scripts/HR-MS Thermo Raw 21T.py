@@ -29,7 +29,10 @@ def run_thermo(file_location):
 
     parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
 
-    parser.get_tic(ms_type='MS', plot=True)
+    parser.chromatogram_settings.start_scan = -1
+    parser.chromatogram_settings.end_scan = -1
+    
+    tic_data, ax = parser.get_tic(ms_type='MS', plot=True)
 
     plt.show()
 
@@ -43,8 +46,11 @@ def run_thermo(file_location):
     mass_spectrum = parser.get_average_mass_spectrum_in_scan_range()
 
     # sums scans in selected range
-    mass_spectrum = parser.get_average_mass_spectrum_in_scan_range(first_scan=1, last_scan=5)
-
+    parser.chromatogram_settings.start_scan = 1
+    parser.chromatogram_settings.end_scan = 10
+    
+    mass_spectrum = parser.get_average_mass_spectrum_in_scan_range()
+    
     scans_list = [1]
     # sums scans in selected range
     mass_spectrum = parser.get_average_mass_spectrum_by_scanlist(scans_list)
@@ -116,14 +122,14 @@ if __name__ == "__main__":
 
     ax =mass_spectrum.plot_mz_domain_profile()
 
-    for mspeak in mass_spectrum:
-        mspeak.plot(ax=ax)
-    plt.show()
+    #for mspeak in mass_spectrum:
+    #    mspeak.plot(ax=ax)
+    #plt.show()
     #plt.savefig("test.png")
 
-    mass_spectrum.plot_profile_and_noise_threshold()
-    plt.show()
-    plt.savefig("test.png")
+    #mass_spectrum.plot_profile_and_noise_threshold()
+    #plt.show()
+    #plt.savefig("test.png")
 
     mass_spectrum = run_assignment(file_location)
 

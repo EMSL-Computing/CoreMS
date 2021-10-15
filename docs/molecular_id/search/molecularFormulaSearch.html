@@ -400,15 +400,15 @@ class SearchMolecularFormulaWorker:
 
             if ion_type == Labels.protonated_de_ion:
 
-                return possible_formula_obj.protonated_mass(ion_charge)
+                return possible_formula_obj.protonated_mz(ion_charge)
 
             elif ion_type == Labels.radical_ion:
 
-                return possible_formula_obj.radical_mass(ion_charge)
+                return possible_formula_obj.radical_mz(ion_charge)
 
             elif ion_type == Labels.adduct_ion and adduct_atom:
 
-                return possible_formula.adduct_mass(ion_charge, adduct_atom)
+                return possible_formula.adduct_mz(ion_charge, adduct_atom)
 
             else:
 
@@ -634,15 +634,15 @@ class SearchMolecularFormulaWorker:
 
             if ion_type == Labels.protonated_de_ion:
 
-                return possible_formula_obj.protonated_mass(ion_charge)
+                return possible_formula_obj.protonated_mz(ion_charge)
 
             elif ion_type == Labels.radical_ion:
 
-                return possible_formula_obj.radical_mass(ion_charge)
+                return possible_formula_obj.radical_mz(ion_charge)
 
             elif ion_type == Labels.adduct_ion and adduct_atom:
 
-                return possible_formula.adduct_mass(ion_charge, adduct_atom)
+                return possible_formula.adduct_mz(ion_charge, adduct_atom)
 
             else:
 
@@ -821,15 +821,15 @@ def calc_error(mz_exp, mz_calc, method=&#39;ppm&#39;):
 
         if ion_type == Labels.protonated_de_ion:
 
-            return possible_formula_obj.protonated_mass(ion_charge)
+            return possible_formula_obj.protonated_mz(ion_charge)
 
         elif ion_type == Labels.radical_ion:
 
-            return possible_formula_obj.radical_mass(ion_charge)
+            return possible_formula_obj.radical_mz(ion_charge)
 
         elif ion_type == Labels.adduct_ion and adduct_atom:
 
-            return possible_formula.adduct_mass(ion_charge, adduct_atom)
+            return possible_formula.adduct_mz(ion_charge, adduct_atom)
 
         else:
 

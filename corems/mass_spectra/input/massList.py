@@ -83,7 +83,7 @@ class ReadCoremsMassSpectraText(ReadCoremsMasslist, Thread):
 
             list_scan.append(int(scan_number))
 
-            list_rt.append(mass_spec.rt)
+            list_rt.append(mass_spec.retention_time)
 
             list_tic.append(mass_spec.tic)
             

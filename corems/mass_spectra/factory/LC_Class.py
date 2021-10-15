@@ -3,6 +3,7 @@ Created on Jun 12, 2019
 """
 from collections.abc import Mapping
 from pathlib import Path
+from typing import List
 from corems.mass_spectra.calc.LC_Calc import LC_Calculations
 
 __author__ = "Yuri E. Corilo"
@@ -80,7 +81,7 @@ class LCMSBase(Mapping, LC_Calculations):
 
         for key_ms in sorted(self._ms.keys()):
 
-            retention_time_list.append(self._ms.get(key_ms).rt)
+            retention_time_list.append(self._ms.get(key_ms).retention_time)
 
         self.retention_time = retention_time_list 
 
@@ -120,4 +121,76 @@ class LCMSBase(Mapping, LC_Calculations):
 
         self._tic_list = l    
 
+class DataDependentLCMS(LC_Calculations):
+
+    def __init__(self, file_location, target_mzs:List[float], analyzer:str ='Unknown', 
+                 instrument_label:str='Unknown', sample_name:str=None) -> None:
+        
+        if  isinstance(file_location, str):
+			# if obj is a string it defaults to create a Path obj, pass the S3Path if needed
+            file_location = Path(file_location)
+
+        if not file_location.exists():
+        
+            raise FileExistsError("File does not exist: " + file_location)
+        
+        self.file_location = file_location
+        
+        if sample_name: 
+        
+            self.sample_name = sample_name
+
+        else: 
+        
+            self.sample_name = file_location.stem
+
+        # place holder for DataDependentPeak list
+        self._lcmspeaks = []
+        
+        # place holders for Full Chromatogram data 
+        self._retention_time_list = []
+        self._scans_number_list = []
+        self._tic_list = []
+        
+
+    def __len__(self):
+        
+        return len(self._lcmspeaks)
+        
+    def __getitem__(self, position):
+        
+        return self._lcmspeaks[position]
+
+    def add_peak(self, mass_spectrum):
+        
+        self._lcmspeaks.append(mass_spectrum)
+
+    @property
+    def scans_number(self):
+
+        return self._scans_number_list
+
+    @property
+    def retention_time(self):
+
+        return self._retention_time_list
     
+    @property
+    def tic(self):
+
+        return self._tic_list
+
+    @retention_time.setter
+    def retention_time(self, l):
+        # self._retention_time_list = linspace(0, 80, num=len(self._scans_number_list))
+        self._retention_time_list = l
+
+    @scans_number.setter
+    def scans_number(self, l):
+
+        self._scans_number_list = l
+
+    @tic.setter
+    def tic(self, l):
+
+        self._tic_list = l        

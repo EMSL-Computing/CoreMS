@@ -34,35 +34,54 @@ class MolecularFormulaCalc:
         '''
         return (2.758 * 10000000 * B * T) *(1/self.mz_calc)    
 
+    def _adduct_mz(self, adduct_atom, ion_charge):
+            return (self.neutral_mass + (Atoms.atomic_masses.get(adduct_atom)) + (ion_charge * -1 * Atoms.electron_mass))/ abs(ion_charge)
+
+    def _protonated_mz(self, ion_charge):
+            return (self.neutral_mass + (ion_charge * Atoms.atomic_masses.get("H")) + (ion_charge * -1 * Atoms.electron_mass))/abs(ion_charge)
+
+    def _radical_mz(self, ion_charge):
+            return (self.neutral_mass + (ion_charge * -1 * Atoms.electron_mass))/ abs(ion_charge)
+
+    def _neutral_mass(self):
+        
+        mass = 0
+
+        for each_atom in self._d_molecular_formula.keys() :
+                
+            if each_atom != Labels.ion_type and each_atom != 'HC':
+                
+                try:
+                
+                    mass = mass + Atoms.atomic_masses[each_atom]  *  self._d_molecular_formula.get(each_atom)
+                
+                except: print(Labels.ion_type, each_atom) 
+        
+        return mass
+
     def _calc_mz(self):
         
-        def protonated_mass(mass, ion_charge):
-            return (mass + (ion_charge * Atoms.atomic_masses.get("H")) + (ion_charge * -1 * Atoms.electron_mass))/abs(ion_charge)
-        
-        def radical_mass(mass, ion_charge):
-            return (mass + (ion_charge * -1 * Atoms.electron_mass))/ abs(ion_charge)
-
         if self.ion_charge:
             
-            mass = 0
+            if self._external_mz:
+                return self._external_mz
             
-            ion_type = self._d_molecular_formula.get(Labels.ion_type)
-
-            for each_atom in self._d_molecular_formula.keys() :
-                
-                if each_atom != Labels.ion_type and each_atom != 'HC':
-                    
-                    try:
-                        mass = mass + Atoms.atomic_masses[each_atom]  *  self._d_molecular_formula.get(each_atom)
-                    except: print(Labels.ion_type, each_atom) 
-            
-            if ion_type == Labels.protonated_de_ion:
-                return protonated_mass(mass, self.ion_charge)
-            elif ion_type == Labels.radical_ion or ion_type == Labels.adduct_ion:   
-                return radical_mass(mass, self.ion_charge)
             else:
-                #formula is probably ion form used for bruker ref list
-                return radical_mass(mass, self.ion_charge)
+                ion_type = self._d_molecular_formula.get(Labels.ion_type)
+
+                if ion_type == Labels.protonated_de_ion:
+                    return self.protonated_mz
+                
+                elif ion_type == Labels.radical_ion or ion_type == Labels.adduct_ion:   
+                    return self.radical_mz
+                
+                elif ion_type == Labels.neutral:
+                
+                    return self.neutral_mass
+                
+                else:
+                    #formula is probably ion form used for bruker ref list
+                    return self.neutral_mass
                 
         else:
             
@@ -102,7 +121,7 @@ class MolecularFormulaCalc:
     def _calc_mz_confidence(self, mean=0):
         
         # predicted std not set, using 0.3
-        if not self._mspeak_parent.predicted_std: self._mspeak_parent.predicted_std = 0.3
+        if not self._mspeak_parent.predicted_std: self._mspeak_parent.predicted_std = 1.66
         
         #print( self._mspeak_parent.predicted_std)
         
@@ -183,6 +202,30 @@ class MolecularFormulaCalc:
             result = 1.
 
         return result
+
+    def subtract_formula(self, formula_obj):
+        
+        subtraction = {}
+        for atom, value in self.to_dict().items():
+            if atom != Labels.ion_type:
+                if formula_obj.get(atom):
+                    value_subtraction = value - formula_obj.get(atom)
+                    if value - formula_obj.get(atom) > 0:
+                        subtraction[atom] = value - formula_obj.get(atom)
+                else:
+                    subtraction[atom] = value
+                    
+        SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
+        SUP = str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹")
+        
+        formula_srt = ''
+        for atom in Atoms.atoms_order:
+            if atom in subtraction.keys():
+                formula_srt += atom.translate(SUP) + str(int(subtraction.get(atom))).translate(SUB)
+        return formula_srt
+            
+        return (subtraction)
+        
 
     def _calc_average_mz_score(self):
         
@@ -351,7 +394,7 @@ class MolecularFormulaCalc:
         for atom in dict_base.keys():
             mass = mass + Atoms.atomic_masses.get(atom) * dict_base.get(atom)
         
-        kendrick_mass = (int(mass)/mass)*self.mz_calc
+        kendrick_mass = (int(mass)/mass)* self.mz_calc
         
         nominal_km =int(kendrick_mass)
        
