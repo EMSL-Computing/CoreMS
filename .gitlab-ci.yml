@@ -59,7 +59,7 @@ test-source:
     
     
   script:
-    
+    - apt-get install libpq-dev -y
     - python3 -V  # Print out python version for debugging
     - pip3 install -r requirements.txt
     - pip3 install pytest
@@ -82,6 +82,7 @@ build:
     
   script:
     
+    - apt-get install libpq-dev -y
     - python3 -V  # Print out python version for debugging
     - pip3 install twine
     - python3 setup.py sdist
