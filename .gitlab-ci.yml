@@ -60,12 +60,12 @@ test-source:
     
   script:
     
-    - python -V  # Print out python version for debugging
-    - pip install -r requirements.txt
-    - pip install pytest
-    - pip install pytest-cov
+    - python3 -V  # Print out python version for debugging
+    - pip3 install -r requirements.txt
+    - pip3 install pytest
+    - pip3 install pytest-cov
     - ls .
-    - python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
+    - python3 -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
     - pytest
   
   artifacts:
@@ -82,10 +82,10 @@ build:
     
   script:
     
-    - python -V  # Print out python version for debugging
-    - pip install twine
-    - python setup.py sdist
-    - pip install dist/*
+    - python3 -V  # Print out python version for debugging
+    - pip3 install twine
+    - python3 setup.py sdist
+    - pip3 install dist/*
     # run the command here
 
   artifacts:
