@@ -3,6 +3,7 @@
 import re
 from typing import Dict, List, Tuple
 import sys
+
 sys.path.append("./")
 import warnings
 warnings.filterwarnings("ignore")
@@ -21,8 +22,9 @@ import pandas as pd
 from openpyxl import load_workbook
 import logging
 
-from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
+from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas, SearchMolecularFormulasLC
 from corems.encapsulation.factory.parameters import LCMSParameters, MSParameters
+from corems.mass_spectra.factory.LC_Class import DataDependentLCMS
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 from corems.mass_spectra.calc.MZSearch import MZSearch
 from corems.molecular_formula.input.masslist_ref import ImportMassListRef
@@ -67,7 +69,7 @@ def _write_frame_to_new_sheet(path_to_file=None, sheet_name='sheet', data=None):
             
             data_frame.to_excel(writer, sheet_name, startrow=startrow, index=False, header=header)
 
-def run_thermo(file_location, target_mzs: List[float]) -> Tuple[Dict[float, rawFileReader.EIC_Data], rawFileReader.ImportDataDependentThermoMSFileReader]:
+def run_thermo(file_location, target_mzs: List[float]) -> Tuple[DataDependentLCMS, rawFileReader.ImportDataDependentThermoMSFileReader]:
     
     print(file_location)
     
@@ -86,30 +88,21 @@ def run_thermo(file_location, target_mzs: List[float]) -> Tuple[Dict[float, rawF
     
     parser = rawFileReader.ImportDataDependentThermoMSFileReader(file_location, target_mzs)
     
-    tic_data, ax_tic = parser.get_tic(ms_type='MS !d', peak_detection=True, 
-                                      smooth=True, plot=False)
-    
+    lcms_obj = parser.get_lcms_obj()
+                                      
     #ms2_tic, ax_ms2_tic = parser.get_tic(ms_type='MS2', peak_detection=False, plot=False)
 
     #print(data)
 
     # get selected data dependent mzs 
-    target_mzs = parser.selected_mzs
     
-    eics_data, ax_eic = parser.get_eics(target_mzs,
-                                        tic_data,
-                                        smooth=True,
-                                        plot=False,
-                                        legend=False,
-                                        peak_detection=True,
-                                        ax=ax_tic)
     
     #plt.legend()
     #plt.tight_layout()
     #plt.title("")
     #plt.show()
     #ax_eic.plot(tic_data.time, tic_data.tic, c='black')
-    return eics_data, parser
+    return lcms_obj, parser
     
 
 def read_lib(ref_filepath:Path):
@@ -131,71 +124,30 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
     
     target_mzs = dict_tarrget_mzs.keys()
 
-    eics_data, parser = run_thermo(datapath, target_mzs)
+    lcms_obj, parser = run_thermo(datapath, target_mzs)
 
+    target_mzs = parser.selected_mzs
+    
     #TODO need to convert this to a lcms object
     scan_number_mass_spectrum = {}
     
     results_list = []
     # mz is from calculate mz
-    for mz, eic_data in eics_data.items():
-        
-        #all possible m/z from the same mix, should be one per m/z as per current lib
-        possible_mf = dict_tarrget_mzs.get(mz)
-        
-        if eic_data.apexes:                    
-            
-            dict_res = {}
+    
+    tic_data, ax_tic = lcms_obj.get_tic(ms_type='MS !d', peak_detection=True, 
+                                      smooth=True, plot=False)
+                                      
+    
+    eics_data, ax_eic = lcms_obj.get_eics(target_mzs,
+                                        tic_data,
+                                        smooth=True,
+                                        plot=False,
+                                        legend=False,
+                                        peak_detection=True,
+                                        ax=ax_tic)
+                                        
+    lcms_obj.process_ms1(dict_tarrget_mzs)
 
-            names = [mf_obj.name for mf_obj in possible_mf]
-            molecular_formulae = [mf_obj.string for mf_obj in possible_mf]
-            rts = [eic_data.time[apex[1]] for apex in eic_data.apexes]
-            scans = [eic_data.scans[apex[1]] for apex in eic_data.apexes]
-            peak_height = [eic_data.eic[apex[1]] for apex in eic_data.apexes]
-
-            #print("m/z =  {}, formulas = {}, names = {}, peaks indexes = {}, retention times = {}, abundance = {}".format(mz,
-            #                                                                        molecular_formulae,
-            #                                                                        names,
-            #                                                                        scans,
-            #                                                                        rts,
-            #                                                                        peak_height) )
-            dict_res["Mix Name"] = current_mix
-            dict_res["Dataset"] = datapath.stem
-            dict_res["Compound Name"] = names[0]
-            dict_res["Neutral Formula"] = molecular_formulae[0]
-            dict_res["Target m/z (de)protonated"] = round(mz,6)
-            dict_res["Retention Times"] = rts
-            dict_res["Scans"] = scans
-            dict_res["Peak Height"] = peak_height
-            
-            results_list.append(dict_res)
-
-            for peak_index in eic_data.apexes:
-           
-                apex_index = peak_index[1]
-                retention_time = eic_data.time[apex_index]
-                original_scan = eic_data.scans[apex_index]
-                
-                if original_scan in scan_number_mass_spectrum.keys():
-                    
-                    scan_number_mass_spectrum[original_scan][1].extend(possible_mf)
-
-                    
-                else:
-                    
-                    parser.chromatogram_settings.start_scan = original_scan
-                    parser.chromatogram_settings.end_scan = original_scan
-                    
-                    mass_spec = parser.get_average_mass_spectrum_in_scan_range()
-                    
-                    mass_spec.min_ppm_error = - 5
-                    mass_spec.max_ppm_error = 5
-
-                    mass_spec.retention_time = retention_time
-                    scan_number_mass_spectrum[original_scan] = [mass_spec, [i for i in possible_mf]]
-                    #mass_spec.plot_mz_domain_profile()
-                    #plt.show()
-                    
     _write_frame_to_new_sheet(path_to_file="HILIC NEG Results.xlsx", sheet_name='all_eic_results', data=results_list)
     # TODO: create lcms and add dependent scans based on scan number 
     # Add Adducts search, right now only working for de or protonated species
@@ -204,6 +156,9 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
     ion_type = Labels.protonated_de_ion
     
     precision_decimals = 0
+
+    ms_peaks_assigned = SearchMolecularFormulasLC(lcms_obj).run_worker_ms1(ion_type, find_isotopologues=True)
+        
 
     for scan, ms_mf in scan_number_mass_spectrum.items():
         
@@ -224,7 +179,7 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
         #print()
         #print(scan, mass_spectcrum_obj.retention_time)
         #print(mf_references_list)
-        ms_peaks_assigned = SearchMolecularFormulas(mass_spectcrum_obj).search_mol_formulas( mf_references_list, ion_type, find_isotopologues=True)
+        SearchMolecularFormulas(mass_spectcrum_obj).run_worker_ms1()
         
         #for precursor_mz in percursordata.keys():
         
@@ -265,8 +220,6 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
            
         
             mass_spectcrum_obj.to_csv(str(dir) + '/' + ms1_output_file) 
-
-            
         
         else:
             
@@ -280,10 +233,9 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
                 
                         #error = MZSearch.calc_mz_error(mf.mz_calc, precursor_mz)
 
-                        #check_error = MZSearch.check_ppm_error(LCMSParameters.lc_ms.eic_tolerance_ppm, error)
+                        #check_error = MZSearch.check_ppm_error(LCMSParameters.lcms_obj.eic_tolerance_ppm, error)
                         
                         #if check_error:
-                        print('YEAHHHHH')
                         print(scan, mass_spectcrum_obj.retention_time, mf.name, mf.mz_calc, mf.mz_error, mf.confidence_score, mf.isotopologue_similarity)  
                         #print(peak.mz_exp, precursor_mz, percursordata.get(peak.mz_exp))
                         
@@ -348,6 +300,7 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
                                     for msmspeak in ms2_mass_spec:
                                         
                                         for mf_msms in msmspeak:
+                                            
                                             fragment_mz.append(round(msmspeak.mz_exp,6))
                                             fragment_formulas.append(mf_msms.string)
                                             fragment_error.append(mf_msms.mz_error)
@@ -436,7 +389,6 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
 
 def auto_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormula]]], datadir: Path):
 
-    import os
     rootdir = datadir
     
     dict_res = {}

@@ -20,6 +20,7 @@ from tqdm import tqdm
 
 from typing import Dict, List, Tuple
 from corems.encapsulation.constant import Labels
+from corems.mass_spectra.factory.LC_Class import DataDependentLCMS
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
 from corems.mass_spectra.calc.MZSearch import MZSearch
 from corems.encapsulation.factory.parameters import LCMSParameters, default_parameters
@@ -553,7 +554,6 @@ class ThermoBaseClass():
 
         # Create the mass options object that will be used when averaging the scans
         options = MassOptions()
-
         options.ToleranceUnits = ToleranceUnits.ppm
         options.Tolerance = ppm_tolerance
 
@@ -640,9 +640,15 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass, LC_Calculations):
         self._selected_mzs = self._init_target_mz(selected_mzs, enforce_target_ms2, 
                                                   eic_tolerance_ppm, average_target_mz)
 
+        self.lcms = DataDependentLCMS(self.file_location, self._selected_mzs, self)
+
     @property
     def selected_mzs(self) -> List[float]:
         return list(self._selected_mzs)
+
+    def get_lcms_obj(self):
+        
+        return self.lcms
 
     def get_precursors_list(self, precision_decimals=0):
         '''returns a set of unique precursors m/z

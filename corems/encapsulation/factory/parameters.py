@@ -35,7 +35,10 @@ class LCMSParameters:
     '''
 
     lc_ms = LiquidChromatographSetting()
-
+    
+    ms1_molecular_search = MolecularFormulaSearchSettings()
+    
+    ms2_molecular_search = MolecularFormulaSearchSettings()
 
 def default_parameters(file_location):  # pragma: no cover
 

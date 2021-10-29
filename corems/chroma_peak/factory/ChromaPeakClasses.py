@@ -3,7 +3,8 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 from numpy import array, trapz    
-from corems.chroma_peak.calc.ChromaPeakCalc import GCPeakCalculation 
+from corems.chroma_peak.calc.ChromaPeakCalc import GCPeakCalculation
+from corems.mass_spectra.factory.LC_Class import EIC_Data 
 from corems.molecular_id.factory.EI_SQL import LowResCompoundRef
 
 
@@ -13,9 +14,9 @@ class ChromaPeakBase():
     '''
     def __init__(self, chromatogram_parent, mass_spectrum_obj, start_index, index, final_index):
         
-        self.start_index = start_index
-        self.final_index = final_index
-        self.index = int(index)
+        self.start_scan = start_index
+        self.final_scan = final_index
+        self.apex_scan = int(index)
         self.chromatogram_parent = chromatogram_parent
         self.mass_spectrum = mass_spectrum_obj
         'updated individual calculation'
@@ -43,10 +44,18 @@ class ChromaPeakBase():
 
 class DataDependentPeak(ChromaPeakBase):
 
-    def __init__(self, chromatogram_parent, mass_spectrum_obj, indexes):
+    def __init__(self, chromatogram_parent, mass_spectrum_obj, peak_indexes, eic_data: EIC_Data, molforms = None):
 
-        super().__init__(chromatogram_parent, mass_spectrum_obj, *indexes)    
+        retention_time = eic_data.time[peak_indexes[1]]
+
+        mass_spectrum_obj.retention_time = retention_time
+
+        super().__init__(chromatogram_parent, mass_spectrum_obj, *peak_indexes)    
         
+        self._eic_data = eic_data
+
+        self._possible_molecular_formulae = molforms if molforms else []
+
     def __len__(self):
         
         return len(self._dependent_mass_spectra)
@@ -58,6 +67,18 @@ class DataDependentPeak(ChromaPeakBase):
     def add_dependent_mass_spectrum(self, mass_spectrum):
         
         self._dependent_mass_spectra.append(mass_spectrum)
+
+    def add_molecular_formula(self, molfform):
+        
+        self._possible_molecular_formulae.append(molfform)
+
+    @property
+    def eic_rt_list(self):
+        return [self._eic_data.time[i] for i in range(self.start_index, self.final_index+1) ]
+
+    @property   
+    def eci_list(self):
+        return [self._eic_data.eic[i] for i in range(self.start_index, self.final_index+1) ]
 
 
 class GCPeak(ChromaPeakBase, GCPeakCalculation):
