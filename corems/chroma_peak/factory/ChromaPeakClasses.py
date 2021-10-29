@@ -4,7 +4,7 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 from numpy import array, trapz    
 from corems.chroma_peak.calc.ChromaPeakCalc import GCPeakCalculation
-import corems.mass_spectra.factory.LC_Class as lcms
+#import corems.mass_spectra.factory.LC_Class as lcms
 from corems.mass_spectra.factory.LC_Temp import EIC_Data
 from corems.molecular_id.factory.EI_SQL import LowResCompoundRef
 
@@ -48,7 +48,7 @@ class DataDependentPeak(ChromaPeakBase):
     def __init__(self, chromatogram_parent, mass_spectrum_obj, peak_indexes, eic_data: EIC_Data, possible_molform = None):
 
         eic_data_apex_index = eic_data.scans.index(peak_indexes[1])
-        
+
         retention_time = eic_data.time[eic_data_apex_index]
 
         mass_spectrum_obj.retention_time = retention_time
