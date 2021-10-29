@@ -37,11 +37,11 @@ class ChromaPeakBase():
 
     @property
     def rt_list(self):
-        return [self.chromatogram_parent.retention_time[i] for i in range(self.start_index, self.final_index+1) ]
+        return [self.chromatogram_parent.retention_time[i] for i in range(self.start_scan, self.final_scan+1) ]
 
     @property   
     def tic_list(self):
-        return [self.chromatogram_parent.tic[i] for i in range(self.start_index, self.final_index+1) ]
+        return [self.chromatogram_parent.tic[i] for i in range(self.start_scan, self.final_scan+1) ]
 
 class DataDependentPeak(ChromaPeakBase):
 
@@ -77,11 +77,11 @@ class DataDependentPeak(ChromaPeakBase):
 
     @property
     def eic_rt_list(self):
-        return [self._eic_data.time[i] for i in range(self.start_index, self.final_index+1) ]
+        return [self._eic_data.time[i] for i in range(self.start_scan, self.final_scan+1) ]
 
     @property   
     def eci_list(self):
-        return [self._eic_data.eic[i] for i in range(self.start_index, self.final_index+1) ]
+        return [self._eic_data.eic[i] for i in range(self.start_scan, self.final_scan+1) ]
 
 
 class GCPeak(ChromaPeakBase, GCPeakCalculation):
