@@ -18,49 +18,25 @@ from matplotlib import axes
 import numpy as np
 from corems.chroma_peak.factory.ChromaPeakClasses import DataDependentPeak
 from corems.encapsulation.factory.parameters import LCMSParameters
-from corems.encapsulation.factory.processingSetting import MolecularFormulaSearchSettings
+from corems.encapsulation.factory.processingSetting import LiquidChromatographSetting, MolecularFormulaSearchSettings
 
 from corems.mass_spectra.calc.LC_Calc import LC_Calculations
-from corems.mass_spectra.input.rawFileReader import ImportDataDependentThermoMSFileReader
+from corems.mass_spectra.factory.LC_Temp import TIC_Data, EIC_Data
 
+import clr
 
-@dataclass
-class TIC_Data:
-     '''
-    Scans: [int]
-        original thermo scan numbers
-    Time: [floats]
-        list of retention times
-    TIC: [floats]
-        total ion chromatogram
-    Apexes: [int]    
-        original thermo apex scan number after peak picking 
-     '''
-     
-     scans : List[int] = field(default_factory=list)
-     time : List[float] = field(default_factory=list)
-     tic : List[float] = field(default_factory=list)
-     apexes : List[int] = field(default_factory=list)
+sys.path.append(site.getsitepackages()[0] + '/ext_lib')
+sys.path.append('ext_lib')
 
-@dataclass
-class EIC_Data:
-     '''
-    Scans: [int]
-        original thermo scan numbers
-    Time: [floats]
-        list of retention times
-    EIC: [floats]
-        extracted ion chromatogram
-    Apexes: [int]    
-        original thermo apex scan number after peak picking 
-    
-     '''
-     
-     scans : List[int] = field(default_factory=list)
-     time : List[float] = field(default_factory=list)
-     eic : List[float] = field(default_factory=list)
-     apexes : List[int] = field(default_factory=list)
+clr.AddReference('ThermoFisher.CommonCore.RawFileReader')
+clr.AddReference('ThermoFisher.CommonCore.Data')
+clr.AddReference('ThermoFisher.CommonCore.MassPrecisionEstimator')
 
+from ThermoFisher.CommonCore.Data import ToleranceUnits
+from ThermoFisher.CommonCore.Data.Business import ChromatogramTraceSettings, TraceType, MassOptions
+from ThermoFisher.CommonCore.Data.Business import ChromatogramSignal, Range
+from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType
+from ThermoFisher.CommonCore.Data.Interfaces import IChromatogramSettings
 
 class LCMSBase(Mapping, LC_Calculations):
     """
@@ -177,22 +153,9 @@ class LCMSBase(Mapping, LC_Calculations):
 
 class DataDependentLCMS(LC_Calculations):
     
-    def __init__(self, file_location, target_mzs:List[float], parser:ImportDataDependentThermoMSFileReader, analyzer:str ='Unknown', 
+    def __init__(self, file_location, target_mzs:List[float], parser, analyzer:str ='Unknown', 
                  instrument_label:str='Unknown', sample_name:str=None) -> None:
         
-        import clr
-
-        sys.path.append(site.getsitepackages()[0] + '/ext_lib')
-        sys.path.append('ext_lib')
-        
-        clr.AddReference('ThermoFisher.CommonCore.RawFileReader')
-        clr.AddReference('ThermoFisher.CommonCore.Data')
-        clr.AddReference('ThermoFisher.CommonCore.MassPrecisionEstimator')
-        
-        from ThermoFisher.CommonCore.Data.Business import ChromatogramTraceSettings, TraceType, MassOptions
-        from ThermoFisher.CommonCore.Data.Interfaces import IChromatogramSettings
-        from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType
-
         self._parser = parser
 
         if  isinstance(file_location, str):
@@ -240,13 +203,18 @@ class DataDependentLCMS(LC_Calculations):
         return self.parameters.ms1_molecular_search
     
     @property
+    def chromatogram_settings(self) -> LiquidChromatographSetting:
+        return self.parameters.lc_ms
+
+    @property
     def parameters(self) -> LCMSParameters:  
         return self._parser.parameters
 
+    
     @property
     def eic_scans_number(self):
 
-        return [i for i in self.apex_scan]
+        return [i.apex_scan for i in self._lcmspeaks]
 
     @property
     def scans_number(self):
@@ -303,8 +271,8 @@ class DataDependentLCMS(LC_Calculations):
 
         chroma_settings = IChromatogramSettings(settings)
 
-        data = self._parseriRawDataPlus.GetChromatogramData([chroma_settings],
-                                                     self.start_scan, self.end_scan)
+        data = self._parser.iRawDataPlus.GetChromatogramData([chroma_settings],
+                                                     self.parameters.lc_ms.start_scan, self.parameters.lc_ms.end_scan)
 
         trace = ChromatogramSignal.FromChromatogramData(data)
         
@@ -405,8 +373,8 @@ class DataDependentLCMS(LC_Calculations):
         # print(chroma_settings)
         # print(chroma_settings)
 
-        data = self.iRawDataPlus.GetChromatogramData(all_chroma_settings,
-                                                     self.start_scan, self.end_scan, options)
+        data = self._parser.iRawDataPlus.GetChromatogramData(all_chroma_settings,
+                                                     self.chromatogram_settings.start_scan, self.chromatogram_settings.end_scan, options)
 
         traces = ChromatogramSignal.FromChromatogramData(data)
 
@@ -428,7 +396,7 @@ class DataDependentLCMS(LC_Calculations):
         
         for i, trace in enumerate(traces):
             if trace.Length > 0:
-                rt, eic, scans  = self.get_rt_time_from_trace(trace)
+                rt, eic, scans  = self._parser.get_rt_time_from_trace(trace)
                 if smooth:
                     eic= self.smooth_tic(eic)
     
@@ -507,7 +475,7 @@ class DataDependentLCMS(LC_Calculations):
         tic_data, ax_tic = self.get_tic(ms_type='MS !d', peak_detection=True, 
                                       smooth=True, plot=False)
 
-        eics_data = self.get_eics(tic_data)
+        eics_data, axes = self.get_eics(tic_data)
         
         results_list = []
 

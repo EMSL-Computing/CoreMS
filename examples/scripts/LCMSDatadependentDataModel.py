@@ -24,7 +24,6 @@ import logging
 
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas, SearchMolecularFormulasLC
 from corems.encapsulation.factory.parameters import LCMSParameters, MSParameters
-from corems.mass_spectra.factory.LC_Class import DataDependentLCMS
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 from corems.mass_spectra.calc.MZSearch import MZSearch
 from corems.molecular_formula.input.masslist_ref import ImportMassListRef
@@ -69,7 +68,7 @@ def _write_frame_to_new_sheet(path_to_file=None, sheet_name='sheet', data=None):
             
             data_frame.to_excel(writer, sheet_name, startrow=startrow, index=False, header=header)
 
-def run_thermo(file_location, target_mzs: List[float]) -> Tuple[DataDependentLCMS, rawFileReader.ImportDataDependentThermoMSFileReader]:
+def run_thermo(file_location, target_mzs: List[float]) -> Tuple[rawFileReader.DataDependentLCMS, rawFileReader.ImportDataDependentThermoMSFileReader]:
     
     print(file_location)
     
@@ -138,8 +137,7 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
                                       smooth=True, plot=False)
                                       
     
-    eics_data, ax_eic = lcms_obj.get_eics(target_mzs,
-                                        tic_data,
+    eics_data, ax_eic = lcms_obj.get_eics(tic_data,
                                         smooth=True,
                                         plot=False,
                                         legend=False,
@@ -148,18 +146,15 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
                                         
     lcms_obj.process_ms1(dict_tarrget_mzs)
 
-    _write_frame_to_new_sheet(path_to_file="HILIC NEG Results.xlsx", sheet_name='all_eic_results', data=results_list)
+    #_write_frame_to_new_sheet(path_to_file="HILIC NEG Results.xlsx", sheet_name='all_eic_results', data=results_list)
     # TODO: create lcms and add dependent scans based on scan number 
     # Add Adducts search, right now only working for de or protonated species
     # Export function with csv files
     
-    ion_type = Labels.protonated_de_ion
-    
     precision_decimals = 0
 
-    ms_peaks_assigned = SearchMolecularFormulasLC(lcms_obj).run_worker_ms1(ion_type, find_isotopologues=True)
-        
-
+    ms_peaks_assigned = SearchMolecularFormulasLC(lcms_obj).run_worker_ms1()
+    
     for scan, ms_mf in scan_number_mass_spectrum.items():
         
         dependent_scans = parser.iRawDataPlus.GetScanDependents(scan, precision_decimals)
@@ -420,7 +415,7 @@ def auto_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormula
 
 if __name__ == "__main__":
     
-    dirpath = "/Users/eber373/OneDrive - PNNL/Documents/Data/LCMS/RAW Files/HILIC/NEG/"
+    dirpath = "/Users/eber373/OneDrive - PNNL/Documents/Data/LCMS/RAW Files/C18/1st run/NEG/"
     ref_dirpath = "/Users/eber373/OneDrive - PNNL/Documents/Data/LCMS/"
     filename = "LCMS_5191_CapDev_C18_Mix1_NEG_28Apr2021.raw"
     ref_filename = "LCMS_StantardLibrary.csv"
@@ -438,15 +433,15 @@ if __name__ == "__main__":
     # search eic, do peak picking, for target compounds, currently enforcing parent ion selected to MS2, 
     # to change settings, chage  LCMSParameters.lc_ms parameters inside run_thermo() function:
         
-    auto_process(mf_references_dict, dirpath)
+    #auto_process(mf_references_dict, dirpath)
     #mf_results_dic = {}
-    #if file_location:
+    if file_location:
         
         #get mix name from filename
-    #    current_mix = (re.findall(r'Mix[0-9]{1,2}', str(file_location)))[0]
+        current_mix = (re.findall(r'Mix[0-9]{1,2}', str(file_location)))[0]
 
         
-    #    single_process(mf_references_dict, file_location, current_mix, mf_results_dic)
+        single_process(mf_references_dict, file_location, current_mix, mf_references_dict)
         #loop trought a directory, find and match mix name to raw file, 
         # search eic, do peak picking, for target compounds, currently enforcing parent ion selected to MS2, 
         # to change settings, chage  LCMSParameters.lc_ms parameters inside run_thermo() function:

@@ -12,7 +12,6 @@ from sqlalchemy.sql.sqltypes import Integer
 
 from corems import chunks, timeit
 from corems.encapsulation.constant import Atoms, Labels
-from corems.mass_spectra.factory.LC_Class import DataDependentLCMS
 from corems.molecular_formula.factory.MolecularFormulaFactory import LCMSLibRefMolecularFormula, MolecularFormula
 from corems.ms_peak.factory.MSPeakClasses import _MSPeak
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL
@@ -514,7 +513,7 @@ class SearchMolecularFormulaWorker:
 
 class SearchMolecularFormulasLC(SearchMolecularFormulas):
     
-    def __init__(self, lcms_obj: DataDependentLCMS, sql_db=None, first_hit=False, find_isotopologues=True):
+    def __init__(self, lcms_obj, sql_db=None, first_hit=False, find_isotopologues=True):
 
         self.first_hit = first_hit
 
@@ -533,5 +532,5 @@ class SearchMolecularFormulasLC(SearchMolecularFormulas):
     def run_worker_ms1(self):
 
         for peak in self.lcms_obj:
-            
+            self.mass_spectrum_obj = peak.mass_spectrum
             self.run_molecular_formula(peak.mass_spectrum.sort_by_abundance())        

@@ -21,6 +21,7 @@ from tqdm import tqdm
 from typing import Dict, List, Tuple
 from corems.encapsulation.constant import Labels
 from corems.mass_spectra.factory.LC_Class import DataDependentLCMS
+from corems.mass_spectra.factory.LC_Temp import EIC_Data, TIC_Data
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
 from corems.mass_spectra.calc.MZSearch import MZSearch
 from corems.encapsulation.factory.parameters import LCMSParameters, default_parameters
@@ -42,43 +43,6 @@ from ThermoFisher.CommonCore.Data.Interfaces import IChromatogramSettings
 from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType
 from System.Collections.Generic import List
 
-@dataclass
-class TIC_Data:
-     '''
-    Scans: [int]
-        original thermo scan numbers
-    Time: [floats]
-        list of retention times
-    TIC: [floats]
-        total ion chromatogram
-    Apexes: [int]    
-        original thermo apex scan number after peak picking 
-     '''
-     
-     scans : List[int] = field(default_factory=list)
-     time : List[float] = field(default_factory=list)
-     tic : List[float] = field(default_factory=list)
-     apexes : List[int] = field(default_factory=list)
-
-@dataclass
-class EIC_Data:
-     '''
-    Scans: [int]
-        original thermo scan numbers
-    Time: [floats]
-        list of retention times
-    EIC: [floats]
-        extracted ion chromatogram
-    Apexes: [int]    
-        original thermo apex scan number after peak picking 
-    
-     '''
-     
-     scans : List[int] = field(default_factory=list)
-     time : List[float] = field(default_factory=list)
-     eic : List[float] = field(default_factory=list)
-     apexes : List[int] = field(default_factory=list)
-    
 class ThermoBaseClass():
 
     def __init__(self, file_location):
@@ -640,7 +604,7 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass, LC_Calculations):
         self._selected_mzs = self._init_target_mz(selected_mzs, enforce_target_ms2, 
                                                   eic_tolerance_ppm, average_target_mz)
 
-        self.lcms = DataDependentLCMS(self.file_location, self._selected_mzs, self)
+        self.lcms = DataDependentLCMS(file_location, self._selected_mzs, self)
 
     @property
     def selected_mzs(self) -> List[float]:
