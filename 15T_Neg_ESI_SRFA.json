@@ -1,0 +1,494 @@
+{
+    "MassSpecAttrs": {
+        "Aterm": 0,
+        "Bterm": 0,
+        "Cterm": 0,
+        "baselise_noise": 4.027157999403633,
+        "baselise_noise_std": 20.210553306837895,
+        "mobility_rt": 0,
+        "mobility_scan": 0,
+        "polarity": -1,
+        "rt": 0,
+        "tic": 1538267.750759239
+    },
+    "MassSpecPeak": {
+        "implemented_kendrick_rounding_methods": [
+            "floor",
+            "ceil",
+            "round"
+        ],
+        "kendrick_base": {
+            "C": 1,
+            "H": 2
+        },
+        "kendrick_rounding_method": "floor",
+        "peak_max_prominence_percent": 0.1,
+        "peak_min_prominence_percent": 1.0
+    },
+    "MassSpectrum": {
+        "calib_minimize_method": "Powell",
+        "calib_pol_order": 2,
+        "calib_sn_threshold": 2.0,
+        "do_calibration": true,
+        "implemented_noise_threshold_methods": [
+            "auto",
+            "signal_noise",
+            "relative_abundance"
+        ],
+        "max_calib_ppm_error": 1.0,
+        "max_noise_mz": 1200.0,
+        "max_picking_mz": 1200.0,
+        "min_calib_ppm_error": -1.0,
+        "min_noise_mz": 100.0,
+        "min_picking_mz": 100.0,
+        "noise_threshold_std": 6,
+        "relative_abundance_threshold": 1,
+        "s2n_threshold": 6,
+        "threshold_method": "auto"
+    },
+    "MolecularFormulaSearch": {
+        "adduct_atoms_neg": [
+            "Cl",
+            "Br"
+        ],
+        "adduct_atoms_pos": [
+            "Na",
+            "K"
+        ],
+        "db_jobs": 3,
+        "error_method": "None",
+        "ion_charge": -1,
+        "ionization_type": "ESI",
+        "isAdduct": false,
+        "isProtonated": true,
+        "isRadical": false,
+        "isotopologue_filter_atoms": [
+            "Cl",
+            "Br"
+        ],
+        "isotopologue_filter_threshold": 33.0,
+        "isotopologue_score_weight": 0.4,
+        "max_abun_error": 100.0,
+        "max_dbe": 50,
+        "max_hc_filter": 3.0,
+        "max_oc_filter": 1.2,
+        "max_ppm_error": 5,
+        "min_abun_error": -100.0,
+        "min_dbe": 0,
+        "min_hc_filter": 0.3,
+        "min_oc_filter": 0.0,
+        "min_op_filter": 2.0,
+        "min_peaks_per_class": 15,
+        "min_ppm_error": -5,
+        "mz_error_average": 0.0,
+        "mz_error_range": 1.5,
+        "mz_error_score_weight": 0.6,
+        "output_min_score": 0.1,
+        "output_score_method": "prob_score",
+        "score_method": "prob_score",
+        "score_methods": [
+            "S_P_lowest_error",
+            "N_S_P_lowest_error",
+            "lowest_error",
+            "prob_score",
+            "air_filter_error",
+            "water_filter_error",
+            "earth_filter_error"
+        ],
+        "url_database": null,
+        "use_isotopologue_filter": false,
+        "use_min_peaks_filter": true,
+        "use_pah_line_rule": false,
+        "use_runtime_kendrick_filter": false,
+        "usedAtoms": {
+            "Br": [
+                0,
+                0
+            ],
+            "C": [
+                1,
+                100
+            ],
+            "Cl": [
+                0,
+                0
+            ],
+            "H": [
+                4,
+                200
+            ],
+            "N": [
+                0,
+                0
+            ],
+            "Na": [
+                0,
+                0
+            ],
+            "O": [
+                1,
+                30
+            ],
+            "P": [
+                0,
+                0
+            ],
+            "S": [
+                0,
+                0
+            ]
+        },
+        "used_atom_valences": {
+            "13C": 4,
+            "Ac": [
+                3,
+                2
+            ],
+            "Ag": [
+                0,
+                1,
+                2,
+                3,
+                4
+            ],
+            "Al": [
+                3,
+                1,
+                2
+            ],
+            "As": [
+                5,
+                3,
+                2,
+                1
+            ],
+            "At": 1,
+            "Au": [
+                3,
+                5,
+                2,
+                1
+            ],
+            "B": [
+                4,
+                3,
+                2,
+                1
+            ],
+            "Ba": 2,
+            "Be": [
+                2,
+                1
+            ],
+            "Bi": [
+                3,
+                1,
+                5
+            ],
+            "Br": [
+                1,
+                0
+            ],
+            "C": 4,
+            "Ca": [
+                2,
+                1
+            ],
+            "Cd": [
+                2,
+                1
+            ],
+            "Cl": [
+                1,
+                0
+            ],
+            "Co": [
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "Cr": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+            ],
+            "Cs": 1,
+            "Cu": [
+                2,
+                1,
+                3,
+                4
+            ],
+            "F": [
+                1,
+                0
+            ],
+            "Fe": [
+                3,
+                2,
+                4,
+                5,
+                6
+            ],
+            "Fr": 1,
+            "Ga": [
+                3,
+                1,
+                2
+            ],
+            "Ge": [
+                4,
+                3,
+                2,
+                1
+            ],
+            "H": 1,
+            "Hf": [
+                4,
+                3,
+                2
+            ],
+            "Hg": [
+                1,
+                2,
+                4
+            ],
+            "I": [
+                1,
+                0
+            ],
+            "In": [
+                3,
+                2,
+                1
+            ],
+            "Ir": [
+                4,
+                8,
+                6,
+                5,
+                3,
+                2,
+                1
+            ],
+            "K": [
+                1,
+                0
+            ],
+            "La": [
+                3,
+                2
+            ],
+            "Li": [
+                1,
+                0
+            ],
+            "Mg": [
+                2,
+                1
+            ],
+            "Mn": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "Mo": [
+                6,
+                5,
+                4,
+                3,
+                2,
+                1
+            ],
+            "N": 3,
+            "Na": [
+                1,
+                0
+            ],
+            "Nb": [
+                5,
+                4,
+                3,
+                2,
+                1
+            ],
+            "Ni": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "O": 2,
+            "Os": [
+                4,
+                8,
+                7,
+                6,
+                5,
+                3,
+                2,
+                1
+            ],
+            "P": [
+                3,
+                5,
+                4,
+                2,
+                1
+            ],
+            "Pb": [
+                4,
+                2
+            ],
+            "Pd": [
+                4,
+                2,
+                1
+            ],
+            "Po": [
+                2,
+                4,
+                6
+            ],
+            "Pt": [
+                4,
+                6,
+                5,
+                3,
+                2,
+                1
+            ],
+            "Ra": 2,
+            "Rb": 1,
+            "Re": [
+                4,
+                7,
+                6,
+                5,
+                3,
+                2,
+                1
+            ],
+            "Rh": [
+                6,
+                5,
+                4,
+                3,
+                2,
+                1
+            ],
+            "Ru": [
+                8,
+                7,
+                6,
+                5,
+                4,
+                3,
+                2,
+                1
+            ],
+            "S": 2,
+            "Sb": [
+                5,
+                3
+            ],
+            "Sc": [
+                3,
+                2,
+                1
+            ],
+            "Se": [
+                6,
+                4,
+                2,
+                1
+            ],
+            "Si": [
+                4,
+                3,
+                2
+            ],
+            "Sn": [
+                4,
+                2
+            ],
+            "Sr": [
+                2,
+                1
+            ],
+            "Ta": [
+                5,
+                4,
+                3,
+                2
+            ],
+            "Tc": [
+                7,
+                6,
+                5,
+                4,
+                3,
+                2,
+                1
+            ],
+            "Te": [
+                6,
+                5,
+                4,
+                2
+            ],
+            "Ti": [
+                4,
+                3,
+                2,
+                1
+            ],
+            "Tl": [
+                3,
+                1
+            ],
+            "V": [
+                5,
+                4,
+                3,
+                2,
+                1
+            ],
+            "W": [
+                6,
+                5,
+                4,
+                3,
+                2,
+                1
+            ],
+            "Y": [
+                3,
+                2,
+                1
+            ],
+            "Zn": [
+                2,
+                1
+            ],
+            "Zr": [
+                4,
+                3,
+                2,
+                1
+            ]
+        }
+    },
+    "analyzer": "LTQ Orbitrap Velos",
+    "instrument_label": "LTQ Orbitrap Velos",
+    "sample_name": "SRFA_NEG_ESI_ORB"
+}
