@@ -60,9 +60,10 @@ test-source:
     
   script:
     - python3 -V  # Print out python version for debugging
-    - pip3 install -r requirements.txt
-    - pip3 install pytest
-    - pip3 install pytest-cov
+    - python3 -m pip install --upgrade pip
+    - python3 -m pip install -r requirements.txt
+    - python3 -m pip install pytest
+    - python3 -m pip install pytest-cov
     - ls .
     - python3 -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
     - pytest
@@ -83,9 +84,9 @@ build:
     
     - apt-get install libpq-dev -y
     - python3 -V  # Print out python version for debugging
-    - pip3 install twine
+    - python3 -m pip install twine
     - python3 setup.py sdist
-    - pip3 install dist/*
+    - python3 -m pip install dist/*
     # run the command here
 
   artifacts:
