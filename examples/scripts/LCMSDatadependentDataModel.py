@@ -153,14 +153,13 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
     
     precision_decimals = 0
 
-    ms_peaks_assigned = SearchMolecularFormulasLC(lcms_obj).run_worker_ms1()
+    ms_peaks_assigned = SearchMolecularFormulasLC(lcms_obj).run_target_worker_ms1()
     
-    for scan, ms_mf in scan_number_mass_spectrum.items():
+    for eic_peak in lcms_obj:
         
-        dependent_scans = parser.iRawDataPlus.GetScanDependents(scan, precision_decimals)
+        dependent_scans = parser.iRawDataPlus.GetScanDependents(eic_peak.apex_scan, precision_decimals)
 
-        mass_spectcrum_obj = ms_mf[0]
-        mf_references_list = ms_mf[1]
+        mass_spectcrum_obj = eic_peak.mass_spectrum
         
         percursordata = {}
 
@@ -174,52 +173,53 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
         #print()
         #print(scan, mass_spectcrum_obj.retention_time)
         #print(mf_references_list)
-        SearchMolecularFormulas(mass_spectcrum_obj).run_worker_ms1()
+        #SearchMolecularFormulas(mass_spectcrum_obj).run_worker_ms1()
         
         #for precursor_mz in percursordata.keys():
         
-        ax = mass_spectcrum_obj.plot_mz_domain_profile() 
+        #ax = mass_spectcrum_obj.plot_mz_domain_profile() 
         is_assigned = False
-        target_title = 'Target Molecule(s) = '
+        #target_title = 'Target Molecule(s) = '
         
-        for peak in mass_spectcrum_obj:
+        #for peak in mass_spectcrum_obj:
             
-            for mf in peak:
-                is_assigned = True
+        #    for mf in peak:
+        #        is_assigned = True
                 
-                if not mf.is_isotopologue:
-                    target_title += "{}-{} m/z = {:.4f}".format(mf.name, mf.string_formated, mf.protonated_mz)
+        #        if not mf.is_isotopologue:
+        #            target_title += "{}-{} m/z = {:.4f}".format(mf.name, mf.string_formated, mf.protonated_mz)
                 
-                annotation = "Mol. Form = {}\nm\z = {:.4f}\nerror = {:.4f}\nconfidence score = {:.2f}\nisotopologue score = {:.2f}".format(mf.string_formated, peak.mz_exp, mf.mz_error, mf.confidence_score, mf.isotopologue_similarity)
+        #        annotation = "Mol. Form = {}\nm\z = {:.4f}\nerror = {:.4f}\nconfidence score = {:.2f}\nisotopologue score = {:.2f}".format(mf.string_formated, peak.mz_exp, mf.mz_error, mf.confidence_score, mf.isotopologue_similarity)
                 
-                ax.annotate(annotation , xy=(peak.mz_exp, peak.abundance),
-                                            xytext=(+3, np.sign(peak.abundance)*-40), textcoords="offset points",
-                                            horizontalalignment="left",
-                                            verticalalignment="bottom" if peak.abundance > 0 else "top")
+        #        ax.annotate(annotation , xy=(peak.mz_exp, peak.abundance),
+        #                                    xytext=(+3, np.sign(peak.abundance)*-40), textcoords="offset points",
+        #                                    horizontalalignment="left",
+        #                                    verticalalignment="bottom" if peak.abundance > 0 else "top")
 
         
-        if is_assigned:
+        #if is_assigned:
             
-            dir = Path(str(datapath.parent).replace('RAW Files', 'Results MS2 Noise Threshould'))
-            if not dir.exists():
-                dir.mkdir(parents=True, exist_ok=True)
+        #    dir = Path(str(datapath.parent).replace('RAW Files', 'Results MS2 Noise Threshould'))
+        #    if not dir.exists():
+        #        dir.mkdir(parents=True, exist_ok=True)
 
-            ms1_output_file = '{}_{}_{}'.format(scan, 'MS1', datapath.stem)
+        #    ms1_output_file = '{}_{}_{}'.format(scan, 'MS1', datapath.stem)
 
-            ax.set_title("Retention Time = {:.3f} {}".format(mass_spectcrum_obj.retention_time, target_title), fontsize=9,)
-            plt.tight_layout()
-            #plt.show()
-            plt.savefig(str(dir) + '/' + ms1_output_file + '.png')
-            plt.clf()
+        #    ax.set_title("Retention Time = {:.3f} {}".format(mass_spectcrum_obj.retention_time, target_title), fontsize=9,)
+        #    plt.tight_layout()
+        #    #plt.show()
+        #    plt.savefig(str(dir) + '/' + ms1_output_file + '.png')
+        #    plt.clf()
 
            
         
-            mass_spectcrum_obj.to_csv(str(dir) + '/' + ms1_output_file) 
+        #    mass_spectcrum_obj.to_csv(str(dir) + '/' + ms1_output_file) 
         
-        else:
+        #else:
             
-            plt.clf()
+        #    plt.clf()
 
+        scan = eic_peak.apex_scan
         for peak in mass_spectcrum_obj:
             
             for mf in peak:
@@ -261,7 +261,7 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
                                     ax = ms2_mass_spec.plot_mz_domain_profile()
                                     
                                     ax.set_title("Retention Time = {:.2f}, Precursor m/z = {:.4f}, Isolation window m/z = {:.1f} \
-                                                 Target Molecule = {} m/z = {:.4f} Molecular formula {}\n  ".format(mass_spec.retention_time,
+                                                 Target Molecule = {} m/z = {:.4f} Molecular formula {}\n  ".format(eic_peak.retention_time,
                                                                                                                 precursor_mz, scan_dependent_detail.IsolationWidthArray[index],
                                                                                                                 mf.name, mf.mz_calc, mf.string_formated), fontsize=9,)
                                                                                                     
@@ -316,7 +316,7 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
                                         'Confidence Score':  mf.confidence_score, 'Isotopologue Score': mf.isotopologue_similarity, 'm/z Precursor': precursor_mz, 
                                         'Isolation Window': scan_dependent_detail.IsolationWidthArray[index], 'MS2 Scan': scan_dependent_detail.ScanIndex, 
                                         'MS2 m/z': fragment_mz, 'MS2 Mol. Formulas': fragment_formulas, 'MS2 m/z error':fragment_error, 'Cumulative Neutral Loss': cumulative_neutral_loss,
-                                        'MS1 Output': ms1_output_file, 'MS2 Output': ms2_output_file}
+                                        'MS1 Output': 'ms1_output_file', 'MS2 Output': ms2_output_file}
                                     
                                     
                                     dir = Path(str(datapath.parent).replace('RAW Files', 'Results MS2 Noise Threshould'))
@@ -350,7 +350,7 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
                                               'Confidence Score':  mf.confidence_score, 'Isotopologue Score': mf.isotopologue_similarity, 'm/z Precursor': None, 
                                               'Isolation Window': None, 'MS2 Scan': None,
                                               'MS2 m/z': None, 'MS2 Mol. Formulas': None, 'MS2 m/z error':None, 'Cumulative Neutral Loss': None, 
-                                              'MS1 Output': ms1_output_file, 'MS2 Output': None}
+                                              'MS1 Output': 'ms1_output_file', 'MS2 Output': None}
                                                 
                         
                             if mf.name not in mf_results_dic.keys():

@@ -73,7 +73,7 @@ class DataDependentPeak(ChromaPeakBase):
 
     def add_molecular_formula(self, molfform):
         
-        self._possible_molecular_formulae.append(molfform)
+        self._possible_molecular_formulae.extend(molfform)
 
     @property
     def eic_rt_list(self):
@@ -83,6 +83,9 @@ class DataDependentPeak(ChromaPeakBase):
     def eci_list(self):
         return [self._eic_data.eic[i] for i in range(self.start_scan, self.final_scan+1) ]
 
+    @property
+    def targeted_molecular_formulas(self):
+        return self._possible_molecular_formulae
 
 class GCPeak(ChromaPeakBase, GCPeakCalculation):
 
