@@ -128,6 +128,11 @@ class MassListBaseClass:
             self.data_type = 'txt'
             self.delimiter = '\t'
 
+        elif self.file_location.suffix == '.tsv':
+
+            self.data_type = 'txt'
+            self.delimiter = '\t'
+
         elif self.file_location.suffix == '.xlsx':
 
             self.data_type = 'excel'
