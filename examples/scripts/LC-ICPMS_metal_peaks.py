@@ -33,12 +33,14 @@ import csv
 
 
 def find_metal_peaks(metal, icp_data, sn, min_peak_datapoints):
-	icpt="Time_" + metal
+	
+	icpt="Time " + metal
 	rt = icp_data[icpt]
 	icp_signal = icp_data[metal]
 	max_icp_signal = np.max(icp_signal)
 	max_height = max_icp_signal
 	max_prominence = 100 
+
 	peak_indices = sp.peak_picking_first_derivative(rt, icp_signal, max_height, max_prominence, max_icp_signal, min_peak_datapoints,
                                                                    signal_threshold=sn, correct_baseline=True)
 	rt_aps = []
@@ -48,19 +50,25 @@ def find_metal_peaks(metal, icp_data, sn, min_peak_datapoints):
 	rt_dict = dict.fromkeys(rt_aps,metal)
 	return rt_dict
 
-icpfile = "tests/tests_data/cwd_211018_day7_8_c18_1uMcobalamin_10uL.csv"
-icpdata = np.genfromtxt(icpfile, dtype=float, delimiter=',', names=True) 
+if __name__ == '__main__':
+	
+	icpfile = "tests/tests_data/cwd_211018_day7_8_c18_1uMcobalamin_10uL.csv"
+	icpdata = pd.read_csv(icpfile)
 
-metal = '59Co'
+	for columns_label in icpdata.columns[1:]:
+		if columns_label[0:4] != 'Time':
+			
+			
+			metal = columns_label
 
-icp_signal = icpdata[metal]  
-min_peak_datapoints = 20
+			icp_signal = icpdata[metal]  
+			min_peak_datapoints = 20
 
-rts = find_metal_peaks(metal,icpdata, 1,  min_peak_datapoints)
-print(rts)
+			rts = find_metal_peaks(metal, icpdata, 1,  min_peak_datapoints)
+			print(rts)
 
-fig, host = plt.subplots()
-host.plot(icpdata['Time_'+metal],icpdata[metal])
-host.set_xlabel('Time (s)')
-host.set_ylabel(metal +' intensity (counts)')
-plt.show()
+			fig, host = plt.subplots()
+			host.plot(icpdata['Time '+ metal ], icpdata[metal])
+			host.set_xlabel('Time (s)')
+			host.set_ylabel(metal +' intensity (counts)')
+			plt.show()
