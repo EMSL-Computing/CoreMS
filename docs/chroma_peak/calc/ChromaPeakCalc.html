@@ -40,7 +40,7 @@ class GCPeakCalculation(object):
     &#39;&#39;&#39;
     def calc_area(self, tic, dx):
         
-        yy = tic[self.start_index:self.final_index]
+        yy = tic[self.start_scan:self.final_scan]
         
         self._area = trapz(yy, dx = dx)
 
@@ -108,7 +108,7 @@ class GCPeakCalculation(object):
     &#39;&#39;&#39;
     def calc_area(self, tic, dx):
         
-        yy = tic[self.start_index:self.final_index]
+        yy = tic[self.start_scan:self.final_scan]
         
         self._area = trapz(yy, dx = dx)
 
@@ -167,7 +167,7 @@ class GCPeakCalculation(object):
 </summary>
 <pre><code class="python">def calc_area(self, tic, dx):
     
-    yy = tic[self.start_index:self.final_index]
+    yy = tic[self.start_scan:self.final_scan]
     
     self._area = trapz(yy, dx = dx)</code></pre>
 </details>

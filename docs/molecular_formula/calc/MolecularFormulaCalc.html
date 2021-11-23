@@ -64,10 +64,10 @@ class MolecularFormulaCalc:
 
     def _calc_mz(self):
         
-        def protonated_mass(mass, ion_charge):
+        def protonated_mz(mass, ion_charge):
             return (mass + (ion_charge * Atoms.atomic_masses.get(&#34;H&#34;)) + (ion_charge * -1 * Atoms.electron_mass))/abs(ion_charge)
         
-        def radical_mass(mass, ion_charge):
+        def radical_mz(mass, ion_charge):
             return (mass + (ion_charge * -1 * Atoms.electron_mass))/ abs(ion_charge)
 
         if self.ion_charge:
@@ -85,12 +85,12 @@ class MolecularFormulaCalc:
                     except: print(Labels.ion_type, each_atom) 
             
             if ion_type == Labels.protonated_de_ion:
-                return protonated_mass(mass, self.ion_charge)
+                return protonated_mz(mass, self.ion_charge)
             elif ion_type == Labels.radical_ion or ion_type == Labels.adduct_ion:   
-                return radical_mass(mass, self.ion_charge)
+                return radical_mz(mass, self.ion_charge)
             else:
                 #formula is probably ion form used for bruker ref list
-                return radical_mass(mass, self.ion_charge)
+                return radical_mz(mass, self.ion_charge)
                 
         else:
             
@@ -554,10 +554,10 @@ class MolecularFormulaCalc:
 
     def _calc_mz(self):
         
-        def protonated_mass(mass, ion_charge):
+        def protonated_mz(mass, ion_charge):
             return (mass + (ion_charge * Atoms.atomic_masses.get(&#34;H&#34;)) + (ion_charge * -1 * Atoms.electron_mass))/abs(ion_charge)
         
-        def radical_mass(mass, ion_charge):
+        def radical_mz(mass, ion_charge):
             return (mass + (ion_charge * -1 * Atoms.electron_mass))/ abs(ion_charge)
 
         if self.ion_charge:
@@ -575,12 +575,12 @@ class MolecularFormulaCalc:
                     except: print(Labels.ion_type, each_atom) 
             
             if ion_type == Labels.protonated_de_ion:
-                return protonated_mass(mass, self.ion_charge)
+                return protonated_mz(mass, self.ion_charge)
             elif ion_type == Labels.radical_ion or ion_type == Labels.adduct_ion:   
-                return radical_mass(mass, self.ion_charge)
+                return radical_mz(mass, self.ion_charge)
             else:
                 #formula is probably ion form used for bruker ref list
-                return radical_mass(mass, self.ion_charge)
+                return radical_mz(mass, self.ion_charge)
                 
         else:
             

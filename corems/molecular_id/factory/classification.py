@@ -361,6 +361,7 @@ class HeteroatomsClassification(Mapping):
         ax.get_yaxis().set_visible(False)
         ax.spines['left'].set_visible(False)
         plt.legend()
+        
         return ax    
 
     def plot_mz_error(self, color= 'g'):

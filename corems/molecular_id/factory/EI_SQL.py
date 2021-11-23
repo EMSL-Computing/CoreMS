@@ -46,7 +46,7 @@ class LowResolutionEICompound(Base):
 
     formula = Column(String, nullable=True)
     ri = Column(Float, nullable=False)
-    rt = Column(Float, nullable=False)
+    retention_time = Column(Float, nullable=False)
 
     classify = Column(String, nullable=True)
     derivativenum = Column(String, nullable=True)
@@ -74,7 +74,7 @@ class LowResolutionEICompound(Base):
         self.name = dict_data.get('NAME')
         self.formula = dict_data.get('FORM')
         self.ri = dict_data.get('RI')
-        self.rt = dict_data.get('RT')
+        self.retention_time = dict_data.get('RT')
 
         self.source = dict_data.get('SOURCE')
         self.casno = dict_data.get('CASNO')
@@ -94,7 +94,7 @@ class LowResolutionEICompound(Base):
 
     def __repr__(self):
         return "<LowResolutionEICompound(name= %s , cas number = %s, formula = %s, Retention index= %.1f, Retention time= %.1f comment='%i')>" % (
-                                    self.name, self.casno, self.formula, self.ri, self.rt, self.comment)
+                                    self.name, self.casno, self.formula, self.ri, self.retention_time, self.comment)
 @dataclass
 class MetaboliteMetadata:
 
@@ -119,7 +119,7 @@ class LowResCompoundRef:
         self.id = compounds_dict.get("id")
         self.name = compounds_dict.get("name")
         self.ri = compounds_dict.get("ri")
-        self.rt = compounds_dict.get("rt")
+        self.retention_time = compounds_dict.get("rt")
         self.casno = compounds_dict.get("casno")
         self.comment = compounds_dict.get("comment")
         self.peaks_count = compounds_dict.get("peaks_count")
@@ -239,7 +239,7 @@ class EI_LowRes_SQLite:
 
         min_rt, max_rt = min_max_rt
 
-        compounds = self.session.query(LowResolutionEICompound).filter(LowResolutionEICompound.rt.between(min_rt, max_rt))    
+        compounds = self.session.query(LowResolutionEICompound).filter(LowResolutionEICompound.retention_time.between(min_rt, max_rt))    
 
         return [self.row_to_dict(compound) for compound in compounds]
 
@@ -256,8 +256,8 @@ class EI_LowRes_SQLite:
         min_rt, max_rt = min_max_rt
 
         compounds = self.session.query(LowResolutionEICompound).filter(LowResolutionEICompound.name.in_(compound_names)).filter(
-                                        LowResolutionEICompound.rt >= min_rt,
-                                        LowResolutionEICompound.rt <= max_rt,
+                                        LowResolutionEICompound.retention_time >= min_rt,
+                                        LowResolutionEICompound.retention_time <= max_rt,
                                         )
         
         #self.session.query.select(LowResolutionEICompound).where(between(LowResolutionEICompound.ri, min_ri, max_ri))    

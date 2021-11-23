@@ -26,9 +26,9 @@ class _MSPeak(MSPeakCalculation):
         self.resolving_power = float(resolving_power)
         self.signal_to_noise = float(signal_to_noise)
         # profile indexes
-        self.start_index = int(indexes[0]) 
-        self.apex_index = int(indexes[1])
-        self.final_index = int(indexes[2]) 
+        self.start_scan = int(indexes[0]) 
+        self.apex_scan = int(indexes[1])
+        self.final_scan = int(indexes[2]) 
         
         #mass spec obj index
         self.index = int(index)
@@ -160,8 +160,8 @@ class _MSPeak(MSPeakCalculation):
 
             if ax is None:
                 ax = plt.gca()
-            x = self._ms_parent.mz_exp_profile[self.start_index: self.final_index]
-            y = self._ms_parent.abundance_profile[self.start_index: self.final_index]
+            x = self._ms_parent.mz_exp_profile[self.start_scan: self.final_scan]
+            y =  self._ms_parent.abundance_profile[self.start_scan: self.final_scan]
 
             ax.plot(x, y, color=color, label="Data")
             ax.set(xlabel='m/z', ylabel='abundance')

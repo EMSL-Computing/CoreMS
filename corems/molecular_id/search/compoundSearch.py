@@ -94,7 +94,7 @@ class LowResMassSpectralMatch(Thread):
                 
                 window = self.gcms_obj.molecular_search_settings.rt_search_range
 
-                rt = gc_peak.rt
+                rt = gc_peak.retention_time
 
                 min_mat_rt = (rt-window, rt+window)    
                 

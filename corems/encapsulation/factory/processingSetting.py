@@ -91,6 +91,8 @@ class LiquidChromatographSetting:
     
     enforce_target_ms2: bool = True
 
+    average_target_mz: bool = True
+
     smooth_window: int = 5
 
     smooth_method: str = 'savgol'
@@ -139,10 +141,10 @@ class MassSpectrumSetting:
 
     relative_abundance_threshold: float = 6  # from 0-100
 
-    min_noise_mz: float = 100.0
+    min_noise_mz: float = 50
     max_noise_mz: float = 1200.0
 
-    min_picking_mz: float = 100.0
+    min_picking_mz: float = 50
     max_picking_mz: float = 1200.0
 
     calib_minimize_method: str = 'Powell'
@@ -324,7 +326,7 @@ class MolecularLookupDictSettings:
                           'Cl': (0, 0),
                           }
 
-        self.min_mz = 100
+        self.min_mz = 50
 
         self.max_mz = 1200
 

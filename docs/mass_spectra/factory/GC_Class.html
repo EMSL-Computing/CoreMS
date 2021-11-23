@@ -269,7 +269,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         if ax is None:
             ax = plt.gca()
 
-        max_rts = [gc_peak.mass_spectrum.rt for gc_peak in self]
+        max_rts = [gc_peak.mass_spectrum.retention_time for gc_peak in self]
         max_tics = [gc_peak.mass_spectrum.tic for gc_peak in self]
 
         # min_rts = [self._ms[gc_peak.start_index].rt for gc_peak in self] + [self._ms[gc_peak.final_index].rt for gc_peak in self]
@@ -728,7 +728,7 @@ Path object from pathlib containing the file location</p></div>
         if ax is None:
             ax = plt.gca()
 
-        max_rts = [gc_peak.mass_spectrum.rt for gc_peak in self]
+        max_rts = [gc_peak.mass_spectrum.retention_time for gc_peak in self]
         max_tics = [gc_peak.mass_spectrum.tic for gc_peak in self]
 
         # min_rts = [self._ms[gc_peak.start_index].rt for gc_peak in self] + [self._ms[gc_peak.final_index].rt for gc_peak in self]
@@ -1301,7 +1301,7 @@ def unique_metabolites(self):
     if ax is None:
         ax = plt.gca()
 
-    max_rts = [gc_peak.mass_spectrum.rt for gc_peak in self]
+    max_rts = [gc_peak.mass_spectrum.retention_time for gc_peak in self]
     max_tics = [gc_peak.mass_spectrum.tic for gc_peak in self]
 
     # min_rts = [self._ms[gc_peak.start_index].rt for gc_peak in self] + [self._ms[gc_peak.final_index].rt for gc_peak in self]

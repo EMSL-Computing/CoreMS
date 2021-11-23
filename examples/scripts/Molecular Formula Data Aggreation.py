@@ -79,6 +79,6 @@ def merge_files(file_paths: list, output_filename:str, variable: str = 'Peak Hei
 
 if __name__ == '__main__':
     
-    file_paths = ['tests/tests_data/Auto_SRFA_QC.csv', 'tests/tests_data/Auto_SRFA_QC II.csv']
+    file_paths = ['tests/tests_data/FTMS/Auto_SRFA_QC.csv', 'tests/tests_data/FTMS/Auto_SRFA_QC II.csv']
     output_path = 'test_aggregation'
     merge_files(file_paths, output_path)

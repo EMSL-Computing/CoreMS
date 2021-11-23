@@ -169,7 +169,7 @@ class LowResGCMSExport():
 
             modifier = compound_obj.classify if compound_obj.classify else ""
             compound_group = peak_group.create_group(compound_obj.name.replace('/', '') + " " + modifier)
-            compound_group.attrs["retention_time"] = compound_obj.rt
+            compound_group.attrs["retention_time"] = compound_obj.retention_time
             compound_group.attrs["retention_index"] = compound_obj.ri
             compound_group.attrs["retention_index_score"] = compound_obj.ri_score
             compound_group.attrs["spectral_similarity_score"] = compound_obj.spectral_similarity_score
@@ -221,19 +221,19 @@ class LowResGCMSExport():
 
             for gc_peak in self.gcms:
 
-                # print(gc_peak.rt)
+                # print(gc_peak.retention_time)
                 # print(gc_peak.tic)
 
                 # check if there is a compound candidate
-                peak_group = hdf_handle.create_group(str(gc_peak.rt))
+                peak_group = hdf_handle.create_group(str(gc_peak.retention_time))
                 peak_group.attrs["deconvolution"] = int(self.gcms.chromatogram_settings.use_deconvolution)
 
-                peak_group.attrs["start_index"] = gc_peak.start_index
-                peak_group.attrs["index"] = gc_peak.index
+                peak_group.attrs["start_index"] = gc_peak.start_index 
+                peak_group.attrs["apex_index"] = gc_peak.index
                 peak_group.attrs["final_index"] = gc_peak.final_index
 
                 peak_group.attrs["retention_index"] = gc_peak.ri
-                peak_group.attrs["retention_time"] = gc_peak.rt
+                peak_group.attrs["retention_time"] = gc_peak.retention_time
                 peak_group.attrs["area"] = gc_peak.area
 
                 mz = peak_group.create_dataset('mz', data=np.array(gc_peak.mass_spectrum.mz_exp), dtype="f8")
@@ -379,8 +379,8 @@ class LowResGCMSExport():
             derivatization = "{}:{}:{}".format(compound_obj.classify, compound_obj.derivativenum, compound_obj.derivatization)
             out_dict = {'Sample name': gcms.sample_name,
                         'Peak Index': gcpeak_index,
-                        'Retention Time': gc_peak.rt,
-                        'Retention Time Ref': compound_obj.rt,
+                        'Retention Time': gc_peak.retention_time,
+                        'Retention Time Ref': compound_obj.retention_time,
                         'Peak Height': gc_peak.tic,
                         'Peak Area': gc_peak.area,
                         'Retention index': gc_peak.ri,
@@ -426,7 +426,7 @@ class LowResGCMSExport():
 
             dict_data_list.append({'Sample name': gcms.sample_name,
                                    'Peak Index': gcpeak_index,
-                                   'Retention Time': gc_peak.rt,
+                                   'Retention Time': gc_peak.retention_time,
                                    'Peak Height': gc_peak.tic,
                                    'Peak Area': gc_peak.area,
                                    'Retention index': gc_peak.ri,
@@ -557,7 +557,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
             dict_data_list = self.get_list_dict_data(mass_spectrum)
 
             out_filename = Path("%s_scan%s%s" % (self.output_file, str(scan_number), '.csv'))
-
+            
             with open(self.dir_loc / out_filename, 'w', newline='') as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=columns)
                 writer.writeheader()

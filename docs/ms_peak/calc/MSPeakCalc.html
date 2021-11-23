@@ -61,9 +61,9 @@ class MSPeakCalculation(object):
 
     def calc_area(self, dx=1):
         
-        if self.final_index &gt; self.start_index:
+        if self.final_scan &gt; self.start_scan:
         
-            yy = self._ms_parent.abundance_profile[self.start_index:self.final_index]
+            yy = self._ms_parent.abundance_profile[self.start_scan:self.final_scan]
             
             return trapz(yy, dx = dx)
         
@@ -145,8 +145,8 @@ class MSPeakCalculation(object):
 
     def get_mz_domain(self, oversample_multiplier, mz_overlay):
         
-        start_index = self.start_index - mz_overlay  if not self.start_index == 0 else 0
-        final_index = self.final_index + mz_overlay  if not self.final_index == len(self._ms_parent.mz_exp_profile) else self.final_index
+        start_index = self.start_scan - mz_overlay  if not self.start_scan == 0 else 0
+        final_index = self.final_scan + mz_overlay  if not self.final_scan == len(self._ms_parent.mz_exp_profile) else self.final_scan
 
         if oversample_multiplier == 1:
 
@@ -370,9 +370,9 @@ class MSPeakCalculation(object):
 
     def calc_area(self, dx=1):
         
-        if self.final_index &gt; self.start_index:
+        if self.final_scan &gt; self.start_scan:
         
-            yy = self._ms_parent.abundance_profile[self.start_index:self.final_index]
+            yy = self._ms_parent.abundance_profile[self.start_scan:self.final_scan]
             
             return trapz(yy, dx = dx)
         
@@ -454,8 +454,8 @@ class MSPeakCalculation(object):
 
     def get_mz_domain(self, oversample_multiplier, mz_overlay):
         
-        start_index = self.start_index - mz_overlay  if not self.start_index == 0 else 0
-        final_index = self.final_index + mz_overlay  if not self.final_index == len(self._ms_parent.mz_exp_profile) else self.final_index
+        start_index = self.start_scan - mz_overlay  if not self.start_scan == 0 else 0
+        final_index = self.final_scan + mz_overlay  if not self.final_scan == len(self._ms_parent.mz_exp_profile) else self.final_scan
 
         if oversample_multiplier == 1:
 
@@ -666,9 +666,9 @@ def number_possible_assignments(self,):
 </summary>
 <pre><code class="python">def calc_area(self, dx=1):
     
-    if self.final_index &gt; self.start_index:
+    if self.final_scan &gt; self.start_scan:
     
-        yy = self._ms_parent.abundance_profile[self.start_index:self.final_index]
+        yy = self._ms_parent.abundance_profile[self.start_scan:self.final_scan]
         
         return trapz(yy, dx = dx)
     
@@ -803,8 +803,8 @@ def number_possible_assignments(self,):
 </summary>
 <pre><code class="python">def get_mz_domain(self, oversample_multiplier, mz_overlay):
     
-    start_index = self.start_index - mz_overlay  if not self.start_index == 0 else 0
-    final_index = self.final_index + mz_overlay  if not self.final_index == len(self._ms_parent.mz_exp_profile) else self.final_index
+    start_index = self.start_scan - mz_overlay  if not self.start_scan == 0 else 0
+    final_index = self.final_scan + mz_overlay  if not self.final_scan == len(self._ms_parent.mz_exp_profile) else self.final_scan
 
     if oversample_multiplier == 1:
 

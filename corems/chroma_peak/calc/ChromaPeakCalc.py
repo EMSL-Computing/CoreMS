@@ -13,18 +13,18 @@ class GCPeakCalculation(object):
     '''
     def calc_area(self, tic, dx):
         
-        yy = tic[self.start_index:self.final_index]
+        yy = tic[self.start_scan:self.final_scan]
         
         self._area = trapz(yy, dx = dx)
 
     def linear_ri(self, right_ri, left_ri,left_rt,right_rt ):
 
-        #ri = ((right_ri -  left_ri) * (self.rt - left_rt)/ (right_rt - left_rt)) + left_ri   
+        #ri = ((right_ri -  left_ri) * (self.retention_time - left_rt)/ (right_rt - left_rt)) + left_ri   
 
-        return left_ri + ((right_ri -  left_ri) * (self.rt - left_rt)/(right_rt-left_rt))
+        return left_ri + ((right_ri -  left_ri) * (self.retention_time - left_rt)/(right_rt-left_rt))
 
     def calc_ri(self, rt_ri_pairs):
-        current_rt = self.rt
+        current_rt = self.retention_time
 
         rts = [rt_ri[0] for rt_ri in rt_ri_pairs]
         index = bisect_left(rts, current_rt)

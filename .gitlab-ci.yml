@@ -1,6 +1,7 @@
 # Official language image. Look for the different tagged releases at:
 # https://hub.docker.com/r/library/python/tags/
-image: code-registry.emsl.pnl.gov/mass-spectrometry/corems:corems-base
+#image: code-registry.emsl.pnl.gov/mass-spectrometry/corems:corems-base
+image: corilo/corems-base-pythonnet
 
 #gitlab.pnnl.gov:4567/mass-spectrometry/corems:latest 
 #image: python:3.7.6-slim
@@ -40,6 +41,7 @@ before_script:
   - export http_proxy=http://proxy01.pnl.gov:3128
   - export https_proxy=http://proxy01.pnl.gov:3128
   - export no_proxy=localhost,127.0.0.1,*.pnl.gov,*.pnnl.gov,10.17.128.1,10.17,10.16,172.26
+  - export LD_LIBRARY_PATH=''
   
 stages:
   - Pytest
@@ -58,13 +60,13 @@ test-source:
     
     
   script:
-    
-    - python -V  # Print out python version for debugging
-    - pip install -r requirements.txt
-    - pip install pytest
-    - pip install pytest-cov
+    - python3 -V  # Print out python version for debugging
+    - python3 -m pip install --upgrade pip
+    - python3 -m pip install -r requirements.txt
+    - python3 -m pip install pytest
+    - python3 -m pip install pytest-cov
     - ls .
-    - python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
+    - python3 -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
     - pytest
   
   artifacts:
@@ -81,10 +83,11 @@ build:
     
   script:
     
-    - python -V  # Print out python version for debugging
-    - pip install twine
-    - python setup.py sdist
-    - pip install dist/*
+    - apt-get install libpq-dev -y
+    - python3 -V  # Print out python version for debugging
+    - python3 -m pip install twine
+    - python3 setup.py sdist
+    - python3 -m pip install dist/*
     # run the command here
 
   artifacts:

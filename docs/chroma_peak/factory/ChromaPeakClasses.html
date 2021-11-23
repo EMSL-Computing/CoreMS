@@ -38,8 +38,8 @@ class ChromaPeakBase():
     &#39;&#39;&#39;
     def __init__(self, chromatogram_parent, mass_spectrum_obj, start_index, index, final_index):
         
-        self.start_index = start_index
-        self.final_index = final_index
+        self.start_scan = start_index
+        self.final_scan = final_index
         self.index = int(index)
         self.chromatogram_parent = chromatogram_parent
         self.mass_spectrum = mass_spectrum_obj
@@ -70,7 +70,7 @@ class ChromaPeakBase():
 
     @property   
     def rt(self):
-        return self.mass_spectrum.rt
+        return self.mass_spectrum.retention_time
 
     @property   
     def tic(self):
@@ -82,11 +82,11 @@ class ChromaPeakBase():
 
     @property
     def rt_list(self):
-        return [self.chromatogram_parent.retention_time[i] for i in range(self.start_index, self.final_index+1) ]
+        return [self.chromatogram_parent.retention_time[i] for i in range(self.start_scan, self.final_scan+1) ]
     
     @property   
     def tic_list(self):
-        return [self.chromatogram_parent.tic[i] for i in range(self.start_index, self.final_index+1) ]
+        return [self.chromatogram_parent.tic[i] for i in range(self.start_scan, self.final_scan+1) ]
 
    
 class GCPeak(ChromaPeakBase, GCPeakCalculation):
@@ -189,8 +189,8 @@ class GCPeakDeconvolved(GCPeak):
     &#39;&#39;&#39;
     def __init__(self, chromatogram_parent, mass_spectrum_obj, start_index, index, final_index):
         
-        self.start_index = start_index
-        self.final_index = final_index
+        self.start_scan = start_index
+        self.final_scan = final_index
         self.index = int(index)
         self.chromatogram_parent = chromatogram_parent
         self.mass_spectrum = mass_spectrum_obj
@@ -221,7 +221,7 @@ class GCPeakDeconvolved(GCPeak):
 
     @property   
     def rt(self):
-        return self.mass_spectrum.rt
+        return self.mass_spectrum.retention_time
 
     @property   
     def tic(self):
@@ -233,11 +233,11 @@ class GCPeakDeconvolved(GCPeak):
 
     @property
     def rt_list(self):
-        return [self.chromatogram_parent.retention_time[i] for i in range(self.start_index, self.final_index+1) ]
+        return [self.chromatogram_parent.retention_time[i] for i in range(self.start_scan, self.final_scan+1) ]
     
     @property   
     def tic_list(self):
-        return [self.chromatogram_parent.tic[i] for i in range(self.start_index, self.final_index+1) ]</code></pre>
+        return [self.chromatogram_parent.tic[i] for i in range(self.start_scan, self.final_scan+1) ]</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
@@ -270,7 +270,7 @@ def area(self):
 </summary>
 <pre><code class="python">@property   
 def rt(self):
-    return self.mass_spectrum.rt</code></pre>
+    return self.mass_spectrum.retention_time</code></pre>
 </details>
 </dd>
 <dt id="corems.chroma_peak.factory.ChromaPeakClasses.ChromaPeakBase.rt_list"><code class="name">var <span class="ident">rt_list</span></code></dt>
@@ -282,7 +282,7 @@ def rt(self):
 </summary>
 <pre><code class="python">@property
 def rt_list(self):
-    return [self.chromatogram_parent.retention_time[i] for i in range(self.start_index, self.final_index+1) ]</code></pre>
+    return [self.chromatogram_parent.retention_time[i] for i in range(self.start_scan, self.final_scan+1) ]</code></pre>
 </details>
 </dd>
 <dt id="corems.chroma_peak.factory.ChromaPeakClasses.ChromaPeakBase.tic"><code class="name">var <span class="ident">tic</span></code></dt>
@@ -306,7 +306,7 @@ def tic(self):
 </summary>
 <pre><code class="python">@property   
 def tic_list(self):
-    return [self.chromatogram_parent.tic[i] for i in range(self.start_index, self.final_index+1) ]</code></pre>
+    return [self.chromatogram_parent.tic[i] for i in range(self.start_scan, self.final_scan+1) ]</code></pre>
 </details>
 </dd>
 </dl>

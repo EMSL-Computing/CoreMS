@@ -60,9 +60,10 @@ class MSPeakCalculation:
         Calculate the peak area using numpy's trapezoidal fit
         uses provided mz_domain to accurately integrate areas independent of digital resolution
         '''
-        if self.final_index > self.start_index:
-            yy = self._ms_parent.abundance_profile[self.start_index:self.final_index]
-            xx = self._ms_parent.mz_exp_profile[self.start_index:self.final_index]
+        if self.final_scan > self.start_scan:
+
+            yy = self._ms_parent.abundance_profile[self.start_scan:self.final_scan]
+            xx = self._ms_parent.mz_exp_profile[self.start_scan:self.final_scan]
             xx = flip(xx)
             return float(trapz(yy, xx))
 
@@ -81,8 +82,8 @@ class MSPeakCalculation:
         mz_extend here extends the x-axis domain so that we have sufficient points either side of the apex to fit.
         Takes about 10ms per peak
         '''
-        start_index = self.start_index - mz_extend  if not self.start_index == 0 else 0
-        final_index = self.final_index + mz_extend  if not self.final_index == len(self._ms_parent.mz_exp_profile) else self.final_index
+        start_index = self.start_scan - mz_extend  if not self.start_scan == 0 else 0
+        final_index = self.final_scan + mz_extend  if not self.final_scan == len(self._ms_parent.mz_exp_profile) else self.final_scan
 
         # check if MSPeak contains the resolving power info
         if self.resolving_power:
@@ -230,8 +231,8 @@ class MSPeakCalculation:
             1 - recalculated y values based on function and upsampled x-axis grid
             Does not change results, but aids in visualisation of the 'true' voigt lineshape
         '''
-        start_index = self.start_index - mz_extend  if not self.start_index == 0 else 0
-        final_index = self.final_index + mz_extend  if not self.final_index == len(self._ms_parent.mz_exp_profile) else self.final_index
+        start_index = self.start_scan - mz_extend  if not self.start_scan == 0 else 0
+        final_index = self.final_scan + mz_extend  if not self.final_scan == len(self._ms_parent.mz_exp_profile) else self.final_scan
 
         # check if MSPeak contains the resolving power info
         if self.resolving_power:
@@ -413,8 +414,8 @@ class MSPeakCalculation:
         '''
         Legacy function to support expanding mz domain for legacy lineshape functions
         '''
-        start_index = self.start_index - mz_overlay  if not self.start_index == 0 else 0
-        final_index = self.final_index + mz_overlay  if not self.final_index == len(self._ms_parent.mz_exp_profile) else self.final_index
+        start_index = self.start_scan - mz_overlay  if not self.start_scan == 0 else 0
+        final_index = self.final_scan + mz_overlay  if not self.final_scan == len(self._ms_parent.mz_exp_profile) else self.final_scan
 
         if oversample_multiplier == 1:
 

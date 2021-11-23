@@ -1,18 +1,21 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jul 29, 2019"
 
+
 import multiprocessing
+from typing import List
 
 import tqdm
 
 
 
 from corems import chunks, timeit
-from corems.encapsulation.constant import Labels
-from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
+from corems.encapsulation.constant import Atoms, Labels
+from corems.molecular_formula.factory.MolecularFormulaFactory import LCMSLibRefMolecularFormula, MolecularFormula
+from corems.ms_peak.factory.MSPeakClasses import _MSPeak
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL
 from corems.molecular_id.factory.MolecularLookupTable import MolecularCombinations
-import cProfile
+
 
 
 last_error = 0
@@ -219,8 +222,12 @@ class SearchMolecularFormulas:
         run()
         self.sql_db.close()
 
-    def search_mol_formulas(self, possible_formulas_list, find_isotopologues=True):
-
+    def search_mol_formulas(self, possible_formulas_list: List[MolecularFormula], ion_type:str, 
+                            neutral_molform=True, find_isotopologues=True, adduct_atom=None) -> List[_MSPeak]:
+        
+        '''neutral_molform: some reference files already present the formula on ion mode, for instance, bruker reference files
+            if that is the case than turn neutral_molform off
+        '''
         SearchMolecularFormulaWorker(find_isotopologues=find_isotopologues).reset_error(self.mass_spectrum_obj)
 
         initial_min_peak_bool = self.mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter
@@ -234,18 +241,24 @@ class SearchMolecularFormulas:
 
         for mf in possible_formulas_list:
 
-            nm = int(mf.mass)
-
+            if neutral_molform:
+                nm = int(mf.protonated_mz)
+            else:
+                nm = int(mf.mz_nominal_calc)
+        
             if nm in possible_formulas_dict_nm.keys():
 
                 possible_formulas_dict_nm[nm].append(mf)
 
             else:
+                
                 possible_formulas_dict_nm[nm] = [mf]
 
         min_abundance = self.mass_spectrum_obj.min_abundance
-        ion_type = 'unknown'
-        self.run_search(self.mass_spectrum_obj, possible_formulas_dict_nm, min_abundance, ion_type, self.mass_spectrum_obj.polarity )          
+        
+        ion_type = ion_type
+        
+        self.run_search(self.mass_spectrum_obj, possible_formulas_dict_nm, min_abundance, ion_type, self.mass_spectrum_obj.polarity, adduct_atom=adduct_atom)          
 
         self.mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = initial_min_peak_bool
         self.mass_spectrum_obj.molecular_search_settings.use_runtime_kendrick_filter = initial_runtime_kendrick_filter
@@ -369,19 +382,30 @@ class SearchMolecularFormulaWorker:
 
             if ion_type == Labels.protonated_de_ion:
 
-                return possible_formula_obj.protonated_mass(ion_charge)
+                return possible_formula_obj._protonated_mz(ion_charge)
 
             elif ion_type == Labels.radical_ion:
 
-                return possible_formula_obj.radical_mass(ion_charge)
+                return possible_formula_obj._radical_mz(ion_charge)
 
             elif ion_type == Labels.adduct_ion and adduct_atom:
 
-                return possible_formula.adduct_mass(ion_charge, adduct_atom)
+                return possible_formula._adduct_mz(ion_charge, adduct_atom)
 
             else:
+                # will return externally calculated mz if is set, #use on Bruker Reference list import
+                # if the ion type is known the ion mass based on molecular formula ion type
+                # if ion type is unknow will return neutral mass 
+                return possible_formula.mz_calc
 
-                return possible_formula.mass
+        if formulas:
+            if isinstance(formulas[0], LCMSLibRefMolecularFormula):
+
+                possible_mf_class = True
+            
+            else:
+
+                possible_mf_class = False    
 
         for possible_formula in formulas:
 
@@ -401,10 +425,25 @@ class SearchMolecularFormulaWorker:
 
                     # get molecular formula dict from sql obj
                     # formula_dict = pickle.loads(possible_formula.mol_formula)
-                    formula_dict = possible_formula.formula_dict
+                    #if possible_mf_class:
+                        
+                    #    molecular_formula = deepcopy(possible_formula)
+                    
+                    #else:
+                        
+                    formula_dict = possible_formula.to_dict()
                     # create the molecular formula obj to be stored
-                    molecular_formula = MolecularFormula(formula_dict, ion_charge, ion_type=ion_type, adduct_atom=adduct_atom)
+                    if possible_mf_class:
 
+                        molecular_formula = LCMSLibRefMolecularFormula(formula_dict, ion_charge, ion_type=ion_type, adduct_atom=adduct_atom)
+                        
+                        molecular_formula.name = possible_formula.name
+                        molecular_formula.kegg_id = possible_formula.kegg_id
+                        molecular_formula.cas = possible_formula.cas
+
+                    else:
+
+                        molecular_formula = MolecularFormula(formula_dict, ion_charge, ion_type=ion_type, adduct_atom=adduct_atom)
                     # add the molecular formula obj to the mspeak obj
                     # add the mspeak obj and it's index for tracking next assignment step
 
@@ -470,3 +509,72 @@ class SearchMolecularFormulaWorker:
                     mspeak_assigned_index.append((ms_peak.index, y))
 
         return mspeak_assigned_index
+
+
+class SearchMolecularFormulasLC(SearchMolecularFormulas):
+    
+    def __init__(self, lcms_obj, sql_db=None, first_hit=False, find_isotopologues=True):
+
+        self.first_hit = first_hit
+
+        self.find_isotopologues = find_isotopologues
+
+        self.lcms_obj = lcms_obj
+
+        if not sql_db:
+
+            self.sql_db = MolForm_SQL(url=lcms_obj.ms1_molecular_search_settings.url_database)
+
+        else:
+
+            self.sql_db = sql_db
+
+    def run_untargeted_worker_ms1(self):
+        # do molecular formula based on the parameters set for ms1 search 
+        for peak in self.lcms_obj:
+           self.mass_spectrum_obj = peak.mass_spectrum
+           self.run_molecular_formula(peak.mass_spectrum.sort_by_abundance())        
+
+
+    def run_target_worker_ms1(self):
+
+        # do molecular formula based on the external molecular reference list
+        pbar = tqdm.tqdm(self.lcms_obj)
+
+        for peak in self.lcms_obj:
+            
+            pbar.set_description_str(desc=f"Started molecular formulae search for mass spectrum at RT {peak.retention_time} s" , refresh=True)
+
+            self.mass_spectrum_obj = peak.mass_spectrum
+
+            ion_charge = self.mass_spectrum_obj.polarity
+            
+            candidate_formulas = peak.targeted_molecular_formulas
+
+            for i in candidate_formulas:
+                print(i)
+            if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
+
+                ion_type = Labels.protonated_de_ion
+                
+                #ms_peaks_assigned = self.search_mol_formulas(peak.targeted_molecular_formulas, ion_type, find_isotopologues=True)
+
+                self.search_mol_formulas( candidate_formulas, ion_type, find_isotopologues=True)
+
+            if self.mass_spectrum_obj.molecular_search_settings.isRadical:
+                
+                ion_type = Labels.radical_ion
+                
+                #ms_peaks_assigned = self.search_mol_formulas(peak.targeted_molecular_formulas, ion_type, find_isotopologues=True)
+                self.search_mol_formulas( candidate_formulas, ion_type, find_isotopologues=True)
+
+            if self.mass_spectrum_obj.molecular_search_settings.isAdduct:
+                
+                ion_type = Labels.adduct_ion
+                
+                adduct_list = self.mass_spectrum_obj.molecular_search_settings.adduct_atoms_neg if ion_charge < 0 else self.mass_spectrum_obj.molecular_search_settings.adduct_atoms_pos
+
+                for adduct_atom in adduct_list:
+
+                    self.search_mol_formulas( candidate_formulas, ion_type, find_isotopologues=True, adduct_atom=adduct_atom)
+

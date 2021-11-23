@@ -305,7 +305,7 @@ class HighResMassSpecExport(Thread):
 
         dict_ms_attrs = {}
         dict_ms_attrs[&#39;polarity&#39;] = mass_spectrum.polarity
-        dict_ms_attrs[&#39;rt&#39;] =     mass_spectrum.rt
+        dict_ms_attrs[&#39;rt&#39;] =     mass_spectrum.retention_time
         dict_ms_attrs[&#39;tic&#39;] =  mass_spectrum.tic
         dict_ms_attrs[&#39;mobility_scan&#39;] =     mass_spectrum.mobility_scan
         dict_ms_attrs[&#39;mobility_rt&#39;] =     mass_spectrum.mobility_rt
@@ -790,7 +790,7 @@ class HighResMassSpecExport(Thread):
 
         dict_ms_attrs = {}
         dict_ms_attrs[&#39;polarity&#39;] = mass_spectrum.polarity
-        dict_ms_attrs[&#39;rt&#39;] =     mass_spectrum.rt
+        dict_ms_attrs[&#39;rt&#39;] =     mass_spectrum.retention_time
         dict_ms_attrs[&#39;tic&#39;] =  mass_spectrum.tic
         dict_ms_attrs[&#39;mobility_scan&#39;] =     mass_spectrum.mobility_scan
         dict_ms_attrs[&#39;mobility_rt&#39;] =     mass_spectrum.mobility_rt
@@ -1213,7 +1213,7 @@ def output_type(self):
 
     dict_ms_attrs = {}
     dict_ms_attrs[&#39;polarity&#39;] = mass_spectrum.polarity
-    dict_ms_attrs[&#39;rt&#39;] =     mass_spectrum.rt
+    dict_ms_attrs[&#39;rt&#39;] =     mass_spectrum.retention_time
     dict_ms_attrs[&#39;tic&#39;] =  mass_spectrum.tic
     dict_ms_attrs[&#39;mobility_scan&#39;] =     mass_spectrum.mobility_scan
     dict_ms_attrs[&#39;mobility_rt&#39;] =     mass_spectrum.mobility_rt

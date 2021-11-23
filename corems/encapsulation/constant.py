@@ -32,6 +32,7 @@ class Labels: #pragma: no cover
     protonated = "protonated"
     de_protonated = "de-protonated"
     adduct_ion = "ADDUCT"
+    neutral = 'neutral'
     ion_type = 'IonType'
 
     ion_type_translate = { 'protonated': 'DE_OR_PROTONATED',
@@ -212,7 +213,7 @@ class Atoms: #pragma: no cover
                      '126Te': 125.903310916,
                      '128Te': 127.9044612893,
                      '130Te': 129.90622274812,
-                     '127I': 126.904471939,
+                     'I': 126.904471939,
                      '124Xe': 123.905892019,
                      '126Xe': 125.904298338,
                      '128Xe': 127.903531011,
@@ -659,6 +660,7 @@ class Atoms: #pragma: no cover
                           '128Te': 0.31748,
                           '130Te': 0.340862,
                           '127I': 1.0,
+                          'I': 1.0,
                           '124Xe': 0.0009523,
                           '126Xe': 0.0008902,
                           '128Xe': 0.0191028,

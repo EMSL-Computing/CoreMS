@@ -13,7 +13,7 @@ __date__ = "Jul 02, 2019"
 def test_mspeaks_fit():
 
     from matplotlib import pyplot
-    file_location = Path.cwd() / "tests/tests_data/ESI_NEG_SRFA.d/"
+    file_location = Path.cwd() / "tests/tests_data/FTMS/ESI_NEG_SRFA.d/"
 
     bruker_reader = ReadBrukerSolarix(file_location)
 

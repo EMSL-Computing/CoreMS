@@ -19,7 +19,7 @@ from corems.encapsulation.factory.parameters import MSParameters
 
 def create_mass_spectrum():
     
-    file_location = Path.cwd() / "tests/tests_data/ESI_NEG_SRFA.d/"
+    file_location = Path.cwd() / "tests/tests_data/FTMS/ESI_NEG_SRFA.d/"
 
     bruker_reader = ReadBrukerSolarix(file_location)
 
@@ -152,5 +152,5 @@ if __name__ == "__main__":
     test_priorityAssignment()
     #()
     #test_molecular_formula_search_db()
-    #test_run_molecular_formula_search()
+    test_run_molecular_formula_search()
     #test_mspeak_search()

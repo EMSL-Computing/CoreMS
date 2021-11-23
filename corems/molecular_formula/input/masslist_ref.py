@@ -4,10 +4,13 @@ __date__ = "Oct 24, 2019"
 from threading import Thread
 from pathlib import Path
 import sys, re, json
+from typing import Dict, List
+
+import pandas as pd
 
 sys.path.append('.')
 
-from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula 
+from corems.molecular_formula.factory.MolecularFormulaFactory import LCMSLibRefMolecularFormula, MolecularFormula 
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.constant import Atoms
 from corems.molecular_id.factory.molecularSQL import CarbonHydrogen, MolecularFormulaLink, HeteroAtoms
@@ -23,6 +26,10 @@ class MolecularFormulaLinkProxy():
             self.mass =  float(mz)                       
             self.dbe = molecular_formula.dbe
             self.formula_dict = molecular_formula.to_dict()
+        
+        def to_dict(self):
+            return self.formula_dict
+
 
 class ImportMassListRef():#Thread
 
@@ -40,7 +47,63 @@ class ImportMassListRef():#Thread
         
         return MolecularFormulaLinkProxy(molecular_formula, mz)
     
-    def from_bruker_ref_file(self):
+    def from_lcms_lib_file(self, ion_charge: float, ion_types: List[str]) -> Dict [str, Dict[float, List[LCMSLibRefMolecularFormula] ] ]:
+        '''
+         return Dict[standard_name, Dict[m/z, List[MolecularFormula]]]:
+            m/z: float:
+                target m/z 
+            standard_name: str
+                name of the molecular standard mix 
+            MolecularFormula: class
+                corems molecular formula class    
+        '''
+        
+        data = {}
+        
+        with open(self.ref_file_location) as ref_f:
+            
+            df = pd.read_csv(ref_f, header=0,  encoding= 'unicode_escape')
+            
+            print(df)
+
+            for index, row in df.iterrows():
+                
+                formula_s = row["Neutral Formula"]
+                formula_dict = self.mformula_s_to_dict(formula_s, Labels.neutral)
+                name = row["Compound Name"]
+                kegg_id = row["KEGG ID"]
+                standard_name = row["NEW MIX"]
+                cas = row["KEGG ID"]
+                #print(row["Neutral Formula"], formula_dict)
+                molf_formula = LCMSLibRefMolecularFormula(formula_dict, ion_charge, Labels.neutral, 
+                                                name=name, kegg_id=kegg_id, cas=cas)
+                #if round(molf_formula.mz_calc, 4) != round(row['Mass Adduct -H'],4):
+                #    print(formula_s)
+                #    print(round(molf_formula.mz_calc, 4) , round(row['Mass Adduct -H'],4))
+        
+                if standard_name in data.keys():
+
+                    #TODO change it to target ion types and add ion type in the data structure   
+                    mz_calc = molf_formula.protonated_mz
+                    
+                    if mz_calc in data.get(standard_name).keys():
+                       
+                       data.get(standard_name).get(mz_calc).append(molf_formula)
+                    
+                    else:   
+                        data[standard_name][mz_calc] = [molf_formula]
+                else:
+                    
+                    data[standard_name] = {molf_formula.mz_calc: [molf_formula]}
+                #print(formula_s, formula_dict)
+                #if molf_formula.ion_type != 'de-protonated':
+                #    print( 'ha', molf_formula.ion_type )
+                #print(formula_dict)
+                #print(row['c1'], row['c2'])
+        
+        return data
+
+    def from_bruker_ref_file(self) -> List[MolecularFormula]:
 
         import csv
         
@@ -66,10 +129,10 @@ class ImportMassListRef():#Thread
 
                     
                     ion_mol_formula = list_ref[0]
-                    mz = list_ref[1]
+                    mz = float(list_ref[1])
                     formula_dict = self.mformula_s_to_dict(ion_mol_formula)
                     
-                    list_mf_obj.append(self.molecular_formula_ref(mz, MolecularFormula(formula_dict, ion_charge)))
+                    list_mf_obj.append(MolecularFormula(formula_dict, ion_charge, external_mz=mz))
         
         return  list_mf_obj           
 
@@ -110,7 +173,7 @@ class ImportMassListRef():#Thread
         counts = re.split(regexPattern, string, maxsplit)  #pragma: no cover
         return isotopes, counts
 
-    def mformula_s_to_dict(self, s_mformulatring):
+    def mformula_s_to_dict(self, s_mformulatring, iontype='unknown'):
         
         ''' 
             Converts a molecular formula string to a dict
@@ -135,14 +198,13 @@ class ImportMassListRef():#Thread
             
             #find the case Br2
             all_atoms2 = re.findall(r'[A-Z]{1}[a-z]{1}[0-9]{1,10000}', s_mformulatring)
-
             #find the case N
-            single_digit_atoms_one = re.findall(r'[A-Z]{1}(?![0-9])(?![A-Z])', s_mformulatring)
-
+            single_digit_atoms_one = re.findall(r'[A-Z]{1}(?![0-9])(?![a-z])', s_mformulatring)
+            #print(single_digit_atoms_one)
             #find the case Na
             due_digit_atoms_one = re.findall(r'[A-Z]{1}[a-z]{1}(?![0-9])', s_mformulatring)
-
-            all_atoms = all_atoms + all_atoms2 + single_digit_atoms_one + due_digit_atoms_one
+            
+            all_atoms = all_atoms + all_atoms2 + due_digit_atoms_one +single_digit_atoms_one
             
             dict_res = {}
             
@@ -164,7 +226,7 @@ class ImportMassListRef():#Thread
                     tb = sys.exc_info()[2]
                     raise TypeError("Atom %s does not exist in Atoms.atoms_order list" % atom).with_traceback(tb)
             
-            dict_res[Labels.ion_type]  =  'unknown'
+            dict_res[Labels.ion_type]  = iontype
 
             return dict_res
         
