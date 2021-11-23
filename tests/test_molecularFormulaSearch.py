@@ -19,7 +19,7 @@ from corems.encapsulation.factory.parameters import MSParameters
 
 def create_mass_spectrum():
     
-    file_location = Path.cwd() / "tests/tests_data/FTMS/ESI_NEG_SRFA.d/"
+    file_location = Path.cwd() / "tests/tests_data/ftms/ESI_NEG_SRFA.d/"
 
     bruker_reader = ReadBrukerSolarix(file_location)
 

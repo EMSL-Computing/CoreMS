@@ -32,7 +32,7 @@ def test_andi_netcdf_gcms():
     
 def test_import_booster_mass_spectrum_hdf():
 
-    file_path = Path.cwd() / "tests/tests_data/FTMS/" / "ESFA_100k_9767-13548_chB.A_re_pc_CoAddAll_mFT.h5"
+    file_path = Path.cwd() / "tests/tests_data/ftms/" / "ESFA_100k_9767-13548_chB.A_re_pc_CoAddAll_mFT.h5"
     
     if file_path.exists():
         
@@ -61,7 +61,7 @@ def test_import_booster_mass_spectrum_hdf():
 
 def test_import_booster_mass_spectra_hdf():
 
-    file_path = Path.cwd() / "tests/tests_data/FTMS/" / "ESFA_100k_9767-13548_chB.A_re_pc_CoAddAll_mFT.h5"
+    file_path = Path.cwd() / "tests/tests_data/ftms/" / "ESFA_100k_9767-13548_chB.A_re_pc_CoAddAll_mFT.h5"
     
     if file_path.exists():
         #polarity need to be set or read from the file
@@ -75,7 +75,7 @@ def test_import_booster_mass_spectra_hdf():
         
 def test_import_lcms_from_transient():
 
-    file_location = Path.cwd() / "tests/tests_data/FTMS/" / "NEG_ESI_SRFA_Auto.d"#"SOM_LC_PeatMix_2p8_0p6_2_30AUG19_GIMLI_ZORBAX-1186_1_01_259.d"
+    file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_SRFA_Auto.d"#"SOM_LC_PeatMix_2p8_0p6_2_30AUG19_GIMLI_ZORBAX-1186_1_01_259.d"
 
     read_lcms = ReadBruker_SolarixTransientMassSpectra(file_location)
 
@@ -103,8 +103,8 @@ def test_import_lcms_from_transient():
 def test_import_transient():
     
     # from corems.structure.input.MidasDatFile import ReadMidasDatFile
-    # file_location = Path.cwd() / "tests/tests_data/FTMS/SRFAII_20ppm_14Jul2020_IATp08_After_WebEx_1_01_54136.d/"
-    file_location = Path.cwd() / "tests/tests_data/FTMS/ESI_NEG_SRFA.d"
+    # file_location = Path.cwd() / "tests/tests_data/ftms/SRFAII_20ppm_14Jul2020_IATp08_After_WebEx_1_01_54136.d/"
+    file_location = Path.cwd() / "tests/tests_data/ftms/ESI_NEG_SRFA.d"
     
     MSParameters.transient.apodization_method = "Hanning"
     MSParameters.transient.number_of_truncations = 0
@@ -154,7 +154,7 @@ def test_import_transient():
 
 def test_import_corems_hdf5():
 
-    file_location = Path.cwd() / "tests/tests_data/FTMS/" / "NEG_ESI_SRFA_CoreMS.hdf5"
+    file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_SRFA_CoreMS.hdf5"
     
     #polarity need to be set or read from the file
     
@@ -188,7 +188,7 @@ def test_import_corems_hdf5():
  
 def test_import_corems_mass_list():
 
-    file_location = Path.cwd() / "tests/tests_data/FTMS/ESI_NEG_SRFA_COREMS.csv"
+    file_location = Path.cwd() / "tests/tests_data/ftms/ESI_NEG_SRFA_COREMS.csv"
     
     #polarity need to be set or read from the file
     
@@ -204,7 +204,7 @@ def test_import_corems_mass_list():
             for mf in mspeak:
                 print(mf.string)
 
-    file_location = Path.cwd() / "tests/tests_data/FTMS/" /  "NEG_ESI_SRFA_CoreMS.corems"
+    file_location = Path.cwd() / "tests/tests_data/ftms/" /  "NEG_ESI_SRFA_CoreMS.corems"
 
     read_lc_ms = ReadCoremsMassSpectraText(file_location)
 
@@ -223,7 +223,7 @@ def test_import_corems_mass_list():
 
 def test_import_thermo_profile_mass_list():
 
-    file_location = Path.cwd() / "tests/tests_data/FTMS/" / "Thermo_Profile_MassList.txt" 
+    file_location = Path.cwd() / "tests/tests_data/ftms/" / "Thermo_Profile_MassList.txt" 
     
     mass_list_reader = ReadMassList(file_location, header_lines=7, isCentroid=False, isThermoProfile=True)
 
@@ -247,9 +247,9 @@ def test_import_thermo_profile_mass_list():
 
 def test_import_maglab_pks():
 
-    file_location = Path.cwd() / "tests/tests_data/FTMS/" / "SRFA.pks"
+    file_location = Path.cwd() / "tests/tests_data/ftms/" / "SRFA.pks"
     
-    ref_file_location = Path.cwd() / "tests/tests_data/FTMS/SRFA.ref"
+    ref_file_location = Path.cwd() / "tests/tests_data/ftms/SRFA.ref"
 
     mass_list_reader = ReadMassList(file_location)
 
@@ -264,11 +264,11 @@ def test_import_maglab_pks():
 
 def test_import_mass_list():
 
-    file_location = Path.cwd() / "tests/tests_data/FTMS/" / "NEG_ESI_SRFA_CoreMS.xlsx"
+    file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_SRFA_CoreMS.xlsx"
     
     mass_list_reader = ReadMassList(file_location)
 
-    file_location = Path.cwd() / "tests/tests_data/FTMS/" / "ESI_NEG_ESFA.ascii"
+    file_location = Path.cwd() / "tests/tests_data/ftms/" / "ESI_NEG_ESFA.ascii"
     
     mass_list_reader = ReadMassList(file_location)
 
