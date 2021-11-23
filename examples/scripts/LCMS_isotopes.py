@@ -27,7 +27,7 @@ from corems.encapsulation.factory.parameters import MSParameters
 
 
 #set file here
-file_location = "tests/tests_data/rmb_161221_kansas_h2o_2"
+file_location = "tests/tests_data/ICPMS/rmb_161221_kansas_h2o_2"
 
 #Set peak detection threshold method
 MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
@@ -119,7 +119,7 @@ plt.show()
 
 import csv
 
-icpfile = "tests/tests_data/161220_soils_hypercarb_3_kansas_qH2O.csv"
+icpfile = "tests/tests_data/ICPMS/161220_soils_hypercarb_3_kansas_qH2O.csv"
 
 icpdata = np.genfromtxt(icpfile, dtype=float, delimiter=',', names=True) 
 

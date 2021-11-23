@@ -13,7 +13,7 @@ from corems.mass_spectra.input.boosterHDF5 import ReadHDF_BoosterMassSpectra
 
 def import_corems_mass_list():
 
-    file_location = Path.cwd() / "tests/tests_data/" / "ESI_NEG_SRFA_COREMS.csv"
+    file_location = Path.cwd() / "tests/tests_data/FTMS/" / "ESI_NEG_SRFA_COREMS.csv"
 
     # polarity need to be set or read from the file
 
@@ -26,7 +26,7 @@ def import_corems_mass_list():
 
 def import_booster_mass_spectra_hdf():
 
-    file_path = Path.cwd() / "tests/tests_data/" / "ESFA_100k_9767-13548_chB.A_re_pc_CoAddAll_mFT.h5"
+    file_path = Path.cwd() / "tests/tests_data/FTMS/" / "ESFA_100k_9767-13548_chB.A_re_pc_CoAddAll_mFT.h5"
 
     if file_path.exists():
         # polarity need to be set or read from the file

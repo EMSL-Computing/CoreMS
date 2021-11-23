@@ -6,7 +6,7 @@ from corems.encapsulation.factory.parameters import MSParameters
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.mass_spectrum.calc.Calibration import MzDomainCalibration
 
-file_location =  "tests/tests_data/ESI_NEG_SRFA.d"
+file_location =  "tests/tests_data/FTMS/ESI_NEG_SRFA.d"
 
 MSParameters.transient.apodization_method = "Hanning"
 MSParameters.transient.number_of_truncations = 0
@@ -45,7 +45,7 @@ MSParameters.mass_spectrum.max_calib_ppm_error = 5
 
 mass_spectrum = import_transient()
 
-ref_file_location = 'tests/tests_data/SRFA.ref'
+ref_file_location = 'tests/tests_data/FTMS/SRFA.ref'
 
 MzDomainCalibration(mass_spectrum, ref_file_location).run()
 

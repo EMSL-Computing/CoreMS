@@ -38,8 +38,8 @@ def find_metal_peaks(metal, icp_data, sn, min_peak_datapoints):
 	rt = icp_data[icpt]
 	icp_signal = icp_data[metal]
 	max_icp_signal = np.max(icp_signal)
-	max_height = max_icp_signal
-	max_prominence = 100 
+	max_height = max_icp_signal/100
+	max_prominence = 1
 
 	peak_indices = sp.peak_picking_first_derivative(rt, icp_signal, max_height, max_prominence, max_icp_signal, min_peak_datapoints,
                                                                    signal_threshold=sn, correct_baseline=True)
@@ -65,7 +65,7 @@ def smooth_signal(signal):
 
 if __name__ == '__main__':
 	
-	icpfile = "tests/tests_data/cwd_211018_day7_8_c18_1uMcobalamin_10uL.csv"
+	icpfile = "tests/tests_data/ICPMS/cwd_211018_day7_8_c18_1uMcobalamin_10uL.csv"
 	icpdata = pd.read_csv(icpfile)
 
 	for columns_label in icpdata.columns[1:]:

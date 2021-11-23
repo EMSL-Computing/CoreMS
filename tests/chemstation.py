@@ -10,7 +10,7 @@ import clr
 clr.AddReference("ChemstationMSFileReader")
 import ChemstationMSFileReader 
 
-file_loc = 'tests/tests_data/DATA.MS'
+file_loc = '/tests/tests_data/DATA.MS'
 clsChemstation = ChemstationMSFileReader.clsChemstationDataMSFileReader(file_loc)
 
 header = clsChemstation.ReadHeaders(file_loc)

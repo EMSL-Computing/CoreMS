@@ -228,8 +228,8 @@ class LowResGCMSExport():
                 peak_group = hdf_handle.create_group(str(gc_peak.retention_time))
                 peak_group.attrs["deconvolution"] = int(self.gcms.chromatogram_settings.use_deconvolution)
 
-                peak_group.attrs["start_index"] = gc_peak.start_index
-                peak_group.attrs["index"] = gc_peak.index
+                peak_group.attrs["start_index"] = gc_peak.start_index 
+                peak_group.attrs["apex_index"] = gc_peak.index
                 peak_group.attrs["final_index"] = gc_peak.final_index
 
                 peak_group.attrs["retention_index"] = gc_peak.ri

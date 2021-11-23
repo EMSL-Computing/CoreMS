@@ -33,7 +33,7 @@ def create_mass_spectrum():
            (See MassSpecfromFreq class for more details)
         '''
     
-    file_location = Path.cwd() / "tests/tests_data/ESI_NEG_SRFA.d/"
+    file_location = Path.cwd() / "tests/tests_data/FTMS/ESI_NEG_SRFA.d/"
     bruker_reader = ReadBrukerSolarix(file_location)
     bruker_transient = bruker_reader.get_transient()
 
@@ -55,9 +55,9 @@ def test_mz_domain_calibration():
     MSParameters.mass_spectrum.min_calib_ppm_error = -10
     MSParameters.mass_spectrum.max_calib_ppm_error = 10
 
-    file_location = Path.cwd() / "tests/tests_data/ESI_NEG_SRFA.d/"
+    file_location = Path.cwd() / "tests/tests_data/FTMS/ESI_NEG_SRFA.d/"
 
-    ref_file_location = Path.cwd() / "tests/tests_data/SRFA.ref"
+    ref_file_location = Path.cwd() / "tests/tests_data/FTMS/SRFA.ref"
 
     mass_spectrum = create_mass_spectrum()
 

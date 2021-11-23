@@ -400,7 +400,7 @@ if __name__ == "__main__":
     #file_name = "20190911_Kew_ESI_Elliot_SPE_IAT100ms_000002.d"
     #file_name = "20190912_Kew_LDI_Elliot_Whole_B15_1500um_0_B15_000001.d"
     
-    file_location = Path.cwd() / "tests/tests_data/ESI_NEG_SRFA.d"
+    file_location = Path.cwd() / "tests/tests_data/FTMS/ESI_NEG_SRFA.d"
     
     bruker_reader = ReadBrukerSolarix(file_location)
 

@@ -39,7 +39,7 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 
 ## Current Version
 
-### `2.4.0.beta`
+### `2.5.0.beta`
 
 ## Main Developers/Contact 
 - [Yuri. E. Corilo](mailto:corilo@pnnl.gov)  
@@ -245,7 +245,7 @@ from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFor
 from corems.mass_spectrum.output.export import HighResMassSpecExport
 from matplotlib import pyplot
 
-file_path= 'tests/tests_data/ESI_NEG_SRFA.d'
+file_path= 'tests/tests_data/FTMS/ESI_NEG_SRFA.d'
 
 #Bruker Solarix class reader
 bruker_reader = ReadBrukerSolarix(file_path)

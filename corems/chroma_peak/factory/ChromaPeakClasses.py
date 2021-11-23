@@ -8,7 +8,6 @@ from corems.chroma_peak.calc.ChromaPeakCalc import GCPeakCalculation
 from corems.mass_spectra.factory.LC_Temp import EIC_Data
 from corems.molecular_id.factory.EI_SQL import LowResCompoundRef
 
-
 class ChromaPeakBase():
     '''
     classdocs
