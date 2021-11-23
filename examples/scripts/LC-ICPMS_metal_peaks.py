@@ -50,13 +50,11 @@ def find_metal_peaks(metal, icp_data, sn, min_peak_datapoints):
 	rt_dict = {metal:rt_aps}
 	return rt_dict
 
-def smooth_signal(signal):
+def smooth_signal(signal, window_len=5):
             
         implemented_smooth_method = ('savgol', 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar')
         
         pol_order = 2
-
-        window_len = 301
 
         smooth_method = 'savgol'
 
@@ -65,12 +63,47 @@ def smooth_signal(signal):
 
 if __name__ == '__main__':
 	
-	icpfile = "tests/tests_data/ICPMS/cwd_211018_day7_8_c18_1uMcobalamin_10uL.csv"
+	icpfile = "tests/tests_data/icpms/cwd_211018_day7_8_c18_1uMcobalamin_10uL.csv"
 	icpdata = pd.read_csv(icpfile)
+	
+	
+	
+	tic = np.zeros(len(icpdata))
+	scans = icpdata.Number
 
 	for columns_label in icpdata.columns[1:]:
 		
-		if columns_label[0:4] != 'Time':
+		if columns_label[0:4] == 'Time':
+			
+			rts = icpdata[columns_label]
+			
+			signal = icpdata[columns_label.replace('Time ', '')] 
+			
+			tic = tic + signal
+			
+	fig, ax = plt.subplots()
+	ax.plot(scans, smooth_signal(tic, 101))
+	plt.show()
+
+	tic_data = {}
+
+	for columns_label in icpdata.columns[1:]:
+		
+		if columns_label[0:4] == 'Time':
+			
+			rts = icpdata[columns_label]
+			signal = icpdata[columns_label.replace('Time ', '')] 
+			
+			tic = tic + signal
+			
+			for i, rt in enumerate(rts):
+
+				if rt in tic_data.keys():
+					tic_data[rt] =+ signal[i]
+				else:
+					tic_data[rt] = signal[i]
+
+		else:
 			
 			metal = columns_label
 
@@ -82,12 +115,14 @@ if __name__ == '__main__':
 			
 			print(rts)
 
-			fig, host = plt.subplots()
+			#fig, ax = plt.subplots()
 			
-			host.plot(icpdata['Time '+ metal ], icp_signal)
+			#ax.plot(icpdata['Time '+ metal ], icp_signal)
 			
-			host.set_xlabel('Time (s)')
+			#ax.set_xlabel('Time (s)')
 			
-			host.set_ylabel(metal +' intensity (counts)')
+			#ax.set_ylabel(metal +' intensity (counts)')
 			
-			plt.show()
+			#plt.show()
+
+	

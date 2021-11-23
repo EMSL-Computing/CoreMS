@@ -20,7 +20,7 @@ from nmdc.metadata.nmdc_registration import NMDC_Metadata
 
 def start_sql_from_file():
 
-    ref_lib_path = Path.cwd() / "tests/tests_data/GCMS/" / "PNNLMetV20191015.MSL"
+    ref_lib_path = Path.cwd() / "tests/tests_data/gcms/" / "PNNLMetV20191015.MSL"
     sql_obj = ReadNistMSI(ref_lib_path).get_sqlLite_obj()
     return sql_obj
 
