@@ -156,6 +156,7 @@ def get_data(data: pd.DataFrame) -> Tuple[TIC_Data, Dict[str, EIC_Data]]:
 	return tic_data, eic_metal_dict
 
 if __name__ == '__main__':
+	
 	icpfile = "tests/tests_data/icpms/cwd_211018_day7_8_c18_1uMcobalamin_10uL.csv"
 	
 	parameters = LCMSParameters()
@@ -169,6 +170,7 @@ if __name__ == '__main__':
 	tic_data, dict_metal_eicdata = get_data(icpdata)
 
 	max_tic = max(tic_data.tic)
+	
 	for metal, eic_data in dict_metal_eicdata.items():
 
 		eic_centroid_detector(max_tic, eic_data, parameters)
