@@ -1,0 +1,152 @@
+***************************************************************************
+**  THIS IS AN EXACT COPY OF THE ORIGINAL FILE USED FOR ACQUISITION.     **
+**  THIS HEADER HAS BEEN ADDED TO IDENTIFY THIS AS A 'REFERENCE ONLY'    **
+**  FILE.  IT IS MEANT ONLY FOR ARCHIVAL AND DIAGNOSTIC PURPOSES.        **
+***************************************************************************
+
+;==========================================================================
+; BASIC : Bruker Acquisition Sequence (for) Instrument Control
+;
+; A simplified generic event sequence (pulse program) for ftmsControl.
+; This version supports ETD and MSn events as well as all other common
+; experimental timing, pulse and acquisition events using conditional
+; substitution based upon method parameter settings.
+;
+; Rev 1.0 (??/??/??) -- created for ftmsControl
+; Rev 1.1 (02/22/13) -- comment updated for ftmsControl
+; Rev 1.2 (03/27/13) -- added POST_CAPTURE_DELAY
+; Rev 1.3 (11/23/15) -- added various "PREAMP" events  (for QPD control)
+;==========================================================================
+
+;--------------------------------------
+;Initialization Block
+;--------------------------------------
+INITIALIZE_PREAMP
+INITIALIZE_EXP
+
+;--------------------------------------
+;Hystar autosuspend Block
+;--------------------------------------
+HYSTAR_AUTOSUSPEND
+
+;--------------------------------------
+;Dataset Acquisition Block ("2D" loop)
+;--------------------------------------
+EXP_START
+
+;--------------------------------------
+;Scan Accumulation Block (NS loop)
+;--------------------------------------
+SCAN_START
+ULTRA_RF_ON
+PREAMP_EXCITE_MODE_ENABLE
+COLL_CELL_DC_HIGH
+
+;--------------------------------------
+;Source & Infinity Cell Quench Block
+;--------------------------------------
+ION_QUENCH
+
+;--------------------------------------
+;Dynamic Trap Plate Block (raise)
+;--------------------------------------
+DYNAMIC_TRAP_RAISE
+
+;--------------------------------------
+;Ion Accumulation Block (start)
+;--------------------------------------
+SOURCE_ACCUM
+
+;--------------------------------------
+;Accumulation in Collision Cell Block
+;--------------------------------------
+COLL_CELL_ACCUM
+ETD_EXPERIMENT
+
+;--------------------------------------
+;Accumulation in Infinity Cell Block
+;--------------------------------------
+INFINITY_CELL_ACCUM
+
+;--------------------------------------
+;Ion Accumulation Block (end)
+;(repeat Accumulation blocks for Source, Collision Cell, Infinity Cell)
+;--------------------------------------
+REPETITIVE_ION_ACCUM
+
+;======================================================================
+; INTERNAL MS/MS
+; --> Possible Events automatically generated
+;  1) INFINITY_CELL_ISOLATION
+;  2) PULSED_VALVE_1, PULSED_VALVE_2 (for post-isolation/pre-SORI)
+;  3) SORI
+;  4) ECD
+;======================================================================
+INTERNAL_MSMS
+
+;======================================================================
+; INTERNAL MS^3
+; --> Possible Events automatically generated
+;  1) INTERMEDIATE_PUMP_DELAY
+;  2) INFINITY_CELL_ISOLATION_MS3
+;  3) PULSED_VALVE_1_MS3, PULSED_VALVE_2_MS3 (for post-isolation/pre-SORI)
+;  4) SORI_MS3
+;  5) ECD_MS3
+;======================================================================
+INTERNAL_MS3
+
+;======================================================================
+; INTERNAL MS^4
+; --> Possible Events automatically generated
+;  1) INTERMEDIATE_PUMP_DELAY
+;  2) INFINITY_CELL_ISOLATION_MS4
+;  3) PULSED_VALVE_1_MS4, PULSED_VALVE_2_MS4 (for post-isolation/pre-SORI)
+;  4) SORI_MS4
+;  5) ECD_MS4
+;======================================================================
+INTERNAL_MS4
+
+;--------------------------------------
+;Final pumpdown after all MSn events
+;--------------------------------------
+FINAL_PUMP_DELAY
+
+;--------------------------------------
+;Dynamic Trap Plate Block (lower)
+;--------------------------------------
+DYNAMIC_TRAP_LOWER
+
+;--------------------------------------
+;Post Capture Delay (PCD)
+;--------------------------------------
+POST_CAPTURE_DELAY
+
+
+;======================================================================
+;         EXCITATION AND DETECTION
+;======================================================================
+
+; reset phase immediately before Excitation event
+FCU_RESET
+
+;--------------------------------------
+;Excitation Block
+;--------------------------------------
+EXCITATION
+
+;--------------------------------------
+;Detection Block
+;--------------------------------------
+ULTRA_RF_OFF
+PREAMP_DETECT_MODE_ENABLE
+DETECTION
+
+;--------------------------------------
+;Write, Serial Loop, Exit Block
+;--------------------------------------
+WRITE_DATA
+
+;--------------------------------------
+; Phase program definitions for FCUs
+;--------------------------------------
+PHASE_PROGRAM_DEFS

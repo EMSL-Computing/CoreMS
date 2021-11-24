@@ -1,0 +1,1545 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<method version="solariXcontrol_2">
+
+<methodmetadata>
+<primarykey>
+  <methodfilepath>D:\Methods\MS_Methods\wkew\Paracell\1907_Neg_ESI_Cady_SRFA_IAT50ms_8MW.m\apexAcquisition.method</methodfilepath>
+  <!-- Actual file that method was originally loaded from -->
+  <methodloadfromfile>D:\Methods\MS_Methods\wkew\Paracell\1907_Neg_ESI_Cady_SRFA_IAT50ms_8MW.m\apexAcquisition.method</methodloadfromfile>
+  <methodname>1907_Neg_ESI_Cady_SRFA_IAT50ms_8MW</methodname>
+  <processchain>DefaultProcessChain</processchain>
+  <username>lcmsoperator</username>
+  <samplename></samplename>
+  <sampledescription></sampledescription>
+  <date>Jul_9_2019 11:20:48.969</date>
+  <userlevel>SERVICE</userlevel>
+</primarykey>
+<version><versionname>Compass ftmsControl Version.Build</versionname></version>
+</methodmetadata>
+
+
+<!-- Trace Information  -->
+<traceinfo version="1.0">
+	<tracedata type="TIC" title="TIC" unit="Intensity" color_rgb="#FF0000" tic="true" hystar="true" hystarchannel="0" />
+	<tracedata type="BPC" title="BPC" unit="Intensity" color_rgb="#404040" tic="true" hystar="true" hystarchannel="1" />
+	<tracedata type="READBACK" command="API_CapCurrent" title="Capillary" unit="uA" color_rgb="#0000FF" tic="true" hystar="true" hystarchannel="2" />
+</traceinfo>
+
+
+<!-- BEGIN Time-Slice table expIndex=0 -->
+<timeslicetable  slices="20" type="POSITIVE_ETD">
+	<param name="Q1Mass"><value t="0">100.0</value>
+		<value t="2">120.0</value>
+		<value t="14">100.0</value>
+		<value t="15">120.0</value>
+	</param>
+	<param name="Q1Res"><value t="0">0.0</value></param>
+	<param name="Q1_Bias"><value t="0">0.0</value></param>
+	<param name="Q1_EntranceLens"><value t="0">-1.0</value>
+		<value t="15">3.0</value>
+		<value t="19">-1.0</value>
+	</param>
+	<param name="Q1_ExitLens"><value t="0">3.0</value>
+		<value t="15">-1.7</value>
+		<value t="19">3.0</value>
+	</param>
+	<param name="Q1_Focus"><value t="0">-80.0</value>
+		<value t="15">80.0</value>
+		<value t="19">-80.0</value>
+	</param>
+	<param name="Q1_PostFilter"><value t="0">0.0</value></param>
+	<param name="Q1_PreFilter"><value t="0">0.0</value></param>
+	<param name="CC_FocusLens"><value t="0">-15.0</value>
+		<value t="15">50.0</value>
+		<value t="19">-15.0</value>
+	</param>
+	<param name="CC_EntranceBiasT"><value t="0">-1.5</value>
+		<value t="1">-0.4</value>
+		<value t="5">-1.5</value>
+	</param>
+	<param name="CC_EntranceBiasX"><value t="0">0.4</value></param>
+	<param name="CC_EntranceLensT"><value t="0">3.6</value></param>
+	<param name="CC_EntranceLensX"><value t="0">15.0</value></param>
+	<param name="CC_ExitLensT"><value t="0">20.0</value></param>
+	<param name="CC_ExitLensX"><value t="0">-20.0</value></param>
+	<param name="S_Skimmer2_L"><value t="0">5.0</value>
+		<value t="15">-50.0</value>
+		<value t="19">5.0</value>
+	</param>
+	<param name="Oct1_Bias2"><value t="0">2.0</value>
+		<value t="15">-1.2</value>
+		<value t="19">2.0</value>
+	</param>
+	<param name="Oct1_Bias_L"><value t="0">3.5</value>
+		<value t="15">-100.0</value>
+		<value t="19">3.5</value>
+	</param>
+	<param name="Oct1_Trap"><value t="0">15.0</value>
+		<value t="15">8.0</value>
+		<value t="19">15.0</value>
+	</param>
+	<param name="Oct1_PartitionLens"><value t="0">3.0</value>
+		<value t="15">-0.7</value>
+		<value t="19">3.0</value>
+	</param>
+	<param name="Xfer_Bias"><value t="0">-30.0</value></param>
+	<param name="Xfer_EntranceLens"><value t="0">-20.0</value></param>
+	<param name="Xfer_ExitLens"><value t="0">-20.0</value></param>
+	<param name="Xfer_Lens_1"><value t="0">-40.0</value></param>
+	<param name="Xfer_Lens_2"><value t="0">-11.0</value></param>
+	<param name="Xfer_Lens_3"><value t="0">-50.0</value></param>
+	<param name="DEV2"><value t="0">0.0</value></param>
+	<param name="EV1"><value t="0">-10.0</value></param>
+	<param name="EV2"><value t="0">-1.5</value></param>
+	<param name="PV1"><value t="0">1.5</value></param>
+	<param name="PV2"><value t="0">1.5</value></param>
+	<param name="PV2Q"><value t="0">-20.0</value></param>
+	<param name="V_Ramp_Time_1"><value t="0">0.01</value></param>
+	<param name="V_Ramp_Time_2"><value t="0">0.01</value></param>
+	<param name="VPV1_0"><value t="0">1.0</value></param>
+	<param name="VPV2_0"><value t="0">1.0</value></param>
+	<param name="VPV1_1"><value t="0">0.6</value></param>
+	<param name="VPV2_1"><value t="0">0.6</value></param>
+	<param name="VPV1_2"><value t="0">0.0</value></param>
+	<param name="VPV2_2"><value t="0">0.0</value></param>
+	<param name="VSTEP_1"><value t="0">1</value></param>
+	<param name="VSTEP_2"><value t="0">1</value></param>
+	<param name="RES1"><value t="0">1.5</value></param>
+	<param name="RES2"><value t="0">1.515</value></param>
+	<param name="RES3"><value t="0">1.47</value></param>
+	<param name="RES4"><value t="0">1.505</value></param>
+	<param name="RES1Injection"><value t="0">1.5</value></param>
+	<param name="RES2Injection"><value t="0">1.515</value></param>
+	<param name="RES3Injection"><value t="0">1.47</value></param>
+	<param name="RES4Injection"><value t="0">1.505</value></param>
+	<param name="S_Funnel2_DC"><value t="0">6.0</value></param>
+	<param name="Oct1_Extract"><value t="0">-10.0</value></param>
+	<param name="NCI_Chamber"><value t="0">-3.0</value></param>
+	<param name="NCI_GateLensBlock"><value t="0">-20.0</value></param>
+	<param name="NCI_GateLensPass"><value t="0">80.0</value></param>
+	<param name="NCI_FocusLens"><value t="0">-6.7</value></param>
+	<param name="NCI_TransferLens"><value t="0">5.3</value></param>
+	<param name="S_MaldiPlate_L"><value t="0">100.0</value></param>
+	<param name="S_CapillaryExit_L"><value t="0">260.0</value></param>
+	<param name="S_Deflector_L"><value t="0">240.0</value></param>
+	<param name="S_CapillaryExit_H"><value t="0">200.0</value></param>
+	<param name="S_Funnel1_DC"><value t="0">140.0</value></param>
+	<param name="S_Skimmer1"><value t="0">35.0</value></param>
+	<param name="API_CapillaryEntrance"><value t="0">4000.0</value></param>
+	<param name="API_SprayShield"><value t="0">-500.0</value></param>
+</timeslicetable>
+<!-- END Time-Slice table  -->
+
+<!-- BEGIN Time-Slice table expIndex=1 -->
+<timeslicetable  slices="20" type="POSITIVE_ETD_REAGENT">
+	<param name="Q1Mass"><value t="0">100.0</value>
+		<value t="2">120.0</value>
+		<value t="14">100.0</value>
+		<value t="15">120.0</value>
+	</param>
+	<param name="Q1Res"><value t="0">0.0</value></param>
+	<param name="Q1_Bias"><value t="0">0.0</value></param>
+	<param name="Q1_EntranceLens"><value t="0">-1.0</value>
+		<value t="15">3.0</value>
+		<value t="19">-1.0</value>
+	</param>
+	<param name="Q1_ExitLens"><value t="0">3.0</value>
+		<value t="15">-1.7</value>
+		<value t="19">3.0</value>
+	</param>
+	<param name="Q1_Focus"><value t="0">-80.0</value>
+		<value t="15">80.0</value>
+		<value t="19">-80.0</value>
+	</param>
+	<param name="Q1_PostFilter"><value t="0">0.0</value></param>
+	<param name="Q1_PreFilter"><value t="0">0.0</value></param>
+	<param name="CC_FocusLens"><value t="0">-15.0</value>
+		<value t="15">50.0</value>
+		<value t="19">-15.0</value>
+	</param>
+	<param name="CC_EntranceBiasT"><value t="0">0.5</value>
+		<value t="1">-0.4</value>
+		<value t="5">0.5</value>
+		<value t="14">-1.5</value>
+		<value t="18">0.5</value>
+	</param>
+	<param name="CC_EntranceBiasX"><value t="0">-0.6</value></param>
+	<param name="CC_EntranceLensT"><value t="0">-2.3</value>
+		<value t="14">3.6</value>
+		<value t="18">-2.3</value>
+	</param>
+	<param name="CC_EntranceLensX"><value t="0">-15.0</value></param>
+	<param name="CC_ExitLensT"><value t="0">-15.0</value>
+		<value t="14">20.0</value>
+		<value t="18">-15.0</value>
+	</param>
+	<param name="CC_ExitLensX"><value t="0">30.0</value></param>
+	<param name="S_Skimmer2_L"><value t="0">5.0</value>
+		<value t="15">-50.0</value>
+		<value t="19">5.0</value>
+	</param>
+	<param name="Oct1_Bias2"><value t="0">2.0</value>
+		<value t="15">-1.2</value>
+		<value t="19">2.0</value>
+	</param>
+	<param name="Oct1_Bias_L"><value t="0">3.5</value>
+		<value t="15">-100.0</value>
+		<value t="19">3.5</value>
+	</param>
+	<param name="Oct1_Trap"><value t="0">15.0</value>
+		<value t="15">8.0</value>
+		<value t="19">15.0</value>
+	</param>
+	<param name="Oct1_PartitionLens"><value t="0">3.0</value>
+		<value t="15">-0.7</value>
+		<value t="19">3.0</value>
+	</param>
+	<param name="Xfer_Bias"><value t="0">30.0</value></param>
+	<param name="Xfer_EntranceLens"><value t="0">20.0</value></param>
+	<param name="Xfer_ExitLens"><value t="0">20.0</value></param>
+	<param name="Xfer_Lens_1"><value t="0">40.0</value></param>
+	<param name="Xfer_Lens_2"><value t="0">11.0</value></param>
+	<param name="Xfer_Lens_3"><value t="0">50.0</value></param>
+	<param name="DEV2"><value t="0">0.0</value></param>
+	<param name="EV1"><value t="0">4.0</value></param>
+	<param name="EV2"><value t="0">4.0</value></param>
+	<param name="PV1"><value t="0">-0.6</value></param>
+	<param name="PV2"><value t="0">-0.6</value></param>
+	<param name="PV2Q"><value t="0">-30.0</value></param>
+	<param name="V_Ramp_Time_1"><value t="0">0.01</value></param>
+	<param name="V_Ramp_Time_2"><value t="0">0.01</value></param>
+	<param name="VPV1_0"><value t="0">1.0</value></param>
+	<param name="VPV2_0"><value t="0">1.0</value></param>
+	<param name="VPV1_1"><value t="0">0.6</value></param>
+	<param name="VPV2_1"><value t="0">0.6</value></param>
+	<param name="VPV1_2"><value t="0">0.0</value></param>
+	<param name="VPV2_2"><value t="0">0.0</value></param>
+	<param name="VSTEP_1"><value t="0">1</value></param>
+	<param name="VSTEP_2"><value t="0">1</value></param>
+	<param name="RES1"><value t="0">1.0</value></param>
+	<param name="RES2"><value t="0">1.0</value></param>
+	<param name="RES3"><value t="0">1.0</value></param>
+	<param name="RES4"><value t="0">1.0</value></param>
+	<param name="RES1Injection"><value t="0">1.0</value></param>
+	<param name="RES2Injection"><value t="0">1.0</value></param>
+	<param name="RES3Injection"><value t="0">1.0</value></param>
+	<param name="RES4Injection"><value t="0">1.0</value></param>
+	<param name="S_Funnel2_DC"><value t="0">6.0</value></param>
+	<param name="Oct1_Extract"><value t="0">-10.0</value></param>
+	<param name="NCI_Chamber"><value t="0">-3.0</value></param>
+	<param name="NCI_GateLensBlock"><value t="0">-20.0</value></param>
+	<param name="NCI_GateLensPass"><value t="0">80.0</value></param>
+	<param name="NCI_FocusLens"><value t="0">-6.7</value></param>
+	<param name="NCI_TransferLens"><value t="0">5.3</value></param>
+	<param name="S_MaldiPlate_L"><value t="0">100.0</value></param>
+	<param name="S_CapillaryExit_L"><value t="0">260.0</value></param>
+	<param name="S_Deflector_L"><value t="0">240.0</value></param>
+	<param name="S_CapillaryExit_H"><value t="0">200.0</value></param>
+	<param name="S_Funnel1_DC"><value t="0">140.0</value></param>
+	<param name="S_Skimmer1"><value t="0">35.0</value></param>
+	<param name="API_CapillaryEntrance"><value t="0">4000.0</value></param>
+	<param name="API_SprayShield"><value t="0">-500.0</value></param>
+</timeslicetable>
+<!-- END Time-Slice table  -->
+
+<!-- BEGIN Time-Slice table expIndex=2 -->
+<timeslicetable  slices="20" type="NEGATIVE_ETD">
+	<param name="Q1Mass"><value t="0">100.0</value>
+		<value t="2">120.0</value>
+		<value t="14">100.0</value>
+		<value t="15">120.0</value>
+	</param>
+	<param name="Q1Res"><value t="0">0.0</value></param>
+	<param name="Q1_Bias"><value t="0">-0.0</value></param>
+	<param name="Q1_EntranceLens"><value t="0">1.0</value>
+		<value t="15">-3.0</value>
+		<value t="19">1.0</value>
+	</param>
+	<param name="Q1_ExitLens"><value t="0">-3.0</value>
+		<value t="15">1.7</value>
+		<value t="19">-3.0</value>
+	</param>
+	<param name="Q1_Focus"><value t="0">80.0</value>
+		<value t="15">-80.0</value>
+		<value t="19">80.0</value>
+	</param>
+	<param name="Q1_PostFilter"><value t="0">-0.0</value></param>
+	<param name="Q1_PreFilter"><value t="0">-0.0</value></param>
+	<param name="CC_FocusLens"><value t="0">15.0</value>
+		<value t="15">-50.0</value>
+		<value t="19">15.0</value>
+	</param>
+	<param name="CC_EntranceBiasT"><value t="0">1.5</value>
+		<value t="1">0.4</value>
+		<value t="5">1.5</value>
+	</param>
+	<param name="CC_EntranceBiasX"><value t="0">-0.4</value></param>
+	<param name="CC_EntranceLensT"><value t="0">-3.6</value></param>
+	<param name="CC_EntranceLensX"><value t="0">-15.0</value></param>
+	<param name="CC_ExitLensT"><value t="0">-20.0</value></param>
+	<param name="CC_ExitLensX"><value t="0">20.0</value></param>
+	<param name="S_Skimmer2_L"><value t="0">-5.0</value>
+		<value t="15">50.0</value>
+		<value t="19">-5.0</value>
+	</param>
+	<param name="Oct1_Bias2"><value t="0">-2.0</value>
+		<value t="15">1.2</value>
+		<value t="19">-2.0</value>
+	</param>
+	<param name="Oct1_Bias_L"><value t="0">-3.5</value>
+		<value t="15">100.0</value>
+		<value t="19">-3.5</value>
+	</param>
+	<param name="Oct1_Trap"><value t="0">-15.0</value>
+		<value t="15">-8.0</value>
+		<value t="19">-15.0</value>
+	</param>
+	<param name="Oct1_PartitionLens"><value t="0">-3.0</value>
+		<value t="15">0.7</value>
+		<value t="19">-3.0</value>
+	</param>
+	<param name="Xfer_Bias"><value t="0">30.0</value></param>
+	<param name="Xfer_EntranceLens"><value t="0">20.0</value></param>
+	<param name="Xfer_ExitLens"><value t="0">20.0</value></param>
+	<param name="Xfer_Lens_1"><value t="0">40.0</value></param>
+	<param name="Xfer_Lens_2"><value t="0">11.0</value></param>
+	<param name="Xfer_Lens_3"><value t="0">50.0</value></param>
+	<param name="DEV2"><value t="0">-0.0</value></param>
+	<param name="EV1"><value t="0">10.0</value></param>
+	<param name="EV2"><value t="0">1.5</value></param>
+	<param name="PV1"><value t="0">-1.5</value></param>
+	<param name="PV2"><value t="0">-1.5</value></param>
+	<param name="PV2Q"><value t="0">20.0</value></param>
+	<param name="V_Ramp_Time_1"><value t="0">0.01</value></param>
+	<param name="V_Ramp_Time_2"><value t="0">0.01</value></param>
+	<param name="VPV1_0"><value t="0">-1.0</value></param>
+	<param name="VPV2_0"><value t="0">-1.0</value></param>
+	<param name="VPV1_1"><value t="0">-0.6</value></param>
+	<param name="VPV2_1"><value t="0">-0.6</value></param>
+	<param name="VPV1_2"><value t="0">-0.0</value></param>
+	<param name="VPV2_2"><value t="0">-0.0</value></param>
+	<param name="VSTEP_1"><value t="0">1</value></param>
+	<param name="VSTEP_2"><value t="0">1</value></param>
+	<param name="RES1"><value t="0">-1.5</value></param>
+	<param name="RES2"><value t="0">-1.515</value></param>
+	<param name="RES3"><value t="0">-1.47</value></param>
+	<param name="RES4"><value t="0">-1.505</value></param>
+	<param name="RES1Injection"><value t="0">-1.5</value></param>
+	<param name="RES2Injection"><value t="0">-1.515</value></param>
+	<param name="RES3Injection"><value t="0">-1.47</value></param>
+	<param name="RES4Injection"><value t="0">-1.505</value></param>
+	<param name="S_Funnel2_DC"><value t="0">-6.0</value></param>
+	<param name="Oct1_Extract"><value t="0">10.0</value></param>
+	<param name="NCI_Chamber"><value t="0">3.0</value></param>
+	<param name="NCI_GateLensBlock"><value t="0">20.0</value></param>
+	<param name="NCI_GateLensPass"><value t="0">-80.0</value></param>
+	<param name="NCI_FocusLens"><value t="0">6.7</value></param>
+	<param name="NCI_TransferLens"><value t="0">-5.3</value></param>
+	<param name="S_MaldiPlate_L"><value t="0">-100.0</value></param>
+	<param name="S_CapillaryExit_L"><value t="0">-240.0</value></param>
+	<param name="S_Deflector_L"><value t="0">-200.0</value></param>
+	<param name="S_CapillaryExit_H"><value t="0">200.0</value></param>
+	<param name="S_Funnel1_DC"><value t="0">-130.0</value></param>
+	<param name="S_Skimmer1"><value t="0">-35.0</value></param>
+	<param name="API_CapillaryEntrance"><value t="0">4000.0</value></param>
+	<param name="API_SprayShield"><value t="0">-500.0</value></param>
+</timeslicetable>
+<!-- END Time-Slice table  -->
+
+<!-- BEGIN Time-Slice table expIndex=3 -->
+<timeslicetable  slices="20" type="NEGATIVE_ETD_REAGENT">
+	<param name="Q1Mass"><value t="0">100.0</value>
+		<value t="2">120.0</value>
+		<value t="14">100.0</value>
+		<value t="15">120.0</value>
+	</param>
+	<param name="Q1Res"><value t="0">0.0</value></param>
+	<param name="Q1_Bias"><value t="0">-0.0</value></param>
+	<param name="Q1_EntranceLens"><value t="0">1.0</value>
+		<value t="15">-3.0</value>
+		<value t="19">1.0</value>
+	</param>
+	<param name="Q1_ExitLens"><value t="0">-3.0</value>
+		<value t="15">1.7</value>
+		<value t="19">-3.0</value>
+	</param>
+	<param name="Q1_Focus"><value t="0">80.0</value>
+		<value t="15">-80.0</value>
+		<value t="19">80.0</value>
+	</param>
+	<param name="Q1_PostFilter"><value t="0">-0.0</value></param>
+	<param name="Q1_PreFilter"><value t="0">-0.0</value></param>
+	<param name="CC_FocusLens"><value t="0">15.0</value>
+		<value t="15">-50.0</value>
+		<value t="19">15.0</value>
+	</param>
+	<param name="CC_EntranceBiasT"><value t="0">-0.5</value>
+		<value t="1">0.4</value>
+		<value t="5">-0.5</value>
+		<value t="14">1.5</value>
+		<value t="18">-0.5</value>
+	</param>
+	<param name="CC_EntranceBiasX"><value t="0">0.6</value></param>
+	<param name="CC_EntranceLensT"><value t="0">2.3</value>
+		<value t="14">-3.6</value>
+		<value t="18">2.3</value>
+	</param>
+	<param name="CC_EntranceLensX"><value t="0">15.0</value></param>
+	<param name="CC_ExitLensT"><value t="0">15.0</value>
+		<value t="14">-20.0</value>
+		<value t="18">15.0</value>
+	</param>
+	<param name="CC_ExitLensX"><value t="0">-20.0</value></param>
+	<param name="S_Skimmer2_L"><value t="0">-5.0</value>
+		<value t="15">50.0</value>
+		<value t="19">-5.0</value>
+	</param>
+	<param name="Oct1_Bias2"><value t="0">-2.0</value>
+		<value t="15">1.2</value>
+		<value t="19">-2.0</value>
+	</param>
+	<param name="Oct1_Bias_L"><value t="0">-3.5</value>
+		<value t="15">100.0</value>
+		<value t="19">-3.5</value>
+	</param>
+	<param name="Oct1_Trap"><value t="0">-15.0</value>
+		<value t="15">-8.0</value>
+		<value t="19">-15.0</value>
+	</param>
+	<param name="Oct1_PartitionLens"><value t="0">-3.0</value>
+		<value t="15">0.7</value>
+		<value t="19">-3.0</value>
+	</param>
+	<param name="Xfer_Bias"><value t="0">-30.0</value></param>
+	<param name="Xfer_EntranceLens"><value t="0">-20.0</value></param>
+	<param name="Xfer_ExitLens"><value t="0">-20.0</value></param>
+	<param name="Xfer_Lens_1"><value t="0">-40.0</value></param>
+	<param name="Xfer_Lens_2"><value t="0">-11.0</value></param>
+	<param name="Xfer_Lens_3"><value t="0">-50.0</value></param>
+	<param name="DEV2"><value t="0">-0.0</value></param>
+	<param name="EV1"><value t="0">-4.0</value></param>
+	<param name="EV2"><value t="0">-4.0</value></param>
+	<param name="PV1"><value t="0">0.6</value></param>
+	<param name="PV2"><value t="0">0.6</value></param>
+	<param name="PV2Q"><value t="0">30.0</value></param>
+	<param name="V_Ramp_Time_1"><value t="0">0.01</value></param>
+	<param name="V_Ramp_Time_2"><value t="0">0.01</value></param>
+	<param name="VPV1_0"><value t="0">-1.0</value></param>
+	<param name="VPV2_0"><value t="0">-1.0</value></param>
+	<param name="VPV1_1"><value t="0">-0.6</value></param>
+	<param name="VPV2_1"><value t="0">-0.6</value></param>
+	<param name="VPV1_2"><value t="0">-0.0</value></param>
+	<param name="VPV2_2"><value t="0">-0.0</value></param>
+	<param name="VSTEP_1"><value t="0">1</value></param>
+	<param name="VSTEP_2"><value t="0">1</value></param>
+	<param name="RES1"><value t="0">-1.0</value></param>
+	<param name="RES2"><value t="0">-1.0</value></param>
+	<param name="RES3"><value t="0">-1.0</value></param>
+	<param name="RES4"><value t="0">-1.0</value></param>
+	<param name="RES1Injection"><value t="0">-1.0</value></param>
+	<param name="RES2Injection"><value t="0">-1.0</value></param>
+	<param name="RES3Injection"><value t="0">-1.0</value></param>
+	<param name="RES4Injection"><value t="0">-1.0</value></param>
+	<param name="S_Funnel2_DC"><value t="0">-6.0</value></param>
+	<param name="Oct1_Extract"><value t="0">10.0</value></param>
+	<param name="NCI_Chamber"><value t="0">3.0</value></param>
+	<param name="NCI_GateLensBlock"><value t="0">20.0</value></param>
+	<param name="NCI_GateLensPass"><value t="0">-80.0</value></param>
+	<param name="NCI_FocusLens"><value t="0">6.7</value></param>
+	<param name="NCI_TransferLens"><value t="0">-5.3</value></param>
+	<param name="S_MaldiPlate_L"><value t="0">-100.0</value></param>
+	<param name="S_CapillaryExit_L"><value t="0">-240.0</value></param>
+	<param name="S_Deflector_L"><value t="0">-200.0</value></param>
+	<param name="S_CapillaryExit_H"><value t="0">200.0</value></param>
+	<param name="S_Funnel1_DC"><value t="0">-130.0</value></param>
+	<param name="S_Skimmer1"><value t="0">-35.0</value></param>
+	<param name="API_CapillaryEntrance"><value t="0">4000.0</value></param>
+	<param name="API_SprayShield"><value t="0">-500.0</value></param>
+</timeslicetable>
+<!-- END Time-Slice table  -->
+
+
+<paramlist>
+<param name="AMP_Apply_QPE"><value>1</value></param>
+<param name="AMP_Baseline_Correct"><value>4</value></param>
+<param name="AMP_Center_MZ"><value>350.0</value></param>
+<param name="AMP_Debug_Mode"><value>0</value></param>
+<param name="AMP_Debug_Slope"><value>-1</value></param>
+<param name="AMP_Debug_Window"><value>0</value></param>
+<param name="AMP_GeneticAlgorithmScore"><value>0.0</value></param>
+<param name="AMP_High_MZ"><value>600.0</value></param>
+<param name="AMP_Low_MZ"><value>250.0</value></param>
+<param name="AMP_Min_Peak_SN"><value>5.0</value></param>
+<param name="AMP_Perform_PreCalculation_Correction"><value>0</value></param>
+<param name="AMP_QPE_Filename"><value>ESI_neg_8M_150_1000_new</value></param>
+<param name="AMP_QPE_Filename_2w"><value>UNDEFINED</value></param>
+<param name="AMP_QPE_FinePhaseCorrection"><value>0.0</value></param>
+<param name="AMP_QPE_Invalid_Param_List"><value>EXC_Freq_High/SW_h_Broadband (MW_low)/</value></param>
+<param name="AMP_QPE_Invalid_Param_List_1w"><value>EXC_Freq_High/SW_h_Broadband (MW_low)/</value></param>
+<param name="AMP_QPE_Invalid_Param_List_2w"><value></value></param>
+<param name="AMP_QPE_Invalid_Param_Values"><value>1500050.0/1500000.0/</value></param>
+<param name="AMP_QPE_Invalid_Param_Values_1w"><value>1500050.0/1500000.0/</value></param>
+<param name="AMP_QPE_Invalid_Param_Values_2w"><value></value></param>
+<param name="AMP_QPE_UseFinePhaseCorrection"><value>0</value></param>
+<param name="AMP_SSB"><value>2.0</value></param>
+<param name="AMP_Status"><value>2</value></param>
+<param name="AMP_Status_1w"><value>2</value></param>
+<param name="AMP_Status_2w"><value>2</value></param>
+<param name="AMP_UseAdvancedParams"><value>0</value></param>
+<param name="AMP_UseGeneticAlgorithm"><value>0</value></param>
+<param name="AMP_UseHighChargeStateRules"><value>0</value></param>
+<param name="AMP_UseSparseSpectrumRules"><value>0</value></param>
+<param name="AMP_WDW"><value>5</value></param>
+<param name="AMS_ActiveExclusion"><value>1</value></param>
+<param name="AMS_BasePeak"><value>0</value></param>
+<param name="AMS_CasiEnabled"><value>0</value></param>
+<param name="AMS_CasiQ1Res_MS"><value>0.0</value></param>
+<param name="AMS_ChargeStateTolerance"><value>0.0</value></param>
+<param name="AMS_CollisionEnergyOffset"><value>0.0</value></param>
+<param name="AMS_CollisionalActivationEnabled"><value>1</value></param>
+<param name="AMS_DynamicExclusion"><value>0</value></param>
+<param name="AMS_EXCL_Masses"><value>&lt;masslistarray&gt;&lt;masslist starttime="0.0"&gt;&lt;range&gt;&lt;low&gt;919.24396&lt;/low&gt;&lt;high&gt;924.776&lt;/high&gt;&lt;/range&gt;&lt;/masslist&gt;&lt;/masslistarray&gt;</value></param>
+<param name="AMS_EnergyFile"><value>		1: 0.027   17.044		2: 0.0386  -3.5576		3: 0.0291  -1.0453		4: 0.0291  -1.0453		5: 0.0291  -1.0453		6: 0.0291  -1.0453		</value></param>
+<param name="AMS_ExcludeAfter"><value>1</value></param>
+<param name="AMS_FixedCollisionVoltage"><value>0.0</value></param>
+<param name="AMS_FixedCollisionVoltageEnabled"><value>0</value></param>
+<param name="AMS_FractionatedFIA"><value>0</value></param>
+<param name="AMS_FragmentationMode"><value>0</value></param>
+<param name="AMS_IsolationEnabled"><value>1</value></param>
+<param name="AMS_MSMSBoostEnabled"><value>0</value></param>
+<param name="AMS_MSMSDuration"><value>2.0</value></param>
+<param name="AMS_MassAccuracy"><value>3000.0</value></param>
+<param name="AMS_MaxNumParentIons"><value>1</value></param>
+<param name="AMS_MaxThreshold"><value>1.0E38</value></param>
+<param name="AMS_MinThreshold"><value>0.0</value></param>
+<param name="AMS_PreferMultiplyCharged"><value>1</value></param>
+<param name="AMS_PreviousNumParentIons"><value>4</value></param>
+<param name="AMS_Priority_Masses"><value>&lt;masslistarray&gt;&lt;masslist starttime="0.0"&gt;&lt;/masslist&gt;&lt;/masslistarray&gt;</value></param>
+<param name="AMS_ReleaseAfter"><value>2.0</value></param>
+<param name="AMS_SourceQuench"><value>1</value></param>
+<param name="AMS_ThresholdSelectionMode"><value>0</value></param>
+<param name="AMS_UI_FragmentationType_Selection"><value>0</value></param>
+<param name="API_APCI_HVSW"><value>0</value></param>
+<param name="API_CapillaryEntrance"><value>4000.0</value></param>
+<param name="API_CoronadNeedle"><value>0.0</value></param>
+<param name="API_DesolvationUnitType"><value>0</value></param>
+<param name="API_DivertValve_Position"><value>2</value></param>
+<param name="API_DryGasFlow"><value>4.0</value></param>
+<param name="API_DryGasTemp"><value>180.0</value></param>
+<param name="API_ESI_HVSW"><value>1</value></param>
+<param name="API_NebGasFlow"><value>1.0</value></param>
+<param name="API_NebGasTemp"><value>10.0</value></param>
+<param name="API_NebSW"><value>1</value></param>
+<param name="API_Polarity"><value>1</value></param>
+<param name="API_SourceType"><value>1</value></param>
+<param name="API_SprayShield"><value>-500.0</value></param>
+<param name="API_SyringeFlowRate"><value>3.0</value></param>
+<param name="API_SyringeRateUnit"><value>0</value></param>
+<param name="AQSmode"><value>0</value></param>
+<param name="AQ_mod"><value>0</value></param>
+<param name="AZURA_Enable"><value>0</value></param>
+<param name="Active_Segment_Index"><value>0</value></param>
+<param name="Add_Lock_Mass"><value>0</value></param>
+<param name="AqDSize"><value>1048576</value></param>
+<param name="BC_Filter_Width"><value>150</value></param>
+<param name="BC_Peak_Expansion_Points"><value>20</value></param>
+<param name="BC_Remove_Neg_Intensities"><value>0</value></param>
+<param name="BC_mod"><value>1</value></param>
+<param name="BF1"><value>0.0</value></param>
+<param name="BYTORDA"><value>0</value></param>
+<param name="BYTORDP"><value>0</value></param>
+<param name="CC_EntranceBiasT"><value>1.5</value></param>
+<param name="CC_EntranceBiasX"><value>-0.4</value></param>
+<param name="CC_EntranceLensT"><value>-3.6</value></param>
+<param name="CC_EntranceLensX"><value>-15.0</value></param>
+<param name="CC_ExitLensT"><value>-20.0</value></param>
+<param name="CC_ExitLensX"><value>20.0</value></param>
+<param name="CC_FocusLens"><value>15.0</value></param>
+<param name="CC_GasBypass"><value>0</value></param>
+<param name="CC_GasFlow"><value>30.0</value></param>
+<param name="CC_GasFlushSW"><value>0</value></param>
+<param name="CC_GasFlushTime"><value>1.1</value></param>
+<param name="CC_GasSW"><value>1</value></param>
+<param name="CC_RFAmp"><value>450.0</value></param>
+<param name="CC_RF_Freq"><value>1.0</value></param>
+<param name="CFDGTYP"><value>0</value></param>
+<param name="CFRGTYP"><value>7</value></param>
+<param name="CLDATE"><value>Thu Jun 6 01:34:27 2019</value></param>
+<param name="CLPTS"><value>7</value></param>
+<param name="CLSTAT"><value>2</value></param>
+<param name="CNST_0"><value>1.0</value></param>
+<param name="CNST_1"><value>1.0</value></param>
+<param name="CNST_10"><value>85.0</value></param>
+<param name="CNST_11"><value>5.0E9</value></param>
+<param name="CNST_12"><value>1.2</value></param>
+<param name="CNST_13"><value>4000000.0</value></param>
+<param name="CNST_14"><value>5.0E8</value></param>
+<param name="CNST_15"><value>2.0</value></param>
+<param name="CNST_16"><value>1.0</value></param>
+<param name="CNST_17"><value>1.0</value></param>
+<param name="CNST_18"><value>1.0</value></param>
+<param name="CNST_19"><value>1.0</value></param>
+<param name="CNST_2"><value>1.0</value></param>
+<param name="CNST_20"><value>1.0</value></param>
+<param name="CNST_21"><value>1.0</value></param>
+<param name="CNST_22"><value>1.0</value></param>
+<param name="CNST_23"><value>1.0</value></param>
+<param name="CNST_24"><value>1.0</value></param>
+<param name="CNST_25"><value>1.0</value></param>
+<param name="CNST_26"><value>1.0</value></param>
+<param name="CNST_27"><value>1.0</value></param>
+<param name="CNST_28"><value>1.0</value></param>
+<param name="CNST_29"><value>1.0</value></param>
+<param name="CNST_3"><value>1.0</value></param>
+<param name="CNST_30"><value>1.0</value></param>
+<param name="CNST_31"><value>1.0</value></param>
+<param name="CNST_4"><value>1.0</value></param>
+<param name="CNST_5"><value>1.0</value></param>
+<param name="CNST_6"><value>1.0</value></param>
+<param name="CNST_7"><value>1.0</value></param>
+<param name="CNST_8"><value>1.0</value></param>
+<param name="CNST_9"><value>1.0</value></param>
+<param name="COROFFS"><value>0.0</value></param>
+<param name="C_MsmsE"><value>0.0</value></param>
+<param name="Calibration"><value>C2F3O2/112.9856/112.9856/112.9856/0.001,C6HF9N3O/301.9981/301.9984/301.9981/-0.040,C12HF21N3O/601.9790/601.9796/601.9790/0.066,C20H18F27N3O8P3/1033.9881/1033.9891/1033.9883/0.170,C26H18F39N3O8P3/1333.9689/1333.9704/1333.9696/0.479,C32H18F51N3O8P3/1633.9498/1633.9501/1633.9493/-0.304,C38H18F63N3O8P3/1933.9306/1933.9300/1933.9294/-0.640</value></param>
+<param name="Calmet"><value>5</value></param>
+<param name="Calmet_negative"><value>5</value></param>
+<param name="Calmet_negative_2w"><value>4</value></param>
+<param name="Calmet_positive"><value>4</value></param>
+<param name="Calmet_positive_2w"><value>4</value></param>
+<param name="CoAddActivated"><value>0</value></param>
+<param name="CoAddMax"><value>1.9E9</value></param>
+<param name="CoAddMaxScans"><value>1000</value></param>
+<param name="CoAddMin"><value>1.6E9</value></param>
+<param name="CoAddNS"><value>20</value></param>
+<param name="CoAddNS_status"><value>0</value></param>
+<param name="CoAddStoreBaf"><value>0</value></param>
+<param name="CorrLst_0"><value>-1.0</value></param>
+<param name="CorrLst_1"><value>-1.0</value></param>
+<param name="CorrLst_10"><value>-1.0</value></param>
+<param name="CorrLst_11"><value>-1.0</value></param>
+<param name="CorrLst_12"><value>-1.0</value></param>
+<param name="CorrLst_13"><value>-1.0</value></param>
+<param name="CorrLst_14"><value>-1.0</value></param>
+<param name="CorrLst_15"><value>-1.0</value></param>
+<param name="CorrLst_2"><value>-1.0</value></param>
+<param name="CorrLst_3"><value>-1.0</value></param>
+<param name="CorrLst_4"><value>-1.0</value></param>
+<param name="CorrLst_5"><value>-1.0</value></param>
+<param name="CorrLst_6"><value>-1.0</value></param>
+<param name="CorrLst_7"><value>-1.0</value></param>
+<param name="CorrLst_8"><value>-1.0</value></param>
+<param name="CorrLst_9"><value>-1.0</value></param>
+<param name="CorrLst_MS3_0"><value>-1.0</value></param>
+<param name="CorrLst_MS3_1"><value>-1.0</value></param>
+<param name="CorrLst_MS3_10"><value>-1.0</value></param>
+<param name="CorrLst_MS3_11"><value>-1.0</value></param>
+<param name="CorrLst_MS3_12"><value>-1.0</value></param>
+<param name="CorrLst_MS3_13"><value>-1.0</value></param>
+<param name="CorrLst_MS3_14"><value>-1.0</value></param>
+<param name="CorrLst_MS3_15"><value>-1.0</value></param>
+<param name="CorrLst_MS3_2"><value>-1.0</value></param>
+<param name="CorrLst_MS3_3"><value>-1.0</value></param>
+<param name="CorrLst_MS3_4"><value>-1.0</value></param>
+<param name="CorrLst_MS3_5"><value>-1.0</value></param>
+<param name="CorrLst_MS3_6"><value>-1.0</value></param>
+<param name="CorrLst_MS3_7"><value>-1.0</value></param>
+<param name="CorrLst_MS3_8"><value>-1.0</value></param>
+<param name="CorrLst_MS3_9"><value>-1.0</value></param>
+<param name="CorrLst_MS4_0"><value>-1.0</value></param>
+<param name="CorrLst_MS4_1"><value>-1.0</value></param>
+<param name="CorrLst_MS4_10"><value>-1.0</value></param>
+<param name="CorrLst_MS4_11"><value>-1.0</value></param>
+<param name="CorrLst_MS4_12"><value>-1.0</value></param>
+<param name="CorrLst_MS4_13"><value>-1.0</value></param>
+<param name="CorrLst_MS4_14"><value>-1.0</value></param>
+<param name="CorrLst_MS4_15"><value>-1.0</value></param>
+<param name="CorrLst_MS4_2"><value>-1.0</value></param>
+<param name="CorrLst_MS4_3"><value>-1.0</value></param>
+<param name="CorrLst_MS4_4"><value>-1.0</value></param>
+<param name="CorrLst_MS4_5"><value>-1.0</value></param>
+<param name="CorrLst_MS4_6"><value>-1.0</value></param>
+<param name="CorrLst_MS4_7"><value>-1.0</value></param>
+<param name="CorrLst_MS4_8"><value>-1.0</value></param>
+<param name="CorrLst_MS4_9"><value>-1.0</value></param>
+<param name="DE"><value>3500.0</value></param>
+<param name="DECIM"><value>12</value></param>
+<param name="DECIM_1w"><value>12</value></param>
+<param name="DECIM_2w"><value>1</value></param>
+<param name="DEV2"><value>-0.0</value></param>
+<param name="DIGMOD"><value>1</value></param>
+<param name="DIGTYP"><value>12</value></param>
+<param name="DM"><value>1</value></param>
+<param name="DM_1w"><value>1</value></param>
+<param name="DM_2w"><value>1</value></param>
+<param name="DR"><value>16</value></param>
+<param name="DRU_DataMode"><value>1</value></param>
+<param name="DR_1w"><value>16</value></param>
+<param name="DR_2w"><value>16</value></param>
+<param name="DS"><value>0</value></param>
+<param name="DSPFIRM"><value>2</value></param>
+<param name="DSPFIRM_1w"><value>2</value></param>
+<param name="DSPFIRM_2w"><value>0</value></param>
+<param name="DSPFVS"><value>0</value></param>
+<param name="DW"><value>0.1</value></param>
+<param name="D_0"><value>1.0E-5</value></param>
+<param name="D_1"><value>1.0E-7</value></param>
+<param name="D_10"><value>0.05</value></param>
+<param name="D_11"><value>1.0E-7</value></param>
+<param name="D_12"><value>0.02</value></param>
+<param name="D_13"><value>0.001</value></param>
+<param name="D_14"><value>0.01</value></param>
+<param name="D_15"><value>0.001</value></param>
+<param name="D_16"><value>0.01</value></param>
+<param name="D_17"><value>0.01</value></param>
+<param name="D_18"><value>0.01</value></param>
+<param name="D_19"><value>0.02</value></param>
+<param name="D_2"><value>7.5E-4</value></param>
+<param name="D_20"><value>1.0000001E-7</value></param>
+<param name="D_21"><value>0.01</value></param>
+<param name="D_22"><value>0.02</value></param>
+<param name="D_23"><value>1.0</value></param>
+<param name="D_24"><value>1.0E-7</value></param>
+<param name="D_25"><value>0.005</value></param>
+<param name="D_26"><value>0.3</value></param>
+<param name="D_27"><value>0.5</value></param>
+<param name="D_28"><value>5.0E-4</value></param>
+<param name="D_29"><value>0.001</value></param>
+<param name="D_3"><value>0.01</value></param>
+<param name="D_30"><value>0.002</value></param>
+<param name="D_31"><value>0.002</value></param>
+<param name="D_4"><value>0.01</value></param>
+<param name="D_5"><value>0.001</value></param>
+<param name="D_6"><value>0.05</value></param>
+<param name="D_7"><value>1.0E-7</value></param>
+<param name="D_8"><value>0.01</value></param>
+<param name="D_9"><value>0.05</value></param>
+<param name="DataDep"><value>0</value></param>
+<param name="ECD"><value>0</value></param>
+<param name="ECDLens"><value>10.0</value></param>
+<param name="ECD_MS3"><value>0</value></param>
+<param name="ECD_MS4"><value>0</value></param>
+<param name="EM"><value>1</value></param>
+<param name="ETD_OnOffSW"><value>0</value></param>
+<param name="EV1"><value>10.0</value></param>
+<param name="EV2"><value>1.5</value></param>
+<param name="EXC_CTL"><value>1</value></param>
+<param name="EXC_Freq_High"><value>1666700.0</value></param>
+<param name="EXC_Freq_High_1w"><value>1666700.0</value></param>
+<param name="EXC_Freq_High_2w"><value>0.0</value></param>
+<param name="EXC_Freq_Low"><value>230300.0</value></param>
+<param name="EXC_Freq_Low_1w"><value>230300.0</value></param>
+<param name="EXC_Freq_Low_2w"><value>0.0</value></param>
+<param name="EXC_hi"><value>1000.0</value></param>
+<param name="EXC_hi_1w"><value>1000.0</value></param>
+<param name="EXC_hi_2w"><value>3000.0</value></param>
+<param name="EXC_low"><value>138.20332</value></param>
+<param name="EXC_low_1w"><value>138.20332</value></param>
+<param name="EXC_low_2w"><value>100.0</value></param>
+<param name="EXC_shot"><value>702.0</value></param>
+<param name="EXC_shot_1w"><value>702.0</value></param>
+<param name="EXC_shot_2w"><value>100000.0</value></param>
+<param name="Experiment_Table_Index"><value>2</value></param>
+<param name="FQ1LIST"><value>freqlist1</value></param>
+<param name="FQ2LIST"><value>freqlist2</value></param>
+<param name="FQ3LIST"><value>freqlist3</value></param>
+<param name="FQ4LIST"><value>freqlist4</value></param>
+<param name="FQ5LIST"><value>freqlist5</value></param>
+<param name="FQ6LIST"><value>freqlist6</value></param>
+<param name="FQ7LIST"><value>freqlist7</value></param>
+<param name="FQ8LIST"><value>freqlist8</value></param>
+<param name="FR_low"><value>230336.8211809178</value></param>
+<param name="FR_low_1w"><value>230336.8211809178</value></param>
+<param name="FR_low_2w"><value>1000.0</value></param>
+<param name="FSCID_Energy_First"><value>20.0</value></param>
+<param name="FSCID_Energy_List"><value>40/80</value></param>
+<param name="FSCID_Energy_Second"><value>60.0</value></param>
+<param name="FW"><value>1.0E8</value></param>
+<param name="FW_1w"><value>1.0E8</value></param>
+<param name="FW_2w"><value>2500.0</value></param>
+<param name="FidSum"><value>8192</value></param>
+<param name="GB"><value>0.7</value></param>
+<param name="Gated_Trapping_Mode"><value>0</value></param>
+<param name="Gui_NS"><value>128</value></param>
+<param name="HexCenterFreq"><value>5000.0</value></param>
+<param name="Hy_path"><value>no</value></param>
+<param name="ICC_LowerPeakSumLimit"><value>5.0E8</value></param>
+<param name="ICC_StartReactionLevel"><value>85.0</value></param>
+<param name="ICC_UpperPeakSumLimit"><value>5.0E9</value></param>
+<param name="IHEF"><value>1.5</value></param>
+<param name="IIE"><value>1.0</value></param>
+<param name="IM"><value>1</value></param>
+<param name="INP_0"><value>0.0</value></param>
+<param name="INP_1"><value>0.0</value></param>
+<param name="INP_10"><value>0.0</value></param>
+<param name="INP_11"><value>0.0</value></param>
+<param name="INP_12"><value>0.0</value></param>
+<param name="INP_13"><value>0.0</value></param>
+<param name="INP_14"><value>0.0</value></param>
+<param name="INP_15"><value>0.0</value></param>
+<param name="INP_16"><value>0.0</value></param>
+<param name="INP_17"><value>0.0</value></param>
+<param name="INP_18"><value>0.0</value></param>
+<param name="INP_19"><value>0.0</value></param>
+<param name="INP_2"><value>0.0</value></param>
+<param name="INP_20"><value>0.0</value></param>
+<param name="INP_21"><value>0.0</value></param>
+<param name="INP_22"><value>0.0</value></param>
+<param name="INP_23"><value>0.0</value></param>
+<param name="INP_24"><value>0.0</value></param>
+<param name="INP_25"><value>0.0</value></param>
+<param name="INP_26"><value>0.0</value></param>
+<param name="INP_27"><value>0.0</value></param>
+<param name="INP_28"><value>0.0</value></param>
+<param name="INP_29"><value>0.0</value></param>
+<param name="INP_3"><value>0.0</value></param>
+<param name="INP_30"><value>0.0</value></param>
+<param name="INP_31"><value>0.0</value></param>
+<param name="INP_4"><value>0.0</value></param>
+<param name="INP_5"><value>0.0</value></param>
+<param name="INP_6"><value>0.0</value></param>
+<param name="INP_7"><value>0.0</value></param>
+<param name="INP_8"><value>0.0</value></param>
+<param name="INP_9"><value>0.0</value></param>
+<param name="INSTRUM"><value></value></param>
+<param name="IN_0"><value>0.001</value></param>
+<param name="IN_1"><value>0.001</value></param>
+<param name="IN_10"><value>0.001</value></param>
+<param name="IN_11"><value>0.001</value></param>
+<param name="IN_12"><value>0.001</value></param>
+<param name="IN_13"><value>0.001</value></param>
+<param name="IN_14"><value>0.001</value></param>
+<param name="IN_15"><value>0.001</value></param>
+<param name="IN_16"><value>0.001</value></param>
+<param name="IN_17"><value>0.001</value></param>
+<param name="IN_18"><value>0.001</value></param>
+<param name="IN_19"><value>0.001</value></param>
+<param name="IN_2"><value>0.001</value></param>
+<param name="IN_20"><value>0.001</value></param>
+<param name="IN_21"><value>0.001</value></param>
+<param name="IN_22"><value>0.001</value></param>
+<param name="IN_23"><value>0.001</value></param>
+<param name="IN_24"><value>0.001</value></param>
+<param name="IN_25"><value>0.001</value></param>
+<param name="IN_26"><value>0.001</value></param>
+<param name="IN_27"><value>0.001</value></param>
+<param name="IN_28"><value>0.001</value></param>
+<param name="IN_29"><value>0.001</value></param>
+<param name="IN_3"><value>0.001</value></param>
+<param name="IN_30"><value>0.001</value></param>
+<param name="IN_31"><value>0.001</value></param>
+<param name="IN_4"><value>0.001</value></param>
+<param name="IN_5"><value>0.001</value></param>
+<param name="IN_6"><value>0.001</value></param>
+<param name="IN_7"><value>0.001</value></param>
+<param name="IN_8"><value>0.001</value></param>
+<param name="IN_9"><value>0.001</value></param>
+<param name="IN_CELL_ISOLATION"><value>0</value></param>
+<param name="IN_CELL_ISOLATION_MODE"><value>0</value></param>
+<param name="IN_CELL_ISOLATION_MODE_MS3"><value>0</value></param>
+<param name="IN_CELL_ISOLATION_MODE_MS4"><value>0</value></param>
+<param name="IN_CELL_ISOLATION_MS3"><value>0</value></param>
+<param name="IN_CELL_ISOLATION_MS4"><value>0</value></param>
+<param name="IN_CELL_MSN_STATE"><value>0</value></param>
+<param name="IRMPD"><value>0</value></param>
+<param name="IRMPD_MS3"><value>0</value></param>
+<param name="IRMPD_MS4"><value>0</value></param>
+<param name="IRMPD_Power"><value>0.0</value></param>
+<param name="Image_Run_Transaction_Size"><value>1</value></param>
+<param name="InSource_Frag_Energy"><value>90.0</value></param>
+<param name="IonAccumulationDuringDetection"><value>0</value></param>
+<param name="IonChargeControl"><value>0</value></param>
+<param name="Ion_Mirror_RFAmp"><value>0.0</value></param>
+<param name="IsCID"><value>0</value></param>
+<param name="IsolationNotch_0"><value>4.0</value></param>
+<param name="IsolationNotch_1"><value>5.0</value></param>
+<param name="IsolationNotch_2"><value>5.03</value></param>
+<param name="IsolationNotch_3"><value>-1.0</value></param>
+<param name="JHIGH_0"><value>3000.0</value></param>
+<param name="JHIGH_1"><value>3000.0</value></param>
+<param name="JHIGH_2"><value>3000.0</value></param>
+<param name="JHIGH_3"><value>1800.0</value></param>
+<param name="JLOW_0"><value>100.0</value></param>
+<param name="JLOW_1"><value>100.0</value></param>
+<param name="JLOW_2"><value>100.0</value></param>
+<param name="JLOW_3"><value>90.0</value></param>
+<param name="Kilgour_WDW_Factor"><value>0.5</value></param>
+<param name="LB"><value>-0.2</value></param>
+<param name="LCRunTime"><value>4.0</value></param>
+<param name="LC_Capture_Fill_Time"><value>0.05</value></param>
+<param name="LC_Capture_Mode"><value>0</value></param>
+<param name="LC_Capture_Num_Fills"><value>1</value></param>
+<param name="LC_Capture_Quench_Time"><value>0.01</value></param>
+<param name="LC_Capture_Sample_Rate"><value>0.01</value></param>
+<param name="LC_mode"><value>0</value></param>
+<param name="L_0"><value>313</value></param>
+<param name="L_1"><value>1348</value></param>
+<param name="L_10"><value>1</value></param>
+<param name="L_11"><value>1</value></param>
+<param name="L_12"><value>311</value></param>
+<param name="L_13"><value>1</value></param>
+<param name="L_14"><value>1</value></param>
+<param name="L_15"><value>1</value></param>
+<param name="L_16"><value>1</value></param>
+<param name="L_17"><value>1</value></param>
+<param name="L_18"><value>332</value></param>
+<param name="L_19"><value>1</value></param>
+<param name="L_2"><value>399</value></param>
+<param name="L_20"><value>1</value></param>
+<param name="L_21"><value>1</value></param>
+<param name="L_22"><value>1</value></param>
+<param name="L_23"><value>1</value></param>
+<param name="L_24"><value>1</value></param>
+<param name="L_25"><value>1</value></param>
+<param name="L_26"><value>1</value></param>
+<param name="L_27"><value>1</value></param>
+<param name="L_28"><value>4000</value></param>
+<param name="L_29"><value>20</value></param>
+<param name="L_3"><value>1</value></param>
+<param name="L_30"><value>1</value></param>
+<param name="L_31"><value>1585</value></param>
+<param name="L_4"><value>1</value></param>
+<param name="L_5"><value>1</value></param>
+<param name="L_6"><value>311</value></param>
+<param name="L_7"><value>1</value></param>
+<param name="L_8"><value>1</value></param>
+<param name="L_9"><value>1</value></param>
+<param name="LaserAttn"><value>24.0</value></param>
+<param name="LaserFocus"><value>1</value></param>
+<param name="LaserFocus_Large"><value>30.0</value></param>
+<param name="LaserFocus_Medium"><value>50.0</value></param>
+<param name="LaserFocus_Minimum"><value>85.76</value></param>
+<param name="LaserFocus_Small"><value>76.5</value></param>
+<param name="LaserFocus_UltraLarge"><value>5.0</value></param>
+<param name="LaserFrequency"><value>2000</value></param>
+<param name="LaserPowerOffset_Large"><value>0</value></param>
+<param name="LaserPowerOffset_Medium"><value>0</value></param>
+<param name="LaserPowerOffset_Small"><value>0</value></param>
+<param name="LaserPowerOffset_UltraLarge"><value>0</value></param>
+<param name="LaserPowerRange_Large"><value>100</value></param>
+<param name="LaserPowerRange_Medium"><value>100</value></param>
+<param name="LaserPowerRange_Small"><value>100</value></param>
+<param name="LaserPowerRange_UltraLarge"><value>100</value></param>
+<param name="LaserPowerZeroPoint"><value>38600</value></param>
+<param name="M1LIST"><value>se__curr_m1</value></param>
+<param name="MAXI"><value>1.12</value></param>
+<param name="MAXPKS"><value>10000</value></param>
+<param name="MI"><value>0.001</value></param>
+<param name="ML1"><value>2.3033911923422825E8</value></param>
+<param name="ML1_negative"><value>2.3033911923422825E8</value></param>
+<param name="ML1_negative_2w"><value>0.0</value></param>
+<param name="ML1_positive"><value>2.3034002846350923E8</value></param>
+<param name="ML1_positive_2w"><value>0.0</value></param>
+<param name="ML2"><value>-2.307871075422006</value></param>
+<param name="ML2_negative"><value>-2.307871075422006</value></param>
+<param name="ML2_negative_2w"><value>0.0</value></param>
+<param name="ML2_positive"><value>3.8945877833805658</value></param>
+<param name="ML2_positive_2w"><value>0.0</value></param>
+<param name="ML3"><value>9817.765012516018</value></param>
+<param name="ML3_negative"><value>9817.765012516018</value></param>
+<param name="ML3_negative_2w"><value>0.0</value></param>
+<param name="ML3_positive"><value>0.0</value></param>
+<param name="ML3_positive_2w"><value>0.0</value></param>
+<param name="MTP_AbsPosZ"><value>0.0</value></param>
+<param name="MTP_LaserPowerOffset"><value>0</value></param>
+<param name="MTP_LaserPowerRange"><value>100</value></param>
+<param name="MTP_RANDOM_WALK_ENABLE"><value>0</value></param>
+<param name="MTP_SCAN_PER_GRID"><value>1</value></param>
+<param name="MTP_SPOT_DIAMETER"><value>800.0</value></param>
+<param name="MTP_SmartWalkEnable"><value>1</value></param>
+<param name="MTP_SmartWalkGridWidth"><value>600</value></param>
+<param name="MTP_SmartWalkPatternTable"><value>2</value></param>
+<param name="MTP_SmartWalkPattern_GridIncrement"><value>15</value></param>
+<param name="MTP_SmartWalkPattern_GridOffset"><value>1</value></param>
+<param name="MTP_SmartWalkPattern_LaserBurstGrids"><value>10</value></param>
+<param name="MULEXPNO_0"><value>0</value></param>
+<param name="MULEXPNO_1"><value>0</value></param>
+<param name="MULEXPNO_10"><value>0</value></param>
+<param name="MULEXPNO_11"><value>0</value></param>
+<param name="MULEXPNO_12"><value>0</value></param>
+<param name="MULEXPNO_13"><value>0</value></param>
+<param name="MULEXPNO_14"><value>0</value></param>
+<param name="MULEXPNO_15"><value>0</value></param>
+<param name="MULEXPNO_2"><value>0</value></param>
+<param name="MULEXPNO_3"><value>0</value></param>
+<param name="MULEXPNO_4"><value>0</value></param>
+<param name="MULEXPNO_5"><value>0</value></param>
+<param name="MULEXPNO_6"><value>0</value></param>
+<param name="MULEXPNO_7"><value>0</value></param>
+<param name="MULEXPNO_8"><value>0</value></param>
+<param name="MULEXPNO_9"><value>0</value></param>
+<param name="MW_cent"><value>702.0</value></param>
+<param name="MW_cent_1w"><value>702.0</value></param>
+<param name="MW_cent_2w"><value>100.0</value></param>
+<param name="MW_high"><value>1000.0</value></param>
+<param name="MW_high_1w"><value>1000.0</value></param>
+<param name="MW_high_2w"><value>5000.0</value></param>
+<param name="MW_low"><value>138.20332277017232</value></param>
+<param name="MW_low_1w"><value>138.20332277017232</value></param>
+<param name="MW_low_2w"><value>100.0</value></param>
+<param name="MW_range"><value>50.00933544210261</value></param>
+<param name="MW_range_1w"><value>50.00933544210261</value></param>
+<param name="MW_range_2w"><value>10.0</value></param>
+<param name="MaldiISD"><value>0</value></param>
+<param name="Mass_Tolerance"><value>0.2</value></param>
+<param name="Method_SegmentControlType"><value>0</value></param>
+<param name="Method_SegmentCount"><value>1</value></param>
+<param name="Min_Intensity_Absolute"><value>100000.0</value></param>
+<param name="Min_Intensity_Relative"><value>0.0</value></param>
+<param name="MultiCASI"><value>0</value></param>
+<param name="NBL"><value>1</value></param>
+<param name="NCI_Chamber"><value>3.0</value></param>
+<param name="NCI_Emission_Current"><value>3.0</value></param>
+<param name="NCI_Filament_Selection"><value>0</value></param>
+<param name="NCI_FocusLens"><value>6.7</value></param>
+<param name="NCI_GateLensBlock"><value>20.0</value></param>
+<param name="NCI_GateLensPass"><value>-80.0</value></param>
+<param name="NCI_Ionization_Energy"><value>70.0</value></param>
+<param name="NCI_Max_Emission"><value>10.0</value></param>
+<param name="NCI_MethaneFlow"><value>16.0</value></param>
+<param name="NCI_ReagentTuneSW"><value>0</value></param>
+<param name="NCI_Source_Temp"><value>60.0</value></param>
+<param name="NCI_TransferLens"><value>-5.3</value></param>
+<param name="NC_proc"><value>0</value></param>
+<param name="NOISE"><value>0.0</value></param>
+<param name="NS"><value>128</value></param>
+<param name="NS_status"><value>128</value></param>
+<param name="NTB_actExclusionResolution"><value>5.0</value></param>
+<param name="NTB_autoCalibration"><value>0</value></param>
+<param name="NTB_calibrationMode"><value>0</value></param>
+<param name="NTB_calibrationThreshold"><value>1000.0</value></param>
+<param name="NTB_calibrationTolerance"><value>6.0</value></param>
+<param name="NTB_dataReduction"><value>0</value></param>
+<param name="NTB_exclSingleChargedIons"><value>0</value></param>
+<param name="NTB_exclUnknownAndSingleChargedIons"><value>0</value></param>
+<param name="NTB_fillUpPrecursorsFromDynExclusion"><value>0</value></param>
+<param name="NTB_groupLength"><value>6</value></param>
+<param name="NTB_lockMasses"><value>&lt;massreflist&gt;&lt;refmass name="(Arg)-H"&gt;&lt;mass&gt;173.104399&lt;/mass&gt;&lt;charge&gt;1-&lt;/charge&gt;&lt;/refmass&gt;&lt;refmass name="(Arg)2-H"&gt;&lt;mass&gt;347.216075&lt;/mass&gt;&lt;charge&gt;1-&lt;/charge&gt;&lt;/refmass&gt;&lt;refmass name="(Arg)3-H"&gt;&lt;mass&gt;521.327751&lt;/mass&gt;&lt;charge&gt;1-&lt;/charge&gt;&lt;/refmass&gt;&lt;refmass name="(Arg)4-H"&gt;&lt;mass&gt;695.439426&lt;/mass&gt;&lt;charge&gt;1-&lt;/charge&gt;&lt;/refmass&gt;&lt;refmass name="(Arg)5-H"&gt;&lt;mass&gt;869.551102&lt;/mass&gt;&lt;charge&gt;1-&lt;/charge&gt;&lt;/refmass&gt;&lt;refmass name="(Arg)6-H"&gt;&lt;mass&gt;1043.662778&lt;/mass&gt;&lt;charge&gt;1-&lt;/charge&gt;&lt;/refmass&gt;&lt;refmass name="(Arg)7-H"&gt;&lt;mass&gt;1217.774456&lt;/mass&gt;&lt;charge&gt;1-&lt;/charge&gt;&lt;/refmass&gt;&lt;refmass name="(Arg)8-H"&gt;&lt;mass&gt;1391.886129&lt;/mass&gt;&lt;charge&gt;1-&lt;/charge&gt;&lt;/refmass&gt;&lt;refmass name="(Arg)9-H"&gt;&lt;mass&gt;1565.997805&lt;/mass&gt;&lt;charge&gt;1-&lt;/charge&gt;&lt;/refmass&gt;&lt;refmass name="(Arg)10-H"&gt;&lt;mass&gt;1740.109481&lt;/mass&gt;&lt;charge&gt;1-&lt;/charge&gt;&lt;/refmass&gt;&lt;/massreflist&gt;</value></param>
+<param name="NTB_maxChargeState"><value>16</value></param>
+<param name="NTB_minPreferedChargeState"><value>1</value></param>
+<param name="NTB_preferDoubleChargedIons"><value>0</value></param>
+<param name="NTB_quantile"><value>0.0</value></param>
+<param name="NTB_relThreshold"><value>0.01</value></param>
+<param name="NTB_setPeakList"><value>1</value></param>
+<param name="NTB_smartSelect"><value>0</value></param>
+<param name="NTB_smartSelectTable"><value>&lt;smart-dissociation-table&gt;&lt;charge-state-entry&gt;&lt;charge&gt;0&lt;/charge&gt;&lt;CID-range&gt;&lt;low-mass&gt;-1.7976931348623157E308&lt;/low-mass&gt;&lt;high-mass&gt;-1.7976931348623157E308&lt;/high-mass&gt;&lt;/CID-range&gt;&lt;ETD-range&gt;&lt;low-mass&gt;-1.7976931348623157E308&lt;/low-mass&gt;&lt;high-mass&gt;1.7976931348623157E308&lt;/high-mass&gt;&lt;/ETD-range&gt;&lt;/charge-state-entry&gt;&lt;charge-state-entry&gt;&lt;charge&gt;1&lt;/charge&gt;&lt;CID-range&gt;&lt;low-mass&gt;-1.7976931348623157E308&lt;/low-mass&gt;&lt;high-mass&gt;500.0&lt;/high-mass&gt;&lt;/CID-range&gt;&lt;ETD-range&gt;&lt;low-mass&gt;400.0&lt;/low-mass&gt;&lt;high-mass&gt;1.7976931348623157E308&lt;/high-mass&gt;&lt;/ETD-range&gt;&lt;/charge-state-entry&gt;&lt;charge-state-entry&gt;&lt;charge&gt;3&lt;/charge&gt;&lt;CID-range&gt;&lt;low-mass&gt;-1.7976931348623157E308&lt;/low-mass&gt;&lt;high-mass&gt;1.7976931348623157E308&lt;/high-mass&gt;&lt;/CID-range&gt;&lt;ETD-range&gt;&lt;low-mass&gt;-1.7976931348623157E308&lt;/low-mass&gt;&lt;high-mass&gt;-1.7976931348623157E308&lt;/high-mass&gt;&lt;/ETD-range&gt;&lt;/charge-state-entry&gt;&lt;charge-state-entry&gt;&lt;charge&gt;4&lt;/charge&gt;&lt;CID-range&gt;&lt;low-mass&gt;-1.7976931348623157E308&lt;/low-mass&gt;&lt;high-mass&gt;700.0&lt;/high-mass&gt;&lt;/CID-range&gt;&lt;ETD-range&gt;&lt;low-mass&gt;600.0&lt;/low-mass&gt;&lt;high-mass&gt;1.7976931348623157E308&lt;/high-mass&gt;&lt;/ETD-range&gt;&lt;/charge-state-entry&gt;&lt;/smart-dissociation-table&gt;</value></param>
+<param name="NTB_strictActExclTime"><value>0</value></param>
+<param name="NTB_useStrictGroupLength"><value>1</value></param>
+<param name="NoisPct"><value>1.3</value></param>
+<param name="Noiselevel_Algorithm"><value>1</value></param>
+<param name="NumLaserShots"><value>4000</value></param>
+<param name="Number_Of_Isolation"><value>1</value></param>
+<param name="O1"><value>1063670.1545142513</value></param>
+<param name="O1_1w"><value>1063670.1545142513</value></param>
+<param name="O1_2w"><value>4000000.0</value></param>
+<param name="Oct1_Bias2"><value>-2.0</value></param>
+<param name="Oct1_Bias2_Delta"><value>0.0</value></param>
+<param name="Oct1_Bias_H"><value>2.5</value></param>
+<param name="Oct1_Bias_L"><value>-3.5</value></param>
+<param name="Oct1_Extract"><value>10.0</value></param>
+<param name="Oct1_PartitionLens"><value>-3.0</value></param>
+<param name="Oct1_RFAmp"><value>350.0</value></param>
+<param name="Oct1_RF_Freq"><value>1.0</value></param>
+<param name="Oct1_Trap"><value>-15.0</value></param>
+<param name="PAPS"><value>1</value></param>
+<param name="PATCHNO"><value>R01X117Y374</value></param>
+<param name="PC"><value>2.0</value></param>
+<param name="PCD_Optimize_Mode"><value>0</value></param>
+<param name="PHC0"><value>0.0</value></param>
+<param name="PHC1"><value>0.0</value></param>
+<param name="PH_mod"><value>2</value></param>
+<param name="PI_0"><value>749.4</value></param>
+<param name="PI_1"><value>429.0</value></param>
+<param name="PI_2"><value>401.0</value></param>
+<param name="PI_3"><value>424.219</value></param>
+<param name="PIoff_0"><value>-500.0</value></param>
+<param name="PIoff_1"><value>-1000.0</value></param>
+<param name="PIoff_2"><value>-1000.0</value></param>
+<param name="PIoff_3"><value>500.0</value></param>
+<param name="PL_0"><value>90.0</value></param>
+<param name="PL_1"><value>120.0</value></param>
+<param name="PL_10"><value>120.0</value></param>
+<param name="PL_11"><value>120.0</value></param>
+<param name="PL_12"><value>26.9</value></param>
+<param name="PL_13"><value>29.794708</value></param>
+<param name="PL_14"><value>27.863136</value></param>
+<param name="PL_15"><value>120.0</value></param>
+<param name="PL_16"><value>120.0</value></param>
+<param name="PL_17"><value>120.0</value></param>
+<param name="PL_18"><value>34.307144</value></param>
+<param name="PL_19"><value>9.5</value></param>
+<param name="PL_2"><value>120.0</value></param>
+<param name="PL_20"><value>120.0</value></param>
+<param name="PL_21"><value>120.0</value></param>
+<param name="PL_22"><value>120.0</value></param>
+<param name="PL_23"><value>35.0</value></param>
+<param name="PL_24"><value>120.0</value></param>
+<param name="PL_25"><value>120.0</value></param>
+<param name="PL_26"><value>120.0</value></param>
+<param name="PL_27"><value>120.0</value></param>
+<param name="PL_28"><value>120.0</value></param>
+<param name="PL_29"><value>120.0</value></param>
+<param name="PL_3"><value>6.0</value></param>
+<param name="PL_30"><value>120.0</value></param>
+<param name="PL_31"><value>120.0</value></param>
+<param name="PL_4"><value>19.931568</value></param>
+<param name="PL_5"><value>120.0</value></param>
+<param name="PL_6"><value>120.0</value></param>
+<param name="PL_7"><value>19.931568</value></param>
+<param name="PL_8"><value>33.038116</value></param>
+<param name="PL_9"><value>21.950132</value></param>
+<param name="PP_CASIWindowTolerance"><value>10.0</value></param>
+<param name="PP_ExclusionPeaksFilename"><value>PeakExclusionList_Bruker_Template.xls</value></param>
+<param name="PP_ExclusionPeaksTolerance"><value>5.0</value></param>
+<param name="PP_GibbsDistributionDecayFactor"><value>1.0</value></param>
+<param name="PP_GibbsFilteringMethod"><value>0</value></param>
+<param name="PP_GibbsTolerance"><value>1.0</value></param>
+<param name="PP_HarmonicsMaxRelInt"><value>50.0</value></param>
+<param name="PP_HarmonicsTolerance"><value>0.5</value></param>
+<param name="PP_LimitToCASIWindows"><value>0</value></param>
+<param name="PP_MagnetronFrequency"><value>4.80383647442006</value></param>
+<param name="PP_MagnetronMaxRelInt"><value>50.0</value></param>
+<param name="PP_MagnetronTolerance"><value>5.0</value></param>
+<param name="PP_RemoveExclusionPeaks"><value>0</value></param>
+<param name="PP_RemoveGibbsPeaks"><value>0</value></param>
+<param name="PP_RemoveHarmonicPeaks"><value>0</value></param>
+<param name="PP_RemoveMagnetronPeaks"><value>0</value></param>
+<param name="PP_meth"><value>0</value></param>
+<param name="PULPROG"><value>basic</value></param>
+<param name="PULSED_VALVE_1_MS3"><value>0</value></param>
+<param name="PULSED_VALVE_1_MS4"><value>0</value></param>
+<param name="PULSED_VALVE_1_ON"><value>0</value></param>
+<param name="PULSED_VALVE_2_MS3"><value>0</value></param>
+<param name="PULSED_VALVE_2_MS4"><value>0</value></param>
+<param name="PULSED_VALVE_2_ON"><value>0</value></param>
+<param name="PV1"><value>-1.5</value></param>
+<param name="PV2"><value>-1.5</value></param>
+<param name="PV2Q"><value>20.0</value></param>
+<param name="P_0"><value>2100.0</value></param>
+<param name="P_1"><value>5000.0</value></param>
+<param name="P_10"><value>0.1</value></param>
+<param name="P_11"><value>0.1</value></param>
+<param name="P_12"><value>5000.0</value></param>
+<param name="P_13"><value>200000.0</value></param>
+<param name="P_14"><value>300.0</value></param>
+<param name="P_15"><value>0.1</value></param>
+<param name="P_16"><value>0.1</value></param>
+<param name="P_17"><value>0.1</value></param>
+<param name="P_18"><value>250000.0</value></param>
+<param name="P_19"><value>300.0</value></param>
+<param name="P_2"><value>1750.0</value></param>
+<param name="P_20"><value>0.1</value></param>
+<param name="P_21"><value>0.1</value></param>
+<param name="P_22"><value>0.1</value></param>
+<param name="P_23"><value>250000.0</value></param>
+<param name="P_24"><value>0.1</value></param>
+<param name="P_25"><value>5.0</value></param>
+<param name="P_26"><value>20000.0</value></param>
+<param name="P_27"><value>0.1</value></param>
+<param name="P_28"><value>0.1</value></param>
+<param name="P_29"><value>20000.0</value></param>
+<param name="P_3"><value>15.0</value></param>
+<param name="P_30"><value>230304.33</value></param>
+<param name="P_31"><value>0.1</value></param>
+<param name="P_4"><value>300.0</value></param>
+<param name="P_5"><value>600000.0</value></param>
+<param name="P_6"><value>120.0</value></param>
+<param name="P_7"><value>158465.0</value></param>
+<param name="P_8"><value>200000.0</value></param>
+<param name="P_9"><value>300.0</value></param>
+<param name="Peak_Picking_Algorithm"><value>2</value></param>
+<param name="Peak_Picking_Reduction_DataSummation"><value>95.0</value></param>
+<param name="Peak_Picking_Reduction_Tune"><value>95.0</value></param>
+<param name="Polarity_Alternate"><value>0</value></param>
+<param name="Q1CID"><value>0</value></param>
+<param name="Q1DC"><value>0</value></param>
+<param name="Q1Mass"><value>100.0</value></param>
+<param name="Q1Res"><value>0.0</value></param>
+<param name="Q1Res_TimeSlice01"><value>20.0</value></param>
+<param name="Q1Res_TimeSlice15_18"><value>0.0</value></param>
+<param name="Q1Res_TimeSlice25"><value>20.0</value></param>
+<param name="Q1_Bias"><value>-0.0</value></param>
+<param name="Q1_EntranceLens"><value>1.0</value></param>
+<param name="Q1_ExitLens"><value>-3.0</value></param>
+<param name="Q1_Focus"><value>80.0</value></param>
+<param name="Q1_FocusOffset"><value>0.0</value></param>
+<param name="Q1_Frag_Energy"><value>10.0</value></param>
+<param name="Q1_PostFilter"><value>-0.0</value></param>
+<param name="Q1_PreFilter"><value>-0.0</value></param>
+<param name="Q1_Shell"><value>0.0</value></param>
+<param name="QFSCU_OPMODE"><value></value></param>
+<param name="QFSCU_OVERWRITE"><value>322.00/3.00/322.10/3.20/544.288/46.835,322.00/5.00/322.00/4.90/543.109/46.515,322.00/8.00/322.10/8.30/540.927/45.908,322.00/10.00/321.80/9.90/539.700/45.614,322.00/20.00/322.00/20.20/533.881/44.014,322.00/35.00/321.70/34.10/525.554/41.858,622.00/3.00/622.00/3.10/1046.104/90.920,622.00/5.00/622.00/5.00/1044.968/90.590,622.00/8.00/622.10/8.30/1042.977/90.017,622.00/10.00/621.80/10.00/1041.561/89.679,622.00/20.00/622.10/20.50/1036.280/88.079,622.00/35.00/621.30/35.90/1026.478/85.502,922.00/3.00/922.00/3.20/1547.911/135.002,922.00/5.00/922.00/5.00/1546.770/134.616,922.00/8.00/921.90/7.50/1544.918/134.107,922.00/10.00/922.10/9.80/1543.530/133.731,922.00/20.00/921.90/19.60/1538.006/132.108,922.00/35.00/922.40/34.80/1529.733/129.756,1222.00/3.00/1222.00/3.10/2049.418/179.024,1222.00/5.00/1221.90/4.90/2048.079/178.618,1222.00/8.00/1221.80/8.20/2045.725/177.925,1222.00/10.00/1222.00/9.80/2044.110/177.510,1222.00/20.00/1221.70/19.90/2037.245/175.668,1222.00/35.00/1221.50/34.50/2026.668/172.990,1522.00/3.00/1521.80/3.00/2658.121/221.830,1522.00/5.00/1521.94/4.91/2552.382/222.882,1522.00/8.00/1521.47/8.75/2551.114/222.259,1522.00/10.00/1522.27/9.52/2551.376/222.053,1522.00/20.00/1522.34/20.82/2547.600/220.432,1522.00/35.00/1522.50/36.36/2543.615/218.254,1822.00/8.00/1822.03/2.34/3198.831/264.110,1822.00/10.00/1822.61/10.70/3052.353/265.900,1822.00/20.00/1822.62/19.09/3048.954/264.255,1822.00/35.00/1823.40/35.99/3045.514/262.200,2122.00/3.00/2121.80/2.90/3704.660/309.490,2122.00/5.00/2121.60/5.30/3701.680/308.679,2122.00/8.00/2121.90/8.20/3700.384/308.214,2122.00/10.00/2122.16/10.90/3553.957/310.008,2122.00/20.00/2122.63/21.85/3551.443/308.300,2122.00/35.00/2123.40/37.17/3547.605/306.155,2422.00/10.00/2422.61/10.54/4056.158/353.983,2422.00/20.00/2422.22/22.49/4052.867/352.215,2422.00/35.00/2422.23/37.84/4048.778/349.981,2722.00/3.00/2722.40/3.00/4751.366/397.130,2722.00/5.00/2721.60/5.20/4747.910/396.269,2722.00/8.00/2721.70/8.40/4746.613/395.800,2722.00/10.00/2723.33/9.42/4558.619/398.458,2722.00/20.00/2722.04/20.98/4555.650/396.655,2722.00/35.00/2722.21/32.51/4553.634/394.798</value></param>
+<param name="QFSCU_STORE"><value></value></param>
+<param name="QFSCU_TABLE"><value></value></param>
+<param name="QPD_Enabled"><value>0</value></param>
+<param name="RES1"><value>-1.5</value></param>
+<param name="RES1Injection"><value>-1.5</value></param>
+<param name="RES2"><value>-1.515</value></param>
+<param name="RES2Injection"><value>-1.515</value></param>
+<param name="RES3"><value>-1.47</value></param>
+<param name="RES3Injection"><value>-1.47</value></param>
+<param name="RES4"><value>-1.505</value></param>
+<param name="RES4Injection"><value>-1.505</value></param>
+<param name="REVERSE"><value>1</value></param>
+<param name="RGAIN"><value>0</value></param>
+<param name="RPE_Mode"><value>0</value></param>
+<param name="RPE_Power_Trans_mz"><value>100.0</value></param>
+<param name="RPE_Power_exchi"><value>100.0</value></param>
+<param name="RPE_Power_exclow"><value>100.0</value></param>
+<param name="RPE_Ramp_Style"><value>0</value></param>
+<param name="RPE_Transition_mz"><value>1000.0</value></param>
+<param name="Reservoir_1_Pressure"><value>10.0</value></param>
+<param name="Reservoir_2_Pressure"><value>1.0E-4</value></param>
+<param name="Reverse_ETDSW"><value>0</value></param>
+<param name="RxFilter"><value>2</value></param>
+<param name="RxGain"><value>1</value></param>
+<param name="RxMode"><value>1</value></param>
+<param name="SEL_0"><value>0.5</value></param>
+<param name="SEL_1"><value>0.5</value></param>
+<param name="SEL_2"><value>0.5</value></param>
+<param name="SEL_3"><value>0.5</value></param>
+<param name="SFO1"><value>1.0636701545142513</value></param>
+<param name="SFO1_1w"><value>1.0636701545142513</value></param>
+<param name="SFO1_2w"><value>500.13</value></param>
+<param name="SI"><value>16777216</value></param>
+<param name="SI_1w"><value>16777216</value></param>
+<param name="SI_2w"><value>8388608</value></param>
+<param name="SN_Fact"><value>2.0</value></param>
+<param name="SORI"><value>0</value></param>
+<param name="SORI_MS3"><value>0</value></param>
+<param name="SORI_MS4"><value>0</value></param>
+<param name="SPNAM_0"><value>(null)</value></param>
+<param name="SPNAM_1"><value>(null)</value></param>
+<param name="SPNAM_10"><value>(null)</value></param>
+<param name="SPNAM_11"><value>(null)</value></param>
+<param name="SPNAM_12"><value>(null)</value></param>
+<param name="SPNAM_13"><value>(null)</value></param>
+<param name="SPNAM_14"><value>(null)</value></param>
+<param name="SPNAM_15"><value>(null)</value></param>
+<param name="SPNAM_2"><value>(null)</value></param>
+<param name="SPNAM_3"><value>(null)</value></param>
+<param name="SPNAM_4"><value>(null)</value></param>
+<param name="SPNAM_5"><value>(null)</value></param>
+<param name="SPNAM_6"><value>(null)</value></param>
+<param name="SPNAM_7"><value>(null)</value></param>
+<param name="SPNAM_8"><value>(null)</value></param>
+<param name="SPNAM_9"><value>(null)</value></param>
+<param name="SPOFFS_0"><value>0.0</value></param>
+<param name="SPOFFS_1"><value>0.0</value></param>
+<param name="SPOFFS_10"><value>0.0</value></param>
+<param name="SPOFFS_11"><value>0.0</value></param>
+<param name="SPOFFS_12"><value>0.0</value></param>
+<param name="SPOFFS_13"><value>0.0</value></param>
+<param name="SPOFFS_14"><value>0.0</value></param>
+<param name="SPOFFS_15"><value>0.0</value></param>
+<param name="SPOFFS_2"><value>0.0</value></param>
+<param name="SPOFFS_3"><value>0.0</value></param>
+<param name="SPOFFS_4"><value>0.0</value></param>
+<param name="SPOFFS_5"><value>0.0</value></param>
+<param name="SPOFFS_6"><value>0.0</value></param>
+<param name="SPOFFS_7"><value>0.0</value></param>
+<param name="SPOFFS_8"><value>0.0</value></param>
+<param name="SPOFFS_9"><value>0.0</value></param>
+<param name="SP_0"><value>21.863136</value></param>
+<param name="SP_1"><value>150.0</value></param>
+<param name="SP_10"><value>150.0</value></param>
+<param name="SP_11"><value>150.0</value></param>
+<param name="SP_12"><value>150.0</value></param>
+<param name="SP_13"><value>150.0</value></param>
+<param name="SP_14"><value>150.0</value></param>
+<param name="SP_15"><value>150.0</value></param>
+<param name="SP_2"><value>150.0</value></param>
+<param name="SP_3"><value>150.0</value></param>
+<param name="SP_4"><value>150.0</value></param>
+<param name="SP_5"><value>150.0</value></param>
+<param name="SP_6"><value>150.0</value></param>
+<param name="SP_7"><value>150.0</value></param>
+<param name="SP_8"><value>150.0</value></param>
+<param name="SP_9"><value>150.0</value></param>
+<param name="SSB"><value>0.0</value></param>
+<param name="SW"><value>1566901.787733047</value></param>
+<param name="SW_1w"><value>1566901.787733047</value></param>
+<param name="SW_2w"><value>20.0</value></param>
+<param name="SW_h"><value>1666666.6666666667</value></param>
+<param name="SW_h_Broadband"><value>1666666.6666666667</value></param>
+<param name="SW_h_Broadband_1w"><value>1666666.6666666667</value></param>
+<param name="SW_h_Broadband_2w"><value>1000000.0</value></param>
+<param name="SW_h_Narrowband"><value>11312.217194570136</value></param>
+<param name="SW_h_Narrowband_1w"><value>11312.217194570136</value></param>
+<param name="SW_h_Narrowband_2w"><value>20000.0</value></param>
+<param name="S_CapillaryExit_H"><value>200.0</value></param>
+<param name="S_CapillaryExit_L"><value>-240.0</value></param>
+<param name="S_Deflector_L"><value>-200.0</value></param>
+<param name="S_Funnel1_DC"><value>-130.0</value></param>
+<param name="S_Funnel2_DC"><value>-6.0</value></param>
+<param name="S_Funnel_RF"><value>150.0</value></param>
+<param name="S_MaldiPlate_L"><value>-100.0</value></param>
+<param name="S_Skimmer1"><value>-35.0</value></param>
+<param name="S_Skimmer2_L"><value>-5.0</value></param>
+<param name="SaveFid"><value>1</value></param>
+<param name="SaveScanSpectrum"><value>1</value></param>
+<param name="StitchedExpNumFIDs"><value>1</value></param>
+<param name="StitchedExperiment"><value>0</value></param>
+<param name="SwpDir"><value>0</value></param>
+<param name="SwpEnabled_0"><value>0</value></param>
+<param name="SwpEnabled_1"><value>0</value></param>
+<param name="SwpEnabled_2"><value>0</value></param>
+<param name="SwpEnabled_3"><value>0</value></param>
+<param name="SwpHigh_0"><value>10.0</value></param>
+<param name="SwpHigh_1"><value>10.0</value></param>
+<param name="SwpHigh_2"><value>10.0</value></param>
+<param name="SwpHigh_3"><value>10.0</value></param>
+<param name="SwpLow_0"><value>10.0</value></param>
+<param name="SwpLow_1"><value>10.0</value></param>
+<param name="SwpLow_2"><value>10.0</value></param>
+<param name="SwpLow_3"><value>10.0</value></param>
+<param name="SwpRate_0"><value>500.0</value></param>
+<param name="SwpRate_1"><value>500.0</value></param>
+<param name="SwpRate_2"><value>500.0</value></param>
+<param name="SwpRate_3"><value>500.0</value></param>
+<param name="SwpTime_0"><value>0.01</value></param>
+<param name="SwpTime_1"><value>0.01</value></param>
+<param name="SwpTime_2"><value>0.01</value></param>
+<param name="SwpTime_3"><value>0.01</value></param>
+<param name="TD"><value>8388608</value></param>
+<param name="TD_Broadband"><value>8388608</value></param>
+<param name="TD_Broadband_1w"><value>8388608</value></param>
+<param name="TD_Broadband_2w"><value>4194304</value></param>
+<param name="TD_Narrowband"><value>524288</value></param>
+<param name="TD_Narrowband_1w"><value>524288</value></param>
+<param name="TD_Narrowband_2w"><value>524288</value></param>
+<param name="TDeff"><value>0</value></param>
+<param name="TDoff"><value>0</value></param>
+<param name="TILT"><value>0</value></param>
+<param name="TILT_negative"><value>0</value></param>
+<param name="TILT_negative_2w"><value>0</value></param>
+<param name="TILT_positive"><value>1</value></param>
+<param name="TILT_positive_2w"><value>0</value></param>
+<param name="VCLIST"><value>se__curr_vc</value></param>
+<param name="VD"><value>0.0</value></param>
+<param name="VDLIST"><value>reagent_1</value></param>
+<param name="VP"><value>0.0</value></param>
+<param name="VPLIST"><value>PPPPPPPPPPPPPPP</value></param>
+<param name="VPV1_0"><value>-1.0</value></param>
+<param name="VPV1_1"><value>-0.6</value></param>
+<param name="VPV1_2"><value>-0.0</value></param>
+<param name="VPV2_0"><value>-1.0</value></param>
+<param name="VPV2_1"><value>-0.6</value></param>
+<param name="VPV2_2"><value>-0.0</value></param>
+<param name="VSTEP_0"><value>0</value></param>
+<param name="VSTEP_1"><value>1</value></param>
+<param name="VSTEP_2"><value>1</value></param>
+<param name="V_Ramp_Time_1"><value>0.01</value></param>
+<param name="V_Ramp_Time_2"><value>0.01</value></param>
+<param name="WDW"><value>3</value></param>
+<param name="XBB"><value>100.0</value></param>
+<param name="XHR"><value>45.0</value></param>
+<param name="Xfer_Bias"><value>30.0</value></param>
+<param name="Xfer_EntranceLens"><value>20.0</value></param>
+<param name="Xfer_ExitLens"><value>20.0</value></param>
+<param name="Xfer_Freq"><value>2.0</value></param>
+<param name="Xfer_Lens_1"><value>40.0</value></param>
+<param name="Xfer_Lens_2"><value>11.0</value></param>
+<param name="Xfer_Lens_3"><value>50.0</value></param>
+<param name="Xfer_RFAmp"><value>450.0</value></param>
+<param name="YMAX_p"><value>100000000</value></param>
+<param name="YMIN_p"><value>0</value></param>
+<param name="ZG_DisplayMode"><value>0</value></param>
+<param name="ftmsPartNumber"><value>272500</value></param>
+<param name="ftmsSerialNumber"><value>00031</value></param>
+</paramlist>
+
+
+<!-- =============================== QPE Data for Absorption Mode (1w) =============================== -->
+<QPE_Data_1w>
+	<version>3.2</version>
+	<creationDate><![CDATA[unknown]]></creationDate>
+	<origDataPath><![CDATA[unknown]]></origDataPath>
+	<!-- params that QPE directly depends upon, if these change QPE is invalid -->
+	<param name="A"><value>0.0</value></param>
+	<param name="B"><value>0.0</value></param>
+	<param name="C"><value>0.0</value></param>
+	<param name="D"><value>0.0</value></param>
+	<param name="polyOrder"><value>2</value></param>
+	<param name="polarity"><value>0</value></param>
+	<param name="SI"><value>0</value></param>
+	<param name="excFreqHigh"><value>0.0</value></param>
+	<param name="excFreqLow"><value>0.0</value></param>
+	<param name="EM"><value>1</value></param>
+	<param name="P_3"><value>0.0</value></param>
+	<param name="XBB"><value>0.0</value></param>
+	<param name="P_0"><value>0.0</value></param>
+	<param name="SPNAM0"><value></value></param>
+	<param name="RPE_Mode"><value>0</value></param>
+	<param name="RPE_RampStyle"><value>0</value></param>
+	<param name="RPE_PowerHigh"><value>0.0</value></param>
+	<param name="RPE_PowerLow"><value>0.0</value></param>
+	<param name="RPE_PowerTransMZ"><value>0.0</value></param>
+	<param name="RPE_TransMZ"><value>0.0</value></param>
+	<!-- "Advanced"/optional params used during QPE generation, these can change and QPE still valid -->
+	<param name="AMP_Center_MZ"><value>0.0</value></param>
+	<param name="AMP_High_MZ"><value>0.0</value></param>
+	<param name="AMP_Low_MZ"><value>0.0</value></param>
+	<param name="AMP_Min_Peak_SN"><value>10.0</value></param>
+	<param name="AMP_Perform_PreCalculation_Correction"><value>false</value></param>
+	<param name="AMP_UseAdvancedParams"><value>false</value></param>
+	<param name="AMP_UseGeneticAlgorithm"><value>false</value></param>
+	<param name="AMP_GeneticAlgorithmScore"><value>0.0</value></param>
+	<param name="AMP_UseHighChargeStateRules"><value>false</value></param>
+	<param name="AMP_UseSparseSpectrumRules"><value>false</value></param>
+	<param name="AMP_WDW"><value>5</value></param>
+	<param name="Kilgour_WDW_Factor"><value>0.5</value></param>
+	<!-- Unique Identification Number -->
+	<ID>0</ID>
+</QPE_Data_1w>
+
+
+<!-- ================================== Method Reporting Information =============================== -->
+<reportinfo>
+
+<section title="Main">
+
+<section title="Polarity">
+	<param title="Polarity"  value="Negative" />
+	<param title="Alternate Polarity"  value="off" />
+</section>
+
+<section title="Chromatography">
+	<param title="LC Mode"  value="off" />
+	<param title="LC Run Time"  value="4.0" unit="min" />
+	<param title="Auto MS/MS"  value="off" />
+	<param title="ESI High Voltage"  value="on" />
+	<param title="Source Quench"  value="on" />
+</section>
+</section>
+
+<section title="Mode">
+
+<section title="Acquisition Mass Control">
+	<param title="Detection Mode"  value="Broadband" />
+	<param title="Data Acquisition Size"  value="8388608" />
+	<param title="Data Processing Size (SI)"  value="16777216" />
+	<param title="Broadband Low Mass"  value="138.2" unit="m/z" />
+	<param title="Broadband High Mass"  value="1000.0" unit="m/z" />
+	<param title="Pulse Program"  value="basic" />
+</section>
+
+<section title="Data Storage">
+	<param title="Perform Data Reduction"  value="off" />
+	<param title="Quantile"  value="0.0" unit="%" />
+	<param title="Save Full Profile Spectrum"  value="on" />
+	<param title="Save FID File"  value="on" />
+</section>
+
+<section title="Accumulation">
+	<param title="NS"  value="128" />
+	<param title="Source Accumulation"  value="0.000" unit="sec" />
+	<param title="Ion Accumulation Time"  value="0.050" unit="sec" />
+	<param title="Ion cooling time"  value="0.000" unit="sec" />
+	<param title="Time of Flight to Detector"  value="0.001" unit="sec" />
+	<param title="Selective Accumulation"  value="off" />
+	<param title="CASI Segmented Acquisition"  value="off" />
+	<param title="Accumulation During Detection"  value="off" />
+	<param title="LC Capture Mode"  value="off" />
+</section>
+
+<section title="Auto Calibration">
+	<param title="On-line Calibration"  value="off" />
+</section>
+</section>
+
+<section title="Processing">
+
+<section title="Algorithms">
+	<param title="Peak Picking Algorithm"  value="Statistical_CPlusPlus" />
+	<param title="Noiselevel Algorithm"  value="Segemented_Java" />
+</section>
+</section>
+
+<section title="Source Info">
+
+<section title="API Source">
+	<param title="Source"  value="ESI" />
+	<param title="Capillary"  value="4000.0" unit="V" />
+	<param title="Spray Shield"  value="-500.0" unit="V" />
+	<param title="Drying Gas Flow Rate"  value="4.0" unit="L/min" />
+</section>
+</section>
+
+<section title="Ion Transfer">
+
+<section title="Source Optics">
+	<param title="Capillary Exit"  value="-240.0" unit="V" />
+	<param title="Deflector Plate"  value="-200.0" unit="V" />
+	<param title="Skimmer 1"  value="-35.0" unit="V" />
+	<param title="Funnel RF Amplitude"  value="150.0" unit="Vpp" />
+</section>
+
+<section title="Octopole">
+	<param title="Octopole Frequency"  value="1.0" />
+	<param title="Octopole RF Amplitude"  value="350.0" unit="Vpp" />
+</section>
+
+<section title="Quadrupole">
+	<param title="Q1 Mass"  value="100.0" unit="m/z" />
+</section>
+
+<section title="Collision Cell">
+	<param title="Collision Voltage (Entrance)"  value="1.5" unit="V" />
+	<param title="DC Extract Bias (Entrance)"  value="-0.4" unit="V" />
+	<param title="Collision Cell Frequency"  value="1.0" />
+	<param title="Collision Cell RF"  value="450.0" unit="Vpp" />
+	<param title="Transfer Line Frequency"  value="2.0" />
+	<param title="Transfer Line RF"  value="450.0" unit="Vpp" />
+</section>
+
+<section title="Gas Control">
+	<param title="Collision Gas Flow Rate"  value="30.0" unit="%" />
+	<param title="Collision Gas"  value="on" />
+</section>
+
+<section title="Time-of-Flight">
+	<param title="Time of Flight to Detector"  value="0.001" unit="sec" />
+</section>
+</section>
+
+<section title="Analyzer">
+
+<section title="Para Cell">
+	<param title="Transfer Exit Lens"  value="20.0" unit="V" />
+	<param title="Analyzer Entrance"  value="10.0" unit="V" />
+	<param title="Sidekick"  value="-0.0" unit="V" />
+	<param title="Sidekick Offset"  value="1.5" unit="V" />
+	<param title="Front Trap Plate"  value="-1.5" unit="V" />
+	<param title="Back Trap Plate"  value="-1.5" unit="V" />
+	<param title="Excitation Power (Sweep/Shot)"  value="6.0" unit="dB" />
+	<param title="Sweep Direction"  value="Decreasing" />
+	<param title="No. of Cell Fills"  value="1" />
+</section>
+</section>
+
+<section title="Source MS">
+
+<section title="In Source Fragmentation">
+	<param title="InSource CID"  value="off" />
+	<param title="InSource Collision Energy"  value="90.0" unit="V" />
+	<param title="MALDI-ISD"  value="off" />
+</section>
+
+<section title="Quadrupole MS/MS">
+	<param title="Q1 Isolate"  value="off" />
+	<param title="Q1 CID"  value="off" />
+	<param title="Q1 CID Energy"  value="10.0" unit="V" />
+	<param title="Q1 Mass"  value="100.0" unit="m/z" />
+	<param title="Q1 Isolation Window"  value="20.0" />
+	<param title="Collision Cell RF"  value="450.0" unit="Vpp" />
+	<param title="Collision Cell Frequency"  value="1.0" />
+</section>
+
+<section title="ETD">
+	<param title="ETD Switch"  value="off" />
+</section>
+</section>
+</reportinfo>
+
+</method>
