@@ -89,6 +89,8 @@ class LiquidChromatographSetting:
         
     eic_tolerance_ppm: float = 5
     
+    correct_eic_baseline = True
+
     enforce_target_ms2: bool = True
 
     average_target_mz: bool = True
