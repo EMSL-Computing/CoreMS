@@ -447,7 +447,12 @@ def auto_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormula
         file_paths = []
         
         for file_path in file_locations:
-            if mix_name in file_path:
+            
+            mixname_file = re.findall(r'Mix[0-9]{1,2}', file_path)
+            if not mixname_file:
+                continue
+            if mix_name == mixname_file[0]:
+                print(mix_name)
                 file_paths.append(Path(file_path))
         
         if file_paths:
