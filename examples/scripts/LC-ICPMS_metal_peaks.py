@@ -88,7 +88,7 @@ def eic_centroid_detector(max_tic, eic_data:EIC_Data, parameters:LCMSParameters,
 															  plot_res=False,)
 	eic_data.apexes = [i for i in peak_indexes_generator]
 	
-	plt.plot(eic_data.time, eic_signal, label=metal)
+	plt.plot(eic_data.time, eic_signal, label=eic_data.metal)
 	for peak_index in eic_data.apexes:
 		plt.plot(eic_data.time[peak_index[1]], eic_signal[peak_index[1]], marker='x')
 	plt.legend()
@@ -125,7 +125,7 @@ def smooth_signal(signal, parameters:LCMSParameters):
 
 	return sp.smooth_signal(signal, window_len, smooth_method, pol_order, implemented_smooth_method)
 
-def get_data(data: pd.DataFrame) -> Tuple[TIC_Data, Dict[str, EIC_Data]]:
+def get_data(icpdata: pd.DataFrame, parameters:LCMSParameters) -> Tuple[TIC_Data, Dict[str, EIC_Data]]:
 
 	eic_metal_dict = {}
 
@@ -162,9 +162,7 @@ def get_data(data: pd.DataFrame) -> Tuple[TIC_Data, Dict[str, EIC_Data]]:
 
 	return tic_data, eic_metal_dict
 
-if __name__ == '__main__':
-	
-	icpfile = "tests/tests_data/icpms/cwd_211018_day7_8_c18_1uMcobalamin_10uL.csv"
+def get_metal_data(icpfile):
 	
 	parameters = LCMSParameters()
 	parameters.lc_ms.smooth_window = 301
@@ -177,7 +175,7 @@ if __name__ == '__main__':
 
 	icpdata = pd.read_csv(icpfile)
 	
-	tic_data, dict_metal_eicdata = get_data(icpdata)
+	tic_data, dict_metal_eicdata = get_data(icpdata, parameters)
 
 	max_tic = max(tic_data.tic)
 	
@@ -186,6 +184,14 @@ if __name__ == '__main__':
 		eic_centroid_detector(max_tic, eic_data, parameters)
 
 		print(metal, eic_data.apexes)
+
+
+if __name__ == '__main__':
+	
+	icpfile = "tests/tests_data/icpms/cwd_211018_day7_8_c18_1uMcobalamin_10uL.csv"
+	
+	get_metal_data(icpfile)
+	
 	
 
 	
