@@ -89,6 +89,7 @@ def eic_centroid_detector(max_tic, eic_data:EIC_Data, parameters:LCMSParameters,
 	eic_data.apexes = [i for i in peak_indexes_generator]
 	
 	plt.plot(eic_data.time, eic_signal, label=eic_data.metal)
+	
 	for peak_index in eic_data.apexes:
 		plt.plot(eic_data.time[peak_index[1]], eic_signal[peak_index[1]], marker='x')
 	plt.legend()
@@ -184,14 +185,21 @@ def get_metal_data(icpfile):
 		eic_centroid_detector(max_tic, eic_data, parameters)
 
 		print(metal, eic_data.apexes)
+	
+	return eic_data
 
+def search_ftms_data(icrfile:str, eic_data:EIC_Data):
+	'''place holder for parsing and search LC FT-MS data'''
+	pass
 
 if __name__ == '__main__':
 	
 	icpfile = "tests/tests_data/icpms/cwd_211018_day7_8_c18_1uMcobalamin_10uL.csv"
 	
-	get_metal_data(icpfile)
+	icrfile = "tests/tests_data/icpms/rmb_161221_kansas_h2o_2.raw"
 	
+	eic_data = get_metal_data(icrfile)
 	
+	icr_data = search_ftms_data(icrfile, eic_data)
 
 	

@@ -1,8 +1,11 @@
 import warnings
+
+
 warnings.filterwarnings("ignore")
 
 import sys
 sys.path.append("./")
+
 
 from pathlib import Path
 import cProfile
@@ -23,7 +26,7 @@ from corems import SuppressPrints, get_filename, get_dirnames
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.mass_spectra.input import rawFileReader
 from corems.encapsulation.factory.parameters import MSParameters
-from nmdc.metadata.nmdc_registration import DMS_Mapping, NMDC_Metadata
+from support_code.nmdc.metadata.nmdc_registration import DMS_Mapping, NMDC_Metadata
 
 def run_bruker(file_location):
 
@@ -41,7 +44,7 @@ def run_bruker(file_location):
 def run_thermo(file_location):
 
     MSParameters.mass_spectrum.threshold_method = 'auto'
-    MSParameters.mass_spectrum.s2n_threshold = 6
+    MSParameters.mass_spectrum.noise_threshold_std = 3
 
     parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
 
@@ -220,15 +223,15 @@ def worker(file_location):
 def run_nom_nmdc_data_processing():
 
     file_ext = '.raw'  # '.d' 
-    data_dir = Path("data/")
-    dms_file_path = Path("data/NOM Data to Process.xlsx")
+    data_dir = Path("/Users/eber373/OneDrive - PNNL/Documents/Data/FT_ICR_MS/Spruce_Data/")
+    dms_file_path = Path("/Users/eber373/OneDrive - PNNL/Documents/Data/FT_ICR_MS/Spruce_Data/SPRUCE_FTICR_Peat.xlsx")
 
     results_dir = Path("results/")
-    registration_path = results_dir / "ftms_nom_data_products.json"
+    registration_path = results_dir / "spruce_ftms_nom_data_products.json"
     failed_files = results_dir / "nom_failed_files.json"
     pos_files = results_dir / "pos_files.json"
 
-    field_strength = 12
+    field_strength = 21
     cores = 4
     ref_calibration_path = False
 
@@ -240,7 +243,7 @@ def run_nom_nmdc_data_processing():
 
     failed_list = []
     pos_list = []
-
+    
     for file_name, field_strength in selected_files:
 
         in_file_path = data_dir / file_name / file_name.with_suffix(file_ext)    

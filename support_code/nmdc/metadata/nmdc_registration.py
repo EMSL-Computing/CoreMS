@@ -147,14 +147,14 @@ class DMS_Mapping():
     @staticmethod
     def get_data_mapping(wb, emsl_jgi_dict):
 
-        first_sheet = wb.sheetnames[0]
+        first_sheet = wb.sheetnames[2]
 
         full_list_worksheet = wb[first_sheet]
 
-        emsl_proposal = full_list_worksheet['A']
-        dataset_id = full_list_worksheet['B']
-        dataset_name = full_list_worksheet['C']
-        experiment_id = full_list_worksheet['D']
+        emsl_proposal = full_list_worksheet['AP']
+        dataset_id = full_list_worksheet['A']
+        dataset_name = full_list_worksheet['B']
+        experiment_id = full_list_worksheet['AT']
         instrument_name = full_list_worksheet['E']
         data_dict = {}
 
@@ -164,8 +164,8 @@ class DMS_Mapping():
                 'data_id': dataset_id[x].value,
                 'experiment_id': experiment_id[x].value,
                 'emsl_proposal_id': emsl_proposal[x].value,
-                'instrument_name': instrument_name[x].value,
-                'jgi_proposal_id': emsl_jgi_dict.get(emsl_proposal[x].value)
+                'instrument_name': instrument_name[x].value
+                #'jgi_proposal_id': emsl_jgi_dict.get(emsl_proposal[x].value)
             }
 
             # nt = namedtuple('data', data.keys())(*data.values())
@@ -180,7 +180,7 @@ class DMS_Mapping():
 
         wb = load_workbook(filename=self.dms_file_path)
 
-        second_sheet = wb.sheetnames[1]
+        second_sheet = wb.sheetnames[2]
 
         # print(second_sheet)
         full_list_worksheet = wb[second_sheet]
@@ -196,7 +196,8 @@ class DMS_Mapping():
     def get_mapping(self):
 
         wb = load_workbook(filename=self.dms_file_path)
-        emsl_jgi_dict = self.get_emsl_jgi_mapping(wb)
+        "removing mapping"
+        emsl_jgi_dict = {}
         dataset_mapping = self.get_data_mapping(wb, emsl_jgi_dict)
 
         return dataset_mapping
@@ -209,7 +210,7 @@ class NMDC_Metadata:
         self.in_file_path = Path(in_file_path)
         self.calibration_file_path = calibration_file_path
         self.out_file_path = Path(out_file_path)
-
+        
     @staticmethod
     def get_mds_metadata(dataset_name):
         ''' data: [{'#Row': '1', 
@@ -287,21 +288,37 @@ class NMDC_Metadata:
         with open(self.out_file_path.with_suffix('.json'), 'w') as metadata_output:
             metadata_output.write(json.dumps(metabolomics_analysis_activity, indent=1))
 
-        self.add_metabolomics_data_product(output_id, activity_id, bucket=bucket, registration_path=registration_path)
+        if not nom:
+            object_type = "GC-MS Metabolomics Results"
+            description = "MetaMS GC-MS metabolomics output detail CSV file"
 
-    def add_metabolomics_data_product(self, output_id, activity_id, bucket, registration_path="gcms_metabolomics_data_products.json"):
+            self.add_metabolomics_data_product(output_id, activity_id, bucket=bucket, 
+                                           object_type=object_type, registration_path=registration_path,
+                                           description=description)
+
+        else:
+
+            self.add_metabolomics_data_product(output_id, activity_id, bucket=bucket, 
+                                                registration_path=registration_path)
+                                           
+
+    def add_metabolomics_data_product(self, output_id, activity_id, bucket, 
+                                      registration_path="gcms_metabolomics_data_products.json",
+                                      object_type = "FT ICR-MS Analysis Results",
+                                      description="EnviroMS FT ICR-MS natural organic matter workflow molecular formula assignment output details"):
 
         data_obj = [{
-                    "type": "nmdc:DataObject",
                     "id": output_id,
                     "name": self.out_file_path.name,
-                    "description": "MetaMS GC-MS metabolomics output detail CSV file",
+                    "description": description,
                     "file_size_bytes": self.out_file_path.stat().st_size,
                     "md5_checksum": hashlib.md5(self.out_file_path.open('rb').read()).hexdigest(),
-                    "url": "{}/{}/{}".format("https://nmdcdemo.emsl.pnnl.gov", bucket, self.out_file_path.name),
-                    "was_generated_by": activity_id
+                    "url": "{}/{}/{}/{}".format("https://nmdcdemo.emsl.pnnl.gov", bucket, "results", self.out_file_path.name),
+                    "was_generated_by": activity_id,
+                    "type": "nmdc:DataObject",
+                    "data_object_type": object_type
                     }]
-
+        
         metabolomics_data_path = Path(registration_path)
 
         if metabolomics_data_path.exists():
@@ -314,6 +331,26 @@ class NMDC_Metadata:
             products = data_obj
 
         with metabolomics_data_path.open('w') as metabolomics_data_products:
+            metabolomics_data_products.write(json.dumps(products, indent=1))  
+
+        metadata_url = ["{}/{}/{}/{}".format("https://nmdcdemo.emsl.pnnl.gov", bucket, "metadata", self.out_file_path.with_suffix('.json').name)]
+        
+        self.dump_metadata_registation(registration_path, metadata_url)
+
+    def dump_metadata_registation(self, registration_path, metadata_url):
+
+        metabolomics_metadata_path = Path(str(registration_path).replace('data', 'metadata')) 
+        
+        if metabolomics_metadata_path.exists():
+
+            with metabolomics_metadata_path.open('r') as metabolomics_data_products:
+                products = json.load(metabolomics_data_products)
+                products.extend(metadata_url)
+
+        else:
+            products = metadata_url
+
+        with metabolomics_metadata_path.open('w') as metabolomics_data_products:
             metabolomics_data_products.write(json.dumps(products, indent=1))  
 
     @staticmethod
@@ -388,7 +425,7 @@ class NMDC_Metadata:
         repo_url = "https://github.com/microbiomedata/metaMS"
         self.save_nmdc_metadata(gcms_obj, nom=False, registration_path=registration_path, bucket=bucket, repo_url=repo_url)
 
-    def create_nmdc_ftms_metadata(self, ms_obj, registration_path="ftms_nom_data_products.json"):
+    def create_nmdc_ftms_metadata(self, ms_obj, registration_path="spruce_ftms_nom_data_products.json"):
         # print(dataset_mapping.get('GCMS_Blank_08_GC-01_20150622'))
         bucket = "nom"
         repo_url = "https://github.com/microbiomedata/enviroMS"
