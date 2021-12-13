@@ -114,7 +114,7 @@ def run_thermo(file_location, target_mzs: List[float]) -> Tuple[Dict[float, rawF
 
 def read_lib(ref_filepath:Path):
 
-    ion_charge = -1   
+    ion_charge = 1
 
     iontypes = [Labels.protonated_de_ion]
     
@@ -250,7 +250,7 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
         
         if is_assigned:
             
-            dir = Path(str(datapath.parent).replace('RAW Files', 'Results MS2 Noise Threshould'))
+            dir = Path(str(datapath.parent).replace('RAW Files', 'Results No Mix Overlap'))
             if not dir.exists():
                 dir.mkdir(parents=True, exist_ok=True)
 
@@ -449,11 +449,20 @@ def auto_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormula
         for file_path in file_locations:
             
             mixname_file = re.findall(r'Mix[0-9]{1,2}', file_path)
-            if not mixname_file:
+            mixname_sugar_file = re.findall(r'MixSugars[0-9]{1,2}', file_path)
+            
+            if not mixname_file and not mixname_sugar_file:
                 continue
-            if mix_name == mixname_file[0]:
-                print(mix_name)
-                file_paths.append(Path(file_path))
+            
+            if mixname_file:
+                if mix_name == mixname_file[0]:
+                    print(mix_name)
+                    file_paths.append(Path(file_path))
+            
+            if mixname_sugar_file:
+                if mix_name == mixname_sugar_file[0]:
+                    print(mix_name)
+                    file_paths.append(Path(file_path))
         
         if file_paths:
             for file_path in file_paths:
@@ -469,11 +478,11 @@ def auto_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormula
 
     for molecule_name, data in dict_res.items():
 
-        _write_frame_to_new_sheet(path_to_file= 'HILIC NEG Results.xlsx', sheet_name='molecular_formula_results', data=data)
+        _write_frame_to_new_sheet(path_to_file= 'C18 2nd run POS Results.xlsx', sheet_name='molecular_formula_results', data=data)
 
 if __name__ == "__main__":
     
-    dirpath = "/Users/eber373/OneDrive - PNNL/Documents/Data/LCMS/RAW Files/HILIC/NEG/"
+    dirpath = "/Users/eber373/OneDrive - PNNL/Documents/Data/LCMS/RAW Files/C18/2nd run/POS/"
     ref_dirpath = "/Users/eber373/OneDrive - PNNL/Documents/Data/LCMS/"
     filename = "LCMS_5191_CapDev_C18_Mix1_NEG_28Apr2021.raw"
     ref_filename = "LCMS_StantardLibrary.csv"
@@ -481,7 +490,7 @@ if __name__ == "__main__":
     # cpu_percents = monitor(target=run_multiprocess)
     # print(cpu_percents)
     # file_location = get_filename()
-    file_location = Path(dirpath + filename)
+    #file_location = Path(dirpath + filename)
     ref_file_location = Path(ref_dirpath + ref_filename)
     
     #get the list of molecular formulas objects for each stardard compound maped by mix name
