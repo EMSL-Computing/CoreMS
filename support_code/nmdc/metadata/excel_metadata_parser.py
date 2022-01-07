@@ -4,7 +4,8 @@ import json
 import os
 from pathlib import Path
 from typing import Dict, List, Tuple
-import shutil
+import glob
+from datetime import datetime
 
 from openpyxl import load_workbook
 
@@ -255,6 +256,38 @@ class Metadata_Mapping():
         with nom_rawdata_objset_path.open('w') as nom_json_out:
             nom_json_out.write(json.dumps(data_obj_set, indent=1))    
 
+    def create_registration_objs(self, file_paths):
+
+
+        for name in glob.glob(str(file_paths) + '/*.json'):
+            path = Path(name)
+            url = "{}/{}/{}/{}/{}".format("https://nmdcdemo.emsl.pnnl.gov", "nom", "registration", 'spruce', path.name),
+            
+            registration_obj = {
+                "description": "Spruce NOM ",
+                "name": path.name,
+                 "access_methods": [ 
+                    {"access_url": {'url': url}
+                    }
+                 ],
+                 'checksums' : [
+                     {
+                    "checksum": hashlib.sha256(path.open('rb').read()).hexdigest(),
+                    "type": "sha256"
+                    }
+                 ],
+                 'size': path.stat().st_size,
+                 "created_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+            
+            print(registration_obj)
+            
+            nom_rawdata_objset_path = Path(str(path.stem)+"_registration.json")
+            
+            with nom_rawdata_objset_path.open('w') as nom_json_out:
+                nom_json_out.write(json.dumps(registration_obj, indent=1))    
+
+
 if __name__ == '__main__':
     
     metadata_sheet_path = Path("/Users/eber373/OneDrive - PNNL/Documents/Data/FT_ICR_MS/Spruce_Data/SPRUCE_Schadt-Wilson_NMDC_SampleMetadata_Subset.xlsx")
@@ -265,9 +298,12 @@ if __name__ == '__main__':
 
     analysis_activity_path = Path("/Users/eber373/OneDrive - PNNL/Documents/Data/FT_ICR_MS/Spruce_Data/metadata")
 
+    registration_path = Path("/Users/eber373/OneDrive - PNNL/Documents/Data/FT_ICR_MS/Spruce_Data/registration")
+
     metadata_mapping = Metadata_Mapping(metadata_sheet_path, results_path)
     
     #metadata_mapping.dump_biosample_set()
     #metadata_mapping.dump_omics_processing_set()    
     #metadata_mapping.dump_data_objs_raw_data(rawdata_path_dir)
-    metadata_mapping.dump_analysis_activity_set(analysis_activity_path)
+    #metadata_mapping.dump_analysis_activity_set(analysis_activity_path)
+    metadata_mapping.create_registration_objs(registration_path)
