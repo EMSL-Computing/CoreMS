@@ -323,10 +323,14 @@ class Metadata_Mapping():
                 nom_json_out.write(json.dumps(registration_obj, indent=1))    
 
 def get_schema():
-    
+    import requests
     """This function loads the given schema available"""
-    with open('nmdc.schema.json', 'r') as file:
-        schema = json.load(file)
+    url = 'https://raw.githubusercontent.com/microbiomedata/nmdc-schema/main/jsonschema/nmdc.schema.json'
+    resp = requests.get(url)
+    schema = json.loads(resp.text)
+    
+    #schema = json.loads(data)
+    
     return schema
 
 def validate_json(json_data):
@@ -367,5 +371,5 @@ if __name__ == '__main__':
     #metadata_mapping.dump_omics_processing_set()    
     #metadata_mapping.dump_data_objs_raw_data(rawdata_path_dir)
     #metadata_mapping.dump_analysis_activity_set(analysis_activity_path)
-    #metadata_mapping.validate_data_products_set(data_products_path)
-    metadata_mapping.create_registration_objs(registration_path)
+    metadata_mapping.validate_data_products_set(data_products_path)
+    #metadata_mapping.create_registration_objs(registration_path)
