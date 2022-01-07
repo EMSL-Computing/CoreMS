@@ -9,10 +9,13 @@ from datetime import datetime
 
 from openpyxl import load_workbook
 
+import jsonschema
+from jsonschema import validate
+
 @dataclass
 class BioSample:
     
-    uid: str
+    id: str
     env_broad_scale: float
     env_local_scale: float
     env_medium: float
@@ -25,18 +28,18 @@ class BioSample:
 @dataclass
 class OmicsProcessing:
     
-    uid: str
+    id: str
     has_input: List[str]
     has_output: List[str]
+    omics_type: str
     part_of: List[str] = field(default_factory=list)
-    omics_type: str = "Organic Matter"
     processing_institution: str =  "Environmental Molecular Science Laboratory"
     type: str = "nmdc:OmicsProcessing"
 
 @dataclass
 class DataObject:
     
-    uid: str
+    id: str
     name: str
     file_size_bytes: int
     md5_checksum: str
@@ -50,7 +53,7 @@ class DataObject:
 @dataclass
 class SampleDataMap:
     name: str
-    uid: str
+    id: str
     dataset_names: List[str]
     dataset_ids: List[int]
 
@@ -89,11 +92,11 @@ class Metadata_Mapping():
                 dataset_names = list(filter(None, dataset_names))
                 dataset_ids = methanol_dataset_id[x].value.replace('\n', '').split(";") + cloroform_dataset_id[x].value.replace('\n', '').split(";")
                 dataset_ids = list(filter(None, dataset_ids))
-                uid = ids[x].value.replace('EMSL:', 'emsl:')
+                id = ids[x].value.replace('EMSL:', 'emsl:')
                 
                 sample_data_map = SampleDataMap(
                                                 name=sample_name[x].value,
-                                                uid=uid,
+                                                id=id,
                                                 dataset_names=dataset_names,
                                                 dataset_ids=dataset_ids)
 
@@ -118,12 +121,12 @@ class Metadata_Mapping():
 
         sample_names = sample_metadata['B']
         env_packages = sample_metadata['C']
-        geo_loc_name = sample_metadata['F']
-        lat_lon = sample_metadata['G']
-        collection_date = sample_metadata['H']
-        env_broad_scale = sample_metadata['M']
-        env_local_scale = sample_metadata['N']
-        env_medium = sample_metadata['O']
+        geo_loc_names = sample_metadata['F']
+        lat_lons = sample_metadata['G']
+        collection_dates = sample_metadata['H']
+        env_broad_scales = sample_metadata['M']
+        env_local_scales = sample_metadata['N']
+        env_mediums = sample_metadata['O']
 
         biosample_objs = {}
         
@@ -133,14 +136,24 @@ class Metadata_Mapping():
 
             if name in self.biosample_dataset_map.keys(): 
                 
-                biosample = BioSample(uid=self.biosample_dataset_map.get(name).uid,
-                                        env_broad_scale= env_broad_scale[x].value,
-                                        env_local_scale= env_local_scale[x].value,
-                                        env_medium= env_medium[x].value,
-                                        env_package= env_packages[x].value,
-                                        geo_loc_name= geo_loc_name[x].value,
-                                        lat_lon= lat_lon[x].value,
-                                        collection_date= str(collection_date[x].value),
+                env_broad_scale = {"has_raw_value": env_broad_scales[x].value}
+                env_local_scale = {"has_raw_value": env_local_scales[x].value}
+                env_medium = {"has_raw_value": env_mediums[x].value}
+                env_package = {"has_raw_value": env_packages[x].value}
+                geo_loc_name = {"has_raw_value": geo_loc_names[x].value}
+                lat_lon = {"has_raw_value": lat_lons[x].value.replace(',', ''), 
+                           "latitude": float(lat_lons[x].value.split(',')[0]),
+                           "longitude": float(lat_lons[x].value.split(',')[1].strip()) }
+                collection_date = {"has_raw_value": str(collection_dates[x].value)}
+
+                biosample = BioSample(id=self.biosample_dataset_map.get(name).id,
+                                        env_broad_scale= env_broad_scale,
+                                        env_local_scale= env_local_scale,
+                                        env_medium= env_medium,
+                                        env_package= env_package,
+                                        geo_loc_name= geo_loc_name,
+                                        lat_lon= lat_lon,
+                                        collection_date= collection_date,
                                         name= name)
                 
                 biosample_objs[name] = biosample
@@ -173,11 +186,13 @@ class Metadata_Mapping():
             biosample_obj = self.biosamples.get(biosample_name)
             biosample_set.get("biosample_set").append(asdict(biosample_obj))
         
-        
-        nom_biosample_set_path = Path("nom_biosample_set.json")
+        valid_json, message = validate_json(biosample_set)
 
-        with nom_biosample_set_path.open('w') as nom_json_out:
-            nom_json_out.write(json.dumps(biosample_set, indent=1))  
+        if valid_json:
+            nom_biosample_set_path = Path("spruce_nom_biosample_set.json")
+
+            with nom_biosample_set_path.open('w') as nom_json_out:
+                nom_json_out.write(json.dumps(biosample_set, indent=1))  
 
     def dump_omics_processing_set(self):
 
@@ -192,18 +207,23 @@ class Metadata_Mapping():
             if biosample_obj:
 
                 omics_processing_obj = OmicsProcessing(
-                    has_input = [biosample_obj.uid],
+                    omics_type={'has_raw_value':  "Organic Matter"},
+                    has_input = [biosample_obj.id],
                     has_output = ['emsl:output_{}'.format(dataset_id)],
-                    uid = ['emsl:{}'.format(dataset_id)],
+                    id = 'emsl:{}'.format(dataset_id),
                     part_of = ["gold:Gs0110138"]
                 )
                 
                 omics_processing_set.get("omics_processing_set").append(asdict(omics_processing_obj))
         
-        nom_omics_processing_set_path = Path("spruce_nom_omics_processing_set.json")
+        valid_json, message = validate_json(omics_processing_set)
+        
+        if valid_json:
+        
+            nom_omics_processing_set_path = Path("spruce_nom_omics_processing_set.json")
 
-        with nom_omics_processing_set_path.open('w') as nom_json_out:
-            nom_json_out.write(json.dumps(omics_processing_set, indent=1))  
+            with nom_omics_processing_set_path.open('w') as nom_json_out:
+                nom_json_out.write(json.dumps(omics_processing_set, indent=1))  
     
     def dump_data_objs_raw_data(self, rawdata_path_dir):
 
@@ -220,7 +240,7 @@ class Metadata_Mapping():
             print(rawdata_path)
 
             dataobj = DataObject(
-                uid = 'emsl:output_{}'.format(dataset_id),
+                id = 'emsl:output_{}'.format(dataset_id),
                 name = rawdata_path.name,
                 file_size_bytes = rawdata_path.stat().st_size,
                 md5_checksum = hashlib.md5(rawdata_path.open('rb').read()).hexdigest(),
@@ -231,12 +251,16 @@ class Metadata_Mapping():
 
             data_obj_set.get('data_object_set').append(asdict(dataobj))
 
-        nom_rawdata_objset_path = Path("spruce_nom_raw_data_object_set.json")
+        valid_json, message = validate_json(data_obj_set)
+        
+        if valid_json:
+        
+            nom_rawdata_objset_path = Path("spruce_nom_raw_data_object_set.json")
 
 
-        with nom_rawdata_objset_path.open('w') as nom_json_out:
-            nom_json_out.write(json.dumps(data_obj_set, indent=1))      
-    
+            with nom_rawdata_objset_path.open('w') as nom_json_out:
+                nom_json_out.write(json.dumps(data_obj_set, indent=1))      
+        
     def dump_analysis_activity_set(self, analysis_activity_path):
 
         data_obj_set = {"nom_analysis_activity_set": []}
@@ -249,12 +273,22 @@ class Metadata_Mapping():
 
             with analysis_obj_path.open('r') as tmp_json:
                 analysis_obj =  json.load(tmp_json)
+                analysis_obj['has_calibration'] = 'false'
                 data_obj_set.get('nom_analysis_activity_set').append(analysis_obj)
 
+        valid_json, message = validate_json(data_obj_set)
         
-        nom_rawdata_objset_path = Path("spruce_nom_analysis_activity_set.json")
-        with nom_rawdata_objset_path.open('w') as nom_json_out:
-            nom_json_out.write(json.dumps(data_obj_set, indent=1))    
+        if valid_json:
+
+            nom_rawdata_objset_path = Path("spruce_nom_analysis_activity_set.json")
+            with nom_rawdata_objset_path.open('w') as nom_json_out:
+                nom_json_out.write(json.dumps(data_obj_set, indent=1))    
+
+    def validate_data_products_set(self, filepath):
+        
+        with open(filepath, 'r') as file:
+            data = json.load(file)
+            validate_json(data)
 
     def create_registration_objs(self, file_paths):
 
@@ -280,6 +314,7 @@ class Metadata_Mapping():
                  "created_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
             
+            
             print(registration_obj)
             
             nom_rawdata_objset_path = Path(str(path.stem)+"_registration.json")
@@ -287,6 +322,30 @@ class Metadata_Mapping():
             with nom_rawdata_objset_path.open('w') as nom_json_out:
                 nom_json_out.write(json.dumps(registration_obj, indent=1))    
 
+def get_schema():
+    
+    """This function loads the given schema available"""
+    with open('nmdc.schema.json', 'r') as file:
+        schema = json.load(file)
+    return schema
+
+def validate_json(json_data):
+    """REF: https://json-schema.org/ """
+    # Describe what kind of json you expect.
+    execute_api_schema = get_schema()
+
+    try:
+        validate(instance=json_data, schema=execute_api_schema)
+    except jsonschema.exceptions.ValidationError as err:
+        print(err)
+        error_file = Path('error.txt')
+        with open('error.txt', 'w') as file:
+            file.write(str(err))
+        err = "Given JSON data is InValid"
+        return False, err
+
+    message = "Given JSON data is Valid"
+    return True, message
 
 if __name__ == '__main__':
     
@@ -298,6 +357,8 @@ if __name__ == '__main__':
 
     analysis_activity_path = Path("/Users/eber373/OneDrive - PNNL/Documents/Data/FT_ICR_MS/Spruce_Data/metadata")
 
+    data_products_path = Path("spruce_ftms_nom_data_products_set.json")
+
     registration_path = Path("/Users/eber373/OneDrive - PNNL/Documents/Data/FT_ICR_MS/Spruce_Data/registration")
 
     metadata_mapping = Metadata_Mapping(metadata_sheet_path, results_path)
@@ -306,4 +367,5 @@ if __name__ == '__main__':
     #metadata_mapping.dump_omics_processing_set()    
     #metadata_mapping.dump_data_objs_raw_data(rawdata_path_dir)
     #metadata_mapping.dump_analysis_activity_set(analysis_activity_path)
+    #metadata_mapping.validate_data_products_set(data_products_path)
     metadata_mapping.create_registration_objs(registration_path)
