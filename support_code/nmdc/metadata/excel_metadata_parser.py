@@ -329,8 +329,6 @@ def get_schema():
     resp = requests.get(url)
     schema = json.loads(resp.text)
     
-    #schema = json.loads(data)
-    
     return schema
 
 def validate_json(json_data):

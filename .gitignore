@@ -1,5 +1,6 @@
 venv/ 
-venvwsl/ 
+venvwsl/
+tmp_data/ 
 .pyc  
 .pyo
 *.hdf5
