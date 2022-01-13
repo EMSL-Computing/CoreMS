@@ -174,7 +174,7 @@ def get_metal_data(icpfile):
 	parameters.lc_ms.peak_height_max_percent = 1
 	
 
-	icpdata = pd.read_csv(icpfile)
+	icpdata = pd.read_csv(icpfile, sep=',')
 	
 	tic_data, dict_metal_eicdata = get_data(icpdata, parameters)
 
@@ -198,7 +198,7 @@ if __name__ == '__main__':
 	
 	icrfile = "tests/tests_data/icpms/rmb_161221_kansas_h2o_2.raw"
 	
-	eic_data = get_metal_data(icrfile)
+	eic_data = get_metal_data(icpfile)
 	
 	icr_data = search_ftms_data(icrfile, eic_data)
 
