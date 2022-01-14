@@ -30,10 +30,13 @@ class BioSample:
 class OmicsProcessing:
 
     id: str
+    name:str
+    instrument_name:str
     has_input: List[str]
     has_output: List[str]
     omics_type: str
     part_of: List[str] = field(default_factory=list)
+    description: str = "High resolution MS spectra only"
     processing_institution: str = "Environmental Molecular Science Laboratory"
     type: str = "nmdc:OmicsProcessing"
 
@@ -206,7 +209,9 @@ class Metadata_Mapping():
             if biosample_obj:
 
                 omics_processing_obj = OmicsProcessing(
-                    omics_type={'has_raw_value': "Organic Matter"},
+                    omics_type={'has_raw_value': "Organic Matter Characterization"},
+                    name=dataset_name,
+                    instrument_name='21T Agilent',
                     has_input=[biosample_obj.id],
                     has_output=['emsl:output_{}'.format(dataset_id)],
                     id='emsl:{}'.format(dataset_id),
@@ -361,7 +366,8 @@ if __name__ == '__main__':
     metadata_mapping = Metadata_Mapping(metadata_sheet_path, results_path)
 
     # metadata_mapping.dump_biosample_set()
-    # metadata_mapping.dump_omics_processing_set()
+    #metadata_mapping.dump_omics_processing_set()
+
     # metadata_mapping.dump_data_objs_raw_data(rawdata_path_dir)
     # metadata_mapping.dump_analysis_activity_set(analysis_activity_path)
     #metadata_mapping.validate_data_products_set(data_products_path)
