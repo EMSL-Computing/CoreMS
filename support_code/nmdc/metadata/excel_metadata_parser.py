@@ -292,7 +292,7 @@ class Metadata_Mapping():
 
         for name in glob.glob(str(file_paths) + '/*.json'):
             path = Path(name)
-            url = "{}/{}/{}/{}/{}".format("https://nmdcdemo.emsl.pnnl.gov", "nom", "registration", 'spruce', path.name),
+            url = "{}/{}/{}/{}/{}".format("https://nmdcdemo.emsl.pnnl.gov", "nom", "registration", 'spruce', path.name)
 
             registration_obj = {
                 "description": "Spruce NOM ",
@@ -356,7 +356,7 @@ if __name__ == '__main__':
 
     data_products_path = Path("spruce_ftms_nom_data_products_set.json")
 
-    registration_path = Path("/Users/eber373/OneDrive - PNNL/Documents/Data/FT_ICR_MS/Spruce_Data/registration")
+    registration_path = Path("tmp_data/")
 
     metadata_mapping = Metadata_Mapping(metadata_sheet_path, results_path)
 
@@ -364,5 +364,5 @@ if __name__ == '__main__':
     # metadata_mapping.dump_omics_processing_set()
     # metadata_mapping.dump_data_objs_raw_data(rawdata_path_dir)
     # metadata_mapping.dump_analysis_activity_set(analysis_activity_path)
-    metadata_mapping.validate_data_products_set(data_products_path)
-    # metadata_mapping.create_registration_objs(registration_path)
+    #metadata_mapping.validate_data_products_set(data_products_path)
+    metadata_mapping.create_registration_objs(registration_path)
