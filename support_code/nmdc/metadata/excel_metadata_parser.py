@@ -1,11 +1,11 @@
 from dataclasses import asdict, dataclass, field
+from datetime import datetime
 import hashlib
 import json
+import glob
 import os
 from pathlib import Path
 from typing import Dict, List, Tuple
-import glob
-from datetime import datetime
 
 import requests
 from openpyxl import load_workbook
@@ -63,12 +63,14 @@ class SampleDataMap:
 
 class Metadata_Mapping():
 
-    def __init__(self, file_path, results_path):
+    def __init__(self, file_path, results_path, project_id):
 
+       
         self.wb = load_workbook(filename=file_path)
         self.results_dir = results_path
         self.biosample_dataset_map, self.dataset_biosample_map, self.datasetname_id_map = self.get_biosample_dataset_map()
         self.biosamples = self.create_biosamples()
+        self.project_id = project_id
 
     def get_biosample_dataset_map(self) -> Tuple[Dict[str, SampleDataMap], Dict[str, str], Dict[str, str]]:
 
@@ -215,7 +217,7 @@ class Metadata_Mapping():
                     has_input=[biosample_obj.id],
                     has_output=['emsl:output_{}'.format(dataset_id)],
                     id='emsl:{}'.format(dataset_id),
-                    part_of=["gold:Gs0110138"]
+                    part_of=[self.project_id]
                 )
 
                 omics_processing_set.get("omics_processing_set").append(asdict(omics_processing_obj))
@@ -300,7 +302,7 @@ class Metadata_Mapping():
             url = "{}/{}/{}/{}/{}".format("https://nmdcdemo.emsl.pnnl.gov", "nom", "registration", 'spruce', path.name)
 
             registration_obj = {
-                "description": "Spruce NOM ",
+                "description": "Spruce NOM",
                 "name": path.name,
                 "access_methods": [
                     {"access_url": {'url': url}
@@ -363,7 +365,9 @@ if __name__ == '__main__':
 
     registration_path = Path("tmp_data/")
 
-    metadata_mapping = Metadata_Mapping(metadata_sheet_path, results_path)
+    project = "gold:Gs0110138"
+
+    metadata_mapping = Metadata_Mapping(metadata_sheet_path, results_path, project)
 
     # metadata_mapping.dump_biosample_set()
     #metadata_mapping.dump_omics_processing_set()
