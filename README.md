@@ -1,5 +1,15 @@
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4641553.svg)](https://doi.org/10.5281/zenodo.4641553)
+![CoreMS Logo](docs/CoreMS.COLOR.png)  
 
+<div align="center">
+
+<br>
+<br>
+<a href="https://doi.org/10.5281/zenodo.4641553"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.4641553.svg"" alt="CoreMS DOI" style="width:150px;height:25px;"></a>
+<br>
+<br>
+</div>
+
+***
 # Table of Contents  
 - Introduction
   - [CoreMS](#CoreMS)  
