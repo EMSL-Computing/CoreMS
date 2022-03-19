@@ -208,7 +208,7 @@ def search_ms1_data(icrfile:str, dict_metal_eicdata:  Dict[str, EIC_Data], param
 
 			mass_spec.percentile_assigned(report_error=True)
 			print(metal)
-			filename = '{}_rt{}_{}'.format(metal, retention_time.replace(".", "_"), mass_spec.sample_name)
+			filename = '{}_rt{}_{}'.format(metal, retention_time, mass_spec.sample_name).replace(".", "_")
 			print(filename)
 			mass_spec.to_csv(filename, write_metadata=False)
 			
