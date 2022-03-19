@@ -36,6 +36,10 @@ class LCMSParameters:
 
     lc_ms = LiquidChromatographSetting()
     
+    mass_spectrum = MassSpectrumSetting()
+
+    ms_peak = MassSpecPeakSetting()
+
     ms1_molecular_search = MolecularFormulaSearchSettings()
     
     ms2_molecular_search = MolecularFormulaSearchSettings()

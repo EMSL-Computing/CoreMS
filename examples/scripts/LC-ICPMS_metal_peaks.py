@@ -6,9 +6,6 @@ from typing import Dict, List, Tuple
 import warnings
 import sys
 
-from scipy.ndimage.measurements import label
-
-
 
 sys.path.append("./")
 warnings.filterwarnings("ignore")
@@ -21,6 +18,7 @@ import numpy as np
 from corems.encapsulation.factory.parameters import LCMSParameters
 from corems.mass_spectra.input import rawFileReader
 from corems.mass_spectra.calc import SignalProcessing as sp
+from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 
 @dataclass
 class TIC_Data:
@@ -91,31 +89,12 @@ def eic_centroid_detector(max_tic, eic_data:EIC_Data, parameters:LCMSParameters,
 															  plot_res=False,)
 	eic_data.apexes = [i for i in peak_indexes_generator]
 	
-	#plt.plot(eic_data.time, eic_signal, label=eic_data.metal)
+	#plt.plot(eic_data.time/60, eic_signal, label=eic_data.metal)
 	
 	#for peak_index in eic_data.apexes:
-	#	plt.plot(eic_data.time[peak_index[1]], eic_signal[peak_index[1]], marker='x')
+	#	plt.plot(eic_data.time[peak_index[1]]/60, eic_signal[peak_index[1]], marker='x')
 	#plt.legend()
 	#plt.show()
-
-def centroid_detector(tic_data:TIC_Data, parameters:LCMSParameters):
-    # Do peak picking and store results inside TIC_Data class    
-	noise_std = parameters.lc_ms.std_noise_threshold
-
-	method = parameters.lc_ms.noise_threshold_method
-	
-	#peak picking
-	min_height = parameters.lc_ms.peak_height_min_percent 
-	min_datapoints = parameters.lc_ms.min_peak_datapoints   
-	
-	# baseline detection
-	max_prominence = parameters.lc_ms.peak_max_prominence_percent 
-	max_height = parameters.lc_ms.peak_height_max_percent 
-	
-	peak_indexes_generator = sp.peak_detector_generator(tic_data.tic, noise_std, method, tic_data.time, max_height, min_height, max_prominence, min_datapoints)
-
-	tic_data.apexes = [i for i in peak_indexes_generator]
-	
 
 def smooth_signal(signal, parameters:LCMSParameters):
             
@@ -143,7 +122,7 @@ def get_data(icpdata: pd.DataFrame, parameters:LCMSParameters) -> Tuple[TIC_Data
 		
 		if columns_label[0:4] == 'Time':
 			
-			rts = icpdata[columns_label]
+			rts = icpdata[columns_label].to_numpy()
 			
 			metal_label = columns_label.replace('Time ', '')
 
@@ -166,16 +145,8 @@ def get_data(icpdata: pd.DataFrame, parameters:LCMSParameters) -> Tuple[TIC_Data
 
 	return tic_data, eic_metal_dict
 
-def get_metal_data(icpfile):
+def get_metal_data(icpfile, parameters:LCMSParameters):
 	
-	parameters = LCMSParameters()
-	parameters.lc_ms.smooth_window = 301
-	parameters.lc_ms.eic_signal_threshold = 1 #0-1
-	parameters.lc_ms.min_peak_datapoints = 5
-	parameters.lc_ms.correct_eic_baseline = False
-	parameters.lc_ms.peak_max_prominence_percent = 0.1
-	parameters.lc_ms.peak_height_max_percent = 1
-
 	icpdata = pd.read_csv(icpfile, sep=',')
 	
 	tic_data, dict_metal_eicdata = get_data(icpdata, parameters)
@@ -186,57 +157,125 @@ def get_metal_data(icpfile):
 
 		eic_centroid_detector(max_tic, eic_data, parameters)
 
-		print(metal, eic_data.apexes)
+		#print(metal, eic_data.apexes)
 	
-	return eic_data
+	return dict_metal_eicdata
 
-def search_ms1_data(icrfile:str, eic_data:EIC_Data):
+def search_ms1_data(icrfile:str, dict_metal_eicdata:  Dict[str, EIC_Data], parameters:LCMSParameters):
 	
 	'''place holder for parsing and search LC FT-MS data'''
-	def run_thermo(file_location) -> Tuple[rawFileReader.DataDependentLCMS, rawFileReader.ImportDataDependentThermoMSFileReader]:
-    
 	
-		LCMSParameters.lc_ms.start_scan = -1
-		LCMSParameters.lc_ms.end_scan = -1
-
-		#LCMSParameters.lc_ms.smooth_window = 3
-		
-		#LCMSParameters.lc_ms.min_peak_datapoints = 5
-		#LCMSParameters.lc_ms.peak_height_min_percent = 1
-		#LCMSParameters.lc_ms.peak_derivative_threshold = 1
-
-		#LCMSParameters.lc_ms.peak_max_prominence_percent = 1
-		#LCMSParameters.lc_ms.peak_height_max_percent = 1
-		
-		parser = rawFileReader.ImportDataDependentThermoMSFileReader(file_location)
-		
-		lcms_obj = parser.get_lcms_obj()
-		
-		return lcms_obj, parser
-
-	lcms_obj, parser = run_thermo(icrfile)	
+	lcms_obj, parser = run_thermo(icrfile, parameters)	
 	
 	tic_data, ax_tic = lcms_obj.get_tic(ms_type='MS !d', peak_detection=True, 
                                       smooth=False, plot=True)
-    
-	print(tic_data.apexes)
-
+	
 	plt.show()
 
-	#eics_data, ax_eic = lcms_obj.get_eics(tic_data,
-    #                                   smooth=True,
-    #                                    plot=False,
-    #                                    legend=False,
-    #                                    peak_detection=True,
-    #                                    ax=ax_tic)
+	for metal, eic_data in dict_metal_eicdata.items():
+		
+		print(metal, eic_data.apexes)
+		
+		for peak_indexex in eic_data.apexes:
+			
+			ftms_scans_index = ([find_nearest_scan(eic_data.time[i], tic_data) for i in peak_indexex])
+			ftms_scans = [tic_data.scans[i] for i in ftms_scans_index]
+			ftms_times = [tic_data.time[i] for i in ftms_scans_index]
+			
+			retention_time = tic_data.time[ftms_scans_index[1]]
+
+			print(ftms_scans)
+			print(ftms_times)
+
+			parser.chromatogram_settings.start_scan = ftms_scans[0]
+			parser.chromatogram_settings.end_scan = ftms_scans[-1]
+			
+			mass_spec = parser.get_average_mass_spectrum_in_scan_range(auto_process=False)
+			mass_spec.retention_time = retention_time
+
+			mass_spec.settings = parameters.mass_spectrum
+			mass_spec.molecular_search_settings = parameters.ms1_molecular_search
+			mass_spec.mspeaks_settings = parameters.ms_peak
+			mass_spec.process_mass_spec()
+
+			metal_atom = ''.join(i for i in metal if not i.isdigit())
+			mass_spec.molecular_search_settings.usedAtoms[metal_atom] = (1,1)
+			
+			mass_spec.plot_profile_and_noise_threshold()
+
+			SearchMolecularFormulas(mass_spec, first_hit=False).run_worker_mass_spectrum()
+			mass_spec.molecular_search_settings.usedAtoms[metal_atom] = (0,0)
+
+			mass_spec.percentile_assigned(report_error=True)
+			print(metal)
+			filename = '{}_rt{}_{}'.format(metal, retention_time.replace(".", "_"), mass_spec.sample_name)
+			print(filename)
+			mass_spec.to_csv(filename, write_metadata=False)
+			
+			#plt.show()
+			#time_range.append([eic_data.time[i]/60 for i in peak_indexex])
+
+	
+def run_thermo(file_location, parameters:LCMSParameters) -> Tuple[rawFileReader.DataDependentLCMS, rawFileReader.ImportDataDependentThermoMSFileReader]:
+    
+	#LCMSParameters.lc_ms.smooth_window = 3
+	
+	#LCMSParameters.lc_ms.min_peak_datapoints = 5
+	#LCMSParameters.lc_ms.peak_height_min_percent = 1
+	#LCMSParameters.lc_ms.peak_derivative_threshold = 1
+
+	#LCMSParameters.lc_ms.peak_max_prominence_percent = 1
+	#LCMSParameters.lc_ms.peak_height_max_percent = 1
+	
+	parser = rawFileReader.ImportDataDependentThermoMSFileReader(file_location)
+	parser.parameters = parameters
+
+	lcms_obj = parser.get_lcms_obj()
+	
+	return lcms_obj, parser
+
+
+def find_nearest_scan(rt, ftms_data):
+
+	lst = np.asarray(ftms_data.time)
+    
+	idx = (np.abs(lst - (rt/60))).argmin()
+	
+	return idx
 
 if __name__ == '__main__':
 	
 	icpfile = "tests/tests_data/icpms/cwd_211018_day7_8_c18_1uMcobalamin_10uL.csv"
-	
+	icpfile = 'tests/tests_data/icpms/161220_soils_hypercarb_3_kansas_qH2O.csv'
 	icrfile = "tests/tests_data/icpms/rmb_161221_kansas_h2o_2.raw"
 	
-	eic_data = get_metal_data(icpfile)
+	parameters = LCMSParameters()
+
+	parameters.lc_ms.smooth_window = 301
+	parameters.lc_ms.eic_signal_threshold = 1 #0-1
+	parameters.lc_ms.min_peak_datapoints = 5
+	parameters.lc_ms.correct_eic_baseline = False
+	parameters.lc_ms.peak_max_prominence_percent = 0.1
+	parameters.lc_ms.peak_height_max_percent = 1
+
+	parameters.mass_spectrum.threshold_method = 'auto'
+	parameters.mass_spectrum.noise_threshold_std = 2
+
+	parameters.ms1_molecular_search.error_method = 'None'
+	parameters.ms1_molecular_search.min_ppm_error = -1
+	parameters.ms1_molecular_search.max_ppm_error = 1
 	
-	icr_data = search_ms1_data(icrfile, eic_data)
+	parameters.ms1_molecular_search.usedAtoms['C'] = (1, 100)
+	parameters.ms1_molecular_search.usedAtoms['H'] = (4, 200)
+	parameters.ms1_molecular_search.usedAtoms['O'] = (1, 20)
+	parameters.ms1_molecular_search.usedAtoms['N'] = (0, 3)
+	parameters.ms1_molecular_search.usedAtoms['S'] = (0, 1)
+
+	parameters.ms1_molecular_search.isProtonated = True
+	parameters.ms1_molecular_search.isRadical = False
+	parameters.ms1_molecular_search.isAdduct = False
+
+	dict_metal_eicdata = get_metal_data(icpfile, parameters)
+	
+	icr_data = search_ms1_data(icrfile, dict_metal_eicdata, parameters)
 
