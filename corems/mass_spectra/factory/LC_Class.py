@@ -247,7 +247,7 @@ class DataDependentLCMS(LC_Calculations):
         self._tic_list = l        
 
     def get_tic(self, ms_type='MS !d', peak_detection=True, 
-                smooth=True, plot=False, ax=None) -> Tuple[Dict[float, TIC_Data], axes.Axes]:
+                smooth=True, plot=False, ax=None) -> Tuple[ TIC_Data, axes.Axes]:
 
         '''ms_type: str ('MS', MS2')
         start_scan: int default -1 will select the lowest available
@@ -300,7 +300,6 @@ class DataDependentLCMS(LC_Calculations):
             if peak_detection:
                 
                 centroid_peak_indexes = [i for i in self.centroid_detector(data.time, data.tic)]
-                
                 data.apexes = centroid_peak_indexes
 
             if plot:

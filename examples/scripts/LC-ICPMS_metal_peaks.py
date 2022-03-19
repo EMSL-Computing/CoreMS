@@ -8,6 +8,8 @@ import sys
 
 from scipy.ndimage.measurements import label
 
+
+
 sys.path.append("./")
 warnings.filterwarnings("ignore")
 
@@ -17,6 +19,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from corems.encapsulation.factory.parameters import LCMSParameters
+from corems.mass_spectra.input import rawFileReader
 from corems.mass_spectra.calc import SignalProcessing as sp
 
 @dataclass
@@ -88,12 +91,12 @@ def eic_centroid_detector(max_tic, eic_data:EIC_Data, parameters:LCMSParameters,
 															  plot_res=False,)
 	eic_data.apexes = [i for i in peak_indexes_generator]
 	
-	plt.plot(eic_data.time, eic_signal, label=eic_data.metal)
+	#plt.plot(eic_data.time, eic_signal, label=eic_data.metal)
 	
-	for peak_index in eic_data.apexes:
-		plt.plot(eic_data.time[peak_index[1]], eic_signal[peak_index[1]], marker='x')
-	plt.legend()
-	plt.show()
+	#for peak_index in eic_data.apexes:
+	#	plt.plot(eic_data.time[peak_index[1]], eic_signal[peak_index[1]], marker='x')
+	#plt.legend()
+	#plt.show()
 
 def centroid_detector(tic_data:TIC_Data, parameters:LCMSParameters):
     # Do peak picking and store results inside TIC_Data class    
@@ -157,9 +160,9 @@ def get_data(icpdata: pd.DataFrame, parameters:LCMSParameters) -> Tuple[TIC_Data
 	tic_data.scans = scans
 	tic_data.tic = list(tic)
 
-	fig, ax = plt.subplots()
-	ax.plot(tic_data.scans, smooth_signal(tic_data.tic, parameters))
-	plt.show()
+	#fig, ax = plt.subplots()
+	#ax.plot(tic_data.scans, smooth_signal(tic_data.tic, parameters))
+	#plt.show()
 
 	return tic_data, eic_metal_dict
 
@@ -172,7 +175,6 @@ def get_metal_data(icpfile):
 	parameters.lc_ms.correct_eic_baseline = False
 	parameters.lc_ms.peak_max_prominence_percent = 0.1
 	parameters.lc_ms.peak_height_max_percent = 1
-	
 
 	icpdata = pd.read_csv(icpfile, sep=',')
 	
@@ -188,9 +190,45 @@ def get_metal_data(icpfile):
 	
 	return eic_data
 
-def search_ftms_data(icrfile:str, eic_data:EIC_Data):
+def search_ms1_data(icrfile:str, eic_data:EIC_Data):
+	
 	'''place holder for parsing and search LC FT-MS data'''
-	pass
+	def run_thermo(file_location) -> Tuple[rawFileReader.DataDependentLCMS, rawFileReader.ImportDataDependentThermoMSFileReader]:
+    
+	
+		LCMSParameters.lc_ms.start_scan = -1
+		LCMSParameters.lc_ms.end_scan = -1
+
+		#LCMSParameters.lc_ms.smooth_window = 3
+		
+		#LCMSParameters.lc_ms.min_peak_datapoints = 5
+		#LCMSParameters.lc_ms.peak_height_min_percent = 1
+		#LCMSParameters.lc_ms.peak_derivative_threshold = 1
+
+		#LCMSParameters.lc_ms.peak_max_prominence_percent = 1
+		#LCMSParameters.lc_ms.peak_height_max_percent = 1
+		
+		parser = rawFileReader.ImportDataDependentThermoMSFileReader(file_location)
+		
+		lcms_obj = parser.get_lcms_obj()
+		
+		return lcms_obj, parser
+
+	lcms_obj, parser = run_thermo(icrfile)	
+	
+	tic_data, ax_tic = lcms_obj.get_tic(ms_type='MS !d', peak_detection=True, 
+                                      smooth=False, plot=True)
+    
+	print(tic_data.apexes)
+
+	plt.show()
+
+	#eics_data, ax_eic = lcms_obj.get_eics(tic_data,
+    #                                   smooth=True,
+    #                                    plot=False,
+    #                                    legend=False,
+    #                                    peak_detection=True,
+    #                                    ax=ax_tic)
 
 if __name__ == '__main__':
 	
@@ -200,6 +238,5 @@ if __name__ == '__main__':
 	
 	eic_data = get_metal_data(icpfile)
 	
-	icr_data = search_ftms_data(icrfile, eic_data)
+	icr_data = search_ms1_data(icrfile, eic_data)
 
-	

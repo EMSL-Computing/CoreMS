@@ -60,21 +60,30 @@ class LC_Calculations:
 
     def centroid_detector(self, rt, tic):
         
-        noise_std = self.chromatogram_settings.std_noise_threshold
+        #noise_std = self.chromatogram_settings.std_noise_threshold
 
-        method = self.chromatogram_settings.noise_threshold_method
-        
+        #method = self.chromatogram_settings.noise_threshold_method
         #peak picking
-        min_height = self.chromatogram_settings.peak_height_min_percent 
-        min_datapoints = self.chromatogram_settings.min_peak_datapoints   
+        #min_height = self.chromatogram_settings.peak_height_min_percent 
+        min_peak_datapoints = self.chromatogram_settings.min_peak_datapoints   
         
+        peak_derivative_threshold = self.chromatogram_settings.peak_derivative_threshold
+        signal_threshold = self.chromatogram_settings.peak_height_min_percent
+
         # baseline detection
         max_prominence = self.chromatogram_settings.peak_max_prominence_percent 
         max_height = self.chromatogram_settings.peak_height_max_percent 
         
-        peak_indexes_generator = sp.peak_detector_generator(tic, noise_std, method, rt, max_height, min_height, max_prominence, min_datapoints)
+        correct_baseline = False
+        
+        #peak_indexes_generator = sp.peak_detector_generator(tic, noise_std, method, rt, max_height, min_height, max_prominence, min_datapoints)
 
-        return peak_indexes_generator
+        include_indexes = sp.peak_picking_first_derivative(rt, tic, max_height, max_prominence, max(tic),
+                                                           min_peak_datapoints, peak_derivative_threshold,
+                                                           signal_threshold=signal_threshold,
+                                                           correct_baseline=correct_baseline)
+
+        return include_indexes
 
     def find_nearest_scan(self, rt):
 

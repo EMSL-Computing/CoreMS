@@ -126,7 +126,7 @@ class MZSearch(Thread):
 
                 error = self.calc_mz_error(self.calculated_mzs[i], self.calculated_mzs[i+1])
                 
-                print(self.tolerance)
+                #print(self.tolerance)
 
                 check_error = self.check_ppm_error(self.tolerance, error)
                 

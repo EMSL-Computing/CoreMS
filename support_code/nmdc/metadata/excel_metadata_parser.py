@@ -25,6 +25,7 @@ class BioSample:
     lat_lon: str
     collection_date: str
     name: str
+    type: str = 'nmdc:Biosample'
 
 @dataclass
 class OmicsProcessing:

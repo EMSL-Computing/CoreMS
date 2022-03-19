@@ -328,7 +328,7 @@ class ThermoBaseClass():
             # plt.show()
 
     def get_tic(self, ms_type='MS !d', peak_detection=True, 
-                smooth=True, plot=False, ax=None) -> Tuple[Dict[float, TIC_Data], axes.Axes]:
+                smooth=True, plot=False, ax=None) -> Tuple[ TIC_Data, axes.Axes]:
 
         '''ms_type: str ('MS', MS2')
         start_scan: int default -1 will select the lowest available
@@ -373,6 +373,7 @@ class ThermoBaseClass():
             if smooth:
                 
                 data.tic= self.smooth_tic(data.tic)
+
             else:
                 
                 data.tic= np.array(data.tic)
@@ -602,7 +603,7 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass, LC_Calculations):
         
         print('TOLERANCE = {} ppm'.format(eic_tolerance_ppm))
         self._selected_mzs = self._init_target_mz(selected_mzs, enforce_target_ms2, 
-                                                  eic_tolerance_ppm, average_target_mz)
+                                                 eic_tolerance_ppm, average_target_mz)
 
         self.lcms = DataDependentLCMS(file_location, self._selected_mzs, self)
 
@@ -614,7 +615,7 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass, LC_Calculations):
         
         return self.lcms
 
-    def get_precursors_list(self, precision_decimals=0):
+    def get_precursors_list(self, precision_decimals=5):
         '''returns a set of unique precursors m/z
         precision_decimals: int
             change this parameters does not seem to affect the number of dependent scans selected
@@ -622,13 +623,13 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass, LC_Calculations):
         '''
 
         precursors_mzs = set()
-
+        
         for scan in range(self.start_scan, self.end_scan):
 
             scan_filter = self.iRawDataPlus.GetFilterForScanNumber(scan)
 
             MSOrder = scan_filter.MSOrder
-
+            
             if MSOrder == MSOrderType.Ms:
 
                 scanDependents = self.iRawDataPlus.GetScanDependents(scan, precision_decimals)
@@ -636,9 +637,9 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass, LC_Calculations):
                 for scan_dependent_detail in scanDependents.ScanDependentDetailArray:
 
                     for precursor_mz in scan_dependent_detail.PrecursorMassArray:
-
+                        
                         precursors_mzs.add(precursor_mz)
-
+            
         return precursors_mzs
 
     def _init_target_mz(self, selected_mzs: List[float], enforce_target_ms2: bool, 
@@ -669,7 +670,7 @@ class ImportDataDependentThermoMSFileReader(ThermoBaseClass, LC_Calculations):
             searchmz.join()
             return sorted(searchmz.results.keys())
 
-class ImportMassSpectraThermoMSFileReader(ThermoBaseClass):
+class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, LC_Calculations):
 
     '''  Collection of methdos to import Summed/Averaged mass spectrum from Thermo's raw file
          Currently only for profile mode data
