@@ -898,3 +898,105 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, LC_Calculations):
             return fig, scans
         else:
             return scans
+
+    def isotopehunter(self,pattern,timerange,mass_tolerance,ratio_tolerance,peakwidth,correlation,slope_filter):
+        #Function matches required ('Y') peaks in pattern to spectra in self
+        #Requires 'timerange','mass_tolerance','ratio_tolerance' for pattern matching
+        #Requires 'pattern','peakwidth','correlation','slope_filter' for QC filtering
+
+        #Define pattern boundaries
+        umass=pattern.mdiff[pattern.requirement=='Y']+mass_tolerance
+        lmass=pattern.mdiff[pattern.requirement=='Y']-mass_tolerance
+        uratio=pattern.ratio[pattern.requirement=='Y']*ratio_tolerance
+        lratio=pattern.ratio[pattern.requirement=='Y']/ratio_tolerance
+        nisotope=len(umass)
+
+        #Retrieve TIC for MS1 scans only within timerange
+        tic=self.get_tic(ms_type='MS')[0]
+        tic_df=pd.DataFrame({'time': tic.time,'scan': tic.scans})
+        scans=tic_df[tic_df.time.between(timerange[0],timerange[1])].scan.tolist()
+
+        #Create  empty results dictionaries. Will be filed with {Scan: {1st peak:{mz,intense}, 2nd peak:{mz,intense}, npeak:{mz,intense}}}
+        results=[]
+        clean_results=[]
+        final_results=[]
+
+        #Determine 2 most abundant isotopologues for correlation analysis.  
+        req_isotopes=pattern[pattern.requirement=='Y'].isotope
+        isotope1=req_isotopes[0]
+        isotope2=req_isotopes[1]
+
+        #Currently, this is a simple script that matches every peak in a spectra. In future, can speed up by looking at data subsets. 
+            #mzint=20
+            #mzbuffer=uppermass.iloc[-1]
+
+        for s in scans:
+            ms=self.get_average_mass_spectrum_by_scanlist([s])
+            spectrum=pd.DataFrame({'mz':ms.mz_exp, 'intense':ms.abundance})
+            print(s)
+            if(spectrum.shape[0]>2):
+                        
+                for j in spectrum.index:
+                    k=1
+                    hitlist=[]
+                    result={}
+
+                    while(k<nisotope):
+                        hits=spectrum[(spectrum.mz > spectrum.mz[j]+lmass[k]) & (spectrum.mz < spectrum.mz[j]+umass[k]) & (spectrum.intense > spectrum.intense[j]*lratio[k]) & (spectrum.intense < spectrum.intense[j]*uratio[k])].index.tolist()
+                        if hits:
+                            hitlist.append(hits)
+                            k=k+1
+                        else:
+                            k=nisotope+1
+                    if k==(nisotope):
+                        result['scan']=s
+                        result['time']=tic_df[tic_df.scan==s].time.iloc[0]
+
+                        result[pattern.isotope[0]]={'mz':spectrum.mz[j],'intense':spectrum.intense[j]}
+
+                        for i, iso in enumerate(req_isotopes[1:]):
+                            #result[pattern.isotope[i]]={'mz':spectrum.mz[hitlist[i-1][0]],'intense':spectrum.intense[hitlist[i-1][0]]}
+                            result[iso]={'mz':spectrum.mz[hitlist[i][0]],'intense':spectrum.intense[hitlist[i][0]]}
+                        mass1=result[isotope1]['mz']
+                        mass2=result[isotope2]['mz']
+
+                        tstart=result['time']-peakwidth
+                        tstop=result['time']+peakwidth
+
+                        EIC=self.get_eics(target_mzs=[mass1,mass2],tic_data={},peak_detection=False,smooth=False)
+                        df=pd.DataFrame({'mz1':EIC[0][mass1].eic,'mz2':EIC[0][mass2].eic,'time':EIC[0][mass1].time})
+                        df_sub=df[df['time'].between(tstart,tstop)]
+
+                        #Calculate correlation and slope between two main isotopologues.        
+                        corr=df_sub.corr(method='pearson').iat[0,1]**2
+                        slope=np.polyfit(df_sub.mz1,df_sub.mz2,1)[0]/(pattern.sort_values(by='ratio',ascending=False).ratio[1]/pattern.sort_values(by='ratio',ascending=False).ratio[0])
+                        result['corr']=corr
+                        result['slope']=slope
+                        result['mass']=round(mass1,3)
+                        result['abundance']=result[isotope1]['intense']
+                        result['qc']='match'
+                        result['dmz']=result[isotope2]['mz']-result[isotope1]['mz']
+
+                        if corr>correlation:
+                            if ((slope > slope_filter[0]) & (slope < slope_filter[1])):
+                                clean_results.append(result)
+                                result['qc']='qc'
+
+                        results.append(result)
+
+        clean_results_df=pd.DataFrame(clean_results)
+
+        for result in clean_results:
+            masses=clean_results_df[(abs(clean_results_df.mass-result['mass']) < mass_tolerance)& (abs(clean_results_df.time - result['time']) < peakwidth*2)]
+            max_value=max(masses.abundance)
+
+            if (result['abundance']==max_value):
+                final_results.append(result)
+                result['qc']='max'
+                
+        print("Results:")
+        print(len(results))
+        print("Final Results:")
+        print(len(final_results))
+
+        return(results,clean_results,final_results)   

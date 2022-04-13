@@ -376,6 +376,26 @@ def ipattern(isotopes,requirement,atoms):
     
     return(pattern.reset_index(drop=True))
 
+#Function that creates an isotope pattern from element. Returns pattern as a dictionary. 
+def epattern(element,max,atoms):
+    atoms_df=pd.DataFrame(atoms.values())
+    subset=atoms_df[atoms_df.symbol==element]
+    if len(subset)<2:
+        return(0)
+    else:
+        subset=subset.sort_values('natural_abundance',ascending=False)
+        isotopes=subset.mass_number+subset.symbol
+        mass=subset.atomic_mass
+        abundance=subset.natural_abundance
+        element=subset.symbol
+        mdiff=list(subset.atomic_mass.iloc[0:]-subset.atomic_mass.iloc[0])
+        ratio=list(subset.natural_abundance.iloc[0:]/subset.natural_abundance.iloc[0])
+        requirement=['Y']*max+['N']*(len(subset)-max)
+
+        pattern=pd.DataFrame({'isotope':isotopes,'mass':mass,'abundance':abundance,'element':element,'requirement':requirement,'mdiff':mdiff,'ratio':ratio})
+        #pattern=pd.DataFrame({'isotope':isotopes,'mass':mass,'abundance':abundance,'element':element,'requirement':requirement,'mdiff':mdiff,'ratio':ratio})
+        return(pattern.reset_index(drop=True))
+
 #Function that returns list of isotope patterns
 def get_elementpattern():
     elementpatterns=[]

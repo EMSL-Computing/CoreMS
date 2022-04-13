@@ -1,6 +1,6 @@
 ##### rMB 2022-04-11
 
-####Replicate isotope pattern algorithm in python for a single file and pattern. 
+####Replicate isotope pattern algorithm in python for batch processing
 
 ###### Settings for pattern mining
 timerange=(5,20) #in minutes
@@ -13,7 +13,6 @@ ratio_tolerance=1.5
 
 ###### Set file folder and THERMO RAW file name here:
 file_location = '/Users/boiteaur/Desktop/CoreMS_metallomics/CoreMS_Metallomics_Data/'
-file_name="rmb_161221_kansas_h2o_2"
 
 #####Set isotope pattern using atom.epattern. Just requires elements and max number of isotopes used
 element='Cu'
