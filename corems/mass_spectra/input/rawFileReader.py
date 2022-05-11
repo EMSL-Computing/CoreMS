@@ -911,10 +911,14 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, LC_Calculations):
         lratio=pattern.ratio[pattern.requirement=='Y']/ratio_tolerance
         nisotope=len(umass)
 
+        interval=peakwidth
+
+        times=np.arange(timerange[0],timerange[1],interval).tolist()
+
         #Retrieve TIC for MS1 scans only within timerange
         tic=self.get_tic(ms_type='MS')[0]
         tic_df=pd.DataFrame({'time': tic.time,'scan': tic.scans})
-        scans=tic_df[tic_df.time.between(timerange[0],timerange[1])].scan.tolist()
+        #scans=tic_df[tic_df.time.between(timerange[0],timerange[1])].scan.tolist()
 
         #Create  empty results dictionaries. Will be filed with {Scan: {1st peak:{mz,intense}, 2nd peak:{mz,intense}, npeak:{mz,intense}}}
         results=[]
@@ -926,16 +930,17 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, LC_Calculations):
         isotope1=req_isotopes[0]
         isotope2=req_isotopes[1]
 
-        #Currently, this is a simple script that matches every peak in a spectra. In future, can speed up by looking at data subsets. 
-            #mzint=20
-            #mzbuffer=uppermass.iloc[-1]
+        #for s in scans:
+        for timestart in times:
+            scans=tic_df[tic_df.time.between(timestart,timestart+interval)].scan.tolist()
+            s=scans[0]
+            print('Scan:'+str(s)+' Time (min): '+ str(tic_df.time[tic_df.scan==s].round(2).max()))
+            ms=self.get_average_mass_spectrum_by_scanlist(scans)
+            if(ms.mspeaks):
 
-        for s in scans:
-            ms=self.get_average_mass_spectrum_by_scanlist([s])
-            spectrum=pd.DataFrame({'mz':ms.mz_exp, 'intense':ms.abundance})
-            print(s)
-            if(spectrum.shape[0]>2):
-                        
+                spectrum=pd.DataFrame({'mz':ms.mz_exp, 'intense':ms.abundance})
+                print(len(spectrum))
+
                 for j in spectrum.index:
                     k=1
                     hitlist=[]
@@ -949,31 +954,34 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, LC_Calculations):
                         else:
                             k=nisotope+1
                     if k==(nisotope):
-                        result['scan']=s
+                        result['scan']=scans
                         result['time']=tic_df[tic_df.scan==s].time.iloc[0]
 
                         result[pattern.isotope[0]]={'mz':spectrum.mz[j],'intense':spectrum.intense[j]}
 
                         for i, iso in enumerate(req_isotopes[1:]):
-                            #result[pattern.isotope[i]]={'mz':spectrum.mz[hitlist[i-1][0]],'intense':spectrum.intense[hitlist[i-1][0]]}
                             result[iso]={'mz':spectrum.mz[hitlist[i][0]],'intense':spectrum.intense[hitlist[i][0]]}
                         mass1=result[isotope1]['mz']
                         mass2=result[isotope2]['mz']
 
-                        tstart=result['time']-peakwidth
-                        tstop=result['time']+peakwidth
-
                         EIC=self.get_eics(target_mzs=[mass1,mass2],tic_data={},peak_detection=False,smooth=False)
                         df=pd.DataFrame({'mz1':EIC[0][mass1].eic,'mz2':EIC[0][mass2].eic,'time':EIC[0][mass1].time})
-                        df_sub=df[df['time'].between(tstart,tstop)]
+                        df_sub_a=df[df['time'].between(timestart,timestart+interval)]
+                        peakmax_i=df_sub_a.mz1.max()
+                        peakmax_t=df_sub_a.time[df_sub_a.mz1==peakmax_i].max()
+                        
+                        df_sub=df[df['time'].between(peakmax_t-interval,peakmax_t+interval)]
 
                         #Calculate correlation and slope between two main isotopologues.        
                         corr=df_sub.corr(method='pearson').iat[0,1]**2
                         slope=np.polyfit(df_sub.mz1,df_sub.mz2,1)[0]/(pattern.sort_values(by='ratio',ascending=False).ratio[1]/pattern.sort_values(by='ratio',ascending=False).ratio[0])
+
                         result['corr']=corr
                         result['slope']=slope
                         result['mass']=round(mass1,3)
                         result['abundance']=result[isotope1]['intense']
+                        result['time_peak']=peakmax_t
+                        result['abundance_peak']=peakmax_i
                         result['qc']='match'
                         result['dmz']=result[isotope2]['mz']-result[isotope1]['mz']
 
@@ -988,9 +996,9 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, LC_Calculations):
 
         for result in clean_results:
             masses=clean_results_df[(abs(clean_results_df.mass-result['mass']) < mass_tolerance)& (abs(clean_results_df.time - result['time']) < peakwidth*2)]
-            max_value=max(masses.abundance)
+            max_value=max(masses['abundance_peak'])
 
-            if (result['abundance']==max_value):
+            if (result['abundance_peak']==max_value):
                 final_results.append(result)
                 result['qc']='max'
                 

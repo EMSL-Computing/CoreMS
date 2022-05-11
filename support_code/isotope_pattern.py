@@ -62,39 +62,7 @@ def isotopehunter_qc_plots(results,pattern,file_name,correlation):
 
 def metal_assignment(lcms,result,pattern,file_name):
 
-    mass_spectrum=lcms.get_average_mass_spectrum_by_scanlist([result['scan']])
-
-    #Get molecular formula of average mass spectrum. 
-
-    mass_spectrum.molecular_search_settings.error_method = 'None'
-    mass_spectrum.molecular_search_settings.min_ppm_error = -2
-    mass_spectrum.molecular_search_settings.max_ppm_error = 2
-
-    mass_spectrum.molecular_search_settings.url_database = None
-    mass_spectrum.molecular_search_settings.min_dbe = 0
-    mass_spectrum.molecular_search_settings.max_dbe = 16
-
-    mass_spectrum.molecular_search_settings.usedAtoms['C'] = (5, 50)
-    mass_spectrum.molecular_search_settings.usedAtoms['H'] = (4, 80)
-    mass_spectrum.molecular_search_settings.usedAtoms['O'] = (1, 15)
-    mass_spectrum.molecular_search_settings.usedAtoms['N'] = (0, 6)
-    mass_spectrum.molecular_search_settings.usedAtoms['S'] = (0, 0)
-    mass_spectrum.molecular_search_settings.usedAtoms['Cl'] = (0, 0)
-    mass_spectrum.molecular_search_settings.usedAtoms['Br'] = (0, 0)
-    mass_spectrum.molecular_search_settings.usedAtoms['P'] = (0, 0)
-    mass_spectrum.molecular_search_settings.usedAtoms['Na'] = (0, 0)
-    mass_spectrum.molecular_search_settings.usedAtoms['Fe'] = (0, 0)
-    mass_spectrum.molecular_search_settings.usedAtoms['Cu'] = (0, 0)
-    mass_spectrum.molecular_search_settings.usedAtoms['Zn'] = (0, 0)
-    mass_spectrum.molecular_search_settings.usedAtoms['Ni'] = (0, 0)
-
-    for element in set(pattern.element):
-        mass_spectrum.molecular_search_settings.usedAtoms[element] = (0,1)
-
-    mass_spectrum.molecular_search_settings.isProtonated = True
-    mass_spectrum.molecular_search_settings.isRadical = False
-    mass_spectrum.molecular_search_settings.isAdduct = False
-
+    mass_spectrum=lcms.get_average_mass_spectrum_by_scanlist(result['scan'])
 
     # mass_spectrum.filter_by_max_resolving_power(15, 2)
     SearchMolecularFormulas(mass_spectrum, first_hit=False).run_worker_mass_spectrum()
@@ -131,12 +99,12 @@ def metal_chromatogram(ax,lcms,result,pattern,timerange,file_name):
     ax.text(1.05,0.5,'R-Squared:'+ result['corr'].round(3).astype(str),transform=ax.transAxes)
     ax.text(1.05,0.4,'Slope:'+ result['slope'].round(2).astype(str),transform=ax.transAxes)
     ax.text(1.05,0.3,'d m/z:'+ result['dmz'].round(4).astype(str),transform=ax.transAxes)
-    ax.axvline(x=result['time'],color='gray',linestyle='dashed')
+    ax.axvline(x=result['time_peak'],color='gray',linestyle='dashed')
 
 #This works on assigned spectra. 
 def MS_pattern_plot(ax,lcms,result,pattern):
 
-    mass_spectrum=lcms.get_average_mass_spectrum_by_scanlist([result['scan']])
+    mass_spectrum=lcms.get_average_mass_spectrum_by_scanlist(result['scan'])
 
     ms_df=mass_spectrum.to_dataframe()
 
@@ -153,7 +121,7 @@ def MS_pattern_plot(ax,lcms,result,pattern):
 
     ax.legend(('all peaks','theoretical','pattern'),bbox_to_anchor=(1.05, 1.0), loc='upper left',frameon=False)
     ax.set(xlabel='m/z',ylabel='Intensity')
-    ax.set_title('Time: '+result['time'].round(2).astype(str)+' min')
+    ax.set_title('Time: '+result['time_peak'].round(2).astype(str)+' min')
     if('Score' in result.keys()):
         ax.text(1.05,0.7,result['Molecular Formula'],transform=ax.transAxes)
         ax.text(1.05,0.6,'Error (ppm) = '+round(result['Error'],3).astype(str),transform=ax.transAxes)
@@ -168,7 +136,7 @@ def apoplot(ax,lcms,result,pattern,timerange,file_name,metalcharge):
     apodiff=pattern.mass[0]-atom.atoms['1H'].atomic_mass*metalcharge
         
     plotmass=result[isotope1]['mz']-apodiff
-    print(plotmass)
+    #print(plotmass)
     eics=lcms.get_eics(target_mzs=[plotmass],tic_data={},peak_detection=False,smooth=False)
 
     ax.plot(eics[0][plotmass].time, eics[0][plotmass].eic)
