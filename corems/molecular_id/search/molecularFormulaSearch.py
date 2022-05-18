@@ -4,19 +4,12 @@ __date__ = "Jul 29, 2019"
 import multiprocessing
 
 import tqdm
-from sqlalchemy.types import Binary
-from sqlalchemy.sql.sqltypes import Integer
-
 
 from corems import chunks, timeit
 from corems.encapsulation.constant import Atoms, Labels
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
-from corems.molecular_id.factory.molecularSQL import MolForm_SQL, MolecularFormulaLink
-from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
-from corems.molecular_id.calc.MolecularFilter import MolecularFormulaSearchFilters
+from corems.molecular_id.factory.molecularSQL import MolForm_SQL
 from corems.molecular_id.factory.MolecularLookupTable import MolecularCombinations
-import cProfile
-
 
 last_error = 0
 last_dif = 0

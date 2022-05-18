@@ -6,7 +6,7 @@ __date__ = "Feb 12, 2020"
 import os 
 from dataclasses import dataclass
 
-from sqlalchemy import create_engine, Column, Integer, String, Float,  exists, Binary
+from sqlalchemy import create_engine, Column, Integer, String, Float,  exists, LargeBinary
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
@@ -62,8 +62,8 @@ class LowResolutionEICompound(Base):
     ev = Column(Float, nullable=True)
 
     peaks_count = Column(Integer, nullable=False)
-    mz = Column(Binary,  nullable=False)
-    abundance = Column(Binary,  nullable=False)
+    mz = Column(LargeBinary,  nullable=False)
+    abundance = Column(LargeBinary,  nullable=False)
 
     def __init__(self, dict_data): 
         
