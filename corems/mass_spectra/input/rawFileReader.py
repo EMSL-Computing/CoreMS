@@ -859,9 +859,6 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, LC_Calculations):
             }
 
         return data_dict
-
-   
-
     
     def get_best_scans_idx(self, stdevs=2, method='mean', plot=False):
         '''
@@ -876,8 +873,10 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, LC_Calculations):
 
         if method == 'median':
             tic_median = tic['TIC'].median()
+
         elif method == 'mean':
             tic_median = tic['TIC'].mean()
+        
         else:
             print('Method ' + str(method) + ' undefined')
 

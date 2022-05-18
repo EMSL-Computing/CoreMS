@@ -6,10 +6,8 @@ from typing import Dict, List, Tuple
 import warnings
 import sys
 
-
 sys.path.append("./")
 warnings.filterwarnings("ignore")
-
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -89,12 +87,15 @@ def eic_centroid_detector(max_tic, eic_data:EIC_Data, parameters:LCMSParameters,
 															  plot_res=False,)
 	eic_data.apexes = [i for i in peak_indexes_generator]
 	
-	#plt.plot(eic_data.time/60, eic_signal, label=eic_data.metal)
+	plt.plot(eic_data.time/60, eic_signal, label=eic_data.metal)
 	
-	#for peak_index in eic_data.apexes:
-	#	plt.plot(eic_data.time[peak_index[1]]/60, eic_signal[peak_index[1]], marker='x')
-	#plt.legend()
-	#plt.show()
+	for peak_index in eic_data.apexes:
+		plt.plot(eic_data.time[peak_index[1]]/60, eic_signal[peak_index[1]], marker='x')
+	
+	plt.xlabel('Retention Time (min)')
+	plt.ylabel('Intensity (cps)')
+	plt.legend()
+	plt.show()
 
 def smooth_signal(signal, parameters:LCMSParameters):
             
@@ -140,8 +141,10 @@ def get_data(icpdata: pd.DataFrame, parameters:LCMSParameters) -> Tuple[TIC_Data
 	tic_data.tic = list(tic)
 
 	#fig, ax = plt.subplots()
-	#ax.plot(tic_data.scans, smooth_signal(tic_data.tic, parameters))
-	#plt.show()
+	#ax.plot(rts, smooth_signal(tic_data.tic, parameters))
+	plt.xlabel('Retention Time')
+	plt.ylabel('Intensity (cps)')
+	plt.show()
 
 	return tic_data, eic_metal_dict
 
@@ -201,7 +204,7 @@ def search_ms1_data(icrfile:str, dict_metal_eicdata:  Dict[str, EIC_Data], param
 			metal_atom = ''.join(i for i in metal if not i.isdigit())
 			mass_spec.molecular_search_settings.usedAtoms[metal_atom] = (1,1)
 			
-			mass_spec.plot_profile_and_noise_threshold()
+			ax = mass_spec.plot_profile_and_noise_threshold()
 
 			SearchMolecularFormulas(mass_spec, first_hit=False).run_worker_mass_spectrum()
 			mass_spec.molecular_search_settings.usedAtoms[metal_atom] = (0,0)
@@ -212,10 +215,22 @@ def search_ms1_data(icrfile:str, dict_metal_eicdata:  Dict[str, EIC_Data], param
 			print(filename)
 			mass_spec.to_csv(filename, write_metadata=False)
 			
-			#plt.show()
+			for peak in mass_spec:
+            
+				for mf in peak:
+					is_assigned = True
+					
+					annotation = "Mol. Form = {}\nm\z = {:.4f}\nerror = {:.4f}\nconfidence score = {:.2f}\nisotopologue score = {:.2f}".format(mf.string_formated, peak.mz_exp, mf.mz_error, mf.confidence_score, mf.isotopologue_similarity)
+					
+					ax.annotate(annotation , xy=(peak.mz_exp, peak.abundance),
+												xytext=(+3, np.sign(peak.abundance)*-40), textcoords="offset points",
+												horizontalalignment="left",
+												verticalalignment="bottom" if peak.abundance > 0 else "top")
+			plt.show()
 			#time_range.append([eic_data.time[i]/60 for i in peak_indexex])
 
-	
+
+
 def run_thermo(file_location, parameters:LCMSParameters) -> Tuple[rawFileReader.DataDependentLCMS, rawFileReader.ImportDataDependentThermoMSFileReader]:
     
 	#LCMSParameters.lc_ms.smooth_window = 3
@@ -229,7 +244,9 @@ def run_thermo(file_location, parameters:LCMSParameters) -> Tuple[rawFileReader.
 	
 	parser = rawFileReader.ImportDataDependentThermoMSFileReader(file_location)
 	parser.parameters = parameters
-
+	
+	parser.find_nearest_scan()
+	
 	lcms_obj = parser.get_lcms_obj()
 	
 	return lcms_obj, parser
@@ -245,7 +262,7 @@ def find_nearest_scan(rt, ftms_data):
 
 if __name__ == '__main__':
 	
-	icpfile = "tests/tests_data/icpms/cwd_211018_day7_8_c18_1uMcobalamin_10uL.csv"
+	#icpfile = "tests/tests_data/icpms/cwd_211018_day7_8_c18_1uMcobalamin_10uL.csv"
 	icpfile = 'tests/tests_data/icpms/161220_soils_hypercarb_3_kansas_qH2O.csv'
 	icrfile = "tests/tests_data/icpms/rmb_161221_kansas_h2o_2.raw"
 	
@@ -259,17 +276,17 @@ if __name__ == '__main__':
 	parameters.lc_ms.peak_height_max_percent = 1
 
 	parameters.mass_spectrum.threshold_method = 'auto'
-	parameters.mass_spectrum.noise_threshold_std = 2
+	parameters.mass_spectrum.noise_threshold_std = 1
 
 	parameters.ms1_molecular_search.error_method = 'None'
 	parameters.ms1_molecular_search.min_ppm_error = -1
 	parameters.ms1_molecular_search.max_ppm_error = 1
 	
-	parameters.ms1_molecular_search.usedAtoms['C'] = (1, 100)
+	parameters.ms1_molecular_search.usedAtoms['C'] = (10, 100)
 	parameters.ms1_molecular_search.usedAtoms['H'] = (4, 200)
-	parameters.ms1_molecular_search.usedAtoms['O'] = (1, 20)
-	parameters.ms1_molecular_search.usedAtoms['N'] = (0, 3)
-	parameters.ms1_molecular_search.usedAtoms['S'] = (0, 1)
+	parameters.ms1_molecular_search.usedAtoms['O'] = (1, 30)
+	parameters.ms1_molecular_search.usedAtoms['N'] = (1, 12)
+	parameters.ms1_molecular_search.usedAtoms['S'] = (0, 0)
 
 	parameters.ms1_molecular_search.isProtonated = True
 	parameters.ms1_molecular_search.isRadical = False

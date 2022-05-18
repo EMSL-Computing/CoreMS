@@ -38,7 +38,7 @@ class OmicsProcessing:
     omics_type: str
     part_of: List[str] = field(default_factory=list)
     description: str = "High resolution MS spectra only"
-    processing_institution: str = "Environmental Molecular Science Laboratory"
+    processing_institution: str = "Environmental Molecular Sciences Laboratory"
     type: str = "nmdc:OmicsProcessing"
 
 @dataclass
