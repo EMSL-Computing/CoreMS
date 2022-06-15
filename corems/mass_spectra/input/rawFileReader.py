@@ -976,7 +976,8 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, LC_Calculations):
                         corr=df_sub.corr(method='pearson').iat[0,1]**2
                         slope=np.polyfit(df_sub.mz1,df_sub.mz2,1)[0]/(pattern.sort_values(by='ratio',ascending=False).ratio[1]/pattern.sort_values(by='ratio',ascending=False).ratio[0])
 
-                        result['corr']=corr
+                        result['corr']=corr 
+                        result['file']=self.file_path
                         result['slope']=slope
                         result['mass']=round(mass1,3)
                         result['abundance']=result[isotope1]['intense']

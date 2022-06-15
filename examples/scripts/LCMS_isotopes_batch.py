@@ -2,8 +2,12 @@
 
 ####Replicate isotope pattern algorithm in python for batch processing
 
+##### rMB 2022-04-11
+
+####Replicate isotope pattern algorithm in python for a single file and pattern. 
+
 ###### Settings for pattern mining
-timerange=(5,20) #in minutes
+timerange=(3,35) #in minutes
 peakwidth=0.25 #in minutes
 slope_filter=(0.5,2) # normalized slope (1=true)
 correlation=0.8 #minimum r-squared correlation cut-off. 
@@ -12,7 +16,9 @@ mass_tolerance=0.001
 ratio_tolerance=1.5
 
 ###### Set file folder and THERMO RAW file name here:
-file_location = '/Users/boiteaur/Desktop/CoreMS_metallomics/CoreMS_Metallomics_Data/'
+file_location = '/Users/boiteaur/Desktop/Major projects/Bermuda Atlantic Time Series data processing/Thermo RAW data/'
+
+file_name="RMB_190828_TABPooled_12.raw"
 
 #####Set isotope pattern using atom.epattern. Just requires elements and max number of isotopes used
 element='Cu'
@@ -53,12 +59,34 @@ from corems.encapsulation.factory.parameters import MSParameters
 
 import matplotlib.backends.backend_pdf
 from support_code import isotope_pattern as ip
+from support_code import AtomsDescription_standardized as atom
 
 #Set peak detection threshold method
 MSParameters.mass_spectrum.threshold_method = 'signal_noise'
-MSParameters.mass_spectrum.s2n_threshold = 3
-
+MSParameters.mass_spectrum.s2n_threshold = 2
 MSParameters.ms_peak.peak_min_prominence_percent = 0.001
+
+MSParameters.molecular_search.error_method = 'None'
+MSParameters.molecular_search.min_ppm_error = -2
+MSParameters.molecular_search.max_ppm_error = 2
+
+MSParameters.molecular_search.url_database = None
+MSParameters.molecular_search.min_dbe = 0
+MSParameters.molecular_search.max_dbe = 16
+
+MSParameters.molecular_search.usedAtoms['C'] = (1,30)
+MSParameters.molecular_search.usedAtoms['H'] = (4,60)
+MSParameters.molecular_search.usedAtoms['O'] = (1,8)
+MSParameters.molecular_search.usedAtoms['N'] = (0,6)
+MSParameters.molecular_search.usedAtoms['S'] = (0,0)
+MSParameters.molecular_search.usedAtoms[element] = (0,1)
+
+MSParameters.molecular_search.isProtonated = True
+MSParameters.molecular_search.isRadical = False
+MSParameters.molecular_search.isAdduct = False
+
+MSParameters.molecular_search.score_method = "prob_score"
+MSParameters.molecular_search.output_score_method = "prob_score"
 
 ########################## Main work functions
 
@@ -66,7 +94,6 @@ MSParameters.ms_peak.peak_min_prominence_percent = 0.001
 parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location+file_name)
 
 #Create isotope pattern
-from support_code import AtomsDescription_standardized as atom
 pattern=atom.epattern(element,nisotope_used,atom.atoms)
 
 # pattern=atom.ipattern(isotopes,requirement,atom.atoms)
@@ -99,3 +126,5 @@ pdf.close()
 
 #Print data out. 
 pd.DataFrame(results[2]).to_csv(file_location+file_name+save_file+'.csv')
+
+print('end')
