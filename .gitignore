@@ -3,6 +3,7 @@ venv/
 .pyo
 *.hdf5
 *.d  
+tmp_data/
 *.so  
 *.pkl  
 *.ems
