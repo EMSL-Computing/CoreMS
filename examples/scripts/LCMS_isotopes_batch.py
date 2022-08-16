@@ -2,34 +2,34 @@
 
 ####Replicate isotope pattern algorithm in python for batch processing
 
-##### rMB 2022-04-11
+##### RMB 2022-04-11
 
 ####Replicate isotope pattern algorithm in python for a single file and pattern. 
 
 ###### Settings for pattern mining
-timerange=(3,35) #in minutes
+timerange=(8,14) #in minutes
 peakwidth=0.25 #in minutes
 slope_filter=(0.5,2) # normalized slope (1=true)
-correlation=0.8 #minimum r-squared correlation cut-off. 
+correlation=0.6 #minimum r-squared correlation cut-off. 
 
 mass_tolerance=0.001
-ratio_tolerance=1.5
+ratio_tolerance=1.6
 
 ###### Set file folder and THERMO RAW file name here:
-file_location = '/Users/boiteaur/Desktop/Major projects/Bermuda Atlantic Time Series data processing/Thermo RAW data/'
+file_location = '/Users/boiteaur/Desktop/Logan Samples/'
 
-file_name="RMB_190828_TABPooled_12.raw"
+file_name="rmb_20220627_pos_logan_7002_1_6.raw"
 
 #####Set isotope pattern using atom.epattern. Just requires elements and max number of isotopes used
-element='Cu'
+element='Zn'
 nisotope_used=2
 valence=2
 
 save_file="_"+element
 
 #### Alternative way to set isotope pattern using atom.ipattern
-#isotopes=['63Cu','65Cu']
-#requirement=['Y','Y']
+isotopes=['64Zn','66Zn','68Zn']
+requirement=['Y','Y','N']
 
 # Import the os module
 import os
@@ -94,9 +94,9 @@ MSParameters.molecular_search.output_score_method = "prob_score"
 parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location+file_name)
 
 #Create isotope pattern
-pattern=atom.epattern(element,nisotope_used,atom.atoms)
+#pattern=atom.epattern(element,nisotope_used,atom.atoms)
+pattern=atom.ipattern(isotopes,requirement,atom.atoms)
 
-# pattern=atom.ipattern(isotopes,requirement,atom.atoms)
 print(pd.DataFrame(pattern))
 
 #Mine pattern.
