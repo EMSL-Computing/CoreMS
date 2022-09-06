@@ -61,7 +61,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         self._abundance = array(abundance, dtype=float64)
         self._mz_exp = array(mz_exp, dtype=float64)
-
+                    
         # objects created after process_mass_spec() function
         self._mspeaks = list()
         self.mspeaks = list()
@@ -147,6 +147,8 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self.label = d_params.get(Labels.label)
 
         self.analyzer = d_params.get('analyzer')
+
+        self.aquisition_time = d_params.get('aquisition_time')
 
         self.instrument_label = d_params.get('instrument_label')
 

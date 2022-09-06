@@ -578,6 +578,8 @@ class ThermoBaseClass():
 
         d_params['analyzer'] = self.iRawDataPlus.GetInstrumentData().Model
 
+        d_params['aquisition_time'] = self.iRawDataPlus.GetInstrumentData().Model
+
         d_params['instrument_label'] = self.iRawDataPlus.GetInstrumentData().Name
 
         return d_params    
