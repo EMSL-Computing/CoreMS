@@ -1,57 +1,62 @@
-from corems.encapsulation.factory.processingSetting  import MolecularFormulaSearchSettings, TransientSetting, MassSpecPeakSetting, MassSpectrumSetting
-from corems.encapsulation.factory.processingSetting  import CompoundSearchSettings, GasChromatographSetting
-from corems.encapsulation.factory.processingSetting  import DataInputSetting
+from datetime import datetime
+
+from corems.encapsulation.factory.processingSetting import MolecularFormulaSearchSettings, TransientSetting
+from corems.encapsulation.factory.processingSetting import MassSpecPeakSetting, MassSpectrumSetting
+from corems.encapsulation.factory.processingSetting import CompoundSearchSettings, GasChromatographSetting
+from corems.encapsulation.factory.processingSetting import DataInputSetting
 
 class MSParameters:
 
-    molecular_search =  MolecularFormulaSearchSettings()
-    transient =  TransientSetting()
+    molecular_search = MolecularFormulaSearchSettings()
+    transient = TransientSetting()
     mass_spectrum = MassSpectrumSetting()
-    ms_peak =  MassSpecPeakSetting()
-    data_input =  DataInputSetting()
-  
+    ms_peak = MassSpecPeakSetting()
+    data_input = DataInputSetting()
+
 class GCMSParameters:
 
     molecular_search = CompoundSearchSettings()
     gc_ms = GasChromatographSetting()
-    
 
-def default_parameters(file_location): #pragma: no cover
 
-        parameters = dict()
+def default_parameters(file_location):
 
-        parameters["Aterm"] = 0
+    parameters = dict()
 
-        parameters["Bterm"] = 0
+    parameters["Aterm"] = 0
 
-        parameters["Cterm"] = 0
+    parameters["Bterm"] = 0
 
-        parameters["exc_high_freq"] = 0
+    parameters["Cterm"] = 0
 
-        parameters["exc_low_freq"] = 0
+    parameters["exc_high_freq"] = 0
 
-        parameters["bandwidth"] = 0
+    parameters["exc_low_freq"] = 0
 
-        parameters['analyzer'] = 'Unknown'
-        
-        parameters['instrument_label'] = 'Unknown' 
+    parameters["bandwidth"] = 0
 
-        parameters['sample_name'] = 'Unknown'
+    parameters['analyzer'] = 'Unknown'
 
-        parameters["number_data_points"] = 0
+    parameters['instrument_label'] = 'Unknown'
 
-        parameters["polarity"] = 'Unknown'
+    parameters['sample_name'] = 'Unknown'
 
-        parameters["filename_path"] = str(file_location)
+    parameters["number_data_points"] = 0
 
-        """scan_number and rt will be need to lc ms"""
+    parameters["polarity"] = 'Unknown'
 
-        parameters["mobility_scan"] = 0
+    parameters["aquisition_time"] = 'Unknown'
 
-        parameters["mobility_rt"] = 0
+    parameters["filename_path"] = str(file_location)
 
-        parameters["scan_number"] = 0
+    """scan_number and rt will be need to lc ms"""
 
-        parameters["rt"] = 0
+    parameters["mobility_scan"] = 0
 
-        return parameters    
+    parameters["mobility_rt"] = 0
+
+    parameters["scan_number"] = 0
+
+    parameters["rt"] = 0
+
+    return parameters

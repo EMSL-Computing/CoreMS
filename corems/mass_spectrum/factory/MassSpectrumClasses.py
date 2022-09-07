@@ -146,6 +146,8 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         self.analyzer = d_params.get('analyzer')
 
+        self.aquisition_time = d_params.get('aquisition_time')
+
         self.instrument_label = d_params.get('instrument_label')
 
         self.polarity = int(d_params.get("polarity"))

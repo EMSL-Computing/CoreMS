@@ -1,3 +1,4 @@
+from datetime import datetime
 import numpy
 import multiprocessing
 from threading import Thread
@@ -28,7 +29,7 @@ clr.AddReference("ThermoFisher.CommonCore.MassPrecisionEstimator")
 
 from ThermoFisher.CommonCore.RawFileReader import RawFileReaderAdapter
 from ThermoFisher.CommonCore.Data import ToleranceUnits, Extensions
-from ThermoFisher.CommonCore.Data.Business import MassOptions
+from ThermoFisher.CommonCore.Data.Business import MassOptions, FileHeaderReaderFactory
 from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType
 from System.Collections.Generic import List
 
@@ -59,6 +60,13 @@ class ImportMassSpectraThermoMSFileReader():
 
         self.iRawDataPlus = RawFileReaderAdapter.FileFactory(str(file_path))
 
+        self.iFileHeader = FileHeaderReaderFactory.ReadFile(str(file_path))
+
+        date_time_str = self.iFileHeader.CreationDate.ToString()
+        print(self.iFileHeader.CreationDate.ToString(), type(self.iFileHeader.CreationDate))
+
+        date_time_obj = datetime.strptime(date_time_str, '%m/%d/%y %I:%M:%S %p')
+        print(date_time_obj)
         # removing tmp file
 
         if isinstance(file_location, S3Path):
@@ -252,6 +260,8 @@ class ImportMassSpectraThermoMSFileReader():
         d_params['analyzer'] = self.iRawDataPlus.GetInstrumentData().Model
 
         d_params['instrument_label'] = self.iRawDataPlus.GetInstrumentData().Name
+
+        d_params["aquisition_time"] = self.iRawDataPlus
 
         return d_params
 

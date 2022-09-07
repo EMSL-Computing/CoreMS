@@ -12,7 +12,6 @@ from multiprocessing import Pool, Process
 from pandas import DataFrame
 from matplotlib import pyplot as plt
 
-
 from corems.mass_spectrum.input.massList import ReadMassList
 from corems.molecular_id.factory.classification import HeteroatomsClassification, Labels
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment

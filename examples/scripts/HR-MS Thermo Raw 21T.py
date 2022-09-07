@@ -21,8 +21,8 @@ def run_thermo(file_location):
     MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
     MSParameters.mass_spectrum.relative_abundance_threshold = 0.1
 
-    #MSParameters.mass_spectrum.threshold_method = 'auto'
-    #MSParameters.mass_spectrum.s2n_threshold = 6
+    # MSParameters.mass_spectrum.threshold_method = 'auto'
+    # MSParameters.mass_spectrum.s2n_threshold = 6
 
     parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
 
@@ -105,12 +105,12 @@ if __name__ == "__main__":
 
     mass_spectrum = run_thermo(file_location)
 
-    ax =mass_spectrum.plot_mz_domain_profile()
+    ax = mass_spectrum.plot_mz_domain_profile()
 
     for mspeak in mass_spectrum:
         mspeak.plot(ax=ax)
     plt.show()
-    #plt.savefig("test.png")
+    # plt.savefig("test.png")
 
     mass_spectrum.plot_profile_and_noise_threshold()
     plt.show()
