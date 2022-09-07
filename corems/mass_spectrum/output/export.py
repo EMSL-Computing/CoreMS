@@ -327,7 +327,7 @@ class HighResMassSpecExport(Thread):
         return  all_lines       
 
     def get_list_dict_data(self, mass_spectrum, include_no_match=True, include_isotopologues=True,
-                           isotopologue_inline=False, no_match_inline=False, is_hdf5=False):
+                           isotopologue_inline=True, no_match_inline=False, is_hdf5=False):
 
         dict_data_list = []
 
@@ -463,7 +463,8 @@ class HighResMassSpecExport(Thread):
                 for index, ms_peak in enumerate(mass_spectrum):
                     for m_formula in ms_peak:
                         if m_formula.is_isotopologue:
-                            add_match_dict_data(index, ms_peak, m_formula)
+                            if m_formula.confidence_score >= mass_spectrum.molecular_search_settings.output_min_score:
+                                add_match_dict_data(index, ms_peak, m_formula)
 
             if include_no_match and not no_match_inline:
                 for index, ms_peak in enumerate(mass_spectrum):

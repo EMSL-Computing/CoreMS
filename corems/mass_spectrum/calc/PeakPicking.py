@@ -3,6 +3,7 @@
 @date: Jun 27, 2019
 '''
 
+import math
 from numpy import hstack, inf, isnan, poly1d, polyfit, where
 from corems.encapsulation.constant import Labels
 
@@ -37,6 +38,10 @@ class PeakPicking:
 
         mz, abudance, freq = self.cut_mz_domain_peak_picking()
 
+        self.mz_exp_profile = mz
+        self.abundance_profile = abudance
+        self.freq_exp_profile = freq
+        
         if self.label == Labels.bruker_frequency or self.label == Labels.midas_frequency:
 
             self.calc_centroid(mz, abudance, freq)
@@ -251,7 +256,11 @@ class PeakPicking:
 
             calculated = -b/(2*a)
             
-            if calculated < 1 or int(calculated) != int(list_mass[1]):
+            if math.isnan(calculated):
+
+                mz_exp_centroid = list_mass[1]
+
+            elif calculated < 1 or int(calculated) != int(list_mass[1]):
 
                 mz_exp_centroid = list_mass[1]
             
@@ -269,6 +278,11 @@ class PeakPicking:
 
                 calculated_freq = -b/(2*a)
 
+
+                if math.isnan(calculated_freq):
+                    print(calculated_freq)
+                    freq_centr = list_freq[1]
+
                 if calculated_freq < 1 or int(calculated_freq) != freq[current_index]:
                     freq_centr = list_freq[1]
 
@@ -277,7 +291,7 @@ class PeakPicking:
             
             else:
                     freq_centr = None
-                    
+
             return mz_exp_centroid, freq_centr, abund[current_index], peak_indexes
     
     def check_prominence(self, abun, current_index, len_abundance, peak_height_diff ):

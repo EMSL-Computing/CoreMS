@@ -16,29 +16,43 @@ from matplotlib import pyplot as plt
 from corems.mass_spectrum.input.massList import ReadMassList
 from corems.molecular_id.factory.classification import HeteroatomsClassification, Labels
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
+from corems.mass_spectrum.calc.Calibration import MzDomainCalibration
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
-from corems import SuppressPrints, get_filename, get_dirname
+from corems import SuppressPrints, get_dirnames, get_filename, get_dirname
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
 from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.factory.parameters import MSParameters
 
+def mzdomain_calibration(mass_spectrum):
 
+    mass_spectrum.settings.min_calib_ppm_error = 0
+    mass_spectrum.settings.max_calib_ppm_error = 1
+
+    #file_location = Path.cwd() / "tests/tests_data/ESI_NEG_SRFA.d/"
+
+    ref_file_location = Path.cwd() / "tests/tests_data/SRFA.ref"
+
+    MzDomainCalibration(mass_spectrum, ref_file_location).run()
 
 def run_bruker(file_location):
 
     with ReadBrukerSolarix(file_location) as transient:
 
-        mass_spectrum = transient.get_mass_spectrum(plot_result=False, auto_process=True)
+        mass_spectrum = transient.get_mass_spectrum(plot_result=False, auto_process=False)
+        
+        
+        mass_spectrum.settings.threshold_method = 'auto'
+        mass_spectrum.settings.noise_threshold_std = 3
+        mass_spectrum.settings.peak_min_prominence_percent = 0.01
 
+        mass_spectrum.process_mass_spec()
         # find_formula_thread = FindOxygenPeaks(mass_spectrum)
         # find_formula_thread.run()
 
         # mspeaks_results = find_formula_thread.get_list_found_peaks()
-        # calibrate = FreqDomain_Calibration(mass_spectrum, mspeaks_results)
-        # calibrate.ledford_calibration()
-
+        
         # mass_spectrum.clear_molecular_formulas()
 
         return mass_spectrum
@@ -49,8 +63,9 @@ def get_masslist(file_location):
 
 def run_assignment(file_location):
 
-    # mass_spectrum = run_bruker(file_location)
-    mass_spectrum = get_masslist(file_location)
+    mass_spectrum = run_bruker(file_location)
+    mzdomain_calibration(mass_spectrum)
+    #mass_spectrum = get_masslist(file_location)
     #mass_spectrum = run_thermo(file_location)
 
     mass_spectrum.molecular_search_settings.error_method = 'None'
@@ -82,7 +97,10 @@ def run_assignment(file_location):
     mass_spectrum.molecular_search_settings.score_method = "prob_score"
     mass_spectrum.molecular_search_settings.output_score_method = "prob_score"
 
-    mass_spectrum.to_csv("15T_Neg_ESI_SRFA")
+    mass_spectrum.plot_profile_and_noise_threshold()
+    plt.show()
+    
+    mass_spectrum.to_csv(mass_spectrum.sample_name)
 
     # export_calc_isotopologues(mass_spectrum, "15T_Neg_ESI_SRFA_Calc_Isotopologues")
 
@@ -94,6 +112,7 @@ def run_assignment(file_location):
     plt.show()
     mass_spectrum_by_classes.plot_ms_class('O12')
     plt.show()
+    
     
     # dataframe = mass_spectrum_by_classes.to_dataframe()
     # return (mass_spectrum, mass_spectrum_by_classes)
@@ -194,6 +213,6 @@ if __name__ == "__main__":
     # run_multiprocess()
     # cpu_percents = monitor(target=run_multiprocess)
     # print(cpu_percents)
-    file_location = get_filename()
+    file_location = get_dirname()
     if file_location:
         run_assignment(file_location)
