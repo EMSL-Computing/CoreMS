@@ -39,7 +39,7 @@ Data handling and software development for modern mass spectrometry (MS) is an i
 
 ## Current Version
 
-### `1.3.1`
+### `1.4.0`
 
 ## Main Developers/Contact 
 - [Yuri. E. Corilo](mailto:corilo@pnnl.gov)  
@@ -318,11 +318,11 @@ df = mass_spectrum_obj.to_dataframe()
 ## Citing CoreMS
 
 If you use CoreMS in your work, please use the following citation:
-Version [1.3.1 Release on GitHub](https://github.com/EMSL-Computing/CoreMS/releases/tag/1.3.1), archived on Zenodo:  
+Version [1.4.0 Release on GitHub](https://github.com/EMSL-Computing/CoreMS/releases/tag/1.4.0), archived on Zenodo:  
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4641553.svg)](https://doi.org/10.5281/zenodo.4641553)
 ```
-Yuri E. Corilo, William R. Kew, Lee Ann McCue. (2021, March 27). EMSL-Computing/CoreMS: CoreMS 1.3.1 (Version v1.3.1), as developed on Github. Zenodo. http://doi.org/10.5281/zenodo.4641553
+Yuri E. Corilo, William R. Kew, Lee Ann McCue. (2021, March 27). EMSL-Computing/CoreMS: CoreMS 1.4.0 (Version v1.4.0), as developed on Github. Zenodo. http://doi.org/10.5281/zenodo.4641553
 ```
 ## Disclaimer
 
