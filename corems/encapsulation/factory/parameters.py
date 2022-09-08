@@ -45,7 +45,7 @@ def default_parameters(file_location):
 
     parameters["polarity"] = 'Unknown'
 
-    parameters["aquisition_time"] = 'Unknown'
+    parameters["aquisition_time"] =  None
 
     parameters["filename_path"] = str(file_location)
 

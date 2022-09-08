@@ -62,11 +62,6 @@ class ImportMassSpectraThermoMSFileReader():
 
         self.iFileHeader = FileHeaderReaderFactory.ReadFile(str(file_path))
 
-        date_time_str = self.iFileHeader.CreationDate.ToString()
-        print(self.iFileHeader.CreationDate.ToString(), type(self.iFileHeader.CreationDate))
-
-        date_time_obj = datetime.strptime(date_time_str, '%m/%d/%y %I:%M:%S %p')
-        print(date_time_obj)
         # removing tmp file
 
         if isinstance(file_location, S3Path):
@@ -261,7 +256,9 @@ class ImportMassSpectraThermoMSFileReader():
 
         d_params['instrument_label'] = self.iRawDataPlus.GetInstrumentData().Name
 
-        d_params["aquisition_time"] = self.iRawDataPlus
+        date_time_str = self.iFileHeader.CreationDate.ToString()
+        
+        d_params["aquisition_time"] = datetime.strptime(date_time_str, "%m/%d/%Y %I:%M:%S %p")
 
         return d_params
 
