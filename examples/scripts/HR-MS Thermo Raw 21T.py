@@ -105,6 +105,7 @@ if __name__ == "__main__":
 
     mass_spectrum = run_thermo(file_location)
 
+    print("aquisition_time:",  mass_spectrum.aquisition_time )
     ax = mass_spectrum.plot_mz_domain_profile()
 
     for mspeak in mass_spectrum:

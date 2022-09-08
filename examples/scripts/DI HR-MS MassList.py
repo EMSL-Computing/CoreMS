@@ -63,6 +63,7 @@ def get_masslist(file_location):
 def run_assignment(file_location):
 
     mass_spectrum = run_bruker(file_location)
+    print('aquisition_time:', mass_spectrum.aquisition_time)
     mzdomain_calibration(mass_spectrum)
     #mass_spectrum = get_masslist(file_location)
     #mass_spectrum = run_thermo(file_location)
@@ -212,6 +213,7 @@ if __name__ == "__main__":
     # run_multiprocess()
     # cpu_percents = monitor(target=run_multiprocess)
     # print(cpu_percents)
-    file_location = get_dirname()
+    #file_location = get_dirname()
+    file_location = 'tests/tests_data/ESI_NEG_SRFA.d'
     if file_location:
         run_assignment(file_location)
