@@ -12,8 +12,6 @@ from xml.dom import minidom
 from corems.transient.factory.TransientClasses import Transient
 from corems.encapsulation.factory.parameters import default_parameters
 
-
-
 class ReadBrukerSolarix(object):
     
     """
@@ -267,8 +265,8 @@ class ReadBrukerSolarix(object):
                         #if element.nodeName == "primarykey":
                             
                             date_time_str = (element.childNodes[0].nodeValue)
-                            parameter_dict["aquisition_time"] = pd.to_datetime(date_time_str, infer_datetime_format=True).to_pydatetime()
-                            #parameter_dict["aquisition_time"] = datetime.strptime(date_time_str, "%b_%d_%Y %H:%M:%S.%f")
+                            #parameter_dict["aquisition_time"] = pd.to_datetime(date_time_str, infer_datetime_format=True).to_pydatetime()
+                            parameter_dict["aquisition_time"] = datetime.strptime(date_time_str, "%b_%d_%Y %H:%M:%S.%f")
                             
             
             if child.nodeName == "reportinfo":
