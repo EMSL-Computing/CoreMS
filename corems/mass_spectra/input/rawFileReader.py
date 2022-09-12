@@ -258,8 +258,10 @@ class ImportMassSpectraThermoMSFileReader():
 
         date_time_str = self.iFileHeader.CreationDate.ToString()
         
-        d_params["aquisition_time"] = datetime.strptime(date_time_str, "%m/%d/%Y %I:%M:%S %p")
-
+        if 'PM' in date_time_str or 'AM' in date_time_str:
+            d_params["aquisition_time"] = datetime.strptime(date_time_str, "%m/%d/%Y %I:%M:%S %p")
+        else:
+            d_params["aquisition_time"] = datetime.strptime(date_time_str, "%m/%d/%Y %I:%M:%S")    
         return d_params
 
     def get_average_mass_spectrum_by_scanlist(self, scans_list, auto_process: bool = True, ppm_tolerance: float = 5.0):
