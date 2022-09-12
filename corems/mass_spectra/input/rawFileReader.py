@@ -258,10 +258,8 @@ class ImportMassSpectraThermoMSFileReader():
 
         date_time_str = self.iFileHeader.CreationDate.ToString()
         
-        if 'PM' in date_time_str or 'AM' in date_time_str:
-            d_params["aquisition_time"] = datetime.strptime(date_time_str, "%m/%d/%Y %I:%M:%S %p")
-        else:
-            d_params["aquisition_time"] = datetime.strptime(date_time_str, "%m/%d/%Y %I:%M:%S")    
+        d_params["aquisition_time"] = pd.to_datetime(date_time_str, infer_datetime_format=True).to_pydatetime()
+        
         return d_params
 
     def get_average_mass_spectrum_by_scanlist(self, scans_list, auto_process: bool = True, ppm_tolerance: float = 5.0):
