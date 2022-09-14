@@ -286,9 +286,14 @@ class MzDomainCalibration:
                 mass_spectrum.mz_cal_profile = mz_profile_calc
 
             mass_spectrum.calibration_order = order
-            mass_spectrum.calibration_points = len(mzrefs)
+            mass_spectrum.measured_mz = len(mzrefs)
             mass_spectrum.calibration_RMS = float(res['fun'])
-        
+            # TODO
+            #mass_spectrum.calibration_mspeaks = [mass_spectrum[i] for i in imzmeas]
+            #mass_spectrum.calibration_reference_mzs = mzrefs
+            
+            #mass_spectrum.reference_mzs = float(res['fun'])
+
         return mass_spectrum
 
     def run(self):
