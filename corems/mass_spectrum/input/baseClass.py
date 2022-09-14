@@ -14,7 +14,7 @@ from s3path import S3Path
 from corems.encapsulation.factory.processingSetting import DataInputSetting
 from corems.encapsulation.factory.parameters import default_parameters
 from corems.encapsulation.constant import Labels
-from corems.encapsulation.input.parameter_from_json import load_and_set_parameters_class, load_and_set_parameters_ms
+from corems.encapsulation.input.parameter_from_json import load_and_set_parameters_class, load_and_set_parameters_ms, load_and_set_toml_parameters_class
 
 class MassListBaseClass:
     '''
@@ -90,6 +90,10 @@ class MassListBaseClass:
     @parameters.setter
     def parameters(self, instance_DataInputSetting):
         self._parameters = instance_DataInputSetting
+    
+    def set_parameter_from_toml(self, parameters_path):
+        self._parameters = load_and_set_toml_parameters_class(
+            'DataInput', self.parameters, parameters_path=parameters_path)
 
     def set_parameter_from_json(self, parameters_path):
         self._parameters = load_and_set_parameters_class(

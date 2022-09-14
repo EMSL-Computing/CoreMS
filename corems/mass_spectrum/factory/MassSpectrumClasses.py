@@ -10,7 +10,7 @@ from corems.mass_spectrum.calc.KendrickGroup import KendrickGrouping
 from corems.encapsulation.constant import Labels
 from corems.ms_peak.factory.MSPeakClasses import ICRMassPeak as MSPeak
 from corems.encapsulation.factory.parameters import MSParameters
-from corems.encapsulation.input.parameter_from_json import load_and_set_parameters_ms
+from corems.encapsulation.input.parameter_from_json import load_and_set_parameters_ms, load_and_set_toml_parameters_ms
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
@@ -234,6 +234,9 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
     def set_parameter_from_json(self, parameters_path):
         load_and_set_parameters_ms(self, parameters_path=parameters_path)    
+
+    def set_parameter_from_toml(self, parameters_path):
+        load_and_set_toml_parameters_ms(self, parameters_path=parameters_path)    
 
     @property
     def mspeaks_settings(self): return self.parameters.ms_peak
@@ -732,6 +735,12 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         from corems.mass_spectrum.output.export import HighResMassSpecExport
         exportMS = HighResMassSpecExport(self.filename, self)
         return exportMS.parameters_to_json()
+
+    def parameters_toml(self):
+
+        from corems.mass_spectrum.output.export import HighResMassSpecExport
+        exportMS = HighResMassSpecExport(self.filename, self)
+        return exportMS.parameters_to_toml()
 
 class MassSpecProfile(MassSpecBase):
     '''

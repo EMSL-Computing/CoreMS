@@ -6,7 +6,7 @@ from pathlib import Path
 
 from numpy import string_, array, NaN, empty
 from pandas import DataFrame
-import json
+import json, toml
 
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.constant import Labels
@@ -254,6 +254,24 @@ class HighResMassSpecExport(Thread):
             processed_dset.attrs['MassSpecPeakSetting'] = json.dumps(setting_dicts.get('MassSpecPeak'), sort_keys=False, indent=4, separators=(',', ': '))
 
             processed_dset.attrs['MassSpectrumSetting'] = json.dumps(setting_dicts.get('MassSpectrum'), sort_keys=False, indent=4, separators=(',', ': '))
+
+    def parameters_to_toml(self):
+        
+        dict_setting = parameter_to_dict.get_dict_data_ms(self.mass_spectrum)
+
+        dict_setting['MassSpecAttrs'] = self.get_mass_spec_attrs(self.mass_spectrum)
+        dict_setting['analyzer'] = self.mass_spectrum.analyzer
+        dict_setting['instrument_label'] = self.mass_spectrum.instrument_label
+        dict_setting['sample_name'] = self.mass_spectrum.sample_name
+
+        import re
+        #pretty print 
+        output = toml.dumps(dict_setting)
+        #output = json.dumps(dict_setting, sort_keys=False, indent=4, separators=(',', ': '))
+        
+        #output = re.sub(r'",\s+', '", ', output)
+        
+        return output
 
     def parameters_to_json(self):
         

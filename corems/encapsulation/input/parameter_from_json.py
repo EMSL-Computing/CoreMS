@@ -1,11 +1,31 @@
 from pathlib import Path
-import json
+import json, toml
 
 from corems.encapsulation.factory.processingSetting  import MolecularFormulaSearchSettings, TransientSetting
 from corems.encapsulation.factory.processingSetting  import MassSpectrumSetting
 from corems.encapsulation.factory.processingSetting  import MassSpecPeakSetting
 from corems.encapsulation.factory.processingSetting  import GasChromatographSetting
 from corems.encapsulation.factory.processingSetting import CompoundSearchSettings, DataInputSetting
+
+def load_and_set_toml_parameters_ms(mass_spec_obj, parameters_path=False):
+    
+    if parameters_path:
+        
+        file_path = Path(parameters_path)
+
+    else:
+        
+        filename='SettingsCoreMS.toml'
+        file_path = Path.cwd() / filename 
+
+    if file_path.exists():  
+
+            with open(file_path, 'r', encoding='utf8',) as stream:
+                data_loaded = toml.load(stream)
+                _set_dict_data_ms(data_loaded, mass_spec_obj)
+    else:
+        
+        raise FileNotFoundError("Could not locate %s", file_path)   
 
 def load_and_set_parameters_ms(mass_spec_obj, parameters_path=False):   
     
@@ -26,6 +46,26 @@ def load_and_set_parameters_ms(mass_spec_obj, parameters_path=False):
     else:
         
         raise FileNotFoundError("Could not locate %s", file_path)   
+
+def load_and_set_toml_parameters_gcms(gcms_obj, parameters_path=False):   
+    
+    if parameters_path:
+        
+        file_path = Path(parameters_path)
+
+    else:
+        
+        filename='SettingsCoreMS.toml'
+        file_path = Path.cwd() / filename 
+
+    if file_path.exists():  
+
+            with open(file_path, 'r', encoding='utf8',) as stream:
+                data_loaded = toml.load(stream)
+                _set_dict_data_gcms(data_loaded, gcms_obj)
+    else:
+        
+        raise FileNotFoundError("Could not locate %s", file_path) 
 
 def load_and_set_parameters_gcms(gcms_obj, parameters_path=False):   
     
@@ -101,6 +141,24 @@ def _set_dict_data_ms(data_loaded, mass_spec_obj):
     mass_spec_obj.settings = classes[2]
     mass_spec_obj.mspeaks_settings = classes[3]
 
+
+def load_and_set_toml_parameters_class(parameter_label, instance_parameters_class, parameters_path=False):   
+    
+    if parameters_path: file_path = Path(parameters_path)
+
+    else: file_path = Path.cwd() / 'SettingsCoreMS.toml' 
+        
+    if file_path.exists():
+        
+        with open(file_path, 'r', encoding='utf8',) as stream:
+            
+            data_loaded = toml.load(stream)
+            parameter_class = _set_dict_data(data_loaded, parameter_label, instance_parameters_class)
+            
+            return parameter_class
+    else:
+        
+        raise FileNotFoundError("Could not locate %s", file_path)  
 
 def load_and_set_parameters_class(parameter_label, instance_parameters_class, parameters_path=False):   
     
