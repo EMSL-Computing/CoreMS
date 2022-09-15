@@ -1,6 +1,6 @@
 import gc
 
-from numpy import hamming, hanning, blackman, zeros, fft, sqrt, arange, where, power, absolute
+from numpy import hamming, hanning, blackman, zeros, fft, sqrt, arange, where, power, absolute, kaiser, pi, sin, linspace, ceil, log2
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
@@ -17,7 +17,11 @@ class TransientCalculations(object):
         
     def zero_fill(self, transient ):
         
-        zeros_filled_transient = zeros(len(transient)*(self.parameters.number_of_zero_fills+1))
+        if self.parameters.next_power_of_two:
+            exponent = int(ceil(log2(len(transient)*(self.parameters.number_of_zero_fills+1))))
+            zeros_filled_transient = zeros(2**exponent)
+        else:
+            zeros_filled_transient = zeros(len(transient)*(self.parameters.number_of_zero_fills+1))
                 
         zeros_filled_transient[0:len(transient)] = transient    
         
@@ -46,6 +50,7 @@ class TransientCalculations(object):
     def apodization(self, transient):
         
         apodi_method = self.parameters.apodization_method
+        beta = self.parameters.kaiser_beta
         
         length = len(transient)
             
@@ -55,6 +60,14 @@ class TransientCalculations(object):
                 H_function = hanning(length)
         elif apodi_method == "Blackman":
                 H_function = blackman(length)
+        elif apodi_method == "Full-Sine":
+                H_function = sin(linspace(0,pi,num=length))
+        elif apodi_method == "Half-Sine":
+                H_function = sin(linspace((pi/2),0,num=length))
+        elif apodi_method == "Kaiser":
+                H_function = kaiser(length,beta)
+        elif apodi_method == "Half-Kaiser":
+                H_function = kaiser(length*2,beta)[length:]
             
         S_x = transient * H_function
         
