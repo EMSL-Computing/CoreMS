@@ -9,11 +9,31 @@ from corems.encapsulation.constant import Atoms, Labels
 
 @dataclasses.dataclass
 class TransientSetting:
+    '''
+    Transient processing settings class
+    Attributes
+    ----------
+    implemented_apodization_function : tuple
+        Available apodization functions
+    apodization_method : str
+        Apodization function to use. Hanning is a good default. For absorption mode processing, Half-Sine or Half-Kaiser may be more appropriate.
+    number_of_truncations : int
+        How many times to truncate the transient prior to Fourier transform
+    number_of_zero_fills : int
+        How many times to zero fille the transient prior to Fourier transform.
+    next_power_of_two : bool
+        If True, zero fill to the next power of two after the new length of len(transient)+(number_of_zero_fills*len(transient)). 
+    kaiser_beta : float
+        Beta parameter for Kaiser or Half-Kaiser apodisation function. 0 is rectangular,  5 is similar to Hamming,
+        6 is similar to hanning, and 8.6 is similar to Blackman (from numpy docs)
 
-    implemented_apodization_function: tuple = ('Hamming', 'Hanning', 'Blackman')
+    '''
+    implemented_apodization_function: tuple = ('Hamming', 'Hanning', 'Blackman','Full-Sine','Half-Sine','Kaiser','Half-Kaiser')
     apodization_method: str = 'Hanning'
     number_of_truncations: int = 0
     number_of_zero_fills: int = 1
+    next_power_of_two: bool = False
+    kaiser_beta: float = 8.6
 
     def __post_init__(self):
 
