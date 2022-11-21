@@ -293,6 +293,11 @@ class PeakPicking:
             abundance_threshold = self.settings.relative_abundance_threshold
             factor = intes.max()/100
 
+        elif threshold_method == "absolute_abundance":
+
+            abundance_threshold = self.settings.absolute_abundance_threshold
+            factor = 1
+
         else:
             raise  Exception("%s method was not implemented, please refer to corems.mass_spectrum.calc.NoiseCalc Class" % threshold_method)
         

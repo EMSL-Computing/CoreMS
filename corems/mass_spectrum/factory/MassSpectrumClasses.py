@@ -648,7 +648,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         return ax
 
 
-    def plot_profile_and_noise_threshold(self, ax=None): 
+    def plot_profile_and_noise_threshold(self, ax=None,legend=False): 
 
         import matplotlib.pyplot as plt
         if self.baselise_noise_std and self.baselise_noise_std:
@@ -663,9 +663,9 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             if ax is None:
                 ax = plt.gca()
             
-            ax.plot(self.mz_exp_profile, self.abundance_profile, color="green")
-            ax.plot(x, (baseline, baseline), color="yellow")
-            ax.plot(x, y, color="red")
+            ax.plot(self.mz_exp_profile, self.abundance_profile, color="green",label="Spectrum")
+            ax.plot(x, (baseline, baseline), color="yellow",label="Baseline Noise")
+            ax.plot(x, y, color="red",label="Noise Threshold")
 
             ax.set_xlabel("$\t{m/z}$", fontsize=12)
             ax.set_ylabel('Abundance', fontsize=12)
@@ -676,6 +676,8 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
             ax.get_yaxis().set_visible(False)
             ax.spines['left'].set_visible(False)
+            if legend:
+                ax.legend()
 
         else:
 
