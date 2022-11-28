@@ -34,7 +34,7 @@ class NoiseThresholdCalc:
 
             elif self.settings.threshold_method == "absolute_abundance":
 
-                normalized_threshold = (max(self.abundance)/100)*self.settings.absolute_abundance_threshold
+                normalized_threshold = self.abundance*self.settings.absolute_abundance_threshold
                 y = (normalized_threshold, normalized_threshold)                
             else:
                     raise  Exception("%s method was not implemented, please refer to corems.mass_spectrum.calc.NoiseCalc Class" % self.settings.threshold_method)
