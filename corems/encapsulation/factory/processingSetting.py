@@ -165,6 +165,8 @@ class MassSpectrumSetting:
 
     absolute_abundance_threshold: float = 1_000_000
 
+    log_Nsigma: int = 6
+
     min_noise_mz: float = 50
     max_noise_mz: float = 1200.0
 

@@ -1,6 +1,6 @@
 import time
 
-from numpy import where, average, std, isnan, inf, hstack, median, argmax, percentile
+from numpy import where, average, std, isnan, inf, hstack, median, argmax, percentile, log10, histogram
 from corems import chunks
 import warnings
 
@@ -35,7 +35,8 @@ class NoiseThresholdCalc:
             elif self.settings.threshold_method == "absolute_abundance":
 
                 normalized_threshold = self.abundance*self.settings.absolute_abundance_threshold
-                y = (normalized_threshold, normalized_threshold)                
+                y = (normalized_threshold, normalized_threshold)
+            #log noise method not tested for centroid data
             else:
                     raise  Exception("%s method was not implemented, please refer to corems.mass_spectrum.calc.NoiseCalc Class" % self.settings.threshold_method)
                 
@@ -71,7 +72,10 @@ class NoiseThresholdCalc:
 
                     normalized_threshold = self.settings.absolute_abundance_threshold
                     y = (normalized_threshold, normalized_threshold)
-                    
+
+                elif self.settings.threshold_method == "log":
+                    normalized_threshold = self.settings.log_Nsigma * self.baselise_noise_std
+                    y = (normalized_threshold, normalized_threshold)
 
                 else:
                     raise  Exception("%s method was not implemented, \
@@ -251,6 +255,35 @@ class NoiseThresholdCalc:
         
         # pyplot.show()    
         return abun_cut[indices]
+
+    def run_log_noise_threshold_calc(self,auto,bayes=False):
+        '''
+        Method for estimating the noise based on decimal log of all the data points
+        Based on dx.doi.org/10.1021/ac403278t | Anal. Chem. 2014, 86, 3308−3316
+
+        Idea is that you calculate a histogram of of the log10(abundance) values
+        The maximum of the histogram == the standard deviation of the noise 
+        For aFT data it is a gaussian distribution of noise - not implemented here!
+        For mFT data it is a Rayleigh distribution, and the value is actually 10^(abu_max)*0.463
+        See the publication cited above for the derivation of this. 
+
+        '''
+        if self.is_centroid:
+            raise  Exception("log noise Not tested for centroid data")
+        else:
+            # cut the spectrum to ROI
+            mz_cut, abundance_cut = self.cut_mz_domain_noise(auto)
+            # calculate a histogram of the log10 of the abundance data
+            hist_values = histogram(log10(abundance_cut),bins=500) #Todo - pass bins argument
+            #find the apex of this histogram
+            maxvalidx = where(hist_values[0] == max(hist_values[0]))
+            # get the value of this apex (note - still in log10 units)
+            log_sigma = hist_values[1][maxvalidx]
+            ## To do : check if aFT or mFT and adjust method
+            noise_mid = 10**log_sigma
+            noise_1std = noise_mid*0.463 #for mFT 
+            return float(noise_mid), float(noise_1std)
+
 
 
     def run_noise_threshold_calc(self, auto, bayes=False):

@@ -192,14 +192,14 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self.check_mspeaks()
         return array([mspeak.clear_molecular_formulas() for mspeak in self.mspeaks])
 
-    def process_mass_spec(self, keep_profile=True, auto_noise=True, noise_bayes_est=False):
+    def process_mass_spec(self, keep_profile=True, auto_noise=True, noise_bayes_est=False,log_noise=False):
         
         # if runned mannually make sure to rerun filter_by_noise_threshold     
         # calculates noise threshold 
         # do peak picking( create mspeak_objs) 
         # reset mspeak_obj the indexes
          
-        self.cal_noise_threshold(auto=auto_noise, bayes=noise_bayes_est)
+        self.cal_noise_threshold(auto=auto_noise, bayes=noise_bayes_est,log_noise=log_noise)
 
         self.find_peaks()
         self.reset_indexes()
@@ -214,14 +214,16 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             self._mz_exp *= 0
             
 
-    def cal_noise_threshold(self, auto=True, bayes=False):
+    def cal_noise_threshold(self, auto=True, bayes=False,log_noise=False):
 
         if self.label == Labels.simulated_profile:
 
             self._baselise_noise, self._baselise_noise_std = 0.1, 1
 
-        else:
+        if log_noise:
+            self._baselise_noise, self._baselise_noise_std = self.run_log_noise_threshold_calc(auto, bayes=bayes)
 
+        else:
             self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto, bayes=bayes)
 
     @property
@@ -770,7 +772,7 @@ class MassSpecProfile(MassSpecBase):
     see also: MassSpecBase(), MassSpecfromFreq(), MassSpecProfile()
     '''
 
-    def __init__(self, data_dict, d_params, auto_process=True, auto_noise=True, noise_bayes_est=False):
+    def __init__(self, data_dict, d_params, auto_process=True, auto_noise=True, noise_bayes_est=False,log_noise=False):
         """
         method docs
         """
@@ -778,7 +780,7 @@ class MassSpecProfile(MassSpecBase):
         super().__init__(data_dict.get(Labels.mz), data_dict.get(Labels.abundance), d_params)
        
         if auto_process:
-            self.process_mass_spec(auto_noise=auto_noise, noise_bayes_est=noise_bayes_est)
+            self.process_mass_spec(auto_noise=auto_noise, noise_bayes_est=noise_bayes_est,log_noise=log_noise)
 
 class MassSpecfromFreq(MassSpecBase):
     '''
@@ -822,7 +824,7 @@ class MassSpecfromFreq(MassSpecBase):
     '''
 
     def __init__(self, frequency_domain, magnitude, d_params, 
-                auto_process=True, keep_profile=True, auto_noise=False, noise_bayes_est=False):
+                auto_process=True, keep_profile=True, auto_noise=False, noise_bayes_est=False,log_noise=False):
         """
         method docs
         """
@@ -836,7 +838,7 @@ class MassSpecfromFreq(MassSpecBase):
         """ use this call to automatically process data as the object is created, Setting need to be changed before initiating the class to be in effect"""
         
         if auto_process:
-            self.process_mass_spec(keep_profile=keep_profile, auto_noise=auto_noise, noise_bayes_est=noise_bayes_est)
+            self.process_mass_spec(keep_profile=keep_profile, auto_noise=auto_noise, noise_bayes_est=noise_bayes_est,log_noise=log_noise)
 
 
     def _set_mz_domain(self):
@@ -972,7 +974,7 @@ class MassSpecCentroid(MassSpecBase):
 
    
 
-    def process_mass_spec(self, auto_noise=True, noise_bayes_est=False):
+    def process_mass_spec(self, auto_noise=True, noise_bayes_est=False,log_noise=False):
         import tqdm
         # overwrite process_mass_spec 
         # mspeak objs are usually added inside the PeaKPicking class 
@@ -1032,7 +1034,10 @@ class MassSpecCentroid(MassSpecBase):
         self._set_nominal_masses_start_final_indexes()
         
         if self.label != Labels.thermo_centroid:
-            self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto=auto_noise, bayes=noise_bayes_est)
+            if log_noise:
+                self._baselise_noise, self._baselise_noise_std = self.run_log_noise_threshold_calc(auto=auto_noise, bayes=noise_bayes_est)
+            else:
+                self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto=auto_noise, bayes=noise_bayes_est)
         
         del self.data_dict    
 class MassSpecCentroidLowRes(MassSpecCentroid,):
