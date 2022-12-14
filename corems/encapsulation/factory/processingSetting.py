@@ -155,7 +155,7 @@ class MassSpectrumSetting:
 
     threshold_method: str = 'relative_abundance'
 
-    implemented_noise_threshold_methods: tuple = ('auto', 'signal_noise', 'relative_abundance', 'absolute_abundance')
+    implemented_noise_threshold_methods: tuple = ('auto', 'signal_noise', 'relative_abundance', 'absolute_abundance', 'log')
 
     noise_threshold_std: int = 6
 
@@ -166,6 +166,8 @@ class MassSpectrumSetting:
     absolute_abundance_threshold: float = 1_000_000
 
     log_Nsigma: int = 6
+    log_Nsigma_CorrFactor: float = 0.463 #mFT is 0.463, aFT is 1.0
+    log_Nsigma_bins: int = 500 # bins for the histogram for the noise
 
     min_noise_mz: float = 50
     max_noise_mz: float = 1200.0

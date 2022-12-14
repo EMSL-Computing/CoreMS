@@ -408,23 +408,18 @@ class ThermoBaseClass():
         else:
             return None, None
 
-    def get_average_mass_spectrum_by_scanlist(self, scans_list: List[int], auto_process: bool = True,
+    def get_average_mass_spectrum_by_scanlist(self, scans_list: List[int], auto_process: bool = True,auto_noise: bool = True, log_noise: bool = False,
                                               ppm_tolerance: float = 5.0) -> MassSpecProfile:
-
-        '''
-        Averages selected scans mass spectra using Thermo's AverageScans method
-        scans_list: list[int]
-        auto_process: bool
-            If true performs peak picking, and noise threshold calculation after creation of mass spectrum object
-        Returns:
-            MassSpecProfile
-        '''
 
         """
         Averages selected scans mass spectra using Thermo's AverageScans method
         scans_list: list[int]
         auto_process: bool
             If true performs peak picking, and noise threshold calculation after creation of mass spectrum object
+        auto_noise: bool
+            if true, uses the y-minima method or noise determination
+        log_noise: bool
+            If true, uses the logarithmic method for noise determination
         Returns:
             MassSpecProfile
         """
@@ -456,7 +451,7 @@ class ThermoBaseClass():
                      Labels.abundance: abund_list,
                      }
 
-        mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process)
+        mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process,auto_noise=auto_noise, log_noise=log_noise)
 
         return mass_spec
 
@@ -500,7 +495,7 @@ class ThermoBaseClass():
 
 
     def get_average_mass_spectrum_in_scan_range(self, auto_process: bool = True, ppm_tolerance: float = 5.0,
-                                                ms_type: int = 0) -> MassSpecProfile:
+                                                ms_type: int = 0, auto_noise: bool = True, log_noise: bool = False) -> MassSpecProfile:
 
         '''
         Averages mass spectra over a scan range using Thermo's AverageScansInScanRange method
@@ -512,6 +507,7 @@ class ThermoBaseClass():
             Type of mass spectrum scan, default for full scan acquisition
          Returns:
             MassSpecProfile
+        # This Function is Broken and/or redundant.
         '''
 
         d_params = self.set_metadata(firstScanNumber=self.start_scan,
@@ -543,7 +539,7 @@ class ThermoBaseClass():
                          }
 
             
-            mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process)
+            mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process,auto_noise=auto_noise, log_noise=log_noise)
 
             return mass_spec
         else:

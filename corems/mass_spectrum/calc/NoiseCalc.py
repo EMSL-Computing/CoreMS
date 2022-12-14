@@ -1,6 +1,7 @@
 import time
 
-from numpy import where, average, std, isnan, inf, hstack, median, argmax, percentile, log10, histogram
+from numpy import where, average, std, isnan, inf, hstack, median, argmax, percentile, log10, histogram, nan
+#from scipy.signal import argrelmax
 from corems import chunks
 import warnings
 
@@ -273,15 +274,25 @@ class NoiseThresholdCalc:
         else:
             # cut the spectrum to ROI
             mz_cut, abundance_cut = self.cut_mz_domain_noise(auto)
+            # If there are 0 values, the log will fail
+            # But we may have negative values for aFT data, so we check if 0 exists
+            # Need to make a copy of the abundance cut values so we dont overwrite it....
+            tmp_abundance = abundance_cut.copy()
+            if 0 in tmp_abundance:
+                tmp_abundance[tmp_abundance==0] = nan
+                tmp_abundance = tmp_abundance[~isnan(tmp_abundance)]
+                # It seems there are edge cases of sparse but high S/N data where the wrong values may be determined. 
+                # Hard to generalise - needs more investigation.
+
             # calculate a histogram of the log10 of the abundance data
-            hist_values = histogram(log10(abundance_cut),bins=500) #Todo - pass bins argument
+            hist_values = histogram(log10(tmp_abundance),bins=self.settings.log_Nsigma_bins) 
             #find the apex of this histogram
             maxvalidx = where(hist_values[0] == max(hist_values[0]))
             # get the value of this apex (note - still in log10 units)
             log_sigma = hist_values[1][maxvalidx]
             ## To do : check if aFT or mFT and adjust method
             noise_mid = 10**log_sigma
-            noise_1std = noise_mid*0.463 #for mFT 
+            noise_1std = noise_mid*self.settings.log_Nsigma_CorrFactor #for mFT 0.463
             return float(noise_mid), float(noise_1std)
 
 
