@@ -8,7 +8,7 @@ from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFo
 from numpy import nan
 from corems.ms_peak.calc.MSPeakCalc import MSPeakCalculation
 from corems.mass_spectra.calc import SignalProcessing as sp
-from numpy import NaN
+from numpy import NaN, power
 
 class _MSPeak(MSPeakCalculation):
     '''
@@ -59,6 +59,9 @@ class _MSPeak(MSPeakCalculation):
         self.isotopologue_indexes = []
         # placeholder for found isotopologues molecular formula obj
         self.found_isotopologues = {}
+
+        # Label for what type of peak it is - real signal, noise, sinc wiggle, magnetron or harmonic peak, etc. 
+        self.peak_type = None
 
     def __len__(self):
 
@@ -232,6 +235,40 @@ class ICRMassPeak(_MSPeak):
     def set_calc_resolving_power(self, B, T):
 
         self.resolving_power = self.resolving_power_calc(B, T) 
+
+    def _mz_to_f_bruker(self):
+        '''
+        Convert a peak m/z value to frequency
+        '''
+        if self.mz_cal:
+            mz_val = self.mz_cal
+        else:
+            mz_val = self.mz_exp
+        Aterm, Bterm, Cterm = self._ms_parent.Aterm, self._ms_parent.Bterm, self._ms_parent.Cterm
+        # Check if the Bterm of Ledford equation scales with the ICR trap voltage or not then Bterm = Bterm*trap_voltage
+        
+        if Cterm == 0:
+            
+            if Bterm == 0:
+                #uncalibrated data
+                freq_domain = Aterm / mz_val
+                
+            else:
+                
+                freq_domain = (Aterm / (mz_val)) - Bterm
+
+        # @will I need you insight here, not sure what is the inverted ledford equation that Bruker refers to
+        else:
+
+            freq_domain = (Aterm / mz_val) + (Bterm / power(mz_val, 2)) + Cterm
+
+        return freq_domain
+
+
+
+
+
+    
         
 class TOFMassPeak(_MSPeak):
 
