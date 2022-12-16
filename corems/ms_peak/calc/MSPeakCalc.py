@@ -64,7 +64,10 @@ class MSPeakCalculation:
 
             yy = self._ms_parent.abundance_profile[self.start_scan:self.final_scan]
             xx = self._ms_parent.mz_exp_profile[self.start_scan:self.final_scan]
-            xx = flip(xx)
+            # check if the axis is high to low m/z or not. if its MSFromFreq its high mz first, if its from Profile, its low mz first
+            if xx[0] > xx[-1]:
+                xx = flip(xx)    
+                yy = flip(yy)   
             return float(trapz(yy, xx))
 
         else:
