@@ -240,6 +240,8 @@ class ICRMassPeak(_MSPeak):
         '''
         Convert a peak m/z value to frequency
         '''
+        '''
+        # Currently Broken - Not sure why
         if self.mz_cal:
             mz_val = self.mz_cal
         else:
@@ -263,6 +265,9 @@ class ICRMassPeak(_MSPeak):
             freq_domain = (Aterm / mz_val) + (Bterm / power(mz_val, 2)) + Cterm
 
         return freq_domain
+        '''
+        print('Function not confirmed to work, disabled.')
+        return None
 
 
 
