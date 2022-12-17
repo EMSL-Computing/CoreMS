@@ -3,8 +3,11 @@ from copy import deepcopy
 
 
 #from matplotlib import rcParamsDefault, rcParams
-from numpy import array, power, float64, where
+from numpy import array, power, float64, where, histogram
 from numpy import float as np_float
+
+from pandas import DataFrame
+from lmfit.models import GaussianModel
 
 from corems.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
 from corems.mass_spectrum.calc.KendrickGroup import KendrickGrouping
@@ -833,8 +836,10 @@ class MassSpecfromFreq(MassSpecBase):
         self._frequency_domain = frequency_domain
         self.has_frequency = True
         self._set_mz_domain()
-
         
+        self.magnetron_frequency = None
+        self.magnetron_frequency_sigma = None
+
         """ use this call to automatically process data as the object is created, Setting need to be changed before initiating the class to be in effect"""
         
         if auto_process:
@@ -858,6 +863,26 @@ class MassSpecfromFreq(MassSpecBase):
     def transient_settings(self, instance_TransientSetting):
      
         self.parameters.transient = instance_TransientSetting  
+
+    def calc_magnetron_freq(self, max_magnetron_freq=50,magnetron_freq_bins=300):
+        '''
+        Calculates the magnetron frequency by examining all the picked peaks and the distances between them in the frequency domain
+        A histogram of those values below the threshold 'max_magnetron_freq' with the 'magnetron_freq_bins' number of bins is calculated
+        A gaussian model is fit to this histogram - the center value of this (statistically probably) the magnetron frequency
+        This appears to work well or nOmega datasets, but may not work well for 1x datasets or those with very low magnetron peaks.
+        '''
+        ms_df = DataFrame(self.freq_exp(),columns=['Freq'])
+        ms_df['FreqDelta'] = ms_df['Freq'].diff()
+
+        freq_hist = histogram(ms_df[ms_df['FreqDelta']<max_magnetron_freq]['FreqDelta'],bins=magnetron_freq_bins)
+    
+        mod = GaussianModel()
+        pars = mod.guess(freq_hist[0], x=freq_hist[1][:-1])
+        out = mod.fit(freq_hist[0], pars, x=freq_hist[1][:-1])
+        self.magnetron_frequency = out.best_values['center']
+        self.magnetron_frequency_sigma = out.best_values['sigma']
+            
+
 
 class MassSpecCentroid(MassSpecBase):
 

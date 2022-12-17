@@ -143,6 +143,8 @@ class ReadBrukerSolarix(object):
 
         output_parameters["polarity"] = str(file_d_params.get("Polarity"))
 
+        output_parameters["magnetron_frequency"] = float(file_d_params.get('PP_MagnetronFrequency'))
+
         data_points = int(file_d_params.get("TD"))
 
         scan = output_parameters["scan_number"]
