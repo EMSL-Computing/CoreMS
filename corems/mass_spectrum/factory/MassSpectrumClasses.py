@@ -883,7 +883,6 @@ class MassSpecfromFreq(MassSpecBase):
         self.magnetron_frequency_sigma = out.best_values['sigma']
             
 
-
 class MassSpecCentroid(MassSpecBase):
 
     '''
