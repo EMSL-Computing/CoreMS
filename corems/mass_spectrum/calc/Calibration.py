@@ -289,7 +289,7 @@ class MzDomainCalibration:
                 mass_spectrum.mz_cal_profile = mz_profile_calc
 
             mass_spectrum.calibration_order = order
-            mass_spectrum.calibration_points = len(mzrefs)
+            mass_spectrum.measured_mz = len(mzrefs)
             mass_spectrum.calibration_RMS = float(res['fun'])
             if diagnostic:
                 return mass_spectrum,res

@@ -40,6 +40,7 @@ from ThermoFisher.CommonCore.Data import ToleranceUnits, Extensions
 from ThermoFisher.CommonCore.Data.Business import ChromatogramTraceSettings, TraceType, MassOptions
 from ThermoFisher.CommonCore.Data.Business import ChromatogramSignal, Range
 from ThermoFisher.CommonCore.Data.Interfaces import IChromatogramSettings
+from ThermoFisher.CommonCore.Data.Business import MassOptions, FileHeaderReaderFactory
 from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType
 from System.Collections.Generic import List
 
@@ -70,6 +71,9 @@ class ThermoBaseClass():
         self.res = self.iRawDataPlus.SelectInstrument(0, 1)
         
         self.file_path = file_location
+        self.iFileHeader = FileHeaderReaderFactory.ReadFile(str(file_path))
+
+        # removing tmp file
 
         self._init_settings()
 

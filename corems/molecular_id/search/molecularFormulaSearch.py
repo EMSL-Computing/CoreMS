@@ -10,7 +10,7 @@ import tqdm
 
 
 from corems import chunks, timeit
-from corems.encapsulation.constant import Atoms, Labels
+from corems.encapsulation.constant import Labels
 from corems.molecular_formula.factory.MolecularFormulaFactory import LCMSLibRefMolecularFormula, MolecularFormula
 from corems.ms_peak.factory.MSPeakClasses import _MSPeak
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL

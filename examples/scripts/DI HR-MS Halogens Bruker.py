@@ -26,9 +26,9 @@ def get_mass_spectrum(file_location):
     return bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
 
 def export(list_dict, export_name):
-    
+
     import pandas as pd
-    
+
     columns = [ "Sample Name", 
                 "Calculated m/z",
                 "Experimental m/z",
@@ -43,29 +43,29 @@ def export(list_dict, export_name):
                 "Probability Ratio",
                 "Abundance Error"
                ]
-    
+
     df = pd.DataFrame(list_dict, columns=columns)
-    df.to_pickle(export_name+".pkl")
-    df.to_csv(export_name+".csv", index=False)
+    df.to_pickle(export_name + ".pkl")
+    df.to_csv(export_name + ".csv", index=False)
 
 
 def set_settings_for_bromothymol_blue(mass_spectrum):
 
-    mass_spectrum.molecular_search_settings.min_ppm_error  = -2
+    mass_spectrum.molecular_search_settings.min_ppm_error = -2
     mass_spectrum.molecular_search_settings.max_ppm_error = 5
 
-    mass_spectrum.molecular_search_settings.usedAtoms['C'] = (1,90)
-    mass_spectrum.molecular_search_settings.usedAtoms['H'] = (4,200)
-    mass_spectrum.molecular_search_settings.usedAtoms['O'] = (5,5)
-    mass_spectrum.molecular_search_settings.usedAtoms['N'] = (0,0)
-    mass_spectrum.molecular_search_settings.usedAtoms['S'] = (1,1)
-    mass_spectrum.molecular_search_settings.usedAtoms['Br'] = (2,2)
+    mass_spectrum.molecular_search_settings.usedAtoms['C'] = (1, 90)
+    mass_spectrum.molecular_search_settings.usedAtoms['H'] = (4, 200)
+    mass_spectrum.molecular_search_settings.usedAtoms['O'] = (5, 5)
+    mass_spectrum.molecular_search_settings.usedAtoms['N'] = (0, 0)
+    mass_spectrum.molecular_search_settings.usedAtoms['S'] = (1, 1)
+    mass_spectrum.molecular_search_settings.usedAtoms['Br'] = (2, 2)
 
     #enables the search for Br compounds 
     mass_spectrum.molecular_search_settings.adduct_atoms_neg = ['Cl', 'F']
 
     mass_spectrum.molecular_search_settings.isProtonated = True
-    mass_spectrum.molecular_search_settings.isRadical= False
+    mass_spectrum.molecular_search_settings.isRadical = False
     mass_spectrum.molecular_search_settings.isAdduct = False
 
     mass_spectrum.molecular_search_settings.use_min_peaks_filter = False

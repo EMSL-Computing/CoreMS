@@ -213,7 +213,7 @@ class HeteroatomsClassification(Mapping):
 
     def abundance_count_percentile(self, classe):
 
-        return (sum([mspeak.abundance for mspeak in self[classe]])/self.sum_abundance)*100
+        return (sum([mspeak.abundance for mspeak in self[classe]]) / self.sum_abundance)*100
 
     def mz_exp_assigned(self):
 

@@ -8,7 +8,7 @@ from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
 from corems.transient.calc.TransientCalc import TransientCalculations
 import matplotlib.pyplot as plt
 from copy import deepcopy
-from corems.encapsulation.input.parameter_from_json import load_and_set_parameters_class
+from corems.encapsulation.input.parameter_from_json import load_and_set_parameters_class, load_and_set_toml_parameters_class
 
 
 __author__ = "Yuri E. Corilo"
@@ -106,6 +106,9 @@ class Transient(TransientCalculations):
     def parameters(self, instance_TransientParameters):
         self._parameters = instance_TransientParameters
     
+    def set_parameter_from_toml(self, parameters_path):
+        self._parameters = load_and_set_toml_parameters_class('Transient', self._parameters, parameters_path=parameters_path)
+      
     def set_parameter_from_json(self, parameters_path):
         self._parameters = load_and_set_parameters_class('Transient', self._parameters, parameters_path=parameters_path)
     

@@ -1,17 +1,16 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 from copy import deepcopy
+from datetime import datetime
 from pathlib import Path
 
 from numpy import genfromtxt, fromstring, dtype, fromfile, frombuffer
+import pandas as pd
 from s3path import S3Path
 from xml.dom import minidom
 
-
 from corems.transient.factory.TransientClasses import Transient
 from corems.encapsulation.factory.parameters import default_parameters
-
-
 
 class ReadBrukerSolarix(object):
     
@@ -143,6 +142,8 @@ class ReadBrukerSolarix(object):
 
         output_parameters["polarity"] = str(file_d_params.get("Polarity"))
 
+        output_parameters["aquisition_time"] = file_d_params.get("aquisition_time")
+
         data_points = int(file_d_params.get("TD"))
 
         scan = output_parameters["scan_number"]
@@ -259,6 +260,18 @@ class ReadBrukerSolarix(object):
         children = x.childNodes
         for child in children:
             # print( child.node)
+            if child.nodeName == 'methodmetadata':
+                sections = child.childNodes
+                for section in sections:
+                    for element in section.childNodes:
+                        if element.nodeName == "date":
+                        #if element.nodeName == "primarykey":
+                            
+                            date_time_str = (element.childNodes[0].nodeValue)
+                            #parameter_dict["aquisition_time"] = pd.to_datetime(date_time_str, infer_datetime_format=True).to_pydatetime()
+                            parameter_dict["aquisition_time"] = datetime.strptime(date_time_str, "%b_%d_%Y %H:%M:%S.%f")
+                            
+            
             if child.nodeName == "reportinfo":
                 sections = child.childNodes
                 for section in sections:
