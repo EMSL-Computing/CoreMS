@@ -135,4 +135,41 @@ class ReadMassList(MassListBaseClass):
 
             return mass_spec
     
+
+class ReadBrukerXMLList(MassListBaseClass):
+    '''
+    The ReadBrukerXMLList object reads Bruker XML objects
+    and returns the mass spectrum obj 
+    See MassListBaseClass for details
     
+    '''
+
+    def get_mass_spectrum(self, polarity=None, scan=0, auto_process=True, loadSettings=True):
+        '''
+         The MassListBaseClass object reads mass list data types and returns the mass spectrum obj
+
+        Parameters
+        ----------
+        polarity: int 
+            +1 or -1 
+            Defa
+        '''
+        # delimiter = "  " or " " or  "," or "\t" etc  
+        
+        if polarity == None:
+            polarity = self.get_xml_polarity()
+        dataframe = self.get_dataframe()
+
+        self.check_columns(dataframe.columns)
+            
+        self.clean_data_frame(dataframe)
+        
+        dataframe.rename(columns=self.parameters.header_translate, inplace=True)
+        
+        output_parameters = self.get_output_parameters(polarity)
+
+        mass_spec = MassSpecCentroid(dataframe.to_dict(orient='list'), output_parameters)
+        
+        if loadSettings: self.load_settings(mass_spec, output_parameters)
+        
+        return mass_spec

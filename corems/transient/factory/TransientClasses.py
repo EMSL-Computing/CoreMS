@@ -143,7 +143,7 @@ class Transient(TransientCalculations):
         # return frequency_domain, magnitude
 
     def get_mass_spectrum(self, auto_process=True, plot_result=True,
-                         keep_profile=True, auto_noise=True, noise_bayes_est=False) -> MassSpecfromFreq:
+                         keep_profile=True, auto_noise=True, noise_bayes_est=False, log_noise=False) -> MassSpecfromFreq:
 
         #plt.figure(figsize=(13, 8))
 
@@ -160,7 +160,7 @@ class Transient(TransientCalculations):
         return MassSpecfromFreq(
             frequency_domain, magnitude, self.d_params, 
             auto_process=auto_process, keep_profile=keep_profile,
-            auto_noise=auto_noise, noise_bayes_est=noise_bayes_est)
+            auto_noise=auto_noise, noise_bayes_est=noise_bayes_est,log_noise=log_noise)
 
     @property
     def filename(self):

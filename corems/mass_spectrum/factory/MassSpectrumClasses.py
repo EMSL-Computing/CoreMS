@@ -3,8 +3,11 @@ from copy import deepcopy
 
 
 #from matplotlib import rcParamsDefault, rcParams
-from numpy import array, power, float64, where
+from numpy import array, power, float64, where, histogram
 from numpy import float as np_float
+
+from pandas import DataFrame
+from lmfit.models import GaussianModel
 
 from corems.mass_spectrum.calc.MassSpectrumCalc import MassSpecCalc
 from corems.mass_spectrum.calc.KendrickGroup import KendrickGrouping
@@ -194,14 +197,14 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self.check_mspeaks()
         return array([mspeak.clear_molecular_formulas() for mspeak in self.mspeaks])
 
-    def process_mass_spec(self, keep_profile=True, auto_noise=True, noise_bayes_est=False):
+    def process_mass_spec(self, keep_profile=True, auto_noise=True, noise_bayes_est=False,log_noise=False):
         
         # if runned mannually make sure to rerun filter_by_noise_threshold     
         # calculates noise threshold 
         # do peak picking( create mspeak_objs) 
         # reset mspeak_obj the indexes
          
-        self.cal_noise_threshold(auto=auto_noise, bayes=noise_bayes_est)
+        self.cal_noise_threshold(auto=auto_noise, bayes=noise_bayes_est,log_noise=log_noise)
 
         self.find_peaks()
         self.reset_indexes()
@@ -216,14 +219,16 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             self._mz_exp *= 0
             
 
-    def cal_noise_threshold(self, auto=True, bayes=False):
+    def cal_noise_threshold(self, auto=True, bayes=False,log_noise=False):
 
         if self.label == Labels.simulated_profile:
 
             self._baselise_noise, self._baselise_noise_std = 0.1, 1
 
-        else:
+        if log_noise:
+            self._baselise_noise, self._baselise_noise_std = self.run_log_noise_threshold_calc(auto, bayes=bayes)
 
+        else:
             self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto, bayes=bayes)
 
     @property
@@ -650,7 +655,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         return ax
 
 
-    def plot_profile_and_noise_threshold(self, ax=None): 
+    def plot_profile_and_noise_threshold(self, ax=None,legend=False): 
 
         import matplotlib.pyplot as plt
         if self.baselise_noise_std and self.baselise_noise_std:
@@ -665,9 +670,9 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             if ax is None:
                 ax = plt.gca()
             
-            ax.plot(self.mz_exp_profile, self.abundance_profile, color="green")
-            ax.plot(x, (baseline, baseline), color="yellow")
-            ax.plot(x, y, color="red")
+            ax.plot(self.mz_exp_profile, self.abundance_profile, color="green",label="Spectrum")
+            ax.plot(x, (baseline, baseline), color="yellow",label="Baseline Noise")
+            ax.plot(x, y, color="red",label="Noise Threshold")
 
             ax.set_xlabel("$\t{m/z}$", fontsize=12)
             ax.set_ylabel('Abundance', fontsize=12)
@@ -678,6 +683,8 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
             ax.get_yaxis().set_visible(False)
             ax.spines['left'].set_visible(False)
+            if legend:
+                ax.legend()
 
         else:
 
@@ -770,7 +777,7 @@ class MassSpecProfile(MassSpecBase):
     see also: MassSpecBase(), MassSpecfromFreq(), MassSpecProfile()
     '''
 
-    def __init__(self, data_dict, d_params, auto_process=True, auto_noise=True, noise_bayes_est=False):
+    def __init__(self, data_dict, d_params, auto_process=True, auto_noise=True, noise_bayes_est=False,log_noise=False):
         """
         method docs
         """
@@ -778,7 +785,7 @@ class MassSpecProfile(MassSpecBase):
         super().__init__(data_dict.get(Labels.mz), data_dict.get(Labels.abundance), d_params)
        
         if auto_process:
-            self.process_mass_spec(auto_noise=auto_noise, noise_bayes_est=noise_bayes_est)
+            self.process_mass_spec(auto_noise=auto_noise, noise_bayes_est=noise_bayes_est,log_noise=log_noise)
 
 class MassSpecfromFreq(MassSpecBase):
     '''
@@ -822,7 +829,7 @@ class MassSpecfromFreq(MassSpecBase):
     '''
 
     def __init__(self, frequency_domain, magnitude, d_params, 
-                auto_process=True, keep_profile=True, auto_noise=False, noise_bayes_est=False):
+                auto_process=True, keep_profile=True, auto_noise=False, noise_bayes_est=False,log_noise=False):
         """
         method docs
         """
@@ -831,12 +838,14 @@ class MassSpecfromFreq(MassSpecBase):
         self._frequency_domain = frequency_domain
         self.has_frequency = True
         self._set_mz_domain()
-
         
+        self.magnetron_frequency = None
+        self.magnetron_frequency_sigma = None
+
         """ use this call to automatically process data as the object is created, Setting need to be changed before initiating the class to be in effect"""
         
         if auto_process:
-            self.process_mass_spec(keep_profile=keep_profile, auto_noise=auto_noise, noise_bayes_est=noise_bayes_est)
+            self.process_mass_spec(keep_profile=keep_profile, auto_noise=auto_noise, noise_bayes_est=noise_bayes_est,log_noise=log_noise)
 
 
     def _set_mz_domain(self):
@@ -856,6 +865,25 @@ class MassSpecfromFreq(MassSpecBase):
     def transient_settings(self, instance_TransientSetting):
      
         self.parameters.transient = instance_TransientSetting  
+
+    def calc_magnetron_freq(self, max_magnetron_freq=50,magnetron_freq_bins=300):
+        '''
+        Calculates the magnetron frequency by examining all the picked peaks and the distances between them in the frequency domain
+        A histogram of those values below the threshold 'max_magnetron_freq' with the 'magnetron_freq_bins' number of bins is calculated
+        A gaussian model is fit to this histogram - the center value of this (statistically probably) the magnetron frequency
+        This appears to work well or nOmega datasets, but may not work well for 1x datasets or those with very low magnetron peaks.
+        '''
+        ms_df = DataFrame(self.freq_exp(),columns=['Freq'])
+        ms_df['FreqDelta'] = ms_df['Freq'].diff()
+
+        freq_hist = histogram(ms_df[ms_df['FreqDelta']<max_magnetron_freq]['FreqDelta'],bins=magnetron_freq_bins)
+    
+        mod = GaussianModel()
+        pars = mod.guess(freq_hist[0], x=freq_hist[1][:-1])
+        out = mod.fit(freq_hist[0], pars, x=freq_hist[1][:-1])
+        self.magnetron_frequency = out.best_values['center']
+        self.magnetron_frequency_sigma = out.best_values['sigma']
+            
 
 class MassSpecCentroid(MassSpecBase):
 
@@ -972,7 +1000,7 @@ class MassSpecCentroid(MassSpecBase):
 
    
 
-    def process_mass_spec(self, auto_noise=True, noise_bayes_est=False):
+    def process_mass_spec(self, auto_noise=True, noise_bayes_est=False,log_noise=False):
         import tqdm
         # overwrite process_mass_spec 
         # mspeak objs are usually added inside the PeaKPicking class 
@@ -1032,7 +1060,10 @@ class MassSpecCentroid(MassSpecBase):
         self._set_nominal_masses_start_final_indexes()
         
         if self.label != Labels.thermo_centroid:
-            self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto=auto_noise, bayes=noise_bayes_est)
+            if log_noise:
+                self._baselise_noise, self._baselise_noise_std = self.run_log_noise_threshold_calc(auto=auto_noise, bayes=noise_bayes_est)
+            else:
+                self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto=auto_noise, bayes=noise_bayes_est)
         
         del self.data_dict    
 class MassSpecCentroidLowRes(MassSpecCentroid,):

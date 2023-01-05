@@ -228,7 +228,7 @@ class MzDomainCalibration:
         rmserror = np.sqrt(np.mean(error**2))
         return rmserror
 
-    def recalibrate_mass_spectrum(self, mass_spectrum, imzmeas, mzrefs, order=1):
+    def recalibrate_mass_spectrum(self, mass_spectrum, imzmeas, mzrefs, order=1,diagnostic=False):
 
         """
         function to recalibrate the mass spectrum object
@@ -291,6 +291,8 @@ class MzDomainCalibration:
             mass_spectrum.calibration_order = order
             mass_spectrum.calibration_points = len(mzrefs)
             mass_spectrum.calibration_RMS = float(res['fun'])
+            if diagnostic:
+                return mass_spectrum,res
 
         return mass_spectrum
 

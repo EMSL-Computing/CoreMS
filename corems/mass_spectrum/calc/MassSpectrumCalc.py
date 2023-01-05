@@ -94,8 +94,9 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
 
     def _f_to_mz_bruker(self):
         ''' 
-        Burker equations for converting frequency (Hz) to m/z, 
+        Bruker equations for converting frequency (Hz) to m/z, 
         nOmega acquisition is not yet implemented here
+        However, nOmega should work for commerical Bruker 2xR systems as A Term is automatically defined for 2X or 1X by the instrument 
         
         Attributes
         ----------

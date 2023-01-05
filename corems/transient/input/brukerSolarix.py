@@ -79,7 +79,10 @@ class ReadBrukerSolarix(object):
     
         from bs4 import BeautifulSoup
         
-        soup = BeautifulSoup(self.scan_attr.open(),'xml')
+        try: 
+            soup = BeautifulSoup(self.scan_attr.open(),'xml')
+        except:
+            raise FileNotFoundError("Dataset does not appear to contain a 'scan.xml' file or it is misformated")
 
         list_rt = [float(rt.text) for rt in soup.find_all('minutes')]
         list_tic = [float(tic.text) for tic in soup.find_all('tic')]
