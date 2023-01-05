@@ -393,18 +393,24 @@
     },
     "Transient": {
         "implemented_apodization_function": [
-            "Hamming", "Hanning", "Blackman"
+            "Hamming", "Hanning", "Blackman", "Full-Sine", "Half-Sine", "Kaiser", "Half-Kaiser"
         ],
         "apodization_method": "Hanning", "number_of_truncations": 0,
-        "number_of_zero_fills": 1
+        "number_of_zero_fills": 1,
+        "next_power_of_two": false,
+        "kaiser_beta": 8.6
     },
     "MassSpectrum": {
         "threshold_method": "auto", "implemented_noise_threshold_methods": [
-            "auto", "signal_noise", "relative_abundance"
+            "auto", "signal_noise", "relative_abundance", "absolute_abundance", "log"
         ],
         "noise_threshold_std": 32,
         "s2n_threshold": 4.0,
         "relative_abundance_threshold": 6.0,
+        "absolute_abundance_threshold": 1000000.0,
+        "log_Nsigma": 6,
+        "log_Nsigma_CorrFactor": 0.463,
+        "log_Nsigma_bins": 500,
         "min_noise_mz": 50.0,
         "max_noise_mz": 1200.0,
         "min_picking_mz": 50.0,
@@ -423,8 +429,11 @@
         "kendrick_rounding_method": "floor", "implemented_kendrick_rounding_methods": [
             "floor", "ceil", "round"
         ],
+        "peak_derivative_threshold": 0.0,
         "peak_min_prominence_percent": 1,
-        "peak_max_prominence_percent": 0.1
+        "min_peak_datapoints": 5.0,
+        "peak_max_prominence_percent": 0.1,
+        "peak_height_max_percent": 10.0
     },
     "DataInput": {
         "header_translate": {
