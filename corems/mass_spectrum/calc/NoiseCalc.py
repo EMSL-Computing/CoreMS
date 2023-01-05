@@ -1,4 +1,5 @@
 import time
+from typing import Tuple
 
 from numpy import where, average, std, isnan, inf, hstack, median, argmax, percentile, log10, histogram, nan
 #from scipy.signal import argrelmax
@@ -11,7 +12,7 @@ __date__ = "Jun 27, 2019"
 
 class NoiseThresholdCalc:
 
-    def get_noise_threshold(self) -> ( (float, float), (float,float) ):
+    def get_noise_threshold(self) -> Tuple(Tuple( float, float), Tuple(float,float )):
         ''' return two tuples (min_mz, max_mz) , (noise_threshold, noise_threshold)'''
         
         if self.is_centroid:
@@ -140,6 +141,9 @@ class NoiseThresholdCalc:
 
 
     def from_posterior(self, param, samples):
+        '''pymc3 is not installed by default, 
+            if have plans to use it manual installation of pymc3 
+            package before using this method is needed'''
 
         import pymc3 as pm
         import numpy as np
@@ -160,7 +164,9 @@ class NoiseThresholdCalc:
         return pm.distributions.Interpolated(param, x, y)
 
     def error_model_from_trace(self, trace, ymincentroid):
-         
+
+        '''pymc3 is not installed by default, 
+            if you have plans to use it, manual installation of the pymc3 package before using this method is needed''' 
         import pymc3 as pm
         #from pymc3 import traceplot, plot_posterior
         
@@ -177,7 +183,8 @@ class NoiseThresholdCalc:
             return pm.summary(trace)['mean'].values[0] 
 
     def simple_model_error_dist(self,  ymincentroid):
-        
+        '''pymc3 is not installed by default, 
+            if you have plans to use it, manual installation of the pymc3 package before using this method is needed'''
         import pymc3 as pm
         # from pymc3 import traceplot, plot_posterior
         #import seaborn as sns
@@ -294,8 +301,6 @@ class NoiseThresholdCalc:
             noise_mid = 10**log_sigma
             noise_1std = noise_mid*self.settings.log_Nsigma_CorrFactor #for mFT 0.463
             return float(noise_mid), float(noise_1std)
-
-
 
     def run_noise_threshold_calc(self, auto, bayes=False):
         
