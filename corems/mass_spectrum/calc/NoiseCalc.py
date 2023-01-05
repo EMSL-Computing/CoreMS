@@ -12,7 +12,7 @@ __date__ = "Jun 27, 2019"
 
 class NoiseThresholdCalc:
 
-    def get_noise_threshold(self) -> Tuple(Tuple( float, float), Tuple(float,float )):
+    def get_noise_threshold(self) -> Tuple[Tuple[float, float], Tuple[float,float ]]:
         ''' return two tuples (min_mz, max_mz) , (noise_threshold, noise_threshold)'''
         
         if self.is_centroid:
