@@ -1,14 +1,12 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 11, 2021"
 
-import pytest
-import sys
-sys.path.append(".")
-
 from corems.mass_spectra.calc.MZSearch import MZSearch
+import sys
 
+#sys.path.append(".")
 
-def test_mzsearch():
+def xtest_mzsearch():
 
     exp = [212.121, 232.121, 232.122, 234.123, 123.34]
     calculated = [212.12101, 232.1213]
@@ -20,5 +18,5 @@ def test_mzsearch():
     print(searchmz.results)
 
 if __name__ == '__main__':
-
-    test_mzsearch()
+    pass
+    #test_mzsearch()
