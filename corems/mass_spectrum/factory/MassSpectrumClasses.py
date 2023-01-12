@@ -4,7 +4,6 @@ from copy import deepcopy
 
 #from matplotlib import rcParamsDefault, rcParams
 from numpy import array, power, float64, where, histogram
-from numpy import float as np_float
 
 from pandas import DataFrame
 from lmfit.models import GaussianModel
@@ -1027,7 +1026,7 @@ class MassSpecCentroid(MassSpecBase):
         
         print("Loading mass spectrum object")
         
-        abun = array(data_dict.get(Labels.abundance)).astype(np_float)
+        abun = array(data_dict.get(Labels.abundance)).astype(float)
         
         abundance_threshold, factor = self.get_threshold(abun)
         

@@ -1,4 +1,5 @@
 venv/ 
+test_env/ 
 venvwsl/
 tmp_data/ 
 .pyc  

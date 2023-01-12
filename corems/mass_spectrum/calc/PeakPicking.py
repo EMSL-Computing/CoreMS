@@ -5,7 +5,6 @@
 
 from logging import warn
 from numpy import hstack, inf, isnan, poly1d, polyfit, where, array
-from numpy import float as npfloat
 from corems.encapsulation.constant import Labels
 from corems.mass_spectra.calc import SignalProcessing as sp
 
@@ -268,7 +267,7 @@ class PeakPicking:
         
     def get_threshold(self, intes):
         
-        intes = array(intes).astype(npfloat)
+        intes = array(intes).astype(float)
        
         threshold_method = self.settings.threshold_method
 

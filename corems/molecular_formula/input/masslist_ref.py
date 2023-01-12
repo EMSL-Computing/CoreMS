@@ -15,15 +15,15 @@ from corems.encapsulation.constant import Labels
 from corems.encapsulation.constant import Atoms
 from corems.molecular_id.factory.molecularSQL import CarbonHydrogen, MolecularFormulaLink, HeteroAtoms
 
-class MolecularFormulaLinkProxy():
+class MolecularFormulaLinkProxy:
         
         def __init__(self, molecular_formula, mz):
 
             self.C = molecular_formula.get('C')
             self.H = molecular_formula.get('H')
             self.H_C = molecular_formula.get('H')/molecular_formula.get('C')
-            self.classe = json.dumps(molecular_formula.class_dict)
-            self.mass =  float(mz)                       
+            self.class_label = json.dumps(molecular_formula.class_dict)
+            self.mz_calc =  float(mz)                       
             self.dbe = molecular_formula.dbe
             self.formula_dict = molecular_formula.to_dict()
         

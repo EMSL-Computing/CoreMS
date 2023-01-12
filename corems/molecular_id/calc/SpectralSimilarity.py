@@ -2,7 +2,6 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 09, 2021"
 
 from numpy.fft import rfft
-from pywt import dwt 
 from scipy.spatial.distance import cosine, jaccard, euclidean, cityblock
 from scipy.stats import pearsonr, spearmanr, kendalltau
 from sklearn.metrics.pairwise import cosine_similarity
@@ -326,6 +325,8 @@ class SpectralSimilarity():
 
     def dwt_correlation(self):
 
+        from pywt import dwt 
+        
         if self.n_x_y == 0:
             return 0
 
