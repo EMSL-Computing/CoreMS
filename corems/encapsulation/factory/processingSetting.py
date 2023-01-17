@@ -153,9 +153,9 @@ class LiquidChromatographSetting:
 @dataclasses.dataclass
 class MassSpectrumSetting:
 
-    threshold_method: str = 'relative_abundance'
+    threshold_method: str = 'log'
 
-    implemented_noise_threshold_methods: tuple = ('auto', 'signal_noise', 'relative_abundance', 'absolute_abundance', 'log')
+    implemented_noise_threshold_methods: tuple = ('minima', 'signal_noise', 'relative_abundance', 'absolute_abundance', 'log')
 
     noise_threshold_std: int = 6
 
