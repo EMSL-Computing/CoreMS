@@ -40,7 +40,7 @@ def test_import_booster_mass_spectrum_hdf():
         
         booster_reader = ReadHDF_BoosterMassSpectrum(file_path, isCentroid=False)
 
-        mass_spectrum = booster_reader.get_mass_spectrum(auto_process=True, auto_noise=True)
+        mass_spectrum = booster_reader.get_mass_spectrum(auto_process=True)
 
         #mass_spectrum.plot_mz_domain_profile()
         
@@ -118,7 +118,7 @@ def test_import_transient():
         #MSParameters.mass_spectrum.threshold_method = 'signal_noise'
         #MSParameters.mass_spectrum.s2n_threshold = 50
 
-        MSParameters.mass_spectrum.threshold_method = 'auto'
+        MSParameters.mass_spectrum.threshold_method = 'log'
         MSParameters.mass_spectrum.noise_threshold_std = 3
 
         MSParameters.ms_peak.peak_min_prominence_percent = 1
@@ -282,7 +282,7 @@ def test_import_mass_list():
     # MSParameters.mass_spectrum.threshold_method = 'signal_noise'
     # MSParameters.mass_spectrum.s2n_threshold = 100
 
-    MSParameters.mass_spectrum.threshold_method = 'auto'
+    MSParameters.mass_spectrum.threshold_method = 'log'
     MSParameters.mass_spectrum.noise_threshold_std = 32
 
     #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc

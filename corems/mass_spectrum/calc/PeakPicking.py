@@ -271,7 +271,7 @@ class PeakPicking:
        
         threshold_method = self.settings.threshold_method
 
-        if threshold_method == 'auto':
+        if threshold_method == 'minima':
             
             if self.is_centroid:
                 warn("Auto threshould is disabled for centroid data, returning 0")

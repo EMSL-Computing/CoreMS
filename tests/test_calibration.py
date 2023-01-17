@@ -37,12 +37,11 @@ def create_mass_spectrum():
     bruker_reader = ReadBrukerSolarix(file_location)
     bruker_transient = bruker_reader.get_transient()
 
-    MSParameters.mass_spectrum.threshold_method = 'auto'
+    MSParameters.mass_spectrum.threshold_method = 'log'
     MSParameters.mass_spectrum.noise_threshold_std = 3
     MSParameters.ms_peak.peak_min_prominence_percent = 0.01
 
     mass_spectrum = bruker_transient.get_mass_spectrum(plot_result=False,
-                                                    auto_noise=True,
                                                     auto_process=True,
                                                     keep_profile=True)
     
