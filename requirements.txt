@@ -10,9 +10,11 @@ psycopg2-binary>=2.8.3
 h5py>=3.7.0
 netCDF4>=1.6.0
 lmfit>=1.0.0
+lxml>=4.4.1
 chardet>=3.0.4
 tqdm>=4.43.0
 s3path
 pyswarm
 beautifulsoup4
 toml
+

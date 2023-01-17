@@ -23,49 +23,61 @@ adduct_atoms_pos = [ "Na", "K",]
 score_methods = [ "S_P_lowest_error", "N_S_P_lowest_error", "lowest_error", "prob_score", "air_filter_error", "water_filter_error", "earth_filter_error",]
 score_method = "prob_score"
 output_min_score = 0.1
-output_score_method = "All Candidates"
-isRadical = false
+output_score_method = "prob_score"
+isRadical = true
 isProtonated = true
 isAdduct = false
 ionization_type = "ESI"
-min_ppm_error = -10.0
-max_ppm_error = 10.0
-min_abun_error = -100.0
-max_abun_error = 100.0
-mz_error_range = 1.5
+min_ppm_error = -3
+max_ppm_error = 5
+min_abun_error = -30
+max_abun_error = 70
+mz_error_range = 1
 error_method = "None"
-mz_error_average = 0.0
+mz_error_average = 0
 
 [Transient]
-implemented_apodization_function = [ "Hamming", "Hanning", "Blackman",]
+implemented_apodization_function = [ "Hamming", "Hanning", "Blackman", "Full-Sine", "Half-Sine", "Kaiser", "Half-Kaiser",]
 apodization_method = "Hanning"
 number_of_truncations = 0
 number_of_zero_fills = 1
+next_power_of_two = false
+kaiser_beta = 8.6
 
 [MassSpectrum]
-threshold_method = "relative_abundance"
-implemented_noise_threshold_methods = [ "auto", "signal_noise", "relative_abundance",]
-noise_threshold_std = 6
+threshold_method = "auto"
+implemented_noise_threshold_methods = [ "auto", "signal_noise", "relative_abundance", "absolute_abundance", "log",]
+noise_threshold_std = 32
 s2n_threshold = 4.0
 relative_abundance_threshold = 6.0
-min_noise_mz = 100.0
+absolute_abundance_threshold = 1000000.0
+log_Nsigma = 6
+log_Nsigma_CorrFactor = 0.463
+log_Nsigma_bins = 500
+min_noise_mz = 50.0
 max_noise_mz = 1200.0
-min_picking_mz = 100.0
+min_picking_mz = 50.0
 max_picking_mz = 1200.0
 calib_minimize_method = "Powell"
 calib_pol_order = 2
-max_calib_ppm_error = 1.0
-min_calib_ppm_error = -1.0
-calib_sn_threshold = 10.0
+max_calib_ppm_error = 10
+min_calib_ppm_error = -10
+calib_sn_threshold = 2.0
 do_calibration = true
 
 [MassSpecPeak]
-peak_min_prominence_percent = 1.0
+kendrick_rounding_method = "floor"
+implemented_kendrick_rounding_methods = [ "floor", "ceil", "round",]
+peak_derivative_threshold = 0.0
+peak_min_prominence_percent = 1
+min_peak_datapoints = 5.0
 peak_max_prominence_percent = 0.1
+peak_height_max_percent = 10.0
 
 [MolecularFormulaSearch.usedAtoms]
 C = [ 1, 100,]
-H = [ 1, 200,]
+H = [ 4, 200,]
+O = [ 7, 16,]
 
 [MolecularFormulaSearch.used_atom_valences]
 C = 4
@@ -74,8 +86,8 @@ N = 3
 O = 2
 S = 2
 H = 1
-F = [ 1, 0,]
-Cl = [ 1, 0,]
+F = 0
+Cl = 0
 Br = [ 1, 0,]
 I = [ 1, 0,]
 At = 1
@@ -88,7 +100,7 @@ Fr = 1
 B = [ 4, 3, 2, 1,]
 In = [ 3, 2, 1,]
 Al = [ 3, 1, 2,]
-P = [ 3, 5, 4, 2, 1,]
+P = 0
 Ga = [ 3, 1, 2,]
 Mg = [ 2, 1,]
 Be = [ 2, 1,]
