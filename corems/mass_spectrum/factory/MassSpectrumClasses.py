@@ -196,14 +196,14 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self.check_mspeaks()
         return array([mspeak.clear_molecular_formulas() for mspeak in self.mspeaks])
 
-    def process_mass_spec(self, keep_profile=True, auto_noise=True, noise_bayes_est=False,log_noise=False):
+    def process_mass_spec(self, keep_profile=True, noise_bayes_est=False):
         
         # if runned mannually make sure to rerun filter_by_noise_threshold     
         # calculates noise threshold 
         # do peak picking( create mspeak_objs) 
         # reset mspeak_obj the indexes
          
-        self.cal_noise_threshold(auto=auto_noise, bayes=noise_bayes_est,log_noise=log_noise)
+        self.cal_noise_threshold(bayes=noise_bayes_est)
 
         self.find_peaks()
         self.reset_indexes()
@@ -218,17 +218,18 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             self._mz_exp *= 0
             
 
-    def cal_noise_threshold(self, auto=True, bayes=False,log_noise=False):
+    def cal_noise_threshold(self, bayes=False):
 
         if self.label == Labels.simulated_profile:
 
             self._baselise_noise, self._baselise_noise_std = 0.1, 1
 
-        if log_noise:
-            self._baselise_noise, self._baselise_noise_std = self.run_log_noise_threshold_calc(auto, bayes=bayes)
+        if self.settings.threshold_method == 'log':
+
+            self._baselise_noise, self._baselise_noise_std = self.run_log_noise_threshold_calc(bayes=bayes)
 
         else:
-            self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto, bayes=bayes)
+            self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(bayes=bayes)
 
     @property
     def parameters(self):
@@ -1008,7 +1009,7 @@ class MassSpecCentroid(MassSpecBase):
 
    
 
-    def process_mass_spec(self, auto_noise=True, noise_bayes_est=False,log_noise=False):
+    def process_mass_spec(self, noise_bayes_est=False):
         import tqdm
         # overwrite process_mass_spec 
         # mspeak objs are usually added inside the PeaKPicking class 
@@ -1068,10 +1069,13 @@ class MassSpecCentroid(MassSpecBase):
         self._set_nominal_masses_start_final_indexes()
         
         if self.label != Labels.thermo_centroid:
-            if log_noise:
-                self._baselise_noise, self._baselise_noise_std = self.run_log_noise_threshold_calc(auto=auto_noise, bayes=noise_bayes_est)
+            
+            if self.settings.threshold_method == 'log':
+            
+                self._baselise_noise, self._baselise_noise_std = self.run_log_noise_threshold_calc(bayes=noise_bayes_est)
+            
             else:
-                self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto=auto_noise, bayes=noise_bayes_est)
+                self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(bayes=noise_bayes_est)
         
         del self.data_dict    
 class MassSpecCentroidLowRes(MassSpecCentroid,):

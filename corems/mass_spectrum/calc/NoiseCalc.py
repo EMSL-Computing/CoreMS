@@ -19,7 +19,7 @@ class NoiseThresholdCalc:
 
             x = min(self.mz_exp), max((self.mz_exp))
             
-            if self.settings.threshold_method == 'auto':
+            if self.settings.threshold_method == 'minima':
                 
                 abundance_threshold = self.baselise_noise + (self.settings.noise_threshold_std * self.baselise_noise_std)
                 y = (abundance_threshold, abundance_threshold)
@@ -51,7 +51,7 @@ class NoiseThresholdCalc:
                 x = (self.mz_exp_profile.min(), self.mz_exp_profile.max())
                 y = (self.baselise_noise_std, self.baselise_noise_std)
                 
-                if self.settings.threshold_method == 'auto':
+                if self.settings.threshold_method == 'minima':
                 
                     #print(self.settings.noise_threshold_std)
                     abundance_threshold = self.baselise_noise + (self.settings.noise_threshold_std * self.baselise_noise_std)
@@ -93,12 +93,12 @@ class NoiseThresholdCalc:
                 )    
                 return (0,0) , (0,0)
 
-    def cut_mz_domain_noise(self, auto):
+    def cut_mz_domain_noise(self):
         
         min_mz_whole_ms = self.mz_exp_profile.min()
         max_mz_whole_ms = self.mz_exp_profile.max()
 
-        if auto:
+        if self.settings.threshold_method == 'minima':
             
             # this calculation is taking too long (about 2 seconds)
             number_average_molecular_weight = self.weight_average_molecular_weight(
@@ -212,11 +212,13 @@ class NoiseThresholdCalc:
             return pm.summary(trace)['mean'].values[0] 
             
 
-    def get_noise_average(self, ymincentroid, auto=True, bayes=False):
+    def get_noise_average(self, ymincentroid, bayes=False):
         # assumes noise to be gaussian and estimate noise level by 
         # calculating the valley. If bayes is enable it will 
         # model the valley distributuion as half-Normal and estimate the std
         
+        auto = True if self.settings.threshold_method == 'minima' else False
+
         average_noise = median((ymincentroid))*2 if auto else median(ymincentroid)
         
         if bayes:
@@ -229,7 +231,7 @@ class NoiseThresholdCalc:
             
         return average_noise, s_deviation
 
-    def get_abundance_minima_centroid(self, mz_cut, abun_cut):
+    def get_abundance_minima_centroid(self, abun_cut):
 
         maximum = self.abundance_profile.max()
         threshold_min = (maximum * 1.00)
@@ -302,7 +304,7 @@ class NoiseThresholdCalc:
             noise_1std = noise_mid*self.settings.log_Nsigma_CorrFactor #for mFT 0.463
             return float(noise_mid), float(noise_1std)
 
-    def run_noise_threshold_calc(self, auto, bayes=False):
+    def run_noise_threshold_calc(self, bayes=False):
         
         if self.is_centroid:
             # calculates noise_baseline and noise_std
@@ -316,15 +318,15 @@ class NoiseThresholdCalc:
         
         else:
 
-            mz_cut, abundance_cut = self.cut_mz_domain_noise(auto)
+            mz_cut, abundance_cut = self.cut_mz_domain_noise()
             
-            if auto:
+            if self.settings.threshold_method == 'minima':
 
-                yminima = self.get_abundance_minima_centroid(mz_cut, abundance_cut)
+                yminima = self.get_abundance_minima_centroid(abundance_cut)
                 
-                return self.get_noise_average(yminima, auto=auto, bayes=bayes)
+                return self.get_noise_average(yminima, bayes=bayes)
 
             else:
                 
                 # pyplot.show()
-                return self.get_noise_average(abundance_cut,auto=auto, bayes=bayes)
+                return self.get_noise_average(abundance_cut,bayes=bayes)
