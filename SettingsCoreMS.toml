@@ -30,11 +30,11 @@ isAdduct = false
 ionization_type = "ESI"
 min_ppm_error = -3
 max_ppm_error = 5
-min_abun_error = -30
-max_abun_error = 70
+min_abun_error = -100.0
+max_abun_error = 100.0
 mz_error_range = 1
 error_method = "None"
-mz_error_average = 0
+mz_error_average = 0.0
 
 [Transient]
 implemented_apodization_function = [ "Hamming", "Hanning", "Blackman", "Full-Sine", "Half-Sine", "Kaiser", "Half-Kaiser",]
@@ -46,7 +46,7 @@ kaiser_beta = 8.6
 
 [MassSpectrum]
 threshold_method = "auto"
-implemented_noise_threshold_methods = [ "auto", "signal_noise", "relative_abundance", "absolute_abundance", "log",]
+implemented_noise_threshold_methods = [ "minima", "signal_noise", "relative_abundance", "absolute_abundance", "log",]
 noise_threshold_std = 32
 s2n_threshold = 4.0
 relative_abundance_threshold = 6.0
@@ -77,7 +77,7 @@ peak_height_max_percent = 10.0
 [MolecularFormulaSearch.usedAtoms]
 C = [ 1, 100,]
 H = [ 4, 200,]
-O = [ 7, 16,]
+O = [ 1, 10,]
 
 [MolecularFormulaSearch.used_atom_valences]
 C = 4

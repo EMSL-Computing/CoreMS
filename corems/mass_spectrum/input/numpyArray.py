@@ -6,7 +6,7 @@ from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, Ma
 from corems.encapsulation.factory.parameters import default_parameters
 from corems.encapsulation.constant import Labels
 
-def ms_from_array_profile(mz, abundance,  dataname, polarity=-1,  auto_process=True, auto_noise=True, data_type=Labels.simulated_profile):
+def ms_from_array_profile(mz, abundance,  dataname, polarity=-1,  auto_process=True, data_type=Labels.simulated_profile):
 
     data_dict = {Labels.mz: mz, Labels.abundance: abundance}
     
@@ -14,7 +14,7 @@ def ms_from_array_profile(mz, abundance,  dataname, polarity=-1,  auto_process=T
     
     output_parameters[Labels.label] = data_type
 
-    ms = MassSpecProfile(data_dict, output_parameters, auto_process=auto_process, auto_noise=auto_noise)
+    ms = MassSpecProfile(data_dict, output_parameters, auto_process=auto_process)
     
     return ms
 

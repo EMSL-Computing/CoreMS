@@ -34,13 +34,13 @@ class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
 
         super().__init__(file_location, isCentroid=False)
         
-    def get_data_profile(self, mz, abundance, auto_process, auto_noise):
+    def get_data_profile(self, mz, abundance, auto_process):
 
         data_dict = {Labels.mz: mz, Labels.abundance: abundance}
     
         output_parameters = self.get_output_parameters()
             
-        return MassSpecProfile(data_dict, output_parameters, auto_process=auto_process, auto_noise=auto_noise)
+        return MassSpecProfile(data_dict, output_parameters, auto_process=auto_process)
     
     def get_attr_data(self, scan, attr_srt):
 
@@ -65,7 +65,7 @@ class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
         else:
             return +1    
 
-    def get_mass_spectrum(self, auto_process=True, auto_noise=True):
+    def get_mass_spectrum(self, auto_process=True):
         
         # only one mass spectrum
         if len(self.scans) == 1:
@@ -75,14 +75,14 @@ class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
             if self.isCentroid:
                 
                 raise NotImplementedError
-                #return numpyArray.ms_from_array_centroid(mz, abun, rp, snt, self.file_location.stem, polarity=self.polarity,  auto_process=True, auto_noise=auto_noise)
+                #return numpyArray.ms_from_array_centroid(mz, abun, rp, snt, self.file_location.stem, polarity=self.polarity,  auto_process=True)
                 
             else:
                 
                 mz = booster_data[0]
                 abun = booster_data[1]
                 
-                return self.get_data_profile(mz, abun, auto_process, auto_noise)
+                return self.get_data_profile(mz, abun, auto_process)
 
     def get_output_parameters(self):
         

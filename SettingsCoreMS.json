@@ -15,7 +15,7 @@
         "min_oc_filter": 0.0,
         "max_oc_filter": 1.2,
         "min_op_filter": 2.0,
-        "use_pah_line_rule": true,
+        "use_pah_line_rule": false,
         "min_dbe": 0.0,
         "max_dbe": 40.0,
         "mz_error_score_weight": 0.6,
@@ -43,16 +43,16 @@
                 200
             ],
             "O": [
-                7,
-                16
+                1,
+                10
             ]
         },
         "ionization_type": "ESI", "min_ppm_error": -3,
         "max_ppm_error": 5,
-        "min_abun_error": -30,
-        "max_abun_error": 70,
+        "min_abun_error": -100.0,
+        "max_abun_error": 100.0,
         "mz_error_range": 1,
-        "error_method": "None", "mz_error_average": 0,
+        "error_method": "None", "mz_error_average": 0.0,
         "used_atom_valences": {
             "C": 4,
             "13C": 4,
@@ -402,7 +402,7 @@
     },
     "MassSpectrum": {
         "threshold_method": "auto", "implemented_noise_threshold_methods": [
-            "auto", "signal_noise", "relative_abundance", "absolute_abundance", "log"
+            "minima", "signal_noise", "relative_abundance", "absolute_abundance", "log"
         ],
         "noise_threshold_std": 32,
         "s2n_threshold": 4.0,

@@ -16,7 +16,7 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
     '''class docs'''
     
     def __init__(self, d_directory_location, analyzer='ICR', instrument_label='15T', 
-                       auto_process=True, auto_noise=True, keep_profile=False,log_noise=False):
+                       auto_process=True, keep_profile=False):
         """
          # Parameters
 		----------
@@ -43,10 +43,8 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
         self.lcms = LCMSBase(d_directory_location, analyzer, instrument_label)
 
         self.auto_process = auto_process
-        self.auto_noise = auto_noise
         self.keep_profile = keep_profile
-        self.log_noise = log_noise
-    
+        
     def get_scan_attr(self):
     
         from bs4 import BeautifulSoup
@@ -93,8 +91,7 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
         mass_spec = bruker_transient.get_mass_spectrum(plot_result=False, 
                                                        auto_process=self.auto_process,
                                                        keep_profile=self.keep_profile, 
-                                                       auto_noise=self.auto_noise,
-                                                       log_noise = self.log_noise)
+                                                       )
 
         return mass_spec
 
