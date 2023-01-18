@@ -76,7 +76,7 @@ class NoiseThresholdCalc:
                     y = (normalized_threshold, normalized_threshold)
 
                 elif self.settings.threshold_method == "log":
-                    normalized_threshold = self.settings.log_Nsigma * self.baselise_noise_std
+                    normalized_threshold = self.settings.log_nsigma * self.baselise_noise_std
                     y = (normalized_threshold, normalized_threshold)
 
                 else:
@@ -266,7 +266,7 @@ class NoiseThresholdCalc:
         # pyplot.show()    
         return abun_cut[indices]
 
-    def run_log_noise_threshold_calc(self,auto,bayes=False):
+    def run_log_noise_threshold_calc(self, bayes=False):
         '''
         Method for estimating the noise based on decimal log of all the data points
         Based on dx.doi.org/10.1021/ac403278t | Anal. Chem. 2014, 86, 3308−3316
@@ -282,7 +282,7 @@ class NoiseThresholdCalc:
             raise  Exception("log noise Not tested for centroid data")
         else:
             # cut the spectrum to ROI
-            mz_cut, abundance_cut = self.cut_mz_domain_noise(auto)
+            mz_cut, abundance_cut = self.cut_mz_domain_noise()
             # If there are 0 values, the log will fail
             # But we may have negative values for aFT data, so we check if 0 exists
             # Need to make a copy of the abundance cut values so we dont overwrite it....
@@ -294,14 +294,14 @@ class NoiseThresholdCalc:
                 # Hard to generalise - needs more investigation.
 
             # calculate a histogram of the log10 of the abundance data
-            hist_values = histogram(log10(tmp_abundance),bins=self.settings.log_Nsigma_bins) 
+            hist_values = histogram(log10(tmp_abundance),bins=self.settings.log_nsigma_bins) 
             #find the apex of this histogram
             maxvalidx = where(hist_values[0] == max(hist_values[0]))
             # get the value of this apex (note - still in log10 units)
             log_sigma = hist_values[1][maxvalidx]
             ## To do : check if aFT or mFT and adjust method
             noise_mid = 10**log_sigma
-            noise_1std = noise_mid*self.settings.log_Nsigma_CorrFactor #for mFT 0.463
+            noise_1std = noise_mid*self.settings.log_nsigma_corr_factor #for mFT 0.463
             return float(noise_mid), float(noise_1std)
 
     def run_noise_threshold_calc(self, bayes=False):

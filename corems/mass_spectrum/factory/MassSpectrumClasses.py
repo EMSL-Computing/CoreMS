@@ -1004,10 +1004,7 @@ class MassSpecCentroid(MassSpecBase):
 
     @property
     def tic(self):
-
         return sum(self.abundance)
-
-   
 
     def process_mass_spec(self, noise_bayes_est=False):
         import tqdm
@@ -1071,14 +1068,16 @@ class MassSpecCentroid(MassSpecBase):
         if self.label != Labels.thermo_centroid:
             
             if self.settings.threshold_method == 'log':
-            
-                self._baselise_noise, self._baselise_noise_std = self.run_log_noise_threshold_calc(bayes=noise_bayes_est)
+                
+                raise  Exception("log noise Not tested for centroid data")
+                #self._baselise_noise, self._baselise_noise_std = self.run_log_noise_threshold_calc(bayes=noise_bayes_est)
             
             else:
                 self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(bayes=noise_bayes_est)
         
-        del self.data_dict    
-class MassSpecCentroidLowRes(MassSpecCentroid,):
+        del self.data_dict
+    
+class MassSpecCentroidLowRes(MassSpecCentroid):
     
     '''Does not store MSPeak Objs, will iterate over mz, abundance pairs instead'''
     

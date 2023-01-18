@@ -26,14 +26,28 @@ def test_create_mass_spectrum():
     TransientSetting.number_of_truncations = 1
     bruker_transient = bruker_reader.get_transient()
 
-    mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
+    log_nsigma: int = 6
+    log_nsigma_corr_factor: float = 0.463 #mFT is 0.463, aFT is 1.0
+    log_nsigma_bins: int = 500 # bins for the histogram for the noise
 
+    #MassSpectrumSetting.threshold_method = 'log'
+    #MassSpectrumSetting.log_nsigma = 12
+    #MassSpectrumSetting.log_nsigma = 1
+    #MassSpectrumSetting.log_nsigma = 100
+   
+    print('ok2')
     MassSpectrumSetting.threshold_method = 'signal_noise'
     mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
-
+    print('ok3')
     MassSpectrumSetting.threshold_method = 'relative_abundance'
+    MassSpectrumSetting.relative_abundance_threshold = 20
     mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
-
+    print('ok4')
+    
+    MassSpectrumSetting.threshold_method = 'log'
+    MassSpectrumSetting.log_nsigma = 12
+    mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
+    
     mass_spectrum_obj.freq_exp
     mass_spectrum_obj.dir_location
     mass_spectrum_obj.resolving_power
@@ -41,6 +55,7 @@ def test_create_mass_spectrum():
     mass_spectrum_obj.max_abundance
     mass_spectrum_obj.filter_by_mz(200, 1000)
     mass_spectrum_obj.reset_indexes()
+    print('ok5')
     mass_spectrum_obj.filter_by_abundance(0, 1000)
     mass_spectrum_obj.reset_indexes()
     mass_spectrum_obj.filter_by_max_resolving_power(12, 3)
@@ -49,21 +64,26 @@ def test_create_mass_spectrum():
     mass_spectrum_obj.reset_indexes()
     mass_spectrum_obj.filter_by_noise_threshold()
     mass_spectrum_obj.reset_indexes()
+    print('ok6')
     mass_spectrum_obj.get_mz_and_abundance_peaks_tuples()
     mass_spectrum_obj.get_masses_count_by_nominal_mass()
     mass_spectrum_obj.resolving_power_calc(12, 1)
     mass_spectrum_obj._f_to_mz()
     mass_spectrum_obj.number_average_molecular_weight(profile=True)
-
+    
+    print('ok7')
     mass_spectrum_obj.reset_cal_therms(mass_spectrum_obj.Aterm,mass_spectrum_obj.Bterm,mass_spectrum_obj.Cterm)
-
     mass_spectrum_obj.reset_indexes()
-    kendrick_group_index = mass_spectrum_obj.kendrick_groups_indexes()
+    
+    print('ok8')
+    #kendrick_group_index = mass_spectrum_obj.kendrick_groups_indexes()
 
-    mass_spectrum_obj.reset_indexes()
+    #mass_spectrum_obj.reset_indexes()
 
-    return mass_spectrum_obj, kendrick_group_index
+    print('ok9')
+    #return mass_spectrum_obj, kendrick_group_index
 
+    print('ok10')
 
 if __name__ == "__main__":
     # mass_spectrum_obj, kendrick_group_index = test_create_mass_spectrum()

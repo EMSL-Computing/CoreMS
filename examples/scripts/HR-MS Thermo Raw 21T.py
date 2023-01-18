@@ -24,7 +24,7 @@ def run_thermo(file_location):
     MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
     MSParameters.mass_spectrum.relative_abundance_threshold = 0.1
 
-    # MSParameters.mass_spectrum.threshold_method = 'auto'
+    # MSParameters.mass_spectrum.threshold_method = 'log'
     # MSParameters.mass_spectrum.s2n_threshold = 6
 
     parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)

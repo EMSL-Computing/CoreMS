@@ -39,7 +39,7 @@ def run_bruker(file_location):
 
     with ReadBrukerSolarix(file_location) as transient:
 
-        MSParameters.mass_spectrum.threshold_method = 'auto'
+        MSParameters.mass_spectrum.threshold_method = 'log'
         MSParameters.mass_spectrum.s2n_threshold = 6
 
         mass_spectrum = transient.get_mass_spectrum(plot_result=False, auto_process=True)
@@ -56,7 +56,7 @@ def run_bruker(file_location):
 
 def run_thermo(file_location):
 
-    MSParameters.mass_spectrum.threshold_method = 'auto'
+    MSParameters.mass_spectrum.threshold_method = 'log'
     MSParameters.mass_spectrum.s2n_threshold = 6
 
     parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
@@ -335,7 +335,7 @@ def export_calc_isotopologues(mass_spectrum, out_filename):
     df.to_csv(out_filename + ".csv", index=False)
 
 def monitor(target):
-
+    ''' psutil is not installed by default, use the requirement_dev.txt to install non essential packages'''
     import psutil
     import time
 

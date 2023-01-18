@@ -298,7 +298,9 @@ class PeakPicking:
             factor = 1
 
         elif threshold_method == 'log':
-            abundance_threshold = self.settings.log_Nsigma
+            if self.is_centroid:
+                raise  Exception("log noise Not tested for centroid data")
+            abundance_threshold = self.settings.log_nsigma
             factor = self.baselise_noise_std
 
         else:

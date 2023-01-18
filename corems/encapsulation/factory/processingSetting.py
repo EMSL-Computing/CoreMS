@@ -165,9 +165,9 @@ class MassSpectrumSetting:
 
     absolute_abundance_threshold: float = 1_000_000
 
-    log_Nsigma: int = 6
-    log_Nsigma_CorrFactor: float = 0.463 #mFT is 0.463, aFT is 1.0
-    log_Nsigma_bins: int = 500 # bins for the histogram for the noise
+    log_nsigma: int = 6
+    log_nsigma_corr_factor: float = 0.463 #mFT is 0.463, aFT is 1.0
+    log_nsigma_bins: int = 500 # bins for the histogram for the noise
 
     min_noise_mz: float = 50
     max_noise_mz: float = 1200.0

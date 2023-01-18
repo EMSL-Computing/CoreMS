@@ -33,7 +33,7 @@ file_location = "tests/tests_data/icpms/rmb_161221_kansas_h2o_2"
 MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
 MSParameters.mass_spectrum.relative_abundance_threshold = 1
 
-MSParameters.mass_spectrum.threshold_method = 'auto'
+MSParameters.mass_spectrum.threshold_method = 'log'
 MSParameters.mass_spectrum.s2n_threshold = 10
 
 #Parser for thermo RAW files. 
