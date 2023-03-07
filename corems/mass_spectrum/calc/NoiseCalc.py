@@ -122,7 +122,7 @@ class NoiseThresholdCalc:
             max_mz_noise = max_mz_whole_ms
         
         #the following indexing relies on mz_exp_profile being ordered high mz to low mz
-        low_mz_index = (where(self.mz_exp_profile >= min_mz_noise)[0][-1])
+        low_mz_index = (where(self.mz_exp_profile >= min_mz_noise)[-1][-1])
         #print(self.mz_exp_profile[low_mz_index])
         #low_mz_index = (argmax(self.mz_exp_profile <= min_mz_noise))
 
