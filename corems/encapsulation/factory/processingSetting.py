@@ -417,6 +417,8 @@ class MolecularFormulaSearchSettings:
 
     db_jobs: int = 3
 
+    db_chunk_size: int = 300
+
     '''query setting'''
     ion_charge: int = -1
 
