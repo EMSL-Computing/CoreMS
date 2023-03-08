@@ -1,5 +1,6 @@
 venv/ 
 venvwsl/ 
+test_env/ 
 .pyc  
 .pyo
 *.hdf5
