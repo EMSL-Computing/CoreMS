@@ -88,6 +88,7 @@ class HighResRecalibration():
         For positive mode, allowing sodium adduct ions
         Needs further testing
         """
+        self.mass_spectrum.molecular_search_settings.isProtonated = False
         self.mass_spectrum.molecular_search_settings.isAdduct = True
         self.mass_spectrum.molecular_search_settings.adduct_atoms_pos = ['Na']
 
