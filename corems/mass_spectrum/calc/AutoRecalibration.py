@@ -43,7 +43,7 @@ class HighResRecalibration():
         Parameters
         ----------
         None. 
-        
+
         Returns
         -------
         None.
@@ -91,10 +91,12 @@ class HighResRecalibration():
 
 
     def get_error_range(self, ms_df):
-        # This section looks at the error distribution
-        # using lmfit to fit a gaussian distribution to the errors
-        # and from that we can determine our true error mean and search width
-        # for the recalibration function
+        """
+        This section looks at the error distribution
+        using lmfit to fit a gaussian distribution to the errors
+        and from that we can determine our true error mean and search width
+        for the recalibration function
+        """
         if self.plot:
             fig,ax = plt.subplots(figsize=(8,4))
             kde = sns.kdeplot(x='m/z Error (ppm)',data=ms_df,ax=ax,color='tab:blue')
