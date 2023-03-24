@@ -42,11 +42,8 @@ class HighResRecalibration():
 
         Parameters
         ----------
-        mass_spectrum : TYPE
-            DESCRIPTION.
-        docker : TYPE, optional
-            DESCRIPTION. The default is True.
-
+        None. 
+        
         Returns
         -------
         None.
