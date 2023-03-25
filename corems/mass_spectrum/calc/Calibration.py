@@ -30,7 +30,8 @@ class MzDomainCalibration:
 
         # define reference mass list - bruker .ref format
         self.ref_mass_list_path = ref_masslist
-
+        if self.mass_spectrum.percentile_assigned(verbose=False)[0]!=0:
+            print('Warning: calibrating spectra which have already been assigned may yield erroneous results')
         self.mass_spectrum.mz_cal = self.mass_spectrum.mz_exp    
         self.mass_spectrum.mz_cal_profile = self.mass_spectrum._mz_exp  
         
