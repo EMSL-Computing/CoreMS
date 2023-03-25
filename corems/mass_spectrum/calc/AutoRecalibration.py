@@ -15,6 +15,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from corems.encapsulation.factory.parameters import MSParameters
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
+import copy
 
 class HighResRecalibration():
     """
@@ -28,7 +29,9 @@ class HighResRecalibration():
     """
 
     def __init__(self, mass_spectrum, plot=False,docker=True,ppmFWHMprior=3,ppmRangeprior=15):
-        self.mass_spectrum = mass_spectrum
+        # we dont want the assignments made in this exploratory class to copy to the original object, so we make a copy of it.  
+        # Possible future task - make mass spectrum base class copyable...
+        self.mass_spectrum = copy.deepcopy(mass_spectrum) 
         self.plot = plot
         self.docker = docker
         self.ppmFWHMprior = ppmFWHMprior
@@ -90,7 +93,7 @@ class HighResRecalibration():
         self.mass_spectrum.molecular_search_settings.adduct_atoms_pos = ['Na']
 
 
-    def get_error_range(self, ms_df):
+    def get_error_range(self, errors):
         """
         This section looks at the error distribution
         using lmfit to fit a gaussian distribution to the errors
@@ -99,9 +102,9 @@ class HighResRecalibration():
         """
         if self.plot:
             fig,ax = plt.subplots(figsize=(8,4))
-            kde = sns.kdeplot(x='m/z Error (ppm)',data=ms_df,ax=ax,color='tab:blue')
+            kde = sns.kdeplot(errors) # x='m/z Error (ppm)',data=ms_df,ax=ax,color='tab:blue')
         else:
-            kde = sns.kdeplot(x='m/z Error (ppm)',data=ms_df)
+            kde = sns.kdeplot(errors) # x='m/z Error (ppm)',data=ms_df)
 
         kde_data = kde.get_lines()[0].get_data()
         
@@ -164,18 +167,27 @@ class HighResRecalibration():
         # Search MFs
         SearchMolecularFormulas(self.mass_spectrum, first_hit=True).run_worker_mass_spectrum()
         
-        # Export the data to a dataframe.
-        ms_df = self.mass_spectrum.to_dataframe()
+        
+        #Legacy method exported the whole spectrum to dataframe
+        # # Export the data to a dataframe.
+        # ms_df = self.mass_spectrum.to_dataframe()
+        # Was very slow (about 7s vs 200ms to just iterate through the peaks to get errors, for n=16_000 peaks)
+        errors = []
+        for mspeak in self.mass_spectrum.mspeaks:
+            if len(mspeak.molecular_formulas)>0:
+                errors.append(mspeak.best_molecular_formula_candidate.mz_error)
+
         # mean_error = ms_df['m/z Error (ppm)'].mean()
         # std_error = ms_df['m/z Error (ppm)'].std()
                 
         # If there are NO assignments, it'll fail on the next step. Need to check for that
-        nassign = len(ms_df[ms_df['Heteroatom Class']!='unassigned'])
+        #nassign = len(ms_df[ms_df['Heteroatom Class']!='unassigned'])
+        nassign = len(errors)
         # Here we say at least 5 features assigned are needed - it probably should be greater, but we are just trying to stop it breaking the code
         # We want to make sure the spectrum is capture in the database though - so we return the stats entries (0 assignments) and the number of assignments
         if nassign <5:
             print("fewer than 5 peaks assigned, cannot determine error range")
             return np.nan,np.nan,[np.nan,np.nan]
         else:
-            mean_error,fwhm_error,ppm_thresh = self.get_error_range(ms_df)
+            mean_error,fwhm_error,ppm_thresh = self.get_error_range(errors)
             return mean_error,fwhm_error,ppm_thresh
