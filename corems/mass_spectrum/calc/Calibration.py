@@ -327,12 +327,12 @@ class MzDomainCalibration:
         calib_pol_order = self.mass_spectrum.settings.calib_pol_order
 
         # load reference mass list
-        df_ref = self.load_ref_mass_list(self.ref_mass_list_path)
+        df_ref = self.load_ref_mass_list()
 
         # find calibration points
-        cal_peaks_mz, cal_refs_mz = self.find_calibration_points(self.mass_spectrum, df_ref,
+        cal_peaks_mz, cal_refs_mz = self.find_calibration_points(df_ref,
                                                        calib_ppm_error_threshold=(min_calib_ppm_error,
                                                                                   max_calib_ppm_error),
                                                        calib_snr_threshold=calib_ppm_error_threshold)
 
-        self.recalibrate_mass_spectrum(self.mass_spectrum, cal_peaks_mz, cal_refs_mz, order=calib_pol_order)
+        self.recalibrate_mass_spectrum(cal_peaks_mz, cal_refs_mz, order=calib_pol_order)
