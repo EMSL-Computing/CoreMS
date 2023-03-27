@@ -39,7 +39,7 @@ class MzDomainCalibration:
 
         print("MS Obj loaded - " + str(len(mass_spectrum.mspeaks)) + " peaks found.")
 
-    def load_ref_mass_list(self, refmasslist):
+    def load_ref_mass_list(self):
         """
         function to load in bruker mass list format into a dataframe
 
@@ -55,7 +55,7 @@ class MzDomainCalibration:
             reference mass list object.
 
         """
-        refmasslist = Path(refmasslist) if isinstance(refmasslist, str) else refmasslist
+        refmasslist = Path(self.ref_mass_list_path) if isinstance(self.ref_mass_list_path, str) else self.ref_mass_list_path
 
         if not refmasslist.exists():
             raise FileExistsError("File does not exist: %s" % refmasslist)
@@ -84,7 +84,7 @@ class MzDomainCalibration:
 
         return df_ref
 
-    def gen_ref_mass_list_from_assigned(self, mass_spectrum, min_conf=0.7):
+    def gen_ref_mass_list_from_assigned(self, min_conf=0.7):
 
         """
         This function will generate a ref mass dataframe object
@@ -104,14 +104,14 @@ class MzDomainCalibration:
             reference mass list - based on calculated masses.
 
         """
-        df = mass_spectrum.to_dataframe()
-        df = df[df['Isotopologue Similarity'] > min_conf]
+        df = self.mass_spectrum.to_dataframe()
+        df = df[df['Confidence Score'] > min_conf]
         df_ref = pd.DataFrame(columns=['m/z'])
         df_ref['m/z'] = df['Calculated m/z']
         print("Reference mass list generated - " + str(len(df_ref)) + " calibration masses.")
         return df_ref
 
-    def find_calibration_points(self, mass_spectrum, df_ref,
+    def find_calibration_points(self, df_ref,
                                 calib_ppm_error_threshold=(-1, 1),
                                 calib_snr_threshold=5):
         """
@@ -141,7 +141,7 @@ class MzDomainCalibration:
         min_calib_ppm_error = calib_ppm_error_threshold[0]
         max_calib_ppm_error = calib_ppm_error_threshold[1]
 
-        df_raw = mass_spectrum.to_dataframe()
+        df_raw = self.mass_spectrum.to_dataframe()
 
         imzmeas = []
         mzrefs = []
@@ -173,7 +173,7 @@ class MzDomainCalibration:
         print(str(len(imzmeas)) + " calibration points matched within thresholds.")
         return imzmeas, mzrefs
 
-    def robust_calib(self, param, imzmeas, mzrefs, mass_spectrum, order=1):
+    def robust_calib(self, param, imzmeas, mzrefs, order=1):
         """
         computes the rms of m/z errors to minimize when calibrating
         This is adapted from from spike
@@ -205,7 +205,7 @@ class MzDomainCalibration:
             pass
 
         # get the mspeaks from the mass spectrum object which were calibration points
-        mspeaks = [mass_spectrum.mspeaks[x] for x in imzmeas]
+        mspeaks = [self.mass_spectrum.mspeaks[x] for x in imzmeas]
         # get their calibrated mass values
         mspeakmzs = [x.mz_cal for x in mspeaks]
         mspeakmzs = np.array(mspeakmzs)
@@ -229,7 +229,7 @@ class MzDomainCalibration:
         rmserror = np.sqrt(np.mean(error**2))
         return rmserror
 
-    def recalibrate_mass_spectrum(self, mass_spectrum, imzmeas, mzrefs, order=1,diagnostic=False):
+    def recalibrate_mass_spectrum(self, imzmeas, mzrefs, order=1,diagnostic=False):
 
         """
         function to recalibrate the mass spectrum object
@@ -262,41 +262,41 @@ class MzDomainCalibration:
 
         if len(imzmeas) > 2:
 
-            minimize_method = mass_spectrum.settings.calib_minimize_method
-            res = minimize(self.robust_calib, Po, args=(imzmeas, mzrefs, mass_spectrum, order), method=minimize_method)
+            minimize_method = self.mass_spectrum.settings.calib_minimize_method
+            res = minimize(self.robust_calib, Po, args=(imzmeas, mzrefs, order), method=minimize_method)
 
             print("minimize function completed with RMS error of: {:0.3f} ppm".format(res['fun']))
             print("minimize function performed {:1d} fn evals and {:1d} iterations".format(res['nfev'], res['nit']))
             Pn = res.x
 
             mz_exp_ms = np.array(
-                [mspeak.mz_exp for mspeak in mass_spectrum])
+                [mspeak.mz_exp for mspeak in self.mass_spectrum])
 
             if order == 1:
                 mz_domain = (Pn[0] * mz_exp_ms) + Pn[1]
-                if not mass_spectrum.is_centroid:
-                    mz_profile_calc = (Pn[0] * mass_spectrum.mz_exp_profile) + Pn[1]
+                if not self.mass_spectrum.is_centroid:
+                    mz_profile_calc = (Pn[0] * self.mass_spectrum.mz_exp_profile) + Pn[1]
 
             elif order == 2:
                 mz_domain = (Pn[0] * (mz_exp_ms)) + \
                     (Pn[1] * np.power((mz_exp_ms), 2) + Pn[2])
 
-                if not mass_spectrum.is_centroid:
-                    mz_profile_calc = (Pn[0] * (mass_spectrum.mz_exp_profile)) + \
-                        (Pn[1] * np.power((mass_spectrum.mz_exp_profile), 2) + Pn[2])
+                if not self.mass_spectrum.is_centroid:
+                    mz_profile_calc = (Pn[0] * (self.mass_spectrum.mz_exp_profile)) + \
+                        (Pn[1] * np.power((self.mass_spectrum.mz_exp_profile), 2) + Pn[2])
 
-            mass_spectrum.mz_cal = mz_domain
-            if not mass_spectrum.is_centroid:
-                mass_spectrum.mz_cal_profile = mz_profile_calc
+            self.mass_spectrum.mz_cal = mz_domain
+            if not self.mass_spectrum.is_centroid:
+                self.mass_spectrum.mz_cal_profile = mz_profile_calc
 
-            mass_spectrum.calibration_order = order
-            mass_spectrum.measured_mz = len(mzrefs)
-            mass_spectrum.calibration_RMS = float(res['fun'])
-            mass_spectrum.calibration_points = int(len(mzrefs))
+            self.mass_spectrum.calibration_order = order
+            self.mass_spectrum.measured_mz = len(mzrefs)
+            self.mass_spectrum.calibration_RMS = float(res['fun'])
+            self.mass_spectrum.calibration_points = int(len(mzrefs))
             if diagnostic:
-                return mass_spectrum,res
+                return self.mass_spectrum,res
 
-        return mass_spectrum
+        return self.mass_spectrum
 
     def run(self):
 
