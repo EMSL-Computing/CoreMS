@@ -17,4 +17,5 @@ s3path
 pyswarm
 beautifulsoup4
 toml
+seaborn
 
