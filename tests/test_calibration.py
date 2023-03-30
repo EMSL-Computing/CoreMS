@@ -71,7 +71,7 @@ def test_autorecalibration():
 
     mass_spectrum.filter_by_noise_threshold()
 
-    HighResRecalibration(mass_spectrum,plot=False).determine_error_boundaries()
+    HighResRecalibration(mass_spectrum,plot=False,docker=False).determine_error_boundaries()
 
 def test_old_calibration():
     

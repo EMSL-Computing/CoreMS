@@ -28,7 +28,7 @@ class HighResRecalibration():
 
     """
 
-    def __init__(self, mass_spectrum, plot=False,docker=False,ppmFWHMprior=3,ppmRangeprior=15):
+    def __init__(self, mass_spectrum, plot=False,docker=True,ppmFWHMprior=3,ppmRangeprior=15):
         # we dont want the assignments made in this exploratory class to copy to the original object, so we make a copy of it.  
         # Possible future task - make mass spectrum base class copyable...
         self.mass_spectrum = copy.deepcopy(mass_spectrum) 
