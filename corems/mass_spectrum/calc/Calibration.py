@@ -157,7 +157,7 @@ class MzDomainCalibration:
                         cal_refs_mz.append(mzref)
 
         # To remove entries with duplicated indices (reference masses matching multiple peaks)
-        tmpdf = pd.Series(index = cal_refs_mz,data = cal_peaks_mz)
+        tmpdf = pd.Series(index = cal_refs_mz,data = cal_peaks_mz,dtype=float)
         tmpdf = tmpdf[~tmpdf.index.duplicated(keep=False)]
 
         cal_peaks_mz = list(tmpdf.values)
@@ -316,8 +316,10 @@ class MzDomainCalibration:
             self.mass_spectrum.calibration_points = int(len(cal_refs_mz))
             if diagnostic:
                 return self.mass_spectrum,res
-
-        return self.mass_spectrum
+            return self.mass_spectrum
+        else:
+            print("Too few calibration points - aborting.")
+            return _
 
     def run(self):
 
