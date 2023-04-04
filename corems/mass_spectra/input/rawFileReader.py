@@ -68,7 +68,7 @@ class ThermoBaseClass():
 
         self.iRawDataPlus = RawFileReaderAdapter.FileFactory(str(file_path))
 
-        self.res = self.iRawDataPlus.SelectInstrument(0, 1)
+        self.res = self.iRawDataPlus.SelectInstrument(Device.MS, 1)
         
         self.file_path = file_location
         self.iFileHeader = FileHeaderReaderFactory.ReadFile(str(file_path))
