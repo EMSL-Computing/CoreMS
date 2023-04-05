@@ -173,6 +173,10 @@ def run_nmdc_workflow(args):
         # return "not 21T", None
 
     is_pos = True if mass_spectrum.polarity > 0 else False
+        
+    if is_pos:
+        
+        return "positive", None
 
     if len(mass_spectrum) < 30:
 
