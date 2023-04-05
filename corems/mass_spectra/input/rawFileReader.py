@@ -30,6 +30,7 @@ clr.AddReference("ThermoFisher.CommonCore.MassPrecisionEstimator")
 from ThermoFisher.CommonCore.RawFileReader import RawFileReaderAdapter
 from ThermoFisher.CommonCore.Data import ToleranceUnits, Extensions
 from ThermoFisher.CommonCore.Data.Business import MassOptions, FileHeaderReaderFactory
+from ThermoFisher.CommonCore.Data.Business import Device
 from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType
 from System.Collections.Generic import List
 
@@ -67,7 +68,7 @@ class ImportMassSpectraThermoMSFileReader():
         if isinstance(file_location, S3Path):
             file_path.unlink()
 
-        self.res = self.iRawDataPlus.SelectInstrument(0, 1)
+        self.res = self.iRawDataPlus.SelectInstrument(Device.MS, 1)
 
         self._initial_scan_number = self.iRawDataPlus.RunHeaderEx.FirstSpectrum
 
