@@ -11,7 +11,7 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
     Inherited PeakPicking and NoiseThresholdCalc ensuring its methods are 
     available to the instantiated mass spectrum class object
     '''
-    def percentile_assigned(self, report_error=False):
+    def percentile_assigned(self, report_error=False,verbose=True):
         
         assign_abun = 0
         not_assign_abun = 0
@@ -35,11 +35,13 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
         total_relative_abundance = (assign_abun / (not_assign_abun + assign_abun)) * 100
         if report_error:
             rms_error = sqrt(mean(array(error)**2))
-            print('%i assigned peaks and %i unassigned peaks, total  = %.2f %%, relative abundance = %.2f %%, RMS error (best candidate) (ppm) = %.3f' % (i, j, total_percent, total_relative_abundance, rms_error))
+            if verbose:
+                print('%i assigned peaks and %i unassigned peaks, total  = %.2f %%, relative abundance = %.2f %%, RMS error (best candidate) (ppm) = %.3f' % (i, j, total_percent, total_relative_abundance, rms_error))
             return i, j, total_percent, total_relative_abundance, rms_error
 
         else:
-            print('%i assigned peaks and %i unassigned peaks , total  = %.2f %%, relative abundance = %.2f %%' % (i, j, total_percent, total_relative_abundance,))
+            if verbose:
+                print('%i assigned peaks and %i unassigned peaks , total  = %.2f %%, relative abundance = %.2f %%' % (i, j, total_percent, total_relative_abundance,))
             return i, j, total_percent, total_relative_abundance
 
     def resolving_power_calc(self, B, T):

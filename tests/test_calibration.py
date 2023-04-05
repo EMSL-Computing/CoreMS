@@ -17,6 +17,7 @@ from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.mass_spectrum.input.massList import ReadMassList
+from corems.mass_spectrum.calc.AutoRecalibration import HighResRecalibration
 from corems import get_filename
 def create_mass_spectrum():
     
@@ -63,6 +64,14 @@ def test_mz_domain_calibration():
     mass_spectrum.filter_by_noise_threshold()
 
     MzDomainCalibration(mass_spectrum, ref_file_location).run()
+
+def test_autorecalibration():
+
+    mass_spectrum = create_mass_spectrum()
+
+    mass_spectrum.filter_by_noise_threshold()
+
+    HighResRecalibration(mass_spectrum,plot=False,docker=False).determine_error_boundaries()
 
 def test_old_calibration():
     
@@ -135,4 +144,5 @@ if __name__ == "__main__":
     
     test_old_calibration()
     #test_mz_domain_calibration()
+    #test_autorecalibration()
    
