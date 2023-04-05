@@ -161,7 +161,7 @@ class SearchMolecularFormulas:
 
         def run():
 
-            for classe_chunk in chunks(classes, 300): 
+            for classe_chunk in chunks(classes, self.mass_spectrum_obj.molecular_search_settings.db_chunk_size): 
 
                 classes_str_list = [class_tuple[0] for class_tuple in classe_chunk]
 
