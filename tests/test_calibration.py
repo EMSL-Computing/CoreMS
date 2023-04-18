@@ -73,6 +73,16 @@ def test_autorecalibration():
 
     HighResRecalibration(mass_spectrum,plot=False,docker=False).determine_error_boundaries()
 
+def test_segmentedmzcalibration():
+    mass_spectrum = create_mass_spectrum()
+
+    mass_spectrum.filter_by_noise_threshold()
+
+    ref_file_location = Path.cwd() / "tests/tests_data/ftms/SRFA.ref"
+
+    MzDomainCalibration(mass_spectrum, ref_file_location, mzsegment=(0,300)).run()
+
+
 def test_old_calibration():
     
     ''' Mass calibration test module:
