@@ -24,9 +24,15 @@ from scipy.optimize import minimize
 
 class MzDomainCalibration:
 
-    def __init__(self, mass_spectrum, ref_masslist):
-
+    def __init__(self, mass_spectrum, ref_masslist,mzsegment=None):
+        '''
+        mass_spectrum = corems mass spectrum object
+        ref_masslist = path to a reference mass list
+        mzsegment = tuple of mz range to recalibrate, or none. Used for calibration of specific parts of the mz domain at a time.
+            Future work - allow multiple mzsegments to be passed. 
+        '''
         self.mass_spectrum = mass_spectrum
+        self.mzsegment = mzsegment
 
         # define reference mass list - bruker .ref format
         self.ref_mass_list_path = ref_masslist
@@ -142,7 +148,11 @@ class MzDomainCalibration:
         peaks_mz = []
         for x in self.mass_spectrum.mspeaks:
             if x.signal_to_noise > calib_snr_threshold:
-                peaks_mz.append(x.mz_exp)
+                if self.mzsegment:
+                    if (min(self.mzsegment) <= x.mz_exp <= max(self.mzsegment)):
+                        peaks_mz.append(x.mz_exp)
+                else:
+                    peaks_mz.append(x.mz_exp)
         peaks_mz = np.asarray(peaks_mz)
         
         cal_peaks_mz = []
@@ -281,7 +291,23 @@ class MzDomainCalibration:
         elif order == 2:
             Po = [1, 0, 0]
 
-        if len(cal_peaks_mz) > 2:
+        if len(cal_peaks_mz) >= 2:
+            if self.mzsegment: #If only part of the spectrum is to be recalibrated
+                mz_exp_peaks = np.array([mspeak.mz_exp for mspeak in self.mass_spectrum])
+                # Split the array into two parts - one to recailbrate, one to keep unchanged. 
+                mz_exp_peaks_tocal = mz_exp_peaks[(mz_exp_peaks>=min(self.mzsegment)) & (mz_exp_peaks<=max(self.mzsegment))]
+                mz_exp_peaks_unchanged = mz_exp_peaks[~(mz_exp_peaks>=min(self.mzsegment)) | ~(mz_exp_peaks<=max(self.mzsegment))]
+
+                if not self.mass_spectrum.is_centroid:
+                    mz_exp_profile = np.array(self.mass_spectrum.mz_exp_profile)
+                    # Split the array into two parts - one to recailbrate, one to keep unchanged. 
+                    mz_exp_profile_tocal = mz_exp_profile[(mz_exp_profile>=min(self.mzsegment)) & (mz_exp_profile<=max(self.mzsegment))]
+                    mz_exp_profile_unchanged = mz_exp_profile[~(mz_exp_profile>=min(self.mzsegment)) | ~(mz_exp_profile<=max(self.mzsegment))]
+            else: #if just recalibrating the whole spectrum
+                mz_exp_peaks_tocal = np.array([mspeak.mz_exp for mspeak in self.mass_spectrum])
+                if not self.mass_spectrum.is_centroid:
+                    mz_exp_profile_tocal = np.array(self.mass_spectrum.mz_exp_profile)
+
 
             minimize_method = self.mass_spectrum.settings.calib_minimize_method
             res = minimize(self.robust_calib, Po, args=(cal_peaks_mz, cal_refs_mz, order), method=minimize_method)
@@ -290,21 +316,31 @@ class MzDomainCalibration:
             print("minimize function performed {:1d} fn evals and {:1d} iterations".format(res['nfev'], res['nit']))
             Pn = res.x
 
-            mz_exp_ms = np.array(
-                [mspeak.mz_exp for mspeak in self.mass_spectrum])
+            #mz_exp_ms = np.array([mspeak.mz_exp for mspeak in self.mass_spectrum])
 
             if order == 1:
-                mz_domain = (Pn[0] * mz_exp_ms) + Pn[1]
+                mz_domain = (Pn[0] * mz_exp_peaks_tocal) + Pn[1]
                 if not self.mass_spectrum.is_centroid:
-                    mz_profile_calc = (Pn[0] * self.mass_spectrum.mz_exp_profile) + Pn[1]
+                    mz_profile_calc = (Pn[0] * mz_exp_profile_tocal) + Pn[1]
 
             elif order == 2:
-                mz_domain = (Pn[0] * (mz_exp_ms)) + \
-                    (Pn[1] * np.power((mz_exp_ms), 2) + Pn[2])
+                mz_domain = (Pn[0] * (mz_exp_peaks_tocal)) + \
+                    (Pn[1] * np.power((mz_exp_peaks_tocal), 2) + Pn[2])
 
                 if not self.mass_spectrum.is_centroid:
-                    mz_profile_calc = (Pn[0] * (self.mass_spectrum.mz_exp_profile)) + \
-                        (Pn[1] * np.power((self.mass_spectrum.mz_exp_profile), 2) + Pn[2])
+                    mz_profile_calc = (Pn[0] * (mz_exp_profile_tocal)) + \
+                        (Pn[1] * np.power((mz_exp_profile_tocal), 2) + Pn[2])
+
+            if self.mzsegment:
+                # Recombine the mass domains
+                mz_domain = np.concatenate([mz_domain,mz_exp_peaks_unchanged])
+                mz_profile_calc = np.concatenate([mz_profile_calc,mz_exp_profile_unchanged])
+                # Sort them 
+                mz_domain.sort()
+                mz_profile_calc.sort()
+                if mz_exp_peaks[0] > mz_exp_peaks[1]: #If originally descending mass order
+                    mz_domain = mz_domain[::-1]
+                    mz_profile_calc = mz_profile_calc[::-1]
 
             self.mass_spectrum.mz_cal = mz_domain
             if not self.mass_spectrum.is_centroid:
@@ -314,6 +350,8 @@ class MzDomainCalibration:
             #self.mass_spectrum.measured_mz = len(cal_refs_mz)
             self.mass_spectrum.calibration_RMS = float(res['fun'])
             self.mass_spectrum.calibration_points = int(len(cal_refs_mz))
+            self.mass_spectrum.calibration_segment = self.mzsegment
+
             if diagnostic:
                 return self.mass_spectrum,res
             return self.mass_spectrum
@@ -336,5 +374,10 @@ class MzDomainCalibration:
                                                        calib_ppm_error_threshold=(min_calib_ppm_error,
                                                                                   max_calib_ppm_error),
                                                        calib_snr_threshold=calib_ppm_error_threshold)
-
+        if len(cal_peaks_mz)==2:
+            self.mass_spectrum.settings.calib_pol_order = 1
+            calib_pol_order = 1
+            print('Only 2 calibration points found, forcing a linear recalibration')
+        elif len(cal_peaks_mz)<2:
+            print('Too few calibration points found, function will fail')
         self.recalibrate_mass_spectrum(cal_peaks_mz, cal_refs_mz, order=calib_pol_order)

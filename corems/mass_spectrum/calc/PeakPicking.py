@@ -4,7 +4,7 @@
 '''
 
 from logging import warn
-from numpy import hstack, inf, isnan, polyfit, where, array
+from numpy import hstack, inf, isnan, where, array, polyfit
 from corems.encapsulation.constant import Labels
 from corems.mass_spectra.calc import SignalProcessing as sp
 
@@ -323,7 +323,7 @@ class PeakPicking:
         list_y = [abund[current_index - 1],abund[current_index], abund[current_index +1]]
         
         z = polyfit(list_mass, list_y, 2)
-        a = z[2]
+        a = z[0]
         b = z[1]
 
         calculated = -b/(2*a)
@@ -341,7 +341,7 @@ class PeakPicking:
             # fit parabola to three most abundant frequency datapoints
             list_freq = [freq[current_index - 1], freq[current_index], freq[current_index +1]]
             z = polyfit(list_freq, list_y, 2)
-            a = z[2]
+            a = z[0]
             b = z[1]
 
             calculated_freq = -b/(2*a)
