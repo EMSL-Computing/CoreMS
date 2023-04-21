@@ -357,7 +357,7 @@ class MzDomainCalibration:
             return self.mass_spectrum
         else:
             print("Too few calibration points - aborting.")
-            return _
+            return self.mass_spectrum
 
     def run(self):
 
