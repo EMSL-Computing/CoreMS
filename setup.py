@@ -14,7 +14,7 @@ with open('requirements.txt') as f:
 # This call to setup() does all the work
 setup(
     name="CoreMS",
-    version="1.5.1",
+    version="1.6.0",
     description="Mass Spectrometry Framework for Small Molecules Analysis",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -28,8 +28,8 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-        "Development Status :: 1.6.0"
-    ],
+        "Development Status :: 5 - Production/Stable"
+     ],
 
 
     package_data={'external': ['disclaimer.txt'], '': ['ext_lib/*']},
