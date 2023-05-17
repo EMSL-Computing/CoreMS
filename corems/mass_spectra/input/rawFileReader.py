@@ -12,6 +12,7 @@ import numpy as np
 import sys
 import site
 from pathlib import Path
+import datetime
 
 import clr
 import pandas as pd
@@ -115,6 +116,14 @@ class ThermoBaseClass():
         else:        
             return self.chromatogram_settings.end_scan
         
+    def get_creation_time(self):
+        '''
+        Extract the creation date stamp from the .RAW file
+        Return formatted creation date stamp.
+        '''
+        credate = self.iRawDataPlus.CreationDate.get_Ticks()
+        credate = datetime.datetime(1,1,1) + datetime.timedelta(microseconds=credate/10)
+        return credate
 
     def remove_temp_file(self):
         '''if the path is from S3Path data cannot be serialized to io.ByteStream and
