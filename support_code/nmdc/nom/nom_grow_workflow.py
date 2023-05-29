@@ -16,15 +16,26 @@ class EMSL_Metadata:
     dms_dataset_id: str
     myemsl_link: str
     sample_name: str
-    nmdc_biosample_id: str
-    gold_name: str
-    nmdc_study: str
+    sample_type: str
+    env_medium: str
+    habitat: str
+    ecosystem_category: str
+    name: str
+    geo_loc_name: str
+    latitude: float
+    longitude: float
+    location: str
+    ecosystem_type: str
+    ecosystem: str
     env_broad_scale: str
     env_local_scale: str
-    env_medium: str
-    img_id: str
-    gold_biosample_id: str
-
+    sample_collection_site: str
+    samp_name: str
+    ecosystem_subtype: str
+    description: str
+    collection_date: str
+    nmdc_study: str
+    
 def parse_metadata(metadata_file_path:Path) -> EMSL_Metadata:
         
         wb = load_workbook(filename=metadata_file_path)
@@ -35,31 +46,55 @@ def parse_metadata(metadata_file_path:Path) -> EMSL_Metadata:
 
         data_name = full_list_worksheet['A']
         dms_dataset_id = full_list_worksheet['B']
-        myemsl_link = full_list_worksheet['C']
+        myemsl_link  = full_list_worksheet['C']
         sample_name = full_list_worksheet['D']
-        nmdc_biosample_id = full_list_worksheet['E']
-        gold_name = full_list_worksheet['F']
-        nmdc_study = full_list_worksheet['G']
-        env_broad_scale = full_list_worksheet['H']
-        env_local_scale = full_list_worksheet['I']
-        env_medium = full_list_worksheet['J']
-        img_id = full_list_worksheet['K']
-        gold_biosample_id = full_list_worksheet['L']
-                                
+        sample_type = full_list_worksheet['E']
+        env_medium  = full_list_worksheet['F']
+        habitat = full_list_worksheet['G']
+        ecosystem_category  = full_list_worksheet['H']
+        name  = full_list_worksheet['J']
+        geo_loc_name  = full_list_worksheet['K']
+        lat_long =  full_list_worksheet['L']
+        latitude  = full_list_worksheet['M']
+        longitude  = full_list_worksheet['N']
+        env_local_scale = full_list_worksheet['O']
+        location = full_list_worksheet['P']
+        ecosystem_type = full_list_worksheet['Q']
+        ecosystem = full_list_worksheet['S']
+        env_broad_scale = full_list_worksheet['T']
+        sample_collection_site = full_list_worksheet['V']
+        samp_name = full_list_worksheet['W']
+        ecosystem_subtype = full_list_worksheet['X']
+        description = full_list_worksheet['Z']
+        collection_date = full_list_worksheet['AA']
+        nmdc_study = full_list_worksheet['AB']
+                        
         for x in range(1, len(full_list_worksheet['A'])):
 
             metadata = EMSL_Metadata(data_path = Path(data_name[x].value), 
-                                 dms_dataset_id = dms_dataset_id[x].value,
-                                 myemsl_link = myemsl_link[x].value,
-                                 sample_name = sample_name[x].value,
-                                 nmdc_biosample_id = nmdc_biosample_id[x].value,
-                                 gold_name = gold_name[x].value,
-                                 nmdc_study = nmdc_study[x].value,
-                                 env_broad_scale = env_broad_scale[x].value,
-                                 env_local_scale = env_local_scale[x].value,
-                                 env_medium = env_medium[x].value,
-                                 img_id = img_id[x].value,
-                                 gold_biosample_id = gold_biosample_id[x].value
+                                dms_dataset_id = dms_dataset_id[x].value,
+                                myemsl_link = myemsl_link[x].value,
+                                sample_name = sample_name[x].value,
+                                sample_type = sample_type[x].value,
+                                env_medium  = env_medium[x].value,
+                                habitat = habitat[x].value,
+                                ecosystem_category  = ecosystem_category[x].value,
+                                name  = name[x].value,
+                                geo_loc_name  = geo_loc_name[x].value,
+                                lat_long =  lat_long[x].value,
+                                latitude  = latitude[x].value,
+                                longitude  = longitude[x].value,
+                                env_local_scale = env_local_scale[x].value,
+                                location = location[x].value,
+                                ecosystem_type = ecosystem_type[x].value,
+                                ecosystem = ecosystem[x].value,
+                                env_broad_scale = env_broad_scale[x].value,
+                                sample_collection_site = sample_collection_site[x].value,
+                                samp_name = samp_name[x].value,
+                                ecosystem_subtype = ecosystem_subtype[x].value,
+                                description = description[x].value,
+                                collection_date = collection_date[x].value,
+                                nmdc_study = nmdc_study[x].value
                                 )
             
             yield metadata
@@ -67,8 +102,8 @@ def parse_metadata(metadata_file_path:Path) -> EMSL_Metadata:
 def run_nom_nmdc_data_processing():
     
     file_ext = '.d' 
-    data_dir = Path("/Users/eber373/Library/CloudStorage/OneDrive-PNNL/Desktop/data/nmdc_data/GROW /Freshwater/")
-    metadata_file_path = Path("/Users/eber373/Library/CloudStorage/OneDrive-PNNL/Desktop/data/nmdc_data/GROW /Freshwater/surface_water_metadata.xlsx")
+    data_dir = Path("/Users/eber373/Library/CloudStorage/OneDrive-PNNL/Desktop/data/nmdc_data/GROW/emsl_only/")
+    metadata_file_path = Path("/Users/eber373/Library/CloudStorage/OneDrive-PNNL/Desktop/data/nmdc_data/GROW/emsl_only/surface_water_metadata.xlsx")
 
     raw_dir_zip = data_dir / Path("raw_zip/")
     raw_dir_zip.mkdir(parents=True, exist_ok=True)
@@ -114,9 +149,8 @@ def run_nom_nmdc_data_processing():
                 nmdc_metadata_gen.create_nmdc_metadata(raw_file_to_upload_path.with_suffix('.zip'), 
                                                         output_file_path,
                                                         "https://nmdcdemo.emsl.pnnl.gov/", 
-                                                        each_data.nmdc_study,
                                                         nmdc_database,
-                                                        each_data.nmdc_biosample_id)
+                                                        each_data, biosample_id=None)
 
             else:
                 

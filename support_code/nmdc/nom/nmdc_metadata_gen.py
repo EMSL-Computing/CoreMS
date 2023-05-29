@@ -11,11 +11,20 @@ import nmdc_schema.nmdc as nmdc
 import oauthlib
 import requests_oauthlib
 
+from support_code.nmdc.nom.nom_grow_workflow import EMSL_Metadata
+
+env_mediums = {'ENVO_00002042': 'surface water',
+               'ENVO_00002007': 'sediment',
+               }
+env_local_scales = {'ENVO_00000022': 'river'}    
+env_broad_scales = {'ENVO_01000253': 'freshwater river biome'}    
+
+
 @dataclass
 class NomAnalysisActivity:
     codebase_url:str = "https://github.com/microbiomedata/enviroMS"
     cluster_name:str = "EMSL-RZR"
-    nom_21T_instrument_name: str = "21T Agilent"
+    nom_21T_instrument_name: str = "21T_Agilent"
     nom_12T_instrument_name: str = "12T_FTICR_B"
     
 @dataclass
@@ -31,7 +40,11 @@ class DataObject:
     nom_raw_data_object_description:str = "Raw 21T Direct Infusion Data"
     nom_dp_data_object_type:str = "FT ICR-MS Analysis Results"
     nom_dp_data_object_description:str = "EnviroMS FT ICR-MS natural organic matter workflow molecular formula assignment output details",
-    
+
+@dataclass
+class BioSample:
+    pass
+
 @dataclass
 class NMDC_Types: 
     
@@ -77,6 +90,65 @@ def mint_nmdc_id(type:NMDC_Types, how_many:int = 1) -> List[str]:
     list_ids = response.json()
     print(list_ids)
     return list_ids
+
+def get_biosample_object(emsl_metadata:EMSL_Metadata) -> nmdc.Biosample:
+    
+    nmdc_id = mint_nmdc_id({'id': NMDC_Types.BioSample})[0]
+
+    env_medium = {
+                 'has_raw_value': emsl_metadata.env_medium,
+                 'term':{'id': emsl_metadata.env_medium,
+                         'name': env_mediums.get(emsl_metadata.env_medium)
+                        }
+                 }
+    
+    env_local_scale = {
+                 'has_raw_value': emsl_metadata.env_local_scale,
+                 'term':{'id': emsl_metadata.env_local_scale,
+                         'name': env_local_scales.get(emsl_metadata.env_local_scale)
+                        }
+                 }
+    
+    env_broad_scale = {
+                 'has_raw_value': emsl_metadata.env_broad_scale,
+                 'term':{'id': emsl_metadata.env_broad_scale,
+                         'name': env_local_scales.get(emsl_metadata.env_broad_scale)
+                        }
+                 }
+    lat_lon = {
+                "has_raw_value": emsl_metadata.lat_long,
+                "latitude": emsl_metadata.latitude,
+                "longitude": emsl_metadata.longitude,
+            }
+
+    collection_date = { 'has_raw_value': emsl_metadata.collection_date}
+
+    geo_loc_name =  {'has_raw_value': emsl_metadata.geo_loc_name}
+    
+    data_dict = {'id': nmdc_id,
+                'env_medium' : env_medium,
+                'env_local_scale' : env_local_scale,
+                'env_broad_scales_data' : env_broad_scale,
+                'lat_lon': lat_lon,
+                'location': emsl_metadata.location,
+                'ecosystem_type': emsl_metadata.ecosystem_type,
+                'ecosystem': emsl_metadata.ecosystem,
+                'sample_collection_site': emsl_metadata.sample_collection_site,
+                'part_of': [emsl_metadata.nmdc_study],
+                'samp_name': emsl_metadata.samp_name,
+                'ecosystem_subtype': emsl_metadata.ecosystem_subtype,
+                'habitat': emsl_metadata.habitat,
+                'ecosystem_category': emsl_metadata.ecosystem_category,
+                'name': emsl_metadata.name,
+                'geo_loc_name': geo_loc_name,
+                'collection_date': collection_date,
+                "description": emsl_metadata.description,
+                "type": "nmdc:Biosample"
+                } 
+
+    biosample_object = nmdc.Biosample(**data_dict)
+
+    return biosample_object
 
 def get_data_object(file_path:Path, base_url:str, was_generated_by:str,
                 data_object_type:str, description:str) -> nmdc.DataObject:
@@ -151,21 +223,26 @@ def start_nmdc_database() -> nmdc.Database:
     return nmdc.Database()
 
 def create_nmdc_metadata(raw_data_path:Path, data_product_path:Path, base_url:str,
-                         nmdc_study_id:str, nom_metadata_db:nmdc.Database,
-                         biosample_id=None):
+                         nom_metadata_db:nmdc.Database,
+                         emsl_metadata:EMSL_Metadata, biosample_id=None):
 
     if not biosample_id:
+        
         biosample_id = mint_nmdc_id({'id': NMDC_Types.BioSample})[0]
+        bioSample = get_biosample_object(emsl_metadata)
+        biosample_id = bioSample.id
+    
+    else:
+        
         ''' needs to finish the logic for creating biosamples, this will fail because it is missing some required fields'''
         bioSample =  nmdc.BioSample(id=biosample_id)
-        biosample_id = bioSample.id
-
+        
     omicsProcessing = get_omics_processing(raw_data_path,
                                            OmicsProcessing.nom_12T_instrument_name,
                                            biosample_id, None, 
                                            OmicsProcessing.nom_omics_processing_type,
                                            OmicsProcessing.nom_omics_processing_description,
-                                           nmdc_study_id
+                                           emsl_metadata.nmdc_study_id
                                            )
     
     rawDataObject = get_data_object(raw_data_path, base_url + 'nom/grow/raw/', 
@@ -189,6 +266,7 @@ def create_nmdc_metadata(raw_data_path:Path, data_product_path:Path, base_url:st
     nomAnalysisActivity.has_output = dataProductDataObject.id
     omicsProcessing.has_output = rawDataObject.id
 
+    nom_metadata_db.biosample_set.append(bioSample)
     nom_metadata_db.data_object_set.append(rawDataObject)
     nom_metadata_db.nom_analysis_activity_set.append(nomAnalysisActivity)
     nom_metadata_db.omics_processing_set.append(omicsProcessing)
