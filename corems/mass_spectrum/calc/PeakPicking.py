@@ -103,7 +103,13 @@ class PeakPicking:
             while peak_height_minus  >= target_peak_height:
 
                 index_minus = index_minus -1
-                peak_height_minus = intes[index_minus]
+                try: 
+                    peak_height_minus = intes[index_minus]
+                except IndexError:
+                    print('Res. calc. warning - peak index adjacent to spectrum edge')
+                    print(massa)
+                    peak_height_minus = target_peak_height
+                    index_minus -= 1 
                 #print "massa", "," , "intes", "," , massa[index_minus], "," , peak_height_minus
             x = [ massa[index_minus],  massa[index_minus+1]]
             y = [ intes[index_minus],  intes[index_minus+1]]
@@ -119,7 +125,13 @@ class PeakPicking:
             while peak_height_plus  >= target_peak_height:
 
                 index_plus = index_plus + 1
-                peak_height_plus = intes[index_plus]
+                try: 
+                    peak_height_plus = intes[index_plus]
+                except IndexError:
+                    print('Res. calc. warning - peak index adjacent to spectrum edge')
+                    print(massa)
+                    peak_height_plus = target_peak_height
+                    index_plus += 1 
                 #print "massa", "," , "intes", "," , massa[index_plus], "," , peak_height_plus
 
             x = [massa[index_plus],  massa[index_plus - 1]]
