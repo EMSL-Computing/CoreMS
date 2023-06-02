@@ -120,7 +120,7 @@ class ReadMassList(MassListBaseClass):
         else:
 
             dataframe = self.get_dataframe()
-
+            
             self.check_columns(dataframe.columns)
             
             output_parameters = self.get_output_parameters(polarity)
