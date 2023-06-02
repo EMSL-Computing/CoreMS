@@ -117,8 +117,10 @@ class PeakPicking:
 
             a = coefficients[0]
             b = coefficients[1]
-
-            y_intercept =  intes[index_minus] + ((intes[index_minus+1] - intes[index_minus])/2)
+            if self.mspeaks_settings.legacy_resolving_power:
+                y_intercept =  intes[index_minus] + ((intes[index_minus+1] - intes[index_minus])/2)
+            else:
+                y_intercept =  target_peak_height
             massa1 = (y_intercept -b)/a
 
             index_plus = current_index
@@ -141,7 +143,11 @@ class PeakPicking:
             a = coefficients[0]
             b = coefficients[1]
 
-            y_intercept =  intes[index_plus - 1] + ((intes[index_plus] - intes[index_plus - 1])/2)
+            if self.mspeaks_settings.legacy_resolving_power:
+                y_intercept =  intes[index_plus - 1] + ((intes[index_plus] - intes[index_plus - 1])/2)
+            else:
+                y_intercept =  target_peak_height
+
             massa2 = (y_intercept -b)/a
 
             if massa1 > massa2:
