@@ -380,7 +380,7 @@ class MassListBaseClass:
         df = DataFrame(columns = names,dtype=float)
         df['m/z'] = mzs
         df['I'] = intensities
-        df['Resolving Power'] = mzs
+        df['Resolving Power'] = res
         df['Area'] = areas
         df['S/N'] = sn
         df['fwhm'] = fwhms
