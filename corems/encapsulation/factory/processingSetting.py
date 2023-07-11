@@ -211,6 +211,8 @@ class MassSpecPeakSetting:
     peak_max_prominence_percent: float = 0.1  # 1-100 % used for baseline detection
 
     peak_height_max_percent: float = 10  # 1-100 % used for baseline detection
+
+    legacy_resolving_power: bool = True # Use the legacy (CoreMS v1) resolving power calculation (True)
     
     def __post_init__(self):
 
@@ -416,6 +418,8 @@ class MolecularFormulaSearchSettings:
     url_database: str = 'postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp'
 
     db_jobs: int = 3
+
+    db_chunk_size: int = 300
 
     '''query setting'''
     ion_charge: int = -1

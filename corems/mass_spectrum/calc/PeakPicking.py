@@ -4,7 +4,7 @@
 '''
 
 from logging import warn
-from numpy import hstack, inf, isnan, poly1d, polyfit, where, array
+from numpy import hstack, inf, isnan, where, array, polyfit
 from corems.encapsulation.constant import Labels
 from corems.mass_spectra.calc import SignalProcessing as sp
 
@@ -103,7 +103,13 @@ class PeakPicking:
             while peak_height_minus  >= target_peak_height:
 
                 index_minus = index_minus -1
-                peak_height_minus = intes[index_minus]
+                try: 
+                    peak_height_minus = intes[index_minus]
+                except IndexError:
+                    print('Res. calc. warning - peak index adjacent to spectrum edge')
+                    print(massa)
+                    peak_height_minus = target_peak_height
+                    index_minus -= 1 
                 #print "massa", "," , "intes", "," , massa[index_minus], "," , peak_height_minus
             x = [ massa[index_minus],  massa[index_minus+1]]
             y = [ intes[index_minus],  intes[index_minus+1]]
@@ -111,15 +117,23 @@ class PeakPicking:
 
             a = coefficients[0]
             b = coefficients[1]
-
-            y_intercept =  intes[index_minus] + ((intes[index_minus+1] - intes[index_minus])/2)
+            if self.mspeaks_settings.legacy_resolving_power:
+                y_intercept =  intes[index_minus] + ((intes[index_minus+1] - intes[index_minus])/2)
+            else:
+                y_intercept =  target_peak_height
             massa1 = (y_intercept -b)/a
 
             index_plus = current_index
             while peak_height_plus  >= target_peak_height:
 
                 index_plus = index_plus + 1
-                peak_height_plus = intes[index_plus]
+                try: 
+                    peak_height_plus = intes[index_plus]
+                except IndexError:
+                    print('Res. calc. warning - peak index adjacent to spectrum edge')
+                    print(massa)
+                    peak_height_plus = target_peak_height
+                    index_plus += 1 
                 #print "massa", "," , "intes", "," , massa[index_plus], "," , peak_height_plus
 
             x = [massa[index_plus],  massa[index_plus - 1]]
@@ -129,7 +143,11 @@ class PeakPicking:
             a = coefficients[0]
             b = coefficients[1]
 
-            y_intercept =  intes[index_plus - 1] + ((intes[index_plus] - intes[index_plus - 1])/2)
+            if self.mspeaks_settings.legacy_resolving_power:
+                y_intercept =  intes[index_plus - 1] + ((intes[index_plus] - intes[index_plus - 1])/2)
+            else:
+                y_intercept =  target_peak_height
+
             massa2 = (y_intercept -b)/a
 
             if massa1 > massa2:
@@ -322,8 +340,8 @@ class PeakPicking:
         list_mass = [mass[current_index - 1], mass[current_index], mass[current_index +1]]
         list_y = [abund[current_index - 1],abund[current_index], abund[current_index +1]]
         
-        z = poly1d(polyfit(list_mass, list_y, 2))
-        a = z[2]
+        z = polyfit(list_mass, list_y, 2)
+        a = z[0]
         b = z[1]
 
         calculated = -b/(2*a)
@@ -340,8 +358,8 @@ class PeakPicking:
             
             # fit parabola to three most abundant frequency datapoints
             list_freq = [freq[current_index - 1], freq[current_index], freq[current_index +1]]
-            z = poly1d(polyfit(list_freq, list_y, 2))
-            a = z[2]
+            z = polyfit(list_freq, list_y, 2)
+            a = z[0]
             b = z[1]
 
             calculated_freq = -b/(2*a)
