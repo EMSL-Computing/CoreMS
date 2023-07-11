@@ -39,7 +39,7 @@ class DataObject:
     nom_raw_data_object_type:str = "Direct Infusion FT ICR-MS Raw Data"
     nom_raw_data_object_description:str = "Raw 21T Direct Infusion Data"
     nom_dp_data_object_type:str = "FT ICR-MS Analysis Results"
-    nom_dp_data_object_description:str = "EnviroMS FT ICR-MS natural organic matter workflow molecular formula assignment output details",
+    nom_dp_data_object_description:str = "EnviroMS FT ICR-MS natural organic matter workflow molecular formula assignment output details"
 
 @dataclass
 class BioSample:
@@ -48,7 +48,7 @@ class BioSample:
 @dataclass
 class NMDC_Types: 
     
-    BioSample:str = "nmdc:BioSample"
+    BioSample:str = "nmdc:Biosample"
     OmicsProcessing:str = "nmdc:OmicsProcessing"
     NomAnalysisActivity:str = "nmdc:NomAnalysisActivity"
     DataObject:str = "nmdc:DataObject"
@@ -128,7 +128,7 @@ def get_biosample_object(emsl_metadata:EMSL_Metadata) -> nmdc.Biosample:
     data_dict = {'id': nmdc_id,
                 'env_medium' : env_medium,
                 'env_local_scale' : env_local_scale,
-                'env_broad_scales_data' : env_broad_scale,
+                'env_broad_scale' : env_broad_scale,
                 'lat_lon': lat_lon,
                 'location': emsl_metadata.location,
                 'ecosystem_type': emsl_metadata.ecosystem_type,
@@ -228,7 +228,7 @@ def create_nmdc_metadata(raw_data_path:Path, data_product_path:Path, base_url:st
 
     if not biosample_id:
         
-        biosample_id = mint_nmdc_id({'id': NMDC_Types.BioSample})[0]
+        #biosample_id = mint_nmdc_id({'id': NMDC_Types.BioSample})[0]
         bioSample = get_biosample_object(emsl_metadata)
         biosample_id = bioSample.id
     
@@ -242,7 +242,7 @@ def create_nmdc_metadata(raw_data_path:Path, data_product_path:Path, base_url:st
                                            biosample_id, None, 
                                            OmicsProcessing.nom_omics_processing_type,
                                            OmicsProcessing.nom_omics_processing_description,
-                                           emsl_metadata.nmdc_study_id
+                                           emsl_metadata.nmdc_study
                                            )
     
     rawDataObject = get_data_object(raw_data_path, base_url + 'nom/grow/raw/', 
@@ -261,10 +261,11 @@ def create_nmdc_metadata(raw_data_path:Path, data_product_path:Path, base_url:st
                                     data_object_type =DataObject.nom_dp_data_object_type,
                                     description =DataObject.nom_dp_data_object_description)
     
+    
     #circular dependencies : great! 
-    nomAnalysisActivity.has_input = rawDataObject.id
-    nomAnalysisActivity.has_output = dataProductDataObject.id
-    omicsProcessing.has_output = rawDataObject.id
+    nomAnalysisActivity.has_input = [rawDataObject.id]
+    nomAnalysisActivity.has_output = [dataProductDataObject.id]
+    omicsProcessing.has_output = [rawDataObject.id]
 
     nom_metadata_db.biosample_set.append(bioSample)
     nom_metadata_db.data_object_set.append(rawDataObject)

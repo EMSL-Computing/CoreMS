@@ -22,6 +22,7 @@ class EMSL_Metadata:
     ecosystem_category: str
     name: str
     geo_loc_name: str
+    lat_long: str
     latitude: float
     longitude: float
     location: str
@@ -78,7 +79,7 @@ def parse_metadata(metadata_file_path:Path) -> EMSL_Metadata:
                                 sample_type = sample_type[x].value,
                                 env_medium  = env_medium[x].value,
                                 habitat = habitat[x].value,
-                                ecosystem_category  = ecosystem_category[x].value,
+                                ecosystem_category  = ecosystem_category[x].value,  
                                 name  = name[x].value,
                                 geo_loc_name  = geo_loc_name[x].value,
                                 lat_long =  lat_long[x].value,
@@ -103,7 +104,7 @@ def run_nom_nmdc_data_processing():
     
     file_ext = '.d' 
     data_dir = Path("/Users/eber373/Library/CloudStorage/OneDrive-PNNL/Desktop/data/nmdc_data/GROW/emsl_only/")
-    metadata_file_path = Path("/Users/eber373/Library/CloudStorage/OneDrive-PNNL/Desktop/data/nmdc_data/GROW/emsl_only/surface_water_metadata.xlsx")
+    metadata_file_path = Path("/Users/eber373/Library/CloudStorage/OneDrive-PNNL/Desktop/data/nmdc_data/GROW/emsl_only/emsl_only.xlsx")
 
     raw_dir_zip = data_dir / Path("raw_zip/")
     raw_dir_zip.mkdir(parents=True, exist_ok=True)
@@ -115,7 +116,7 @@ def run_nom_nmdc_data_processing():
     
     registration_dir = data_dir / 'registration'
     registration_dir.mkdir(parents=True, exist_ok=True)
-    registration_file = registration_dir / 'surface_water.json'
+    registration_file = registration_dir / 'emsl_only_grow.json'
     
     field_strength = 12
     
@@ -155,7 +156,7 @@ def run_nom_nmdc_data_processing():
             else:
                 
                 print(issue)
-                failed_list.append(raw_file_path)
+                failed_list.append(str(raw_file_path))
 
         except Exception as inst:
 
