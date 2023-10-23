@@ -76,7 +76,7 @@ build:
 #    - tags
 
 
-build-web-image:
+build-base-image:
   extends: .pnnllib-gitlab-build-container-image
   stage: Push to Gitlab Registry
   image: gcr.io/kaniko-project/executor:debug@sha256:71d8cf6012b67979960f5b15b85408438132d87eef599926d8931f348d045957
