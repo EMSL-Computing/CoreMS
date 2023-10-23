@@ -848,6 +848,7 @@ class MassSpecfromFreq(MassSpecBase):
         self._frequency_domain = frequency_domain
         self.has_frequency = True
         self._set_mz_domain()
+        self._sort_mz_domain()
         
         self.magnetron_frequency = None
         self.magnetron_frequency_sigma = None
@@ -857,11 +858,17 @@ class MassSpecfromFreq(MassSpecBase):
         if auto_process:
             self.process_mass_spec(keep_profile=keep_profile, noise_bayes_est=noise_bayes_est)
 
+    def _sort_mz_domain(self):
+        '''
+        function to sort the mz domain from low to high mz
+        '''
+        if self._mz_exp[0] > self._mz_exp[-1]:
+            self._mz_exp = self._mz_exp[::-1]
+            self._abundance = self._abundance[::-1]
 
     def _set_mz_domain(self):
 
         if self.label == Labels.bruker_frequency:
-
             self._mz_exp = self._f_to_mz_bruker()
 
         else:
