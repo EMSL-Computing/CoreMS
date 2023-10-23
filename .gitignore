@@ -65,3 +65,8 @@ data/ftms_nom_nmdc_data.csv
 data/nom_failed_files.json
 db/molformula.db
 .venv/
+clr_test/
+dev/
+r00*/
+ext_lib/
+*.egg*
