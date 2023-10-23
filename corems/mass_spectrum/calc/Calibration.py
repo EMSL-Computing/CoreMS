@@ -299,7 +299,7 @@ class MzDomainCalibration:
                 # Split the array into two parts - one to recailbrate, one to keep unchanged. 
                 mz_exp_peaks_tocal = mz_exp_peaks[(mz_exp_peaks>=min(self.mzsegment)) & (mz_exp_peaks<=max(self.mzsegment))]
                 mz_exp_peaks_unchanged = mz_exp_peaks[~(mz_exp_peaks>=min(self.mzsegment)) | ~(mz_exp_peaks<=max(self.mzsegment))]
-
+                # To Do: - segmented calibration needs a way to better track the calibration args/values... 
                 if not self.mass_spectrum.is_centroid:
                     mz_exp_profile = np.array(self.mass_spectrum.mz_exp_profile)
                     # Split the array into two parts - one to recailbrate, one to keep unchanged. 
@@ -349,10 +349,11 @@ class MzDomainCalibration:
                 self.mass_spectrum.mz_cal_profile = mz_profile_calc
 
             self.mass_spectrum.calibration_order = order
-            #self.mass_spectrum.measured_mz = len(cal_refs_mz)
             self.mass_spectrum.calibration_RMS = float(res['fun'])
             self.mass_spectrum.calibration_points = int(len(cal_refs_mz))
             self.mass_spectrum.calib_ref_mzs = cal_refs_mz
+            #self.mass_spectrum.calib_meas_mzs = cal_refs_mz
+
             self.mass_spectrum.calibration_segment = self.mzsegment
 
             if diagnostic:

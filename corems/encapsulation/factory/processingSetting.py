@@ -180,7 +180,7 @@ class MassSpectrumSetting:
     max_calib_ppm_error: float = 1.0
     min_calib_ppm_error: float = -1.0
     calib_sn_threshold: float = 2.0
-    calib_ref_mzs: list = []
+    #calib_ref_mzs: list = [0]
 
     do_calibration: bool = True
 
