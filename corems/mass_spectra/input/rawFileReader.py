@@ -116,6 +116,31 @@ class ThermoBaseClass():
         else:        
             return self.chromatogram_settings.end_scan
         
+    def set_msordertype(self, scanFilter, mstype: str = 'ms1'):
+        '''
+        Function to convert user passed string MS Type to Thermo MSOrderType object
+        Limited to MS1 through MS10.
+        '''
+        mstype = mstype.upper()
+        # Check that a valid mstype is passed
+        if (int(mstype.split('MS')[1]) >10) or (int(mstype.split('MS')[1]) <1):
+            warn('MS Type not valid, must be between MS1 and MS10') 
+            
+        msordertypedict = {'MS1':MSOrderType.Ms,
+                           'MS2':MSOrderType.Ms2,
+                           'MS3':MSOrderType.Ms3,
+                           'MS4':MSOrderType.Ms4,
+                           'MS5':MSOrderType.Ms5,
+                           'MS6':MSOrderType.Ms6,
+                           'MS7':MSOrderType.Ms7,
+                           'MS8':MSOrderType.Ms8,
+                           'MS9':MSOrderType.Ms9,
+                           'MS10':MSOrderType.Ms10,
+                           }
+        scanFilter.MSOrder = msordertypedict[mstype]
+        return scanFilter
+
+
     def get_creation_time(self):
         '''
         Extract the creation date stamp from the .RAW file
@@ -450,7 +475,8 @@ class ThermoBaseClass():
         # Get the scan filter for the first scan.  This scan filter will be used to located
         # scans within the given scan range of the same type
 
-        averageScan = Extensions.AverageScans(self.iRawDataPlus, scans, options)
+        averageScan = Extensions.AverageScans(self.iRawDataPlus, 
+                                            scans, options)
 
         len_data = averageScan.SegmentedScan.Positions.Length
 
@@ -503,7 +529,7 @@ class ThermoBaseClass():
         mass_spec.process_mass_spec()
         return mass_spec
 
-
+    
     def get_average_mass_spectrum_in_scan_range(self, auto_process: bool = True, ppm_tolerance: float = 5.0,
                                                 ms_type: int = 0) -> MassSpecProfile:
 
@@ -513,11 +539,11 @@ class ThermoBaseClass():
         end_scan: int
         auto_process: bool
             If true performs peak picking, and noise threshold calculation after creation of mass spectrum object
-        ms_type: MSOrderType.MS
-            Type of mass spectrum scan, default for full scan acquisition
+        ms_type: str
+            String of form 'ms1' or 'ms2' or 'MS3' etc. Valid up to MS10. 
+            Internal function converts to Thermo MSOrderType class. 
          Returns:
             MassSpecProfile
-        # This Function is Broken and/or redundant.
         '''
 
         d_params = self.set_metadata(firstScanNumber=self.start_scan,
@@ -532,8 +558,8 @@ class ThermoBaseClass():
         # scans within the given scan range of the same type
         scanFilter = self.iRawDataPlus.GetFilterForScanNumber(self.start_scan)
 
-        # force it to only look for the MSType
-        scanFilter.MSOrder = ms_type
+        # force it to only look for the MSType the user provides
+        scanFilter = self.set_msordertype(scanFilter, ms_type)
 
         averageScan = Extensions.AverageScansInScanRange(self.iRawDataPlus, 
                                                          self.start_scan, self.end_scan,
