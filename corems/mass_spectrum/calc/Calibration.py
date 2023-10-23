@@ -131,7 +131,9 @@ class MzDomainCalibration:
         df_ref : pandas dataframe
             reference mass list for recalibration.
         calib_ppm_error_threshold : float, optional
-            ppm error for finding calibration masses in the spectrum. The default is 1.
+            ppm error for finding calibration masses in the spectrum. The default is -1,1.
+            Note: This is based on the calculation of ppm = ((mz_measure - mz_theoretical)/mz_theoretical)*1e6
+                Some software does this the other way around and value signs must be inverted for that to work. 
         calib_snr_threshold : float, optional
             snr threshold for finding calibration masses in the spectrum. The default is 5.
 
