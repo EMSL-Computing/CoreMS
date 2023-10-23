@@ -422,6 +422,44 @@ class ThermoBaseClass():
         else:
             return None, None
 
+    def get_centroid_msms_data(self, scan):
+            
+            d_params = self.set_metadata(scans_list=[scan], label=Labels.thermo_centroid)
+
+            centroidStream = self.iRawDataPlus.GetCentroidStream(scan, False)
+
+            noise = list(centroidStream.Noises)
+
+            baselines = list(centroidStream.Baselines)
+
+            rp = list(centroidStream.Resolutions)
+
+            magnitude = list(centroidStream.Intensities)
+
+            mz = list(centroidStream.Masses)
+
+            # charge = scans_labels[5]
+            array_noise_std = (np.array(noise) - np.array(baselines)) / 3
+            l_signal_to_noise = np.array(magnitude) / array_noise_std
+
+            d_params['baselise_noise'] = np.average(array_noise_std)
+
+            d_params['baselise_noise_std'] = np.std(array_noise_std)
+
+            data_dict = {
+                Labels.mz: mz,
+                Labels.abundance: magnitude,
+                Labels.rp: rp,
+                Labels.s2n: list(l_signal_to_noise)
+            }
+
+            
+            mass_spec = MassSpecCentroid(data_dict, d_params, auto_process=False)
+            mass_spec.settings.threshold_method = 'relative_abundance'
+            mass_spec.settings.relative_abundance_threshold = 1
+            mass_spec.process_mass_spec()
+            return mass_spec
+
     def get_average_mass_spectrum_by_scanlist(self, scans_list: List[int], auto_process: bool = True, 
                                               ppm_tolerance: float = 5.0) -> MassSpecProfile:
 
@@ -465,50 +503,14 @@ class ThermoBaseClass():
 
         return mass_spec
 
-    def get_centroid_msms_data(self, scan):
-        
-        d_params = self.set_metadata(scans_list=[scan], label=Labels.thermo_centroid)
-
-        centroidStream = self.iRawDataPlus.GetCentroidStream(scan, False)
-
-        noise = list(centroidStream.Noises)
-
-        baselines = list(centroidStream.Baselines)
-
-        rp = list(centroidStream.Resolutions)
-
-        magnitude = list(centroidStream.Intensities)
-
-        mz = list(centroidStream.Masses)
-
-        # charge = scans_labels[5]
-        array_noise_std = (np.array(noise) - np.array(baselines)) / 3
-        l_signal_to_noise = np.array(magnitude) / array_noise_std
-
-        d_params['baselise_noise'] = np.average(array_noise_std)
-
-        d_params['baselise_noise_std'] = np.std(array_noise_std)
-
-        data_dict = {
-            Labels.mz: mz,
-            Labels.abundance: magnitude,
-            Labels.rp: rp,
-            Labels.s2n: list(l_signal_to_noise)
-        }
-
-        
-        mass_spec = MassSpecCentroid(data_dict, d_params, auto_process=False)
-        mass_spec.settings.threshold_method = 'relative_abundance'
-        mass_spec.settings.relative_abundance_threshold = 1
-        mass_spec.process_mass_spec()
-        return mass_spec
-
-
-    def get_average_mass_spectrum_in_scan_range(self, auto_process: bool = True, ppm_tolerance: float = 5.0,
-                                                ms_type: int = 0) -> MassSpecProfile:
+   
+    def get_average_mass_spectrum(self, scans:list | tuple,  auto_process: bool = True, ppm_tolerance: float = 5.0,
+                                                ms_type: str = 'MS' ) -> MassSpecProfile:
 
         '''
         Averages mass spectra over a scan range using Thermo's AverageScansInScanRange method
+        scans : list or tuple
+            If list uses Thermo AverageScansInScanRange for selected scans, ortherwise uses Thermo AverageScans for a scan range
         start_scan: int
         end_scan: int
         auto_process: bool
@@ -535,6 +537,7 @@ class ThermoBaseClass():
         # force it to only look for the MSType
         scanFilter.MSOrder = ms_type
 
+        if isinstance(scans, tuple):
         averageScan = Extensions.AverageScansInScanRange(self.iRawDataPlus, 
                                                          self.start_scan, self.end_scan,
                                                          scanFilter, options)
