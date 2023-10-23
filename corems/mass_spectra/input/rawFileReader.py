@@ -522,10 +522,10 @@ class ThermoBaseClass():
         # Get the scan filter for the first scan.  This scan filter will be used to located
         # scans within the given scan range of the same type
         scanFilter = self.iRawDataPlus.GetFilterForScanNumber(self.start_scan)
-
-        scanFilter = self.set_msordertype(scanFilter, ms_type)    
+        
         # force it to only look for the MSType
-        scanFilter.MSOrder = ms_type
+        scanFilter = self.set_msordertype(scanFilter, ms_type)    
+
 
         if isinstance(self.scans, tuple):
             
