@@ -564,7 +564,7 @@ class ThermoBaseClass():
             d_params = self.set_metadata(scans_list=self.scans)
 
             scans = List[int]()
-            for scan in scans:
+            for scan in self.scans:
                 scans.Add(scan)
 
             averageScan = Extensions.AverageScans(self.iRawDataPlus, scans, options)
