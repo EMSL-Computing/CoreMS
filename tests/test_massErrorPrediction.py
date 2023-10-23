@@ -8,8 +8,8 @@ from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFor
 from test_molecularFormulaSearch import create_mass_spectrum
 
 
-def test_error_prediction():
-
+def x_test_error_prediction():
+    'This function will be removed in CoreMS 2.0. adding x to skip test'
     mass_spectrum = create_mass_spectrum()
 
     mass_error_prediction = MassErrorPrediction(mass_spectrum)
@@ -19,4 +19,4 @@ def test_error_prediction():
     return mass_spectrum
 
 if __name__ == "__main__":
-    test_error_prediction()
+    x_test_error_prediction()

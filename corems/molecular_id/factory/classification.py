@@ -343,11 +343,11 @@ class HeteroatomsClassification(Mapping):
         
         ax = plt.gca()
 
-        for plot_obj in ax.stem(mz_assigned,abundance_assigned, linefmt='-',  markerfmt=" ", use_line_collection =True, label="Assigned"):
+        for plot_obj in ax.stem(mz_assigned,abundance_assigned, linefmt='-',  markerfmt=" ", label="Assigned"):
         
             plt.setp(plot_obj, 'color', assigned_color, 'linewidth', 2)
         
-        for plot_obj in ax.stem(mz_not_assigned, abundance_not_assigned, linefmt='-', markerfmt=" ",  use_line_collection =True,label="Unassigned"):
+        for plot_obj in ax.stem(mz_not_assigned, abundance_not_assigned, linefmt='-', markerfmt=" ", label="Unassigned"):
         
             plt.setp(plot_obj, 'color', unassigned_color, 'linewidth', 2)
         
@@ -425,7 +425,7 @@ class HeteroatomsClassification(Mapping):
             mz_assigned = self.mz_exp(classe)
             abundance_assigned= self.abundance(classe)
 
-            for plot_obj in ax.stem( mz_assigned, abundance_assigned, linefmt='-',  markerfmt=" ", use_line_collection =True):
+            for plot_obj in ax.stem( mz_assigned, abundance_assigned, linefmt='-',  markerfmt=" "):
             
                 plt.setp(plot_obj, 'color', color, 'linewidth', 2)
             

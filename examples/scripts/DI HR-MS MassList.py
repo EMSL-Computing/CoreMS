@@ -63,7 +63,7 @@ def run_thermo(file_location):
 
     # mass_spectrum = transient.get_mass_spectrum(plot_result=False, auto_process=True)
 
-    mass_spectrum = parser.get_average_mass_spectrum_in_scan_range()
+    mass_spectrum = parser.get_average_mass_spectrum()
 
     return mass_spectrum, 3
 

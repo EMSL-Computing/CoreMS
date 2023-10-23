@@ -251,7 +251,7 @@ def plot_ms(x, y, ax=None, c='g', is_centroid=True):
         ax = plt.gca()
 
     if is_centroid:
-        markerline_a, stemlines_a, baseline_a = ax.stem(x, y, linefmt='-', markerfmt=" ", use_line_collection=True)
+        markerline_a, stemlines_a, baseline_a = ax.stem(x, y, linefmt='-', markerfmt=" ")
         plt.setp(markerline_a, 'color', c, 'linewidth', 2)
         plt.setp(stemlines_a, 'color', c, 'linewidth', 2)
         plt.setp(baseline_a, 'color', c, 'linewidth', 2)

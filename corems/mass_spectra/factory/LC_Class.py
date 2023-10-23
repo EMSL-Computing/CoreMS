@@ -124,6 +124,11 @@ class LCMSBase(Mapping, LC_Calculations):
     def scans_number(self):
 
         return self._scans_number_list
+    
+    @scans_number.setter
+    def scans_number(self, l):
+
+        self._scans_number_list = l
 
     @property
     def retention_time(self):
@@ -139,11 +144,6 @@ class LCMSBase(Mapping, LC_Calculations):
     def retention_time(self, l):
         # self._retention_time_list = linspace(0, 80, num=len(self._scans_number_list))
         self._retention_time_list = l
-
-    @scans_number.setter
-    def scans_number(self, l):
-
-        self._scans_number_list = l
 
     @tic.setter
     def tic(self, l):
@@ -236,10 +236,7 @@ class DataDependentLCMS(LC_Calculations):
         # self._retention_time_list = linspace(0, 80, num=len(self._scans_number_list))
         self._retention_time_list = l
 
-    @scans_number.setter
-    def scans_number(self, l):
-
-        self._scans_number_list = l
+    
 
     @tic.setter
     def tic(self, l):
@@ -531,11 +528,12 @@ class DataDependentLCMS(LC_Calculations):
                         self._lcmspeaks[index].add_molecular_formula(possible_mf)
 
                     else:
+
+                        mass_spec = self._parser.get_average_mass_spectrum(auto_process=False)
                         
-                        self._parser.chromatogram_settings.start_scan = original_scan
-                        self._parser.chromatogram_settings.end_scan = original_scan
+                        self._parser.chromatogram_settings.scans = [original_scan]
                         
-                        mass_spec = self._parser.get_average_mass_spectrum_in_scan_range()
+                        mass_spec = self._parser.get_average_mass_spectrum()
                         
                         #mass_spec.min_ppm_error = - 5
                         #mass_spec.max_ppm_error = 5
