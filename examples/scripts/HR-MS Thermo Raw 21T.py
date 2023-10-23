@@ -29,8 +29,7 @@ def run_thermo(file_location):
 
     parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
 
-    parser.chromatogram_settings.start_scan = -1
-    parser.chromatogram_settings.end_scan = -1
+    parser.chromatogram_settings.scans = (-1, -1)
     
     tic_data, ax = parser.get_tic(ms_type='MS', plot=True)
 
@@ -43,17 +42,16 @@ def run_thermo(file_location):
     print(transient_time_list)
 
     # sums all the mass spectra
-    mass_spectrum = parser.get_average_mass_spectrum_in_scan_range()
+    mass_spectrum = parser.get_average_mass_spectrum()
 
     # sums scans in selected range
-    parser.chromatogram_settings.start_scan = 1
-    parser.chromatogram_settings.end_scan = 10
+    parser.chromatogram_settings.scans = (1, 10)
     
-    mass_spectrum = parser.get_average_mass_spectrum_in_scan_range()
+    mass_spectrum = parser.get_average_mass_spectrum()
     
-    scans_list = [1]
+    parser.chromatogram_settings.scans = [1]
     # sums scans in selected range
-    mass_spectrum = parser.get_average_mass_spectrum_by_scanlist(scans_list)
+    mass_spectrum = parser.get_average_mass_spectrum()
 
     return mass_spectrum
 

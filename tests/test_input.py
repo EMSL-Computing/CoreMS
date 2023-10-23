@@ -7,10 +7,11 @@ import sys
 sys.path.append(".")
 from pathlib import Path
 
+
 import pytest
 from matplotlib import pyplot
 
-from corems.mass_spectrum.calc.Calibration import MzDomainCalibration
+
 from corems.mass_spectra.input.boosterHDF5 import ReadHDF_BoosterMassSpectra
 from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
 from corems.mass_spectra.input.brukerSolarix import ReadBruker_SolarixTransientMassSpectra
@@ -21,6 +22,8 @@ from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
 from corems.mass_spectrum.input.massList import ReadCoremsMasslist, ReadMassList
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.encapsulation.factory.parameters import MSParameters
+from corems.mass_spectra.input import rawFileReader
+
 
 def test_andi_netcdf_gcms():
 
@@ -316,7 +319,38 @@ def test_import_mass_list():
 
     # mass_spectrum = mass_list_reader.get_mass_spectrum(polarity,auto_process=True)
 
+def test_import_thermo_average():
+    
+    file_location = Path.cwd() / "tests/tests_data/ftms/" / "SRFA_NEG_ESI_ORB.raw"
 
+        # change parameters here
+    MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
+    MSParameters.mass_spectrum.relative_abundance_threshold = 1
+
+    # creates the parser obj
+    parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
+
+    # sums all the mass spectra
+
+    parser.chromatogram_settings.scans = (-1, -1)
+    mass_spectrum = parser.get_average_mass_spectrum(spectrum_mode='profile')
+
+    # sums scans in selected range
+    parser.chromatogram_settings.scans = (1, 5)
+    mass_spectrum = parser.get_average_mass_spectrum(spectrum_mode='profile')
+
+    parser.chromatogram_settings.scans = [1,4,6,9]
+
+    # sums scans in selected range
+    mass_spectrum = parser.get_average_mass_spectrum(spectrum_mode='profile')
+
+    mass_spectrum.plot_mz_domain_profile()
+    mass_spectrum.plot_profile_and_noise_threshold()
+
+    #print("polarity", mass_spectrum.polarity)
+    plt.savefig("test.png")
+
+    
 if __name__ == '__main__':
     
     # test_import_booster_mass_spectrum_hdf()

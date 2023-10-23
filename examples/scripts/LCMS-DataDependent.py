@@ -183,10 +183,8 @@ def single_process(mf_references_dict: Dict[str, Dict[float, List[MolecularFormu
                     
                 else:
                     
-                    parser.chromatogram_settings.start_scan = original_scan
-                    parser.chromatogram_settings.end_scan = original_scan
-                    
-                    mass_spec = parser.get_average_mass_spectrum_in_scan_range()
+                    parser.chromatogram_settings.scans = [original_scan]
+                    mass_spec = parser.get_average_mass_spectrum()
                     
                     mass_spec.min_ppm_error = - 5
                     mass_spec.max_ppm_error = 5

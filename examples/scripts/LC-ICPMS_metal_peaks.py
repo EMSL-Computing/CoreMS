@@ -190,10 +190,9 @@ def search_ms1_data(icrfile:str, dict_metal_eicdata:  Dict[str, EIC_Data], param
 			print(ftms_scans)
 			print(ftms_times)
 
-			parser.chromatogram_settings.start_scan = ftms_scans[0]
-			parser.chromatogram_settings.end_scan = ftms_scans[-1]
+			parser.chromatogram_settings.scans = (ftms_scans[0], ftms_scans[-1])
 			
-			mass_spec = parser.get_average_mass_spectrum_in_scan_range(auto_process=False)
+			mass_spec = parser.get_average_mass_spectrum(auto_process=False)
 			mass_spec.retention_time = retention_time
 
 			mass_spec.settings = parameters.mass_spectrum
