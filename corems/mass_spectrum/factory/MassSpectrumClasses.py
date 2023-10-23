@@ -14,6 +14,7 @@ from corems.encapsulation.constant import Labels
 from corems.ms_peak.factory.MSPeakClasses import ICRMassPeak as MSPeak
 from corems.encapsulation.factory.parameters import MSParameters
 from corems.encapsulation.input.parameter_from_json import load_and_set_parameters_ms, load_and_set_toml_parameters_ms
+from corems.mass_spectrum.calc.MeanResolvingPowerFilter import MeanResolvingPowerFilter
 
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
@@ -513,6 +514,15 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         indexes_to_remove = [index for index, mspeak in enumerate(self.mspeaks) if  mspeak.resolving_power >= rpe(mspeak.mz_exp,mspeak.ion_charge)]
         self.filter_by_index(indexes_to_remove)
+
+    def filter_by_mean_resolving_power(self, ndeviations=3,plot=False,guess_pars=False):
+        '''
+        Function to remove peaks which have resolving powers more than N standard deviations from the mean
+        '''
+        self.check_mspeaks_warning()
+        indexes_to_remove = MeanResolvingPowerFilter(self,ndeviations,plot,guess_pars).main()
+        self.filter_by_index(indexes_to_remove)
+
 
     def filter_by_min_resolving_power(self, B, T):
 

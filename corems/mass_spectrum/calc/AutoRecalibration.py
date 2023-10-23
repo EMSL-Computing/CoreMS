@@ -127,7 +127,9 @@ class HighResRecalibration():
 
         mean_error = lmout.best_values['center']
         std_error = lmout.best_values['sigma']
-        fwhm_error = 2*np.sqrt(2*np.log2(2))*std_error
+        # FWHM from Sigma = approx. 2.355*sigma
+        #fwhm_error = 2*np.sqrt(2*np.log(2))*std_error
+        fwhm_error = std_error * np.sqrt(8*np.log(2))
         
         ppm_thresh = [mean_error-fwhm_error,mean_error+fwhm_error]
         return mean_error,fwhm_error,ppm_thresh
