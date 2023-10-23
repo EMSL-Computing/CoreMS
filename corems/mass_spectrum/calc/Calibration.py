@@ -352,6 +352,7 @@ class MzDomainCalibration:
             #self.mass_spectrum.measured_mz = len(cal_refs_mz)
             self.mass_spectrum.calibration_RMS = float(res['fun'])
             self.mass_spectrum.calibration_points = int(len(cal_refs_mz))
+            self.mass_spectrum.calib_ref_mzs = cal_refs_mz
             self.mass_spectrum.calibration_segment = self.mzsegment
 
             if diagnostic:
