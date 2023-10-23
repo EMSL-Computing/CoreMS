@@ -68,7 +68,7 @@ class NMDC_Mint:
     @property
     def json(self):
         return dumps(self.__dict__)
-
+    
 def mint_nmdc_id(type:NMDC_Types, how_many:int = 1) -> List[str]: 
     
     config = yaml.safe_load(open('./config.yaml','r'))
@@ -166,7 +166,7 @@ def get_data_object(file_path:Path, base_url:str, was_generated_by:str,
                 "description": description,
                 "type": "nmdc:DataObject"
                 } 
-
+    
     data_object = nmdc.DataObject(**data_dict)
 
     return data_object

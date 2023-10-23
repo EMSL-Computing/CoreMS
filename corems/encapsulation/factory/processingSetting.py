@@ -89,10 +89,9 @@ class LiquidChromatographSetting:
     '''
     enforce_target_ms2: bool
             only perform EIC for target_mz if the m/z was selected as precursor for ms2
-    start_scan: int
-        default -1 will select the lowest available
-    end_scan: int
-        default -1 will select the highest available
+    scans: list or tuple
+        list of select scan to average or a tuple containing the range to average
+        default is (-1, -1) which will select a range with the lowest and highest available scans
     peak_height_max_percent: float
         1-100 % used for baseline detection use 0.1 for second_derivative and 10 for other methods    
     peak_max_prominence_percent: float
@@ -103,10 +102,8 @@ class LiquidChromatographSetting:
         0-100 % used for extracted ion chromatogram peak detection
     '''
     
-    start_scan: int = -1
+    scans: list | tuple = (-1, -1)
     
-    end_scan: int = -1
-        
     eic_tolerance_ppm: float = 5
     
     correct_eic_baseline = True
