@@ -464,8 +464,10 @@ class ThermoBaseClass():
             centroid or profile mass spectrum 
         auto_process: bool
             If true performs peak picking, and noise threshold calculation after creation of mass spectrum object
-        ms_type: MSOrderType.MS
-            Type of mass spectrum scan, default for full scan acquisition
+        ms_type: str
+            String of form 'ms1' or 'ms2' or 'MS3' etc. Valid up to MS10. 
+            Internal function converts to Thermo MSOrderType class. 
+
          Returns:
             MassSpecProfile
         
@@ -564,7 +566,7 @@ class ThermoBaseClass():
             d_params = self.set_metadata(scans_list=self.scans)
 
             scans = List[int]()
-            for scan in scans:
+            for scan in self.scans:
                 scans.Add(scan)
 
             averageScan = Extensions.AverageScans(self.iRawDataPlus, scans, options)
