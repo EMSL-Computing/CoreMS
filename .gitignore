@@ -64,3 +64,4 @@ data/ftms_nom_metadata_products.json
 data/ftms_nom_nmdc_data.csv
 data/nom_failed_files.json
 db/molformula.db
+.venv/

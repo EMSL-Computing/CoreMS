@@ -39,6 +39,8 @@ class MassListBaseClass:
      ## **isThermoProfile : bool
         The keyword argument is_thermo_profile is used to change the number of expected columns to only m/z and intensity
         S/N and RP will be calculated based on the data. i.e signal to noise might not be accurate because the lack of noise data 
+    ## **headerless : bool
+        If no headers present in the file (e.g. a .xy file from Bruker), assume two columns m/z and intensity and dont look for the headers.
     # Attributes
     ----------
     ## _expected_columns : set
@@ -51,7 +53,7 @@ class MassListBaseClass:
     '''
 
     def __init__(self, file_location, isCentroid=True, analyzer='Unknown', instrument_label='Unknown',
-                 sample_name=None, header_lines=0, isThermoProfile=False):
+                 sample_name=None, header_lines=0, isThermoProfile=False,headerless=False):
 
         self.file_location = Path(file_location) if isinstance(file_location, str) else file_location
         
@@ -74,6 +76,10 @@ class MassListBaseClass:
         self._delimiter = None
 
         self.isCentroid = isCentroid
+
+        self.isThermoProfile = isThermoProfile
+
+        self.headerless = headerless
 
         self._data_type = None
 
@@ -162,6 +168,11 @@ class MassListBaseClass:
             self.data_type = 'xml'
             #self.delimiter = None
             #self.header_lines = None
+
+        elif self.file_location.suffix == '.xy':
+            self.data_type = 'txt'
+            self.delimiter = ' '
+            self.header_lines = None
             
         else:
             raise TypeError(
@@ -181,9 +192,12 @@ class MassListBaseClass:
             data = self.file_location
 
         if self.data_type == 'txt':
-            
-            dataframe = read_csv(data,  skiprows= self.header_lines, delimiter=self.delimiter,
-                                 encoding=self.encoding_detector(self.file_location), engine='python')
+            if self.headerless:
+                dataframe = read_csv(data,  skiprows= self.header_lines, delimiter=self.delimiter,header=None, names=['m/z','I'],
+                            encoding=self.encoding_detector(self.file_location), engine='python')
+            else:
+                dataframe = read_csv(data,  skiprows= self.header_lines, delimiter=self.delimiter,
+                            encoding=self.encoding_detector(self.file_location), engine='python')
 
         elif self.data_type == 'pks':
             
@@ -366,7 +380,7 @@ class MassListBaseClass:
         df = DataFrame(columns = names,dtype=float)
         df['m/z'] = mzs
         df['I'] = intensities
-        df['Resolving Power'] = mzs
+        df['Resolving Power'] = res
         df['Area'] = areas
         df['S/N'] = sn
         df['fwhm'] = fwhms

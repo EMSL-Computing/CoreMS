@@ -12,6 +12,7 @@ import numpy as np
 import sys
 import site
 from pathlib import Path
+import datetime
 
 import clr
 import pandas as pd
@@ -115,6 +116,14 @@ class ThermoBaseClass():
         else:        
             return self.chromatogram_settings.end_scan
         
+    def get_creation_time(self):
+        '''
+        Extract the creation date stamp from the .RAW file
+        Return formatted creation date stamp.
+        '''
+        credate = self.iRawDataPlus.CreationDate.get_Ticks()
+        credate = datetime.datetime(1,1,1) + datetime.timedelta(microseconds=credate/10)
+        return credate
 
     def remove_temp_file(self):
         '''if the path is from S3Path data cannot be serialized to io.ByteStream and
@@ -274,21 +283,21 @@ class ThermoBaseClass():
             max_signal = max(tic_data.tic)
             
             for eic_data in chroma.values():
-               
                 eic = eic_data.eic
                 time = eic_data.time
 
                 if len(eic) != len(tic_data.tic):
                     warn("The software assumes same lenth of TIC and EIC, this does not seems to be the case and the results mass spectrum selected by the scan number might not be correct")
                 
-                centroid_eics = self.eic_centroid_detector(time, eic, max_signal)
-                eic_data.apexes = [i for i in centroid_eics]
-                
-                if plot:
-                    for peak_indexes in eic_data.apexes:
-                        
-                        apex_index = peak_indexes[1]
-                        ax.plot(time[apex_index], eic[apex_index], marker='x', linewidth=0)
+                if eic.max() > 0:
+                    centroid_eics = self.eic_centroid_detector(time, eic, max_signal)
+                    eic_data.apexes = [i for i in centroid_eics]
+                    
+                    if plot:
+                        for peak_indexes in eic_data.apexes:
+                            
+                            apex_index = peak_indexes[1]
+                            ax.plot(time[apex_index], eic[apex_index], marker='x', linewidth=0)
 
         if plot:
             

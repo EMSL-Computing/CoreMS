@@ -299,6 +299,9 @@ class NoiseThresholdCalc:
             maxvalidx = where(hist_values[0] == max(hist_values[0]))
             # get the value of this apex (note - still in log10 units)
             log_sigma = hist_values[1][maxvalidx]
+            # If the histogram had more than one maximum frequency bin, we need to reduce that to one entry
+            if len(log_sigma)>1:
+                log_sigma = average(log_sigma)
             ## To do : check if aFT or mFT and adjust method
             noise_mid = 10**log_sigma
             noise_1std = noise_mid*self.settings.log_nsigma_corr_factor #for mFT 0.463

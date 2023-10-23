@@ -157,44 +157,51 @@ def set_parameters(mass_spectrum, field_strength=12, pos=False):
 
 def run_nmdc_workflow(args):
     # mass_spectrum = get_masslist(file_location)
-    file_location, ref_calibration_file, field_strength = args
+    try:
+        file_location, ref_calibration_file, field_strength = args
 
-    if field_strength == 21:
+        if field_strength == 21:
 
-        # return "21T", None
-        # print("{}   {}".format("21T", file_location))
-        print("{} {}  {}".format("processing", field_strength, file_location))
-        mass_spectrum, transient_time = run_thermo(file_location)
+            # return "21T", None
+            # print("{}   {}".format("21T", file_location))
+            print("{} {}  {}".format("processing", field_strength, file_location))
+            mass_spectrum, transient_time = run_thermo(file_location)
 
-    else:
+        else:
 
-        print("{} {}  {}".format("processing", field_strength, file_location))
-        mass_spectrum, transient_time = run_bruker(file_location)
-        # return "not 21T", None
+            print("{} {}  {}".format("processing", field_strength, file_location))
+            mass_spectrum, transient_time = run_bruker(file_location)
+            # return "not 21T", None
 
-    is_pos = True if mass_spectrum.polarity > 0 else False
+        is_pos = True if mass_spectrum.polarity > 0 else False
+            
+        if is_pos:
+            
+            return "positive", None
 
-    if len(mass_spectrum) < 30:
+        if len(mass_spectrum) < 30:
 
-        print("{}   {}".format("too few peaks", file_location))
-        return "too few peaks", None
+            print("{}   {}".format("too few peaks", file_location))
+            return "too few peaks", None
 
-    set_parameters(mass_spectrum, field_strength=field_strength, pos=is_pos)
+        set_parameters(mass_spectrum, field_strength=field_strength, pos=is_pos)
 
-    if ref_calibration_file:
+        if ref_calibration_file:
 
-        calspec(mass_spectrum, ref_calibration_file)
-        # MzDomainCalibration(mass_spectrum, ref_calibration_file).run()
+            calspec(mass_spectrum, ref_calibration_file)
+            # MzDomainCalibration(mass_spectrum, ref_calibration_file).run()
 
-    # mass_spectrum.filter_by_max_resolving_power(field_strength, transient_time)
+        # mass_spectrum.filter_by_max_resolving_power(field_strength, transient_time)
 
-    SearchMolecularFormulas(mass_spectrum, first_hit=False).run_worker_mass_spectrum()
-    mass_spectrum.percentile_assigned(report_error=True)
-    mass_spectrum.molecular_search_settings.score_method = "prob_score"
-    mass_spectrum.molecular_search_settings.output_score_method = "prob_score"
+        SearchMolecularFormulas(mass_spectrum, first_hit=False).run_worker_mass_spectrum()
+        mass_spectrum.percentile_assigned(report_error=True)
+        mass_spectrum.molecular_search_settings.score_method = "prob_score"
+        mass_spectrum.molecular_search_settings.output_score_method = "prob_score"
 
-    return "all_good", mass_spectrum
-
+        return "all_good", mass_spectrum
+    
+    except:
+        return 'error', None
 
 def monitor(target):
 

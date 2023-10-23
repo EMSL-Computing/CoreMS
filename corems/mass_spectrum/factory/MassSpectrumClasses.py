@@ -636,7 +636,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             if ax is None:
                 ax = plt.gca()
 
-            markerline_a, stemlines_a, baseline_a = ax.stem(self.mz_exp, self.abundance, linefmt='-', markerfmt=" ", use_line_collection=True)
+            markerline_a, stemlines_a, baseline_a = ax.stem(self.mz_exp, self.abundance, linefmt='-', markerfmt=" ")
 
             plt.setp(markerline_a, 'color', c, 'linewidth', 2)
             plt.setp(stemlines_a, 'color', c, 'linewidth', 2)
