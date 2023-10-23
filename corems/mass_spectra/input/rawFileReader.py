@@ -124,6 +124,31 @@ class ThermoBaseClass():
         else:        
             return self.scans[-1]
         
+    def set_msordertype(self, scanFilter, mstype: str = 'ms1'):
+        '''
+        Function to convert user passed string MS Type to Thermo MSOrderType object
+        Limited to MS1 through MS10.
+        '''
+        mstype = mstype.upper()
+        # Check that a valid mstype is passed
+        if (int(mstype.split('MS')[1]) >10) or (int(mstype.split('MS')[1]) <1):
+            warn('MS Type not valid, must be between MS1 and MS10') 
+            
+        msordertypedict = {'MS1':MSOrderType.Ms,
+                           'MS2':MSOrderType.Ms2,
+                           'MS3':MSOrderType.Ms3,
+                           'MS4':MSOrderType.Ms4,
+                           'MS5':MSOrderType.Ms5,
+                           'MS6':MSOrderType.Ms6,
+                           'MS7':MSOrderType.Ms7,
+                           'MS8':MSOrderType.Ms8,
+                           'MS9':MSOrderType.Ms9,
+                           'MS10':MSOrderType.Ms10,
+                           }
+        scanFilter.MSOrder = msordertypedict[mstype]
+        return scanFilter
+
+
     def get_creation_time(self):
         '''
         Extract the creation date stamp from the .RAW file
