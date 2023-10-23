@@ -348,7 +348,7 @@ def test_import_thermo_average():
     mass_spectrum.plot_profile_and_noise_threshold()
 
     #print("polarity", mass_spectrum.polarity)
-    plt.savefig("test.png")
+    #plt.savefig("test.png")
 
     
 if __name__ == '__main__':
