@@ -31,7 +31,7 @@ setup(
     ],
 
 
-    package_data={'external': ['disclaimer.txt'], '': ['ext_lib/*']},
+    # package_data={'external': ['disclaimer.txt'], '': ['ext_lib/*']},
     packages=find_packages(),
     exclude_package_data={'.': ["tests", "*.win_only"]},
     include_package_data=True,
