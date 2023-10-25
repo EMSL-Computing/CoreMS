@@ -87,14 +87,14 @@ build-base-image:
   only:
     - master
   variables:
-    KANIKO_EXTRA_ARGS: "--cache=true --cache-copy-layers=true"
+    KANIKO_EXTRA_ARGS: "--cache=true --cache-copy-layers=true --destination $CI_REGISTRY_IMAGE:latest"
     CONTEXT: $CI_PROJECT_DIR
     DOCKERFILE: Dockerfile_py310_dotnet_base
     KUBERNETES_CPU_REQUEST: 100m
     KUBERNETES_CPU_LIMIT: "2"
-    KUBERNETES_MEMORY_REQUEST: 8Gi
+    KUBERNETES_MEMORY_REQUEST: 2Gi
     KUBERNETES_MEMORY_LIMIT: 8Gi
-    CONTAINER_TAG: "latest"
+    CONTAINER_TAG: "2.5.3"
 
 # deployment:
   

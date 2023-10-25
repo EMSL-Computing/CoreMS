@@ -10,10 +10,13 @@ RUN wget packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb -O 
   && rm packages-microsoft-prod.deb
 RUN apt-get update 
 RUN apt-get install -y dotnet-runtime-6.0 apt-utils
+RUN apt autoremove -y && apt-get clean
 RUN python3 -m pip install --upgrade pip setuptools wheel
 COPY corems/ /home/corems/corems
+COPY ext_lib/dotnet/*.dll /home/corems/ext_lib/
 COPY examples/notebooks/*.ipynb README.md disclaimer.txt pytest.ini requirements.txt SettingsCoreMS.json /home/corems/
 COPY examples/scripts /home/corems/examples
+COPY tests /home/corems/tests
 COPY README.md disclaimer.txt requirements.txt setup.py /home/corems/
 
 RUN python3 -m pip install -U -r requirements.txt
