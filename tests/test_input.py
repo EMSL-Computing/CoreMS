@@ -80,6 +80,10 @@ def test_import_lcms_from_transient():
 
     file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_SRFA_Auto.d"#"SOM_LC_PeatMix_2p8_0p6_2_30AUG19_GIMLI_ZORBAX-1186_1_01_259.d"
 
+    MSParameters.mass_spectrum.threshold_method = 'log'
+    MSParameters.mass_spectrum.log_nsigma = 20
+    MSParameters.ms_peak.peak_min_prominence_percent = 1
+    
     read_lcms = ReadBruker_SolarixTransientMassSpectra(file_location)
 
     read_lcms.start()
@@ -122,8 +126,7 @@ def test_import_transient():
         #MSParameters.mass_spectrum.s2n_threshold = 50
 
         MSParameters.mass_spectrum.threshold_method = 'log'
-        MSParameters.mass_spectrum.noise_threshold_std = 3
-
+        MSParameters.mass_spectrum.log_nsigma = 20
         MSParameters.ms_peak.peak_min_prominence_percent = 1
     
         mass_spectrum_obj = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
@@ -321,7 +324,7 @@ def test_import_mass_list():
 
 def test_import_thermo_average():
     
-    file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_LIGNIN.raw"
+    file_location = Path.cwd() / "tests/tests_data/ftms/" / "Exploris_SRFA_Example.raw"
 
         # change parameters here
     MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
