@@ -321,7 +321,7 @@ def test_import_mass_list():
 
 def test_import_thermo_average():
     
-    file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_LIGNIN.raw"
+    file_location = Path.cwd() / "tests/tests_data/ftms/" / "SRFA_NEG_ESI_ORB.raw"
 
         # change parameters here
     MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
