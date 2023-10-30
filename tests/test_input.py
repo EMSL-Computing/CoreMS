@@ -348,11 +348,12 @@ def test_import_thermo_average():
     mass_spectrum.plot_profile_and_noise_threshold()
 
     #print("polarity", mass_spectrum.polarity)
-    #plt.savefig("test.png")
+    #pyplot.show()
 
     
 if __name__ == '__main__':
     
+    pass
     # test_import_booster_mass_spectrum_hdf()
     # test_import_booster_mass_spectra_hdf()
     #test_import_lcms_from_transient()
@@ -361,6 +362,7 @@ if __name__ == '__main__':
     #test_import_corems_hdf5()
     #test_import_corems_mass_list()
     #test_import_mass_list()
-    test_import_maglab_pks()
+    #test_import_maglab_pks()
     #test_andi_netcdf_gcms()
+    test_import_thermo_average()
 
