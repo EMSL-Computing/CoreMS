@@ -2,7 +2,6 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 09, 2021"
 
 
-from dataclasses import dataclass, field
 from warnings import warn
 import warnings
 
@@ -18,7 +17,7 @@ import datetime
 import clr
 import pandas as pd
 from s3path import S3Path
-from tqdm import tqdm
+
 
 from typing import Dict, List, Tuple
 from corems.encapsulation.constant import Labels
@@ -71,6 +70,14 @@ class ThermoBaseClass():
 
         self.iRawDataPlus = RawFileReaderAdapter.FileFactory(str(file_path))
 
+        if not self.iRawDataPlus.IsOpen:
+            raise FileNotFoundError('Unable to access the RAW file using the RawFileReader class!')
+            
+
+        # Check for any errors in the RAW file
+        if self.iRawDataPlus.IsError:
+            raise IOError('Error opening ({}) - {}'.format(self.iRawDataPlus.FileError, file_path))
+
         self.res = self.iRawDataPlus.SelectInstrument(Device.MS, 0)
         
         self.file_path = file_location
@@ -109,7 +116,6 @@ class ThermoBaseClass():
         
     @property
     def start_scan(self) -> int:
-        
         
         if self.scans[0] == -1:
             return self.iRawDataPlus.RunHeaderEx.FirstSpectrum

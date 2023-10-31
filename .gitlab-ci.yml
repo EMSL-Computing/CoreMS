@@ -4,6 +4,7 @@ include:
 
 services:
   - postgres
+
 variables:
   POSTGRES_DB: molformula
   POSTGRES_USER: coremsdb
@@ -35,6 +36,7 @@ test-source:
     - ls .
     - python3 -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
     - pytest
+  
   artifacts:
     paths:
       - doc/coverage_html_report  
