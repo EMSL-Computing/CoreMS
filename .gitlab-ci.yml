@@ -35,8 +35,8 @@ test-source:
     # - python3 -m pip install pytest-cov
     - ls .
     - python3 -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
+    - python -m pip uninstall corems -y
     - python3 -m pip list
-    - python3 -m pip uninstall corems
     - pytest
   
   artifacts:
