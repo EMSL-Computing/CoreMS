@@ -33,6 +33,7 @@ test-source:
     # - python3 -m pip install -r requirements.txt
     # - python3 -m pip install pytest
     # - python3 -m pip install pytest-cov
+    - ls /builds/mass-spectrometry/corems/tests/tests_data/ftms/
     - ls .
     - python3 -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
     - python -m pip uninstall corems -y
