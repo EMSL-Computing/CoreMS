@@ -70,17 +70,19 @@ class ThermoBaseClass():
 
         self.iRawDataPlus = RawFileReaderAdapter.FileFactory(str(file_path))
 
+        if not self.iRawDataPlus.IsOpen:
+            raise FileNotFoundError('Unable to access the RAW file using the RawFileReader class!')
+            
+
+        # Check for any errors in the RAW file
+        if self.iRawDataPlus.IsError:
+            raise IOError('Error opening ({}) - {}'.format(self.iRawDataPlus.FileError, file_path))
+
         self.res = self.iRawDataPlus.SelectInstrument(Device.MS, 1)
         
         self.file_path = file_location
         self.iFileHeader = FileHeaderReaderFactory.ReadFile(str(file_path))
 
-        #if not self.iRawDataPlus.IsOpen:
-        #    raise FileNotFoundError('Unable to access the RAW file using the RawFileReader class!')
-
-        # Check for any errors in the RAW file
-        #if self.iRawDataPlus.IsError:
-        #    raise IOError('Error opening ({}) - {}'.format(self.iRawDataPlus.FileError, file_path))
         # removing tmp file
 
         self._init_settings()
