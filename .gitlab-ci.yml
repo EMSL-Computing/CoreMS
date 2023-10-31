@@ -36,6 +36,7 @@ test-source:
     - ls .
     - python3 -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
     - python3 -m pip list
+    - python3 -m pip uninstall corems
     - pytest
   
   artifacts:
