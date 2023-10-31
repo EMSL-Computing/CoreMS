@@ -37,7 +37,7 @@ test-source:
     - python3 -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
     - python -m pip uninstall corems -y
     - python3 -m pip list
-    - pytest
+    - pytest --cache-clear
   
   artifacts:
     paths:
