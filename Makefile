@@ -69,4 +69,5 @@ fresh-stack-up:
 	@docker run --rm -v ./data:/home/CoreMS/data corems:local
 
 docs:
+	
 	pdoc --html --output-dir docs corems
