@@ -37,7 +37,7 @@ def test_create_mass_spectrum():
    
     print('ok2')
     MassSpectrumSetting.threshold_method = 'signal_noise'
-    #MassSpectrumSetting.s2n_threshold = 10
+    MassSpectrumSetting.s2n_threshold = 10
     mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
     print('ok3')
     MassSpectrumSetting.threshold_method = 'relative_abundance'
