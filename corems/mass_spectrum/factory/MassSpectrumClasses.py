@@ -32,26 +32,6 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     - _mspeaks is populated under the hood by calling process_mass_spec method
     - iteration is null if _mspeaks is empty
 
-    Parameters
-    ----------
-    mz_exp : list(float)
-        list containing the imported experiemental m/z 
-        (default is to store profile mode data, but it depends on the input type)
-    abundance: list(float)
-        list containing the imported abundance 
-        (default is to store profile mode data, but it depends on the input type)
-    d_params : dict{'str': float,int and str}
-        The keyword arguments are used for ...
-
-    Attributes
-    ----------
-    _mz_exp : list(float)
-        This is where we store mz_exp,
-    _abundance : list(float)     
-        This is where we store _abundance,
-    _mspeaks : list(MSPeak)
-        store MSpeaks objects identified by a peak picking algorithm
-
     Relevant Methods
     ----------
     process_mass_spec()
@@ -61,7 +41,59 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     see also: MassSpecCentroid(), MassSpecfromFreq(), MassSpecProfile()
     '''
     def __init__(self, mz_exp, abundance, d_params, **kwargs):
+        """
+        Initialize a MassSpectrum object.
 
+        Parameters
+        ----------
+        mz_exp : array_like
+            The m/z values of the mass spectrum.
+        abundance : array_like
+            The abundance values of the mass spectrum.
+        d_params : dict
+            A dictionary of parameters for the mass spectrum.
+        **kwargs
+            Additional keyword arguments.
+
+        Attributes
+        ----------
+        _abundance : ndarray
+            The abundance values of the mass spectrum.
+        _mz_exp : ndarray
+            The m/z values of the mass spectrum.
+        _mspeaks : list
+            A list of mass peaks.
+        mspeaks : list
+            A list of mass peaks.
+        _dict_nominal_masses_indexes : dict
+            A dictionary of nominal masses and their indexes.
+        _baseline_noise : float
+            The baseline noise of the mass spectrum.
+        _baseline_noise_std : float
+            The standard deviation of the baseline noise of the mass spectrum.
+        _dynamic_range : float or None
+            The dynamic range of the mass spectrum.
+        _transient_settings : None or TransientSettings
+            The transient settings of the mass spectrum.
+        _frequency_domain : None or FrequencyDomain
+            The frequency domain of the mass spectrum.
+        _mz_cal_profile : None or MzCalibrationProfile
+            The m/z calibration profile of the mass spectrum.
+        is_calibrated : bool
+            Whether the mass spectrum is calibrated.
+        is_centroid : bool
+            Whether the mass spectrum is centroided.
+        has_frequency : bool
+            Whether the mass spectrum has a frequency domain.
+        calibration_order : None or int
+            The order of the mass spectrum's calibration.
+        calibration_points : None or ndarray
+            The calibration points of the mass spectrum.
+        calibration_RMS : None or float
+            The RMS of the mass spectrum's calibration.
+        calibration_segment : None or CalibrationSegment
+            The calibration segment of the mass spectrum.
+        """
         self._abundance = array(abundance, dtype=float64)
         self._mz_exp = array(mz_exp, dtype=float64)
                     
@@ -90,7 +122,9 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self.calibration_segment = None
 
     def _init_settings(self):
-
+        """
+        Initializes the settings for the mass spectrum.
+        """
         self._parameters = MSParameters()
 
     def __len__(self):
@@ -102,7 +136,17 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         return self.mspeaks[position]
 
     def set_indexes(self, list_indexes):
-        ''' set the mass spectrum to interate over only the selected MSpeaks indexes'''
+        '''Set the mass spectrum to iterate over only the selected MSpeaks indexes.
+
+        Parameters
+        ----------
+        list_indexes : list of int
+            A list of integers representing the indexes of the MSpeaks to iterate over.
+
+        Returns
+        -------
+        None
+        '''
         self.mspeaks = [self._mspeaks[i] for i in list_indexes]
 
         for i, mspeak in  enumerate(self.mspeaks): mspeak.index = i
@@ -110,7 +154,15 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self._set_nominal_masses_start_final_indexes()
 
     def reset_indexes(self):
-        ''' reset the mass spectrum to interate over all MSpeaks obj'''
+        '''Reset the mass spectrum to iterate over all MSpeaks objects.
+
+        This method resets the mass spectrum to its original state, allowing iteration over all MSpeaks objects.
+        It also sets the index of each MSpeak object to its corresponding position in the mass spectrum.
+
+        Returns
+        -------
+        None
+        '''
         self.mspeaks = self._mspeaks
 
         for i, mspeak in  enumerate(self.mspeaks): mspeak.index = i
@@ -118,14 +170,35 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self._set_nominal_masses_start_final_indexes()
 
     def add_mspeak(self, ion_charge, mz_exp,
-                    abundance,
-                    resolving_power,
-                    signal_to_noise,
-                    massspec_indexes,
-                    exp_freq=None,
-                    ms_parent=None
-                ):
+                            abundance,
+                            resolving_power,
+                            signal_to_noise,
+                            massspec_indexes,
+                            exp_freq=None,
+                            ms_parent=None
+                        ):
+        """
+        Add a new MSPeak object to the MassSpectrum object.
 
+        Parameters
+        ----------
+        ion_charge : int
+            The ion charge of the MSPeak.
+        mz_exp : float
+            The experimental m/z value of the MSPeak.
+        abundance : float
+            The abundance of the MSPeak.
+        resolving_power : float
+            The resolving power of the MSPeak.
+        signal_to_noise : float
+            The signal-to-noise ratio of the MSPeak.
+        massspec_indexes : list
+            A list of indexes of the MSPeak in the MassSpectrum object.
+        exp_freq : float, optional
+            The experimental frequency of the MSPeak. Defaults to None.
+        ms_parent : MSParent, optional
+            The MSParent object associated with the MSPeak. Defaults to None.
+        """
         mspeak = MSPeak(
                 ion_charge,
                 mz_exp,
@@ -141,7 +214,37 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self._mspeaks.append(mspeak)
 
     def _set_parameters_objects(self, d_params):
+        """
+        Set the parameters of the MassSpectrum object.
 
+        Parameters
+        ----------
+        d_params : dict
+            A dictionary containing the parameters to set.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This method sets the following parameters of the MassSpectrum object:
+        - _calibration_terms
+        - label
+        - analyzer
+        - aquisition_time
+        - instrument_label
+        - polarity
+        - scan_number
+        - retention_time
+        - mobility_rt
+        - mobility_scan
+        - _filename
+        - _dir_location
+        - _baseline_noise
+        - _baseline_noise_std
+        - sample_name
+        """
         self._calibration_terms = (
             d_params.get("Aterm"),
             d_params.get("Bterm"),
@@ -183,18 +286,42 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
             self.sample_name = self.filename.stem
 
-    def reset_cal_therms(self, Aterm, Bterm, C, fas= 0):
+    def reset_cal_therms(self, Aterm, Bterm, C, fas=0):
+        """
+        Reset calibration terms and recalculate the mass-to-charge ratio and abundance.
 
+        Parameters
+        ----------
+        Aterm : float
+            The A-term calibration coefficient.
+        Bterm : float
+            The B-term calibration coefficient.
+        C : float
+            The C-term calibration coefficient.
+        fas : float, optional
+            The frequency amplitude scaling factor. Default is 0.
+
+        Returns
+        -------
+        None
+
+        """
         self._calibration_terms = (Aterm, Bterm, C)
 
         self._mz_exp = self._f_to_mz()
         self._abundance = self._abundance
         self.find_peaks()
         self.reset_indexes()
-        # self.reset_indexes()
 
     def clear_molecular_formulas(self):
+        """
+        Clear the molecular formulas for all mspeaks in the MassSpectrum.
 
+        Returns
+        -------
+        numpy.ndarray
+            An array of the cleared molecular formulas for each mspeak in the MassSpectrum.
+        """
         self.check_mspeaks()
         return array([mspeak.clear_molecular_formulas() for mspeak in self.mspeaks])
 

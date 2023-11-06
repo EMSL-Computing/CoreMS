@@ -70,4 +70,4 @@ fresh-stack-up:
 
 docs:
 	
-	pdoc --html --output-dir docs corems
+	pdoc --output-dir docs --docformat numpy corems
