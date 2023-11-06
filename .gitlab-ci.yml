@@ -44,6 +44,9 @@ test-source:
         data=f.read(256)
         print(data[:16].hex())
       "
+    - tail \"./ext_lib/ThermoFisher.CommonCore.RawFileReader.dll\"
+    - md5sum \"./ext_lib/ThermoFisher.CommonCore.RawFileReader.dll\"
+    - echo $PATH
     - |
       python3 -c "
       import sys
