@@ -26,27 +26,27 @@ def test_create_mass_spectrum():
     TransientSetting.number_of_truncations = 1
     bruker_transient = bruker_reader.get_transient()
 
-    log_nsigma: int = 6
-    log_nsigma_corr_factor: float = 0.463 #mFT is 0.463, aFT is 1.0
-    log_nsigma_bins: int = 500 # bins for the histogram for the noise
+    noise_thresould_log_nsigma: int = 6
+    noise_thresould_log_nsigma_corr_factor: float = 0.463 #mFT is 0.463, aFT is 1.0
+    noise_thresould_log_nsigma_bins: int = 500 # bins for the histogram for the noise
 
-    #MassSpectrumSetting.threshold_method = 'log'
-    #MassSpectrumSetting.log_nsigma = 12
-    #MassSpectrumSetting.log_nsigma = 1
-    #MassSpectrumSetting.log_nsigma = 100
+    #MassSpectrumSetting.noise_threshold_method = 'log'
+    #MassSpectrumSetting.noise_thresould_log_nsigma = 12
+    #MassSpectrumSetting.noise_thresould_log_nsigma = 1
+    #MassSpectrumSetting.noise_thresould_log_nsigma = 100
    
     print('ok2')
-    MassSpectrumSetting.threshold_method = 'signal_noise'
+    MassSpectrumSetting.noise_threshold_method = 'signal_noise'
     MassSpectrumSetting.s2n_threshold = 10
     mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
     print('ok3')
-    MassSpectrumSetting.threshold_method = 'relative_abundance'
-    MassSpectrumSetting.relative_abundance_threshold = 20
+    MassSpectrumSetting.noise_threshold_method = 'relative_abundance'
+    MassSpectrumSetting.noise_threshold_min_relative_abundance = 20
     mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
     print('ok4')
     
-    MassSpectrumSetting.threshold_method = 'log'
-    MassSpectrumSetting.log_nsigma = 18
+    MassSpectrumSetting.noise_threshold_method = 'log'
+    MassSpectrumSetting.noise_thresould_log_nsigma = 18
     mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
     
     mass_spectrum_obj.freq_exp

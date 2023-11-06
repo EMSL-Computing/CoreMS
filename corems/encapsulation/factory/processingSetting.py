@@ -130,7 +130,7 @@ class LiquidChromatographSetting:
 
     noise_threshold_method: str = 'manual_relative_abundance'
 
-    implemented_noise_threshold_methods: tuple = ('auto_relative_abundance', 'manual_relative_abundance', 'second_derivative')
+    noise_threshold_methods_implemented: tuple = ('auto_relative_abundance', 'manual_relative_abundance', 'second_derivative')
 
     std_noise_threshold: int = 3
 
@@ -152,22 +152,22 @@ class MassSpectrumSetting:
 
     threshold_method: str = 'log'
 
-    implemented_noise_threshold_methods: tuple = ('minima', 'signal_noise', 'relative_abundance', 'absolute_abundance', 'log')
+    noise_threshold_methods_implemented: tuple = ('minima', 'signal_noise', 'relative_abundance', 'absolute_abundance', 'log')
 
-    noise_threshold_std: int = 6
+    noise_threshold_min_std: int = 6
 
-    s2n_threshold: float = 4
+    noise_threshold_min_s2n: float = 4
 
-    relative_abundance_threshold: float = 6  # from 0-100
+    noise_threshold_min_relative_abundance: float = 6  # from 0-100
 
-    absolute_abundance_threshold: float = 1_000_000
+    noise_thresould_absolute_abundance: float = 1_000_000
 
-    log_nsigma: int = 6
-    log_nsigma_corr_factor: float = 0.463 #mFT is 0.463, aFT is 1.0
-    log_nsigma_bins: int = 500 # bins for the histogram for the noise
+    noise_thresould_log_nsigma: int = 6
+    noise_thresould_log_nsigma_corr_factor: float = 0.463 #mFT is 0.463, aFT is 1.0
+    noise_thresould_log_nsigma_bins: int = 500 # bins for the histogram for the noise
 
-    min_noise_mz: float = 50
-    max_noise_mz: float = 1200.0
+    noise_min_mz: float = 50
+    noise_max_mz: float = 1200.0
 
     min_picking_mz: float = 50
     max_picking_mz: float = 1200.0
@@ -250,7 +250,7 @@ class GasChromatographSetting:
 
     noise_threshold_method: str = 'manual_relative_abundance'
 
-    implemented_noise_threshold_methods: tuple = ('auto_relative_abundance', 'manual_relative_abundance', 
+    noise_threshold_methods_implemented: tuple = ('auto_relative_abundance', 'manual_relative_abundance', 
                                                   'second_derivative')
 
     std_noise_threshold: int = 3

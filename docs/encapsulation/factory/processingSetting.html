@@ -109,18 +109,18 @@ class LiqChromatographSetting:
 @dataclasses.dataclass
 class MassSpectrumSetting:
 
-    threshold_method: str = &#39;relative_abundance&#39;
+    noise_threshold_method: str = &#39;relative_abundance&#39;
 
-    implemented_noise_threshold_methods: tuple = (&#39;auto&#39;, &#39;signal_noise&#39;, &#39;relative_abundance&#39;)
+    noise_threshold_methods_implemented: tuple = (&#39;auto&#39;, &#39;signal_noise&#39;, &#39;relative_abundance&#39;)
 
-    noise_threshold_std: int = 6
+    noise_threshold_min_std: int = 6
 
     s2n_threshold: float = 4
 
-    relative_abundance_threshold: float = 6  # from 0-100
+    noise_threshold_min_relative_abundance: float = 6  # from 0-100
 
-    min_noise_mz: float = 100.0
-    max_noise_mz: float = 1200.0
+    noise_min_mz: float = 100.0
+    noise_max_mz: float = 1200.0
 
     min_picking_mz: float = 100.0
     max_picking_mz: float = 1200.0
@@ -190,7 +190,7 @@ class GasChromatographSetting:
 
     noise_threshold_method: str = &#39;manual_relative_abundance&#39;
 
-    implemented_noise_threshold_methods: tuple = (&#39;auto_relative_abundance&#39;, &#39;manual_relative_abundance&#39;, &#39;second_derivative&#39;)
+    noise_threshold_methods_implemented: tuple = (&#39;auto_relative_abundance&#39;, &#39;manual_relative_abundance&#39;, &#39;second_derivative&#39;)
 
     std_noise_threshold: int = 3
 
@@ -706,10 +706,10 @@ if __name__ == &#39;__main__&#39;:
 </dd>
 <dt id="corems.encapsulation.factory.processingSetting.GasChromatographSetting"><code class="flex name class">
 <span>class <span class="ident">GasChromatographSetting</span></span>
-<span>(</span><span>use_deconvolution: bool = False, implemented_smooth_method: tuple = ('savgol', 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar'), smooth_window: int = 5, smooth_method: str = 'savgol', savgol_pol_order: int = 2, peak_height_max_percent: float = 10, peak_max_prominence_percent: float = 1, min_peak_datapoints: float = 5, max_peak_width: float = 0.1, noise_threshold_method: str = 'manual_relative_abundance', implemented_noise_threshold_methods: tuple = ('auto_relative_abundance', 'manual_relative_abundance', 'second_derivative'), std_noise_threshold: int = 3, peak_height_min_percent: float = 0.1, peak_min_prominence_percent: float = 0.1, eic_signal_threshold: float = 0.01, max_rt_distance: float = 0.025)</span>
+<span>(</span><span>use_deconvolution: bool = False, implemented_smooth_method: tuple = ('savgol', 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar'), smooth_window: int = 5, smooth_method: str = 'savgol', savgol_pol_order: int = 2, peak_height_max_percent: float = 10, peak_max_prominence_percent: float = 1, min_peak_datapoints: float = 5, max_peak_width: float = 0.1, noise_threshold_method: str = 'manual_relative_abundance', noise_threshold_methods_implemented: tuple = ('auto_relative_abundance', 'manual_relative_abundance', 'second_derivative'), std_noise_threshold: int = 3, peak_height_min_percent: float = 0.1, peak_min_prominence_percent: float = 0.1, eic_signal_threshold: float = 0.01, max_rt_distance: float = 0.025)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>GasChromatographSetting(use_deconvolution: bool = False, implemented_smooth_method: tuple = ('savgol', 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar'), smooth_window: int = 5, smooth_method: str = 'savgol', savgol_pol_order: int = 2, peak_height_max_percent: float = 10, peak_max_prominence_percent: float = 1, min_peak_datapoints: float = 5, max_peak_width: float = 0.1, noise_threshold_method: str = 'manual_relative_abundance', implemented_noise_threshold_methods: tuple = ('auto_relative_abundance', 'manual_relative_abundance', 'second_derivative'), std_noise_threshold: int = 3, peak_height_min_percent: float = 0.1, peak_min_prominence_percent: float = 0.1, eic_signal_threshold: float = 0.01, max_rt_distance: float = 0.025)</p></div>
+<div class="desc"><p>GasChromatographSetting(use_deconvolution: bool = False, implemented_smooth_method: tuple = ('savgol', 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar'), smooth_window: int = 5, smooth_method: str = 'savgol', savgol_pol_order: int = 2, peak_height_max_percent: float = 10, peak_max_prominence_percent: float = 1, min_peak_datapoints: float = 5, max_peak_width: float = 0.1, noise_threshold_method: str = 'manual_relative_abundance', noise_threshold_methods_implemented: tuple = ('auto_relative_abundance', 'manual_relative_abundance', 'second_derivative'), std_noise_threshold: int = 3, peak_height_min_percent: float = 0.1, peak_min_prominence_percent: float = 0.1, eic_signal_threshold: float = 0.01, max_rt_distance: float = 0.025)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -736,7 +736,7 @@ if __name__ == &#39;__main__&#39;:
 
     noise_threshold_method: str = &#39;manual_relative_abundance&#39;
 
-    implemented_noise_threshold_methods: tuple = (&#39;auto_relative_abundance&#39;, &#39;manual_relative_abundance&#39;, &#39;second_derivative&#39;)
+    noise_threshold_methods_implemented: tuple = (&#39;auto_relative_abundance&#39;, &#39;manual_relative_abundance&#39;, &#39;second_derivative&#39;)
 
     std_noise_threshold: int = 3
 
@@ -764,7 +764,7 @@ if __name__ == &#39;__main__&#39;:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="corems.encapsulation.factory.processingSetting.GasChromatographSetting.implemented_noise_threshold_methods"><code class="name">var <span class="ident">implemented_noise_threshold_methods</span> : tuple</code></dt>
+<dt id="corems.encapsulation.factory.processingSetting.GasChromatographSetting.noise_threshold_methods_implemented"><code class="name">var <span class="ident">noise_threshold_methods_implemented</span> : tuple</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -912,28 +912,28 @@ if __name__ == &#39;__main__&#39;:
 </dd>
 <dt id="corems.encapsulation.factory.processingSetting.MassSpectrumSetting"><code class="flex name class">
 <span>class <span class="ident">MassSpectrumSetting</span></span>
-<span>(</span><span>threshold_method: str = 'relative_abundance', implemented_noise_threshold_methods: tuple = ('auto', 'signal_noise', 'relative_abundance'), noise_threshold_std: int = 6, s2n_threshold: float = 4, relative_abundance_threshold: float = 6, min_noise_mz: float = 100.0, max_noise_mz: float = 1200.0, min_picking_mz: float = 100.0, max_picking_mz: float = 1200.0, calib_minimize_method: str = 'Powell', calib_pol_order: int = 2, max_calib_ppm_error: float = 1, min_calib_ppm_error: float = -1, calib_sn_threshold: float = 10, do_calibration: bool = True)</span>
+<span>(</span><span>noise_threshold_method: str = 'relative_abundance', noise_threshold_methods_implemented: tuple = ('auto', 'signal_noise', 'relative_abundance'), noise_threshold_min_std: int = 6, s2n_threshold: float = 4, noise_threshold_min_relative_abundance: float = 6, noise_min_mz: float = 100.0, noise_max_mz: float = 1200.0, min_picking_mz: float = 100.0, max_picking_mz: float = 1200.0, calib_minimize_method: str = 'Powell', calib_pol_order: int = 2, max_calib_ppm_error: float = 1, min_calib_ppm_error: float = -1, calib_sn_threshold: float = 10, do_calibration: bool = True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>MassSpectrumSetting(threshold_method: str = 'relative_abundance', implemented_noise_threshold_methods: tuple = ('auto', 'signal_noise', 'relative_abundance'), noise_threshold_std: int = 6, s2n_threshold: float = 4, relative_abundance_threshold: float = 6, min_noise_mz: float = 100.0, max_noise_mz: float = 1200.0, min_picking_mz: float = 100.0, max_picking_mz: float = 1200.0, calib_minimize_method: str = 'Powell', calib_pol_order: int = 2, max_calib_ppm_error: float = 1, min_calib_ppm_error: float = -1, calib_sn_threshold: float = 10, do_calibration: bool = True)</p></div>
+<div class="desc"><p>MassSpectrumSetting(noise_threshold_method: str = 'relative_abundance', noise_threshold_methods_implemented: tuple = ('auto', 'signal_noise', 'relative_abundance'), noise_threshold_min_std: int = 6, s2n_threshold: float = 4, noise_threshold_min_relative_abundance: float = 6, noise_min_mz: float = 100.0, noise_max_mz: float = 1200.0, min_picking_mz: float = 100.0, max_picking_mz: float = 1200.0, calib_minimize_method: str = 'Powell', calib_pol_order: int = 2, max_calib_ppm_error: float = 1, min_calib_ppm_error: float = -1, calib_sn_threshold: float = 10, do_calibration: bool = True)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class MassSpectrumSetting:
 
-    threshold_method: str = &#39;relative_abundance&#39;
+    noise_threshold_method: str = &#39;relative_abundance&#39;
 
-    implemented_noise_threshold_methods: tuple = (&#39;auto&#39;, &#39;signal_noise&#39;, &#39;relative_abundance&#39;)
+    noise_threshold_methods_implemented: tuple = (&#39;auto&#39;, &#39;signal_noise&#39;, &#39;relative_abundance&#39;)
 
-    noise_threshold_std: int = 6
+    noise_threshold_min_std: int = 6
 
     s2n_threshold: float = 4
 
-    relative_abundance_threshold: float = 6  # from 0-100
+    noise_threshold_min_relative_abundance: float = 6  # from 0-100
 
-    min_noise_mz: float = 100.0
-    max_noise_mz: float = 1200.0
+    noise_min_mz: float = 100.0
+    noise_max_mz: float = 1200.0
 
     min_picking_mz: float = 100.0
     max_picking_mz: float = 1200.0
@@ -973,7 +973,7 @@ if __name__ == &#39;__main__&#39;:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.implemented_noise_threshold_methods"><code class="name">var <span class="ident">implemented_noise_threshold_methods</span> : tuple</code></dt>
+<dt id="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.noise_threshold_methods_implemented"><code class="name">var <span class="ident">noise_threshold_methods_implemented</span> : tuple</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -981,7 +981,7 @@ if __name__ == &#39;__main__&#39;:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.max_noise_mz"><code class="name">var <span class="ident">max_noise_mz</span> : float</code></dt>
+<dt id="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.noise_max_mz"><code class="name">var <span class="ident">noise_max_mz</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -993,7 +993,7 @@ if __name__ == &#39;__main__&#39;:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.min_noise_mz"><code class="name">var <span class="ident">min_noise_mz</span> : float</code></dt>
+<dt id="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.noise_min_mz"><code class="name">var <span class="ident">noise_min_mz</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1001,11 +1001,11 @@ if __name__ == &#39;__main__&#39;:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.noise_threshold_std"><code class="name">var <span class="ident">noise_threshold_std</span> : int</code></dt>
+<dt id="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.noise_threshold_min_std"><code class="name">var <span class="ident">noise_threshold_min_std</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.relative_abundance_threshold"><code class="name">var <span class="ident">relative_abundance_threshold</span> : float</code></dt>
+<dt id="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.noise_threshold_min_relative_abundance"><code class="name">var <span class="ident">noise_threshold_min_relative_abundance</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1013,7 +1013,7 @@ if __name__ == &#39;__main__&#39;:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.threshold_method"><code class="name">var <span class="ident">threshold_method</span> : str</code></dt>
+<dt id="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.noise_threshold_method"><code class="name">var <span class="ident">noise_threshold_method</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1498,7 +1498,7 @@ if __name__ == &#39;__main__&#39;:
 <h4><code><a title="corems.encapsulation.factory.processingSetting.GasChromatographSetting" href="#corems.encapsulation.factory.processingSetting.GasChromatographSetting">GasChromatographSetting</a></code></h4>
 <ul class="">
 <li><code><a title="corems.encapsulation.factory.processingSetting.GasChromatographSetting.eic_signal_threshold" href="#corems.encapsulation.factory.processingSetting.GasChromatographSetting.eic_signal_threshold">eic_signal_threshold</a></code></li>
-<li><code><a title="corems.encapsulation.factory.processingSetting.GasChromatographSetting.implemented_noise_threshold_methods" href="#corems.encapsulation.factory.processingSetting.GasChromatographSetting.implemented_noise_threshold_methods">implemented_noise_threshold_methods</a></code></li>
+<li><code><a title="corems.encapsulation.factory.processingSetting.GasChromatographSetting.noise_threshold_methods_implemented" href="#corems.encapsulation.factory.processingSetting.GasChromatographSetting.noise_threshold_methods_implemented">noise_threshold_methods_implemented</a></code></li>
 <li><code><a title="corems.encapsulation.factory.processingSetting.GasChromatographSetting.implemented_smooth_method" href="#corems.encapsulation.factory.processingSetting.GasChromatographSetting.implemented_smooth_method">implemented_smooth_method</a></code></li>
 <li><code><a title="corems.encapsulation.factory.processingSetting.GasChromatographSetting.max_peak_width" href="#corems.encapsulation.factory.processingSetting.GasChromatographSetting.max_peak_width">max_peak_width</a></code></li>
 <li><code><a title="corems.encapsulation.factory.processingSetting.GasChromatographSetting.max_rt_distance" href="#corems.encapsulation.factory.processingSetting.GasChromatographSetting.max_rt_distance">max_rt_distance</a></code></li>
@@ -1537,17 +1537,17 @@ if __name__ == &#39;__main__&#39;:
 <li><code><a title="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.calib_pol_order" href="#corems.encapsulation.factory.processingSetting.MassSpectrumSetting.calib_pol_order">calib_pol_order</a></code></li>
 <li><code><a title="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.calib_sn_threshold" href="#corems.encapsulation.factory.processingSetting.MassSpectrumSetting.calib_sn_threshold">calib_sn_threshold</a></code></li>
 <li><code><a title="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.do_calibration" href="#corems.encapsulation.factory.processingSetting.MassSpectrumSetting.do_calibration">do_calibration</a></code></li>
-<li><code><a title="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.implemented_noise_threshold_methods" href="#corems.encapsulation.factory.processingSetting.MassSpectrumSetting.implemented_noise_threshold_methods">implemented_noise_threshold_methods</a></code></li>
+<li><code><a title="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.noise_threshold_methods_implemented" href="#corems.encapsulation.factory.processingSetting.MassSpectrumSetting.noise_threshold_methods_implemented">noise_threshold_methods_implemented</a></code></li>
 <li><code><a title="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.max_calib_ppm_error" href="#corems.encapsulation.factory.processingSetting.MassSpectrumSetting.max_calib_ppm_error">max_calib_ppm_error</a></code></li>
-<li><code><a title="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.max_noise_mz" href="#corems.encapsulation.factory.processingSetting.MassSpectrumSetting.max_noise_mz">max_noise_mz</a></code></li>
+<li><code><a title="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.noise_max_mz" href="#corems.encapsulation.factory.processingSetting.MassSpectrumSetting.noise_max_mz">noise_max_mz</a></code></li>
 <li><code><a title="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.max_picking_mz" href="#corems.encapsulation.factory.processingSetting.MassSpectrumSetting.max_picking_mz">max_picking_mz</a></code></li>
 <li><code><a title="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.min_calib_ppm_error" href="#corems.encapsulation.factory.processingSetting.MassSpectrumSetting.min_calib_ppm_error">min_calib_ppm_error</a></code></li>
-<li><code><a title="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.min_noise_mz" href="#corems.encapsulation.factory.processingSetting.MassSpectrumSetting.min_noise_mz">min_noise_mz</a></code></li>
+<li><code><a title="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.noise_min_mz" href="#corems.encapsulation.factory.processingSetting.MassSpectrumSetting.noise_min_mz">noise_min_mz</a></code></li>
 <li><code><a title="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.min_picking_mz" href="#corems.encapsulation.factory.processingSetting.MassSpectrumSetting.min_picking_mz">min_picking_mz</a></code></li>
-<li><code><a title="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.noise_threshold_std" href="#corems.encapsulation.factory.processingSetting.MassSpectrumSetting.noise_threshold_std">noise_threshold_std</a></code></li>
-<li><code><a title="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.relative_abundance_threshold" href="#corems.encapsulation.factory.processingSetting.MassSpectrumSetting.relative_abundance_threshold">relative_abundance_threshold</a></code></li>
+<li><code><a title="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.noise_threshold_min_std" href="#corems.encapsulation.factory.processingSetting.MassSpectrumSetting.noise_threshold_min_std">noise_threshold_min_std</a></code></li>
+<li><code><a title="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.noise_threshold_min_relative_abundance" href="#corems.encapsulation.factory.processingSetting.MassSpectrumSetting.noise_threshold_min_relative_abundance">noise_threshold_min_relative_abundance</a></code></li>
 <li><code><a title="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.s2n_threshold" href="#corems.encapsulation.factory.processingSetting.MassSpectrumSetting.s2n_threshold">s2n_threshold</a></code></li>
-<li><code><a title="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.threshold_method" href="#corems.encapsulation.factory.processingSetting.MassSpectrumSetting.threshold_method">threshold_method</a></code></li>
+<li><code><a title="corems.encapsulation.factory.processingSetting.MassSpectrumSetting.noise_threshold_method" href="#corems.encapsulation.factory.processingSetting.MassSpectrumSetting.noise_threshold_method">noise_threshold_method</a></code></li>
 </ul>
 </li>
 <li>

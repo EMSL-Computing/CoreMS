@@ -30,10 +30,10 @@ from corems.encapsulation.factory.parameters import MSParameters
 file_location = "tests/tests_data/icpms/rmb_161221_kansas_h2o_2"
 
 #Set peak detection threshold method
-MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
-MSParameters.mass_spectrum.relative_abundance_threshold = 1
+MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
+MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 1
 
-MSParameters.mass_spectrum.threshold_method = 'log'
+MSParameters.mass_spectrum.noise_threshold_method = 'log'
 MSParameters.mass_spectrum.s2n_threshold = 10
 
 #Parser for thermo RAW files. 

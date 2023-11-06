@@ -23,8 +23,8 @@ def create_mass_spectrum():
 
     bruker_reader = ReadBrukerSolarix(file_location)
 
-    MSParameters.mass_spectrum.threshold_method = 'log'
-    MSParameters.mass_spectrum.log_nsigma = 10
+    MSParameters.mass_spectrum.noise_threshold_method = 'log'
+    MSParameters.mass_spectrum.noise_thresould_log_nsigma = 10
     MSParameters.ms_peak.peak_min_prominence_percent = 1
 
     bruker_transient = bruker_reader.get_transient()
@@ -54,14 +54,14 @@ def test_run_molecular_formula_search():
     MSParameters.molecular_search.used_atom_valences['F'] = 0
     MSParameters.molecular_search.used_atom_valences['Cl'] = 0
 
-    MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
-    MSParameters.mass_spectrum.relative_abundance_threshold = 0.1
+    MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
+    MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 0.1
     
     mz = [215.09269]
     abundance = [1]
     rp, s2n = [1] ,[1]
     dataname = 'one peak'
-    MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
+    MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
     mass_spectrum_obj = ms_from_array_centroid(mz, abundance, rp, s2n, dataname, auto_process=False)
 
     SearchMolecularFormulas(mass_spectrum_obj).run_worker_ms_peaks([mass_spectrum_obj[0]])

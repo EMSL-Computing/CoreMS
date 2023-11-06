@@ -21,7 +21,7 @@ This approach is slightly more complex and recommended for those who want improv
 	a. [Python 3.10.11]](https://www.python.org/downloads/release/python-31011/)  
 	b. *Windows installer (64-bit)*  
 	c. During installation, make sure to select 'Add Python 3.10 to PATH'. **Note:** if you have another version of python installed, this may create a conflict.  
-    d. Note - Python 3.10.11 is the last version with a pre-built binary for Windows.   
+    d. Note - Python 3.10.11 is the last version of Py3.10 with a pre-built binary for Windows.   
 2. Install Docker Desktop   
     a. https://www.docker.com/products/docker-desktop/  
 3. [Optional] Install Git.   
