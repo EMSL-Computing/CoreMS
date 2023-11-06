@@ -17,7 +17,7 @@ stages:
   - Pytest
   - Build Python Package
   - Push to PyPi
-  # - Push to Gitlab Registry
+  - Push to Gitlab Registry
   # - Push to Docker Hub
   
 test-source:
@@ -77,25 +77,25 @@ build:
 #    - tags
 
 
-build-base-image:
-  extends: .pnnllib-gitlab-build-container-image
-  stage: Push to Gitlab Registry
-  image: gcr.io/kaniko-project/executor:debug@sha256:71d8cf6012b67979960f5b15b85408438132d87eef599926d8931f348d045957
-  tags:
-  - k8s
-  - rzr
-  - codebuilds
-  only:
-    - master
-  variables:
-    KANIKO_EXTRA_ARGS: "--cache=true --cache-copy-layers=true --destination $CI_REGISTRY_IMAGE:latest"
-    CONTEXT: $CI_PROJECT_DIR
-    DOCKERFILE: Dockerfile_py310_dotnet_base_clean
-    KUBERNETES_CPU_REQUEST: 100m
-    KUBERNETES_CPU_LIMIT: "2"
-    KUBERNETES_MEMORY_REQUEST: 2Gi
-    KUBERNETES_MEMORY_LIMIT: 8Gi
-    CONTAINER_TAG: "2.5.3-1005"
+# build-base-image:
+#   extends: .pnnllib-gitlab-build-container-image
+#   stage: Push to Gitlab Registry
+#   image: gcr.io/kaniko-project/executor:debug@sha256:71d8cf6012b67979960f5b15b85408438132d87eef599926d8931f348d045957
+#   tags:
+#   - k8s
+#   - rzr
+#   - codebuilds
+#   only:
+#     - master
+#   variables:
+#     KANIKO_EXTRA_ARGS: "--cache=true --cache-copy-layers=true --destination $CI_REGISTRY_IMAGE:latest"
+#     CONTEXT: $CI_PROJECT_DIR
+#     DOCKERFILE: Dockerfile_py310_dotnet_base_clean
+#     KUBERNETES_CPU_REQUEST: 100m
+#     KUBERNETES_CPU_LIMIT: "2"
+#     KUBERNETES_MEMORY_REQUEST: 2Gi
+#     KUBERNETES_MEMORY_LIMIT: 8Gi
+#     CONTAINER_TAG: "2.5.3-1005"
 
 # deployment:
   
