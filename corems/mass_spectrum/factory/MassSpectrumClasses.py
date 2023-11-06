@@ -69,8 +69,8 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self._mspeaks = list()
         self.mspeaks = list()
         self._dict_nominal_masses_indexes = dict()
-        self._baselise_noise = 0.001
-        self._baselise_noise_std = 0.001
+        self._baseline_noise = 0.001
+        self._baseline_noise_std = 0.001
         self._dynamic_range = None
         # set to None: initialization occurs inside subclass MassSpecfromFreq
         self._transient_settings = None
@@ -170,9 +170,9 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         self._dir_location = d_params.get("dir_location")
 
-        self._baselise_noise = d_params.get("baselise_noise")
+        self._baseline_noise = d_params.get("baseline_noise")
 
-        self._baselise_noise_std = d_params.get("baselise_noise_std")
+        self._baseline_noise_std = d_params.get("baseline_noise_std")
 
         if d_params.get('sample_name') != 'Unknown':
 
@@ -224,14 +224,14 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         if self.label == Labels.simulated_profile:
 
-            self._baselise_noise, self._baselise_noise_std = 0.1, 1
+            self._baseline_noise, self._baseline_noise_std = 0.1, 1
 
         if self.settings.threshold_method == 'log':
 
-            self._baselise_noise, self._baselise_noise_std = self.run_log_noise_threshold_calc(bayes=bayes)
+            self._baseline_noise, self._baseline_noise_std = self.run_log_noise_threshold_calc(bayes=bayes)
 
         else:
-            self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(bayes=bayes)
+            self._baseline_noise, self._baseline_noise_std = self.run_noise_threshold_calc(bayes=bayes)
 
     @property
     def parameters(self):
@@ -411,19 +411,19 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         return self._dynamic_range
 
     @property
-    def baselise_noise(self):
-        if self._baselise_noise:
-            return self._baselise_noise
+    def baseline_noise(self):
+        if self._baseline_noise:
+            return self._baseline_noise
         else:     
             return None
 
     @property
-    def baselise_noise_std(self):
+    def baseline_noise_std(self):
 
-        if self._baselise_noise_std == 0:
-            return self._baselise_noise_std
-        if self._baselise_noise_std:
-            return self._baselise_noise_std
+        if self._baseline_noise_std == 0:
+            return self._baseline_noise_std
+        if self._baseline_noise_std:
+            return self._baseline_noise_std
         else:     
             return None
 
@@ -677,13 +677,13 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     def plot_profile_and_noise_threshold(self, ax=None,legend=False): 
 
         import matplotlib.pyplot as plt
-        if self.baselise_noise_std and self.baselise_noise_std:
+        if self.baseline_noise_std and self.baseline_noise_std:
 
             # x = (self.mz_exp_profile.min(), self.mz_exp_profile.max())
-            baseline = (self.baselise_noise, self.baselise_noise)
+            baseline = (self.baseline_noise, self.baseline_noise)
 
             # std = self.parameters.mass_spectrum.noise_threshold_std
-            # threshold = self.baselise_noise_std + (std * self.baselise_noise_std)
+            # threshold = self.baseline_noise_std + (std * self.baseline_noise_std)
             x, y = self.get_noise_threshold()    
             
             if ax is None:
@@ -976,8 +976,8 @@ class MassSpecCentroid(MassSpecBase):
         self._set_parameters_objects(d_params)
         
         if self.label == Labels.thermo_centroid:
-            self._baselise_noise = d_params.get("baselise_noise")
-            self._baselise_noise_std = d_params.get("baselise_noise_std")
+            self._baseline_noise = d_params.get("baseline_noise")
+            self._baseline_noise_std = d_params.get("baseline_noise_std")
 
         self.is_centroid = True
         self.data_dict = data_dict
@@ -1093,10 +1093,10 @@ class MassSpecCentroid(MassSpecBase):
             if self.settings.threshold_method == 'log':
                 
                 raise  Exception("log noise Not tested for centroid data")
-                #self._baselise_noise, self._baselise_noise_std = self.run_log_noise_threshold_calc(bayes=noise_bayes_est)
+                #self._baseline_noise, self._baseline_noise_std = self.run_log_noise_threshold_calc(bayes=noise_bayes_est)
             
             else:
-                self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(bayes=noise_bayes_est)
+                self._baseline_noise, self._baseline_noise_std = self.run_noise_threshold_calc(bayes=noise_bayes_est)
         
         del self.data_dict
     

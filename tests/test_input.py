@@ -144,7 +144,7 @@ def test_import_transient():
 
         mass_spectrum_obj.plot_profile_and_noise_threshold()
         
-        pyplot.show()
+        #pyplot.show()
         
         #mass_spectrum_test.plot_profile_and_noise_threshold()
         
@@ -301,7 +301,7 @@ def test_import_mass_list():
 
     mass_spectrum = mass_list_reader.get_mass_spectrum(polarity, auto_process=True)
     
-    print(mass_spectrum.baselise_noise, mass_spectrum.baselise_noise_std)
+    print(mass_spectrum.baseline_noise, mass_spectrum.baseline_noise_std)
     mass_spectrum.filter_by_noise_threshold()
     print(len(mass_spectrum))
     #mass_spectrum.plot_mz_domain_profile()

@@ -300,8 +300,8 @@ class HighResMassSpecExport(Thread):
         dict_ms_attrs['Aterm'] = mass_spectrum.Aterm
         dict_ms_attrs['Bterm'] = mass_spectrum.Bterm
         dict_ms_attrs['Cterm'] = mass_spectrum.Cterm
-        dict_ms_attrs['baselise_noise'] = mass_spectrum.baselise_noise
-        dict_ms_attrs['baselise_noise_std'] = mass_spectrum.baselise_noise_std
+        dict_ms_attrs['baseline_noise'] = mass_spectrum.baseline_noise
+        dict_ms_attrs['baseline_noise_std'] = mass_spectrum.baseline_noise_std
 
         return dict_ms_attrs
 

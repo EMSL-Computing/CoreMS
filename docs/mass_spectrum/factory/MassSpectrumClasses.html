@@ -92,8 +92,8 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         # objects created after process_mass_spec() function
         self._mspeaks = list()
         self._dict_nominal_masses_indexes = dict()
-        self._baselise_noise = 0.001
-        self._baselise_noise_std = 0.001
+        self._baseline_noise = 0.001
+        self._baseline_noise_std = 0.001
         self._dynamic_range = None
         # set to None: initialization occurs inside subclass MassSpecfromFreq
         self._transient_settings = None
@@ -190,9 +190,9 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         self._dir_location = d_params.get(&#34;dir_location&#34;)
 
-        self._baselise_noise = d_params.get(&#34;baselise_noise&#34;)
+        self._baseline_noise = d_params.get(&#34;baseline_noise&#34;)
 
-        self._baselise_noise_std = d_params.get(&#34;baselise_noise_std&#34;)
+        self._baseline_noise_std = d_params.get(&#34;baseline_noise_std&#34;)
 
         if d_params.get(&#39;sample_name&#39;) != &#39;Unknown&#39;:
 
@@ -244,11 +244,11 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         if self.label == Labels.simulated_profile:
 
-            self._baselise_noise, self._baselise_noise_std = 0.1, 1
+            self._baseline_noise, self._baseline_noise_std = 0.1, 1
 
         else:
 
-            self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto, bayes=bayes)
+            self._baseline_noise, self._baseline_noise_std = self.run_noise_threshold_calc(auto, bayes=bayes)
         
     @property
     def parameters(self):
@@ -417,16 +417,16 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         return self._dynamic_range
 
     @property
-    def baselise_noise(self):
-        if self._baselise_noise:
-            return self._baselise_noise
+    def baseline_noise(self):
+        if self._baseline_noise:
+            return self._baseline_noise
         else:     
             return None
 
     @property
-    def baselise_noise_std(self):
-        if self._baselise_noise_std:
-            return self._baselise_noise_std
+    def baseline_noise_std(self):
+        if self._baseline_noise_std:
+            return self._baseline_noise_std
         else:     
             return None
 
@@ -671,13 +671,13 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     def plot_profile_and_noise_threshold(self, ax=None): 
 
         import matplotlib.pyplot as plt
-        if self.baselise_noise_std and self.baselise_noise_std:
+        if self.baseline_noise_std and self.baseline_noise_std:
 
             # x = (self.mz_exp_profile.min(), self.mz_exp_profile.max())
-            baseline = (self.baselise_noise, self.baselise_noise)
+            baseline = (self.baseline_noise, self.baseline_noise)
 
             # std = self.parameters.mass_spectrum.noise_threshold_std
-            # threshold = self.baselise_noise_std + (std * self.baselise_noise_std)
+            # threshold = self.baseline_noise_std + (std * self.baseline_noise_std)
             x, y = self.get_noise_threshold()    
             
             if ax is None:
@@ -935,8 +935,8 @@ class MassSpecCentroid(MassSpecBase):
         self._set_parameters_objects(d_params)
         
         if self.label == Labels.thermo_centroid:
-            self._baselise_noise = d_params.get(&#34;baselise_noise&#34;)
-            self._baselise_noise_std = d_params.get(&#34;baselise_noise_std&#34;)
+            self._baseline_noise = d_params.get(&#34;baseline_noise&#34;)
+            self._baseline_noise_std = d_params.get(&#34;baseline_noise_std&#34;)
 
         self.is_centroid = True
 
@@ -1038,7 +1038,7 @@ class MassSpecCentroid(MassSpecBase):
         self._set_nominal_masses_start_final_indexes()
         
         if self.label != Labels.thermo_centroid:
-            self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto=auto_noise, bayes=noise_bayes_est)
+            self._baseline_noise, self._baseline_noise_std = self.run_noise_threshold_calc(auto=auto_noise, bayes=noise_bayes_est)
             
 class MassSpecCentroidLowRes(MassSpecCentroid,):
     
@@ -1241,8 +1241,8 @@ find or set the noise threshold base on the setting encapsulated at settings.inp
         # objects created after process_mass_spec() function
         self._mspeaks = list()
         self._dict_nominal_masses_indexes = dict()
-        self._baselise_noise = 0.001
-        self._baselise_noise_std = 0.001
+        self._baseline_noise = 0.001
+        self._baseline_noise_std = 0.001
         self._dynamic_range = None
         # set to None: initialization occurs inside subclass MassSpecfromFreq
         self._transient_settings = None
@@ -1339,9 +1339,9 @@ find or set the noise threshold base on the setting encapsulated at settings.inp
 
         self._dir_location = d_params.get(&#34;dir_location&#34;)
 
-        self._baselise_noise = d_params.get(&#34;baselise_noise&#34;)
+        self._baseline_noise = d_params.get(&#34;baseline_noise&#34;)
 
-        self._baselise_noise_std = d_params.get(&#34;baselise_noise_std&#34;)
+        self._baseline_noise_std = d_params.get(&#34;baseline_noise_std&#34;)
 
         if d_params.get(&#39;sample_name&#39;) != &#39;Unknown&#39;:
 
@@ -1393,11 +1393,11 @@ find or set the noise threshold base on the setting encapsulated at settings.inp
 
         if self.label == Labels.simulated_profile:
 
-            self._baselise_noise, self._baselise_noise_std = 0.1, 1
+            self._baseline_noise, self._baseline_noise_std = 0.1, 1
 
         else:
 
-            self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto, bayes=bayes)
+            self._baseline_noise, self._baseline_noise_std = self.run_noise_threshold_calc(auto, bayes=bayes)
         
     @property
     def parameters(self):
@@ -1566,16 +1566,16 @@ find or set the noise threshold base on the setting encapsulated at settings.inp
         return self._dynamic_range
 
     @property
-    def baselise_noise(self):
-        if self._baselise_noise:
-            return self._baselise_noise
+    def baseline_noise(self):
+        if self._baseline_noise:
+            return self._baseline_noise
         else:     
             return None
 
     @property
-    def baselise_noise_std(self):
-        if self._baselise_noise_std:
-            return self._baselise_noise_std
+    def baseline_noise_std(self):
+        if self._baseline_noise_std:
+            return self._baseline_noise_std
         else:     
             return None
 
@@ -1820,13 +1820,13 @@ find or set the noise threshold base on the setting encapsulated at settings.inp
     def plot_profile_and_noise_threshold(self, ax=None): 
 
         import matplotlib.pyplot as plt
-        if self.baselise_noise_std and self.baselise_noise_std:
+        if self.baseline_noise_std and self.baseline_noise_std:
 
             # x = (self.mz_exp_profile.min(), self.mz_exp_profile.max())
-            baseline = (self.baselise_noise, self.baselise_noise)
+            baseline = (self.baseline_noise, self.baseline_noise)
 
             # std = self.parameters.mass_spectrum.noise_threshold_std
-            # threshold = self.baselise_noise_std + (std * self.baselise_noise_std)
+            # threshold = self.baseline_noise_std + (std * self.baseline_noise_std)
             x, y = self.get_noise_threshold()    
             
             if ax is None:
@@ -1980,7 +1980,7 @@ def abundance(self):
 def abundance_profile(self): return self._abundance</code></pre>
 </details>
 </dd>
-<dt id="corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.baselise_noise"><code class="name">var <span class="ident">baselise_noise</span></code></dt>
+<dt id="corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.baseline_noise"><code class="name">var <span class="ident">baseline_noise</span></code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -1988,14 +1988,14 @@ def abundance_profile(self): return self._abundance</code></pre>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
-def baselise_noise(self):
-    if self._baselise_noise:
-        return self._baselise_noise
+def baseline_noise(self):
+    if self._baseline_noise:
+        return self._baseline_noise
     else:     
         return None</code></pre>
 </details>
 </dd>
-<dt id="corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.baselise_noise_std"><code class="name">var <span class="ident">baselise_noise_std</span></code></dt>
+<dt id="corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.baseline_noise_std"><code class="name">var <span class="ident">baseline_noise_std</span></code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -2003,9 +2003,9 @@ def baselise_noise(self):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
-def baselise_noise_std(self):
-    if self._baselise_noise_std:
-        return self._baselise_noise_std
+def baseline_noise_std(self):
+    if self._baseline_noise_std:
+        return self._baseline_noise_std
     else:     
         return None</code></pre>
 </details>
@@ -2366,11 +2366,11 @@ def tic(self):
 
     if self.label == Labels.simulated_profile:
 
-        self._baselise_noise, self._baselise_noise_std = 0.1, 1
+        self._baseline_noise, self._baseline_noise_std = 0.1, 1
 
     else:
 
-        self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto, bayes=bayes)</code></pre>
+        self._baseline_noise, self._baseline_noise_std = self.run_noise_threshold_calc(auto, bayes=bayes)</code></pre>
 </details>
 </dd>
 <dt id="corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.change_kendrick_base_all_mspeaks"><code class="name flex">
@@ -2803,13 +2803,13 @@ def tic(self):
 <pre><code class="python">def plot_profile_and_noise_threshold(self, ax=None): 
 
     import matplotlib.pyplot as plt
-    if self.baselise_noise_std and self.baselise_noise_std:
+    if self.baseline_noise_std and self.baseline_noise_std:
 
         # x = (self.mz_exp_profile.min(), self.mz_exp_profile.max())
-        baseline = (self.baselise_noise, self.baselise_noise)
+        baseline = (self.baseline_noise, self.baseline_noise)
 
         # std = self.parameters.mass_spectrum.noise_threshold_std
-        # threshold = self.baselise_noise_std + (std * self.baselise_noise_std)
+        # threshold = self.baseline_noise_std + (std * self.baseline_noise_std)
         x, y = self.get_noise_threshold()    
         
         if ax is None:
@@ -3199,8 +3199,8 @@ calculates the m_z based on the setting of d_params</p>
         self._set_parameters_objects(d_params)
         
         if self.label == Labels.thermo_centroid:
-            self._baselise_noise = d_params.get(&#34;baselise_noise&#34;)
-            self._baselise_noise_std = d_params.get(&#34;baselise_noise_std&#34;)
+            self._baseline_noise = d_params.get(&#34;baseline_noise&#34;)
+            self._baseline_noise_std = d_params.get(&#34;baseline_noise_std&#34;)
 
         self.is_centroid = True
 
@@ -3302,7 +3302,7 @@ calculates the m_z based on the setting of d_params</p>
         self._set_nominal_masses_start_final_indexes()
         
         if self.label != Labels.thermo_centroid:
-            self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto=auto_noise, bayes=noise_bayes_est)</code></pre>
+            self._baseline_noise, self._baseline_noise_std = self.run_noise_threshold_calc(auto=auto_noise, bayes=noise_bayes_est)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -3430,7 +3430,7 @@ def tic(self):
     self._set_nominal_masses_start_final_indexes()
     
     if self.label != Labels.thermo_centroid:
-        self._baselise_noise, self._baselise_noise_std = self.run_noise_threshold_calc(auto=auto_noise, bayes=noise_bayes_est)</code></pre>
+        self._baseline_noise, self._baseline_noise_std = self.run_noise_threshold_calc(auto=auto_noise, bayes=noise_bayes_est)</code></pre>
 </details>
 </dd>
 </dl>
@@ -3962,8 +3962,8 @@ def transient_settings(self): return self.parameters.transient</code></pre>
 <li><code><a title="corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.abundance" href="#corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.abundance">abundance</a></code></li>
 <li><code><a title="corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.abundance_profile" href="#corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.abundance_profile">abundance_profile</a></code></li>
 <li><code><a title="corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.add_mspeak" href="#corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.add_mspeak">add_mspeak</a></code></li>
-<li><code><a title="corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.baselise_noise" href="#corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.baselise_noise">baselise_noise</a></code></li>
-<li><code><a title="corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.baselise_noise_std" href="#corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.baselise_noise_std">baselise_noise_std</a></code></li>
+<li><code><a title="corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.baseline_noise" href="#corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.baseline_noise">baseline_noise</a></code></li>
+<li><code><a title="corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.baseline_noise_std" href="#corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.baseline_noise_std">baseline_noise_std</a></code></li>
 <li><code><a title="corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.cal_noise_threshold" href="#corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.cal_noise_threshold">cal_noise_threshold</a></code></li>
 <li><code><a title="corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.change_kendrick_base_all_mspeaks" href="#corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.change_kendrick_base_all_mspeaks">change_kendrick_base_all_mspeaks</a></code></li>
 <li><code><a title="corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.check_mspeaks" href="#corems.mass_spectrum.factory.MassSpectrumClasses.MassSpecBase.check_mspeaks">check_mspeaks</a></code></li>

@@ -504,9 +504,9 @@ class ThermoBaseClass():
             array_noise_std = (np.array(noise) - np.array(baselines)) / 3
             l_signal_to_noise = np.array(magnitude) / array_noise_std
 
-            d_params['baselise_noise'] = np.average(array_noise_std)
+            d_params['baseline_noise'] = np.average(array_noise_std)
 
-            d_params['baselise_noise_std'] = np.std(array_noise_std)
+            d_params['baseline_noise_std'] = np.std(array_noise_std)
 
             data_dict = {
                 Labels.mz: mz,
@@ -675,9 +675,9 @@ class ThermoBaseClass():
             array_noise_std = (np.array(noise) - np.array(baselines)) / 3
             l_signal_to_noise = np.array(magnitude) / array_noise_std
 
-            d_params['baselise_noise'] = np.average(array_noise_std)
+            d_params['baseline_noise'] = np.average(array_noise_std)
 
-            d_params['baselise_noise_std'] = np.std(array_noise_std)
+            d_params['baseline_noise_std'] = np.std(array_noise_std)
 
             data_dict = {
                 Labels.mz: mz,
@@ -894,9 +894,9 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, LC_Calculations):
             array_noise_std = (np.array(noise) - np.array(baselines)) / 3
             l_signal_to_noise = np.array(magnitude) / array_noise_std
 
-            d_parameter['baselise_noise'] = np.average(array_noise_std)
+            d_parameter['baseline_noise'] = np.average(array_noise_std)
 
-            d_parameter['baselise_noise_std'] = np.std(array_noise_std)
+            d_parameter['baseline_noise_std'] = np.std(array_noise_std)
 
             data_dict = {
                 Labels.mz: mz,
