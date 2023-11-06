@@ -21,7 +21,7 @@ stages:
   # - Push to Docker Hub
   
 test-source:
-  image: code-registry.emsl.pnl.gov/mass-spectrometry/corems/corems-base-310-dotnet6:2.5.3-1003
+  image: code-registry.emsl.pnl.gov/mass-spectrometry/corems/corems-base-310-dotnet6:2.5.3-1005
   stage: Pytest
   tags:
     - k8s 
@@ -86,7 +86,7 @@ test-source:
 build:
   
   stage: Build Python Package
-  image: code-registry.emsl.pnl.gov/mass-spectrometry/corems/corems-base-310-dotnet6:2.5.3-1003
+  image: code-registry.emsl.pnl.gov/mass-spectrometry/corems/corems-base-310-dotnet6:2.5.3-1005
   tags:
     - k8s 
     - rzr
@@ -138,7 +138,7 @@ build-base-image:
     KUBERNETES_CPU_LIMIT: "2"
     KUBERNETES_MEMORY_REQUEST: 2Gi
     KUBERNETES_MEMORY_LIMIT: 8Gi
-    CONTAINER_TAG: "2.5.3-1003"
+    CONTAINER_TAG: "2.5.3-1005"
 
 # deployment:
   
