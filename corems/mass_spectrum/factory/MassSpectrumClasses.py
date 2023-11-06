@@ -319,7 +319,12 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     def freq_exp_profile(self, new_data): self._frequency_domain = array(new_data)
 
     @property
-    def mz_exp_profile(self): return self._mz_exp
+    def mz_exp_profile(self): #return self._mz_exp
+
+        if self.is_calibrated: 
+            return self.mz_cal_profile
+        else:
+            return self._mz_exp
 
     @mz_exp_profile.setter
     def mz_exp_profile(self, new_data ): self._mz_exp = array(new_data)
