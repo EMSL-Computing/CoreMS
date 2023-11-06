@@ -50,7 +50,11 @@ test-source:
       import os
       import clr
       import datetime
+      from pathlib import Path
 
+      print(sys.path)
+      print(os.getcwd())
+      print(Path.cwd())
       sys.path.append(\"./ext_lib\")
       clr.AddReference(\"ThermoFisher.CommonCore.RawFileReader\")
       from ThermoFisher.CommonCore.RawFileReader import RawFileReaderAdapter
@@ -69,7 +73,7 @@ test-source:
       " 
     - python -m pip uninstall corems -y
     - python3 -m pip list
-    - pytest -s tests/test_aaaaa_thermo.py
+    - pytest -s -vv tests/test_aaaaa_thermo.py
     - pytest --cache-clear
   
   artifacts:
