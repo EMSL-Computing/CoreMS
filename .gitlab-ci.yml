@@ -51,14 +51,14 @@ test-source:
       import clr
       import datetime
 
-      sys.path.append(".")
-      clr.AddReference("ThermoFisher.CommonCore.RawFileReader")
+      sys.path.append(\".\")
+      clr.AddReference(\"ThermoFisher.CommonCore.RawFileReader\")
       from ThermoFisher.CommonCore.RawFileReader import RawFileReaderAdapter
 
 
       rawfile = '/builds/mass-spectrometry/corems/tests/tests_data/ftms/NEG_ESI_LIGNIN.raw'
       iRawDataPlus = RawFileReaderAdapter.FileFactory(rawfile)
-      print("iRawDataPlus.InAcquisition: ", iRawDataPlus.InAcquisition)
+      print(\"iRawDataPlus.InAcquisition: \", iRawDataPlus.InAcquisition)
       print(dir(iRawDataPlus))
       print(type(rawfile), type(iRawDataPlus))
 
