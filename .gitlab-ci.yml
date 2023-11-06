@@ -29,23 +29,22 @@ test-source:
     - codebuilds
   script:
     - python3 -V  # Print out python version for debugging
-    # - python3 -m pip install --upgrade pip
-    # - python3 -m pip install -r requirements.txt
-    # - python3 -m pip install pytest
-    # - python3 -m pip install pytest-cov
+    - python3 -m pip install --upgrade pip
+    - python3 -m pip install -r requirements.txt
+    - python3 -m pip install pytest pytest-cov
     - ls /builds/mass-spectrometry/corems/tests/tests_data/ftms/
     - ls .
-    - python3 -c "import os; print(os.stat('/builds/mass-spectrometry/corems/tests/tests_data/ftms/NEG_ESI_LIGNIN.raw'))"
+    # - python3 -c "import os; print(os.stat('/builds/mass-spectrometry/corems/tests/tests_data/ftms/NEG_ESI_LIGNIN.raw'))"
     - python3 -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
-    - python3 -c "import os; print(os.stat('/builds/mass-spectrometry/corems/tests/tests_data/ftms/NEG_ESI_LIGNIN.raw'))"
-    - |
-      python3 -c "
-      with open('/builds/mass-spectrometry/corems/tests/tests_data/ftms/NEG_ESI_LIGNIN.raw', 'rb') as f:
-        data=f.read(256)
-        print(data[:16].hex())
-      "
-    - tail ./ext_lib/ThermoFisher.CommonCore.RawFileReader.dll
-    - md5sum ./ext_lib/ThermoFisher.CommonCore.RawFileReader.dll
+    # - python3 -c "import os; print(os.stat('/builds/mass-spectrometry/corems/tests/tests_data/ftms/NEG_ESI_LIGNIN.raw'))"
+    # - |
+    #   python3 -c "
+    #   with open('/builds/mass-spectrometry/corems/tests/tests_data/ftms/NEG_ESI_LIGNIN.raw', 'rb') as f:
+    #     data=f.read(256)
+    #     print(data[:16].hex())
+    #   "
+    # - tail ./ext_lib/ThermoFisher.CommonCore.RawFileReader.dll
+    # - md5sum ./ext_lib/ThermoFisher.CommonCore.RawFileReader.dll
     - echo $PATH
     # - |
     #   python3 -c "
