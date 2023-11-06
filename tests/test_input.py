@@ -80,6 +80,10 @@ def test_import_lcms_from_transient():
 
     file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_SRFA_Auto.d"#"SOM_LC_PeatMix_2p8_0p6_2_30AUG19_GIMLI_ZORBAX-1186_1_01_259.d"
 
+    MSParameters.mass_spectrum.threshold_method = 'log'
+    MSParameters.mass_spectrum.log_nsigma = 20
+    MSParameters.ms_peak.peak_min_prominence_percent = 1
+    
     read_lcms = ReadBruker_SolarixTransientMassSpectra(file_location)
 
     read_lcms.start()
@@ -122,8 +126,7 @@ def test_import_transient():
         #MSParameters.mass_spectrum.s2n_threshold = 50
 
         MSParameters.mass_spectrum.threshold_method = 'log'
-        MSParameters.mass_spectrum.noise_threshold_std = 3
-
+        MSParameters.mass_spectrum.log_nsigma = 20
         MSParameters.ms_peak.peak_min_prominence_percent = 1
     
         mass_spectrum_obj = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
@@ -141,7 +144,7 @@ def test_import_transient():
 
         mass_spectrum_obj.plot_profile_and_noise_threshold()
         
-        pyplot.show()
+        #pyplot.show()
         
         #mass_spectrum_test.plot_profile_and_noise_threshold()
         
@@ -192,7 +195,7 @@ def test_import_corems_hdf5():
  
 def test_import_corems_mass_list():
 
-    file_location = Path.cwd() / "tests/tests_data/ftms/ESI_NEG_SRFA_COREMS.csv"
+    file_location = Path.cwd() / "tests/tests_data/ftms/ESI_NEG_SRFA_COREMS_withdupes.csv"
     
     MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
     MSParameters.mass_spectrum.relative_abundance_threshold = 0.1
@@ -200,7 +203,7 @@ def test_import_corems_mass_list():
     #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
     mass_list_reader = ReadCoremsMasslist(file_location,  analyzer='ICR', instrument_label='12T')
 
-    mass_spectrum = mass_list_reader.get_mass_spectrum()
+    mass_spectrum = mass_list_reader.get_mass_spectrum(loadSettings=False)
 
     for mspeak in mass_spectrum:
         
@@ -298,7 +301,7 @@ def test_import_mass_list():
 
     mass_spectrum = mass_list_reader.get_mass_spectrum(polarity, auto_process=True)
     
-    print(mass_spectrum.baselise_noise, mass_spectrum.baselise_noise_std)
+    print(mass_spectrum.baseline_noise, mass_spectrum.baseline_noise_std)
     mass_spectrum.filter_by_noise_threshold()
     print(len(mass_spectrum))
     #mass_spectrum.plot_mz_domain_profile()
@@ -364,5 +367,6 @@ if __name__ == '__main__':
     #test_import_mass_list()
     #test_import_maglab_pks()
     #test_andi_netcdf_gcms()
-    test_import_thermo_average()
+    test_import_corems_mass_list()
+    #test_import_thermo_average()
 

@@ -290,7 +290,7 @@ def get_metadata(rawFile):
 
 if __name__ == "__main__":
     
-    filename = "tests/tests_data/ftms/SRFA_NEG_ESI_ORB.raw"
+    filename = "tests/tests_data/ftms/Exploris_SRFA_Example.raw"
     
     rawFile = getRawFile(filename)
     
