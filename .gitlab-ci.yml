@@ -35,9 +35,42 @@ test-source:
     # - python3 -m pip install pytest-cov
     - ls /builds/mass-spectrometry/corems/tests/tests_data/ftms/
     - ls .
+    - python3 -c "import os; print(os.stat('/builds/mass-spectrometry/corems/tests/tests_data/ftms/NEG_ESI_LIGNIN.raw'))"
     - python3 -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
+    - python3 -c "import os; print(os.stat('/builds/mass-spectrometry/corems/tests/tests_data/ftms/NEG_ESI_LIGNIN.raw'))"
+    - |
+      python3 -c "
+      with open('/builds/mass-spectrometry/corems/tests/tests_data/ftms/NEG_ESI_LIGNIN.raw', 'rb') as f:
+        data=f.read(256)
+        print(data[:16])
+      "
+    - |
+      python3 -c "
+        import sys
+        import os
+        import clr
+        import datetime
+
+        sys.path.append(".")
+        clr.AddReference("ThermoFisher.CommonCore.RawFileReader")
+        from ThermoFisher.CommonCore.RawFileReader import RawFileReaderAdapter
+
+
+        rawfile = '/builds/mass-spectrometry/corems/tests/tests_data/ftms/NEG_ESI_LIGNIN.raw'
+        iRawDataPlus = RawFileReaderAdapter.FileFactory(rawfile)
+        print("iRawDataPlus.InAcquisition: ", iRawDataPlus.InAcquisition)
+        print(dir(iRawDataPlus))
+        print(type(rawfile), type(iRawDataPlus))
+
+        credate = iRawDataPlus.CreationDate
+        print(credate.get_Ticks())
+        print(credate)
+        print(datetime.datetime(1,1,1) + datetime.timedelta(microseconds=credate.get_Ticks()/10))
+
+      " 
     - python -m pip uninstall corems -y
     - python3 -m pip list
+    - pytest -s tests/test_aaaaa_thermo.py
     - pytest --cache-clear
   
   artifacts:
