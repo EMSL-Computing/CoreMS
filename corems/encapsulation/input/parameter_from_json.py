@@ -5,7 +5,7 @@ from corems.encapsulation.factory.processingSetting  import MolecularFormulaSear
 from corems.encapsulation.factory.processingSetting  import MassSpectrumSetting
 from corems.encapsulation.factory.processingSetting  import MassSpecPeakSetting
 from corems.encapsulation.factory.processingSetting  import GasChromatographSetting
-from corems.encapsulation.factory.processingSetting import CompoundSearchSettings, DataInputSetting
+from corems.encapsulation.factory.processingSetting import CompoundSearchSettings
 
 def load_and_set_toml_parameters_ms(mass_spec_obj, parameters_path=False):
     

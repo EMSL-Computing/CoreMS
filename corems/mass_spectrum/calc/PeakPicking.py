@@ -287,42 +287,42 @@ class PeakPicking:
         
         intes = array(intes).astype(float)
        
-        threshold_method = self.settings.threshold_method
+        noise_threshold_method = self.settings.noise_threshold_method
 
-        if threshold_method == 'minima':
+        if noise_threshold_method == 'minima':
             
             if self.is_centroid:
                 warn("Auto threshould is disabled for centroid data, returning 0")
                 factor = 1
                 abundance_threshold = 1e-20
-            #print(self.settings.noise_threshold_std)
+            #print(self.settings.noise_threshold_min_std)
             else:
-                abundance_threshold = self.baseline_noise + (self.settings.noise_threshold_std * self.baseline_noise_std)
+                abundance_threshold = self.baseline_noise + (self.settings.noise_threshold_min_std * self.baseline_noise_std)
                 factor = 1
 
-        elif threshold_method == 'signal_noise':
+        elif noise_threshold_method == 'signal_noise':
 
             abundance_threshold = self.settings.s2n_threshold
             factor = self.baseline_noise_std
 
-        elif threshold_method == "relative_abundance":
+        elif noise_threshold_method == "relative_abundance":
 
-            abundance_threshold = self.settings.relative_abundance_threshold
+            abundance_threshold = self.settings.noise_threshold_min_relative_abundance
             factor = intes.max()/100
 
-        elif threshold_method == "absolute_abundance":
+        elif noise_threshold_method == "absolute_abundance":
 
-            abundance_threshold = self.settings.absolute_abundance_threshold
+            abundance_threshold = self.settings.noise_thresould_absolute_abundance
             factor = 1
 
-        elif threshold_method == 'log':
+        elif noise_threshold_method == 'log':
             if self.is_centroid:
                 raise  Exception("log noise Not tested for centroid data")
-            abundance_threshold = self.settings.log_nsigma
+            abundance_threshold = self.settings.noise_thresould_log_nsigma
             factor = self.baseline_noise_std
 
         else:
-            raise  Exception("%s method was not implemented, please refer to corems.mass_spectrum.calc.NoiseCalc Class" % threshold_method)
+            raise  Exception("%s method was not implemented, please refer to corems.mass_spectrum.calc.NoiseCalc Class" % noise_threshold_method)
         
         return abundance_threshold, factor
         

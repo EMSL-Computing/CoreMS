@@ -676,7 +676,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             # x = (self.mz_exp_profile.min(), self.mz_exp_profile.max())
             baseline = (self.baseline_noise, self.baseline_noise)
 
-            # std = self.parameters.mass_spectrum.noise_threshold_std
+            # std = self.parameters.mass_spectrum.noise_threshold_min_std
             # threshold = self.baseline_noise_std + (std * self.baseline_noise_std)
             x, y = self.get_noise_threshold()    
             
@@ -1825,7 +1825,7 @@ find or set the noise threshold base on the setting encapsulated at settings.inp
             # x = (self.mz_exp_profile.min(), self.mz_exp_profile.max())
             baseline = (self.baseline_noise, self.baseline_noise)
 
-            # std = self.parameters.mass_spectrum.noise_threshold_std
+            # std = self.parameters.mass_spectrum.noise_threshold_min_std
             # threshold = self.baseline_noise_std + (std * self.baseline_noise_std)
             x, y = self.get_noise_threshold()    
             
@@ -2808,7 +2808,7 @@ def tic(self):
         # x = (self.mz_exp_profile.min(), self.mz_exp_profile.max())
         baseline = (self.baseline_noise, self.baseline_noise)
 
-        # std = self.parameters.mass_spectrum.noise_threshold_std
+        # std = self.parameters.mass_spectrum.noise_threshold_min_std
         # threshold = self.baseline_noise_std + (std * self.baseline_noise_std)
         x, y = self.get_noise_threshold()    
         

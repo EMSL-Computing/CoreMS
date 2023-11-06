@@ -688,8 +688,8 @@ class ThermoBaseClass():
 
             
             mass_spec = MassSpecCentroid(data_dict, d_params, auto_process=False)
-            mass_spec.settings.threshold_method = 'relative_abundance'
-            mass_spec.settings.relative_abundance_threshold = 1
+            mass_spec.settings.noise_threshold_method = 'relative_abundance'
+            mass_spec.settings.noise_threshold_min_relative_abundance = 1
             mass_spec.process_mass_spec()
             return mass_spec
 

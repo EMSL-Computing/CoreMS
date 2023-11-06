@@ -80,8 +80,8 @@ def test_import_lcms_from_transient():
 
     file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_SRFA_Auto.d"#"SOM_LC_PeatMix_2p8_0p6_2_30AUG19_GIMLI_ZORBAX-1186_1_01_259.d"
 
-    MSParameters.mass_spectrum.threshold_method = 'log'
-    MSParameters.mass_spectrum.log_nsigma = 20
+    MSParameters.mass_spectrum.noise_threshold_method = 'log'
+    MSParameters.mass_spectrum.noise_thresould_log_nsigma = 20
     MSParameters.ms_peak.peak_min_prominence_percent = 1
     
     read_lcms = ReadBruker_SolarixTransientMassSpectra(file_location)
@@ -119,14 +119,14 @@ def test_import_transient():
 
     with ReadBrukerSolarix(file_location) as bruker_transient:
         
-        #MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
-        #MSParameters.mass_spectrum.relative_abundance_threshold = 1
+        #MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
+        #MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 1
 
-        #MSParameters.mass_spectrum.threshold_method = 'signal_noise'
+        #MSParameters.mass_spectrum.noise_threshold_method = 'signal_noise'
         #MSParameters.mass_spectrum.s2n_threshold = 50
 
-        MSParameters.mass_spectrum.threshold_method = 'log'
-        MSParameters.mass_spectrum.log_nsigma = 20
+        MSParameters.mass_spectrum.noise_threshold_method = 'log'
+        MSParameters.mass_spectrum.noise_thresould_log_nsigma = 20
         MSParameters.ms_peak.peak_min_prominence_percent = 1
     
         mass_spectrum_obj = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
@@ -162,8 +162,8 @@ def test_import_corems_hdf5():
 
     file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_SRFA_CoreMS.hdf5"
     
-    MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
-    MSParameters.mass_spectrum.relative_abundance_threshold = 0.1
+    MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
+    MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 0.1
     
     #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
     mass_list_reader = ReadCoreMSHDF_MassSpectrum(file_location)
@@ -197,8 +197,8 @@ def test_import_corems_mass_list():
 
     file_location = Path.cwd() / "tests/tests_data/ftms/ESI_NEG_SRFA_COREMS_withdupes.csv"
     
-    MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
-    MSParameters.mass_spectrum.relative_abundance_threshold = 0.1
+    MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
+    MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 0.1
     
     #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
     mass_list_reader = ReadCoremsMasslist(file_location,  analyzer='ICR', instrument_label='12T')
@@ -267,8 +267,8 @@ def test_import_maglab_pks():
     #MSParameters.mass_spectrum.min_calib_ppm_error = 3
     #MSParameters.mass_spectrum.max_calib_ppm_error = 4
 
-    MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
-    MSParameters.mass_spectrum.relative_abundance_threshold = 0.1
+    MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
+    MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 0.1
 
     mass_spectrum = mass_list_reader.get_mass_spectrum(polarity)
 
@@ -287,14 +287,14 @@ def test_import_mass_list():
     #polarity need to be set or read from the file
     polarity = -1
 
-    MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
-    MSParameters.mass_spectrum.relative_abundance_threshold = 1
+    MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
+    MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 1
 
-    # MSParameters.mass_spectrum.threshold_method = 'signal_noise'
+    # MSParameters.mass_spectrum.noise_threshold_method = 'signal_noise'
     # MSParameters.mass_spectrum.s2n_threshold = 100
 
-    #MSParameters.mass_spectrum.threshold_method = 'log'
-    #MSParameters.mass_spectrum.noise_threshold_std = 32
+    #MSParameters.mass_spectrum.noise_threshold_method = 'log'
+    #MSParameters.mass_spectrum.noise_threshold_min_std = 32
 
     #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
     mass_list_reader = ReadMassList(file_location)
@@ -327,8 +327,8 @@ def test_import_thermo_average():
     file_location = Path.cwd() / "tests/tests_data/ftms/" / "SRFA_NEG_ESI_ORB.raw"
 
         # change parameters here
-    MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
-    MSParameters.mass_spectrum.relative_abundance_threshold = 1
+    MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
+    MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 1
 
     # creates the parser obj
     parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)

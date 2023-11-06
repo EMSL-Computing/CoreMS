@@ -25,7 +25,6 @@ class MolecularFormulaBase(MolecularFormulaCalc):
                 self._from_str(molecular_formula, ion_type, adduct_atom)   
 
         
-        
         self._ion_charge = ion_charge
         self._external_mz = external_mz
         self._confidence_score = None        
