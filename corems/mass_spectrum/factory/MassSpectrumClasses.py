@@ -226,7 +226,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
             self._baseline_noise, self._baseline_noise_std = 0.1, 1
 
-        if self.settings.threshold_method == 'log':
+        if self.settings.noise_threshold_method == 'log':
 
             self._baseline_noise, self._baseline_noise_std = self.run_log_noise_threshold_calc(bayes=bayes)
 
@@ -682,7 +682,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             # x = (self.mz_exp_profile.min(), self.mz_exp_profile.max())
             baseline = (self.baseline_noise, self.baseline_noise)
 
-            # std = self.parameters.mass_spectrum.noise_threshold_std
+            # std = self.parameters.mass_spectrum.noise_threshold_min_std
             # threshold = self.baseline_noise_std + (std * self.baseline_noise_std)
             x, y = self.get_noise_threshold()    
             
@@ -1090,7 +1090,7 @@ class MassSpecCentroid(MassSpecBase):
         
         if self.label != Labels.thermo_centroid:
             
-            if self.settings.threshold_method == 'log':
+            if self.settings.noise_threshold_method == 'log':
                 
                 raise  Exception("log noise Not tested for centroid data")
                 #self._baseline_noise, self._baseline_noise_std = self.run_log_noise_threshold_calc(bayes=noise_bayes_est)

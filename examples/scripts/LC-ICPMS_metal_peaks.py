@@ -274,8 +274,8 @@ if __name__ == '__main__':
 	parameters.lc_ms.peak_max_prominence_percent = 0.1
 	parameters.lc_ms.peak_height_max_percent = 1
 
-	parameters.mass_spectrum.threshold_method = 'log'
-	parameters.mass_spectrum.noise_threshold_std = 1
+	parameters.mass_spectrum.noise_threshold_method = 'log'
+	parameters.mass_spectrum.noise_threshold_min_std = 1
 
 	parameters.ms1_molecular_search.error_method = 'None'
 	parameters.ms1_molecular_search.min_ppm_error = -1

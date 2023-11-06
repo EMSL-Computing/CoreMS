@@ -16,8 +16,8 @@ def import_corems_mass_list():
     file_location = Path.cwd() / "tests/tests_data/ftms/" / "ESI_NEG_SRFA_COREMS.csv"
 
     # polarity need to be set or read from the file
-    MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
-    MSParameters.mass_spectrum.relative_abundance_threshold = 1
+    MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
+    MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 1
     
     # load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
     mass_list_reader = ReadCoremsMasslist(file_location)

@@ -238,26 +238,26 @@ class PeakPicking:
         
     def get_threshold(self, intes):
         
-        threshold_method = self.settings.threshold_method
+        noise_threshold_method = self.settings.noise_threshold_method
 
-        if threshold_method == &#39;auto&#39;:
+        if noise_threshold_method == &#39;auto&#39;:
             
-            #print(self.settings.noise_threshold_std)
-            abundance_threshold = self.baseline_noise + (self.settings.noise_threshold_std * self.baseline_noise_std)
+            #print(self.settings.noise_threshold_min_std)
+            abundance_threshold = self.baseline_noise + (self.settings.noise_threshold_min_std * self.baseline_noise_std)
             factor = 1
 
-        elif threshold_method == &#39;signal_noise&#39;:
+        elif noise_threshold_method == &#39;signal_noise&#39;:
 
             abundance_threshold = self.settings.s2n_threshold
             factor = self.baseline_noise_std
 
-        elif threshold_method == &#34;relative_abundance&#34;:
+        elif noise_threshold_method == &#34;relative_abundance&#34;:
 
-            abundance_threshold = self.settings.relative_abundance_threshold
+            abundance_threshold = self.settings.noise_threshold_min_relative_abundance
             factor = intes.max()/100
 
         else:
-            raise  Exception(&#34;%s method was not implemented, please refer to corems.mass_spectrum.calc.NoiseCalc Class&#34; % threshold_method)
+            raise  Exception(&#34;%s method was not implemented, please refer to corems.mass_spectrum.calc.NoiseCalc Class&#34; % noise_threshold_method)
         
         return abundance_threshold, factor
         
@@ -562,26 +562,26 @@ class PeakPicking:
         
     def get_threshold(self, intes):
         
-        threshold_method = self.settings.threshold_method
+        noise_threshold_method = self.settings.noise_threshold_method
 
-        if threshold_method == &#39;auto&#39;:
+        if noise_threshold_method == &#39;auto&#39;:
             
-            #print(self.settings.noise_threshold_std)
-            abundance_threshold = self.baseline_noise + (self.settings.noise_threshold_std * self.baseline_noise_std)
+            #print(self.settings.noise_threshold_min_std)
+            abundance_threshold = self.baseline_noise + (self.settings.noise_threshold_min_std * self.baseline_noise_std)
             factor = 1
 
-        elif threshold_method == &#39;signal_noise&#39;:
+        elif noise_threshold_method == &#39;signal_noise&#39;:
 
             abundance_threshold = self.settings.s2n_threshold
             factor = self.baseline_noise_std
 
-        elif threshold_method == &#34;relative_abundance&#34;:
+        elif noise_threshold_method == &#34;relative_abundance&#34;:
 
-            abundance_threshold = self.settings.relative_abundance_threshold
+            abundance_threshold = self.settings.noise_threshold_min_relative_abundance
             factor = intes.max()/100
 
         else:
-            raise  Exception(&#34;%s method was not implemented, please refer to corems.mass_spectrum.calc.NoiseCalc Class&#34; % threshold_method)
+            raise  Exception(&#34;%s method was not implemented, please refer to corems.mass_spectrum.calc.NoiseCalc Class&#34; % noise_threshold_method)
         
         return abundance_threshold, factor
         
@@ -1024,26 +1024,26 @@ otherwise, the combined full width at half maximum is used to calculate resolvin
 </summary>
 <pre><code class="python">def get_threshold(self, intes):
     
-    threshold_method = self.settings.threshold_method
+    noise_threshold_method = self.settings.noise_threshold_method
 
-    if threshold_method == &#39;auto&#39;:
+    if noise_threshold_method == &#39;auto&#39;:
         
-        #print(self.settings.noise_threshold_std)
-        abundance_threshold = self.baseline_noise + (self.settings.noise_threshold_std * self.baseline_noise_std)
+        #print(self.settings.noise_threshold_min_std)
+        abundance_threshold = self.baseline_noise + (self.settings.noise_threshold_min_std * self.baseline_noise_std)
         factor = 1
 
-    elif threshold_method == &#39;signal_noise&#39;:
+    elif noise_threshold_method == &#39;signal_noise&#39;:
 
         abundance_threshold = self.settings.s2n_threshold
         factor = self.baseline_noise_std
 
-    elif threshold_method == &#34;relative_abundance&#34;:
+    elif noise_threshold_method == &#34;relative_abundance&#34;:
 
-        abundance_threshold = self.settings.relative_abundance_threshold
+        abundance_threshold = self.settings.noise_threshold_min_relative_abundance
         factor = intes.max()/100
 
     else:
-        raise  Exception(&#34;%s method was not implemented, please refer to corems.mass_spectrum.calc.NoiseCalc Class&#34; % threshold_method)
+        raise  Exception(&#34;%s method was not implemented, please refer to corems.mass_spectrum.calc.NoiseCalc Class&#34; % noise_threshold_method)
     
     return abundance_threshold, factor</code></pre>
 </details>

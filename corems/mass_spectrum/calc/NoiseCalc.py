@@ -19,28 +19,28 @@ class NoiseThresholdCalc:
 
             x = min(self.mz_exp), max((self.mz_exp))
             
-            if self.settings.threshold_method == 'minima':
+            if self.settings.noise_threshold_method == 'minima':
                 
-                abundance_threshold = self.baseline_noise + (self.settings.noise_threshold_std * self.baseline_noise_std)
+                abundance_threshold = self.baseline_noise + (self.settings.noise_threshold_min_std * self.baseline_noise_std)
                 y = (abundance_threshold, abundance_threshold)
 
-            elif self.settings.threshold_method == 'signal_noise':
+            elif self.settings.noise_threshold_method == 'signal_noise':
 
                 normalized_threshold = (self.max_abundance * self.settings.s2n_threshold )/self.max_signal_to_noise
                 y = (normalized_threshold, normalized_threshold)
             
-            elif self.settings.threshold_method == "relative_abundance":
+            elif self.settings.noise_threshold_method == "relative_abundance":
 
-                normalized_threshold = (max(self.abundance)/100)*self.settings.relative_abundance_threshold
+                normalized_threshold = (max(self.abundance)/100)*self.settings.noise_threshold_min_relative_abundance
                 y = (normalized_threshold, normalized_threshold)    
 
-            elif self.settings.threshold_method == "absolute_abundance":
+            elif self.settings.noise_threshold_method == "absolute_abundance":
 
-                normalized_threshold = self.abundance*self.settings.absolute_abundance_threshold
+                normalized_threshold = self.abundance*self.settings.noise_thresould_absolute_abundance
                 y = (normalized_threshold, normalized_threshold)
             #log noise method not tested for centroid data
             else:
-                    raise  Exception("%s method was not implemented, please refer to corems.mass_spectrum.calc.NoiseCalc Class" % self.settings.threshold_method)
+                    raise  Exception("%s method was not implemented, please refer to corems.mass_spectrum.calc.NoiseCalc Class" % self.settings.noise_threshold_method)
                 
             return x, y    
 
@@ -51,37 +51,37 @@ class NoiseThresholdCalc:
                 x = (self.mz_exp_profile.min(), self.mz_exp_profile.max())
                 y = (self.baseline_noise_std, self.baseline_noise_std)
                 
-                if self.settings.threshold_method == 'minima':
+                if self.settings.noise_threshold_method == 'minima':
                 
-                    #print(self.settings.noise_threshold_std)
-                    abundance_threshold = self.baseline_noise + (self.settings.noise_threshold_std * self.baseline_noise_std)
+                    #print(self.settings.noise_threshold_min_std)
+                    abundance_threshold = self.baseline_noise + (self.settings.noise_threshold_min_std * self.baseline_noise_std)
                     
                     y = (abundance_threshold, abundance_threshold)
 
-                elif self.settings.threshold_method == 'signal_noise':
+                elif self.settings.noise_threshold_method == 'signal_noise':
 
                     max_sn = self.abundance_profile.max()/self.baseline_noise_std
 
                     normalized_threshold = (self.abundance_profile.max() * self.settings.s2n_threshold )/max_sn
                     y = (normalized_threshold, normalized_threshold)
 
-                elif self.settings.threshold_method == "relative_abundance":
+                elif self.settings.noise_threshold_method == "relative_abundance":
 
-                    normalized_threshold = (self.abundance_profile.max()/100)*self.settings.relative_abundance_threshold
+                    normalized_threshold = (self.abundance_profile.max()/100)*self.settings.noise_threshold_min_relative_abundance
                     y = (normalized_threshold, normalized_threshold)
 
-                elif self.settings.threshold_method == "absolute_abundance":
+                elif self.settings.noise_threshold_method == "absolute_abundance":
 
-                    normalized_threshold = self.settings.absolute_abundance_threshold
+                    normalized_threshold = self.settings.noise_thresould_absolute_abundance
                     y = (normalized_threshold, normalized_threshold)
 
-                elif self.settings.threshold_method == "log":
-                    normalized_threshold = self.settings.log_nsigma * self.baseline_noise_std
+                elif self.settings.noise_threshold_method == "log":
+                    normalized_threshold = self.settings.noise_thresould_log_nsigma * self.baseline_noise_std
                     y = (normalized_threshold, normalized_threshold)
 
                 else:
                     raise  Exception("%s method was not implemented, \
-                        please refer to corems.mass_spectrum.calc.NoiseCalc Class" % self.settings.threshold_method)
+                        please refer to corems.mass_spectrum.calc.NoiseCalc Class" % self.settings.noise_threshold_method)
                 
                 return x, y
             
@@ -98,7 +98,7 @@ class NoiseThresholdCalc:
         min_mz_whole_ms = self.mz_exp_profile.min()
         max_mz_whole_ms = self.mz_exp_profile.max()
 
-        if self.settings.threshold_method == 'minima':
+        if self.settings.noise_threshold_method == 'minima':
             
             # this calculation is taking too long (about 2 seconds)
             number_average_molecular_weight = self.weight_average_molecular_weight(
@@ -112,8 +112,8 @@ class NoiseThresholdCalc:
 
         else:
 
-            min_mz_noise = self.settings.min_noise_mz
-            max_mz_noise = self.settings.max_noise_mz
+            min_mz_noise = self.settings.noise_min_mz
+            max_mz_noise = self.settings.noise_max_mz
 
         if min_mz_noise < min_mz_whole_ms:
             min_mz_noise = min_mz_whole_ms
@@ -141,9 +141,12 @@ class NoiseThresholdCalc:
 
 
     def from_posterior(self, param, samples):
-        '''pymc3 is not installed by default, 
+        """
+        # Legacy code for Bayesian efforts - not used. 
+        pymc3 is not installed by default, 
             if have plans to use it manual installation of pymc3 
-            package before using this method is needed'''
+            package before using this method is needed
+        """
 
         import pymc3 as pm
         import numpy as np
@@ -165,8 +168,12 @@ class NoiseThresholdCalc:
 
     def error_model_from_trace(self, trace, ymincentroid):
 
-        '''pymc3 is not installed by default, 
-            if you have plans to use it, manual installation of the pymc3 package before using this method is needed''' 
+        """
+        # Legacy code for Bayesian efforts - not used. 
+        pymc3 is not installed by default, 
+            if have plans to use it manual installation of pymc3 
+            package before using this method is needed
+        """
         import pymc3 as pm
         #from pymc3 import traceplot, plot_posterior
         
@@ -183,8 +190,12 @@ class NoiseThresholdCalc:
             return pm.summary(trace)['mean'].values[0] 
 
     def simple_model_error_dist(self,  ymincentroid):
-        '''pymc3 is not installed by default, 
-            if you have plans to use it, manual installation of the pymc3 package before using this method is needed'''
+        """
+        # Legacy code for Bayesian efforts - not used. 
+        pymc3 is not installed by default, 
+            if have plans to use it manual installation of pymc3 
+            package before using this method is needed
+        """
         import pymc3 as pm
         # from pymc3 import traceplot, plot_posterior
         #import seaborn as sns
@@ -217,7 +228,7 @@ class NoiseThresholdCalc:
         # calculating the valley. If bayes is enable it will 
         # model the valley distributuion as half-Normal and estimate the std
         
-        auto = True if self.settings.threshold_method == 'minima' else False
+        auto = True if self.settings.noise_threshold_method == 'minima' else False
 
         average_noise = median((ymincentroid))*2 if auto else median(ymincentroid)
         
@@ -294,7 +305,7 @@ class NoiseThresholdCalc:
                 # Hard to generalise - needs more investigation.
 
             # calculate a histogram of the log10 of the abundance data
-            hist_values = histogram(log10(tmp_abundance),bins=self.settings.log_nsigma_bins) 
+            hist_values = histogram(log10(tmp_abundance),bins=self.settings.noise_thresould_log_nsigma_bins) 
             #find the apex of this histogram
             maxvalidx = where(hist_values[0] == max(hist_values[0]))
             # get the value of this apex (note - still in log10 units)
@@ -304,7 +315,7 @@ class NoiseThresholdCalc:
                 log_sigma = average(log_sigma)
             ## To do : check if aFT or mFT and adjust method
             noise_mid = 10**log_sigma
-            noise_1std = noise_mid*self.settings.log_nsigma_corr_factor #for mFT 0.463
+            noise_1std = noise_mid*self.settings.noise_thresould_log_nsigma_corr_factor #for mFT 0.463
             return float(noise_mid), float(noise_1std)
 
     def run_noise_threshold_calc(self, bayes=False):
@@ -323,7 +334,7 @@ class NoiseThresholdCalc:
 
             mz_cut, abundance_cut = self.cut_mz_domain_noise()
             
-            if self.settings.threshold_method == 'minima':
+            if self.settings.noise_threshold_method == 'minima':
 
                 yminima = self.get_abundance_minima_centroid(abundance_cut)
                 
