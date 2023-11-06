@@ -229,8 +229,9 @@ class ThermoBaseClass():
         Get full dictionary of scan header meta data, i.e. AGC status, ion injection time, etc.
         '''
         header = self.iRawDataPlus.GetTrailerExtraInformation(scan)
+        
         header_dic = {}
-        for i in np.arange(header.Length):
+        for i in range(header.Length):
             header_dic.update({header.Labels[i]: header.Values[i]})
         return header_dic
 
