@@ -324,7 +324,10 @@ class SpectralSimilarity():
         return s_dft
 
     def dwt_correlation(self):
-
+        """
+        This function requires the PyWavelets library to be installed. 
+        This is not a default requirement as this function is not widely used. 
+        """
         from pywt import dwt 
         
         if self.n_x_y == 0:
