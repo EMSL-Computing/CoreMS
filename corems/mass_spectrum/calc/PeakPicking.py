@@ -219,7 +219,7 @@ class PeakPicking:
                 if peak_indexes:
                     
                     peak_resolving_power = self.calculate_resolving_power( abund, mass, apex_index)
-                    s2n = intes_centr/self.baselise_noise_std
+                    s2n = intes_centr/self.baseline_noise_std
                     self.add_mspeak(self.polarity, mz_exp_centroid, abund[apex_index] , peak_resolving_power, s2n, indexes_tuple, exp_freq=freq_centr, ms_parent=self)
                 #pyplot.plot(domain[start_index: final_index + 1], signal[start_index:final_index + 1], c='black')
                 #pyplot.show()
@@ -265,7 +265,7 @@ class PeakPicking:
                 if mz_exp_centroid:
                     
                     peak_resolving_power = self.calculate_resolving_power( abund, mass, current_index)
-                    s2n = intes_centr/self.baselise_noise_std
+                    s2n = intes_centr/self.baseline_noise_std
                     freq_centr = None
                     self.add_mspeak(self.polarity, mz_exp_centroid, abund[current_index] , peak_resolving_power, s2n, peak_indexes, exp_freq=freq_centr, ms_parent=self)
             
@@ -279,7 +279,7 @@ class PeakPicking:
                         print('index error, skipping peak')
                         continue
                     
-                    s2n = intes_centr/self.baselise_noise_std
+                    s2n = intes_centr/self.baseline_noise_std
                     self.add_mspeak(self.polarity, mz_exp_centroid, abund[current_index] , peak_resolving_power, s2n, peak_indexes, exp_freq=freq_centr, ms_parent=self)
     '''    
         
@@ -297,13 +297,13 @@ class PeakPicking:
                 abundance_threshold = 1e-20
             #print(self.settings.noise_threshold_std)
             else:
-                abundance_threshold = self.baselise_noise + (self.settings.noise_threshold_std * self.baselise_noise_std)
+                abundance_threshold = self.baseline_noise + (self.settings.noise_threshold_std * self.baseline_noise_std)
                 factor = 1
 
         elif threshold_method == 'signal_noise':
 
             abundance_threshold = self.settings.s2n_threshold
-            factor = self.baselise_noise_std
+            factor = self.baseline_noise_std
 
         elif threshold_method == "relative_abundance":
 
@@ -319,7 +319,7 @@ class PeakPicking:
             if self.is_centroid:
                 raise  Exception("log noise Not tested for centroid data")
             abundance_threshold = self.settings.log_nsigma
-            factor = self.baselise_noise_std
+            factor = self.baseline_noise_std
 
         else:
             raise  Exception("%s method was not implemented, please refer to corems.mass_spectrum.calc.NoiseCalc Class" % threshold_method)

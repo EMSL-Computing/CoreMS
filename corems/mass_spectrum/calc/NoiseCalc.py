@@ -21,7 +21,7 @@ class NoiseThresholdCalc:
             
             if self.settings.threshold_method == 'minima':
                 
-                abundance_threshold = self.baselise_noise + (self.settings.noise_threshold_std * self.baselise_noise_std)
+                abundance_threshold = self.baseline_noise + (self.settings.noise_threshold_std * self.baseline_noise_std)
                 y = (abundance_threshold, abundance_threshold)
 
             elif self.settings.threshold_method == 'signal_noise':
@@ -46,21 +46,21 @@ class NoiseThresholdCalc:
 
         else:
 
-            if self.baselise_noise and self.baselise_noise_std:
+            if self.baseline_noise and self.baseline_noise_std:
                 
                 x = (self.mz_exp_profile.min(), self.mz_exp_profile.max())
-                y = (self.baselise_noise_std, self.baselise_noise_std)
+                y = (self.baseline_noise_std, self.baseline_noise_std)
                 
                 if self.settings.threshold_method == 'minima':
                 
                     #print(self.settings.noise_threshold_std)
-                    abundance_threshold = self.baselise_noise + (self.settings.noise_threshold_std * self.baselise_noise_std)
+                    abundance_threshold = self.baseline_noise + (self.settings.noise_threshold_std * self.baseline_noise_std)
                     
                     y = (abundance_threshold, abundance_threshold)
 
                 elif self.settings.threshold_method == 'signal_noise':
 
-                    max_sn = self.abundance_profile.max()/self.baselise_noise_std
+                    max_sn = self.abundance_profile.max()/self.baseline_noise_std
 
                     normalized_threshold = (self.abundance_profile.max() * self.settings.s2n_threshold )/max_sn
                     y = (normalized_threshold, normalized_threshold)
@@ -76,7 +76,7 @@ class NoiseThresholdCalc:
                     y = (normalized_threshold, normalized_threshold)
 
                 elif self.settings.threshold_method == "log":
-                    normalized_threshold = self.settings.log_nsigma * self.baselise_noise_std
+                    normalized_threshold = self.settings.log_nsigma * self.baseline_noise_std
                     y = (normalized_threshold, normalized_threshold)
 
                 else:

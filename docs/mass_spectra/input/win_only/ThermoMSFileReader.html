@@ -191,9 +191,9 @@ class ImportMassSpectraThermoMSFileReader(Thread):
         array_noise_std = (numpy.array(noise) - numpy.array(base_noise)) / 3
         l_signal_to_noise = numpy.array(magnitude) / array_noise_std
 
-        d_parameter[&#34;baselise_noise&#34;] = numpy.average(array_noise_std)
+        d_parameter[&#34;baseline_noise&#34;] = numpy.average(array_noise_std)
 
-        d_parameter[&#34;baselise_noise_std&#34;] = numpy.std(array_noise_std)
+        d_parameter[&#34;baseline_noise_std&#34;] = numpy.std(array_noise_std)
 
         data_dict = {
             Labels.mz: mz,
@@ -515,9 +515,9 @@ else to the thread.</p></div>
         array_noise_std = (numpy.array(noise) - numpy.array(base_noise)) / 3
         l_signal_to_noise = numpy.array(magnitude) / array_noise_std
 
-        d_parameter[&#34;baselise_noise&#34;] = numpy.average(array_noise_std)
+        d_parameter[&#34;baseline_noise&#34;] = numpy.average(array_noise_std)
 
-        d_parameter[&#34;baselise_noise_std&#34;] = numpy.std(array_noise_std)
+        d_parameter[&#34;baseline_noise_std&#34;] = numpy.std(array_noise_std)
 
         data_dict = {
             Labels.mz: mz,
@@ -796,9 +796,9 @@ def initial_scan_number(self):
     array_noise_std = (numpy.array(noise) - numpy.array(base_noise)) / 3
     l_signal_to_noise = numpy.array(magnitude) / array_noise_std
 
-    d_parameter[&#34;baselise_noise&#34;] = numpy.average(array_noise_std)
+    d_parameter[&#34;baseline_noise&#34;] = numpy.average(array_noise_std)
 
-    d_parameter[&#34;baselise_noise_std&#34;] = numpy.std(array_noise_std)
+    d_parameter[&#34;baseline_noise_std&#34;] = numpy.std(array_noise_std)
 
     data_dict = {
         Labels.mz: mz,

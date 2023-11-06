@@ -150,7 +150,10 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
     def get_raw_data_attr_data(self, scan_index, attr_group, attr_str):
         
         scan_label = self.scans[scan_index]
-        
+        try:
+            json.loads(self.h5pydata[scan_label]['raw_ms'].attrs[attr_group])[attr_str]
+        except KeyError: 
+            attr_str = attr_str.replace('baseline', 'baselise')
         return json.loads(self.h5pydata[scan_label]['raw_ms'].attrs[attr_group])[attr_str]
 
     #override baseclass  
@@ -169,8 +172,8 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         d_params['Aterm'] =  self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'Aterm')
         d_params['Bterm'] =  self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'Bterm')
         d_params['Cterm'] = self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'Cterm')
-        d_params['baselise_noise'] = self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'baselise_noise')
-        d_params['baselise_noise_std'] = self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'baselise_noise_std')
+        d_params['baseline_noise'] = self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'baseline_noise')
+        d_params['baseline_noise_std'] = self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'baseline_noise_std')
         
         d_params['analyzer'] = self.get_high_level_attr_data('analyzer')
         d_params['instrument_label'] = self.get_high_level_attr_data('instrument_label')
