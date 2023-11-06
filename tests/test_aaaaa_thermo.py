@@ -4,7 +4,8 @@ from corems.mass_spectra.input import rawFileReader
 import os
 
 
-def test_import_thermo():
+def test_AAAA_import_thermo():
+    print(Path.cwd())
     file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_LIGNIN.raw"
     get_stats = os.stat(file_location)
     print(get_stats)
@@ -15,6 +16,7 @@ def test_import_thermo():
         data = f.read(256)
         print(data[:16].hex())
         first_block = bytes.fromhex("01a1460069006e006e006900670061006e0000000000000000000000000000000000080042000000c0b1e2a225d0d401530059005300540045004d0000000000")
+                                        #  "01a1460069006e006e00690067006100"
         # Check if the data matches the expected value
         assert data[:64] == first_block
         # Print the data
