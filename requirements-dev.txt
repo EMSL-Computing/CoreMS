@@ -1,5 +1,5 @@
 pylint
-pytest
+pytest~=7.2.1
 pytest-cov
 pyprof2calltree
 memory_profiler

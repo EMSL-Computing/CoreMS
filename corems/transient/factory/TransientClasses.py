@@ -215,19 +215,24 @@ class Transient(TransientCalculations):
         plt.ylabel("Magnitude")
         # plt.show()
 
-    def plot_transient(self): # pragma: no cover
+    def plot_transient(self, ax=None, c='k'): # pragma: no cover
 
         # self.location +=1
         # print( self.location)
+        if ax is None:
+            ax = plt.gca()
         time_axis = linspace(0, self.transient_time, num=len(self._transient_data))
         # plt.subplot(self.location)
-        plt.plot(time_axis, self._transient_data, color="green")
+        ax.plot(time_axis, self._transient_data, color=c)
         plt.xlabel("Time (s)")
         plt.ylabel("Magnitude")
         # plt.show()
+        return ax
 
-    def plot_zerofilled_transient(self): # pragma: no cover
+    def plot_zerofilled_transient(self, ax=None, c='k'): # pragma: no cover
 
+        if ax is None:
+            ax = plt.gca()
         new_time_domain = self.apodization(self._transient_data)
         time_domain_y_zero_filled = self.zero_fill(new_time_domain)
         self.transient_time = self.transient_time * (
@@ -235,29 +240,37 @@ class Transient(TransientCalculations):
         )
         time_axis = linspace(0, self.transient_time, num=len(time_domain_y_zero_filled))
         # plt.subplot(self.location)
-        plt.plot(time_axis, time_domain_y_zero_filled, color="green")
+        ax.plot(time_axis, time_domain_y_zero_filled, color=c)
         plt.xlabel("Time (s)")
         plt.ylabel("Magnitude")
         # plt.show()
+        return ax
 
-    def plot_apodized_transient(self):  # pragma: no cover
+    def plot_apodized_transient(self, ax=None, c='k'):  # pragma: no cover
 
         # self.location +=1
         # print( self.location)
+        if ax is None:
+            ax = plt.gca()
         new_time_domain = self.apodization(self._transient_data)
         time_axis = linspace(0, self.transient_time, num=len(new_time_domain))
         # plt.subplot(self.location)
-        plt.plot(time_axis, new_time_domain, color="green")
+        ax.plot(time_axis, new_time_domain, color=c)
         plt.xlabel("Time (s)")
         plt.ylabel("Magnitude")
         # plt.show()
+        return ax
 
-    def plot_frequency_domain(self):  # pragma: no cover
+
+    def plot_frequency_domain(self, ax=None, c='k'):  # pragma: no cover
 
         # self.location +=1
         # plt.subplot(self.location)
+        if ax is None:
+            ax = plt.gca()
         frequency_domain, magnitude = self.get_frequency_domain(plot_result=False)
-        plt.plot(frequency_domain / 1000, magnitude, color="green")
+        ax.plot(frequency_domain / 1000, magnitude, color=c)
         plt.xlabel("KHz")
         plt.ylabel("Magnitude")
         # plt.show()
+        return ax

@@ -141,9 +141,12 @@ class NoiseThresholdCalc:
 
 
     def from_posterior(self, param, samples):
-        '''pymc3 is not installed by default, 
+        """
+        # Legacy code for Bayesian efforts - not used. 
+        pymc3 is not installed by default, 
             if have plans to use it manual installation of pymc3 
-            package before using this method is needed'''
+            package before using this method is needed
+        """
 
         import pymc3 as pm
         import numpy as np
@@ -165,8 +168,12 @@ class NoiseThresholdCalc:
 
     def error_model_from_trace(self, trace, ymincentroid):
 
-        '''pymc3 is not installed by default, 
-            if you have plans to use it, manual installation of the pymc3 package before using this method is needed''' 
+        """
+        # Legacy code for Bayesian efforts - not used. 
+        pymc3 is not installed by default, 
+            if have plans to use it manual installation of pymc3 
+            package before using this method is needed
+        """
         import pymc3 as pm
         #from pymc3 import traceplot, plot_posterior
         
@@ -183,8 +190,12 @@ class NoiseThresholdCalc:
             return pm.summary(trace)['mean'].values[0] 
 
     def simple_model_error_dist(self,  ymincentroid):
-        '''pymc3 is not installed by default, 
-            if you have plans to use it, manual installation of the pymc3 package before using this method is needed'''
+        """
+        # Legacy code for Bayesian efforts - not used. 
+        pymc3 is not installed by default, 
+            if have plans to use it manual installation of pymc3 
+            package before using this method is needed
+        """
         import pymc3 as pm
         # from pymc3 import traceplot, plot_posterior
         #import seaborn as sns
