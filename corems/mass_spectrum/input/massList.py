@@ -34,7 +34,9 @@ class ReadCoremsMasslist(MassListBaseClass):
 
         mass_spec_obj = MassSpecCentroid(dataframe.to_dict(orient='list'), output_parameters)
 
-        if loadSettings: self.load_settings(mass_spec_obj, output_parameters)
+        if loadSettings is True:
+            
+            self.load_settings(mass_spec_obj, output_parameters)
 
         self.add_molecular_formula(mass_spec_obj, dataframe)
 
@@ -48,7 +50,7 @@ class ReadCoremsMasslist(MassListBaseClass):
             mz_exp_df = dataframe[Labels.mz].astype(float)
             # formula_df = dataframe.loc[:, 'C':].fillna(0)
             # \.replace({b'nan':0})
-            formula_df = dataframe[dataframe.columns.intersection(Atoms.atoms_order)]
+            formula_df = dataframe[dataframe.columns.intersection(Atoms.atoms_order)].copy()
             formula_df.fillna(0, inplace=True)
             formula_df.replace(b'nan', 0, inplace=True)
 

@@ -42,7 +42,7 @@ class MolecularFormulaBase(MolecularFormulaCalc):
         self.mspeak_mf_isotopologues_indexes = []
         
         if self._mspeak_parent:
-            kendrick_dict_base = self._mspeak_parent.kendrick_base
+            kendrick_dict_base = self._mspeak_parent._ms_parent.mspeaks_settings.kendrick_base
         else:
             kendrick_dict_base = {'C':1, 'H':2}
         self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(

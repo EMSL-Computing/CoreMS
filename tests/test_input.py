@@ -192,7 +192,7 @@ def test_import_corems_hdf5():
  
 def test_import_corems_mass_list():
 
-    file_location = Path.cwd() / "tests/tests_data/ftms/ESI_NEG_SRFA_COREMS.csv"
+    file_location = Path.cwd() / "tests/tests_data/ftms/ESI_NEG_SRFA_COREMS_withdupes.csv"
     
     MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
     MSParameters.mass_spectrum.relative_abundance_threshold = 0.1
@@ -200,7 +200,7 @@ def test_import_corems_mass_list():
     #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
     mass_list_reader = ReadCoremsMasslist(file_location,  analyzer='ICR', instrument_label='12T')
 
-    mass_spectrum = mass_list_reader.get_mass_spectrum()
+    mass_spectrum = mass_list_reader.get_mass_spectrum(loadSettings=False)
 
     for mspeak in mass_spectrum:
         
@@ -364,5 +364,6 @@ if __name__ == '__main__':
     #test_import_mass_list()
     #test_import_maglab_pks()
     #test_andi_netcdf_gcms()
-    test_import_thermo_average()
+    test_import_corems_mass_list()
+    #test_import_thermo_average()
 
