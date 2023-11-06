@@ -29,8 +29,8 @@ from corems.encapsulation.factory.parameters import LCMSParameters, default_para
 
 
 # do not change the order from the imports statements and reference ThermoFisher below
-sys.path.append(site.getsitepackages()[0] + '/ext_lib')
-sys.path.append('ext_lib')
+# sys.path.append(site.getsitepackages()[0] + '/ext_lib/dotnet/')
+# sys.path.append('ext_lib/dotnet/')
 
 clr.AddReference('ThermoFisher.CommonCore.RawFileReader')
 clr.AddReference('ThermoFisher.CommonCore.Data')

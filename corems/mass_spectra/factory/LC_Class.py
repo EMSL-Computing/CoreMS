@@ -25,8 +25,8 @@ from corems.mass_spectra.factory.LC_Temp import TIC_Data, EIC_Data
 
 import clr
 
-sys.path.append(site.getsitepackages()[0] + '/ext_lib')
-sys.path.append('ext_lib')
+sys.path.append(site.getsitepackages()[0] + '/ext_lib/dotnet')
+sys.path.append('ext_lib/dotnet')
 
 clr.AddReference('ThermoFisher.CommonCore.RawFileReader')
 clr.AddReference('ThermoFisher.CommonCore.Data')

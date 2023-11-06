@@ -76,6 +76,7 @@ test-source:
     # - python -m pip uninstall corems -y
     # - python3 -m pip list
     # - pytest -s -vv tests/test_aaaaa_thermo.py
+    - export PYTHONNET_RUNTIME=coreclr
     - pytest --cache-clear
   
   artifacts:
