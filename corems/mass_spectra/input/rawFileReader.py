@@ -78,7 +78,7 @@ class ThermoBaseClass():
         if self.iRawDataPlus.IsError:
             raise IOError('Error opening ({}) - {}'.format(self.iRawDataPlus.FileError, file_path))
 
-        self.res = self.iRawDataPlus.SelectInstrument(Device.MS, 0)
+        self.res = self.iRawDataPlus.SelectInstrument(Device.MS, 1)
         
         self.file_path = file_location
         self.iFileHeader = FileHeaderReaderFactory.ReadFile(str(file_path))
