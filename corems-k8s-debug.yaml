@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: corems-debug-container
-        image: code-registry.emsl.pnl.gov/mass-spectrometry/corems/corems-base-310-dotnet6:2.5.3-1001
+        image: code-registry.emsl.pnl.gov/mass-spectrometry/corems/corems-base-310-dotnet6:2.5.3-1003
         command: ["/bin/sh"]  # Specify the shell as the command
         args: ["-c", "sleep infinity"]  # Run a command that keeps the container running
         stdin: true
