@@ -43,12 +43,13 @@ def create_mass_spectrum():
 
 def test_run_molecular_formula_search():
     
+    #MSParameters.molecular_search.url_database = ''
     MSParameters.molecular_search.usedAtoms['F'] = (0,0)
     MSParameters.molecular_search.usedAtoms['P'] = (0,0)
     MSParameters.molecular_search.usedAtoms['Cl'] = (0,0)
     MSParameters.molecular_search.isAdduct = False
     MSParameters.molecular_search.isRadical = False
-
+    
     MSParameters.molecular_search.used_atom_valences['P'] = 0
     MSParameters.molecular_search.used_atom_valences['F'] = 0
     MSParameters.molecular_search.used_atom_valences['Cl'] = 0
@@ -60,7 +61,8 @@ def test_run_molecular_formula_search():
     abundance = [1]
     rp, s2n = [1] ,[1]
     dataname = 'one peak'
-    mass_spectrum_obj = ms_from_array_centroid(mz, abundance, rp, s2n, dataname)
+    MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
+    mass_spectrum_obj = ms_from_array_centroid(mz, abundance, rp, s2n, dataname, auto_process=False)
 
     SearchMolecularFormulas(mass_spectrum_obj).run_worker_ms_peaks([mass_spectrum_obj[0]])
     
@@ -156,7 +158,7 @@ def test_priorityAssignment():
 
 if __name__ == "__main__":
 
-    test_priorityAssignment()
+    #test_priorityAssignment()
     #()
     #test_molecular_formula_search_db()
     test_run_molecular_formula_search()

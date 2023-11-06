@@ -1,0 +1,48 @@
+from pathlib import Path
+from corems.encapsulation.factory.parameters import MSParameters
+from corems.mass_spectra.input import rawFileReader
+import os
+
+
+def test_import_thermo():
+    file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_LIGNIN.raw"
+    get_stats = os.stat(file_location)
+    print(get_stats)
+
+    # Open the binary file
+    with open(file_location, "rb") as f:
+        # Read the first 256 bytes of data
+        data = f.read(256)
+        print(data[:16].hex())
+        first_block = bytes.fromhex("01a1460069006e006e006900670061006e0000000000000000000000000000000000080042000000c0b1e2a225d0d401530059005300540045004d0000000000")
+        # Check if the data matches the expected value
+        assert data[:64] == first_block
+        # Print the data
+        
+
+    # change parameters here
+    MSParameters.mass_spectrum.threshold_method = "relative_abundance"
+    MSParameters.mass_spectrum.relative_abundance_threshold = 1
+
+    # creates the parser obj
+    parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
+
+    # sums all the mass spectra
+
+    parser.chromatogram_settings.scans = (-1, -1)
+    mass_spectrum = parser.get_average_mass_spectrum(spectrum_mode="profile")
+
+    # sums scans in selected range
+    parser.chromatogram_settings.scans = (1, 1)
+    mass_spectrum = parser.get_average_mass_spectrum(spectrum_mode="profile")
+
+    parser.chromatogram_settings.scans = [1]
+
+    # sums scans in selected range
+    mass_spectrum = parser.get_average_mass_spectrum(spectrum_mode="profile")
+
+    mass_spectrum.plot_mz_domain_profile()
+    mass_spectrum.plot_profile_and_noise_threshold()
+
+    # print("polarity", mass_spectrum.polarity)
+    # plt.savefig("test.png")

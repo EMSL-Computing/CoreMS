@@ -37,7 +37,7 @@ class HeteroAtoms(Base):
 
     halogensCount = Column(Integer, unique=False, nullable=False)
 
-    carbonHydrogen = relationship('CarbonHydrogen', secondary='molecularformula')
+    carbonHydrogen = relationship('CarbonHydrogen', secondary='molecularformula',  viewonly=True)
 
     def __repr__(self):
         return '<HeteroAtoms Model {} class {}>'.format(self.id, self.name)      
@@ -66,6 +66,7 @@ class CarbonHydrogen(Base):
 
     heteroAtoms = relationship("HeteroAtoms",
                                secondary="molecularformula",
+                               viewonly=True
                                )
 
     def __repr__(self):
