@@ -154,22 +154,22 @@ class MassSpectrumSetting:
 
     noise_threshold_methods_implemented: tuple = ('minima', 'signal_noise', 'relative_abundance', 'absolute_abundance', 'log')
 
-    noise_threshold_min_std: int = 6
+    noise_threshold_min_std: int = 6 # when using 'minima' method
 
-    noise_threshold_min_s2n: float = 4
+    noise_threshold_min_s2n: float = 4 # when using 'signal_noise' method
 
-    noise_threshold_min_relative_abundance: float = 6  # from 0-100
+    noise_threshold_min_relative_abundance: float = 6  # from 0-100, when using 'relative_abundance' method
 
-    noise_thresould_absolute_abundance: float = 1_000_000
+    noise_thresould_absolute_abundance: float = 1_000_000 # when using 'absolute_abundance' method
 
-    noise_thresould_log_nsigma: int = 6
+    noise_thresould_log_nsigma: int = 6 # when using 'log' method
     noise_thresould_log_nsigma_corr_factor: float = 0.463 #mFT is 0.463, aFT is 1.0
     noise_thresould_log_nsigma_bins: int = 500 # bins for the histogram for the noise
 
-    noise_min_mz: float = 50
+    noise_min_mz: float = 50.0
     noise_max_mz: float = 1200.0
 
-    min_picking_mz: float = 50
+    min_picking_mz: float = 50.0
     max_picking_mz: float = 1200.0
 
     calib_minimize_method: str = 'Powell'
