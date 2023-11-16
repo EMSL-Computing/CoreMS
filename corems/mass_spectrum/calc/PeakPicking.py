@@ -4,7 +4,7 @@
 '''
 
 from logging import warn
-from numpy import hstack, inf, isnan, where, array, polyfit
+from numpy import hstack, inf, isnan, where, array, polyfit, nan, pad
 from corems.encapsulation.constant import Labels
 from corems.mass_spectra.calc import SignalProcessing as sp
 
@@ -88,77 +88,97 @@ class PeakPicking:
             else: return j
 
     def calculate_resolving_power(self, intes, massa, current_index):
-            
-            '''this is a conservative calculation of resolving power,
-               the peak need to be resolved at least at the half-maximum magnitude,
-               otherwise, the combined full width at half maximum is used to calculate resolving power'''
+       
+        '''this is a conservative calculation of resolving power,
+            the peak need to be resolved at least at the half-maximum magnitude,
+            otherwise, the combined full width at half maximum is used to calculate resolving power'''
 
-            peak_height = intes[current_index]
-            target_peak_height = peak_height/2
+        peak_height = intes[current_index]
+        target_peak_height = peak_height/2
 
-            peak_height_minus = peak_height
-            peak_height_plus = peak_height
+        peak_height_minus = peak_height
+        peak_height_plus = peak_height
+        '''
+        There are issues when a peak is at the high or low limit of a spectrum in finding its local minima and maxima
+        This solution will return nan for resolving power when a peak is possibly too close to an edge to avoid the issue
+        '''
+        if current_index <5:
+            print("peak at low spectrum edge, returning no resolving power")
+            return nan
+        elif abs(current_index-len(intes))<5:
+            print("peak at high spectrum edge, returning no resolving power")
+            return nan
+        else:
+            pass
 
-            index_minus = current_index
-            while peak_height_minus  >= target_peak_height:
+        index_minus = current_index
+        while peak_height_minus  >= target_peak_height:
 
-                index_minus = index_minus -1
-                try: 
-                    peak_height_minus = intes[index_minus]
-                except IndexError:
-                    print('Res. calc. warning - peak index adjacent to spectrum edge')
-                    print(massa)
-                    peak_height_minus = target_peak_height
-                    index_minus -= 1 
-                #print "massa", "," , "intes", "," , massa[index_minus], "," , peak_height_minus
-            x = [ massa[index_minus],  massa[index_minus+1]]
-            y = [ intes[index_minus],  intes[index_minus+1]]
-            coefficients = polyfit(x, y, 1)
+            index_minus = index_minus -1
+            '''
+            TODO : see if this try/except can be removed.
+            '''
+            try: 
+                peak_height_minus = intes[index_minus]
+            except IndexError:
+                print('Res. calc. warning - peak index minus adjacent to spectrum edge \n \
+                        Zeroing the first 5 data points of abundance. Peaks at spectrum edge may be incorrectly reported')
+                intes[:5] = 0
+                peak_height_minus = target_peak_height
+                index_minus -= 1 
+            #print "massa", "," , "intes", "," , massa[index_minus], "," , peak_height_minus
+        x = [ massa[index_minus],  massa[index_minus+1]]
+        y = [ intes[index_minus],  intes[index_minus+1]]
+        coefficients = polyfit(x, y, 1)
 
-            a = coefficients[0]
-            b = coefficients[1]
-            if self.mspeaks_settings.legacy_resolving_power:
-                y_intercept =  intes[index_minus] + ((intes[index_minus+1] - intes[index_minus])/2)
-            else:
-                y_intercept =  target_peak_height
-            massa1 = (y_intercept -b)/a
+        a = coefficients[0]
+        b = coefficients[1]
+        if self.mspeaks_settings.legacy_resolving_power:
+            y_intercept =  intes[index_minus] + ((intes[index_minus+1] - intes[index_minus])/2)
+        else:
+            y_intercept =  target_peak_height
+        massa1 = (y_intercept -b)/a
 
-            index_plus = current_index
-            while peak_height_plus  >= target_peak_height:
+        index_plus = current_index
+        while peak_height_plus  >= target_peak_height:
 
-                index_plus = index_plus + 1
-                try: 
-                    peak_height_plus = intes[index_plus]
-                except IndexError:
-                    print('Res. calc. warning - peak index adjacent to spectrum edge')
-                    print(massa)
-                    peak_height_plus = target_peak_height
-                    index_plus += 1 
-                #print "massa", "," , "intes", "," , massa[index_plus], "," , peak_height_plus
+            index_plus = index_plus + 1
+            '''
+            TODO : see if this try/except can be removed.
+            '''
+            try: 
+                peak_height_plus = intes[index_plus]
+            except IndexError:
+                print('Res. calc. warning - peak index plus adjacent to spectrum edge \n \
+                        Zeroing the last 5 data points of abundance. Peaks at spectrum edge may be incorrectly reported')
+                intes[-5:] = 0
+                peak_height_plus = target_peak_height
+                index_plus += 1 
+            #print "massa", "," , "intes", "," , massa[index_plus], "," , peak_height_plus
 
-            x = [massa[index_plus],  massa[index_plus - 1]]
-            y = [intes[index_plus],  intes[index_plus - 1]]
+        x = [massa[index_plus],  massa[index_plus - 1]]
+        y = [intes[index_plus],  intes[index_plus - 1]]
 
-            coefficients = polyfit(x, y, 1)
-            a = coefficients[0]
-            b = coefficients[1]
+        coefficients = polyfit(x, y, 1)
+        a = coefficients[0]
+        b = coefficients[1]
 
-            if self.mspeaks_settings.legacy_resolving_power:
-                y_intercept =  intes[index_plus - 1] + ((intes[index_plus] - intes[index_plus - 1])/2)
-            else:
-                y_intercept =  target_peak_height
+        if self.mspeaks_settings.legacy_resolving_power:
+            y_intercept =  intes[index_plus - 1] + ((intes[index_plus] - intes[index_plus - 1])/2)
+        else:
+            y_intercept =  target_peak_height
 
-            massa2 = (y_intercept -b)/a
+        massa2 = (y_intercept -b)/a
 
-            if massa1 > massa2:
+        if massa1 > massa2:
 
-                resolvingpower =  massa[current_index]/(massa1-massa2)
+            resolvingpower =  massa[current_index]/(massa1-massa2)
 
-            else:
+        else:
 
-                resolvingpower =  massa[current_index]/(massa2-massa1)
+            resolvingpower =  massa[current_index]/(massa2-massa1)
 
-            return resolvingpower
+        return resolvingpower
 
     def cal_minima(self, mass, abun):
 
