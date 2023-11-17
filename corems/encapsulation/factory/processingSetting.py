@@ -174,8 +174,8 @@ class MassSpectrumSetting:
 
     # How many data points (in each direction) to extrapolate the mz axis and 0 pad the abundance axis
     # This will fix peak picking at spectrum limit issues
-    # Default 0 to keep normal behaviour, typical value 5 to fix
-    picking_point_extrapolate: int = 0 
+    #  0 to keep normal behaviour, typical value 3 to fix
+    picking_point_extrapolate: int = 3 
 
     calib_minimize_method: str = 'Powell'
     calib_pol_order: int = 2

@@ -60,7 +60,6 @@ class PeakPicking:
                new_value = final_value+value_to_add
                index_to_update = initial_array_len+(pt+1)
                pad_array[index_to_update] = new_value
-               pad_array[-5:]
                
            for pt in range(pts+1):
                '''
@@ -70,7 +69,7 @@ class PeakPicking:
                value_to_subtract = (left_delta*pt)
                new_value = first_value-value_to_subtract
                pad_array[ptlist[-pt]] = new_value
-               pad_array[:5]
+               
            return pad_array 
         
         mz, abund = self.mz_exp_profile, self.abundance_profile
