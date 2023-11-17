@@ -16,25 +16,25 @@ class PeakPicking:
         min_picking_mz = self.settings.min_picking_mz
         
         min_final =  where(self.mz_exp_profile  > min_picking_mz)[-1][-1]
-        min_comeco =  where(self.mz_exp_profile  > min_picking_mz)[0][0]
+        min_start =  where(self.mz_exp_profile  > min_picking_mz)[0][0]
 
-        mz_domain_X_low_cutoff, mz_domain_low_Y_cutoff,  = self.mz_exp_profile [min_comeco:min_final], self.abundance_profile[min_comeco:min_final]
+        mz_domain_X_low_cutoff, mz_domain_low_Y_cutoff,  = self.mz_exp_profile [min_start:min_final], self.abundance_profile[min_start:min_final]
 
         max_final =  where(self.mz_exp_profile < max_picking_mz)[-1][-1]
-        max_comeco =  where(self.mz_exp_profile < max_picking_mz)[0][0]
+        max_start =  where(self.mz_exp_profile < max_picking_mz)[0][0]
 
         if self.has_frequency:
 
             if self.freq_exp_profile.any():
 
-                freq_domain_low_Y_cutoff = self.freq_exp_profile[min_comeco:min_final]
+                freq_domain_low_Y_cutoff = self.freq_exp_profile[min_start:min_final]
 
 
-                return mz_domain_X_low_cutoff[max_comeco:max_final], mz_domain_low_Y_cutoff[max_comeco:max_final], freq_domain_low_Y_cutoff[max_comeco:max_final]
+                return mz_domain_X_low_cutoff[max_start:max_final], mz_domain_low_Y_cutoff[max_start:max_final], freq_domain_low_Y_cutoff[max_start:max_final]
 
         else:
 
-            return mz_domain_X_low_cutoff[max_comeco:max_final], mz_domain_low_Y_cutoff[max_comeco:max_final], None
+            return mz_domain_X_low_cutoff[max_start:max_final], mz_domain_low_Y_cutoff[max_start:max_final], None
 
     def do_peak_picking(self):
 
