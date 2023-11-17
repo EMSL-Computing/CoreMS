@@ -4,7 +4,7 @@
 '''
 
 from logging import warn
-from numpy import hstack, inf, isnan, where, array, polyfit, nan, pad
+from numpy import hstack, inf, isnan, where, array, polyfit, nan, pad, arange
 from corems.encapsulation.constant import Labels
 from corems.mass_spectra.calc import SignalProcessing as sp
 
@@ -35,31 +35,90 @@ class PeakPicking:
         else:
 
             return mz_domain_X_low_cutoff[max_start:max_final], mz_domain_low_Y_cutoff[max_start:max_final], None
+        
+    def extrapolate_axes_for_pp(self):
+        '''
+        This function will extrapolate the mz axis by N datapoints, and fill the abundance axis with 0s
+        This should prevent peak picking issues at the spectrum edge.
+        '''
+        def extrapolate_axis(initial_array, pts):
+           '''
+           this function will extrapolate an input array in both directions by N pts
+           '''
+           initial_array_len = len(initial_array)
+           right_delta = initial_array[-1] - initial_array[-2]  
+           left_delta = initial_array[1] - initial_array[0]  
+
+           pad_array = pad(initial_array, (pts, pts), 'constant', constant_values= (0,0))
+           ptlist = list(range(pts))
+           for pt in range(pts+1):
+               '''
+               This loop will extrapolate the right side of the array
+               '''
+               final_value = initial_array[-1]
+               value_to_add = (right_delta*pt)
+               new_value = final_value+value_to_add
+               index_to_update = initial_array_len+(pt+1)
+               pad_array[index_to_update] = new_value
+               pad_array[-5:]
+               
+           for pt in range(pts+1):
+               '''
+               this loop will extrapolate the left side of the array
+               '''
+               first_value = initial_array[0]
+               value_to_subtract = (left_delta*pt)
+               new_value = first_value-value_to_subtract
+               pad_array[ptlist[-pt]] = new_value
+               pad_array[:5]
+           return pad_array 
+        
+        mz, abund = self.mz_exp_profile, self.abundance_profile
+        if self.has_frequency:
+            freq = self.freq_exp_profile
+        else: freq = None
+        pts = self.settings.picking_point_extrapolate
+        if pts == 0:
+            return mz, abund, freq
+        
+        mz = extrapolate_axis(mz, pts)
+        abund = pad(abund, (pts, pts), mode = 'constant', constant_values=(0,0))
+        if freq is not None:
+                freq = extrapolate_axis(freq, pts)
+        return mz, abund, freq
+
+
 
     def do_peak_picking(self):
 
-        mz, abudance, freq = self.cut_mz_domain_peak_picking()
-        
+        mz, abundance, freq = self.cut_mz_domain_peak_picking()
         self.mz_exp_profile = mz
-        self.abundance_profile = abudance
+        self.abundance_profile = abundance
         self.freq_exp_profile = freq
+        
+        mz, abundance, freq = self.extrapolate_axes_for_pp()
+        self.mz_exp_profile = mz
+        self.abundance_profile = abundance
+        self.freq_exp_profile = freq
+
+
 
         
         if self.label == Labels.bruker_frequency or self.label == Labels.midas_frequency:
 
-            self.calc_centroid(mz, abudance, freq)
+            self.calc_centroid(mz, abundance, freq)
 
         elif self.label == Labels.thermo_profile:
-            self.calc_centroid(mz, abudance, self.freq_exp_profile)
+            self.calc_centroid(mz, abundance, self.freq_exp_profile)
 
         elif self.label == Labels.bruker_profile:
-            self.calc_centroid(mz, abudance, self.freq_exp_profile)
+            self.calc_centroid(mz, abundance, self.freq_exp_profile)
 
         elif self.label == Labels.booster_profile:
-            self.calc_centroid(mz, abudance, self.freq_exp_profile)
+            self.calc_centroid(mz, abundance, self.freq_exp_profile)
 
         elif self.label == Labels.simulated_profile:
-            self.calc_centroid(mz, abudance, self.freq_exp_profile)
+            self.calc_centroid(mz, abundance, self.freq_exp_profile)
 
         else: raise Exception("Unknow mass spectrum type", self.label)
 
