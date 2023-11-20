@@ -390,13 +390,13 @@ class PeakPicking:
 
         elif noise_threshold_method == "absolute_abundance":
 
-            abundance_threshold = self.settings.noise_thresould_absolute_abundance
+            abundance_threshold = self.settings.noise_threshold_absolute_abundance
             factor = 1
 
         elif noise_threshold_method == 'log':
             if self.is_centroid:
                 raise  Exception("log noise Not tested for centroid data")
-            abundance_threshold = self.settings.noise_thresould_log_nsigma
+            abundance_threshold = self.settings.noise_threshold_log_nsigma
             factor = self.baseline_noise_std
 
         else:
