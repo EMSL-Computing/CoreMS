@@ -81,7 +81,7 @@ def test_import_lcms_from_transient():
     file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_SRFA_Auto.d"#"SOM_LC_PeatMix_2p8_0p6_2_30AUG19_GIMLI_ZORBAX-1186_1_01_259.d"
 
     MSParameters.mass_spectrum.noise_threshold_method = 'log'
-    MSParameters.mass_spectrum.noise_thresould_log_nsigma = 20
+    MSParameters.mass_spectrum.noise_threshold_log_nsigma = 20
     MSParameters.ms_peak.peak_min_prominence_percent = 1
     
     read_lcms = ReadBruker_SolarixTransientMassSpectra(file_location)
@@ -126,7 +126,7 @@ def test_import_transient():
         #MSParameters.mass_spectrum.s2n_threshold = 50
 
         MSParameters.mass_spectrum.noise_threshold_method = 'log'
-        MSParameters.mass_spectrum.noise_thresould_log_nsigma = 20
+        MSParameters.mass_spectrum.noise_threshold_log_nsigma = 20
         MSParameters.ms_peak.peak_min_prominence_percent = 1
     
         mass_spectrum_obj = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)

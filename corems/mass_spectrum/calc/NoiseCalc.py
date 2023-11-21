@@ -36,7 +36,7 @@ class NoiseThresholdCalc:
 
             elif self.settings.noise_threshold_method == "absolute_abundance":
 
-                normalized_threshold = self.abundance*self.settings.noise_thresould_absolute_abundance
+                normalized_threshold = self.abundance*self.settings.noise_threshold_absolute_abundance
                 y = (normalized_threshold, normalized_threshold)
             #log noise method not tested for centroid data
             else:
@@ -72,11 +72,11 @@ class NoiseThresholdCalc:
 
                 elif self.settings.noise_threshold_method == "absolute_abundance":
 
-                    normalized_threshold = self.settings.noise_thresould_absolute_abundance
+                    normalized_threshold = self.settings.noise_threshold_absolute_abundance
                     y = (normalized_threshold, normalized_threshold)
 
                 elif self.settings.noise_threshold_method == "log":
-                    normalized_threshold = self.settings.noise_thresould_log_nsigma * self.baseline_noise_std
+                    normalized_threshold = self.settings.noise_threshold_log_nsigma * self.baseline_noise_std
                     y = (normalized_threshold, normalized_threshold)
 
                 else:
@@ -305,7 +305,7 @@ class NoiseThresholdCalc:
                 # Hard to generalise - needs more investigation.
 
             # calculate a histogram of the log10 of the abundance data
-            hist_values = histogram(log10(tmp_abundance),bins=self.settings.noise_thresould_log_nsigma_bins) 
+            hist_values = histogram(log10(tmp_abundance),bins=self.settings.noise_threshold_log_nsigma_bins) 
             #find the apex of this histogram
             maxvalidx = where(hist_values[0] == max(hist_values[0]))
             # get the value of this apex (note - still in log10 units)
@@ -315,7 +315,7 @@ class NoiseThresholdCalc:
                 log_sigma = average(log_sigma)
             ## To do : check if aFT or mFT and adjust method
             noise_mid = 10**log_sigma
-            noise_1std = noise_mid*self.settings.noise_thresould_log_nsigma_corr_factor #for mFT 0.463
+            noise_1std = noise_mid*self.settings.noise_threshold_log_nsigma_corr_factor #for mFT 0.463
             return float(noise_mid), float(noise_1std)
 
     def run_noise_threshold_calc(self, bayes=False):

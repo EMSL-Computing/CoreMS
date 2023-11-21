@@ -26,14 +26,14 @@ def test_create_mass_spectrum():
     TransientSetting.number_of_truncations = 1
     bruker_transient = bruker_reader.get_transient()
 
-    noise_thresould_log_nsigma: int = 6
-    noise_thresould_log_nsigma_corr_factor: float = 0.463 #mFT is 0.463, aFT is 1.0
-    noise_thresould_log_nsigma_bins: int = 500 # bins for the histogram for the noise
+    noise_threshold_log_nsigma: int = 6
+    noise_threshold_log_nsigma_corr_factor: float = 0.463 #mFT is 0.463, aFT is 1.0
+    noise_threshold_log_nsigma_bins: int = 500 # bins for the histogram for the noise
 
     #MassSpectrumSetting.noise_threshold_method = 'log'
-    #MassSpectrumSetting.noise_thresould_log_nsigma = 12
-    #MassSpectrumSetting.noise_thresould_log_nsigma = 1
-    #MassSpectrumSetting.noise_thresould_log_nsigma = 100
+    #MassSpectrumSetting.noise_threshold_log_nsigma = 12
+    #MassSpectrumSetting.noise_threshold_log_nsigma = 1
+    #MassSpectrumSetting.noise_threshold_log_nsigma = 100
    
     print('ok2')
     MassSpectrumSetting.noise_threshold_method = 'signal_noise'
@@ -46,7 +46,7 @@ def test_create_mass_spectrum():
     print('ok4')
     
     MassSpectrumSetting.noise_threshold_method = 'log'
-    MassSpectrumSetting.noise_thresould_log_nsigma = 18
+    MassSpectrumSetting.noise_threshold_log_nsigma = 18
     mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
     
     mass_spectrum_obj.freq_exp

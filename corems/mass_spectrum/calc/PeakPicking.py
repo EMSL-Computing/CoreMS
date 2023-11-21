@@ -4,7 +4,7 @@
 '''
 
 from logging import warn
-from numpy import hstack, inf, isnan, where, array, polyfit
+from numpy import hstack, inf, isnan, where, array, polyfit, nan, pad, arange
 from corems.encapsulation.constant import Labels
 from corems.mass_spectra.calc import SignalProcessing as sp
 
@@ -16,50 +16,108 @@ class PeakPicking:
         min_picking_mz = self.settings.min_picking_mz
         
         min_final =  where(self.mz_exp_profile  > min_picking_mz)[-1][-1]
-        min_comeco =  where(self.mz_exp_profile  > min_picking_mz)[0][0]
+        min_start =  where(self.mz_exp_profile  > min_picking_mz)[0][0]
 
-        mz_domain_X_low_cutoff, mz_domain_low_Y_cutoff,  = self.mz_exp_profile [min_comeco:min_final], self.abundance_profile[min_comeco:min_final]
+        mz_domain_X_low_cutoff, mz_domain_low_Y_cutoff,  = self.mz_exp_profile [min_start:min_final], self.abundance_profile[min_start:min_final]
 
         max_final =  where(self.mz_exp_profile < max_picking_mz)[-1][-1]
-        max_comeco =  where(self.mz_exp_profile < max_picking_mz)[0][0]
+        max_start =  where(self.mz_exp_profile < max_picking_mz)[0][0]
 
         if self.has_frequency:
 
             if self.freq_exp_profile.any():
 
-                freq_domain_low_Y_cutoff = self.freq_exp_profile[min_comeco:min_final]
+                freq_domain_low_Y_cutoff = self.freq_exp_profile[min_start:min_final]
 
 
-                return mz_domain_X_low_cutoff[max_comeco:max_final], mz_domain_low_Y_cutoff[max_comeco:max_final], freq_domain_low_Y_cutoff[max_comeco:max_final]
+                return mz_domain_X_low_cutoff[max_start:max_final], mz_domain_low_Y_cutoff[max_start:max_final], freq_domain_low_Y_cutoff[max_start:max_final]
 
         else:
 
-            return mz_domain_X_low_cutoff[max_comeco:max_final], mz_domain_low_Y_cutoff[max_comeco:max_final], None
+            return mz_domain_X_low_cutoff[max_start:max_final], mz_domain_low_Y_cutoff[max_start:max_final], None
+        
+    def extrapolate_axes_for_pp(self):
+        '''
+        This function will extrapolate the mz axis by N datapoints, and fill the abundance axis with 0s
+        This should prevent peak picking issues at the spectrum edge.
+        '''
+        def extrapolate_axis(initial_array, pts):
+           '''
+           this function will extrapolate an input array in both directions by N pts
+           '''
+           initial_array_len = len(initial_array)
+           right_delta = initial_array[-1] - initial_array[-2]  
+           left_delta = initial_array[1] - initial_array[0]  
+
+           pad_array = pad(initial_array, (pts, pts), 'constant', constant_values= (0,0))
+           ptlist = list(range(pts))
+           for pt in range(pts+1):
+               '''
+               This loop will extrapolate the right side of the array
+               '''
+               final_value = initial_array[-1]
+               value_to_add = (right_delta*pt)
+               new_value = final_value+value_to_add
+               index_to_update = initial_array_len+(pt+1)
+               pad_array[index_to_update] = new_value
+               
+           for pt in range(pts+1):
+               '''
+               this loop will extrapolate the left side of the array
+               '''
+               first_value = initial_array[0]
+               value_to_subtract = (left_delta*pt)
+               new_value = first_value-value_to_subtract
+               pad_array[ptlist[-pt]] = new_value
+               
+           return pad_array 
+        
+        mz, abund = self.mz_exp_profile, self.abundance_profile
+        if self.has_frequency:
+            freq = self.freq_exp_profile
+        else: freq = None
+        pts = self.settings.picking_point_extrapolate
+        if pts == 0:
+            return mz, abund, freq
+        
+        mz = extrapolate_axis(mz, pts)
+        abund = pad(abund, (pts, pts), mode = 'constant', constant_values=(0,0))
+        if freq is not None:
+                freq = extrapolate_axis(freq, pts)
+        return mz, abund, freq
+
+
 
     def do_peak_picking(self):
 
-        mz, abudance, freq = self.cut_mz_domain_peak_picking()
-        
+        mz, abundance, freq = self.cut_mz_domain_peak_picking()
         self.mz_exp_profile = mz
-        self.abundance_profile = abudance
+        self.abundance_profile = abundance
         self.freq_exp_profile = freq
+        
+        mz, abundance, freq = self.extrapolate_axes_for_pp()
+        self.mz_exp_profile = mz
+        self.abundance_profile = abundance
+        self.freq_exp_profile = freq
+
+
 
         
         if self.label == Labels.bruker_frequency or self.label == Labels.midas_frequency:
 
-            self.calc_centroid(mz, abudance, freq)
+            self.calc_centroid(mz, abundance, freq)
 
         elif self.label == Labels.thermo_profile:
-            self.calc_centroid(mz, abudance, self.freq_exp_profile)
+            self.calc_centroid(mz, abundance, self.freq_exp_profile)
 
         elif self.label == Labels.bruker_profile:
-            self.calc_centroid(mz, abudance, self.freq_exp_profile)
+            self.calc_centroid(mz, abundance, self.freq_exp_profile)
 
         elif self.label == Labels.booster_profile:
-            self.calc_centroid(mz, abudance, self.freq_exp_profile)
+            self.calc_centroid(mz, abundance, self.freq_exp_profile)
 
         elif self.label == Labels.simulated_profile:
-            self.calc_centroid(mz, abudance, self.freq_exp_profile)
+            self.calc_centroid(mz, abundance, self.freq_exp_profile)
 
         else: raise Exception("Unknow mass spectrum type", self.label)
 
@@ -88,77 +146,97 @@ class PeakPicking:
             else: return j
 
     def calculate_resolving_power(self, intes, massa, current_index):
-            
-            '''this is a conservative calculation of resolving power,
-               the peak need to be resolved at least at the half-maximum magnitude,
-               otherwise, the combined full width at half maximum is used to calculate resolving power'''
+       
+        '''this is a conservative calculation of resolving power,
+            the peak need to be resolved at least at the half-maximum magnitude,
+            otherwise, the combined full width at half maximum is used to calculate resolving power'''
 
-            peak_height = intes[current_index]
-            target_peak_height = peak_height/2
+        peak_height = intes[current_index]
+        target_peak_height = peak_height/2
 
-            peak_height_minus = peak_height
-            peak_height_plus = peak_height
+        peak_height_minus = peak_height
+        peak_height_plus = peak_height
+        '''
+        There are issues when a peak is at the high or low limit of a spectrum in finding its local minima and maxima
+        This solution will return nan for resolving power when a peak is possibly too close to an edge to avoid the issue
+        '''
+        if current_index <5:
+            print("peak at low spectrum edge, returning no resolving power")
+            return nan
+        elif abs(current_index-len(intes))<5:
+            print("peak at high spectrum edge, returning no resolving power")
+            return nan
+        else:
+            pass
 
-            index_minus = current_index
-            while peak_height_minus  >= target_peak_height:
+        index_minus = current_index
+        while peak_height_minus  >= target_peak_height:
 
-                index_minus = index_minus -1
-                try: 
-                    peak_height_minus = intes[index_minus]
-                except IndexError:
-                    print('Res. calc. warning - peak index adjacent to spectrum edge')
-                    print(massa)
-                    peak_height_minus = target_peak_height
-                    index_minus -= 1 
-                #print "massa", "," , "intes", "," , massa[index_minus], "," , peak_height_minus
-            x = [ massa[index_minus],  massa[index_minus+1]]
-            y = [ intes[index_minus],  intes[index_minus+1]]
-            coefficients = polyfit(x, y, 1)
+            index_minus = index_minus -1
+            '''
+            TODO : see if this try/except can be removed.
+            '''
+            try: 
+                peak_height_minus = intes[index_minus]
+            except IndexError:
+                print('Res. calc. warning - peak index minus adjacent to spectrum edge \n \
+                        Zeroing the first 5 data points of abundance. Peaks at spectrum edge may be incorrectly reported')
+                intes[:5] = 0
+                peak_height_minus = target_peak_height
+                index_minus -= 1 
+            #print "massa", "," , "intes", "," , massa[index_minus], "," , peak_height_minus
+        x = [ massa[index_minus],  massa[index_minus+1]]
+        y = [ intes[index_minus],  intes[index_minus+1]]
+        coefficients = polyfit(x, y, 1)
 
-            a = coefficients[0]
-            b = coefficients[1]
-            if self.mspeaks_settings.legacy_resolving_power:
-                y_intercept =  intes[index_minus] + ((intes[index_minus+1] - intes[index_minus])/2)
-            else:
-                y_intercept =  target_peak_height
-            massa1 = (y_intercept -b)/a
+        a = coefficients[0]
+        b = coefficients[1]
+        if self.mspeaks_settings.legacy_resolving_power:
+            y_intercept =  intes[index_minus] + ((intes[index_minus+1] - intes[index_minus])/2)
+        else:
+            y_intercept =  target_peak_height
+        massa1 = (y_intercept -b)/a
 
-            index_plus = current_index
-            while peak_height_plus  >= target_peak_height:
+        index_plus = current_index
+        while peak_height_plus  >= target_peak_height:
 
-                index_plus = index_plus + 1
-                try: 
-                    peak_height_plus = intes[index_plus]
-                except IndexError:
-                    print('Res. calc. warning - peak index adjacent to spectrum edge')
-                    print(massa)
-                    peak_height_plus = target_peak_height
-                    index_plus += 1 
-                #print "massa", "," , "intes", "," , massa[index_plus], "," , peak_height_plus
+            index_plus = index_plus + 1
+            '''
+            TODO : see if this try/except can be removed.
+            '''
+            try: 
+                peak_height_plus = intes[index_plus]
+            except IndexError:
+                print('Res. calc. warning - peak index plus adjacent to spectrum edge \n \
+                        Zeroing the last 5 data points of abundance. Peaks at spectrum edge may be incorrectly reported')
+                intes[-5:] = 0
+                peak_height_plus = target_peak_height
+                index_plus += 1 
+            #print "massa", "," , "intes", "," , massa[index_plus], "," , peak_height_plus
 
-            x = [massa[index_plus],  massa[index_plus - 1]]
-            y = [intes[index_plus],  intes[index_plus - 1]]
+        x = [massa[index_plus],  massa[index_plus - 1]]
+        y = [intes[index_plus],  intes[index_plus - 1]]
 
-            coefficients = polyfit(x, y, 1)
-            a = coefficients[0]
-            b = coefficients[1]
+        coefficients = polyfit(x, y, 1)
+        a = coefficients[0]
+        b = coefficients[1]
 
-            if self.mspeaks_settings.legacy_resolving_power:
-                y_intercept =  intes[index_plus - 1] + ((intes[index_plus] - intes[index_plus - 1])/2)
-            else:
-                y_intercept =  target_peak_height
+        if self.mspeaks_settings.legacy_resolving_power:
+            y_intercept =  intes[index_plus - 1] + ((intes[index_plus] - intes[index_plus - 1])/2)
+        else:
+            y_intercept =  target_peak_height
 
-            massa2 = (y_intercept -b)/a
+        massa2 = (y_intercept -b)/a
 
-            if massa1 > massa2:
+        if massa1 > massa2:
 
-                resolvingpower =  massa[current_index]/(massa1-massa2)
+            resolvingpower =  massa[current_index]/(massa1-massa2)
 
-            else:
+        else:
 
-                resolvingpower =  massa[current_index]/(massa2-massa1)
+            resolvingpower =  massa[current_index]/(massa2-massa1)
 
-            return resolvingpower
+        return resolvingpower
 
     def cal_minima(self, mass, abun):
 
@@ -312,13 +390,13 @@ class PeakPicking:
 
         elif noise_threshold_method == "absolute_abundance":
 
-            abundance_threshold = self.settings.noise_thresould_absolute_abundance
+            abundance_threshold = self.settings.noise_threshold_absolute_abundance
             factor = 1
 
         elif noise_threshold_method == 'log':
             if self.is_centroid:
                 raise  Exception("log noise Not tested for centroid data")
-            abundance_threshold = self.settings.noise_thresould_log_nsigma
+            abundance_threshold = self.settings.noise_threshold_log_nsigma
             factor = self.baseline_noise_std
 
         else:
