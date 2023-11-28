@@ -15,15 +15,40 @@ from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
 
 
 class HighResMassSpecExport(Thread):
+    """A class for exporting high-resolution mass spectra.
+
+    Parameters
+    ----------
+        out_file_path (str): The output file path.
+        mass_spectrum (MassSpectrum): The mass spectrum to export.
+        output_type (str, optional): The type of output file. Defaults to 'excel'. Can be 'excel', 'csv', 'pandas' or 'hdf5'.
+
+    Attributes
+    ----------
+        output_file (Path): The output file path.
+        output_type (str): The type of output file.
+        mass_spectrum (MassSpectrum): The mass spectrum to export.
+        atoms_order_list (list): The list of assigned atoms in the order specified by Atoms.atoms_order list.
+        columns_label (list): The column labels in order.
+
+    Methods
+    -------    
+        save: Wrapper method to run the export in a separate thread.
+        run: The method called when the thread starts.
+        get_pandas_df: Returns the mass spectrum data as a pandas DataFrame.
+        write_settings: Writes the settings of the mass spectrum to a JSON file.
+        to_pandas: Exports the mass spectrum data to a pandas DataFrame and saves it as a pickle file.
+        to_excel: Exports the mass spectrum data to an Excel file.
+        to_csv: Exports the mass spectrum data to a CSV file.
+        to_json: Exports the mass spectrum data to a JSON string.
+        to_hdf: Exports the mass spectrum data to an HDF5 file.
+        parameters_to_toml: Converts the mass spectrum parameters to a TOML string.
+        parameters_to_json: Converts the mass spectrum parameters to a JSON string.
+        get_mass_spec_attrs: Returns the mass spectrum attributes as a dictionary.
+    """  
 
     def __init__(self, out_file_path, mass_spectrum, output_type='excel'):
 
-        '''
-        output_type:str
-
-            'excel', 'csv', 'hdf5' or 'pandas'
-
-        '''
         Thread.__init__(self)
 
         self.output_file = Path(out_file_path)
@@ -39,7 +64,12 @@ class HighResMassSpecExport(Thread):
         self._init_columns()
 
     def _init_columns(self):
+        """Initialize the columns for the mass spectrum output.
 
+        Returns
+        -------
+            None
+        """
         # column labels in order
         self.columns_label = ['Index',
                               'm/z',
@@ -66,6 +96,7 @@ class HighResMassSpecExport(Thread):
 
     @property
     def output_type(self):
+        """Returns the output type of the mass spectrum."""
         return self._output_type
 
     @output_type.setter
@@ -78,7 +109,16 @@ class HighResMassSpecExport(Thread):
                 'Supported types are "excel", "csv" or "pandas", %s entered' % output_type)
 
     def save(self):
-        '''wrapper to run in a separated thread'''
+        """Save the mass spectrum data to the output file.
+
+        Returns
+        -------
+            None
+        
+        Raises
+        ------
+            ValueError: If the output type is not supported.
+        """
 
         if self.output_type == 'excel':
             self.to_excel()
@@ -93,11 +133,19 @@ class HighResMassSpecExport(Thread):
                 "Unkown output type: %s; it can be 'excel', 'csv' or 'pandas'" % self.output_type)
 
     def run(self):
-        ''' run is called when the Tread start
-            call exportMS.start() '''
+        """ Run the export process.
+        
+        This method is called when the thread starts.
+        It calls the save method to perform the export.
+
+        Returns
+        -------
+            None
+        """
         self.save()
 
     def get_pandas_df(self):
+        """Returns the mass spectrum data as a pandas DataFrame."""
 
         columns = self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum)
         dict_data_list = self.get_list_dict_data(self.mass_spectrum)
@@ -106,6 +154,17 @@ class HighResMassSpecExport(Thread):
         return df
 
     def write_settings(self, output_path, mass_spectrum):
+        """Writes the settings of the mass spectrum to a JSON file.
+        
+        Parameters
+        ----------
+            output_path (str): The output file path.
+            mass_spectrum (MassSpectrum): The mass spectrum to export.
+            
+        Returns
+        -------
+            None
+        """
 
         import json
 
@@ -122,6 +181,12 @@ class HighResMassSpecExport(Thread):
             outfile.write(output)
 
     def to_pandas(self, write_metadata=True):
+        """Exports the mass spectrum data to a pandas DataFrame and saves it as a pickle file.
+        
+        Parameters
+        ----------
+            write_metadata (bool, optional): Whether to write the metadata to a JSON file. Defaults to True.
+        """
 
         columns = self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum)
 
@@ -135,6 +200,12 @@ class HighResMassSpecExport(Thread):
             self.write_settings(self.output_file, self.mass_spectrum)
 
     def to_excel(self, write_metadata=True):
+        """Exports the mass spectrum data to an Excel file.
+        
+        Parameters
+        ----------
+            write_metadata (bool, optional): Whether to write the metadata to a JSON file. Defaults to True.
+        """
 
         columns = self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum)
 
@@ -148,6 +219,12 @@ class HighResMassSpecExport(Thread):
             self.write_settings(self.output_file, self.mass_spectrum)
 
     def to_csv(self, write_metadata=True):
+        """Exports the mass spectrum data to a CSV file.
+
+        Parameters
+        ----------
+            write_metadata (bool, optional): Whether to write the metadata to a JSON file. Defaults to True.
+        """
 
         columns = self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum)
 
@@ -167,6 +244,7 @@ class HighResMassSpecExport(Thread):
             print(ioerror)
 
     def to_json(self):
+        """Exports the mass spectrum data to a JSON string."""
 
         columns = self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum)
 
@@ -181,6 +259,7 @@ class HighResMassSpecExport(Thread):
         return df.to_json(orient='records')
 
     def to_hdf(self):
+        """Exports the mass spectrum data to an HDF5 file."""
 
         import h5py
         import json
@@ -254,6 +333,12 @@ class HighResMassSpecExport(Thread):
             processed_dset.attrs['MassSpectrumSetting'] = json.dumps(setting_dicts.get('MassSpectrum'), sort_keys=False, indent=4, separators=(',', ': '))
 
     def parameters_to_toml(self):
+        """Converts the mass spectrum parameters to a TOML string.
+        
+        Returns
+        -------
+            str: The TOML string.
+        """
         
         dict_setting = parameter_to_dict.get_dict_data_ms(self.mass_spectrum)
 
@@ -272,6 +357,12 @@ class HighResMassSpecExport(Thread):
         return output
 
     def parameters_to_json(self):
+        """Converts the mass spectrum parameters to a JSON string.
+
+        Returns
+        -------
+            str: The JSON string.
+        """
 
         dict_setting = parameter_to_dict.get_dict_data_ms(self.mass_spectrum)
 
@@ -290,6 +381,16 @@ class HighResMassSpecExport(Thread):
         return output
 
     def get_mass_spec_attrs(self, mass_spectrum):
+        """Returns the mass spectrum attributes as a dictionary.
+        
+        Parameters
+        ----------
+            mass_spectrum (MassSpectrum): The mass spectrum to export.
+            
+        Returns
+        -------
+            dict: The mass spectrum attributes.
+        """
 
         dict_ms_attrs = {}
         dict_ms_attrs['polarity'] = mass_spectrum.polarity
@@ -306,6 +407,16 @@ class HighResMassSpecExport(Thread):
         return dict_ms_attrs
 
     def get_all_used_atoms_in_order(self, mass_spectrum):
+        """Returns the list of assigned atoms in the order specified by Atoms.atoms_order list.
+
+        Parameters
+        ----------
+            mass_spectrum (MassSpectrum): The mass spectrum to export.
+
+        Returns
+        -------
+            list: The list of assigned atoms in the order specified by Atoms.atoms_order list.
+        """
 
         atoms_in_order = Atoms.atoms_order
         all_used_atoms = set()
@@ -322,6 +433,17 @@ class HighResMassSpecExport(Thread):
         return sorted(all_used_atoms, key=sort_method)
 
     def list_dict_to_list(self, mass_spectrum, is_hdf5=False):
+        """Returns the mass spectrum data as a list of dictionaries.
+        
+        Parameters
+        ----------
+            mass_spectrum (MassSpectrum): The mass spectrum to export.
+            is_hdf5 (bool, optional): Whether the mass spectrum is being exported to an HDF5 file. Defaults to False.
+            
+        Returns
+        -------
+            list: The mass spectrum data as a list of dictionaries.
+        """
 
         column_labels = self.columns_label + self.get_all_used_atoms_in_order(mass_spectrum)
 
@@ -343,6 +465,21 @@ class HighResMassSpecExport(Thread):
 
     def get_list_dict_data(self, mass_spectrum, include_no_match=True, include_isotopologues=True,
                            isotopologue_inline=True, no_match_inline=False, is_hdf5=False):
+        """Returns the mass spectrum data as a list of dictionaries.
+
+        Parameters
+        ----------
+            mass_spectrum (MassSpectrum): The mass spectrum to export.
+            include_no_match (bool, optional): Whether to include unassigned (no match) data. Defaults to True.
+            include_isotopologues (bool, optional): Whether to include isotopologues. Defaults to True.
+            isotopologue_inline (bool, optional): Whether to include isotopologues inline. Defaults to True.
+            no_match_inline (bool, optional): Whether to include unassigned (no match) data inline. Defaults to False.
+            is_hdf5 (bool, optional): Whether the mass spectrum is being exported to an HDF5 file. Defaults to False.
+
+        Returns
+        -------
+            list: The mass spectrum data as a list of dictionaries.
+        """
 
         dict_data_list = []
 
