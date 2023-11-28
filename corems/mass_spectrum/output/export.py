@@ -19,32 +19,26 @@ class HighResMassSpecExport(Thread):
 
     Parameters
     ----------
-        out_file_path (str): The output file path.
-        mass_spectrum (MassSpectrum): The mass spectrum to export.
-        output_type (str, optional): The type of output file. Defaults to 'excel'. Can be 'excel', 'csv', 'pandas' or 'hdf5'.
+    out_file_path : str
+        The output file path.
+    mass_spectrum : MassSpectrum
+        The mass spectrum to export.
+    output_type : str, optional
+        The type of output file. Defaults to 'excel'. Can be 'excel', 'csv', 'pandas' or 'hdf5'.
 
     Attributes
     ----------
-        output_file (Path): The output file path.
-        output_type (str): The type of output file.
-        mass_spectrum (MassSpectrum): The mass spectrum to export.
-        atoms_order_list (list): The list of assigned atoms in the order specified by Atoms.atoms_order list.
-        columns_label (list): The column labels in order.
+    output_file : Path
+        The output file path.
+    output_type : str
+        The type of output file.
+    mass_spectrum : MassSpectrum
+        The mass spectrum to export.
+    atoms_order_list : list
+        The list of assigned atoms in the order specified by Atoms.atoms_order list.
+    columns_label : list
+        The column labels in order.
 
-    Methods
-    -------    
-        save: Wrapper method to run the export in a separate thread.
-        run: The method called when the thread starts.
-        get_pandas_df: Returns the mass spectrum data as a pandas DataFrame.
-        write_settings: Writes the settings of the mass spectrum to a JSON file.
-        to_pandas: Exports the mass spectrum data to a pandas DataFrame and saves it as a pickle file.
-        to_excel: Exports the mass spectrum data to an Excel file.
-        to_csv: Exports the mass spectrum data to a CSV file.
-        to_json: Exports the mass spectrum data to a JSON string.
-        to_hdf: Exports the mass spectrum data to an HDF5 file.
-        parameters_to_toml: Converts the mass spectrum parameters to a TOML string.
-        parameters_to_json: Converts the mass spectrum parameters to a JSON string.
-        get_mass_spec_attrs: Returns the mass spectrum attributes as a dictionary.
     """  
 
     def __init__(self, out_file_path, mass_spectrum, output_type='excel'):
@@ -64,12 +58,7 @@ class HighResMassSpecExport(Thread):
         self._init_columns()
 
     def _init_columns(self):
-        """Initialize the columns for the mass spectrum output.
-
-        Returns
-        -------
-            None
-        """
+        """Initialize the columns for the mass spectrum output."""
         # column labels in order
         self.columns_label = ['Index',
                               'm/z',
@@ -110,14 +99,11 @@ class HighResMassSpecExport(Thread):
 
     def save(self):
         """Save the mass spectrum data to the output file.
-
-        Returns
-        -------
-            None
         
         Raises
         ------
-            ValueError: If the output type is not supported.
+        ValueError
+            If the output type is not supported.
         """
 
         if self.output_type == 'excel':
@@ -136,12 +122,7 @@ class HighResMassSpecExport(Thread):
         """ Run the export process.
         
         This method is called when the thread starts.
-        It calls the save method to perform the export.
-
-        Returns
-        -------
-            None
-        """
+        It calls the save method to perform the export."""
         self.save()
 
     def get_pandas_df(self):
@@ -158,12 +139,10 @@ class HighResMassSpecExport(Thread):
         
         Parameters
         ----------
-            output_path (str): The output file path.
-            mass_spectrum (MassSpectrum): The mass spectrum to export.
-            
-        Returns
-        -------
-            None
+        output_path : str
+            The output file path.
+        mass_spectrum : MassSpectrum
+            The mass spectrum to export.
         """
 
         import json
@@ -185,7 +164,8 @@ class HighResMassSpecExport(Thread):
         
         Parameters
         ----------
-            write_metadata (bool, optional): Whether to write the metadata to a JSON file. Defaults to True.
+        write_metadata : bool, optional
+            Whether to write the metadata to a JSON file. Defaults to True.
         """
 
         columns = self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum)
@@ -204,7 +184,8 @@ class HighResMassSpecExport(Thread):
         
         Parameters
         ----------
-            write_metadata (bool, optional): Whether to write the metadata to a JSON file. Defaults to True.
+        write_metadata : bool, optional
+            Whether to write the metadata to a JSON file. Defaults to True.
         """
 
         columns = self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum)
@@ -223,7 +204,8 @@ class HighResMassSpecExport(Thread):
 
         Parameters
         ----------
-            write_metadata (bool, optional): Whether to write the metadata to a JSON file. Defaults to True.
+        write_metadata : bool, optional
+            Whether to write the metadata to a JSON file. Defaults to True.
         """
 
         columns = self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum)
@@ -337,7 +319,8 @@ class HighResMassSpecExport(Thread):
         
         Returns
         -------
-            str: The TOML string.
+        str
+            The TOML string of the mass spectrum parameters.
         """
         
         dict_setting = parameter_to_dict.get_dict_data_ms(self.mass_spectrum)
@@ -361,7 +344,8 @@ class HighResMassSpecExport(Thread):
 
         Returns
         -------
-            str: The JSON string.
+        str
+            The JSON string of the mass spectrum parameters.
         """
 
         dict_setting = parameter_to_dict.get_dict_data_ms(self.mass_spectrum)
@@ -385,11 +369,13 @@ class HighResMassSpecExport(Thread):
         
         Parameters
         ----------
-            mass_spectrum (MassSpectrum): The mass spectrum to export.
+        mass_spectrum : MassSpectrum
+            The mass spectrum to export.
             
         Returns
         -------
-            dict: The mass spectrum attributes.
+        dict
+            The mass spectrum attributes.
         """
 
         dict_ms_attrs = {}
@@ -411,11 +397,13 @@ class HighResMassSpecExport(Thread):
 
         Parameters
         ----------
-            mass_spectrum (MassSpectrum): The mass spectrum to export.
+        mass_spectrum : MassSpectrum
+            The mass spectrum to export.
 
         Returns
         -------
-            list: The list of assigned atoms in the order specified by Atoms.atoms_order list.
+        list
+            The list of assigned atoms in the order specified by Atoms.atoms_order list.
         """
 
         atoms_in_order = Atoms.atoms_order
@@ -437,12 +425,15 @@ class HighResMassSpecExport(Thread):
         
         Parameters
         ----------
-            mass_spectrum (MassSpectrum): The mass spectrum to export.
-            is_hdf5 (bool, optional): Whether the mass spectrum is being exported to an HDF5 file. Defaults to False.
+        mass_spectrum : MassSpectrum
+            The mass spectrum to export.
+        is_hdf5 : bool, optional
+            Whether the mass spectrum is being exported to an HDF5 file. Defaults to False.
             
         Returns
         -------
-            list: The mass spectrum data as a list of dictionaries.
+        list
+            The mass spectrum data as a list of dictionaries.
         """
 
         column_labels = self.columns_label + self.get_all_used_atoms_in_order(mass_spectrum)
@@ -469,16 +460,23 @@ class HighResMassSpecExport(Thread):
 
         Parameters
         ----------
-            mass_spectrum (MassSpectrum): The mass spectrum to export.
-            include_no_match (bool, optional): Whether to include unassigned (no match) data. Defaults to True.
-            include_isotopologues (bool, optional): Whether to include isotopologues. Defaults to True.
-            isotopologue_inline (bool, optional): Whether to include isotopologues inline. Defaults to True.
-            no_match_inline (bool, optional): Whether to include unassigned (no match) data inline. Defaults to False.
-            is_hdf5 (bool, optional): Whether the mass spectrum is being exported to an HDF5 file. Defaults to False.
+        mass_spectrum : MassSpectrum
+            The mass spectrum to export.
+        include_no_match : bool, optional
+            Whether to include unassigned (no match) data. Defaults to True.
+        include_isotopologues : bool, optional
+            Whether to include isotopologues. Defaults to True.
+        isotopologue_inline : bool, optional
+            Whether to include isotopologues inline. Defaults to True.
+        no_match_inline : bool, optional
+            Whether to include unassigned (no match) data inline. Defaults to False.
+        is_hdf5 : bool, optional
+            Whether the mass spectrum is being exported to an HDF5 file. Defaults to False.
 
         Returns
         -------
-            list: The mass spectrum data as a list of dictionaries.
+        list
+            The mass spectrum data as a list of dictionaries.
         """
 
         dict_data_list = []

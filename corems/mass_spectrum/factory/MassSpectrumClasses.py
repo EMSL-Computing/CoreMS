@@ -27,8 +27,7 @@ def overrides(interface_class):
     return overrider
 
 class MassSpecBase(MassSpecCalc, KendrickGrouping):
-    """
-    A iterative mass spectrum base class, stores the profile data and instrument settings.
+    """A mass spectrum base class, stores the profile data and instrument settings.
 
     Iteration over a list of MSPeaks classes stored at the _mspeaks attributes.
     _mspeaks is populated under the hood by calling process_mass_spec method.
@@ -124,8 +123,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self.calibration_segment = None
 
     def _init_settings(self):
-        """Initializes the settings for the mass spectrum.
-        """
+        """Initializes the settings for the mass spectrum."""
         self._parameters = MSParameters()
 
     def __len__(self):
@@ -314,8 +312,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self.reset_indexes()
 
     def clear_molecular_formulas(self):
-        """
-        Clear the molecular formulas for all mspeaks in the MassSpectrum.
+        """Clear the molecular formulas for all mspeaks in the MassSpectrum.
 
         Returns
         -------
@@ -326,8 +323,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         return array([mspeak.clear_molecular_formulas() for mspeak in self.mspeaks])
 
     def process_mass_spec(self, keep_profile=True, noise_bayes_est=False):
-        """
-        Process the mass spectrum.
+        """Process the mass spectrum.
 
         Parameters
         ----------
@@ -369,8 +365,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             
 
     def cal_noise_threshold(self, bayes=False):
-        """
-        Calculate the noise threshold of the mass spectrum.
+        """Calculate the noise threshold of the mass spectrum.
 
         Parameters
         ----------
@@ -1256,7 +1251,8 @@ class MassSpecProfile(MassSpecBase):
 
     Relevant Methods (Inherited from MassSpecBase)
     ----------
-    process_mass_spec().  Process the mass spectrum.
+    process_mass_spec().  
+        Process the mass spectrum.
 
     see also: MassSpecBase(), MassSpecfromFreq(), MassSpecCentroid()
     """
@@ -1269,7 +1265,7 @@ class MassSpecProfile(MassSpecBase):
             self.process_mass_spec(noise_bayes_est=noise_bayes_est)
 
 class MassSpecfromFreq(MassSpecBase):
-    """ A mass spectrum class when data entry is on frequency(Hz) domain
+    """ A mass spectrum class when data entry is on frequency domain
 
     Notes
     -----
