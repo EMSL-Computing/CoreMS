@@ -221,8 +221,7 @@ class NoiseThresholdCalc:
             
         """
         # assumes noise to be gaussian and estimate noise level by 
-        # calculating the valley. If bayes is enable it will 
-        # model the valley distributuion as half-Normal and estimate the std
+        # calculating the valley. 
         
         auto = True if self.settings.noise_threshold_method == 'minima' else False
 
@@ -349,9 +348,9 @@ class NoiseThresholdCalc:
 
                 yminima = self.get_abundance_minima_centroid(abundance_cut)
                 
-                return self.get_noise_average(yminima, bayes=False)
+                return self.get_noise_average(yminima)
 
             else:
                 
                 # pyplot.show()
-                return self.get_noise_average(abundance_cut,bayes=False)
+                return self.get_noise_average(abundance_cut)
