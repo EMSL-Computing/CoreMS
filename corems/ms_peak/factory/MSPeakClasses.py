@@ -79,6 +79,7 @@ class _MSPeak(MSPeakCalculation):
         self.resolving_power = float(resolving_power)
         self.signal_to_noise = float(signal_to_noise)
         # profile indexes
+        #TODO fix these names from 'scan' to be more logical about peak indexes.
         self.start_scan = int(indexes[0])
         self.apex_scan = int(indexes[1])
         self.final_scan = int(indexes[2])

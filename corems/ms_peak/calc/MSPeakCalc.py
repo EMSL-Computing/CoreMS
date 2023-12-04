@@ -60,6 +60,7 @@ class MSPeakCalculation:
         Calculate the peak area using numpy's trapezoidal fit
         uses provided mz_domain to accurately integrate areas independent of digital resolution
         '''
+        #TODO throughout change final_scan and start_scan when the MSPeakClasses 
         if self.final_scan > self.start_scan:
 
             yy = self._ms_parent.abundance_profile[self.start_scan:self.final_scan]
