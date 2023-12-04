@@ -3,6 +3,23 @@ from corems.encapsulation.factory.processingSetting  import CompoundSearchSettin
 from corems.encapsulation.factory.processingSetting  import DataInputSetting
 
 class MSParameters:
+    """MSParameters class is used to store the parameters used for the processing of the mass spectrum
+    
+    Each attibute is a class that contains the parameters for the processing of the mass spectrum, see the corems.encapsulation.factory.processingSetting module for more details.
+
+    Attributes:
+    -----------
+    molecular_search: MolecularFormulaSearchSettings
+        MolecularFormulaSearchSettings object
+    transient: TransientSetting
+        TransientSetting object
+    mass_spectrum: MassSpectrumSetting
+        MassSpectrumSetting object
+    ms_peak: MassSpecPeakSetting
+        MassSpecPeakSetting object
+    data_input: DataInputSetting
+        DataInputSetting object
+    """
 
     molecular_search = MolecularFormulaSearchSettings()
     transient = TransientSetting()
@@ -11,27 +28,39 @@ class MSParameters:
     data_input = DataInputSetting()
 
 class GCMSParameters:
+    """GCMSParameters class is used to store the parameters used for the processing of the gas chromatograph mass spectrum
+
+    Each attibute is a class that contains the parameters for the processing of the data, see the corems.encapsulation.factory.processingSetting module for more details.
+
+    Attributes:
+    -----------
+    molecular_search: MolecularFormulaSearchSettings
+        MolecularFormulaSearchSettings object
+    gc_ms: GasChromatographSetting
+        GasChromatographSetting object
+    """
 
     molecular_search = CompoundSearchSettings()
     gc_ms = GasChromatographSetting()
 
 class LCMSParameters:
-    
-    '''
-    enforce_target_ms2: bool
-            only perform EIC for target_mz if the m/z was selected as precursor for ms2
-    scans: list or tuple
-        list of select scan to average or a tuple containing the range to average
-    peak_height_max_percent: float
-        1-100 % used for baseline detection use 0.1 for second_derivative and 10 for other methods    
-    peak_max_prominence_percent: float
-        1-100 % used for baseline detection
-    peak_height_min_percent: float
-        0-100 % used for peak detection
-    eic_signal_threshold: 
-        0-100 % used for extracted ion chromatogram peak detection
-    '''
+    """LCMSParameters class is used to store the parameters used for the processing of the liquid chromatograph mass spectrum
 
+    Each attibute is a class that contains the parameters for the processing of the data, see the corems.encapsulation.factory.processingSetting module for more details.
+
+    Attributes:
+    -----------
+    lc_ms: LiquidChromatographSetting
+        LiquidChromatographSetting object
+    mass_spectrum: MassSpectrumSetting
+        MassSpectrumSetting object
+    ms_peak: MassSpecPeakSetting
+        MassSpecPeakSetting object
+    ms1_molecular_search: MolecularFormulaSearchSettings
+        MolecularFormulaSearchSettings object
+    ms2_molecular_search: MolecularFormulaSearchSettings
+        MolecularFormulaSearchSettings object
+    """
     lc_ms = LiquidChromatographSetting()
     
     mass_spectrum = MassSpectrumSetting()
@@ -43,6 +72,18 @@ class LCMSParameters:
     ms2_molecular_search = MolecularFormulaSearchSettings()
 
 def default_parameters(file_location):  # pragma: no cover
+    """Generate parameters dictionary with the default parameters for data processing
+
+    Parameters
+    ----------
+    file_location: str
+        path to the file
+
+    Returns
+    -------
+    parameters: dict
+        dictionary with the default parameters for data processing    
+    """
 
     parameters = dict()
 
