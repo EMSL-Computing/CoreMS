@@ -18,40 +18,49 @@ from corems.encapsulation.factory.parameters import default_parameters
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.input.parameter_from_json import load_and_set_parameters_class, load_and_set_parameters_ms, load_and_set_toml_parameters_class
 
+
 class MassListBaseClass:
-    '''
-    # The MassListBaseClass object reads mass list data types and returns the mass spectrum obj
+    '''The MassListBaseClass object reads mass list data types and returns the mass spectrum obj
 
-    # Parameters
+    Parameters
     ----------
-    ## file_location : Path or S3Path
-        file_location is full data path
-    ## * delimiter: str
-        Delimeter to read text based files ("," "\t", " ", "  ", etc)
-    ## **data_type : str
-        The keyword argument data_type is used to determine what type of file to read:
-        pandas(pickle), txt(.csv, txt, asci, etc) or HDF5
-    ## **isCentroid : bool
-        The keyword argument isCentroid is used to determine the mass spectrum data structure:
-        if set to False will assume profile mode and will attempt to peak pick
-    ## **header_lines : int
-        Line count to skip: should include the columns labels line
-     ## **isThermoProfile : bool
-        The keyword argument is_thermo_profile is used to change the number of expected columns to only m/z and intensity
-        S/N and RP will be calculated based on the data. i.e signal to noise might not be accurate because the lack of noise data 
-    ## **headerless : bool
-        If no headers present in the file (e.g. a .xy file from Bruker), assume two columns m/z and intensity and dont look for the headers.
-    # Attributes
-    ----------
-    ## _expected_columns : set
-       The file has to have a least the values inside the set.
+    file_location : Path or S3Path
+        Full data path.
+    isCentroid : bool, optional
+        Determines the mass spectrum data structure. If set to True, it assumes centroid mode. If set to False, it assumes profile mode and attempts to peak pick. Default is True.
+    analyzer : str, optional
+        The analyzer used for the mass spectrum. Default is 'Unknown'.
+    instrument_label : str, optional
+        The label of the instrument used for the mass spectrum. Default is 'Unknown'.
+    sample_name : str, optional
+        The name of the sample. Default is None.
+    header_lines : int, optional
+        The number of lines to skip in the file, including the column labels line. Default is 0.
+    isThermoProfile : bool, optional
+        Determines the number of expected columns in the file. If set to True, only m/z and intensity columns are expected. Signal-to-noise ratio (S/N) and resolving power (RP) will be calculated based on the data. Default is False.
+    headerless : bool, optional
+        If True, assumes that there are no headers present in the file (e.g., a .xy file from Bruker) and assumes two columns: m/z and intensity. Default is False.
 
-    For label translation see:
-                corems.encapsulation.settings.input.InputSetting 
-        or add your labels to the SettingsCoreMS.json file and parse the settings
+    Attributes
+    ----------
+    parameters : DataInputSetting
+        The data input settings for the mass spectrum.
+    data_type : str
+        The type of data in the file.
+    delimiter : str
+        The delimiter used to read text-based files.
+    
+    Methods
+    -------
+    * set_parameter_from_toml(parameters_path). Sets the data input settings from a TOML file.
+    * set_parameter_from_json(parameters_path). Sets the data input settings from a JSON file.
+    * get_dataframe(). Reads the file and returns the data as a pandas DataFrame.
+    * load_settings(mass_spec_obj, output_parameters). Loads the settings for the mass spectrum.
+    * get_output_parameters(polarity, scan_index=0). Returns the output parameters for the mass spectrum.
+    * clean_data_frame(dataframe). Cleans the data frame by removing columns that are not in the expected columns set.
 
     '''
-
+    
     def __init__(self, file_location, isCentroid=True, analyzer='Unknown', instrument_label='Unknown',
                  sample_name=None, header_lines=0, isThermoProfile=False,headerless=False):
 
@@ -71,7 +80,6 @@ class MassListBaseClass:
         else:
 
             self._expected_columns = {Labels.mz, Labels.abundance, Labels.s2n, Labels.rp}
-
 
         self._delimiter = None
 
@@ -123,123 +131,120 @@ class MassListBaseClass:
     def delimiter(self, delimiter):
         self._delimiter = delimiter
 
+    
     def encoding_detector(self, file_location):
+        """
+        Detects the encoding of a file.
+
+        Parameters:
+        - file_location (str): The location of the file to be analyzed.
+
+        Returns:
+        - str: The detected encoding of the file.
+        """
+
         with file_location.open('rb') as rawdata:
             result = chardet.detect(rawdata.read(10000))
         return result['encoding']
 
     def set_data_type(self):
+        """
+        Set the data type and delimiter based on the file extension.
 
+        Raises:
+            TypeError: If the data type could not be automatically recognized.
+
+        """
         if self.file_location.suffix == '.csv':
-
             self.data_type = 'txt'
             self.delimiter = ','
-
         elif self.file_location.suffix == '.txt':
-
             self.data_type = 'txt'
             self.delimiter = '\t'
-
         elif self.file_location.suffix == '.tsv':
-
             self.data_type = 'txt'
             self.delimiter = '\t'
-
         elif self.file_location.suffix == '.xlsx':
-
             self.data_type = 'excel'
-
         elif self.file_location.suffix == '.ascii':
-
             self.data_type = 'txt'
             self.delimiter = '  '
-
         elif self.file_location.suffix == '.pkl':
-
             self.data_type = 'dataframe'
-
         elif self.file_location.suffix == '.pks':
-
             self.data_type = 'pks'
             self.delimiter = '          '
             self.header_lines = 9
-        
         elif self.file_location.suffix == '.xml':
             self.data_type = 'xml'
-            #self.delimiter = None
-            #self.header_lines = None
-
+            # self.delimiter = None
+            # self.header_lines = None
         elif self.file_location.suffix == '.xy':
             self.data_type = 'txt'
             self.delimiter = ' '
             self.header_lines = None
-            
         else:
             raise TypeError(
                 "Data type could not be automatically recognized for %s; please set data type and delimiter manually." % self.file_location.name)
 
     def get_dataframe(self):
+            """
+            Get the data as a pandas DataFrame.
 
-        if not self.data_type or not self.delimiter:
+            Returns:
+                DataFrame: The data as a pandas DataFrame.
 
-            self.set_data_type()
-
-        if isinstance(self.file_location, S3Path):
-            # data = self.file_location.open('rb').read()
-            data = BytesIO(self.file_location.open('rb').read())
+            Raises:
+                TypeError: If the data type is not supported.
+            """
         
-        else:
-            data = self.file_location
+            if not self.data_type or not self.delimiter:
+                self.set_data_type()
 
-        if self.data_type == 'txt':
-            if self.headerless:
-                dataframe = read_csv(data,  skiprows= self.header_lines, delimiter=self.delimiter,header=None, names=['m/z','I'],
-                            encoding=self.encoding_detector(self.file_location), engine='python')
+            if isinstance(self.file_location, S3Path):
+                data = BytesIO(self.file_location.open('rb').read())
             else:
-                dataframe = read_csv(data,  skiprows= self.header_lines, delimiter=self.delimiter,
-                            encoding=self.encoding_detector(self.file_location), engine='python')
+                data = self.file_location
 
-        elif self.data_type == 'pks':
-            
-            names=["m/z", "I", "Scaled Peak Height", "Resolving Power", "Frequency", 'S/N']
-            
-            clean_data = []
-            
-            with self.file_location.open() as maglabfile:
-                for i in  maglabfile.readlines()[8:-1]:
-                    
-                    clean_data.append(i.split())
-            
-            dataframe = DataFrame(clean_data, columns=names)
-            
-            #dataframe = read_csv(data,  skiprows= self.header_lines, delimiter=self.delimiter,
-            #                     encoding=self.encoding_detector(self.file_location), engine='python',
-            #                     header=None)
-            #dataframe.columns = names
-            #print(dataframe)
-            #dataframe = read_csv(data,  skiprows= self.header_lines, delimiter=self.delimiter,
-            #                     encoding=self.encoding_detector(self.file_location), engine='python')
+            if self.data_type == 'txt':
+                if self.headerless:
+                    dataframe = read_csv(data,  skiprows=self.header_lines, delimiter=self.delimiter, header=None, names=['m/z','I'],
+                                encoding=self.encoding_detector(self.file_location), engine='python')
+                else:
+                    dataframe = read_csv(data,  skiprows=self.header_lines, delimiter=self.delimiter,
+                                encoding=self.encoding_detector(self.file_location), engine='python')
 
-        elif self.data_type == 'dataframe':
+            elif self.data_type == 'pks':
+                names=["m/z", "I", "Scaled Peak Height", "Resolving Power", "Frequency", 'S/N']
+                clean_data = []
+                with self.file_location.open() as maglabfile:
+                    for i in  maglabfile.readlines()[8:-1]:
+                        clean_data.append(i.split())
+                dataframe = DataFrame(clean_data, columns=names)
 
-            dataframe = read_pickle(data)
+            elif self.data_type == 'dataframe':
+                dataframe = read_pickle(data)
 
-        elif self.data_type == 'excel':
+            elif self.data_type == 'excel':
+                dataframe = read_excel(data)
 
-            dataframe = read_excel(data)
+            elif self.data_type == 'xml':
+                dataframe = self.read_xml_peaks(data)
 
-        elif self.data_type == 'xml':
+            else:
+                raise TypeError('Data type %s is not supported' % self.data_type)
 
-            dataframe = self.read_xml_peaks(data)
+            return dataframe
 
-        else:
+    def load_settings(self, mass_spec_obj):
+        """
+        Load settings from a JSON file and apply them to the given mass_spec_obj.
 
-            raise TypeError('Data type %s is not supported' % self.data_type)
+        Parameters:
+            mass_spec_obj (MassSpec): The mass spectrum object to apply the settings to.
+            output_parameters (dict): The output parameters to update with the loaded settings.
 
-        return dataframe
-
-    def load_settings(self, mass_spec_obj, output_parameters):
-
+        """
         import json
         import warnings
 
@@ -268,150 +273,175 @@ class MassListBaseClass:
         #loaded_settings['Transient'] = self.get_scan_group_attr_data(scan_index, time_index, 'TransientSetting')
 
     def get_output_parameters(self, polarity, scan_index=0):
+            """
+            Get the output parameters for the mass spectrum.
 
-        # TODO pull attrs from json settings file in load_settings function MassSpecAttrs group and analyzer, instrument_label and sample_name
-        from copy import deepcopy
+            Parameters:
+            - polarity (str): The polarity of the mass spectrum.
+            - scan_index (int): The index of the scan.
 
-        output_parameters = default_parameters(self.file_location)
+            Returns:
+            - output_parameters (dict): A dictionary containing the output parameters.
 
-        if self.isCentroid:
-            output_parameters['label'] = Labels.corems_centroid
-        else:
-            output_parameters['label'] = Labels.bruker_profile
+            """
+            from copy import deepcopy
 
-        output_parameters['analyzer'] = self.analyzer
+            output_parameters = default_parameters(self.file_location)
 
-        output_parameters['instrument_label'] = self.instrument_label
+            if self.isCentroid:
+                output_parameters['label'] = Labels.corems_centroid
+            else:
+                output_parameters['label'] = Labels.bruker_profile
 
-        output_parameters['sample_name'] = self.sample_name
+            output_parameters['analyzer'] = self.analyzer
 
-        output_parameters["Aterm"] = None
+            output_parameters['instrument_label'] = self.instrument_label
 
-        output_parameters["Bterm"] = None
+            output_parameters['sample_name'] = self.sample_name
 
-        output_parameters["Cterm"] = None
+            output_parameters["Aterm"] = None
 
-        output_parameters["polarity"] = polarity
+            output_parameters["Bterm"] = None
 
-        '''scan_number and rt will be need to lc ms'''
+            output_parameters["Cterm"] = None
 
-        output_parameters["mobility_scan"] = 0
+            output_parameters["polarity"] = polarity
 
-        output_parameters["mobility_rt"] = 0
+            '''scan_number and rt will be need to lc ms'''
 
-        output_parameters["scan_number"] = scan_index
+            output_parameters["mobility_scan"] = 0
 
-        output_parameters["rt"] = 0
+            output_parameters["mobility_rt"] = 0
 
-        return output_parameters
+            output_parameters["scan_number"] = scan_index
+
+            output_parameters["rt"] = 0
+
+            return output_parameters
 
     def clean_data_frame(self, dataframe):
+            """
+            Clean the input dataframe by removing columns that are not expected.
 
-        # print(dataframe.head())
+            Parameters:
+            dataframe (pandas.DataFrame): The input dataframe to be cleaned.
 
-        for column_name in dataframe.columns:
+            """
+            
+            for column_name in dataframe.columns:
 
-            expected_column_name = self.parameters.header_translate.get(
-                column_name)
-            if expected_column_name not in self._expected_columns:
+                expected_column_name = self.parameters.header_translate.get(
+                    column_name)
+                if expected_column_name not in self._expected_columns:
 
-                #dataframe = dataframe.drop(column_name, axis=1)
-                del dataframe[column_name]
-        # return dataframe
+                    del dataframe[column_name]
 
     def check_columns(self, header_labels):
+        """
+        Check if the given header labels match the expected columns.
 
-        # print(header_labels)
-        #print( self.parameters.header_translate.keys())
-        #inverted_name_dict = {value: key for key, value in self.parameters.header_translate.items()}
+        Parameters:
+        header_labels (list): List of header labels to be checked.
 
-        # print(inverted_name_dict)
-
+        Raises:
+        Exception: If any expected column is not found in the header labels.
+        """
         found_label = set()
 
         for label in header_labels:
-
             if not label in self._expected_columns:
-
                 user_column_name = self.parameters.header_translate.get(label)
-
                 if user_column_name in self._expected_columns:
-
                     found_label.add(user_column_name)
-
             else:
                 found_label.add(label)
 
         not_found = self._expected_columns - found_label
 
         if len(not_found) > 0:
-
-            raise Exception(
-                "Please make sure to include the columns %s" % ', '.join(not_found))
+            raise Exception("Please make sure to include the columns %s" % ', '.join(not_found))
 
     def read_xml_peaks(self, data):
-        '''
-        Function to parse Bruker .xml files 
-        '''
-        with open(data, "r") as file:
-            content = file.readlines()
-            content = "".join(content)
-            bs_content = BeautifulSoup(content, features='xml')
-        peaks_xml = bs_content.find_all("pk")   
+            '''
+            Read peaks from a Bruker .xml file and return a pandas DataFrame.
 
-        # initialise lists of the peak variables
-        areas = []
-        fwhms = []
-        intensities = []
-        mzs = []
-        res = []
-        sn = []
-        #iterate through the peaks appending to each list
-        for peak in peaks_xml:
-            areas.append(float(peak['a']))
-            fwhms.append(float(peak['fwhm']))
-            intensities.append(float(peak['i']))
-            mzs.append(float(peak['mz']))
-            res.append(float(peak['res']))
-            sn.append(float(peak['sn']))
+            Parameters:
+            ----------
+            data : str
+                The path to the .xml file.
 
-        #Compile pandas dataframe of these values    
-        names=["m/z", "I", "Resolving Power", "Area", 'S/N','fwhm']    
-        df = DataFrame(columns = names,dtype=float)
-        df['m/z'] = mzs
-        df['I'] = intensities
-        df['Resolving Power'] = res
-        df['Area'] = areas
-        df['S/N'] = sn
-        df['fwhm'] = fwhms
-        return df
+            Returns:
+            -------
+            pandas.DataFrame
+                A DataFrame containing the peak data with columns: 'm/z', 'I', 'Resolving Power', 'Area', 'S/N', 'fwhm'.
+            '''
+            with open(data, "r") as file:
+                content = file.readlines()
+                content = "".join(content)
+                bs_content = BeautifulSoup(content, features='xml')
+            peaks_xml = bs_content.find_all("pk")   
+
+            # initialise lists of the peak variables
+            areas = []
+            fwhms = []
+            intensities = []
+            mzs = []
+            res = []
+            sn = []
+            #iterate through the peaks appending to each list
+            for peak in peaks_xml:
+                areas.append(float(peak['a']))
+                fwhms.append(float(peak['fwhm']))
+                intensities.append(float(peak['i']))
+                mzs.append(float(peak['mz']))
+                res.append(float(peak['res']))
+                sn.append(float(peak['sn']))
+
+            #Compile pandas dataframe of these values    
+            names=["m/z", "I", "Resolving Power", "Area", 'S/N','fwhm']    
+            df = DataFrame(columns = names,dtype=float)
+            df['m/z'] = mzs
+            df['I'] = intensities
+            df['Resolving Power'] = res
+            df['Area'] = areas
+            df['S/N'] = sn
+            df['fwhm'] = fwhms
+            return df
 
     def get_xml_polarity(self):
-        '''
-        '''
-        # Check its an actual xml
-        if not self.data_type or not self.delimiter:
+            """
+            Get the polarity from an XML peaklist.
 
-            self.set_data_type()
+            Returns:
+                int: The polarity of the XML peaklist. Returns -1 for negative polarity, +1 for positive polarity.
 
-        if isinstance(self.file_location, S3Path):
-            # data = self.file_location.open('rb').read()
-            data = BytesIO(self.file_location.open('rb').read())
-        
-        else:
-            data = self.file_location
+            Raises:
+                Exception: If the data type is not XML peaklist in Bruker format or if the polarity is unhandled.
+            """
+            
+            # Check its an actual xml
+            if not self.data_type or not self.delimiter:
 
-        if self.data_type != 'xml':
-            raise Exception ("This function is only for XML peaklists (Bruker format)")
+                self.set_data_type()
 
-        with open(data, "r") as file:
-            content = file.readlines()
-            content = "".join(content)
-            bs_content = BeautifulSoup(content, features='xml')
-        polarity = bs_content.find_all("ms_spectrum")[0]['polarity']
-        if polarity == '-':
-            return -1
-        elif polarity == '+':
-            return +1
-        else:
-            raise Exception("Polarity %s unhandled" % polarity)
+            if isinstance(self.file_location, S3Path):
+                # data = self.file_location.open('rb').read()
+                data = BytesIO(self.file_location.open('rb').read())
+            
+            else:
+                data = self.file_location
+
+            if self.data_type != 'xml':
+                raise Exception ("This function is only for XML peaklists (Bruker format)")
+
+            with open(data, "r") as file:
+                content = file.readlines()
+                content = "".join(content)
+                bs_content = BeautifulSoup(content, features='xml')
+            polarity = bs_content.find_all("ms_spectrum")[0]['polarity']
+            if polarity == '-':
+                return -1
+            elif polarity == '+':
+                return +1
+            else:
+                raise Exception("Polarity %s unhandled" % polarity)
