@@ -17,7 +17,7 @@ from corems.encapsulation.factory.parameters import MSParameters
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 import copy
 
-class HighResRecalibration():
+class HighResRecalibration:
     """
     This class is designed for high resolution (FTICR, Orbitrap) data of complex mixture, e.g. Organic matter
 
@@ -26,11 +26,37 @@ class HighResRecalibration():
     This tool works when the data are of sufficient quality, and not outwith the typical expected range of the mass analyzer
     It presumes the mean error is out by 0-several ppm, but that the spread of error values is modest (<2ppm)
 
+    Parameters
+    ----------
+    mass_spectrum : MassSpectrum
+        CoreMS mass spectrum object
+    plot : bool, optional
+        Whether to plot the error distribution. The default is False.
+    docker : bool, optional
+        Whether to use the docker database. The default is True. If not, it uses a dynamically generated sqlite database.
+    ppmFWHMprior : float, optional  
+        The FWHM of the prior distribution (ppm). The default is 3.
+    ppmRangeprior : float, optional
+        The range of the prior distribution (ppm). The default is 15.
+
+    Attributes
+    ----------
+
+
     """
 
-    def __init__(self, mass_spectrum, plot=False,docker=True,ppmFWHMprior=3,ppmRangeprior=15):
-        # we dont want the assignments made in this exploratory class to copy to the original object, so we make a copy of it.  
-        # Possible future task - make mass spectrum base class copyable...
+    def __init__(self, mass_spectrum, plot : bool=False, docker : bool=True, 
+                    ppmFWHMprior : float=3, ppmRangeprior : float=15):
+        """ Initialise the class
+
+
+
+        Notes
+        -----
+        This initialisation function creates a copy of the MassSpectrum object to avoid over-writing assignments. 
+        Possible future task is to make the base class copyable. 
+        """
+        
         self.mass_spectrum = copy.deepcopy(mass_spectrum) 
         self.plot = plot
         self.docker = docker
@@ -39,19 +65,15 @@ class HighResRecalibration():
 
     
     def set_uncal_settings(self):
-        '''
+        """ Set uncalibrated formula search settings
+
         This function serves the uncalibrated data (hence broad error tolerance)
         It only allows CHO formula in deprotonated ion type- as most common for SRFA ESI negative mode
 
-        Parameters
-        ----------
-        None. 
+        This will not work for positive mode data, or for other ion types, or other expected elemental searches.
 
-        Returns
-        -------
-        None.
-
-        '''
+        #TODO rework this.
+        """
         if self.docker:
             self.mass_spectrum.molecular_search_settings.url_database = "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
         else:
@@ -84,21 +106,23 @@ class HighResRecalibration():
         self.mass_spectrum.molecular_search_settings.isAdduct = False
 
     def positive_search_settings(self):
-        """
-        For positive mode, allowing sodium adduct ions
-        Needs further testing
+        """ Set the positive mode elemental search settings
+
         """
         self.mass_spectrum.molecular_search_settings.isProtonated = False
         self.mass_spectrum.molecular_search_settings.isAdduct = True
         self.mass_spectrum.molecular_search_settings.adduct_atoms_pos = ['Na']
 
 
-    def get_error_range(self, errors):
-        """
-        This section looks at the error distribution
-        using lmfit to fit a gaussian distribution to the errors
-        and from that we can determine our true error mean and search width
-        for the recalibration function
+    def get_error_range(self, errors: list):
+        """ Get the error range from the error distribution
+
+        Using lmfit and seaborn kdeplot to extract the error range from the error distribution of assigned species. 
+
+        Parameters
+        ----------
+        errors : list
+            list of the errors of the assigned species (ppm)
         """
         kde = sns.kdeplot(errors) 
 
@@ -135,23 +159,20 @@ class HighResRecalibration():
         return mean_error,fwhm_error,ppm_thresh
     
     def determine_error_boundaries(self):
-        """
-        Main function in this class
-        Sets the MF search settings, performs the formula search
+        """ Determine the error boundaries for recalibration space
+
+        This is the main function in this class
+        Sets the Molecular Formulas search settings, performs the initial formula search
         Converts the data to a dataframe, and gets the error range
         Returns the error thresholds. 
 
-        Parameters
-        ----------
-        None
-
         Returns
         -------
-        mean_error : FLOAT
-            mean mass error of the gaussian distribution (ppm)
-        fwhm_error : FLOAT
+        mean_error : float
+            mean mass error of the Gaussian distribution (ppm)
+        fwhm_error : float
             full width half max of the gaussian error distribution (ppm)
-        ppm_thresh : LIST
+        ppm_thresh : list
             recommended thresholds for the recalibration parameters (ppm)
             Consists of [mean_error-fwhm_error,mean_error+fwhm_error]
         """

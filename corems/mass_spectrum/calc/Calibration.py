@@ -23,14 +23,52 @@ from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFor
 from scipy.optimize import minimize
 
 class MzDomainCalibration:
+    """ MzDomainCalibration class for recalibrating mass spectra
+    
+    Parameters
+    ----------
+    mass_spectrum : CoreMS MassSpectrum Object
+        The mass spectrum to be calibrated.
+    ref_masslist : str
+        The path to a reference mass list.
+    mzsegment : tuple of floats, optional
+        The mz range to recalibrate, or None. Used for calibration of specific parts of the mz domain at a time.
+        Future work - allow multiple mzsegments to be passed.
+    
+    Attributes
+    ----------
+    mass_spectrum : CoreMS MassSpectrum Object
+        The mass spectrum to be calibrated.
+    mzsegment : tuple of floats or None
+        The mz range to recalibrate, or None.
+    ref_mass_list_path : str or Path
+        The path to the reference mass list.
+    
+    Methods
+    -------
+    * run()
+        Main function to run this class.  
+
+    * load_ref_mass_list()
+        Load reference mass list (Bruker format).  
+
+    * gen_ref_mass_list_from_assigned(min_conf=0.7)
+        Generate reference mass list from assigned masses.  
+
+    * find_calibration_points(df_ref, calib_ppm_error_threshold=(-1, 1), calib_snr_threshold=5)
+        Find calibration points in the mass spectrum based on the reference mass list.  
+
+    * robust_calib(param, cal_peaks_mz, cal_refs_mz, order=1)
+        Recalibration function.  
+
+    * recalibrate_mass_spectrum(cal_peaks_mz, cal_refs_mz, order=1, diagnostic=False)
+        Main recalibration function which uses a robust linear regression.
+    
+
+    """
 
     def __init__(self, mass_spectrum, ref_masslist,mzsegment=None):
-        '''
-        mass_spectrum = corems mass spectrum object
-        ref_masslist = path to a reference mass list
-        mzsegment = tuple of mz range to recalibrate, or none. Used for calibration of specific parts of the mz domain at a time.
-            Future work - allow multiple mzsegments to be passed. 
-        '''
+        
         self.mass_spectrum = mass_spectrum
         self.mzsegment = mzsegment
 
@@ -46,18 +84,16 @@ class MzDomainCalibration:
         print("MS Obj loaded - " + str(len(mass_spectrum.mspeaks)) + " peaks found.")
 
     def load_ref_mass_list(self):
-        """
-        function to load in bruker mass list format into a dataframe
+        """ Load reference mass list (Bruker format)
 
-
-        Parameters
-        ----------
-        refmasslist : str
-            full path to reference mass list (.ref) to import.
+        Loads in a reference mass list from a .ref file
+        Note that some versions of Bruker's software produce .ref files with a different format
+        As such, users may need to manually edit the .ref file in a text editor to ensure it is in the correct format
+        CoreMS includes an example .ref file with the correct format for reference. 
 
         Returns
         -------
-        df_ref : pandas dataframe
+        df_ref : Pandas DataFrame
             reference mass list object.
 
         """
@@ -90,23 +126,22 @@ class MzDomainCalibration:
 
         return df_ref
 
-    def gen_ref_mass_list_from_assigned(self, min_conf=0.7):
+    def gen_ref_mass_list_from_assigned(self, min_conf : float=0.7):
+        """ Generate reference mass list from assigned masses
 
-        """
-        This function will generate a ref mass dataframe object
-        from an assigned corems mass spec obj
+        This function will generate a ref mass dataframe object from an assigned corems mass spec obj
         using assigned masses above a certain minimum confidence threshold
+
+        #TODO this function needs to be retested and check it is covered in the unit tests
 
         Parameters
         ----------
-        mass_spectrum : corems mass spec obj
-            processed assigned mass spectrum.
         min_conf : float, optional
             minimum confidence score. The default is 0.7.
 
         Returns
         -------
-        df_ref : pandas dataframe
+        df_ref : Pandas DataFrame
             reference mass list - based on calculated masses.
 
         """
@@ -118,19 +153,19 @@ class MzDomainCalibration:
         return df_ref
 
     def find_calibration_points(self, df_ref,
-                                calib_ppm_error_threshold=(-1, 1),
-                                calib_snr_threshold=5):
+                                calib_ppm_error_threshold : tuple[float, float]=(-1, 1),
+                                calib_snr_threshold : float=5):
         """
         function to find calibration points in the mass spectrum based on the reference
         mass list.
 
         Parameters
         ----------
-        mass_spectrum : corems mass spec obj
+        mass_spectrum : CoreMS MassSpectrum Object
             mass spectrum to be calibrated.
-        df_ref : pandas dataframe
+        df_ref : Pandas DataFrame
             reference mass list for recalibration.
-        calib_ppm_error_threshold : float, optional
+        calib_ppm_error_threshold : tuple of floats, optional
             ppm error for finding calibration masses in the spectrum. The default is -1,1.
             Note: This is based on the calculation of ppm = ((mz_measure - mz_theoretical)/mz_theoretical)*1e6
                 Some software does this the other way around and value signs must be inverted for that to work. 
@@ -208,8 +243,11 @@ class MzDomainCalibration:
         print(str(len(cal_peaks_mz)) + " calibration points matched within thresholds.")
         return cal_peaks_mz, cal_refs_mz
 
-    def robust_calib(self, param, cal_peaks_mz, cal_refs_mz, order=1):
-        """
+    def robust_calib(self, param : list[float], 
+                     cal_peaks_mz : list[float], cal_refs_mz : list[float], 
+                     order : int=1):
+        """ Recalibration function
+
         computes the rms of m/z errors to minimize when calibrating
         This is adapted from from spike
 
@@ -262,14 +300,17 @@ class MzDomainCalibration:
         rmserror = np.sqrt(np.mean(error**2))
         return rmserror
 
-    def recalibrate_mass_spectrum(self, cal_peaks_mz, cal_refs_mz, order=1,diagnostic=False):
+    def recalibrate_mass_spectrum(self, cal_peaks_mz : list[float], cal_refs_mz : list[float], 
+                                        order : int=1, diagnostic : bool=False):
 
-        """
-        function to recalibrate the mass spectrum object
+        """ Main recalibration function which uses a robust linear regression
+
+        This function performs the recalibration of the mass spectrum object. 
+        It iteratively applies 
 
         Parameters
         ----------
-        mass_spectrum : corems mass spec obj
+        mass_spectrum : CoreMS mass spectrum object
             mass spectrum to be calibrated.
         cal_peaks_mz : list of float
             masses of measured peaks to use in mass calibration.
@@ -280,8 +321,20 @@ class MzDomainCalibration:
 
         Returns
         -------
-        mass_spectrum : corems mass spec obj
-            mass spectrum to be calibrated.
+        mass_spectrum : CoreMS mass spectrum object
+            Calibrated mass spectrum object
+
+
+        Notes 
+        -----
+        This function is adapted, in part, from the SPIKE project [1,2] and is based on the robust linear regression method. 
+
+        References
+        ----------
+        .. [1] Chiron L., Coutouly M-A., Starck J-P., Rolando C., Delsuc M-A. 
+            SPIKE a Processing Software dedicated to Fourier Spectroscopies 
+            https://arxiv.org/abs/1608.06777 (2016)
+        .. [2] SPIKE - https://github.com/spike-project/spike 
 
         """
         # initialise parameters for recalibration
@@ -299,7 +352,7 @@ class MzDomainCalibration:
                 # Split the array into two parts - one to recailbrate, one to keep unchanged. 
                 mz_exp_peaks_tocal = mz_exp_peaks[(mz_exp_peaks>=min(self.mzsegment)) & (mz_exp_peaks<=max(self.mzsegment))]
                 mz_exp_peaks_unchanged = mz_exp_peaks[~(mz_exp_peaks>=min(self.mzsegment)) | ~(mz_exp_peaks<=max(self.mzsegment))]
-                # To Do: - segmented calibration needs a way to better track the calibration args/values... 
+                # TODO: - segmented calibration needs a way to better track the calibration args/values... 
                 if not self.mass_spectrum.is_centroid:
                     mz_exp_profile = np.array(self.mass_spectrum.mz_exp_profile)
                     # Split the array into two parts - one to recailbrate, one to keep unchanged. 
@@ -313,7 +366,7 @@ class MzDomainCalibration:
 
             minimize_method = self.mass_spectrum.settings.calib_minimize_method
             res = minimize(self.robust_calib, Po, args=(cal_peaks_mz, cal_refs_mz, order), method=minimize_method)
-
+            #TODO add quiet option to these print statements
             print("minimize function completed with RMS error of: {:0.3f} ppm".format(res['fun']))
             print("minimize function performed {:1d} fn evals and {:1d} iterations".format(res['nfev'], res['nit']))
             Pn = res.x
@@ -364,7 +417,11 @@ class MzDomainCalibration:
             return self.mass_spectrum
 
     def run(self):
-
+        """ Run the calibration routine
+        
+        This function runs the calibration routine.
+        
+        """
         calib_ppm_error_threshold = self.mass_spectrum.settings.calib_sn_threshold
         max_calib_ppm_error = self.mass_spectrum.settings.max_calib_ppm_error
         min_calib_ppm_error = self.mass_spectrum.settings.min_calib_ppm_error
