@@ -19,12 +19,41 @@ from corems import __version__, corems_md5
 import uuid
 
 class LowResGCMSExport():
+    """A class to export low resolution GC-MS data.
+
+    This class provides methods to export low resolution GC-MS data to various formats such as Excel, CSV, HDF5, and Pandas DataFrame.
+
+    Parameters:
+    ----------
+    out_file_path : str
+        The output file path.
+    gcms : object
+        The low resolution GCMS object.
+
+    Attributes:
+    ----------
+    output_file : Path
+        The output file path as a Path object.
+    gcms : object
+        The low resolution GCMS object.
+    
+    Methods:
+    -------
+    * get_pandas_df(id_label="corems:"). Get the exported data as a Pandas DataFrame.
+    * get_json(nan=False, id_label="corems:"). Get the exported data as a JSON string.
+    * to_pandas(write_metadata=True, id_label="corems:"). Export the data to a Pandas DataFrame and save it as a pickle file.
+    * to_excel(write_mode='a', write_metadata=True, id_label="corems:"),
+        Export the data to an Excel file.
+    * to_csv(separate_output=False, write_mode="w", write_metadata=True, id_label="corems:").
+        Export the data to a CSV file.
+    * to_hdf(id_label="corems:").
+        Export the data to an HDF5 file.
+    * get_data_stats(gcms).
+        Get statistics about the GCMS data.
+
+    """
 
     def __init__(self, out_file_path, gcms):
-        '''
-        output_type: str
-            'excel', 'csv', 'hdf5' or 'pandas'
-        '''
 
         self.output_file = Path(out_file_path)
 
@@ -33,6 +62,13 @@ class LowResGCMSExport():
         self._init_columns()
 
     def _init_columns(self):
+        """Initialize the column names for the exported data.
+
+        Returns:
+        -------
+        list
+            The list of column names.
+        """
 
         columns = ['Sample name', 'Peak Index', 'Retention Time', 'Retention Time Ref', 'Peak Height',
                    'Peak Area', 'Retention index', 'Retention index Ref', 'Retention Index Score',
@@ -68,6 +104,18 @@ class LowResGCMSExport():
         return columns
 
     def get_pandas_df(self, id_label="corems:"):
+        """Get the exported data as a Pandas DataFrame.
+
+        Parameters:
+        ----------
+        id_label : str, optional
+            The ID label for the data. Default is "corems:".
+
+        Returns:
+        -------
+        DataFrame
+            The exported data as a Pandas DataFrame.
+        """
 
         columns = self._init_columns()
 
@@ -80,6 +128,20 @@ class LowResGCMSExport():
         return df
 
     def get_json(self, nan=False, id_label="corems:"):
+        """Get the exported data as a JSON string.
+
+        Parameters:
+        ----------
+        nan : bool, optional
+            Whether to include NaN values in the JSON string. Default is False.
+        id_label : str, optional
+            The ID label for the data. Default is "corems:".
+
+        Returns:
+        -------
+        str
+            The exported data as a JSON string.
+        """
 
         import json
 
@@ -88,6 +150,15 @@ class LowResGCMSExport():
         return json.dumps(dict_data_list, sort_keys=False, indent=4, separators=(',', ': '))
 
     def to_pandas(self, write_metadata=True, id_label="corems:"):
+        """Export the data to a Pandas DataFrame and save it as a pickle file.
+
+        Parameters:
+        ----------
+        write_metadata : bool, optional
+            Whether to write metadata to the output file.
+        id_label : str, optional
+            The ID label for the data.
+        """
 
         columns = self._init_columns()
 
@@ -101,6 +172,17 @@ class LowResGCMSExport():
             self.write_settings(self.output_file.with_suffix('.pkl'), self.gcms, id_label="corems:")
 
     def to_excel(self, write_mode='a', write_metadata=True, id_label="corems:"):
+        """Export the data to an Excel file.
+
+        Parameters:
+        ----------
+        write_mode : str, optional
+            The write mode for the Excel file. Default is 'a' (append).
+        write_metadata : bool, optional
+            Whether to write metadata to the output file. Default is True.
+        id_label : str, optional
+            The ID label for the data. Default is "corems:".
+        """
 
         out_put_path = self.output_file.with_suffix('.xlsx')
 
@@ -131,6 +213,19 @@ class LowResGCMSExport():
             self.write_settings(out_put_path, self.gcms, id_label=id_label)
 
     def to_csv(self, separate_output=False, write_mode="w", write_metadata=True, id_label="corems:"):
+        """Export the data to a CSV file.
+
+        Parameters:
+        ----------
+        separate_output : bool, optional
+            Whether to separate the output into multiple files. Default is False.
+        write_mode : str, optional
+            The write mode for the CSV file. Default is 'w' (write).
+        write_metadata : bool, optional
+            Whether to write metadata to the output file. Default is True.
+        id_label : str, optional
+            The ID label for the data. Default is "corems:".
+        """
 
         if separate_output:
             # set write mode to write
@@ -163,10 +258,17 @@ class LowResGCMSExport():
             print(ioerror)
 
     def to_hdf(self, id_label="corems:"):
+        """Export the data to an HDF5 file.
+
+        Parameters:
+        ----------
+        id_label : str, optional
+            The ID label for the data. Default is "corems:".
+        """
 
         # save sample at a time
         def add_compound(gc_peak, compound_obj):
-
+            
             modifier = compound_obj.classify if compound_obj.classify else ""
             compound_group = peak_group.create_group(compound_obj.name.replace('/', '') + " " + modifier)
             compound_group.attrs["retention_time"] = compound_obj.retention_time
@@ -220,7 +322,7 @@ class LowResGCMSExport():
             output_score_method = self.gcms.molecular_search_settings.output_score_method
 
             for gc_peak in self.gcms:
-
+                
                 # print(gc_peak.retention_time)
                 # print(gc_peak.tic)
 
@@ -255,6 +357,18 @@ class LowResGCMSExport():
                             add_compound(gc_peak, compound_obj)
 
     def get_data_stats(self, gcms):
+        """Get statistics about the GCMS data.
+
+        Parameters:
+        ----------
+        gcms : object
+            The low resolution GCMS object.
+
+        Returns:
+        -------
+        dict
+            A dictionary containing the data statistics.
+        """
 
         matched_peaks = gcms.matched_peaks
         no_matched_peaks = gcms.no_matched_peaks
@@ -283,7 +397,11 @@ class LowResGCMSExport():
         return data_stats
 
     def get_calibration_stats(self, gcms, id_label):
+        """Get statistics about the GC-MS calibration.
 
+        Parameters:
+        ----------
+        """
         calibration_parameters = {}
 
         calibration_parameters['calibration_rt_ri_pairs_ref'] = gcms.ri_pairs_ref
@@ -295,7 +413,7 @@ class LowResGCMSExport():
         return calibration_parameters
 
     def get_blank_stats(self, gcms):
-
+        """Get statistics about the GC-MS blank."""
         blank_parameters = {}
 
         blank_parameters['data_name'] = "ni"
@@ -307,7 +425,7 @@ class LowResGCMSExport():
         return blank_parameters
 
     def get_instrument_metadata(self, gcms):
-
+        """Get metadata about the GC-MS instrument."""
         instrument_metadata = {}
 
         instrument_metadata['analyzer'] = gcms.analyzer
@@ -317,7 +435,22 @@ class LowResGCMSExport():
         return instrument_metadata
 
     def get_data_metadata(self, gcms, id_label, output_path):
-
+        """Get metadata about the GC-MS data.
+        
+        Parameters:
+        ----------
+        gcms : object
+            The low resolution GCMS object.
+        id_label : str 
+            The ID label for the data.
+        output_path : str
+            The output file path.
+            
+        Returns:
+        -------
+        dict
+            A dictionary containing the data metadata.
+        """
         if isinstance(output_path, str):
             output_path = Path(output_path)
 
@@ -345,7 +478,23 @@ class LowResGCMSExport():
         return data_metadata
 
     def get_parameters_json(self, gcms, id_label, output_path):
+        """Get the parameters as a JSON string.
 
+        Parameters:
+        ----------
+        gcms : GCMS object
+            The low resolution GCMS object.
+        id_label : str
+            The ID label for the data.
+        output_path : str
+            The output file path.
+
+        Returns:
+        -------
+        str
+            The parameters as a JSON string.
+        """
+            
         output_parameters_dict = {}
         output_parameters_dict['Data'] = self.get_data_metadata(gcms, id_label, output_path)
         output_parameters_dict["Stats"] = self.get_data_stats(gcms)
@@ -361,6 +510,18 @@ class LowResGCMSExport():
         return output
 
     def write_settings(self, output_path, gcms, id_label="emsl:"):
+        """Write the settings to a JSON file.
+
+        Parameters:
+        ----------
+        output_path : str
+            The output file path.
+        gcms : GCMS object
+            The low resolution GCMS object.
+        id_label : str
+            The ID label for the data. Default is "emsl:".
+
+        """ 
 
         output = self.get_parameters_json(gcms, id_label, output_path)
 
@@ -369,6 +530,22 @@ class LowResGCMSExport():
             outfile.write(output)
 
     def get_list_dict_data(self, gcms, include_no_match=True, no_match_inline=False):
+        """Get the exported data as a list of dictionaries.
+
+        Parameters:
+        ----------
+        gcms : object
+            The low resolution GCMS object.
+        include_no_match : bool, optional
+            Whether to include no match data. Default is True.
+        no_match_inline : bool, optional
+            Whether to include no match data inline. Default is False.
+
+        Returns:
+        -------
+        list
+            The exported data as a list of dictionaries.
+        """
 
         output_score_method = gcms.molecular_search_settings.output_score_method
 
@@ -464,14 +641,20 @@ class LowResGCMSExport():
 
 
 class HighResMassSpectraExport(HighResMassSpecExport):
-    '''
+    """A class to export high resolution mass spectra data.
 
-    '''
+    This class provides methods to export high resolution mass spectra data to various formats such as Excel, CSV, HDF5, and Pandas DataFrame.
+
+    Parameters:
+    ----------
+    out_file_path : str | Path
+        The output file path.
+    mass_spectra : object
+        The high resolution mass spectra object.
+    output_type : str, optional
+        The output type. Default is 'excel'.
+    """
     def __init__(self, out_file_path, mass_spectra, output_type='excel'):
-        '''
-        output_type: str
-            'excel', 'csv', 'hdf5' or 'pandas'
-        '''
 
         self.output_file = Path(out_file_path)
 
@@ -487,6 +670,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
         self._init_columns()
 
     def get_pandas_df(self):
+        """Get the exported data as a Pandas DataFrame."""
 
         list_df = []
 
@@ -507,6 +691,13 @@ class HighResMassSpectraExport(HighResMassSpecExport):
         return list_df
 
     def to_pandas(self, write_metadata=True):
+        """Export the data to a Pandas DataFrame and save it as a pickle file.
+        
+        Parameters:
+        ----------
+        write_metadata : bool, optional
+            Whether to write metadata to the output file. Default is True.
+        """
 
         for mass_spectrum in self.mass_spectra:
 
@@ -526,7 +717,13 @@ class HighResMassSpectraExport(HighResMassSpecExport):
                 self.write_settings(self.dir_loc / out_filename.with_suffix(''), mass_spectrum)
 
     def to_excel(self, write_metadata=True):
+        """Export the data to an Excel file.
 
+        Parameters:
+        ----------
+        write_metadata : bool, optional
+            Whether to write metadata to the output file. Default is True.
+        """
         for mass_spectrum in self.mass_spectra:
 
             columns = self.columns_label + self.get_all_used_atoms_in_order(mass_spectrum)
@@ -545,7 +742,13 @@ class HighResMassSpectraExport(HighResMassSpecExport):
                 self.write_settings(self.dir_loc / out_filename.with_suffix(''), mass_spectrum)
 
     def to_csv(self, write_metadata=True):
+        """Export the data to a CSV file.
 
+        Parameters:
+        ----------
+        write_metadata : bool, optional
+            Whether to write metadata to the output file. Default is True.
+        """
         import csv
 
         for mass_spectrum in self.mass_spectra:
@@ -568,7 +771,18 @@ class HighResMassSpectraExport(HighResMassSpecExport):
                 self.write_settings(self.dir_loc / out_filename.with_suffix(''), mass_spectrum)                    
 
     def get_mass_spectra_attrs(self, mass_spectra):
+        """Get the mass spectra attributes as a JSON string.
 
+        Parameters:
+        ----------
+        mass_spectra : object
+            The high resolution mass spectra object.
+
+        Returns:
+        -------
+        str
+            The mass spectra attributes as a JSON string.
+        """
         dict_ms_attrs = {}
         dict_ms_attrs['analyzer'] = self.mass_spectra.analyzer
         dict_ms_attrs['instrument_label'] = self.mass_spectra.instrument_label
@@ -577,7 +791,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
         return json.dumps(dict_ms_attrs, sort_keys=False, indent=4, separators=(',', ': '))
 
     def to_hdf(self):
-
+        """Export the data to an HDF5 file."""
         import h5py
         import json
         from numpy import array
