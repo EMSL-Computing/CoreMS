@@ -31,7 +31,7 @@ def ms_from_array_profile(mz, abundance, dataname:str, polarity:int = -1, auto_p
     
     return ms
 
-def ms_from_array_centroid(mz, abundance, rp:list(float), s2n:list(float), dataname:str, polarity:int=-1, auto_process:bool=True):
+def ms_from_array_centroid(mz, abundance, rp:list[float], s2n:list[float], dataname:str, polarity:int=-1, auto_process:bool=True):
     """
     Create a MassSpecCentroid object from an array of m/z values, abundance values, resolution power, and signal-to-noise ratio.
 
