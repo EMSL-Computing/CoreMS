@@ -3,6 +3,7 @@ test_env/
 venv310/
 venvwsl/
 tmp_data/ 
+tmp_docs/
 .pyc  
 .pyo
 *.hdf5

@@ -11,10 +11,11 @@ class GCPeakCalculation(object):
     """
     Class for performing peak calculations in GC chromatography.
 
-    Methods:
-    - `calc_area(self, tic: List[float], dx: float) -> None`: Calculate the area under the curve of the chromatogram.
-    - `linear_ri(self, right_ri: float, left_ri: float, left_rt: float, right_rt: float) -> float`: Calculate the retention index using linear interpolation.
-    - `calc_ri(self, rt_ri_pairs: List[Tuple[float, float]]) -> int`: Calculate the retention index based on the given retention time - retention index pairs.
+    Methods
+    -------
+    * `calc_area(self, tic: List[float], dx: float) -> None`: Calculate the area under the curve of the chromatogram.
+    * `linear_ri(self, right_ri: float, left_ri: float, left_rt: float, right_rt: float) -> float`: Calculate the retention index using linear interpolation.
+    * `calc_ri(self, rt_ri_pairs: List[Tuple[float, float]]) -> int`: Calculate the retention index based on the given retention time - retention index pairs.
     """
 
     def calc_area(self, tic: list[float], dx: float) -> None:
@@ -67,11 +68,7 @@ class GCPeakCalculation(object):
         ----------
         rt_ri_pairs : List[Tuple[float, float]]
             The list of retention time - retention index pairs.
-
-        Returns
-        -------
-        int
-            1 if the calculation is successful.
+            
         """
         current_rt = self.retention_time
 
