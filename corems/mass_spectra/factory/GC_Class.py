@@ -64,13 +64,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
     Methods
     -------
     * process_chromatogram(plot_res=False). Process the chromatogram.
-    * add_mass_spectrum(mass_spec). Add a mass spectrum to the GC-MS data.
-    * set_tic_list_from_data(). Set the total ion chromatogram list from the data.
-    * set_retention_time_from_data(). Set the retention time list from the data.
-    * set_scans_number_from_data(). Set the scans number list from the data.
     * plot_gc_peaks(ax=None, color='red'). Plot the GC peaks.
-    * to_excel(out_file_path, write_mode='ab', write_metadata=True, id_label='corems:'). 
-        Export the GC-MS data to an Excel file.
     """
 
     def __init__(self, file_location, analyzer='Unknown', instrument_label='Unknown', sample_name=None):
