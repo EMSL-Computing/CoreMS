@@ -13,26 +13,35 @@ from corems.encapsulation.factory.parameters import default_parameters
 
 
 class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
-    """
-    ReadCoreMSHDF_MassSpectrum is a class for reading CoreMS HDF5 mass spectra.
-
-    Parameters
-    ----------
-    arg : str
-        The arg is used for ...
-    *args
-        The variable arguments are used for ...
-    **kwargs
-        The keyword arguments are used for ...
+    """Class for reading mass spectrum data from a CoreMS HDF5 file.
 
     Attributes
     ----------
-    arg : str
-        This is where we store arg,
+    h5pydata : h5py.File
+        The HDF5 file object.
+    scans : list
+        List of scan labels in the HDF5 file.
+
+    Parameters
+    ----------
+    file_location : str or S3Path
+        The path to the CoreMS HDF5 file.
+
+    Methods
+    -------
+    *load_raw_data(mass_spectrum, scan_index=0) Load raw data into the mass spectrum object.
+    *get_mass_spectrum(scan_number=0, time_index=-1, auto_process=True, load_settings=True, load_raw=True).Get a mass spectrum object.
+    *load_settings(mass_spectrum, scan_index=0, time_index=-1). Load settings into the mass spectrum object.
+    *get_dataframe(scan_index=0, time_index=-1). Get a pandas DataFrame representing the mass spectrum.
+    *get_time_index_to_pull(scan_label, time_index). Get the time index to pull from the HDF5 file.
+    *get_high_level_attr_data(attr_str). Get high-level attribute data from the HDF5 file.
+    *get_scan_group_attr_data(scan_index, time_index, attr_group, attr_srt=None). Get scan group attribute data from the HDF5 file.
+    *get_raw_data_attr_data(scan_index, attr_group, attr_str). Get raw data attribute data from the HDF5 file.
+    *get_output_parameters(polarity, scan_index=0). Get the output parameters for the mass spectrum.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(self, file_location):
+        super().__init__(file_location)
 
         if isinstance(self.file_location, S3Path):
             data = BytesIO(self.file_location.open("rb").read())
@@ -45,7 +54,7 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
         print(self.scans)
 
-    def load_raw_data(self, mass_spectrum, scan_index=0) -> None:
+    def load_raw_data(self, mass_spectrum, scan_index=0):
         """
         Load raw data into the mass spectrum object.
 
@@ -71,10 +80,10 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         self,
         scan_number=0,
         time_index=-1,
-        auto_process=True, #FIX?
+        auto_process=True,
         load_settings=True,
         load_raw=True,
-    ) -> MassSpecCentroid:
+    ):
         """
         Get a mass spectrum object.
 
@@ -128,7 +137,6 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
         return mass_spec_obj
 
-    # override baseclass
     def load_settings(self, mass_spectrum, scan_index=0, time_index=-1):
         """
         Load settings into the mass spectrum object.
@@ -159,8 +167,7 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
         _set_dict_data_ms(loaded_settings, mass_spectrum)
 
-    # override baseclass
-    def get_dataframe(self, scan_index=0, time_index=-1) -> DataFrame:
+    def get_dataframe(self, scan_index=0, time_index=-1):
         """
         Get a pandas DataFrame representing the mass spectrum.
 
@@ -198,7 +205,7 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
         return DataFrame(list_dict)
 
-    def get_time_index_to_pull(self, scan_label, time_index) -> str:
+    def get_time_index_to_pull(self, scan_label, time_index):
         """
         Get the time index to pull from the HDF5 file.
 
@@ -224,34 +231,31 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
         return index_to_pull
 
-    def get_high_level_attr_data(
-            self,
-            attr_str: str,
-        ) -> dict:
-            """
-            Get high-level attribute data from the HDF5 file.
+    def get_high_level_attr_data(self, attr_str):
+        """
+        Get high-level attribute data from the HDF5 file.
 
-            Parameters
-            ----------
-            attr_str : str
-                The attribute string.
+        Parameters
+        ----------
+        attr_str : str
+            The attribute string.
 
-            Returns
-            -------
-            dict
-                The attribute data.
+        Returns
+        -------
+        dict
+            The attribute data.
 
-            Raises
-            ------
-            KeyError
-                If the attribute string is not found in the HDF5 file.
-            """
+        Raises
+        ------
+        KeyError
+            If the attribute string is not found in the HDF5 file.
+        """
 
-            return self.h5pydata.attrs[attr_str]
+        return self.h5pydata.attrs[attr_str]
 
     def get_scan_group_attr_data(
         self, scan_index, time_index, attr_group, attr_srt=None
-    ) -> dict:
+    ):
         """
         Get scan group attribute data from the HDF5 file.
 
@@ -295,48 +299,47 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
             else:
                 return {}
 
-    def get_raw_data_attr_data(self, scan_index: int, attr_group: str, attr_str: str) -> dict:
-            """
-            Get raw data attribute data from the HDF5 file.
+    def get_raw_data_attr_data(self, scan_index, attr_group, attr_str):
+        """
+        Get raw data attribute data from the HDF5 file.
 
-            Parameters
-            ----------
-            scan_index : int
-                The index of the scan.
-            attr_group : str
-                The attribute group.
-            attr_str : str
-                The attribute string.
+        Parameters
+        ----------
+        scan_index : int
+            The index of the scan.
+        attr_group : str
+            The attribute group.
+        attr_str : str
+            The attribute string.
 
-            Returns
-            -------
-            dict
-                The attribute data.
+        Returns
+        -------
+        dict
+            The attribute data.
 
-            Raises
-            ------
-            KeyError
-                If the attribute string is not found in the attribute group.
+        Raises
+        ------
+        KeyError
+            If the attribute string is not found in the attribute group.
 
-            Notes
-            -----
-            This method retrieves the attribute data associated with a specific scan, attribute group, and attribute string
-            from the HDF5 file. It returns the attribute data as a dictionary.
+        Notes
+        -----
+        This method retrieves the attribute data associated with a specific scan, attribute group, and attribute string
+        from the HDF5 file. It returns the attribute data as a dictionary.
 
-            Example usage:
-            >>> data = get_raw_data_attr_data(0, "group1", "attribute1")
-            >>> print(data)
-            {'key1': 'value1', 'key2': 'value2'}
-            """
-            scan_label = self.scans[scan_index]
-            try:
-                json.loads(self.h5pydata[scan_label]["raw_ms"].attrs[attr_group])[attr_str]
-            except KeyError:
-                attr_str = attr_str.replace("baseline", "baselise")
-            return json.loads(self.h5pydata[scan_label]["raw_ms"].attrs[attr_group])[attr_str]
+        Example usage:
+        >>> data = get_raw_data_attr_data(0, "group1", "attribute1")
+        >>> print(data)
+        {'key1': 'value1', 'key2': 'value2'}
+        """
+        scan_label = self.scans[scan_index]
+        try:
+            json.loads(self.h5pydata[scan_label]["raw_ms"].attrs[attr_group])[attr_str]
+        except KeyError:
+            attr_str = attr_str.replace("baseline", "baselise")
+        return json.loads(self.h5pydata[scan_label]["raw_ms"].attrs[attr_group])[attr_str]
 
-    # override baseclass
-    def get_output_parameters(self, polarity: str, scan_index=0) -> dict:
+    def get_output_parameters(self, polarity, scan_index=0):
         """
         Get the output parameters for the mass spectrum.
 
@@ -372,6 +375,10 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
             scan_index, "MassSpecAttrs", "mobility_rt"
         )
         d_params["Aterm"] = self.get_raw_data_attr_data(
+            scan_index, "MassSpecAttrs", "Aterm"
+        )
+
+        return d_params
             scan_index, "MassSpecAttrs", "Aterm"
         )
         d_params["Bterm"] = self.get_raw_data_attr_data(
