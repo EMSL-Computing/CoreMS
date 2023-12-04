@@ -19,18 +19,62 @@ from corems.encapsulation.factory.parameters import GCMSParameters
 
 
 class GCMSBase(GC_Calculations, MassDeconvolution):
-    """
-    classdocs
+    """Base class for GC-MS data processing.
+
+    Parameters
+    ----
+    file_location : str, pathlib.Path, or s3path.S3Path
+        Path object containing the file location.
+    analyzer : str, optional
+        Name of the analyzer. Defaults to 'Unknown'.
+    instrument_label : str, optional
+        Label of the instrument. Defaults to 'Unknown'.
+    sample_name : str, optional
+        Name of the sample. If not provided, it is derived from the file location.
+
+    Attributes
+    ------------
+    file_location : pathlib.Path
+        Path object containing the file location.
+    sample_name : str
+        Name of the sample.
+    analyzer : str
+        Name of the analyzer.
+    instrument_label : str
+        Label of the instrument.
+    gcpeaks : list
+        List of GCPeak objects.
+    ri_pairs_ref : None
+        Reference retention index pairs.
+    cal_file_path : None
+        Calibration file path.
+    _parameters : GCMSParameters
+        GC-MS parameters.
+    _retention_time_list : list
+        List of retention times.
+    _scans_number_list : list
+        List of scan numbers.
+    _tic_list : list
+        List of total ion chromatogram values.
+    _ms : dict
+        Dictionary containing all mass spectra.
+    _processed_tic : list
+        List of processed total ion chromatogram values.
+
+    Methods
+    -------
+    * process_chromatogram(plot_res=False). Process the chromatogram.
+    * add_mass_spectrum(mass_spec). Add a mass spectrum to the GC-MS data.
+    * set_tic_list_from_data(). Set the total ion chromatogram list from the data.
+    * set_retention_time_from_data(). Set the retention time list from the data.
+    * set_scans_number_from_data(). Set the scans number list from the data.
+    * plot_gc_peaks(ax=None, color='red'). Plot the GC peaks.
+    * to_excel(out_file_path, write_mode='ab', write_metadata=True, id_label='corems:'). 
+        Export the GC-MS data to an Excel file.
     """
 
     def __init__(self, file_location, analyzer='Unknown', instrument_label='Unknown', sample_name=None):
 
-        """
-            # Parameters
-        ----------
-        file_location: text,  pathlib.Path(), or s3path.S3Path
-            Path object from pathlib containing the file location
-        """
         if isinstance(file_location, str):
             # if obj is a string it defaults to create a Path obj, pass the S3Path if needed
             file_location = Path(file_location)
@@ -65,15 +109,18 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         self.cal_file_path = None
 
     def _init_settings(self):
+        """Initialize the settings for GC_Class.
 
+        This method initializes the settings for the GC_Class object using the GCMSParameters class.
+        """
         self._parameters = GCMSParameters()
 
     def __len__(self):
-
+        """Return the number of GC peaks in the GC_Class object."""
         return len(self.gcpeaks)
 
     def __getitem__(self, scan_number) -> GCPeak:
-
+        """Return the GCPeak with the given scan number."""
         return self.gcpeaks[scan_number]
 
     # def __iter__(self):
@@ -81,6 +128,15 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
     #     return iter(self.gcpeaks.values())
 
     def process_chromatogram(self, plot_res=False):
+        """Process the chromatogram.
+        
+        This method processes the chromatogram.
+        
+        Parameters
+        ----------
+        plot_res : bool, optional
+            If True, plot the results. Defaults to False.           
+        """
 
         # tic = self.tic - self.baseline_detector(self.tic)
 
@@ -113,16 +169,27 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
                 # self.gcpeaks[self.scans_number[apex_index]] = gc_peak
 
     def add_mass_spectrum(self, mass_spec):
+        """Add a mass spectrum to the GC-MS data.
+
+        This method adds a mass spectrum to the GC-MS data.
+
+        Parameters
+        ----------
+        mass_spec : MassSpectrum
+            Mass spectrum to be added.
+        """
 
         self._ms[mass_spec.scan_number] = mass_spec
 
     def set_tic_list_from_data(self):
+        """Set the total ion chromatogram list from the mass spectra data within the GC-MS data object."""
 
         self.tic = [self._ms.get(i).tic for i in self.scans_number]
 
         # self.set_tic_list([self._ms.get(i).get_sumed_signal_to_noise() for i in self.get_scans_number()])
 
     def set_retention_time_from_data(self):
+        """Set the retention time list from the mass spectra data within the GC-MS data object."""
 
         retention_time_list = []
 
@@ -135,11 +202,13 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         # self.set_retention_time_list(sorted(self._ms.keys()))
 
     def set_scans_number_from_data(self):
+        """Set the scan number list from the mass spectra data within the GC-MS data object."""
 
         self.scans_number = sorted(self._ms.keys())
 
     @property
     def parameter(self):
+        """GCMS Parameters"""
         return self._parameters
 
     @parameter.setter
@@ -148,6 +217,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
     @property
     def molecular_search_settings(self):
+        """Molecular Search Settings"""
         return self.parameter.molecular_search
 
     @molecular_search_settings.setter
@@ -157,59 +227,61 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
     @property
     def chromatogram_settings(self):
+        """Chromatogram Settings"""
         return self.parameter.gc_ms
 
     @chromatogram_settings.setter
     def chromatogram_settings(self, settings_class_instance):
-
         self.parameter.gc_ms = settings_class_instance
 
     @property
     def scans_number(self):
-
+        """Scans Number"""
         return self._scans_number_list
 
     @property
     def retention_time(self):
-
+        """Retention Time"""
         return self._retention_time_list
 
     @property
     def processed_tic(self):
-
+        """Processed Total Ion Current"""
         return self._processed_tic
 
     @property
     def tic(self):
-
+        """Total Ion Current"""
         return self._tic_list
 
     @property
     def max_tic(self):
-
+        """Maximum Total Ion Current"""
         return max([gc_peak.tic for gc_peak in self])
 
     @property
     def min_tic(self):
-
+        """Minimum Total Ion Current"""
         return min([gc_peak.tic for gc_peak in self])
 
     @property
     def dynamic_range(self):
-
+        """Dynamic Range of the Total Ion Current"""
         return self.max_tic / self.min_tic
 
     @property
     def matched_peaks(self):
+        """Matched Peaks"""
         return [gc_peak for gc_peak in self if gc_peak]
 
     @property
     def sorted_gcpeaks(self):
+        """Sorted GC Peaks, by retention time"""
         return sorted(self, key=lambda g: g.retention_time)
 
     @property
     def unique_metabolites(self):
-
+        """Unique Metabolites"""
         metabolites = set()
         for gc_peak in self:
             if gc_peak:
@@ -220,7 +292,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
     @property
     def metabolites_data(self):
-
+        """Metabolites Data"""
         metabolites = {}
         for gc_peak in self:
             if gc_peak:
@@ -258,6 +330,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
     @property
     def no_matched_peaks(self):
+        """Peaks with no Matched Metabolites"""
         return [peak for peak in self if not peak]
 
     @retention_time.setter
@@ -276,6 +349,17 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         self._tic_list = array(alist)
 
     def plot_gc_peaks(self, ax=None, color="red"):  # pragma: no cover
+        """Plot the GC peaks.
+        
+        This method plots the GC peaks.
+        
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes, optional
+            Axes object to plot the GC peaks. Defaults to None.
+        color : str, optional
+            Color of the GC peaks. Defaults to 'red'.
+        """
 
         import matplotlib.pyplot as plt
         fig = plt.gcf()
@@ -332,6 +416,26 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         return ax
 
     def to_excel(self, out_file_path, write_mode='ab', write_metadata=True, id_label="corems:"):
+        """Export the GC-MS data to an Excel file.
+
+        This method exports the GC-MS data to an Excel file.
+
+        Parameters
+        ----------
+        out_file_path : str, pathlib.Path, or s3path.S3Path
+            Path object containing the file location.
+        write_mode : str, optional
+            Write mode. Defaults to 'ab'.
+        write_metadata : bool, optional
+            If True, write the metadata. Defaults to True.
+        id_label : str, optional
+            Label of the ID. Defaults to 'corems:'.
+
+        Returns
+        -------
+        pathlib.Path
+            Path object containing the file location.
+        """
 
         if isinstance(out_file_path, str):
             out_file_path = Path(out_file_path)
@@ -342,6 +446,22 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         return out_file_path.with_suffix('.xlsx')
 
     def to_csv(self, out_file_path, separate_output=False, write_metadata=True, id_label="corems:"):
+        """Export the GC-MS data to a CSV file.
+
+        Parameters
+        ----------
+        out_file_path : str, pathlib.Path, or s3path.S3Path
+            Path object containing the file location.
+        separate_output : bool, optional
+            If True, separate the output. Defaults to False.
+        write_metadata : bool, optional
+            If True, write the metadata. Defaults to True.
+
+        Returns
+        -------
+        pathlib.Path
+            Path object containing the file location.
+        """
 
         if isinstance(out_file_path, str):
             out_file_path = Path(out_file_path)
@@ -352,7 +472,23 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         return out_file_path.with_suffix('.csv')
 
     def to_pandas(self, out_file_path, write_metadata=True, id_label="corems:"):
+        """Export the GC-MS data to a Pandas dataframe.
 
+        Parameters
+        ----------
+        out_file_path : str, pathlib.Path, or s3path.S3Path
+            Path object containing the file location.
+        write_metadata : bool, optional
+            If True, write the metadata. Defaults to True.
+        id_label : str, optional
+            Label of the ID. Defaults to 'corems:'.
+
+        Returns
+        -------
+        pathlib.Path
+            Path object containing the file location.
+        """
+        
         if isinstance(out_file_path, str):
             out_file_path = Path(out_file_path)
         # pickle dataframe (pkl extension)
@@ -362,36 +498,102 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         return out_file_path.with_suffix('.pkl')
 
     def to_dataframe(self, id_label="corems:"):
+        """Export the GC-MS data to a Pandas dataframe.
+
+        Parameters
+        ----------
+        id_label : str, optional
+            Label of the ID. Defaults to 'corems:'.
+        
+        Returns
+        -------
+        pandas.DataFrame
+            Pandas dataframe.
+        """
 
         # returns pandas dataframe
         exportMS = LowResGCMSExport(self.sample_name, self)
         return exportMS.get_pandas_df(id_label=id_label)
 
     def processing_stats(self):
+        """Return the processing statistics.
 
+        Returns
+        -------
+        dict
+            Dictionary containing the processing statistics.
+        """
+        
         # returns json string
         exportMS = LowResGCMSExport(self.sample_name, self)
         return exportMS.get_data_stats(self)
 
     def parameters_json(self, id_label="corems:", output_path=" "):
+        """Return the parameters in JSON format.
+
+        Parameters
+        ----------
+        id_label : str, optional
+            Label of the ID. Defaults to 'corems:'.
+        output_path : str, optional
+            Path object containing the file location. Defaults to " ".
+        """
 
         # returns json string
         exportMS = LowResGCMSExport(self.sample_name, self)
         return exportMS.get_parameters_json(self, id_label, output_path)
 
     def to_json(self, id_label="corems:"):
+        """Export the GC-MS data to a JSON file.
+
+        Parameters
+        ----------
+        id_label : str, optional
+            Label of the ID. Defaults to 'corems:'.
+        
+        Returns
+        -------
+        pathlib.Path
+            Path object containing the file location.
+        """      
 
         # returns pandas dataframe
         exportMS = LowResGCMSExport(self.sample_name, self)
         return exportMS.get_json(id_label=id_label)
 
     def to_hdf(self, id_label="corems:"):
+        """Export the GC-MS data to a HDF file.
+
+        Parameters
+        ----------
+        id_label : str, optional
+            Label of the ID. Defaults to 'corems:'.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Pandas dataframe.
+        """
 
         # returns pandas dataframe
         exportMS = LowResGCMSExport(self.sample_name, self)
         return exportMS.to_hdf(id_label=id_label)
 
     def plot_chromatogram(self, ax=None, color="blue"): #pragma: no cover
+        """Plot the chromatogram.
+        
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes, optional
+            Axes object to plot the chromatogram. Defaults to None.
+        color : str, optional
+            Color of the chromatogram. Defaults to 'blue'.
+            
+        Returns
+        -------
+        matplotlib.axes.Axes
+            Axes object containing the chromatogram.
+        """
 
         import matplotlib.pyplot as plt
 
@@ -404,6 +606,20 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         return ax
 
     def plot_smoothed_chromatogram(self, ax=None, color="green"):  #pragma: no cover
+        """Plot the smoothed chromatogram.
+        
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes, optional
+            Axes object to plot the smoothed chromatogram. Defaults to None.
+        color : str, optional
+            Color of the smoothed chromatogram. Defaults to 'green'.
+            
+        Returns
+        -------
+        matplotlib.axes.Axes
+            Axes object containing the smoothed chromatogram.
+        """
 
         import matplotlib.pyplot as plt
 
@@ -418,6 +634,20 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         return ax
 
     def plot_detected_baseline(self, ax=None, color="blue"):  # pragma: no cover
+        """Plot the detected baseline.
+
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes, optional
+            Axes object to plot the detected baseline. Defaults to None.
+        color : str, optional
+            Color of the detected baseline. Defaults to 'blue'.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            Axes object containing the detected baseline.
+        """
 
         import matplotlib.pyplot as plt
 
@@ -435,6 +665,20 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         return ax
 
     def plot_baseline_subtraction(self, ax=None, color="black"):  # pragma: no cover
+        """Plot the baseline subtraction.
+
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes, optional
+            Axes object to plot the baseline subtraction. Defaults to None.
+        color : str, optional
+            Color of the baseline subtraction. Defaults to 'black'.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            Axes object containing the baseline subtraction.
+        """
 
         import matplotlib.pyplot as plt
 
@@ -455,6 +699,18 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         return ax
 
     def peaks_rt_tic(self, json_string=False):
+        """Return the peaks, retention time, and total ion chromatogram.
+        
+        Parameters
+        ----------
+        json_string : bool, optional
+            If True, return the peaks, retention time, and total ion chromatogram in JSON format. Defaults to False.
+        
+        Returns
+        -------
+        dict or str
+            Dictionary containing the peaks, retention time, and total ion chromatogram or JSON string.
+        """
 
         peaks_list = dict()
 
@@ -492,7 +748,21 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
             return all_peaks_data
 
     def plot_processed_chromatogram(self, ax=None, color="black"):
+        """Plot the processed chromatogram.
 
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes, optional
+            Axes object to plot the processed chromatogram. Defaults to None.
+        color : str, optional
+            Color of the processed chromatogram. Defaults to 'black'.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            Axes object containing the processed chromatogram.
+        """
+        
         import matplotlib.pyplot as plt
 
         if ax is None:
