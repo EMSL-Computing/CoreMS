@@ -236,8 +236,9 @@ class MassListBaseClass:
 
             return dataframe
 
-    def load_settings(self, mass_spec_obj):
+    def load_settings(self, mass_spec_obj, output_parameters):
         """
+        #TODO loading output parameters from json file is not functional
         Load settings from a JSON file and apply them to the given mass_spec_obj.
 
         Parameters:
