@@ -1,8 +1,10 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Oct 29, 2019"
 
+from future import __annotations__
 from threading import Thread
 from pathlib import Path
+from s3path import S3Path
 
 # import h5py
 
@@ -126,7 +128,7 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
         self.lcms.tic = list_tic
         self.lcms.scans_number = list_scans
 
-    def get_mass_spectrum(self, scan_number: int) -> MassSpectrum:
+    def get_mass_spectrum(self, scan_number: int) -> "MassSpectrum":
         """
         Get the mass spectrum for a given scan number.
 
