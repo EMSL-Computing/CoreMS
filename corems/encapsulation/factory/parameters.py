@@ -7,7 +7,7 @@ class MSParameters:
     
     Each attibute is a class that contains the parameters for the processing of the mass spectrum, see the corems.encapsulation.factory.processingSetting module for more details.
 
-    Attributes:
+    Attributes
     -----------
     molecular_search: MolecularFormulaSearchSettings
         MolecularFormulaSearchSettings object
@@ -32,7 +32,7 @@ class GCMSParameters:
 
     Each attibute is a class that contains the parameters for the processing of the data, see the corems.encapsulation.factory.processingSetting module for more details.
 
-    Attributes:
+    Attributes
     -----------
     molecular_search: MolecularFormulaSearchSettings
         MolecularFormulaSearchSettings object
@@ -48,7 +48,7 @@ class LCMSParameters:
 
     Each attibute is a class that contains the parameters for the processing of the data, see the corems.encapsulation.factory.processingSetting module for more details.
 
-    Attributes:
+    Attributes
     -----------
     lc_ms: LiquidChromatographSetting
         LiquidChromatographSetting object
