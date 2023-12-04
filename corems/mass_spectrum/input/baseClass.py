@@ -136,11 +136,15 @@ class MassListBaseClass:
         """
         Detects the encoding of a file.
 
-        Parameters:
-        - file_location (str): The location of the file to be analyzed.
+        Parameters
+        --------
+        file_location : str
+            The location of the file to be analyzed.
 
-        Returns:
-        - str: The detected encoding of the file.
+        Returns
+        --------
+        str 
+            The detected encoding of the file.
         """
 
         with file_location.open('rb') as rawdata:
@@ -151,9 +155,10 @@ class MassListBaseClass:
         """
         Set the data type and delimiter based on the file extension.
 
-        Raises:
-            TypeError: If the data type could not be automatically recognized.
-
+        Raises
+        ------
+        TypeError
+            If the data type could not be automatically recognized.
         """
         if self.file_location.suffix == '.csv':
             self.data_type = 'txt'
@@ -191,11 +196,15 @@ class MassListBaseClass:
             """
             Get the data as a pandas DataFrame.
 
-            Returns:
-                DataFrame: The data as a pandas DataFrame.
+            Returns
+            -------
+            pandas.DataFrame
+                The data as a pandas DataFrame.
 
-            Raises:
-                TypeError: If the data type is not supported.
+            Raises
+            ------
+            TypeError
+                If the data type is not supported.
             """
         
             if not self.data_type or not self.delimiter:
@@ -241,9 +250,10 @@ class MassListBaseClass:
         #TODO loading output parameters from json file is not functional
         Load settings from a JSON file and apply them to the given mass_spec_obj.
 
-        Parameters:
-            mass_spec_obj (MassSpec): The mass spectrum object to apply the settings to.
-            output_parameters (dict): The output parameters to update with the loaded settings.
+        Parameters
+        ----------
+        mass_spec_obj : MassSpec
+            The mass spectrum object to apply the settings to.
 
         """
         import json
@@ -277,12 +287,17 @@ class MassListBaseClass:
             """
             Get the output parameters for the mass spectrum.
 
-            Parameters:
-            - polarity (int): The polarity of the mass spectrum +1 or -1.
-            - scan_index (int): The index of the scan.
+            Parameters
+            ----------
+            polarity : int
+                The polarity of the mass spectrum +1 or -1.
+            scan_index : int, optional
+                The index of the scan. Default is 0.
 
-            Returns:
-            - output_parameters (dict): A dictionary containing the output parameters.
+            Returns
+            -------
+            dict
+                A dictionary containing the output parameters.
 
             """
             from copy import deepcopy
@@ -308,7 +323,7 @@ class MassListBaseClass:
 
             output_parameters["polarity"] = polarity
 
-            '''scan_number and rt will be need to lc ms'''
+            #scan_number and rt will be need to lc ms====
 
             output_parameters["mobility_scan"] = 0
 
@@ -324,8 +339,10 @@ class MassListBaseClass:
             """
             Clean the input dataframe by removing columns that are not expected.
 
-            Parameters:
-            dataframe (pandas.DataFrame): The input dataframe to be cleaned.
+            Parameters
+            ----------
+            pandas.DataFrame
+                The input dataframe to be cleaned.
 
             """
             
@@ -341,11 +358,15 @@ class MassListBaseClass:
         """
         Check if the given header labels match the expected columns.
 
-        Parameters:
-        header_labels (list): List of header labels to be checked.
-
-        Raises:
-        Exception: If any expected column is not found in the header labels.
+        Parameters
+        ----------
+        header_labels : list
+            The header labels to be checked.
+            
+        Raises
+        ------
+        Exception
+            If any expected column is not found in the header labels.
         """
         found_label = set()
 
@@ -366,12 +387,12 @@ class MassListBaseClass:
             '''
             Read peaks from a Bruker .xml file and return a pandas DataFrame.
 
-            Parameters:
+            Parameters
             ----------
             data : str
                 The path to the .xml file.
 
-            Returns:
+            Returns
             -------
             pandas.DataFrame
                 A DataFrame containing the peak data with columns: 'm/z', 'I', 'Resolving Power', 'Area', 'S/N', 'fwhm'.
@@ -413,11 +434,15 @@ class MassListBaseClass:
             """
             Get the polarity from an XML peaklist.
 
-            Returns:
-                int: The polarity of the XML peaklist. Returns -1 for negative polarity, +1 for positive polarity.
+            Returns
+            -------
+            int
+                The polarity of the XML peaklist. Returns -1 for negative polarity, +1 for positive polarity.
 
-            Raises:
-                Exception: If the data type is not XML peaklist in Bruker format or if the polarity is unhandled.
+            Raises
+            ------
+            Exception
+                If the data type is not XML peaklist in Bruker format or if the polarity is unhandled.
             """
             
             # Check its an actual xml
