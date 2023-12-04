@@ -11,39 +11,44 @@ from corems.mass_spectra.factory.LC_Class import LCMSBase
 
 
 class ReadCoremsMassSpectraText(ReadCoremsMasslist, Thread):
-    def __init__(
-        self, file_location, analyzer="Unknown", instrument_label="Unknown"
-    ) -> None:
-        """
-        Initialize a MassList object.
+    """
+    Class for reading CoreMS mass spectra from a text file.
 
-        Parameters
-        ----------
-        file_location : Union[str, pathlib.Path, s3path.S3Path]
-            Path object containing the file location.
-        analyzer : str, optional
-            Name of the analyzer, by default "Unknown".
-        instrument_label : str, optional
-            Label of the instrument, by default "Unknown".
+    Parameters
+    ----------
+    file_location : str, pathlib.Path, or s3path.S3Path
+        Path object from pathlib containing the file location
+    analyzer : str, optional
+        Name of the analyzer, by default 'Unknown'
+    instrument_label : str, optional
+        Label of the instrument, by default 'Unknown'
 
-        Raises
-        ------
-        FileNotFoundError
-            If the file location does not exist.
-        TypeError
-            If the file does not have a ".corems" extension.
+    Attributes
+    ----------
+    lcms : LCMSBase
+        LCMSBase object for storing the mass spectra data.
 
-        """
+    Methods
+    -------
+    * get_scans_filename(). Get the filenames of all the scan files associated with the CoreMS file.
+    * set_filepath_datatype_and_delimiter(file_path_obj). Set the file path, data type, and delimiter based on the file path object.
+    * import_mass_spectra(). Import the mass spectra from the scan files and add them to the LCMSBase object.
+    * run(). Run the import_mass_spectra method to create the LCMSBase object.
+    * get_lcms_obj(). Get the LCMSBase object.
+    """
 
+    def __init__(self, file_location, analyzer='Unknown', instrument_label='Unknown'):
+        
         if isinstance(file_location, str):
+            # if obj is a string it defaults to create a Path obj, pass the S3Path if needed
             file_location = Path(file_location)
 
         if not file_location.exists():
-            raise FileNotFoundError(f"{file_location} not found")
-
-        if not file_location.suffix == ".corems":
-            raise TypeError(f"{file_location} is not a valid CoreMS file")
-
+            raise FileNotFoundError("%s not found" % file_location)
+        
+        if not file_location.suffix == '.corems':
+            raise TypeError("%s is not a valid CoreMS file" % file_location)
+        
         Thread.__init__(self)
 
         ReadCoremsMasslist.__init__(self, file_location)
