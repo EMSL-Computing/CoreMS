@@ -303,15 +303,13 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self.check_mspeaks()
         return array([mspeak.clear_molecular_formulas() for mspeak in self.mspeaks])
 
-    def process_mass_spec(self, keep_profile=True, noise_bayes_est=False):
+    def process_mass_spec(self, keep_profile=True):
         """Process the mass spectrum.
 
         Parameters
         ----------
         keep_profile : bool, optional
             Whether to keep the profile data after processing. Defaults to True.
-        noise_bayes_est : bool, optional    
-            Whether to use the Bayesian estimation for noise threshold. Defaults to False.
 
         Notes
         -----
@@ -326,7 +324,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         # do peak picking( create mspeak_objs) 
         # reset mspeak_obj the indexes
          
-        self.cal_noise_threshold(bayes=noise_bayes_est)
+        self.cal_noise_threshold()
 
         self.find_peaks()
         self.reset_indexes()
@@ -341,13 +339,10 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             self._mz_exp *= 0
             
 
-    def cal_noise_threshold(self, bayes=False):
+    def cal_noise_threshold(self):
         """Calculate the noise threshold of the mass spectrum.
 
-        Parameters
-        ----------
-        bayes : bool, optional
-            Whether to use the Bayesian estimation for noise threshold. Defaults to False.
+        
         """
 
         if self.label == Labels.simulated_profile:
@@ -356,10 +351,10 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         if self.settings.noise_threshold_method == 'log':
 
-            self._baseline_noise, self._baseline_noise_std = self.run_log_noise_threshold_calc(bayes=bayes)
+            self._baseline_noise, self._baseline_noise_std = self.run_log_noise_threshold_calc()
 
         else:
-            self._baseline_noise, self._baseline_noise_std = self.run_noise_threshold_calc(bayes=bayes)
+            self._baseline_noise, self._baseline_noise_std = self.run_noise_threshold_calc()
 
     @property
     def parameters(self):
@@ -1171,8 +1166,7 @@ class MassSpecProfile(MassSpecBase):
         contains the instrument settings and processing settings
     auto_process : bool, optional
         Whether to automatically process the mass spectrum. Defaults to True.
-    noise_bayes_est : bool, optional
-        Whether to use the Bayesian estimation for noise threshold. Defaults to False.
+
 
     Attributes (Inherited from MassSpecBase)
     ----------
@@ -1191,12 +1185,12 @@ class MassSpecProfile(MassSpecBase):
     see also: MassSpecBase(), MassSpecfromFreq(), MassSpecCentroid()
     """
 
-    def __init__(self, data_dict, d_params, auto_process=True, noise_bayes_est=False):
+    def __init__(self, data_dict, d_params, auto_process=True):
         # print(data_dict.keys())
         super().__init__(data_dict.get(Labels.mz), data_dict.get(Labels.abundance), d_params)
        
         if auto_process:
-            self.process_mass_spec(noise_bayes_est=noise_bayes_est)
+            self.process_mass_spec()
 
 class MassSpecfromFreq(MassSpecBase):
     """ A mass spectrum class when data entry is on frequency domain
@@ -1221,9 +1215,7 @@ class MassSpecfromFreq(MassSpecBase):
         Whether to automatically process the mass spectrum. Defaults to True.
     keep_profile : bool, optional
         Whether to keep the profile data. Defaults to True.
-    noise_bayes_est : bool, optional
-        Whether to use the Bayesian estimation for noise threshold. Defaults to False.
-
+  
     Attributes
     ----------
     has_frequency : bool
@@ -1256,7 +1248,7 @@ class MassSpecfromFreq(MassSpecBase):
     """
 
     def __init__(self, frequency_domain, magnitude, d_params, 
-                auto_process=True, keep_profile=True, noise_bayes_est=False):
+                auto_process=True, keep_profile=True):
 
         super().__init__(None, magnitude, d_params)
 
@@ -1271,7 +1263,7 @@ class MassSpecfromFreq(MassSpecBase):
         #use this call to automatically process data as the object is created, Setting need to be changed before initiating the class to be in effect
         
         if auto_process:
-            self.process_mass_spec(keep_profile=keep_profile, noise_bayes_est=noise_bayes_est)
+            self.process_mass_spec(keep_profile=keep_profile)
 
     def _sort_mz_domain(self):
         """Sort the mass spectrum by m/z values."""
@@ -1465,17 +1457,10 @@ class MassSpecCentroid(MassSpecBase):
         """Return the total ion current of the mass spectrum."""
         return sum(self.abundance)
 
-    def process_mass_spec(self, noise_bayes_est=False):
+    def process_mass_spec(self):
         """Process the mass spectrum.
 
-        Parameters
-        ----------
-        noise_bayes_est : bool, optional
-            Whether to use the Bayesian estimation for noise threshold. Defaults to False.
-
-        Returns
-        -------
-        None
+        
         """
         import tqdm
         # overwrite process_mass_spec 
