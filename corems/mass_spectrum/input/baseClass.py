@@ -1,6 +1,6 @@
+
 __author__ = "Yuri E. Corilo"
 __date__ = "Nov 11, 2019"
-
 
 from io import StringIO, BytesIO
 from pathlib import Path
@@ -61,8 +61,8 @@ class MassListBaseClass:
 
     '''
     
-    def __init__(self, file_location, isCentroid=True, analyzer='Unknown', instrument_label='Unknown',
-                 sample_name=None, header_lines=0, isThermoProfile=False,headerless=False):
+    def __init__(self, file_location:Path|S3Path, isCentroid:bool=True, analyzer:str='Unknown', instrument_label:str='Unknown',
+                 sample_name:str=None, header_lines:int=0, isThermoProfile:bool=False,headerless:bool=False):
 
         self.file_location = Path(file_location) if isinstance(file_location, str) else file_location
         
@@ -132,7 +132,7 @@ class MassListBaseClass:
         self._delimiter = delimiter
 
     
-    def encoding_detector(self, file_location):
+    def encoding_detector(self, file_location) -> str:
         """
         Detects the encoding of a file.
 
@@ -187,7 +187,7 @@ class MassListBaseClass:
             raise TypeError(
                 "Data type could not be automatically recognized for %s; please set data type and delimiter manually." % self.file_location.name)
 
-    def get_dataframe(self):
+    def get_dataframe(self) -> DataFrame:
             """
             Get the data as a pandas DataFrame.
 
@@ -272,12 +272,12 @@ class MassListBaseClass:
         #loaded_settings['MassSpectrum'] = self.get_scan_group_attr_data(scan_index, time_index, 'MassSpectrumSetting')
         #loaded_settings['Transient'] = self.get_scan_group_attr_data(scan_index, time_index, 'TransientSetting')
 
-    def get_output_parameters(self, polarity, scan_index=0):
+    def get_output_parameters(self, polarity:int, scan_index:int=0) -> dict:
             """
             Get the output parameters for the mass spectrum.
 
             Parameters:
-            - polarity (str): The polarity of the mass spectrum.
+            - polarity (int): The polarity of the mass spectrum +1 or -1.
             - scan_index (int): The index of the scan.
 
             Returns:
@@ -336,7 +336,7 @@ class MassListBaseClass:
 
                     del dataframe[column_name]
 
-    def check_columns(self, header_labels):
+    def check_columns(self, header_labels: list[str]):
         """
         Check if the given header labels match the expected columns.
 
@@ -361,7 +361,7 @@ class MassListBaseClass:
         if len(not_found) > 0:
             raise Exception("Please make sure to include the columns %s" % ', '.join(not_found))
 
-    def read_xml_peaks(self, data):
+    def read_xml_peaks(self, data:str) -> DataFrame:
             '''
             Read peaks from a Bruker .xml file and return a pandas DataFrame.
 
@@ -445,3 +445,4 @@ class MassListBaseClass:
                 return +1
             else:
                 raise Exception("Polarity %s unhandled" % polarity)
+            
