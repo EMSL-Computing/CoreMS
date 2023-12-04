@@ -6,7 +6,7 @@ from corems.mass_spectrum.calc.NoiseCalc import NoiseThresholdCalc
 from corems.mass_spectrum.calc.PeakPicking import PeakPicking
 
 class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
-    """ 
+    """ Class for Mass Spectrum Calculations
 
     Class including numerical calculations related to mass spectrum class
     Inherited PeakPicking and NoiseThresholdCalc ensuring its methods are 
@@ -43,7 +43,7 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
     
     """
     def percentile_assigned(self, report_error : bool=False, verbose : bool=True):
-        """ 
+        """ Percentage of peaks which are assigned
         
         """
         assign_abun = 0
@@ -100,7 +100,7 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
         return array([mspeak.resolving_power_calc(B, T) for mspeak in self.mspeaks])
         
     def _f_to_mz(self):
-        """ Ledford equation for converting frequency(Hz) to m/z, 
+        """ Ledford equation for converting frequency(Hz) to m/z
         
         Returns 
         ----------
@@ -128,14 +128,11 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
         return mz_domain
 
     def _f_to_mz_bruker(self):
-        """ 
+        """ Frequency to m/z conversion (Bruker)
         Bruker equations for converting frequency (Hz) to m/z, 
         nOmega acquisition is not yet implemented here
         However, nOmega should work for commerical Bruker 2xR systems as A Term is automatically defined for 2X or 1X by the instrument 
-        
-        Parameters
-        ----------
-
+    
         
         Returns 
         ----------
@@ -171,7 +168,10 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
         
         Parameters
         ----------
-        
+        Profile : bool, optional
+            is data profile or centroid mode. 
+            The default is False (e.g. Centroid data)
+
         Returns 
         ----------
             (float)
@@ -189,9 +189,6 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
     def weight_average_molecular_weight(self, profile : bool=False):
         """ 
         Weighted Average molecular weight calculation 
-        
-        Parameters
-        ----------
         
         Returns 
         ----------
