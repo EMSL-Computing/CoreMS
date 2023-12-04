@@ -29,31 +29,14 @@ class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
 
     Methods
     -------
-    get_data_profile(mz, abundance, auto_process)
-        Returns a MassSpecProfile object from the given m/z and abundance arrays.
-    get_attr_data(scan, attr_srt)
-        Returns the attribute value for the given scan and attribute name.
-    get_polarity(file_location)
-        Returns the polarity of the mass spectrum.
-    get_mass_spectrum(auto_process)
-        Returns the mass spectrum as a MassSpecProfile object.
-    get_output_parameters()
-        Returns the default output parameters for the mass spectrum.
-
+    * get_data_profile(mz, abundance, auto_process). Returns a MassSpecProfile object from the given m/z and abundance arrays.
+    * get_attr_data(scan, attr_srt). Returns the attribute value for the given scan and attribute name.
+    * get_polarity(file_location). Returns the polarity of the mass spectrum.
+    * get_mass_spectrum(auto_process). Returns the mass spectrum as a MassSpecProfile object.
+    * get_output_parameters(). Returns the default output parameters for the mass spectrum.
     """
 
     def __init__(self, file_location, isCentroid=False):
-        """
-        Initialize the ReadHDF_BoosterMassSpectrum object.
-
-        Parameters
-        ----------
-        file_location : str
-            The path to the HDF file.
-        isCentroid : bool, optional
-            Specifies whether the mass spectrum is centroided or not. Default is False.
-
-        """
         self.polarity = self.get_polarity(file_location)
         super().__init__(file_location, isCentroid=False)
         
