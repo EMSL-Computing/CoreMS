@@ -18,7 +18,7 @@ class ReadAndiNetCDF(Thread):
     """
     A class for reading AndiNetCDF files and extracting mass spectra data.
 
-    Parameters:
+    Parameters
     -----------
     file_location : str or Path
             The location of the AndiNetCDF file.
@@ -29,7 +29,7 @@ class ReadAndiNetCDF(Thread):
     auto_process : bool, optional
             Whether to automatically process the data (default is True).
 
-    Attributes:
+    Attributes
     -----------
     file_location : Path
             The path to the AndiNetCDF file.
@@ -52,17 +52,17 @@ class ReadAndiNetCDF(Thread):
     gcms : GCMSBase
             The GCMSBase object for storing mass spectra data.
 
-    Methods:
+    Methods
     --------
-    polarity()
+    * polarity(). 
             Get the polarity of the ionization.
-    get_mass_spectrum(mz, abun, rp, d_params)
+    * get_mass_spectrum(mz, abun, rp, d_params). 
             Add a mass spectrum to the GCMSBase object.
-    run()
+    * run(). 
             Populate the GCMSBase object with mass spectra data.
-    import_mass_spectra(d_params)
+    * import_mass_spectra(d_params). 
             Import mass spectra data from the AndiNetCDF file.
-    get_gcms_obj()
+    * get_gcms_obj(). 
             Get the GCMSBase object.
 
     """
@@ -74,20 +74,7 @@ class ReadAndiNetCDF(Thread):
         instrument_label="GCMS-Agilent",
         auto_process=True,
     ):
-        """
-        Initialize the ReadAndiNetCDF object.
 
-        Parameters:
-        -----------
-        file_location : str or Path
-                The location of the AndiNetCDF file.
-        analyzer : str, optional
-                The type of analyzer used (default is 'Quadruple').
-        instrument_label : str, optional
-                The label of the instrument (default is 'GCMS-Agilent').
-        auto_process : bool, optional
-                Whether to automatically process the data (default is True).
-        """
         Thread.__init__(self)
 
         if isinstance(file_location, str):
@@ -128,7 +115,7 @@ class ReadAndiNetCDF(Thread):
         """
         Get the polarity of the ionization.
 
-        Returns:
+        Returns
         --------
         int
                 The polarity of the ionization (+1 for positive polarity, -1 for negative polarity).
@@ -143,7 +130,7 @@ class ReadAndiNetCDF(Thread):
         """
         Add a mass spectrum to the GCMSBase object.
 
-        Parameters:
+        Parameters
         -----------
         mz : array-like
                 The m/z values of the mass spectrum.
@@ -175,7 +162,7 @@ class ReadAndiNetCDF(Thread):
         """
         Import mass spectra data from the AndiNetCDF file.
 
-        Parameters:
+        Parameters
         -----------
         d_params : dict
                 Additional parameters for the mass spectra.
@@ -214,7 +201,7 @@ class ReadAndiNetCDF(Thread):
         """
         Get the GCMSBase object.
 
-        Returns:
+        Returns
         --------
         GCMSBase
                 The GCMSBase object.
