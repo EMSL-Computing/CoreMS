@@ -1540,10 +1540,10 @@ class MassSpecCentroid(MassSpecBase):
             if self.settings.noise_threshold_method == 'log':
                 
                 raise  Exception("log noise Not tested for centroid data")
-                #self._baseline_noise, self._baseline_noise_std = self.run_log_noise_threshold_calc(bayes=noise_bayes_est)
+                #self._baseline_noise, self._baseline_noise_std = self.run_log_noise_threshold_calc()
             
             else:
-                self._baseline_noise, self._baseline_noise_std = self.run_noise_threshold_calc(bayes=noise_bayes_est)
+                self._baseline_noise, self._baseline_noise_std = self.run_noise_threshold_calc()
         
         del self.data_dict
     
