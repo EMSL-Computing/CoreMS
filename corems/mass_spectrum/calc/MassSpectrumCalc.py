@@ -17,34 +17,35 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
     mass_spectrum : MassSpectrum
         CoreMS mass spectrum object
     
-
     Attributes
     --------
     All Attributes are derivative from the MassSpecBase Class
 
     Methods 
     --------
-    check_mspeaks()
+    * check_mspeaks(). 
         Check if the mspeaks attribute is populated
-    sort_by_abundance()
+    * sort_by_abundance(). 
         Sort the mspeaks by abundance
-    percentile_assigned(report_error=False,verbose=True)
+    * percentile_assigned(report_error=False,verbose=True). 
         Calculate the percentage of assigned peaks
-    resolving_power_calc(B, T)
+    * resolving_power_calc(B, T). 
         Calculate the resolving power
-    number_average_molecular_weight(profile=False)
+    * number_average_molecular_weight(profile=False). 
         Calculate the number average molecular weight
-    weight_average_molecular_weight(profile=False)
+    * weight_average_molecular_weight(profile=False). 
         Calculate the weight average molecular weight
-    _f_to_mz()
-        Convert frequency to m/z
-    _f_to_mz_bruker()
-        Convert frequency to m/z (Bruker)
-    
     """
+
     def percentile_assigned(self, report_error : bool=False, verbose : bool=True):
         """ Percentage of peaks which are assigned
-        
+
+        Parameters
+        -----------
+        report_error: bool, optional
+            Report the error of the assigned peaks. Default is False.
+        verbose: bool, optional
+            Print the results. Default is True.
         """
         assign_abun = 0
         not_assign_abun = 0
@@ -84,14 +85,14 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
 
         Parameters
         -----------
-        T: float 
+        T : float 
             transient time
-        B: float
+        B : float
             Magnetic Filed Strength (Tesla)    
         
         References
         ----------
-        .. [1] Marshall et al. (Mass Spectrom Rev. 1998 Jan-Feb;17(1):1-35.)
+        1. Marshall et al. (Mass Spectrom Rev. 1998 Jan-Feb;17(1):1-35.)
                 DOI: 10.1002/(SICI)1098-2787(1998)17:1<1::AID-MAS1>3.0.CO;2-K
         
         """
@@ -130,13 +131,13 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
     def _f_to_mz_bruker(self):
         """ Frequency to m/z conversion (Bruker)
         Bruker equations for converting frequency (Hz) to m/z, 
-        nOmega acquisition is not yet implemented here
+        nOmega acquisition is not yet implemented here.
         However, nOmega should work for commerical Bruker 2xR systems as A Term is automatically defined for 2X or 1X by the instrument 
     
         
         Returns 
         ----------
-            numpy.array(float)
+        numpy.array(float)
             m/z domain after conversion from frequency
         """
         Aterm, Bterm, Cterm = self.Aterm, self.Bterm, self.Cterm
@@ -168,13 +169,14 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
         
         Parameters
         ----------
-        Profile : bool, optional
-            is data profile or centroid mode. 
-            The default is False (e.g. Centroid data)
+        profile : bool, optional
+            is data profile or centroid mode. The default is False (e.g. Centroid data)
 
-        Returns 
-        ----------
-            (float)
+        Returns
+        -------
+        float
+            The average molecular weight.
+
         """
         # mode is profile or centroid data
         if profile:
@@ -190,9 +192,12 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
         """ 
         Weighted Average molecular weight calculation 
         
-        Returns 
-        ----------
-            (float)
+
+        Returns
+        -------
+        float
+            The weight average molecular weight.
+
         """
         
         # implement from MassSpectralPeaks objs

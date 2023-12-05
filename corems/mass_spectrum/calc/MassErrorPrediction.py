@@ -43,9 +43,9 @@ class MassErrorPrediction(Thread):
 
     Methods
     -------
-    run()
+    * run().
         Runs the mass error prediction calculation.
-    get_results()
+    * get_results().
         Returns the calculated error distribution dataframe.
 
     """
@@ -333,7 +333,7 @@ class MassErrorPrediction(Thread):
         """
         dy = abund[1:] - abund[:-1]
 
-        '''replaces nan for infinity'''
+        #replaces nan for infinity'''
         indices_nan = where(isnan(abund))[0]
 
         if indices_nan.size:
@@ -364,7 +364,7 @@ class MassErrorPrediction(Thread):
         """
         dy = abund[1:] - abund[:-1]
         
-        '''replaces nan for infinity'''
+        #replaces nan for infinity
         indices_nan = where(isnan(abund))[0]
         
         if indices_nan.size:

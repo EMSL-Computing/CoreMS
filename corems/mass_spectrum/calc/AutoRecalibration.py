@@ -39,24 +39,20 @@ class HighResRecalibration:
     ppmRangeprior : float, optional
         The range of the prior distribution (ppm). The default is 15.
 
-    Attributes
-    ----------
+    Methods
+    --------
+    * determine_error_boundaries(). Determine the error boundaries for recalibration space.    
 
+    Notes
+    -----
+    This initialisation function creates a copy of the MassSpectrum object to avoid over-writing assignments. 
+    Possible future task is to make the base class copyable. 
 
     """
 
     def __init__(self, mass_spectrum, plot : bool=False, docker : bool=True, 
                     ppmFWHMprior : float=3, ppmRangeprior : float=15):
-        """ Initialise the class
-
-
-
-        Notes
-        -----
-        This initialisation function creates a copy of the MassSpectrum object to avoid over-writing assignments. 
-        Possible future task is to make the base class copyable. 
-        """
-        
+       
         self.mass_spectrum = copy.deepcopy(mass_spectrum) 
         self.plot = plot
         self.docker = docker
@@ -72,8 +68,9 @@ class HighResRecalibration:
 
         This will not work for positive mode data, or for other ion types, or other expected elemental searches.
 
-        #TODO rework this.
         """
+        #TODO rework this.
+
         if self.docker:
             self.mass_spectrum.molecular_search_settings.url_database = "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
         else:
@@ -107,7 +104,6 @@ class HighResRecalibration:
 
     def positive_search_settings(self):
         """ Set the positive mode elemental search settings
-
         """
         self.mass_spectrum.molecular_search_settings.isProtonated = False
         self.mass_spectrum.molecular_search_settings.isAdduct = True

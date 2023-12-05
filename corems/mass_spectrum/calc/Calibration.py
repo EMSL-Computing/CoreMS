@@ -46,22 +46,17 @@ class MzDomainCalibration:
     
     Methods
     -------
-    * run()
+    * run(). 
         Main function to run this class.  
-
-    * load_ref_mass_list()
+    * load_ref_mass_list(). 
         Load reference mass list (Bruker format).  
-
-    * gen_ref_mass_list_from_assigned(min_conf=0.7)
+    * gen_ref_mass_list_from_assigned(min_conf=0.7). 
         Generate reference mass list from assigned masses.  
-
-    * find_calibration_points(df_ref, calib_ppm_error_threshold=(-1, 1), calib_snr_threshold=5)
+    * find_calibration_points(df_ref, calib_ppm_error_threshold=(-1, 1), calib_snr_threshold=5). 
         Find calibration points in the mass spectrum based on the reference mass list.  
-
-    * robust_calib(param, cal_peaks_mz, cal_refs_mz, order=1)
+    * robust_calib(param, cal_peaks_mz, cal_refs_mz, order=1). 
         Recalibration function.  
-
-    * recalibrate_mass_spectrum(cal_peaks_mz, cal_refs_mz, order=1, diagnostic=False)
+    * recalibrate_mass_spectrum(cal_peaks_mz, cal_refs_mz, order=1, diagnostic=False). 
         Main recalibration function which uses a robust linear regression.
     
 
@@ -87,8 +82,8 @@ class MzDomainCalibration:
         """ Load reference mass list (Bruker format)
 
         Loads in a reference mass list from a .ref file
-        Note that some versions of Bruker's software produce .ref files with a different format
-        As such, users may need to manually edit the .ref file in a text editor to ensure it is in the correct format
+        Note that some versions of Bruker's software produce .ref files with a different format. 
+        As such, users may need to manually edit the .ref file in a text editor to ensure it is in the correct format. 
         CoreMS includes an example .ref file with the correct format for reference. 
 
         Returns
@@ -130,9 +125,9 @@ class MzDomainCalibration:
         """ Generate reference mass list from assigned masses
 
         This function will generate a ref mass dataframe object from an assigned corems mass spec obj
-        using assigned masses above a certain minimum confidence threshold
+        using assigned masses above a certain minimum confidence threshold.
 
-        #TODO this function needs to be retested and check it is covered in the unit tests
+        This function needs to be retested and check it is covered in the unit tests.
 
         Parameters
         ----------
@@ -145,6 +140,7 @@ class MzDomainCalibration:
             reference mass list - based on calculated masses.
 
         """
+        #TODO this function needs to be retested and check it is covered in the unit tests
         df = self.mass_spectrum.to_dataframe()
         df = df[df['Confidence Score'] > min_conf]
         df_ref = pd.DataFrame(columns=['m/z'])
@@ -155,19 +151,17 @@ class MzDomainCalibration:
     def find_calibration_points(self, df_ref,
                                 calib_ppm_error_threshold : tuple[float, float]=(-1, 1),
                                 calib_snr_threshold : float=5):
-        """
-        function to find calibration points in the mass spectrum based on the reference
-        mass list.
+        """Function to find calibration points in the mass spectrum 
+        
+        Based on the reference mass list.
 
         Parameters
         ----------
-        mass_spectrum : CoreMS MassSpectrum Object
-            mass spectrum to be calibrated.
         df_ref : Pandas DataFrame
             reference mass list for recalibration.
         calib_ppm_error_threshold : tuple of floats, optional
             ppm error for finding calibration masses in the spectrum. The default is -1,1.
-            Note: This is based on the calculation of ppm = ((mz_measure - mz_theoretical)/mz_theoretical)*1e6
+            Note: This is based on the calculation of ppm = ((mz_measure - mz_theoretical)/mz_theoretical)*1e6. 
                 Some software does this the other way around and value signs must be inverted for that to work. 
         calib_snr_threshold : float, optional
             snr threshold for finding calibration masses in the spectrum. The default is 5.
@@ -248,8 +242,8 @@ class MzDomainCalibration:
                      order : int=1):
         """ Recalibration function
 
-        computes the rms of m/z errors to minimize when calibrating
-        This is adapted from from spike
+        Computes the rms of m/z errors to minimize when calibrating.
+        This is adapted from from spike.
 
         Parameters
         ----------
@@ -310,8 +304,6 @@ class MzDomainCalibration:
 
         Parameters
         ----------
-        mass_spectrum : CoreMS mass spectrum object
-            mass spectrum to be calibrated.
         cal_peaks_mz : list of float
             masses of measured peaks to use in mass calibration.
         cal_refs_mz : list of float
@@ -331,10 +323,10 @@ class MzDomainCalibration:
 
         References
         ----------
-        .. [1] Chiron L., Coutouly M-A., Starck J-P., Rolando C., Delsuc M-A. 
+        1.  Chiron L., Coutouly M-A., Starck J-P., Rolando C., Delsuc M-A. 
             SPIKE a Processing Software dedicated to Fourier Spectroscopies 
             https://arxiv.org/abs/1608.06777 (2016)
-        .. [2] SPIKE - https://github.com/spike-project/spike 
+        2.  SPIKE - https://github.com/spike-project/spike 
 
         """
         # initialise parameters for recalibration
