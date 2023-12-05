@@ -29,15 +29,15 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
     Methods
     -------
-    *load_raw_data(mass_spectrum, scan_index=0) Load raw data into the mass spectrum object.
-    *get_mass_spectrum(scan_number=0, time_index=-1, auto_process=True, load_settings=True, load_raw=True).Get a mass spectrum object.
-    *load_settings(mass_spectrum, scan_index=0, time_index=-1). Load settings into the mass spectrum object.
-    *get_dataframe(scan_index=0, time_index=-1). Get a pandas DataFrame representing the mass spectrum.
-    *get_time_index_to_pull(scan_label, time_index). Get the time index to pull from the HDF5 file.
-    *get_high_level_attr_data(attr_str). Get high-level attribute data from the HDF5 file.
-    *get_scan_group_attr_data(scan_index, time_index, attr_group, attr_srt=None). Get scan group attribute data from the HDF5 file.
-    *get_raw_data_attr_data(scan_index, attr_group, attr_str). Get raw data attribute data from the HDF5 file.
-    *get_output_parameters(polarity, scan_index=0). Get the output parameters for the mass spectrum.
+    * load_raw_data(mass_spectrum, scan_index=0) Load raw data into the mass spectrum object.
+    * get_mass_spectrum(scan_number=0, time_index=-1, auto_process=True, load_settings=True, load_raw=True).Get a mass spectrum object.
+    * load_settings(mass_spectrum, scan_index=0, time_index=-1). Load settings into the mass spectrum object.
+    * get_dataframe(scan_index=0, time_index=-1). Get a pandas DataFrame representing the mass spectrum.
+    * get_time_index_to_pull(scan_label, time_index). Get the time index to pull from the HDF5 file.
+    * get_high_level_attr_data(attr_str). Get high-level attribute data from the HDF5 file.
+    * get_scan_group_attr_data(scan_index, time_index, attr_group, attr_srt=None). Get scan group attribute data from the HDF5 file.
+    * get_raw_data_attr_data(scan_index, attr_group, attr_str). Get raw data attribute data from the HDF5 file.
+    * get_output_parameters(polarity, scan_index=0). Get the output parameters for the mass spectrum.
     """
 
     def __init__(self, file_location):

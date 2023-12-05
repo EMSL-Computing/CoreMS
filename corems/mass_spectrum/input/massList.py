@@ -12,7 +12,7 @@ class ReadCoremsMasslist(MassListBaseClass):
     The ReadCoremsMasslist object reads processed mass list data types
     and returns the mass spectrum obj with the molecular formula obj
 
-    **Only available for centroid mass spectrum type: it will ignore the parameter **isCentroid** 
+    **Only available for centroid mass spectrum type:** it will ignore the parameter **isCentroid** 
     Please see MassListBaseClass for more details
 
     """
@@ -21,14 +21,20 @@ class ReadCoremsMasslist(MassListBaseClass):
         """
         Get the mass spectrum object from the processed mass list data.
 
-        Parameters:
-            loadSettings (bool): Whether to load the settings for the mass spectrum. Default is True.
+        Parameters
+        ----------
+        loadSettings : bool, optional
+            Whether to load the settings for the mass spectrum. Default is True.
 
-        Returns:
-            MassSpecCentroid: The mass spectrum object.
+        Returns
+        -------
+        MassSpecCentroid
+            The mass spectrum object.
 
-        Raises:
-            ValueError: If the input file is not a valid CoreMS file.
+        Raises
+        ------
+        ValueError
+            If the input file is not a valid CoreMS file.
         """
 
         dataframe = self.get_dataframe()
@@ -57,9 +63,13 @@ class ReadCoremsMasslist(MassListBaseClass):
         """
         Add molecular formula information to the mass spectrum object.
 
-        Parameters:
-            mass_spec_obj (MassSpecCentroid): The mass spectrum object to add the molecular formula to.
-            dataframe (pandas.DataFrame): The processed mass list data.
+        Parameters
+        ----------
+        mass_spec_obj : MassSpecCentroid
+            The mass spectrum object to add the molecular formula to.
+        dataframe : pandas.DataFrame
+            The processed mass list data.
+            
         """
 
         # check if is coreMS file
