@@ -359,43 +359,21 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         d_params = default_parameters(self.file_location)
         d_params["filename_path"] = self.file_location
         d_params["scan_number"] = int(self.scans[scan_index])
-        d_params["polarity"] = self.get_raw_data_attr_data(
-            scan_index, "MassSpecAttrs", "polarity"
-        )
-        d_params["rt"] = self.get_raw_data_attr_data(scan_index, "MassSpecAttrs", "rt")
-
-        d_params["tic"] = self.get_raw_data_attr_data(
-            scan_index, "MassSpecAttrs", "tic"
-        )
-
-        d_params["mobility_scan"] = self.get_raw_data_attr_data(
-            scan_index, "MassSpecAttrs", "mobility_scan"
-        )
-        d_params["mobility_rt"] = self.get_raw_data_attr_data(
-            scan_index, "MassSpecAttrs", "mobility_rt"
-        )
-        d_params["Aterm"] = self.get_raw_data_attr_data(
-            scan_index, "MassSpecAttrs", "Aterm"
-        )
-
-        return d_params
-            scan_index, "MassSpecAttrs", "Aterm"
-        )
-        d_params["Bterm"] = self.get_raw_data_attr_data(
-            scan_index, "MassSpecAttrs", "Bterm"
-        )
-        d_params["Cterm"] = self.get_raw_data_attr_data(
-            scan_index, "MassSpecAttrs", "Cterm"
-        )
-        d_params["baseline_noise"] = self.get_raw_data_attr_data(
-            scan_index, "MassSpecAttrs", "baseline_noise"
-        )
-        d_params["baseline_noise_std"] = self.get_raw_data_attr_data(
-            scan_index, "MassSpecAttrs", "baseline_noise_std"
-        )
-
-        d_params["analyzer"] = self.get_high_level_attr_data("analyzer")
-        d_params["instrument_label"] = self.get_high_level_attr_data("instrument_label")
-        d_params["sample_name"] = self.get_high_level_attr_data("sample_name")
+        d_params['polarity'] = self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'polarity')
+        d_params['rt'] =     self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'rt')
+        
+        d_params['tic'] =  self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'tic')
+        
+        d_params['mobility_scan'] =    self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'mobility_scan')
+        d_params['mobility_rt'] =     self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'mobility_rt')
+        d_params['Aterm'] =  self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'Aterm')
+        d_params['Bterm'] =  self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'Bterm')
+        d_params['Cterm'] = self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'Cterm')
+        d_params['baseline_noise'] = self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'baseline_noise')
+        d_params['baseline_noise_std'] = self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'baseline_noise_std')
+        
+        d_params['analyzer'] = self.get_high_level_attr_data('analyzer')
+        d_params['instrument_label'] = self.get_high_level_attr_data('instrument_label')
+        d_params['sample_name'] = self.get_high_level_attr_data('sample_name')
 
         return d_params
