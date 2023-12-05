@@ -4,17 +4,17 @@ class KendrickGrouping:
 
     Methods
     -------
-    mz_odd_even_index_lists()
+    * mz_odd_even_index_lists(). 
         Get odd and even indexes lists.
-    calc_error(current, test)
+    * calc_error(current, test). 
         Calculate the error between two values.
-    populate_kendrick_index_dict_error(list_indexes, sort=True)
+    * populate_kendrick_index_dict_error(list_indexes, sort=True). 
         Populate the Kendrick index dictionary based on error.
-    populate_kendrick_index_dict_rounding(list_indexes, sort=True)
+    * populate_kendrick_index_dict_rounding(list_indexes, sort=True). 
         Populate the Kendrick index dictionary based on rounding.
-    sort_abundance_kendrick_dict(even_kendrick_group_index, odd_kendrick_group_index)
+    * sort_abundance_kendrick_dict(even_kendrick_group_index, odd_kendrick_group_index). 
         Sort the Kendrick index dictionary based on abundance.
-    kendrick_groups_indexes(sort=True)
+    * kendrick_groups_indexes(sort=True). 
         Get the Kendrick groups indexes dictionary.
 
     """

@@ -46,7 +46,7 @@ class MeanResolvingPowerFilter():
 
     References
     ----------
-    .. [1]  Kanawati, B, Bader, TM, Wanczek, K-P, Li, Y, Schmitt-Kopplin, P. 
+    1.  Kanawati, B, Bader, TM, Wanczek, K-P, Li, Y, Schmitt-Kopplin, P. 
         Fourier transform (FT)-artifacts and power-function resolution filter in Fourier transform mass spectrometry. 
         Rapid Commun Mass Spectrom. 2017; 31: 1607- 1615. https://doi.org/10.1002/rcm.7940
     """

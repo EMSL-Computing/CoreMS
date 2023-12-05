@@ -45,22 +45,15 @@ class NoiseThresholdCalc:
 
     Methods
     -------
-    * get_noise_threshold() 
-        Get the noise threshold.    
-
-    * cut_mz_domain_noise()  
-        Cut the m/z domain to the noise threshold regions.  
-
-    * get_noise_average(ymincentroid)
+    * get_noise_threshold(). Get the noise threshold.    
+    * cut_mz_domain_noise(). Cut the m/z domain to the noise threshold regions.  
+    * get_noise_average(ymincentroid). 
         Get the average noise and standard deviation.   
-
     * get_abundance_minima_centroid(abun_cut)
         Get the abundance minima for centroid data.   
-
-    * run_log_noise_threshold_calc()
+    * run_log_noise_threshold_calc(). 
         Run the log noise threshold calculation.  
-
-    * run_noise_threshold_calc()
+    * run_noise_threshold_calc(). 
         Run the noise threshold calculation.  
     """
 
@@ -279,16 +272,19 @@ class NoiseThresholdCalc:
         --------
         Method for estimating the noise based on decimal log of all the data point
 
-        Idea is that you calculate a histogram of of the log10(abundance) values
-        The maximum of the histogram == the standard deviation of the noise 
-        For aFT data it is a gaussian distribution of noise - not implemented here!
-        For mFT data it is a Rayleigh distribution, and the value is actually 10^(abu_max)*0.463
-        See the publication cited above for the derivation of this. 
+        Idea is that you calculate a histogram of of the log10(abundance) values. 
+        The maximum of the histogram == the standard deviation of the noise. 
 
+
+        For aFT data it is a gaussian distribution of noise - not implemented here!
+        For mFT data it is a Rayleigh distribution, and the value is actually 10^(abu_max)*0.463.
+
+
+        See the publication cited above for the derivation of this. 
 
         References
         --------
-        .. [1] dx.doi.org/10.1021/ac403278t | Anal. Chem. 2014, 86, 3308−3316
+        1. dx.doi.org/10.1021/ac403278t | Anal. Chem. 2014, 86, 3308−3316
 
         """
 

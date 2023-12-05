@@ -27,19 +27,15 @@ class FreqDomain_Calibration:
 
     Methods
     -------
-    * recal_mass_spec(mz_domain, Aterm, Bterm, Cterm)
+    * recal_mass_spec(mz_domain, Aterm, Bterm, Cterm). 
         Recalibrate the mass spectrum with the given parameters.  
-
-    * linear()
+    * linear(). 
         Perform linear calibration.  
-
-    * quadratic(iteration=False)
+    * quadratic(iteration=False). 
         Perform quadratic calibration.  
-
-    * ledford_calibration(iteration=False)
+    * ledford_calibration(iteration=False). 
         Perform Ledford calibration.  
-
-    * step_fit(steps=4)  
+    * step_fit(steps=4).   
         Perform step fit calibration.  
 
     """

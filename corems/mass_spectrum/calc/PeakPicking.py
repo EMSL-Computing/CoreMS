@@ -21,25 +21,19 @@ class PeakPicking:
 
     Methods
     -------
-    cut_mz_domain_peak_picking()
+    * cut_mz_domain_peak_picking().
         Cut the m/z domain for peak picking.
-
-    extrapolate_axes_for_pp()
+    * extrapolate_axes_for_pp().
         Extrapolate the m/z axis and fill the abundance axis with 0s.
-
-    do_peak_picking()
+    * do_peak_picking().
         Perform peak picking.
-
-    find_minima(apex_index, abundance, len_abundance, right=True)
+    * find_minima(apex_index, abundance, len_abundance, right=True).
         Find the minima of a peak.
-
-    calculate_resolving_power(intes, massa, current_index)
+    * calculate_resolving_power(intes, massa, current_index).
         Calculate the resolving power of a peak.
-
-    cal_minima(mass, abun)
+    * cal_minima(mass, abun).
         Calculate the minima of a peak.
-
-    calc_centroid(mass, abund, freq)
+    * calc_centroid(mass, abund, freq).
         Calculate the centroid of a peak.
 
     """
@@ -95,7 +89,7 @@ class PeakPicking:
 
         Notes
         --------
-        This function will extrapolate the mz axis by N datapoints, and fill the abundance axis with 0s
+        This function will extrapolate the mz axis by N datapoints, and fill the abundance axis with 0s. 
         This should prevent peak picking issues at the spectrum edge.
 
         """
@@ -147,10 +141,6 @@ class PeakPicking:
     def do_peak_picking(self):
         """ Perform peak picking.
 
-        Returns
-        -------
-        None
-
         """
         mz, abundance, freq = self.cut_mz_domain_peak_picking()
         self.mz_exp_profile = mz
@@ -161,9 +151,6 @@ class PeakPicking:
         self.mz_exp_profile = mz
         self.abundance_profile = abundance
         self.freq_exp_profile = freq
-
-
-
         
         if self.label == Labels.bruker_frequency or self.label == Labels.midas_frequency:
 
@@ -244,12 +231,11 @@ class PeakPicking:
 
         Notes
         --------
-        this is a conservative calculation of resolving power,
+        This is a conservative calculation of resolving power,
         the peak need to be resolved at least at the half-maximum magnitude,
-        otherwise, the combined full width at half maximum is used to calculate resolving power
+        otherwise, the combined full width at half maximum is used to calculate resolving power.
 
         """
-
 
         peak_height = intes[current_index]
         target_peak_height = peak_height/2
@@ -433,7 +419,21 @@ class PeakPicking:
                 #pyplot.show()
                 
     def get_threshold(self, intes):
-        
+        """ Get the intensity threshold for peak picking.
+
+        Parameters
+        ----------
+        intes : ndarray
+            The intensity values.
+
+        Returns
+        -------
+        float
+            The intensity threshold.
+        float
+            The factor to multiply the intensity threshold by.
+        """
+                
         intes = array(intes).astype(float)
        
         noise_threshold_method = self.settings.noise_threshold_method
