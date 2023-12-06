@@ -10,8 +10,7 @@ from numpy import NaN, power
 
 
 class _MSPeak(MSPeakCalculation):
-    """
-    A class representing a peak in a mass spectrum.
+    """ A class representing a peak in a mass spectrum.
 
     Parameters:
     ----------
@@ -36,25 +35,25 @@ class _MSPeak(MSPeakCalculation):
 
     Methods:
     -------
-    __len__()
+    * __len__()
         Returns the number of molecular formulas associated with the peak.
-    __setitem__(position, molecular_formula_obj)
+    * __setitem__(position, molecular_formula_obj)
         Sets the molecular formula at the specified position.
-    __getitem__(position) -> MolecularFormula
+    * __getitem__(position) -> MolecularFormula
         Returns the molecular formula at the specified position.
-    change_kendrick_base(kendrick_dict_base)
+    * change_kendrick_base(kendrick_dict_base)
         Changes the kendrick base for the peak.
-    add_molecular_formula(molecular_formula_obj)
+    * add_molecular_formula(molecular_formula_obj)
         Adds a molecular formula to the peak.
-    remove_molecular_formula(mf_obj)
+    * remove_molecular_formula(mf_obj)
         Removes a molecular formula from the peak.
-    clear_molecular_formulas()
+    * clear_molecular_formulas()
         Clears all molecular formulas associated with the peak.
-    plot_simulation(sim_type="lorentz", ax=None, color="green", oversample_multiplier=1, delta_rp=0, mz_overlay=1)
+    * plot_simulation(sim_type="lorentz", ax=None, color="green", oversample_multiplier=1, delta_rp=0, mz_overlay=1)
         Plots the simulated peak.
-    plot(ax=None, color="black", derivative=True, deriv_color='red')
+    * plot(ax=None, color="black", derivative=True, deriv_color='red')
         Plots the peak.
-    best_molecular_formula_candidate
+    * best_molecular_formula_candidate
         Returns the best molecular formula candidate for the peak.
     """
 
@@ -128,12 +127,32 @@ class _MSPeak(MSPeakCalculation):
         return self.molecular_formulas[position]
 
     def change_kendrick_base(self, kendrick_dict_base):
-        """kendrick_dict_base = {"C": 1, "H": 2}"""
+        """ Changes the kendrick base for the peak.
+        
+        Parameters:
+        ----------
+        kendrick_dict_base : dict
+            The kendrick base dictionary.
+            Default is {"C": 1, "H": 2}. (CH2)
+        """
         self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(
             kendrick_dict_base
         )
 
     def add_molecular_formula(self, molecular_formula_obj):
+        """ Adds a molecular formula to the peak.
+
+        Parameters:
+        ----------
+        molecular_formula_obj : MolecularFormula
+            The molecular formula object to be added.
+
+        Returns:
+        -------
+        MolecularFormula
+            The molecular formula object added.
+        
+        """
         # freeze state
         molecular_formula_obj._mspeak_parent = self
 
@@ -147,9 +166,18 @@ class _MSPeak(MSPeakCalculation):
         return molecular_formula_obj
 
     def remove_molecular_formula(self, mf_obj):
+        """ Removes a molecular formula from the peak.
+
+        Parameters:
+        ----------
+        mf_obj : MolecularFormula
+            The molecular formula object to be removed.
+        """
         self.molecular_formulas.remove(mf_obj)
 
     def clear_molecular_formulas(self):
+        """ Clears all molecular formulas associated with the peak.
+        """
         self.molecular_formulas = []
 
     @property
@@ -199,6 +227,35 @@ class _MSPeak(MSPeakCalculation):
         delta_rp=0,
         mz_overlay=1,
     ):
+        """ Plots the simulated peak.
+
+        Parameters:
+        ----------
+        sim_type : str, optional
+            The type of simulation to be plotted.
+            Default is "lorentz".
+        ax : matplotlib.axes, optional
+            The axes to plot the simulated peak.
+            Default is None.
+        color : str, optional
+            The color of the simulated peak.
+            Default is "green".
+        oversample_multiplier : int, optional
+            The oversample multiplier.
+            Default is 1.
+        delta_rp : int, optional
+            A delta value to the resolving power
+            Default is 0.
+        mz_overlay : int, optional
+            The mz overlay.
+            Default is 1.
+        
+        Returns:
+        -------
+        matplotlib.axes
+            The axes where the simulated peak was plotted.
+
+        """
         if self._ms_parent:
             import matplotlib.pyplot as plt
 
@@ -223,8 +280,30 @@ class _MSPeak(MSPeakCalculation):
             return ax
 
     def plot(
-        self, ax=None, color="black", derivative=True, deriv_color="red"
-    ):  # pragma: no cover
+        self, ax=None, color :str="black", derivative : bool=True, deriv_color :str="red"):  # pragma: no cover
+        """ Plots the peak.
+
+        Parameters:
+        ----------
+        ax : matplotlib.axes, optional
+            The axes to plot the peak.
+            Default is None.
+        color : str, optional
+            The color of the peak.
+            Default is "black".
+        derivative : bool, optional
+            Whether to plot the derivative of the peak.
+            Default is True.
+        deriv_color : str, optional
+            The color of the derivative of the peak.
+            Default is "red".
+
+        Returns:
+        -------
+        matplotlib.axes
+            The axes where the peak was plotted.
+
+        """
         if self._ms_parent:
             import matplotlib.pyplot as plt
 
@@ -302,31 +381,42 @@ class _MSPeak(MSPeakCalculation):
 
 
 class ICRMassPeak(_MSPeak):
+    """A class representing a peak in an ICR mass spectrum.
+    
+    """
     def __init__(self, *args, ms_parent=None, exp_freq=None):
         super().__init__(*args, exp_freq=exp_freq, ms_parent=ms_parent)
 
     def resolving_power_calc(self, B, T):
-        """
-        low pressure limits,
+        """ Calculate the theoretical resolving power of the peak.
+        
+        Parameters
+        ----------
         T: float
             transient time
         B: float
             Magnetic Filed Strength (Tesla)
+        
+        Returns
+        -------
+        float
+            Theoretical resolving power of the peak.
 
-        reference
-        Marshall et al. (Mass Spectrom Rev. 1998 Jan-Feb;17(1):1-35.)
-        DOI: 10.1002/(SICI)1098-2787(1998)17:1<1::AID-MAS1>3.0.CO;2-K
+        References
+        ----------
+        .. [1] Marshall et al. (Mass Spectrom Rev. 1998 Jan-Feb;17(1):1-35.)
+            DOI: 10.1002/(SICI)1098-2787(1998)17:1<1::AID-MAS1>3.0.CO;2-K
         """
         return (1.274e7 * self.ion_charge * B * T) / (self.mz_exp * self.ion_charge)
 
     def set_calc_resolving_power(self, B, T):
+        """ Set the resolving power of the peak to the calculated one.
+        """
         self.resolving_power = self.resolving_power_calc(B, T)
 
     def _mz_to_f_bruker(self):
-        """
-        Convert a peak m/z value to frequency
-        """
-        """
+        """ [Not Functional] Convert a peak m/z value to frequency
+        
         # Currently Broken - Not sure why
         if self.mz_cal:
             mz_val = self.mz_cal
@@ -357,6 +447,10 @@ class ICRMassPeak(_MSPeak):
 
 
 class TOFMassPeak(_MSPeak):
+    """ A class representing a peak in a TOF mass spectrum.
+    
+    
+    """
     def __init__(self, *args, exp_freq=None):
         super().__init__(*args, exp_freq=exp_freq)
 
@@ -365,6 +459,9 @@ class TOFMassPeak(_MSPeak):
 
 
 class OrbiMassPeak(_MSPeak):
+    """ A class representing a peak in an Orbitrap mass spectrum.
+    
+    """
     def __init__(self, *args, exp_freq=None):
         super().__init__(*args, exp_freq=exp_freq)
 
