@@ -37,26 +37,24 @@ class TransientCalculations(object):
     
     Methods
     -------
-    * cal_transient_time()
+    * cal_transient_time().
         Calculate the time domain length of the transient
-    * zero_fill(transient)
+    * zero_fill(transient).
         Zero fill the transient
-    * truncation(transient)
+    * truncation(transient).
         Truncate the transient
-    * apodization(transient)  
+    * apodization(transient).  
         Apodization of the transient
-    * calculate_frequency_domain(number_data_points)
+    * calculate_frequency_domain(number_data_points).
         Calculate the frequency domain (axis) of the transient
-    * cut_freq_domain(freqdomain_X, freqdomain_Y)
+    * cut_freq_domain(freqdomain_X, freqdomain_Y).
         Cut the frequency domain of the transient
-    * phase_and_absorption_mode_ft()
+    * phase_and_absorption_mode_ft().
         [Not Functional] Produce a phased absorption mode FT spectrum
-    * magnitude_mode_ft(transient)
+    * magnitude_mode_ft(transient).
         Perform magnitude mode FT of the transient
-    * correct_dc_offset()
-        [Not Yet Implemented] Correct the DC offset of the transient
-
-    
+    * correct_dc_offset().
+        [Not Yet Implemented] Correct the DC offset of the transient 
     
     """
 
@@ -86,8 +84,8 @@ class TransientCalculations(object):
             
         Notes
         -----
-        The number of zero fills is defined by the transient parameter number_of_zero_fills
-        The function first calculate the next power of two of the transient length and zero fills to that length, to take advantage of FFT algorithm
+        The number of zero fills is defined by the transient parameter number_of_zero_fills.
+        The function first calculate the next power of two of the transient length and zero fills to that length, to take advantage of FFT algorithm.
             If the parameter next_power_of_two is set to False, the function will zero fill to the length of the original transient times the number of zero fills
 
         """
@@ -152,17 +150,17 @@ class TransientCalculations(object):
         
         Notes
         -----
-        The apodization method is defined by the transient parameter apodization_method
+        The apodization method is defined by the transient parameter apodization_method.
         The following apodization methods are available:
-            Hamming
-            Hanning
-            Blackman
-            Full-Sine
-            Half-Sine
-            Kaiser
-            Half-Kaiser
+            Hamming,
+            Hanning,
+            Blackman,
+            Full-Sine,
+            Half-Sine,
+            Kaiser,
+            Half-Kaiser.
         
-        For Kaiser and Half-Kaiser, an additional parameter 'beta' is required, set by the transient parameter kaiser_beta
+        For Kaiser and Half-Kaiser, an additional parameter 'beta' is required, set by the transient parameter kaiser_beta.
 
         """
         
@@ -321,7 +319,7 @@ class TransientCalculations(object):
     def correct_dc_offset(self):
         """ [Not Yet Implemented] Correct the DC offset of the transient
 
-        A simple baseline correction to compensate for a DC offset in the recorded transient
+        A simple baseline correction to compensate for a DC offset in the recorded transient.
         Not implemented.
         
         """

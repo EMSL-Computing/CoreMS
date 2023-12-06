@@ -30,13 +30,17 @@ class ReadMidasDatFile():
     
     Methods
     -------
-    * read_file()
+    * read_file().
         Reads the .dat file and returns the transient data and the parameters
-    * get_transient_data(data_file, d_params)
+    * get_transient_data(data_file, d_params).
         Reads the transient data from the .dat file
-    * parse_parameter(f)
+    * parse_parameter(f).
         Parses the parameters from the .dat file
-    
+
+    Raises
+    ------
+    NotImplementedError
+        This class is not yet implemented.  
 
     """
 

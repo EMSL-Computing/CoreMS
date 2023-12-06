@@ -47,7 +47,7 @@ class Atoms: #pragma: no cover
     References
     ----------
 
-    .. [1] NIST - Last Accessed 2019-06-12
+    1. NIST - Last Accessed 2019-06-12
     https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-relative-atomic-masses
 
     """

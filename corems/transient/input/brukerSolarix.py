@@ -36,17 +36,17 @@ class ReadBrukerSolarix(object):
     
     Methods
     -------
-    * get_transient()
+    * get_transient().
         Read the data and settings returning a Transient class  
-    * get_scan_attr()
+    * get_scan_attr().
         Read the scan retention times, TIC values and scan indices.
-    * locate_file(folder, type_file_name)
+    * locate_file(folder, type_file_name).
         Find the full path of a specific file within the acquisition .d folder or subfolders
-    * parse_parameters(parameters_filename)
+    * parse_parameters(parameters_filename).
         Open the given file and retrieve all parameters from apexAcquisition.method
-    * fix_freq_limits(d_parameters)
+    * fix_freq_limits(d_parameters).
         Read and set the correct frequency limits for the spectrum
-    * get_excite_sweep_range(filename)
+    * get_excite_sweep_range(filename).
         Determine excitation sweep range from ExciteSweep file
     
     """
@@ -214,17 +214,17 @@ class ReadBrukerSolarix(object):
         
         return Transient(data, output_parameters)
 
-    """
-        for key, values in default_parameters.items():
-            print(key, values)
-    """
+    #    for key, values in default_parameters.items():
+    #        print(key, values)
     def fix_freq_limits(self, d_parameters):
         """ Function to read and set the correct frequency limits for the spectrum
         
-        Note - this is using the excitation limits from the apexAcquisition.method file,
-        which may not match the intended detection limits in edge cases
+        Notes
+        --------
+        This is using the excitation limits from the apexAcquisition.method file,
+        which may not match the intended detection limits in edge cases. 
         In default acquisitions, excitation and detection are the same. 
-        But, they may not be in some cases with selective excitation, custom excite waveforms, or in 2DMS applications
+        But, they may not be in some cases with selective excitation, custom excite waveforms, or in 2DMS applications.
         
         Parameters
         ----------
@@ -252,9 +252,9 @@ class ReadBrukerSolarix(object):
     def get_excite_sweep_range(filename):
         """ Function to determine excitation sweep range from ExciteSweep file
 
-        This looks at the first and last rows of the ExciteSweep file to determine the excitation frequency range
-        Note that this assumes the excitation sweep was linear and the first and last rows are the lowest and highest frequencies
-        This is presumably always true, but again may be incorrect for edge cases with custom excitation waveforms
+        This looks at the first and last rows of the ExciteSweep file to determine the excitation frequency range.
+        Note that this assumes the excitation sweep was linear and the first and last rows are the lowest and highest frequencies.
+        This is presumably always true, but again may be incorrect for edge cases with custom excitation waveforms.
 
         Parameters
         ----------
@@ -335,7 +335,7 @@ class ReadBrukerSolarix(object):
         
         Notes
         -----
-        adapted from code from SPIKE library, https://github.com/spike-project/spike
+        Adapted from code from SPIKE library, https://github.com/spike-project/spike.
         Code may not handle all possible parameters, but should be sufficient for most common use cases
         """
         
