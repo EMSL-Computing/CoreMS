@@ -25,33 +25,57 @@ class Transient(TransientCalculations):
     d_params : dict
         Dictionary with the parameters to be set
     
-    
-
     Attributes
     ----------
-    
+    calibration_terms : tuple
+        Tuple with the calibration terms (A, B, C)
+    bandwidth : float
+        The bandwidth of the transient (Hz)
+    number_data_points : int
+        The number of data points of the transient
+    polarity : int
+        The polarity of the transient     
+    transient_time : float
+        The time domain length of the transient
+    d_params : dict
+        Dictionary with the parameters to be set
+    frequency_domain : numpy.ndarray
+        Array with the frequency domain
+    magnitude : numpy.ndarray
+        Array with the magnitude
+    _full_filename_path : str
+        The full path of the transient file
+    _exc_high_freq : float  
+        The high frequency of the excitation (Hz)
+    _exc_low_freq : float
+        The low frequency of the excitation (Hz)
+    _parameters : corems.transient.parameters.TransientParameters
+        The transient parameters
+    _transient_data : numpy.ndarray
+        Array with the transient data
+
 
     Methods
     -------
-    * get_frequency_domain(plot_result=True)
+    * get_frequency_domain(plot_result=True).
         Get the frequency domain and magnitude from the transient data
-    * get_mass_spectrum(auto_process=True, plot_result=True, keep_profile=True)   
+    * get_mass_spectrum(auto_process=True, plot_result=True, keep_profile=True).   
         Get the mass spectrum from the transient data
-    * set_processing_parameter(apodization_method, number_of_truncations, number_of_zero_fills)   
+    * set_processing_parameter(apodization_method, number_of_truncations, number_of_zero_fills).   
         Set the processing parameters
-    * scale_plot_size(factor=1.5)
+    * scale_plot_size(factor=1.5).
         Scale the plot size by a factor
-    * plot_transient(ax=None, c='k')
+    * plot_transient(ax=None, c='k').
         Plot the transient data
-    * plot_zerofilled_transient(ax=None, c='k')
+    * plot_zerofilled_transient(ax=None, c='k').
         Plot the transient data with zero fill
-    * plot_apodized_transient(ax=None, c='k')
+    * plot_apodized_transient(ax=None, c='k').
         Plot the transient data with apodization
-    * plot_frequency_domain(ax=None, c='k')
+    * plot_frequency_domain(ax=None, c='k').
         Plot the frequency domain and magnitude
-    * set_parameter_from_toml(parameters_path)
+    * set_parameter_from_toml(parameters_path).
         Set the processing parameters from a toml file
-    * set_parameter_from_json(parameters_path)
+    * set_parameter_from_json(parameters_path).
         Set the processing parameters from a json file
     
 
@@ -142,6 +166,7 @@ class Transient(TransientCalculations):
 
     @property
     def parameters(self):
+        """ The transient parameters"""
         return self._parameters
 
     @parameters.setter
