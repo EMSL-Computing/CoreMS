@@ -14,32 +14,49 @@ from corems.encapsulation.input.parameter_from_json import load_and_set_paramete
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 19, 2019"
 
-'''
-fig = plt.figure()
-
-fig.patch.set_facecolor(None)
-
-fig.patch.set_alpha(0)
-'''
 
 class Transient(TransientCalculations):
-    '''
-    The ReadMassList object contains lots of MassSpectrum objs
-
+    """ The Transient object contains the transient data and the parameters used to process it
+   
     Parameters
     ----------
-    arg : str
-        The arg is used for ...
-    *args
-        The variable arguments are used for ...
-    **kwargs
-        The keyword arguments are used for ...
+    data : numpy.ndarray
+        Array with the transient data
+    d_params : dict
+        Dictionary with the parameters to be set
+    
+    
 
     Attributes
     ----------
-    arg : str
-        This is where we store arg,
-    '''
+    
+
+    Methods
+    -------
+    * get_frequency_domain(plot_result=True)
+        Get the frequency domain and magnitude from the transient data
+    * get_mass_spectrum(auto_process=True, plot_result=True, keep_profile=True)   
+        Get the mass spectrum from the transient data
+    * set_processing_parameter(apodization_method, number_of_truncations, number_of_zero_fills)   
+        Set the processing parameters
+    * scale_plot_size(factor=1.5)
+        Scale the plot size by a factor
+    * plot_transient(ax=None, c='k')
+        Plot the transient data
+    * plot_zerofilled_transient(ax=None, c='k')
+        Plot the transient data with zero fill
+    * plot_apodized_transient(ax=None, c='k')
+        Plot the transient data with apodization
+    * plot_frequency_domain(ax=None, c='k')
+        Plot the frequency domain and magnitude
+    * set_parameter_from_toml(parameters_path)
+        Set the processing parameters from a toml file
+    * set_parameter_from_json(parameters_path)
+        Set the processing parameters from a json file
+    
+
+    
+    """
     
     
     def __init__(self, data, d_params):
@@ -57,6 +74,14 @@ class Transient(TransientCalculations):
         self.__set__transient__time()
 
     def __set__parameters__objects(self, d_params):
+        """ Set the parameters objects from the dictionary d_params
+
+        Parameters
+        ----------
+        d_params : dict
+            Dictionary with the parameters to be set
+        
+        """
 
         self._full_filename_path = d_params.get("filename_path")
 
@@ -81,16 +106,33 @@ class Transient(TransientCalculations):
         self._parameters = deepcopy(MSParameters.transient)
 
     def scale_plot_size(self, factor=1.5):
+        """Scale the plot size by a factor
 
+        Parameters
+        ----------
+        factor : float, optional
+            The factor to scale the plot size, by default 1.5
+        """
+        
         default_dpi = rcParamsDefault["figure.dpi"]
         rcParams["figure.dpi"] = default_dpi * factor
 
     def __set__transient__time(self):
+        """ Set the transient time variable with the calculated length."""
         self.transient_time = self.cal_transient_time()
 
-    def set_processing_parameter(
-        self, apodization_method, number_of_truncations, number_of_zero_fills
-    ):
+    def set_processing_parameter(self, apodization_method: str, number_of_truncations: int, number_of_zero_fills: int):
+        """ Set the processing parameters
+
+        Parameters
+        ----------
+        apodization_method : str
+            Apodization method to be used
+        number_of_truncations : int
+            Number of truncations to be used
+        number_of_zero_fills : int
+            Number of zero fills to be used
+        """
 
         self.parameters.apodization_method = apodization_method
 
@@ -107,12 +149,31 @@ class Transient(TransientCalculations):
         self._parameters = instance_TransientParameters
     
     def set_parameter_from_toml(self, parameters_path):
+        """ Set the processing parameters from a toml file
+        """
         self._parameters = load_and_set_toml_parameters_class('Transient', self._parameters, parameters_path=parameters_path)
       
     def set_parameter_from_json(self, parameters_path):
+        """ Set the processing parameters from a json file
+        """
         self._parameters = load_and_set_parameters_class('Transient', self._parameters, parameters_path=parameters_path)
     
     def get_frequency_domain(self, plot_result=True):
+        """ Get the frequency domain and magnitude from the transient data
+
+        Parameters
+        ----------
+        plot_result : bool, optional
+            Plot the frequency domain and magnitude, by default True
+        
+        Returns
+        -------
+        frequency_domain : numpy.ndarray
+            Array with the frequency domain
+        magnitude : numpy.ndarray
+            Array with the magnitude
+        """
+
 
         if self.parameters.number_of_truncations > 0:
 
@@ -145,10 +206,25 @@ class Transient(TransientCalculations):
         return self.perform_magniture_mode_ft(time_domain_y_zero_filled)
         # return frequency_domain, magnitude
 
-    def get_mass_spectrum(self, auto_process=True, plot_result=True,
-                         keep_profile=True) -> MassSpecfromFreq:
+    def get_mass_spectrum(self, auto_process : bool=True, plot_result : bool=True,
+                         keep_profile : bool=True) -> MassSpecfromFreq:
 
-        #plt.figure(figsize=(13, 8))
+        """ Get the mass spectrum from the transient data
+
+        Parameters
+        ----------
+        auto_process : bool, optional
+            Process the transient data, by default True
+        plot_result : bool, optional
+            Plot the frequency domain and magnitude, by default True
+        keep_profile : bool, optional
+            Keep the profile data, by default True
+        
+        Returns
+        -------
+        MassSpecfromFreq
+            Mass spectrum object
+        """
 
         frequency_domain, magnitude = self.get_frequency_domain(plot_result=plot_result)
 
@@ -193,6 +269,15 @@ class Transient(TransientCalculations):
         return self.calibration_terms[2]
 
     def _plot_frequency_domain(self, frequency_domain, magnitude): # pragma: no cover
+        """ Plot the frequency domain and magnitude
+        
+        Parameters
+        ----------
+        frequency_domain : numpy.ndarray
+            Array with the frequency domain
+        magnitude : numpy.ndarray
+            Array with the magnitude
+        """
 
         self.location += 1
         plt.subplot(self.location)
@@ -204,6 +289,14 @@ class Transient(TransientCalculations):
         # plt.show()
 
     def _plot_transient(self, transient_data): # pragma: no cover
+        """ Plot the transient data
+
+        Parameters
+        ----------
+        transient_data : numpy.ndarray
+            Array with the transient data
+        
+        """
 
         self.location += 1
         # print( self.location)
@@ -215,6 +308,21 @@ class Transient(TransientCalculations):
         # plt.show()
 
     def plot_transient(self, ax=None, c='k'): # pragma: no cover
+        """ Plot the transient data
+        
+        Parameters
+        ----------
+        ax : matplotlib.axes, optional
+            Matplotlib axes object, by default None
+        c : str, optional
+            Color, by default 'k'
+
+        Returns
+        -------
+        matplotlib.axes
+            Matplotlib axes object
+        
+        """
 
         # self.location +=1
         # print( self.location)
@@ -229,7 +337,21 @@ class Transient(TransientCalculations):
         return ax
 
     def plot_zerofilled_transient(self, ax=None, c='k'): # pragma: no cover
+        """ Plot the transient data with zero fill
+        
+        Parameters
+        ----------
+        ax : matplotlib.axes, optional
+            Matplotlib axes object, by default None
+        c : str, optional
+            Color, by default 'k'
 
+        Returns
+        -------
+        matplotlib.axes
+            Matplotlib axes object
+        
+        """
         if ax is None:
             ax = plt.gca()
         new_time_domain = self.apodization(self._transient_data)
@@ -246,7 +368,21 @@ class Transient(TransientCalculations):
         return ax
 
     def plot_apodized_transient(self, ax=None, c='k'):  # pragma: no cover
+        """ Plot the transient data with apodization
 
+        Parameters
+        ----------
+        ax : matplotlib.axes, optional
+            Matplotlib axes object, by default None
+        c : str, optional
+            Color, by default 'k'
+
+        Returns
+        -------
+        matplotlib.axes
+            Matplotlib axes object
+        
+        """
         # self.location +=1
         # print( self.location)
         if ax is None:
@@ -262,7 +398,21 @@ class Transient(TransientCalculations):
 
 
     def plot_frequency_domain(self, ax=None, c='k'):  # pragma: no cover
+        """ Plot the frequency domain and magnitude
+        
+        Parameters
+        ----------
+        ax : matplotlib.axes, optional
+            Matplotlib axes object, by default None
+        c : str, optional
+            Color, by default 'k'
 
+        Returns
+        -------
+        matplotlib.axes
+            Matplotlib axes object
+        
+        """
         # self.location +=1
         # plt.subplot(self.location)
         if ax is None:
