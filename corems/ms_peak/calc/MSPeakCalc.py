@@ -11,15 +11,86 @@ from corems.encapsulation.factory.parameters import MSParameters
 from lmfit import models
 import pyswarm
 
-class MSPeakCalculation:
 
-    '''
-    classdocs
-    '''
+class MSPeakCalculation:
+    """Class to perform calculations on MSPeak objects.
+
+    This class provides methods to perform various calculations on MSPeak objects, such as calculating Kendrick Mass Defect (KMD) and Kendrick Mass (KM), calculating peak area, and fitting peak lineshape using different models.
+
+    Parameters
+    ----------
+    None
+
+    Attributes
+    ----------
+    _ms_parent : MSParent
+        The parent MSParent object associated with the MSPeakCalculation object.
+    mz_exp : float
+        The experimental m/z value of the peak.
+    start_scan : int
+        The start scan index of the peak.
+    final_scan : int
+        The final scan index of the peak.
+    resolving_power : float
+        The resolving power of the peak.
+
+    Methods
+    -------
+    * _calc_kdm(dict_base)
+        Calculate the Kendrick Mass Defect (KMD) and Kendrick Mass (KM) for a given base formula.
+    * calc_area()
+        Calculate the peak area using numpy's trapezoidal fit.
+    * fit_peak(mz_extend=6, delta_rp=0, model='Gaussian')
+        Perform lineshape analysis on a peak using lmfit module.
+    * voigt_pso(w, r, yoff, width, loc, a)
+        Calculate the Voigt function for particle swarm optimization (PSO) fitting.
+    * objective_pso(x, w, u)
+        Calculate the objective function for PSO fitting.
+    * minimize_pso(lower, upper, w, u)
+        Minimize the objective function using the particle swarm optimization algorithm.
+    * fit_peak_pso(mz_extend=6, upsample_multiplier=5)
+        Perform lineshape analysis on a peak using particle swarm optimization (PSO) fitting.
+    * voigt(oversample_multiplier=1, delta_rp=0, mz_overlay=1)
+        [Legacy] Perform voigt lineshape analysis on a peak.
+    * pseudovoigt(oversample_multiplier=1, delta_rp=0, mz_overlay=1, fraction=0.5)
+        [Legacy] Perform pseudovoigt lineshape analysis on a peak.
+    * lorentz(oversample_multiplier=1, delta_rp=0, mz_overlay=1)
+        [Legacy] Perform lorentz lineshape analysis on a peak.
+    * gaussian(oversample_multiplier=1, delta_rp=0, mz_overlay=1)
+        [Legacy] Perform gaussian lineshape analysis on a peak.
+    * get_mz_domain(oversample_multiplier, mz_overlay)
+        [Legacy] Resample/interpolate datapoints for lineshape analysis.
+    * number_possible_assignments
+        Return the number of possible molecular formula assignments for the peak.
+    * molecular_formula_lowest_error
+        Return the molecular formula with the smallest absolute mz error.
+    * molecular_formula_highest_prob_score
+        Return the molecular formula with the highest confidence score.
+    * molecular_formula_earth_filter(lowest_error=True)
+        Filter molecular formula using the 'Earth' filter.
+    * molecular_formula_water_filter(lowest_error=True)
+        Filter molecular formula using the 'Water' filter.
+    * molecular_formula_air_filter(lowest_error=True)
+        Filter molecular formula using the 'Air' filter.
+    * cia_score_S_P_error
+        Compound Identification Algorithm SP Error - Assignment Filter.
+    * cia_score_N_S_P_error
+        Compound Identification Algorithm NSP Error - Assignment Filter.
+    
+    """
+   
 
     def _calc_kdm(self, dict_base):
-        '''dict_base = {"C": 1, "H": 2}
-        '''
+        """ Calculate the Kendrick Mass Defect (KMD) and Kendrick Mass (KM) for a given base formula    
+        
+        Parameters
+        ----------
+        dict_base : dict
+            dictionary with the base formula to be used in the calculation
+            Default is CH2, e.g.
+                dict_base = {"C": 1, "H": 2}
+        """
+
         if self._ms_parent:
             # msPeak obj does have a ms object parent
             kendrick_rounding_method = self._ms_parent.mspeaks_settings.kendrick_rounding_method  # rounding method can be one of floor, ceil or round
@@ -56,10 +127,15 @@ class MSPeakCalculation:
         return kmd, kendrick_mass, nominal_km
 
     def calc_area(self):
-        '''
-        Calculate the peak area using numpy's trapezoidal fit
+        """ Calculate the peak area using numpy's trapezoidal fit
+
         uses provided mz_domain to accurately integrate areas independent of digital resolution
-        '''
+
+        Returns
+        -------
+        float
+            peak area
+        """
         #TODO throughout change final_scan and start_scan when the MSPeakClasses 
         if self.final_scan > self.start_scan:
 
@@ -77,15 +153,35 @@ class MSPeakCalculation:
             return nan
 
     def fit_peak(self,mz_extend=6, delta_rp = 0, model='Gaussian'):
-        '''
+        """ Lineshape analysis on a peak using lmfit module. 
+
         Model and fit peak lineshape by defined function - using lmfit module
-        Do not oversample/resample/interpolate data points 
-        Better to go back to time domain and perform more zero filling
-        Models allowed: Gaussian, Lorentz, Voigt
+        Does not oversample/resample/interpolate data points 
+        Better to go back to time domain and perform more zero filling - if possible.
+
+        Parameters
+        ----------
+        mz_extend : int
+            extra points left and right of peak definition to include in fitting
+        delta_rp : float
+            delta resolving power to add to resolving power
+        model : str
+            Type of lineshape model to use.
+            Models allowed: Gaussian, Lorentz, Voigt
+
+        Returns
+        -----
+        mz_domain : ndarray
+            x-axis domain for fit
+        fit_peak : lmfit object
+            fit results object from lmfit module
+        
+        Notes
+        -----
         Returns the calculated mz domain, initial defined abundance profile, and the fit peak results object from lmfit module
         mz_extend here extends the x-axis domain so that we have sufficient points either side of the apex to fit.
         Takes about 10ms per peak
-        '''
+        """
         start_index = self.start_scan - mz_extend  if not self.start_scan == 0 else 0
         final_index = self.final_scan + mz_extend  if not self.final_scan == len(self._ms_parent.mz_exp_profile) else self.final_scan
 
@@ -130,9 +226,11 @@ class MSPeakCalculation:
 
 
     def voigt_pso(self,w, r, yoff, width, loc, a):
-        """
+        """ Voigt function for particle swarm optimisation (PSO) fitting
+
         From https://github.com/pnnl/nmrfit/blob/master/nmrfit/equations.py
         Calculates a Voigt function over w based on the relevant properties of the distribution.
+
         Parameters
         ----------
         w : ndarray
@@ -151,6 +249,15 @@ class MSPeakCalculation:
         -------
         V : ndarray
             Array defining the Voigt function over w.
+
+        References
+        ----------
+        .. [1] https://github.com/pnnl/nmrfit 
+
+        Notes
+        -----
+        Particle swarm optimisation (PSO) fitting function can be significantly more computationally expensive than lmfit, with more parameters to optimise.
+
         """
         # Lorentzian component
         L = (2 / (pi * width)) * 1 / (1 + ((w - loc) / (0.5 * width))**2)
@@ -164,20 +271,29 @@ class MSPeakCalculation:
         return V
 
 
-    def objective_pso(self,x, w, u):
-        """
-        The objective function used to fit supplied data.  Evaluates sum of squared differences
-        between the fit and the data.
+    def objective_pso(self, x, w, u):
+        """ Objective function for particle swarm optimisation (PSO) fitting
+
+        The objective function used to fit supplied data.  Evaluates sum of squared differences between the fit and the data.
+
         Parameters
         ----------
         x : list of floats
             Parameter vector.
         w : ndarray
             Array of frequency data.
+        u : ndarray
+            Array of data to be fit.
+
         Returns
         -------
         rmse : float
             Root mean square error between the data and fit.
+
+        References
+        ----------
+        .. [1] https://github.com/pnnl/nmrfit 
+
         """
         # global parameters
         r, width, loc, a = x
@@ -193,11 +309,36 @@ class MSPeakCalculation:
         return rmse
 
     def minimize_pso(self,lower, upper, w, u):
-        '''
-        Minimization function based on defined parameters
-        To Do - allow support to pass swarmsize, maxiter, omega, phip, phig parameters.
+        """ Minimization function for particle swarm optimisation (PSO) fitting
+
+        Minimizes the objective function using the particle swarm optimization algorithm.
+        Minimization function based on defined parameters   
+        TODO - allow support to pass swarmsize, maxiter, omega, phip, phig parameters.
+        TODO - Refactor PSO fitting into its own class?
+
+        Parameters
+        ----------
+        lower : list of floats
+            Lower bounds for the parameters.
+        upper : list of floats
+            Upper bounds for the parameters.
+        w : ndarray
+            Array of frequency data.
+        u : ndarray
+            Array of data to be fit.
+
+        Notes
+        -----
+        Particle swarm optimisation (PSO) fitting function can be significantly more computationally expensive than lmfit, with more parameters to optimise.
         Current parameters take ~2 seconds per peak.
-        '''
+
+
+        References
+        ----------
+        .. [1] https://github.com/pnnl/nmrfit 
+
+        """
+        
         xopt, fopt = pyswarm.pso(self.objective_pso, lower, upper, args=(w, u),
                                     swarmsize=1000,
                                     maxiter=5000,
@@ -206,17 +347,20 @@ class MSPeakCalculation:
                                     phig=2.3259)
         return xopt, fopt
 
-    def fit_peak_pso(self, mz_extend=6,upsample_multiplier=5):
-        '''
+    def fit_peak_pso(self, mz_extend : int=6, upsample_multiplier : int=5):
+        """ Lineshape analysis on a peak using particle swarm optimisation (PSO) fitting 
+
         Function to fit a Voigt peakshape using particle swarm optimisation (PSO)
         Should return better results than lmfit, but much more computationally expensive
-        # To Do - Add ability to pass pso args (i.e. swarm size, maxiter, omega, phig, etc)
+        # TODO - Add ability to pass pso args (i.e. swarm size, maxiter, omega, phig, etc)
+
         Parameters
         ----------
         mz_extend : int
             extra points left and right of peak definition to include in fitting
         upsample_multiplier : int
             factor to increase x-axis points by for simulation of fitted lineshape function
+
         Returns
         -------
         xopt : array
@@ -234,7 +378,11 @@ class MSPeakCalculation:
             0 - linspace x-axis upsampled grid
             1 - recalculated y values based on function and upsampled x-axis grid
             Does not change results, but aids in visualisation of the 'true' voigt lineshape
-        '''
+
+        Notes
+        -----
+        Particle swarm optimisation (PSO) fitting function can be significantly more computationally expensive than lmfit, with more parameters to optimise.
+        """
         start_index = self.start_scan - mz_extend  if not self.start_scan == 0 else 0
         final_index = self.final_scan + mz_extend  if not self.final_scan == len(self._ms_parent.mz_exp_profile) else self.final_scan
 
@@ -259,9 +407,25 @@ class MSPeakCalculation:
 
              
     def voigt(self, oversample_multiplier=1, delta_rp = 0, mz_overlay=1):
-        '''
+        """ [Legacy] Voigt lineshape analysis function
         Legacy function for voigt lineshape analysis
-        '''
+
+        Parameters
+        ----------
+        oversample_multiplier : int
+            factor to increase x-axis points by for simulation of fitted lineshape function
+        delta_rp : float
+            delta resolving power to add to resolving power
+        mz_overlay : int
+            extra points left and right of peak definition to include in fitting
+        
+        Returns
+        -------
+        mz_domain : ndarray
+            x-axis domain for fit
+        calc_abundance : ndarray
+            calculated abundance profile based on voigt function
+        """
         
         
         if self.resolving_power:
@@ -297,9 +461,23 @@ class MSPeakCalculation:
                 'resolving power is not defined, try to use set_max_resolving_power()')
 
     def pseudovoigt(self, oversample_multiplier=1, delta_rp = 0, mz_overlay=1, fraction =0.5):
-        '''
-        Legacy pseudovoigt lineshape function
-        '''
+        """ [Legacy] pseudovoigt lineshape function
+
+        Legacy function for pseudovoigt lineshape analysis. 
+        Note - Code may not be functional currently.
+
+        Parameters
+        ----------
+        oversample_multiplier : int
+            factor to increase x-axis points by for simulation of fitted lineshape function
+        delta_rp : float
+            delta resolving power to add to resolving power
+        mz_overlay : int
+            extra points left and right of peak definition to include in fitting
+        fraction : float
+            fraction of gaussian component in pseudovoigt function
+
+        """
         if self.resolving_power:
 
             # full width half maximum distance
@@ -336,9 +514,27 @@ class MSPeakCalculation:
 
 
     def lorentz(self, oversample_multiplier=1, delta_rp = 0, mz_overlay=1):
-        '''
-        Legacy lorentz lineshape analysis function
-        '''
+        """ [Legacy] Lorentz lineshape analysis function    
+        
+        Legacy function for lorentz lineshape analysis
+
+        Parameters
+        ----------
+        oversample_multiplier : int
+            factor to increase x-axis points by for simulation of fitted lineshape function
+        delta_rp : float
+            delta resolving power to add to resolving power
+        mz_overlay : int
+            extra points left and right of peak definition to include in fitting
+        
+        Returns
+        -------
+        mz_domain : ndarray
+            x-axis domain for fit
+        calc_abundance : ndarray
+            calculated abundance profile based on lorentz function
+        
+        """
         if self.resolving_power:
 
             # full width half maximum distance
@@ -372,9 +568,27 @@ class MSPeakCalculation:
                 'resolving power is not defined, try to use set_max_resolving_power()')
 
     def gaussian(self, oversample_multiplier=1, delta_rp = 0, mz_overlay=1):
-        '''
+        """ [Legacy] Gaussian lineshape analysis function
         Legacy gaussian lineshape analysis function
-        '''
+        
+        Parameters
+        ----------
+        oversample_multiplier : int
+            factor to increase x-axis points by for simulation of fitted lineshape function
+        delta_rp : float
+            delta resolving power to add to resolving power
+        mz_overlay : int
+            extra points left and right of peak definition to include in fitting
+
+        Returns
+        -------
+        mz_domain : ndarray 
+            x-axis domain for fit
+        calc_abundance : ndarray
+            calculated abundance profile based on gaussian function
+        
+
+        """
 
         # check if MSPeak contains the resolving power info
         if self.resolving_power:
@@ -415,9 +629,24 @@ class MSPeakCalculation:
                 'resolving power is not defined, try to use set_max_resolving_power()')
 
     def get_mz_domain(self, oversample_multiplier, mz_overlay):
-        '''
+        """  [Legacy] function to resample/interpolate datapoints for lineshape analysis
+
+        This code is used for the legacy line fitting functions and not recommended.
         Legacy function to support expanding mz domain for legacy lineshape functions
-        '''
+
+        Parameters
+        ----------
+        oversample_multiplier : int
+            factor to increase x-axis points by for simulation of fitted lineshape function
+        mz_overlay : int
+            extra points left and right of peak definition to include in fitting
+        
+        Returns
+        -------
+        mz_domain : ndarray
+            x-axis domain for fit
+        
+        """
         start_index = self.start_scan - mz_overlay  if not self.start_scan == 0 else 0
         final_index = self.final_scan + mz_overlay  if not self.final_scan == len(self._ms_parent.mz_exp_profile) else self.final_scan
 
@@ -444,14 +673,46 @@ class MSPeakCalculation:
         return len(self.molecular_formulas)
 
     def molecular_formula_lowest_error(self):
+       """ Return the molecular formula with the smallest absolute mz error
+       
+       """
        
        return min(self.molecular_formulas, key=lambda m: abs(m.mz_error))
 
     def molecular_formula_highest_prob_score(self):
+        """ Return the molecular formula with the highest confidence score score
+         
+        """
        
-       return max(self.molecular_formulas, key=lambda m: abs(m.confidence_score))
+        return max(self.molecular_formulas, key=lambda m: abs(m.confidence_score))
 
     def molecular_formula_earth_filter(self, lowest_error=True):
+        """ Filter molecular formula using the 'Earth' filter
+        
+        This function applies the Formularity-esque 'Earth' filter to possible molecular formula assignments.
+        Earth Filter:
+            O > 0 AND N <= 3 AND P <= 2 AND 3P <= O
+
+        If the lowest_error method is also used, it will return the single formula annotation with the smallest absolute error which also fits the Earth filter. 
+        Otherwise, it will return all Earth-filter compliant formulas. 
+
+        Parameters
+        ----------
+        lowest_error : bool
+            Return only the lowest error formula which also fits the Earth filter. 
+            If False, return all Earth-filter compliant formulas.
+
+        Returns
+        -------
+        list
+            List of molecular formula objects which fit the Earth filter
+
+        References
+        ----------
+        .. [1] Nikola Tolic et al., "Formularity: Software for Automated Formula Assignment of Natural and Other Organic Matter from Ultrahigh-Resolution Mass Spectra"
+            Anal. Chem. 2017, 89, 23, 12659–12665
+            doi: 10.1021/acs.analchem.7b03318
+        """
         
         candidates = list(filter(lambda mf: mf.get("O") > 0 and mf.get("N") <=3 and mf.get("P") <= 2 and (3 * mf.get("P")) <= mf.get("O"), self.molecular_formulas))
 
@@ -461,6 +722,32 @@ class MSPeakCalculation:
             return candidates
 
     def molecular_formula_water_filter(self, lowest_error=True):
+        """ Filter molecular formula using the 'Water' filter
+
+        This function applies the Formularity-esque 'Water' filter to possible molecular formula assignments.
+        Water Filter:
+            O > 0 AND N <= 3 AND S <= 2 AND P <= 2
+        
+        If the lowest_error method is also used, it will return the single formula annotation with the smallest absolute error which also fits the Water filter.
+        Otherwise, it will return all Water-filter compliant formulas.
+
+        Parameters
+        ----------
+        lowest_error : bool
+            Return only the lowest error formula which also fits the Water filter.
+            If False, return all Water-filter compliant formulas.
+
+        Returns 
+        -------
+        list
+            List of molecular formula objects which fit the Water filter
+
+        References
+        ----------
+        .. [1] Nikola Tolic et al., "Formularity: Software for Automated Formula Assignment of Natural and Other Organic Matter from Ultrahigh-Resolution Mass Spectra"
+            Anal. Chem. 2017, 89, 23, 12659–12665
+            doi: 10.1021/acs.analchem.7b03318
+        """
        
         candidates = list(filter(lambda mf: mf.get("O") > 0 and mf.get("N") <=3 and mf.get("S") <=2 and  mf.get("P") <= 2, self.molecular_formulas))
 
@@ -470,6 +757,33 @@ class MSPeakCalculation:
             return candidates
     
     def molecular_formula_air_filter(self, lowest_error=True):
+        """ Filter molecular formula using the 'Air' filter
+
+        This function applies the Formularity-esque 'Air' filter to possible molecular formula assignments.
+        Air Filter:
+            O > 0 AND N <= 3 AND S <= 1 AND P = 0 AND 3(S+N) <= O
+        
+        If the lowest_error method is also used, it will return the single formula annotation with the smallest absolute error which also fits the Air filter.
+        Otherwise, it will return all Air-filter compliant formulas.
+
+        Parameters
+        ----------
+        lowest_error : bool
+            Return only the lowest error formula which also fits the Air filter.
+            If False, return all Air-filter compliant formulas.
+
+        Returns
+        -------
+        list
+            List of molecular formula objects which fit the Air filter
+            
+        References
+        ----------
+        .. [1] Nikola Tolic et al., "Formularity: Software for Automated Formula Assignment of Natural and Other Organic Matter from Ultrahigh-Resolution Mass Spectra"
+            Anal. Chem. 2017, 89, 23, 12659–12665
+            doi: 10.1021/acs.analchem.7b03318
+        """
+
        
         candidates = list(filter(lambda mf: mf.get("O") > 0 and mf.get("N") <=2 and mf.get("S") <=1 and  mf.get("P") == 0 and 3* (mf.get("S") + mf.get("N")) <= mf.get("O"), self.molecular_formulas))
         
@@ -479,6 +793,24 @@ class MSPeakCalculation:
             return candidates
 
     def cia_score_S_P_error(self):
+        """ Compound Identification Algorithm SP Error - Assignment Filter
+         
+        This function applies the Compound Identification Algorithm (CIA) SP Error filter to possible molecular formula assignments.
+
+        It takes the molecular formula with the lowest S+P count, and returns the formula with the lowest absolute error from this subset.
+        
+        Returns
+        -------
+        MolecularFormula
+            A single molecular formula which fits the rules of the CIA SP Error filter
+
+
+        References
+        ----------
+        .. [1] Elizabeth B. Kujawinski and Mark D. Behn, "Automated Analysis of Electrospray Ionization Fourier Transform Ion Cyclotron Resonance Mass Spectra of Natural Organic Matter"
+            Anal. Chem. 2006, 78, 13, 4363–4373
+            doi: 10.1021/ac0600306
+        """
         #case EFormulaScore.HAcap:
 
         lowest_S_P_mf = min(self.molecular_formulas, key=lambda mf: mf.get('S') + mf.get('P'))
@@ -496,6 +828,23 @@ class MSPeakCalculation:
             return lowest_S_P_mf
     
     def cia_score_N_S_P_error(self):
+        """ Compound Identification Algorithm NSP Error - Assignment Filter
+        
+        This function applies the Compound Identification Algorithm (CIA) NSP Error filter to possible molecular formula assignments.
+
+        It takes the molecular formula with the lowest N+S+P count, and returns the formula with the lowest absolute error from this subset.
+
+        Returns
+        -------
+        MolecularFormula
+            A single molecular formula which fits the rules of the CIA NSP Error filter
+
+        References
+        ----------
+        .. [1] Elizabeth B. Kujawinski and Mark D. Behn, "Automated Analysis of Electrospray Ionization Fourier Transform Ion Cyclotron Resonance Mass Spectra of Natural Organic Matter"
+            Anal. Chem. 2006, 78, 13, 4363–4373
+            doi: 10.1021/ac0600306
+        """
         #case EFormulaScore.HAcap:
         if self.molecular_formulas:
 
