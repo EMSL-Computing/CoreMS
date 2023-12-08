@@ -16,23 +16,81 @@ from corems.encapsulation.constant import Atoms
 from corems.molecular_id.factory.molecularSQL import CarbonHydrogen, MolecularFormulaLink, HeteroAtoms
 
 class MolecularFormulaLinkProxy:
+    """Proxy class for MolecularFormulaLink to be used in the molecular formula ref file import
+    
+    Parameters
+    ----------
+    molecular_formula : MolecularFormula | LCMSLibRefMolecularFormula
+        corems MolecularFormula or LCMSLibRefMolecularFormula object
+    mz : float
+        target m/z
         
-        def __init__(self, molecular_formula, mz):
+    Attributes
+    ----------
+    C : int
+        number of carbon atoms
+    H : int
+        number of hydrogen atoms
+    H_C : float
+        ratio of hydrogen to carbon atoms
+    class_label : str
+        molecular formula class label
+    mz_calc : float
+        calculated m/z
+    dbe : int
+        double bond equivalent
+    formula_dict : dict
+        molecular formula dictionary
 
-            self.C = molecular_formula.get('C')
-            self.H = molecular_formula.get('H')
-            self.H_C = molecular_formula.get('H')/molecular_formula.get('C')
-            self.class_label = json.dumps(molecular_formula.class_dict)
-            self.mz_calc =  float(mz)                       
-            self.dbe = molecular_formula.dbe
-            self.formula_dict = molecular_formula.to_dict()
+    Methods
+    -------
+    * to_dict(). 
+        return molecular formula dictionary
+
+    """
         
-        def to_dict(self):
-            return self.formula_dict
+    def __init__(self, molecular_formula, mz):
+
+        self.C = molecular_formula.get('C')
+        self.H = molecular_formula.get('H')
+        self.H_C = molecular_formula.get('H')/molecular_formula.get('C')
+        self.class_label = json.dumps(molecular_formula.class_dict)
+        self.mz_calc =  float(mz)                       
+        self.dbe = molecular_formula.dbe
+        self.formula_dict = molecular_formula.to_dict()
+    
+    def to_dict(self):
+        return self.formula_dict
 
 
 class ImportMassListRef():#Thread
+    """Import Mass List from Reference File
+    
+    Parameters
+    ----------
+    ref_file_location : str
+        path to the reference file
 
+    Attributes
+    ----------
+    ref_file_location : str
+        path to the reference file
+
+    Methods
+    -------
+    * molecular_formula_ref(mz, molecular_formula). 
+        Return MolecularFormulaLinkProxy object
+    * from_lcms_lib_file(ion_charge, ion_types).
+        Return Dict[standard_name, Dict[m/z, List[MolecularFormula]]] from LCMS library reference file
+    * from_bruker_ref_file().
+        Return List[MolecularFormula] from Bruker reference file
+    * from_corems_ref_file(delimiter).
+        Return List[MolecularFormula] from CoreMS reference file
+    * split(delimiters, string, maxsplit).
+        Splits a string using a list of delimiters.
+    * mformula_s_to_dict(s_mformulatring, iontype).
+        Converts a molecular formula string to a dict
+    """
     def __init__(self, ref_file_location) :
             
             #Thread.__init__(self)
@@ -44,20 +102,38 @@ class ImportMassListRef():#Thread
                 raise FileNotFoundError(ref_file_location).with_traceback(tb)
     
     def molecular_formula_ref( self, mz, molecular_formula):
+        """Instantiate a MolecularFormulaLinkProxy object
+
+        Parameters
+        ----------
+        mz : float
+            target m/z
+        molecular_formula : MolecularFormula | LCMSLibRefMolecularFormula
+            corems MolecularFormula or LCMSLibRefMolecularFormula object
         
+        Returns
+        -------
+        MolecularFormulaLinkProxy
+            MolecularFormulaLinkProxy object
+        """        
         return MolecularFormulaLinkProxy(molecular_formula, mz)
     
     def from_lcms_lib_file(self, ion_charge: float, ion_types: List[str]) -> Dict [str, Dict[float, List[LCMSLibRefMolecularFormula] ] ]:
-        '''
-         return Dict[standard_name, Dict[m/z, List[MolecularFormula]]]:
-            m/z: float:
-                target m/z 
-            standard_name: str
-                name of the molecular standard mix 
-            MolecularFormula: class
-                corems molecular formula class    
-        '''
+        """Create a dictionary of LCMSLibRefMolecularFormula objects from LCMS library reference file
         
+        Parameters
+        ----------
+        ion_charge : float
+            ion charge
+        ion_types : List[str]
+            list of ion types
+        
+        Returns
+        -------
+        Dict 
+            Dict[standard_name, Dict[m/z, List[MolecularFormula]]] from LCMS library reference file. m/z is the target m/z; standard_name is the name of the molecular standard mix; MolecularFormula is the corems molecular formula class
+        """
+       
         data = {}
         
         with open(self.ref_file_location) as ref_f:
@@ -104,6 +180,13 @@ class ImportMassListRef():#Thread
         return data
 
     def from_bruker_ref_file(self) -> List[MolecularFormula]:
+        """Create a list of MolecularFormula objects from Bruker reference file
+
+        Returns
+        -------
+        List[MolecularFormula]
+            List of MolecularFormula objects from Bruker reference file
+        """
 
         import csv
         
@@ -137,7 +220,21 @@ class ImportMassListRef():#Thread
         return  list_mf_obj           
 
     def from_corems_ref_file(self, delimiter="\t"): #pragma: no cover
-        '''not being used'''
+        """Create a list of MolecularFormula objects from CoreMS reference file
+        
+        Not being used
+        
+        Parameters
+        ----------
+        delimiter : str
+            delimiter used in the reference file
+        
+        Returns
+        -------
+        List[MolecularFormula]
+            List of MolecularFormula objects from CoreMS reference file
+        """
+        #not being used
         import csv
 
         list_mf_obj = []
@@ -164,33 +261,58 @@ class ImportMassListRef():#Thread
 
 
     def split(self, delimiters, string, maxsplit=0): #pragma: no cover
-    
-        ''' does not work when formula has atoms with same caracaters:
-            i.e - C10H21NNa
-        '''
+        """Splits a string using a list of delimiters.
+        
+        Does not work when formula has atoms with same characters, i.e - C10H21NNa
+        
+        Parameters
+        ----------
+        delimiters : list
+            list of delimiters
+        string : str
+            string to be split
+        maxsplit : int, optional
+            maximum number of splits. Default is 0
+            
+        Returns
+        -------
+        list
+            list of strings obtained after splitting the string
+        list
+            list of counts obtained after splitting the string
+        """
         regexPattern = '|'.join(map(re.escape, delimiters)) #pragma: no cover
         isotopes = re.findall(regexPattern, string) #pragma: no cover
         counts = re.split(regexPattern, string, maxsplit)  #pragma: no cover
         return isotopes, counts
 
     def mformula_s_to_dict(self, s_mformulatring, iontype='unknown'):
+        """Converts a molecular formula string to a dict
         
-        ''' 
-            Converts a molecular formula string to a dict
-            
-            args:
-            
-            s_mformulatring: str
-                'C10H21NNa'
-            
-            -   Does not work if the atomic mass number is passed i.e. 37Cl, 81Br
-                The convention follow the light isotope labeling 35Cl is Cl, 12C is C, etc
-            
-           -    If you need to use heavy isotopes please use another reference file format that 
-                separate the formula string by a blank space and parse it using the function corems_ref_file""   
+        Parameters
+        ----------
+        s_mformulatring : str
+            molecular formula string, i.e. 'C10H21NNa'
+        iontype : str, optional
+            ion type. Default is 'unknown'
         
-        '''
+        Returns
+        -------
+        dict
+            molecular formula dictionary
 
+        Notes
+        -----
+        Does not work if the atomic mass number is passed i.e. 37Cl, 81Br, convention follow the light isotope labeling 35Cl is Cl, 12C is C, etc.
+        If you need to use heavy isotopes please use another reference file format that separate the formula string by a blank space and parse it using the function corems_ref_file
+
+        Raises
+        ------
+        TypeError
+            Atom does not exist in Atoms.atoms_order list
+        Exception
+            Empty molecular formula
+        """
         if s_mformulatring:
             
             #find the case C122
