@@ -182,6 +182,7 @@ class _MSPeak(MSPeakCalculation):
 
     @property
     def mz_exp(self):
+        """ The experimental m/z value of the peak."""
         if self.mz_cal:
             return self.mz_cal
         else:
@@ -189,10 +190,12 @@ class _MSPeak(MSPeakCalculation):
 
     @mz_exp.setter
     def mz_exp(self, mz_exp):
+        """ Sets the experimental m/z value of the peak."""
         self._mz_exp = mz_exp
 
     @property
     def area(self):
+        """ The area of the peak."""
         if self._ms_parent.is_centroid:
             return nan
         else:
@@ -200,22 +203,27 @@ class _MSPeak(MSPeakCalculation):
 
     @property
     def nominal_mz_exp(self):
+        """ The experimental nominal (integer) m/z value of the peak."""
         return int(self.mz_exp)
 
     @property
     def kmd(self):
+        """ The Kendrick mass defect of the peak."""
         return self._kdm
 
     @property
     def kendrick_mass(self):
+        """ The Kendrick mass of the peak."""
         return self._kendrick_mass
 
     @property
     def knm(self):
+        """ The Kendrick nominal mass of the peak."""
         return self._nominal_km
 
     @property
     def is_assigned(self) -> bool:
+        """ Whether the peak is assigned or not."""
         return bool(self.molecular_formulas)
 
     def plot_simulation(
@@ -338,6 +346,18 @@ class _MSPeak(MSPeakCalculation):
 
     @property
     def best_molecular_formula_candidate(self):
+        """ The best molecular formula candidate for the peak.
+        
+        Returns a single best formula candidate based on the user defined score method.
+        Score method is set with:
+            molecular_search_settings.score_method
+        
+        Returns
+        -------
+        MolecularFormula
+            The best molecular formula candidate for the peak.
+        
+        """
         if (
             self._ms_parent.molecular_search_settings.score_method
             == "N_S_P_lowest_error"
@@ -409,7 +429,7 @@ class ICRMassPeak(_MSPeak):
         """
         return (1.274e7 * self.ion_charge * B * T) / (self.mz_exp * self.ion_charge)
 
-    def set_calc_resolving_power(self, B, T):
+    def set_calc_resolving_power(self, B : float, T : float):
         """ Set the resolving power of the peak to the calculated one.
         """
         self.resolving_power = self.resolving_power_calc(B, T)
