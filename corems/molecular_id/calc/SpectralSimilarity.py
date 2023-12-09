@@ -563,7 +563,7 @@ class SpectralSimilarity():
         # @return correlation
 
     def extra_distances(self):
-        """ Function to calculate distances using addition metrics defined in math_distance.py
+        """ Function to calculate distances using additional metrics defined in math_distance.py
 
         Currently, calculates all distances.
 
