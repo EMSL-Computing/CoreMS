@@ -1,7 +1,8 @@
 import numpy as np
 import scipy.stats
-'''exploratory module based on  Yuanyue Li code at 
-TODO add GitHub and Paper here'''
+'''exploratory module based on  Yuanyue Li code at https://github.com/YuanyueLi/SpectralEntropy/blob/master/spectral_entropy/math_distance.py 
+and paper: Li, Y., Kind, T., Folz, J. et al. Spectral entropy outperforms MS/MS dot product similarity for small-molecule compound identification. Nat Methods 18, 1524–1531 (2021). https://doi.org/10.1038/s41592-021-01331-z
+'''
 
 def entropy_distance(v, y):
     """ Calculate entropy distance between two vectors
