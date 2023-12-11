@@ -1,6 +1,6 @@
 ![CoreMS Logo](docs/CoreMS.COLOR_small.png)  
 
-<div align="center">
+<div align="left">
 
 <br>
 <br>
@@ -25,9 +25,9 @@
   - [Installation](#corems-installation)  
   - [Thermo Raw File on Mac and Linux](#thermo-raw-file-access)  
 - Execution:     
-  - [Jupyter Notebook and Docker containers](#molecular-database-and-jupyter-notebook-containers)  
+  - [Jupyter Notebook and Docker containers](#docker-stack)  
   - [Simple Example](#simple-script-example)  
-  - [Python Examples](examples/examples)
+  - [Python Examples](examples/scripts)
   - [Jupyter Notebook Examples](examples/notebooks)  
   
 
@@ -49,13 +49,13 @@ CoreMS aims to provide
 
 ## Current Version
 
-### `2.5.3.beta`
+ `2.5.3.beta`
 
 ## Main Developers/Contact 
 - [Yuri. E. Corilo](mailto:corilo@pnnl.gov)  
 - [William Kew](mailto:william.kew@pnnl.gov)
 
-
+## Data formats
 ### Data input formats
 
 - Bruker Solarix (CompassXtract)
@@ -298,11 +298,6 @@ df = mass_spectrum_obj.to_dataframe()
 ## UML Diagrams
 
 UML (unified modeling language) diagrams for Direct Infusion FT-MS and GC-MS classes can be found [here](docs/uml).
-
-    ![FT-MS UML Diagram](docs/uml/Direct_Infusion_FTMS_Data_Model.png)
-- GC-MS:  
-
-    ![GC-MS UML Diagram](docs/uml/GC_MS_Data_Model.png)
 
 ## Citing CoreMS
 
