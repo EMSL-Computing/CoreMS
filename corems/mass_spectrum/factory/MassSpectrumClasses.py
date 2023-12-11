@@ -342,7 +342,6 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     def cal_noise_threshold(self):
         """Calculate the noise threshold of the mass spectrum.
 
-        
         """
 
         if self.label == Labels.simulated_profile:
@@ -1155,8 +1154,8 @@ class MassSpecProfile(MassSpecBase):
     -----
     Stores the profile data and instrument settings. 
     Iteration over a list of MSPeaks classes stored at the _mspeaks attributes.
-    _mspeaks is populated under the hood by calling process_mass_spec method
-    Iteration is null if _mspeaks is empty
+    _mspeaks is populated under the hood by calling process_mass_spec method.
+    Iteration is null if _mspeaks is empty. Many more attributes and methods inherited from MassSpecBase().
 
     Parameters
     ----------
@@ -1168,7 +1167,7 @@ class MassSpecProfile(MassSpecBase):
         Whether to automatically process the mass spectrum. Defaults to True.
 
 
-    Attributes (Inherited from MassSpecBase)
+    Attributes 
     ----------
     _abundance : ndarray
         The abundance values of the mass spectrum.
@@ -1176,9 +1175,8 @@ class MassSpecProfile(MassSpecBase):
         The m/z values of the mass spectrum.
     _mspeaks : list
         A list of mass peaks.
-    See Also: all the attributes of MassSpecBase class
 
-    Relevant Methods (Inherited from MassSpecBase)
+    Methods 
     ----------
     * process_mass_spec(). Process the mass spectrum.
 
@@ -1224,9 +1222,6 @@ class MassSpecfromFreq(MassSpecBase):
         Frequency domain in Hz
     label : str
         store label (Bruker, Midas Transient, see Labels class ). It across distinct processing points
-
-    Attributes (Inherited from MassSpecBase)
-    ----------
     _abundance : ndarray
         The abundance values of the mass spectrum.
     _mz_exp : ndarray
@@ -1237,12 +1232,9 @@ class MassSpecfromFreq(MassSpecBase):
      
     Methods
     ----------
-    _set_mz_domain()
+    * _set_mz_domain().
         calculates the m_z based on the setting of d_params
-
-    Relevant Methods (Inherited from MassSpecBase)
-    ----------
-    process_mass_spec().  Process the mass spectrum.
+    * process_mass_spec().  Process the mass spectrum.
     
     see also: MassSpecBase(), MassSpecProfile(), MassSpecCentroid()
     """
@@ -1307,9 +1299,9 @@ class MassSpecfromFreq(MassSpecBase):
 
         Notes
         -----
-        Calculates the magnetron frequency by examining all the picked peaks and the distances between them in the frequency domain
-        A histogram of those values below the threshold 'max_magnetron_freq' with the 'magnetron_freq_bins' number of bins is calculated
-        A gaussian model is fit to this histogram - the center value of this (statistically probably) the magnetron frequency
+        Calculates the magnetron frequency by examining all the picked peaks and the distances between them in the frequency domain.
+        A histogram of those values below the threshold 'max_magnetron_freq' with the 'magnetron_freq_bins' number of bins is calculated.
+        A gaussian model is fit to this histogram - the center value of this (statistically probably) the magnetron frequency.
         This appears to work well or nOmega datasets, but may not work well for 1x datasets or those with very low magnetron peaks.
         """
         ms_df = DataFrame(self.freq_exp(),columns=['Freq'])
@@ -1353,10 +1345,6 @@ class MassSpecCentroid(MassSpecBase):
         store baseline noise
     _baseline_noise_std : float
         store baseline noise std
-    
-
-    Attributes (Inherited from MassSpecBase)
-    ----------
     _abundance : ndarray
         The abundance values of the mass spectrum.
     _mz_exp : ndarray
@@ -1367,9 +1355,9 @@ class MassSpecCentroid(MassSpecBase):
     
     Methods
     ----------
-    process_mass_spec()
+    * process_mass_spec().
         Process the mass spectrum. Overriden from MassSpecBase. Populates the _mspeaks list with MSpeaks class using the centroid data.
-    __simulate_profile__data__()
+    * __simulate_profile__data__().
         Simulate profile data based on Gaussian or Lorentzian peak shape. Needs theoretical resolving power calculation and define peak shape, intended for plotting and inspection purposes only.
 
     see also: MassSpecBase(), MassSpecfromFreq(), MassSpecProfile()
@@ -1459,8 +1447,7 @@ class MassSpecCentroid(MassSpecBase):
 
     def process_mass_spec(self):
         """Process the mass spectrum.
-
-        
+       
         """
         import tqdm
         # overwrite process_mass_spec 
@@ -1550,9 +1537,6 @@ class MassSpecCentroidLowRes(MassSpecCentroid):
     ----------
     _processed_tic : float
         store processed total ion current
-        
-    Attributes (Inherited from MassSpecBase or MassSpecCentroid)
-    ----------
     _abundance : ndarray
         The abundance values of the mass spectrum.
     _mz_exp : ndarray
