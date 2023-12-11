@@ -41,20 +41,20 @@ class ChromaPeakBase():
 
     Properties
     --------
-    retention_time : float 
+    * retention_time : float. 
         The retention time of the peak.
-    tic : float 
+    * tic : float. 
         The total ion current of the peak.
-    area : float 
+    * area : float. 
         The area of the peak.
-    rt_list : list 
+    * rt_list : list. 
         The list of retention times within the peak.
-    tic_list : list 
+    * tic_list : list.
         The list of total ion currents within the peak.
 
     Methods
     --------   
-    None
+    * None
     """
     
     def __init__(self, chromatogram_parent, mass_spectrum_obj, start_index, index, final_index):
@@ -113,18 +113,18 @@ class DataDependentPeak(ChromaPeakBase):
     
     Properties
     --------
-    eic_rt_list : list 
+    * eic_rt_list : list. 
         EIC retention time list.
-    eic_list : list
+    * eic_list : list.
         EIC list.
-    targeted_molecular_formulas : list
+    * targeted_molecular_formulas : list.
         The list of possible molecular formulas.
     
     Methods
     --------
-    * add_dependent_mass_spectrum(mass_spectrum)  
+    * add_dependent_mass_spectrum(mass_spectrum).  
         Add a dependent mass spectrum to the peak.  
-    * add_molecular_formula(molfform)  
+    * add_molecular_formula(molfform).  
         Add a molecular formula to the peak.  
     
     
@@ -208,24 +208,15 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
 
     Methods
     -------
-    * __len__()  
-        Returns the number of compounds associated with the peak.  
-    * __getitem__(position)  
-        Returns the compound at the specified position.  
-    * remove_compound(compounds_obj)  
-        Removes the specified compound from the peak.  
-    * clear_compounds()  
-        Removes all compounds from the peak.  
-    * add_compound(compounds_dict, spectral_similarity_scores, ri_score=None, similarity_score=None)  
-        Adds a compound to the peak with the specified attributes.  
-    * ri  
-        Returns the retention index of the peak.  
-    * highest_ss_compound  
-        Returns the compound with the highest spectral similarity score.  
-    * highest_score_compound  
-        Returns the compound with the highest similarity score.  
-    * compound_names  
-        Returns a list of names of compounds associated with the peak.  
+    * __len__(). Returns the number of compounds associated with the peak.  
+    * __getitem__(position).  Returns the compound at the specified position.  
+    * remove_compound(compounds_obj). Removes the specified compound from the peak.  
+    * clear_compounds(). Removes all compounds from the peak.  
+    * add_compound(compounds_dict, spectral_similarity_scores, ri_score=None, similarity_score=None). Adds a compound to the peak with the specified attributes.  
+    * ri().  Returns the retention index of the peak.  
+    * highest_ss_compound(). Returns the compound with the highest spectral similarity score.  
+    * highest_score_compound(). Returns the compound with the highest similarity score.  
+    * compound_names(). Returns a list of names of compounds associated with the peak.  
     """
     def __init__(self, chromatogram_parent, mass_spectrum_obj, indexes):
         self._compounds = []
