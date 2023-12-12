@@ -19,12 +19,12 @@ class MolecularFormulaSearchFilters:
     
     Methods
     -------
-    * filter_kendrick(ms_peak_indexes, mass_spectrum_obj)  
+    * filter_kendrick(ms_peak_indexes, mass_spectrum_obj)   
         Apply Kendrick filter to the mass spectrum.  
-    * check_min_peaks(ms_peak_indexes, mass_spectrum_obj)  
-        Check if the number of peaks per class meets the minimum requirement.  
-    * filter_isotopologue(ms_peak_indexes, mass_spectrum_obj)  
-        Apply isotopologue filter to the mass spectrum.  
+    * check_min_peaks(ms_peak_indexes, mass_spectrum_obj)   
+        Check if the number of peaks per class meets the minimum requirement.   
+    * filter_isotopologue(ms_peak_indexes, mass_spectrum_obj)   
+        Apply isotopologue filter to the mass spectrum.   
 
     """
     @staticmethod

@@ -62,16 +62,16 @@ class ClusteringFilter():
 
     Methods
     -------
-    get_mass_error_matrix_data(ms_peaks)
-        Get the mass error matrix data from a list of mass peaks.
-    get_kendrick_matrix_data(mass_spectrum)
-        Get the Kendrick matrix data from a mass spectrum.
-    filter_kendrick(mass_spectrum)
-        Filter the mass spectrum data using the Kendrick algorithm.
-    filter_kendrick_by_index(ms_peak_indexes, mass_spectrum_obj)
-        Filter the mass spectrum data using the Kendrick algorithm based on a list of peak indexes.
-    remove_assignment_by_mass_error(mass_spectrum)
-        Remove assignments from the mass spectrum based on mass error.
+    * get_mass_error_matrix_data(ms_peaks)  
+        Get the mass error matrix data from a list of mass peaks.  
+    * get_kendrick_matrix_data(mass_spectrum)  
+        Get the Kendrick matrix data from a mass spectrum.  
+    * filter_kendrick(mass_spectrum)  
+        Filter the mass spectrum data using the Kendrick algorithm.  
+    * filter_kendrick_by_index(ms_peak_indexes, mass_spectrum_obj)  
+        Filter the mass spectrum data using the Kendrick algorithm based on a list of peak indexes.  
+    * remove_assignment_by_mass_error(mass_spectrum)  
+        Remove assignments from the mass spectrum based on mass error.  
     
 
     """
