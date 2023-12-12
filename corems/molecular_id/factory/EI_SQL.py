@@ -18,6 +18,8 @@ from numpy import array, frombuffer
 Base = declarative_base()
 
 class Metadatar(Base):
+    """ This class is used to store the metadata of the compounds in the database
+    """
     __tablename__ = 'metaDataR'
 
     id = Column(Integer, primary_key=True)
@@ -35,7 +37,8 @@ class Metadatar(Base):
     data = relationship("LowResolutionEICompound", back_populates="metadatar")
 
 class LowResolutionEICompound(Base):
-
+    """ This class is used to store the molecular data of the compounds in the database
+    """
     __tablename__ = 'molecularData'
 
     id = Column(Integer, primary_key=True)
@@ -96,6 +99,7 @@ class LowResolutionEICompound(Base):
                                     self.name, self.casno, self.formula, self.ri, self.retention_time, self.comment)
 @dataclass
 class MetaboliteMetadata:
+    """ Dataclass for the Metabolite Metadata"""
 
     id: int
     cas: str
@@ -112,7 +116,8 @@ class MetaboliteMetadata:
 
 @dataclass
 class LowResCompoundRef:
-    "this class is use to store the results inside the GCPeak class"
+    """ Dataclass for the Low Resolution Compound Reference"""
+    #this class is use to store the results inside the GCPeak class
     def __init__(self, compounds_dict):
 
         self.id = compounds_dict.get("id")
@@ -151,9 +156,59 @@ class LowResCompoundRef:
         self.spectral_similarity_scores = {}
 
 class EI_LowRes_SQLite:
+    """
+    A class for interacting with a SQLite database for low-resolution EI compounds.
+
+    Parameters
+    -----------
+    url : str, optional
+        The URL of the SQLite database. Default is 'sqlite://'.
+
+    Attributes
+    -----------
+    engine : sqlalchemy.engine.Engine
+        The SQLAlchemy engine for connecting to the database.
+    session : sqlalchemy.orm.Session
+        The SQLAlchemy session for executing database operations.
+
+    Methods
+    --------
+    * __init__(self, url='sqlite://')
+        Initializes the EI_LowRes_SQLite object.
+    * __exit__(self, exc_type, exc_val, exc_tb)
+        Closes the database connection.
+    * init_engine(self, url)
+        Initializes the SQLAlchemy engine.
+    * __enter__(self)
+        Returns the EI_LowRes_SQLite object.
+    * add_compound_list(self, data_dict_list)
+        Adds a list of compounds to the database.
+    * add_compound(self, data_dict)
+        Adds a single compound to the database.
+    * commit(self)
+        Commits the changes to the database.
+    * row_to_dict(self, row)
+        Converts a database row to a dictionary.
+    * get_all(self)
+        Retrieves all compounds from the database.
+    * query_min_max_rt(self, min_max_rt)
+        Queries compounds based on retention time range.
+    * query_min_max_ri(self, min_max_ri)
+        Queries compounds based on RI range.
+    * query_names_and_rt(self, min_max_rt, compound_names)
+        Queries compounds based on compound names and retention time range.
+    * query_min_max_ri_and_rt(self, min_max_ri, min_max_rt)
+        Queries compounds based on RI range and retention time range.
+    * delete_compound(self, compound)
+        Deletes a compound from the database.
+    * purge(self)
+        Deletes all compounds from the database table.
+    * clear_data(self)
+        Clears all tables in the database.
+    """
 
     def __init__(self, url='sqlite://'):
-
+        
         self.engine = self.init_engine(url)
 
         Base.metadata.create_all(self.engine)
@@ -163,50 +218,70 @@ class EI_LowRes_SQLite:
         self.session = Session()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # make sure the db connection gets closed
-        #
+        """ Closes the database connection.
+        """
         self.commit()
         self.session.close()
         self.engine.dispose()
 
     def init_engine(self, url):
+        """ Initializes the SQLAlchemy engine.
 
+        Parameters:
+        -----------
+        url : str
+            The URL of the SQLite database.
+
+        Returns:
+        --------
+        sqlalchemy.engine.Engine
+            The SQLAlchemy engine for connecting to the database.
+        """
         directory = os.getcwd()
-
         if not url:
-            
             if not os.path.isdir(directory + '/db'):
-                    
-                os.mkdir(directory + '/db')    
-            
+                os.mkdir(directory + '/db')
             url = 'sqlite:///{DB}/db/pnnl_lowres_gcms_compounds.sqlite'.format(DB=directory)
-
         return create_engine(url, poolclass=QueuePool)
 
     def __enter__(self):
-
+        """ Returns the EI_LowRes_SQLite object.
+        """
         return self
 
     def add_compound_list(self, data_dict_list):
+        """ Adds a list of compounds to the database.
 
-        # print(data_dict_list[0])
+        Parameters:
+        -----------
+        data_dict_list : list of dict
+            A list of dictionaries representing the compounds.
+        """
         for data_dict in data_dict_list:
             # print(data_dict.get('NUM PEAKS'))
             if not data_dict.get('NUM PEAKS'):
                 data_dict['NUM PEAKS'] = len(data_dict.get('mz'))
             if not data_dict.get('CASNO'):
                 data_dict['CASNO'] = data_dict.get('CAS')
-
+        
         self.session.add_all([LowResolutionEICompound(data_dict) for data_dict in data_dict_list] )
 
     def add_compound(self, data_dict):
-
+        """ Adds a single compound to the database. 
+        
+        Parameters
+        -----------
+        data_dict : dict
+            A dictionary representing the compound.
+        
+        """
         one_compound = LowResolutionEICompound(data_dict)
         self.session.add(one_compound)
         self.commit()
 
     def commit(self):
-
+        """ Commits the changes to the database.
+        """
         try:
             self.session.commit()
         except SQLAlchemyError as e:
@@ -214,7 +289,18 @@ class EI_LowRes_SQLite:
             print(str(e))
 
     def row_to_dict(self, row):
-
+        """ Converts a database row to a dictionary.
+        
+        Parameters
+        -----------
+        row : sqlalchemy.engine.row.Row
+            A row from the database.
+        
+        Returns
+        --------
+        dict
+            A dictionary representing the compound.
+        """
         data_dict = {c.name: getattr(row, c.name) for c in row.__table__.columns}        
 
         data_dict['mz'] = frombuffer(data_dict.get('mz'), dtype="int32")
@@ -229,13 +315,30 @@ class EI_LowRes_SQLite:
         return data_dict
 
     def get_all(self,):
-
+        """ Retrieves all compounds from the database.
+        
+        Returns
+        --------
+        list
+            A list of dictionaries representing the compounds.
+        """
         compounds = self.session.query(LowResolutionEICompound).all()
 
         return [self.row_to_dict(compound) for compound in compounds]
 
     def query_min_max_rt(self, min_max_rt, ):
-
+        """ Queries compounds based on retention time range.
+        
+        Parameters
+        -----------
+        min_max_rt : tuple
+            A tuple containing the minimum and maximum retention time values.
+        
+        Returns
+        --------
+        list
+            A list of dictionaries representing the compounds.
+        """
         min_rt, max_rt = min_max_rt
 
         compounds = self.session.query(LowResolutionEICompound).filter(LowResolutionEICompound.retention_time.between(min_rt, max_rt))    
@@ -243,7 +346,13 @@ class EI_LowRes_SQLite:
         return [self.row_to_dict(compound) for compound in compounds]
 
     def query_min_max_ri(self, min_max_ri):
-
+        """ Queries compounds based on RI range.
+        
+        Parameters
+        -----------
+        min_max_ri : tuple
+            A tuple containing the minimum and maximum RI values.
+        """
         min_ri, max_ri = min_max_ri
 
         compounds = self.session.query(LowResolutionEICompound).filter(LowResolutionEICompound.ri.between(min_ri, max_ri)).all()
@@ -251,7 +360,21 @@ class EI_LowRes_SQLite:
         return [self.row_to_dict(compound) for compound in compounds]
 
     def query_names_and_rt(self, min_max_rt, compound_names):
-
+        """ Queries compounds based on compound names and retention time range.
+        
+        Parameters
+        -----------
+        min_max_rt : tuple
+            A tuple containing the minimum and maximum retention time values.
+        compound_names : list
+            A list of compound names.
+        
+        Returns
+        --------
+        list
+            A list of dictionaries representing the compounds.
+        
+        """
         min_rt, max_rt = min_max_rt
 
         compounds = self.session.query(LowResolutionEICompound).filter(LowResolutionEICompound.name.in_(compound_names)).filter(
@@ -265,7 +388,21 @@ class EI_LowRes_SQLite:
         return [self.row_to_dict(compound) for compound in compounds]
 
     def query_min_max_ri_and_rt(self, min_max_ri, min_max_rt, ):
+        """ Queries compounds based on RI range and retention time range.
         
+        Parameters
+        -----------
+        min_max_ri : tuple
+            A tuple containing the minimum and maximum RI values.
+        min_max_rt : tuple
+            A tuple containing the minimum and maximum retention time values.
+        
+        Returns
+        --------
+        list
+            A list of dictionaries representing the compounds.
+            
+        """
         min_ri, max_ri = min_max_ri
         
         min_rt, max_rt = min_max_rt
@@ -283,7 +420,14 @@ class EI_LowRes_SQLite:
         return [self.row_to_dict(compound) for compound in compounds]
 
     def delete_compound(self, compound):
+        """ Deletes a compound from the database.
         
+        Parameters
+        -----------
+        compound : LowResolutionEICompound
+            A compound object.
+        
+        """
         try:
             self.session.delete(compound)  
             self.session.commit()  
@@ -293,12 +437,18 @@ class EI_LowRes_SQLite:
             print(str(e))
 
     def purge(self):
-        '''Carefull, this will delete the entire database table'''
+        """ Deletes all compounds from the database table.
+        
+        Notes
+        ------
+        Careful, this will delete the entire database table.
+        """
         self.session.query(LowResolutionEICompound).delete()
         self.session.commit()  
 
     def clear_data(self):
-        '''clear tables'''
+        """ Clears all tables in the database.
+        """
         meta = Base.metadata
         for table in reversed(meta.sorted_tables):
             print ('Clear table %s' % table)
