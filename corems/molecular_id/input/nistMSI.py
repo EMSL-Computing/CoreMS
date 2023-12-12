@@ -10,8 +10,7 @@ from pathlib import Path
 from corems.molecular_id.factory.EI_SQL import EI_LowRes_SQLite
 
 class ReadNistMSI(Thread):
-    """
-    A class for reading NIST MSI files and storing the data in a SQLite database.
+    """ A class for reading NIST MSI files and storing the data in a SQLite database.
 
     Parameters
     ----------
