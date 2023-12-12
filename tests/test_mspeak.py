@@ -44,7 +44,7 @@ def test_mspeak_calculations():
 
     mspeak.change_kendrick_base(kendrick_base)
 
-    mspeak._calc_kdm(kendrick_base)
+    mspeak._calc_kmd(kendrick_base)
     mspeak.calc_area()
 
     mspeak.plot()

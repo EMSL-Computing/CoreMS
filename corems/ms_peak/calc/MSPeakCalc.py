@@ -36,7 +36,7 @@ class MSPeakCalculation:
 
     Methods
     -------
-    * _calc_kdm(dict_base).
+    * _calc_kmd(dict_base).
         Calculate the Kendrick Mass Defect (KMD) and Kendrick Mass (KM) for a given base formula.
     * calc_area().
         Calculate the peak area using numpy's trapezoidal fit.
@@ -80,7 +80,7 @@ class MSPeakCalculation:
     """
    
 
-    def _calc_kdm(self, dict_base):
+    def _calc_kmd(self, dict_base):
         """ Calculate the Kendrick Mass Defect (KMD) and Kendrick Mass (KM) for a given base formula    
         
         Parameters
@@ -122,7 +122,7 @@ class MSPeakCalculation:
         kmd = (nominal_km - kendrick_mass) 
 
         # kmd = (nominal_km - km) * 1
-        #kdm = round(kmd,0)
+        #kmd = round(kmd,0)
 
         return kmd, kendrick_mass, nominal_km
 

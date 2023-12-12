@@ -130,7 +130,7 @@ class MolecularFormulaBase(MolecularFormulaCalc):
             kendrick_dict_base = self._mspeak_parent._ms_parent.mspeaks_settings.kendrick_base
         else:
             kendrick_dict_base = {'C':1, 'H':2}
-        self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(
+        self._kmd, self._kendrick_mass, self._nominal_km = self._calc_kmd(
             kendrick_dict_base)  
         
     def __repr__(self):
@@ -357,7 +357,7 @@ class MolecularFormulaBase(MolecularFormulaCalc):
         return self._mz_error_score
     
     @property
-    def kmd(self): return self._kdm
+    def kmd(self): return self._kmd
 
     @property
     def kendrick_mass(self): return self._kendrick_mass
@@ -373,7 +373,7 @@ class MolecularFormulaBase(MolecularFormulaCalc):
         kendrick_dict_base : dict
             The Kendrick base dictionary. Ex: {"C": 1, "H": 2}
         """ 
-        self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(kendrick_dict_base)
+        self._kmd, self._kendrick_mass, self._nominal_km = self._calc_kmd(kendrick_dict_base)
                 
     def isotopologues(self, min_abundance, current_mono_abundance, dynamic_range): 
         """Calculate the isotopologues for a given molecular formula.

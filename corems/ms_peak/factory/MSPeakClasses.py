@@ -101,7 +101,7 @@ class _MSPeak(MSPeakCalculation):
             kendrick_dict_base = self._ms_parent.mspeaks_settings.kendrick_base
         else:
             kendrick_dict_base = {"C": 1, "H": 2}
-        self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(
+        self._kmd, self._kendrick_mass, self._nominal_km = self._calc_kmd(
             kendrick_dict_base
         )
 
@@ -135,7 +135,7 @@ class _MSPeak(MSPeakCalculation):
             The kendrick base dictionary.
             Default is {"C": 1, "H": 2}. (CH2)
         """
-        self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(
+        self._kmd, self._kendrick_mass, self._nominal_km = self._calc_kmd(
             kendrick_dict_base
         )
 
@@ -209,7 +209,7 @@ class _MSPeak(MSPeakCalculation):
     @property
     def kmd(self):
         """ The Kendrick mass defect of the peak."""
-        return self._kdm
+        return self._kmd
 
     @property
     def kendrick_mass(self):

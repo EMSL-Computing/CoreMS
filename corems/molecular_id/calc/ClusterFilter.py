@@ -123,8 +123,8 @@ class ClusteringFilter():
             Matrix data containing Kendrick mass and Kendrick mass defect values.
         """
         km = mass_spectrum.kendrick_mass
-        kdm = mass_spectrum.kmd
-        kendrick_dict = {'km': km, 'kdm': kdm}  
+        kmd = mass_spectrum.kmd
+        kendrick_dict = {'km': km, 'kmd': kmd}  
         df = pd.DataFrame(kendrick_dict) 
         matrix_data = df.values.astype("float32", copy = False)
         return matrix_data
@@ -162,7 +162,7 @@ class ClusteringFilter():
         #from matplotlib import pyplot as plt
         #plt.scatter(matrix_data[:, 0], matrix_data[:, 1], c=clusters, cmap="jet")
         #plt.xlabel("km")
-        #plt.ylabel("kdm")
+        #plt.ylabel("kmd")
         #plt.show()
         #plt.close()
 
@@ -230,7 +230,7 @@ class ClusteringFilter():
         #from matplotlib import pyplot as plt
         #plt.scatter(matrix_data[:, 0], matrix_data[:, 1], c=clusters, cmap="jet")
         #plt.xlabel("km")
-        #plt.ylabel("kdm")
+        #plt.ylabel("kmd")
         #plt.show()
         #plt.close()
         
@@ -265,7 +265,7 @@ class ClusteringFilter():
         #from matplotlib import pyplot as plt
         #plt.scatter(matrix_data[:, 0], matrix_data[:, 1], c=clusters, cmap="plasma")
         #plt.xlabel("km")
-        #plt.ylabel("kdm")
+        #plt.ylabel("kmd")
         #plt.show()
         #plt.close()
 
