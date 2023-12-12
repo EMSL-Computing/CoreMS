@@ -24,12 +24,57 @@ closest_error = 0
 error_average = 0
 nbValues = 0
 
-class SearchMolecularFormulas:
 
-    '''
-    runworker()
-    '''
-    def __init__(self, mass_spectrum_obj, sql_db=None, first_hit=False, find_isotopologues=True):
+class SearchMolecularFormulas:
+    """ Class for searching molecular formulas in a mass spectrum.
+
+    Parameters
+    ----------
+    mass_spectrum_obj : MassSpectrum
+        The mass spectrum object.
+    sql_db : MolForm_SQL, optional
+        The SQL database object, by default None.
+    first_hit : bool, optional
+        Flag to indicate whether to skip peaks that already have a molecular formula assigned, by default False.
+    find_isotopologues : bool, optional
+        Flag to indicate whether to find isotopologues, by default True.
+
+    Attributes
+    ----------
+    mass_spectrum_obj : MassSpectrum
+        The mass spectrum object.
+    sql_db : MolForm_SQL
+        The SQL database object.
+    first_hit : bool
+        Flag to indicate whether to skip peaks that already have a molecular formula assigned.
+    find_isotopologues : bool
+        Flag to indicate whether to find isotopologues.
+    
+    
+    Methods
+    -------
+    * __init__()
+        The constructor method.
+    * __enter__()
+        Open the SQL database connection.
+    * __exit__()
+        Close the SQL database connection.
+    * run_search()
+        Run the molecular formula search.
+    * run_worker_mass_spectrum()
+        Run the molecular formula search on the mass spectrum object.
+    * run_worker_ms_peaks()
+        Run the molecular formula search on the given list of mass spectrum peaks.
+    * database_to_dict()
+        Convert the database results to a dictionary.
+    * run_molecular_formula()
+        Run the molecular formula search on the given list of mass spectrum peaks.
+    * search_mol_formulas()
+        Search for molecular formulas in the mass spectrum.
+    
+    """
+    
+    def __init__(self, mass_spectrum_obj, sql_db=None, first_hit : bool=False, find_isotopologues : bool=True):
 
         self.first_hit = first_hit
 
@@ -46,19 +91,48 @@ class SearchMolecularFormulas:
             self.sql_db = sql_db
 
     def __enter__(self):
-
+        """ Open the SQL database connection."""
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-
+        """ Close the SQL database connection."""
         self.sql_db.close()
 
         return False
 
-    def run_search(self, mspeaks, query, min_abundance, ion_type, ion_charge, adduct_atom=None):
+    def run_search(self, mspeaks : list, query : dict, min_abundance : float, ion_type : str, ion_charge : int, adduct_atom=None):
+        """ Run the molecular formula search.
 
-        def get_formulas(nominal_overlay=0.1):
+        Parameters
+        ----------
+        mspeaks : list of MSPeak
+            The list of mass spectrum peaks.
+        query : dict
+            The query dictionary containing the possible molecular formulas.
+        min_abundance : float
+            The minimum abundance threshold.
+        ion_type : str
+            The ion type.
+        ion_charge : int
+            The ion charge.
+        adduct_atom : str, optional
+            The adduct atom, by default None.
+        """
 
+        def get_formulas(nominal_overlay : float=0.1):
+            """
+            Get the list of formulas based on the nominal overlay.
+
+            Parameters
+            ----------
+            nominal_overlay : float, optional
+                The nominal overlay, by default 0.1.
+
+            Returns
+            -------
+            list
+                The list of formulas.
+            """
             nominal_mz = ms_peak.nominal_mz_exp
 
             defect_mass = ms_peak.mz_exp - nominal_mz
@@ -103,16 +177,40 @@ class SearchMolecularFormulas:
         # filter per min peaks per mono isotopic class
 
     def run_worker_mass_spectrum(self):
-
+        """ Run the molecular formula search on the mass spectrum object.
+        """
         self.run_molecular_formula(self.mass_spectrum_obj.sort_by_abundance())    
 
     def run_worker_ms_peaks(self, ms_peaks):
+        """ Run the molecular formula search on the given list of mass spectrum peaks.
 
+        Parameters
+        ----------
+        ms_peaks : list of MSPeak
+            The list of mass spectrum peaks.
+        """
         self.run_molecular_formula(ms_peaks)           
 
     @staticmethod
     def database_to_dict(classe_str_list, nominal_mzs, mf_search_settings, ion_charge):
+        """ Convert the database results to a dictionary.
 
+        Parameters
+        ----------
+        classe_str_list : list
+            The list of class strings.
+        nominal_mzs : list
+            The list of nominal m/z values.
+        mf_search_settings : MolecularFormulaSearchSettings
+            The molecular formula search settings.
+        ion_charge : int
+            The ion charge.
+
+        Returns
+        -------
+        dict
+            The dictionary containing the database results.
+        """
         sql_db = MolForm_SQL(url=mf_search_settings.url_database)
 
         dict_res = {}
@@ -132,11 +230,17 @@ class SearchMolecularFormulas:
 
     @timeit       
     def run_molecular_formula(self, ms_peaks):
+        """ Run the molecular formula search on the given list of mass spectrum peaks.
 
+        Parameters
+        ----------
+        ms_peaks : list of MSPeak
+            The list of mass spectrum peaks.
+        """
         # number_of_process = multiprocessing.cpu_count()
 
-        '''loading this on a shared memory would be better than having to serialize it for every process
-            waiting for python 3.8 release'''
+        #loading this on a shared memory would be better than having to serialize it for every process
+        #    waiting for python 3.8 release
 
         # ion charge for all the ion in the mass spectrum
         # under the current structure is possible to search for individual m/z but it takes longer than allow all the m/z to be search against
@@ -224,17 +328,37 @@ class SearchMolecularFormulas:
 
     def search_mol_formulas(self, possible_formulas_list: List[MolecularFormula], ion_type:str, 
                             neutral_molform=True, find_isotopologues=True, adduct_atom=None) -> List[_MSPeak]:
+        """ Search for molecular formulas in the mass spectrum.
+
+        Parameters
+        ----------
+        possible_formulas_list : list of MolecularFormula
+            The list of possible molecular formulas.
+        ion_type : str
+            The ion type.
+        neutral_molform : bool, optional
+            Flag to indicate whether the molecular formulas are neutral, by default True.
+        find_isotopologues : bool, optional
+            Flag to indicate whether to find isotopologues, by default True.
+        adduct_atom : str, optional
+            The adduct atom, by default None.
+
+        Returns
+        -------
+        list of MSPeak
+            The list of mass spectrum peaks with assigned molecular formulas.
+        """
+        #neutral_molform: some reference files already present the formula on ion mode, for instance, bruker reference files
+        #    if that is the case than turn neutral_molform off
         
-        '''neutral_molform: some reference files already present the formula on ion mode, for instance, bruker reference files
-            if that is the case than turn neutral_molform off
-        '''
         SearchMolecularFormulaWorker(find_isotopologues=find_isotopologues).reset_error(self.mass_spectrum_obj)
 
         initial_min_peak_bool = self.mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter
         initial_runtime_kendrick_filter = self.mass_spectrum_obj.molecular_search_settings.use_runtime_kendrick_filter
 
+        # Are the following 3 lines redundant? 
         self.mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = False
-        self.mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = False
+        self.mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = False #TODO check this line
         self.mass_spectrum_obj.molecular_search_settings.use_runtime_kendrick_filter = False
 
         possible_formulas_dict_nm = {}
@@ -271,25 +395,80 @@ class SearchMolecularFormulas:
 
 
 class SearchMolecularFormulaWorker:
-
+    """ Class for searching molecular formulas in a mass spectrum.
+    
+    Parameters
+    ----------
+    find_isotopologues : bool, optional
+        Flag to indicate whether to find isotopologues, by default True.
+    
+    Attributes
+    ----------
+    find_isotopologues : bool
+        Flag to indicate whether to find isotopologues.
+    
+    
+    Methods
+    -------
+    * __call__()
+        Call the find formulas function.
+    * reset_error()
+        Reset the error variables.
+    * set_last_error()
+        Set the last error.
+    * find_formulas()
+        Find the formulas.
+    * calc_error()
+        Calculate the error.
+    
+    
+    """
     # TODO add reset error function
-    # needs this warper to pass the class to multiprocessing
+    # needs this wraper to pass the class to multiprocessing
 
     def __init__(self, find_isotopologues=True):
         self.find_isotopologues = find_isotopologues
 
     def __call__(self, args):
-
+        """ Call the find formulas function. 
+        
+        Parameters
+        ----------
+        args : tuple
+            The arguments.
+        
+        Returns
+        -------
+        list
+            The list of mass spectrum peaks with assigned molecular formulas.
+        """
         return self.find_formulas(*args)  # ,args[1]
 
     def reset_error(self, mass_spectrum_obj):
+        """ Reset the error variables.
+        
+        Parameters
+        ----------
+        mass_spectrum_obj : MassSpectrum
+            The mass spectrum object.
+        """
         global last_error, last_dif, closest_error, error_average, nbValues  
         last_error, last_dif, closest_error, nbValues  = 0.0, 0.0, 0.0, 0.0
 
         error_average = 0
 
     def set_last_error(self, error, mass_spectrum_obj):
-
+        """ Set the last error.
+        
+        Parameters
+        ----------
+        error : float
+            The error.
+        mass_spectrum_obj : MassSpectrum
+            The mass spectrum object.
+        
+                
+        """
         # set the changes to the global variables, not internal ones
         global last_error, last_dif, closest_error, error_average, nbValues
 
@@ -326,18 +505,39 @@ class SearchMolecularFormulaWorker:
             # using set mass_spectrum_obj.molecular_search_settings.min_ppm_error  and max_ppm_error range
             pass
 
-        '''returns the error based on the selected method at mass_spectrum_obj.molecular_search_settings.method
-        '''
+        #returns the error based on the selected method at mass_spectrum_obj.molecular_search_settings.method
+        
     @staticmethod
     def calc_error(mz_exp, mz_calc, method='ppm'):
-
-        '''method should be ppm or ppb'''
+        """ Calculate the error.
+        
+        Parameters
+        ----------
+        mz_exp : float
+            The experimental m/z value.
+        mz_calc : float
+            The calculated m/z value.
+        method : str, optional
+            The method, by default 'ppm'.
+        
+        Raises
+        -------
+        Exception
+            If the method is not ppm or ppb.
+        
+        Returns
+        -------
+        float
+            The error.
+        
+            
+        """
 
         if method == 'ppm':
-            multi_factor = 1000000
+            multi_factor = 1_000_000
 
         elif method == 'ppb':
-            multi_factor = 1000000
+            multi_factor = 1_000_000_000
 
         elif method == 'perc':
             multi_factor = 100
@@ -355,16 +555,45 @@ class SearchMolecularFormulaWorker:
 
     def find_formulas(self, formulas, min_abundance,
                       mass_spectrum_obj, ms_peak, ion_type, ion_charge, adduct_atom=None):
-        '''
-        # uses the closest error the next search (this is not ideal, it needs to use confidence
-        # metric to choose the right candidate then propagate the error using the error from the best candidate
-        # it needs to add s/n to the equation
-        # it need optimization to define the mz_error_range within a m/z unit since it is directly 
-        # proportional with the mass, and inversely proportional to the rp. 
-        # It's not linear, i.e., sigma ∝ mass 
-        # the idea it to correlate sigma to resolving power, signal to noise and sample complexity per mz unit
-        # method='distance'
-        '''
+        
+        """ Find the formulas.
+        
+        Parameters
+        ----------
+        formulas : list of MolecularFormula
+            The list of molecular formulas.
+        min_abundance : float
+            The minimum abundance threshold.
+        mass_spectrum_obj : MassSpectrum
+            The mass spectrum object.
+        ms_peak : MSPeak
+            The mass spectrum peak.
+        ion_type : str
+            The ion type.
+        ion_charge : int
+            The ion charge.
+        adduct_atom : str, optional
+            The adduct atom, by default None.
+        
+        Returns
+        -------
+        list of MSPeak
+            The list of mass spectrum peaks with assigned molecular formulas.
+        
+        Notes
+        -----
+
+         uses the closest error the next search (this is not ideal, it needs to use confidence
+         metric to choose the right candidate then propagate the error using the error from the best candidate
+         it needs to add s/n to the equation
+         it need optimization to define the mz_error_range within a m/z unit since it is directly 
+         proportional with the mass, and inversely proportional to the rp. 
+         It's not linear, i.e., sigma ∝ mass 
+         the idea it to correlate sigma to resolving power, signal to noise and sample complexity per mz unit
+         method='distance'
+        """
+        
+        
 
         mspeak_assigned_index = list()
 
@@ -512,7 +741,27 @@ class SearchMolecularFormulaWorker:
 
 
 class SearchMolecularFormulasLC(SearchMolecularFormulas):
+    """ Class for searching molecular formulas in a LC object.
     
+    Parameters
+    ----------
+    lcms_obj : LC
+        The LC object.
+    sql_db : MolForm_SQL, optional
+        The SQL database object, by default None.
+    first_hit : bool, optional
+        Flag to indicate whether to skip peaks that already have a molecular formula assigned, by default False.    
+    find_isotopologues : bool, optional
+        Flag to indicate whether to find isotopologues, by default True.
+    
+    Methods
+    -------
+    * run_untargeted_worker_ms1()
+        Run untargeted molecular formula search on the ms1 mass spectrum.
+    * run_target_worker_ms1()
+        Run targeted molecular formula search on the ms1 mass spectrum.
+    
+    """
     def __init__(self, lcms_obj, sql_db=None, first_hit=False, find_isotopologues=True):
 
         self.first_hit = first_hit
@@ -530,6 +779,7 @@ class SearchMolecularFormulasLC(SearchMolecularFormulas):
             self.sql_db = sql_db
 
     def run_untargeted_worker_ms1(self):
+        """ Run untargeted molecular formula search on the ms1 mass spectrum."""
         # do molecular formula based on the parameters set for ms1 search 
         for peak in self.lcms_obj:
            self.mass_spectrum_obj = peak.mass_spectrum
@@ -537,7 +787,7 @@ class SearchMolecularFormulasLC(SearchMolecularFormulas):
 
 
     def run_target_worker_ms1(self):
-
+        """ Run targeted molecular formula search on the ms1 mass spectrum."""
         # do molecular formula based on the external molecular reference list
         pbar = tqdm.tqdm(self.lcms_obj)
 
