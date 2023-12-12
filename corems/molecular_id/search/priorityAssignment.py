@@ -173,9 +173,9 @@ class OxygenPriorityAssignment(Thread):
 
         #error_average = self.mass_spectrum_obj.molecular_search_settings.mz_error_average
         
-        kdm_base = self.mass_spectrum_obj.mspeaks_settings.kendrick_base
+        kmd_base = self.mass_spectrum_obj.mspeaks_settings.kendrick_base
         
-        self.mass_spectrum_obj.change_kendrick_base_all_mspeaks(kdm_base)
+        self.mass_spectrum_obj.change_kendrick_base_all_mspeaks(kmd_base)
 
         ClusteringFilter().filter_kendrick(self.mass_spectrum_obj)
 

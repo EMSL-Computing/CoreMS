@@ -511,8 +511,8 @@ class MolecularFormulaCalc:
         
         return dbe
 
-    def _calc_kdm(self, dict_base):
-        """Calculate the Kendrick mass defect (KDM) of the molecular formula, based on the monoisotopic mass and the Kendrick mass.
+    def _calc_kmd(self, dict_base):
+        """Calculate the Kendrick mass defect (KMD) of the molecular formula, based on the monoisotopic mass and the Kendrick mass.
 
         Parameters
         ----------
@@ -522,7 +522,7 @@ class MolecularFormulaCalc:
         Returns
         -------
         tuple
-            The tuple of the KDM, Kendrick mass, and nominal Kendrick mass.
+            The tuple of the KMD, Kendrick mass, and nominal Kendrick mass.
         """
         mass = 0
         for atom in dict_base.keys():
@@ -535,9 +535,9 @@ class MolecularFormulaCalc:
         kmd = (nominal_km - kendrick_mass) * 100
         
         #kmd = (nominal_km - km) * 1
-        kdm  = round(kmd,0)
+        kmd  = round(kmd,0)
         
-        return kdm, kendrick_mass, nominal_km
+        return kmd, kendrick_mass, nominal_km
 
     def _cal_isotopologues(self, formula_dict, min_abundance, current_abundance, ms_dynamic_range):
         """Calculate the isotopologues for a given molecular formula.
