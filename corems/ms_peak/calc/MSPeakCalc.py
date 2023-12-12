@@ -36,45 +36,45 @@ class MSPeakCalculation:
 
     Methods
     -------
-    * _calc_kdm(dict_base)
+    * _calc_kdm(dict_base).
         Calculate the Kendrick Mass Defect (KMD) and Kendrick Mass (KM) for a given base formula.
-    * calc_area()
+    * calc_area().
         Calculate the peak area using numpy's trapezoidal fit.
-    * fit_peak(mz_extend=6, delta_rp=0, model='Gaussian')
+    * fit_peak(mz_extend=6, delta_rp=0, model='Gaussian').
         Perform lineshape analysis on a peak using lmfit module.
-    * voigt_pso(w, r, yoff, width, loc, a)
+    * voigt_pso(w, r, yoff, width, loc, a).
         Calculate the Voigt function for particle swarm optimization (PSO) fitting.
-    * objective_pso(x, w, u)
+    * objective_pso(x, w, u).
         Calculate the objective function for PSO fitting.
-    * minimize_pso(lower, upper, w, u)
+    * minimize_pso(lower, upper, w, u).
         Minimize the objective function using the particle swarm optimization algorithm.
-    * fit_peak_pso(mz_extend=6, upsample_multiplier=5)
+    * fit_peak_pso(mz_extend=6, upsample_multiplier=5).
         Perform lineshape analysis on a peak using particle swarm optimization (PSO) fitting.
-    * voigt(oversample_multiplier=1, delta_rp=0, mz_overlay=1)
+    * voigt(oversample_multiplier=1, delta_rp=0, mz_overlay=1).
         [Legacy] Perform voigt lineshape analysis on a peak.
-    * pseudovoigt(oversample_multiplier=1, delta_rp=0, mz_overlay=1, fraction=0.5)
+    * pseudovoigt(oversample_multiplier=1, delta_rp=0, mz_overlay=1, fraction=0.5).
         [Legacy] Perform pseudovoigt lineshape analysis on a peak.
-    * lorentz(oversample_multiplier=1, delta_rp=0, mz_overlay=1)
+    * lorentz(oversample_multiplier=1, delta_rp=0, mz_overlay=1).
         [Legacy] Perform lorentz lineshape analysis on a peak.
-    * gaussian(oversample_multiplier=1, delta_rp=0, mz_overlay=1)
+    * gaussian(oversample_multiplier=1, delta_rp=0, mz_overlay=1).
         [Legacy] Perform gaussian lineshape analysis on a peak.
-    * get_mz_domain(oversample_multiplier, mz_overlay)
+    * get_mz_domain(oversample_multiplier, mz_overlay).
         [Legacy] Resample/interpolate datapoints for lineshape analysis.
-    * number_possible_assignments
+    * number_possible_assignments().
         Return the number of possible molecular formula assignments for the peak.
-    * molecular_formula_lowest_error
+    * molecular_formula_lowest_error().
         Return the molecular formula with the smallest absolute mz error.
-    * molecular_formula_highest_prob_score
+    * molecular_formula_highest_prob_score().
         Return the molecular formula with the highest confidence score.
-    * molecular_formula_earth_filter(lowest_error=True)
+    * molecular_formula_earth_filter(lowest_error=True).
         Filter molecular formula using the 'Earth' filter.
-    * molecular_formula_water_filter(lowest_error=True)
+    * molecular_formula_water_filter(lowest_error=True).
         Filter molecular formula using the 'Water' filter.
-    * molecular_formula_air_filter(lowest_error=True)
+    * molecular_formula_air_filter(lowest_error=True).
         Filter molecular formula using the 'Air' filter.
-    * cia_score_S_P_error
+    * cia_score_S_P_error().
         Compound Identification Algorithm SP Error - Assignment Filter.
-    * cia_score_N_S_P_error
+    * cia_score_N_S_P_error().
         Compound Identification Algorithm NSP Error - Assignment Filter.
     
     """
@@ -228,7 +228,7 @@ class MSPeakCalculation:
     def voigt_pso(self,w, r, yoff, width, loc, a):
         """ Voigt function for particle swarm optimisation (PSO) fitting
 
-        From https://github.com/pnnl/nmrfit/blob/master/nmrfit/equations.py
+        From https://github.com/pnnl/nmrfit/blob/master/nmrfit/equations.py.
         Calculates a Voigt function over w based on the relevant properties of the distribution.
 
         Parameters
@@ -252,7 +252,7 @@ class MSPeakCalculation:
 
         References
         ----------
-        .. [1] https://github.com/pnnl/nmrfit 
+        1. https://github.com/pnnl/nmrfit 
 
         Notes
         -----
@@ -292,7 +292,7 @@ class MSPeakCalculation:
 
         References
         ----------
-        .. [1] https://github.com/pnnl/nmrfit 
+        1. https://github.com/pnnl/nmrfit 
 
         """
         # global parameters
@@ -313,8 +313,7 @@ class MSPeakCalculation:
 
         Minimizes the objective function using the particle swarm optimization algorithm.
         Minimization function based on defined parameters   
-        TODO - allow support to pass swarmsize, maxiter, omega, phip, phig parameters.
-        TODO - Refactor PSO fitting into its own class?
+
 
         Parameters
         ----------
@@ -335,9 +334,11 @@ class MSPeakCalculation:
 
         References
         ----------
-        .. [1] https://github.com/pnnl/nmrfit 
+        1. https://github.com/pnnl/nmrfit 
 
         """
+        #TODO - allow support to pass swarmsize, maxiter, omega, phip, phig parameters.
+        #TODO - Refactor PSO fitting into its own class?
         
         xopt, fopt = pyswarm.pso(self.objective_pso, lower, upper, args=(w, u),
                                     swarmsize=1000,
@@ -350,26 +351,22 @@ class MSPeakCalculation:
     def fit_peak_pso(self, mz_extend : int=6, upsample_multiplier : int=5):
         """ Lineshape analysis on a peak using particle swarm optimisation (PSO) fitting 
 
-        Function to fit a Voigt peakshape using particle swarm optimisation (PSO)
+        Function to fit a Voigt peakshape using particle swarm optimisation (PSO).
         Should return better results than lmfit, but much more computationally expensive
-        # TODO - Add ability to pass pso args (i.e. swarm size, maxiter, omega, phig, etc)
 
         Parameters
         ----------
-        mz_extend : int
-            extra points left and right of peak definition to include in fitting
-        upsample_multiplier : int
-            factor to increase x-axis points by for simulation of fitted lineshape function
+        mz_extend : int, optional
+            extra points left and right of peak definition to include in fitting. Defaults to 6.
+        upsample_multiplier : int, optional
+            factor to increase x-axis points by for simulation of fitted lineshape function. Defaults to 5.
 
         Returns
         -------
         xopt : array
-            variables describing the voigt function
-            G/L ratio, width (fwhm), apex (x-axis), area
+            variables describing the voigt function.
+            G/L ratio, width (fwhm), apex (x-axis), area.
             y-axis offset is fixed at 0 
-                # To do: fix this. Magnitude mode data through CoreMS/Bruker starts at 0 but is noise centered well above 0.
-                # Thermo data is noise reduced by also noise subtracted, so starts at 0
-                # Absorption mode/phased data will have positive and negative components and may not be baseline corrected
         fopt : float
             objective score (rmse)
         psfit : array
@@ -383,6 +380,11 @@ class MSPeakCalculation:
         -----
         Particle swarm optimisation (PSO) fitting function can be significantly more computationally expensive than lmfit, with more parameters to optimise.
         """
+        # TODO - Add ability to pass pso args (i.e. swarm size, maxiter, omega, phig, etc)
+        # TODO: fix xopt. Magnitude mode data through CoreMS/Bruker starts at 0 but is noise centered well above 0.
+            # Thermo data is noise reduced by also noise subtracted, so starts at 0
+            # Absorption mode/phased data will have positive and negative components and may not be baseline corrected
+
         start_index = self.start_scan - mz_extend  if not self.start_scan == 0 else 0
         final_index = self.final_scan + mz_extend  if not self.final_scan == len(self._ms_parent.mz_exp_profile) else self.final_scan
 
@@ -468,14 +470,14 @@ class MSPeakCalculation:
 
         Parameters
         ----------
-        oversample_multiplier : int
-            factor to increase x-axis points by for simulation of fitted lineshape function
-        delta_rp : float
-            delta resolving power to add to resolving power
-        mz_overlay : int
-            extra points left and right of peak definition to include in fitting
-        fraction : float
-            fraction of gaussian component in pseudovoigt function
+        oversample_multiplier : int, optional
+            factor to increase x-axis points by for simulation of fitted lineshape function. Defaults to 1.
+        delta_rp : float, optional
+            delta resolving power to add to resolving power. Defaults to 0.
+        mz_overlay : int, optional
+            extra points left and right of peak definition to include in fitting. Defaults to 1.
+        fraction : float, optional
+            fraction of gaussian component in pseudovoigt function. Defaults to 0.5.
 
         """
         if self.resolving_power:
@@ -698,9 +700,9 @@ class MSPeakCalculation:
 
         Parameters
         ----------
-        lowest_error : bool
+        lowest_error : bool, optional.
             Return only the lowest error formula which also fits the Earth filter. 
-            If False, return all Earth-filter compliant formulas.
+            If False, return all Earth-filter compliant formulas. Default is True.
 
         Returns
         -------
@@ -709,7 +711,7 @@ class MSPeakCalculation:
 
         References
         ----------
-        .. [1] Nikola Tolic et al., "Formularity: Software for Automated Formula Assignment of Natural and Other Organic Matter from Ultrahigh-Resolution Mass Spectra"
+        1. Nikola Tolic et al., "Formularity: Software for Automated Formula Assignment of Natural and Other Organic Matter from Ultrahigh-Resolution Mass Spectra"
             Anal. Chem. 2017, 89, 23, 12659–12665
             doi: 10.1021/acs.analchem.7b03318
         """
@@ -733,9 +735,9 @@ class MSPeakCalculation:
 
         Parameters
         ----------
-        lowest_error : bool
+        lowest_error : bool, optional
             Return only the lowest error formula which also fits the Water filter.
-            If False, return all Water-filter compliant formulas.
+            If False, return all Water-filter compliant formulas. Defaults to 2
 
         Returns 
         -------
@@ -744,7 +746,7 @@ class MSPeakCalculation:
 
         References
         ----------
-        .. [1] Nikola Tolic et al., "Formularity: Software for Automated Formula Assignment of Natural and Other Organic Matter from Ultrahigh-Resolution Mass Spectra"
+        1. Nikola Tolic et al., "Formularity: Software for Automated Formula Assignment of Natural and Other Organic Matter from Ultrahigh-Resolution Mass Spectra"
             Anal. Chem. 2017, 89, 23, 12659–12665
             doi: 10.1021/acs.analchem.7b03318
         """
@@ -768,9 +770,9 @@ class MSPeakCalculation:
 
         Parameters
         ----------
-        lowest_error : bool
+        lowest_error : bool, optional
             Return only the lowest error formula which also fits the Air filter.
-            If False, return all Air-filter compliant formulas.
+            If False, return all Air-filter compliant formulas. Defaults to True.
 
         Returns
         -------
@@ -779,7 +781,7 @@ class MSPeakCalculation:
             
         References
         ----------
-        .. [1] Nikola Tolic et al., "Formularity: Software for Automated Formula Assignment of Natural and Other Organic Matter from Ultrahigh-Resolution Mass Spectra"
+        1. Nikola Tolic et al., "Formularity: Software for Automated Formula Assignment of Natural and Other Organic Matter from Ultrahigh-Resolution Mass Spectra"
             Anal. Chem. 2017, 89, 23, 12659–12665
             doi: 10.1021/acs.analchem.7b03318
         """
@@ -807,7 +809,7 @@ class MSPeakCalculation:
 
         References
         ----------
-        .. [1] Elizabeth B. Kujawinski and Mark D. Behn, "Automated Analysis of Electrospray Ionization Fourier Transform Ion Cyclotron Resonance Mass Spectra of Natural Organic Matter"
+        1. Elizabeth B. Kujawinski and Mark D. Behn, "Automated Analysis of Electrospray Ionization Fourier Transform Ion Cyclotron Resonance Mass Spectra of Natural Organic Matter"
             Anal. Chem. 2006, 78, 13, 4363–4373
             doi: 10.1021/ac0600306
         """
@@ -841,9 +843,14 @@ class MSPeakCalculation:
 
         References
         ----------
-        .. [1] Elizabeth B. Kujawinski and Mark D. Behn, "Automated Analysis of Electrospray Ionization Fourier Transform Ion Cyclotron Resonance Mass Spectra of Natural Organic Matter"
+        1. Elizabeth B. Kujawinski and Mark D. Behn, "Automated Analysis of Electrospray Ionization Fourier Transform Ion Cyclotron Resonance Mass Spectra of Natural Organic Matter"
             Anal. Chem. 2006, 78, 13, 4363–4373
             doi: 10.1021/ac0600306
+
+        Raises
+        -------
+        Exception
+            If no molecular formula are associated with mass spectrum peak.
         """
         #case EFormulaScore.HAcap:
         if self.molecular_formulas:

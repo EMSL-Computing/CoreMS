@@ -19,7 +19,7 @@ class MolecularFormulaBase(MolecularFormulaCalc):
         The ion type. Defaults to None.
     adduct_atom : str, optional
         The adduct atom. Defaults to None.
-    mspeak_parent : object, optional
+    mspeak_parent : _MSPeak, optional
         The parent mass spectrum peak object instance. Defaults to None.
     external_mz : float, optional
         The external m/z value. Defaults to None.
@@ -46,7 +46,7 @@ class MolecularFormulaBase(MolecularFormulaCalc):
     mz_calc : float
         The m/z value.
     protonated_mz : float
-        The protonated m/z value.
+        The protonated or deprotonated m/z value.
     radical_mz : float
         The radical m/z value.
     neutral_mass : float

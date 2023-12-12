@@ -35,25 +35,25 @@ class _MSPeak(MSPeakCalculation):
 
     Methods:
     -------
-    * __len__()
+    * __len__().
         Returns the number of molecular formulas associated with the peak.
-    * __setitem__(position, molecular_formula_obj)
+    * __setitem__(position, molecular_formula_obj).
         Sets the molecular formula at the specified position.
-    * __getitem__(position) -> MolecularFormula
+    * __getitem__(position) -> MolecularFormula.
         Returns the molecular formula at the specified position.
-    * change_kendrick_base(kendrick_dict_base)
+    * change_kendrick_base(kendrick_dict_base).
         Changes the kendrick base for the peak.
-    * add_molecular_formula(molecular_formula_obj)
+    * add_molecular_formula(molecular_formula_obj).
         Adds a molecular formula to the peak.
-    * remove_molecular_formula(mf_obj)
+    * remove_molecular_formula(mf_obj).
         Removes a molecular formula from the peak.
-    * clear_molecular_formulas()
+    * clear_molecular_formulas().
         Clears all molecular formulas associated with the peak.
-    * plot_simulation(sim_type="lorentz", ax=None, color="green", oversample_multiplier=1, delta_rp=0, mz_overlay=1)
+    * plot_simulation(sim_type="lorentz", ax=None, color="green", oversample_multiplier=1, delta_rp=0, mz_overlay=1).
         Plots the simulated peak.
-    * plot(ax=None, color="black", derivative=True, deriv_color='red')
+    * plot(ax=None, color="black", derivative=True, deriv_color='red').
         Plots the peak.
-    * best_molecular_formula_candidate
+    * best_molecular_formula_candidate().
         Returns the best molecular formula candidate for the peak.
     """
 
@@ -424,7 +424,7 @@ class ICRMassPeak(_MSPeak):
 
         References
         ----------
-        .. [1] Marshall et al. (Mass Spectrom Rev. 1998 Jan-Feb;17(1):1-35.)
+        1. Marshall et al. (Mass Spectrom Rev. 1998 Jan-Feb;17(1):1-35.)
             DOI: 10.1002/(SICI)1098-2787(1998)17:1<1::AID-MAS1>3.0.CO;2-K
         """
         return (1.274e7 * self.ion_charge * B * T) / (self.mz_exp * self.ion_charge)
