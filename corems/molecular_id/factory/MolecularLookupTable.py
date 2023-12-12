@@ -28,6 +28,7 @@ import os
 
 @contextlib.contextmanager
 def profiled():
+    """ A context manager for profiling."""
     pr = cProfile.Profile()
     pr.enable()
     yield
@@ -40,28 +41,93 @@ def profiled():
     print(s.getvalue())
 
 def insert_database_worker(args):
+    """ Inserts data into the database.
+    """
+    results, url = args
+    
+    if not url:
         
-        results, url = args
-        
-        if not url:
-            
-            url = 'sqlite:///db/molformulas.sqlite'
+        url = 'sqlite:///db/molformulas.sqlite'
 
-        if url[0:6] == 'sqlite':
-            engine = create_engine(url, echo = False)
-        else:
-            engine = create_engine(url, echo = False, isolation_level="AUTOCOMMIT")
-        
-        session_factory = sessionmaker(bind=engine)
-        session = session_factory()
-        insert_query = MolecularFormulaLink.__table__.insert().values(results)
-        session.execute(insert_query)
-        session.commit()
-        session.close()
-        engine.dispose()
+    if url[0:6] == 'sqlite':
+        engine = create_engine(url, echo = False)
+    else:
+        engine = create_engine(url, echo = False, isolation_level="AUTOCOMMIT")
+    
+    session_factory = sessionmaker(bind=engine)
+    session = session_factory()
+    insert_query = MolecularFormulaLink.__table__.insert().values(results)
+    session.execute(insert_query)
+    session.commit()
+    session.close()
+    engine.dispose()
 
 class MolecularCombinations:
-     
+    """ A class for generating molecular formula combinations.
+    
+    Parameters
+    ----------
+    molecular_search_settings : object
+        An object containing user-defined settings.
+    
+    Attributes
+    ----------
+    sql_db : MolForm_SQL
+        The SQLite database object.
+    len_existing_classes : int
+        The number of existing classes in the SQLite database.
+    odd_ch_id : list
+        A list of odd carbon and hydrogen atom IDs.
+    odd_ch_dict : list
+        A list of odd carbon and hydrogen atom dictionaries.
+    odd_ch_mass : list
+        A list of odd carbon and hydrogen atom masses.
+    odd_ch_dbe : list
+        A list of odd carbon and hydrogen atom double bond equivalents.
+    even_ch_id : list
+        A list of even carbon and hydrogen atom IDs.
+    even_ch_dict : list
+        A list of even carbon and hydrogen atom dictionaries.
+    even_ch_mass : list
+        A list of even carbon and hydrogen atom masses.
+    even_ch_dbe : list
+        A list of even carbon and hydrogen atom double bond equivalents.
+        
+    Methods
+    -------
+    * cProfile_worker(args)  
+        A cProfile worker for the get_mol_formulas function.      
+    * check_database_get_class_list(molecular_search_settings)  
+        Checks if the database has all the classes, if not create the missing classes.  
+    * get_carbonsHydrogens(settings, odd_even)  
+        Retrieves carbon and hydrogen atoms from the molecular lookup table based on user-defined settings.  
+    * add_carbonsHydrogens(settings, existing_classes_objs)  
+        Adds carbon and hydrogen atoms to the molecular lookup table based on user-defined settings.  
+    * runworker(molecular_search_settings)  
+        Runs the molecular formula lookup table worker.  
+    * get_classes_in_order(molecular_search_settings)  
+        Gets the classes in order.  
+    * sort_classes(atoms_in_order, combination_dict)  
+        Sorts the classes in order.  
+    * get_fixed_initial_number_of_hydrogen(min_h, odd_even)   
+        Gets the fixed initial number of hydrogen atoms.  
+    * calc_mz(datadict, class_mass=0)  
+        Calculates the mass-to-charge ratio (m/z) of a molecular formula.  
+    * calc_dbe_class(datadict)  
+        Calculates the double bond equivalent (DBE) of a molecular formula.  
+    * populate_combinations(classe_tuple, settings)  
+        Populates the combinations.  
+    * get_or_add(SomeClass, kw)  
+        Gets or adds a class.  
+    * get_mol_formulas(odd_even_tag, classe_tuple, settings)  
+        Gets the molecular formulas.  
+    * get_h_odd_or_even(class_dict)   
+        Gets the hydrogen odd or even.  
+    * get_total_halogen_atoms(class_dict)  
+        Gets the total number of halogen atoms.  
+    
+    """
+
     def __init__(self, sql_db = None):
 
         if not sql_db:
@@ -72,11 +138,22 @@ class MolecularCombinations:
             self.sql_db = sql_db
 
     def cProfile_worker(self, args):
-        
+        """ cProfile worker for the get_mol_formulas function"""
         cProfile.runctx('self.get_mol_formulas(*args)', globals(), locals(), 'mf_database_cprofile.prof')
 
     def check_database_get_class_list(self, molecular_search_settings):
+        """ check if the database has all the classes, if not create the missing classes
         
+        Parameters
+        ----------
+        molecular_search_settings : object
+            An object containing user-defined settings.
+        
+        Returns
+        -------
+        list
+            list of tuples with the class name and the class dictionary
+        """
         all_class_to_create = []
         
         classes_dict = self.get_classes_in_order(molecular_search_settings)
@@ -118,21 +195,42 @@ class MolecularCombinations:
         return [(c_s, c_d) for c_s, c_d in classes_dict.items()], all_class_to_create, existing_classes_objs       
 
     def get_carbonsHydrogens(self, settings, odd_even):
+            """ Retrieve carbon and hydrogen atoms from the molecular lookup table based on user-defined settings.
 
-        operator = '==' if odd_even == 'even' else '!=' 
-        usedAtoms = settings.usedAtoms
-        user_min_c, user_max_c = usedAtoms.get('C')
-        user_min_h, user_max_h = usedAtoms.get('H')
+            Parameters
+            ----------
+            settings : object
+                 An object containing user-defined settings.
+            odd_even : str
+                A string indicating whether to retrieve even or odd hydrogen atoms.
 
-        return eval("self.sql_db.session.query(CarbonHydrogen).filter(" 
-                                       "CarbonHydrogen.C >= user_min_c,"
-                                        "CarbonHydrogen.H >= user_min_h,"
-                                        "CarbonHydrogen.C <= user_max_c,"
-                                        "CarbonHydrogen.H <= user_max_h,"
-                                        "CarbonHydrogen.H % 2" + operator+ "0).all()")
+            Returns
+            -------
+            list
+                A list of CarbonHydrogen objects that satisfy the specified conditions.
+            """
+            operator = '==' if odd_even == 'even' else '!=' 
+            usedAtoms = settings.usedAtoms
+            user_min_c, user_max_c = usedAtoms.get('C')
+            user_min_h, user_max_h = usedAtoms.get('H')
+
+            return eval("self.sql_db.session.query(CarbonHydrogen).filter(" 
+                                           "CarbonHydrogen.C >= user_min_c,"
+                                            "CarbonHydrogen.H >= user_min_h,"
+                                            "CarbonHydrogen.C <= user_max_c,"
+                                            "CarbonHydrogen.H <= user_max_h,"
+                                            "CarbonHydrogen.H % 2" + operator+ "0).all()")
 
     def add_carbonsHydrogens(self, settings, existing_classes_objs):
+        """ Add carbon and hydrogen atoms to the molecular lookup table based on user-defined settings.
 
+        Parameters
+        ----------
+        settings : object
+            An object containing user-defined settings.
+        existing_classes_objs : list
+            A list of HeteroAtoms objects.
+        """
         usedAtoms = settings.usedAtoms
 
         user_min_c, user_max_c = usedAtoms.get('C')
@@ -236,6 +334,20 @@ class MolecularCombinations:
                 
     @timeit
     def runworker(self, molecular_search_settings):
+        """ Run the molecular formula lookup table worker.
+
+        Parameters
+        ----------
+        molecular_search_settings : object
+            An object containing user-defined settings.
+        
+        Returns
+        -------
+        list
+            A list of tuples with the class name and the class dictionary.
+        
+
+        """
         
         classes_list, class_to_create, existing_classes_objs = self.check_database_get_class_list(molecular_search_settings)
         
@@ -293,8 +405,19 @@ class MolecularCombinations:
         return classes_list
     
     def get_classes_in_order(self, molecular_search_settings):
-        ''' structure is 
-            ('HC', {'HC': 1})'''
+        """ Get the classes in order
+
+        Parameters
+        ----------
+        molecular_search_settings : object
+            An object containing user-defined settings.
+        
+        Returns
+        -------
+        dict
+            A dictionary of classes in order.
+            structure is  ('HC', {'HC': 1})
+        """
         
         usedAtoms = deepcopy(molecular_search_settings.usedAtoms)
         
@@ -360,6 +483,20 @@ class MolecularCombinations:
 
     @staticmethod
     def sort_classes( atoms_in_order, combination_dict) -> Dict[str, Dict[str, int]]: 
+        """ Sort the classes in order
+        
+        Parameters
+        ----------
+        atoms_in_order : list
+            A list of atoms in order.
+        combination_dict : dict
+            A dictionary of classes.
+        
+        Returns
+        -------
+        dict
+            A dictionary of classes in order.
+        """
         #ensures atoms are always in the order defined at atoms_in_order list
         join_dict_classes = dict()
         atoms_in_order =  ['N','S','P','O'] + atoms_in_order[4:] + ['HC']
@@ -378,7 +515,15 @@ class MolecularCombinations:
 
     @staticmethod
     def get_fixed_initial_number_of_hydrogen( min_h, odd_even):
-
+        """ Get the fixed initial number of hydrogen atoms
+        
+        Parameters
+        ----------
+        min_h : int
+            The minimum number of hydrogen atoms.
+        odd_even : str
+            A string indicating whether to retrieve even or odd hydrogen atoms.
+        """
         remaining_h = min_h % 2
         
         if odd_even == 'even':
@@ -394,7 +539,20 @@ class MolecularCombinations:
             else: return remaining_h    
 
     def calc_mz(self, datadict, class_mass=0):
+        """ Calculate the mass-to-charge ratio (m/z) of a molecular formula.
         
+        Parameters
+        ----------
+        datadict : dict
+            A dictionary of classes.
+        class_mass : int
+            The mass of the class.
+        
+        Returns
+        -------
+        float
+            The mass-to-charge ratio (m/z) of a molecular formula.
+        """
         mass = class_mass
         
         for atom in datadict.keys():
@@ -406,31 +564,55 @@ class MolecularCombinations:
         return mass 
         
     def calc_dbe_class(self, datadict):
-            
-            init_dbe = 0
-            for atom in datadict.keys():
+        """ Calculate the double bond equivalent (DBE) of a molecular formula.
+        
+        Parameters
+        ----------
+        datadict : dict
+            A dictionary of classes.
+        
+        Returns
+        -------
+        float
+            The double bond equivalent (DBE) of a molecular formula.
+        """
+        init_dbe = 0
+        for atom in datadict.keys():
 
-                if atom == 'HC':
-                    continue  
-                
-                n_atom = int(datadict.get(atom))
-                
-                clean_atom = ''.join([i for i in atom if not i.isdigit()]) 
-                
-                valencia = MSParameters.molecular_search.used_atom_valences.get(clean_atom)
-                
-                if type(valencia) is tuple:
-                    valencia = valencia[0]
-                if valencia > 0:
-                    #print atom, valencia, n_atom, init_dbe
-                    init_dbe = init_dbe + (n_atom * (valencia - 2))
-                else:
-                    continue
-                
-            return (0.5 * init_dbe)
+            if atom == 'HC':
+                continue  
+            
+            n_atom = int(datadict.get(atom))
+            
+            clean_atom = ''.join([i for i in atom if not i.isdigit()]) 
+            
+            valencia = MSParameters.molecular_search.used_atom_valences.get(clean_atom)
+            
+            if type(valencia) is tuple:
+                valencia = valencia[0]
+            if valencia > 0:
+                #print atom, valencia, n_atom, init_dbe
+                init_dbe = init_dbe + (n_atom * (valencia - 2))
+            else:
+                continue
+            
+        return (0.5 * init_dbe)
             
     def populate_combinations(self, classe_tuple, settings):
+        """ Populate the combinations
         
+        Parameters
+        ----------
+        classe_tuple : tuple
+            A tuple containing the class name, the class dictionary, and the class ID.
+        settings : object
+            An object containing user-defined settings.
+        
+        Returns
+        -------
+        list
+            A list of molecular formula data dictionaries.
+        """
         ion_charge =  0
         
         class_dict = classe_tuple[1]
@@ -439,7 +621,20 @@ class MolecularCombinations:
         return self.get_mol_formulas(odd_or_even, classe_tuple, settings)
         
     def get_or_add(self, SomeClass, kw):
-            
+        """ Get or add a class
+        
+        Parameters
+        ----------
+        SomeClass : object
+            A class object.
+        kw : dict
+            A dictionary of classes.
+        
+        Returns
+        -------
+        object
+            A class object.
+        """
         obj = self.sql_db.session.query(SomeClass).filter_by(**kw).first()
         if not obj:
             obj = SomeClass(**kw)
@@ -447,7 +642,23 @@ class MolecularCombinations:
     
     
     def get_mol_formulas(self, odd_even_tag, classe_tuple, settings):
+        """ Get the molecular formulas
         
+        Parameters
+        ----------
+        odd_even_tag : str
+            A string indicating whether to retrieve even or odd hydrogen atoms.
+        classe_tuple : tuple
+            
+        settings : object
+            An object containing user-defined settings.
+        
+        Returns
+        -------
+        list
+            A list of molecular formula data dictionaries.
+              
+        """
         class_str = classe_tuple[0]
         class_dict = classe_tuple[1]
         classe_id = classe_tuple[2]
@@ -483,7 +694,18 @@ class MolecularCombinations:
         
         
     def get_h_odd_or_even(self, class_dict):
-
+        """ Get the hydrogen odd or even
+        
+        Parameters
+        ----------
+        class_dict : dict
+            A dictionary of classes.
+        
+        Returns
+        -------
+        str
+            A string indicating whether to retrieve even or odd hydrogen atoms.
+        """
         
         HAS_NITROGEN = 'N' in class_dict.keys()
         HAS_PHOSPHORUS = 'P' in class_dict.keys()
@@ -560,15 +782,26 @@ class MolecularCombinations:
 
     @staticmethod
     def get_total_halogen_atoms(class_dict):
+        """ Get the total number of halogen atoms
+        
+        Parameters
+        ----------
+        class_dict : dict
+            A dictionary of classes.
+        
+        Returns
+        -------
+        int
+            The total number of halogen atoms.
+        """
+        atoms = ['F', 'Cl', 'Br', 'I']
 
-            atoms = ['F', 'Cl', 'Br', 'I']
+        total_number = 0
+        
+        for atom in atoms:
 
-            total_number = 0
-            
-            for atom in atoms:
+            if atom in class_dict.keys():
 
-                if atom in class_dict.keys():
-
-                    total_number = total_number + class_dict.get(atom)
-            
-            return total_number    
+                total_number = total_number + class_dict.get(atom)
+        
+        return total_number    

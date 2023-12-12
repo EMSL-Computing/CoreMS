@@ -12,17 +12,92 @@ from corems.encapsulation.constant import Atoms
 flatten_list = lambda l: [item for sublist in l for item in sublist]
 
 class HeteroatomsClassification(Mapping):
+    """ Class for grouping mass spectrum data by heteroatom classes (Nn, Oo, Ss, NnOo, NnSs, etc..)
     
-    '''Group mass spectrum data by heteroatom classes (Nn, Oo, Ss, NnOo, NnSs, etc..)
+    Parameters
+    ----------
+    mass_spectrum : MassSpectrum
+        The mass spectrum object.
+    choose_molecular_formula : bool, optional
+        If True, the molecular formula with the highest abundance is chosen. If False, all molecular formulas are considered. Default is True.
+    
+    Raises
+    ------
+    Exception
+        If no molecular formula is associated with any mspeak objects.
+    
+    Attributes
+    ----------
+    _ms_grouped_class : dict
+        A dictionary of classes and a list of ms_peak objects.
+    choose_mf : bool
+        If True, the molecular formula with the highest abundance is chosen. If False, all molecular formulas are considered.
+    total_peaks : int
+        The total number of peaks.
+    sum_abundance : float
+        The sum of the abundance of all peaks.
+    min_max_mz : tuple
+        The minimum and maximum mz values.
+    min_max_abundance : tuple
+        The minimum and maximum abundance values.
+    min_ppm_error : float
+        The minimum ppm error.
+    max_ppm_error : float
+        The maximum ppm error.
+    all_identified_atoms : list
+        A list of all identified atoms.
+    
+    Methods
+    -------
+    * __len__()   
+        Returns the number of classes.    
+    * __getitem__(classe)  
+        Returns the molecular formula list for specified class.  
+    * __iter__()
+        Returns an iterator over the keys of the dictionary.  
+    * get_classes(threshold_perc=1, isotopologue=True)
+        Returns a list of classes with abundance percentile above threshold.  
+    * molecular_formula_string(classe)  
+        Returns a list of molecular formula string for specified class.  
+    * molecular_formula(classe)  
+        Returns a list of molecular formula for specified class.  
+    * carbon_number(classe)  
+        Returns a list of carbon number for specified class.  
+    * atom_count(atom, classe)
+        Returns a list of atom count for specified class.  
+    * dbe(classe)   
+        Returns a list of DBE for specified class.  
+    * atoms_ratio(classe, numerator, denominator)   
+        Returns a list of atoms ratio for specified class.  
+    * mz_exp(classe)  
+        Returns a list of experimental mz for specified class.  
+    * abundance(classe)  
+        Returns a list of abundance for specified class.  
+    * mz_error(classe)  
+        Returns a list of mz error for specified class.  
+    * mz_calc(classe)  
+        Returns a list of calculated mz for specified class.  
+    * peaks_count_percentile(classe)  
+        Returns the peaks count percentile of a specific class.  
+    * abundance_count_percentile(classe)  
+        Returns the abundance percentile of a specific class.  
+    * mz_exp_assigned()  
+        Returns a list of experimental mz for all assigned classes.  
+    * abundance_assigned()  
+        Returns a list of abundance for all classes.  
+    * mz_exp_all()  
+        Returns a list of mz for all classes.  
         
-       class obj behaves as a dictionary of classes and return a list of ms_peak obj
+    """
+    #Group mass spectrum data by heteroatom classes (Nn, Oo, Ss, NnOo, NnSs, etc..)
+        
+    #   class obj behaves as a dictionary of classes and return a list of ms_peak obj
 
-    '''
     
     def __init__(self, mass_spectrum, choose_molecular_formula=True):
 
         def sort_atoms_method( atom):
-            
+            """ Sort atoms by order of appearance in the Atoms class"""
             return [Atoms.atoms_order.index(atom)]
 
         self._ms_grouped_class = dict()
@@ -102,19 +177,19 @@ class HeteroatomsClassification(Mapping):
     
 
     def __len__(self):
-        
+        """ Return the number of classes"""
         return len(self._ms_grouped_class)
         
     def __getitem__(self, classe):
-        
+        """ Return the molecular formula list for specified class"""
         return self._ms_grouped_class.get(classe)
 
     def __iter__(self):
-
-         return iter(self._ms_grouped_class) 
+        """ Return an iterator over the keys of the dictionary."""
+        return iter(self._ms_grouped_class) 
 
     def get_classes(self, threshold_perc=1, isotopologue=True):
-        
+        """ Return a list of classes with abundance percentile above threshold"""
         classes = list()
         for classe in self.keys():
             if classe != Labels.unassigned:
@@ -129,44 +204,47 @@ class HeteroatomsClassification(Mapping):
         return classes
         
     def molecular_formula_string(self, classe,):
-
+        """ Return a list of molecular formula string for specified class"""
         if self.choose_mf:
             return [mspeak.best_molecular_formula_candidate for mspeak in self[classe]]
         else:
             return [mf for mspeak in self[classe] for mf in mspeak if mf.class_label == classe]
 
     def molecular_formula(self, classe,):
-
+        """ Return a list of molecular formula for specified class"""
         if self.choose_mf:
             return [mspeak.best_molecular_formula_candidate for mspeak in self[classe]]
         else:
             return [mf for mspeak in self[classe] for mf in mspeak if mf.class_label == classe]
             
     def carbon_number(self, classe):
-
+        """ Return a list of carbon number for specified class"""
         if self.choose_mf:
             return [mspeak.best_molecular_formula_candidate.get("C") for mspeak in self[classe]]
         else:
             return [mf.get('C') for mspeak in self[classe] for mf in mspeak if mf.class_label == classe]
 
     def atom_count(self, atom, classe):
+        """ Return a list of atom count for specified class"""
+
         if self.choose_mf:
             return [mspeak.best_molecular_formula_candidate.get(atom) for mspeak in self[classe]]
         else:    
             return [mf.get(atom) for mspeak in self[classe] for mf in mspeak if mf.class_label == classe]
 
     def dbe(self, classe):
+        """ Return a list of DBE for specified class"""
         if self.choose_mf:
             return [mspeak.best_molecular_formula_candidate.dbe for mspeak in self[classe]]
         else:    
             return [mf.dbe for mspeak in self[classe] for mf in mspeak if mf.class_label == classe]
     
     def atoms_ratio(self, classe, numerator, denominator):
-
+        """ Return a list of atoms ratio for specified class"""
         return [mf.get(numerator)/mf.get(denominator) for mf in self.molecular_formula(classe)]
        
     def mz_exp(self, classe):
-        
+        """ Return a list of experimental mz for specified class"""
         if self.choose_mf or classe == Labels.unassigned:
             
             return [mspeak.mz_exp for mspeak in self[classe]]
@@ -176,7 +254,7 @@ class HeteroatomsClassification(Mapping):
             return [mspeak.mz_exp for mspeak in self[classe] for mf in mspeak if mf.class_label == classe]
     
     def abundance(self, classe):
-
+        """ Return a list of abundance for specified class"""
         if self.choose_mf or classe == Labels.unassigned:
             
             return [mspeak.abundance for mspeak in self[classe]]
@@ -186,7 +264,7 @@ class HeteroatomsClassification(Mapping):
             return [mspeak.abundance for mspeak in self[classe] for mf in mspeak if mf.class_label == classe]
 
     def mz_error(self, classe):
-
+        """ Return a list of mz error for specified class"""
         if classe != Labels.unassigned:
             
             if self.choose_mf:
@@ -198,7 +276,7 @@ class HeteroatomsClassification(Mapping):
                 return [mf.mz_error for mspeak in self[classe] for mf in mspeak if mf.class_label == classe]
     
     def mz_calc(self, classe):
-        
+        """ Return a list of calculated mz for specified class"""
         if self.choose_mf:
             
             return [mspeak.best_molecular_formula_candidate.mz_calc for mspeak in self[classe]]
@@ -208,57 +286,72 @@ class HeteroatomsClassification(Mapping):
             return [mf.mz_calc for mspeak in self[classe] for mf in mspeak if mf.class_label == classe] 
 
     def peaks_count_percentile(self, classe):
-
+        """ Return the peaks count percentile of a specific class"""
         return (len(self[classe])/self.total_peaks)*100
 
     def abundance_count_percentile(self, classe):
-
+        """ Return the abundance percentile of a specific class"""
         return (sum([mspeak.abundance for mspeak in self[classe]]) / self.sum_abundance)*100
 
     def mz_exp_assigned(self):
-
+        """ Return a list of experimental mz for all assigned classes"""
         classes = self.keys()
 
         return [mspeak.mz_exp for classe in classes for mspeak in self[classe] if classe != Labels.unassigned]
     
     def abundance_assigned(self):
-
+        """ Return a list of abundance for all classes """
         classes = self.keys()
             
         return [mspeak.abundance for classe in classes for mspeak in self[classe] if classe != Labels.unassigned]
 
     def mz_exp_all(self):
-        
+        """ Return a list of mz for all classes"""
         classes = self.keys()
         
         return flatten_list([self.mz_exp(classe) for classe in classes if classe != Labels.unassigned])
     
     def mz_error_all(self):
-        
+        """ Return a list of mz error for all classes"""
         classes = self.keys()
         
         return flatten_list([self.mz_error(classe) for classe in classes if classe != Labels.unassigned])
         
     def carbon_number_all(self):
-
+        """ Return a list of carbon number for all classes"""
         classes = self.keys()
             
         return flatten_list([self.carbon_number(classe) for classe in classes if classe != Labels.unassigned])
 
     def dbe_all(self):
-
+        """ Return a list of DBE for all classes"""
         classes = self.keys()
             
         return flatten_list([self.dbe(classe) for classe in classes if classe != Labels.unassigned])
 
     def atoms_ratio_all(self, numerator, denominator):
-
+        """ Return a list of atoms ratio for all classes"""
         classes = self.keys()
             
         return flatten_list([self.atoms_ratio(classe, numerator, denominator) for classe in classes if classe != Labels.unassigned])
 
-    def to_dataframe(self, incluse_isotopologue=False, abundance_perc_threshold=5, include_unassigned=False):
+    def to_dataframe(self, include_isotopologue=False, abundance_perc_threshold=5, include_unassigned=False):
+        """ Return a pandas dataframe with all the data from the class
         
+        Parameters
+        ----------
+        include_isotopologue : bool, optional
+            Include isotopologues, by default False
+        abundance_perc_threshold : int, optional
+            Abundance percentile threshold, by default 5
+        include_unassigned : bool, optional
+            Include unassigned peaks, by default False
+        
+        Returns
+        -------
+        DataFrame
+            Pandas dataframe with all the data from the class
+        """
         from pandas import DataFrame
         
         columns_labels = ['mz', 'calibrated_mz', 'calculated_m_z', 'abundance',
@@ -284,7 +377,7 @@ class HeteroatomsClassification(Mapping):
                     for m_formula in ms_peak:
                         
                         #ignores isotopologues
-                        if not incluse_isotopologue and m_formula.is_isotopologue: continue
+                        if not include_isotopologue and m_formula.is_isotopologue: continue
                         
                         formula_dict = m_formula.to_dict()
 
@@ -334,7 +427,20 @@ class HeteroatomsClassification(Mapping):
         return DataFrame(dict_data_list, columns=columns)
      
     def plot_ms_assigned_unassigned(self, assigned_color= 'b', unassigned_color = 'r'):
+        """ Plot stick mass spectrum of all classes
         
+        Parameters
+        ----------
+        assigned_color : str, optional
+            Matplotlib color for the assigned peaks, by default "b"
+        unassigned_color : str, optional
+            Matplotlib color for the unassigned peaks, by default "r"
+        
+        Returns
+        -------
+        ax : matplotlib.axes
+            Matplotlib axes object
+        """
         mz_assigned = self.mz_exp_assigned()
         abundance_assigned = self.abundance_assigned()
     
@@ -365,7 +471,18 @@ class HeteroatomsClassification(Mapping):
         return ax    
 
     def plot_mz_error(self, color= 'g'):
+        """ Plot mz error scatter plot of all classes
         
+        Parameters
+        ----------
+        color : str, optional
+            Matplotlib color, by default "g"
+        
+        Returns
+        -------
+        ax : matplotlib.axes
+            Matplotlib axes object
+        """
         ax = plt.gca()
 
         mz_assigned = self.mz_exp_all()
@@ -389,7 +506,21 @@ class HeteroatomsClassification(Mapping):
         return ax
 
     def plot_mz_error_class(self, classe, color= 'g'):
+        """ Plot mz error scatter plot of a specific class
+
+        Parameters
+        ----------
+        classe : str
+            Class name
+        color : str, optional
+            Matplotlib color, by default "g"
         
+        Returns
+        -------
+        ax : matplotlib.axes
+            Matplotlib axes object
+        
+        """
         if classe != Labels.unassigned:
             ax = plt.gca()
             
@@ -417,7 +548,21 @@ class HeteroatomsClassification(Mapping):
             return ax   
             
     def plot_ms_class(self, classe, color= 'g'):
+        """ Plot stick mass spectrum of a specific class
         
+        Parameters
+        ----------
+        classe : str
+            Class name
+        color : str, optional
+            Matplotlib color, by default "g"
+        
+        Returns
+        -------
+        ax : matplotlib.axes
+            Matplotlib axes object
+        
+        """
         if classe != Labels.unassigned:
             ax = plt.gca()
             
@@ -446,8 +591,29 @@ class HeteroatomsClassification(Mapping):
         
             return ax
 
-    def plot_van_krevelen(self, classe, max_hc=2.5, max_oc=2, ticks_number=5, color="jet"):
+    def plot_van_krevelen(self, classe, max_hc=2.5, max_oc=2, ticks_number=5, color="viridis"):
+        """ Plot Van Krevelen Diagram 
         
+        Parameters
+        ----------
+        classe : str
+            Class name
+        max_hc : float, optional
+            Max H/C ratio, by default 2.5
+        max_oc : float, optional
+            Max O/C ratio, by default 2
+        ticks_number : int, optional
+            Number of ticks, by default 5
+        color : str, optional
+            Matplotlib color, by default "viridis"
+        
+        Returns
+        -------
+        ax : matplotlib.axes
+            Matplotlib axes object
+        abun_perc : float
+            Class percentile of the relative abundance
+        """
         if classe != Labels.unassigned:
 
             # get data 
@@ -475,8 +641,31 @@ class HeteroatomsClassification(Mapping):
             
             return ax, abun_perc 
             
-    def plot_dbe_vs_carbon_number(self, classe, max_c=50, max_dbe=40, dbe_incr=5, c_incr=10, color="jet"):
+    def plot_dbe_vs_carbon_number(self, classe, max_c=50, max_dbe=40, dbe_incr=5, c_incr=10, color="viridis"):
+        """ Plot DBE vs Carbon Number
         
+        Parameters
+        ----------
+        classe : str
+            Class name
+        max_c : int, optional
+            Max Carbon Number, by default 50
+        max_dbe : int, optional
+            Max DBE, by default 40
+        dbe_incr : int, optional
+            DBE increment, by default 5
+        c_incr : int, optional
+            Carbon Number increment, by default 10
+        color : str, optional
+            Matplotlib color, by default "viridis"
+
+        Returns
+        -------
+        ax : matplotlib.axes
+            Matplotlib axes object
+        abun_perc : float
+            Class percentile of the relative abundance
+        """
         if classe != Labels.unassigned:
 
             # get data 
