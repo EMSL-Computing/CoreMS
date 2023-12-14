@@ -49,43 +49,43 @@ class HeteroatomsClassification(Mapping):
     
     Methods
     -------
-    * __len__()   
+    * __len__().
         Returns the number of classes.    
     * __getitem__(classe)  
         Returns the molecular formula list for specified class.  
-    * __iter__()
+    * __iter__().
         Returns an iterator over the keys of the dictionary.  
-    * get_classes(threshold_perc=1, isotopologue=True)
+    * get_classes(threshold_perc=1, isotopologue=True).
         Returns a list of classes with abundance percentile above threshold.  
-    * molecular_formula_string(classe)  
+    * molecular_formula_string(classe).
         Returns a list of molecular formula string for specified class.  
-    * molecular_formula(classe)  
+    * molecular_formula(classe).
         Returns a list of molecular formula for specified class.  
-    * carbon_number(classe)  
+    * carbon_number(classe).
         Returns a list of carbon number for specified class.  
-    * atom_count(atom, classe)
+    * atom_count(atom, classe).
         Returns a list of atom count for specified class.  
-    * dbe(classe)   
+    * dbe(classe).
         Returns a list of DBE for specified class.  
-    * atoms_ratio(classe, numerator, denominator)   
+    * atoms_ratio(classe, numerator, denominator).
         Returns a list of atoms ratio for specified class.  
-    * mz_exp(classe)  
+    * mz_exp(classe).
         Returns a list of experimental mz for specified class.  
-    * abundance(classe)  
+    * abundance(classe).
         Returns a list of abundance for specified class.  
-    * mz_error(classe)  
+    * mz_error(classe).
         Returns a list of mz error for specified class.  
-    * mz_calc(classe)  
+    * mz_calc(classe).
         Returns a list of calculated mz for specified class.  
-    * peaks_count_percentile(classe)  
+    * peaks_count_percentile(classe).
         Returns the peaks count percentile of a specific class.  
-    * abundance_count_percentile(classe)  
+    * abundance_count_percentile(classe).
         Returns the abundance percentile of a specific class.  
-    * mz_exp_assigned()  
+    * mz_exp_assigned().
         Returns a list of experimental mz for all assigned classes.  
-    * abundance_assigned()  
+    * abundance_assigned().
         Returns a list of abundance for all classes.  
-    * mz_exp_all()  
+    * mz_exp_all().
         Returns a list of mz for all classes.  
         
     """
