@@ -31,9 +31,9 @@ class LowResMassSpectralMatch(Thread):
 
     Methods
     --------
-    * metabolite_detector_score(gc_peak, ref_obj, spectral_simi)
+    * metabolite_detector_score(gc_peak, ref_obj, spectral_simi).
         Calculates the spectral similarity scores and the similarity score for a given GC peak and reference object.
-    * run()
+    * run().
         Runs the low-resolution mass spectral match.
 
     """
@@ -57,7 +57,7 @@ class LowResMassSpectralMatch(Thread):
         """
         Calculates the spectral similarity scores and the similarity score for a given GC peak and reference object.
 
-        Parameters:
+        Parameters
         -----------
         gc_peak : object
             The GC peak object.
@@ -66,7 +66,7 @@ class LowResMassSpectralMatch(Thread):
         spectral_simi : object
             The spectral similarity object.
 
-        Returns:
+        Returns
         --------
         tuple
             A tuple containing the spectral similarity scores, RI score, and similarity score.

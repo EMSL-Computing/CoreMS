@@ -37,12 +37,12 @@ class FindOxygenPeaks(Thread):
         
         Methods
         ----------
-        * run()     
+        * run().
                 will be called when the instantiated class method start is called  
-        * get_list_found_peaks()
+        * get_list_found_peaks().
                 returns a list of MSpeaks classes cotaining all the MolecularFormula candidates inside the MSPeak
                 for more details of the structure see MSPeak class and MolecularFormula class     
-        * set_mass_spec_indexes_by_found_peaks()
+        * set_mass_spec_indexes_by_found_peaks().
                 set the mass spectrum to interate over only the selected indexes  
     """
     def __init__(self, mass_spectrum_obj, sql_db : bool = False, min_O :int = 1, max_O : int= 22) :
