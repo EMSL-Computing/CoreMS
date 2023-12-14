@@ -164,19 +164,20 @@ class SpectralSimilarity():
     
     Methods
     -------
-    * nan_fill(df, fill_with=0)  
+    * nan_fill(df, fill_with=0).
         Fill missing mass values with a given value.
-    * normalize(x, y, norm_func=sum)
+    * normalize(x, y, norm_func=sum).
         Normalize the abundance values.
-    * weighted_cosine_correlation(a=0.5, b=1.3, nanfill=1e-10)
+    * weighted_cosine_correlation(a=0.5, b=1.3, nanfill=1e-10).
         Calculate the weighted cosine correlation between the experimental and reference mass spectra.
-    * cosine_correlation()
+    * cosine_correlation().
         Calculate the cosine correlation between the experimental and reference mass spectra.
-    * stein_scott()
+    * stein_scott().
         Calculate the Stein-Scott similarity between the experimental and reference mass spectra.
-    * pearson_correlation()
+    * pearson_correlation().
         Calculate the Pearson correlation between the experimental and reference mass spectra.
-    * spearman_correlation()
+    * spearman_correlation().
+        Calculate the Spearman correlation between the experimental and reference mass spectra.
 
     
     """

@@ -2,28 +2,14 @@ from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 
 class MolecularFormulaSearchFilters:
     """ Class containing static methods for filtering molecular formulas in a mass spectrum.
-
-    Parameters
-    ----------
-    mass_spectrum_obj : MassSpectrum
-        The mass spectrum object.
-    ms_peak_indexes : list
-        List of peak indexes and their associated molecular formula objects.
-
-    Attributes
-    ----------
-    mass_spectrum_obj : MassSpectrum
-        The mass spectrum object.
-    ms_peak_indexes : list
-        List of peak indexes and their associated molecular formula objects.
-    
+      
     Methods
     -------
-    * filter_kendrick(ms_peak_indexes, mass_spectrum_obj)   
+    * filter_kendrick(ms_peak_indexes, mass_spectrum_obj).   
         Apply Kendrick filter to the mass spectrum.  
-    * check_min_peaks(ms_peak_indexes, mass_spectrum_obj)   
+    * check_min_peaks(ms_peak_indexes, mass_spectrum_obj).   
         Check if the number of peaks per class meets the minimum requirement.   
-    * filter_isotopologue(ms_peak_indexes, mass_spectrum_obj)   
+    * filter_isotopologue(ms_peak_indexes, mass_spectrum_obj).   
         Apply isotopologue filter to the mass spectrum.   
 
     """
