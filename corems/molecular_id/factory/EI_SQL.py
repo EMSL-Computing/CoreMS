@@ -19,6 +19,33 @@ Base = declarative_base()
 
 class Metadatar(Base):
     """ This class is used to store the metadata of the compounds in the database
+
+    Attributes
+    -----------
+    id : int
+        The id of the compound.
+    cas : str
+        The CAS number of the compound.
+    inchikey : str
+        The InChiKey of the compound.
+    inchi : str
+        The InChi of the compound.
+    chebi : str
+        The ChEBI ID of the compound.
+    smiles : str
+        The SMILES of the compound.
+    kegg : str
+        The KEGG ID of the compound.
+    iupac_name : str
+        The IUPAC name of the compound.
+    traditional_name : str
+        The traditional name of the compound.
+    common_name : str
+        The common name of the compound.
+    data_id : int
+        The id of the compound in the molecularData table.
+    data : LowResolutionEICompound
+        The compound object.
     """
     __tablename__ = 'metaDataR'
 
@@ -37,7 +64,40 @@ class Metadatar(Base):
     data = relationship("LowResolutionEICompound", back_populates="metadatar")
 
 class LowResolutionEICompound(Base):
-    """ This class is used to store the molecular data of the compounds in the database
+    """ This class is used to store the molecular and spectral data of the compounds in the low res EI database
+
+    Attributes
+    -----------
+    id : int
+        The id of the compound.
+    name : str
+        The name of the compound.
+    classify : str
+        The classification of the compound.
+    formula : str
+        The formula of the compound.
+    ri : float
+        The retention index of the compound.
+    retention_time : float
+        The retention time of the compound.
+    source : str
+        The source of the compound.
+    casno : str
+        The CAS number of the compound.
+    comment : str
+        The comment of the compound.
+    source_temp_c : float
+        The source temperature of the spectra.
+    ev : float
+        The electron volts of the spectra.
+    peaks_count : int
+        The number of peaks in the spectra.
+    mz : numpy.ndarray
+        The m/z values of the spectra.
+    abundance : numpy.ndarray
+        The abundance values of the spectra.
+    metadatar : Metadatar
+        The metadata object.
     """
     __tablename__ = 'molecularData'
 
@@ -99,7 +159,34 @@ class LowResolutionEICompound(Base):
                                     self.name, self.casno, self.formula, self.ri, self.retention_time, self.comment)
 @dataclass
 class MetaboliteMetadata:
-    """ Dataclass for the Metabolite Metadata"""
+    """ Dataclass for the Metabolite Metadata
+    
+    Attributes
+    -----------
+    id : int
+        The id of the compound.
+    cas : str
+        The CAS number of the compound.
+    inchikey : str
+        The InChiKey of the compound.
+    inchi : str
+        The InChi of the compound.
+    chebi : str
+        The ChEBI ID of the compound.
+    smiles : str
+        The SMILES of the compound.
+    kegg : str
+        The KEGG ID of the compound.
+    iupac_name : str
+        The IUPAC name of the compound.
+    traditional_name : str
+        The traditional name of the compound.
+    common_name : str
+        The common name of the compound.
+    data_id : int
+        The id of the compound in the molecularData table.
+                
+    """
 
     id: int
     cas: str
@@ -113,10 +200,65 @@ class MetaboliteMetadata:
     traditional_name: str
     common_name: str
     
-
 @dataclass
 class LowResCompoundRef:
-    """ Dataclass for the Low Resolution Compound Reference"""
+    """ Dataclass for the Low Resolution Compound Reference
+    
+    This class is used to store the molecular and spectral data of the compounds in the low res EI database
+
+    Parameters
+    -----------
+    compounds_dict : dict
+        A dictionary representing the compound.
+    
+    Attributes
+    -----------
+    id : int
+        The id of the compound.
+    name : str
+        The name of the compound.
+    ri : str
+        The retention index of the compound.
+    retention_time : str
+        The retention time of the compound.
+    casno : str
+        The CAS number of the compound.
+    comment : str
+        The comment of the compound.
+    peaks_count : int
+        The number of peaks in the spectra.
+    classify : str
+        The classification of the compound.
+    derivativenum : str
+        The derivative number of the compound.
+    derivatization : str
+        The derivatization applied to the compound.
+    mz : numpy.ndarray
+        The m/z values of the spectra.
+    abundance : numpy.ndarray
+        The abundance values of the spectra.
+    source_temp_c : float
+        The source temperature of the spectra.
+    ev : float
+        The electron volts of the spectra.
+    formula : str
+        The formula of the compound.
+    source : str
+        The source of the spectra data.
+    classify : str
+        The classification of the compound.
+    metadata : MetaboliteMetadata
+        The metadata object.
+    similarity_score : float
+        The similarity score of the compound.
+    ri_score : float
+        The RI score of the compound.
+    spectral_similarity_score : float
+        The spectral similarity score of the compound.
+    spectral_similarity_scores : dict
+        The spectral similarity scores of the compound.
+   
+    """
     #this class is use to store the results inside the GCPeak class
     def __init__(self, compounds_dict):
 
@@ -173,37 +315,37 @@ class EI_LowRes_SQLite:
 
     Methods
     --------
-    * __init__(self, url='sqlite://')
+    * __init__(self, url='sqlite://').
         Initializes the EI_LowRes_SQLite object.
-    * __exit__(self, exc_type, exc_val, exc_tb)
+    * __exit__(self, exc_type, exc_val, exc_tb).
         Closes the database connection.
-    * init_engine(self, url)
+    * init_engine(self, url).
         Initializes the SQLAlchemy engine.
-    * __enter__(self)
+    * __enter__(self).
         Returns the EI_LowRes_SQLite object.
-    * add_compound_list(self, data_dict_list)
+    * add_compound_list(self, data_dict_list).
         Adds a list of compounds to the database.
-    * add_compound(self, data_dict)
+    * add_compound(self, data_dict).
         Adds a single compound to the database.
-    * commit(self)
+    * commit(self).
         Commits the changes to the database.
-    * row_to_dict(self, row)
+    * row_to_dict(self, row).
         Converts a database row to a dictionary.
-    * get_all(self)
+    * get_all(self).
         Retrieves all compounds from the database.
-    * query_min_max_rt(self, min_max_rt)
+    * query_min_max_rt(self, min_max_rt).
         Queries compounds based on retention time range.
-    * query_min_max_ri(self, min_max_ri)
+    * query_min_max_ri(self, min_max_ri).
         Queries compounds based on RI range.
-    * query_names_and_rt(self, min_max_rt, compound_names)
+    * query_names_and_rt(self, min_max_rt, compound_names).
         Queries compounds based on compound names and retention time range.
-    * query_min_max_ri_and_rt(self, min_max_ri, min_max_rt)
+    * query_min_max_ri_and_rt(self, min_max_ri, min_max_rt).
         Queries compounds based on RI range and retention time range.
-    * delete_compound(self, compound)
+    * delete_compound(self, compound).
         Deletes a compound from the database.
-    * purge(self)
+    * purge(self).
         Deletes all compounds from the database table.
-    * clear_data(self)
+    * clear_data(self).
         Clears all tables in the database.
     """
 
@@ -227,12 +369,12 @@ class EI_LowRes_SQLite:
     def init_engine(self, url):
         """ Initializes the SQLAlchemy engine.
 
-        Parameters:
+        Parameters
         -----------
         url : str
             The URL of the SQLite database.
 
-        Returns:
+        Returns
         --------
         sqlalchemy.engine.Engine
             The SQLAlchemy engine for connecting to the database.
@@ -252,7 +394,7 @@ class EI_LowRes_SQLite:
     def add_compound_list(self, data_dict_list):
         """ Adds a list of compounds to the database.
 
-        Parameters:
+        Parameters
         -----------
         data_dict_list : list of dict
             A list of dictionaries representing the compounds.

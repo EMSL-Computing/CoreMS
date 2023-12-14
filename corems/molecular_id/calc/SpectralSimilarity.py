@@ -124,7 +124,7 @@ methods_scale = {
 }
 
 class SpectralSimilarity():
-    """ Class containing static methods for calculating spectral similarity between two mass spectra.
+    """ Class containing methods for calculating spectral similarity between two mass spectra.
     
     Parameters
     ----------
