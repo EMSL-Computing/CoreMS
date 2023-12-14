@@ -18,7 +18,7 @@ import json
 
 
 class OxygenPriorityAssignment(Thread):
-    """     A class for assigning priority to oxygen classes in a molecular search.
+    """A class for assigning priority to oxygen classes in a molecular search.
 
     Parameters
     ----------
@@ -36,19 +36,18 @@ class OxygenPriorityAssignment(Thread):
 
     Methods
     -------
-    * run()  
+    * run().
         Run the priority assignment process.  
-    * create_data_base()
+    * create_data_base().
         Create the molecular database for the specified heteroatomic classes.  
-    * run_worker_mass_spectrum(assign_classes_order_tuples)  
+    * run_worker_mass_spectrum(assign_classes_order_tuples).
         Run the molecular formula search for each class in the specified order.  
-    * get_dict_molecular_database(classe_str_list)  
+    * get_dict_molecular_database(classe_str_list).
         Get the molecular database as a dictionary.  
-    * ox_classes_and_peaks_in_order_()  
+    * ox_classes_and_peaks_in_order_().
         Get the oxygen classes and associated peaks in order.  
     * get_classes_in_order(dict_ox_class_and_ms_peak)  
         Get the classes in order.  
-    
     """
 
     def __init__(self, mass_spectrum_obj, sql_db=False):
@@ -402,7 +401,7 @@ class OxygenPriorityAssignment(Thread):
 
         Notes
         -----
-         structure is 
+        structure is 
             ('HC', {'HC': 1})
         """
         

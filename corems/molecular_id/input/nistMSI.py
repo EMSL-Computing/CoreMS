@@ -35,11 +35,11 @@ class ReadNistMSI(Thread):
 
     Methods
     -------
-    run()
+    * run().
         Runs the thread and initializes the SQLite object.
-    get_sqlLite_obj()
+    * get_sqlLite_obj().
         Returns the SQLite object.
-    get_compound_data_dict_list()
+    * get_compound_data_dict_list().
         Parses the NIST MSI file and returns a list of compound data dictionaries.
     """
 

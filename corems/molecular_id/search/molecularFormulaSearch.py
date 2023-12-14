@@ -53,23 +53,17 @@ class SearchMolecularFormulas:
     
     Methods
     -------
-    * __init__()
-        The constructor method.
-    * __enter__()
-        Open the SQL database connection.
-    * __exit__()
-        Close the SQL database connection.
-    * run_search()
+    * run_search().
         Run the molecular formula search.
-    * run_worker_mass_spectrum()
+    * run_worker_mass_spectrum().
         Run the molecular formula search on the mass spectrum object.
-    * run_worker_ms_peaks()
+    * run_worker_ms_peaks().
         Run the molecular formula search on the given list of mass spectrum peaks.
-    * database_to_dict()
+    * database_to_dict().
         Convert the database results to a dictionary.
-    * run_molecular_formula()
+    * run_molecular_formula().
         Run the molecular formula search on the given list of mass spectrum peaks.
-    * search_mol_formulas()
+    * search_mol_formulas().
         Search for molecular formulas in the mass spectrum.
     
     """
@@ -407,21 +401,16 @@ class SearchMolecularFormulaWorker:
     find_isotopologues : bool
         Flag to indicate whether to find isotopologues.
     
-    
     Methods
     -------
-    * __call__()
-        Call the find formulas function.
-    * reset_error()
+    * reset_error().
         Reset the error variables.
-    * set_last_error()
+    * set_last_error().
         Set the last error.
-    * find_formulas()
+    * find_formulas().
         Find the formulas.
-    * calc_error()
-        Calculate the error.
-    
-    
+    * calc_error().
+        Calculate the error.  
     """
     # TODO add reset error function
     # needs this wraper to pass the class to multiprocessing
@@ -466,8 +455,6 @@ class SearchMolecularFormulaWorker:
             The error.
         mass_spectrum_obj : MassSpectrum
             The mass spectrum object.
-        
-                
         """
         # set the changes to the global variables, not internal ones
         global last_error, last_dif, closest_error, error_average, nbValues
@@ -529,8 +516,6 @@ class SearchMolecularFormulaWorker:
         -------
         float
             The error.
-        
-            
         """
 
         if method == 'ppm':
@@ -582,19 +567,14 @@ class SearchMolecularFormulaWorker:
         
         Notes
         -----
-
-         uses the closest error the next search (this is not ideal, it needs to use confidence
-         metric to choose the right candidate then propagate the error using the error from the best candidate
-         it needs to add s/n to the equation
-         it need optimization to define the mz_error_range within a m/z unit since it is directly 
-         proportional with the mass, and inversely proportional to the rp. 
-         It's not linear, i.e., sigma ∝ mass 
-         the idea it to correlate sigma to resolving power, signal to noise and sample complexity per mz unit
-         method='distance'
+        Uses the closest error the next search (this is not ideal, it needs to use confidence 
+        metric to choose the right candidate then propagate the error using the error from the best candidate).
+        It needs to add s/n to the equation.
+        It need optimization to define the mz_error_range within a m/z unit since it is directly proportional 
+        with the mass, and inversely proportional to the rp. It's not linear, i.e., sigma mass.
+        The idea it to correlate sigma to resolving power, signal to noise and sample complexity per mz unit.
+        Method='distance'
         """
-        
-        
-
         mspeak_assigned_index = list()
 
         min_ppm_error = mass_spectrum_obj.molecular_search_settings.min_ppm_error 
@@ -756,9 +736,9 @@ class SearchMolecularFormulasLC(SearchMolecularFormulas):
     
     Methods
     -------
-    * run_untargeted_worker_ms1()
+    * run_untargeted_worker_ms1().
         Run untargeted molecular formula search on the ms1 mass spectrum.
-    * run_target_worker_ms1()
+    * run_target_worker_ms1().
         Run targeted molecular formula search on the ms1 mass spectrum.
     
     """
