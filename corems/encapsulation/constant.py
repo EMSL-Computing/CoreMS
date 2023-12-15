@@ -41,7 +41,7 @@ class Labels: #pragma: no cover
                           'adduct': 'ADDUCT'}
 class Atoms: #pragma: no cover
 
-    electron_mass = 0.0005485
+    electron_mass = 0.0005_485_799_090_65 #NIST value
 
     atomic_masses = {'H': 1.00782503223,
                      'D': 2.01410177812,
