@@ -113,7 +113,7 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
         self.lcms.tic = list_tic
         self.lcms.scans_number = list_scans
 
-    def get_mass_spectrum(self, scan_number: int) -> "MassSpectrum":
+    def get_mass_spectrum(self, scan_number: int):
         """
         Get the mass spectrum for a given scan number.
 
