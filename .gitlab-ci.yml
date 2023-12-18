@@ -21,7 +21,7 @@ stages:
   # - Push to Docker Hub
   
 test-source:
-  image: code-registry.emsl.pnl.gov/mass-spectrometry/corems/corems-base-310-dotnet6:2.0.0-1005
+  image: code-registry.emsl.pnl.gov/mass-spectrometry/corems/corems-base-310-dotnet6:2.5.3-1005
   stage: Pytest
   tags:
     - k8s 
@@ -43,7 +43,7 @@ test-source:
 build:
   
   stage: Build Python Package
-  image: code-registry.emsl.pnl.gov/mass-spectrometry/corems/corems-base-310-dotnet6:2.0.0-1005
+  image: code-registry.emsl.pnl.gov/mass-spectrometry/corems/corems-base-310-dotnet6:2.5.3-1005
   tags:
     - k8s 
     - rzr
