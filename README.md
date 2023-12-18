@@ -104,11 +104,10 @@ CoreMS aims to provide
 - Peak picking using apex quadratic fitting
 - Experimental resolving power calculation
 - Frequency and m/z domain calibration functions:
-- LedFord equation [ref]
+- LedFord equation
 - Linear equation
 - Quadratic equation
 - Automatic search most abundant **Ox** homologue series
-- Step fit ('walking calibration") based on the LedFord equation [ref]
 - Automatic local (SQLite) or external (PostgreSQL) database check, generation, and search
 - Automatic molecular formulae assignments algorithm for ESI(-) MS for natural organic matter analysis
 - Automatic fine isotopic structure calculation and search for all isotopes
