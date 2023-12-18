@@ -163,9 +163,9 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
                 # self.gcpeaks[self.scans_number[apex_index]] = gc_peak
 
     def add_mass_spectrum(self, mass_spec):
-        """Add a mass spectrum to the GC-MS data.
+        """Add a mass spectrum to the GC-MS object.
 
-        This method adds a mass spectrum to the GC-MS data.
+        This method adds a mass spectrum to the GC-MS object.
 
         Parameters
         ----------
@@ -425,10 +425,6 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         id_label : str, optional
             Label of the ID. Defaults to 'corems:'.
 
-        Returns
-        -------
-        pathlib.Path
-            Path object containing the file location.
         """
 
         if isinstance(out_file_path, str):
@@ -451,10 +447,6 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         write_metadata : bool, optional
             If True, write the metadata. Defaults to True.
 
-        Returns
-        -------
-        pathlib.Path
-            Path object containing the file location.
         """
 
         if isinstance(out_file_path, str):
@@ -477,10 +469,6 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         id_label : str, optional
             Label of the ID. Defaults to 'corems:'.
 
-        Returns
-        -------
-        pathlib.Path
-            Path object containing the file location.
         """
         
         if isinstance(out_file_path, str):
@@ -499,10 +487,6 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         id_label : str, optional
             Label of the ID. Defaults to 'corems:'.
         
-        Returns
-        -------
-        pandas.DataFrame
-            Pandas dataframe.
         """
 
         # returns pandas dataframe
@@ -512,10 +496,6 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
     def processing_stats(self):
         """Return the processing statistics.
 
-        Returns
-        -------
-        dict
-            Dictionary containing the processing statistics.
         """
         
         # returns json string
@@ -545,10 +525,6 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         id_label : str, optional
             Label of the ID. Defaults to 'corems:'.
         
-        Returns
-        -------
-        pathlib.Path
-            Path object containing the file location.
         """      
 
         # returns pandas dataframe
@@ -563,10 +539,6 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         id_label : str, optional
             Label of the ID. Defaults to 'corems:'.
 
-        Returns
-        -------
-        pandas.DataFrame
-            Pandas dataframe.
         """
 
         # returns pandas dataframe
@@ -583,10 +555,6 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         color : str, optional
             Color of the chromatogram. Defaults to 'blue'.
             
-        Returns
-        -------
-        matplotlib.axes.Axes
-            Axes object containing the chromatogram.
         """
 
         import matplotlib.pyplot as plt
@@ -609,10 +577,6 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         color : str, optional
             Color of the smoothed chromatogram. Defaults to 'green'.
             
-        Returns
-        -------
-        matplotlib.axes.Axes
-            Axes object containing the smoothed chromatogram.
         """
 
         import matplotlib.pyplot as plt
@@ -637,10 +601,6 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         color : str, optional
             Color of the detected baseline. Defaults to 'blue'.
 
-        Returns
-        -------
-        matplotlib.axes.Axes
-            Axes object containing the detected baseline.
         """
 
         import matplotlib.pyplot as plt
@@ -668,10 +628,6 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         color : str, optional
             Color of the baseline subtraction. Defaults to 'black'.
 
-        Returns
-        -------
-        matplotlib.axes.Axes
-            Axes object containing the baseline subtraction.
         """
 
         import matplotlib.pyplot as plt
@@ -700,10 +656,6 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         json_string : bool, optional
             If True, return the peaks, retention time, and total ion chromatogram in JSON format. Defaults to False.
         
-        Returns
-        -------
-        dict or str
-            Dictionary containing the peaks, retention time, and total ion chromatogram or JSON string.
         """
 
         peaks_list = dict()
@@ -751,10 +703,6 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         color : str, optional
             Color of the processed chromatogram. Defaults to 'black'.
 
-        Returns
-        -------
-        matplotlib.axes.Axes
-            Axes object containing the processed chromatogram.
         """
         
         import matplotlib.pyplot as plt
