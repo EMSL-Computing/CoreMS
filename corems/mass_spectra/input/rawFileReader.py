@@ -81,25 +81,25 @@ class ThermoBaseClass:
 
     Methods:
     --------
-    set_msordertype(scanFilter, mstype: str = 'ms1') -> scanFilter
+    * set_msordertype(scanFilter, mstype: str = 'ms1') -> scanFilter
         Convert the user-passed MS Type string to a Thermo MSOrderType object.
-    get_creation_time() -> datetime.datetime
+    * get_creation_time() -> datetime.datetime
         Extract the creation date stamp from the .RAW file and return it as a formatted datetime object.
-    remove_temp_file()
+    * remove_temp_file()
         Remove the temporary file if the path is from S3Path.
-    get_polarity_mode(scan_number: int) -> int
+    * get_polarity_mode(scan_number: int) -> int
         Get the polarity mode for the given scan number.
-    get_filter_for_scan_num(scan_number: int) -> List[str]
+    * get_filter_for_scan_num(scan_number: int) -> List[str]
         Get the filter for the given scan number.
-    check_full_scan(scan_number: int) -> bool
+    * check_full_scan(scan_number: int) -> bool
         Check if the given scan number is a full scan.
-    get_all_filters() -> Tuple[Dict[int, str], List[str]]
+    * get_all_filters() -> Tuple[Dict[int, str], List[str]]
         Get all scan filters for the Thermo Raw file.
-    get_scan_header(scan: int) -> Dict[str, Any]
+    * get_scan_header(scan: int) -> Dict[str, Any]
         Get the full dictionary of scan header metadata for the given scan number.
-    get_rt_time_from_trace(trace) -> Tuple[List[float], List[float], List[int]]
+    * get_rt_time_from_trace(trace) -> Tuple[List[float], List[float], List[int]]
         Get the retention time, intensity, and scan number from the given trace.
-    get_eics(target_mzs: List[float], tic_data: Dict[str, Any], ms_type: str = 'MS !d',
+    * get_eics(target_mzs: List[float], tic_data: Dict[str, Any], ms_type: str = 'MS !d',
              peak_detection: bool = True, smooth: bool = True, plot: bool = False,
              ax: Optional[matplotlib.axes.Axes] = None, legend: bool = False) -> Tuple[Dict[float, EIC_Data], matplotlib.axes.Axes]
         Get the extracted ion chromatograms (EICs) for the target m/z values.
@@ -217,11 +217,6 @@ class ThermoBaseClass:
         mstype : str, optional
             The MS Type string, by default 'ms1'
 
-        Returns:
-        --------
-        scanFilter : Thermo.ScanFilter
-            The updated scan filter object.
-
         """
         mstype = mstype.upper()
         # Check that a valid mstype is passed
@@ -248,11 +243,6 @@ class ThermoBaseClass:
         Extract the creation date stamp from the .RAW file
         Return formatted creation date stamp.
 
-        Returns:
-        --------
-        credate : datetime.datetime
-            The formatted creation date stamp.
-
         """
         credate = self.iRawDataPlus.CreationDate.get_Ticks()
         credate = datetime.datetime(1, 1, 1) + datetime.timedelta(
@@ -277,11 +267,6 @@ class ThermoBaseClass:
         -----------
         scan_number : int
             The scan number.
-
-        Returns:
-        --------
-        polarity_mode : int
-            The polarity mode. 1 for positive ion mode, -1 for negative ion mode.
 
         Raises:
         -------
@@ -312,11 +297,6 @@ class ThermoBaseClass:
         scan_number : int
             The scan number.
 
-        Returns:
-        --------
-        scan_label : List[str]
-            The scan label.
-
         """
         scan_label = self.iRawDataPlus.GetScanEventStringForScanNumber(scan_number)
 
@@ -333,13 +313,6 @@ class ThermoBaseClass:
         Get all scan filters.
         This function is only supported for MS device controllers.
         e.g.  ['FTMS', '-', 'p', 'NSI', 'Full', 'ms', '[200.00-1000.00]']
-
-        Returns:
-        --------
-        scanfiltersdic : Dict[int, str]
-            The dictionary of scan filters with scan numbers as keys and scan labels as values.
-        scanfilterset : List[str]
-            The list of unique scan labels.
 
         """
 
@@ -361,11 +334,6 @@ class ThermoBaseClass:
         -----------
         scan : int
             The scan number.
-
-        Returns:
-        --------
-        header_dic : Dict[str, Any]
-            The dictionary of scan header metadata.
 
         """
         header = self.iRawDataPlus.GetTrailerExtraInformation(scan)
@@ -634,9 +602,6 @@ class ThermoBaseClass:
         ms_type: str
             String of form 'ms1' or 'ms2' or 'MS3' etc. Valid up to MS10.
             Internal function converts to Thermo MSOrderType class.
-
-         Returns:
-            MassSpecProfile
 
         """
 
@@ -1045,88 +1010,113 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, LC_Calculations):
 
         return transient_time_list
 
-    def get_data(self, scan: int, d_parameter: dict, scan_type: str):
-        if scan_type == "Centroid":
-            centroidStream = self.iRawDataPlus.GetCentroidStream(scan, False)
+    import numpy as np
 
-            noise = list(centroidStream.Noises)
+    class RawFileReader:
+        def get_data(self, scan: int, d_parameter: dict, scan_type: str):
+            """
+            Retrieve mass spectrometry data for a given scan.
 
-            baselines = list(centroidStream.Baselines)
+            Parameters
+            ----------
+            scan : int
+                The scan number.
+            d_parameter : dict
+                A dictionary to store additional parameters.
+            scan_type : str
+                The type of scan ("Centroid" or "Profile").
 
-            rp = list(centroidStream.Resolutions)
+            """
+            if scan_type == "Centroid":
+                centroidStream = self.iRawDataPlus.GetCentroidStream(scan, False)
 
-            magnitude = list(centroidStream.Intensities)
+                noise = list(centroidStream.Noises)
+                baselines = list(centroidStream.Baselines)
+                rp = list(centroidStream.Resolutions)
+                magnitude = list(centroidStream.Intensities)
+                mz = list(centroidStream.Masses)
 
-            mz = list(centroidStream.Masses)
+                array_noise_std = (np.array(noise) - np.array(baselines)) / 3
+                l_signal_to_noise = np.array(magnitude) / array_noise_std
 
-            # charge = scans_labels[5]
-            array_noise_std = (np.array(noise) - np.array(baselines)) / 3
-            l_signal_to_noise = np.array(magnitude) / array_noise_std
+                d_parameter["baseline_noise"] = np.average(array_noise_std)
+                d_parameter["baseline_noise_std"] = np.std(array_noise_std)
 
-            d_parameter["baseline_noise"] = np.average(array_noise_std)
+                data_dict = {
+                    Labels.mz: mz,
+                    Labels.abundance: magnitude,
+                    Labels.rp: rp,
+                    Labels.s2n: l_signal_to_noise,
+                }
 
-            d_parameter["baseline_noise_std"] = np.std(array_noise_std)
+            else:
+                scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan)
+                profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(scan, scanStatistics)
+                magnitude = list(profileStream.Intensities)
 
-            data_dict = {
-                Labels.mz: mz,
-                Labels.abundance: magnitude,
-                Labels.rp: rp,
-                Labels.s2n: l_signal_to_noise,
-            }
+            
 
-        else:
-            scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan)
+                mz = list(profileStream.Positions)
 
-            profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(
-                scan, scanStatistics
-            )
+                data_dict = {
+                    Labels.mz: mz,
+                    Labels.abundance: magnitude,
+                }
 
-            magnitude = list(profileStream.Intensities)
-
-            mz = list(profileStream.Positions)
-
-            data_dict = {
-                Labels.mz: mz,
-                Labels.abundance: magnitude,
-            }
-
-        return data_dict
+            return data_dict
 
     def get_best_scans_idx(self, stdevs=2, method="mean", plot=False):
-        """
-        Method to determine the best scan indexes for selective co-addition
-        Based on calculating the mean (default) of the TIC values
-        and setting an upper limit above/below that within X standard deviations.
-        Mean or median makes limited difference, it seems.
-        Empirically, 1-2 stdevs enough to filter out the worst datapoints.
-        Optionally, plot the TIC with horizontal lines for the standard dev cutoffs.
-        """
-        tic = pd.Dataframe(self.get_tic(plot=plot))
+            """
+            Method to determine the best scan indexes for selective co-addition.
 
-        if method == "median":
-            tic_median = tic["TIC"].median()
+            Parameters
+            ----------
+            stdevs : int, optional
+                The number of standard deviations to use as the cutoff for filtering out datapoints. Default is 2.
+            method : str, optional
+                The method to calculate the mean or median of the TIC values. Default is "mean".
+            plot : bool, optional
+                Whether to plot the TIC with horizontal lines for the standard deviation cutoffs. Default is False.
 
-        elif method == "mean":
-            tic_median = tic["TIC"].mean()
+            Notes
+            -----
+            This method calculates the mean (default) or median of the TIC values and sets an upper and lower limit
+            based on a specified number of standard deviations. The scans with TIC values outside of this range are
+            considered the best scans for selective co-addition.
 
-        else:
-            print("Method " + str(method) + " undefined")
+            Empirically, using 1-2 standard deviations is enough to filter out the worst datapoints.
 
-        tic_std = tic["TIC"].std()
+            If `plot` is True, a matplotlib figure is returned along with the list of scan indexes.
 
-        upperlimit = tic_median - (stdevs * tic_std)
-        lowerlimit = tic_median + (stdevs * tic_std)
+            Examples
+            --------
+            >>> reader = RawFileReader()
+            >>> scans = reader.get_best_scans_idx(stdevs=2, method="mean", plot=True)
+            """
+            tic = pd.DataFrame(self.get_tic(plot=plot))
 
-        tic_filtered = tic[(tic["TIC"] > upperlimit) & (tic["TIC"] < lowerlimit)]
-        scans = list(tic_filtered.Scans.values)
+            if method == "median":
+                tic_median = tic["TIC"].median()
+            elif method == "mean":
+                tic_median = tic["TIC"].mean()
+            else:
+                print("Method " + str(method) + " undefined")
 
-        if plot:
-            import matplotlib.pyplot as plt
+            tic_std = tic["TIC"].std()
 
-            fig, ax = plt.subplots(figsize=(8, 4))
-            ax.plot(tic["Time"], tic["TIC"])
-            ax.axhline(y=upperlimit, c="r")
-            ax.axhline(y=lowerlimit, c="r")
-            return fig, scans
-        else:
-            return scans
+            upperlimit = tic_median - (stdevs * tic_std)
+            lowerlimit = tic_median + (stdevs * tic_std)
+
+            tic_filtered = tic[(tic["TIC"] > upperlimit) & (tic["TIC"] < lowerlimit)]
+            scans = list(tic_filtered.Scans.values)
+
+            if plot:
+                import matplotlib.pyplot as plt
+
+                fig, ax = plt.subplots(figsize=(8, 4))
+                ax.plot(tic["Time"], tic["TIC"])
+                ax.axhline(y=upperlimit, c="r")
+                ax.axhline(y=lowerlimit, c="r")
+                return fig, scans
+            else:
+                return scans

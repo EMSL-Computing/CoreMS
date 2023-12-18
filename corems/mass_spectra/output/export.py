@@ -137,10 +137,6 @@ class LowResGCMSExport():
         id_label : str, optional
             The ID label for the data. Default is "corems:".
 
-        Returns:
-        -------
-        str
-            The exported data as a JSON string.
         """
 
         import json

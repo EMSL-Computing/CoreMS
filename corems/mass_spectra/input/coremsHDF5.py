@@ -29,11 +29,11 @@ class ReadCoreMSHDF_MassSpectra(ReadCoreMSHDF_MassSpectrum, Thread):
 
     Methods
     -------
-    import_mass_spectra()
+    * import_mass_spectra()
         Imports the mass spectra from the HDF5 file.
-    run()
+    * run()
         Creates the LCMS object by importing the mass spectra.
-    get_lcms_obj()
+    * get_lcms_obj()
         Returns the LCMS object.
 
     Raises

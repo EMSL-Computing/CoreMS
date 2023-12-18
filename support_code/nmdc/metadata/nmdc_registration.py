@@ -282,7 +282,8 @@ class NMDC_Metadata:
         if not nom:
 
             metabolomics_analysis_activity["type"] = "ndmc:MetabolomicsAnalysisActivity"
-            metabolomics_analysis_activity["has_metabolite_quantifications"] = self.get_metabolites_objs(data_obj)
+            if data_obj:
+                metabolomics_analysis_activity["has_metabolite_quantifications"] = self.get_metabolites_objs(data_obj)
             # metabolomics_analysis_activity["has_mformula_quantifications"] = self.get_metabolites_objs(data_obj)
 
         with open(self.out_file_path.with_suffix('.json'), 'w') as metadata_output:

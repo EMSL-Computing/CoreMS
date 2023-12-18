@@ -16,7 +16,7 @@ class TransientSetting:
     implemented_apodization_function : tuple
         Available apodization functions
     apodization_method : str
-        Apodization function to use. Hanning is a good default. For absorption mode processing, Half-Sine or Half-Kaiser may be more appropriate.
+        Apodization function to use. Hanning is a good default for Fourier transform magnitude mode. For absorption mode processing, Half-Sine or Half-Kaiser may be more appropriate.
     number_of_truncations : int
         How many times to truncate the transient prior to Fourier transform
     number_of_zero_fills : int
@@ -120,15 +120,15 @@ class LiquidChromatographSetting:
     peak_max_prominence_percent : float, optional
         1-100 % used for baseline detection. Default is 1.
     peak_derivative_threshold : float, optional
-        Default is 0.0005.
+        Threshold for defining derivative crossing. Default is 0.0005.
     min_peak_datapoints : float, optional
-        Default is 5.
+        minimum data point to define a chromatografic peak. Default is 5.
     noise_threshold_method : str, optional
         Method for detecting noise threshold. Default is 'manual_relative_abundance'.
     noise_threshold_methods_implemented : tuple, optional
         Methods for detected noise threshold that can be implemented. Default is ('auto_relative_abundance', 'manual_relative_abundance', 'second_derivative').
     std_noise_threshold : int, optional
-        Default is 3.
+        the amount of standard deviations used to calculate noise thresould, average + (std_noise_threshold * noise). Default is 3.
     peak_height_min_percent : float, optional
         0-100 % used for peak detection. Default is 0.1.
     eic_signal_threshold : float, optional

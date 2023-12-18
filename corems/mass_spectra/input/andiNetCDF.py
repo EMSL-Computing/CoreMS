@@ -115,10 +115,6 @@ class ReadAndiNetCDF(Thread):
         """
         Get the polarity of the ionization.
 
-        Returns
-        --------
-        int
-                The polarity of the ionization (+1 for positive polarity, -1 for negative polarity).
         """
         polarity = str(self.net_cdf_obj.test_ionization_polarity)
         if polarity == "Positive Polarity":
@@ -201,9 +197,5 @@ class ReadAndiNetCDF(Thread):
         """
         Get the GCMSBase object.
 
-        Returns
-        --------
-        GCMSBase
-                The GCMSBase object.
         """
         return self.gcms

@@ -95,7 +95,7 @@ build:
 #     KUBERNETES_CPU_LIMIT: "2"
 #     KUBERNETES_MEMORY_REQUEST: 2Gi
 #     KUBERNETES_MEMORY_LIMIT: 8Gi
-#     CONTAINER_TAG: "2.5.3-1005"
+#     CONTAINER_TAG: "2.0.0-1005"
 
 # deployment:
   

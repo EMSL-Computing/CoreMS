@@ -93,10 +93,6 @@ class ReadHDF_BoosterMassSpectra(Thread):
         scan : int
             The scan number.
 
-        Returns
-        -------
-        int
-            The polarity of the scan (-1 for negative, +1 for positive).
         """
         if isinstance(file_location, S3Path):
             data = BytesIO(file_location.open("rb").read())
@@ -125,10 +121,6 @@ class ReadHDF_BoosterMassSpectra(Thread):
         attr_srt : str
             The attribute name.
 
-        Returns
-        -------
-        object
-            The attribute data.
         """
         return self.hdf_obj[str(scan)].attrs[attr_srt]
 
@@ -185,10 +177,6 @@ class ReadHDF_BoosterMassSpectra(Thread):
         d_params : dict
             The parameters for creating the mass spectrum.
 
-        Returns
-        -------
-        MassSpecProfile
-            The mass spectrum.
         """
         booster_data = self.hdf_obj[str(scan)]
 
@@ -221,10 +209,6 @@ class ReadHDF_BoosterMassSpectra(Thread):
         """
         Get the LCMS object.
 
-        Returns
-        -------
-        LCMSBase
-            The LCMS object.
         """
         if self.lcms.get(self.initial_scan_number):
             return self.lcms

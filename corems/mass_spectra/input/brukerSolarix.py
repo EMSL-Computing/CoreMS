@@ -41,22 +41,7 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
         auto_process=True,
         keep_profile=False,
     ):
-        """
-        Initialize the ReadBruker_SolarixTransientMassSpectra class.
-
-        Parameters
-        ----------
-        d_directory_location : str, Path, or S3Path
-            Path object from pathlib containing the file location.
-        analyzer : str, optional
-            Type of analyzer used in the mass spectrometer. Defaults to "ICR".
-        instrument_label : str, optional
-            Label for the instrument. Defaults to "15T".
-        auto_process : bool, optional
-            Flag indicating whether to automatically process the mass spectra. Defaults to True.
-        keep_profile : bool, optional
-            Flag indicating whether to keep the profile data in the mass spectra. Defaults to False.
-        """
+        
         Thread.__init__(self)
 
         if isinstance(d_directory_location, str):
@@ -128,7 +113,7 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
         self.lcms.tic = list_tic
         self.lcms.scans_number = list_scans
 
-    def get_mass_spectrum(self, scan_number: int) -> "MassSpectrum":
+    def get_mass_spectrum(self, scan_number: int):
         """
         Get the mass spectrum for a given scan number.
 
@@ -137,10 +122,6 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
         scan_number : int
             Scan number.
 
-        Returns
-        -------
-        MassSpectrum
-            Mass spectrum object.
         """
         bruker_reader = ReadBrukerSolarix(self.lcms.file_location)
 
@@ -163,11 +144,6 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
     def get_lcms_obj(self):
         """
         Get the LCMSBase object.
-
-        Returns
-        -------
-        LCMSBase
-            LCMSBase object.
 
         Raises
         ------

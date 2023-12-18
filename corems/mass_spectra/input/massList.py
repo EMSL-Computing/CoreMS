@@ -125,9 +125,6 @@ class ReadCoremsMassSpectraText(ReadCoremsMasslist, Thread):
         If the LCMSBase object is already initialized, it is returned.
         Otherwise, an exception is raised.
 
-        Returns:
-            LCMSBase: The LCMSBase object associated with the massList.
-
         Raises:
             Exception: If the LCMSBase object is not initialized.
         """
