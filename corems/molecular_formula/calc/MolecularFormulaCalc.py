@@ -35,31 +35,31 @@ class MolecularFormulaCalc:
     
     Methods
     -------
-    _calc_resolving_power_low_pressure(B, T)
+    * _calc_resolving_power_low_pressure(B, T) 
         Calculate the resolving power at low pressure.
-    _calc_resolving_power_high_pressure(B, T)
+    * _calc_resolving_power_high_pressure(B, T)
         Calculate the resolving power at high pressure.
-    _adduct_mz(adduct_atom, ion_charge)
+    * _adduct_mz(adduct_atom, ion_charge)
         Get the m/z value of an adducted ion version of the molecular formula.
-    _protonated_mz(ion_charge)
+    * _protonated_mz(ion_charge)
         Get the m/z value of a protonated or deprotonated ion version of the molecular formula.
-    _radical_mz(ion_charge)
+    * _radical_mz(ion_charge)
         Get the m/z value of a radical ion version of the molecular formula.
-    _neutral_mass()
+    * _neutral_mass()
         Get the neutral mass of the molecular formula.
-    _calc_mz()
+    * _calc_mz()
         Get the m/z value of the molecular formula.
-    _calc_assignment_mass_error(method='ppm')
+    * _calc_assignment_mass_error(method='ppm')
         Calculate the mass error of the molecular formula.
-    _calc_mz_confidence(mean=0)
+    * _calc_mz_confidence(mean=0)
         Calculate the m/z confidence of the molecular formula.
-    _calc_isotopologue_confidence()
+    * _calc_isotopologue_confidence()
         Calculate the isotopologue confidence of the molecular formula.
-    normalize_distance(dist, dist_range)
+    * normalize_distance(dist, dist_range)
         Normalize the distance value.
-    subtract_formula(formula_obj, formated=True)
+    * subtract_formula(formula_obj, formated=True)
         Subtract a formula from the current formula object.
-    _calc_average_mz_score()
+    * _calc_average_mz_score()
         Calculate the average m/z error score of the molecular formula identification, including the isotopologues.
     """
     
