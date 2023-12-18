@@ -6,8 +6,21 @@ from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, Ma
 from corems.encapsulation.factory.parameters import default_parameters
 from corems.encapsulation.constant import Labels
 
-def ms_from_array_profile(mz, abundance,  dataname, polarity=-1,  auto_process=True, data_type=Labels.simulated_profile):
+def ms_from_array_profile(mz, abundance, dataname:str, polarity:int = -1, auto_process:bool = True, data_type:str = Labels.simulated_profile):
+    """
+    Create a MassSpecProfile object from an array of m/z values and abundance values.
 
+    Parameters:
+        mz (numpy.ndarray): Array of m/z values.
+        abundance (numpy.ndarray): Array of abundance values.
+        dataname (str): Name of the data.
+        polarity (int, optional): Polarity of the data. Defaults to -1.
+        auto_process (bool, optional): Flag to automatically process the data. Defaults to True.
+        data_type (str, optional): Type of the data. Defaults to Labels.simulated_profile.
+
+    Returns:
+        MassSpecProfile: The created MassSpecProfile object.
+    """
     data_dict = {Labels.mz: mz, Labels.abundance: abundance}
     
     output_parameters = get_output_parameters(polarity, dataname)
@@ -18,34 +31,57 @@ def ms_from_array_profile(mz, abundance,  dataname, polarity=-1,  auto_process=T
     
     return ms
 
-def ms_from_array_centroid(mz, abundance, rp, s2n, dataname, polarity=-1, auto_process=True):
+def ms_from_array_centroid(mz, abundance, rp:list[float], s2n:list[float], dataname:str, polarity:int=-1, auto_process:bool=True):
+    """
+    Create a MassSpecCentroid object from an array of m/z values, abundance values, resolution power, and signal-to-noise ratio.
 
+    Parameters:
+        mz (numpy.ndarray): Array of m/z values.
+        abundance (numpy.ndarray): Array of abundance values.
+        rp list(float): Resolution power.
+        s2n list(float): Signal-to-noise ratio.
+        dataname (str): Name of the data.
+        polarity (int, optional): Polarity of the data. Defaults to -1.
+        auto_process (bool, optional): Flag to automatically process the data. Defaults to True.
+
+    Returns:
+        MassSpecCentroid: The created MassSpecCentroid object.
+    """
     data_dict = {Labels.mz: mz, Labels.abundance: abundance, Labels.s2n : s2n, Labels.rp: rp}
     
     output_parameters = get_output_parameters(polarity, dataname)
         
     return MassSpecCentroid(data_dict, output_parameters)
     
-def get_output_parameters(polarity, file_location):
-        
-        d_params = default_parameters(file_location)
-        
-        d_params['analyzer'] = 'Generic Simulated'
+def get_output_parameters(polarity:int, file_location:str):
+    """
+    Get the output parameters for creating a MassSpecProfile or MassSpecCentroid object.
 
-        d_params['instrument_label'] = 'Generic Simulated'
+    Parameters:
+        polarity (int): Polarity of the data.
+        file_location (str): File location.
 
-        d_params["polarity"] = polarity
-        
-        d_params["filename_path"] = file_location
-        
-        d_params["mobility_scan"] = 0
-        
-        d_params["mobility_rt"] = 0
-        
-        d_params["scan_number"] = 0
-        
-        d_params["rt"] = 0
+    Returns:
+        dict: Output parameters.
+    """
+    d_params = default_parameters(file_location)
+    
+    d_params['analyzer'] = 'Generic Simulated'
 
-        d_params[Labels.label] = Labels.simulated_profile
-        
-        return d_params
+    d_params['instrument_label'] = 'Generic Simulated'
+
+    d_params["polarity"] = polarity
+    
+    d_params["filename_path"] = file_location
+    
+    d_params["mobility_scan"] = 0
+    
+    d_params["mobility_rt"] = 0
+    
+    d_params["scan_number"] = 0
+    
+    d_params["rt"] = 0
+
+    d_params[Labels.label] = Labels.simulated_profile
+    
+    return d_params

@@ -13,19 +13,42 @@ from corems.transient.factory.TransientClasses import Transient
 from corems.encapsulation.factory.parameters import default_parameters
 
 class ReadBrukerSolarix(object):
-    
-    """
-    A class used to Read a single Transient from Bruker's FT-MS acquisition station (fid, or ser)
+    """    A class used to Read a single Transient from Bruker's FT-MS acquisition station (fid, or ser)
         
     Parameters
     ----------
     d_directory_location : str
         the full path of the .d folder
     
+    Attributes
+    --------
+    d_directory_location : str
+        the full path of the .d folder
+    file_location : str
+        the full path of the .d folder
+    parameter_filename_location : str
+        the full path of the apexAcquisition.method file
+    transient_data_path : str
+        the full path of the fid or ser file
+    scan_attr : str
+        the full path of the scan.xml file
+    
+    
     Methods
     -------
-    get_transient()
+    * get_transient().
         Read the data and settings returning a Transient class  
+    * get_scan_attr().
+        Read the scan retention times, TIC values and scan indices.
+    * locate_file(folder, type_file_name).
+        Find the full path of a specific file within the acquisition .d folder or subfolders
+    * parse_parameters(parameters_filename).
+        Open the given file and retrieve all parameters from apexAcquisition.method
+    * fix_freq_limits(d_parameters).
+        Read and set the correct frequency limits for the spectrum
+    * get_excite_sweep_range(filename).
+        Determine excitation sweep range from ExciteSweep file
+    
     """
     
     def __enter__(self ):
@@ -75,6 +98,16 @@ class ReadBrukerSolarix(object):
             )
 
     def get_scan_attr(self):
+        """ Function to get the scan retention times, TIC values and scan indices. 
+
+        Gets information from scan.xml file in the bruker .d folder.
+        Note this file is only present in some .d format - e.g. for imaging mode data, it is not present.
+        
+        Returns
+        -------
+        dict_scan_rt_tic : dict
+            a dictionary with scan number as key and rt and tic as values
+        """
     
         from bs4 import BeautifulSoup
         
@@ -93,6 +126,18 @@ class ReadBrukerSolarix(object):
        
         
     def get_transient(self, scan_number=1):
+        """ Function to get the transient data and parameters from a Bruker Solarix .d folder.
+        
+        Parameters
+        ----------
+        scan_number : int
+            the scan number to be read. Default is 1.
+        
+        Returns
+        -------
+        Transient
+            a transient object
+        """
 
         file_d_params = self.parse_parameters(self.parameter_filename_location)
 
@@ -169,11 +214,23 @@ class ReadBrukerSolarix(object):
         
         return Transient(data, output_parameters)
 
-    """
-        for key, values in default_parameters.items():
-            print(key, values)
-    """
+    #    for key, values in default_parameters.items():
+    #        print(key, values)
     def fix_freq_limits(self, d_parameters):
+        """ Function to read and set the correct frequency limits for the spectrum
+        
+        Notes
+        --------
+        This is using the excitation limits from the apexAcquisition.method file,
+        which may not match the intended detection limits in edge cases. 
+        In default acquisitions, excitation and detection are the same. 
+        But, they may not be in some cases with selective excitation, custom excite waveforms, or in 2DMS applications.
+        
+        Parameters
+        ----------
+        d_parameters : dict
+            a dictionary with the parameters from the apexAcquisition.method file
+        """
 
         highfreq = float(d_parameters.get("EXC_Freq_High"))
 
@@ -193,8 +250,17 @@ class ReadBrukerSolarix(object):
 
     @staticmethod
     def get_excite_sweep_range(filename):
-        """
-        Function that returns the lower and higher frequency of the pulse generator
+        """ Function to determine excitation sweep range from ExciteSweep file
+
+        This looks at the first and last rows of the ExciteSweep file to determine the excitation frequency range.
+        Note that this assumes the excitation sweep was linear and the first and last rows are the lowest and highest frequencies.
+        This is presumably always true, but again may be incorrect for edge cases with custom excitation waveforms.
+
+        Parameters
+        ----------
+        filename : str
+            the full path to the ExciteSweep file
+        
         """
         ExciteSweep_lines = genfromtxt(filename, comments="*", delimiter="\n")
         # CR ready if we need the full array
@@ -205,19 +271,31 @@ class ReadBrukerSolarix(object):
 
     @staticmethod
     def locate_file(folder, type_file_name):
+        """ Function to locate a file in a folder
+
+        Find the full path of a specific file within the acquisition .d folder or subfolders
+
+        Parameters
+        ----------
+        folder : str
+            the full path to the folder
+        type_file_name : str
+            the name of the file to be located
+            Expected options: ExciteSweep or apexAcquisition.method
+
+        Returns
+        -------
+        str
+            the full path to the file
+
+        Notes
+        -----
+        adapted from code from SPIKE library, https://github.com/spike-project/spike
+                
+        """
         
         from pathlib import Path
-        """
-            type_of_file = ExciteSweep or apexAcquisition.method
-            From the given folder this function return the absolute path to the ExciteSweep file, or the apexAcquisition.method file
-            It should always be in a subfolder 
-        
-            ''' this code is a adaptation/automation of spike library
-                https://bitbucket.org/delsuc/spike/
-                from Marc Delsuc
-            '''
-        """
-        
+               
         directory_location = folder.glob( '**/*apexAcquisition.method')
         result = list(directory_location)
         if len(result) > 1:
@@ -238,21 +316,32 @@ class ReadBrukerSolarix(object):
 
     @staticmethod
     def parse_parameters(parameters_filename):
-        """ 
-            TODO: change to beautiful soup xml parsing
-            Open the given file and retrieve all parameters from apexAcquisition.method
+        """ Function to parse the parameters from apexAcquisition.method file
+
+        Open the given file and retrieve all parameters from apexAcquisition.method
             None is written when no value for value is found
-
+            
             structure : <param name = "AMS_ActiveExclusion"><value>0</value></param>
-
-            read_param returns  values in a dictionnary
-            xml should be extinct, just a random option
-
-            ''' this code is a adaptation/automation of spike library
-                https://bitbucket.org/delsuc/spike/
-                from Marc Delsuc
-            '''
+        
+        Parameters
+        ----------
+        parameters_filename : str
+            the full path to the apexAcquisition.method file
+        
+        Returns
+        -------
+        dict
+            a dictionary with the parameters and values
+        
+        Notes
+        -----
+        Adapted from code from SPIKE library, https://github.com/spike-project/spike.
+        Code may not handle all possible parameters, but should be sufficient for most common use cases
         """
+        
+        #TODO: change to beautiful soup xml parsing
+        
+        
         xmldoc = minidom.parse(parameters_filename.open())
 
         x = xmldoc.documentElement

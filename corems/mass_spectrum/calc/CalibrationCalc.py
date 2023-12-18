@@ -1,9 +1,47 @@
 import numpy as np
 
 class FreqDomain_Calibration:
+    """ Frequency Domain Calibration class for mass spectrum.
+
+    Parameters
+    ----------
+    mass_spectrum : MassSpectrum
+        The mass spectrum object.
+    selected_mass_peaks : list
+        List of selected mass peaks.
+    include_isotopologue : bool, optional
+        Flag to include isotopologues, by default False.
+
+    Attributes
+    ----------
+    mz_exp : ndarray
+        Array of experimental m/z values.
+    mz_calc : ndarray
+        Array of calculated m/z values.
+    freq_exp : ndarray
+        Array of experimental frequencies.
+    mass_spectrum : MassSpectrum
+        The mass spectrum object.
+    freq_exp_ms : ndarray
+        Array of experimental frequencies for mass spectrum.
+
+    Methods
+    -------
+    * recal_mass_spec(mz_domain, Aterm, Bterm, Cterm). 
+        Recalibrate the mass spectrum with the given parameters.  
+    * linear(). 
+        Perform linear calibration.  
+    * quadratic(iteration=False). 
+        Perform quadratic calibration.  
+    * ledford_calibration(iteration=False). 
+        Perform Ledford calibration.  
+    * step_fit(steps=4).   
+        Perform step fit calibration.  
+
+    """
 
     def __init__(self, mass_spectrum, selected_mass_peaks, include_isotopologue=False):
-
+        
         self.selected_mspeaks = selected_mass_peaks
         error = list()
         freq_exp = list()
@@ -34,26 +72,44 @@ class FreqDomain_Calibration:
             [mspeak.freq_exp for mspeak in mass_spectrum])
 
     def recal_mass_spec(self, mz_domain, Aterm, Bterm, Cterm):
+        """ Recalibrate the mass spectrum with the given parameters.
 
+        Parameters
+        ----------
+        mz_domain : ndarray
+            Array of m/z values for recalibration.
+        Aterm : float
+            Aterm parameter for recalibration.
+        Bterm : float
+            Bterm parameter for recalibration.
+        Cterm : float
+            Cterm parameter for recalibration.
+
+        """
         self.mass_spectrum._calibration_terms = (Aterm, Bterm, 0)
-        
-        #for indexes, mspeak in enumerate(self.mass_spectrum):
-        #    mspeak.mz_cal = mz_domain[indexes] 
         self.mass_spectrum.mz_cal = mz_domain
 
     def linear(self):
+        """ Perform linear calibration.
 
+        """
         matrix = np.vstack([1/self.freq_exp, np.ones(len(self.freq_exp))]).T
         Aterm, Bterm = np.linalg.lstsq(matrix, self.mz_calc, rcond=None)[0]
         print("%.2f Aterm,  %.2f Bterm" %  (Aterm, Bterm))
         print('Linear Calibration %.2f Aterm,  %.2f Bterm ' %(Aterm, Bterm))
-        print()
-        #mz_domain = Aterm / (self.freq_exp_ms + Bterm)
+        print() #TODO remove print?
         mz_domain = (Aterm/self.freq_exp_ms) + Bterm
         self.recal_mass_spec(mz_domain, Aterm, Bterm, 0)
 
-    def quadratic(self, iteration=False):
+    def quadratic(self, iteration : bool=False):
+        """ Perform quadratic calibration.
 
+        Parameters
+        ----------
+        iteration : bool, optional
+            Flag to perform iterative calibration, by default False.
+
+        """
         mz_calc = self.mz_calc
         freq_exp = self.freq_exp
         mz_exp = self.mz_exp
@@ -87,8 +143,15 @@ class FreqDomain_Calibration:
             else:
                 break
 
-    def ledford_calibration(self, iteration=False):
+    def ledford_calibration(self, iteration : bool=False):
+        """ Perform Ledford calibration.
 
+        Parameters
+        ----------
+        iteration : bool, optional
+            Flag to perform iterative calibration, by default False.
+
+        """
         mz_calc = self.mz_calc
         freq_exp = self.freq_exp
         mz_exp = self.mz_exp
@@ -119,8 +182,15 @@ class FreqDomain_Calibration:
             else:
                 break
 
-    def step_fit(self, steps=4):
+    def step_fit(self, steps : int=4):
+        """ Perform step fit calibration.
 
+        Parameters
+        ----------
+        steps : int, optional
+            Number of steps for step fit calibration, by default 4.
+
+        """
         def f_to_mz(f, A, B, C, a): 
                 return (A / f) + (B / np.power(f, 2)) + (C*a / np.power(f, 2))
         
@@ -170,4 +240,4 @@ class FreqDomain_Calibration:
             for mspeak in self.mass_spectrum[start_index:final_index]:
                 mspeak.mz_cal = f_to_mz(mspeak.freq_exp, A, B, C, 0)
         
-        self.mass_spectrum.is_calibrated = True    
+        self.mass_spectrum.is_calibrated = True

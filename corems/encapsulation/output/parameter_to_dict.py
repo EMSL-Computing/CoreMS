@@ -1,7 +1,9 @@
 from corems.encapsulation.factory.parameters import MSParameters, GCMSParameters
 
 def get_dict_all_default_data():
+    """ Return a dictionary with all default parameters for MS and GCMS
     
+    """
     return { "MolecularFormulaSearch": MSParameters.molecular_search.__dict__,
              "Transient": MSParameters.transient.__dict__,
              "MassSpectrum": MSParameters.mass_spectrum.__dict__,
@@ -12,6 +14,9 @@ def get_dict_all_default_data():
             }
 
 def get_dict_data_ms(mass_spec):
+    """ Return a dictionary with all parameters for MS
+    
+    """
 
     if mass_spec._transient_settings:
 
@@ -28,6 +33,9 @@ def get_dict_data_ms(mass_spec):
                 }
                 
 def get_dict_ms_default_data():
+    """ Return a dictionary with all default parameters for MS including data input
+    
+    """
     
     return { "MolecularFormulaSearch": MSParameters.molecular_search.__dict__,
              "Transient": MSParameters.transient.__dict__,
@@ -37,12 +45,18 @@ def get_dict_ms_default_data():
             }
 
 def get_dict_gcms_default_data():
+    """ Return a dictionary with all default parameters for GCMS
+    
+    """
     
     return { "MolecularSearch": GCMSParameters.molecular_search.__dict__,
              "GasChromatograph": GCMSParameters.gc_ms.__dict__,
             }
 
 def get_dict_data_gcms(gcms):
+    """ Return a dictionary with all parameters for GCMS
+    
+    """
 
     return { "MolecularSearch": gcms.molecular_search_settings.__dict__,
              "GasChromatograph":  gcms.chromatogram_settings.__dict__,

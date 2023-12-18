@@ -33,68 +33,66 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     _mspeaks is populated under the hood by calling process_mass_spec method.
     Iteration is null if _mspeaks is empty.
 
-    Relevant Methods
+    Parameters
     ----------
-    process_mass_spec()
-        Find or set the noise threshold based on the setting encapsulated at settings.input.ProcessingSetting.MassSpectrumSetting.
-        Run the peak peaking algorithm and use the method addMSPeaks() to populate _mspeaks attribute.
+    mz_exp : array_like
+        The m/z values of the mass spectrum.
+    abundance : array_like
+        The abundance values of the mass spectrum.
+    d_params : dict
+        A dictionary of parameters for the mass spectrum.
+    **kwargs
+        Additional keyword arguments.
+
+    Attributes
+    ----------
+
+    mspeaks : list
+        A list of mass peaks.
+    is_calibrated : bool
+        Whether the mass spectrum is calibrated.
+    is_centroid : bool
+        Whether the mass spectrum is centroided.
+    has_frequency : bool
+        Whether the mass spectrum has a frequency domain.
+    calibration_order : None or int
+        The order of the mass spectrum's calibration.
+    calibration_points : None or ndarray
+        The calibration points of the mass spectrum.
+    calibration_RMS : None or float
+        The root mean square of the mass spectrum's calibration.
+    calibration_segment : None or CalibrationSegment
+        The calibration segment of the mass spectrum.
+    _abundance : ndarray
+        The abundance values of the mass spectrum.
+    _mz_exp : ndarray
+        The m/z values of the mass spectrum.
+    _mspeaks : list
+        A list of mass peaks.
+    _dict_nominal_masses_indexes : dict
+        A dictionary of nominal masses and their indexes.
+    _baseline_noise : float
+        The baseline noise of the mass spectrum.
+    _baseline_noise_std : float
+        The standard deviation of the baseline noise of the mass spectrum.
+    _dynamic_range : float or None
+        The dynamic range of the mass spectrum.
+    _transient_settings : None or TransientSettings
+        The transient settings of the mass spectrum.
+    _frequency_domain : None or FrequencyDomain
+        The frequency domain of the mass spectrum.
+    _mz_cal_profile : None or MzCalibrationProfile
+        The m/z calibration profile of the mass spectrum.
+
+    Methods
+    -------
+    * process_mass_spec(). Main function to process the mass spectrum, 
+    including calculating the noise threshold, peak picking, and resetting the MSpeak indexes.
 
     See also: MassSpecCentroid(), MassSpecfromFreq(), MassSpecProfile()
     """
     def __init__(self, mz_exp, abundance, d_params, **kwargs):
-        """
-        Initialize a MassSpectrum object.
-
-        Parameters
-        ----------
-        mz_exp : array_like
-            The m/z values of the mass spectrum.
-        abundance : array_like
-            The abundance values of the mass spectrum.
-        d_params : dict
-            A dictionary of parameters for the mass spectrum.
-        **kwargs
-            Additional keyword arguments.
-
-        Attributes
-        ----------
-        _abundance : ndarray
-            The abundance values of the mass spectrum.
-        _mz_exp : ndarray
-            The m/z values of the mass spectrum.
-        _mspeaks : list
-            A list of mass peaks.
-        mspeaks : list
-            A list of mass peaks.
-        _dict_nominal_masses_indexes : dict
-            A dictionary of nominal masses and their indexes.
-        _baseline_noise : float
-            The baseline noise of the mass spectrum.
-        _baseline_noise_std : float
-            The standard deviation of the baseline noise of the mass spectrum.
-        _dynamic_range : float or None
-            The dynamic range of the mass spectrum.
-        _transient_settings : None or TransientSettings
-            The transient settings of the mass spectrum.
-        _frequency_domain : None or FrequencyDomain
-            The frequency domain of the mass spectrum.
-        _mz_cal_profile : None or MzCalibrationProfile
-            The m/z calibration profile of the mass spectrum.
-        is_calibrated : bool
-            Whether the mass spectrum is calibrated.
-        is_centroid : bool
-            Whether the mass spectrum is centroided.
-        has_frequency : bool
-            Whether the mass spectrum has a frequency domain.
-        calibration_order : None or int
-            The order of the mass spectrum's calibration.
-        calibration_points : None or ndarray
-            The calibration points of the mass spectrum.
-        calibration_RMS : None or float
-            The root mean square of the mass spectrum's calibration.
-        calibration_segment : None or CalibrationSegment
-            The calibration segment of the mass spectrum.
-        """
+        
         self._abundance = array(abundance, dtype=float64)
         self._mz_exp = array(mz_exp, dtype=float64)
                     
@@ -142,9 +140,6 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         list_indexes : list of int
             A list of integers representing the indexes of the MSpeaks to iterate over.
 
-        Returns
-        -------
-        None
         """
         self.mspeaks = [self._mspeaks[i] for i in list_indexes]
 
@@ -158,9 +153,6 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         This method resets the mass spectrum to its original state, allowing iteration over all MSpeaks objects.
         It also sets the index of each MSpeak object to its corresponding position in the mass spectrum.
 
-        Returns
-        -------
-        None
         """
         self.mspeaks = self._mspeaks
 
@@ -176,8 +168,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
                             exp_freq=None,
                             ms_parent=None
                         ):
-        """
-        Add a new MSPeak object to the MassSpectrum object.
+        """Add a new MSPeak object to the MassSpectrum object.
 
         Parameters
         ----------
@@ -219,10 +210,6 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         ----------
         d_params : dict
             A dictionary containing the parameters to set.
-
-        Returns
-        -------
-        None
 
         Notes
         -----
@@ -285,8 +272,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             self.sample_name = self.filename.stem
 
     def reset_cal_therms(self, Aterm, Bterm, C, fas=0):
-        """
-        Reset calibration terms and recalculate the mass-to-charge ratio and abundance.
+        """Reset calibration terms and recalculate the mass-to-charge ratio and abundance.
 
         Parameters
         ----------
@@ -298,11 +284,6 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             The C-term calibration coefficient.
         fas : float, optional
             The frequency amplitude scaling factor. Default is 0.
-
-        Returns
-        -------
-        None
-
         """
         self._calibration_terms = (Aterm, Bterm, C)
 
@@ -322,19 +303,13 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self.check_mspeaks()
         return array([mspeak.clear_molecular_formulas() for mspeak in self.mspeaks])
 
-    def process_mass_spec(self, keep_profile=True, noise_bayes_est=False):
+    def process_mass_spec(self, keep_profile=True):
         """Process the mass spectrum.
 
         Parameters
         ----------
         keep_profile : bool, optional
             Whether to keep the profile data after processing. Defaults to True.
-        noise_bayes_est : bool, optional    
-            Whether to use the Bayesian estimation for noise threshold. Defaults to False.
-
-        Returns
-        -------
-        None
 
         Notes
         -----
@@ -349,7 +324,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         # do peak picking( create mspeak_objs) 
         # reset mspeak_obj the indexes
          
-        self.cal_noise_threshold(bayes=noise_bayes_est)
+        self.cal_noise_threshold()
 
         self.find_peaks()
         self.reset_indexes()
@@ -364,17 +339,8 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             self._mz_exp *= 0
             
 
-    def cal_noise_threshold(self, bayes=False):
+    def cal_noise_threshold(self):
         """Calculate the noise threshold of the mass spectrum.
-
-        Parameters
-        ----------
-        bayes : bool, optional
-            Whether to use the Bayesian estimation for noise threshold. Defaults to False.
-
-        Returns
-        -------
-        None
 
         """
 
@@ -384,10 +350,10 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         if self.settings.noise_threshold_method == 'log':
 
-            self._baseline_noise, self._baseline_noise_std = self.run_log_noise_threshold_calc(bayes=bayes)
+            self._baseline_noise, self._baseline_noise_std = self.run_log_noise_threshold_calc()
 
         else:
-            self._baseline_noise, self._baseline_noise_std = self.run_noise_threshold_calc(bayes=bayes)
+            self._baseline_noise, self._baseline_noise_std = self.run_noise_threshold_calc()
 
     @property
     def parameters(self):
@@ -686,10 +652,6 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         ----------
         indexes : list of int
             A list of indexes of the MSpeaks objects to remove the molecular formula assignment from.
-
-        Returns
-        -------
-        None
         """
         for i in indexes: self.mspeaks[i].clear_molecular_formulas()
 
@@ -701,9 +663,6 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         list_indexes : list of int
             A list of indexes of the MSpeaks objects to keep.
 
-        Returns
-        -------
-        None
         """
 
         self.mspeaks = [self.mspeaks[i] for i in range(len(self.mspeaks)) if i not in list_indexes]
@@ -722,9 +681,6 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         max_mz : float
             The maximum m/z value to keep.
 
-        Returns
-        -------
-        None
         """      
         self.check_mspeaks_warning()
         indexes = [index for index, mspeak in enumerate(self.mspeaks) if not min_mz <= mspeak.mz_exp <= max_mz]
@@ -740,9 +696,6 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         max_s2n : float, optional
             The maximum signal-to-noise ratio to keep. Defaults to False (no maximum).
 
-        Returns
-        -------
-        None
         """
         self.check_mspeaks_warning()
         if max_s2n:
@@ -761,9 +714,6 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         max_abund : float, optional
             The maximum abundance to keep. Defaults to False (no maximum).
 
-        Returns
-        -------
-        None
         """
         self.check_mspeaks_warning()
         if max_abund:
@@ -780,9 +730,6 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         B : float
         T : float
         
-        Returns
-        -------
-        None
         """
 
         rpe = lambda m, z: (1.274e7 * z * B * T)/(m*z)
@@ -804,9 +751,6 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         guess_pars : bool, optional
             Whether to guess the parameters for the Gaussian model. Defaults to False.
 
-        Returns
-        -------
-        None
         """
         self.check_mspeaks_warning()
         indexes_to_remove = MeanResolvingPowerFilter(self,ndeviations,plot,guess_pars).main()
@@ -821,9 +765,6 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         B : float
         T : float
 
-        Returns
-        -------
-        None
         """
         rpe = lambda m, z: (1.274e7 * z * B * T)/(m*z)
 
@@ -859,11 +800,6 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         ----------
         kendrick_dict_base : dict
             A dictionary of the Kendrick base to change to.
-
-
-        Returns
-        -------
-        None
 
         Notes
         -----
@@ -1160,11 +1096,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             The path to the CSV file to export to.
         write_metadata : bool, optional
             Whether to write the metadata to the CSV file. Defaults to True.
-            
-        Returns
-        -------
         
-        None
         """
         from corems.mass_spectrum.output.export import HighResMassSpecExport
         exportMS = HighResMassSpecExport(out_file_path, self)
@@ -1180,9 +1112,6 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         write_metadata : bool, optional
             Whether to write the metadata to the CSV file. Defaults to True.
 
-        Returns
-        -------
-        None
         """
         from corems.mass_spectrum.output.export import HighResMassSpecExport
         exportMS = HighResMassSpecExport(out_file_path, self)
@@ -1225,8 +1154,8 @@ class MassSpecProfile(MassSpecBase):
     -----
     Stores the profile data and instrument settings. 
     Iteration over a list of MSPeaks classes stored at the _mspeaks attributes.
-    _mspeaks is populated under the hood by calling process_mass_spec method
-    Iteration is null if _mspeaks is empty
+    _mspeaks is populated under the hood by calling process_mass_spec method.
+    Iteration is null if _mspeaks is empty. Many more attributes and methods inherited from MassSpecBase().
 
     Parameters
     ----------
@@ -1236,10 +1165,9 @@ class MassSpecProfile(MassSpecBase):
         contains the instrument settings and processing settings
     auto_process : bool, optional
         Whether to automatically process the mass spectrum. Defaults to True.
-    noise_bayes_est : bool, optional
-        Whether to use the Bayesian estimation for noise threshold. Defaults to False.
 
-    Attributes (Inherited from MassSpecBase)
+
+    Attributes 
     ----------
     _abundance : ndarray
         The abundance values of the mass spectrum.
@@ -1247,22 +1175,20 @@ class MassSpecProfile(MassSpecBase):
         The m/z values of the mass spectrum.
     _mspeaks : list
         A list of mass peaks.
-    See Also: all the attributes of MassSpecBase class
 
-    Relevant Methods (Inherited from MassSpecBase)
+    Methods 
     ----------
-    process_mass_spec().  
-        Process the mass spectrum.
+    * process_mass_spec(). Process the mass spectrum.
 
     see also: MassSpecBase(), MassSpecfromFreq(), MassSpecCentroid()
     """
 
-    def __init__(self, data_dict, d_params, auto_process=True, noise_bayes_est=False):
+    def __init__(self, data_dict, d_params, auto_process=True):
         # print(data_dict.keys())
         super().__init__(data_dict.get(Labels.mz), data_dict.get(Labels.abundance), d_params)
        
         if auto_process:
-            self.process_mass_spec(noise_bayes_est=noise_bayes_est)
+            self.process_mass_spec()
 
 class MassSpecfromFreq(MassSpecBase):
     """ A mass spectrum class when data entry is on frequency domain
@@ -1287,9 +1213,7 @@ class MassSpecfromFreq(MassSpecBase):
         Whether to automatically process the mass spectrum. Defaults to True.
     keep_profile : bool, optional
         Whether to keep the profile data. Defaults to True.
-    noise_bayes_est : bool, optional
-        Whether to use the Bayesian estimation for noise threshold. Defaults to False.
-
+  
     Attributes
     ----------
     has_frequency : bool
@@ -1298,9 +1222,6 @@ class MassSpecfromFreq(MassSpecBase):
         Frequency domain in Hz
     label : str
         store label (Bruker, Midas Transient, see Labels class ). It across distinct processing points
-
-    Attributes (Inherited from MassSpecBase)
-    ----------
     _abundance : ndarray
         The abundance values of the mass spectrum.
     _mz_exp : ndarray
@@ -1311,18 +1232,15 @@ class MassSpecfromFreq(MassSpecBase):
      
     Methods
     ----------
-    _set_mz_domain()
+    * _set_mz_domain().
         calculates the m_z based on the setting of d_params
-
-    Relevant Methods (Inherited from MassSpecBase)
-    ----------
-    process_mass_spec().  Process the mass spectrum.
+    * process_mass_spec().  Process the mass spectrum.
     
     see also: MassSpecBase(), MassSpecProfile(), MassSpecCentroid()
     """
 
     def __init__(self, frequency_domain, magnitude, d_params, 
-                auto_process=True, keep_profile=True, noise_bayes_est=False):
+                auto_process=True, keep_profile=True):
 
         super().__init__(None, magnitude, d_params)
 
@@ -1337,7 +1255,7 @@ class MassSpecfromFreq(MassSpecBase):
         #use this call to automatically process data as the object is created, Setting need to be changed before initiating the class to be in effect
         
         if auto_process:
-            self.process_mass_spec(keep_profile=keep_profile, noise_bayes_est=noise_bayes_est)
+            self.process_mass_spec(keep_profile=keep_profile)
 
     def _sort_mz_domain(self):
         """Sort the mass spectrum by m/z values."""
@@ -1381,9 +1299,9 @@ class MassSpecfromFreq(MassSpecBase):
 
         Notes
         -----
-        Calculates the magnetron frequency by examining all the picked peaks and the distances between them in the frequency domain
-        A histogram of those values below the threshold 'max_magnetron_freq' with the 'magnetron_freq_bins' number of bins is calculated
-        A gaussian model is fit to this histogram - the center value of this (statistically probably) the magnetron frequency
+        Calculates the magnetron frequency by examining all the picked peaks and the distances between them in the frequency domain.
+        A histogram of those values below the threshold 'max_magnetron_freq' with the 'magnetron_freq_bins' number of bins is calculated.
+        A gaussian model is fit to this histogram - the center value of this (statistically probably) the magnetron frequency.
         This appears to work well or nOmega datasets, but may not work well for 1x datasets or those with very low magnetron peaks.
         """
         ms_df = DataFrame(self.freq_exp(),columns=['Freq'])
@@ -1427,10 +1345,6 @@ class MassSpecCentroid(MassSpecBase):
         store baseline noise
     _baseline_noise_std : float
         store baseline noise std
-    
-
-    Attributes (Inherited from MassSpecBase)
-    ----------
     _abundance : ndarray
         The abundance values of the mass spectrum.
     _mz_exp : ndarray
@@ -1441,9 +1355,9 @@ class MassSpecCentroid(MassSpecBase):
     
     Methods
     ----------
-    process_mass_spec()
+    * process_mass_spec().
         Process the mass spectrum. Overriden from MassSpecBase. Populates the _mspeaks list with MSpeaks class using the centroid data.
-    __simulate_profile__data__()
+    * __simulate_profile__data__().
         Simulate profile data based on Gaussian or Lorentzian peak shape. Needs theoretical resolving power calculation and define peak shape, intended for plotting and inspection purposes only.
 
     see also: MassSpecBase(), MassSpecfromFreq(), MassSpecProfile()
@@ -1531,17 +1445,9 @@ class MassSpecCentroid(MassSpecBase):
         """Return the total ion current of the mass spectrum."""
         return sum(self.abundance)
 
-    def process_mass_spec(self, noise_bayes_est=False):
+    def process_mass_spec(self):
         """Process the mass spectrum.
-
-        Parameters
-        ----------
-        noise_bayes_est : bool, optional
-            Whether to use the Bayesian estimation for noise threshold. Defaults to False.
-
-        Returns
-        -------
-        None
+       
         """
         import tqdm
         # overwrite process_mass_spec 
@@ -1606,10 +1512,10 @@ class MassSpecCentroid(MassSpecBase):
             if self.settings.noise_threshold_method == 'log':
                 
                 raise  Exception("log noise Not tested for centroid data")
-                #self._baseline_noise, self._baseline_noise_std = self.run_log_noise_threshold_calc(bayes=noise_bayes_est)
+                #self._baseline_noise, self._baseline_noise_std = self.run_log_noise_threshold_calc()
             
             else:
-                self._baseline_noise, self._baseline_noise_std = self.run_noise_threshold_calc(bayes=noise_bayes_est)
+                self._baseline_noise, self._baseline_noise_std = self.run_noise_threshold_calc()
         
         del self.data_dict
     
@@ -1631,9 +1537,6 @@ class MassSpecCentroidLowRes(MassSpecCentroid):
     ----------
     _processed_tic : float
         store processed total ion current
-        
-    Attributes (Inherited from MassSpecBase or MassSpecCentroid)
-    ----------
     _abundance : ndarray
         The abundance values of the mass spectrum.
     _mz_exp : ndarray

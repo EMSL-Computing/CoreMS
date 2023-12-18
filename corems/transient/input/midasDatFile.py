@@ -9,14 +9,43 @@ __date__ = "Jun 19, 2019"
 
 
 class ReadMidasDatFile():
-    '''
-    Reads Midas data files, works for both Predator Analysis data and Thermo DataStation
-    '''
+    """  [Not Implemented] Reads MIDAS .dat files (binary transient data)
+
+    This class will read .dat binary format transient data, e.g. midas format from Predator or Thermo datastations
+    This code is not yet implemented and is not fully functional. 
+    
+    Parameters
+    ----------
+    filename_path : str
+        The path to the .dat file
+
+    Attributes
+    ----------
+    filename_path : str
+        The path to the .dat file
+    d_params : dict
+        A dictionary with the parameters of the .dat file
+    transient_data : numpy.ndarray
+        The transient data
+    
+    Methods
+    -------
+    * read_file().
+        Reads the .dat file and returns the transient data and the parameters
+    * get_transient_data(data_file, d_params).
+        Reads the transient data from the .dat file
+    * parse_parameter(f).
+        Parses the parameters from the .dat file
+
+    Raises
+    ------
+    NotImplementedError
+        This class is not yet implemented.  
+
+    """
 
     def __init__(self, filename_path):
-        '''
-        Constructor
-        '''
+        
         raise NotImplementedError("This class is not yet implemented, if you want to use it please contact the author at corilo@pnnl.gov or feel free to implement it")
         if not path.isfile(filename_path):
             raise Exception("File does not exist: "+ filename_path)
@@ -24,7 +53,16 @@ class ReadMidasDatFile():
         self.filename_path = filename_path
         
     def read_file(self):
-
+        """ Reads the .dat file and returns the transient data and the parameters
+        
+        Returns
+        -------
+        transient_data : numpy.ndarray
+            The transient data
+        d_params : dict
+            A dictionary with the parameters of the .dat file
+        
+        """
         data_file = open(self.filename_path, 'rb')
 
         # modo_de_ions = "POSITIVE ION MODE"
@@ -36,6 +74,20 @@ class ReadMidasDatFile():
         
     
     def get_transient_data(self, data_file, d_params):
+        """ Reads the transient data from the .dat file
+
+        Parameters
+        ----------
+        data_file : file
+            The .dat file
+        d_params : dict
+            A dictionary with the parameters of the .dat file
+        
+        Returns
+        -------
+        myarray : numpy.ndarray
+            The transient data
+        """
 
         #dt = np.dtype('<f')
         if d_params.get("storage_type").split()[0] == "int":
@@ -57,6 +109,18 @@ class ReadMidasDatFile():
             return myarray     
         
     def parse_parameter(self, f):
+        """ Parses the parameters from the .dat file
+        
+        Parameters
+        ----------
+        f : file
+            The .dat file
+            
+        Returns
+        -------
+        output_parameters : dict
+            A dictionary with the parameters of the .dat file
+        """
         
         output_parameters = {}
         output_parameters["filename_path"] = self.d_directory_location

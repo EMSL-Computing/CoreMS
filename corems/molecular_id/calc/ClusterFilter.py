@@ -10,9 +10,61 @@ import pandas as pd
 #import matplotlib.pyplot as plt
 
 class ClusteringFilter():
-    
-    def get_mass_error_matrix_data(self, ms_peaks):
+    """ Class for filtering and clustering mass spectra data using various algorithms.
+
+    Attributes
+    -------
+    mass_spectrum : MassSpectrum
+        Mass spectrum object.
+    ms_peaks : list
+        List of mass peaks.
+    ms_peak_indexes : list
+        List of peak indexes.
+    min_samples : int
+        Minimum number of samples in a cluster.
+    eps : float
+        The maximum distance between two samples for one to be considered as in the neighborhood of the other.
+    bandwidth : float
+        Bandwidth used in MeanShift algorithm.
+    quantile : float
+        Quantile used in estimate_bandwidth function.
+    n_samples : int
+        Number of samples used in estimate_bandwidth function.
+    bin_seeding : bool
+        If true, initial kernel locations are not locations of all points, but rather the location of the discretized version of points, where points are binned onto a grid whose coarseness corresponds to the bandwidth. Setting this option to True will speed up the algorithm because fewer seeds will be initialized.
+    min_peaks_per_class : int
+        Minimum number of peaks per class.
         
+    Methods
+    -------
+    * get_mass_error_matrix_data(ms_peaks).
+        Get the mass error matrix data from a list of mass peaks.  
+    * get_kendrick_matrix_data(mass_spectrum).
+        Get the Kendrick matrix data from a mass spectrum.  
+    * filter_kendrick(mass_spectrum).
+        Filter the mass spectrum data using the Kendrick algorithm.  
+    * filter_kendrick_by_index(ms_peak_indexes, mass_spectrum_obj).
+        Filter the mass spectrum data using the Kendrick algorithm based on a list of peak indexes.  
+    * remove_assignment_by_mass_error(mass_spectrum).
+        Remove assignments from the mass spectrum based on mass error.  
+    
+
+    """
+    def get_mass_error_matrix_data(self, ms_peaks):
+        """Get the mass error matrix data from a list of mass peaks.
+
+        Parameters
+        ----------
+        ms_peaks : list
+            List of mass peaks.
+
+        Returns
+        -------
+        matrix_data : ndarray
+            Matrix data containing mass and error values.
+        list_indexes_mass_spec : list 
+            List of indexes of mass peaks in the original mass spectrum.
+        """
         mass_list = list()
         error_list = list()
         list_indexes_mass_spec = []
@@ -33,16 +85,34 @@ class ClusteringFilter():
         return matrix_data, list_indexes_mass_spec
 
     def get_kendrick_matrix_data(self, mass_spectrum):
-        
+        """Get the Kendrick matrix data from a mass spectrum.
+
+        Parameters
+        ----------
+        mass_spectrum : MassSpectrum
+            Mass spectrum object.
+
+        Returns
+        -------
+        matrix_data : ndarray
+            Matrix data containing Kendrick mass and Kendrick mass defect values.
+        """
         km = mass_spectrum.kendrick_mass
-        kdm = mass_spectrum.kmd
-        kendrick_dict = {'km': km, 'kdm': kdm}  
+        kmd = mass_spectrum.kmd
+        kendrick_dict = {'km': km, 'kmd': kmd}  
         df = pd.DataFrame(kendrick_dict) 
         matrix_data = df.values.astype("float32", copy = False)
         return matrix_data
 
     def filter_kendrick(self, mass_spectrum):
-        
+        """ Filter the mass spectrum data using the Kendrick algorithm.
+
+        Parameters
+        ----------
+        mass_spectrum : MassSpectrum 
+            Mass spectrum object.
+
+        """
         matrix_data = self.get_kendrick_matrix_data(mass_spectrum)
 
         stdscaler = StandardScaler().fit(matrix_data)
@@ -67,12 +137,25 @@ class ClusteringFilter():
         #from matplotlib import pyplot as plt
         #plt.scatter(matrix_data[:, 0], matrix_data[:, 1], c=clusters, cmap="jet")
         #plt.xlabel("km")
-        #plt.ylabel("kdm")
+        #plt.ylabel("kmd")
         #plt.show()
         #plt.close()
 
     def filter_kendrick_by_index(self, ms_peak_indexes, mass_spectrum_obj):
-        
+        """ Filter the mass spectrum data using the Kendrick algorithm based on a list of peak indexes.
+
+        Parameters
+        ----------
+        ms_peak_indexes : list 
+            List of peak indexes.
+        mass_spectrum_obj : MassSpectrum 
+            Mass spectrum object.
+
+        Returns
+        -------
+        noise_idx : list 
+            List of indexes of noise points in the mass spectrum.
+        """
         min_samples = mass_spectrum_obj.molecular_search_settings.min_peaks_per_class
 
         kendrick_dict = {'km': list(), 'kmd': list()}  
@@ -123,14 +206,21 @@ class ClusteringFilter():
         #from matplotlib import pyplot as plt
         #plt.scatter(matrix_data[:, 0], matrix_data[:, 1], c=clusters, cmap="jet")
         #plt.xlabel("km")
-        #plt.ylabel("kdm")
+        #plt.ylabel("kmd")
         #plt.show()
         #plt.close()
         
         return noise_idx      
 
     def remove_assignment_by_mass_error(self, mass_spectrum):
-        
+        """ Remove assignments from the mass spectrum based on mass error.
+
+        Parameters
+        ----------
+        mass_spectrum : MassSpectrum
+            Mass spectrum object.
+
+        """
         #data need to be binned by mz unit or more to be able to use clustering
         
         matrix_data, list_indexes_mass_spec = self.get_mass_error_matrix_data(mass_spectrum)
@@ -151,7 +241,7 @@ class ClusteringFilter():
         #from matplotlib import pyplot as plt
         #plt.scatter(matrix_data[:, 0], matrix_data[:, 1], c=clusters, cmap="plasma")
         #plt.xlabel("km")
-        #plt.ylabel("kdm")
+        #plt.ylabel("kmd")
         #plt.show()
         #plt.close()
 

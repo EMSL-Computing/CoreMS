@@ -12,6 +12,11 @@ from corems.encapsulation.factory.parameters import MSParameters
 from corems.molecular_id.calc.SpectralSimilarity import SpectralSimilarity
 
 class MolecularFormulaCalc:
+    """Class of calculations related to molecular formula
+
+    This class is not intended to be used directly, but rather to be inherited by other classes in the molecular_formula/factory module like MolecularFormula, MolecularFormulaIsotopologue, and LCMSLibRefMolecularFormula
+    
+    """
     
     def _calc_resolving_power_low_pressure(self, B, T):
         '''
@@ -35,16 +40,50 @@ class MolecularFormulaCalc:
         return (2.758 * 10000000 * B * T) *(1/self.mz_calc)    
 
     def _adduct_mz(self, adduct_atom, ion_charge):
-            return (self.neutral_mass + (Atoms.atomic_masses.get(adduct_atom)) + (ion_charge * -1 * Atoms.electron_mass))/ abs(ion_charge)
+        """Get m/z of an adducted ion version of the molecular formula.
+        
+        Parameters
+        ----------
+        adduct_atom : str
+            The adduct atom.
+        ion_charge : int
+            The ion charge.
+            
+        Returns
+        -------
+        float
+            The m/z value of the adducted ion version of the molecular formula.
+        """  
+        return (self.neutral_mass + (Atoms.atomic_masses.get(adduct_atom)) + (ion_charge * -1 * Atoms.electron_mass))/ abs(ion_charge)
 
     def _protonated_mz(self, ion_charge):
-            return (self.neutral_mass + (ion_charge * Atoms.atomic_masses.get("H")) + (ion_charge * -1 * Atoms.electron_mass))/abs(ion_charge)
+        """Get m/z of a protonated or deprotonated ion version of the molecular formula.
+        
+        Parameters
+        ----------
+        ion_charge : int
+            The ion charge.
+        """
+        return (self.neutral_mass + (ion_charge * Atoms.atomic_masses.get("H")) + (ion_charge * -1 * Atoms.electron_mass))/abs(ion_charge)
 
     def _radical_mz(self, ion_charge):
-            return (self.neutral_mass + (ion_charge * -1 * Atoms.electron_mass))/ abs(ion_charge)
+        """Get m/z of a radical ion version of the molecular formula.
+
+        Parameters
+        ----------
+        ion_charge : int
+            The ion charge.
+        """    
+        return (self.neutral_mass + (ion_charge * -1 * Atoms.electron_mass))/ abs(ion_charge)
 
     def _neutral_mass(self):
-        
+        """Get neutral mass of the molecular formula.
+
+        Returns
+        -------
+        float
+            The neutral mass of the molecular formula.
+        """        
         mass = 0
 
         for each_atom in self._d_molecular_formula.keys() :
@@ -60,6 +99,13 @@ class MolecularFormulaCalc:
         return mass
 
     def _calc_mz(self):
+        """Get m/z of the molecular formula, based on the ion charge and ion type.
+
+        Returns
+        -------
+        float
+            The m/z of the molecular formula.
+        """
         
         if self.ion_charge:
             
@@ -88,15 +134,25 @@ class MolecularFormulaCalc:
             raise Exception("Please set ion charge first")
          
     def _calc_assignment_mass_error(self, method='ppm'):
+        """Calculate the mass error of the molecular formula, based on the experimental m/z and the calculated m/z.
         
-        '''
-        ## Parameters
+        Parameters
         ----------
-        #### mz_exp: float, 
-        ####       Experimental m/z 
-        #### method: string, 
-        ####       ppm or ppb
-        '''
+        method : str, optional
+            The method to calculate the mass error, by default 'ppm', but can be 'ppb'
+            
+        Returns
+        -------
+        float
+            The mass error of the molecular formula.
+
+        Raises
+        ------
+        Exception
+            If the method is not 'ppm' or 'ppb'.
+        Exception
+            If there is no ms peak associated with the molecular formula instance.
+        """
          
         if method == 'ppm':
             multi_factor = 1000000
@@ -119,6 +175,18 @@ class MolecularFormulaCalc:
     
     
     def _calc_mz_confidence(self, mean=0):
+        """Calculate the m/z confidence of the molecular formula, based on the experimental m/z and the calculated m/z.
+
+        Parameters
+        ----------
+        mean : int, optional
+            The mean of the m/z error, by default 0
+        
+        Returns
+        -------
+        float
+            The m/z confidence of the molecular formula.
+        """
         
         # predicted std not set, using 0.3
         if not self._mspeak_parent.predicted_std: self._mspeak_parent.predicted_std = 1.66
@@ -128,6 +196,13 @@ class MolecularFormulaCalc:
         return  exp( -1 * (power((self.mz_error -  mean),2)  / (2 * power(self._mspeak_parent.predicted_std,2)) ))
     
     def _calc_isotopologue_confidence(self):
+        """Calculate the isotopologue confidence of the molecular formula, based on the isotopologue similarity.
+
+        Returns
+        -------
+        float
+            The isotopologue confidence of the molecular formula.
+        """
 
         if self.is_isotopologue:
             # confidence of isotopologue is pure mz error 
@@ -204,6 +279,20 @@ class MolecularFormulaCalc:
         return result
 
     def subtract_formula(self, formula_obj,formated=True):
+        """Subtract a formula from the current formula object
+        
+        Parameters
+        ----------
+        formula_obj : MolecularFormula
+            MolecularFormula object to be subtracted from the current formula object
+        formated : bool, optional
+            If True, returns the formula in string format, by default True
+            
+        Returns
+        -------
+        str
+            Formula in string format
+        """
         
         subtraction = {}
         for atom, value in self.to_dict().items():
@@ -226,11 +315,10 @@ class MolecularFormulaCalc:
                 formula_srt += atom.translate(SUP) + str(int(subtraction.get(atom))).translate(SUB)
         
         return formula_srt
-            
-        return (subtraction)
-        
+                   
 
     def _calc_average_mz_score(self):
+        """Calculate the average m/z error score of the molecular formula identification, including the isotopologues."""
         
         if self.is_isotopologue:
             # confidence of isotopologue is pure mz error 
@@ -269,19 +357,18 @@ class MolecularFormulaCalc:
         return average_mz_score       
 
     def _calc_confidence_score(self):
+        """Calculate the confidence score of the molecular formula identification, including the isotopologues."""
         
-        '''
         ### Assumes random mass error, i.e, spectrum has to be calibrated and with zero mean
         #### TODO: Add spectral similarity 
 
         ## Parameters
-        ----------
+        #----------
         #### mz_exp:
         ####    Experimental m/z 
         #### predicted_std:
         ####    Standart deviation calculated from Resolving power optimization or constant set by User 
         
-        '''
         
         isotopologue_correlation = self.isotopologue_similarity
         average_mz_score = self.average_mz_error_score
@@ -302,8 +389,24 @@ class MolecularFormulaCalc:
 
 
     def _calc_abundance_error(self, method='percentile'):
-        '''method should be ppm, ppb or percentile'''
+        """Calculate the abundance error of the molecular formula, based on the experimental abundance and the calculated abundance.
         
+        Parameters
+        ----------
+        method : str, optional
+            The method to calculate the abundance error, by default 'percentile', but can be 'ppm' or 'ppb'
+            
+        Returns
+        -------
+        float
+            The abundance error of the molecular formula.
+        
+        Raises
+        ------
+        Exception
+            If isotopologues were not calculated.
+        """
+       
         mult_factor = 100
 
         iso_abundance = self._mspeak_parent.abundance
@@ -320,8 +423,24 @@ class MolecularFormulaCalc:
             raise Exception("Please calc_isotopologues")    
 
     def _calc_area_error(self, method='percentile'):
-        '''method should be ppm, ppb or percentile'''
+        """Calculate the area error of the molecular formula, based on the experimental area and the calculated area.
+
+        Parameters
+        ----------
+        method : str, optional
+            The method to calculate the area error, by default 'percentile', but can be 'ppm' or 'ppb'
         
+        Returns
+        -------
+        float
+            The area error of the molecular formula.
+
+        Raises
+        ------
+        Exception
+            If isotopologues were not calculated.
+        """
+       
         mult_factor = 100
         
         iso_area = self._mspeak_parent.area
@@ -349,6 +468,7 @@ class MolecularFormulaCalc:
 
     @property
     def dbe_ai(self):
+        """Calculate the double bond equivalent (DBE) of the molecular formula, based on the number of carbons, hydrogens, and oxygens."""
             
         carbons =  self._d_molecular_formula.get('C')
         hydrogens = self._d_molecular_formula.get('H')
@@ -356,43 +476,54 @@ class MolecularFormulaCalc:
         return 1 + (((2*carbons) - hydrogens - (2*oxygens))*0.5)
 
     def _calc_dbe(self):
+        """Calculate the double bond equivalent (DBE) of the molecular formula"""
             
-            individual_dbe = 0
+        individual_dbe = 0
+        
+        for atom in self._d_molecular_formula.keys():
             
-            for atom in self._d_molecular_formula.keys():
+            if atom != Labels.ion_type:
                 
-                if atom != Labels.ion_type:
-                    
-                    n_atom = int(self._d_molecular_formula.get(atom))
-                    
-                    clean_atom = ''.join([i for i in atom if not i.isdigit()]) 
-                    
-                    if self._mspeak_parent:
-                        valencia = self._mspeak_parent._ms_parent.molecular_search_settings.used_atom_valences.get(clean_atom)
-                    else:
-                        valencia = MSParameters.molecular_search.used_atom_valences.get(clean_atom)
-                    #valencia = Atoms.atoms_covalence.get(atom)
-                    
-                    if type(valencia) is tuple:
-                        valencia = valencia[0]
-                    if valencia > 0:
-                        #print atom, valencia, n_atom, individual_dbe
-                        individual_dbe = individual_dbe + (n_atom * (valencia - 2))
-                    else:
-                        continue
-            
-            dbe = 1 + (0.5 * individual_dbe)
-            
-            
-            
-            if self.ion_type == Labels.adduct_ion:
-                dbe = dbe + 0.5
-            
-            return dbe
+                n_atom = int(self._d_molecular_formula.get(atom))
+                
+                clean_atom = ''.join([i for i in atom if not i.isdigit()]) 
+                
+                if self._mspeak_parent:
+                    valencia = self._mspeak_parent._ms_parent.molecular_search_settings.used_atom_valences.get(clean_atom)
+                else:
+                    valencia = MSParameters.molecular_search.used_atom_valences.get(clean_atom)
+                #valencia = Atoms.atoms_covalence.get(atom)
+                
+                if type(valencia) is tuple:
+                    valencia = valencia[0]
+                if valencia > 0:
+                    #print atom, valencia, n_atom, individual_dbe
+                    individual_dbe = individual_dbe + (n_atom * (valencia - 2))
+                else:
+                    continue
+        
+        dbe = 1 + (0.5 * individual_dbe)
+        
+        
+        
+        if self.ion_type == Labels.adduct_ion:
+            dbe = dbe + 0.5
+        
+        return dbe
 
-    def _calc_kdm(self, dict_base):
-        '''dict_base = {"C": 1, "H": 2}
-        '''
+    def _calc_kmd(self, dict_base):
+        """Calculate the Kendrick mass defect (KMD) of the molecular formula, based on the monoisotopic mass and the Kendrick mass.
+
+        Parameters
+        ----------
+        dict_base : dict
+            The dictionary of the base formula, e.g. {'C':1, 'H':2}
+        
+        Returns
+        -------
+        tuple
+            The tuple of the KMD, Kendrick mass, and nominal Kendrick mass.
+        """
         mass = 0
         for atom in dict_base.keys():
             mass = mass + Atoms.atomic_masses.get(atom) * dict_base.get(atom)
@@ -404,31 +535,43 @@ class MolecularFormulaCalc:
         kmd = (nominal_km - kendrick_mass) * 100
         
         #kmd = (nominal_km - km) * 1
-        kdm  = round(kmd,0)
+        kmd  = round(kmd,0)
         
-        return kdm, kendrick_mass, nominal_km
+        return kmd, kendrick_mass, nominal_km
 
     def _cal_isotopologues(self, formula_dict, min_abundance, current_abundance, ms_dynamic_range):
+        """Calculate the isotopologues for a given molecular formula.
+
+        Parameters
+        ----------
+        formula_dict : dict
+            The dictionary of the molecular formula. Example: {'C':10, 'H', 20, 'O', 2}
+        min_abundance : float
+            The minimum abundance.
+        current_abundance : float
+            The current monoisotopic abundance.
+        ms_dynamic_range : float
+            The dynamic range.
+
+        Returns
+        -------
+        list
+            The list of isotopologues.
         
-        '''
-        primary function to look for isotopologues based on a monoisotopic molecular formula
-        INPUT {'C':10, 'H', 20, 'O', 2, etc} Atomic labels need to follow Atoms class atoms labels
-        
-        This function needs to be expanded to include the calculation of resolving power
-        and plot the results.
-        
-        *   use this function at runtime during the molecular identification algorithm
-            only when a positive ID is observed to the monoisotopic ion
-        
-        *   use this function to simulate mass spectrum 
-            (needs resolving power calculation to be fully operational)        
-            last update on 05-26-2020, Yuri E. Corilo 
-        
-        *   it might break when adding non-conventional atoms (not yet tested)
-            
-        *   it needs speed optimization; update: (Using IsoSpeccPy, a C Library (fast and accurate)) 
-            https://github.com/MatteoLacki/IsoSpec
-        '''
+        Notes
+        -----
+        This is the primary function to look for isotopologues based on a monoisotopic molecular formula. 
+        It needs to be expanded to include the calculation of resolving power and plot the results.
+        Use this function at runtime during the molecular identification algorithm only when a positive ID is observed to the monoisotopic ion.
+        Use this function to simulate mass spectrum (needs resolving power calculation to be fully operational).
+        It might break when adding non-conventional atoms (not yet tested).
+        This function employs the IsoSpecPy library https://github.com/MatteoLacki/IsoSpec.
+
+
+        """
+             
+        #last update on 05-26-2020, Yuri E. Corilo 
+
         # updated it to reflect min possible mass peak abundance
         cut_off_to_IsoSpeccPy = 1-(1/ms_dynamic_range)
         

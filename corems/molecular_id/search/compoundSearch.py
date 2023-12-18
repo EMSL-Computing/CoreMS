@@ -9,11 +9,37 @@ from corems.molecular_id.factory.EI_SQL import EI_LowRes_SQLite
 from corems.molecular_id.calc.SpectralSimilarity import SpectralSimilarity
 
 class LowResMassSpectralMatch(Thread):
+    """ A class representing a low-resolution mass spectral match.
+
+    Parameters
+    -----------
+    gcms_obj : object
+        The GC-MS object.
+    sql_obj : object, optional
+        The SQL object for database operations. Default is None.
+    calibration : bool, optional
+        Flag indicating if the match is for calibration. Default is False.
+
+    Attributes
+    -----------
+    gcms_obj : object
+        The GC-MS object.
+    sql_obj : object
+        The SQL object for database operations.
+    calibration : bool
+        Flag indicating if the match is for calibration.
+
+    Methods
+    --------
+    * metabolite_detector_score(gc_peak, ref_obj, spectral_simi).
+        Calculates the spectral similarity scores and the similarity score for a given GC peak and reference object.
+    * run().
+        Runs the low-resolution mass spectral match.
+
+    """
 
     def __init__(self, gcms_obj, sql_obj=None, calibration=False):
-
-        '''TODO:
-        '''
+        
         Thread.__init__(self)
 
         self.gcms_obj = gcms_obj
@@ -28,7 +54,24 @@ class LowResMassSpectralMatch(Thread):
             self.sql_obj = sql_obj
 
     def metabolite_detector_score(self, gc_peak, ref_obj, spectral_simi):
+        """
+        Calculates the spectral similarity scores and the similarity score for a given GC peak and reference object.
 
+        Parameters
+        -----------
+        gc_peak : object
+            The GC peak object.
+        ref_obj : object
+            The reference object.
+        spectral_simi : object
+            The spectral similarity object.
+
+        Returns
+        --------
+        tuple
+            A tuple containing the spectral similarity scores, RI score, and similarity score.
+
+        """
         spectral_similarity_scores = {}
         spectral_similarity_scores["cosine_correlation"] = spectral_simi.cosine_correlation()
 
@@ -57,9 +100,12 @@ class LowResMassSpectralMatch(Thread):
 
         return spectral_similarity_scores, ri_score, similarity_score
 
-    # @timeit
+# @timeit
     def run(self):
-        # TODO select the best gcms peak    
+        """ Runs the low-resolution mass spectral match.
+        
+        """
+        # TODO select the best gcms peak
         import tqdm
 
         original_use_deconvolution = self.gcms_obj.chromatogram_settings.use_deconvolution
@@ -77,42 +123,42 @@ class LowResMassSpectralMatch(Thread):
         self.gcms_obj.chromatogram_settings.use_deconvolution = original_use_deconvolution
 
         for gc_peak in tqdm.tqdm(self.gcms_obj):
-            
+
             if not self.calibration:
                 
                 window = self.gcms_obj.molecular_search_settings.ri_search_range
 
                 ri = gc_peak.ri
-                
-                min_mat_ri = (ri-window, ri+window)    
-                
-                ref_objs = self.sql_obj.query_min_max_ri(min_mat_ri)
-                
-            else:
 
-                compound_names = self.gcms_obj.molecular_search_settings.ri_calibration_compound_names
+                min_mat_ri = (ri-window, ri+window)
+
+                ref_objs = self.sql_obj.query_min_max_ri(min_mat_ri)
+
+            else:
                 
+                compound_names = self.gcms_obj.molecular_search_settings.ri_calibration_compound_names
+
                 window = self.gcms_obj.molecular_search_settings.rt_search_range
 
                 rt = gc_peak.retention_time
 
-                min_mat_rt = (rt-window, rt+window)    
-                
+                min_mat_rt = (rt-window, rt+window)
+
                 ref_objs = self.sql_obj.query_names_and_rt(min_mat_rt, compound_names)
-                
+
             for ref_obj in ref_objs:
-                # uses spectral similarly and uses a threshold to only select peaks with high data correlation
+            # uses spectral similarly and uses a threshold to only select peaks with high data correlation
                 
                 spectral_simi = SpectralSimilarity(gc_peak.mass_spectrum.mz_abun_dict, ref_obj)
 
                 if self.calibration:
-                    
+
                     spectral_similarity_scores = {}
                     spectral_similarity_scores["cosine_correlation"] = spectral_simi.cosine_correlation()
-                    
-                    #print(w_correlation_value,correlation_value )
+
+                #print(w_correlation_value,correlation_value )
                     if spectral_similarity_scores["cosine_correlation"] >= self.gcms_obj.molecular_search_settings.correlation_threshold:
-                    
+
                         gc_peak.add_compound(ref_obj, spectral_similarity_scores)
 
                 # use score, usually a combination of Retention index and Spectral Similarity
@@ -120,7 +166,7 @@ class LowResMassSpectralMatch(Thread):
                 else:
 
                     # m/q developed methods will be implemented here
-                    spectral_similarity_scores, ri_score, similarity_score = self.metabolite_detector_score(gc_peak, ref_obj, spectral_simi)   
+                    spectral_similarity_scores, ri_score, similarity_score = self.metabolite_detector_score(gc_peak, ref_obj, spectral_simi)
 
                     #TODO need to add similarity score option in the parameters encapsulation class
 

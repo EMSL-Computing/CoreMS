@@ -10,8 +10,8 @@ from corems.molecular_id.factory.molecularSQL import MolForm_SQL
 from tqdm import tqdm
 
 class FindOxygenPeaks(Thread):
-    
-    '''
+    """ Class to find Oxygen peaks in a mass spectrum for formula assignment search
+     
         Class to walk 14Da units over oxygen space for negative ion mass spectrum of natural organic matter
         Returns a list of MSPeak class containing the possible Molecular Formula class objects.  
         
@@ -26,7 +26,7 @@ class FindOxygenPeaks(Thread):
         min_O , max_O : int
             minium and maximum of Oxygen to allow the software to look for
             it will override the settings at lookupTableSettings.usedAtoms
-            default min = 1, max = 30
+            default min = 1, max = 22
 
         Attributes
         ----------
@@ -37,15 +37,15 @@ class FindOxygenPeaks(Thread):
         
         Methods
         ----------
-            run()    
-                will be called when the instantiated class method start is called
-            get_list_found_peaks()
+        * run().
+                will be called when the instantiated class method start is called  
+        * get_list_found_peaks().
                 returns a list of MSpeaks classes cotaining all the MolecularFormula candidates inside the MSPeak
-                for more details of the structure see MSPeak class and MolecularFormula class    
-            set_mass_spec_indexes_by_found_peaks()
-                set the mass spectrum to interate over only the selected indexes
-    '''
-    def __init__(self, mass_spectrum_obj, sql_db=False, min_O = 1, max_O = 22) :
+                for more details of the structure see MSPeak class and MolecularFormula class     
+        * set_mass_spec_indexes_by_found_peaks().
+                set the mass spectrum to interate over only the selected indexes  
+    """
+    def __init__(self, mass_spectrum_obj, sql_db : bool = False, min_O :int = 1, max_O : int= 22) :
         
         Thread.__init__(self)
         
@@ -61,7 +61,8 @@ class FindOxygenPeaks(Thread):
             self.sql_db = sql_db    
     
     def run(self):
-        
+        """ Run the thread
+        """
         #save initial settings min peaks per class filter 
         initial_min_peak_bool = deepcopy(self.mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter)
 
@@ -76,9 +77,9 @@ class FindOxygenPeaks(Thread):
         
         self.list_found_mspeaks = []
 
-        kdm_base = self.mass_spectrum_obj.mspeaks_settings.kendrick_base
+        kmd_base = self.mass_spectrum_obj.mspeaks_settings.kendrick_base
         
-        self.mass_spectrum_obj.change_kendrick_base_all_mspeaks(kdm_base)
+        self.mass_spectrum_obj.change_kendrick_base_all_mspeaks(kmd_base)
         
         # needs to be wrapped inside the mass_spec class
         ClusteringFilter().filter_kendrick(self.mass_spectrum_obj)
@@ -109,14 +110,18 @@ class FindOxygenPeaks(Thread):
         self.sql_db.close()
 
     def find_most_abundant_formula(self, mass_spectrum_obj):
-        '''
-        find most abundant using kendrick 
-        
+        """ Find the most abundant formula in the mass spectrum
+
+        Parameters
+        ----------
+        mass_spectrum_obj : MassSpec class
+            Mass spectrum object
+
         Returns
         ----------
         MolecularFormula class obj
             most abundant MolecularFormula with the lowest mass error
-        '''
+        """
         #need to find a better way to cut off outliners
         #import matplotlib.pyplot as plt
         #plt.hist(mass_spectrum_obj.abundance, bins=100)
@@ -150,7 +155,21 @@ class FindOxygenPeaks(Thread):
         #return mspeak_most_abundant[0]
 
     def find_most_abundant_formula_test(self, mass_spectrum_obj, settings):
+        """ [Test function] Find the most abundant formula in the mass spectrum
         
+        Parameters
+        ----------
+        mass_spectrum_obj : MassSpec class
+            Mass spectrum object
+        settings : MolecularSearchSettings class
+            Molecular search settings object
+        
+        Returns
+        ----------
+        MolecularFormula class obj
+            most abundant MolecularFormula with the lowest mass error
+        
+        """
         #this function is intended for test only. 
         # Have to sort by Kendrick to be able to select the most abundant series 
         #then select the most abundant peak inside the series
@@ -170,7 +189,22 @@ class FindOxygenPeaks(Thread):
         #return mspeak_most_abundant[0]
     
     def find_series_mspeaks(self, mass_spectrum_obj, molecular_formula_obj_reference, deltamz=14):
-
+        """ Find a series of abundant peaks in the mass spectrum for a given molecular formula
+        
+        Parameters
+        ----------
+        mass_spectrum_obj : MassSpec class
+            Mass spectrum object
+        molecular_formula_obj_reference : MolecularFormula class
+            Molecular formula object
+        deltamz : float
+            delta m/z to look for peaks
+            
+        Returns
+        ----------
+        list
+            list of MSpeak class objects
+        """
         abundances =  mass_spectrum_obj.abundance
         abun_mean = average(abundances, axis=0)
         abun_std = std(abundances, axis=0)
@@ -207,13 +241,13 @@ class FindOxygenPeaks(Thread):
             ms_peaks = mass_spectrum_obj[first_index:last_index]
             
             if ms_peaks:   
-                '''    
-                print (nominal_mass, first_index, 
-                    last_index, 
-                    mass_spectrum_obj[first_index].mz_exp,
-                    mass_spectrum_obj[last_index].mz_exp
-                    )
-                '''
+                #   
+                #print (nominal_mass, first_index, 
+                #    last_index, 
+                #    mass_spectrum_obj[first_index].mz_exp,
+                #    mass_spectrum_obj[last_index].mz_exp
+                #    )
+                #
                 
                 mspeak_most_abundant = max(ms_peaks, key=lambda m: m.abundance if m.abundance <= upper_limit else 0)
 
@@ -228,16 +262,24 @@ class FindOxygenPeaks(Thread):
                 
     
     def get_list_found_peaks(self):
+        """ Get the list of found peaks
         
+        Returns
+        ----------
+        list
+            list of MSpeak class objects
+        """
         return sorted(self.list_found_mspeaks, key=lambda mp: mp.mz_exp)
 
     def set_mass_spec_indexes_by_found_peaks(self):
-        
-        '''
+        """ Set the mass spectrum to interate over only the selected indexes.
+
+        Notes
+        ----------
         Warning!!!!
         set the mass spectrum to interate over only the selected indexes
         don not forget to call mass_spectrum_obj.reset_indexes after the job is done
-        '''
+        """
         
         indexes = [msp.index for msp in self.list_found_mspeaks]
         self.mass_spectrum_obj.set_indexes(indexes)

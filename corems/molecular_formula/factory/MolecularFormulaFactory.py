@@ -7,9 +7,95 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 24, 2019"
 
 class MolecularFormulaBase(MolecularFormulaCalc):
-    '''
-    classdocs
-    '''
+    """Base class for representing a molecular formula.
+
+    Parameters
+    ----------
+    molecular_formula : dict, list, str
+        The molecular formula.
+    ion_charge : int
+        The ion charge.
+    ion_type : str, optional
+        The ion type. Defaults to None.
+    adduct_atom : str, optional
+        The adduct atom. Defaults to None.
+    mspeak_parent : _MSPeak, optional
+        The parent mass spectrum peak object instance. Defaults to None.
+    external_mz : float, optional
+        The external m/z value. Defaults to None.
+
+    Raises
+    ------
+    TypeError
+        If the ion type is not 'DE_OR_PROTONATED', 'RADICAL' or  'ADDUCT'.
+
+    Attributes
+    ----------
+    isotopologue_count_percentile : float
+        The isotopologue count percentile.
+    O_C : float
+        The O/C ratio.
+    H_C : float
+        The H/C ratio.
+    dbe : float
+        The double bond equivalent.
+    mz_nominal_calc : int
+        The nominal m/z value.
+    mz_error : float
+        The m/z error.
+    mz_calc : float
+        The m/z value.
+    protonated_mz : float
+        The protonated or deprotonated m/z value.
+    radical_mz : float
+        The radical m/z value.
+    neutral_mass : float
+        The neutral mass.
+    ion_type : str
+        The ion type.
+    ion_charge : int
+        The ion charge.
+    atoms : list
+        The atoms in the molecular formula.
+    confidence_score : float
+        The confidence score of the molecular formula identification.
+    isotopologue_similarity : float
+        The isotopologue similarity score of the molecular formula identification.
+    average_mz_error_score : float
+        The average m/z error score of the molecular formula identification, including the isotopologues.
+    mz_error_score : float
+        The m/z error score of the molecular formula identification.
+    kmd : float
+        The Kendrick mass defect (KMD).
+    kendrick_mass : float
+        The Kendrick mass.
+    knm : float
+        The nominal Kendrick mass.
+    string : str
+        The molecular formula string.
+    string_formated : str
+        The molecular formula string formated with subscripts and superscripts.
+    class_label : str
+        The class label.
+    class_dict : dict
+        The class dictionary.
+
+    Methods
+    -------
+    * change_kendrick_base(kendrick_dict_base).
+        Change the Kendrick base.
+    * isotopologues(min_abundance, current_mono_abundance, dynamic_range).
+        Calculate the isotopologues.
+    * atoms_qnt(atom).
+        Get the atom quantity.
+    * atoms_symbol(atom).
+        Get the atom symbol without the mass number.
+    * to_dict().
+        Get the molecular formula as a dictionary.
+    * to_list().
+        Get the molecular formula as a list.
+    """    
+
     def __init__(self, molecular_formula, ion_charge, ion_type=None, 
                 adduct_atom=None, mspeak_parent=None, external_mz=None):
         
@@ -44,7 +130,7 @@ class MolecularFormulaBase(MolecularFormulaCalc):
             kendrick_dict_base = self._mspeak_parent._ms_parent.mspeaks_settings.kendrick_base
         else:
             kendrick_dict_base = {'C':1, 'H':2}
-        self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(
+        self._kmd, self._kendrick_mass, self._nominal_km = self._calc_kmd(
             kendrick_dict_base)  
         
     def __repr__(self):
@@ -68,12 +154,23 @@ class MolecularFormulaBase(MolecularFormulaCalc):
             else:
                 return 0
     def get(self, atom):
+        """Get the atom quantity of a specific atom.
         
-            #atom = list(self._d_molecular_formula.keys())[position]
-            if atom in self._d_molecular_formula.keys():
-                return self._d_molecular_formula[atom]
-            else:
-                return 0
+        Parameters
+        ----------
+        atom : str
+            The atom symbol.
+            
+        Returns
+        -------
+        int
+            The atom quantity.
+        """
+        #atom = list(self._d_molecular_formula.keys())[position]
+        if atom in self._d_molecular_formula.keys():
+            return self._d_molecular_formula[atom]
+        else:
+            return 0
                 
     def _from_dict(self, molecular_formula, ion_type, adduct_atom):
         
@@ -117,10 +214,26 @@ class MolecularFormulaBase(MolecularFormulaCalc):
         self._from_list(final_formula, ion_type, adduct_atom)
 
     def split(self, delimiters, string, maxsplit=0): #pragma: no cover
+        """Splits the molecular formula string.
         
-        ''' does not work when formula has atoms with same caracaters:
-            i.e - C10H21NNa
-        '''
+        Parameters
+        ----------
+        delimiters : list
+            The list of delimiters.
+        string : str
+            The molecular formula string.
+        maxsplit : int, optional
+            The maximum number of splits. Defaults to 0.
+
+        Returns
+        -------
+        list
+            The molecular formula list.
+
+        Notes
+        -----
+        Does not work when formula has atoms with same characters in a row that below to different atoms, i.e. C10H21NNa.
+        """
         regexPattern = '|'.join(map(re.escape, delimiters)) #pragma: no cover
         isotopes = re.findall(regexPattern, string) #pragma: no cover
         counts = re.split(regexPattern, string, maxsplit)  #pragma: no cover
@@ -166,7 +279,20 @@ class MolecularFormulaBase(MolecularFormulaCalc):
     @property
     def neutral_mass(self): return self._neutral_mass()
     
-    def adduct_mz(self, adduct_atom): return self._adduct_mz(adduct_atom, self.ion_charge)
+    def adduct_mz(self, adduct_atom): 
+        """Get m/z of an adducted ion version of the molecular formula.
+        
+        Parameters
+        ----------
+        adduct_atom : str
+            The adduct atom.
+            
+        Returns
+        -------
+        float
+            The m/z value of the adducted ion version of the molecular formula.
+        """
+        return self._adduct_mz(adduct_atom, self.ion_charge)
 
     @property
     def ion_type(self): 
@@ -214,7 +340,7 @@ class MolecularFormulaBase(MolecularFormulaCalc):
     @property
     def average_mz_error_score(self): 
         
-        ''' includes the isotopologues'''
+        # includes the isotopologues
         
         if not self._mass_error_average_score:
            
@@ -231,7 +357,7 @@ class MolecularFormulaBase(MolecularFormulaCalc):
         return self._mz_error_score
     
     @property
-    def kmd(self): return self._kdm
+    def kmd(self): return self._kmd
 
     @property
     def kendrick_mass(self): return self._kendrick_mass
@@ -240,24 +366,50 @@ class MolecularFormulaBase(MolecularFormulaCalc):
     def knm(self): return self._nominal_km
 
     def change_kendrick_base(self, kendrick_dict_base):
-        '''kendrick_dict_base = {"C": 1, "H": 2}'''
-        self._kdm, self._kendrick_mass, self._nominal_km = self._calc_kdm(kendrick_dict_base)
+        """Change the Kendrick base.
+
+        Parameters
+        ----------
+        kendrick_dict_base : dict
+            The Kendrick base dictionary. Ex: {"C": 1, "H": 2}
+        """ 
+        self._kmd, self._kendrick_mass, self._nominal_km = self._calc_kmd(kendrick_dict_base)
                 
     def isotopologues(self, min_abundance, current_mono_abundance, dynamic_range): 
+        """Calculate the isotopologues for a given molecular formula.
+
+        Parameters
+        ----------
+        min_abundance : float
+            The minimum abundance.
+        current_mono_abundance : float
+            The current monoisotopic abundance.
+        dynamic_range : float
+            The dynamic range.
+
+        Yields
+        ------
+        MolecularFormulaIsotopologue
+            The molecular formula isotopologue.
+
+        Notes
+        -----
+        This calculation ignores the hydrogen isotopes.
+        """
         
-        # this calculation ignores the hydrogen
         for mf in self._cal_isotopologues(self._d_molecular_formula, min_abundance, current_mono_abundance, dynamic_range ):
              
             yield MolecularFormulaIsotopologue(*mf, current_mono_abundance, self.ion_charge)
     
     def atoms_qnt(self,atom): 
+        """Get the atom quantity of a specific atom in the molecular formula."""
         if atom in self._d_molecular_formula:
             return self._d_molecular_formula.get(atom)
         else:
             raise Warning('Could not find %s in this Molecular Formula object'%str(atom))
     
     def atoms_symbol(self, atom): 
-        '''return the atom symbol without the mass number'''
+        """Get the atom symbol without the mass number."""
         return ''.join([i for i in atom if not i.isdigit()])
 
     @property       
@@ -290,10 +442,29 @@ class MolecularFormulaBase(MolecularFormulaCalc):
             raise Exception("Molecular formula identification not performed yet")    
 
     def to_dict(self):
+        """Returns the molecular formula as a dictionary.
+        
+        Returns
+        -------
+        dict
+            The molecular formula as a dictionary.
+        """
         return self._d_molecular_formula
 
     def to_list(self):
-        '''TODO ensure self._d_molecular_formula is a orderedDict'''
+        """Returns the molecular formula as a list.
+        
+        Returns
+        -------
+        list
+            The molecular formula as a list.
+            
+        Raises
+        ------
+        Exception
+            If the molecular formula identification was not performed yet.
+        """
+        #TODO ensure self._d_molecular_formula is a orderedDict
         
         if self._d_molecular_formula:
             formula_list = []    
@@ -362,10 +533,38 @@ class MolecularFormulaBase(MolecularFormulaCalc):
     
 
 class MolecularFormulaIsotopologue(MolecularFormulaBase):
-        
-    '''
-    classdocs
-    '''
+    """Class for representing a molecular formula isotopologue.
+    
+    Parameters
+    ----------
+    _d_molecular_formula : dict
+        The molecular formula as a dictionary.
+    prob_ratio : float
+        The probability ratio.
+    mono_abundance : float
+        The monoisotopic abundance.
+    ion_charge : int
+        The ion charge.
+    mspeak_parent : object, optional
+        The parent mass spectrum peak object instance. Defaults to None.
+    
+    Attributes
+    ----------
+    prob_ratio : float
+        The probability ratio.
+    abundance_calc : float
+        The calculated abundance.
+    area_error : float
+        The area error.
+    abundance_error : float
+        The abundance error.
+    is_isotopologue : bool
+        The isotopologue flag. Defaults to True.
+    mspeak_index_mono_isotopic : int
+        The index of the monoisotopic peak in the mass spectrum peak list. Defaults to None.
+    mono_isotopic_formula_index : int
+        The index of the monoisotopic formula in the molecular formula list. Defaults to None.
+    """
     def __init__(self, _d_molecular_formula, prob_ratio, mono_abundance, ion_charge, mspeak_parent=None):
         
         super().__init__(_d_molecular_formula,  ion_charge)
@@ -393,7 +592,28 @@ class MolecularFormulaIsotopologue(MolecularFormulaBase):
         return self._calc_abundance_error()
 
 class LCMSLibRefMolecularFormula(MolecularFormulaBase):
+    """Class for representing a molecular formula associated with a molecule in a LCMS library reference.
 
+    Parameters
+    ----------
+    molecular_formula : dict, list, str
+        The molecular formula.
+    ion_charge : int
+        The ion charge.
+    ion_type : str, optional
+        The ion type. Defaults to None.
+    adduct_atom : str, optional
+        The adduct atom. Defaults to None.
+    mspeak_parent : object, optional
+        The parent mass spectrum peak object instance. Defaults to None.
+    name : str, optional
+        The name of the reference molecule. Defaults to None.
+    kegg_id : str, optional
+        The KEGG ID of the reference molecule. Defaults to None.
+    cas : str, optional
+        The CAS number of the reference molecule. Defaults to None.
+
+    """
     
     def __init__(self, molecular_formula, ion_charge, ion_type=None, 
                     adduct_atom=None, mspeak_parent=None, name=None, kegg_id=None, cas=None) -> None:
@@ -442,8 +662,25 @@ class LCMSLibRefMolecularFormula(MolecularFormulaBase):
         #    raise TypeError('name: {} should be type string') 
     
 class MolecularFormula(MolecularFormulaBase):
+    """General class for representing a molecular formula.
 
-       def __init__(self, molecular_formula, ion_charge, ion_type=None, 
-                    adduct_atom=None, mspeak_parent=None, external_mz=False):
-            super().__init__(molecular_formula, ion_charge, ion_type=ion_type, 
-                    adduct_atom=adduct_atom, mspeak_parent=mspeak_parent, external_mz=external_mz)
+    Parameters
+    ----------
+    molecular_formula : dict, list, str
+        The molecular formula.
+    ion_charge : int
+        The ion charge.
+    ion_type : str, optional
+        The ion type. Defaults to None.
+    adduct_atom : str, optional
+        The adduct atom. Defaults to None.
+    mspeak_parent : object, optional
+        The parent mass spectrum peak object instance. Defaults to None.
+    external_mz : float, optional
+        The external m/z value. Defaults to False.
+    """
+
+    def __init__(self, molecular_formula, ion_charge, ion_type=None, 
+                adduct_atom=None, mspeak_parent=None, external_mz=False):
+        super().__init__(molecular_formula, ion_charge, ion_type=ion_type, 
+                adduct_atom=adduct_atom, mspeak_parent=mspeak_parent, external_mz=external_mz)

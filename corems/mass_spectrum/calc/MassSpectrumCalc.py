@@ -6,13 +6,47 @@ from corems.mass_spectrum.calc.NoiseCalc import NoiseThresholdCalc
 from corems.mass_spectrum.calc.PeakPicking import PeakPicking
 
 class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
-    '''
+    """ Class for Mass Spectrum Calculations
+
     Class including numerical calculations related to mass spectrum class
     Inherited PeakPicking and NoiseThresholdCalc ensuring its methods are 
     available to the instantiated mass spectrum class object
-    '''
-    def percentile_assigned(self, report_error=False,verbose=True):
-        
+
+    Parameters
+    -------
+    mass_spectrum : MassSpectrum
+        CoreMS mass spectrum object
+    
+    Attributes
+    --------
+    All Attributes are derivative from the MassSpecBase Class
+
+    Methods 
+    --------
+    * check_mspeaks(). 
+        Check if the mspeaks attribute is populated
+    * sort_by_abundance(). 
+        Sort the mspeaks by abundance
+    * percentile_assigned(report_error=False,verbose=True). 
+        Calculate the percentage of assigned peaks
+    * resolving_power_calc(B, T). 
+        Calculate the resolving power
+    * number_average_molecular_weight(profile=False). 
+        Calculate the number average molecular weight
+    * weight_average_molecular_weight(profile=False). 
+        Calculate the weight average molecular weight
+    """
+
+    def percentile_assigned(self, report_error : bool=False, verbose : bool=True):
+        """ Percentage of peaks which are assigned
+
+        Parameters
+        -----------
+        report_error: bool, optional
+            Report the error of the assigned peaks. Default is False.
+        verbose: bool, optional
+            Print the results. Default is True.
+        """
         assign_abun = 0
         not_assign_abun = 0
         i = 0
@@ -44,36 +78,36 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
                 print('%i assigned peaks and %i unassigned peaks , total  = %.2f %%, relative abundance = %.2f %%' % (i, j, total_percent, total_relative_abundance,))
             return i, j, total_percent, total_relative_abundance
 
-    def resolving_power_calc(self, B, T):
-        '''
-        low pressure limits, 
-        T: float 
+    def resolving_power_calc(self, B : float, T : float):
+        """ Calculate the theoretical resolving power
+
+        Calls on the MSPeak object function to calculate the resolving power of a peak, this calcs for all peaks in a spectrum.
+
+        Parameters
+        -----------
+        T : float 
             transient time
-        B: float
+        B : float
             Magnetic Filed Strength (Tesla)    
         
-        reference
-        Marshall et al. (Mass Spectrom Rev. 1998 Jan-Feb;17(1):1-35.)
-        DOI: 10.1002/(SICI)1098-2787(1998)17:1<1::AID-MAS1>3.0.CO;2-K
+        References
+        ----------
+        1. Marshall et al. (Mass Spectrom Rev. 1998 Jan-Feb;17(1):1-35.)
+                DOI: 10.1002/(SICI)1098-2787(1998)17:1<1::AID-MAS1>3.0.CO;2-K
         
-        '''
+        """
        
         self.check_mspeaks()
         return array([mspeak.resolving_power_calc(B, T) for mspeak in self.mspeaks])
         
     def _f_to_mz(self):
-        ''' Ledford equation for converting frequency(Hz) to m/z, 
-        
-        Attributes
-        ----------
-        All Attributes are derivative from the MassSpecBase Class
-        by calling self
+        """ Ledford equation for converting frequency(Hz) to m/z
         
         Returns 
         ----------
-            numpy.array(float)
+        mz_domain : numpy array
             m/z domain after conversion from frequency
-        '''
+        """
         Aterm, Bterm, Cterm = self.Aterm, self.Bterm, self.Cterm
         # Check if the Bterm of Ledford equation scales with the ICR trap voltage or not then Bterm = Bterm*trap_voltage
         
@@ -95,20 +129,17 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
         return mz_domain
 
     def _f_to_mz_bruker(self):
-        ''' 
+        """ Frequency to m/z conversion (Bruker)
         Bruker equations for converting frequency (Hz) to m/z, 
-        nOmega acquisition is not yet implemented here
+        nOmega acquisition is not yet implemented here.
         However, nOmega should work for commerical Bruker 2xR systems as A Term is automatically defined for 2X or 1X by the instrument 
-        
-        Attributes
-        ----------
-        All Attributes are derivative from the MassSpecBase Class
+    
         
         Returns 
         ----------
-            numpy.array(float)
+        numpy.array(float)
             m/z domain after conversion from frequency
-        '''
+        """
         Aterm, Bterm, Cterm = self.Aterm, self.Bterm, self.Cterm
         # Check if the Bterm of Ledford equation scales with the ICR trap voltage or not then Bterm = Bterm*trap_voltage
         if Cterm == 0:
@@ -133,18 +164,20 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
             return (2*Cterm)/diff
             return diff/2* (self.freq_exp_profile - Bterm)
 
-    def number_average_molecular_weight(self, profile=False):
-        ''' 
-        Average molecular weight calculation 
+    def number_average_molecular_weight(self, profile : bool=False):
+        """ Average molecular weight calculation 
         
-        Attributes
+        Parameters
         ----------
-        All Attributes are derivative from the MassSpecBase Class
-        
-        Returns 
-        ----------
-            (float)
-        '''
+        profile : bool, optional
+            is data profile or centroid mode. The default is False (e.g. Centroid data)
+
+        Returns
+        -------
+        float
+            The average molecular weight.
+
+        """
         # mode is profile or centroid data
         if profile:
             a = multiply(self.mz_exp_profile, self.abundance_profile)
@@ -155,18 +188,17 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
 
             return sum(self.mz_exp*self.abundance)/sum(self.abundance)
     
-    def weight_average_molecular_weight(self, profile=False):
-        ''' 
+    def weight_average_molecular_weight(self, profile : bool=False):
+        """ 
         Weighted Average molecular weight calculation 
         
-        Attributes
-        ----------
-        All Attributes are derivative from the MassSpecBase Class
-        
-        Returns 
-        ----------
-            (float)
-        '''
+
+        Returns
+        -------
+        float
+            The weight average molecular weight.
+
+        """
         
         # implement from MassSpectralPeaks objs
 

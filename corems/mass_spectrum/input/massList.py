@@ -8,16 +8,34 @@ from corems.encapsulation.constant import Labels, Atoms
 from corems.encapsulation.factory.processingSetting  import DataInputSetting
 
 class ReadCoremsMasslist(MassListBaseClass):
-    '''
+    """
     The ReadCoremsMasslist object reads processed mass list data types
     and returns the mass spectrum obj with the molecular formula obj
 
-    **Only available for centroid mass spectrum type: it will ignore the parameter **isCentroid** 
+    **Only available for centroid mass spectrum type:** it will ignore the parameter **isCentroid** 
     Please see MassListBaseClass for more details
 
-    '''
+    """
 
-    def get_mass_spectrum(self, scan_number=0, time_index=-1, auto_process=True, loadSettings=True) -> MassSpecCentroid:
+    def get_mass_spectrum(self, loadSettings:bool =True) -> MassSpecCentroid:
+        """
+        Get the mass spectrum object from the processed mass list data.
+
+        Parameters
+        ----------
+        loadSettings : bool, optional
+            Whether to load the settings for the mass spectrum. Default is True.
+
+        Returns
+        -------
+        MassSpecCentroid
+            The mass spectrum object.
+
+        Raises
+        ------
+        ValueError
+            If the input file is not a valid CoreMS file.
+        """
 
         dataframe = self.get_dataframe()
 
@@ -35,7 +53,6 @@ class ReadCoremsMasslist(MassListBaseClass):
         mass_spec_obj = MassSpecCentroid(dataframe.to_dict(orient='list'), output_parameters)
 
         if loadSettings is True:
-            
             self.load_settings(mass_spec_obj, output_parameters)
 
         self.add_molecular_formula(mass_spec_obj, dataframe)
@@ -43,13 +60,22 @@ class ReadCoremsMasslist(MassListBaseClass):
         return mass_spec_obj
 
     def add_molecular_formula(self, mass_spec_obj, dataframe):
+        """
+        Add molecular formula information to the mass spectrum object.
+
+        Parameters
+        ----------
+        mass_spec_obj : MassSpecCentroid
+            The mass spectrum object to add the molecular formula to.
+        dataframe : pandas.DataFrame
+            The processed mass list data.
+            
+        """
 
         # check if is coreMS file
         if 'Is Isotopologue' in dataframe:
 
             mz_exp_df = dataframe[Labels.mz].astype(float)
-            # formula_df = dataframe.loc[:, 'C':].fillna(0)
-            # \.replace({b'nan':0})
             formula_df = dataframe[dataframe.columns.intersection(Atoms.atoms_order)].copy()
             formula_df.fillna(0, inplace=True)
             formula_df.replace(b'nan', 0, inplace=True)
@@ -82,96 +108,139 @@ class ReadCoremsMasslist(MassListBaseClass):
 
 
 class ReadMassList(MassListBaseClass):
-    
-    '''
-    The ReadCoremsMasslist object reads unprocessed mass list data types
-    and returns the mass spectrum obj 
-    See MassListBaseClass for details
-    
-    '''
+    """
+    The ReadMassList object reads unprocessed mass list data types
+    and returns the mass spectrum object.
 
-    def get_mass_spectrum(self, polarity, scan=0, auto_process=True, loadSettings=True):
-        '''
-         The MassListBaseClass object reads mass list data types and returns the mass spectrum obj
+    Parameters
+    ----------
+    MassListBaseClass : class
+        The base class for reading mass list data types.
+
+    Methods
+    -------
+    * get_mass_spectrum(polarity, scan=0, auto_process=True, loadSettings=True). Reads mass list data types and returns the mass spectrum object.
+
+    """
+
+    def get_mass_spectrum(self, polarity:int, scan:int=0, auto_process:bool=True, loadSettings:bool=True):
+        """
+        Reads mass list data types and returns the mass spectrum object.
 
         Parameters
         ----------
-        polarity: int 
-            +1 or -1 
-        '''
-        # delimiter = "  " or " " or  "," or "\t" etc  
-        
+        polarity : int
+            The polarity of the mass spectrum (+1 or -1).
+        scan : int, optional
+            The scan number of the mass spectrum (default is 0).
+        auto_process : bool, optional
+            Flag indicating whether to automatically process the mass spectrum (default is True).
+        loadSettings : bool, optional
+            Flag indicating whether to load settings for the mass spectrum (default is True).
+
+        Returns
+        -------
+        mass_spec : MassSpecCentroid or MassSpecProfile
+            The mass spectrum object.
+
+        """
+
+        # delimiter = "  " or " " or  "," or "\t" etc
+
         if self.isCentroid:
 
             dataframe = self.get_dataframe()
 
             self.check_columns(dataframe.columns)
-                
+
             self.clean_data_frame(dataframe)
-            
+
             dataframe.rename(columns=self.parameters.header_translate, inplace=True)
-            
+
             output_parameters = self.get_output_parameters(polarity)
 
             mass_spec = MassSpecCentroid(dataframe.to_dict(orient='list'), output_parameters)
-            
-            if loadSettings: self.load_settings(mass_spec, output_parameters)
-            
+
+            if loadSettings:
+                self.load_settings(mass_spec, output_parameters)
+
             return mass_spec
 
         else:
 
             dataframe = self.get_dataframe()
-            
+
             self.check_columns(dataframe.columns)
-            
+
             output_parameters = self.get_output_parameters(polarity)
 
             self.clean_data_frame(dataframe)
-            
+
             dataframe.rename(columns=self.parameters.header_translate, inplace=True)
 
             mass_spec = MassSpecProfile(dataframe.to_dict(orient='list'), output_parameters, auto_process=auto_process)
 
-            if loadSettings: self.load_settings(mass_spec, output_parameters)
+            if loadSettings:
+                self.load_settings(mass_spec, output_parameters)
 
             return mass_spec
     
 
 class ReadBrukerXMLList(MassListBaseClass):
-    '''
+    """
     The ReadBrukerXMLList object reads Bruker XML objects
-    and returns the mass spectrum obj 
+    and returns the mass spectrum object.
     See MassListBaseClass for details
-    
-    '''
 
-    def get_mass_spectrum(self, polarity=None, scan=0, auto_process=True, loadSettings=True):
-        '''
-         The MassListBaseClass object reads mass list data types and returns the mass spectrum obj
+    Parameters
+    ----------
+    MassListBaseClass : class
+        The base class for reading mass list data types and returning the mass spectrum object.
+
+    Methods
+    -------
+    * get_mass_spectrum(polarity: bool = None, scan: int = 0, auto_process: bool = True, loadSettings: bool = True). Reads mass list data types and returns the mass spectrum object.
+
+    """
+
+    def get_mass_spectrum(self, polarity: bool = None, scan: int = 0, auto_process: bool = True, loadSettings: bool = True):
+        """
+        Reads mass list data types and returns the mass spectrum object.
 
         Parameters
         ----------
-        polarity: int 
-            +1 or -1 
-            Defa
-        '''
-        # delimiter = "  " or " " or  "," or "\t" etc  
-        
+        polarity : bool, optional
+            The polarity of the mass spectrum. Can be +1 or -1. If not provided, it will be determined from the XML file.
+        scan : int, optional
+            The scan number of the mass spectrum. Default is 0.
+        auto_process : bool, optional
+            Whether to automatically process the mass spectrum. Default is True.
+        loadSettings : bool, optional
+            Whether to load the settings for the mass spectrum. Default is True.
+
+        Returns
+        -------
+        mass_spec : MassSpecCentroid
+            The mass spectrum object representing the centroided mass spectrum.
+        """
+        # delimiter = "  " or " " or  "," or "\t" etc
+
         if polarity == None:
             polarity = self.get_xml_polarity()
         dataframe = self.get_dataframe()
 
         self.check_columns(dataframe.columns)
-            
+
         self.clean_data_frame(dataframe)
-        
+
         dataframe.rename(columns=self.parameters.header_translate, inplace=True)
-        
+
         output_parameters = self.get_output_parameters(polarity)
 
         mass_spec = MassSpecCentroid(dataframe.to_dict(orient='list'), output_parameters)
-        
-        if loadSettings: self.load_settings(mass_spec, output_parameters)
-        
+
+        if loadSettings:
+            self.load_settings(mass_spec, output_parameters)
+
         return mass_spec
+

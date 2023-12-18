@@ -1,10 +1,34 @@
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 
 class MolecularFormulaSearchFilters:
+    """ Class containing static methods for filtering molecular formulas in a mass spectrum.
+      
+    Methods
+    -------
+    * filter_kendrick(ms_peak_indexes, mass_spectrum_obj).   
+        Apply Kendrick filter to the mass spectrum.  
+    * check_min_peaks(ms_peak_indexes, mass_spectrum_obj).   
+        Check if the number of peaks per class meets the minimum requirement.   
+    * filter_isotopologue(ms_peak_indexes, mass_spectrum_obj).   
+        Apply isotopologue filter to the mass spectrum.   
 
+    """
     @staticmethod
     def filter_kendrick( ms_peak_indexes, mass_spectrum_obj):
+        """Apply Kendrick filter to the mass spectrum.
 
+        Parameters
+        ----------
+        ms_peak_indexes : list
+            List of peak indexes and their associated molecular formula objects.
+        mass_spectrum_obj : MassSpectrum 
+            The mass spectrum object.
+
+        Returns
+        -------
+        filtered_ms_peak_indexes : list 
+            List of peak indexes and their associated molecular formula objects after applying the Kendrick filter.
+        """
         index_to_remove = []
         
         if mass_spectrum_obj.molecular_search_settings.use_runtime_kendrick_filter:
@@ -31,7 +55,16 @@ class MolecularFormulaSearchFilters:
 
     @staticmethod
     def check_min_peaks( ms_peak_indexes, mass_spectrum):
-        
+        """ Check if the number of peaks per class meets the minimum requirement.
+
+        Parameters
+        --------
+        ms_peak_indexes : list
+            List of peak indexes and their associated molecular formula objects.
+        mass_spectrum_obj : MassSpectrum 
+            The mass spectrum object.
+
+        """
         if mass_spectrum.molecular_search_settings.use_min_peaks_filter:
 
             if not len(ms_peak_indexes) >= mass_spectrum.molecular_search_settings.min_peaks_per_class:
@@ -42,7 +75,20 @@ class MolecularFormulaSearchFilters:
 
     @staticmethod
     def filter_isotopologue( ms_peak_indexes, mass_spectrum):
-        
+        """ Apply isotopologue filter to the mass spectrum.
+
+        Parameters
+        --------
+        ms_peak_indexes : list
+            List of peak indexes and their associated molecular formula objects.
+        mass_spectrum_obj : MassSpectrum 
+            The mass spectrum object.
+
+        Returns
+        ------------
+        filtered_ms_peak_indexes : list
+            List of peak indexes and their associated molecular formula objects after applying the isotopologue filter.
+        """
         index_to_remove = []
         #print(len(ms_peak_indexes))
         if mass_spectrum.molecular_search_settings.use_isotopologue_filter:

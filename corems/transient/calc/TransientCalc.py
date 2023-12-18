@@ -5,18 +5,90 @@ from numpy import hamming, hanning, blackman, zeros, fft, sqrt, arange, where, p
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
+
 class TransientCalculations(object):
+    """ Transient Calculations
     
-    '''
-    classdocs
-    '''
+    Parameters
+    ----------
+    parameters : corems.transient.parameters.TransientParameters
+        The transient parameters
+    bandwidth : float
+        The bandwidth of the transient (Hz)
+    number_data_points : int
+        The number of data points of the transient
+    exc_low_freq : float
+        The low frequency of the excitation (Hz)
+    exc_high_freq : float
+        The high frequency of the excitation (Hz)
+    
+    Attributes
+    ----------
+    parameters : corems.transient.parameters.TransientParameters
+        The transient parameters
+    bandwidth : float
+        The bandwidth of the transient (Hz)
+    number_data_points : int
+        The number of data points of the transient
+    exc_low_freq : float
+        The low frequency of the excitation (Hz)
+    exc_high_freq : float
+        The high frequency of the excitation (Hz)
+    
+    Methods
+    -------
+    * cal_transient_time().
+        Calculate the time domain length of the transient
+    * zero_fill(transient).
+        Zero fill the transient
+    * truncation(transient).
+        Truncate the transient
+    * apodization(transient).  
+        Apodization of the transient
+    * calculate_frequency_domain(number_data_points).
+        Calculate the frequency domain (axis) of the transient
+    * cut_freq_domain(freqdomain_X, freqdomain_Y).
+        Cut the frequency domain of the transient
+    * phase_and_absorption_mode_ft().
+        [Not Functional] Produce a phased absorption mode FT spectrum
+    * magnitude_mode_ft(transient).
+        Perform magnitude mode FT of the transient
+    * correct_dc_offset().
+        [Not Yet Implemented] Correct the DC offset of the transient 
+    
+    """
+
     
     def cal_transient_time(self):
+        """ Calculate the time domain length of the transient 
         
+        Returns
+        -------
+        float
+            The time domain length of the transient (s)
+        """
         return (1 / self.bandwidth) * ((self.number_data_points) / 2)
         
     def zero_fill(self, transient ):
+        """ Zero fill the transient
         
+        Parameters
+        ----------
+        transient : numpy.ndarray
+            The transient data points
+        
+        Returns
+        -------
+        numpy.ndarray
+            The transient data points zerofilled
+            
+        Notes
+        -----
+        The number of zero fills is defined by the transient parameter number_of_zero_fills.
+        The function first calculate the next power of two of the transient length and zero fills to that length, to take advantage of FFT algorithm.
+            If the parameter next_power_of_two is set to False, the function will zero fill to the length of the original transient times the number of zero fills
+
+        """
         if self.parameters.next_power_of_two:
             exponent = int(ceil(log2(len(transient)*(self.parameters.number_of_zero_fills+1))))
             zeros_filled_transient = zeros(2**exponent)
@@ -32,6 +104,22 @@ class TransientCalculations(object):
         return  zeros_filled_transient 
     
     def truncation(self, transient):
+        """ Truncate the transient
+        
+        Parameters
+        ----------
+        transient : numpy.ndarray
+            The transient data points
+        
+        Returns
+        -------
+        numpy.ndarray
+            The truncated transient data points
+            
+        Notes
+        -----
+        The number of truncations is defined by the transient parameter number_of_truncations
+        """
         
         data_count = len(transient)
             
@@ -48,6 +136,33 @@ class TransientCalculations(object):
         return time_domain_truncated
     
     def apodization(self, transient):
+        """ Apodization of the transient
+
+        Parameters
+        ----------
+        transient : numpy.ndarray
+            The transient data points
+        
+        Returns
+        -------
+        numpy.ndarray
+            The apodized transient data points
+        
+        Notes
+        -----
+        The apodization method is defined by the transient parameter apodization_method.
+        The following apodization methods are available:
+            Hamming,
+            Hanning,
+            Blackman,
+            Full-Sine,
+            Half-Sine,
+            Kaiser,
+            Half-Kaiser.
+        
+        For Kaiser and Half-Kaiser, an additional parameter 'beta' is required, set by the transient parameter kaiser_beta.
+
+        """
         
         apodi_method = self.parameters.apodization_method
         beta = self.parameters.kaiser_beta
@@ -77,6 +192,20 @@ class TransientCalculations(object):
         return S_x
     
     def calculate_frequency_domain(self, number_data_points):
+        """ Calculate the frequency domain (axis) of the transient
+
+        Parameters
+        ----------
+        number_data_points : int
+            The number of data points of the transient
+        
+        Returns
+        -------
+        numpy.ndarray
+            The frequency domain of the transient (Hz)
+        
+        
+        """
         
         qntpoints = arange(0,(number_data_points))
         
@@ -91,27 +220,66 @@ class TransientCalculations(object):
         return frequency_domain  
     
     def cut_freq_domain(self, freqdomain_X, freqdomain_Y):
+        """ Cut the frequency domain of the transient
+
+        Parameters
+        ----------
+        freqdomain_X : numpy.ndarray
+            The frequency domain of the transient (Hz)
+        freqdomain_Y : numpy.ndarray
+            The frequency domain of the transient (Hz)
+        
+        Returns
+        -------
+        numpy.ndarray
+            The frequency domain of the transient (Hz)
+        numpy.ndarray
+            The frequency domain of the transient (Hz)
+        
+        
+        """
+
       
         if self._exc_low_freq > self._exc_high_freq:
             
             final =  where(freqdomain_X > self._exc_high_freq)[-1][-1]
-            comeco =  where(freqdomain_X > self._exc_high_freq())[0][0]
+            start =  where(freqdomain_X > self._exc_high_freq())[0][0]
         
         else:
             
             final =  where(freqdomain_X > self._exc_low_freq)[-1][-1]
-            comeco =  where(freqdomain_X > self._exc_low_freq)[0][0]
+            start =  where(freqdomain_X > self._exc_low_freq)[0][0]
             
         
-        return freqdomain_X[comeco:final], freqdomain_Y[comeco:final]
+        return freqdomain_X[start:final], freqdomain_Y[start:final]
         #del freqdomain_X, freqdomain_Y
         #gc.collect()
     
     def phase_and_absorption_mode_ft(self):
-        'anyone wants to play with this part please make yourself comfortable. I will:'
+        """ [Not Functional] Produce a phased absorption mode FT spectrum
+        
+        """
+        #anyone wants to play with this part please make yourself comfortable. I will:
         pass 
             
     def perform_magniture_mode_ft(self, transient):
+        """ Perform magnitude mode FT of the transient
+
+        Parameters
+        ---------- 
+        transient : numpy.ndarray
+            The transient data points
+        
+        Returns
+        -------
+        numpy.ndarray
+            The frequency domain of the transient (Hz)
+        numpy.ndarray
+            The magnitude of the transient (a.u.)
+        
+        
+        """
+
         
         A = fft.rfft(transient)
         
@@ -149,7 +317,12 @@ class TransientCalculations(object):
         return freqdomain_X_cut, magnitude_Y_cut
     
     def correct_dc_offset(self):
+        """ [Not Yet Implemented] Correct the DC offset of the transient
+
+        A simple baseline correction to compensate for a DC offset in the recorded transient.
+        Not implemented.
         
+        """
         pass
     
     

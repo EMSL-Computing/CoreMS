@@ -1,14 +1,12 @@
-'''
-exact masses, isotopologues, covalences and isotopic abundances 
-last update masses and isotopic abundances from NIST(07/18/2019):
-https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-relative-atomic-masses
- '''
-
-__author__ = 'Yuri E. Corilo'
-__date__ = 'Jun 12, 2019'
-
 class Labels: #pragma: no cover
+    """ Class for Labels used in CoreMS
     
+    These labels are used to define:
+    * types of columns in plaintext data inputs, 
+    * types of data/mass spectra
+    * types of assignment for ions
+
+    """
     mz = "m/z"
     abundance = "Peak Height"
     rp = "Resolving Power"
@@ -39,8 +37,20 @@ class Labels: #pragma: no cover
                           'de-protonated': 'DE_OR_PROTONATED',
                           'radical': 'RADICAL',
                           'adduct': 'ADDUCT'}
+    
 class Atoms: #pragma: no cover
+    """ Class for Atoms in CoreMS
 
+    This class includes key properties of atoms (and the electron) and isotopes, including their exact masses, relative abundances, and covalences. 
+    It also associates which isotopes are for the same element, and provides an ordering of elements.
+    
+    References
+    ----------
+
+    1. NIST - Last Accessed 2019-06-12
+    https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-relative-atomic-masses
+
+    """
     electron_mass = 0.0005_485_799_090_65 #NIST value
 
     atomic_masses = {'H': 1.00782503223,

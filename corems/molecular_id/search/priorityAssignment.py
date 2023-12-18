@@ -18,13 +18,44 @@ import json
 
 
 class OxygenPriorityAssignment(Thread):
+    """A class for assigning priority to oxygen classes in a molecular search.
+
+    Parameters
+    ----------
+    mass_spectrum_obj : MassSpectrum
+        The mass spectrum object.
+    sql_db : bool, optional
+        Whether to use an SQL database. The default is False.
+    
+    Attributes
+    ----------
+    mass_spectrum_obj : MassSpectrum
+        The mass spectrum object.
+    sql_db : MolForm_SQL
+        The SQL database object.
+
+    Methods
+    -------
+    * run().
+        Run the priority assignment process.  
+    * create_data_base().
+        Create the molecular database for the specified heteroatomic classes.  
+    * run_worker_mass_spectrum(assign_classes_order_tuples).
+        Run the molecular formula search for each class in the specified order.  
+    * get_dict_molecular_database(classe_str_list).
+        Get the molecular database as a dictionary.  
+    * ox_classes_and_peaks_in_order_().
+        Get the oxygen classes and associated peaks in order.  
+    * get_classes_in_order(dict_ox_class_and_ms_peak)  
+        Get the classes in order.  
+    """
 
     def __init__(self, mass_spectrum_obj, sql_db=False):
-        '''TODO:- add support for other atoms and adducts: Done
-                - add dbe range on search runtime : Done
-                - add docs
-                - improve performace : Done 
-        '''
+        #TODO:- add support for other atoms and adducts: Done
+        #        - add dbe range on search runtime : Done
+        #        - add docs
+        #        - improve performace : Done 
+        
         Thread.__init__(self)
         self.mass_spectrum_obj = mass_spectrum_obj
         #  initiated at create_molecular_database()
@@ -33,13 +64,14 @@ class OxygenPriorityAssignment(Thread):
         if not sql_db:
 
             self.sql_db = MolForm_SQL(url=mass_spectrum_obj.molecular_search_settings.url_database)
-        
+
         else:
-            
+
             self.sql_db = sql_db
 
     def run(self):
-        
+        """Run the priority assignment process.
+        """
         # get Oxygen classes dict and the associate mspeak class 
         # list_of_classes_min_max_dbe = self.class_and_dbes_in_order()
         # create database separated to give the user the chance to use mass spec filters
@@ -47,21 +79,26 @@ class OxygenPriorityAssignment(Thread):
         assign_classes_order_str_dict_tuple_list = self.create_data_base()
         
         if assign_classes_order_str_dict_tuple_list:
-            
+
             self.run_worker_mass_spectrum(assign_classes_order_str_dict_tuple_list)
-        
+
         else:
-            
+
             raise RuntimeError('call create_data_base() first')
 
         self.sql_db.close()   
 
     def create_data_base(self):
-        
+        """Create the molecular database for the specified heteroatomic classes.
+
+        Returns
+        -------
+        assign_classes_order_str_dict_tuple_ : list
+            A list of tuples containing the class names and dictionaries of class attributes.
+        """
         def create_molecular_database():
-            
-            # checks and creates the database entries for the specified heteroatomic classes 
-            
+            """ Checks and creates the database entries for the specified heteroatomic classes.
+            """
             min_o = min(self.mass_spectrum_obj, key=lambda msp: msp[0]['O'])[0]['O'] - 2
             
             if min_o <= 0:
@@ -78,18 +115,18 @@ class OxygenPriorityAssignment(Thread):
             #self.lookupTableSettings.min_dbe = min_dbe/2#min_dbe - 7 if  (min_dbe - 7) > 0 else 0
             
             #self.lookupTableSettings.max_dbe = max_dbe * 2 #max_dbe + 7
-            
+
             self.mass_spectrum_obj.reset_indexes()
 
             self.mass_spectrum_obj.filter_by_noise_threshold()
-            
+
             #initial_ox = deepcopy(self.mass_spectrum_obj.molecular_search_settings.usedAtoms)
 
             self.mass_spectrum_obj.molecular_search_settings.usedAtoms['O'] = (min_o, max_o)
 
             self.nominal_mzs = self.mass_spectrum_obj.nominal_mz
 
-        
+
         # get the most abundant peak and them every 14Da, only allow Ox and its derivatives
         print("Getting Oxygen Series")
         find_formula_thread = FindOxygenPeaks(self.mass_spectrum_obj, self.sql_db)
@@ -111,34 +148,74 @@ class OxygenPriorityAssignment(Thread):
         return assign_classes_order_str_dict_tuple_list
         
     def run_worker_mass_spectrum(self, assign_classes_order_tuples):
-        
-        def check_adduct_class(classe_dict):
+        """ Run the molecular formula search for each class in the specified order.
 
+        Parameters
+        ----------
+        assign_classes_order_tuples : list 
+            A list of tuples containing the class names and dictionaries of class attributes.
+        """
+
+        def check_adduct_class(classe_dict):
+            """ Check if the class contains any adduct atoms.
+
+            Parameters
+            ----------
+            classe_dict : dict
+                The dictionary of class attributes.
+
+            Returns
+            -------
+            bool
+                True if the class contains adduct atoms, False otherwise.
+            """
             return any([key in classe_dict.keys() for key in self.mass_spectrum_obj.molecular_search_settings.adduct_atoms_neg])
         
         def set_min_max_dbe_by_oxygen(classe_dict):
+            """ Calculate the minimum and maximum DBE based on the number of oxygen atoms.
+
+            Parameters
+            ----------
+            classe_dict : dict 
+                The dictionary of class attributes.
+            """
             # calculates min and max DBE based on the Oxygen number
             # ref :https://pubs.acs.org/doi/full/10.1021/ac200464q
             # if class does not has O it use the pha rule
             # ref : Vlad Lobodin manuscript to be include here
-            '''
-            atoms_exchanges = ['N']
-            if 'O' in classe_dict.keys():
-                
-                Oxygen_number = classe_dict.get("O")
-                for atom in atoms_exchanges:
-                    if atom in classe_dict.keys():
-                        Oxygen_number += classe_dict.get(atom)
-
-                self.mass_spectrum_obj.molecular_search_settings.min_dbe = (Oxygen_number/3) - 0.5 
-                self.mass_spectrum_obj.molecular_search_settings.max_dbe = Oxygen_number*3 + 0.5 + 2
             
-            else:
-            '''    
+            #atoms_exchanges = ['N']
+            #if 'O' in classe_dict.keys():
+            #    
+            #    Oxygen_number = classe_dict.get("O")
+            #    for atom in atoms_exchanges:
+            #        if atom in classe_dict.keys():
+            #            Oxygen_number += classe_dict.get(atom)
+            #
+            #    self.mass_spectrum_obj.molecular_search_settings.min_dbe = (Oxygen_number/3) - 0.5 
+            #    self.mass_spectrum_obj.molecular_search_settings.max_dbe = Oxygen_number*3 + 0.5 + 2
+            #
+            #else:
+                
             self.mass_spectrum_obj.molecular_search_settings.use_pah_line_rule = True
 
         def run_search(possible_formulas_dict, mass_spectrum_obj, min_abundance):
-            
+            """ Run the molecular formula search for each mass spectrum peak.
+
+            Parameters
+            ----------
+            possible_formulas_dict : dict
+                A dictionary of possible molecular formulas.
+            mass_spectrum_obj : MassSpectrum
+                The mass spectrum object.
+            min_abundance : float
+                The minimum abundance threshold.
+
+            Returns
+            -------
+            list 
+                A list of assigned peak indexes.
+            """
             all_assigned_indexes = list()
             
             for ms_peak in mass_spectrum_obj.sort_by_abundance():
@@ -173,9 +250,9 @@ class OxygenPriorityAssignment(Thread):
 
         #error_average = self.mass_spectrum_obj.molecular_search_settings.mz_error_average
         
-        kdm_base = self.mass_spectrum_obj.mspeaks_settings.kendrick_base
+        kmd_base = self.mass_spectrum_obj.mspeaks_settings.kendrick_base
         
-        self.mass_spectrum_obj.change_kendrick_base_all_mspeaks(kdm_base)
+        self.mass_spectrum_obj.change_kendrick_base_all_mspeaks(kmd_base)
 
         ClusteringFilter().filter_kendrick(self.mass_spectrum_obj)
 
@@ -238,15 +315,27 @@ class OxygenPriorityAssignment(Thread):
                 
                 possible_formulas_dict = dict_molecular_lookup_table.get(ion_type).get(classe_str)
 
-                possible_formulas_adduct =self.add_adducts(possible_formulas_dict)
+                ''' commenting  unfinished code for release 2.0, see end of file for details'''
+                # possible_formulas_adduct =self.add_adducts(possible_formulas_dict)
 
-                if possible_formulas_adduct:
+                # if possible_formulas_adduct:
 
-                    run_search(possible_formulas_adduct, self.mass_spectrum_obj, min_abundance)
+                run_search(possible_formulas_dict, self.mass_spectrum_obj, min_abundance)
         
         
     def get_dict_molecular_database(self, classe_str_list):
-        
+        """ Get the molecular database as a dictionary.
+
+        Parameters
+        ----------
+        classe_str_list : list  
+            A list of class names.
+
+        Returns
+        -------
+        dict
+            A dictionary containing the molecular database.
+        """
         nominal_mzs = self.nominal_mzs
         mf_search_settings = self.mass_spectrum_obj.molecular_search_settings
         ion_charge = self.mass_spectrum_obj.polarity
@@ -269,6 +358,13 @@ class OxygenPriorityAssignment(Thread):
         return dict_res
 
     def ox_classes_and_peaks_in_order_(self) -> dict:
+        """ Get the oxygen classes and associated peaks in order.
+
+        Returns
+        -------
+        dict 
+            A dictionary containing the oxygen classes and associated peaks.
+        """
         # order is only valid in python 3.4 and above
         # change to OrderedDict if your version is lower
         dict_ox_class_and_ms_peak = dict()
@@ -292,8 +388,24 @@ class OxygenPriorityAssignment(Thread):
         return dict_ox_class_and_ms_peak
 
     def get_classes_in_order(self, dict_ox_class_and_ms_peak)-> [(str, dict)]: 
-        ''' structure is 
-            ('HC', {'HC': 1})'''
+        """ Get the classes in order.
+        
+        Parameters
+        ----------
+        dict_ox_class_and_ms_peak : dict
+            A dictionary containing the oxygen classes and associated peaks.
+        
+        Returns
+        -------
+        list 
+            A list of tuples containing the class names and dictionaries of class attributes.
+
+        Notes
+        -----
+        structure is 
+            ('HC', {'HC': 1})
+        """
+        
         
         usedAtoms = deepcopy(self.mass_spectrum_obj.molecular_search_settings.usedAtoms)
         
@@ -355,7 +467,21 @@ class OxygenPriorityAssignment(Thread):
 
     @staticmethod
     def get_class_strings_dict(all_atoms_tuples, atoms_in_order) -> [(str, dict)]: 
+        """ Get the class strings and dictionaries.
         
+        Parameters
+        ----------
+        all_atoms_tuples : tuple
+            A tuple containing the atoms.
+        atoms_in_order : list
+            A list of atoms in order.
+        
+        Returns
+        --------
+        list 
+            A list of tuples containing the class strings and dictionaries.
+        
+        """
         classe_list= []
         hc_class = []
         
@@ -386,7 +512,22 @@ class OxygenPriorityAssignment(Thread):
     
     @staticmethod
     def combine_ox_class_with_other( atoms_in_order, classes_strings_dict_tuples, dict_ox_class_and_ms_peak) -> [dict]:
+        """ Combine the oxygen classes with other classes.
         
+        Parameters
+        ----------
+        atoms_in_order : list
+            A list of atoms in order.
+        classes_strings_dict_tuples : list
+            
+        dict_ox_class_and_ms_peak : dict
+            A dictionary containing the oxygen classes and associated peaks.
+        
+        Returns
+        -------
+        list 
+            A list of dictionaries.
+        """
         #sort methods that uses the key of classes dictionary and the atoms_in_order as reference
         # c_tuple[1] = class_dict, because is one key:value map we loop through keys and get the first item only 
         # sort by len first then sort based on the atoms_in_order list
@@ -413,7 +554,19 @@ class OxygenPriorityAssignment(Thread):
     
     @staticmethod
     def sort_classes( atoms_in_order, combination_tuples) -> [(str, dict)]: 
+        """ Sort the classes.
         
+        Parameters
+        ----------
+        atoms_in_order : list
+            A list of atoms in order.
+        combination_tuples : list
+            
+        Returns
+        -------
+        list 
+            A list of tuples containing the class strings and dictionaries.
+        """
         join_list_of_list_classes = list()
         atoms_in_order =  ['N','S','P','O'] + atoms_in_order[3:]
         
@@ -427,13 +580,28 @@ class OxygenPriorityAssignment(Thread):
         
         return join_list_of_list_classes
  
+    
+    '''
+    The code bellow is unfinished, might be added to next release, 2.1
     def add_adducts(self, possible_formulas):
+        """ Add adducts to the molecular formula candidates.
+
+        Parameters
+        ----------
+        possible_formulas : dict
+            A dictionary of possible molecular formulas.
         
+        Returns
+        -------
+        dict 
+            A dictionary of possible molecular formulas with adducts.
+        
+        """
         ion_type = Labels.adduct_ion
 
         if self.mass_spectrum_obj.polarity < 0:
             adduct_atoms = self.mass_spectrum_obj.molecular_search_settings.adduct_atoms_neg
-            molform_model = MolecularFormulaTableNeg
+            molform_model = MolecularFormulaDict
         else:
             adduct_atoms = self.mass_spectrum_obj.molecular_search_settings.adduct_atoms_pos
             molform_model = MolecularFormulaTablePos
@@ -481,3 +649,5 @@ class OxygenPriorityAssignment(Thread):
                         new_dict[nm]= [new_formul_obj]
                     
         return new_dict
+
+    '''

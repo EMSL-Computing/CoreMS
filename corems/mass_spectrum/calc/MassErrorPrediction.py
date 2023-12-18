@@ -7,8 +7,50 @@ from numpy import hstack, inf, isnan, where, array
 from tqdm import tqdm
 
 class MassErrorPrediction(Thread):
-    
-    def __init__(self, mass_spectrum, mz_overlay=10, rp_increments=10000, base_line_target=0.01, max_interation=1000, interpolation='linear'):
+    """ Class for mass error prediction.
+
+    Parameters
+    ----------
+    mass_spectrum : list
+        List of mass spectrum objects.
+    mz_overlay : int, optional
+        The mz overlay value for peak simulation. Default is 10.
+    rp_increments : int, optional
+        The resolving power increments for peak simulation. Default is 10000.
+    base_line_target : float, optional
+        The target value for the baseline resolution. Default is 0.01.
+    max_interation : int, optional
+        The maximum number of iterations for peak simulation. Default is 1000.
+    interpolation : str, optional
+        The interpolation method for missing data. Default is 'linear'.
+
+    Attributes
+    ----------
+    mass_spectrum_obj : list
+        List of mass spectrum objects.
+    mz_overlay : int
+        The mz overlay value for peak simulation.
+    rp_increments : int
+        The resolving power increments for peak simulation.
+    base_line_target : float
+        The target value for the baseline resolution.
+    max_interation : int
+        The maximum number of iterations for peak simulation.
+    df : DataFrame or None
+        The calculated error distribution dataframe.
+    interpolation : str
+        The interpolation method for missing data.
+
+    Methods
+    -------
+    * run().
+        Runs the mass error prediction calculation.
+    * get_results().
+        Returns the calculated error distribution dataframe.
+
+    """
+    def __init__(self, mass_spectrum, mz_overlay=10, rp_increments=10000, 
+                 base_line_target : float=0.01, max_interation=1000, interpolation='linear'):
         
         Thread.__init__(self)
         
@@ -16,21 +58,24 @@ class MassErrorPrediction(Thread):
 
         self.mz_overlay = mz_overlay
 
-        self.rp_increments = 10000
+        self.rp_increments = rp_increments
 
-        self.base_line_target = 0.01 
+        self.base_line_target = base_line_target 
 
-        self.max_interation = 1000
+        self.max_interation = max_interation
 
         self.df = None
 
         self.interpolation = interpolation
     
     def run(self):
-            
+        """ Runs the mass error prediction calculation.
+        """    
         self.df = self.calc_error_dist()
 
     def get_results(self):
+        """ Returns the calculated error distribution dataframe.
+        """
 
         if not self.df:
             self.run()
@@ -38,7 +83,8 @@ class MassErrorPrediction(Thread):
         return self.df
 
     def calc_error_dist(self):
-        
+        """ Calculate the error distribution.
+        """
         results_list = []
         
         indexes_without_results = list(range(len(self.mass_spectrum_obj)))
@@ -212,8 +258,20 @@ class MassErrorPrediction(Thread):
 
         return df
 
-    def sum_data(self, tuple_mz_abun_list):
+    def sum_data(self, tuple_mz_abun_list : tuple):
+        """ Sum the abundances of the simulated peaks.
 
+        Parameters
+        ------
+        tuple_mz_abun_list : tuple
+            A tuple containing the mz and abundance lists.
+        
+        Returns
+        -------
+        tuple
+            A tuple containing the summed mz and abundance lists.
+        
+        """
         all_mz = {}
 
         for mz_list, abun_list in tuple_mz_abun_list:
@@ -237,14 +295,45 @@ class MassErrorPrediction(Thread):
         return array(mz_all), array(abun_all)    
 
     def calc_error(self, mass_ref, mass_sim, factor):
+        """ Calculate the error between two values.
 
+        Parameters
+        ----------
+        mass_ref : float
+            The reference value.
+        mass_sim : float
+            The simulated value.
+        factor : float
+            The factor to multiply the error by.
+
+        Returns
+        -------
+        float
+            The calculated error.
+             
+
+        """
         return (mass_sim-mass_ref/mass_ref)*factor
 
-    def find_peak_apex(self, mass, abund):
+    def find_peak_apex(self, mz, abund):
+        """ Find the peak apex.
 
+        Parameters
+        ------
+        mz : array
+            The mz array.
+        abund : array
+            The abundance array.
+
+        Returns
+        -------
+        tuple
+            A tuple containing the peak apex mass and abundance.
+
+        """
         dy = abund[1:] - abund[:-1]
 
-        '''replaces nan for infinity'''
+        #replaces nan for infinity'''
         indices_nan = where(isnan(abund))[0]
 
         if indices_nan.size:
@@ -256,13 +345,26 @@ class MassErrorPrediction(Thread):
 
         if indexes.size:
             
-            return mass[indexes], abund[indexes]
+            return mz[indexes], abund[indexes]
 
     def find_peak_valley(self, mz, abund):
+        """ Find the peak valley.
 
+        Parameters
+        ------
+        mz : array
+            The mz array.
+        abund : array
+            The abundance array.
+        
+        Returns
+        -------
+        tuple
+            A tuple containing the peak valley mz and abundance.
+        """
         dy = abund[1:] - abund[:-1]
         
-        '''replaces nan for infinity'''
+        #replaces nan for infinity
         indices_nan = where(isnan(abund))[0]
         
         if indices_nan.size:
