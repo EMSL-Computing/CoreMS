@@ -73,6 +73,9 @@ class LCMSParameters:
 
 def default_parameters(file_location):  # pragma: no cover
     """Generate parameters dictionary with the default parameters for data processing
+       To gather parameters from instrument data during the data parsing step, a parameters dictionary with the default parameters needs to be generated.
+       This dictionary acts as a placeholder and is later used as an argument for all the class constructor methods during instantiation. 
+       The data gathered from the instrument is added to the class properties.
 
     Parameters
     ----------
