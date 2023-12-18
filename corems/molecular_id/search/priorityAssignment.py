@@ -315,11 +315,12 @@ class OxygenPriorityAssignment(Thread):
                 
                 possible_formulas_dict = dict_molecular_lookup_table.get(ion_type).get(classe_str)
 
-                possible_formulas_adduct =self.add_adducts(possible_formulas_dict)
+                ''' commenting  unfinished code for release 2.0, see end of file for details'''
+                # possible_formulas_adduct =self.add_adducts(possible_formulas_dict)
 
-                if possible_formulas_adduct:
+                # if possible_formulas_adduct:
 
-                    run_search(possible_formulas_adduct, self.mass_spectrum_obj, min_abundance)
+                run_search(possible_formulas_dict, self.mass_spectrum_obj, min_abundance)
         
         
     def get_dict_molecular_database(self, classe_str_list):
@@ -579,6 +580,9 @@ class OxygenPriorityAssignment(Thread):
         
         return join_list_of_list_classes
  
+    
+    '''
+    The code bellow is unfinished, might be added to next release, 2.1
     def add_adducts(self, possible_formulas):
         """ Add adducts to the molecular formula candidates.
 
@@ -597,7 +601,7 @@ class OxygenPriorityAssignment(Thread):
 
         if self.mass_spectrum_obj.polarity < 0:
             adduct_atoms = self.mass_spectrum_obj.molecular_search_settings.adduct_atoms_neg
-            molform_model = MolecularFormulaTableNeg
+            molform_model = MolecularFormulaDict
         else:
             adduct_atoms = self.mass_spectrum_obj.molecular_search_settings.adduct_atoms_pos
             molform_model = MolecularFormulaTablePos
@@ -645,3 +649,5 @@ class OxygenPriorityAssignment(Thread):
                         new_dict[nm]= [new_formul_obj]
                     
         return new_dict
+
+    '''
