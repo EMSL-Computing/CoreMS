@@ -16,31 +16,83 @@ class MolecularFormulaCalc:
 
     This class is not intended to be used directly, but rather to be inherited by other classes in the molecular_formula/factory module like MolecularFormula, MolecularFormulaIsotopologue, and LCMSLibRefMolecularFormula
     
+    Attributes
+    ----------
+    mz_calc : float
+        The m/z value of the molecular formula.
+    neutral_mass : float
+        The neutral mass of the molecular formula.
+    ion_charge : int
+        The ion charge of the molecular formula.
+    _external_mz : float
+        The externally provided m/z value of the molecular formula.
+    _d_molecular_formula : dict
+        The dictionary representation of the molecular formula.
+    _mspeak_parent : object
+        The parent MS peak object associated with the molecular formula.
+    _assignment_mass_error : float
+        The mass error of the molecular formula.
+    
+    Methods
+    -------
+    _calc_resolving_power_low_pressure(B, T)
+        Calculate the resolving power at low pressure.
+    _calc_resolving_power_high_pressure(B, T)
+        Calculate the resolving power at high pressure.
+    _adduct_mz(adduct_atom, ion_charge)
+        Get the m/z value of an adducted ion version of the molecular formula.
+    _protonated_mz(ion_charge)
+        Get the m/z value of a protonated or deprotonated ion version of the molecular formula.
+    _radical_mz(ion_charge)
+        Get the m/z value of a radical ion version of the molecular formula.
+    _neutral_mass()
+        Get the neutral mass of the molecular formula.
+    _calc_mz()
+        Get the m/z value of the molecular formula.
+    _calc_assignment_mass_error(method='ppm')
+        Calculate the mass error of the molecular formula.
+    _calc_mz_confidence(mean=0)
+        Calculate the m/z confidence of the molecular formula.
+    _calc_isotopologue_confidence()
+        Calculate the isotopologue confidence of the molecular formula.
+    normalize_distance(dist, dist_range)
+        Normalize the distance value.
+    subtract_formula(formula_obj, formated=True)
+        Subtract a formula from the current formula object.
+    _calc_average_mz_score()
+        Calculate the average m/z error score of the molecular formula identification, including the isotopologues.
     """
     
     def _calc_resolving_power_low_pressure(self, B, T):
         '''
-        ## Parameters
+        Calculate the resolving power at low pressure.
+
+        Parameters
         ----------
-        #### T << collisional damping time
-        #### T = transient time (seconds)
-        #### B = Magnetic Strength (Testa)
+        B : float
+            Magnetic Strength (Testa).
+        T : float
+            Transient time (seconds).
+
         '''
-        return (1.274 * 10000000 * B * T) *(1/self.mz_calc)    
+        return (1.274 * 10000000 * B * T) * (1 / self.mz_calc)    
 
     def _calc_resolving_power_high_pressure(self, B, T):
         '''
-        ## Parameters
+        Calculate the resolving power at high pressure.
+
+        Parameters
         ----------
-        #### T << collisional damping time 
-        #### t= collisional dumping constant
-        #### T = transient time (seconds)
-        #### B = Magnetic Strength (Testa)
+        B : float
+            Magnetic Strength (Testa).
+        T : float
+            Transient time (seconds).
+
         '''
-        return (2.758 * 10000000 * B * T) *(1/self.mz_calc)    
+        return (2.758 * 10000000 * B * T) * (1 / self.mz_calc)    
 
     def _adduct_mz(self, adduct_atom, ion_charge):
-        """Get m/z of an adducted ion version of the molecular formula.
+        """Get the m/z value of an adducted ion version of the molecular formula.
         
         Parameters
         ----------
@@ -49,41 +101,32 @@ class MolecularFormulaCalc:
         ion_charge : int
             The ion charge.
             
-        Returns
-        -------
-        float
-            The m/z value of the adducted ion version of the molecular formula.
-        """  
-        return (self.neutral_mass + (Atoms.atomic_masses.get(adduct_atom)) + (ion_charge * -1 * Atoms.electron_mass))/ abs(ion_charge)
+        """
+        return (self.neutral_mass + (Atoms.atomic_masses.get(adduct_atom)) + (ion_charge * -1 * Atoms.electron_mass)) / abs(ion_charge)
 
     def _protonated_mz(self, ion_charge):
-        """Get m/z of a protonated or deprotonated ion version of the molecular formula.
+        """Get the m/z value of a protonated or deprotonated ion version of the molecular formula.
         
         Parameters
         ----------
         ion_charge : int
             The ion charge.
         """
-        return (self.neutral_mass + (ion_charge * Atoms.atomic_masses.get("H")) + (ion_charge * -1 * Atoms.electron_mass))/abs(ion_charge)
+        return (self.neutral_mass + (ion_charge * Atoms.atomic_masses.get("H")) + (ion_charge * -1 * Atoms.electron_mass)) / abs(ion_charge)
 
     def _radical_mz(self, ion_charge):
-        """Get m/z of a radical ion version of the molecular formula.
+        """Get the m/z value of a radical ion version of the molecular formula.
 
         Parameters
         ----------
         ion_charge : int
             The ion charge.
         """    
-        return (self.neutral_mass + (ion_charge * -1 * Atoms.electron_mass))/ abs(ion_charge)
+        return (self.neutral_mass + (ion_charge * -1 * Atoms.electron_mass)) / abs(ion_charge)
 
     def _neutral_mass(self):
-        """Get neutral mass of the molecular formula.
+        """Get the neutral mass of the molecular formula."""
 
-        Returns
-        -------
-        float
-            The neutral mass of the molecular formula.
-        """        
         mass = 0
 
         for each_atom in self._d_molecular_formula.keys() :
@@ -92,19 +135,15 @@ class MolecularFormulaCalc:
                 
                 try:
                 
-                    mass = mass + Atoms.atomic_masses[each_atom]  *  self._d_molecular_formula.get(each_atom)
+                    mass = mass + Atoms.atomic_masses[each_atom] * self._d_molecular_formula.get(each_atom)
                 
                 except: print(Labels.ion_type, each_atom) 
         
         return mass
 
     def _calc_mz(self):
-        """Get m/z of the molecular formula, based on the ion charge and ion type.
-
-        Returns
-        -------
-        float
-            The m/z of the molecular formula.
+        """Get the m/z value of the molecular formula, based on the ion charge and ion type.
+        
         """
         
         if self.ion_charge:
@@ -141,11 +180,6 @@ class MolecularFormulaCalc:
         method : str, optional
             The method to calculate the mass error, by default 'ppm', but can be 'ppb'
             
-        Returns
-        -------
-        float
-            The mass error of the molecular formula.
-
         Raises
         ------
         Exception
@@ -165,9 +199,9 @@ class MolecularFormulaCalc:
               
         if self._mspeak_parent.mz_exp:
             
-            self._assignment_mass_error = ((self._mspeak_parent.mz_exp - self.mz_calc )/self.mz_calc)*multi_factor
+            self._assignment_mass_error = ((self._mspeak_parent.mz_exp - self.mz_calc) / self.mz_calc) * multi_factor
 
-            return ((self._mspeak_parent.mz_exp - self.mz_calc)/self.mz_calc)*multi_factor
+            return ((self._mspeak_parent.mz_exp - self.mz_calc) / self.mz_calc) * multi_factor
         
         else:
             
@@ -182,10 +216,6 @@ class MolecularFormulaCalc:
         mean : int, optional
             The mean of the m/z error, by default 0
         
-        Returns
-        -------
-        float
-            The m/z confidence of the molecular formula.
         """
         
         # predicted std not set, using 0.3
@@ -193,7 +223,7 @@ class MolecularFormulaCalc:
         
         #print( self._mspeak_parent.predicted_std)
         
-        return  exp( -1 * (power((self.mz_error -  mean),2)  / (2 * power(self._mspeak_parent.predicted_std,2)) ))
+        return exp(-1 * (power((self.mz_error - mean), 2) / (2 * power(self._mspeak_parent.predicted_std, 2))))
     
     def _calc_isotopologue_confidence(self):
         """Calculate the isotopologue confidence of the molecular formula, based on the isotopologue similarity.
@@ -228,14 +258,14 @@ class MolecularFormulaCalc:
             
         if expected_isotopologues:
             
-            dict_mz_abund_ref = {'mz':[mono_mz], 'abundance':[mono_abundance]}
+            dict_mz_abund_ref = {'mz': [mono_mz], 'abundance': [mono_abundance]}
             
             # get reference data
             for mf in expected_isotopologues:
                 dict_mz_abund_ref['abundance'].append(mf.abundance_calc)
                 dict_mz_abund_ref['mz'].append(mf.mz_calc)
 
-            dict_mz_abund_exp = {mono_mz:mono_abundance}
+            dict_mz_abund_exp = {mono_mz: mono_abundance}
             
             # get experimental data
             for mf in expected_isotopologues:
@@ -255,9 +285,9 @@ class MolecularFormulaCalc:
             #correlation = cosine_correlation(dict_mz_abund_exp, dict_mz_abund_ref)
             
             if correlation == 1:
-                print(dict_mz_abund_exp,dict_mz_abund_ref)
+                print(dict_mz_abund_exp, dict_mz_abund_ref)
             if isnan(correlation):
-                #print(dict_mz_abund_exp,dict_mz_abund_ref)
+                #print(dict_mz_abund_exp, dict_mz_abund_ref)
                 correlation = 0.00001
         
         else:
@@ -268,7 +298,17 @@ class MolecularFormulaCalc:
         return correlation
 
     def normalize_distance(self, dist, dist_range):
-    
+        """
+        Normalize the distance value.
+
+        Parameters
+        ----------
+        dist : float
+            The distance value to be normalized.
+        dist_range : list
+            The range of the distance value.
+
+        """
         result = (dist - dist_range[0]) / (dist_range[1] - dist_range[0])
 
         if result < 0:
@@ -278,7 +318,7 @@ class MolecularFormulaCalc:
 
         return result
 
-    def subtract_formula(self, formula_obj,formated=True):
+    def subtract_formula(self, formula_obj, formated=True):
         """Subtract a formula from the current formula object
         
         Parameters
@@ -288,12 +328,7 @@ class MolecularFormulaCalc:
         formated : bool, optional
             If True, returns the formula in string format, by default True
             
-        Returns
-        -------
-        str
-            Formula in string format
         """
-        
         subtraction = {}
         for atom, value in self.to_dict().items():
             if atom != Labels.ion_type:
@@ -319,7 +354,6 @@ class MolecularFormulaCalc:
 
     def _calc_average_mz_score(self):
         """Calculate the average m/z error score of the molecular formula identification, including the isotopologues."""
-        
         if self.is_isotopologue:
             # confidence of isotopologue is pure mz error 
             # TODO add more features here 
@@ -553,10 +587,6 @@ class MolecularFormulaCalc:
         ms_dynamic_range : float
             The dynamic range.
 
-        Returns
-        -------
-        list
-            The list of isotopologues.
         
         Notes
         -----
