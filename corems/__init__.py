@@ -1,8 +1,6 @@
 __author__ = 'Yuri E. Corilo'
 __version__ = '2.0.0'
 __doc__ = '''
-![CoreMS Logo](https://github.com/EMSL-Computing/CoreMS/blob/master/docs/CoreMS.COLOR_small.png)  
-
 <div align="left">
 
 <br>

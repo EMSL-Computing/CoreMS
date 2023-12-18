@@ -97,9 +97,7 @@
                     <h1 class="modulename">
 corems    </h1>
 
-                        <div class="docstring"><p><img src="https://github.com/EMSL-Computing/CoreMS/blob/master/docs/CoreMS.COLOR_small.png" alt="CoreMS Logo" />  </p>
-
-<div align="left">
+                        <div class="docstring"><div align="left">
 
 <br>
 <br>
@@ -506,469 +504,467 @@ reflect those of the United States Government or any agency thereof.</p>
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Yuri E. Corilo&#39;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;2.0.0&#39;</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="vm">__doc__</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="s1">![CoreMS Logo](https://github.com/EMSL-Computing/CoreMS/blob/master/docs/CoreMS.COLOR_small.png)  </span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="s1">&lt;div align=&quot;left&quot;&gt;</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="s1">&lt;div align=&quot;left&quot;&gt;</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="s1">&lt;br&gt;</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="s1">&lt;br&gt;</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="s1">&lt;br&gt;</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="s1">&lt;a href=&quot;https://doi.org/10.5281/zenodo.4641552&quot;&gt;&lt;img src=&quot;https://zenodo.org/badge/DOI/10.5281/zenodo.4641552.svg&quot; alt=&quot;CoreMS DOI&quot; style=&quot;width:150px;height:25px;&quot;&gt;&lt;/a&gt;</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="s1">&lt;br&gt;</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="s1">&lt;a href=&quot;https://doi.org/10.5281/zenodo.4641552&quot;&gt;&lt;img src=&quot;https://zenodo.org/badge/DOI/10.5281/zenodo.4641552.svg&quot; alt=&quot;CoreMS DOI&quot; style=&quot;width:150px;height:25px;&quot;&gt;&lt;/a&gt;</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="s1">&lt;br&gt;</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="s1">&lt;/div&gt;</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>
-</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="s1">***</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="s1"># Table of Contents  </span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="s1">- Introduction</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="s1">  - [CoreMS](#CoreMS)  </span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="s1">  - [Current Version](#current-version)  </span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="s1">  - [Contact Information](#main-developers/contact )  </span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="s1">  - [Data Input](#data-input-formats)  </span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="s1">  - [Data Output](#data-output-formats)  </span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="s1">  - [Data Structure](#data-structure-types)  </span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="s1">  - [Features](#available-features)  </span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="s1">  - [Overview Slides](examples/CoreMS-Overview.pdf)</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="s1">  - [Framework Documentation](https://emsl-computing.github.io/CoreMS/)</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="s1">- Installation  </span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="s1">  - [Installation](#corems-installation)  </span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="s1">  - [Thermo Raw File on Mac and Linux](#thermo-raw-file-access)  </span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="s1">- Execution:     </span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a><span class="s1">  - [Jupyter Notebook and Docker containers](#docker-stack)  </span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="s1">  - [Simple Example](#simple-script-example)  </span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="s1">  - [Python Examples](examples/scripts)</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a><span class="s1">  - [Jupyter Notebook Examples](examples/notebooks)  </span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a><span class="s1">  </span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a>
-</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a><span class="s1">- Sibling Projects:     </span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="s1">    - [EnviroMS](https://github.com/EMSL-Computing/EnviroMS)  </span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="s1">    - [MetaMS](https://github.com/EMSL-Computing/MetaMS)  </span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="s1">&lt;/div&gt;</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="s1">***</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="s1"># Table of Contents  </span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="s1">- Introduction</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="s1">  - [CoreMS](#CoreMS)  </span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="s1">  - [Current Version](#current-version)  </span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="s1">  - [Contact Information](#main-developers/contact )  </span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="s1">  - [Data Input](#data-input-formats)  </span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="s1">  - [Data Output](#data-output-formats)  </span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="s1">  - [Data Structure](#data-structure-types)  </span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="s1">  - [Features](#available-features)  </span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="s1">  - [Overview Slides](examples/CoreMS-Overview.pdf)</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="s1">  - [Framework Documentation](https://emsl-computing.github.io/CoreMS/)</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="s1">- Installation  </span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="s1">  - [Installation](#corems-installation)  </span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="s1">  - [Thermo Raw File on Mac and Linux](#thermo-raw-file-access)  </span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="s1">- Execution:     </span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="s1">  - [Jupyter Notebook and Docker containers](#docker-stack)  </span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="s1">  - [Simple Example](#simple-script-example)  </span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a><span class="s1">  - [Python Examples](examples/scripts)</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="s1">  - [Jupyter Notebook Examples](examples/notebooks)  </span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="s1">  </span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a>
+</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a><span class="s1">- Sibling Projects:     </span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="s1">    - [EnviroMS](https://github.com/EMSL-Computing/EnviroMS)  </span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a><span class="s1">    - [MetaMS](https://github.com/EMSL-Computing/MetaMS)  </span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a>
+</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="s1"># CoreMS</span>
 </span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>
-</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a><span class="s1"># CoreMS</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a><span class="s1">**CoreMS** is a comprehensive mass spectrometry framework for software development and data analysis of small molecules analysis.</span>
 </span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>
-</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a><span class="s1">**CoreMS** is a comprehensive mass spectrometry framework for software development and data analysis of small molecules analysis.</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a><span class="s1">Data handling and software development for modern mass spectrometry (MS) is an interdisciplinary endeavor requiring skills in computational science and a deep understanding of MS. To enable scientific software development to keep pace with fast improvements in MS technology, we have developed a Python software framework named CoreMS. The goal of the framework is to provide a fundamental, high-level basis for working with all mass spectrometry data types, allowing custom workflows for data signal processing, annotation, and curation. The data structures were designed with an intuitive, mass spectrometric hierarchical structure, thus allowing organized and easy access to the data and calculations. Moreover, CoreMS supports direct access for almost all vendors’ data formats, allowing for the centralization and automation of all data processing workflows from the raw signal to data annotation and curation.</span>
 </span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>
-</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a><span class="s1">Data handling and software development for modern mass spectrometry (MS) is an interdisciplinary endeavor requiring skills in computational science and a deep understanding of MS. To enable scientific software development to keep pace with fast improvements in MS technology, we have developed a Python software framework named CoreMS. The goal of the framework is to provide a fundamental, high-level basis for working with all mass spectrometry data types, allowing custom workflows for data signal processing, annotation, and curation. The data structures were designed with an intuitive, mass spectrometric hierarchical structure, thus allowing organized and easy access to the data and calculations. Moreover, CoreMS supports direct access for almost all vendors’ data formats, allowing for the centralization and automation of all data processing workflows from the raw signal to data annotation and curation.</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>
-</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a><span class="s1">CoreMS aims to provide </span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a><span class="s1">- logical mass spectrometric data structure</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a><span class="s1">- self-containing data and metadata storage</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a><span class="s1">- modern molecular formulae assignment algorithms</span>
-</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a><span class="s1">- dynamic molecular search space database search and generator</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a><span class="s1">CoreMS aims to provide </span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a><span class="s1">- logical mass spectrometric data structure</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a><span class="s1">- self-containing data and metadata storage</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a><span class="s1">- modern molecular formulae assignment algorithms</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a><span class="s1">- dynamic molecular search space database search and generator</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a>
+</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a><span class="s1">## Current Version</span>
 </span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>
-</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="s1">## Current Version</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="s1"> `2.0`</span>
 </span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>
-</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a><span class="s1"> `2.0`</span>
-</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>
-</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="s1">## Main Developers/Contact </span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="s1">- [Yuri. E. Corilo](mailto:corilo@pnnl.gov)  </span>
-</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="s1">- [William Kew](mailto:william.kew@pnnl.gov)</span>
-</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>
-</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="s1">## Data formats</span>
-</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="s1">### Data input formats</span>
-</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>
-</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a><span class="s1">- Bruker Solarix (CompassXtract)</span>
-</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a><span class="s1">- Bruker Solarix transients, ser and fid (FT magnitude mode only)</span>
-</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="s1">- ThermoFisher (.raw)</span>
-</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="s1">- Spectroswiss signal booster data-acquisition station (.hdf5)</span>
-</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="s1">- MagLab ICR data-acquisition station (FT and magnitude mode) (.dat)</span>
-</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="s1">- ANDI NetCDF for GC-MS (.cdf)</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a><span class="s1">- Generic mass list in profile and centroid mde (include all delimiters types and Excel formats)</span>
-</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="s1">- CoreMS exported processed mass list files(excel, .csv, .txt, pandas dataframe as .pkl)</span>
-</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a><span class="s1">- CoreMS self-containing Hierarchical Data Format (.hdf5)</span>
-</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a><span class="s1">- Pandas Dataframe</span>
-</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a><span class="s1">- Support for cloud Storage using s3path.S3path(see examples of usage here: [S3 Support](tests/s3_test.py))</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a><span class="s1">## Main Developers/Contact </span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a><span class="s1">- [Yuri. E. Corilo](mailto:corilo@pnnl.gov)  </span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="s1">- [William Kew](mailto:william.kew@pnnl.gov)</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>
+</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="s1">## Data formats</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a><span class="s1">### Data input formats</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>
+</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="s1">- Bruker Solarix (CompassXtract)</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a><span class="s1">- Bruker Solarix transients, ser and fid (FT magnitude mode only)</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a><span class="s1">- ThermoFisher (.raw)</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a><span class="s1">- Spectroswiss signal booster data-acquisition station (.hdf5)</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="s1">- MagLab ICR data-acquisition station (FT and magnitude mode) (.dat)</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="s1">- ANDI NetCDF for GC-MS (.cdf)</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="s1">- Generic mass list in profile and centroid mde (include all delimiters types and Excel formats)</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="s1">- CoreMS exported processed mass list files(excel, .csv, .txt, pandas dataframe as .pkl)</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a><span class="s1">- CoreMS self-containing Hierarchical Data Format (.hdf5)</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="s1">- Pandas Dataframe</span>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a><span class="s1">- Support for cloud Storage using s3path.S3path(see examples of usage here: [S3 Support](tests/s3_test.py))</span>
+</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a><span class="s1">### Data output formats</span>
 </span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>
-</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a><span class="s1">### Data output formats</span>
-</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>
-</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a><span class="s1">- Pandas data frame (can be saved using pickle, h5, etc)</span>
-</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a><span class="s1">- Text Files (.csv, tab separated .txt, etc)</span>
-</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a><span class="s1">- Microsoft Excel (xlsx)</span>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="s1">- Automatic JSON for metadata storage and reuse</span>
-</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="s1">- Self-containing Hierarchical Data Format (.hdf5) including raw data and ime-series data-point for processed data-sets with all associated metadata stored as json attributes</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a><span class="s1">- Pandas data frame (can be saved using pickle, h5, etc)</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a><span class="s1">- Text Files (.csv, tab separated .txt, etc)</span>
+</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a><span class="s1">- Microsoft Excel (xlsx)</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a><span class="s1">- Automatic JSON for metadata storage and reuse</span>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a><span class="s1">- Self-containing Hierarchical Data Format (.hdf5) including raw data and ime-series data-point for processed data-sets with all associated metadata stored as json attributes</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>
+</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="s1">### Data structure types</span>
 </span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>
-</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="s1">### Data structure types</span>
-</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>
-</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="s1">- LC-MS</span>
-</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a><span class="s1">- GC-MS</span>
-</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a><span class="s1">- Transient</span>
-</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a><span class="s1">- Mass Spectra</span>
-</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a><span class="s1">- Mass Spectrum</span>
-</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a><span class="s1">- Mass Spectral Peak</span>
-</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a><span class="s1">- Molecular Formula</span>
-</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>
-</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a><span class="s1">### In progress data structures</span>
-</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a><span class="s1">- IMS-MS</span>
-</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a><span class="s1">- LC-IMS-MS </span>
-</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a><span class="s1">- Collections </span>
-</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a><span class="s1">- Molecular Structure</span>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>
-</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a><span class="s1">---</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a><span class="s1">## Available features</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="s1">- LC-MS</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="s1">- GC-MS</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="s1">- Transient</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a><span class="s1">- Mass Spectra</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a><span class="s1">- Mass Spectrum</span>
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a><span class="s1">- Mass Spectral Peak</span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a><span class="s1">- Molecular Formula</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a><span class="s1">### In progress data structures</span>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a><span class="s1">- IMS-MS</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a><span class="s1">- LC-IMS-MS </span>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a><span class="s1">- Collections </span>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a><span class="s1">- Molecular Structure</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a><span class="s1">---</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a><span class="s1">## Available features</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a><span class="s1">### FT-MS Signal Processing, Calibration, and Molecular Formula Search and Assignment</span>
 </span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>
-</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a><span class="s1">### FT-MS Signal Processing, Calibration, and Molecular Formula Search and Assignment</span>
-</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a><span class="s1">- Apodization, Zerofilling, and Magnitude mode FT</span>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a><span class="s1">- Manual and automatic noise threshold calculation</span>
-</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a><span class="s1">- Peak picking using apex quadratic fitting</span>
-</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="s1">- Experimental resolving power calculation</span>
-</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="s1">- Frequency and m/z domain calibration functions:</span>
-</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a><span class="s1">- LedFord equation</span>
-</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a><span class="s1">- Linear equation</span>
-</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="s1">- Quadratic equation</span>
-</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a><span class="s1">- Automatic search most abundant **Ox** homologue series</span>
-</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a><span class="s1">- Automatic local (SQLite) or external (PostgreSQL) database check, generation, and search</span>
-</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="s1">- Automatic molecular formulae assignments algorithm for ESI(-) MS for natural organic matter analysis</span>
-</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="s1">- Automatic fine isotopic structure calculation and search for all isotopes</span>
-</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="s1">- Flexible Kendrick normalization base</span>
-</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a><span class="s1">- Kendrick filter using density-based clustering</span>
-</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a><span class="s1">- Kendrick classification</span>
-</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a><span class="s1">- Heteroatoms classification and visualization</span>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a><span class="s1">- Apodization, Zerofilling, and Magnitude mode FT</span>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a><span class="s1">- Manual and automatic noise threshold calculation</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a><span class="s1">- Peak picking using apex quadratic fitting</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a><span class="s1">- Experimental resolving power calculation</span>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a><span class="s1">- Frequency and m/z domain calibration functions:</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="s1">- LedFord equation</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="s1">- Linear equation</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a><span class="s1">- Quadratic equation</span>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a><span class="s1">- Automatic search most abundant **Ox** homologue series</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="s1">- Automatic local (SQLite) or external (PostgreSQL) database check, generation, and search</span>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a><span class="s1">- Automatic molecular formulae assignments algorithm for ESI(-) MS for natural organic matter analysis</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a><span class="s1">- Automatic fine isotopic structure calculation and search for all isotopes</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="s1">- Flexible Kendrick normalization base</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="s1">- Kendrick filter using density-based clustering</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="s1">- Kendrick classification</span>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a><span class="s1">- Heteroatoms classification and visualization</span>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a><span class="s1">### GC-MS Signal Processing, Calibration, and Compound Identification</span>
 </span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>
-</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a><span class="s1">### GC-MS Signal Processing, Calibration, and Compound Identification</span>
-</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>
-</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="s1">- Baseline detection, subtraction, smoothing </span>
-</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a><span class="s1">- m/z based Chromatogram Peak Deconvolution,</span>
-</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="s1">- Manual and automatic noise threshold calculation</span>
-</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a><span class="s1">- First and second derivatives peak picking methods</span>
-</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a><span class="s1">- Peak Area Calculation</span>
-</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a><span class="s1">- Retention Index Calibration</span>
-</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a><span class="s1">- Automatic local (SQLite) or external (MongoDB or PostgreSQL) database check, generation, and search</span>
-</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a><span class="s1">- Automatic molecular match algorithm with all spectral similarity methods </span>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a><span class="s1">- Baseline detection, subtraction, smoothing </span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a><span class="s1">- m/z based Chromatogram Peak Deconvolution,</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="s1">- Manual and automatic noise threshold calculation</span>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a><span class="s1">- First and second derivatives peak picking methods</span>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="s1">- Peak Area Calculation</span>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a><span class="s1">- Retention Index Calibration</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a><span class="s1">- Automatic local (SQLite) or external (MongoDB or PostgreSQL) database check, generation, and search</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a><span class="s1">- Automatic molecular match algorithm with all spectral similarity methods </span>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a><span class="s1">### High Resolution Mass Spectrum Simulations</span>
 </span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>
-</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a><span class="s1">### High Resolution Mass Spectrum Simulations</span>
-</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>
-</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a><span class="s1">- Peak shape (Lorentz,  Gaussian, Voigt, and pseudo-Voigt)</span>
-</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a><span class="s1">- Peak fitting for peak shape definition</span>
-</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a><span class="s1">- Peak position in function of data points, signal to noise and resolving power (Lorentz and Gaussian)</span>
-</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a><span class="s1">- Prediction of mass error distribution</span>
-</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a><span class="s1">- Calculated ICR Resolving Power based on magnetic field (B), and transient time(T)</span>
-</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>
-</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a><span class="s1">---</span>
-</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a><span class="s1">## Installation </span>
-</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a><span class="s1">    </span>
-</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a><span class="s1">```bash</span>
-</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a><span class="s1">pip install corems</span>
-</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a><span class="s1">```</span>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a><span class="s1">- Peak shape (Lorentz,  Gaussian, Voigt, and pseudo-Voigt)</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a><span class="s1">- Peak fitting for peak shape definition</span>
+</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a><span class="s1">- Peak position in function of data points, signal to noise and resolving power (Lorentz and Gaussian)</span>
+</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a><span class="s1">- Prediction of mass error distribution</span>
+</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a><span class="s1">- Calculated ICR Resolving Power based on magnetic field (B), and transient time(T)</span>
+</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>
+</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a><span class="s1">---</span>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a><span class="s1">## Installation </span>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a><span class="s1">    </span>
+</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a><span class="s1">```bash</span>
+</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a><span class="s1">pip install corems</span>
+</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a><span class="s1">```</span>
+</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>
+</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a><span class="s1">By default the molecular formula database will be generated using SQLite</span>
 </span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>
-</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a><span class="s1">By default the molecular formula database will be generated using SQLite</span>
+</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a><span class="s1">To use Postgresql the easiest way is to build a docker container:</span>
 </span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>
-</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a><span class="s1">To use Postgresql the easiest way is to build a docker container:</span>
-</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>
-</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a><span class="s1">```bash</span>
-</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a><span class="s1">docker-compose up -d</span>
-</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a><span class="s1">```</span>
-</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>
-</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a><span class="s1">-  Change the url_database on MSParameters.molecular_search.url_database to: &quot;postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp&quot;</span>
-</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a><span class="s1">-  Set the url_database env variable COREMS_DATABASE_URL to: &quot;postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp&quot;</span>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a><span class="s1">```bash</span>
+</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a><span class="s1">docker-compose up -d</span>
+</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a><span class="s1">```</span>
+</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>
+</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a><span class="s1">-  Change the url_database on MSParameters.molecular_search.url_database to: &quot;postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp&quot;</span>
+</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a><span class="s1">-  Set the url_database env variable COREMS_DATABASE_URL to: &quot;postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp&quot;</span>
+</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>
+</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a><span class="s1">### Thermo Raw File Access:</span>
 </span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a>
-</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a><span class="s1">### Thermo Raw File Access:</span>
-</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>
-</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a><span class="s1">To be able to open thermo file a installation of pythonnet is needed:</span>
-</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a><span class="s1">- Windows: </span>
-</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a><span class="s1">    ```bash</span>
-</span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a><span class="s1">    pip install pythonnet</span>
-</span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a><span class="s1">    ```</span>
-</span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a>
-</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a><span class="s1">- Mac and Linux:</span>
-</span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a><span class="s1">    ```bash</span>
-</span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a><span class="s1">    brew install mono</span>
-</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a><span class="s1">    pip install pythonnet   </span>
-</span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a><span class="s1">    ```  </span>
-</span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a>
-</span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a><span class="s1">---</span>
-</span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a><span class="s1">## Docker stack </span>
+</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a><span class="s1">To be able to open thermo file a installation of pythonnet is needed:</span>
+</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a><span class="s1">- Windows: </span>
+</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a><span class="s1">    ```bash</span>
+</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a><span class="s1">    pip install pythonnet</span>
+</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a><span class="s1">    ```</span>
+</span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a>
+</span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a><span class="s1">- Mac and Linux:</span>
+</span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a><span class="s1">    ```bash</span>
+</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a><span class="s1">    brew install mono</span>
+</span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a><span class="s1">    pip install pythonnet   </span>
+</span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a><span class="s1">    ```  </span>
+</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a>
+</span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a><span class="s1">---</span>
+</span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a><span class="s1">## Docker stack </span>
+</span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a>
+</span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a><span class="s1">Another option to use CoreMS is to run the docker stack that will start the CoreMS containers</span>
 </span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a>
-</span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a><span class="s1">Another option to use CoreMS is to run the docker stack that will start the CoreMS containers</span>
+</span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a><span class="s1">### Molecular Database and Jupyter Notebook Docker Containers</span>
 </span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a>
-</span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a><span class="s1">### Molecular Database and Jupyter Notebook Docker Containers</span>
-</span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a>
-</span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a><span class="s1">A docker container containing:</span>
-</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a><span class="s1">- A custom python distribution will all dependencies installed</span>
-</span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a><span class="s1">- A Jupyter notebook server with workflow examples</span>
-</span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a><span class="s1">- A PostgreSQL database for the molecular formulae assignment</span>
+</span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a><span class="s1">A docker container containing:</span>
+</span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a><span class="s1">- A custom python distribution will all dependencies installed</span>
+</span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a><span class="s1">- A Jupyter notebook server with workflow examples</span>
+</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a><span class="s1">- A PostgreSQL database for the molecular formulae assignment</span>
+</span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a>
+</span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a><span class="s1">If you don&#39;t have docker installed, the easiest way is to [install docker for desktop](https://hub.docker.com/?overlay=onboarding)</span>
 </span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a>
-</span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a><span class="s1">If you don&#39;t have docker installed, the easiest way is to [install docker for desktop](https://hub.docker.com/?overlay=onboarding)</span>
+</span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a><span class="s1">1. Start the containers using docker-compose (easiest way): </span>
 </span><span id="L-185"><a href="#L-185"><span class="linenos">185</span></a>
-</span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a><span class="s1">1. Start the containers using docker-compose (easiest way): </span>
-</span><span id="L-187"><a href="#L-187"><span class="linenos">187</span></a>
-</span><span id="L-188"><a href="#L-188"><span class="linenos">188</span></a><span class="s1">    On docker-compose-jupyter.yml there is a volume mapping for the tests_data directory with the data provided for testing, to change to your data location: </span>
-</span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a><span class="s1">    </span>
-</span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a><span class="s1">    - locate the volumes on docker-compose-jupyter.yml:</span>
-</span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a>
-</span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a><span class="s1">    ```bash</span>
-</span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a><span class="s1">    volumes:</span>
-</span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a><span class="s1">      - ./tests/tests_data:/home/CoreMS/data</span>
-</span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a><span class="s1">    ```</span>
-</span><span id="L-196"><a href="#L-196"><span class="linenos">196</span></a><span class="s1">    - change &quot;./tests/tests_data&quot; to your data directory location</span>
-</span><span id="L-197"><a href="#L-197"><span class="linenos">197</span></a>
-</span><span id="L-198"><a href="#L-198"><span class="linenos">198</span></a><span class="s1">    ```bash</span>
-</span><span id="L-199"><a href="#L-199"><span class="linenos">199</span></a><span class="s1">    volumes:</span>
-</span><span id="L-200"><a href="#L-200"><span class="linenos">200</span></a><span class="s1">      - path_to_your_data_directory:/home/corems/data</span>
-</span><span id="L-201"><a href="#L-201"><span class="linenos">201</span></a><span class="s1">    ```</span>
-</span><span id="L-202"><a href="#L-202"><span class="linenos">202</span></a><span class="s1">    - save the file and then call:</span>
-</span><span id="L-203"><a href="#L-203"><span class="linenos">203</span></a><span class="s1">    </span>
-</span><span id="L-204"><a href="#L-204"><span class="linenos">204</span></a><span class="s1">    ```bash</span>
-</span><span id="L-205"><a href="#L-205"><span class="linenos">205</span></a><span class="s1">    docker-compose -f docker-compose-jupyter.yml up</span>
-</span><span id="L-206"><a href="#L-206"><span class="linenos">206</span></a><span class="s1">    ```</span>
+</span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a><span class="s1">    On docker-compose-jupyter.yml there is a volume mapping for the tests_data directory with the data provided for testing, to change to your data location: </span>
+</span><span id="L-187"><a href="#L-187"><span class="linenos">187</span></a><span class="s1">    </span>
+</span><span id="L-188"><a href="#L-188"><span class="linenos">188</span></a><span class="s1">    - locate the volumes on docker-compose-jupyter.yml:</span>
+</span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a>
+</span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a><span class="s1">    ```bash</span>
+</span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a><span class="s1">    volumes:</span>
+</span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a><span class="s1">      - ./tests/tests_data:/home/CoreMS/data</span>
+</span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a><span class="s1">    ```</span>
+</span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a><span class="s1">    - change &quot;./tests/tests_data&quot; to your data directory location</span>
+</span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a>
+</span><span id="L-196"><a href="#L-196"><span class="linenos">196</span></a><span class="s1">    ```bash</span>
+</span><span id="L-197"><a href="#L-197"><span class="linenos">197</span></a><span class="s1">    volumes:</span>
+</span><span id="L-198"><a href="#L-198"><span class="linenos">198</span></a><span class="s1">      - path_to_your_data_directory:/home/corems/data</span>
+</span><span id="L-199"><a href="#L-199"><span class="linenos">199</span></a><span class="s1">    ```</span>
+</span><span id="L-200"><a href="#L-200"><span class="linenos">200</span></a><span class="s1">    - save the file and then call:</span>
+</span><span id="L-201"><a href="#L-201"><span class="linenos">201</span></a><span class="s1">    </span>
+</span><span id="L-202"><a href="#L-202"><span class="linenos">202</span></a><span class="s1">    ```bash</span>
+</span><span id="L-203"><a href="#L-203"><span class="linenos">203</span></a><span class="s1">    docker-compose -f docker-compose-jupyter.yml up</span>
+</span><span id="L-204"><a href="#L-204"><span class="linenos">204</span></a><span class="s1">    ```</span>
+</span><span id="L-205"><a href="#L-205"><span class="linenos">205</span></a>
+</span><span id="L-206"><a href="#L-206"><span class="linenos">206</span></a><span class="s1">2. Another option is to manually build the containers: </span>
 </span><span id="L-207"><a href="#L-207"><span class="linenos">207</span></a>
-</span><span id="L-208"><a href="#L-208"><span class="linenos">208</span></a><span class="s1">2. Another option is to manually build the containers: </span>
-</span><span id="L-209"><a href="#L-209"><span class="linenos">209</span></a>
-</span><span id="L-210"><a href="#L-210"><span class="linenos">210</span></a><span class="s1">    - Build the corems image:</span>
-</span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a><span class="s1">        ```bash</span>
-</span><span id="L-212"><a href="#L-212"><span class="linenos">212</span></a><span class="s1">        docker build -t corems:local .</span>
-</span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a><span class="s1">        ```</span>
-</span><span id="L-214"><a href="#L-214"><span class="linenos">214</span></a><span class="s1">    - Start the database container:</span>
-</span><span id="L-215"><a href="#L-215"><span class="linenos">215</span></a><span class="s1">        ```bash</span>
-</span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a><span class="s1">        docker-compose up -d   </span>
-</span><span id="L-217"><a href="#L-217"><span class="linenos">217</span></a><span class="s1">        ```</span>
-</span><span id="L-218"><a href="#L-218"><span class="linenos">218</span></a><span class="s1">    - Start the Jupyter Notebook:</span>
-</span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a><span class="s1">        ```bash</span>
-</span><span id="L-220"><a href="#L-220"><span class="linenos">220</span></a><span class="s1">        docker run --rm -v ./data:/home/CoreMS/data corems:local</span>
-</span><span id="L-221"><a href="#L-221"><span class="linenos">221</span></a><span class="s1">        ```</span>
-</span><span id="L-222"><a href="#L-222"><span class="linenos">222</span></a><span class="s1">    </span>
-</span><span id="L-223"><a href="#L-223"><span class="linenos">223</span></a><span class="s1">    - Open your browser, copy and past the URL address provided in the terminal: `http://localhost:8888/?token=&lt;token&gt;.`</span>
+</span><span id="L-208"><a href="#L-208"><span class="linenos">208</span></a><span class="s1">    - Build the corems image:</span>
+</span><span id="L-209"><a href="#L-209"><span class="linenos">209</span></a><span class="s1">        ```bash</span>
+</span><span id="L-210"><a href="#L-210"><span class="linenos">210</span></a><span class="s1">        docker build -t corems:local .</span>
+</span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a><span class="s1">        ```</span>
+</span><span id="L-212"><a href="#L-212"><span class="linenos">212</span></a><span class="s1">    - Start the database container:</span>
+</span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a><span class="s1">        ```bash</span>
+</span><span id="L-214"><a href="#L-214"><span class="linenos">214</span></a><span class="s1">        docker-compose up -d   </span>
+</span><span id="L-215"><a href="#L-215"><span class="linenos">215</span></a><span class="s1">        ```</span>
+</span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a><span class="s1">    - Start the Jupyter Notebook:</span>
+</span><span id="L-217"><a href="#L-217"><span class="linenos">217</span></a><span class="s1">        ```bash</span>
+</span><span id="L-218"><a href="#L-218"><span class="linenos">218</span></a><span class="s1">        docker run --rm -v ./data:/home/CoreMS/data corems:local</span>
+</span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a><span class="s1">        ```</span>
+</span><span id="L-220"><a href="#L-220"><span class="linenos">220</span></a><span class="s1">    </span>
+</span><span id="L-221"><a href="#L-221"><span class="linenos">221</span></a><span class="s1">    - Open your browser, copy and past the URL address provided in the terminal: `http://localhost:8888/?token=&lt;token&gt;.`</span>
+</span><span id="L-222"><a href="#L-222"><span class="linenos">222</span></a>
+</span><span id="L-223"><a href="#L-223"><span class="linenos">223</span></a><span class="s1">    - Open the CoreMS-Tutorial.ipynb</span>
 </span><span id="L-224"><a href="#L-224"><span class="linenos">224</span></a>
-</span><span id="L-225"><a href="#L-225"><span class="linenos">225</span></a><span class="s1">    - Open the CoreMS-Tutorial.ipynb</span>
-</span><span id="L-226"><a href="#L-226"><span class="linenos">226</span></a>
-</span><span id="L-227"><a href="#L-227"><span class="linenos">227</span></a><span class="s1">___</span>
-</span><span id="L-228"><a href="#L-228"><span class="linenos">228</span></a><span class="s1">## Simple Script Example</span>
+</span><span id="L-225"><a href="#L-225"><span class="linenos">225</span></a><span class="s1">___</span>
+</span><span id="L-226"><a href="#L-226"><span class="linenos">226</span></a><span class="s1">## Simple Script Example</span>
+</span><span id="L-227"><a href="#L-227"><span class="linenos">227</span></a>
+</span><span id="L-228"><a href="#L-228"><span class="linenos">228</span></a><span class="s1">More examples can be found under the directory examples/scripts, examples/notebooks</span>
 </span><span id="L-229"><a href="#L-229"><span class="linenos">229</span></a>
-</span><span id="L-230"><a href="#L-230"><span class="linenos">230</span></a><span class="s1">More examples can be found under the directory examples/scripts, examples/notebooks</span>
+</span><span id="L-230"><a href="#L-230"><span class="linenos">230</span></a><span class="s1">- Basic functionality example</span>
 </span><span id="L-231"><a href="#L-231"><span class="linenos">231</span></a>
-</span><span id="L-232"><a href="#L-232"><span class="linenos">232</span></a><span class="s1">- Basic functionality example</span>
-</span><span id="L-233"><a href="#L-233"><span class="linenos">233</span></a>
-</span><span id="L-234"><a href="#L-234"><span class="linenos">234</span></a><span class="s1">```python</span>
-</span><span id="L-235"><a href="#L-235"><span class="linenos">235</span></a><span class="s1">from corems.transient.input.brukerSolarix import ReadBrukerSolarix</span>
-</span><span id="L-236"><a href="#L-236"><span class="linenos">236</span></a><span class="s1">from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas</span>
-</span><span id="L-237"><a href="#L-237"><span class="linenos">237</span></a><span class="s1">from corems.mass_spectrum.output.export import HighResMassSpecExport</span>
-</span><span id="L-238"><a href="#L-238"><span class="linenos">238</span></a><span class="s1">from matplotlib import pyplot</span>
+</span><span id="L-232"><a href="#L-232"><span class="linenos">232</span></a><span class="s1">```python</span>
+</span><span id="L-233"><a href="#L-233"><span class="linenos">233</span></a><span class="s1">from corems.transient.input.brukerSolarix import ReadBrukerSolarix</span>
+</span><span id="L-234"><a href="#L-234"><span class="linenos">234</span></a><span class="s1">from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas</span>
+</span><span id="L-235"><a href="#L-235"><span class="linenos">235</span></a><span class="s1">from corems.mass_spectrum.output.export import HighResMassSpecExport</span>
+</span><span id="L-236"><a href="#L-236"><span class="linenos">236</span></a><span class="s1">from matplotlib import pyplot</span>
+</span><span id="L-237"><a href="#L-237"><span class="linenos">237</span></a>
+</span><span id="L-238"><a href="#L-238"><span class="linenos">238</span></a><span class="s1">file_path= &#39;tests/tests_data/ftms/ESI_NEG_SRFA.d&#39;</span>
 </span><span id="L-239"><a href="#L-239"><span class="linenos">239</span></a>
-</span><span id="L-240"><a href="#L-240"><span class="linenos">240</span></a><span class="s1">file_path= &#39;tests/tests_data/ftms/ESI_NEG_SRFA.d&#39;</span>
-</span><span id="L-241"><a href="#L-241"><span class="linenos">241</span></a>
-</span><span id="L-242"><a href="#L-242"><span class="linenos">242</span></a><span class="s1"># Instatiate the Bruker Solarix reader with the filepath</span>
-</span><span id="L-243"><a href="#L-243"><span class="linenos">243</span></a><span class="s1">bruker_reader = ReadBrukerSolarix(file_path)</span>
-</span><span id="L-244"><a href="#L-244"><span class="linenos">244</span></a>
-</span><span id="L-245"><a href="#L-245"><span class="linenos">245</span></a><span class="s1"># Use the reader to instatiate a transient object</span>
-</span><span id="L-246"><a href="#L-246"><span class="linenos">246</span></a><span class="s1">bruker_transient_obj = bruker_reader.get_transient()</span>
-</span><span id="L-247"><a href="#L-247"><span class="linenos">247</span></a>
-</span><span id="L-248"><a href="#L-248"><span class="linenos">248</span></a><span class="s1"># Calculate the transient duration time</span>
-</span><span id="L-249"><a href="#L-249"><span class="linenos">249</span></a><span class="s1">T =  bruker_transient_obj.transient_time</span>
-</span><span id="L-250"><a href="#L-250"><span class="linenos">250</span></a>
-</span><span id="L-251"><a href="#L-251"><span class="linenos">251</span></a><span class="s1"># Use the transient object to instatitate a mass spectrum object</span>
-</span><span id="L-252"><a href="#L-252"><span class="linenos">252</span></a><span class="s1">mass_spectrum_obj = bruker_transient_obj.get_mass_spectrum(plot_result=False, auto_process=True)</span>
-</span><span id="L-253"><a href="#L-253"><span class="linenos">253</span></a>
-</span><span id="L-254"><a href="#L-254"><span class="linenos">254</span></a><span class="s1"># The following SearchMolecularFormulas function does the following</span>
-</span><span id="L-255"><a href="#L-255"><span class="linenos">255</span></a><span class="s1"># - searches monoisotopic molecular formulas for all mass spectral peaks</span>
-</span><span id="L-256"><a href="#L-256"><span class="linenos">256</span></a><span class="s1"># - calculates fine isotopic structure based on monoisotopic molecular formulas found and current dynamic range</span>
-</span><span id="L-257"><a href="#L-257"><span class="linenos">257</span></a><span class="s1"># - searches molecular formulas of correspondent calculated isotopologues</span>
-</span><span id="L-258"><a href="#L-258"><span class="linenos">258</span></a><span class="s1"># - settings are stored at SearchConfig.json and can be changed directly on the file or inside the framework class</span>
+</span><span id="L-240"><a href="#L-240"><span class="linenos">240</span></a><span class="s1"># Instatiate the Bruker Solarix reader with the filepath</span>
+</span><span id="L-241"><a href="#L-241"><span class="linenos">241</span></a><span class="s1">bruker_reader = ReadBrukerSolarix(file_path)</span>
+</span><span id="L-242"><a href="#L-242"><span class="linenos">242</span></a>
+</span><span id="L-243"><a href="#L-243"><span class="linenos">243</span></a><span class="s1"># Use the reader to instatiate a transient object</span>
+</span><span id="L-244"><a href="#L-244"><span class="linenos">244</span></a><span class="s1">bruker_transient_obj = bruker_reader.get_transient()</span>
+</span><span id="L-245"><a href="#L-245"><span class="linenos">245</span></a>
+</span><span id="L-246"><a href="#L-246"><span class="linenos">246</span></a><span class="s1"># Calculate the transient duration time</span>
+</span><span id="L-247"><a href="#L-247"><span class="linenos">247</span></a><span class="s1">T =  bruker_transient_obj.transient_time</span>
+</span><span id="L-248"><a href="#L-248"><span class="linenos">248</span></a>
+</span><span id="L-249"><a href="#L-249"><span class="linenos">249</span></a><span class="s1"># Use the transient object to instatitate a mass spectrum object</span>
+</span><span id="L-250"><a href="#L-250"><span class="linenos">250</span></a><span class="s1">mass_spectrum_obj = bruker_transient_obj.get_mass_spectrum(plot_result=False, auto_process=True)</span>
+</span><span id="L-251"><a href="#L-251"><span class="linenos">251</span></a>
+</span><span id="L-252"><a href="#L-252"><span class="linenos">252</span></a><span class="s1"># The following SearchMolecularFormulas function does the following</span>
+</span><span id="L-253"><a href="#L-253"><span class="linenos">253</span></a><span class="s1"># - searches monoisotopic molecular formulas for all mass spectral peaks</span>
+</span><span id="L-254"><a href="#L-254"><span class="linenos">254</span></a><span class="s1"># - calculates fine isotopic structure based on monoisotopic molecular formulas found and current dynamic range</span>
+</span><span id="L-255"><a href="#L-255"><span class="linenos">255</span></a><span class="s1"># - searches molecular formulas of correspondent calculated isotopologues</span>
+</span><span id="L-256"><a href="#L-256"><span class="linenos">256</span></a><span class="s1"># - settings are stored at SearchConfig.json and can be changed directly on the file or inside the framework class</span>
+</span><span id="L-257"><a href="#L-257"><span class="linenos">257</span></a>
+</span><span id="L-258"><a href="#L-258"><span class="linenos">258</span></a><span class="s1">SearchMolecularFormulas(mass_spectrum_obj, first_hit=False).run_worker_mass_spectrum()</span>
 </span><span id="L-259"><a href="#L-259"><span class="linenos">259</span></a>
-</span><span id="L-260"><a href="#L-260"><span class="linenos">260</span></a><span class="s1">SearchMolecularFormulas(mass_spectrum_obj, first_hit=False).run_worker_mass_spectrum()</span>
-</span><span id="L-261"><a href="#L-261"><span class="linenos">261</span></a>
-</span><span id="L-262"><a href="#L-262"><span class="linenos">262</span></a><span class="s1"># Iterate over mass spectral peaks objs within the mass_spectrum_obj</span>
-</span><span id="L-263"><a href="#L-263"><span class="linenos">263</span></a><span class="s1">for mspeak in mass_spectrum_obj.sort_by_abundance():</span>
-</span><span id="L-264"><a href="#L-264"><span class="linenos">264</span></a>
-</span><span id="L-265"><a href="#L-265"><span class="linenos">265</span></a><span class="s1">    # If there is at least one molecular formula associated, mspeak returns True</span>
-</span><span id="L-266"><a href="#L-266"><span class="linenos">266</span></a><span class="s1">    if  mspeak:</span>
-</span><span id="L-267"><a href="#L-267"><span class="linenos">267</span></a>
-</span><span id="L-268"><a href="#L-268"><span class="linenos">268</span></a><span class="s1">        # Get the molecular formula with the highest mass accuracy</span>
-</span><span id="L-269"><a href="#L-269"><span class="linenos">269</span></a><span class="s1">        molecular_formula = mspeak.molecular_formula_lowest_error</span>
-</span><span id="L-270"><a href="#L-270"><span class="linenos">270</span></a>
-</span><span id="L-271"><a href="#L-271"><span class="linenos">271</span></a><span class="s1">        # Plot mz and peak height</span>
-</span><span id="L-272"><a href="#L-272"><span class="linenos">272</span></a><span class="s1">        pyplot.plot(mspeak.mz_exp, mspeak.abundance, &#39;o&#39;, c=&#39;g&#39;)</span>
-</span><span id="L-273"><a href="#L-273"><span class="linenos">273</span></a>
-</span><span id="L-274"><a href="#L-274"><span class="linenos">274</span></a><span class="s1">        # Iterate over all molecular formulas associated with the ms peaks obj</span>
-</span><span id="L-275"><a href="#L-275"><span class="linenos">275</span></a><span class="s1">        for molecular_formula in mspeak:</span>
-</span><span id="L-276"><a href="#L-276"><span class="linenos">276</span></a>
-</span><span id="L-277"><a href="#L-277"><span class="linenos">277</span></a><span class="s1">            # Check if the molecular formula is a isotopologue</span>
-</span><span id="L-278"><a href="#L-278"><span class="linenos">278</span></a><span class="s1">            if molecular_formula.is_isotopologue:</span>
-</span><span id="L-279"><a href="#L-279"><span class="linenos">279</span></a>
-</span><span id="L-280"><a href="#L-280"><span class="linenos">280</span></a><span class="s1">                # Access the molecular formula text representation and print</span>
-</span><span id="L-281"><a href="#L-281"><span class="linenos">281</span></a><span class="s1">                print (molecular_formula.string)</span>
-</span><span id="L-282"><a href="#L-282"><span class="linenos">282</span></a>
-</span><span id="L-283"><a href="#L-283"><span class="linenos">283</span></a><span class="s1">                # Get 13C atoms count</span>
-</span><span id="L-284"><a href="#L-284"><span class="linenos">284</span></a><span class="s1">                print (molecular_formula[&#39;13C&#39;])</span>
-</span><span id="L-285"><a href="#L-285"><span class="linenos">285</span></a><span class="s1">    else:</span>
-</span><span id="L-286"><a href="#L-286"><span class="linenos">286</span></a><span class="s1">        # Get mz and peak height</span>
-</span><span id="L-287"><a href="#L-287"><span class="linenos">287</span></a><span class="s1">        print(mspeak.mz_exp,mspeak.abundance)</span>
-</span><span id="L-288"><a href="#L-288"><span class="linenos">288</span></a>
-</span><span id="L-289"><a href="#L-289"><span class="linenos">289</span></a><span class="s1"># Save data</span>
-</span><span id="L-290"><a href="#L-290"><span class="linenos">290</span></a><span class="s1">## to a csv file</span>
-</span><span id="L-291"><a href="#L-291"><span class="linenos">291</span></a><span class="s1">mass_spectrum_obj.to_csv(&quot;filename&quot;)</span>
-</span><span id="L-292"><a href="#L-292"><span class="linenos">292</span></a><span class="s1">mass_spectrum_obj.to_hdf(&quot;filename&quot;)</span>
-</span><span id="L-293"><a href="#L-293"><span class="linenos">293</span></a><span class="s1"># to pandas Datarame pickle</span>
-</span><span id="L-294"><a href="#L-294"><span class="linenos">294</span></a><span class="s1">mass_spectrum_obj.to_pandas(&quot;filename&quot;)</span>
-</span><span id="L-295"><a href="#L-295"><span class="linenos">295</span></a>
-</span><span id="L-296"><a href="#L-296"><span class="linenos">296</span></a><span class="s1"># Extract data as a pandas Dataframe</span>
-</span><span id="L-297"><a href="#L-297"><span class="linenos">297</span></a><span class="s1">df = mass_spectrum_obj.to_dataframe()</span>
-</span><span id="L-298"><a href="#L-298"><span class="linenos">298</span></a><span class="s1">```</span>
-</span><span id="L-299"><a href="#L-299"><span class="linenos">299</span></a><span class="s1">## UML Diagrams</span>
+</span><span id="L-260"><a href="#L-260"><span class="linenos">260</span></a><span class="s1"># Iterate over mass spectral peaks objs within the mass_spectrum_obj</span>
+</span><span id="L-261"><a href="#L-261"><span class="linenos">261</span></a><span class="s1">for mspeak in mass_spectrum_obj.sort_by_abundance():</span>
+</span><span id="L-262"><a href="#L-262"><span class="linenos">262</span></a>
+</span><span id="L-263"><a href="#L-263"><span class="linenos">263</span></a><span class="s1">    # If there is at least one molecular formula associated, mspeak returns True</span>
+</span><span id="L-264"><a href="#L-264"><span class="linenos">264</span></a><span class="s1">    if  mspeak:</span>
+</span><span id="L-265"><a href="#L-265"><span class="linenos">265</span></a>
+</span><span id="L-266"><a href="#L-266"><span class="linenos">266</span></a><span class="s1">        # Get the molecular formula with the highest mass accuracy</span>
+</span><span id="L-267"><a href="#L-267"><span class="linenos">267</span></a><span class="s1">        molecular_formula = mspeak.molecular_formula_lowest_error</span>
+</span><span id="L-268"><a href="#L-268"><span class="linenos">268</span></a>
+</span><span id="L-269"><a href="#L-269"><span class="linenos">269</span></a><span class="s1">        # Plot mz and peak height</span>
+</span><span id="L-270"><a href="#L-270"><span class="linenos">270</span></a><span class="s1">        pyplot.plot(mspeak.mz_exp, mspeak.abundance, &#39;o&#39;, c=&#39;g&#39;)</span>
+</span><span id="L-271"><a href="#L-271"><span class="linenos">271</span></a>
+</span><span id="L-272"><a href="#L-272"><span class="linenos">272</span></a><span class="s1">        # Iterate over all molecular formulas associated with the ms peaks obj</span>
+</span><span id="L-273"><a href="#L-273"><span class="linenos">273</span></a><span class="s1">        for molecular_formula in mspeak:</span>
+</span><span id="L-274"><a href="#L-274"><span class="linenos">274</span></a>
+</span><span id="L-275"><a href="#L-275"><span class="linenos">275</span></a><span class="s1">            # Check if the molecular formula is a isotopologue</span>
+</span><span id="L-276"><a href="#L-276"><span class="linenos">276</span></a><span class="s1">            if molecular_formula.is_isotopologue:</span>
+</span><span id="L-277"><a href="#L-277"><span class="linenos">277</span></a>
+</span><span id="L-278"><a href="#L-278"><span class="linenos">278</span></a><span class="s1">                # Access the molecular formula text representation and print</span>
+</span><span id="L-279"><a href="#L-279"><span class="linenos">279</span></a><span class="s1">                print (molecular_formula.string)</span>
+</span><span id="L-280"><a href="#L-280"><span class="linenos">280</span></a>
+</span><span id="L-281"><a href="#L-281"><span class="linenos">281</span></a><span class="s1">                # Get 13C atoms count</span>
+</span><span id="L-282"><a href="#L-282"><span class="linenos">282</span></a><span class="s1">                print (molecular_formula[&#39;13C&#39;])</span>
+</span><span id="L-283"><a href="#L-283"><span class="linenos">283</span></a><span class="s1">    else:</span>
+</span><span id="L-284"><a href="#L-284"><span class="linenos">284</span></a><span class="s1">        # Get mz and peak height</span>
+</span><span id="L-285"><a href="#L-285"><span class="linenos">285</span></a><span class="s1">        print(mspeak.mz_exp,mspeak.abundance)</span>
+</span><span id="L-286"><a href="#L-286"><span class="linenos">286</span></a>
+</span><span id="L-287"><a href="#L-287"><span class="linenos">287</span></a><span class="s1"># Save data</span>
+</span><span id="L-288"><a href="#L-288"><span class="linenos">288</span></a><span class="s1">## to a csv file</span>
+</span><span id="L-289"><a href="#L-289"><span class="linenos">289</span></a><span class="s1">mass_spectrum_obj.to_csv(&quot;filename&quot;)</span>
+</span><span id="L-290"><a href="#L-290"><span class="linenos">290</span></a><span class="s1">mass_spectrum_obj.to_hdf(&quot;filename&quot;)</span>
+</span><span id="L-291"><a href="#L-291"><span class="linenos">291</span></a><span class="s1"># to pandas Datarame pickle</span>
+</span><span id="L-292"><a href="#L-292"><span class="linenos">292</span></a><span class="s1">mass_spectrum_obj.to_pandas(&quot;filename&quot;)</span>
+</span><span id="L-293"><a href="#L-293"><span class="linenos">293</span></a>
+</span><span id="L-294"><a href="#L-294"><span class="linenos">294</span></a><span class="s1"># Extract data as a pandas Dataframe</span>
+</span><span id="L-295"><a href="#L-295"><span class="linenos">295</span></a><span class="s1">df = mass_spectrum_obj.to_dataframe()</span>
+</span><span id="L-296"><a href="#L-296"><span class="linenos">296</span></a><span class="s1">```</span>
+</span><span id="L-297"><a href="#L-297"><span class="linenos">297</span></a><span class="s1">## UML Diagrams</span>
+</span><span id="L-298"><a href="#L-298"><span class="linenos">298</span></a>
+</span><span id="L-299"><a href="#L-299"><span class="linenos">299</span></a><span class="s1">UML (unified modeling language) diagrams for Direct Infusion FT-MS and GC-MS classes can be found [here](docs/uml).</span>
 </span><span id="L-300"><a href="#L-300"><span class="linenos">300</span></a>
-</span><span id="L-301"><a href="#L-301"><span class="linenos">301</span></a><span class="s1">UML (unified modeling language) diagrams for Direct Infusion FT-MS and GC-MS classes can be found [here](docs/uml).</span>
+</span><span id="L-301"><a href="#L-301"><span class="linenos">301</span></a><span class="s1">## Citing CoreMS</span>
 </span><span id="L-302"><a href="#L-302"><span class="linenos">302</span></a>
-</span><span id="L-303"><a href="#L-303"><span class="linenos">303</span></a><span class="s1">## Citing CoreMS</span>
-</span><span id="L-304"><a href="#L-304"><span class="linenos">304</span></a>
-</span><span id="L-305"><a href="#L-305"><span class="linenos">305</span></a><span class="s1">If you use CoreMS in your work, please use the following citation:</span>
-</span><span id="L-306"><a href="#L-306"><span class="linenos">306</span></a><span class="s1">Version [2.0.0 Release on GitHub](https://github.com/EMSL-Computing/CoreMS/releases/tag/v2.0.0), archived on Zenodo:  </span>
-</span><span id="L-307"><a href="#L-307"><span class="linenos">307</span></a>
-</span><span id="L-308"><a href="#L-308"><span class="linenos">308</span></a><span class="s1">[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4641552.svg)](https://doi.org/10.5281/zenodo.4641552)</span>
+</span><span id="L-303"><a href="#L-303"><span class="linenos">303</span></a><span class="s1">If you use CoreMS in your work, please use the following citation:</span>
+</span><span id="L-304"><a href="#L-304"><span class="linenos">304</span></a><span class="s1">Version [2.0.0 Release on GitHub](https://github.com/EMSL-Computing/CoreMS/releases/tag/v2.0.0), archived on Zenodo:  </span>
+</span><span id="L-305"><a href="#L-305"><span class="linenos">305</span></a>
+</span><span id="L-306"><a href="#L-306"><span class="linenos">306</span></a><span class="s1">[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4641552.svg)](https://doi.org/10.5281/zenodo.4641552)</span>
+</span><span id="L-307"><a href="#L-307"><span class="linenos">307</span></a><span class="s1">```</span>
+</span><span id="L-308"><a href="#L-308"><span class="linenos">308</span></a><span class="s1">Yuri E. Corilo, William R. Kew, Lee Ann McCue (2021, March 27). EMSL-Computing/CoreMS: CoreMS 2.0.0 (Version v2.0.0), as developed on Github. Zenodo. http://doi.org/10.5281/zenodo.4641552</span>
 </span><span id="L-309"><a href="#L-309"><span class="linenos">309</span></a><span class="s1">```</span>
-</span><span id="L-310"><a href="#L-310"><span class="linenos">310</span></a><span class="s1">Yuri E. Corilo, William R. Kew, Lee Ann McCue (2021, March 27). EMSL-Computing/CoreMS: CoreMS 2.0.0 (Version v2.0.0), as developed on Github. Zenodo. http://doi.org/10.5281/zenodo.4641552</span>
-</span><span id="L-311"><a href="#L-311"><span class="linenos">311</span></a><span class="s1">```</span>
-</span><span id="L-312"><a href="#L-312"><span class="linenos">312</span></a>
-</span><span id="L-313"><a href="#L-313"><span class="linenos">313</span></a>
-</span><span id="L-314"><a href="#L-314"><span class="linenos">314</span></a><span class="s1">This material was prepared as an account of work sponsored by an agency of the</span>
-</span><span id="L-315"><a href="#L-315"><span class="linenos">315</span></a><span class="s1">United States Government.  Neither the United States Government nor the United</span>
-</span><span id="L-316"><a href="#L-316"><span class="linenos">316</span></a><span class="s1">States Department of Energy, nor Battelle, nor any of their employees, nor any</span>
-</span><span id="L-317"><a href="#L-317"><span class="linenos">317</span></a><span class="s1">jurisdiction or organization that has cooperated in the development of these</span>
-</span><span id="L-318"><a href="#L-318"><span class="linenos">318</span></a><span class="s1">materials, makes any warranty, express or implied, or assumes any legal</span>
-</span><span id="L-319"><a href="#L-319"><span class="linenos">319</span></a><span class="s1">liability or responsibility for the accuracy, completeness, or usefulness or</span>
-</span><span id="L-320"><a href="#L-320"><span class="linenos">320</span></a><span class="s1">any information, apparatus, product, software, or process disclosed, or</span>
-</span><span id="L-321"><a href="#L-321"><span class="linenos">321</span></a><span class="s1">represents that its use would not infringe privately owned rights.</span>
-</span><span id="L-322"><a href="#L-322"><span class="linenos">322</span></a>
-</span><span id="L-323"><a href="#L-323"><span class="linenos">323</span></a><span class="s1">Reference herein to any specific commercial product, process, or service by</span>
-</span><span id="L-324"><a href="#L-324"><span class="linenos">324</span></a><span class="s1">trade name, trademark, manufacturer, or otherwise does not necessarily</span>
-</span><span id="L-325"><a href="#L-325"><span class="linenos">325</span></a><span class="s1">constitute or imply its endorsement, recommendation, or favoring by the United</span>
-</span><span id="L-326"><a href="#L-326"><span class="linenos">326</span></a><span class="s1">States Government or any agency thereof, or Battelle Memorial Institute. The</span>
-</span><span id="L-327"><a href="#L-327"><span class="linenos">327</span></a><span class="s1">views and opinions of authors expressed herein do not necessarily state or</span>
-</span><span id="L-328"><a href="#L-328"><span class="linenos">328</span></a><span class="s1">reflect those of the United States Government or any agency thereof.</span>
-</span><span id="L-329"><a href="#L-329"><span class="linenos">329</span></a>
-</span><span id="L-330"><a href="#L-330"><span class="linenos">330</span></a><span class="s1">                 PACIFIC NORTHWEST NATIONAL LABORATORY</span>
-</span><span id="L-331"><a href="#L-331"><span class="linenos">331</span></a><span class="s1">                              operated by</span>
-</span><span id="L-332"><a href="#L-332"><span class="linenos">332</span></a><span class="s1">                                BATTELLE</span>
-</span><span id="L-333"><a href="#L-333"><span class="linenos">333</span></a><span class="s1">                                for the</span>
-</span><span id="L-334"><a href="#L-334"><span class="linenos">334</span></a><span class="s1">                   UNITED STATES DEPARTMENT OF ENERGY</span>
-</span><span id="L-335"><a href="#L-335"><span class="linenos">335</span></a><span class="s1">                    under Contract DE-AC05-76RL01830</span>
-</span><span id="L-336"><a href="#L-336"><span class="linenos">336</span></a><span class="s1">&#39;&#39;&#39;</span>
-</span><span id="L-337"><a href="#L-337"><span class="linenos">337</span></a><span class="kn">import</span> <span class="nn">time</span>
-</span><span id="L-338"><a href="#L-338"><span class="linenos">338</span></a><span class="kn">import</span> <span class="nn">os</span>
-</span><span id="L-339"><a href="#L-339"><span class="linenos">339</span></a><span class="kn">import</span> <span class="nn">sys</span>
-</span><span id="L-340"><a href="#L-340"><span class="linenos">340</span></a><span class="kn">import</span> <span class="nn">hashlib</span>
-</span><span id="L-341"><a href="#L-341"><span class="linenos">341</span></a>
-</span><span id="L-342"><a href="#L-342"><span class="linenos">342</span></a>
-</span><span id="L-343"><a href="#L-343"><span class="linenos">343</span></a><span class="k">def</span> <span class="nf">timeit</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
-</span><span id="L-344"><a href="#L-344"><span class="linenos">344</span></a>    <span class="k">def</span> <span class="nf">timed</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-</span><span id="L-345"><a href="#L-345"><span class="linenos">345</span></a>        <span class="n">ts</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-</span><span id="L-346"><a href="#L-346"><span class="linenos">346</span></a>        <span class="n">result</span> <span class="o">=</span> <span class="n">method</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-</span><span id="L-347"><a href="#L-347"><span class="linenos">347</span></a>        <span class="n">te</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-</span><span id="L-348"><a href="#L-348"><span class="linenos">348</span></a>        <span class="k">if</span> <span class="s1">&#39;log_time&#39;</span> <span class="ow">in</span> <span class="n">kw</span><span class="p">:</span>
-</span><span id="L-349"><a href="#L-349"><span class="linenos">349</span></a>            <span class="n">name</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;log_name&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
-</span><span id="L-350"><a href="#L-350"><span class="linenos">350</span></a>            <span class="n">kw</span><span class="p">[</span><span class="s1">&#39;log_time&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">te</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
-</span><span id="L-351"><a href="#L-351"><span class="linenos">351</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="L-352"><a href="#L-352"><span class="linenos">352</span></a>            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%r</span><span class="s2">  </span><span class="si">%2.2f</span><span class="s2"> ms&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="p">(</span><span class="n">te</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">))</span>
-</span><span id="L-353"><a href="#L-353"><span class="linenos">353</span></a>        <span class="k">return</span> <span class="n">result</span>
-</span><span id="L-354"><a href="#L-354"><span class="linenos">354</span></a>    <span class="k">return</span> <span class="n">timed</span>
-</span><span id="L-355"><a href="#L-355"><span class="linenos">355</span></a>
+</span><span id="L-310"><a href="#L-310"><span class="linenos">310</span></a>
+</span><span id="L-311"><a href="#L-311"><span class="linenos">311</span></a>
+</span><span id="L-312"><a href="#L-312"><span class="linenos">312</span></a><span class="s1">This material was prepared as an account of work sponsored by an agency of the</span>
+</span><span id="L-313"><a href="#L-313"><span class="linenos">313</span></a><span class="s1">United States Government.  Neither the United States Government nor the United</span>
+</span><span id="L-314"><a href="#L-314"><span class="linenos">314</span></a><span class="s1">States Department of Energy, nor Battelle, nor any of their employees, nor any</span>
+</span><span id="L-315"><a href="#L-315"><span class="linenos">315</span></a><span class="s1">jurisdiction or organization that has cooperated in the development of these</span>
+</span><span id="L-316"><a href="#L-316"><span class="linenos">316</span></a><span class="s1">materials, makes any warranty, express or implied, or assumes any legal</span>
+</span><span id="L-317"><a href="#L-317"><span class="linenos">317</span></a><span class="s1">liability or responsibility for the accuracy, completeness, or usefulness or</span>
+</span><span id="L-318"><a href="#L-318"><span class="linenos">318</span></a><span class="s1">any information, apparatus, product, software, or process disclosed, or</span>
+</span><span id="L-319"><a href="#L-319"><span class="linenos">319</span></a><span class="s1">represents that its use would not infringe privately owned rights.</span>
+</span><span id="L-320"><a href="#L-320"><span class="linenos">320</span></a>
+</span><span id="L-321"><a href="#L-321"><span class="linenos">321</span></a><span class="s1">Reference herein to any specific commercial product, process, or service by</span>
+</span><span id="L-322"><a href="#L-322"><span class="linenos">322</span></a><span class="s1">trade name, trademark, manufacturer, or otherwise does not necessarily</span>
+</span><span id="L-323"><a href="#L-323"><span class="linenos">323</span></a><span class="s1">constitute or imply its endorsement, recommendation, or favoring by the United</span>
+</span><span id="L-324"><a href="#L-324"><span class="linenos">324</span></a><span class="s1">States Government or any agency thereof, or Battelle Memorial Institute. The</span>
+</span><span id="L-325"><a href="#L-325"><span class="linenos">325</span></a><span class="s1">views and opinions of authors expressed herein do not necessarily state or</span>
+</span><span id="L-326"><a href="#L-326"><span class="linenos">326</span></a><span class="s1">reflect those of the United States Government or any agency thereof.</span>
+</span><span id="L-327"><a href="#L-327"><span class="linenos">327</span></a>
+</span><span id="L-328"><a href="#L-328"><span class="linenos">328</span></a><span class="s1">                 PACIFIC NORTHWEST NATIONAL LABORATORY</span>
+</span><span id="L-329"><a href="#L-329"><span class="linenos">329</span></a><span class="s1">                              operated by</span>
+</span><span id="L-330"><a href="#L-330"><span class="linenos">330</span></a><span class="s1">                                BATTELLE</span>
+</span><span id="L-331"><a href="#L-331"><span class="linenos">331</span></a><span class="s1">                                for the</span>
+</span><span id="L-332"><a href="#L-332"><span class="linenos">332</span></a><span class="s1">                   UNITED STATES DEPARTMENT OF ENERGY</span>
+</span><span id="L-333"><a href="#L-333"><span class="linenos">333</span></a><span class="s1">                    under Contract DE-AC05-76RL01830</span>
+</span><span id="L-334"><a href="#L-334"><span class="linenos">334</span></a><span class="s1">&#39;&#39;&#39;</span>
+</span><span id="L-335"><a href="#L-335"><span class="linenos">335</span></a><span class="kn">import</span> <span class="nn">time</span>
+</span><span id="L-336"><a href="#L-336"><span class="linenos">336</span></a><span class="kn">import</span> <span class="nn">os</span>
+</span><span id="L-337"><a href="#L-337"><span class="linenos">337</span></a><span class="kn">import</span> <span class="nn">sys</span>
+</span><span id="L-338"><a href="#L-338"><span class="linenos">338</span></a><span class="kn">import</span> <span class="nn">hashlib</span>
+</span><span id="L-339"><a href="#L-339"><span class="linenos">339</span></a>
+</span><span id="L-340"><a href="#L-340"><span class="linenos">340</span></a>
+</span><span id="L-341"><a href="#L-341"><span class="linenos">341</span></a><span class="k">def</span> <span class="nf">timeit</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
+</span><span id="L-342"><a href="#L-342"><span class="linenos">342</span></a>    <span class="k">def</span> <span class="nf">timed</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+</span><span id="L-343"><a href="#L-343"><span class="linenos">343</span></a>        <span class="n">ts</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+</span><span id="L-344"><a href="#L-344"><span class="linenos">344</span></a>        <span class="n">result</span> <span class="o">=</span> <span class="n">method</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+</span><span id="L-345"><a href="#L-345"><span class="linenos">345</span></a>        <span class="n">te</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+</span><span id="L-346"><a href="#L-346"><span class="linenos">346</span></a>        <span class="k">if</span> <span class="s1">&#39;log_time&#39;</span> <span class="ow">in</span> <span class="n">kw</span><span class="p">:</span>
+</span><span id="L-347"><a href="#L-347"><span class="linenos">347</span></a>            <span class="n">name</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;log_name&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+</span><span id="L-348"><a href="#L-348"><span class="linenos">348</span></a>            <span class="n">kw</span><span class="p">[</span><span class="s1">&#39;log_time&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">te</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
+</span><span id="L-349"><a href="#L-349"><span class="linenos">349</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="L-350"><a href="#L-350"><span class="linenos">350</span></a>            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%r</span><span class="s2">  </span><span class="si">%2.2f</span><span class="s2"> ms&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="p">(</span><span class="n">te</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">))</span>
+</span><span id="L-351"><a href="#L-351"><span class="linenos">351</span></a>        <span class="k">return</span> <span class="n">result</span>
+</span><span id="L-352"><a href="#L-352"><span class="linenos">352</span></a>    <span class="k">return</span> <span class="n">timed</span>
+</span><span id="L-353"><a href="#L-353"><span class="linenos">353</span></a>
+</span><span id="L-354"><a href="#L-354"><span class="linenos">354</span></a>
+</span><span id="L-355"><a href="#L-355"><span class="linenos">355</span></a><span class="k">class</span> <span class="nc">SuppressPrints</span><span class="p">:</span>
 </span><span id="L-356"><a href="#L-356"><span class="linenos">356</span></a>
-</span><span id="L-357"><a href="#L-357"><span class="linenos">357</span></a><span class="k">class</span> <span class="nc">SuppressPrints</span><span class="p">:</span>
-</span><span id="L-358"><a href="#L-358"><span class="linenos">358</span></a>
-</span><span id="L-359"><a href="#L-359"><span class="linenos">359</span></a>    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-360"><a href="#L-360"><span class="linenos">360</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_original_stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
-</span><span id="L-361"><a href="#L-361"><span class="linenos">361</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
-</span><span id="L-362"><a href="#L-362"><span class="linenos">362</span></a>
-</span><span id="L-363"><a href="#L-363"><span class="linenos">363</span></a>    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
-</span><span id="L-364"><a href="#L-364"><span class="linenos">364</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-</span><span id="L-365"><a href="#L-365"><span class="linenos">365</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_stdout</span>
+</span><span id="L-357"><a href="#L-357"><span class="linenos">357</span></a>    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-358"><a href="#L-358"><span class="linenos">358</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_original_stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+</span><span id="L-359"><a href="#L-359"><span class="linenos">359</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+</span><span id="L-360"><a href="#L-360"><span class="linenos">360</span></a>
+</span><span id="L-361"><a href="#L-361"><span class="linenos">361</span></a>    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+</span><span id="L-362"><a href="#L-362"><span class="linenos">362</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span id="L-363"><a href="#L-363"><span class="linenos">363</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_stdout</span>
+</span><span id="L-364"><a href="#L-364"><span class="linenos">364</span></a>
+</span><span id="L-365"><a href="#L-365"><span class="linenos">365</span></a><span class="k">def</span> <span class="nf">get_filenames</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-366"><a href="#L-366"><span class="linenos">366</span></a>
-</span><span id="L-367"><a href="#L-367"><span class="linenos">367</span></a><span class="k">def</span> <span class="nf">get_filenames</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-368"><a href="#L-368"><span class="linenos">368</span></a>
-</span><span id="L-369"><a href="#L-369"><span class="linenos">369</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
-</span><span id="L-370"><a href="#L-370"><span class="linenos">370</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span>
-</span><span id="L-371"><a href="#L-371"><span class="linenos">371</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</span><span id="L-372"><a href="#L-372"><span class="linenos">372</span></a>
-</span><span id="L-373"><a href="#L-373"><span class="linenos">373</span></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
-</span><span id="L-374"><a href="#L-374"><span class="linenos">374</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
-</span><span id="L-375"><a href="#L-375"><span class="linenos">375</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowStaysOnTopHint</span><span class="p">)</span>
-</span><span id="L-376"><a href="#L-376"><span class="linenos">376</span></a>    <span class="n">file_location</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">getOpenFileNames</span><span class="p">()</span>
-</span><span id="L-377"><a href="#L-377"><span class="linenos">377</span></a>
-</span><span id="L-378"><a href="#L-378"><span class="linenos">378</span></a>    <span class="k">if</span> <span class="n">file_location</span><span class="p">:</span>
-</span><span id="L-379"><a href="#L-379"><span class="linenos">379</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
-</span><span id="L-380"><a href="#L-380"><span class="linenos">380</span></a>        <span class="k">return</span> <span class="n">file_location</span>
+</span><span id="L-367"><a href="#L-367"><span class="linenos">367</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
+</span><span id="L-368"><a href="#L-368"><span class="linenos">368</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span>
+</span><span id="L-369"><a href="#L-369"><span class="linenos">369</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+</span><span id="L-370"><a href="#L-370"><span class="linenos">370</span></a>
+</span><span id="L-371"><a href="#L-371"><span class="linenos">371</span></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+</span><span id="L-372"><a href="#L-372"><span class="linenos">372</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
+</span><span id="L-373"><a href="#L-373"><span class="linenos">373</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowStaysOnTopHint</span><span class="p">)</span>
+</span><span id="L-374"><a href="#L-374"><span class="linenos">374</span></a>    <span class="n">file_location</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">getOpenFileNames</span><span class="p">()</span>
+</span><span id="L-375"><a href="#L-375"><span class="linenos">375</span></a>
+</span><span id="L-376"><a href="#L-376"><span class="linenos">376</span></a>    <span class="k">if</span> <span class="n">file_location</span><span class="p">:</span>
+</span><span id="L-377"><a href="#L-377"><span class="linenos">377</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
+</span><span id="L-378"><a href="#L-378"><span class="linenos">378</span></a>        <span class="k">return</span> <span class="n">file_location</span>
+</span><span id="L-379"><a href="#L-379"><span class="linenos">379</span></a>
+</span><span id="L-380"><a href="#L-380"><span class="linenos">380</span></a>    <span class="k">else</span><span class="p">:</span>
 </span><span id="L-381"><a href="#L-381"><span class="linenos">381</span></a>
-</span><span id="L-382"><a href="#L-382"><span class="linenos">382</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="L-382"><a href="#L-382"><span class="linenos">382</span></a>        <span class="k">return</span> <span class="kc">None</span>
 </span><span id="L-383"><a href="#L-383"><span class="linenos">383</span></a>
-</span><span id="L-384"><a href="#L-384"><span class="linenos">384</span></a>        <span class="k">return</span> <span class="kc">None</span>
+</span><span id="L-384"><a href="#L-384"><span class="linenos">384</span></a><span class="k">def</span> <span class="nf">get_filename</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-385"><a href="#L-385"><span class="linenos">385</span></a>
-</span><span id="L-386"><a href="#L-386"><span class="linenos">386</span></a><span class="k">def</span> <span class="nf">get_filename</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-387"><a href="#L-387"><span class="linenos">387</span></a>
-</span><span id="L-388"><a href="#L-388"><span class="linenos">388</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
-</span><span id="L-389"><a href="#L-389"><span class="linenos">389</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span>
-</span><span id="L-390"><a href="#L-390"><span class="linenos">390</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</span><span id="L-391"><a href="#L-391"><span class="linenos">391</span></a>
-</span><span id="L-392"><a href="#L-392"><span class="linenos">392</span></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
-</span><span id="L-393"><a href="#L-393"><span class="linenos">393</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
-</span><span id="L-394"><a href="#L-394"><span class="linenos">394</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowStaysOnTopHint</span><span class="p">)</span>
-</span><span id="L-395"><a href="#L-395"><span class="linenos">395</span></a>    <span class="n">file_location</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">getOpenFileName</span><span class="p">()</span>
-</span><span id="L-396"><a href="#L-396"><span class="linenos">396</span></a>
-</span><span id="L-397"><a href="#L-397"><span class="linenos">397</span></a>    <span class="k">if</span> <span class="n">file_location</span><span class="p">:</span>
-</span><span id="L-398"><a href="#L-398"><span class="linenos">398</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
-</span><span id="L-399"><a href="#L-399"><span class="linenos">399</span></a>        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
+</span><span id="L-386"><a href="#L-386"><span class="linenos">386</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
+</span><span id="L-387"><a href="#L-387"><span class="linenos">387</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span>
+</span><span id="L-388"><a href="#L-388"><span class="linenos">388</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+</span><span id="L-389"><a href="#L-389"><span class="linenos">389</span></a>
+</span><span id="L-390"><a href="#L-390"><span class="linenos">390</span></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+</span><span id="L-391"><a href="#L-391"><span class="linenos">391</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
+</span><span id="L-392"><a href="#L-392"><span class="linenos">392</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowStaysOnTopHint</span><span class="p">)</span>
+</span><span id="L-393"><a href="#L-393"><span class="linenos">393</span></a>    <span class="n">file_location</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">getOpenFileName</span><span class="p">()</span>
+</span><span id="L-394"><a href="#L-394"><span class="linenos">394</span></a>
+</span><span id="L-395"><a href="#L-395"><span class="linenos">395</span></a>    <span class="k">if</span> <span class="n">file_location</span><span class="p">:</span>
+</span><span id="L-396"><a href="#L-396"><span class="linenos">396</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
+</span><span id="L-397"><a href="#L-397"><span class="linenos">397</span></a>        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
+</span><span id="L-398"><a href="#L-398"><span class="linenos">398</span></a>
+</span><span id="L-399"><a href="#L-399"><span class="linenos">399</span></a>    <span class="k">else</span><span class="p">:</span>
 </span><span id="L-400"><a href="#L-400"><span class="linenos">400</span></a>
-</span><span id="L-401"><a href="#L-401"><span class="linenos">401</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="L-401"><a href="#L-401"><span class="linenos">401</span></a>        <span class="k">return</span> <span class="kc">None</span>
 </span><span id="L-402"><a href="#L-402"><span class="linenos">402</span></a>
-</span><span id="L-403"><a href="#L-403"><span class="linenos">403</span></a>        <span class="k">return</span> <span class="kc">None</span>
+</span><span id="L-403"><a href="#L-403"><span class="linenos">403</span></a><span class="k">def</span> <span class="nf">get_dirname</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-404"><a href="#L-404"><span class="linenos">404</span></a>
-</span><span id="L-405"><a href="#L-405"><span class="linenos">405</span></a><span class="k">def</span> <span class="nf">get_dirname</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-406"><a href="#L-406"><span class="linenos">406</span></a>
-</span><span id="L-407"><a href="#L-407"><span class="linenos">407</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
-</span><span id="L-408"><a href="#L-408"><span class="linenos">408</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span> 
-</span><span id="L-409"><a href="#L-409"><span class="linenos">409</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</span><span id="L-410"><a href="#L-410"><span class="linenos">410</span></a>
-</span><span id="L-411"><a href="#L-411"><span class="linenos">411</span></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
-</span><span id="L-412"><a href="#L-412"><span class="linenos">412</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
-</span><span id="L-413"><a href="#L-413"><span class="linenos">413</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowStaysOnTopHint</span><span class="p">)</span>
-</span><span id="L-414"><a href="#L-414"><span class="linenos">414</span></a>    <span class="n">file_location</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">getExistingDirectory</span><span class="p">()</span>
-</span><span id="L-415"><a href="#L-415"><span class="linenos">415</span></a>
-</span><span id="L-416"><a href="#L-416"><span class="linenos">416</span></a>    <span class="k">if</span> <span class="n">file_location</span><span class="p">:</span>
-</span><span id="L-417"><a href="#L-417"><span class="linenos">417</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
-</span><span id="L-418"><a href="#L-418"><span class="linenos">418</span></a>        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
+</span><span id="L-405"><a href="#L-405"><span class="linenos">405</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
+</span><span id="L-406"><a href="#L-406"><span class="linenos">406</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span> 
+</span><span id="L-407"><a href="#L-407"><span class="linenos">407</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+</span><span id="L-408"><a href="#L-408"><span class="linenos">408</span></a>
+</span><span id="L-409"><a href="#L-409"><span class="linenos">409</span></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+</span><span id="L-410"><a href="#L-410"><span class="linenos">410</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
+</span><span id="L-411"><a href="#L-411"><span class="linenos">411</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowStaysOnTopHint</span><span class="p">)</span>
+</span><span id="L-412"><a href="#L-412"><span class="linenos">412</span></a>    <span class="n">file_location</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">getExistingDirectory</span><span class="p">()</span>
+</span><span id="L-413"><a href="#L-413"><span class="linenos">413</span></a>
+</span><span id="L-414"><a href="#L-414"><span class="linenos">414</span></a>    <span class="k">if</span> <span class="n">file_location</span><span class="p">:</span>
+</span><span id="L-415"><a href="#L-415"><span class="linenos">415</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
+</span><span id="L-416"><a href="#L-416"><span class="linenos">416</span></a>        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
+</span><span id="L-417"><a href="#L-417"><span class="linenos">417</span></a>
+</span><span id="L-418"><a href="#L-418"><span class="linenos">418</span></a>    <span class="k">else</span><span class="p">:</span>
 </span><span id="L-419"><a href="#L-419"><span class="linenos">419</span></a>
-</span><span id="L-420"><a href="#L-420"><span class="linenos">420</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="L-420"><a href="#L-420"><span class="linenos">420</span></a>        <span class="k">return</span> <span class="kc">None</span>
 </span><span id="L-421"><a href="#L-421"><span class="linenos">421</span></a>
-</span><span id="L-422"><a href="#L-422"><span class="linenos">422</span></a>        <span class="k">return</span> <span class="kc">None</span>
+</span><span id="L-422"><a href="#L-422"><span class="linenos">422</span></a><span class="k">def</span> <span class="nf">get_dirnames</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-423"><a href="#L-423"><span class="linenos">423</span></a>
-</span><span id="L-424"><a href="#L-424"><span class="linenos">424</span></a><span class="k">def</span> <span class="nf">get_dirnames</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-425"><a href="#L-425"><span class="linenos">425</span></a>
-</span><span id="L-426"><a href="#L-426"><span class="linenos">426</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
-</span><span id="L-427"><a href="#L-427"><span class="linenos">427</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span><span class="p">,</span> <span class="n">QTreeView</span><span class="p">,</span> <span class="n">QListView</span><span class="p">,</span> <span class="n">QAbstractItemView</span>
-</span><span id="L-428"><a href="#L-428"><span class="linenos">428</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</span><span id="L-429"><a href="#L-429"><span class="linenos">429</span></a>
-</span><span id="L-430"><a href="#L-430"><span class="linenos">430</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">app</span><span class="p">:</span>
-</span><span id="L-431"><a href="#L-431"><span class="linenos">431</span></a>        <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
-</span><span id="L-432"><a href="#L-432"><span class="linenos">432</span></a>    <span class="c1"># file_dialog = QFileDialog()</span>
-</span><span id="L-433"><a href="#L-433"><span class="linenos">433</span></a>    <span class="c1"># file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)</span>
-</span><span id="L-434"><a href="#L-434"><span class="linenos">434</span></a>    <span class="c1"># file_location = file_dialog.getOpenFileNames()</span>
-</span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a>
-</span><span id="L-436"><a href="#L-436"><span class="linenos">436</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
-</span><span id="L-437"><a href="#L-437"><span class="linenos">437</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setFileMode</span><span class="p">(</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">DirectoryOnly</span><span class="p">)</span>
-</span><span id="L-438"><a href="#L-438"><span class="linenos">438</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setOption</span><span class="p">(</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">DontUseNativeDialog</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-</span><span id="L-439"><a href="#L-439"><span class="linenos">439</span></a>    <span class="n">file_view</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">findChild</span><span class="p">(</span><span class="n">QListView</span><span class="p">,</span> <span class="s1">&#39;listView&#39;</span><span class="p">)</span>
-</span><span id="L-440"><a href="#L-440"><span class="linenos">440</span></a>
-</span><span id="L-441"><a href="#L-441"><span class="linenos">441</span></a>    <span class="c1"># to make it possible to select multiple directories:</span>
-</span><span id="L-442"><a href="#L-442"><span class="linenos">442</span></a>    <span class="k">if</span> <span class="n">file_view</span><span class="p">:</span>
-</span><span id="L-443"><a href="#L-443"><span class="linenos">443</span></a>        <span class="n">file_view</span><span class="o">.</span><span class="n">setSelectionMode</span><span class="p">(</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">MultiSelection</span><span class="p">)</span>
-</span><span id="L-444"><a href="#L-444"><span class="linenos">444</span></a>    <span class="n">f_tree_view</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">findChild</span><span class="p">(</span><span class="n">QTreeView</span><span class="p">)</span>
-</span><span id="L-445"><a href="#L-445"><span class="linenos">445</span></a>    <span class="k">if</span> <span class="n">f_tree_view</span><span class="p">:</span>
-</span><span id="L-446"><a href="#L-446"><span class="linenos">446</span></a>        <span class="n">f_tree_view</span><span class="o">.</span><span class="n">setSelectionMode</span><span class="p">(</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">MultiSelection</span><span class="p">)</span>
-</span><span id="L-447"><a href="#L-447"><span class="linenos">447</span></a>
-</span><span id="L-448"><a href="#L-448"><span class="linenos">448</span></a>    <span class="k">if</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">exec</span><span class="p">():</span>
-</span><span id="L-449"><a href="#L-449"><span class="linenos">449</span></a>        <span class="n">paths</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">selectedFiles</span><span class="p">()</span>
-</span><span id="L-450"><a href="#L-450"><span class="linenos">450</span></a>
-</span><span id="L-451"><a href="#L-451"><span class="linenos">451</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
-</span><span id="L-452"><a href="#L-452"><span class="linenos">452</span></a>        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">:</span>
-</span><span id="L-453"><a href="#L-453"><span class="linenos">453</span></a>            <span class="k">yield</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-</span><span id="L-454"><a href="#L-454"><span class="linenos">454</span></a>
-</span><span id="L-455"><a href="#L-455"><span class="linenos">455</span></a><span class="k">def</span> <span class="nf">chunks</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-</span><span id="L-456"><a href="#L-456"><span class="linenos">456</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Yield successive n-sized chunks from lst.&quot;&quot;&quot;</span>
-</span><span id="L-457"><a href="#L-457"><span class="linenos">457</span></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">),</span> <span class="n">n</span><span class="p">):</span>
-</span><span id="L-458"><a href="#L-458"><span class="linenos">458</span></a>        <span class="k">yield</span> <span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">n</span><span class="p">]</span>
+</span><span id="L-424"><a href="#L-424"><span class="linenos">424</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
+</span><span id="L-425"><a href="#L-425"><span class="linenos">425</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span><span class="p">,</span> <span class="n">QTreeView</span><span class="p">,</span> <span class="n">QListView</span><span class="p">,</span> <span class="n">QAbstractItemView</span>
+</span><span id="L-426"><a href="#L-426"><span class="linenos">426</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+</span><span id="L-427"><a href="#L-427"><span class="linenos">427</span></a>
+</span><span id="L-428"><a href="#L-428"><span class="linenos">428</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">app</span><span class="p">:</span>
+</span><span id="L-429"><a href="#L-429"><span class="linenos">429</span></a>        <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+</span><span id="L-430"><a href="#L-430"><span class="linenos">430</span></a>    <span class="c1"># file_dialog = QFileDialog()</span>
+</span><span id="L-431"><a href="#L-431"><span class="linenos">431</span></a>    <span class="c1"># file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)</span>
+</span><span id="L-432"><a href="#L-432"><span class="linenos">432</span></a>    <span class="c1"># file_location = file_dialog.getOpenFileNames()</span>
+</span><span id="L-433"><a href="#L-433"><span class="linenos">433</span></a>
+</span><span id="L-434"><a href="#L-434"><span class="linenos">434</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
+</span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setFileMode</span><span class="p">(</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">DirectoryOnly</span><span class="p">)</span>
+</span><span id="L-436"><a href="#L-436"><span class="linenos">436</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setOption</span><span class="p">(</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">DontUseNativeDialog</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+</span><span id="L-437"><a href="#L-437"><span class="linenos">437</span></a>    <span class="n">file_view</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">findChild</span><span class="p">(</span><span class="n">QListView</span><span class="p">,</span> <span class="s1">&#39;listView&#39;</span><span class="p">)</span>
+</span><span id="L-438"><a href="#L-438"><span class="linenos">438</span></a>
+</span><span id="L-439"><a href="#L-439"><span class="linenos">439</span></a>    <span class="c1"># to make it possible to select multiple directories:</span>
+</span><span id="L-440"><a href="#L-440"><span class="linenos">440</span></a>    <span class="k">if</span> <span class="n">file_view</span><span class="p">:</span>
+</span><span id="L-441"><a href="#L-441"><span class="linenos">441</span></a>        <span class="n">file_view</span><span class="o">.</span><span class="n">setSelectionMode</span><span class="p">(</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">MultiSelection</span><span class="p">)</span>
+</span><span id="L-442"><a href="#L-442"><span class="linenos">442</span></a>    <span class="n">f_tree_view</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">findChild</span><span class="p">(</span><span class="n">QTreeView</span><span class="p">)</span>
+</span><span id="L-443"><a href="#L-443"><span class="linenos">443</span></a>    <span class="k">if</span> <span class="n">f_tree_view</span><span class="p">:</span>
+</span><span id="L-444"><a href="#L-444"><span class="linenos">444</span></a>        <span class="n">f_tree_view</span><span class="o">.</span><span class="n">setSelectionMode</span><span class="p">(</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">MultiSelection</span><span class="p">)</span>
+</span><span id="L-445"><a href="#L-445"><span class="linenos">445</span></a>
+</span><span id="L-446"><a href="#L-446"><span class="linenos">446</span></a>    <span class="k">if</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">exec</span><span class="p">():</span>
+</span><span id="L-447"><a href="#L-447"><span class="linenos">447</span></a>        <span class="n">paths</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">selectedFiles</span><span class="p">()</span>
+</span><span id="L-448"><a href="#L-448"><span class="linenos">448</span></a>
+</span><span id="L-449"><a href="#L-449"><span class="linenos">449</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
+</span><span id="L-450"><a href="#L-450"><span class="linenos">450</span></a>        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">:</span>
+</span><span id="L-451"><a href="#L-451"><span class="linenos">451</span></a>            <span class="k">yield</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+</span><span id="L-452"><a href="#L-452"><span class="linenos">452</span></a>
+</span><span id="L-453"><a href="#L-453"><span class="linenos">453</span></a><span class="k">def</span> <span class="nf">chunks</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+</span><span id="L-454"><a href="#L-454"><span class="linenos">454</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Yield successive n-sized chunks from lst.&quot;&quot;&quot;</span>
+</span><span id="L-455"><a href="#L-455"><span class="linenos">455</span></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">),</span> <span class="n">n</span><span class="p">):</span>
+</span><span id="L-456"><a href="#L-456"><span class="linenos">456</span></a>        <span class="k">yield</span> <span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">n</span><span class="p">]</span>
+</span><span id="L-457"><a href="#L-457"><span class="linenos">457</span></a>
+</span><span id="L-458"><a href="#L-458"><span class="linenos">458</span></a><span class="k">def</span> <span class="nf">corems_md5</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
 </span><span id="L-459"><a href="#L-459"><span class="linenos">459</span></a>
-</span><span id="L-460"><a href="#L-460"><span class="linenos">460</span></a><span class="k">def</span> <span class="nf">corems_md5</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+</span><span id="L-460"><a href="#L-460"><span class="linenos">460</span></a>    <span class="n">bytes_io</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 </span><span id="L-461"><a href="#L-461"><span class="linenos">461</span></a>
-</span><span id="L-462"><a href="#L-462"><span class="linenos">462</span></a>    <span class="n">bytes_io</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</span><span id="L-462"><a href="#L-462"><span class="linenos">462</span></a>    <span class="n">md5_returned</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">bytes_io</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
 </span><span id="L-463"><a href="#L-463"><span class="linenos">463</span></a>
-</span><span id="L-464"><a href="#L-464"><span class="linenos">464</span></a>    <span class="n">md5_returned</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">bytes_io</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
-</span><span id="L-465"><a href="#L-465"><span class="linenos">465</span></a>
-</span><span id="L-466"><a href="#L-466"><span class="linenos">466</span></a>    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;sha256&quot;</span><span class="p">,</span> <span class="n">md5_returned</span><span class="p">)</span>
+</span><span id="L-464"><a href="#L-464"><span class="linenos">464</span></a>    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;sha256&quot;</span><span class="p">,</span> <span class="n">md5_returned</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -984,18 +980,18 @@ reflect those of the United States Government or any agency thereof.</p>
 
     </div>
     <a class="headerlink" href="#timeit"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="timeit-344"><a href="#timeit-344"><span class="linenos">344</span></a><span class="k">def</span> <span class="nf">timeit</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
-</span><span id="timeit-345"><a href="#timeit-345"><span class="linenos">345</span></a>    <span class="k">def</span> <span class="nf">timed</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-</span><span id="timeit-346"><a href="#timeit-346"><span class="linenos">346</span></a>        <span class="n">ts</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-</span><span id="timeit-347"><a href="#timeit-347"><span class="linenos">347</span></a>        <span class="n">result</span> <span class="o">=</span> <span class="n">method</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-</span><span id="timeit-348"><a href="#timeit-348"><span class="linenos">348</span></a>        <span class="n">te</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-</span><span id="timeit-349"><a href="#timeit-349"><span class="linenos">349</span></a>        <span class="k">if</span> <span class="s1">&#39;log_time&#39;</span> <span class="ow">in</span> <span class="n">kw</span><span class="p">:</span>
-</span><span id="timeit-350"><a href="#timeit-350"><span class="linenos">350</span></a>            <span class="n">name</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;log_name&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
-</span><span id="timeit-351"><a href="#timeit-351"><span class="linenos">351</span></a>            <span class="n">kw</span><span class="p">[</span><span class="s1">&#39;log_time&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">te</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
-</span><span id="timeit-352"><a href="#timeit-352"><span class="linenos">352</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="timeit-353"><a href="#timeit-353"><span class="linenos">353</span></a>            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%r</span><span class="s2">  </span><span class="si">%2.2f</span><span class="s2"> ms&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="p">(</span><span class="n">te</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">))</span>
-</span><span id="timeit-354"><a href="#timeit-354"><span class="linenos">354</span></a>        <span class="k">return</span> <span class="n">result</span>
-</span><span id="timeit-355"><a href="#timeit-355"><span class="linenos">355</span></a>    <span class="k">return</span> <span class="n">timed</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="timeit-342"><a href="#timeit-342"><span class="linenos">342</span></a><span class="k">def</span> <span class="nf">timeit</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
+</span><span id="timeit-343"><a href="#timeit-343"><span class="linenos">343</span></a>    <span class="k">def</span> <span class="nf">timed</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+</span><span id="timeit-344"><a href="#timeit-344"><span class="linenos">344</span></a>        <span class="n">ts</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+</span><span id="timeit-345"><a href="#timeit-345"><span class="linenos">345</span></a>        <span class="n">result</span> <span class="o">=</span> <span class="n">method</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+</span><span id="timeit-346"><a href="#timeit-346"><span class="linenos">346</span></a>        <span class="n">te</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+</span><span id="timeit-347"><a href="#timeit-347"><span class="linenos">347</span></a>        <span class="k">if</span> <span class="s1">&#39;log_time&#39;</span> <span class="ow">in</span> <span class="n">kw</span><span class="p">:</span>
+</span><span id="timeit-348"><a href="#timeit-348"><span class="linenos">348</span></a>            <span class="n">name</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;log_name&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+</span><span id="timeit-349"><a href="#timeit-349"><span class="linenos">349</span></a>            <span class="n">kw</span><span class="p">[</span><span class="s1">&#39;log_time&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">te</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
+</span><span id="timeit-350"><a href="#timeit-350"><span class="linenos">350</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="timeit-351"><a href="#timeit-351"><span class="linenos">351</span></a>            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%r</span><span class="s2">  </span><span class="si">%2.2f</span><span class="s2"> ms&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="p">(</span><span class="n">te</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">))</span>
+</span><span id="timeit-352"><a href="#timeit-352"><span class="linenos">352</span></a>        <span class="k">return</span> <span class="n">result</span>
+</span><span id="timeit-353"><a href="#timeit-353"><span class="linenos">353</span></a>    <span class="k">return</span> <span class="n">timed</span>
 </span></pre></div>
 
 
@@ -1013,15 +1009,15 @@ reflect those of the United States Government or any agency thereof.</p>
 
     </div>
     <a class="headerlink" href="#SuppressPrints"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="SuppressPrints-358"><a href="#SuppressPrints-358"><span class="linenos">358</span></a><span class="k">class</span> <span class="nc">SuppressPrints</span><span class="p">:</span>
-</span><span id="SuppressPrints-359"><a href="#SuppressPrints-359"><span class="linenos">359</span></a>
-</span><span id="SuppressPrints-360"><a href="#SuppressPrints-360"><span class="linenos">360</span></a>    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="SuppressPrints-361"><a href="#SuppressPrints-361"><span class="linenos">361</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_original_stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
-</span><span id="SuppressPrints-362"><a href="#SuppressPrints-362"><span class="linenos">362</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
-</span><span id="SuppressPrints-363"><a href="#SuppressPrints-363"><span class="linenos">363</span></a>
-</span><span id="SuppressPrints-364"><a href="#SuppressPrints-364"><span class="linenos">364</span></a>    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
-</span><span id="SuppressPrints-365"><a href="#SuppressPrints-365"><span class="linenos">365</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-</span><span id="SuppressPrints-366"><a href="#SuppressPrints-366"><span class="linenos">366</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_stdout</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="SuppressPrints-356"><a href="#SuppressPrints-356"><span class="linenos">356</span></a><span class="k">class</span> <span class="nc">SuppressPrints</span><span class="p">:</span>
+</span><span id="SuppressPrints-357"><a href="#SuppressPrints-357"><span class="linenos">357</span></a>
+</span><span id="SuppressPrints-358"><a href="#SuppressPrints-358"><span class="linenos">358</span></a>    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="SuppressPrints-359"><a href="#SuppressPrints-359"><span class="linenos">359</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_original_stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+</span><span id="SuppressPrints-360"><a href="#SuppressPrints-360"><span class="linenos">360</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+</span><span id="SuppressPrints-361"><a href="#SuppressPrints-361"><span class="linenos">361</span></a>
+</span><span id="SuppressPrints-362"><a href="#SuppressPrints-362"><span class="linenos">362</span></a>    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+</span><span id="SuppressPrints-363"><a href="#SuppressPrints-363"><span class="linenos">363</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span id="SuppressPrints-364"><a href="#SuppressPrints-364"><span class="linenos">364</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_stdout</span>
 </span></pre></div>
 
 
@@ -1039,24 +1035,24 @@ reflect those of the United States Government or any agency thereof.</p>
 
     </div>
     <a class="headerlink" href="#get_filenames"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_filenames-368"><a href="#get_filenames-368"><span class="linenos">368</span></a><span class="k">def</span> <span class="nf">get_filenames</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="get_filenames-369"><a href="#get_filenames-369"><span class="linenos">369</span></a>
-</span><span id="get_filenames-370"><a href="#get_filenames-370"><span class="linenos">370</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
-</span><span id="get_filenames-371"><a href="#get_filenames-371"><span class="linenos">371</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span>
-</span><span id="get_filenames-372"><a href="#get_filenames-372"><span class="linenos">372</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</span><span id="get_filenames-373"><a href="#get_filenames-373"><span class="linenos">373</span></a>
-</span><span id="get_filenames-374"><a href="#get_filenames-374"><span class="linenos">374</span></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
-</span><span id="get_filenames-375"><a href="#get_filenames-375"><span class="linenos">375</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
-</span><span id="get_filenames-376"><a href="#get_filenames-376"><span class="linenos">376</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowStaysOnTopHint</span><span class="p">)</span>
-</span><span id="get_filenames-377"><a href="#get_filenames-377"><span class="linenos">377</span></a>    <span class="n">file_location</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">getOpenFileNames</span><span class="p">()</span>
-</span><span id="get_filenames-378"><a href="#get_filenames-378"><span class="linenos">378</span></a>
-</span><span id="get_filenames-379"><a href="#get_filenames-379"><span class="linenos">379</span></a>    <span class="k">if</span> <span class="n">file_location</span><span class="p">:</span>
-</span><span id="get_filenames-380"><a href="#get_filenames-380"><span class="linenos">380</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
-</span><span id="get_filenames-381"><a href="#get_filenames-381"><span class="linenos">381</span></a>        <span class="k">return</span> <span class="n">file_location</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_filenames-366"><a href="#get_filenames-366"><span class="linenos">366</span></a><span class="k">def</span> <span class="nf">get_filenames</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="get_filenames-367"><a href="#get_filenames-367"><span class="linenos">367</span></a>
+</span><span id="get_filenames-368"><a href="#get_filenames-368"><span class="linenos">368</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
+</span><span id="get_filenames-369"><a href="#get_filenames-369"><span class="linenos">369</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span>
+</span><span id="get_filenames-370"><a href="#get_filenames-370"><span class="linenos">370</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+</span><span id="get_filenames-371"><a href="#get_filenames-371"><span class="linenos">371</span></a>
+</span><span id="get_filenames-372"><a href="#get_filenames-372"><span class="linenos">372</span></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+</span><span id="get_filenames-373"><a href="#get_filenames-373"><span class="linenos">373</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
+</span><span id="get_filenames-374"><a href="#get_filenames-374"><span class="linenos">374</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowStaysOnTopHint</span><span class="p">)</span>
+</span><span id="get_filenames-375"><a href="#get_filenames-375"><span class="linenos">375</span></a>    <span class="n">file_location</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">getOpenFileNames</span><span class="p">()</span>
+</span><span id="get_filenames-376"><a href="#get_filenames-376"><span class="linenos">376</span></a>
+</span><span id="get_filenames-377"><a href="#get_filenames-377"><span class="linenos">377</span></a>    <span class="k">if</span> <span class="n">file_location</span><span class="p">:</span>
+</span><span id="get_filenames-378"><a href="#get_filenames-378"><span class="linenos">378</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
+</span><span id="get_filenames-379"><a href="#get_filenames-379"><span class="linenos">379</span></a>        <span class="k">return</span> <span class="n">file_location</span>
+</span><span id="get_filenames-380"><a href="#get_filenames-380"><span class="linenos">380</span></a>
+</span><span id="get_filenames-381"><a href="#get_filenames-381"><span class="linenos">381</span></a>    <span class="k">else</span><span class="p">:</span>
 </span><span id="get_filenames-382"><a href="#get_filenames-382"><span class="linenos">382</span></a>
-</span><span id="get_filenames-383"><a href="#get_filenames-383"><span class="linenos">383</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="get_filenames-384"><a href="#get_filenames-384"><span class="linenos">384</span></a>
-</span><span id="get_filenames-385"><a href="#get_filenames-385"><span class="linenos">385</span></a>        <span class="k">return</span> <span class="kc">None</span>
+</span><span id="get_filenames-383"><a href="#get_filenames-383"><span class="linenos">383</span></a>        <span class="k">return</span> <span class="kc">None</span>
 </span></pre></div>
 
 
@@ -1074,24 +1070,24 @@ reflect those of the United States Government or any agency thereof.</p>
 
     </div>
     <a class="headerlink" href="#get_filename"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_filename-387"><a href="#get_filename-387"><span class="linenos">387</span></a><span class="k">def</span> <span class="nf">get_filename</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="get_filename-388"><a href="#get_filename-388"><span class="linenos">388</span></a>
-</span><span id="get_filename-389"><a href="#get_filename-389"><span class="linenos">389</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
-</span><span id="get_filename-390"><a href="#get_filename-390"><span class="linenos">390</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span>
-</span><span id="get_filename-391"><a href="#get_filename-391"><span class="linenos">391</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</span><span id="get_filename-392"><a href="#get_filename-392"><span class="linenos">392</span></a>
-</span><span id="get_filename-393"><a href="#get_filename-393"><span class="linenos">393</span></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
-</span><span id="get_filename-394"><a href="#get_filename-394"><span class="linenos">394</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
-</span><span id="get_filename-395"><a href="#get_filename-395"><span class="linenos">395</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowStaysOnTopHint</span><span class="p">)</span>
-</span><span id="get_filename-396"><a href="#get_filename-396"><span class="linenos">396</span></a>    <span class="n">file_location</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">getOpenFileName</span><span class="p">()</span>
-</span><span id="get_filename-397"><a href="#get_filename-397"><span class="linenos">397</span></a>
-</span><span id="get_filename-398"><a href="#get_filename-398"><span class="linenos">398</span></a>    <span class="k">if</span> <span class="n">file_location</span><span class="p">:</span>
-</span><span id="get_filename-399"><a href="#get_filename-399"><span class="linenos">399</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
-</span><span id="get_filename-400"><a href="#get_filename-400"><span class="linenos">400</span></a>        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_filename-385"><a href="#get_filename-385"><span class="linenos">385</span></a><span class="k">def</span> <span class="nf">get_filename</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="get_filename-386"><a href="#get_filename-386"><span class="linenos">386</span></a>
+</span><span id="get_filename-387"><a href="#get_filename-387"><span class="linenos">387</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
+</span><span id="get_filename-388"><a href="#get_filename-388"><span class="linenos">388</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span>
+</span><span id="get_filename-389"><a href="#get_filename-389"><span class="linenos">389</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+</span><span id="get_filename-390"><a href="#get_filename-390"><span class="linenos">390</span></a>
+</span><span id="get_filename-391"><a href="#get_filename-391"><span class="linenos">391</span></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+</span><span id="get_filename-392"><a href="#get_filename-392"><span class="linenos">392</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
+</span><span id="get_filename-393"><a href="#get_filename-393"><span class="linenos">393</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowStaysOnTopHint</span><span class="p">)</span>
+</span><span id="get_filename-394"><a href="#get_filename-394"><span class="linenos">394</span></a>    <span class="n">file_location</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">getOpenFileName</span><span class="p">()</span>
+</span><span id="get_filename-395"><a href="#get_filename-395"><span class="linenos">395</span></a>
+</span><span id="get_filename-396"><a href="#get_filename-396"><span class="linenos">396</span></a>    <span class="k">if</span> <span class="n">file_location</span><span class="p">:</span>
+</span><span id="get_filename-397"><a href="#get_filename-397"><span class="linenos">397</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
+</span><span id="get_filename-398"><a href="#get_filename-398"><span class="linenos">398</span></a>        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
+</span><span id="get_filename-399"><a href="#get_filename-399"><span class="linenos">399</span></a>
+</span><span id="get_filename-400"><a href="#get_filename-400"><span class="linenos">400</span></a>    <span class="k">else</span><span class="p">:</span>
 </span><span id="get_filename-401"><a href="#get_filename-401"><span class="linenos">401</span></a>
-</span><span id="get_filename-402"><a href="#get_filename-402"><span class="linenos">402</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="get_filename-403"><a href="#get_filename-403"><span class="linenos">403</span></a>
-</span><span id="get_filename-404"><a href="#get_filename-404"><span class="linenos">404</span></a>        <span class="k">return</span> <span class="kc">None</span>
+</span><span id="get_filename-402"><a href="#get_filename-402"><span class="linenos">402</span></a>        <span class="k">return</span> <span class="kc">None</span>
 </span></pre></div>
 
 
@@ -1109,24 +1105,24 @@ reflect those of the United States Government or any agency thereof.</p>
 
     </div>
     <a class="headerlink" href="#get_dirname"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_dirname-406"><a href="#get_dirname-406"><span class="linenos">406</span></a><span class="k">def</span> <span class="nf">get_dirname</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="get_dirname-407"><a href="#get_dirname-407"><span class="linenos">407</span></a>
-</span><span id="get_dirname-408"><a href="#get_dirname-408"><span class="linenos">408</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
-</span><span id="get_dirname-409"><a href="#get_dirname-409"><span class="linenos">409</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span> 
-</span><span id="get_dirname-410"><a href="#get_dirname-410"><span class="linenos">410</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</span><span id="get_dirname-411"><a href="#get_dirname-411"><span class="linenos">411</span></a>
-</span><span id="get_dirname-412"><a href="#get_dirname-412"><span class="linenos">412</span></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
-</span><span id="get_dirname-413"><a href="#get_dirname-413"><span class="linenos">413</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
-</span><span id="get_dirname-414"><a href="#get_dirname-414"><span class="linenos">414</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowStaysOnTopHint</span><span class="p">)</span>
-</span><span id="get_dirname-415"><a href="#get_dirname-415"><span class="linenos">415</span></a>    <span class="n">file_location</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">getExistingDirectory</span><span class="p">()</span>
-</span><span id="get_dirname-416"><a href="#get_dirname-416"><span class="linenos">416</span></a>
-</span><span id="get_dirname-417"><a href="#get_dirname-417"><span class="linenos">417</span></a>    <span class="k">if</span> <span class="n">file_location</span><span class="p">:</span>
-</span><span id="get_dirname-418"><a href="#get_dirname-418"><span class="linenos">418</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
-</span><span id="get_dirname-419"><a href="#get_dirname-419"><span class="linenos">419</span></a>        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_dirname-404"><a href="#get_dirname-404"><span class="linenos">404</span></a><span class="k">def</span> <span class="nf">get_dirname</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="get_dirname-405"><a href="#get_dirname-405"><span class="linenos">405</span></a>
+</span><span id="get_dirname-406"><a href="#get_dirname-406"><span class="linenos">406</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
+</span><span id="get_dirname-407"><a href="#get_dirname-407"><span class="linenos">407</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span> 
+</span><span id="get_dirname-408"><a href="#get_dirname-408"><span class="linenos">408</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+</span><span id="get_dirname-409"><a href="#get_dirname-409"><span class="linenos">409</span></a>
+</span><span id="get_dirname-410"><a href="#get_dirname-410"><span class="linenos">410</span></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+</span><span id="get_dirname-411"><a href="#get_dirname-411"><span class="linenos">411</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
+</span><span id="get_dirname-412"><a href="#get_dirname-412"><span class="linenos">412</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowStaysOnTopHint</span><span class="p">)</span>
+</span><span id="get_dirname-413"><a href="#get_dirname-413"><span class="linenos">413</span></a>    <span class="n">file_location</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">getExistingDirectory</span><span class="p">()</span>
+</span><span id="get_dirname-414"><a href="#get_dirname-414"><span class="linenos">414</span></a>
+</span><span id="get_dirname-415"><a href="#get_dirname-415"><span class="linenos">415</span></a>    <span class="k">if</span> <span class="n">file_location</span><span class="p">:</span>
+</span><span id="get_dirname-416"><a href="#get_dirname-416"><span class="linenos">416</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
+</span><span id="get_dirname-417"><a href="#get_dirname-417"><span class="linenos">417</span></a>        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
+</span><span id="get_dirname-418"><a href="#get_dirname-418"><span class="linenos">418</span></a>
+</span><span id="get_dirname-419"><a href="#get_dirname-419"><span class="linenos">419</span></a>    <span class="k">else</span><span class="p">:</span>
 </span><span id="get_dirname-420"><a href="#get_dirname-420"><span class="linenos">420</span></a>
-</span><span id="get_dirname-421"><a href="#get_dirname-421"><span class="linenos">421</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="get_dirname-422"><a href="#get_dirname-422"><span class="linenos">422</span></a>
-</span><span id="get_dirname-423"><a href="#get_dirname-423"><span class="linenos">423</span></a>        <span class="k">return</span> <span class="kc">None</span>
+</span><span id="get_dirname-421"><a href="#get_dirname-421"><span class="linenos">421</span></a>        <span class="k">return</span> <span class="kc">None</span>
 </span></pre></div>
 
 
@@ -1144,36 +1140,36 @@ reflect those of the United States Government or any agency thereof.</p>
 
     </div>
     <a class="headerlink" href="#get_dirnames"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_dirnames-425"><a href="#get_dirnames-425"><span class="linenos">425</span></a><span class="k">def</span> <span class="nf">get_dirnames</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="get_dirnames-426"><a href="#get_dirnames-426"><span class="linenos">426</span></a>
-</span><span id="get_dirnames-427"><a href="#get_dirnames-427"><span class="linenos">427</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
-</span><span id="get_dirnames-428"><a href="#get_dirnames-428"><span class="linenos">428</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span><span class="p">,</span> <span class="n">QTreeView</span><span class="p">,</span> <span class="n">QListView</span><span class="p">,</span> <span class="n">QAbstractItemView</span>
-</span><span id="get_dirnames-429"><a href="#get_dirnames-429"><span class="linenos">429</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</span><span id="get_dirnames-430"><a href="#get_dirnames-430"><span class="linenos">430</span></a>
-</span><span id="get_dirnames-431"><a href="#get_dirnames-431"><span class="linenos">431</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">app</span><span class="p">:</span>
-</span><span id="get_dirnames-432"><a href="#get_dirnames-432"><span class="linenos">432</span></a>        <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
-</span><span id="get_dirnames-433"><a href="#get_dirnames-433"><span class="linenos">433</span></a>    <span class="c1"># file_dialog = QFileDialog()</span>
-</span><span id="get_dirnames-434"><a href="#get_dirnames-434"><span class="linenos">434</span></a>    <span class="c1"># file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)</span>
-</span><span id="get_dirnames-435"><a href="#get_dirnames-435"><span class="linenos">435</span></a>    <span class="c1"># file_location = file_dialog.getOpenFileNames()</span>
-</span><span id="get_dirnames-436"><a href="#get_dirnames-436"><span class="linenos">436</span></a>
-</span><span id="get_dirnames-437"><a href="#get_dirnames-437"><span class="linenos">437</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
-</span><span id="get_dirnames-438"><a href="#get_dirnames-438"><span class="linenos">438</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setFileMode</span><span class="p">(</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">DirectoryOnly</span><span class="p">)</span>
-</span><span id="get_dirnames-439"><a href="#get_dirnames-439"><span class="linenos">439</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setOption</span><span class="p">(</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">DontUseNativeDialog</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-</span><span id="get_dirnames-440"><a href="#get_dirnames-440"><span class="linenos">440</span></a>    <span class="n">file_view</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">findChild</span><span class="p">(</span><span class="n">QListView</span><span class="p">,</span> <span class="s1">&#39;listView&#39;</span><span class="p">)</span>
-</span><span id="get_dirnames-441"><a href="#get_dirnames-441"><span class="linenos">441</span></a>
-</span><span id="get_dirnames-442"><a href="#get_dirnames-442"><span class="linenos">442</span></a>    <span class="c1"># to make it possible to select multiple directories:</span>
-</span><span id="get_dirnames-443"><a href="#get_dirnames-443"><span class="linenos">443</span></a>    <span class="k">if</span> <span class="n">file_view</span><span class="p">:</span>
-</span><span id="get_dirnames-444"><a href="#get_dirnames-444"><span class="linenos">444</span></a>        <span class="n">file_view</span><span class="o">.</span><span class="n">setSelectionMode</span><span class="p">(</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">MultiSelection</span><span class="p">)</span>
-</span><span id="get_dirnames-445"><a href="#get_dirnames-445"><span class="linenos">445</span></a>    <span class="n">f_tree_view</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">findChild</span><span class="p">(</span><span class="n">QTreeView</span><span class="p">)</span>
-</span><span id="get_dirnames-446"><a href="#get_dirnames-446"><span class="linenos">446</span></a>    <span class="k">if</span> <span class="n">f_tree_view</span><span class="p">:</span>
-</span><span id="get_dirnames-447"><a href="#get_dirnames-447"><span class="linenos">447</span></a>        <span class="n">f_tree_view</span><span class="o">.</span><span class="n">setSelectionMode</span><span class="p">(</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">MultiSelection</span><span class="p">)</span>
-</span><span id="get_dirnames-448"><a href="#get_dirnames-448"><span class="linenos">448</span></a>
-</span><span id="get_dirnames-449"><a href="#get_dirnames-449"><span class="linenos">449</span></a>    <span class="k">if</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">exec</span><span class="p">():</span>
-</span><span id="get_dirnames-450"><a href="#get_dirnames-450"><span class="linenos">450</span></a>        <span class="n">paths</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">selectedFiles</span><span class="p">()</span>
-</span><span id="get_dirnames-451"><a href="#get_dirnames-451"><span class="linenos">451</span></a>
-</span><span id="get_dirnames-452"><a href="#get_dirnames-452"><span class="linenos">452</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
-</span><span id="get_dirnames-453"><a href="#get_dirnames-453"><span class="linenos">453</span></a>        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">:</span>
-</span><span id="get_dirnames-454"><a href="#get_dirnames-454"><span class="linenos">454</span></a>            <span class="k">yield</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_dirnames-423"><a href="#get_dirnames-423"><span class="linenos">423</span></a><span class="k">def</span> <span class="nf">get_dirnames</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="get_dirnames-424"><a href="#get_dirnames-424"><span class="linenos">424</span></a>
+</span><span id="get_dirnames-425"><a href="#get_dirnames-425"><span class="linenos">425</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
+</span><span id="get_dirnames-426"><a href="#get_dirnames-426"><span class="linenos">426</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span><span class="p">,</span> <span class="n">QTreeView</span><span class="p">,</span> <span class="n">QListView</span><span class="p">,</span> <span class="n">QAbstractItemView</span>
+</span><span id="get_dirnames-427"><a href="#get_dirnames-427"><span class="linenos">427</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+</span><span id="get_dirnames-428"><a href="#get_dirnames-428"><span class="linenos">428</span></a>
+</span><span id="get_dirnames-429"><a href="#get_dirnames-429"><span class="linenos">429</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">app</span><span class="p">:</span>
+</span><span id="get_dirnames-430"><a href="#get_dirnames-430"><span class="linenos">430</span></a>        <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+</span><span id="get_dirnames-431"><a href="#get_dirnames-431"><span class="linenos">431</span></a>    <span class="c1"># file_dialog = QFileDialog()</span>
+</span><span id="get_dirnames-432"><a href="#get_dirnames-432"><span class="linenos">432</span></a>    <span class="c1"># file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)</span>
+</span><span id="get_dirnames-433"><a href="#get_dirnames-433"><span class="linenos">433</span></a>    <span class="c1"># file_location = file_dialog.getOpenFileNames()</span>
+</span><span id="get_dirnames-434"><a href="#get_dirnames-434"><span class="linenos">434</span></a>
+</span><span id="get_dirnames-435"><a href="#get_dirnames-435"><span class="linenos">435</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
+</span><span id="get_dirnames-436"><a href="#get_dirnames-436"><span class="linenos">436</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setFileMode</span><span class="p">(</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">DirectoryOnly</span><span class="p">)</span>
+</span><span id="get_dirnames-437"><a href="#get_dirnames-437"><span class="linenos">437</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setOption</span><span class="p">(</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">DontUseNativeDialog</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+</span><span id="get_dirnames-438"><a href="#get_dirnames-438"><span class="linenos">438</span></a>    <span class="n">file_view</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">findChild</span><span class="p">(</span><span class="n">QListView</span><span class="p">,</span> <span class="s1">&#39;listView&#39;</span><span class="p">)</span>
+</span><span id="get_dirnames-439"><a href="#get_dirnames-439"><span class="linenos">439</span></a>
+</span><span id="get_dirnames-440"><a href="#get_dirnames-440"><span class="linenos">440</span></a>    <span class="c1"># to make it possible to select multiple directories:</span>
+</span><span id="get_dirnames-441"><a href="#get_dirnames-441"><span class="linenos">441</span></a>    <span class="k">if</span> <span class="n">file_view</span><span class="p">:</span>
+</span><span id="get_dirnames-442"><a href="#get_dirnames-442"><span class="linenos">442</span></a>        <span class="n">file_view</span><span class="o">.</span><span class="n">setSelectionMode</span><span class="p">(</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">MultiSelection</span><span class="p">)</span>
+</span><span id="get_dirnames-443"><a href="#get_dirnames-443"><span class="linenos">443</span></a>    <span class="n">f_tree_view</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">findChild</span><span class="p">(</span><span class="n">QTreeView</span><span class="p">)</span>
+</span><span id="get_dirnames-444"><a href="#get_dirnames-444"><span class="linenos">444</span></a>    <span class="k">if</span> <span class="n">f_tree_view</span><span class="p">:</span>
+</span><span id="get_dirnames-445"><a href="#get_dirnames-445"><span class="linenos">445</span></a>        <span class="n">f_tree_view</span><span class="o">.</span><span class="n">setSelectionMode</span><span class="p">(</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">MultiSelection</span><span class="p">)</span>
+</span><span id="get_dirnames-446"><a href="#get_dirnames-446"><span class="linenos">446</span></a>
+</span><span id="get_dirnames-447"><a href="#get_dirnames-447"><span class="linenos">447</span></a>    <span class="k">if</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">exec</span><span class="p">():</span>
+</span><span id="get_dirnames-448"><a href="#get_dirnames-448"><span class="linenos">448</span></a>        <span class="n">paths</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">selectedFiles</span><span class="p">()</span>
+</span><span id="get_dirnames-449"><a href="#get_dirnames-449"><span class="linenos">449</span></a>
+</span><span id="get_dirnames-450"><a href="#get_dirnames-450"><span class="linenos">450</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
+</span><span id="get_dirnames-451"><a href="#get_dirnames-451"><span class="linenos">451</span></a>        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">:</span>
+</span><span id="get_dirnames-452"><a href="#get_dirnames-452"><span class="linenos">452</span></a>            <span class="k">yield</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -1191,10 +1187,10 @@ reflect those of the United States Government or any agency thereof.</p>
 
     </div>
     <a class="headerlink" href="#chunks"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="chunks-456"><a href="#chunks-456"><span class="linenos">456</span></a><span class="k">def</span> <span class="nf">chunks</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-</span><span id="chunks-457"><a href="#chunks-457"><span class="linenos">457</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Yield successive n-sized chunks from lst.&quot;&quot;&quot;</span>
-</span><span id="chunks-458"><a href="#chunks-458"><span class="linenos">458</span></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">),</span> <span class="n">n</span><span class="p">):</span>
-</span><span id="chunks-459"><a href="#chunks-459"><span class="linenos">459</span></a>        <span class="k">yield</span> <span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">n</span><span class="p">]</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="chunks-454"><a href="#chunks-454"><span class="linenos">454</span></a><span class="k">def</span> <span class="nf">chunks</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+</span><span id="chunks-455"><a href="#chunks-455"><span class="linenos">455</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Yield successive n-sized chunks from lst.&quot;&quot;&quot;</span>
+</span><span id="chunks-456"><a href="#chunks-456"><span class="linenos">456</span></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">),</span> <span class="n">n</span><span class="p">):</span>
+</span><span id="chunks-457"><a href="#chunks-457"><span class="linenos">457</span></a>        <span class="k">yield</span> <span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">n</span><span class="p">]</span>
 </span></pre></div>
 
 
@@ -1214,13 +1210,13 @@ reflect those of the United States Government or any agency thereof.</p>
 
     </div>
     <a class="headerlink" href="#corems_md5"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="corems_md5-461"><a href="#corems_md5-461"><span class="linenos">461</span></a><span class="k">def</span> <span class="nf">corems_md5</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="corems_md5-459"><a href="#corems_md5-459"><span class="linenos">459</span></a><span class="k">def</span> <span class="nf">corems_md5</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+</span><span id="corems_md5-460"><a href="#corems_md5-460"><span class="linenos">460</span></a>
+</span><span id="corems_md5-461"><a href="#corems_md5-461"><span class="linenos">461</span></a>    <span class="n">bytes_io</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 </span><span id="corems_md5-462"><a href="#corems_md5-462"><span class="linenos">462</span></a>
-</span><span id="corems_md5-463"><a href="#corems_md5-463"><span class="linenos">463</span></a>    <span class="n">bytes_io</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</span><span id="corems_md5-463"><a href="#corems_md5-463"><span class="linenos">463</span></a>    <span class="n">md5_returned</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">bytes_io</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
 </span><span id="corems_md5-464"><a href="#corems_md5-464"><span class="linenos">464</span></a>
-</span><span id="corems_md5-465"><a href="#corems_md5-465"><span class="linenos">465</span></a>    <span class="n">md5_returned</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">bytes_io</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
-</span><span id="corems_md5-466"><a href="#corems_md5-466"><span class="linenos">466</span></a>
-</span><span id="corems_md5-467"><a href="#corems_md5-467"><span class="linenos">467</span></a>    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;sha256&quot;</span><span class="p">,</span> <span class="n">md5_returned</span><span class="p">)</span>
+</span><span id="corems_md5-465"><a href="#corems_md5-465"><span class="linenos">465</span></a>    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;sha256&quot;</span><span class="p">,</span> <span class="n">md5_returned</span><span class="p">)</span>
 </span></pre></div>
 
 
