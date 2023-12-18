@@ -4,8 +4,7 @@
 
 <br>
 <br>
-<a href="https://doi.org/10.5281/zenodo.4641553"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.4641553.svg" alt="CoreMS DOI" style="width:150px;height:25px;"></a>
-<br>
+<a href="https://doi.org/10.5281/zenodo.4641552"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.4641552.svg" alt="CoreMS DOI" style="width:150px;height:25px;"></a>
 <br>
 </div>
 
@@ -303,11 +302,11 @@ UML (unified modeling language) diagrams for Direct Infusion FT-MS and GC-MS cla
 If you use CoreMS in your work, please use the following citation:
 Version [2.0.0 Release on GitHub](https://github.com/EMSL-Computing/CoreMS/releases/tag/v2.0.0), archived on Zenodo:  
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4641553.svg)](https://doi.org/10.5281/zenodo.4641553)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4641552.svg)](https://doi.org/10.5281/zenodo.4641552)
 ```
-Yuri E. Corilo, William R. Kew, Lee Ann McCue (2021, March 27). EMSL-Computing/CoreMS: CoreMS 2.0.0 (Version v2.0.0), as developed on Github. Zenodo. http://doi.org/10.5281/zenodo.4641553
+Yuri E. Corilo, William R. Kew, Lee Ann McCue (2021, March 27). EMSL-Computing/CoreMS: CoreMS 2.0.0 (Version v2.0.0), as developed on Github. Zenodo. http://doi.org/10.5281/zenodo.4641552
 ```
-## Disclaimer
+
 
 This material was prepared as an account of work sponsored by an agency of the
 United States Government.  Neither the United States Government nor the United
