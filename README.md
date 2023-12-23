@@ -14,6 +14,7 @@
   - [CoreMS](#CoreMS)  
   - [Current Version](#current-version)  
   - [Contact Information](#main-developers/contact )  
+  - [Contribution Information](#contributing)
   - [Data Input](#data-input-formats)  
   - [Data Output](#data-output-formats)  
   - [Data Structure](#data-structure-types)  
@@ -53,6 +54,12 @@ CoreMS aims to provide
 ## Main Developers/Contact 
 - [Yuri. E. Corilo](mailto:corilo@pnnl.gov)  
 - [William Kew](mailto:william.kew@pnnl.gov)
+
+## Contributing
+
+As an open source project, pdoc welcomes contributions of all forms.
+
+[![Dev Guide](https://shields.mitmproxy.org/badge/dev_docs-CONTRIBUTING.md-blue)](./CONTRIBUTING.md)
 
 ## Data formats
 ### Data input formats
