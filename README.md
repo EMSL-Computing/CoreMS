@@ -57,9 +57,7 @@ CoreMS aims to provide
 
 ## Contributing
 
-As an open source project, pdoc welcomes contributions of all forms.
-
-[![Dev Guide](https://shields.mitmproxy.org/badge/dev_docs-CONTRIBUTING.md-blue)](./CONTRIBUTING.md)
+As an open source project, CoreMS welcomes contributions of all forms. Before contributing, please see our [Dev Guide](./CONTRIBUTING.md)
 
 ## Data formats
 ### Data input formats

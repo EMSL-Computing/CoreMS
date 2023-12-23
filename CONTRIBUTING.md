@@ -1,24 +1,3 @@
-class MyClass:
-    def __init__(self, name):
-        self.name = name
-
-    def greet(self):
-        """
-        Greets the user with the name of the instance.
-
-        Returns:
-            str: A greeting message.
-        """
-        return f"Hello, {self.name}!"
-
-    def farewell(self):
-        """
-        Bids farewell to the user.
-
-        Returns:
-            str: A farewell message.
-        """
-        return f"Goodbye, {self.name}!"
 # Contributing to CoreMS
 
 Thank you for considering contributing to CoreMS! We appreciate your interest in helping us improve our project. This document outlines the guidelines and steps for contributing to CoreMS.
@@ -26,7 +5,7 @@ Thank you for considering contributing to CoreMS! We appreciate your interest in
 ## Table of Contents
 
 - [Getting Started](#getting-started)
-- [Contributing Guidelines](#contributing-guidelines)
+- [Merge Request Checklist](#merge-request-checklist)
 - [Code Style](#code-style)
 - [Submitting a Pull Request](#submitting-a-pull-request)
 - [Issue Reporting](#issue-reporting)
@@ -36,13 +15,12 @@ Thank you for considering contributing to CoreMS! We appreciate your interest in
 
 To get started with contributing to CoreMS, please follow these steps:
 
-0. Create an issue proposing a fix or expanded functionality and make sure it's substantially different from an existing one.
-1. Fork the CoreMS repository. If you are part of the development team, you can forgo a fork and instead make a branch.
-2. Clone your forked repository to your local machine.
+1. Create an issue proposing a fix or expanded functionality and make sure it's substantially different from an existing one.
+2. Fork the CoreMS repository. If you are part of the development team, you can forgo a fork and instead make a branch.
 3. Install the necessary dependencies. Refer to the [README](./README.md) for detailed installation instructions.
 4. Make your changes or additions.
 5. Test your changes thoroughly.
-6. Commit your changes and push them to your forked repository.
+6. Commit your changes and push them to your forked repository. Reference your original issue in your commits (i.e. closes #23)
 7. Submit a merge request to the main CoreMS repository and select an appropriate reviewer for the changes. Note the merge request checklist below that will be checked before each merge into the master branch. See the merge request checkliist
 
 ## Merge Request Checklist
@@ -57,15 +35,6 @@ Before merging *into the master branch*, each of these will be checked by a revi
 3. Unit tests must be added or updated to cover the changes made.
 4. Documentation must be updated and rerendered to reflect any new features or changes.
 5. Any relevant issues or pull requests should be referenced in the merge request (i.e. closes #23).
-
-## Contributing Guidelines
-
-Please adhere to the following guidelines when contributing to CoreMS:
-
-- Follow the code style and conventions used in the project.
-- Write clear and concise commit messages.
-- Document any new features or changes in the appropriate places.
-- Be respectful and considerate towards other contributors.
 
 ## Code Style
 
