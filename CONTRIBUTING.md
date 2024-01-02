@@ -7,7 +7,6 @@ Thank you for considering contributing to CoreMS! We appreciate your interest in
 - [Getting Started](#getting-started)
 - [Merge Request Checklist](#merge-request-checklist)
 - [Code Style](#code-style)
-- [Submitting a Pull Request](#submitting-a-pull-request)
 - [Issue Reporting](#issue-reporting)
 - [License](#license)
 
@@ -28,7 +27,7 @@ To get started with contributing to CoreMS, please follow these steps:
 Before merging *into the master branch*, each of these will be checked by a reviewer.
 
 1. CI/CD pipeline must pass.
-2. Each merge request must be accompanied by an appropriate bump in version number, following the major.minor.patch format (semantic versioning). This change must be made on the Bump2version configuration file at the root directory *and* in the corems/__init.py__ file (for documentation).  
+2. Each merge request must be accompanied by an appropriate bump in version number, following the major.minor.patch format (semantic versioning). 
     - Major: Incremented when making incompatible API changes.
     - Minor: Incremented when adding new features in a backwards-compatible manner.
     - Patch: Incremented for backwards-compatible bug fixes.
@@ -38,7 +37,9 @@ Before merging *into the master branch*, each of these will be checked by a revi
 
 ## Code Style
 
-CoreMS follows the [NumPy documentation style guide](https://numpydoc.readthedocs.io/en/latest/format.html). Please ensure that your code adheres to this style to maintain consistency throughout the project.
+CoreMS follows the [NumPy documentation style guide](https://numpydoc.readthedocs.io/en/latest/format.html). Please ensure that your code adheres to this style to maintain consistency throughout the project.  
+
+Documentation is rendered using the [pdoc package](https://github.com/mitmproxy/pdoc/tree/main).
 
 ## Issue Reporting
 
