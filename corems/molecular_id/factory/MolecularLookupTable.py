@@ -125,7 +125,8 @@ class MolecularCombinations:
         Gets the hydrogen odd or even.  
     * get_total_halogen_atoms(class_dict)  
         Gets the total number of halogen atoms.  
-    
+    * get_total_hetero_valence(class_dict)
+        Gets the total valence of heteroatoms other than N, F, Cl, and Br
     """
 
     def __init__(self, sql_db = None):
@@ -708,9 +709,9 @@ class MolecularCombinations:
         """
         
         HAS_NITROGEN = 'N' in class_dict.keys()
-        HAS_PHOSPHORUS = 'P' in class_dict.keys()
 
         number_of_halogen = self.get_total_halogen_atoms(class_dict)
+        number_of_hetero = self.get_total_heteroatoms(class_dict)
 
         if number_of_halogen > 0:
 
@@ -728,58 +729,144 @@ class MolecularCombinations:
 
             remaining_halogen = 0
 
-        if HAS_NITROGEN and HAS_PHOSPHORUS:
 
-            number_of_n = class_dict.get('N') + class_dict.get('P')
-            remaining_n = number_of_n % 2
+        if number_of_hetero > 0:
 
-        elif HAS_NITROGEN and not HAS_PHOSPHORUS:
+            HAS_OTHER_HETERO = True
 
-            number_of_n = class_dict.get('N')
-            remaining_n = number_of_n % 2
+            total_hetero_valence = self.get_total_hetero_valence(class_dict)
+        
+        else: 
 
-        elif HAS_PHOSPHORUS and not HAS_NITROGEN:
+            HAS_OTHER_HETERO = False
 
-            number_of_n = class_dict.get('P')
-            remaining_n = number_of_n % 2
+            total_hetero_valence = 0
 
-        else:
+            if HAS_OTHER_HETERO:
 
-            remaining_n = -1
+                remaining_hetero_valence = total_hetero_valence % 2
 
-        if remaining_n > 0.0:
-            if HAS_NITROGEN or HAS_PHOSPHORUS:
-
-                if TEM_HALOGEN:
-                    if remaining_halogen == 0:
-                        return 'odd'
-                    else:
-                        return 'even'
-                else:
-                    return 'odd'
-
-        elif remaining_n == 0.0:
-
-            if HAS_NITROGEN or HAS_PHOSPHORUS:
-
-                if TEM_HALOGEN:
-                    if remaining_halogen == 0:
-                        return 'even'
-                    else:
-                        return 'odd'
-                else:
-                    return 'even'
-
-        else:
-
-            if TEM_HALOGEN:
-                if remaining_halogen == 0:
-                    return 'even'
-                else:
-                    return 'odd'
             else:
-                return 'even'
 
+                remaining_hetero_valence = 0
+
+            
+            if HAS_NITROGEN and not HAS_OTHER_HETERO:
+
+                number_of_n = class_dict.get('N')
+                remaining_n = number_of_n % 2
+
+            elif HAS_NITROGEN and HAS_OTHER_HETERO:
+
+                number_of_n = class_dict.get('N') 
+                remaining_n = (number_of_n + remaining_hetero_valence )% 2 
+
+            elif HAS_OTHER_HETERO and not HAS_NITROGEN:
+
+                remaining_n = remaining_hetero_valence
+
+            else:
+
+                remaining_n = -1
+
+            if remaining_n > 0.0:
+
+                if HAS_NITROGEN or HAS_OTHER_HETERO:
+
+                    if TEM_HALOGEN:
+                        if remaining_halogen == 0:
+                            return 'odd'
+                        else:
+                            return 'even'
+                    
+                    else:
+                        return 'odd'
+
+            elif remaining_n == 0.0:
+
+                if HAS_NITROGEN or HAS_OTHER_HETERO:
+
+                    if TEM_HALOGEN:
+                        if remaining_halogen == 0:
+                            return 'even'
+                        else:
+                            return 'odd'
+                    
+                    else:
+                        return 'even'
+                    
+            else:
+
+                if TEM_HALOGEN:
+                    if remaining_halogen == 0:
+                        return 'even'
+                    else:
+                        return 'odd'
+                
+                else:
+                    return 'even'
+            
+            
+
+    @staticmethod
+    def get_total_heteroatoms(class_dict):
+        """ Get the total number of heteroatoms other than N, F, Cl, Br
+        
+        Parameters
+        ----------
+        class_dict : dict
+            A dictionary of classes.
+        
+        Returns
+        -------
+        int
+            The total number of heteroatoms.
+        """
+
+        total_number = 0
+        
+        for atom in class_dict.keys():
+
+            if atom not in ['HC','C','H','O','N', 'F', 'Cl', 'Br']:
+                total_number = total_number + class_dict.get(atom)
+        
+        return total_number                
+
+    @staticmethod
+    def get_total_hetero_valence(class_dict):
+        """ Get the total valence of heteroatoms other than N, F, Cl, Br
+        
+        Parameters
+        ----------
+        class_dict : dict
+            A dictionary of classes.
+        
+        Returns
+        -------
+        int
+            The total heteroatom valence.
+        """
+        total_valence = 0
+        
+        for atom in class_dict.keys():
+
+            if atom not in ['HC','C','H','O','N', 'F', 'Cl', 'Br']:
+
+                clean_atom = ''.join([i for i in atom if not i.isdigit()]) 
+
+                atom_valence = MSParameters.molecular_search.used_atom_valences.get(clean_atom)
+
+                if type(atom_valence) is tuple:
+                    atom_valence = atom_valence[0]
+
+                n_atom =int(class_dict.get(atom))
+
+                n_atom_valence = atom_valence * n_atom
+                
+                total_valence = total_valence + n_atom_valence
+
+        return total_valence  
+    
     @staticmethod
     def get_total_halogen_atoms(class_dict):
         """ Get the total number of halogen atoms
@@ -794,7 +881,7 @@ class MolecularCombinations:
         int
             The total number of halogen atoms.
         """
-        atoms = ['F', 'Cl', 'Br', 'I']
+        atoms = ['F', 'Cl', 'Br']
 
         total_number = 0
         
