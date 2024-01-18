@@ -12,7 +12,8 @@ from pathlib import Path
 from typing import List, Dict, List, Tuple
 import sys
 import site
-
+import numpy as np
+import pandas as pd
 
 from matplotlib import axes
 import numpy as np
@@ -22,6 +23,7 @@ from corems.encapsulation.factory.processingSetting import LiquidChromatographSe
 
 from corems.mass_spectra.calc.LC_Calc import LC_Calculations
 from corems.mass_spectra.factory.LC_Temp import TIC_Data, EIC_Data
+from corems.mass_spectrum.input.numpyArray import ms_from_array_profile, ms_from_array_centroid
 
 import clr
 
@@ -37,6 +39,210 @@ from ThermoFisher.CommonCore.Data.Business import ChromatogramTraceSettings, Tra
 from ThermoFisher.CommonCore.Data.Business import ChromatogramSignal, Range
 from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType
 from ThermoFisher.CommonCore.Data.Interfaces import IChromatogramSettings
+
+class MassSpectraBase():
+    """Base class for mass spectra objects.  
+
+    Parameters
+    -----------
+    file_location : str or Path
+        The location of the file containing the mass spectra data.
+    analyzer : str, optional
+        The type of analyzer used to generate the mass spectra data. Defaults to 'Unknown'.
+    instrument_label : str, optional
+        The type of instrument used to generate the mass spectra data. Defaults to 'Unknown'.
+    sample_name : str, optional
+        The name of the sample; defaults to the file name if not provided to the parser. Defaults to None.
+    spectra_parser : object, optional
+        The spectra parser object used to create the mass spectra object. Defaults to None.
+
+    Attributes
+    -----------
+    spectra_parser_class : class
+        The class of the spectra parser used to create the mass spectra object.
+    file_location : str or Path
+        The location of the file containing the mass spectra data.
+    sample_name : str
+        The name of the sample; defaults to the file name if not provided to the parser.
+    analyzer : str
+        The type of analyzer used to generate the mass spectra data. Derived from the spectra parser.
+    instrument_label : str
+        The type of instrument used to generate the mass spectra data. Derived from the spectra parser.
+    _scan_info : dict
+        A dictionary containing the scan data with columns for scan number, scan time, ms level, precursor m/z, scan text, and scan window (lower and upper). Associated with the property scan_df, which returns a pandas DataFrame or can set this attribute from a pandas DataFrame.
+    _ms : dict
+        A dictionary containing mass spectra for the dataset, keys of dictionary are scan numbers. Initialized as an empty dictionary.
+    _ms_unprocessed: dictionary of pandas.DataFrames or None
+        A dictionary of unprocssed mass spectra data, as an (optional) intermediate data product for peak picking.  Key is ms_level, and value is dataframe with columns for scan number, m/z, and intensity. Default is None.
+    
+    Methods
+    --------
+    * add_mass_spectrum(MassSpecBase).
+        Adds a MassSpecBase object to the dataset within the _ms dictionary.
+    * add_mass_spectra(scan_list, spectrum_mode: str = 'profile', use_parser = True, auto_process=True).
+        Add mass spectra to _ms slot, from a list of scans
+    """
+    def __init__(
+            self, 
+            file_location, 
+            analyzer='Unknown', 
+            instrument_label='Unknown', 
+            sample_name=None,
+            spectra_parser = None
+            ):
+
+        if isinstance(file_location, str):
+            file_location = Path(file_location)
+        else:
+            file_location = file_location
+        if not file_location.exists():
+            raise FileExistsError("File does not exist: " + str(file_location))
+        
+        self.file_location = file_location
+        self.sample_name = sample_name
+        self.analyzer = analyzer
+        self.instrument_label = instrument_label
+
+        # Add the spectra parser class to the object if it is not None
+        if spectra_parser is not None:
+            self.spectra_parser_class = spectra_parser.__class__
+            self.spectra_parser = spectra_parser
+            # Check that spectra_pasrser.sample_name is same as sample_name etc, raise warning if not
+            if self.sample_name is not None and self.sample_name != self.spectra_parser.sample_name:
+                logging.warning("sample_name provided to MassSpectraBase object does not match sample_name provided to spectra parser object")
+            if self.analyzer != self.spectra_parser.analyzer:
+                logging.warning("analyzer provided to MassSpectraBase object does not match analyzer provided to spectra parser object")
+            if self.instrument_label != self.spectra_parser.instrument_label:
+                logging.warning("instrument provided to MassSpectraBase object does not match instrument provided to spectra parser object")
+            if self.file_location != self.spectra_parser.file_location:
+                logging.warning("file_location provided to MassSpectraBase object does not match file_location provided to spectra parser object")  
+
+        # Instantiate empty dictionaries for scan information and mass spectra
+        self._scan_info = {}
+        self._ms = {}
+        self._ms_unprocessed = None
+    
+
+    def add_mass_spectra(self, scan_list, spectrum_mode: str = 'profile', ms_level = 1, use_parser = True, auto_process=True):
+        """Add mass spectra to _ms dictionary, from a list of scans or single scan
+
+        Notes
+        -----
+        The mass spectra will inherit the mass_spectrum, ms_peak, and molecular_search parameters from the LCMSBase object.
+
+        
+        Parameters
+        -----------
+        scan_list : list of ints
+            List of scans to use to populate _ms slot
+        spectrum_mode : str, optional
+            The spectrum mode to use for the mass spectra.  Only profile mode is currently supported. Defaults to 'profile'.
+        ms_level : int, optional
+            The MS level to use for the mass spectra.  This is used to pass the molecular_search parameters from the LCMS object to the individual MassSpectrum objects. Defaults to 1.
+        using_parser : bool
+            Whether to use the mass spectra parser to get the mass spectra.  Defaults to True.
+        auto_process : bool
+            Whether to auto-process the mass spectra.  Defaults to True.
+
+        Raises
+        ------
+        TypeError
+            If scan_list is not a list of ints
+        ValueError
+            If polarity is not 'positive' or 'negative' or if it is a mix
+            If ms_level is not 1 or 2
+        """
+        def add_mass_spectrum(self, mass_spec):
+            """Adds a mass spectrum to the dataset.
+
+            Parameters
+            -----------
+            mass_spec : MassSpectrum
+                The corems MassSpectrum object to be added to the dataset.
+
+            Notes
+            -----
+            This is a helper function for the add_mass_spectra() method, and is not intended to be called directly.
+            """
+            # check if mass_spec has a scan_number attribute
+            if not hasattr(mass_spec, 'scan_number'):
+                raise ValueError("Mass spectrum must have a scan_number attribute to be added to the dataset correctly")
+            self._ms[mass_spec.scan_number] = mass_spec
+        
+        # check if scan_list is a list or a single int; if single int, convert to list
+        if isinstance(scan_list, int):
+            scan_list = [scan_list]
+        if not isinstance(scan_list, list):
+            raise TypeError("scan_list must be a list of integers")
+        for scan in scan_list:
+            if not isinstance(scan, int):
+                raise TypeError("scan_list must be a list of integers")
+            
+        # set polarity to -1 if negative mode, 1 if positive mode (for mass spectrum creation)
+        if self.polarity == set(['negative']):
+            polarity = -1
+        elif self.polarity == set(['positive']):
+            polarity = 1
+        else:
+            raise ValueError("Polarity not set for dataset, must be a set containing either 'positive' or 'negative'")
+        
+        # is not using_parser, check that ms1 and ms2 are not None
+        if use_parser == False:
+            if ms_level not in self._ms_unprocessed.keys():
+                raise ValueError("ms_level {} not found in _ms_unprocessed dictionary".format(ms_level))
+        
+        scan_list = list(set(scan_list))
+        scan_list.sort()
+        for scan in scan_list: 
+            ms = None
+            # Instantiate the mass spectrum object using the parser or the unprocessed data
+            if use_parser == False:
+                if self._ms_unprocessed[ms_level] is not None and scan in self._ms_unprocessed[ms_level].scan.tolist():
+                    my_ms_df = self._ms_unprocessed[ms_level][self._ms_unprocessed[ms_level].scan == scan]
+                    ms = ms_from_array_profile(my_ms_df.mz, my_ms_df.intensity, self.file_location, polarity=polarity, auto_process=False)
+            if use_parser == True:
+                ms = self.spectra_parser.get_mass_spectrum_from_scan(scan_number = scan, spectrum_mode = spectrum_mode, polarity = polarity, auto_process=auto_process)
+            
+            # Set the mass spectrum parameters, auto-process if auto_process is True, and add to the dataset
+            if ms is not None:
+                ms.parameters.mass_spectrum = self.parameters.mass_spectrum
+                ms.parameters.ms_peak = self.parameters.ms_peak
+                if ms_level == 1:
+                    ms.parameters.molecular_search = self.parameters.ms1_molecular_search
+                elif ms_level == 2:
+                    ms.parameters.molecular_search = self.parameters.ms2_molecular_search
+                else:
+                    raise ValueError("ms_level must be 1 or 2")
+                ms.scan_number = scan
+                if len(ms.mz_exp_profile) > 3:
+                    if auto_process:
+                        ms.process_mass_spec()
+                self.add_mass_spectrum(ms)
+    
+    @property
+    def scan_df(self):
+        """
+        pandas.DataFrame : A pandas DataFrame containing the scan info data with columns for scan number, scan time, ms level, precursor m/z, scan text, and scan window (lower and upper).
+        """
+        scan_df = pd.DataFrame.from_dict(self._scan_info)
+        return scan_df
+    
+    @scan_df.setter
+    def scan_df(self, df):
+        """
+        Sets the scan data for the dataset.
+
+        Parameters
+        -----------
+        df : pandas.DataFrame
+            A pandas DataFrame containing the scan data with columns for scan number, scan time, ms level, precursor m/z, scan text, and scan window (lower and upper).
+        """
+        self._scan_info = df.to_dict()    
+
+    def __getitem__(self, scan_number):
+        
+        return self._ms.get(scan_number)
+
 
 class LCMSBase(Mapping, LC_Calculations):
     """
