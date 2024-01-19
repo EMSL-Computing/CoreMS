@@ -102,7 +102,24 @@ class MassSpectraBase():
         self._ms = {}
         self._ms_unprocessed = None
     
+    def add_mass_spectrum(self, mass_spec):
+        """Adds a mass spectrum to the dataset.
 
+        Parameters
+        -----------
+        mass_spec : MassSpectrum
+            The corems MassSpectrum object to be added to the dataset.
+
+        Notes
+        -----
+        This is a helper function for the add_mass_spectra() method, and is not intended to be called directly.
+        """
+        # check if mass_spec has a scan_number attribute
+        if not hasattr(mass_spec, 'scan_number'):
+            raise ValueError("Mass spectrum must have a scan_number attribute to be added to the dataset correctly")
+        self._ms[mass_spec.scan_number] = mass_spec
+    
+    
     def add_mass_spectra(self, scan_list, spectrum_mode: str = 'profile', ms_level = 1, use_parser = True, auto_process=True):
         """Add mass spectra to _ms dictionary, from a list of scans or single scan
 
@@ -132,23 +149,7 @@ class MassSpectraBase():
             If polarity is not 'positive' or 'negative' or if it is a mix
             If ms_level is not 1 or 2
         """
-        def add_mass_spectrum(self, mass_spec):
-            """Adds a mass spectrum to the dataset.
 
-            Parameters
-            -----------
-            mass_spec : MassSpectrum
-                The corems MassSpectrum object to be added to the dataset.
-
-            Notes
-            -----
-            This is a helper function for the add_mass_spectra() method, and is not intended to be called directly.
-            """
-            # check if mass_spec has a scan_number attribute
-            if not hasattr(mass_spec, 'scan_number'):
-                raise ValueError("Mass spectrum must have a scan_number attribute to be added to the dataset correctly")
-            self._ms[mass_spec.scan_number] = mass_spec
-        
         # check if scan_list is a list or a single int; if single int, convert to list
         if isinstance(scan_list, int):
             scan_list = [scan_list]
