@@ -78,8 +78,12 @@ class MassSpectraBase():
         if not file_location.exists():
             raise FileExistsError("File does not exist: " + str(file_location))
         
+        if sample_name: 
+            self.sample_name = sample_name
+        else: 
+            self.sample_name = file_location.stem
+        
         self.file_location = file_location
-        self.sample_name = sample_name
         self.analyzer = analyzer
         self.instrument_label = instrument_label
 
