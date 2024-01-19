@@ -104,7 +104,7 @@ class MassSpectraBase():
         # Instantiate empty dictionaries for scan information and mass spectra
         self._scan_info = {}
         self._ms = {}
-        self._ms_unprocessed = None
+        self._ms_unprocessed = {}
     
     def add_mass_spectrum(self, mass_spec):
         """Adds a mass spectrum to the dataset.
@@ -519,6 +519,25 @@ class LCMSBase(MassSpectraBase, LC_Calculations):
             raise ValueError("Scan number list already set, use overwrite=True to overwrite")
         
         self.scans_number = sorted(self._ms.keys())
+
+    @property
+    def parameters(self):
+        """
+        LCMSParameters : The parameters used for the LC-MS analysis.
+        """
+        return self._parameters
+
+    @parameters.setter
+    def parameters(self, paramsinstance):
+        """
+        Sets the parameters used for the LC-MS analysis.
+
+        Parameters
+        -----------
+        paramsinstance : LCMSParameters
+            The parameters used for the LC-MS analysis.
+        """
+        self._parameters = paramsinstance
 
     @property
     def scans_number(self):
