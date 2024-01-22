@@ -1,38 +1,38 @@
-![CoreMS Logo](docs/CoreMS.COLOR_small.png)  
+![CoreMS Logo](https://github.com/EMSL-Computing/CoreMS/blob/v2.0.0/docs/CoreMS.COLOR_small.png?raw=true)  
 
 <div align="left">
 
 <br>
 <br>
-<a href="https://doi.org/10.5281/zenodo.4641552"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.4641552.svg" alt="CoreMS DOI" style="width:150px;height:25px;"></a>
+<a href="https://doi.org/10.5281/zenodo.4641552"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.4641552.svg" alt="CoreMS DOI" style="width:150px"></a>
 <br>
 </div>
 
-***
 # Table of Contents  
 - Introduction
   - [CoreMS](#CoreMS)  
   - [Current Version](#current-version)  
   - [Contact Information](#main-developers/contact )  
+  - [Contribution Information](#contributing)
   - [Data Input](#data-input-formats)  
   - [Data Output](#data-output-formats)  
   - [Data Structure](#data-structure-types)  
   - [Features](#available-features)  
   - [Overview Slides](examples/CoreMS-Overview.pdf)
   - [Framework Documentation](https://emsl-computing.github.io/CoreMS/)
-- Installation  
+- Installation
   - [Installation](#corems-installation)  
   - [Thermo Raw File on Mac and Linux](#thermo-raw-file-access)  
-- Execution:     
+- Execution     
   - [Jupyter Notebook and Docker containers](#docker-stack)  
   - [Simple Example](#simple-script-example)  
   - [Python Examples](examples/scripts)
   - [Jupyter Notebook Examples](examples/notebooks)  
-  
-
-- Sibling Projects:     
+- Sibling Projects    
     - [EnviroMS](https://github.com/EMSL-Computing/EnviroMS)  
     - [MetaMS](https://github.com/EMSL-Computing/MetaMS)  
+
+***
 
 # CoreMS
 
@@ -46,13 +46,25 @@ CoreMS aims to provide
 - modern molecular formulae assignment algorithms
 - dynamic molecular search space database search and generator
 
+***
+
 ## Current Version
 
  `2.0`
 
+***
+
 ## Main Developers/Contact 
 - [Yuri. E. Corilo](mailto:corilo@pnnl.gov)  
 - [William Kew](mailto:william.kew@pnnl.gov)
+
+***
+
+## Contributing
+
+As an open source project, CoreMS welcomes contributions of all forms. Before contributing, please see our [Dev Guide](./CONTRIBUTING.md)
+
+***
 
 ## Data formats
 ### Data input formats
@@ -93,7 +105,8 @@ CoreMS aims to provide
 - Collections 
 - Molecular Structure
 
----
+***
+
 ## Available features
 
 ### FT-MS Signal Processing, Calibration, and Molecular Formula Search and Assignment
@@ -134,7 +147,8 @@ CoreMS aims to provide
 - Prediction of mass error distribution
 - Calculated ICR Resolving Power based on magnetic field (B), and transient time(T)
 
----
+***
+
 ## Installation 
     
 ```bash
@@ -166,7 +180,8 @@ To be able to open thermo file a installation of pythonnet is needed:
     pip install pythonnet   
     ```  
 
----
+***
+
 ## Docker stack 
 
 Another option to use CoreMS is to run the docker stack that will start the CoreMS containers
@@ -221,7 +236,9 @@ If you don't have docker installed, the easiest way is to [install docker for de
 
     - Open the CoreMS-Tutorial.ipynb
 
-___
+
+***
+
 ## Simple Script Example
 
 More examples can be found under the directory examples/scripts, examples/notebooks
@@ -293,9 +310,14 @@ mass_spectrum_obj.to_pandas("filename")
 # Extract data as a pandas Dataframe
 df = mass_spectrum_obj.to_dataframe()
 ```
+
+***
+
 ## UML Diagrams
 
 UML (unified modeling language) diagrams for Direct Infusion FT-MS and GC-MS classes can be found [here](docs/uml).
+
+***
 
 ## Citing CoreMS
 
@@ -306,6 +328,8 @@ Version [2.0.0 Release on GitHub](https://github.com/EMSL-Computing/CoreMS/relea
 ```
 Yuri E. Corilo, William R. Kew, Lee Ann McCue (2021, March 27). EMSL-Computing/CoreMS: CoreMS 2.0.0 (Version v2.0.0), as developed on Github. Zenodo. http://doi.org/10.5281/zenodo.4641552
 ```
+
+***
 
 
 This material was prepared as an account of work sponsored by an agency of the

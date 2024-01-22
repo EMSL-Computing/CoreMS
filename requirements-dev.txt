@@ -7,3 +7,4 @@ twine
 bumpversion
 psutil>=5.6.6
 PyWavelets
+pdoc~=14.1.0
