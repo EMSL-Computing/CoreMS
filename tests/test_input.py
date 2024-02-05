@@ -92,8 +92,8 @@ def test_import_lcms_from_transient():
     lcms = read_lcms.get_lcms_obj()
     lcms.find_nearest_scan(0)
     lcms.scans_number
-    lcms.set_retention_time_from_data()
-    lcms.set_tic_list_from_data()
+    lcms.set_retention_time_from_data(overwrite=True)
+    lcms.set_tic_list_from_data(overwrite=True)
     lcms.retention_time
     lcms.tic
     lcms[0]
@@ -359,7 +359,7 @@ if __name__ == '__main__':
     pass
     # test_import_booster_mass_spectrum_hdf()
     # test_import_booster_mass_spectra_hdf()
-    #test_import_lcms_from_transient()
+    test_import_lcms_from_transient()
     #test_import_thermo_profile_mass_list()
     # test_import_transient()
     #test_import_corems_hdf5()

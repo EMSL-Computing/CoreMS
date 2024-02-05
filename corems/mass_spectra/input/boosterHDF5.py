@@ -210,7 +210,7 @@ class ReadHDF_BoosterMassSpectra(Thread):
         Get the LCMS object.
 
         """
-        if self.lcms.get(self.initial_scan_number):
+        if len(self.lcms)>0:
             return self.lcms
         else:
             raise Exception("Returning an empty LCMS class")
