@@ -2,6 +2,7 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
 from copy import deepcopy
+import math
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 from numpy import nan
 from corems.ms_peak.calc.MSPeakCalc import MSPeakCalculation
@@ -204,7 +205,7 @@ class _MSPeak(MSPeakCalculation):
     @property
     def nominal_mz_exp(self):
         """ The experimental nominal (integer) m/z value of the peak."""
-        return int(self.mz_exp)
+        return math.floor(self.mz_exp)
 
     @property
     def kmd(self):
