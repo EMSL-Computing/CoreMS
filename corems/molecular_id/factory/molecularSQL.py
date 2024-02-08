@@ -2,11 +2,12 @@ import sys
 sys.path.append(".")
 import os
 
-from sqlalchemy import create_engine, ForeignKey, Column, Integer, String, Float, SMALLINT
+from sqlalchemy import Numeric, create_engine, ForeignKey, Column, Integer, String, Float, func
 from sqlalchemy.orm import backref, column_property, relationship
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.sql.schema import UniqueConstraint
 from sqlalchemy import exc
+
 
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
@@ -573,17 +574,20 @@ class MolForm_SQL:
             len_adducts = 1
         
         query = query_normal(classes, len_adducts)
-
+        
         if ion_type == Labels.protonated_de_ion:
             if self.type == 'normal':
-                query = query.filter(and_(
-                                MolecularFormulaLink._protonated_mz(ion_charge).cast(Integer).in_(nominal_mzs)
-                                ))
+                
+                query = query.filter(
+                                func.floor(MolecularFormulaLink._protonated_mz(ion_charge)).in_(nominal_mzs)
+                                )
+                                
+                                
             return add_dict_formula(query, ion_type, ion_charge)
         
         if ion_type == Labels.radical_ion:
             if self.type == 'normal':
-                query = query.filter(MolecularFormulaLink._radical_mz(ion_charge).cast(Integer).in_(nominal_mzs))    
+                query = query.filter(func.floor(MolecularFormulaLink._radical_mz(ion_charge)).in_(nominal_mzs))
             return add_dict_formula(query, ion_type, ion_charge)
         
         if ion_type == Labels.adduct_ion:
@@ -591,7 +595,7 @@ class MolForm_SQL:
             if adducts: 
                 for atom in adducts:
                     if self.type == 'normal':
-                        query = query.filter(MolecularFormulaLink._adduct_mz(ion_charge, atom).cast(Integer).in_(nominal_mzs))    
+                        query = query.filter(func.floor(MolecularFormulaLink._adduct_mz(ion_charge, atom)).in_(nominal_mzs))    
                     dict_res[atom] = add_dict_formula(query, ion_type, ion_charge, adduct_atom=atom)
                 return dict_res
         # dump all objs to memory
