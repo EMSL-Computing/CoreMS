@@ -4,6 +4,7 @@ __date__ = "Jun 09, 2021"
 
 from warnings import warn
 import warnings
+from collections import defaultdict
 
 from matplotlib import axes
 from corems.encapsulation.factory.processingSetting import LiquidChromatographSetting
@@ -30,7 +31,8 @@ from corems.mass_spectrum.factory.MassSpectrumClasses import (
 )
 from corems.mass_spectra.calc.MZSearch import MZSearch
 from corems.encapsulation.factory.parameters import LCMSParameters, default_parameters
-
+from corems.mass_spectra.input.parserbase import SpectraParserInterface
+from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
 
 # do not change the order from the imports statements and reference ThermoFisher below
 sys.path.append(site.getsitepackages()[0] + "/ext_lib/dotnet/")
@@ -126,7 +128,6 @@ class ThermoBaseClass:
             file_path = file_location
 
         self.iRawDataPlus = RawFileReaderAdapter.FileFactory(str(file_path))
-        print((self.iRawDataPlus).IsOpen)
 
         if not self.iRawDataPlus.IsOpen:
             raise FileNotFoundError(
@@ -868,107 +869,6 @@ class ThermoBaseClass:
 
         return mass_spec
 
-
-class ImportDataDependentThermoMSFileReader(ThermoBaseClass, LC_Calculations):
-
-    """Collection of methdos to import LC data dependent acquisition from Thermo's raw file
-    Intended do create the LCMS object --> ChromaPeaks --> MSobj FullScan --> Dependent MS/MS Obj
-    """
-
-    def __init__(self, file_location: str, selected_mzs: List[float] = None):
-        """
-        target_mzs: list[float] monoisotopic target m/z  or None
-            Details: None will defalt to depends scans selected m/
-        file_location: str, Path, or S3Path
-
-        """
-        super().__init__(file_location)
-
-        eic_tolerance_ppm = self.chromatogram_settings.eic_tolerance_ppm
-        enforce_target_ms2 = self.chromatogram_settings.enforce_target_ms2
-        average_target_mz = self.chromatogram_settings.average_target_mz
-
-        print("TOLERANCE = {} ppm".format(eic_tolerance_ppm))
-        self._selected_mzs = self._init_target_mz(
-            selected_mzs, enforce_target_ms2, eic_tolerance_ppm, average_target_mz
-        )
-
-        self.lcms = DataDependentLCMS(file_location, self._selected_mzs, self)
-
-    @property
-    def selected_mzs(self) -> List[float]:
-        return list(self._selected_mzs)
-
-    def get_lcms_obj(self):
-        return self.lcms
-
-    def get_precursors_list(self, precision_decimals=5):
-        """returns a set of unique precursors m/z
-        precision_decimals: int
-            change this parameters does not seem to affect the number of dependent scans selected
-            needs more investigation
-        """
-
-        precursors_mzs = set()
-
-        for scan in range(self.start_scan, self.end_scan):
-            scan_filter = self.iRawDataPlus.GetFilterForScanNumber(scan)
-
-            MSOrder = scan_filter.MSOrder
-
-            if MSOrder == MSOrderType.Ms:
-                scanDependents = self.iRawDataPlus.GetScanDependents(
-                    scan, precision_decimals
-                )
-
-                for scan_dependent_detail in scanDependents.ScanDependentDetailArray:
-                    for precursor_mz in scan_dependent_detail.PrecursorMassArray:
-                        precursors_mzs.add(precursor_mz)
-
-        return precursors_mzs
-
-    def _init_target_mz(
-        self,
-        selected_mzs: List[float],
-        enforce_target_ms2: bool,
-        tolerance_ppm: float,
-        average_target_mz: bool,
-    ):
-        precursors_mzs = self.get_precursors_list()
-
-        if selected_mzs is None:
-            # no selected m/z list provided, default to use the precursos m/z
-            if average_target_mz:
-                searchmz = MZSearch(
-                    precursors_mzs,
-                    precursors_mzs,
-                    tolerance_ppm,
-                    average_target_mz=average_target_mz,
-                )
-                return searchmz.averaged_target_mz
-            else:
-                return precursors_mzs
-            # searchmz.start()
-            # searchmz.join()
-
-        elif selected_mzs and enforce_target_ms2 is False:
-            # selected m/z list provided, and not enforcing being selected as precursor
-            return selected_mzs
-
-        elif selected_mzs and enforce_target_ms2:
-            # search the selected m/z list in the precursors m/z with a ms/ms experiment
-            # print("YEAHHHHH")
-            searchmz = MZSearch(
-                precursors_mzs,
-                selected_mzs,
-                tolerance_ppm,
-                average_target_mz=average_target_mz,
-            )
-            searchmz.start()
-            searchmz.join()
-            return sorted(searchmz.results.keys())
-
-
 class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, LC_Calculations):
 
     """Collection of methdos to import Summed/Averaged mass spectrum from Thermo's raw file
@@ -1120,3 +1020,330 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, LC_Calculations):
                 return fig, scans
             else:
                 return scans
+
+
+class ThermoSpectraParser(ThermoBaseClass, SpectraParserInterface):
+    """A class for parsing Thermo RAW mass spectrometry data files and instatiating MassSpectraBase or LCMSBase objects
+
+    Parameters
+    ----------
+    file_location : str or Path
+        The path to the RAW file to be parsed.
+    analyzer : str, optional
+        The type of mass analyzer used in the instrument. Default is "Unknown".
+    instrument_label : str, optional
+        The name of the instrument used to acquire the data. Default is "Unknown".
+    sample_name : str, optional
+        The name of the sample being analyzed. If not provided, the stem of the file_location path will be used.
+
+    Attributes
+    ----------
+    file_location : Path
+        The path to the RAW file being parsed.
+    analyzer : str
+        The type of mass analyzer used in the instrument.
+    instrument_label : str
+        The name of the instrument used to acquire the data.
+    sample_name : str
+        The name of the sample being analyzed.
+
+    Methods
+    -------
+    * run(spectra=True).
+        Parses the RAW file and returns a dictionary of mass spectra dataframes and a scan metadata dataframe.
+    * get_mass_spectrum_from_scan(scan_number, polarity, auto_process=True)
+        Parses the RAW file and returns a MassSpecBase object from a single scan.
+    * get_mass_spectra_obj(verbose=True).
+        Parses the RAW file and instantiates a MassSpectraBase object.
+    * get_lcms_obj(verbose=True).
+        Parses the RAW file and instantiates an LCMSBase object.
+
+    Inherits from ThermoBaseClass and SpectraParserInterface
+    """
+    def __init__(self, file_location, analyzer="Unknown", instrument_label="Unknown", sample_name=None):
+        super().__init__(file_location)
+        if isinstance(file_location, str):
+            # if obj is a string it defaults to create a Path obj, pass the S3Path if needed
+            file_location = Path(file_location)
+        if not file_location.exists():
+            raise FileExistsError("File does not exist: " + str(file_location))
+
+        self.file_location = file_location
+        self.analyzer = analyzer
+        self.instrument_label = instrument_label
+
+        if sample_name:
+            self.sample_name = sample_name
+        else:
+            self.sample_name = file_location.stem
+
+    def load(self):
+        pass
+
+    def run(self, spectra="all", scan_df = None):
+        """
+        Extracts mass spectra data from a raw file.
+
+        Parameters
+        ----------
+        spectra : str, optional
+            Which mass spectra data to include in the output. Default is all.  Other options: none, ms1, ms2.
+        scan_df : pandas.DataFrame, optional
+            Scan dataframe.  If not provided, the scan dataframe is created from the mzML file.
+
+        Returns
+        -------
+        tuple
+            A tuple containing two elements:
+            - A dictionary containing mass spectra data, separated by MS level.
+            - A pandas DataFrame containing scan information, including scan number, scan time, TIC, MS level,
+                scan text, scan window lower and upper bounds, polarity, and precursor m/z (if applicable).
+        """
+        if scan_df is None:
+            # This automatically brings in all the data
+            self.chromatogram_settings.scans = (-1, -1)
+           
+            # Get scan df info; starting with bulk ms1 and ms2 scans
+            ms1_tic_data, _ = self.get_tic(ms_type='MS', peak_detection=False, smooth=False)
+            ms1_scan_dict = {
+                'scan': ms1_tic_data.scans,
+                'scan_time': ms1_tic_data.time,
+                'tic': ms1_tic_data.tic
+            }
+            ms1_tic_df = pd.DataFrame.from_dict(ms1_scan_dict)
+            ms1_tic_df['ms_level'] = 'ms1'
+
+            ms2_tic_data, _ = self.get_tic(ms_type='MS2', peak_detection=False, smooth=False)
+            ms2_scan_dict = {
+                'scan': ms2_tic_data.scans,
+                'scan_time': ms2_tic_data.time,
+                'tic': ms2_tic_data.tic
+            }
+            ms2_tic_df = pd.DataFrame.from_dict(ms2_scan_dict)
+            ms2_tic_df['ms_level'] = 'ms2'
+
+            scan_df = pd.concat([ms1_tic_df, ms2_tic_df], axis=0).sort_values(by='scan').reindex()
+
+            # get scan text
+            scan_filter_df = pd.DataFrame.from_dict(self.get_all_filters()[0], orient='index')
+            scan_filter_df.reset_index(inplace=True)
+            scan_filter_df.rename(columns={'index': 'scan', 0: 'scan_text'}, inplace=True)
+
+            scan_df = scan_df.merge(scan_filter_df, on='scan', how='left')
+            scan_df['scan_window_lower'] = scan_df.scan_text.str.extract(r'\[(\d+\.\d+)-\d+\.\d+\]')
+            scan_df['scan_window_upper'] = scan_df.scan_text.str.extract(r'\[\d+\.\d+-(\d+\.\d+)\]')
+            scan_df['polarity'] = np.where(scan_df.scan_text.str.contains(" - "), "negative", "positive")
+            # if ms level is 2, attempt to extract precursor m/z; number before @ [for DDA]
+            scan_df['precursor_mz'] = scan_df.scan_text.str.extract(r'(\d+\.\d+)@')
+            scan_df['precursor_mz'] = scan_df['precursor_mz'].astype(float)
+
+            scan_df['ms_level'] = scan_df['ms_level'].str.replace('ms', '').astype(int)
+
+        if spectra != "none": 
+            if spectra == "all":
+                scan_df_forspec = scan_df
+            elif spectra == "ms1":
+                scan_df_forspec = scan_df[scan_df.ms_level == 1]
+            elif spectra == "ms2":
+                scan_df_forspec = scan_df[scan_df.ms_level == 2]
+            else:
+                raise ValueError("spectra must be 'all', 'ms1', or 'ms2'")
+            
+            # Result container
+            res = {}
+
+            # Row count container
+            counter = {}
+
+            # Column name container
+            cols = {}
+
+            # set at float32 
+            dtype=np.float32
+
+            # First pass: get nrows
+            N = defaultdict(lambda: 0)
+            for i in scan_df_forspec.scan.to_list():
+                level = scan_df_forspec.loc[scan_df_forspec.scan == i, 'ms_level'].values[0]
+                scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(i)
+                profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(i, scanStatistics)
+                abun = list(profileStream.Intensities)
+                abun = np.array(abun)[np.where(np.array(abun) > 0)[0]]
+
+                N[level] += len(abun)
+
+            # Second pass: parse
+            for i in scan_df_forspec.scan.to_list():
+                scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(i)
+                profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(i, scanStatistics)
+                abun = list(profileStream.Intensities)
+                mz = list(profileStream.Positions)
+
+                # Get index of abun that are > 0
+                inx = np.where(np.array(abun) > 0)[0]
+                mz = np.array(mz)[inx]
+                mz = np.float32(mz)
+                abun = np.array(abun)[inx]
+                abun = np.float32(abun)
+
+                level = scan_df_forspec.loc[scan_df_forspec.scan == i, 'ms_level'].values[0]
+                
+                # Number of rows
+                n = len(mz)
+
+                # No measurements
+                if n == 0:
+                    continue
+
+                # Dimension check
+                if len(mz) != len(abun):
+                    warnings.warn("m/z and intensity array dimension mismatch")
+                    continue
+
+                # Scan/frame info
+                id_dict = i
+
+                # Columns
+                cols[level] = ['scan', 'mz', 'intensity'] 
+                m = len(cols[level])
+
+                # Subarray init
+                arr = np.empty((n, m), dtype=dtype)
+                inx = 0
+
+                # Populate scan/frame info
+                arr[:, inx] = i
+                inx += 1
+
+                # Populate m/z
+                arr[:, inx] = mz
+                inx += 1
+
+                # Populate intensity
+                arr[:, inx] = abun
+                inx += 1
+
+
+                # Initialize output container
+                if level not in res:
+                    res[level] = np.empty((N[level], m), dtype=dtype)
+                    counter[level] = 0
+
+                # Insert subarray
+                res[level][counter[level]:counter[level] + n, :] = arr
+                counter[level] += n
+            
+            # Construct ms1 and ms2 mz dataframes
+            for level in res.keys():
+                res[level] = pd.DataFrame(res[level])
+                res[level].columns = cols[level]
+            # rename keys in res to add 'ms' prefix 
+            res = {f"ms{key}": value for key, value in res.items()}
+        else:
+            res = None
+        
+        return res, scan_df
+    
+    def get_mass_spectrum_from_scan(self, scan_number, polarity, spectrum_mode = 'profile', auto_process=True):
+        """Instatiate a MassSpecBase object from a single scan number from the binary file, currently only supports profile mode.
+        
+        Parameters
+        ----------
+        scan_number : int
+            The scan number to extract the mass spectrum from.
+        polarity : int
+            The polarity of the scan.  1 for positive mode, -1 for negative mode.
+        spectrum_mode : str, optional
+            The type of mass spectrum to extract.  Default is 'profile', functionality for 'centroid' not yet implemented.
+        auto_process : bool, optional
+            If True, perform peak picking and noise threshold calculation after creating the mass spectrum object. Default is True.
+        
+        Returns
+        -------
+        MassSpecBase
+            The MassSpecBase object containing the parsed mass spectrum. 
+
+        Notes
+        -----
+        If the length of the mass spectrum is less than 3, the function will not perform the auto_process steps but will return the mass spectrum object.
+        """
+
+        if spectrum_mode == 'profile':
+            scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan_number)
+            profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(scan_number, scanStatistics)
+            abun = list(profileStream.Intensities)
+            mz = list(profileStream.Positions)
+            if len(mz)>2:
+                mass_spectrum_obj = ms_from_array_profile(mz, abun, self.file_location, polarity=polarity, auto_process=auto_process)
+            else:
+                return None
+        elif spectrum_mode != 'profile':
+            raise ValueError("spectrum_mode must be 'profile', functionality for 'centroid' not yet implemented")
+
+        return mass_spectrum_obj
+    
+    def get_mass_spectra_obj(self, verbose=True):
+        """Instatiate a MassSpectraBase object from the binary data file file.
+
+        Parameters
+        ----------
+        verbose : bool, optional
+            If True, print progress messages. Default is True.
+
+        Returns
+        -------
+        MassSpectraBase
+            The MassSpectra object containing the parsed mass spectra.  The object is instatiated with the mzML file, analyzer, instrument, sample name, and scan dataframe.
+        """
+        if verbose:
+            print("Parsing MassSpectra object from raw file")
+        _, scan_df = self.run(spectra="none")
+        mass_spectra_obj = MassSpectraBase(
+            self.file_location,
+            self.analyzer,
+            self.instrument_label,
+            self.sample_name,
+            self)
+        scan_df = scan_df.set_index('scan', drop = False)
+        mass_spectra_obj.scan_df = scan_df
+
+        return mass_spectra_obj
+    
+    def get_lcms_obj(self, verbose = True, spectra = "all"):
+        """Instatiates a LCMSBase object from the mzML file.
+
+        Parameters
+        ----------
+        verbose : bool, optional
+            If True, print progress messages. Default is True.
+        spectra : str, optional
+            Which mass spectra data to include in the output. Default is "all".  Other options: "none", "ms1", "ms2".
+
+        Returns
+        -------
+        LCMSBase
+            LCMS object containing mass spectra data. The object is instatiated with the file location, analyzer, instrument, sample name, scan info, mz dataframe (as specifified), polarity, as well as the attributes holding the scans, retention times, and tics.
+        """
+        if verbose:
+            print("Parsing LCMS object from raw file")
+        _, scan_df = self.run(spectra = "none")                     # first run it to just get scan info
+        res, scan_df = self.run(scan_df = scan_df, spectra=spectra) # second run to parse data
+        lcms_obj = LCMSBase(
+            self.file_location,
+            self.analyzer,
+            self.instrument_label,
+            self.sample_name,
+            self)
+        for key in res:
+            key_int = int(key.replace('ms', ''))
+            res[key] = res[key][res[key].intensity > 0]
+            res[key] = res[key].sort_values(by=['scan', 'mz']).reset_index(drop=True)
+            lcms_obj._ms_unprocessed[key_int] = res[key]
+        lcms_obj.scan_df = scan_df.set_index('scan', drop = False)
+        lcms_obj.polarity = set(scan_df.polarity)
+        lcms_obj._scans_number_list = list(scan_df.scan)
+        lcms_obj._retention_time_list = list(scan_df.scan_time)
+        lcms_obj._tic_list = list(scan_df.tic)
+
+        return lcms_obj
+        
