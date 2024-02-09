@@ -1,12 +1,12 @@
 import pandas as pd
 
-def get_best_scans_idx(self, stdevs=2, method="mean", plot=False):
+def get_best_scans_idx(thermo_parser, stdevs=2, method="mean", plot=False):
         """
         Method to determine the best scan indexes for selective co-addition.
 
         Parameters
         ----------
-        self : ImportMassSpectraThermoMSFileReader
+        thermo_parser : ImportMassSpectraThermoMSFileReader
             An instance of ImportMassSpectraThermoMSFileReader
         stdevs : int, optional
             The number of standard deviations to use as the cutoff for filtering out datapoints. Default is 2.
@@ -30,7 +30,7 @@ def get_best_scans_idx(self, stdevs=2, method="mean", plot=False):
         >>> reader = RawFileReader()
         >>> scans = reader.get_best_scans_idx(stdevs=2, method="mean", plot=True)
         """
-        tic = pd.DataFrame(self.get_tic(plot=plot))
+        tic = pd.DataFrame(thermo_parser.get_tic(plot=plot))
 
         if method == "median":
             tic_median = tic["TIC"].median()
