@@ -8,7 +8,7 @@ from corems.mass_spectra.factory.LC_Class import MassSpectraBase, LCMSBase
 from corems.mass_spectra.input.parserbase import SpectraParserInterface
 from corems.mass_spectrum.input.numpyArray import ms_from_array_profile, ms_from_array_centroid
 
-class mzmlSpectraParser(SpectraParserInterface):
+class MZMLSpectraParser(SpectraParserInterface):
     """A class for parsing mzml spectrometry data files into MassSpectraBase or LCMSBase objects
 
     Parameters
