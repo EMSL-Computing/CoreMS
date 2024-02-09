@@ -27,8 +27,8 @@ def get_best_scans_idx(thermo_parser, stdevs=2, method="mean", plot=False):
 
         Examples
         --------
-        >>> reader = RawFileReader()
-        >>> scans = reader.get_best_scans_idx(stdevs=2, method="mean", plot=True)
+        >>> reader = ImportMassSpectraThermoMSFileReader()
+        >>> scans = get_best_scans_idx(reader, stdevs=2, method="mean", plot=True)
         """
         tic = pd.DataFrame(thermo_parser.get_tic(plot=plot))
 
