@@ -20,6 +20,7 @@ import numpy as np
 from corems.encapsulation.factory.parameters import LCMSParameters
 
 from corems.mass_spectra.calc.LC_Calc import LC_Calculations
+
 from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
 
 class MassSpectraBase():
@@ -61,6 +62,8 @@ class MassSpectraBase():
     --------
     * add_mass_spectra(scan_list, spectrum_mode: str = 'profile', use_parser = True, auto_process=True).
         Add mass spectra (or singlel mass spectrum) to _ms slot, from a list of scans
+    * get_time_of_scan_id(scan).
+        Returns the scan time for the specified scan number.
     """
     def __init__(
             self, 
@@ -204,6 +207,30 @@ class MassSpectraBase():
                         ms.process_mass_spec()
                 self.add_mass_spectrum(ms)
     
+    def get_time_of_scan_id(self, scan):
+        """Returns the scan time for the specified scan number.
+
+        Parameters
+        -----------
+        scan : int
+            The scan number of the desired scan time.
+
+        Returns
+        --------
+        float
+            The scan time for the specified scan number (in minutes).
+
+        Raises
+        ------
+        ValueError
+            If no scan time is found for the specified scan number.
+        """
+        # Check if _retenion_time_list is empty and raise error if so
+        if len(self._retention_time_list) == 0:
+            raise ValueError("No retention times found in dataset")
+        rt = self._retention_time_list[self._scans_number_list.index(scan)]
+        return rt  
+    
     @property
     def scan_df(self):
         """
@@ -263,6 +290,8 @@ class LCMSBase(MassSpectraBase, LC_Calculations):
         A dictionary containing extracted ion chromatograms (EICs) for the dataset. Key is the mz of the EIC. Initialized as an empty dictionary.
     mass_features : dictionary of LCMSMassFeature objects
         A dictionary containing mass features for the dataset. Key is mass feature ID. Initialized as an empty dictionary.
+    spectral_search_results : dictionary of MS2SearchResults objects
+        A dictionary containing spectral search results for the dataset. Keyed by is scan number : precursor mz. Initialized as an empty dictionary.
 
     Methods
     --------
@@ -302,6 +331,7 @@ class LCMSBase(MassSpectraBase, LC_Calculations):
         self._tic_list = []
         self.eics = {}
         self.mass_features = {}
+        self.spectral_search_results = {}
 
     def get_parameters_json(self, verbose = False):
         """Returns the parameters stored for the LC-MS object in JSON format.
@@ -378,29 +408,68 @@ class LCMSBase(MassSpectraBase, LC_Calculations):
     def mass_features_to_df(self):
         """Returns a pandas dataframe summarizing the mass features.
 
-        The dataframe contains the following columns: mf_id, mz, apex_scan, scan_time, intensity, persistence, and area.  The index is set to mf_id (mass feature ID).
-
         Returns
         --------
         pandas.DataFrame
-            A pandas dataframe of mass features with the following columns: mf_id, mz, apex_scan, scan_time, intensity, persistence, area.
+            A pandas dataframe summarizing the mass features within this object containing the following columns: mf_id, mz, apex_scan, scan_time, intensity, persistence, area, monoisotopic_mf_id, and isotopologue_class.  The index is set to mf_id (mass feature ID)..
         """
-        cols_in_df = ['mf_id', 'mz', 'apex_scan', 'scan_time', 'intensity', 'persistence', '_area']
+        def mass_spectrum_to_string(mass_spec, normalize = True, min_normalized_abun = 0.01):
+            """Converts a mass spectrum to a string of m/z:abundance pairs.
+            
+            Parameters
+            -----------
+            mass_spec : MassSpectrum
+                A MassSpectrum object to be converted to a string.
+            normalize : bool, optional
+                If True, normalizes the abundance values to a maximum of 1. Defaults to True.
+            min_normalized_abun : float, optional
+                The minimum normalized abundance value to include in the string, only used if normalize is True. Defaults to 0.01.
+                
+            Returns
+            --------
+            str
+                A string of m/z:abundance pairs from the mass spectrum, separated by a semicolon.
+            """
+            mz_np = mass_spec.to_dataframe()['m/z'].values
+            abun_np = mass_spec.to_dataframe()['Peak Height'].values
+            if normalize:
+                abun_np = abun_np / abun_np.max() 
+            mz_abun = np.column_stack((mz_np, abun_np))
+            if normalize:
+                mz_abun = mz_abun[mz_abun[:,1] > min_normalized_abun]
+            mz_abun_str = [str(round(mz, ndigits = 4)) + ':' + str(round(abun, ndigits = 2)) for mz, abun in mz_abun]
+            return '; '.join(mz_abun_str)
+        
+        cols_in_df = ['id', 'mz', 'apex_scan', 'scan_time', 'intensity', 'persistence', '_area', 'monoisotopic_mf_id', 'isotopologue_class']
         df_mf_list = []
         for mf_id in self.mass_features.keys():
             # Find cols_in_df that are in single_mf
             df_keys = list(set(cols_in_df).intersection(self.mass_features[mf_id].__dir__()))
-            dict_mf = {'mf_id': mf_id}
+            dict_mf = {}
             for key in df_keys:
                 dict_mf[key] = getattr(self.mass_features[mf_id], key)
+            if len(self.mass_features[mf_id].ms2_scan_numbers)>0:
+                # Add MS2 spectra info
+                best_ms2_spectra = self.mass_features[mf_id].best_ms2
+                dict_mf['ms2_spectra'] = mass_spectrum_to_string(best_ms2_spectra)          
             df_mf_list.append(pd.DataFrame(dict_mf, index=[mf_id]))
-        df_mf = pd.concat(df_mf_list).set_index('mf_id', drop=True)
-        # rename _area to area
-        df_mf = df_mf.rename(columns={'_area': 'area'})
-         
+        df_mf = pd.concat(df_mf_list)
+        
+        # rename _area to area and id to mf_id
+        df_mf = df_mf.rename(columns={'_area': 'area', 'id': 'mf_id'})
+
+        # reorder columns
+        if 'ms2_spectra' in df_mf.columns:
+            df_mf = df_mf[['mf_id', 'scan_time', 'mz', 'apex_scan', 'intensity', 'persistence', 'area', 'ms2_spectra', 'monoisotopic_mf_id', 'isotopologue_class']]
+        else:
+            df_mf = df_mf[['mf_id', 'scan_time', 'mz', 'apex_scan', 'intensity', 'persistence', 'area', 'monoisotopic_mf_id', 'isotopologue_class']]
+
+        # reset index to mf_id 
+        df_mf = df_mf.set_index('mf_id')
+        df_mf.index.name = 'mf_id'
+        
         return df_mf
   
-    
     def __len__(self):
         """
         Returns the number of mass spectra in the dataset.

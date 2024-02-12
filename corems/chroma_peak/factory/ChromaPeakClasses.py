@@ -9,7 +9,6 @@ from corems.mass_spectra.factory.LC_Temp import EIC_Data
 from corems.molecular_id.factory.EI_SQL import LowResCompoundRef
 import numpy as np
 import pandas as pd
-
 class ChromaPeakBase():
     """ Base class for chromatographic peak (ChromaPeak) objects.
 
