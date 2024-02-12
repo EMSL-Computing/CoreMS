@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import argparse
 from zipfile import ZipFile
 
 from openpyxl import load_workbook
@@ -101,10 +102,32 @@ def parse_metadata(metadata_file_path:Path) -> EMSL_Metadata:
             yield metadata
 
 def run_nom_nmdc_data_processing():
+
+    # set command line arguments
+    parser = argparse.ArgumentParser(description="A program to run the nmdc nom workflow and create the corresponding metadata objects.")
+    parser.add_argument('--data_dir', 
+                        '-d', 
+                        type=str, 
+                        help="The directory path where the raw data lives.")
+    parser.add_argument('--metadata_path',
+                        '-m',
+                        type=str,
+                        help="The .xlsx file path where the biosample metadata lives (include .xlsx).")
+    parser.add_argument('--registration_file_name',
+                        '-rf',
+                        type=str,
+                        help="The desired name of the registration file (include .json). E.g. emsl_only_grow.json")
+    parser.add_argument("--ref_calibration_path",
+                        '-r',
+                        type=str,
+                        help="The .ref path where the reference calibration data lives (include .ref).")
+    
+
+    args = parser.parse_args()
     
     file_ext = '.d' 
-    data_dir = Path("/Users/eber373/Library/CloudStorage/OneDrive-PNNL/Desktop/data/nmdc_data/GROW/emsl_only/")
-    metadata_file_path = Path("/Users/eber373/Library/CloudStorage/OneDrive-PNNL/Desktop/data/nmdc_data/GROW/emsl_only/emsl_only.xlsx")
+    data_dir = Path(args.data_dir)
+    metadata_file_path = Path(args.metadata_path)
 
     raw_dir_zip = data_dir / Path("raw_zip/")
     raw_dir_zip.mkdir(parents=True, exist_ok=True)
@@ -116,11 +139,11 @@ def run_nom_nmdc_data_processing():
     
     registration_dir = data_dir / 'registration'
     registration_dir.mkdir(parents=True, exist_ok=True)
-    registration_file = registration_dir / 'emsl_only_grow.json'
+    registration_file = registration_dir / args.registration_file_name
     
     field_strength = 12
     
-    ref_calibration_path = Path("db/Hawkes_neg.ref")
+    ref_calibration_path = Path(args.ref_calibration_path)
     failed_list = []
     
     nmdc_database = nmdc_metadata_gen.start_nmdc_database()
