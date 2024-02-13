@@ -14,6 +14,7 @@ psutil~=5.9.4
 PySide2~=5.15.2.1
 pyswarm~=0.6
 pythonnet~=3.0.1
+ripser==0.6.4
 s3path~=0.4.1
 scikit_learn~=1.2.2
 scipy~=1.10.1

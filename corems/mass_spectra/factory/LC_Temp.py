@@ -1,40 +1,46 @@
 from dataclasses import dataclass, field
 from typing import List
 
-
 @dataclass
 class TIC_Data:
-     '''
-    Scans: [int]
-        original thermo scan numbers
-    Time: [floats]
+    """A class to represent total ion chromatogram data.
+
+    scans: [int]
+        original scan numbers
+    time: [floats]
         list of retention times
-    TIC: [floats]
-        total ion chromatogram
-    Apexes: [int]    
-        original thermo apex scan number after peak picking 
-     '''
+    tic: [floats]
+        total ion current
+    apexes: [int]    
+        original apex scan number after peak picking 
+    """
      
-     scans : List[int] = field(default_factory=list)
-     time : List[float] = field(default_factory=list)
-     tic : List[float] = field(default_factory=list)
-     apexes : List[int] = field(default_factory=list)
+    scans : List[int] = field(default_factory=list)
+    time : List[float] = field(default_factory=list)
+    tic : List[float] = field(default_factory=list)
+    apexes : List[int] = field(default_factory=list)
 
 @dataclass
 class EIC_Data:
-     '''
-    Scans: [int]
-        original thermo scan numbers
-    Time: [floats]
+    """A class to represent extracted ion chromatogram data.    
+
+    scans: [int]
+        original scan numbers
+    time: [floats]
         list of retention times
-    EIC: [floats]
+    eic: [floats]
         extracted ion chromatogram
-    Apexes: [int]    
-        original thermo apex scan number after peak picking 
-    
-     '''
+    eic_smoothed: [floats]
+        extracted ion chromatogram smoothed
+    apexes: [int]    
+        original apex scan number after peak picking
+    areas:  [floats]
+        area under the curve for each apex 
+    """
      
-     scans : List[int] = field(default_factory=list)
-     time : List[float] = field(default_factory=list)
-     eic : List[float] = field(default_factory=list)
-     apexes : List[int] = field(default_factory=list)
+    scans : List[int] = field(default_factory=list)
+    time : List[float] = field(default_factory=list)
+    eic : List[float] = field(default_factory=list)
+    eic_smoothed : List[float] = field(default_factory=list)
+    apexes : List[int] = field(default_factory=list)
+    areas : List[float] = field(default_factory=list)

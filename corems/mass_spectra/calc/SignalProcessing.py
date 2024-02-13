@@ -35,7 +35,8 @@ def peak_picking_first_derivative(domain, signal, max_height, max_prominence, ma
                                   min_peak_datapoints,
                                   peak_derivative_thresould,
                                   signal_threshold=0.1, correct_baseline=True, plot_res=False, 
-                                  abun_norm=100, check_abundance=False):
+                                  abun_norm=100, check_abundance=False,
+                                  apex_indexes = []):
     
     if correct_baseline:
         signal = signal - baseline_detector(signal, domain, max_height, max_prominence)
@@ -45,12 +46,14 @@ def peak_picking_first_derivative(domain, signal, max_height, max_prominence, ma
     signal = np.array(signal)
 
     dy = derivate(signal)
-    apex_indexes = np.where((np.hstack((dy, 0)) < 0) & (np.hstack((0, dy)) > 0))[0]
-    # min_indexes = np.where((np.hstack((dy, 0)) > 0) & (np.hstack((0, dy)) < 0))[0]
+    if len(apex_indexes) == 0:
+        # Find apexes
+        apex_indexes = np.where((np.hstack((dy, 0)) < 0) & (np.hstack((0, dy)) > 0))[0]
+    else:
+        apex_indexes = np.array(apex_indexes)
     
     if apex_indexes.size and apex_indexes is not None:
             apex_indexes = apex_indexes[signal[apex_indexes]/max_signal >= signal_threshold]
-
     
     signal = signal/max(signal)
     start_peak = []
