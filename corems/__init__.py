@@ -1,5 +1,5 @@
 __author__ = 'Yuri E. Corilo'
-__version__ = '2.0.0'
+__version__ = '2.0.2'
 __doc__ = '''
 <div align="left">
 
@@ -301,11 +301,11 @@ UML (unified modeling language) diagrams for Direct Infusion FT-MS and GC-MS cla
 ## Citing CoreMS
 
 If you use CoreMS in your work, please use the following citation:
-Version [2.0.0 Release on GitHub](https://github.com/EMSL-Computing/CoreMS/releases/tag/v2.0.0), archived on Zenodo:  
+Version [2.0 Release on GitHub](https://github.com/EMSL-Computing/CoreMS/releases/tag/v2.0), archived on Zenodo:  
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4641552.svg)](https://doi.org/10.5281/zenodo.4641552)
 ```
-Yuri E. Corilo, William R. Kew, Lee Ann McCue (2021, March 27). EMSL-Computing/CoreMS: CoreMS 2.0.0 (Version v2.0.0), as developed on Github. Zenodo. http://doi.org/10.5281/zenodo.4641552
+Yuri E. Corilo, William R. Kew, Lee Ann McCue (2021, March 27). EMSL-Computing/CoreMS: CoreMS 2.0 (Version v2.0), as developed on Github. Zenodo. http://doi.org/10.5281/zenodo.4641552
 ```
 
 
