@@ -127,7 +127,7 @@ class MassSpectraBase():
         self._ms[mass_spec.scan_number] = mass_spec
     
     
-    def add_mass_spectra(self, scan_list, spectrum_mode: str = 'profile', ms_level = 1, use_parser = True, auto_process=True):
+    def add_mass_spectra(self, scan_list, spectrum_mode=None, ms_level = 1, use_parser = True, auto_process=True):
         """Add mass spectra to _ms dictionary, from a list of scans or single scan
 
         Notes
@@ -139,8 +139,8 @@ class MassSpectraBase():
         -----------
         scan_list : list of ints
             List of scans to use to populate _ms slot
-        spectrum_mode : str, optional
-            The spectrum mode to use for the mass spectra.  Only profile mode is currently supported. Defaults to 'profile'.
+        spectrum_mode : str or None
+            The spectrum mode to use for the mass spectra.  If None, method will use the spectrum mode from the spectra parser to ascertain the spectrum mode (this allows for mixed types).  Defaults to None.
         ms_level : int, optional
             The MS level to use for the mass spectra.  This is used to pass the molecular_search parameters from the LCMS object to the individual MassSpectrum objects. Defaults to 1.
         using_parser : bool
@@ -183,14 +183,27 @@ class MassSpectraBase():
         scan_list.sort()
         for scan in scan_list: 
             ms = None
+            if spectrum_mode is None:
+                # get spectrum mode from _scan_info
+                spectrum_mode_scan = self.scan_df.loc[scan, 'ms_format']
+            else:
+                spectrum_mode_scan = spectrum_mode
             # Instantiate the mass spectrum object using the parser or the unprocessed data
             if use_parser == False:
                 if self._ms_unprocessed[ms_level] is not None and scan in self._ms_unprocessed[ms_level].scan.tolist():
                     my_ms_df = self._ms_unprocessed[ms_level][self._ms_unprocessed[ms_level].scan == scan]
-                    ms = ms_from_array_profile(my_ms_df.mz, my_ms_df.intensity, self.file_location, polarity=polarity, auto_process=False)
+                    if spectrum_mode_scan == "profile":
+                        # Check this - it might be better to use the MassSpectrumProfile class to instantiate the mass spectrum
+                        ms = ms_from_array_profile(my_ms_df.mz, my_ms_df.intensity, self.file_location, polarity=polarity, auto_process=False)
+                    else:
+                        raise ValueError("Only profile mode is supported for unprocessed data")
             if use_parser == True:
-                ms = self.spectra_parser.get_mass_spectrum_from_scan(scan_number = scan, spectrum_mode = spectrum_mode, polarity = polarity, auto_process=auto_process)
-            
+                ms = self.spectra_parser.get_mass_spectrum_from_scan(
+                    scan_number = scan, 
+                    spectrum_mode = spectrum_mode_scan, 
+                    auto_process=False
+                    )
+                            
             # Set the mass spectrum parameters, auto-process if auto_process is True, and add to the dataset
             if ms is not None:
                 ms.parameters.mass_spectrum = self.parameters.mass_spectrum
@@ -202,9 +215,8 @@ class MassSpectraBase():
                 else:
                     raise ValueError("ms_level must be 1 or 2")
                 ms.scan_number = scan
-                if len(ms.mz_exp_profile) > 3:
-                    if auto_process:
-                        ms.process_mass_spec()
+                if auto_process:
+                    ms.process_mass_spec()
                 self.add_mass_spectrum(ms)
     
     def get_time_of_scan_id(self, scan):
@@ -408,10 +420,13 @@ class LCMSBase(MassSpectraBase, LC_Calculations):
     def mass_features_to_df(self):
         """Returns a pandas dataframe summarizing the mass features.
 
+        The dataframe contains the following columns: mf_id, mz, apex_scan, scan_time, intensity, persistence, area, monoisotopic_mf_id, and isotopologue_type.  The index is set to mf_id (mass feature ID).
+
+
         Returns
         --------
         pandas.DataFrame
-            A pandas dataframe summarizing the mass features within this object containing the following columns: mf_id, mz, apex_scan, scan_time, intensity, persistence, area, monoisotopic_mf_id, and isotopologue_class.  The index is set to mf_id (mass feature ID)..
+            A pandas dataframe of mass features with the following columns: mf_id, mz, apex_scan, scan_time, intensity, persistence, area.
         """
         def mass_spectrum_to_string(mass_spec, normalize = True, min_normalized_abun = 0.01):
             """Converts a mass spectrum to a string of m/z:abundance pairs.
@@ -460,15 +475,57 @@ class LCMSBase(MassSpectraBase, LC_Calculations):
 
         # reorder columns
         if 'ms2_spectra' in df_mf.columns:
-            df_mf = df_mf[['mf_id', 'scan_time', 'mz', 'apex_scan', 'intensity', 'persistence', 'area', 'ms2_spectra', 'monoisotopic_mf_id', 'isotopologue_class']]
+            df_mf = df_mf[['mf_id', 'scan_time', 'mz', 'apex_scan', 'intensity', 'persistence', 'area', 'monoisotopic_mf_id', 'isotopologue_type','ms2_spectra']]
         else:
-            df_mf = df_mf[['mf_id', 'scan_time', 'mz', 'apex_scan', 'intensity', 'persistence', 'area', 'monoisotopic_mf_id', 'isotopologue_class']]
+            df_mf = df_mf[['mf_id', 'scan_time', 'mz', 'apex_scan', 'intensity', 'persistence', 'area', 'monoisotopic_mf_id', 'isotopologue_type']]
 
         # reset index to mf_id 
         df_mf = df_mf.set_index('mf_id')
         df_mf.index.name = 'mf_id'
         
         return df_mf
+    
+    def mass_features_ms1_annot_to_df(self):
+        """Returns a pandas dataframe summarizing the MS1 annotations for the mass features in the dataset.
+
+        Returns
+        --------
+        pandas.DataFrame
+            A pandas dataframe of MS1 annotations for the mass features in the dataset. The index is set to mf_id (mass feature ID)
+
+        Raises
+        ------
+        Warning
+            If no MS1 annotations were found for the mass features in the dataset.
+        """
+        annot_df_list_ms1 = []
+        for mf_id in self.mass_features.keys():
+            if self.mass_features[mf_id].mass_spectrum is None:
+                pass
+            else:
+                # Add ms1 annotations to ms1 annotation list
+                if np.abs((self.mass_features[mf_id].ms1_peak.mz_exp - self.mass_features[mf_id].mz)) < 0.01:
+                    # Get the molecular formula from the mass spectrum
+                    annot_df = self.mass_features[mf_id].mass_spectrum.to_dataframe()
+                    # Subset to pull out only the peak associated with the mass feature
+                    annot_df = annot_df[annot_df['Index'] == self.mass_features[mf_id].ms1_peak.index].copy()
+
+                    # Remove the index column and add column for mf_id
+                    annot_df = annot_df.drop(columns=['Index'])
+                    annot_df['mf_id'] = mf_id
+                    annot_df_list_ms1.append(annot_df)
+        
+        if len(annot_df_list_ms1)>0:
+            annot_ms1_df_full = pd.concat(annot_df_list_ms1)
+            annot_ms1_df_full = annot_ms1_df_full.set_index('mf_id')
+            annot_ms1_df_full.index.name = 'mf_id'
+
+        else:
+            annot_ms1_df_full = None
+            # Warn that no ms1 annotations were found
+            logging.warning("No MS1 annotations found for mass features in dataset, were MS1 spectra added and processed within the dataset?")
+        
+        return annot_ms1_df_full
   
     def __len__(self):
         """

@@ -1,7 +1,6 @@
-
-
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
+
 from numpy import array, trapz    
 from corems.chroma_peak.calc.ChromaPeakCalc import GCPeakCalculation
 #import corems.mass_spectra.factory.LC_Class as lcms
@@ -9,6 +8,7 @@ from corems.mass_spectra.factory.LC_Temp import EIC_Data
 from corems.molecular_id.factory.EI_SQL import LowResCompoundRef
 import numpy as np
 import pandas as pd
+
 class ChromaPeakBase():
     """ Base class for chromatographic peak (ChromaPeak) objects.
 
@@ -123,7 +123,7 @@ class LCMSMassFeature(ChromaPeakBase):
         The persistence of the feature. 
     _eic_data : EIC_Data
         The EIC data object associated with the feature.
-    monoisotopic_mf_id : LCMSMassFeature
+    monoisotopic_mf_id : int
         Mass feature id that is the monoisotopic version of self (if self.id, then self is the monoisotopic feature). Default is None.
     isotopologue_class : str
         The isotopic class of the feature, i.e. "13C1", "13C2", "13C1 37Cl1" etc. Default is None.
@@ -216,7 +216,7 @@ class LCMSMassFeature(ChromaPeakBase):
             fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(9, 8))
             to_plot = ["EIC", "MS1"]
         elif (len(to_plot) == 1):
-            fig, (ax1) = plt.subplots(2, 1, figsize=(9, 4))
+            fig, (ax1) = plt.subplots(1, 1, figsize=(9, 4))
             to_plot = "EIC"
         fig.suptitle("Mass Feature " + str(self.id) +": m/z = "+ str(round(self.mz, ndigits = 4)) + "; time = " + str(round(self.scan_time, ndigits = 1)) + " minutes")
         
@@ -230,6 +230,7 @@ class LCMSMassFeature(ChromaPeakBase):
                 print("No start and final scan numbers were provided for mass feature " + str(self.id))
         ax1.set_ylabel("Intensity")
         ax1.set_xlabel("Time (minutes)")
+        ax1.set_ylim(0, self.eic_list.max()*1.1)
         ax1.set_xlim(self.scan_time - eic_buffer_time, self.scan_time + eic_buffer_time)
         ax1.axvline(x=self.scan_time, color='k', label = "MS1 scan time (apex)")
         if len(self.ms2_scan_numbers)>0:
@@ -367,7 +368,7 @@ class LCMSMassFeature(ChromaPeakBase):
         elif len(ms2_scans) == 1: # if only one ms2 spectra, return it
             return self.ms2_mass_spectra[ms2_scans[0]]
         else: # if no ms2 spectra, return None
-            return None   
+            return None
 
 class GCPeak(ChromaPeakBase, GCPeakCalculation):
     """ Class representing a peak in a gas chromatography (GC) chromatogram.
