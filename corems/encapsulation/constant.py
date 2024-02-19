@@ -410,7 +410,7 @@ class Atoms: #pragma: no cover
 
     atoms_order = ['C', 'H', 'O', 'Cl', 'Na', 'S', 'N', '13C', '33S', '34S','36S', '37Cl','Fe', 'Ca','P',
                         'V', 'I', 'Ac', 'Al', 'Ar', 'As', 'At', 'Au', 'Co', 'Cs', 'D', 'F', 'Fr','18O', '17O',
-                        'He', 'Po', 'Ra', 'Rh', 'Rn', 'Be', 'Bi', 'Nb, 54Fe', '57Fe', '58Fe', 'Ni', '60Ni',
+                        'He', 'Po', 'Ra', 'Rh', 'Rn', 'Be', 'Bi', 'Nb', '54Fe', '57Fe', '58Fe', 'Ni', '60Ni',
                         '61Ni', '62Ni', '10B', 'B', '6Li', '7Li', 'La', 'Mn', '107Ag', '109Ag', '100Mo',
                         '100Ru', '101Ru', '102Pd', '102Ru', '104Pd', '104Ru', '105Pd', 'Cd', '106Cd', '106Pd', '108Cd',
                         '108Pd', '110Cd', '110Pd', '111Cd', '112Cd', '112Sn', '113Cd', '113In', '114Cd', '114Sn',
