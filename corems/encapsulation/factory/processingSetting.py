@@ -813,8 +813,17 @@ class MolecularFormulaSearchSettings:
 
         # add cummon values
         current_used_atoms = self.used_atom_valences.keys()
+        
         for atom in Atoms.atoms_covalence.keys():
+            
             if atom not in current_used_atoms:
-                self.used_atom_valences[atom] = Atoms.atoms_covalence.get(atom)
-
+                
+                covalence = Atoms.atoms_covalence.get(atom)
+                
+                if isinstance(covalence , int):
+                    self.used_atom_valences[atom] = covalence
+                
+                else:
+                    #will get the first number of all possible covalances, which should be the most commum 
+                    self.used_atom_valences[atom] = covalence[0]
 
