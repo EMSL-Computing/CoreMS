@@ -538,8 +538,6 @@ class MolecularFormulaCalc:
         
         dbe = 1 + (0.5 * individual_dbe)
         
-        
-        
         if self.ion_type == Labels.adduct_ion:
             dbe = dbe + 0.5
         
