@@ -614,7 +614,7 @@ class MolecularFormulaCalc:
         
         for atom_label in atoms_labels:
             
-            if not len(Atoms.isotopes.get(atom_label))>1:
+            if Atoms.isotopes.get(atom_label)[1][0] is None:
                 'This atom_label has no heavy isotope'
                 atoms_count.append(formula_dict.get(atom_label))
                 mass = Atoms.atomic_masses.get(atom_label)
