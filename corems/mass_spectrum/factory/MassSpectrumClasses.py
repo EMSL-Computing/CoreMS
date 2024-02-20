@@ -217,7 +217,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         - _calibration_terms
         - label
         - analyzer
-        - aquisition_time
+        - acquisition_time
         - instrument_label
         - polarity
         - scan_number
@@ -240,7 +240,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         self.analyzer = d_params.get('analyzer')
 
-        self.aquisition_time = d_params.get('aquisition_time')
+        self.acquisition_time = d_params.get('acquisition_time')
 
         self.instrument_label = d_params.get('instrument_label')
 

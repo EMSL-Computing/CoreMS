@@ -187,7 +187,7 @@ class ReadBrukerSolarix(object):
 
         output_parameters["polarity"] = str(file_d_params.get("Polarity"))
 
-        output_parameters["aquisition_time"] = file_d_params.get("aquisition_time")
+        output_parameters["acquisition_time"] = file_d_params.get("acquisition_time")
 
         data_points = int(file_d_params.get("TD"))
 
@@ -357,8 +357,8 @@ class ReadBrukerSolarix(object):
                         #if element.nodeName == "primarykey":
                             
                             date_time_str = (element.childNodes[0].nodeValue)
-                            #parameter_dict["aquisition_time"] = pd.to_datetime(date_time_str, infer_datetime_format=True).to_pydatetime()
-                            parameter_dict["aquisition_time"] = datetime.strptime(date_time_str, "%b_%d_%Y %H:%M:%S.%f")
+                            #parameter_dict["acquisition_time"] = pd.to_datetime(date_time_str, infer_datetime_format=True).to_pydatetime()
+                            parameter_dict["acquisition_time"] = datetime.strptime(date_time_str, "%b_%d_%Y %H:%M:%S.%f")
                             
             
             if child.nodeName == "reportinfo":
