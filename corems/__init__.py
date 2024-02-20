@@ -1,5 +1,5 @@
 __author__ = 'Yuri E. Corilo'
-__version__ = '2.0.2'
+__version__ = '2.0.3'
 __doc__ = '''
 <div align="left">
 
