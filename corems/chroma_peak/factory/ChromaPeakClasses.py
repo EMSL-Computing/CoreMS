@@ -1,13 +1,12 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
-from numpy import array, trapz    
 from corems.chroma_peak.calc.ChromaPeakCalc import GCPeakCalculation
-#import corems.mass_spectra.factory.LC_Class as lcms
 from corems.mass_spectra.factory.LC_Temp import EIC_Data
 from corems.molecular_id.factory.EI_SQL import LowResCompoundRef
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 class ChromaPeakBase():
     """ Base class for chromatographic peak (ChromaPeak) objects.
@@ -144,7 +143,8 @@ class LCMSMassFeature(ChromaPeakBase):
             scan_time: float,
             intensity: float,
             scan_number: int,
-            persistence: float = None
+            persistence: float = None,
+            id: int = None
             ):
         super().__init__(chromatogram_parent = lcms_parent, mass_spectrum_obj = None, start_index = None, index = scan_number, final_index = None)
         self.mz: float = mz
@@ -154,13 +154,16 @@ class LCMSMassFeature(ChromaPeakBase):
         self.persistence: float = persistence 
         self._eic_data: EIC_Data = None  
         self.monoisotopic_mf_id = None
-        self.isotopologue_class = None
+        self.isotopologue_type = None
         self.ms2_scan_numbers = []
         self.ms2_mass_spectra = {}
         self.ms2_similarity_results = []
 
-        # get the parent's mass feature keys and add 1 to the max value to get the new key
-        self.id = max(lcms_parent.mass_features.keys()) + 1 if lcms_parent.mass_features.keys() else 1
+        if id:
+            self.id = id
+        else:
+            # get the parent's mass feature keys and add 1 to the max value to get the new key
+            self.id = max(lcms_parent.mass_features.keys()) + 1 if lcms_parent.mass_features.keys() else 1
 
     def update_mz(self):
         """ Update the mass to charge ratio of the feature from the mass spectrum object. """
@@ -181,7 +184,7 @@ class LCMSMassFeature(ChromaPeakBase):
         Parameters
         ----------
         to_plot : list, optional
-            List of strings specifying what to plot. Default is ["EIC", "MS1", "MS2"]. If MS2 spectra are not available, the "MS2" plot will not be shown.  Options are ["EIC"], ["EIC", "MS1"], ["EIC", "MS1", "MS2"].
+            List of strings specifying what to plot, any iteration of "EIC", "MS2", and "MS1". Default is ["EIC", "MS1", "MS2"].
         return_fig : bool, optional
             If True, the figure is returned. Default is True.
         verbose : bool, optional
@@ -192,79 +195,74 @@ class LCMSMassFeature(ChromaPeakBase):
         matplotlib.figure.Figure or None
             The figure object if `return_fig` is True, otherwise None and the figure is displayed.
         """
-        # Check if EIC data are available
-        if self._eic_data is None:
-            raise ValueError("EIC data is not available, cannot plot the mass feature")
-        
-        if "MS1" in to_plot:
-            # Check if mass spectrum is available and mspeaks are available
-            if self.mass_spectrum is None:
-                raise ValueError("Mass spectrum is not available, cannot plot the ms1 spectrum")
-            if self.mass_spectrum._mspeaks is None:
-                raise ValueError("MS1 peaks are not available, cannot plot the ms1 spectrum, did you process the mass spectrum?")
-            
-        import matplotlib.pyplot as plt
-
+       
         # EIC plot preparation
         eic_buffer_time = self.chromatogram_parent.parameters.lc_ms.eic_buffer_time 
 
-        # Start figure with two or three subplots, depending if there are MS2 spectra available
-        if len(self.ms2_scan_numbers)>0 and len(to_plot) == 3:
-            fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(9, 12))
-            to_plot = to_plot
-        elif (len(to_plot) == 3 and len(self.ms2_scan_numbers)==0) or len(to_plot)==2 :            
-            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(9, 8))
-            to_plot = ["EIC", "MS1"]
-        elif (len(to_plot) == 1):
-            fig, (ax1) = plt.subplots(1, 1, figsize=(9, 4))
-            to_plot = "EIC"
+        # Adjust to_plot list if there are not spectra added to the mass features
+        if self.mass_spectrum is None:
+            to_plot = [x for x in to_plot if x != "MS1"]
+        if len(self.ms2_mass_spectra) == 0 :
+            to_plot = [x for x in to_plot if x != "MS2"]
+        if self._eic_data is None:
+            to_plot = [x for x in to_plot if x != "EIC"]
+
+        fig, axs = plt.subplots(len(to_plot), 1, figsize=(9, len(to_plot)*4), squeeze=False)
         fig.suptitle("Mass Feature " + str(self.id) +": m/z = "+ str(round(self.mz, ndigits = 4)) + "; time = " + str(round(self.scan_time, ndigits = 1)) + " minutes")
         
-        # EIC plot        
-        ax1.set_title("EIC", loc = 'left')
-        ax1.plot(self._eic_data.time, self._eic_data.eic)
-        if self.start_scan is not None:      
-            ax1.fill_between(self.eic_rt_list, self.eic_list, color='b', alpha=0.2)
-        else:
-            if verbose:
-                print("No start and final scan numbers were provided for mass feature " + str(self.id))
-        ax1.set_ylabel("Intensity")
-        ax1.set_xlabel("Time (minutes)")
-        ax1.set_ylim(0, self.eic_list.max()*1.1)
-        ax1.set_xlim(self.scan_time - eic_buffer_time, self.scan_time + eic_buffer_time)
-        ax1.axvline(x=self.scan_time, color='k', label = "MS1 scan time (apex)")
-        if len(self.ms2_scan_numbers)>0:
-            ax1.axvline(x=self.chromatogram_parent.get_time_of_scan_id(self.best_ms2.scan_number), color='grey', linestyle='--', label = "MS2 scan time")
-        ax1.legend(loc='upper left')
-        ax1.yaxis.get_major_formatter().set_useOffset(False)
+        # EIC plot  
+        if "EIC" in to_plot:     
+            if self._eic_data is None:
+                raise ValueError("EIC data is not available, cannot plot the mass feature's EIC")
+            axs[i][0].set_title("EIC", loc = 'left')
+            axs[i][0].plot(self._eic_data.time, self._eic_data.eic)
+            if self.start_scan is not None:      
+                axs[i][0].fill_between(self.eic_rt_list, self.eic_list, color='b', alpha=0.2)
+            else:
+                if verbose:
+                    print("No start and final scan numbers were provided for mass feature " + str(self.id))
+            axs[i][0].set_ylabel("Intensity")
+            axs[i][0].set_xlabel("Time (minutes)")
+            axs[i][0].set_ylim(0, self.eic_list.max()*1.1)
+            axs[i][0].set_xlim(self.scan_time - eic_buffer_time, self.scan_time + eic_buffer_time)
+            axs[i][0].axvline(x=self.scan_time, color='k', label = "MS1 scan time (apex)")
+            if len(self.ms2_scan_numbers)>0:
+                axs[i][0].axvline(x=self.chromatogram_parent.get_time_of_scan_id(self.best_ms2.scan_number), color='grey', linestyle='--', label = "MS2 scan time")
+            axs[i][0].legend(loc='upper left')
+            axs[i][0].yaxis.get_major_formatter().set_useOffset(False)
+            i += 1
 
         # MS1 plot
         if "MS1" in to_plot:
-            ax2.set_title("MS1", loc='left')
-            ax2.vlines(self.mass_spectrum.mz_exp, 0, self.mass_spectrum.abundance, color='k')
+            axs[i][0].set_title("MS1", loc='left')
+            axs[i][0].vlines(self.mass_spectrum.mz_exp, 0, self.mass_spectrum.abundance, color='k')
             if (self.ms1_peak.mz_exp - self.mz) < 0.01:
-                ax2.vlines(self.ms1_peak.mz_exp, 0, self.ms1_peak.abundance, color='m', label = "Feature m/z")
-                ax2.set_xlim(0, self.ms1_peak.mz_exp*1.1)
+                axs[i][0].vlines(self.ms1_peak.mz_exp, 0, self.ms1_peak.abundance, color='m', label = "Feature m/z")
+                axs[i][0].set_xlim(0, self.ms1_peak.mz_exp*1.1)
             else:
                 if verbose:
                     print("The m/z of the mass feature " + str(self.id) + " is different from the m/z of MS1 peak, the MS1 peak will not be plotted")
-            ax2.legend(loc='upper left')
-            ax2.set_ylabel("Intensity")
-            ax2.set_xlabel("m/z")
-            ax2.set_ylim(bottom=0)
-            ax2.yaxis.set_tick_params(labelleft=False)
+            axs[i][0].legend(loc='upper left')
+            axs[i][0].set_ylabel("Intensity")
+            axs[i][0].set_xlabel("m/z")
+            axs[i][0].set_ylim(bottom=0)
+            axs[i][0].yaxis.set_tick_params(labelleft=False)
+            i += 1
 
         # MS2 plot
         if "MS2" in to_plot:
-            ax3.set_title("MS2", loc='left')
-            ax3.vlines(self.best_ms2.mz_exp, 0, self.best_ms2.abundance, color='k')
-            ax3.set_ylabel("Intensity")
-            ax3.set_xlabel("m/z")
-            ax3.set_ylim(bottom=0)
-            ax3.yaxis.get_major_formatter().set_scientific(False)
-            ax3.yaxis.get_major_formatter().set_useOffset(False)
-            ax3.set_xlim(ax2.get_xlim())
-            ax3.yaxis.set_tick_params(labelleft=False)
+            axs[i][0].set_title("MS2", loc='left')
+            axs[i][0].vlines(self.best_ms2.mz_exp, 0, self.best_ms2.abundance, color='k')
+            axs[i][0].set_ylabel("Intensity")
+            axs[i][0].set_xlabel("m/z")
+            axs[i][0].set_ylim(bottom=0)
+            axs[i][0].yaxis.get_major_formatter().set_scientific(False)
+            axs[i][0].yaxis.get_major_formatter().set_useOffset(False)
+            if "MS1" in to_plot:
+                axs[i][0].set_xlim(axs[i-1].get_xlim())
+            else:
+                axs[i][0].set_xlim(0, max(self.best_ms2.mz_exp)*1.1)
+            axs[i][0].yaxis.set_tick_params(labelleft=False)
 
         # Add space between subplots 
         plt.tight_layout()
