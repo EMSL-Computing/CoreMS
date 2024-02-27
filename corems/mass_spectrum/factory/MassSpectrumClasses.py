@@ -1263,6 +1263,7 @@ class MassSpecfromFreq(MassSpecBase):
         if self._mz_exp[0] > self._mz_exp[-1]:
             self._mz_exp = self._mz_exp[::-1]
             self._abundance = self._abundance[::-1]
+            self._frequency_domain = self._frequency_domain[::-1]
 
     def _set_mz_domain(self):
         """Set the m/z domain of the mass spectrum based on the settings of d_params."""
