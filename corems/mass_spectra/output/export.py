@@ -5,6 +5,7 @@ __date__ = "Dec 14, 2010"
 import csv
 import json
 from pathlib import Path
+import warnings
 
 from numpy import NaN, concatenate
 from openpyxl import load_workbook
@@ -264,22 +265,27 @@ class LowResGCMSExport():
 
         # save sample at a time
         def add_compound(gc_peak, compound_obj):
-            
             modifier = compound_obj.classify if compound_obj.classify else ""
-            compound_group = peak_group.create_group(compound_obj.name.replace('/', '') + " " + modifier)
-            compound_group.attrs["retention_time"] = compound_obj.retention_time
-            compound_group.attrs["retention_index"] = compound_obj.ri
-            compound_group.attrs["retention_index_score"] = compound_obj.ri_score
-            compound_group.attrs["spectral_similarity_score"] = compound_obj.spectral_similarity_score
-            compound_group.attrs["similarity_score"] = compound_obj.similarity_score
+            compound_group = compound_obj.name.replace('/', '') + " " + modifier
 
-            compond_mz = compound_group.create_dataset('mz', data=np.array(compound_obj.mz), dtype="f8")  
-            compond_abundance = compound_group.create_dataset('abundance', data=np.array(compound_obj.abundance), dtype="f8")
+            if compound_group not in peak_group:
+                compound_group = peak_group.create_group(compound_group)
 
-            if self.gcms.molecular_search_settings.exploratory_mode:
+                # compound_group.attrs["retention_time"] = compound_obj.retention_time
+                compound_group.attrs["retention_index"] = compound_obj.ri
+                compound_group.attrs["retention_index_score"] = compound_obj.ri_score
+                compound_group.attrs["spectral_similarity_score"] = compound_obj.spectral_similarity_score
+                compound_group.attrs["similarity_score"] = compound_obj.similarity_score
 
-                compound_group.attrs['Spectral Similarities'] = json.dumps(compound_obj.spectral_similarity_scores,
-                                                                           sort_keys=False, indent=4, separators=(',',':'))
+                compond_mz = compound_group.create_dataset('mz', data=np.array(compound_obj.mz), dtype="f8")  
+                compond_abundance = compound_group.create_dataset('abundance', data=np.array(compound_obj.abundance), dtype="f8")
+
+                if self.gcms.molecular_search_settings.exploratory_mode:
+
+                    compound_group.attrs['Spectral Similarities'] = json.dumps(compound_obj.spectral_similarity_scores,
+                                                                            sort_keys=False, indent=4, separators=(',',':'))
+            else:
+                warnings.warn('Skipping duplicate reference compound.')
 
         import h5py
         import json
@@ -326,9 +332,9 @@ class LowResGCMSExport():
                 peak_group = hdf_handle.create_group(str(gc_peak.retention_time))
                 peak_group.attrs["deconvolution"] = int(self.gcms.chromatogram_settings.use_deconvolution)
 
-                peak_group.attrs["start_index"] = gc_peak.start_index 
-                peak_group.attrs["apex_index"] = gc_peak.index
-                peak_group.attrs["final_index"] = gc_peak.final_index
+                peak_group.attrs["start_scan"] = gc_peak.start_scan
+                peak_group.attrs["apex_scan"] = gc_peak.apex_scan
+                peak_group.attrs["final_scan"] = gc_peak.final_scan
 
                 peak_group.attrs["retention_index"] = gc_peak.ri
                 peak_group.attrs["retention_time"] = gc_peak.retention_time
