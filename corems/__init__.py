@@ -3,7 +3,7 @@
 """
 
 __author__ = 'Yuri E. Corilo'
-__version__ = '2.0.0'
+__version__ = '2.0.1'
 
 import time
 import os
