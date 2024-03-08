@@ -1,16 +1,18 @@
-import requests
-import os
-import numpy as np
-import re
-from ms_entropy import FlashEntropySearch
 import copy
-from corems.molecular_id.factory.EI_SQL import EI_LowRes_SQLite
+import os
+import re
 
+import numpy as np
+import requests
+from ms_entropy import FlashEntropySearch
+
+from corems.molecular_id.factory.EI_SQL import EI_LowRes_SQLite, Metadatar
 
 # Globals
 METABREF_GCMS_LIBRARY_URL = "https://metabref.emsl.pnnl.gov/api/mslevel/1"
 METABREF_DI_MS2_LIBRARY_URL = "https://metabref.emsl.pnnl.gov/api/mslevel/2"
 METABREF_FAMES_URL = "https://metabref.emsl.pnnl.gov/api/fames"
+METABREF_MOLECULARDATA_URL = "https://metabref.emsl.pnnl.gov/moleculardata/{}"
 
 
 def set_token(path):
@@ -270,40 +272,69 @@ def metabref_to_corems(metabref_lib, normalize=True):
 
     """
 
-    # Known fields
-    known_fields = ['ri', 'rt', 'comments', 'peak_count', 'mz', 'usi', 'id']
+    # All below key:value lookups are based on CoreMS class definitions
+    # NOT MetabRef content. For example, MetabRef has keys for PubChem,
+    # USI, etc. that are not considered below.
+
+    # Dictionary to map metabref keys to corems keys
+    metadatar_cols = {'casno': 'cas',
+                      'inchikey': 'inchikey',
+                      'inchi': 'inchi',
+                      'chebi': 'chebi',
+                      'smiles': 'smiles',
+                      'kegg': 'kegg',
+                      'iupac_name': 'iupac_name',
+                      'traditional_name': 'traditional_name', # Not present in metabref
+                      'common_name': 'common_name' # Not present in metabref
+                     }
+
+    # Dictionary to map metabref keys to corems keys
+    lowres_ei_compound_cols = {'id': 'metabref_id',
+                               'molecule_name': 'name', # Is this correct?
+                               'classify': 'classify', # Not present in metabref
+                               'formula': 'formula',
+                               'ri': 'ri',
+                               'rt': 'retention_time',
+                               'source': 'source', # Not present in metabref
+                               'casno': 'casno',
+                               'comments': 'comment',
+                               'source_temp_c': 'source_temp_c', # Not present in metabref
+                               'ev': 'ev', # Not present in metabref
+                               'peak_count': 'peaks_count',
+                               'mz': 'mz',
+                               'abundance': 'abundance'
+                              }
 
     # Local result container
     corems_lib = []
 
     # Enumerate spectra
-    for i, source in enumerate(metabref_lib):
-        # Reorganize source dict
-        spectrum = source['spectrum_data']
+    for i, source_ in enumerate(metabref_lib):
+        # Copy source to prevent modification
+        source = source_.copy()
         
-        # Empty spectrum container
-        target = {}
-        
-        # Convert CoreMS spectrum to array
-        arr =  metabref_spectrum_to_array(spectrum['mz'],
-                                          normalize=normalize)
+        # Flatten source dict
+        source =  source.pop('spectrum_data') | source
 
-        # Store as mz, abundance
+        # Parse target data
+        target = {lowres_ei_compound_cols[k]: v for k, v in source.items() if k in lowres_ei_compound_cols}
+        
+        # Explicitly add this to connect with LowResCompoundRef later 
+        target['rt'] = source['rt']
+
+        # Parse (mz, abundance)
+        arr = metabref_spectrum_to_array(target['mz'],
+                                         normalize=normalize)
         target['mz'] = arr[:, 0]
         target['abundance'] = arr[:, 1]
 
-        # Other known fields
-        target['NAME'] = source.get('molecule_name', None)
-        target['COMMENT'] = spectrum.get('comments', None)
-        target['RI'] = spectrum.get('ri', None)
-        target['RT'] = spectrum.get('rt', None)
-        target['NUM PEAKS'] = spectrum.get('peak_count', None)
-        target['metabref_id'] = spectrum.get('id', None)
+        # Parse meta data
+        target['metadata'] = {metadatar_cols[k]: v for k, v in source.items() if k in metadatar_cols}
 
-        # Extra meta data
-        for k in spectrum:
-            if k not in known_fields:
-                target[k] = spectrum[k]
+        # Add anything else
+        for k in source:
+            if k not in lowres_ei_compound_cols:
+                target[k] = source[k]
 
         # Add to CoreMS list
         corems_lib.append(target)
@@ -311,7 +342,7 @@ def metabref_to_corems(metabref_lib, normalize=True):
     return corems_lib
 
 
-def corems_to_sqlite(corems_lib, url='sqlite://', normalize=True):
+def corems_to_sqlite(corems_lib, url='sqlite://'):
     """
     Convert CoreMS-formatted library to SQLite database for local ingestion.
 
@@ -321,8 +352,6 @@ def corems_to_sqlite(corems_lib, url='sqlite://', normalize=True):
         CoreMS GC-MS library.
     url : str
         URL to SQLite prefix.
-    normalize : bool
-        Normalize each spectrum by its magnitude.
 
     Returns
     -------
@@ -330,12 +359,35 @@ def corems_to_sqlite(corems_lib, url='sqlite://', normalize=True):
         Spectra contained in SQLite database.
 
     """
+    # Dictionary to map corems keys to all-caps keys
+    capped_cols = {'name': 'NAME',
+                   'formula': 'FORM',
+                   'ri': 'RI',
+                   'retention_time': 'RT',
+                   'source': 'SOURCE',
+                   'casno': 'CASNO',
+                   'comment': 'COMMENT',
+                   'peaks_count': 'NUM PEAKS'
+                  }
 
     # Initialize SQLite object
     sqlite_obj = EI_LowRes_SQLite(url=url)
 
     # Iterate spectra
-    for data_dict in corems_lib:
+    for data_dict_ in corems_lib:
+        # Copy source to prevent modification
+        data_dict = data_dict_.copy()
+        
+        # Add missing capped values
+        for k, v in capped_cols.items():
+            # Key exists
+            if k in data_dict:
+                # # This will replace the key
+                # data_dict[v] = data_dict.pop(k)
+
+                # This will keep both keys
+                data_dict[v] = data_dict[k]
+
         # Parse number of peaks
         if not data_dict.get('NUM PEAKS'):
             data_dict['NUM PEAKS'] = len(data_dict.get('mz'))
@@ -346,6 +398,13 @@ def corems_to_sqlite(corems_lib, url='sqlite://', normalize=True):
 
         if not data_dict['CASNO']:
             data_dict['CASNO'] = 0
+
+        # Build linked metadata table
+        if 'metadata' in data_dict:
+            if len(data_dict['metadata']) > 0:
+                data_dict['metadatar'] = Metadatar(**data_dict.pop('metadata'))
+            else:
+                data_dict.pop('metadata')
 
         # Attempt addition to sqlite
         try:
