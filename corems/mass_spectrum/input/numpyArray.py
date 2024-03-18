@@ -51,7 +51,7 @@ def ms_from_array_centroid(mz, abundance, rp:list[float], s2n:list[float], datan
     
     output_parameters = get_output_parameters(polarity, dataname)
     output_parameters[Labels.label] = Labels.corems_centroid
-        
+    
     return MassSpecCentroid(data_dict, output_parameters, auto_process)
     
 def get_output_parameters(polarity:int, file_location:str):

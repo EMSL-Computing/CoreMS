@@ -43,7 +43,8 @@ def create_mass_spectrum():
 
 def test_run_molecular_formula_search():
     
-    #MSParameters.molecular_search.url_database = ''
+    # test local sql molecular formula search and result
+    MSParameters.molecular_search.url_database = ''
     MSParameters.molecular_search.usedAtoms['F'] = (0,0)
     MSParameters.molecular_search.usedAtoms['P'] = (0,0)
     MSParameters.molecular_search.usedAtoms['Cl'] = (0,0)
@@ -62,7 +63,7 @@ def test_run_molecular_formula_search():
     rp, s2n = [1] ,[1]
     dataname = 'one peak'
     MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
-    mass_spectrum_obj = ms_from_array_centroid(mz, abundance, rp, s2n, dataname, auto_process=False)
+    mass_spectrum_obj = ms_from_array_centroid(mz, abundance, rp, s2n, dataname, auto_process=True)
 
     SearchMolecularFormulas(mass_spectrum_obj).run_worker_ms_peaks([mass_spectrum_obj[0]])
     
