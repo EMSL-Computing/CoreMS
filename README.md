@@ -1,4 +1,4 @@
-![CoreMS Logo](https://github.com/EMSL-Computing/CoreMS/blob/v2.0.1/docs/CoreMS.COLOR_small.png?raw=true)  
+![CoreMS Logo](https://github.com/EMSL-Computing/CoreMS/tree/master/docs/CoreMS.COLOR_small.png?raw=true)  
 
 <div align="left">
 
