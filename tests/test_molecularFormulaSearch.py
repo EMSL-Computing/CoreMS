@@ -22,10 +22,21 @@ def create_mass_spectrum():
     file_location = Path.cwd() / "tests/tests_data/ftms/ESI_NEG_SRFA.d/"
 
     bruker_reader = ReadBrukerSolarix(file_location)
-
+    MSParameters.molecular_search.url_database = ''
     MSParameters.mass_spectrum.noise_threshold_method = 'log'
     MSParameters.mass_spectrum.noise_threshold_log_nsigma = 10
     MSParameters.ms_peak.peak_min_prominence_percent = 1
+
+    MSParameters.molecular_search.min_ppm_error  = -5
+    MSParameters.molecular_search.max_ppm_error = 5
+    MSParameters.molecular_search.mz_error_range = 1
+    MSParameters.molecular_search.isProtonated = True 
+    MSParameters.molecular_search.isRadical= False 
+    MSParameters.molecular_search.isAdduct= False 
+
+    usedatoms = {'C': (1,100) , 'H': (4,200), 'O': (0,10), 'N': (0,1), 'P': (0,1)}
+    MSParameters.molecular_search.usedAtoms = usedatoms
+    MSParameters.molecular_search.usedAtoms = usedatoms
 
     bruker_transient = bruker_reader.get_transient()
     
@@ -59,7 +70,7 @@ def test_run_molecular_formula_search():
     MSParameters.molecular_search.isRadical= False 
     MSParameters.molecular_search.isAdduct= False 
 
-    usedatoms = {'C': (1,100) , 'H': (4,200), 'O': (0,10), 'N': (0,1), 'P': (0,1)}
+    usedatoms = {'C': (1,100) , 'H': (4,200), 'O': (0,10), 'N': (0,1)}
     MSParameters.molecular_search.usedAtoms = usedatoms
     MSParameters.molecular_search.usedAtoms = usedatoms
     mass_spectrum_obj = ms_from_array_centroid(mz, abundance, rp, s2n, 'single mf search', polarity=1, auto_process=True)
@@ -76,19 +87,15 @@ def test_run_molecular_formula_search():
 def test_mspeak_search():
 
     mass_spec_obj = create_mass_spectrum()
-    
-    print("OK")
-
     mspeak_obj = mass_spec_obj.most_abundant_mspeak
-    
     SearchMolecularFormulas(mass_spec_obj).run_worker_ms_peaks([mspeak_obj])
-
-    print("OK2")
     if mspeak_obj.is_assigned:
-        
-        print(mspeak_obj.molecular_formula_earth_filter().string)
-        print(mspeak_obj.molecular_formula_water_filter().string)
-        print(mspeak_obj.molecular_formula_air_filter().string)
+        if len(mspeak_obj.molecular_formula_earth_filter()) > 0:
+            print(mspeak_obj.molecular_formula_earth_filter().string)
+        if len(mspeak_obj.molecular_formula_water_filter()) > 0:
+            print(mspeak_obj.molecular_formula_water_filter().string)
+        if len(mspeak_obj.molecular_formula_air_filter()) > 0:
+            print(mspeak_obj.molecular_formula_air_filter().string)
         print(mspeak_obj.cia_score_S_P_error().string)
         print(mspeak_obj.cia_score_N_S_P_error().string)
         print(mspeak_obj.best_molecular_formula_candidate.string)
@@ -162,5 +169,5 @@ if __name__ == "__main__":
     #test_priorityAssignment()
     #()
     #test_molecular_formula_search_db()
-    test_run_molecular_formula_search()
-    #test_mspeak_search()
+    #test_run_molecular_formula_search()
+    test_mspeak_search()
