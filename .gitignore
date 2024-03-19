@@ -1,3 +1,4 @@
+env/
 venv/ 
 test_env/ 
 venv310/
