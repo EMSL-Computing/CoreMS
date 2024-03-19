@@ -201,6 +201,8 @@ class MolecularFormulaBase(MolecularFormulaCalc):
             if adduct_atom in self._d_molecular_formula:
                 self._d_molecular_formula[adduct_atom] += 1 
             else: self._d_molecular_formula[adduct_atom] = 1 
+        else:
+            self.adduct_atom = None
 
     def _from_str(self, molecular_formula_str,  ion_type, adduct_atom):
         # string has to be in the format 

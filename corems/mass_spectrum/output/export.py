@@ -560,10 +560,12 @@ class HighResMassSpecExport(Thread):
                            'H/C': mformula.H_C,
                            'O/C': mformula.O_C,
                            'Ion Type': eval("mformula.ion_type.lower(){}".format(encode)),
-                           'Adduct' : mformula.adduct_atom,
                            'Is Isotopologue': int(mformula.is_isotopologue),
                            'Molecular Formula': eval("mformula.string{}".format(encode))
                            }
+            
+            if mformula.adduct_atom:
+                dict_result['Adduct'] = eval("mformula.adduct_atom{}".format(encode))
 
             if mformula.is_isotopologue:
                 dict_result['Mono Isotopic Index'] = mformula.mspeak_index_mono_isotopic
