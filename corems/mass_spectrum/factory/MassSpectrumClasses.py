@@ -217,7 +217,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         - _calibration_terms
         - label
         - analyzer
-        - aquisition_time
+        - acquisition_time
         - instrument_label
         - polarity
         - scan_number
@@ -240,7 +240,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         self.analyzer = d_params.get('analyzer')
 
-        self.aquisition_time = d_params.get('aquisition_time')
+        self.acquisition_time = d_params.get('acquisition_time')
 
         self.instrument_label = d_params.get('instrument_label')
 
@@ -1263,6 +1263,7 @@ class MassSpecfromFreq(MassSpecBase):
         if self._mz_exp[0] > self._mz_exp[-1]:
             self._mz_exp = self._mz_exp[::-1]
             self._abundance = self._abundance[::-1]
+            self._frequency_domain = self._frequency_domain[::-1]
 
     def _set_mz_domain(self):
         """Set the m/z domain of the mass spectrum based on the settings of d_params."""
