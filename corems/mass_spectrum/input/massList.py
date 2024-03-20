@@ -83,6 +83,10 @@ class ReadCoremsMasslist(MassListBaseClass):
             ion_type_df = dataframe["Ion Type"]
             ion_charge_df = dataframe["Ion Charge"]
             is_isotopologue_df = dataframe['Is Isotopologue']
+            if 'Adduct' in dataframe:
+                adduct_df = dataframe['Adduct']
+            else:
+                adduct_df = None
 
         mass_spec_mz_exp_list = mass_spec_obj.mz_exp
 
@@ -102,7 +106,11 @@ class ReadCoremsMasslist(MassListBaseClass):
             if sum(counts) > 0:
 
                 ion_type = str(Labels.ion_type_translate.get(ion_type_df[df_index]))
-                mfobj = MolecularFormula(formula_list, int(ion_charge_df[df_index]), mspeak_parent=mass_spec_obj[ms_peak_index] , ion_type=ion_type)
+                if adduct_df is not None:
+                    adduct_atom = str(adduct_df[df_index])
+                else:
+                    adduct_atom = None
+                mfobj = MolecularFormula(formula_list, int(ion_charge_df[df_index]), mspeak_parent=mass_spec_obj[ms_peak_index] , ion_type=ion_type, adduct_atom=adduct_atom)
                 mfobj.is_isotopologue = bool(is_isotopologue_df[df_index])
                 mass_spec_obj[ms_peak_index].add_molecular_formula(mfobj)
 

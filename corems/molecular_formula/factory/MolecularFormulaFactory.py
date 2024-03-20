@@ -98,9 +98,7 @@ class MolecularFormulaBase(MolecularFormulaCalc):
 
     def __init__(self, molecular_formula, ion_charge, ion_type=None, 
                 adduct_atom=None, mspeak_parent=None, external_mz=None):
-        
         # clear dictionary of atoms with 0 value
-        
         if  type(molecular_formula) is dict:
                 self._from_dict(molecular_formula, ion_type, adduct_atom)   
         
@@ -110,7 +108,6 @@ class MolecularFormulaBase(MolecularFormulaCalc):
         elif type(molecular_formula) is str:
                 self._from_str(molecular_formula, ion_type, adduct_atom)   
 
-        
         self._ion_charge = ion_charge
         self._external_mz = external_mz
         self._confidence_score = None        
@@ -178,8 +175,10 @@ class MolecularFormulaBase(MolecularFormulaCalc):
         
         if ion_type:
             self._d_molecular_formula[Labels.ion_type] = ion_type
+            self.adduct_atom = None
             
         if adduct_atom:
+            self.adduct_atom = adduct_atom
             if adduct_atom in self._d_molecular_formula:
                 self._d_molecular_formula[adduct_atom] += 1 
             else: self._d_molecular_formula[adduct_atom] = 1 
@@ -198,9 +197,12 @@ class MolecularFormulaBase(MolecularFormulaCalc):
         
         self._d_molecular_formula[Labels.ion_type] = ion_type
         if adduct_atom:
+            self.adduct_atom = adduct_atom
             if adduct_atom in self._d_molecular_formula:
                 self._d_molecular_formula[adduct_atom] += 1 
             else: self._d_molecular_formula[adduct_atom] = 1 
+        else:
+            self.adduct_atom = None
 
     def _from_str(self, molecular_formula_str,  ion_type, adduct_atom):
         # string has to be in the format 
@@ -317,7 +319,11 @@ class MolecularFormulaBase(MolecularFormulaCalc):
     def ion_charge(self): return self._ion_charge
     
     @property
-    def atoms(self): return [key for key in self._d_molecular_formula.keys() if key != Labels.ion_type]
+    def atoms(self): 
+        """Get the atoms in the molecular formula."""
+        ion_mol_form_keys = list(self._d_molecular_formula.keys())
+        mol_form_keys = ion_mol_form_keys[:ion_mol_form_keys.index(Labels.ion_type)]
+        return mol_form_keys
     
     @property
     def confidence_score(self): 
@@ -414,11 +420,14 @@ class MolecularFormulaBase(MolecularFormulaCalc):
 
     @property       
     def string(self):
-        
+        """Returns the molecular formula as a string."""
         if self._d_molecular_formula:
+            # Get keys that are associated with the molecular formula
+            ion_mol_form_keys = list(self._d_molecular_formula.keys())
+            mol_form_keys = ion_mol_form_keys[:ion_mol_form_keys.index(Labels.ion_type)]
             formula_srt = ''
             for atom in Atoms.atoms_order:
-                if atom in self.to_dict().keys():
+                if atom in mol_form_keys:
                     formula_srt += atom + str(int(self.to_dict().get(atom))) + ' '
             return formula_srt.strip()
         

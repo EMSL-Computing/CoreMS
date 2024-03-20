@@ -1376,6 +1376,8 @@ class MassSpecCentroid(MassSpecBase):
 
         self.is_centroid = True
         self.data_dict = data_dict
+        self._mz_exp = data_dict[Labels.mz]
+        self._abundance = data_dict[Labels.abundance]
 
         if auto_process:
             self.process_mass_spec()
