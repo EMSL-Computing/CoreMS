@@ -4,7 +4,7 @@ from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 
-from numpy import genfromtxt, fromstring, dtype, fromfile, frombuffer
+from numpy import genfromtxt, fromstring, dtype, fromfile, frombuffer, float64, float32
 import pandas as pd
 from s3path import S3Path
 from xml.dom import minidom
@@ -270,7 +270,7 @@ class ReadBrukerSolarix(object):
         return lowfreq[0], highfreq[0]
 
     @staticmethod
-    def locate_file(folder, type_file_name):
+    def locate_file(folder, type_file_name='apexAcquisition.method'):
         """ Function to locate a file in a folder
 
         Find the full path of a specific file within the acquisition .d folder or subfolders
@@ -296,7 +296,8 @@ class ReadBrukerSolarix(object):
         
         from pathlib import Path
                
-        directory_location = folder.glob( '**/*apexAcquisition.method')
+        #directory_location = folder.glob( '**/*apexAcquisition.method')
+        directory_location = folder.glob( '**/*' + type_file_name)
         result = list(directory_location)
         if len(result) > 1:
 
@@ -399,3 +400,82 @@ class ReadBrukerSolarix(object):
 
         return parameter_dict
 
+
+    def parse_sqlite(self, sqlite_filename="chromatography-data.sqlite"):
+        """
+        
+        """
+        import sqlite3
+
+        def read_sqlite_file(file_path, table_name):
+            """
+            Read data from a SQLite database file and return it as a list of tuples
+
+            Parameters
+            ----------
+            file_path : str
+                the full path to the SQLite database file
+            table_name : str
+                the name of the table to be read
+            
+            Returns
+            -------
+            list
+                a list of tuples with the data from the table
+            """
+             # Connect to the SQLite database file
+            conn = sqlite3.connect(file_path)
+            cursor = conn.cursor()
+
+            # Execute a query to select data from a table (replace 'table_name' with your table's name)
+            query = f"SELECT * FROM {table_name}"
+            cursor.execute(query)
+
+            # Fetch all rows from the result set
+            rows = cursor.fetchall()
+            stream = []
+            # Print or process the fetched rows
+            for row in rows:
+                stream.append(row)
+                # print(row)  # Print each row, you can also process it differently
+
+            # Close the cursor and the connection
+            cursor.close()
+            conn.close()
+            return stream
+        
+        def parse_binary(binary, type):
+            """
+            Parse binary data from the sqlite data streams
+            """
+            if type == "double":
+                data = frombuffer(binary, dtype=float64)
+            elif type == "float":
+                data = frombuffer(binary, dtype=float32)
+            return data
+        
+        sqlite_filelocation = self.locate_file(
+                self.d_directory_location, sqlite_filename
+            )
+        table_name = "TraceSources"
+        trace_sources = read_sqlite_file(sqlite_filelocation, table_name)
+        table_name = "TraceChunks"
+        trace_chunks = read_sqlite_file(sqlite_filelocation, table_name)
+        times = []
+        values = []
+        trace_type = {}
+
+
+        for index, source in enumerate(trace_sources):
+            trace_id = source[0]
+            trace_type[source[1]] = {"times": [], "values": []}
+            for index, chunk in enumerate(trace_chunks):
+                id = chunk[0]
+                times = parse_binary(chunk[1], "double")
+                values = parse_binary(chunk[2], "float")
+                for time, value in zip(times, values):
+                    if source[0] == id:
+                        trace_type[source[1]]["times"].append(time)
+                        trace_type[source[1]]["values"].append(value)
+
+        return trace_type
