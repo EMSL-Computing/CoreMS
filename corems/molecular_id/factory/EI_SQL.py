@@ -105,23 +105,22 @@ class LowResolutionEICompound(Base):
 
     name = Column(String, nullable=False)
     classify = Column(String, nullable=True)
-
     formula = Column(String, nullable=True)
     ri = Column(Float, nullable=False)
     retention_time = Column(Float, nullable=False)
-
-    classify = Column(String, nullable=True)
-    derivativenum = Column(String, nullable=True)
-    derivatization = Column(String, nullable=True)
 
     source = Column(String, nullable=True)
     casno = Column(String, nullable=False)
     comment = Column(String, nullable=True)
 
+    derivativenum = Column(String, nullable=True)
+    derivatization = Column(String, nullable=True)
+
     source_temp_c = Column(Float, nullable=True)
     ev = Column(Float, nullable=True)
 
     peaks_count = Column(Integer, nullable=False)
+
     mz = Column(LargeBinary, nullable=False)
     abundance = Column(LargeBinary, nullable=False)
 
@@ -129,11 +128,12 @@ class LowResolutionEICompound(Base):
 
     # metadatar = relationship('Metadatar', backref='smile', lazy='dynamic')
 
-    def __init__(self, dict_data):
+    def __init__(self, **dict_data):
 
         self.id = dict_data.get('id')
 
         self.name = dict_data.get('NAME')
+        self.classify = dict_data.get('classify')
         self.formula = dict_data.get('FORM')
         self.ri = dict_data.get('RI')
         self.retention_time = dict_data.get('RT')
@@ -142,7 +142,6 @@ class LowResolutionEICompound(Base):
         self.casno = dict_data.get('CASNO')
         self.comment = dict_data.get('COMMENT')
 
-        self.classify = dict_data.get('classify')
         self.derivativenum = dict_data.get('derivativenum')
         self.derivatization = dict_data.get('derivatization')
 
@@ -154,9 +153,13 @@ class LowResolutionEICompound(Base):
         self.mz = array(dict_data.get('mz'), dtype='int32').tobytes()
         self.abundance = array(dict_data.get('abundance'), dtype="int32").tobytes()
 
+        self.metadatar = dict_data.get('metadatar', None)
+
     def __repr__(self):
-        return "<LowResolutionEICompound(name= %s , cas number = %s, formula = %s, Retention index= %.1f, Retention time= %.1f comment='%i')>" % (
+        return "<LowResolutionEICompound(name= %s , cas number = %s, formula = %s, Retention index= %.1f, Retention time= %.1f comment='%s')>" % (
                                     self.name, self.casno, self.formula, self.ri, self.retention_time, self.comment)
+
+
 @dataclass
 class MetaboliteMetadata:
     """ Dataclass for the Metabolite Metadata
@@ -406,7 +409,7 @@ class EI_LowRes_SQLite:
             if not data_dict.get('CASNO'):
                 data_dict['CASNO'] = data_dict.get('CAS')
         
-        self.session.add_all([LowResolutionEICompound(data_dict) for data_dict in data_dict_list] )
+        self.session.add_all([LowResolutionEICompound(**data_dict) for data_dict in data_dict_list] )
 
     def add_compound(self, data_dict):
         """ Adds a single compound to the database. 
@@ -417,7 +420,7 @@ class EI_LowRes_SQLite:
             A dictionary representing the compound.
         
         """
-        one_compound = LowResolutionEICompound(data_dict)
+        one_compound = LowResolutionEICompound(**data_dict)
         self.session.add(one_compound)
         self.commit()
 
