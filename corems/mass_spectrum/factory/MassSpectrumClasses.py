@@ -3,7 +3,7 @@ from copy import deepcopy
 
 
 #from matplotlib import rcParamsDefault, rcParams
-from numpy import array, power, float64, where, histogram
+from numpy import array, power, float64, where, histogram, trapz
 
 from pandas import DataFrame
 from lmfit.models import GaussianModel
@@ -612,7 +612,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     @property
     def tic(self):
         """Return the total ion current of the mass spectrum."""
-        return sum(self.abundance_profile)
+        return trapz(self.abundance_profile)
 
     def check_mspeaks_warning(self):
         """Check if the mass spectrum has MSpeaks objects.
