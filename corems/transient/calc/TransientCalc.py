@@ -241,13 +241,15 @@ class TransientCalculations(object):
 
       
         if self._exc_low_freq > self._exc_high_freq:
-            
-            final =  where(freqdomain_X > self._exc_high_freq)[-1][-1]
-            start =  where(freqdomain_X > self._exc_high_freq())[0][0]
+            # TODO: This needs to be tested
+            # I'm not sure that this is relevant anyway - the excitation pulse is ramped in frequency but the detection is simulatenous
+            print("This is not tested. Please check the results.")
+            start =  where(freqdomain_X > self._exc_high_freq)[0][0]
+            final =  where(freqdomain_X > self._exc_low_freq)[0][0]
         
         else:
             
-            final =  where(freqdomain_X > self._exc_low_freq)[-1][-1]
+            final =  where(freqdomain_X > self._exc_high_freq)[0][0]
             start =  where(freqdomain_X > self._exc_low_freq)[0][0]
             
         
