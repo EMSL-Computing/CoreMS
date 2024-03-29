@@ -607,6 +607,8 @@ class MolecularFormulaIsotopologue(MolecularFormulaBase):
                 ion_type = _d_molecular_formula.get(Labels.ion_type)
             else:
                 ion_type = None
+        else:
+            ion_type = Labels.ion_type_translate.get(ion_type)
         
         if ion_type == Labels.adduct_ion:
             if adduct_atom is None:
