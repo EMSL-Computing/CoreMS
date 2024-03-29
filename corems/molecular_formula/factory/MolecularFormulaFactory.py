@@ -410,7 +410,13 @@ class MolecularFormulaBase(MolecularFormulaCalc):
         
         for mf in self._cal_isotopologues(self._d_molecular_formula, min_abundance, current_mono_abundance, dynamic_range ):
              
-            yield MolecularFormulaIsotopologue(*mf, current_mono_abundance, self.ion_charge)
+            yield MolecularFormulaIsotopologue(
+                *mf, 
+                current_mono_abundance, 
+                self.ion_charge, 
+                ion_type=self.ion_type, 
+                adduct_atom=self.adduct_atom
+                )
     
     def atoms_qnt(self,atom): 
         """Get the atom quantity of a specific atom in the molecular formula."""
@@ -599,13 +605,12 @@ class MolecularFormulaIsotopologue(MolecularFormulaBase):
             # check if ion type or adduct_atom is in the molecular formula dict
             if Labels.ion_type in _d_molecular_formula:
                 ion_type = _d_molecular_formula.get(Labels.ion_type)
-                if ion_type == Labels.adduct_ion:
-                    # get the key that is after the ion type to set the adduct atom
-                    adduct_atom = list(_d_molecular_formula.keys())[list(_d_molecular_formula.keys()).index(Labels.ion_type)+1]
-                    # remove the adduct atom from the molecular formula dict
-                    _d_molecular_formula[adduct_atom] -= 1
             else:
                 ion_type = None
+        
+        if ion_type == Labels.adduct_ion:
+            # remove the adduct atom from the molecular formula dict
+            _d_molecular_formula[adduct_atom] -= 1
         
         super().__init__(
             molecular_formula =_d_molecular_formula, 
