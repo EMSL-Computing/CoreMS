@@ -574,9 +574,35 @@ class MolecularFormulaIsotopologue(MolecularFormulaBase):
     mono_isotopic_formula_index : int
         The index of the monoisotopic formula in the molecular formula list. Defaults to None.
     """
-    def __init__(self, _d_molecular_formula, prob_ratio, mono_abundance, ion_charge, mspeak_parent=None):
+    def __init__(
+            self, 
+            _d_molecular_formula, 
+            prob_ratio, 
+            mono_abundance, 
+            ion_charge, 
+            mspeak_parent=None,
+            ion_type = None,
+            adduct_atom = None
+            ):
         
-        super().__init__(_d_molecular_formula,  ion_charge)
+        if ion_type is None:
+            # check if ion type or adduct_atom is in the molecular formula dict
+            if Labels.ion_type in _d_molecular_formula:
+                ion_type = _d_molecular_formula.get(Labels.ion_type)
+                if ion_type == Labels.adduct_ion:
+                    # get the key that is after the ion type to set the adduct atom
+                    adduct_atom = list(_d_molecular_formula.keys())[list(_d_molecular_formula.keys()).index(Labels.ion_type)+1]
+                    # remove the adduct atom from the molecular formula dict
+                    _d_molecular_formula[adduct_atom] -= 1
+            else:
+                ion_type = None
+        
+        super().__init__(
+            molecular_formula =_d_molecular_formula, 
+            ion_charge = ion_charge, 
+            ion_type=ion_type,
+            adduct_atom=adduct_atom
+            )
         #prob_ratio is relative to the monoisotopic peak p_isotopologue/p_mono_isotopic
         
         self.prob_ratio = prob_ratio
