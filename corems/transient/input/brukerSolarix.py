@@ -180,6 +180,14 @@ class ReadBrukerSolarix(object):
         output_parameters["exc_high_freq"] = float(file_d_params.get("EXC_Freq_High"))
 
         output_parameters["exc_low_freq"] = float(file_d_params.get("EXC_Freq_Low"))
+        try:
+            output_parameters["qpd_enabled"] = float(file_d_params.get("QPD_Enabled"))
+        except TypeError: # for older datasets which dont have this variable
+            output_parameters["qpd_enabled"] = 0
+
+        output_parameters["mw_low"] = float(file_d_params.get("MW_low"))
+
+        output_parameters["mw_high"] = float(file_d_params.get("MW_high"))
 
         output_parameters["bandwidth"] = float(file_d_params.get("SW_h"))
 
