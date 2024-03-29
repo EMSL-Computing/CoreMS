@@ -321,9 +321,14 @@ class MolecularFormulaBase(MolecularFormulaCalc):
     @property
     def atoms(self): 
         """Get the atoms in the molecular formula."""
-        ion_mol_form_keys = list(self._d_molecular_formula.keys())
-        mol_form_keys = ion_mol_form_keys[:ion_mol_form_keys.index(Labels.ion_type)]
-        return mol_form_keys
+        # if there is an adduct_atom, them reduce it from the atoms list
+        if self.adduct_atom is None:
+            return [key for key in self._d_molecular_formula.keys() if key != Labels.ion_type]
+        else:
+            temp_dict = self._d_molecular_formula.copy()
+            temp_dict[self.adduct_atom] -= 1
+            return [key for key,val in temp_dict.items() if key != Labels.ion_type and val > 0]
+
     
     @property
     def confidence_score(self): 
@@ -422,13 +427,18 @@ class MolecularFormulaBase(MolecularFormulaCalc):
     def string(self):
         """Returns the molecular formula as a string."""
         if self._d_molecular_formula:
-            # Get keys that are associated with the molecular formula
-            ion_mol_form_keys = list(self._d_molecular_formula.keys())
-            mol_form_keys = ion_mol_form_keys[:ion_mol_form_keys.index(Labels.ion_type)]
+            if self.adduct_atom is None:
+                mol_form_dict = self._d_molecular_formula
+            else:
+                mol_form_dict = self._d_molecular_formula.copy()
+                if self.adduct_atom not in mol_form_dict.keys():
+                    raise Exception("Adduct atom not found in molecular formula dict")
+                mol_form_dict[self.adduct_atom] -= 1
+                mol_form_dict = {key:val for key, val in mol_form_dict.items() if val != 0}
             formula_srt = ''
             for atom in Atoms.atoms_order:
-                if atom in mol_form_keys:
-                    formula_srt += atom + str(int(self.to_dict().get(atom))) + ' '
+                if atom in mol_form_dict.keys():
+                    formula_srt += atom + str(int(mol_form_dict.get(atom))) + ' '
             return formula_srt.strip()
         
         else:
