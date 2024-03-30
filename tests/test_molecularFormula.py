@@ -13,10 +13,10 @@ def test_molecular_formula():
     
     '''test the MolecularFormula class and the calculation of isotopologues'''
     
-    formula_dict = {'C':10, 'H':0, 'O':10,'Cl':2, Labels.ion_type: 'Radical'}
+    formula_dict = {'C':10, 'H':0, 'O':10,'Cl':2, Labels.ion_type: 'radical'}
     
     ion_charge = 1 
-    formula_obj = MolecularFormula(formula_dict, ion_charge)
+    formula_obj = MolecularFormula(formula_dict, ion_charge, ion_type='radical', adduct_atom=None)
     print("ion_type", formula_obj.ion_type)
     assert round(formula_obj.mz_calc,2) == round(349.886303060457,2)
     

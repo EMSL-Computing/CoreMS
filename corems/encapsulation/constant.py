@@ -36,7 +36,8 @@ class Labels: #pragma: no cover
     ion_type_translate = { 'protonated': 'DE_OR_PROTONATED',
                           'de-protonated': 'DE_OR_PROTONATED',
                           'radical': 'RADICAL',
-                          'adduct': 'ADDUCT'}
+                          'adduct': 'ADDUCT',
+                          'ADDUCT': 'ADDUCT'}
     
 class Atoms: #pragma: no cover
     """ Class for Atoms in CoreMS

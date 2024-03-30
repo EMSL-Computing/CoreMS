@@ -173,15 +173,14 @@ class MolecularFormulaBase(MolecularFormulaCalc):
         
         self._d_molecular_formula = {key:val for key, val in molecular_formula.items() if val != 0}
         
-        if ion_type:
+        if ion_type is not None:
             self._d_molecular_formula[Labels.ion_type] = ion_type
-            self.adduct_atom = None
             
         if adduct_atom:
-            self.adduct_atom = adduct_atom
             if adduct_atom in self._d_molecular_formula:
                 self._d_molecular_formula[adduct_atom] += 1 
             else: self._d_molecular_formula[adduct_atom] = 1 
+        self.adduct_atom = adduct_atom
 
     def _from_list(self, molecular_formula_list, ion_type, adduct_atom):
         # list has to be in the format 
