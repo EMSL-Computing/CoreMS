@@ -614,12 +614,15 @@ class MolecularFormulaIsotopologue(MolecularFormulaBase):
             ion_type = Labels.ion_type_translate.get(ion_type)
         
         if ion_type == Labels.adduct_ion:
-            if adduct_atom not in _d_molecular_formula.keys():
-                adduct_atom = None
+            adduct_atom_int = None
+            if adduct_atom in _d_molecular_formula.keys():
+                adduct_atom_int = adduct_atom
+            else:
                 # Check to see if adduct_atom should actually be an isotope of the adduct atom
                 for adduct_iso in Atoms.isotopes.get(adduct_atom)[1]:
                     if adduct_iso in _d_molecular_formula.keys():
-                        adduct_atom = adduct_iso
+                        adduct_atom_int = adduct_iso
+            adduct_atom = adduct_atom_int
             if adduct_atom is None:
                 raise Exception("adduct_atom is required for adduct ion")
             _d_molecular_formula[adduct_atom] -= 1

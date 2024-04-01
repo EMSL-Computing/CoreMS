@@ -45,9 +45,27 @@ def test_molecular_formula():
               "mz_calc:", isotopologue_obj.mz_calc,
               "prob_ratio:", isotopologue_obj.prob_ratio)
       '''
+def test_molecular_formula_adducts():
+    
+    '''test the MolecularFormula class and the calculation of isotopologues with adducts'''
+    
+    mol_form = MolecularFormula(
+    {'C': 6, 'H': 10, 'O': 6}, 
+    ion_charge = -1,
+    ion_type = 'ADDUCT',
+    adduct_atom = 'Cl')
+    
+    isotopologues = list(mol_form.isotopologues(0.05, 1, dynamic_range=1000))
+
+    assert round(mol_form.mz_calc,2) == round(213.01713930162907,2)     
+    assert round(isotopologues[0].mz_calc,2) == round(215.01418922162907,2)
+    assert round(isotopologues[0].prob_ratio,2) == round(0.3199577613516368,2)
+    assert isotopologues[0].string == 'C6 H10 O6'
+    assert isotopologues[0].adduct_atom == '37Cl'
+
+
 
 if __name__ == "__main__":
-      test_molecular_formula()
-   
+      test_molecular_formula_adducts()
 
     
