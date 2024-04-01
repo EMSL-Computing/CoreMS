@@ -571,6 +571,10 @@ class MolecularFormulaIsotopologue(MolecularFormulaBase):
         The ion charge.
     mspeak_parent : object, optional
         The parent mass spectrum peak object instance. Defaults to None.
+    ion_type : str, optional
+        The ion type. Defaults to None.
+    adduct_atom : str, optional
+        The adduct atom. Defaults to None.
     
     Attributes
     ----------
@@ -610,13 +614,14 @@ class MolecularFormulaIsotopologue(MolecularFormulaBase):
             ion_type = Labels.ion_type_translate.get(ion_type)
         
         if ion_type == Labels.adduct_ion:
-            if adduct_atom is None:
-                raise Exception("adduct_atom is required for adduct ion")
             if adduct_atom not in _d_molecular_formula.keys():
-                # check for an isotope of the adduct_atom
+                adduct_atom = None
+                # Check to see if adduct_atom should actually be an isotope of the adduct atom
                 for adduct_iso in Atoms.isotopes.get(adduct_atom)[1]:
                     if adduct_iso in _d_molecular_formula.keys():
                         adduct_atom = adduct_iso
+            if adduct_atom is None:
+                raise Exception("adduct_atom is required for adduct ion")
             _d_molecular_formula[adduct_atom] -= 1
             _d_molecular_formula = {key:val for key, val in _d_molecular_formula.items() if val != 0}
 
