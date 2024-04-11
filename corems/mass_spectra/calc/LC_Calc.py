@@ -687,9 +687,6 @@ class PHCalculations:
         if verbose:
             print("finding mass features using persistent homology")
 
-        # Add retention time to data from scan df
-        data = data.merge(self.scan_df[['scan', 'scan_time']], on = 'scan')
-
         # Threshold data
         dims = ['mz', 'scan_time']
         threshold = self.parameters.lc_ms.ph_inten_min
