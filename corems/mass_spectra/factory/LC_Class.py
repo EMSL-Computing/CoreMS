@@ -454,7 +454,7 @@ class LCMSBase(MassSpectraBase, LC_Calculations, PH_Calculations):
             mz_abun_str = [str(round(mz, ndigits = 4)) + ':' + str(round(abun, ndigits = 2)) for mz, abun in mz_abun]
             return '; '.join(mz_abun_str)
         
-        cols_in_df = ['id', 'mz', 'apex_scan', 'scan_time', 'intensity', 'persistence', '_area', 'monoisotopic_mf_id', 'isotopologue_class']
+        cols_in_df = ['id', 'mz', 'apex_scan', 'scan_time', 'intensity', 'persistence', '_area', 'monoisotopic_mf_id', 'isotopologue_type']
         df_mf_list = []
         for mf_id in self.mass_features.keys():
             # Find cols_in_df that are in single_mf
