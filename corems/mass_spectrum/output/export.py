@@ -111,6 +111,7 @@ class HighResMassSpecExport(Thread):
                               'O/C',
                               'Heteroatom Class',
                               'Ion Type',
+                              'Adduct',
                               'Is Isotopologue',
                               'Mono Isotopic Index',
                               'Molecular Formula'
@@ -160,7 +161,6 @@ class HighResMassSpecExport(Thread):
 
     def get_pandas_df(self):
         """Returns the mass spectrum data as a pandas DataFrame."""
-
         columns = self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum)
         dict_data_list = self.get_list_dict_data(self.mass_spectrum)
         df = DataFrame(dict_data_list, columns=columns)
@@ -563,6 +563,9 @@ class HighResMassSpecExport(Thread):
                            'Is Isotopologue': int(mformula.is_isotopologue),
                            'Molecular Formula': eval("mformula.string{}".format(encode))
                            }
+            
+            if mformula.adduct_atom:
+                dict_result['Adduct'] = eval("mformula.adduct_atom{}".format(encode))
 
             if mformula.is_isotopologue:
                 dict_result['Mono Isotopic Index'] = mformula.mspeak_index_mono_isotopic
