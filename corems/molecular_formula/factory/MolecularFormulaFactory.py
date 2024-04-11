@@ -98,9 +98,7 @@ class MolecularFormulaBase(MolecularFormulaCalc):
 
     def __init__(self, molecular_formula, ion_charge, ion_type=None, 
                 adduct_atom=None, mspeak_parent=None, external_mz=None):
-        
         # clear dictionary of atoms with 0 value
-        
         if  type(molecular_formula) is dict:
                 self._from_dict(molecular_formula, ion_type, adduct_atom)   
         
@@ -110,7 +108,6 @@ class MolecularFormulaBase(MolecularFormulaCalc):
         elif type(molecular_formula) is str:
                 self._from_str(molecular_formula, ion_type, adduct_atom)   
 
-        
         self._ion_charge = ion_charge
         self._external_mz = external_mz
         self._confidence_score = None        
@@ -176,13 +173,14 @@ class MolecularFormulaBase(MolecularFormulaCalc):
         
         self._d_molecular_formula = {key:val for key, val in molecular_formula.items() if val != 0}
         
-        if ion_type:
+        if ion_type is not None:
             self._d_molecular_formula[Labels.ion_type] = ion_type
             
         if adduct_atom:
             if adduct_atom in self._d_molecular_formula:
                 self._d_molecular_formula[adduct_atom] += 1 
             else: self._d_molecular_formula[adduct_atom] = 1 
+        self.adduct_atom = adduct_atom
 
     def _from_list(self, molecular_formula_list, ion_type, adduct_atom):
         # list has to be in the format 
@@ -198,9 +196,12 @@ class MolecularFormulaBase(MolecularFormulaCalc):
         
         self._d_molecular_formula[Labels.ion_type] = ion_type
         if adduct_atom:
+            self.adduct_atom = adduct_atom
             if adduct_atom in self._d_molecular_formula:
                 self._d_molecular_formula[adduct_atom] += 1 
             else: self._d_molecular_formula[adduct_atom] = 1 
+        else:
+            self.adduct_atom = None
 
     def _from_str(self, molecular_formula_str,  ion_type, adduct_atom):
         # string has to be in the format 
@@ -317,7 +318,16 @@ class MolecularFormulaBase(MolecularFormulaCalc):
     def ion_charge(self): return self._ion_charge
     
     @property
-    def atoms(self): return [key for key in self._d_molecular_formula.keys() if key != Labels.ion_type]
+    def atoms(self): 
+        """Get the atoms in the molecular formula."""
+        # if there is an adduct_atom, them reduce it from the atoms list
+        if self.adduct_atom is None:
+            return [key for key in self._d_molecular_formula.keys() if key != Labels.ion_type]
+        else:
+            temp_dict = self._d_molecular_formula.copy()
+            temp_dict[self.adduct_atom] -= 1
+            return [key for key,val in temp_dict.items() if key != Labels.ion_type and val > 0]
+
     
     @property
     def confidence_score(self): 
@@ -399,7 +409,13 @@ class MolecularFormulaBase(MolecularFormulaCalc):
         
         for mf in self._cal_isotopologues(self._d_molecular_formula, min_abundance, current_mono_abundance, dynamic_range ):
              
-            yield MolecularFormulaIsotopologue(*mf, current_mono_abundance, self.ion_charge)
+            yield MolecularFormulaIsotopologue(
+                *mf, 
+                current_mono_abundance, 
+                self.ion_charge, 
+                ion_type=self.ion_type, 
+                adduct_atom=self.adduct_atom
+                )
     
     def atoms_qnt(self,atom): 
         """Get the atom quantity of a specific atom in the molecular formula."""
@@ -414,12 +430,20 @@ class MolecularFormulaBase(MolecularFormulaCalc):
 
     @property       
     def string(self):
-        
+        """Returns the molecular formula as a string."""
         if self._d_molecular_formula:
+            if self.adduct_atom is None:
+                mol_form_dict = self._d_molecular_formula
+            else:
+                mol_form_dict = self._d_molecular_formula.copy()
+                if self.adduct_atom not in mol_form_dict.keys():
+                    raise Exception("Adduct atom not found in molecular formula dict")
+                mol_form_dict[self.adduct_atom] -= 1
+                mol_form_dict = {key:val for key, val in mol_form_dict.items() if val != 0}
             formula_srt = ''
             for atom in Atoms.atoms_order:
-                if atom in self.to_dict().keys():
-                    formula_srt += atom + str(int(self.to_dict().get(atom))) + ' '
+                if atom in mol_form_dict.keys():
+                    formula_srt += atom + str(int(mol_form_dict.get(atom))) + ' '
             return formula_srt.strip()
         
         else:
@@ -547,6 +571,10 @@ class MolecularFormulaIsotopologue(MolecularFormulaBase):
         The ion charge.
     mspeak_parent : object, optional
         The parent mass spectrum peak object instance. Defaults to None.
+    ion_type : str, optional
+        The ion type. Defaults to None.
+    adduct_atom : str, optional
+        The adduct atom. Defaults to None.
     
     Attributes
     ----------
@@ -565,9 +593,48 @@ class MolecularFormulaIsotopologue(MolecularFormulaBase):
     mono_isotopic_formula_index : int
         The index of the monoisotopic formula in the molecular formula list. Defaults to None.
     """
-    def __init__(self, _d_molecular_formula, prob_ratio, mono_abundance, ion_charge, mspeak_parent=None):
+    def __init__(
+            self, 
+            _d_molecular_formula, 
+            prob_ratio, 
+            mono_abundance, 
+            ion_charge, 
+            mspeak_parent=None,
+            ion_type = None,
+            adduct_atom = None
+            ):
         
-        super().__init__(_d_molecular_formula,  ion_charge)
+        if ion_type is None:
+            # check if ion type or adduct_atom is in the molecular formula dict
+            if Labels.ion_type in _d_molecular_formula:
+                ion_type = _d_molecular_formula.get(Labels.ion_type)
+            else:
+                ion_type = None
+        else:
+            ion_type = Labels.ion_type_translate.get(ion_type)
+        
+        if ion_type == Labels.adduct_ion:
+            adduct_atom_int = None
+            if adduct_atom in _d_molecular_formula.keys():
+                adduct_atom_int = adduct_atom
+            else:
+                # Check to see if adduct_atom should actually be an isotope of the adduct atom
+                for adduct_iso in Atoms.isotopes.get(adduct_atom)[1]:
+                    if adduct_iso in _d_molecular_formula.keys():
+                        adduct_atom_int = adduct_iso
+            adduct_atom = adduct_atom_int
+            if adduct_atom is None:
+                raise Exception("adduct_atom is required for adduct ion")
+            _d_molecular_formula[adduct_atom] -= 1
+            _d_molecular_formula = {key:val for key, val in _d_molecular_formula.items() if val != 0}
+
+        
+        super().__init__(
+            molecular_formula =_d_molecular_formula, 
+            ion_charge = ion_charge, 
+            ion_type=ion_type,
+            adduct_atom=adduct_atom
+            )
         #prob_ratio is relative to the monoisotopic peak p_isotopologue/p_mono_isotopic
         
         self.prob_ratio = prob_ratio

@@ -717,9 +717,11 @@ class MSPeakCalculation:
         """
         
         candidates = list(filter(lambda mf: mf.get("O") > 0 and mf.get("N") <=3 and mf.get("P") <= 2 and (3 * mf.get("P")) <= mf.get("O"), self.molecular_formulas))
-
-        if lowest_error:
-            return min(candidates, key=lambda m: abs(m.mz_error))
+        if len(candidates) >0:
+            if lowest_error:
+                return min(candidates, key=lambda m: abs(m.mz_error))
+            else:
+                return candidates
         else:
             return candidates
 
@@ -752,9 +754,11 @@ class MSPeakCalculation:
         """
        
         candidates = list(filter(lambda mf: mf.get("O") > 0 and mf.get("N") <=3 and mf.get("S") <=2 and  mf.get("P") <= 2, self.molecular_formulas))
-
-        if lowest_error:
-            return min(candidates, key=lambda m: abs(m.mz_error))
+        if len(candidates) >0:
+            if lowest_error:
+                return min(candidates, key=lambda m: abs(m.mz_error))
+            else:
+                return candidates
         else:
             return candidates
     
@@ -789,8 +793,11 @@ class MSPeakCalculation:
        
         candidates = list(filter(lambda mf: mf.get("O") > 0 and mf.get("N") <=2 and mf.get("S") <=1 and  mf.get("P") == 0 and 3* (mf.get("S") + mf.get("N")) <= mf.get("O"), self.molecular_formulas))
         
-        if lowest_error:
-            return min(candidates, key=lambda m: abs(m.mz_error))
+        if len(candidates) >0:
+            if lowest_error:
+                return min(candidates, key=lambda m: abs(m.mz_error))
+            else:
+                return candidates
         else:
             return candidates
 

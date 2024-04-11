@@ -115,7 +115,7 @@ def default_parameters(file_location):  # pragma: no cover
 
     parameters['analyzer'] = 'Unknown'
 
-    parameters['aquisition_time'] = None
+    parameters['acquisition_time'] = None
 
     parameters['instrument_label'] = 'Unknown' 
 

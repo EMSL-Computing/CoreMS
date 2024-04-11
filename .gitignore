@@ -1,3 +1,4 @@
+env/
 venv/ 
 test_env/ 
 venv310/
@@ -44,6 +45,12 @@ storage.h5
 NEG_ESI_SRFA_CoreMS.corems/NEG_ESI_SRFA_CoreMS_scan0.csv
 NEG_ESI_SRFA_CoreMS.corems/NEG_ESI_SRFA_CoreMS_scan0.json
 NEG_ESI_SRFA_CoreMS.corems/NEG_ESI_SRFA_CoreMS_scan0.xlsx
+Chlorophenol Red C19 H12 Cl2 O5 S1.csv
+NEG_ESI_SRFA_CoreMS_prob_score.csv
+NEG_ESI_SRFA_CoreMS_prob_score.json
+test_aggregation.csv
+test.csv
+test.json
 mprofile_*
 tests/tests_data/ftms/20190709_WK_CADY_Auto_S16_H1_Post_O5_1_01_36.txt
 topics.prof
