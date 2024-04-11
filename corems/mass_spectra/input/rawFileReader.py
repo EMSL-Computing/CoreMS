@@ -22,7 +22,7 @@ from s3path import S3Path
 
 from typing import Any, Dict, List, Optional, Tuple
 from corems.encapsulation.constant import Labels
-from corems.mass_spectra.factory.LC_Class import MassSpectraBase, LCMSBase
+from corems.mass_spectra.factory.lc_class import MassSpectraBase, LCMSBase
 from corems.mass_spectra.factory.LC_Temp import EIC_Data, TIC_Data
 from corems.mass_spectrum.factory.MassSpectrumClasses import (
     MassSpecProfile,

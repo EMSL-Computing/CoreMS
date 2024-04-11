@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pymzml
 from collections import defaultdict
-from corems.mass_spectra.factory.LC_Class import MassSpectraBase, LCMSBase
+from corems.mass_spectra.factory.lc_class import MassSpectraBase, LCMSBase
 from corems.mass_spectra.input.parserbase import SpectraParserInterface
 from corems.encapsulation.constant import Labels
 from corems.mass_spectrum.factory.MassSpectrumClasses import (

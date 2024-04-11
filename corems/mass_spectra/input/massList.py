@@ -7,7 +7,7 @@ sys.path.append(".")  # Why?
 from pathlib import Path
 from threading import Thread
 from corems.mass_spectrum.input.massList import ReadCoremsMasslist
-from corems.mass_spectra.factory.LC_Class import LCMSBase
+from corems.mass_spectra.factory.lc_class import LCMSBase
 
 
 class ReadCoremsMassSpectraText(ReadCoremsMasslist, Thread):

@@ -7,7 +7,7 @@ from scipy import sparse
 from scipy.spatial import KDTree
 from ripser import ripser
 
-class LC_Calculations:
+class LCCalculations:
     """Methods for performing LC calculations on mass spectra data.
 
     Notes
@@ -140,7 +140,7 @@ class LC_Calculations:
 
         return real_scan
     
-class PH_Calculations:
+class PHCalculations:
     """Methods for performing calculations related to 2D peak picking via persistent homology on LCMS data.  
 
     Notes

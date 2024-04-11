@@ -19,7 +19,7 @@ from matplotlib import axes
 import numpy as np
 from corems.encapsulation.factory.parameters import LCMSParameters
 
-from corems.mass_spectra.calc.LC_Calc import LC_Calculations, PH_Calculations
+from corems.mass_spectra.calc.lc_calc import LCCalculations, PHCalculations
 from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
 
 class MassSpectraBase():
@@ -267,7 +267,7 @@ class MassSpectraBase():
         return self._ms.get(scan_number)
 
 
-class LCMSBase(MassSpectraBase, LC_Calculations, PH_Calculations):
+class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations):
     """A class representing a liquid chromatography-mass spectrometry (LC-MS) data object.
 
     This class is not intended to be instantiated directly, but rather to be instantiated by an appropriate mass spectra parser using the get_lcms_obj() method.

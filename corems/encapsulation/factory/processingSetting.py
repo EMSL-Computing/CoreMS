@@ -136,19 +136,19 @@ class LiquidChromatographSetting:
     eic_buffer_time : float, optional
         Buffer time to add to the start and end of the plot of the extracted ion chromatogram, in minutes. Default is 1.5.
     ph_smooth_it : int, optional
-        Number of iterations to use for smoothing prior to finding mass features. Called within the PH_Calculations.find_mass_features() method. Default is 7.
+        Number of iterations to use for smoothing prior to finding mass features. Called within the PHCalculations.find_mass_features() method. Default is 7.
     ph_smooth_radius_mz : int, optional
-        Radius in m/z steps (not daltons) for smoothing prior to finding mass features. Called within the PH_Calculations.find_mass_features() method. Default is 0.
+        Radius in m/z steps (not daltons) for smoothing prior to finding mass features. Called within the PHCalculations.find_mass_features() method. Default is 0.
     ph_smooth_radius_scan : int, optional
-        Radius in scan steps for smoothing prior to finding mass features. Called within the PH_Calculations.find_mass_features() method. Default is 3.
+        Radius in scan steps for smoothing prior to finding mass features. Called within the PHCalculations.find_mass_features() method. Default is 3.
     ph_inten_min : int, optional
-        Minimum intensity to use for finding mass features. Called within the PH_Calculations.find_mass_features() method. Default is 500.
+        Minimum intensity to use for finding mass features. Called within the PHCalculations.find_mass_features() method. Default is 500.
     ph_persis_min : int, optional
-        Minimum persistence to use for finding mass features. Called within the PH_Calculations.find_mass_features() method. Default is 500.
+        Minimum persistence to use for finding mass features. Called within the PHCalculations.find_mass_features() method. Default is 500.
     mass_feature_cluster_mz_tolerance_rel : float, optional
-        Relative m/z tolerance to use for clustering mass features. Called with the PH_Calculations.cluster_mass_features() method. Default is 5E-6 (5 ppm).
+        Relative m/z tolerance to use for clustering mass features. Called with the PHCalculations.cluster_mass_features() method. Default is 5E-6 (5 ppm).
     mass_feature_cluster_rt_tolerance : float, optional
-        Retention time tolerance to use for clustering mass features, in minutes. Called with the PH_Calculations.cluster_mass_features() method. Default is 0.2.
+        Retention time tolerance to use for clustering mass features, in minutes. Called with the PHCalculations.cluster_mass_features() method. Default is 0.2.
     """
     scans: list | tuple = (0, 1)
     
