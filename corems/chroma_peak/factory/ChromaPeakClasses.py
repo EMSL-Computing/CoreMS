@@ -1,20 +1,22 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
 from corems.chroma_peak.calc.ChromaPeakCalc import GCPeakCalculation
 from corems.mass_spectra.factory.LC_Temp import EIC_Data
 from corems.molecular_id.factory.EI_SQL import LowResCompoundRef
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 
-class ChromaPeakBase():
-    """ Base class for chromatographic peak (ChromaPeak) objects.
+
+class ChromaPeakBase:
+    """Base class for chromatographic peak (ChromaPeak) objects.
 
     Parameters
     -------
     chromatogram_parent : Chromatogram
-        The parent chromatogram object.
+        The parent chromatogram object.ß
     mass_spectrum_obj : MassSpectrum
         The mass spectrum object.
     start_index : int
@@ -28,7 +30,7 @@ class ChromaPeakBase():
     --------
     start_scan : int
         The start scan of the peak.
-    final_scan : int 
+    final_scan : int
         The final scan of the peak.
     apex_scan : int
         The apex scan of the peak.
@@ -36,28 +38,30 @@ class ChromaPeakBase():
         The parent chromatogram object.
     mass_spectrum : MassSpectrum
         The mass spectrum object.
-    _area : float 
+    _area : float
         The area of the peak.
 
     Properties
     --------
-    * retention_time : float. 
+    * retention_time : float.
         The retention time of the peak.
-    * tic : float. 
+    * tic : float.
         The total ion current of the peak.
-    * area : float. 
+    * area : float.
         The area of the peak.
-    * rt_list : list. 
+    * rt_list : list.
         The list of retention times within the peak.
     * tic_list : list.
         The list of total ion currents within the peak.
 
     Methods
-    --------   
+    --------
     * None
     """
-    
-    def __init__(self, chromatogram_parent, mass_spectrum_obj, start_index, index, final_index):
+
+    def __init__(
+        self, chromatogram_parent, mass_spectrum_obj, start_index, index, final_index
+    ):
         self.start_scan = start_index
         self.final_scan = final_index
         self.apex_scan = int(index)
@@ -65,17 +69,17 @@ class ChromaPeakBase():
         self.mass_spectrum = mass_spectrum_obj
         self._area = None
 
-    @property   
+    @property
     def retention_time(self):
         """Retention Time"""
         return self.mass_spectrum.retention_time
 
-    @property   
+    @property
     def tic(self):
         """Total Ion Current"""
-        return self.mass_spectrum.tic    
+        return self.mass_spectrum.tic
 
-    @property   
+    @property
     def area(self):
         """Peak Area"""
         return self._area
@@ -83,15 +87,22 @@ class ChromaPeakBase():
     @property
     def rt_list(self):
         """Retention Time List"""
-        return [self.chromatogram_parent.retention_time[i] for i in range(self.start_scan, self.final_scan+1) ]
+        return [
+            self.chromatogram_parent.retention_time[i]
+            for i in range(self.start_scan, self.final_scan + 1)
+        ]
 
-    @property   
+    @property
     def tic_list(self):
         """Total Ion Current List"""
-        return [self.chromatogram_parent.tic[i] for i in range(self.start_scan, self.final_scan+1) ]
+        return [
+            self.chromatogram_parent.tic[i]
+            for i in range(self.start_scan, self.final_scan + 1)
+        ]
+
 
 class LCMSMassFeature(ChromaPeakBase):
-    """ Class representing a mass feature in a liquid chromatography (LC) chromatogram.
+    """Class representing a mass feature in a liquid chromatography (LC) chromatogram.
 
     Parameters
     -------
@@ -119,7 +130,7 @@ class LCMSMassFeature(ChromaPeakBase):
     intensity : float
         The intensity of the feature.
     persistence : float
-        The persistence of the feature. 
+        The persistence of the feature.
     _eic_data : EIC_Data
         The EIC data object associated with the feature.
     monoisotopic_mf_id : int
@@ -134,25 +145,32 @@ class LCMSMassFeature(ChromaPeakBase):
         List of MS2 similarity results associated with the mass feature. Default is an empty list.
     id : int
         The ID of the feature, also the key in the parent LCMS object's `mass_features` dictionary.
-    
+
     """
+
     def __init__(
-            self, 
-            lcms_parent,
-            mz: float,
-            scan_time: float,
-            intensity: float,
-            scan_number: int,
-            persistence: float = None,
-            id: int = None
-            ):
-        super().__init__(chromatogram_parent = lcms_parent, mass_spectrum_obj = None, start_index = None, index = scan_number, final_index = None)
+        self,
+        lcms_parent,
+        mz: float,
+        scan_time: float,
+        intensity: float,
+        scan_number: int,
+        persistence: float = None,
+        id: int = None,
+    ):
+        super().__init__(
+            chromatogram_parent=lcms_parent,
+            mass_spectrum_obj=None,
+            start_index=None,
+            index=scan_number,
+            final_index=None,
+        )
         self.mz: float = mz
         self.scan_time: float = scan_time
         self.scan_number: int = scan_number
         self.intensity: float = intensity
-        self.persistence: float = persistence 
-        self._eic_data: EIC_Data = None  
+        self.persistence: float = persistence
+        self._eic_data: EIC_Data = None
         self.monoisotopic_mf_id = None
         self.isotopologue_type = None
         self.ms2_scan_numbers = []
@@ -163,23 +181,31 @@ class LCMSMassFeature(ChromaPeakBase):
             self.id = id
         else:
             # get the parent's mass feature keys and add 1 to the max value to get the new key
-            self.id = max(lcms_parent.mass_features.keys()) + 1 if lcms_parent.mass_features.keys() else 1
+            self.id = (
+                max(lcms_parent.mass_features.keys()) + 1
+                if lcms_parent.mass_features.keys()
+                else 1
+            )
 
     def update_mz(self):
-        """ Update the mass to charge ratio of the feature from the mass spectrum object. """
+        """Update the mass to charge ratio of the feature from the mass spectrum object."""
         if self.mass_spectrum is None:
-            raise ValueError("The mass spectrum object is not set, cannot update the m/z from the MassSpectrum object")
-        if len(self.mass_spectrum.mz_exp) == 0: 
-            raise ValueError("The mass spectrum object has no m/z values, cannot update the m/z from the MassSpectrum object until it is processed")
+            raise ValueError(
+                "The mass spectrum object is not set, cannot update the m/z from the MassSpectrum object"
+            )
+        if len(self.mass_spectrum.mz_exp) == 0:
+            raise ValueError(
+                "The mass spectrum object has no m/z values, cannot update the m/z from the MassSpectrum object until it is processed"
+            )
         new_mz = self.ms1_peak.mz_exp
 
         # calculate the difference between the new and old m/z, only update if it is close
         mz_diff = new_mz - self.mz
         if abs(mz_diff) < 0.01:
             self.mz = new_mz
-    
-    def plot(self, to_plot = ["EIC", "MS1", "MS2"], return_fig = True, verbose = False):
-        """ Plot the mass feature.
+
+    def plot(self, to_plot=["EIC", "MS1", "MS2"], return_fig=True, verbose=False):
+        """Plot the mass feature.
 
         Parameters
         ----------
@@ -195,55 +221,93 @@ class LCMSMassFeature(ChromaPeakBase):
         matplotlib.figure.Figure or None
             The figure object if `return_fig` is True, otherwise None and the figure is displayed.
         """
-       
+
         # EIC plot preparation
-        eic_buffer_time = self.chromatogram_parent.parameters.lc_ms.eic_buffer_time 
+        eic_buffer_time = self.chromatogram_parent.parameters.lc_ms.eic_buffer_time
 
         # Adjust to_plot list if there are not spectra added to the mass features
         if self.mass_spectrum is None:
             to_plot = [x for x in to_plot if x != "MS1"]
-        if len(self.ms2_mass_spectra) == 0 :
+        if len(self.ms2_mass_spectra) == 0:
             to_plot = [x for x in to_plot if x != "MS2"]
         if self._eic_data is None:
             to_plot = [x for x in to_plot if x != "EIC"]
 
-        fig, axs = plt.subplots(len(to_plot), 1, figsize=(9, len(to_plot)*4), squeeze=False)
-        fig.suptitle("Mass Feature " + str(self.id) +": m/z = "+ str(round(self.mz, ndigits = 4)) + "; time = " + str(round(self.scan_time, ndigits = 1)) + " minutes")
-        
+        fig, axs = plt.subplots(
+            len(to_plot), 1, figsize=(9, len(to_plot) * 4), squeeze=False
+        )
+        fig.suptitle(
+            "Mass Feature "
+            + str(self.id)
+            + ": m/z = "
+            + str(round(self.mz, ndigits=4))
+            + "; time = "
+            + str(round(self.scan_time, ndigits=1))
+            + " minutes"
+        )
+
         i = 0
-        # EIC plot  
-        if "EIC" in to_plot:     
+        # EIC plot
+        if "EIC" in to_plot:
             if self._eic_data is None:
-                raise ValueError("EIC data is not available, cannot plot the mass feature's EIC")
-            axs[i][0].set_title("EIC", loc = 'left')
+                raise ValueError(
+                    "EIC data is not available, cannot plot the mass feature's EIC"
+                )
+            axs[i][0].set_title("EIC", loc="left")
             axs[i][0].plot(self._eic_data.time, self._eic_data.eic)
-            if self.start_scan is not None:      
-                axs[i][0].fill_between(self.eic_rt_list, self.eic_list, color='b', alpha=0.2)
+            if self.start_scan is not None:
+                axs[i][0].fill_between(
+                    self.eic_rt_list, self.eic_list, color="b", alpha=0.2
+                )
             else:
                 if verbose:
-                    print("No start and final scan numbers were provided for mass feature " + str(self.id))
+                    print(
+                        "No start and final scan numbers were provided for mass feature "
+                        + str(self.id)
+                    )
             axs[i][0].set_ylabel("Intensity")
             axs[i][0].set_xlabel("Time (minutes)")
-            axs[i][0].set_ylim(0, self.eic_list.max()*1.1)
-            axs[i][0].set_xlim(self.scan_time - eic_buffer_time, self.scan_time + eic_buffer_time)
-            axs[i][0].axvline(x=self.scan_time, color='k', label = "MS1 scan time (apex)")
-            if len(self.ms2_scan_numbers)>0:
-                axs[i][0].axvline(x=self.chromatogram_parent.get_time_of_scan_id(self.best_ms2.scan_number), color='grey', linestyle='--', label = "MS2 scan time")
-            axs[i][0].legend(loc='upper left')
+            axs[i][0].set_ylim(0, self.eic_list.max() * 1.1)
+            axs[i][0].set_xlim(
+                self.scan_time - eic_buffer_time, self.scan_time + eic_buffer_time
+            )
+            axs[i][0].axvline(x=self.scan_time, color="k", label="MS1 scan time (apex)")
+            if len(self.ms2_scan_numbers) > 0:
+                axs[i][0].axvline(
+                    x=self.chromatogram_parent.get_time_of_scan_id(
+                        self.best_ms2.scan_number
+                    ),
+                    color="grey",
+                    linestyle="--",
+                    label="MS2 scan time",
+                )
+            axs[i][0].legend(loc="upper left")
             axs[i][0].yaxis.get_major_formatter().set_useOffset(False)
             i += 1
 
         # MS1 plot
         if "MS1" in to_plot:
-            axs[i][0].set_title("MS1", loc='left')
-            axs[i][0].vlines(self.mass_spectrum.mz_exp, 0, self.mass_spectrum.abundance, color='k')
+            axs[i][0].set_title("MS1", loc="left")
+            axs[i][0].vlines(
+                self.mass_spectrum.mz_exp, 0, self.mass_spectrum.abundance, color="k"
+            )
             if (self.ms1_peak.mz_exp - self.mz) < 0.01:
-                axs[i][0].vlines(self.ms1_peak.mz_exp, 0, self.ms1_peak.abundance, color='m', label = "Feature m/z")
-                axs[i][0].set_xlim(0, self.ms1_peak.mz_exp*1.1)
+                axs[i][0].vlines(
+                    self.ms1_peak.mz_exp,
+                    0,
+                    self.ms1_peak.abundance,
+                    color="m",
+                    label="Feature m/z",
+                )
+                axs[i][0].set_xlim(0, self.ms1_peak.mz_exp * 1.1)
             else:
                 if verbose:
-                    print("The m/z of the mass feature " + str(self.id) + " is different from the m/z of MS1 peak, the MS1 peak will not be plotted")
-            axs[i][0].legend(loc='upper left')
+                    print(
+                        "The m/z of the mass feature "
+                        + str(self.id)
+                        + " is different from the m/z of MS1 peak, the MS1 peak will not be plotted"
+                    )
+            axs[i][0].legend(loc="upper left")
             axs[i][0].set_ylabel("Intensity")
             axs[i][0].set_xlabel("m/z")
             axs[i][0].set_ylim(bottom=0)
@@ -252,20 +316,22 @@ class LCMSMassFeature(ChromaPeakBase):
 
         # MS2 plot
         if "MS2" in to_plot:
-            axs[i][0].set_title("MS2", loc='left')
-            axs[i][0].vlines(self.best_ms2.mz_exp, 0, self.best_ms2.abundance, color='k')
+            axs[i][0].set_title("MS2", loc="left")
+            axs[i][0].vlines(
+                self.best_ms2.mz_exp, 0, self.best_ms2.abundance, color="k"
+            )
             axs[i][0].set_ylabel("Intensity")
             axs[i][0].set_xlabel("m/z")
             axs[i][0].set_ylim(bottom=0)
             axs[i][0].yaxis.get_major_formatter().set_scientific(False)
             axs[i][0].yaxis.get_major_formatter().set_useOffset(False)
             if "MS1" in to_plot:
-                axs[i][0].set_xlim(axs[i-1].get_xlim())
+                axs[i][0].set_xlim(axs[i - 1].get_xlim())
             else:
-                axs[i][0].set_xlim(0, max(self.best_ms2.mz_exp)*1.1)
+                axs[i][0].set_xlim(0, max(self.best_ms2.mz_exp) * 1.1)
             axs[i][0].yaxis.set_tick_params(labelleft=False)
 
-        # Add space between subplots 
+        # Add space between subplots
         plt.tight_layout()
 
         if return_fig:
@@ -281,10 +347,10 @@ class LCMSMassFeature(ChromaPeakBase):
         final_index = self._eic_data.scans.tolist().index(self.final_scan)
 
         # Get the retention time list
-        rt_list = self._eic_data.time[start_index:final_index+1]
+        rt_list = self._eic_data.time[start_index : final_index + 1]
         return rt_list
 
-    @property   
+    @property
     def eic_list(self):
         """EIC List between the beginning and end of the mass feature"""
         # Find index of the start and final scans in the EIC data
@@ -292,28 +358,28 @@ class LCMSMassFeature(ChromaPeakBase):
         final_index = self._eic_data.scans.tolist().index(self.final_scan)
 
         # Get the retention time list
-        eic = self._eic_data.eic[start_index:final_index+1]
+        eic = self._eic_data.eic[start_index : final_index + 1]
         return eic
-    
+
     @property
     def ms1_peak(self):
         """MS1 peak object from associated mass spectrum object that is closest to the mass feature's m/z"""
         # Find index array self.mass_spectrum.mz_exp that is closest to self.mz
         closest_mz = min(self.mass_spectrum.mz_exp, key=lambda x: abs(x - self.mz))
         closest_mz_index = self.mass_spectrum.mz_exp.tolist().index(closest_mz)
-        
+
         return self.mass_spectrum._mspeaks[closest_mz_index]
-    
+
     @property
     def best_ms2(self):
         """Points to the best representative MS2 mass spectrum
-        
+
         Notes
         -----
         If there is only one MS2 mass spectrum, it will be returned
         If there are MS2 similarity results, this will return the MS2 mass spectrum with the highest entropy similarity score.
         If there are no MS2 similarity results, the best MS2 mass spectrum is determined by the closest scan time to the apex of the mass feature, with higher resolving power.  Checks for and disqualifies possible chimeric spectra.
-        
+
         Returns
         -------
         MassSpectrum or None
@@ -323,54 +389,78 @@ class LCMSMassFeature(ChromaPeakBase):
             # the scan number with the highest similarity score
             results_df = [x.to_dataframe() for x in self.ms2_similarity_results]
             results_df = pd.concat(results_df)
-            results_df = results_df.sort_values(by = "entropy_similarity", ascending = False)
+            results_df = results_df.sort_values(
+                by="entropy_similarity", ascending=False
+            )
             best_scan_number = results_df.iloc[0]["query_scan_number"]
             return self.ms2_mass_spectra[best_scan_number]
 
         ms2_scans = list(self.ms2_mass_spectra.keys())
-        if len(ms2_scans)>1:
-            mz_diff_list = []   # List of mz difference between mz of mass feature and mass of nearest mz in each scan
-            res_list = []       # List of maximum resolving power of peaks in each scan
-            time_diff_list = [] # List of time difference between scan and apex scan in each scan
+        if len(ms2_scans) > 1:
+            mz_diff_list = []  # List of mz difference between mz of mass feature and mass of nearest mz in each scan
+            res_list = []  # List of maximum resolving power of peaks in each scan
+            time_diff_list = []  # List of time difference between scan and apex scan in each scan
             for scan in ms2_scans:
-                if len(self.ms2_mass_spectra[scan].mspeaks)>0:
+                if len(self.ms2_mass_spectra[scan].mspeaks) > 0:
                     # Find mz closest to mass feature mz, return both the difference in mass and its resolution
-                    closest_mz = min(self.ms2_mass_spectra[scan].mz_exp, key=lambda x: abs(x - self.mz)) 
-                    if all(np.isnan(self.ms2_mass_spectra[scan].resolving_power)): # All NA for resolving power in peaks, not uncommon in CID spectra
-                        res_list.append(2) #Assumes very low resolving power
+                    closest_mz = min(
+                        self.ms2_mass_spectra[scan].mz_exp,
+                        key=lambda x: abs(x - self.mz),
+                    )
+                    if all(
+                        np.isnan(self.ms2_mass_spectra[scan].resolving_power)
+                    ):  # All NA for resolving power in peaks, not uncommon in CID spectra
+                        res_list.append(2)  # Assumes very low resolving power
                     else:
-                        res_list.append(np.nanmax(self.ms2_mass_spectra[scan].resolving_power))
-                    mz_diff_list.append(np.abs(closest_mz - self.mz))      
-                    time_diff_list.append(np.abs(self.chromatogram_parent.get_time_of_scan_id(scan) - self.scan_time))
-                else: 
+                        res_list.append(
+                            np.nanmax(self.ms2_mass_spectra[scan].resolving_power)
+                        )
+                    mz_diff_list.append(np.abs(closest_mz - self.mz))
+                    time_diff_list.append(
+                        np.abs(
+                            self.chromatogram_parent.get_time_of_scan_id(scan)
+                            - self.scan_time
+                        )
+                    )
+                else:
                     res_list.append(np.nan)
                     mz_diff_list.append(np.nan)
                     time_diff_list.append(np.nan)
             # Convert diff_lists into logical scores (higher is better for each score)
-            time_score = 1-np.array(time_diff_list)/np.nanmax(np.array(time_diff_list)) 
-            res_score = np.array(res_list)/np.nanmax(np.array(res_list))
+            time_score = 1 - np.array(time_diff_list) / np.nanmax(
+                np.array(time_diff_list)
+            )
+            res_score = np.array(res_list) / np.nanmax(np.array(res_list))
             # mz_score is 0 for possible chimerics, 1 for all others (already within mass tolerance before assigning)
             mz_score = np.zeros(len(ms2_scans))
             for i in np.arange(0, len(ms2_scans)):
-                if mz_diff_list[i] < 0.8 and mz_diff_list[i] > 0.1: #Possible chimeric
+                if mz_diff_list[i] < 0.8 and mz_diff_list[i] > 0.1:  # Possible chimeric
                     mz_score[i] = 0
                 else:
                     mz_score[i] = 1
             # get the index of the best score and return the mass spectrum
-            if len([np.nanargmax(time_score*res_score*mz_score)]) == 1:
-                return self.ms2_mass_spectra[ms2_scans[np.nanargmax(time_score*res_score*mz_score)]]
+            if len([np.nanargmax(time_score * res_score * mz_score)]) == 1:
+                return self.ms2_mass_spectra[
+                    ms2_scans[np.nanargmax(time_score * res_score * mz_score)]
+                ]
             # remove the mz_score condition and try again
-            elif len(np.argmax(time_score*res_score)) == 1:
-                return self.ms2_mass_spectra[ms2_scans[np.nanargmax(time_score*res_score)]]
+            elif len(np.argmax(time_score * res_score)) == 1:
+                return self.ms2_mass_spectra[
+                    ms2_scans[np.nanargmax(time_score * res_score)]
+                ]
             else:
-                raise ValueError("No best MS2 mass spectrum could be found for mass feature " + str(self.id))                
-        elif len(ms2_scans) == 1: # if only one ms2 spectra, return it
+                raise ValueError(
+                    "No best MS2 mass spectrum could be found for mass feature "
+                    + str(self.id)
+                )
+        elif len(ms2_scans) == 1:  # if only one ms2 spectra, return it
             return self.ms2_mass_spectra[ms2_scans[0]]
-        else: # if no ms2 spectra, return None
+        else:  # if no ms2 spectra, return None
             return None
 
+
 class GCPeak(ChromaPeakBase, GCPeakCalculation):
-    """ Class representing a peak in a gas chromatography (GC) chromatogram.
+    """Class representing a peak in a gas chromatography (GC) chromatogram.
 
     Parameters
     ----------
@@ -390,16 +480,17 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
 
     Methods
     -------
-    * __len__(). Returns the number of compounds associated with the peak.  
-    * __getitem__(position).  Returns the compound at the specified position.  
-    * remove_compound(compounds_obj). Removes the specified compound from the peak.  
-    * clear_compounds(). Removes all compounds from the peak.  
-    * add_compound(compounds_dict, spectral_similarity_scores, ri_score=None, similarity_score=None). Adds a compound to the peak with the specified attributes.  
-    * ri().  Returns the retention index of the peak.  
-    * highest_ss_compound(). Returns the compound with the highest spectral similarity score.  
-    * highest_score_compound(). Returns the compound with the highest similarity score.  
-    * compound_names(). Returns a list of names of compounds associated with the peak.  
+    * __len__(). Returns the number of compounds associated with the peak.
+    * __getitem__(position).  Returns the compound at the specified position.
+    * remove_compound(compounds_obj). Removes the specified compound from the peak.
+    * clear_compounds(). Removes all compounds from the peak.
+    * add_compound(compounds_dict, spectral_similarity_scores, ri_score=None, similarity_score=None). Adds a compound to the peak with the specified attributes.
+    * ri().  Returns the retention index of the peak.
+    * highest_ss_compound(). Returns the compound with the highest spectral similarity score.
+    * highest_score_compound(). Returns the compound with the highest similarity score.
+    * compound_names(). Returns a list of names of compounds associated with the peak.
     """
+
     def __init__(self, chromatogram_parent, mass_spectrum_obj, indexes):
         self._compounds = []
         self._ri = None
@@ -407,18 +498,24 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
 
     def __len__(self):
         return len(self._compounds)
-        
+
     def __getitem__(self, position):
         return self._compounds[position]
 
     def remove_compound(self, compounds_obj):
         self._compounds.remove(compounds_obj)
-        
+
     def clear_compounds(self):
         self._compounds = []
 
-    def add_compound(self, compounds_dict, spectral_similarity_scores, ri_score=None, similarity_score=None):
-        """ Adds a compound to the peak with the specified attributes.
+    def add_compound(
+        self,
+        compounds_dict,
+        spectral_similarity_scores,
+        ri_score=None,
+        similarity_score=None,
+    ):
+        """Adds a compound to the peak with the specified attributes.
 
         Parameters
         ----------
@@ -433,15 +530,19 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
         """
         compound_obj = LowResCompoundRef(compounds_dict)
         compound_obj.spectral_similarity_scores = spectral_similarity_scores
-        compound_obj.spectral_similarity_score = spectral_similarity_scores.get("cosine_correlation")
-        #TODO check is the above line correct?
+        compound_obj.spectral_similarity_score = spectral_similarity_scores.get(
+            "cosine_correlation"
+        )
+        # TODO check is the above line correct?
         compound_obj.ri_score = ri_score
         compound_obj.similarity_score = similarity_score
         self._compounds.append(compound_obj)
         if similarity_score:
             self._compounds.sort(key=lambda c: c.similarity_score, reverse=True)
         else:
-            self._compounds.sort(key=lambda c: c.spectral_similarity_score, reverse=True)
+            self._compounds.sort(
+                key=lambda c: c.spectral_similarity_score, reverse=True
+            )
 
     @property
     def ri(self):
@@ -456,7 +557,7 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
 
     @property
     def highest_ss_compound(self):
-        """ Returns the compound with the highest spectral similarity score.
+        """Returns the compound with the highest spectral similarity score.
 
         Returns
         -------
@@ -467,10 +568,10 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
             return max(self, key=lambda c: c.spectral_similarity_score)
         else:
             return None
-    
+
     @property
     def highest_score_compound(self):
-        """ Returns the compound with the highest similarity score.
+        """Returns the compound with the highest similarity score.
 
         Returns
         -------
@@ -479,12 +580,12 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
         """
         if self:
             return max(self, key=lambda c: c.similarity_score)
-        else: 
+        else:
             return None
 
     @property
     def compound_names(self):
-        """ Returns a list of names of compounds associated with the peak.
+        """Returns a list of names of compounds associated with the peak.
 
         Returns
         -------
@@ -493,12 +594,13 @@ class GCPeak(ChromaPeakBase, GCPeakCalculation):
         """
         if self:
             return [c.name for c in self]
-        else: 
+        else:
             return []
 
+
 class GCPeakDeconvolved(GCPeak):
-    """ Represents a deconvolved peak in a chromatogram.
-    
+    """Represents a deconvolved peak in a chromatogram.
+
     Parameters
     ----------
     chromatogram_parent : Chromatogram
@@ -512,29 +614,35 @@ class GCPeakDeconvolved(GCPeak):
     tic_list : list
         List of total ion currents.
     """
-    
-    def __init__(self, chromatogram_parent, mass_spectra, apex_index, rt_list, tic_list ):
-        self._ri = None   
+
+    def __init__(
+        self, chromatogram_parent, mass_spectra, apex_index, rt_list, tic_list
+    ):
+        self._ri = None
         self._rt_list = list(rt_list)
         self._tic_list = list(tic_list)
         self.mass_spectra = list(mass_spectra)
-        super().__init__(chromatogram_parent, self.mass_spectra[apex_index], (0, apex_index, len(self.mass_spectra)-1))
+        super().__init__(
+            chromatogram_parent,
+            self.mass_spectra[apex_index],
+            (0, apex_index, len(self.mass_spectra) - 1),
+        )
 
     @property
     def rt_list(self):
-        """ Get the list of retention times.
-        
+        """Get the list of retention times.
+
         Returns
         -------
         list
             The list of retention times.
         """
         return self._rt_list
-    
-    @property   
-    def tic_list(self):   
-        """ Get the list of total ion currents.
-        
+
+    @property
+    def tic_list(self):
+        """Get the list of total ion currents.
+
         Returns
         -------
         list
