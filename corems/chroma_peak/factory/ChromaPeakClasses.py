@@ -16,7 +16,7 @@ class ChromaPeakBase:
     Parameters
     -------
     chromatogram_parent : Chromatogram
-        The parent chromatogram object.ß
+        The parent chromatogram object.
     mass_spectrum_obj : MassSpectrum
         The mass spectrum object.
     start_index : int
@@ -134,17 +134,23 @@ class LCMSMassFeature(ChromaPeakBase):
     _eic_data : EIC_Data
         The EIC data object associated with the feature.
     monoisotopic_mf_id : int
-        Mass feature id that is the monoisotopic version of self (if self.id, then self is the monoisotopic feature). Default is None.
+        Mass feature id that is the monoisotopic version of self.
+        If self.id, then self is the monoisotopic feature). Default is None.
     isotopologue_type : str
-        The isotopic class of the feature, i.e. "13C1", "13C2", "13C1 37Cl1" etc. Default is None.
+        The isotopic class of the feature, i.e. "13C1", "13C2", "13C1 37Cl1" etc. 
+        Default is None.
     ms2_scan_numbers : list
-        List of scan numbers of the MS2 spectra associated with the feature. Default is an empty list.
+        List of scan numbers of the MS2 spectra associated with the feature. 
+        Default is an empty list.
     ms2_mass_spectra : dict
-        Dictionary of MS2 spectra associated with the feature (key = scan number for DDA). Default is an empty dictionary.
+        Dictionary of MS2 spectra associated with the feature (key = scan number for DDA). 
+        Default is an empty dictionary.
     ms2_similarity_results : list
-        List of MS2 similarity results associated with the mass feature. Default is an empty list.
+        List of MS2 similarity results associated with the mass feature. 
+        Default is an empty list.
     id : int
-        The ID of the feature, also the key in the parent LCMS object's `mass_features` dictionary.
+        The ID of the feature, also the key in the parent LCMS object's 
+        `mass_features` dictionary.
 
     """
 
@@ -188,7 +194,7 @@ class LCMSMassFeature(ChromaPeakBase):
             )
 
     def update_mz(self):
-        """Update the mass to charge ratio of the feature from the mass spectrum object."""
+        """Update the mass to charge ratio from the mass spectrum object."""
         if self.mass_spectrum is None:
             raise ValueError(
                 "The mass spectrum object is not set, cannot update the m/z from the MassSpectrum object"
@@ -210,7 +216,9 @@ class LCMSMassFeature(ChromaPeakBase):
         Parameters
         ----------
         to_plot : list, optional
-            List of strings specifying what to plot, any iteration of "EIC", "MS2", and "MS1". Default is ["EIC", "MS1", "MS2"].
+            List of strings specifying what to plot, any iteration of 
+            "EIC", "MS2", and "MS1". 
+            Default is ["EIC", "MS1", "MS2"].
         return_fig : bool, optional
             If True, the figure is returned. Default is True.
         verbose : bool, optional
@@ -219,7 +227,8 @@ class LCMSMassFeature(ChromaPeakBase):
         Returns
         -------
         matplotlib.figure.Figure or None
-            The figure object if `return_fig` is True, otherwise None and the figure is displayed.
+            The figure object if `return_fig` is True. 
+            Otherwise None and the figure is displayed.
         """
 
         # EIC plot preparation
@@ -363,7 +372,7 @@ class LCMSMassFeature(ChromaPeakBase):
 
     @property
     def ms1_peak(self):
-        """MS1 peak object from associated mass spectrum object that is closest to the mass feature's m/z"""
+        """MS1 peak from associated mass spectrum that is closest to the mass feature's m/z"""
         # Find index array self.mass_spectrum.mz_exp that is closest to self.mz
         closest_mz = min(self.mass_spectrum.mz_exp, key=lambda x: abs(x - self.mz))
         closest_mz_index = self.mass_spectrum.mz_exp.tolist().index(closest_mz)
