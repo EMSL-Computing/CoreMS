@@ -6,6 +6,7 @@ import numpy as np
 from scipy import sparse
 from scipy.spatial import KDTree
 from ripser import ripser
+from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
 
 class LCCalculations:
     """Methods for performing LC calculations on mass spectra data.
@@ -139,6 +140,111 @@ class LCCalculations:
         real_scan = self.scans_number[scan_index]
 
         return real_scan
+    
+    def get_average_mass_spectrum(
+            self, 
+            scan_list, 
+            apex_scan,
+            spectrum_mode = "profile", 
+            ms_level = 1, 
+            auto_process = True,
+            use_parser = False,
+            perform_checks = True,
+            polarity = None
+            ):
+        """Returns an averaged mass spectrum object 
+
+        Parameters
+        ----------
+        scan_list : list
+            List of scan numbers to average.
+        apex_scan : int
+            Number of the apex scan
+        spectrum_mode : str, optional
+            The spectrum mode to use. Defaults to "profile". Not that only "profile" mode is supported for averaging.
+        ms_level : int, optional
+            The MS level to use. Defaults to 1.
+        auto_process : bool, optional
+            If True, the averaged mass spectrum will be auto-processed. Defaults to True.
+        use_parser : bool, optional
+            If True, the mass spectra will be obtained from the parser. Defaults to False.
+        perform_checks : bool, optional
+            If True, the function will check if the data are within the ms_unprocessed dictionary and are the correct mode. Defaults to True. Only set to False if you are sure the data are profile, and (if not using the parser) are in the ms_unprocessed dictionary!  ms_unprocessed dictionary also must be indexed on scan
+        polarity : int, optional
+            The polarity of the mass spectra (1 or -1). If not set, the polarity will be determined from the dataset. Defaults to None. (fastest if set to -1 or 1)
+
+        Returns
+        -------
+        MassSpectrumProfile
+            The averaged mass spectrum object.
+
+        Raises
+        ------
+        ValueError
+            If the spectrum mode is not "profile".
+            If the MS level is not found in the unprocessed mass spectra dictionary.
+            If not all scan numbers are found in the unprocessed mass spectra dictionary.
+        """
+        if perform_checks:
+            if spectrum_mode != "profile":
+                raise ValueError("Averaging only supported for profile mode")
+        
+        if polarity is None:
+            # set polarity to -1 if negative mode, 1 if positive mode (for mass spectrum creation)
+            if self.polarity == set(['negative']):
+                polarity = -1
+            elif self.polarity == set(['positive']):
+                polarity = 1
+            else:
+                raise ValueError("Polarity not set for dataset, must be a set containing either 'positive' or 'negative'")
+        
+        # if not using_parser, check that scan numbers are in _ms_unprocessed
+        if not use_parser:
+            if perform_checks:
+                # Set index to scan for faster lookup
+                ms_df = self._ms_unprocessed[ms_level].copy().set_index('scan', drop = False).sort_index()
+                my_ms_df = ms_df.loc[scan_list]
+                # Check that all scan numbers are in the ms_df
+                if not all(np.isin(scan_list, ms_df.index)):
+                    raise ValueError("Not all scan numbers found in the unprocessed mass spectra dictionary")
+            else:
+                my_ms_df = pd.DataFrame({'scan':scan_list}).set_index('scan').join(self._ms_unprocessed[ms_level], how='left') 
+          
+        if use_parser:
+            ms_list = [self.spectra_parser.get_mass_spectrum_from_scan(x, spectrum_mode = spectrum_mode, auto_process = False) for x in scan_list]
+            ms_mz = [x._mz_exp for x in ms_list]
+            ms_int = [x._abundance for x in ms_list]
+            my_ms_df = []
+            for i in np.arange(len(ms_mz)):
+                my_ms_df.append(pd.DataFrame({"mz":ms_mz[i], "intensity":ms_int[i], "scan":scan_list[i]}))
+            my_ms_df = pd.concat(my_ms_df)
+
+        if not self.check_if_grid(my_ms_df):
+            my_ms_df = self.grid_data(my_ms_df, verbose = False)
+
+        my_ms_ave = my_ms_df.groupby('mz')['intensity'].sum().reset_index()
+
+        ms = ms_from_array_profile(
+            my_ms_ave.mz, 
+            my_ms_ave.intensity, 
+            self.file_location, 
+            polarity=polarity, 
+            auto_process=False)
+            
+        # Set the mass spectrum parameters, auto-process if auto_process is True, and add to the dataset
+        if ms is not None:
+            ms.parameters.mass_spectrum = self.parameters.mass_spectrum
+            ms.parameters.ms_peak = self.parameters.ms_peak
+            if ms_level == 1:
+                ms.parameters.molecular_search = self.parameters.ms1_molecular_search
+            elif ms_level == 2:
+                ms.parameters.molecular_search = self.parameters.ms2_molecular_search
+            else:
+                raise ValueError("ms_level must be 1 or 2")
+            ms.scan_number = apex_scan
+            if auto_process:
+                ms.process_mass_spec()
+        return ms
     
 class PHCalculations:
     """Methods for performing calculations related to 2D peak picking via persistent homology on LCMS data.  
@@ -388,8 +494,8 @@ class PHCalculations:
         This function is used within the grid_data function and the find_mass_features function and is not intended to be called directly.
         """
         # Calculate the difference between consecutive mz values in a single scan
-        dat_check = data.copy()
-        dat_check['mz_diff'] = np.abs(data['mz'].diff())
+        dat_check = data.copy().reset_index(drop = True)
+        dat_check['mz_diff'] = np.abs(dat_check['mz'].diff())
         mz_diff_min = dat_check.groupby('scan')['mz_diff'].min().min() # within each scan, what is the smallest mz difference between consecutive mz values
 
         # Find the mininum mz difference between mz values in the data; regardless of scan
@@ -432,7 +538,7 @@ class PHCalculations:
             print("gridding data")
 
         # Calculate the difference between consecutive mz values in a single scan for grid spacing
-        data_w = data.copy()
+        data_w = data.copy().reset_index(drop=True)
         data_w['mz_diff'] = np.abs(data_w['mz'].diff())
         mz_diff_min = data_w.groupby('scan')['mz_diff'].min().min()*0.99999
 
@@ -502,6 +608,45 @@ class PHCalculations:
             raise ValueError("Gridding failed")
    
     def find_mass_features(self, ms_level=1, verbose=True, grid=True):
+        """Find mass features within an LCMSBase object
+
+        Note that this is a wrapper function that calls the find_mass_features_ph function, but can be extended to support other peak picking methods in the future.
+
+        Parameters
+        ----------
+        ms_level : int, optional
+            The MS level to use for peak picking Default is 1.
+        verbose : bool, optional
+            Whether to print progress messages. Default is True.
+        grid : bool, optional
+            If True, will regrid the data before running the persistent homology calculations (after checking if the data is gridded, used for persistent homology peak picking. Default is True.
+
+        Raises
+        ------
+        ValueError
+            If no MS level data is found on the object.
+            If persistent homology peak picking is attempted on non-profile mode data.
+            If data is not gridded and grid is False.
+            If peak picking method is not implemented.
+
+        Returns
+        -------
+        None, but assigns the mass_features and eics attributes to the object.
+
+        """
+        pp_method = self.parameters.lc_ms.peak_picking_method
+
+        if pp_method == "persistent homology":
+            msx_scan_df = self.scan_df[self.scan_df['ms_level'] == ms_level]
+            if all(msx_scan_df['ms_format'] == "profile"):
+                self.find_mass_features_ph(ms_level=ms_level, verbose=verbose, grid=grid)
+                self.cluster_mass_features(drop_children=True, sort_by = "persistence", verbose=verbose)
+            else:
+                raise ValueError("MS{} scans are not profile mode, which is required for persistent homology peak picking.".format(ms_level))
+        else:
+            raise ValueError("Peak picking method not implemented")
+    
+    def find_mass_features_ph(self, ms_level=1, verbose=True, grid=True):
         """Find mass features within an LCMSBase object using persistent homology. 
         
         Assigns the mass_features attribute to the object (a dictionary of LCMSMassFeature objects, keyed by mass feature id)
@@ -545,11 +690,10 @@ class PHCalculations:
         # Add retention time to data from scan df
         data = data.merge(self.scan_df[['scan', 'scan_time']], on = 'scan')
 
-        # Build factors and threshold data
+        # Threshold data
         dims = ['mz', 'scan_time']
         threshold = self.parameters.lc_ms.ph_inten_min
         data_thres = data[data['intensity'] > threshold].reset_index(drop=True).copy()
-        factors = {dim: pd.factorize(data_thres[dim], sort=True)[1].astype(np.float32) for dim in dims} # this is return a float64 index
 
         # Check if gridded, if not, grid
         gridded_mz = self.check_if_grid(data_thres)
@@ -557,9 +701,11 @@ class PHCalculations:
             if grid is False:
                 raise ValueError("Data are not gridded in mz dimension, try reprocessing with a different params or grid data before running this function")
             else:
-                # Grid data
                 data_thres = self.grid_data(data_thres, verbose=verbose)
-                factors = {dim: pd.factorize(data_thres[dim], sort=True)[1].astype(np.float32) for dim in dims} # this is return a float64 index
+
+        # Add build factors and add scan_time
+        data_thres = data_thres.merge(self.scan_df[['scan', 'scan_time']], on = 'scan')
+        factors = {dim: pd.factorize(data_thres[dim], sort=True)[1].astype(np.float32) for dim in dims} # this is return a float64 index
 
         # Build indexes
         index = {dim: np.searchsorted(factors[dim], data_thres[dim]).astype(np.float32) for dim in factors}
@@ -621,7 +767,7 @@ class PHCalculations:
         if verbose:
             print("found " + str(len(mass_features)) + " initial mass features")
 
-    def cluster_mass_features(self, drop_children=True, verbose=True):
+    def cluster_mass_features(self, drop_children=True, sort_by = "persistence", verbose=True):
         """Cluster mass features
 
         Based on their proximity in the mz and scan_time dimensions, priorizies the mass features with the highest persistence.  
@@ -630,6 +776,8 @@ class PHCalculations:
         ----------
         drop_children : bool, optional
             Whether to drop the mass features that are not cluster parents. Default is True.
+        sort_by : str, optional
+            The column to sort the mass features by, this will determine which mass features get rolled up into a parent mass feature. Default is "persistence".
         verbose : bool, optional
             Whether to print progress messages. Default is True.
 
@@ -650,9 +798,11 @@ class PHCalculations:
         if len(self.mass_features) > 400000:
             raise ValueError("Too many mass featuers of interest found, run find_mass_features() with a higher intensity threshold")
         dims = ['mz', 'scan_time'] 
-        mf_df = self.mass_features_to_df().copy()
-        # Reindex and make mf_id its own column for easier bookkeeping
-        mf_df = mf_df.reset_index(drop=False)
+        mf_df_og = self.mass_features_to_df()
+        mf_df = mf_df_og.copy()
+
+        #Sort mass features by sort_by column, make mf_id its own column for easier bookkeeping
+        mf_df = mf_df.sort_values(by=sort_by, ascending=False).reset_index(drop=False)
 
         tol = [self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel, self.parameters.lc_ms.mass_feature_cluster_rt_tolerance] # mz, in relative; scan_time in minutes
         relative=[True, False]
@@ -700,16 +850,20 @@ class PHCalculations:
         # Extract indices of within-tolerance points
         distances = distances.tocoo()
         pairs = np.stack((distances.row, distances.col), axis=1)
+        pairs_df = pd.DataFrame(pairs, columns=['parent', 'child'])
+
         to_drop = []
-        while len(pairs) > 0:
+        while not pairs_df.empty:
+            pairs_df = pairs_df.set_index('parent')
+
+            # Find root_parents and their children
             root_parents = np.setdiff1d(np.unique(pairs[:, 0]), np.unique(pairs[:, 1])) 
-            id_root_parents = np.isin(pairs[:, 0], root_parents) 
-            children_of_roots = np.unique(pairs[id_root_parents, 1]) 
+            children_of_roots = pairs_df.loc[root_parents, 'child'].unique()
             to_drop = np.append(to_drop, children_of_roots) 
 
-            # Set up pairs array for next iteration by removing pairs with children or parents already dropped
-            pairs = pairs[~np.isin(pairs[:, 1], to_drop), :]
-            pairs = pairs[~np.isin(pairs[:, 0], to_drop), :] 
+            pairs_df = pairs_df.drop(index = children_of_roots, errors = 'ignore') #Drop pairs where the parent is a child that is a child of a root
+            pairs_df = pairs_df.set_index('child')
+            pairs_df = pairs_df.drop(index = children_of_roots)
        
         # Drop mass features that are not cluster parents
         mf_df = mf_df.drop(index=np.array(to_drop))
@@ -719,7 +873,7 @@ class PHCalculations:
         if verbose:
             print(str(len(mf_df)) + " mass features remaining")
         
-        mf_df_new = self.mass_features_to_df().copy()
+        mf_df_new = mf_df_og.copy()
         mf_df_new['cluster_parent'] = np.where(np.isin(mf_df_new.index, mf_df.index), True, False)
 
         # get mass feature ids of features that are not cluster parents
@@ -836,7 +990,7 @@ class PHCalculations:
 
         Returns
         -------
-        None, but populates the monoisotopic_mf_id and isotopologue_class attributes to the indivual LCMSMassFeatures within the mass_features attribute of the LCMSBase object.
+        None, but populates the monoisotopic_mf_id and isotopologue_type attributes to the indivual LCMSMassFeatures within the mass_features attribute of the LCMSBase object.
         
         Raises
         ------
@@ -851,6 +1005,8 @@ class PHCalculations:
         # Data prep fo sparse distance matrix
         dims = ['mz', 'scan_time'] 
         mf_df = self.mass_features_to_df().copy()
+        # Drop mass features that have no area (these are likely to be noise)
+        mf_df = mf_df[mf_df['area'].notnull()]
         mf_df['mf_id'] = mf_df.index.values
         dims = ['mz', 'scan_time']
 
@@ -858,7 +1014,7 @@ class PHCalculations:
         mf_df = mf_df.sort_values(by=['mz']).reset_index(drop=True).copy()
 
         mz_diff = 1.003355 # C13-C12 mass difference
-        tol = [mf_df['mz'].median()*self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel , self.parameters.lc_ms.mass_feature_cluster_rt_tolerance]  # mz, in relative; scan_time in minutes
+        tol = [mf_df['mz'].median()*self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel , self.parameters.lc_ms.mass_feature_cluster_rt_tolerance*0.5]  # mz, in relative; scan_time in minutes
 
         # Compute inter-feature distances
         distances = None
@@ -908,17 +1064,36 @@ class PHCalculations:
 
         # Connect monoisotopic masses with isotopologes within mass_features
         monos = np.setdiff1d(np.unique(pairs_mf[:, 0]), np.unique(pairs_mf[:, 1])) 
-        for i in monos:
-            self.mass_features[i].monoisotopic_mf_id = i
+        monos = np.setdiff1d(np.unique(pairs_mf[:, 0]), np.unique(pairs_mf[:, 1])) 
+        for mono in monos:
+            self.mass_features[mono].monoisotopic_mf_id = mono
+        pairs_iso_df = pd.DataFrame(pairs_mf, columns=['parent', 'child'])
+        while not pairs_iso_df.empty:
+            pairs_iso_df = pairs_iso_df.set_index('parent', drop=False)
+            m1_isos = pairs_iso_df.loc[monos, 'child'].unique()
+            for iso in m1_isos:
+                # Set monoisotopic_mf_id and isotopologue_type for isotopologues
+                parent = pairs_mf[pairs_mf[:, 1] == iso, 0]
+                if len(parent) > 1:
+                    # Choose the parent that is closest in time to the isotopologue
+                    parent_time = [self.mass_features[p].scan_time for p in parent]
+                    time_diff = [np.abs(self.mass_features[iso].scan_time - x) for x in parent_time]
+                    parent = parent[np.argmin(time_diff)]
+                else:
+                    parent = parent[0]
+                self.mass_features[iso].monoisotopic_mf_id = self.mass_features[parent].monoisotopic_mf_id
+                if self.mass_features[iso].monoisotopic_mf_id is not None:
+                    mass_diff = self.mass_features[iso].mz - self.mass_features[self.mass_features[iso].monoisotopic_mf_id].mz
+                    self.mass_features[iso].isotopologue_type = "13C"+ str(int(round(mass_diff, 0)))
 
-        isos = np.unique(pairs_mf[:, 1])
-        for i in isos:
-            # Get -13C1 parent to isotopologue so we can assign monoisotopic_mf_id
-            parent = pairs_mf[pairs_mf[:, 1] == i, 0].item()
-            self.mass_features[i].monoisotopic_mf_id = self.mass_features[parent].monoisotopic_mf_id
-            # Get mass difference between parent and isotopologue and assign isotopologue_class
-            mass_diff = self.mass_features[i].mz - self.mass_features[self.mass_features[i].monoisotopic_mf_id].mz
-            self.mass_features[i].isotopologue_class = "13C"+ str(int(round(mass_diff, 0)))
+            # Drop the mono and iso from the pairs_iso_df
+            pairs_iso_df = pairs_iso_df.drop(index = monos, errors = 'ignore') #Drop pairs where the parent is a child that is a child of a root
+            pairs_iso_df = pairs_iso_df.set_index('child', drop=False)
+            pairs_iso_df = pairs_iso_df.drop(index = m1_isos, errors = 'ignore')
+
+            if not pairs_iso_df.empty:
+                # Get new monos, recognizing that these are just 13C isotopologues that are connected to other 13C isotopologues to repeat the process
+                monos = np.setdiff1d(np.unique(pairs_iso_df.parent), np.unique(pairs_iso_df.child))
         if verbose:
             # Report fraction of compounds annotated with isotopes
             mf_df['c13_flag'] = np.where(np.logical_or(np.isin(mf_df['mf_id'], pairs_mf[:, 0]), np.isin(mf_df['mf_id'], pairs_mf[:, 1])), 1, 0)
