@@ -124,7 +124,7 @@ class LCMSMassFeature(ChromaPeakBase):
         The EIC data object associated with the feature.
     monoisotopic_mf_id : int
         Mass feature id that is the monoisotopic version of self (if self.id, then self is the monoisotopic feature). Default is None.
-    isotopologue_class : str
+    isotopologue_type : str
         The isotopic class of the feature, i.e. "13C1", "13C2", "13C1 37Cl1" etc. Default is None.
     ms2_scan_numbers : list
         List of scan numbers of the MS2 spectra associated with the feature. Default is an empty list.
@@ -210,6 +210,7 @@ class LCMSMassFeature(ChromaPeakBase):
         fig, axs = plt.subplots(len(to_plot), 1, figsize=(9, len(to_plot)*4), squeeze=False)
         fig.suptitle("Mass Feature " + str(self.id) +": m/z = "+ str(round(self.mz, ndigits = 4)) + "; time = " + str(round(self.scan_time, ndigits = 1)) + " minutes")
         
+        i = 0
         # EIC plot  
         if "EIC" in to_plot:     
             if self._eic_data is None:
