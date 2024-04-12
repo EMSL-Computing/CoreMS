@@ -54,9 +54,10 @@ def create_mass_spectrum():
 
 def test_run_molecular_formula_search():
     # Test for generating accurate molecular formula from a single mass using the local sql database
-    mz = [760.58156938877]
-    abundance = [1]
-    rp, s2n = [[1],[1]]
+    # Now also tests that it is handling isotopes correctly (for non-adducts)
+    mz = [760.58156938877, 761.58548]
+    abundance = [1, 0.4]
+    rp, s2n = [[1, 1],[1, 1]]
     
     MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
     MSParameters.mass_spectrum.noise_threshold_absolute_abundance = 0 
@@ -70,18 +71,50 @@ def test_run_molecular_formula_search():
     MSParameters.molecular_search.isRadical= False 
     MSParameters.molecular_search.isAdduct= False 
 
-    usedatoms = {'C': (1,100) , 'H': (4,200), 'O': (0,10), 'N': (0,1)}
+    usedatoms = {'C': (1,57) , 'H': (4,200), 'N': (0,1)}
     MSParameters.molecular_search.usedAtoms = usedatoms
     MSParameters.molecular_search.usedAtoms = usedatoms
     mass_spectrum_obj = ms_from_array_centroid(mz, abundance, rp, s2n, 'single mf search', polarity=1, auto_process=True)
     mass_spectrum_obj.settings.noise_threshold_method = 'relative threshold'
     mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = False
-    mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = 10
     mass_spectrum_obj.molecular_search_settings.use_isotopologue_filter = False
     SearchMolecularFormulas(mass_spectrum_obj, find_isotopologues=True).run_worker_ms_peaks([mass_spectrum_obj[0]])
+    mass_spectrum_obj.to_dataframe()
     
-    ms_peak = mass_spectrum_obj[0]
-    assert ms_peak[0].string == 'C56 H73 N1'
+    assert  mass_spectrum_obj[0][0].string == 'C56 H73 N1'
+    assert mass_spectrum_obj[1][0].string == 'C55 H73 N1 13C1'
+
+def test_run_molecular_formula_search_adduct():
+    # Test for generating accurate molecular formula from a single mass using the local sql database
+    # Now also tests that it is handling isotopes correctly (for non-adducts)
+    mz = [782.563522, 783.566877] #Na+ adduct of C56H73N1 and it's M+1
+    abundance = [1, 0.4]
+    rp, s2n = [[1, 1],[1, 1]]
+    
+    MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
+    MSParameters.mass_spectrum.noise_threshold_absolute_abundance = 0 
+    
+    MSParameters.molecular_search.url_database = ''
+    MSParameters.molecular_search.error_method = 'None'
+    MSParameters.molecular_search.min_ppm_error  = -5
+    MSParameters.molecular_search.max_ppm_error = 5
+    MSParameters.molecular_search.mz_error_range = 1
+    MSParameters.molecular_search.isProtonated = True 
+    MSParameters.molecular_search.isRadical= False 
+    MSParameters.molecular_search.isAdduct= True 
+
+    usedatoms = {'C': (1,57) , 'H': (4,200), 'N': (0,1)}
+    MSParameters.molecular_search.usedAtoms = usedatoms
+    mass_spectrum_obj = ms_from_array_centroid(mz, abundance, rp, s2n, 'single mf search', polarity=1, auto_process=True)
+    mass_spectrum_obj.settings.noise_threshold_method = 'relative threshold'
+    mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = False
+    mass_spectrum_obj.molecular_search_settings.use_isotopologue_filter = False
+    SearchMolecularFormulas(mass_spectrum_obj, find_isotopologues=True).run_worker_ms_peaks([mass_spectrum_obj[0]])
+    mass_spectrum_obj.to_dataframe()
+    
+    assert  mass_spectrum_obj[0][0].string == 'C56 H73 N1'
+    assert mass_spectrum_obj[1][0].string == 'C55 H73 N1 13C1'
+
 
 
 def test_mspeak_search():
@@ -168,6 +201,6 @@ if __name__ == "__main__":
 
     #test_priorityAssignment()
     #()
-    #test_molecular_formula_search_db()
-    #test_run_molecular_formula_search()
-    test_mspeak_search()
+    test_run_molecular_formula_search()
+    test_run_molecular_formula_search_adduct()
+    #test_mspeak_search()

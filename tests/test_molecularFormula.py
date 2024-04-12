@@ -13,10 +13,10 @@ def test_molecular_formula():
     
     '''test the MolecularFormula class and the calculation of isotopologues'''
     
-    formula_dict = {'C':10, 'H':0, 'O':10,'Cl':2, Labels.ion_type: 'Radical'}
+    formula_dict = {'C':10, 'H':0, 'O':10,'Cl':2, Labels.ion_type: 'radical'}
     
     ion_charge = 1 
-    formula_obj = MolecularFormula(formula_dict, ion_charge)
+    formula_obj = MolecularFormula(formula_dict, ion_charge, ion_type='radical', adduct_atom=None)
     print("ion_type", formula_obj.ion_type)
     assert round(formula_obj.mz_calc,2) == round(349.886303060457,2)
     
@@ -45,9 +45,27 @@ def test_molecular_formula():
               "mz_calc:", isotopologue_obj.mz_calc,
               "prob_ratio:", isotopologue_obj.prob_ratio)
       '''
+def test_molecular_formula_adducts():
+    
+    '''test the MolecularFormula class and the calculation of isotopologues with adducts'''
+    
+    mol_form = MolecularFormula(
+    {'C': 6, 'H': 10, 'O': 6}, 
+    ion_charge = -1,
+    ion_type = 'ADDUCT',
+    adduct_atom = 'Cl')
+    
+    isotopologues = list(mol_form.isotopologues(0.05, 1, dynamic_range=1000))
+
+    assert round(mol_form.mz_calc,2) == round(213.01713930162907,2)     
+    assert round(isotopologues[0].mz_calc,2) == round(215.01418922162907,2)
+    assert round(isotopologues[0].prob_ratio,2) == round(0.3199577613516368,2)
+    assert isotopologues[0].string == 'C6 H10 O6'
+    assert isotopologues[0].adduct_atom == '37Cl'
+
+
 
 if __name__ == "__main__":
-      test_molecular_formula()
-   
+      test_molecular_formula_adducts()
 
     
