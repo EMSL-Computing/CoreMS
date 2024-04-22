@@ -612,7 +612,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     @property
     def tic(self):
         """Return the total ion current of the mass spectrum."""
-        return trapz(self.abundance_profile)
+        return trapz(self.abundance_profile, self.mz_exp_profile)
 
     def check_mspeaks_warning(self):
         """Check if the mass spectrum has MSpeaks objects.

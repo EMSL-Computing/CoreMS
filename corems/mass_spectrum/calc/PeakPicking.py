@@ -147,10 +147,11 @@ class PeakPicking:
         self.abundance_profile = abundance
         self.freq_exp_profile = freq
         
-        mz, abundance, freq = self.extrapolate_axes_for_pp()
-        self.mz_exp_profile = mz
-        self.abundance_profile = abundance
-        self.freq_exp_profile = freq
+        if self.settings.picking_point_extrapolate > 0:
+            mz, abundance, freq = self.extrapolate_axes_for_pp()
+            self.mz_exp_profile = mz
+            self.abundance_profile = abundance
+            self.freq_exp_profile = freq
         
         if self.label == Labels.bruker_frequency or self.label == Labels.midas_frequency:
 

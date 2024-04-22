@@ -238,18 +238,35 @@ class TransientCalculations(object):
         
         
         """
+        # If the mw_low and mw_high are set, the frequency domain is cut to the mw range
+        # this accounts for the detection settings, not the excitation settings.
+        # TODO: Implement this - right now the f to mz function is in the ms class, not the transient class, so it doesnt work.
+        #if (self._mw_low != 0) & (self._mw_high != 0):
+        #    high_freq = self._f_to_mz(self._mw_high)
+        #    low_freq = self._f_to_mz(self._mw_low)
+        #
+        #    final =  where(freqdomain_X < high_freq)[-1][-1]
+        #      start =  where(freqdomain_X > low_freq)[0][0]
+        #else:
+        if self._qpd_enabled == 1:
+            low_freq = self._exc_low_freq *2
+            high_freq = self._exc_high_freq *2
+        else:
+            low_freq = self._exc_low_freq
+            high_freq = self._exc_high_freq 
 
-      
         if self._exc_low_freq > self._exc_high_freq:
-            
-            final =  where(freqdomain_X > self._exc_high_freq)[-1][-1]
-            start =  where(freqdomain_X > self._exc_high_freq())[0][0]
-        
+            # TODO: This needs to be tested
+            # I'm not sure that this is relevant anyway - the excitation pulse is ramped in frequency but the detection is simulatenous
+            print("This is not tested. Please check the results.")
+            final =  where(freqdomain_X > low_freq)[0][0]
+            start =  where(freqdomain_X > high_freq)[0][0]
+
         else:
             
-            final =  where(freqdomain_X > self._exc_low_freq)[-1][-1]
-            start =  where(freqdomain_X > self._exc_low_freq)[0][0]
-            
+            final =  where(freqdomain_X < high_freq)[-1][-1]
+            start =  where(freqdomain_X > low_freq)[0][0]
+        
         
         return freqdomain_X[start:final], freqdomain_Y[start:final]
         #del freqdomain_X, freqdomain_Y
