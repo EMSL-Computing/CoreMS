@@ -658,12 +658,8 @@ class MolecularFormulaCalc:
                 atoms_count.append(formula_dict.get(atom_label))
                 masses_list_tuples.append(masses)
                 props_list_tuples.append(props)
-        if atoms_count == [24, 2]: #DEBUG
-            print('a') #DEBUG
-            print(f"atoms_count={atoms_count}, masses_list_tuples={masses_list_tuples},props_list_tuples={props_list_tuples},cut_off_to_IsoSpeccPy={cut_off_to_IsoSpeccPy}") #DEBUG
         if legacy_isospec:
             iso = IsoSpecPy.IsoSpec(atoms_count,masses_list_tuples,props_list_tuples, cut_off_to_IsoSpeccPy)
-            if atoms_count == [24, 2]: print('b')
             conf = iso.getConfs()
             masses = conf[0]
             probs = exp(conf[1])
