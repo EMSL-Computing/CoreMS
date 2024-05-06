@@ -1,4 +1,4 @@
-from corems.encapsulation.factory.parameters import MSParameters, GCMSParameters
+from corems.encapsulation.factory.parameters import MSParameters, GCMSParameters, LCMSParameters
 
 def get_dict_all_default_data():
     """ Return a dictionary with all default parameters for MS and GCMS
@@ -11,6 +11,29 @@ def get_dict_all_default_data():
              "DataInput": MSParameters.data_input.__dict__,
              "MolecularSearch": GCMSParameters.molecular_search.__dict__,
              "GasChromatograph": GCMSParameters.gc_ms.__dict__,
+            }
+
+def get_dict_data_lcms(lcms_obj):
+    """ Return a dictionary with all parameters for LCMS
+    
+    """
+    return { "LiquidChromatograph": lcms_obj.parameters.lc_ms.__dict__,
+             "MassSpectrum": lcms_obj.parameters.mass_spectrum.__dict__,
+             "MassSpecPeak": lcms_obj.parameters.ms_peak.__dict__,
+             "MS1MolecularSearch": lcms_obj.parameters.ms1_molecular_search.__dict__, 
+             "MS2MolecularSearch": lcms_obj.parameters.ms2_molecular_search.__dict__,
+            }
+
+def get_dict_lcms_default_data():
+    """ Return a dictionary with all default parameters for LCMS
+    
+    """
+    
+    return { "LiquidChromatograph": LCMSParameters.lc_ms.__dict__,
+             "MassSpectrum": LCMSParameters.mass_spectrum.__dict__,
+             "MassSpecPeak": LCMSParameters.ms_peak.__dict__,
+             "MS1MolecularSearch": LCMSParameters.ms1_molecular_search.__dict__, 
+             "MS2MolecularSearch": LCMSParameters.ms2_molecular_search.__dict__,
             }
 
 def get_dict_data_ms(mass_spec):

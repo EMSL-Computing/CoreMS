@@ -188,7 +188,7 @@ class LiquidChromatographSetting:
 
     # Parameters used for 2D peak picking
     peak_picking_method: str  = "persistent homology"
-    implemented_peak_picking_methods: tuple =  ('persistent homology')
+    implemented_peak_picking_methods: tuple =  ('persistent homology',)
 
     # Parameters used in persistent homology calculations
     ph_smooth_it = 1

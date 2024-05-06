@@ -1,7 +1,6 @@
 from corems.encapsulation.factory.processingSetting  import LiquidChromatographSetting, MolecularFormulaSearchSettings, TransientSetting, MassSpecPeakSetting, MassSpectrumSetting
 from corems.encapsulation.factory.processingSetting  import CompoundSearchSettings, GasChromatographSetting
 from corems.encapsulation.factory.processingSetting  import DataInputSetting
-import json
 
 class MSParameters:
     """MSParameters class is used to store the parameters used for the processing of the mass spectrum
@@ -71,16 +70,6 @@ class LCMSParameters:
     ms1_molecular_search = MolecularFormulaSearchSettings()
     
     ms2_molecular_search = MolecularFormulaSearchSettings()
-
-    def to_json(self):
-        lc_ms_dict = self.lc_ms.__dict__
-        mass_spectrum_dict = self.mass_spectrum.__dict__
-        ms_peak_dict = self.ms_peak.__dict__
-        ms1_molecular_search_dict = self.ms1_molecular_search.__dict__
-        ms2_molecular_search_dict = self.ms2_molecular_search.__dict__
-        lcms_dict = {"LC params": lc_ms_dict, "Mass Spectrum params": mass_spectrum_dict, "MS peak params": ms_peak_dict,  "MS1 molecular search params": ms1_molecular_search_dict, "MS2 molecular search params": ms2_molecular_search_dict}
-        lcms_json = json.dumps(lcms_dict, indent = 4) 
-        return lcms_json
 
 def default_parameters(file_location):  # pragma: no cover
     """Generate parameters dictionary with the default parameters for data processing
