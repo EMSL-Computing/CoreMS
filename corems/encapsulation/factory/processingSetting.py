@@ -103,12 +103,8 @@ class LiquidChromatographSetting:
         Mass tolerance in ppm for extracted ion chromatogram peak detection. Default is 5.
     correct_eic_baseline : bool, optional
         If True, correct the baseline of the extracted ion chromatogram. Default is True.
-    enforce_target_ms2 : bool, optional
-        Only extract EICs for target_mz if the m/z was selected as precursor for ms2. Default is True.
-    average_target_mz : bool, optional
-        If True, average the target_mz EICs. Default is True.
     smooth_window : int, optional
-        Window size for smoothing the ion chromatogram. Default is 5.
+        Window size for smoothing the ion chromatogram (extracted or total). Default is 5.
     smooth_method : str, optional
         Smoothing method to use. Default is 'savgol'. Other options are 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar'.
     implemented_smooth_method : tuple, optional
@@ -127,14 +123,33 @@ class LiquidChromatographSetting:
         Method for detecting noise threshold. Default is 'manual_relative_abundance'.
     noise_threshold_methods_implemented : tuple, optional
         Methods for detected noise threshold that can be implemented. Default is ('auto_relative_abundance', 'manual_relative_abundance', 'second_derivative').
-    std_noise_threshold : int, optional
-        the amount of standard deviations used to calculate noise thresould, average + (std_noise_threshold * noise). Default is 3.
     peak_height_min_percent : float, optional
         0-100 % used for peak detection. Default is 0.1.
     eic_signal_threshold : float, optional
         0-100 % used for extracted ion chromatogram peak detection. Default is 0.01.
+    eic_buffer_time : float, optional
+        Buffer time to add to the start and end of the plot of the extracted ion chromatogram, in minutes. Default is 1.5.
+    ph_smooth_it : int, optional
+        Number of iterations to use for smoothing prior to finding mass features. Called within the PHCalculations.find_mass_features() method. Default is 7.
+    ph_smooth_radius_mz : int, optional
+        Radius in m/z steps (not daltons) for smoothing prior to finding mass features. Called within the PHCalculations.find_mass_features() method. Default is 0.
+    ph_smooth_radius_scan : int, optional
+        Radius in scan steps for smoothing prior to finding mass features. Called within the PHCalculations.find_mass_features() method. Default is 3.
+    ph_inten_min : int, optional
+        Minimum intensity to use for finding mass features. Called within the PHCalculations.find_mass_features() method. Default is 500.
+    ph_persis_min : int, optional
+        Minimum persistence to use for finding mass features. Called within the PHCalculations.find_mass_features() method. Default is 500.
+    mass_feature_cluster_mz_tolerance_rel : float, optional
+        Relative m/z tolerance to use for clustering mass features. Called with the PHCalculations.cluster_mass_features() method. Default is 5E-6 (5 ppm).
+    mass_feature_cluster_rt_tolerance : float, optional
+        Retention time tolerance to use for clustering mass features, in minutes. Called with the PHCalculations.cluster_mass_features() method. Default is 0.2.
+    ms1_scans_to_average : int, optional
+        Number of MS1 scans to average for mass-feature associated m/zs. Called within the LCMSBase.add_associated_ms1() method. Default is 1. 
+    ms2_dda_rt_tolerance : float, optional
+        Retention time tolerance to use for associating MS2 spectra to mass features, in minutes. Called within the LCMSBase.add_associated_ms2_dda() method. Default is 0.15.
+    ms2_dda_mz_tolerance : float, optional
+        Mass tolerance to use for associating MS2 spectra to mass features. Called within the LCMSBase.add_associated_ms2_dda() method. Default is 0.05.
     """
-   
     scans: list | tuple = (0, 1)
     
     eic_tolerance_ppm: float = 5
@@ -165,11 +180,36 @@ class LiquidChromatographSetting:
 
     noise_threshold_methods_implemented: tuple = ('auto_relative_abundance', 'manual_relative_abundance', 'second_derivative')
 
-    std_noise_threshold: int = 3
-
     peak_height_min_percent: float = 0.1  
 
     eic_signal_threshold: float = 0.01  
+    eic_buffer_time = 1.5
+
+
+    # Parameters used for 2D peak picking
+    peak_picking_method: str  = "persistent homology"
+    implemented_peak_picking_methods: tuple =  ('persistent homology',)
+
+    # Parameters used in persistent homology calculations
+    ph_smooth_it = 1
+    ph_smooth_radius_mz = 0
+    ph_smooth_radius_scan = 1
+    ph_inten_min = 500
+    ph_persis_min = 500
+
+    # Parameters used to cluster mass features
+    mass_feature_cluster_mz_tolerance_rel: float = 5E-6
+    mass_feature_cluster_rt_tolerance: float = 0.3
+
+    # Parameters used in associating MS1 and MS2 spectra to LCMS mass features
+    ms1_scans_to_average: int = 1
+    ms2_dda_rt_tolerance: float = 0.15
+    ms2_dda_mz_tolerance: float = 0.05
+
+    # Parameters used for flash entropy searching and database preparation
+    ms2_min_fe_score: float = 0.2
+    search_as_lipids: bool = False
+    include_fragment_types: bool = False
 
     def __post_init__(self):
         # enforce datatype
@@ -195,7 +235,7 @@ class MassSpectrumSetting:
     noise_threshold_min_s2n : float, optional
         Minimum value for noise thresholding when using 'signal_noise' noise threshold method. Default is 4.
     noise_threshold_min_relative_abundance : float, optional
-        Minimum value for noise thresholding when using 'relative_abundance' noise threshold method. Default is 6.
+        Minimum value for noise thresholding when using 'relative_abundance' noise threshold method. Note that this is a percentage value. Default is 6 (6%).
     noise_threshold_absolute_abundance : float, optional
         Minimum value for noise thresholding when using 'absolute_abundance' noise threshold method. Default is 1_000_000.
     noise_threshold_log_nsigma : int, optional
@@ -629,6 +669,8 @@ class MolecularFormulaSearchSettings:
         Minimum number of peaks per class. Default is 15.
     url_database : str, optional
         URL for the database. Default is 'postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp'.
+    api_token_path : str, optional
+        Path to the API token. Default is None.
     db_jobs : int, optional
         Number of jobs to use for database queries. Default is 3.
     db_chunk_size : int, optional
@@ -668,8 +710,6 @@ class MolecularFormulaSearchSettings:
         Minimum score for output. Default is 0.1.
     output_score_method : str, optional
         Score method to use for output. Default is 'All Candidates'.
-    output_min_score : float, optional
-        Minimum score for output. Default is 0.1.
     isRadical : bool, optional
         If True, search for radical ions. Default is False.
     isProtonated : bool, optional
@@ -711,6 +751,8 @@ class MolecularFormulaSearchSettings:
 
     url_database: str = 'postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp'
 
+    api_token_path: str = None
+
     db_jobs: int = 3
 
     db_chunk_size: int = 300
@@ -751,8 +793,6 @@ class MolecularFormulaSearchSettings:
     output_min_score: float = 0.1
 
     output_score_method: str = 'All Candidates'
-
-    output_min_score: float = 0.1
 
     # depending on the polarity mode it looks for [M].+ , [M].-
     # query and automatically compile add entry if it doesn't exist

@@ -4,7 +4,7 @@ import json, toml
 from corems.encapsulation.factory.processingSetting  import MolecularFormulaSearchSettings, TransientSetting
 from corems.encapsulation.factory.processingSetting  import MassSpectrumSetting
 from corems.encapsulation.factory.processingSetting  import MassSpecPeakSetting
-from corems.encapsulation.factory.processingSetting  import GasChromatographSetting
+from corems.encapsulation.factory.processingSetting  import GasChromatographSetting, LiquidChromatographSetting
 from corems.encapsulation.factory.processingSetting import CompoundSearchSettings
 
 def load_and_set_toml_parameters_ms(mass_spec_obj, parameters_path=False):
@@ -143,7 +143,60 @@ def load_and_set_parameters_gcms(gcms_obj, parameters_path=False):
     else:
         
         raise FileNotFoundError("Could not locate %s", file_path)   
+
+def load_and_set_json_parameters_lcms(lcms_obj, parameters_path=False):   
+    """Load parameters from a json file and set the parameters in the LCMS object
+
+    Parameters
+    ----------
+    lcms_obj : LCMSBase
+        corems LCMSBase object
+    parameters_path : str
+        path to the parameters file saved as a .json, by default False
+
+    Raises
+    ------
+    FileNotFoundError
+        if the file is not found
+    """        
     
+    if parameters_path:
+        file_path = Path(parameters_path)
+
+    if file_path.exists():  
+            with open(file_path, 'r', encoding='utf8',) as stream:
+                data_loaded = json.load(stream)
+                _set_dict_data_lcms(data_loaded, lcms_obj)
+    else:
+        raise FileNotFoundError("Could not locate %s", file_path)
+
+
+def load_and_set_toml_parameters_lcms(lcms_obj, parameters_path=False):   
+    """Load parameters from a toml file and set the parameters in the LCMS object
+
+    Parameters
+    ----------
+    lcms_obj : LCMSBase
+        corems LCMSBase object
+    parameters_path : str
+        path to the parameters file saved as a .toml, by default False
+
+    Raises
+    ------
+    FileNotFoundError
+        if the file is not found
+    """        
+    
+    if parameters_path:
+        file_path = Path(parameters_path)
+
+    if file_path.exists():  
+            with open(file_path, 'r', encoding='utf8',) as stream:
+                data_loaded = toml.load(stream)
+                _set_dict_data_lcms(data_loaded, lcms_obj)
+    else:
+        raise FileNotFoundError("Could not locate %s", file_path)
+
 def _set_dict_data_gcms(data_loaded, gcms_obj):
     """Set the parameters in the GCMS object from a dict
     
@@ -178,6 +231,52 @@ def _set_dict_data_gcms(data_loaded, gcms_obj):
 
     gcms_obj.chromatogram_settings = classes[0]
     gcms_obj.molecular_search_settings = classes[1]
+
+
+def _set_dict_data_lcms(data_loaded, lcms_obj):
+    """Set the parameters on a LCMS object from a dict
+    
+    This function is called by load_and_set_parameters_lcms and load_and_set_toml_parameters_lcms and should not be called directly.
+
+    Parameters
+    ----------
+    data_loaded : dict
+        dict with the parameters
+    lcms_obj : LCMSBase
+        corems LCMSBase object
+    """
+
+    classes = [
+        LiquidChromatographSetting(),
+        MassSpectrumSetting(),
+        MassSpecPeakSetting(),
+        MolecularFormulaSearchSettings(),
+        MolecularFormulaSearchSettings()
+              ]
+
+    labels = [
+        "LiquidChromatograph", 
+        "MassSpectrum",
+        "MassSpecPeak",
+        "MS1MolecularSearch",
+        "MS2MolecularSearch"
+              ]
+    
+    label_class = zip(labels, classes)
+
+    if data_loaded:
+    
+        for label, classe in label_class:
+            class_data = data_loaded.get(label)
+            if class_data:
+                for item, value in class_data.items():
+                    setattr(classe, item, value)
+
+    lcms_obj.parameters.lc_ms = classes[0]
+    lcms_obj.parameters.mass_spectrum = classes[1]
+    lcms_obj.parameters.ms_peak = classes[2]
+    lcms_obj.parameters.ms1_molecular_search = classes[3]
+    lcms_obj.parameters.ms2_molecular_search = classes[4]
 
 def _set_dict_data_ms(data_loaded, mass_spec_obj):
     """Set the parameters in the MassSpectrum object from a dict

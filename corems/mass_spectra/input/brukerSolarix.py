@@ -9,7 +9,7 @@ from s3path import S3Path
 # import h5py
 
 # from corems.encapsulation.constant import Labels
-from corems.mass_spectra.factory.LC_Class import LCMSBase
+from corems.mass_spectra.factory.lc_class import LCMSBase
 
 # from corems.encapsulation.factory.parameters import default_parameters
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix

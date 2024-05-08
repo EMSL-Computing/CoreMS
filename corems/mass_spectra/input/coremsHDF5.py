@@ -8,7 +8,7 @@ import h5py
 
 from corems.encapsulation.constant import Labels
 from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
-from corems.mass_spectra.factory.LC_Class import LCMSBase
+from corems.mass_spectra.factory.lc_class import LCMSBase
 
 
 class ReadCoreMSHDF_MassSpectra(ReadCoreMSHDF_MassSpectrum, Thread):
