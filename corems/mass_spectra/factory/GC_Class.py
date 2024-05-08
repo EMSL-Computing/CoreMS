@@ -13,7 +13,7 @@ from corems.mass_spectra.calc.GC_Calc import GC_Calculations
 from corems.mass_spectra.calc.GC_Deconvolution import MassDeconvolution
 from corems.mass_spectra.calc import SignalProcessing as sp
 
-from corems.chroma_peak.factory.ChromaPeakClasses import GCPeak
+from corems.chroma_peak.factory.chroma_peak_classes import GCPeak
 from corems.mass_spectra.output.export import LowResGCMSExport
 from corems.encapsulation.factory.parameters import GCMSParameters
 
