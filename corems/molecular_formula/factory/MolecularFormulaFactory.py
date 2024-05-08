@@ -406,9 +406,14 @@ class MolecularFormulaBase(MolecularFormulaCalc):
         -----
         This calculation ignores the hydrogen isotopes.
         """
-        
+        isotopologues = []
         for mf in self._cal_isotopologues(self._d_molecular_formula, min_abundance, current_mono_abundance, dynamic_range ):
-             
+            isotopologues.append(mf)
+        
+        # To account for differences in how the isotopologue outputs are sorted between IsoSpec versions. 
+        sorted_isotopologues = sorted(isotopologues, key=lambda mf: mf[1], reverse=True)
+
+        for mf in sorted_isotopologues:
             yield MolecularFormulaIsotopologue(
                 *mf, 
                 current_mono_abundance, 
