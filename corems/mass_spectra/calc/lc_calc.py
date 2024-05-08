@@ -826,8 +826,10 @@ class PHCalculations:
             mass_features["persistence"] > persistence_threshold, :
         ].reset_index(drop=True)
 
-        # Rename scan column to scan_number
-        mass_features = mass_features.rename(columns={"scan": "scan_number"})
+        # Rename scan column to apex_scan
+        mass_features = mass_features.rename(
+            columns={"scan": "apex_scan", "scan_time": "retention_time"}
+        )
 
         # Populate mass_features attribute
         self.mass_features = {}
