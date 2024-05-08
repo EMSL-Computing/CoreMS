@@ -196,9 +196,9 @@ class LCCalculations:
 
         if polarity is None:
             # set polarity to -1 if negative mode, 1 if positive mode (for mass spectrum creation)
-            if self.polarity == set(["negative"]):
+            if self.polarity == "negative":
                 polarity = -1
-            elif self.polarity == set(["positive"]):
+            elif self.polarity == "positive":
                 polarity = 1
             else:
                 raise ValueError(
@@ -639,7 +639,7 @@ class PHCalculations:
         new_data_w = data_w.rename(columns={"mz": "mz_orig", "mz_new": "mz"}).copy()
         new_data_w = (
             new_data_w.drop(columns=["mz_diff", "mz_orig"])
-            .groupby(["scan", "mz", "scan_time"])["intensity"]
+            .groupby(["scan", "mz"])["intensity"]
             .sum()
             .reset_index()
         )
@@ -749,7 +749,7 @@ class PHCalculations:
 
         # Threshold data
         dims = ["mz", "scan_time"]
-        threshold = self.parameters.lc_ms.ph_inten_min
+        threshold = self.parameters.lc_ms.ph_inten_min_rel * data.intensity.max()
         data_thres = data[data["intensity"] > threshold].reset_index(drop=True).copy()
 
         # Check if gridded, if not, grid
@@ -821,13 +821,17 @@ class PHCalculations:
         ).reset_index(drop=True)
 
         # Filter by persistence threshold
-        persistence_threshold = self.parameters.lc_ms.ph_persis_min
+        persistence_threshold = (
+            self.parameters.lc_ms.ph_persis_min_rel * data.intensity.max()
+        )
         mass_features = mass_features.loc[
             mass_features["persistence"] > persistence_threshold, :
         ].reset_index(drop=True)
 
-        # Rename scan column to scan_number
-        mass_features = mass_features.rename(columns={"scan": "scan_number"})
+        # Rename scan column to apex_scan
+        mass_features = mass_features.rename(
+            columns={"scan": "apex_scan", "scan_time": "retention_time"}
+        )
 
         # Populate mass_features attribute
         self.mass_features = {}
@@ -1177,7 +1181,6 @@ class PHCalculations:
         pairs_mf[:, 1] = mf_df.iloc[pairs[:, 1]].mf_id.values
 
         # Connect monoisotopic masses with isotopologes within mass_features
-        monos = np.setdiff1d(np.unique(pairs_mf[:, 0]), np.unique(pairs_mf[:, 1]))
         monos = np.setdiff1d(np.unique(pairs_mf[:, 0]), np.unique(pairs_mf[:, 1]))
         for mono in monos:
             self.mass_features[mono].monoisotopic_mf_id = mono
