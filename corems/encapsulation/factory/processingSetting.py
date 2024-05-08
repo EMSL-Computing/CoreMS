@@ -135,10 +135,15 @@ class LiquidChromatographSetting:
         Radius in m/z steps (not daltons) for smoothing prior to finding mass features. Called within the PHCalculations.find_mass_features() method. Default is 0.
     ph_smooth_radius_scan : int, optional
         Radius in scan steps for smoothing prior to finding mass features. Called within the PHCalculations.find_mass_features() method. Default is 3.
-    ph_inten_min : int, optional
-        Minimum intensity to use for finding mass features. Called within the PHCalculations.find_mass_features() method. Default is 500.
-    ph_persis_min : int, optional
-        Minimum persistence to use for finding mass features. Called within the PHCalculations.find_mass_features() method. Default is 500.
+    ph_inten_min_rel : int, optional
+        Relative minimum intensity to use for finding mass features. 
+        Calculated as a fraction of the maximum intensity of the unprocessed profile data (mz, scan).
+        Called within the PH_Calculations.find_mass_features() method. Default is 0.001.
+    ph_persis_min_rel : int, optional
+        Relative minimum persistence for retaining mass features. 
+        Calculated as a fraction of the maximum intensity of the unprocessed profile data (mz, scan).
+        Should be greater to or equal to ph_inten_min_rel.
+        Called within the PH_Calculations.find_mass_features() method. Default is 0.001.
     mass_feature_cluster_mz_tolerance_rel : float, optional
         Relative m/z tolerance to use for clustering mass features. Called with the PHCalculations.cluster_mass_features() method. Default is 5E-6 (5 ppm).
     mass_feature_cluster_rt_tolerance : float, optional
@@ -150,41 +155,25 @@ class LiquidChromatographSetting:
     ms2_dda_mz_tolerance : float, optional
         Mass tolerance to use for associating MS2 spectra to mass features. Called within the LCMSBase.add_associated_ms2_dda() method. Default is 0.05.
     """
+
     scans: list | tuple = (0, 1)
-    
+
+    # Parameters used for generating EICs and performing 1D peak picking and EIC/TIC smoothing
     eic_tolerance_ppm: float = 5
-    
     correct_eic_baseline = True
-
-    enforce_target_ms2: bool = True
-
-    average_target_mz: bool = True
-
     smooth_window: int = 5
-
     smooth_method: str = 'savgol'
-
     implemented_smooth_method: tuple = ('savgol', 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar')
-
     savgol_pol_order: int = 2
-
     peak_height_max_percent: float = 10  
-
     peak_max_prominence_percent: float = 1
-
     peak_derivative_threshold:float = 0.0005
-
     min_peak_datapoints: float = 5
-
     noise_threshold_method: str = 'manual_relative_abundance'
-
     noise_threshold_methods_implemented: tuple = ('auto_relative_abundance', 'manual_relative_abundance', 'second_derivative')
-
     peak_height_min_percent: float = 0.1  
-
     eic_signal_threshold: float = 0.01  
     eic_buffer_time = 1.5
-
 
     # Parameters used for 2D peak picking
     peak_picking_method: str  = "persistent homology"
@@ -194,8 +183,8 @@ class LiquidChromatographSetting:
     ph_smooth_it = 1
     ph_smooth_radius_mz = 0
     ph_smooth_radius_scan = 1
-    ph_inten_min = 500
-    ph_persis_min = 500
+    ph_inten_min_rel = 0.001
+    ph_persis_min_rel = 0.001
 
     # Parameters used to cluster mass features
     mass_feature_cluster_mz_tolerance_rel: float = 5E-6
@@ -669,8 +658,6 @@ class MolecularFormulaSearchSettings:
         Minimum number of peaks per class. Default is 15.
     url_database : str, optional
         URL for the database. Default is 'postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp'.
-    api_token_path : str, optional
-        Path to the API token. Default is None.
     db_jobs : int, optional
         Number of jobs to use for database queries. Default is 3.
     db_chunk_size : int, optional
@@ -750,8 +737,6 @@ class MolecularFormulaSearchSettings:
     min_peaks_per_class: int = 15
 
     url_database: str = 'postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp'
-
-    api_token_path: str = None
 
     db_jobs: int = 3
 
