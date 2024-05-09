@@ -1193,9 +1193,9 @@ class PHCalculations:
                 parent = pairs_mf[pairs_mf[:, 1] == iso, 0]
                 if len(parent) > 1:
                     # Choose the parent that is closest in time to the isotopologue
-                    parent_time = [self.mass_features[p].scan_time for p in parent]
+                    parent_time = [self.mass_features[p].retention_time for p in parent]
                     time_diff = [
-                        np.abs(self.mass_features[iso].scan_time - x)
+                        np.abs(self.mass_features[iso].retention_time - x)
                         for x in parent_time
                     ]
                     parent = parent[np.argmin(time_diff)]

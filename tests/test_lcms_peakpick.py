@@ -2,9 +2,9 @@
 import sys
 
 sys.path.append("./")
-from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
 from pathlib import Path
 
+from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
 
 def test_lcms_peakpick():
     # Instantiate parser based on binary file type
@@ -19,13 +19,15 @@ def test_lcms_peakpick():
     myLCMSobj = parser.get_lcms_obj(spectra="ms1", verbose=False)
 
     # Set parameters on the LCMS object that are reasonable for testing
-    myLCMSobj.parameters.lc_ms.ph_inten_min = (
-        myLCMSobj._ms_unprocessed[1].intensity.max() * 0.05 * 0.01
-    )
-    myLCMSobj.parameters.lc_ms.ph_persis_min = (
-        myLCMSobj._ms_unprocessed[1].intensity.max() * 0.05
-    )
+    myLCMSobj.parameters.lc_ms.ph_inten_min_rel = 0.0005
+    myLCMSobj.parameters.lc_ms.ph_persis_min_rel = 0.05
     myLCMSobj.parameters.lc_ms.ph_smooth_it = 0
+    myLCMSobj.parameters.mass_spectrum.noise_threshold_method = "relative_abundance"
+    myLCMSobj.parameters.mass_spectrum.noise_threshold_min_relative_abundance = 1
+    myLCMSobj.parameters.mass_spectrum.noise_min_mz = 0
+    myLCMSobj.parameters.mass_spectrum.noise_max_mz = 2500
+    myLCMSobj.parameters.mass_spectrum.min_picking_mz = 0
+    myLCMSobj.parameters.mass_spectrum.max_picking_mz = 2500
 
     # Use persistent homology to find mass features in the lc-ms data
     # Find mass features, cluster, and integrate them.  Then annotate pairs of mass features that are c13 iso pairs.
