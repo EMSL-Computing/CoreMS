@@ -33,9 +33,12 @@ def test_lcms_peakpick():
     # Find mass features, cluster, and integrate them.  Then annotate pairs of mass features that are c13 iso pairs.
     myLCMSobj.find_mass_features(verbose=False)
     myLCMSobj.cluster_mass_features(verbose=False)
+    myLCMSobj.add_associated_ms1(
+        auto_process=True, use_parser=False, spectrum_mode="profile"
+    )
     myLCMSobj.integrate_mass_features(drop_if_fail=True)
     myLCMSobj.find_c13_mass_features(verbose=False)
-
+    
     assert len(myLCMSobj.mass_features) == 130
 
     # Plot a mass feature
