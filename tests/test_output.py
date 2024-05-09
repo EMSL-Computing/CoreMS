@@ -39,21 +39,6 @@ def import_booster_mass_spectra_hdf():
 
     return booster_reader.get_lcms_obj()
 
-
-def test_export_mass_spectra():
-
-    mass_spectra = import_booster_mass_spectra_hdf()
-
-    exportMS = HighResMassSpectraExport('NEG_ESI_SRFA_CoreMS', mass_spectra)
-
-    exportMS.get_mass_spectra_attrs(mass_spectra)
-    exportMS.get_pandas_df()
-    exportMS.to_pandas()
-    exportMS.to_excel()
-    exportMS.to_csv()
-    exportMS.to_hdf()
-
-
 def test_export_mass_spectrum():
 
     mass_spectrum = import_corems_mass_list()
@@ -86,6 +71,5 @@ def test_export_mass_spectrum():
     mass_spectrum.to_pandas('NEG_ESI_SRFA_CoreMS')
 
 if __name__ == "__main__":
-                  
-    test_export_mass_spectra()
-    #test_export_mass_spectrum()
+             
+    test_export_mass_spectrum()
