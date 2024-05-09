@@ -41,6 +41,13 @@ def test_lcms_peakpick():
     
     assert len(myLCMSobj.mass_features) == 130
 
+    # Add ms2 data to lcms object
+    myLCMSobj.add_associated_ms2_dda(spectrum_mode="centroid")
+
+    # Export the mass features to a pandas dataframe
+    df = myLCMSobj.mass_features_to_df()
+    assert df.shape == (130, 9)
+
     # Plot a mass feature
     myLCMSobj.mass_features[1].plot(return_fig=False)
 
