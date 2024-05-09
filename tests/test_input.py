@@ -15,7 +15,6 @@ from matplotlib import pyplot
 from corems.mass_spectra.input.boosterHDF5 import ReadHDF_BoosterMassSpectra
 from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
 from corems.mass_spectra.input.brukerSolarix import ReadBruker_SolarixTransientMassSpectra
-from corems.mass_spectra.input.coremsHDF5 import ReadCoreMSHDF_MassSpectra
 from corems.mass_spectra.input.massList import ReadCoremsMassSpectraText
 from corems.mass_spectrum.input.boosterHDF5 import ReadHDF_BoosterMassSpectrum
 from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
@@ -168,7 +167,7 @@ def test_import_corems_hdf5():
     #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
     mass_list_reader = ReadCoreMSHDF_MassSpectrum(file_location)
 
-    mass_spectrum = mass_list_reader.get_mass_spectrum()
+    mass_spectrum = mass_list_reader.get_mass_spectrum(load_settings=False)
 
     for mspeak in mass_spectrum:
         
@@ -178,20 +177,6 @@ def test_import_corems_hdf5():
                 
                 print('mass_spectrum', mf.string)
     
-    read_lc_ms = ReadCoreMSHDF_MassSpectra(file_location)
-
-    read_lc_ms.start()
-    read_lc_ms.join()
-    
-    mass_spectra = read_lc_ms.get_lcms_obj()
-
-    for mspeak in mass_spectra[0]:
-        
-        if mspeak:
-            
-            for mf in mspeak:
-                
-                print('mass_spectra', mf.string)
  
 def test_import_corems_mass_list():
 
@@ -359,14 +344,14 @@ if __name__ == '__main__':
     pass
     # test_import_booster_mass_spectrum_hdf()
     # test_import_booster_mass_spectra_hdf()
-    test_import_lcms_from_transient()
+    #test_import_lcms_from_transient()
     #test_import_thermo_profile_mass_list()
     # test_import_transient()
-    #test_import_corems_hdf5()
+    test_import_corems_hdf5()
     #test_import_corems_mass_list()
     #test_import_mass_list()
     #test_import_maglab_pks()
     #test_andi_netcdf_gcms()
-    test_import_corems_mass_list()
+    #test_import_corems_mass_list()
     #test_import_thermo_average()
 
