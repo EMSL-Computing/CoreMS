@@ -4,6 +4,8 @@ import sys
 sys.path.append("./")
 from pathlib import Path
 
+import shutil
+
 from corems.mass_spectra.input.coremsHDF5 import ReadCoreMSHDFMassSpectra
 from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
 from corems.mass_spectra.output.export import LCMSExport
@@ -67,6 +69,12 @@ def test_lcms_peakpick():
     myLCMSobj2 = parser.get_lcms_obj()
     assert myLCMSobj2.mass_features_to_df().shape == (130, 9)
     myLCMSobj2.mass_features[1].plot(return_fig=False)
+
+        # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
+    shutil.rmtree(
+        "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems",
+        ignore_errors=True,
+    )
 
 if __name__ == "__main__":
     test_lcms_peakpick()
