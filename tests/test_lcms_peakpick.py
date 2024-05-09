@@ -5,6 +5,8 @@ sys.path.append("./")
 from pathlib import Path
 
 from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
+from corems.mass_spectra.output.export import LCMSExport
+
 
 def test_lcms_peakpick():
     # Instantiate parser based on binary file type
@@ -51,6 +53,11 @@ def test_lcms_peakpick():
     # Plot a mass feature
     myLCMSobj.mass_features[1].plot(return_fig=False)
 
+    # Export the lcms object to an hdf5 file
+    exporter = LCMSExport(
+        "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801", myLCMSobj
+    )
+    exporter.to_hdf(overwrite=True)
 
 if __name__ == "__main__":
     test_lcms_peakpick()
