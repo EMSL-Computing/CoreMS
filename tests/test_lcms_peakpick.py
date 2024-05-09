@@ -4,6 +4,7 @@ import sys
 sys.path.append("./")
 from pathlib import Path
 
+from corems.mass_spectra.input.coremsHDF5 import ReadCoreMSHDFMassSpectra
 from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
 from corems.mass_spectra.output.export import LCMSExport
 
@@ -58,6 +59,14 @@ def test_lcms_peakpick():
         "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801", myLCMSobj
     )
     exporter.to_hdf(overwrite=True)
+
+    # Import the hdf5 file, assert that its df is same as above and that we can plot a mass feature
+    parser = ReadCoreMSHDFMassSpectra(
+        "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems/Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.hdf5"
+    )
+    myLCMSobj2 = parser.get_lcms_obj()
+    assert myLCMSobj2.mass_features_to_df().shape == (130, 9)
+    myLCMSobj2.mass_features[1].plot(return_fig=False)
 
 if __name__ == "__main__":
     test_lcms_peakpick()
