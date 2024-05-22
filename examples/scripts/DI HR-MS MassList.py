@@ -40,7 +40,7 @@ def run_bruker(file_location):
     with ReadBrukerSolarix(file_location) as transient:
 
         MSParameters.mass_spectrum.noise_threshold_method = 'log'
-        MSParameters.mass_spectrum.s2n_threshold = 6
+        MSParameters.mass_spectrum.noise_threshold_min_s2n = 6
 
         mass_spectrum = transient.get_mass_spectrum(plot_result=False, auto_process=True)
         # mass_spectrum.plot_profile_and_noise_threshold()
@@ -57,7 +57,7 @@ def run_bruker(file_location):
 def run_thermo(file_location):
 
     MSParameters.mass_spectrum.noise_threshold_method = 'log'
-    MSParameters.mass_spectrum.s2n_threshold = 6
+    MSParameters.mass_spectrum.noise_threshold_min_s2n = 6
 
     parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
 

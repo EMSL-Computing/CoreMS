@@ -123,7 +123,7 @@ def test_import_transient():
         #MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 1
 
         #MSParameters.mass_spectrum.noise_threshold_method = 'signal_noise'
-        #MSParameters.mass_spectrum.s2n_threshold = 50
+        #MSParameters.mass_spectrum.noise_threshold_min_s2n = 50
 
         MSParameters.mass_spectrum.noise_threshold_method = 'log'
         MSParameters.mass_spectrum.noise_threshold_log_nsigma = 20
@@ -291,7 +291,7 @@ def test_import_mass_list():
     MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 1
 
     # MSParameters.mass_spectrum.noise_threshold_method = 'signal_noise'
-    # MSParameters.mass_spectrum.s2n_threshold = 100
+    # MSParameters.mass_spectrum.noise_threshold_min_s2n = 100
 
     #MSParameters.mass_spectrum.noise_threshold_method = 'log'
     #MSParameters.mass_spectrum.noise_threshold_min_std = 32

@@ -46,7 +46,7 @@
         "min_picking_mz": 50.0,
         "noise_threshold_min_std": 6,
         "noise_threshold_min_relative_abundance": 6.0,
-        "s2n_threshold": 4.0,
+        "noise_threshold_min_s2n": 4.0,
         "noise_threshold_method": "relative_abundance"
     },
     "MolecularFormulaSearch": {
