@@ -41,7 +41,7 @@ class SpectraParserInterface(ABC):
         pass
 
     @abstractmethod
-    def get_mass_spectrum_from_scan(self, scan_number):
+    def get_mass_spectrum_from_scan(self, scan_number, spectrum_mode, auto_process=True):
         """
         Return mass spectrum data object from scan number.
         """

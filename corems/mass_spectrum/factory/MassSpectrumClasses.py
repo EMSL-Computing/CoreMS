@@ -612,7 +612,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     @property
     def tic(self):
         """Return the total ion current of the mass spectrum."""
-        return trapz(self.abundance_profile)
+        return trapz(self.abundance_profile, self.mz_exp_profile)
 
     def check_mspeaks_warning(self):
         """Check if the mass spectrum has MSpeaks objects.
@@ -1466,9 +1466,7 @@ class MassSpecCentroid(MassSpecBase):
         l_s2n = list(data_dict.get(Labels.s2n))
         
         if not l_s2n: s2n = False
-        
-        print("Loading mass spectrum object")
-        
+                
         abun = array(data_dict.get(Labels.abundance)).astype(float)
         
         abundance_threshold, factor = self.get_threshold(abun)

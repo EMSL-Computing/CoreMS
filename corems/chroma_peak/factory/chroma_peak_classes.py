@@ -181,8 +181,8 @@ class LCMSMassFeature(ChromaPeakBase):
         self._retention_time: float = retention_time
         self._apex_scan: int = apex_scan
         self._intensity: float = intensity
-        self._persistence: float = persistence 
-        self._eic_data: EIC_Data = None  
+        self._persistence: float = persistence
+        self._eic_data: EIC_Data = None
 
         # Additional attributes
         self.monoisotopic_mf_id = None
@@ -286,13 +286,16 @@ class LCMSMassFeature(ChromaPeakBase):
             axs[i][0].set_xlabel("Time (minutes)")
             axs[i][0].set_ylim(0, self.eic_list.max() * 1.1)
             axs[i][0].set_xlim(
-                self.retention_time - eic_buffer_time, self.retention_time + eic_buffer_time
+                self.retention_time - eic_buffer_time,
+                self.retention_time + eic_buffer_time,
             )
-            axs[i][0].axvline(x=self.retention_time, color="k", label="MS1 scan time (apex)")
+            axs[i][0].axvline(
+                x=self.retention_time, color="k", label="MS1 scan time (apex)"
+            )
             if len(self.ms2_scan_numbers) > 0:
                 axs[i][0].axvline(
                     x=self.chromatogram_parent.get_time_of_scan_id(
-                        self.best_ms2.apex_scan
+                        self.best_ms2.scan_number
                     ),
                     color="grey",
                     linestyle="--",
@@ -343,7 +346,7 @@ class LCMSMassFeature(ChromaPeakBase):
             axs[i][0].yaxis.get_major_formatter().set_scientific(False)
             axs[i][0].yaxis.get_major_formatter().set_useOffset(False)
             if "MS1" in to_plot:
-                axs[i][0].set_xlim(axs[i - 1].get_xlim())
+                axs[i][0].set_xlim(axs[i - 1][0].get_xlim())
             else:
                 axs[i][0].set_xlim(0, max(self.best_ms2.mz_exp) * 1.1)
             axs[i][0].yaxis.set_tick_params(labelleft=False)
@@ -355,7 +358,7 @@ class LCMSMassFeature(ChromaPeakBase):
             # Close figure
             plt.close(fig)
             return fig
-    
+
     @property
     def mz(self):
         """Mass to charge ratio of the mass feature"""
@@ -369,7 +372,7 @@ class LCMSMassFeature(ChromaPeakBase):
     def retention_time(self):
         """Retention time of the mass feature"""
         return self._retention_time
-    
+
     @retention_time.setter
     def retention_time(self, value):
         """Set the retention time of the mass feature"""
@@ -381,19 +384,19 @@ class LCMSMassFeature(ChromaPeakBase):
     def apex_scan(self):
         """Apex scan of the mass feature"""
         return self._apex_scan
-    
+
     @apex_scan.setter
     def apex_scan(self, value):
         """Set the apex scan of the mass feature"""
         if not isinstance(value, int):
             raise ValueError("The apex scan of the mass feature must be an integer")
         self._apex_scan = value
-    
+
     @property
     def intensity(self):
         """Intensity of the mass feature"""
         return self._intensity
-    
+
     @intensity.setter
     def intensity(self, value):
         """Set the intensity of the mass feature"""
@@ -405,7 +408,7 @@ class LCMSMassFeature(ChromaPeakBase):
     def persistence(self):
         """Persistence of the mass feature"""
         return self._persistence
-    
+
     @persistence.setter
     def persistence(self, value):
         """Set the persistence of the mass feature"""

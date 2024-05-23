@@ -50,7 +50,7 @@ CoreMS aims to provide
 
 ## Current Version
 
- `2.0.6`
+ `2.0.7`
 
 ***
 
@@ -323,7 +323,7 @@ UML (unified modeling language) diagrams for Direct Infusion FT-MS and GC-MS cla
 
 If you use CoreMS in your work, please use the following citation:
 
-Version [2.0.6 Release on GitHub](https://github.com/EMSL-Computing/CoreMS/releases/tag/v2.0.6), archived on Zenodo:  
+Version [2.0.7 Release on GitHub](https://github.com/EMSL-Computing/CoreMS/releases/tag/v2.0.7), archived on Zenodo:  
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4641552.svg)](https://doi.org/10.5281/zenodo.4641552)
 

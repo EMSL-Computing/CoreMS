@@ -13,11 +13,21 @@ from pandas import DataFrame, ExcelWriter, read_excel
 
 from corems.mass_spectrum.output.export import HighResMassSpecExport
 from corems.molecular_id.calc.SpectralSimilarity import methods_name
-from corems.encapsulation.constant import Atoms
 from corems.encapsulation.output import parameter_to_dict
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
+from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 from corems import __version__, corems_md5
 import uuid
+
+import h5py
+import json
+from numpy import array
+from datetime import datetime, timezone
+import numpy as np
+import pandas as pd
+from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
+from corems.encapsulation.output.parameter_to_json import dump_lcms_settings_json, dump_lcms_settings_toml
+import re
 
 class LowResGCMSExport():
     """A class to export low resolution GC-MS data.
@@ -641,13 +651,12 @@ class LowResGCMSExport():
 
         return dict_data_list
 
-
 class HighResMassSpectraExport(HighResMassSpecExport):
     """A class to export high resolution mass spectra data.
 
     This class provides methods to export high resolution mass spectra data to various formats such as Excel, CSV, HDF5, and Pandas DataFrame.
 
-    Parameters:
+    Parameters
     ----------
     out_file_path : str | Path
         The output file path.
@@ -655,24 +664,29 @@ class HighResMassSpectraExport(HighResMassSpecExport):
         The high resolution mass spectra object.
     output_type : str, optional
         The output type. Default is 'excel'.
+
+    Attributes
+    ----------
+    output_file : Path
+        The output file path without suffix
+    dir_loc : Path
+        The directory location for the output file, by default this will be the output_file + ".corems" and all output files will be written into this location
+    mass_spectra : MassSpectraBase
+        The high resolution mass spectra object.
     """
     def __init__(self, out_file_path, mass_spectra, output_type='excel'):
-
-        self.output_file = Path(out_file_path)
+        super().__init__(out_file_path = out_file_path, mass_spectrum = None, output_type = output_type)
 
         self.dir_loc = Path(out_file_path + ".corems")
-
         self.dir_loc.mkdir(exist_ok=True)
-
-        # 'excel', 'csv' or 'pandas'
-        self._output_type = output_type
-
+        # Place the output file in the directory
+        self.output_file = self.dir_loc / Path(out_file_path).name
+        self._output_type = output_type # 'excel', 'csv', 'pandas' or 'hdf5'
         self.mass_spectra = mass_spectra
-
         self._init_columns()
 
     def get_pandas_df(self):
-        """Get the exported data as a Pandas DataFrame."""
+        """Get the mass spectra as a list of Pandas DataFrames."""
 
         list_df = []
 
@@ -792,17 +806,16 @@ class HighResMassSpectraExport(HighResMassSpecExport):
 
         return json.dumps(dict_ms_attrs, sort_keys=False, indent=4, separators=(',', ': '))
 
-    def to_hdf(self):
+    def to_hdf(self, overwrite=False):
         """Export the data to an HDF5 file."""
-        import h5py
-        import json
-        from numpy import array
-        from datetime import datetime, timezone
+        if overwrite:
+            if self.output_file.with_suffix('.hdf5').exists():
+                self.output_file.with_suffix('.hdf5').unlink()
 
         with h5py.File(self.output_file.with_suffix('.hdf5'), 'a') as hdf_handle:
 
             if not hdf_handle.attrs.get('date_utc'):
-
+                # Set metadata
                 timenow = str(datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z"))
                 hdf_handle.attrs['date_utc'] = timenow
                 hdf_handle.attrs['filename'] = self.mass_spectra.file_location.name
@@ -810,55 +823,172 @@ class HighResMassSpectraExport(HighResMassSpecExport):
                 hdf_handle.attrs['analyzer'] = self.mass_spectra.analyzer
                 hdf_handle.attrs['instrument_label'] = self.mass_spectra.instrument_label
                 hdf_handle.attrs['sample_name'] = self.mass_spectra.sample_name
+                hdf_handle.attrs['polarity'] = self.mass_spectra.polarity
+
+            if 'mass_spectra' not in hdf_handle:
+                mass_spectra_group = hdf_handle.create_group('mass_spectra')    
+            else:
+                mass_spectra_group = hdf_handle.get('mass_spectra')
 
             for mass_spectrum in self.mass_spectra:
-
                 list_results = self.list_dict_to_list(mass_spectrum, is_hdf5=True)
-
                 dict_ms_attrs = self.get_mass_spec_attrs(mass_spectrum)
-
                 setting_dicts = parameter_to_dict.get_dict_data_ms(mass_spectrum)
-
                 columns_labels = json.dumps(self.columns_label + self.get_all_used_atoms_in_order(mass_spectrum))
-
-                group_key = str(mass_spectrum.scan_number)
-
-                if group_key not in hdf_handle.keys():
-
-                    scan_group = hdf_handle.create_group(str(mass_spectrum.scan_number))
-
+                group_key = str(int(mass_spectrum.scan_number))
+                if group_key not in mass_spectra_group.keys():
+                    scan_group = mass_spectra_group.create_group(str(int(mass_spectrum.scan_number)))
                     if list(mass_spectrum.abundance_profile):
-
                         mz_abun_array = concatenate((mass_spectrum.abundance_profile, mass_spectrum.mz_exp_profile), axis=0)
-
                         raw_ms_dataset = scan_group.create_dataset('raw_ms', data=mz_abun_array, dtype="f8")
-
                     else:
                         # create empy dataset for missing raw data
                         raw_ms_dataset = scan_group.create_dataset('raw_ms', dtype="f8")
-
                     raw_ms_dataset.attrs['MassSpecAttrs'] = json.dumps(dict_ms_attrs, sort_keys=False, indent=4, separators=(',', ': '))
-
                     if isinstance(mass_spectrum, MassSpecfromFreq):
                         raw_ms_dataset.attrs['TransientSetting'] = json.dumps(setting_dicts.get('TransientSetting'), sort_keys=False, indent=4, separators=(',', ': '))
-
                 else:
-
-                    scan_group = hdf_handle.get(group_key)
-
+                    scan_group = mass_spectra_group.get(group_key)
                     # if there is not processed data len = 0, otherwise len() will return next index
                 index_processed_data = str(len(scan_group.keys()))
-
                 timenow = str(datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z"))
-
                 processed_dset = scan_group.create_dataset(index_processed_data, data=list_results)
-
                 processed_dset.attrs['date_utc'] = timenow
-
                 processed_dset.attrs['ColumnsLabels'] = columns_labels
-
                 processed_dset.attrs['MoleculaSearchSetting'] = json.dumps(setting_dicts.get('MoleculaSearch'), sort_keys=False, indent=4, separators=(',', ': '))
-
                 processed_dset.attrs['MassSpecPeakSetting'] = json.dumps(setting_dicts.get('MassSpecPeak'), sort_keys=False, indent=4, separators=(',', ': '))
-
                 processed_dset.attrs['MassSpectrumSetting'] = json.dumps(setting_dicts.get('MassSpectrum'), sort_keys=False, indent=4, separators=(',', ': '))
+
+class LCMSExport(HighResMassSpectraExport):
+    """A class to export high resolution LC-MS data.
+
+    This class provides methods to export high resolution LC-MS data to HDF5.
+
+    Parameters
+    ----------
+    out_file_path : str | Path
+        The output file path, do not include the file extension.
+    lcms_object : LCMSBase
+        The high resolution lc-ms object.
+    """
+
+    def __init__(self, out_file_path, mass_spectra):
+        super().__init__(out_file_path, mass_spectra, output_type = 'hdf5')
+
+    def to_hdf(self, overwrite=False, save_parameters=True, parameter_format='toml'):
+        """Export the data to an HDF5.
+        
+        Parameters
+        ----------
+        overwrite : bool, optional
+            Whether to overwrite the output file. Default is False.
+        save_parameters : bool, optional
+            Whether to save the parameters as a separate json or toml file. Default is True.
+        parameter_format : str, optional
+            The format to save the parameters in. Default is 'toml'.
+
+        Raises
+        ------
+        ValueError
+            If parameter_format is not 'json' or 'toml'.
+        """
+        super().to_hdf(overwrite=overwrite) 
+        with h5py.File(self.output_file.with_suffix('.hdf5'), 'a') as hdf_handle:
+            # Add scan_info to hdf5 file
+            if 'scan_info' not in hdf_handle:
+                scan_info_group = hdf_handle.create_group('scan_info')
+                for k, v in self.mass_spectra._scan_info.items():
+                    array = np.array(list(v.values()))
+                    if array.dtype.str[0:2] == '<U':
+                        array = array.astype('S')
+                    scan_info_group.create_dataset(k, data=array)
+
+            # Add ms_unprocessed to hdf5 file
+            if self.mass_spectra._ms_unprocessed:
+                if 'ms_unprocessed' not in hdf_handle:
+                    ms_unprocessed_group = hdf_handle.create_group('ms_unprocessed')
+                else:
+                    ms_unprocessed_group = hdf_handle.get('ms_unprocessed')
+                for k, v in self.mass_spectra._ms_unprocessed.items():
+                    array = np.array(v)
+                    ms_unprocessed_group.create_dataset(str(k), data=array)
+
+            # Add LCMS mass features to hdf5 file
+            if len(self.mass_spectra.mass_features) > 0:
+                if 'mass_features' not in hdf_handle:
+                    mass_features_group = hdf_handle.create_group('mass_features')
+                else:
+                    mass_features_group = hdf_handle.get('mass_features')
+
+                # Create group for each mass feature, with key as the mass feature id
+                for k, v in self.mass_spectra.mass_features.items():
+                    mass_features_group.create_group(str(k))
+                    # Loop through each of the mass feature attributes and add them as attributes (if single value) or datasets (if array)
+                    for k2, v2 in v.__dict__.items():
+                        if v2 is not None:
+                            # Check if the attribute is an integer or float and set as an attribute in the mass feature group
+                            if k2 not in ['chromatogram_parent', 'ms2_mass_spectra', 'mass_spectrum', '_eic_data','ms2_similarity_results']:
+                                if k2 == "ms2_scan_numbers":
+                                    array = np.array(v2)
+                                    mass_features_group[str(k)].create_dataset(str(k2), data=array)
+                                elif isinstance(v2, int) or isinstance(v2, float) or isinstance(v2, str) or isinstance(v2, np.integer):
+                                    mass_features_group[str(k)].attrs[str(k2)] = v2
+                                else:                      
+                                    raise TypeError(f"Attribute {k2} is not an integer, float, or string and cannot be added to the hdf5 file")
+
+            # Add EIC data to hdf5 file
+            if len(self.mass_spectra.eics) > 0:
+                if "eics" not in hdf_handle:
+                    eic_group = hdf_handle.create_group('eics')
+                else:
+                    eic_group = hdf_handle.get('eics')
+                
+                # Create group for each eic
+                for k, v in self.mass_spectra.eics.items():
+                    eic_group.create_group(str(k))
+                    eic_group[str(k)].attrs['mz'] = k
+                    # Loop through each of the attributes and add them as datasets (if array)
+                    for k2, v2 in v.__dict__.items():
+                        if v2 is not None:
+                            array = np.array(v2)
+                            eic_group[str(k)].create_dataset(str(k2), data=array)
+            
+            # Add ms2_search results to hdf5 file
+            if len(self.mass_spectra.spectral_search_results) > 0:
+                if "spectral_search_results" not in hdf_handle:
+                    spectral_search_results = hdf_handle.create_group('spectral_search_results')
+                else:
+                    spectral_search_results = hdf_handle.get('spectral_search_results')
+                # Create group for each search result by ms2_scan / precursor_mz
+                for k, v in self.mass_spectra.spectral_search_results.items():
+                    spectral_search_results.create_group(str(k))
+                    for k2, v2 in v.items():
+                        spectral_search_results[str(k)].create_group(str(k2))
+                        spectral_search_results[str(k)][str(k2)].attrs['precursor_mz'] = v2.precursor_mz
+                        spectral_search_results[str(k)][str(k2)].attrs['ms2_spectrum_id'] = v2.ms2_spectrum_id
+                        # Loop through each of the attributes and add them as datasets (if array)
+                        for k3, v3 in v2.__dict__.items():
+                            if v3 is not None and k3 not in ["ms2_spectrum", 'precursor_mz', 'ms2_spectrum_id']:
+                                if k3 == "query_frags" or k3 == "lib_frags":
+                                    v3 = [", ".join(x) for x in v3]
+                                array = np.array(v3)                    
+                                if array.dtype.str[0:2] == '<U':
+                                    array = array.astype('S')
+                                spectral_search_results[str(k)][str(k2)].create_dataset(str(k3), data=array)
+                
+        # Save parameters as separate json
+        if save_parameters:
+            # Check if parameter_format is valid
+            if parameter_format not in ['json', 'toml']:
+                raise ValueError("parameter_format must be 'json' or 'toml'")
+
+            if parameter_format == 'json':
+                dump_lcms_settings_json(
+                    filename=self.output_file.with_suffix('.json'), 
+                    lcms_obj=self.mass_spectra
+                    )
+            elif parameter_format == 'toml':
+                dump_lcms_settings_toml(
+                    filename=self.output_file.with_suffix('.toml'), 
+                    lcms_obj=self.mass_spectra
+                    )

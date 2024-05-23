@@ -1,8 +1,8 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 24, 2019"
 
-from IsoSpecPy import IsoSpecPy
-from numpy import isnan, power, exp, nextafter
+
+from numpy import isnan, power, exp, nextafter, array
 from pandas import DataFrame
 from scipy.stats import pearsonr, spearmanr, kendalltau
 
@@ -10,6 +10,19 @@ from corems.encapsulation.constant import Atoms
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.factory.parameters import MSParameters
 from corems.molecular_id.calc.SpectralSimilarity import SpectralSimilarity
+
+# this is to handle both versions of IsoSpecPy, 2.0.2 and 2.2.2
+# TODO in a future release remove support for legacy isospecpy
+from packaging import version
+import IsoSpecPy
+isospec_version = IsoSpecPy.__version__
+if version.parse(isospec_version) > version.parse('2.0.2'): 
+    legacy_isospec = False
+else: legacy_isospec = True
+if legacy_isospec:
+    from IsoSpecPy import IsoSpecPy
+    print(f"IsoSpecPy version {isospec_version} is installed, and support is deprecated. Please update to 2.2.2")
+
 
 class MolecularFormulaCalc:
     """Class of calculations related to molecular formula
@@ -645,15 +658,31 @@ class MolecularFormulaCalc:
                 atoms_count.append(formula_dict.get(atom_label))
                 masses_list_tuples.append(masses)
                 props_list_tuples.append(props)
-        
-        iso = IsoSpecPy.IsoSpec(atoms_count,masses_list_tuples,props_list_tuples, cut_off_to_IsoSpeccPy)
-        
-        conf = iso.getConfs()
-        masses = conf[0]
-        probs = exp(conf[1])
-        molecular_formulas = conf[2]
-        #print('conf', conf)
-        #print('probs', conf[1])
+        if legacy_isospec:
+            iso = IsoSpecPy.IsoSpec(atoms_count,masses_list_tuples,props_list_tuples, cut_off_to_IsoSpeccPy)
+            conf = iso.getConfs()
+            masses = conf[0]
+            probs = exp(conf[1])
+            molecular_formulas = conf[2]
+            #print('conf', conf)
+            #print('probs', conf[1])
+        else:
+            # This syntax in IsoSpecPy 2.2.2 yields the same information as the legacy approach
+            iso = IsoSpecPy.IsoTotalProb(atomCounts = atoms_count, isotopeMasses = masses_list_tuples, 
+                           isotopeProbabilities = props_list_tuples, prob_to_cover =cut_off_to_IsoSpeccPy, get_confs=True)
+            masses = list(iso.masses)
+            probs = array(list(iso.probs))
+            confs = list(iso.confs)
+
+            molecular_formulas = []
+            for x in confs:
+                tmplist = []
+                for y in x:
+                    tmplist.extend(list(y))
+                molecular_formulas.append(tmplist)
+
+
+
         
         new_formulas = []
         

@@ -119,6 +119,12 @@ class Transient(TransientCalculations):
 
         self._exc_low_freq = d_params.get("exc_low_freq")
 
+        self._qpd_enabled = d_params.get("qpd_enabled") #Quadrupolar detection enabled
+
+        self._mw_low = d_params.get("mw_low") # low mass for detection
+
+        self._mw_high = d_params.get("mw_high") # high mass for detection
+
         self.bandwidth = d_params.get("bandwidth")
 
         self.number_data_points = d_params.get("number_data_points")

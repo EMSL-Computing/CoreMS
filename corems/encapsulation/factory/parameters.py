@@ -100,6 +100,12 @@ def default_parameters(file_location):  # pragma: no cover
 
     parameters["exc_low_freq"] = 0
 
+    parameters["mw_low"] = 0
+        
+    parameters["mw_high"] = 0
+
+    parameters["qpd_enabled"] = 0
+
     parameters["bandwidth"] = 0
 
     parameters['analyzer'] = 'Unknown'

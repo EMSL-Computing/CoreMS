@@ -37,7 +37,7 @@ def test_create_mass_spectrum():
    
     print('ok2')
     MassSpectrumSetting.noise_threshold_method = 'signal_noise'
-    MassSpectrumSetting.s2n_threshold = 10
+    MassSpectrumSetting.noise_threshold_min_s2n = 15
     mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
     print('ok3')
     MassSpectrumSetting.noise_threshold_method = 'relative_abundance'
@@ -46,7 +46,7 @@ def test_create_mass_spectrum():
     print('ok4')
     
     MassSpectrumSetting.noise_threshold_method = 'log'
-    MassSpectrumSetting.noise_threshold_log_nsigma = 18
+    MassSpectrumSetting.noise_threshold_log_nsigma = 20
     mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
     
     mass_spectrum_obj.freq_exp
