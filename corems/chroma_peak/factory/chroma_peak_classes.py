@@ -109,7 +109,7 @@ class LCMSMassFeature(ChromaPeakBase):
     lcms_parent : LCMS
         The parent LCMSBase object.
     mz : float
-        The mass to charge ratio of the feature.
+        The observed mass to charge ratio of the feature.
     retention_time : float
         The retention time of the feature (in minutes), at the apex.
     intensity : float
@@ -121,18 +121,22 @@ class LCMSMassFeature(ChromaPeakBase):
 
     Attributes
     --------
-    mz : float
-        The mass to charge ratio of the feature.
-    retention_time : float
+    _mz_exp : float
+        The observed mass to charge ratio of the feature.
+    _mz_cal : float
+        The calibrated mass to charge ratio of the feature.
+    _retention_time : float
         The retention time of the feature (in minutes), at the apex.
-    apex_scan : int
+    _apex_scan : int
         The scan number of the apex of the feature.
-    intensity : float
+    _intensity : float
         The intensity of the feature.
-    persistence : float
+    _persistence : float
         The persistence of the feature.
     _eic_data : EIC_Data
         The EIC data object associated with the feature.
+    is_calibrated : bool
+        If True, the feature has been calibrated. Default is False.
     monoisotopic_mf_id : int
         Mass feature id that is the monoisotopic version of self.
         If self.id, then self is the monoisotopic feature). Default is None.
@@ -172,7 +176,8 @@ class LCMSMassFeature(ChromaPeakBase):
             final_index=None,
         )
         # Core attributes, marked as private
-        self._mz: float = mz
+        self._mz_exp: float = mz
+        self._mz_cal: float = None
         self._retention_time: float = retention_time
         self._apex_scan: int = apex_scan
         self._intensity: float = intensity
@@ -211,7 +216,7 @@ class LCMSMassFeature(ChromaPeakBase):
         # calculate the difference between the new and old m/z, only update if it is close
         mz_diff = new_mz - self.mz
         if abs(mz_diff) < 0.01:
-            self.mz = new_mz
+            self._mz_exp = new_mz
 
     def plot(self, to_plot=["EIC", "MS1", "MS2"], return_fig=True, verbose=False):
         """Plot the mass feature.
@@ -357,16 +362,11 @@ class LCMSMassFeature(ChromaPeakBase):
     @property
     def mz(self):
         """Mass to charge ratio of the mass feature"""
-        return self._mz
-
-    @mz.setter
-    def mz(self, value):
-        """Set the mass to charge ratio of the mass feature"""
-        if not isinstance(value, float):
-            raise ValueError(
-                "The mass to charge ratio of the mass feature must be a float"
-            )
-        self._mz = value
+        # If the mass feature has been calibrated, return the calibrated m/z, otherwise return the measured m/z
+        if self._mz_cal is not None:
+            return self._mz_cal
+        else:
+            return self._mz_exp
 
     @property
     def retention_time(self):

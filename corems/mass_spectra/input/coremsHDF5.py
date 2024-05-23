@@ -248,7 +248,7 @@ class ReadCoreMSHDFMassSpectra(
             # Instantiate the MassFeature object
             mass_feature = LCMSMassFeature(
                 mass_spectra,
-                mz=dict_group_load[k].attrs["_mz"],
+                mz=dict_group_load[k].attrs["_mz_exp"],
                 retention_time=dict_group_load[k].attrs["_retention_time"],
                 intensity=dict_group_load[k].attrs["_intensity"],
                 apex_scan=dict_group_load[k].attrs["_apex_scan"],
@@ -258,7 +258,8 @@ class ReadCoreMSHDFMassSpectra(
 
             # Populate additional attributes on the MassFeature object
             for key in dict_group_load[k].attrs.keys() - {
-                "_mz",
+                "_mz_exp",
+                "_mz_cal",
                 "_retention_time",
                 "_intensity",
                 "_apex_scan",

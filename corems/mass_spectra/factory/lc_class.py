@@ -655,7 +655,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations):
 
         cols_in_df = [
             "id",
-            "_mz",
+            #"_mz",
             "_apex_scan",
             "_retention_time",
             "_intensity",
@@ -676,8 +676,10 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations):
             if len(self.mass_features[mf_id].ms2_scan_numbers) > 0:
                 # Add MS2 spectra info
                 best_ms2_spectra = self.mass_features[mf_id].best_ms2
-                dict_mf["ms2_spectra"] = mass_spectrum_to_string(best_ms2_spectra)
-            df_mf_list.append(pd.DataFrame(dict_mf, index=[mf_id]))
+                dict_mf['ms2_spectra'] = mass_spectrum_to_string(best_ms2_spectra)
+            df_mf_single = pd.DataFrame(dict_mf, index=[mf_id])
+            df_mf_single['mz'] = self.mass_features[mf_id].mz          
+            df_mf_list.append(df_mf_single)
         df_mf = pd.concat(df_mf_list)
 
         # rename _area to area and id to mf_id
@@ -685,7 +687,6 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations):
             columns={
                 "_area": "area",
                 "id": "mf_id",
-                "_mz": "mz",
                 "_apex_scan": "apex_scan",
                 "_retention_time": "scan_time",
                 "_intensity": "intensity",
