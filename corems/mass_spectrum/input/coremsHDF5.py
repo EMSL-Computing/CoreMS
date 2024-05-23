@@ -52,8 +52,6 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
         self.scans = list(self.h5pydata.keys())
 
-        print(self.scans)
-
     def load_raw_data(self, mass_spectrum, scan_index=0):
         """
         Load raw data into the mass spectrum object.
@@ -82,7 +80,7 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         time_index=-1,
         auto_process=True,
         load_settings=True,
-        load_raw=True,
+        load_raw=True
     ):
         """
         Get a mass spectrum object.
@@ -105,8 +103,11 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         MassSpecCentroid
             The mass spectrum object.
         """
-
-        dataframe = self.get_dataframe(scan_number, time_index=time_index)
+        if "mass_spectra" in self.scans[0]:
+            scan_index = self.scans.index("mass_spectra/" + str(scan_number))
+        else:
+            scan_index = self.scans.index(str(scan_number))
+        dataframe = self.get_dataframe(scan_index, time_index=time_index)
 
         if not set(
             ["H/C", "O/C", "Heteroatom Class", "Ion Type", "Is Isotopologue"]
@@ -119,19 +120,22 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
         polarity = dataframe["Ion Charge"].values[0]
 
-        output_parameters = self.get_output_parameters(polarity, scan_index=scan_number)
+        output_parameters = self.get_output_parameters(polarity, scan_index=scan_index)
 
         mass_spec_obj = MassSpecCentroid(
-            dataframe.to_dict(orient="list"), output_parameters
+            dataframe.to_dict(orient="list"), output_parameters, auto_process = False
         )
 
         if load_settings:
             self.load_settings(
-                mass_spec_obj, scan_index=scan_number, time_index=time_index
+                mass_spec_obj, scan_index=scan_index, time_index=time_index
             )
 
+        if auto_process:
+            mass_spec_obj.process_mass_spec()
+
         if load_raw:
-            self.load_raw_data(mass_spec_obj, scan_index=scan_number)
+            self.load_raw_data(mass_spec_obj, scan_index=scan_index)
 
         self.add_molecular_formula(mass_spec_obj, dataframe)
 
@@ -282,7 +286,7 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         If an attribute string is provided, only the corresponding attribute value is returned.
         If no attribute string is provided, all attribute data in the group is returned as a dictionary.
         """
-
+        # Get index of self.scans where scan_index_str is found
         scan_label = self.scans[scan_index]
 
         index_to_pull = self.get_time_index_to_pull(scan_label, time_index)
@@ -358,7 +362,6 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
         d_params = default_parameters(self.file_location)
         d_params["filename_path"] = self.file_location
-        d_params["scan_number"] = int(self.scans[scan_index])
         d_params['polarity'] = self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'polarity')
         d_params['rt'] =     self.get_raw_data_attr_data( scan_index, 'MassSpecAttrs', 'rt')
         

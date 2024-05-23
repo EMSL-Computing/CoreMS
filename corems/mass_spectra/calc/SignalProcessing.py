@@ -72,8 +72,8 @@ def peak_picking_first_derivative(domain, signal, max_height, max_prominence, ma
             index_start = index - 1
 
         # catch for ending position
-        if index == (len(dy) - 1):
-            index_end = index
+        if (index  + 1) >= dy.shape[0] :
+            index_end = index -1
         else:
             index_end = index + 1
 

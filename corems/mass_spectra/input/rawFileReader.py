@@ -1221,13 +1221,17 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
             self.instrument_label,
             self.sample_name,
             self)
-        for key in res:
-            key_int = int(key.replace('ms', ''))
-            res[key] = res[key][res[key].intensity > 0]
-            res[key] = res[key].sort_values(by=['scan', 'mz']).reset_index(drop=True)
-            lcms_obj._ms_unprocessed[key_int] = res[key]
+        if spectra != "none":
+            for key in res:
+                key_int = int(key.replace('ms', ''))
+                res[key] = res[key][res[key].intensity > 0]
+                res[key] = res[key].sort_values(by=['scan', 'mz']).reset_index(drop=True)
+                lcms_obj._ms_unprocessed[key_int] = res[key]
         lcms_obj.scan_df = scan_df.set_index('scan', drop = False)
-        lcms_obj.polarity = set(scan_df.polarity)
+        # Check if polarity is mixed
+        if len(set(scan_df.polarity)) > 1:
+            raise ValueError("Mixed polarities detected in scan data")
+        lcms_obj.polarity = scan_df.polarity[0]
         lcms_obj._scans_number_list = list(scan_df.scan)
         lcms_obj._retention_time_list = list(scan_df.scan_time)
         lcms_obj._tic_list = list(scan_df.tic)

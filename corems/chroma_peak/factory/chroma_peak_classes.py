@@ -110,11 +110,11 @@ class LCMSMassFeature(ChromaPeakBase):
         The parent LCMSBase object.
     mz : float
         The mass to charge ratio of the feature.
-    scan_time : float
+    retention_time : float
         The retention time of the feature (in minutes), at the apex.
     intensity : float
         The intensity of the feature.
-    scan_number : int
+    apex_scan : int
         The scan number of the apex of the feature.
     persistence : float, optional
         The persistence of the feature. Default is None.
@@ -123,9 +123,9 @@ class LCMSMassFeature(ChromaPeakBase):
     --------
     mz : float
         The mass to charge ratio of the feature.
-    scan_time : float
+    retention_time : float
         The retention time of the feature (in minutes), at the apex.
-    scan_number : int
+    apex_scan : int
         The scan number of the apex of the feature.
     intensity : float
         The intensity of the feature.
@@ -158,9 +158,9 @@ class LCMSMassFeature(ChromaPeakBase):
         self,
         lcms_parent,
         mz: float,
-        scan_time: float,
+        retention_time: float,
         intensity: float,
-        scan_number: int,
+        apex_scan: int,
         persistence: float = None,
         id: int = None,
     ):
@@ -168,15 +168,18 @@ class LCMSMassFeature(ChromaPeakBase):
             chromatogram_parent=lcms_parent,
             mass_spectrum_obj=None,
             start_index=None,
-            index=scan_number,
+            index=apex_scan,
             final_index=None,
         )
-        self.mz: float = mz
-        self.scan_time: float = scan_time
-        self.scan_number: int = scan_number
-        self.intensity: float = intensity
-        self.persistence: float = persistence
+        # Core attributes, marked as private
+        self._mz: float = mz
+        self._retention_time: float = retention_time
+        self._apex_scan: int = apex_scan
+        self._intensity: float = intensity
+        self._persistence: float = persistence
         self._eic_data: EIC_Data = None
+
+        # Additional attributes
         self.monoisotopic_mf_id = None
         self.isotopologue_type = None
         self.ms2_scan_numbers = []
@@ -251,7 +254,7 @@ class LCMSMassFeature(ChromaPeakBase):
             + ": m/z = "
             + str(round(self.mz, ndigits=4))
             + "; time = "
-            + str(round(self.scan_time, ndigits=1))
+            + str(round(self.retention_time, ndigits=1))
             + " minutes"
         )
 
@@ -278,9 +281,12 @@ class LCMSMassFeature(ChromaPeakBase):
             axs[i][0].set_xlabel("Time (minutes)")
             axs[i][0].set_ylim(0, self.eic_list.max() * 1.1)
             axs[i][0].set_xlim(
-                self.scan_time - eic_buffer_time, self.scan_time + eic_buffer_time
+                self.retention_time - eic_buffer_time,
+                self.retention_time + eic_buffer_time,
             )
-            axs[i][0].axvline(x=self.scan_time, color="k", label="MS1 scan time (apex)")
+            axs[i][0].axvline(
+                x=self.retention_time, color="k", label="MS1 scan time (apex)"
+            )
             if len(self.ms2_scan_numbers) > 0:
                 axs[i][0].axvline(
                     x=self.chromatogram_parent.get_time_of_scan_id(
@@ -335,7 +341,7 @@ class LCMSMassFeature(ChromaPeakBase):
             axs[i][0].yaxis.get_major_formatter().set_scientific(False)
             axs[i][0].yaxis.get_major_formatter().set_useOffset(False)
             if "MS1" in to_plot:
-                axs[i][0].set_xlim(axs[i - 1].get_xlim())
+                axs[i][0].set_xlim(axs[i - 1][0].get_xlim())
             else:
                 axs[i][0].set_xlim(0, max(self.best_ms2.mz_exp) * 1.1)
             axs[i][0].yaxis.set_tick_params(labelleft=False)
@@ -347,6 +353,68 @@ class LCMSMassFeature(ChromaPeakBase):
             # Close figure
             plt.close(fig)
             return fig
+
+    @property
+    def mz(self):
+        """Mass to charge ratio of the mass feature"""
+        return self._mz
+
+    @mz.setter
+    def mz(self, value):
+        """Set the mass to charge ratio of the mass feature"""
+        if not isinstance(value, float):
+            raise ValueError(
+                "The mass to charge ratio of the mass feature must be a float"
+            )
+        self._mz = value
+
+    @property
+    def retention_time(self):
+        """Retention time of the mass feature"""
+        return self._retention_time
+
+    @retention_time.setter
+    def retention_time(self, value):
+        """Set the retention time of the mass feature"""
+        if not isinstance(value, float):
+            raise ValueError("The retention time of the mass feature must be a float")
+        self._retention_time = value
+
+    @property
+    def apex_scan(self):
+        """Apex scan of the mass feature"""
+        return self._apex_scan
+
+    @apex_scan.setter
+    def apex_scan(self, value):
+        """Set the apex scan of the mass feature"""
+        if not isinstance(value, int):
+            raise ValueError("The apex scan of the mass feature must be an integer")
+        self._apex_scan = value
+
+    @property
+    def intensity(self):
+        """Intensity of the mass feature"""
+        return self._intensity
+
+    @intensity.setter
+    def intensity(self, value):
+        """Set the intensity of the mass feature"""
+        if not isinstance(value, float):
+            raise ValueError("The intensity of the mass feature must be a float")
+        self._intensity = value
+
+    @property
+    def persistence(self):
+        """Persistence of the mass feature"""
+        return self._persistence
+
+    @persistence.setter
+    def persistence(self, value):
+        """Set the persistence of the mass feature"""
+        if not isinstance(value, float):
+            raise ValueError("The persistence of the mass feature must be a float")
+        self._persistence = value
 
     @property
     def eic_rt_list(self):
@@ -428,7 +496,7 @@ class LCMSMassFeature(ChromaPeakBase):
                     time_diff_list.append(
                         np.abs(
                             self.chromatogram_parent.get_time_of_scan_id(scan)
-                            - self.scan_time
+                            - self.retention_time
                         )
                     )
                 else:

@@ -4,7 +4,7 @@ from ripser import ripser
 from scipy import sparse
 from scipy.spatial import KDTree
 
-from corems.chroma_peak.factory.ChromaPeakClasses import LCMSMassFeature
+from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
 from corems.mass_spectra.calc import SignalProcessing as sp
 from corems.mass_spectra.factory.LC_Temp import EIC_Data
 from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
@@ -196,9 +196,9 @@ class LCCalculations:
 
         if polarity is None:
             # set polarity to -1 if negative mode, 1 if positive mode (for mass spectrum creation)
-            if self.polarity == set(["negative"]):
+            if self.polarity == "negative":
                 polarity = -1
-            elif self.polarity == set(["positive"]):
+            elif self.polarity == "positive":
                 polarity = 1
             else:
                 raise ValueError(
@@ -639,7 +639,7 @@ class PHCalculations:
         new_data_w = data_w.rename(columns={"mz": "mz_orig", "mz_new": "mz"}).copy()
         new_data_w = (
             new_data_w.drop(columns=["mz_diff", "mz_orig"])
-            .groupby(["scan", "mz", "scan_time"])["intensity"]
+            .groupby(["scan", "mz"])["intensity"]
             .sum()
             .reset_index()
         )
@@ -749,7 +749,7 @@ class PHCalculations:
 
         # Threshold data
         dims = ["mz", "scan_time"]
-        threshold = self.parameters.lc_ms.ph_inten_min
+        threshold = self.parameters.lc_ms.ph_inten_min_rel * data.intensity.max()
         data_thres = data[data["intensity"] > threshold].reset_index(drop=True).copy()
 
         # Check if gridded, if not, grid
@@ -821,13 +821,17 @@ class PHCalculations:
         ).reset_index(drop=True)
 
         # Filter by persistence threshold
-        persistence_threshold = self.parameters.lc_ms.ph_persis_min
+        persistence_threshold = (
+            self.parameters.lc_ms.ph_persis_min_rel * data.intensity.max()
+        )
         mass_features = mass_features.loc[
             mass_features["persistence"] > persistence_threshold, :
         ].reset_index(drop=True)
 
-        # Rename scan column to scan_number
-        mass_features = mass_features.rename(columns={"scan": "scan_number"})
+        # Rename scan column to apex_scan
+        mass_features = mass_features.rename(
+            columns={"scan": "apex_scan", "scan_time": "retention_time"}
+        )
 
         # Populate mass_features attribute
         self.mass_features = {}
@@ -1178,7 +1182,6 @@ class PHCalculations:
 
         # Connect monoisotopic masses with isotopologes within mass_features
         monos = np.setdiff1d(np.unique(pairs_mf[:, 0]), np.unique(pairs_mf[:, 1]))
-        monos = np.setdiff1d(np.unique(pairs_mf[:, 0]), np.unique(pairs_mf[:, 1]))
         for mono in monos:
             self.mass_features[mono].monoisotopic_mf_id = mono
         pairs_iso_df = pd.DataFrame(pairs_mf, columns=["parent", "child"])
@@ -1190,9 +1193,9 @@ class PHCalculations:
                 parent = pairs_mf[pairs_mf[:, 1] == iso, 0]
                 if len(parent) > 1:
                     # Choose the parent that is closest in time to the isotopologue
-                    parent_time = [self.mass_features[p].scan_time for p in parent]
+                    parent_time = [self.mass_features[p].retention_time for p in parent]
                     time_diff = [
-                        np.abs(self.mass_features[iso].scan_time - x)
+                        np.abs(self.mass_features[iso].retention_time - x)
                         for x in parent_time
                     ]
                     parent = parent[np.argmin(time_diff)]

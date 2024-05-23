@@ -6,7 +6,7 @@ import numpy as np
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.factory.parameters import default_parameters
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecCentroidLowRes
-from corems.chroma_peak.factory.ChromaPeakClasses import GCPeakDeconvolved
+from corems.chroma_peak.factory.chroma_peak_classes import GCPeakDeconvolved
 from corems.mass_spectra.calc import SignalProcessing as sp
 
 class MassDeconvolution:

@@ -1466,9 +1466,7 @@ class MassSpecCentroid(MassSpecBase):
         l_s2n = list(data_dict.get(Labels.s2n))
         
         if not l_s2n: s2n = False
-        
-        print("Loading mass spectrum object")
-        
+                
         abun = array(data_dict.get(Labels.abundance)).astype(float)
         
         abundance_threshold, factor = self.get_threshold(abun)
