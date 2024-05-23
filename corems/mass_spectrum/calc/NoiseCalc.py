@@ -79,7 +79,7 @@ class NoiseThresholdCalc:
 
             elif self.settings.noise_threshold_method == 'signal_noise':
 
-                normalized_threshold = (self.max_abundance * self.settings.s2n_threshold )/self.max_signal_to_noise
+                normalized_threshold = (self.max_abundance * self.settings.noise_threshold_min_s2n )/self.max_signal_to_noise
                 y = (normalized_threshold, normalized_threshold)
             
             elif self.settings.noise_threshold_method == "relative_abundance":
@@ -115,7 +115,7 @@ class NoiseThresholdCalc:
 
                     max_sn = self.abundance_profile.max()/self.baseline_noise_std
 
-                    normalized_threshold = (self.abundance_profile.max() * self.settings.s2n_threshold )/max_sn
+                    normalized_threshold = (self.abundance_profile.max() * self.settings.noise_threshold_min_s2n )/max_sn
                     y = (normalized_threshold, normalized_threshold)
 
                 elif self.settings.noise_threshold_method == "relative_abundance":

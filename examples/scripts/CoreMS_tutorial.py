@@ -16,7 +16,7 @@ MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
 MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 1
 
 #MSParameters.mass_spectrum.noise_threshold_method = 'signal_noise'
-#MSParameters.mass_spectrum.s2n_threshold = 50
+#MSParameters.mass_spectrum.noise_threshold_min_s2n = 50
 
 #MSParameters.mass_spectrum.noise_threshold_method = 'log'
 #MSParameters.mass_spectrum.noise_threshold_min_std = 32
