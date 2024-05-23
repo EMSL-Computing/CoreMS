@@ -6,7 +6,7 @@ from pathlib import Path
 
 import shutil
 
-from corems.mass_spectra.input.coremsHDF5 import ReadCoreMSHDFMassSpectra
+from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
 from corems.mass_spectra.output.export import LCMSExport
 

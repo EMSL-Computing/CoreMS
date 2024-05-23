@@ -7,7 +7,10 @@ from threading import Thread
 import pandas as pd
 
 from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
-from corems.encapsulation.input.parameter_from_json import load_and_set_json_parameters_lcms, load_and_set_toml_parameters_lcms
+from corems.encapsulation.input.parameter_from_json import (
+    load_and_set_json_parameters_lcms,
+    load_and_set_toml_parameters_lcms,
+)
 from corems.mass_spectra.factory.lc_class import LCMSBase, MassSpectraBase
 from corems.mass_spectra.factory.LC_Temp import EIC_Data
 from corems.mass_spectra.input.parserbase import SpectraParserInterface
@@ -317,7 +320,6 @@ class ReadCoreMSHDFMassSpectra(
             mz = mass_spectra.mass_features[idx].mz
             if mz in mass_spectra.eics.keys():
                 mass_spectra.mass_features[idx]._eic_data = mass_spectra.eics[mz]
-
 
     def get_mass_spectra_obj(self) -> MassSpectraBase:
         """
