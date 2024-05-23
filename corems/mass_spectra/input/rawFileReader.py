@@ -864,6 +864,8 @@ class ThermoBaseClass:
         mass_spec = MassSpecProfile(data_dict, d_params, auto_process=auto_process)
 
         return mass_spec
+
+
 class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterface):
     """A class for parsing Thermo RAW mass spectrometry data files and instatiating MassSpectraBase or LCMSBase objects
 
@@ -904,7 +906,14 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
 
     Inherits from ThermoBaseClass and SpectraParserInterface
     """
-    def __init__(self, file_location, analyzer="Unknown", instrument_label="Unknown", sample_name=None):
+
+    def __init__(
+        self,
+        file_location,
+        analyzer="Unknown",
+        instrument_label="Unknown",
+        sample_name=None,
+    ):
         super().__init__(file_location)
         if isinstance(file_location, str):
             # if obj is a string it defaults to create a Path obj, pass the S3Path if needed
@@ -924,7 +933,7 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
     def load(self):
         pass
 
-    def run(self, spectra="all", scan_df = None):
+    def run(self, spectra="all", scan_df=None):
         """
         Extracts mass spectra data from a raw file.
 
@@ -946,50 +955,68 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
         if scan_df is None:
             # This automatically brings in all the data
             self.chromatogram_settings.scans = (-1, -1)
-           
+
             # Get scan df info; starting with bulk ms1 and ms2 scans
-            ms1_tic_data, _ = self.get_tic(ms_type='MS', peak_detection=False, smooth=False)
+            ms1_tic_data, _ = self.get_tic(
+                ms_type="MS", peak_detection=False, smooth=False
+            )
             ms1_scan_dict = {
-                'scan': ms1_tic_data.scans,
-                'scan_time': ms1_tic_data.time,
-                'tic': ms1_tic_data.tic
+                "scan": ms1_tic_data.scans,
+                "scan_time": ms1_tic_data.time,
+                "tic": ms1_tic_data.tic,
             }
             ms1_tic_df = pd.DataFrame.from_dict(ms1_scan_dict)
-            ms1_tic_df['ms_level'] = 'ms1'
+            ms1_tic_df["ms_level"] = "ms1"
 
-            ms2_tic_data, _ = self.get_tic(ms_type='MS2', peak_detection=False, smooth=False)
+            ms2_tic_data, _ = self.get_tic(
+                ms_type="MS2", peak_detection=False, smooth=False
+            )
             ms2_scan_dict = {
-                'scan': ms2_tic_data.scans,
-                'scan_time': ms2_tic_data.time,
-                'tic': ms2_tic_data.tic
+                "scan": ms2_tic_data.scans,
+                "scan_time": ms2_tic_data.time,
+                "tic": ms2_tic_data.tic,
             }
             ms2_tic_df = pd.DataFrame.from_dict(ms2_scan_dict)
-            ms2_tic_df['ms_level'] = 'ms2'
+            ms2_tic_df["ms_level"] = "ms2"
 
-            scan_df = pd.concat([ms1_tic_df, ms2_tic_df], axis=0).sort_values(by='scan').reindex()
+            scan_df = (
+                pd.concat([ms1_tic_df, ms2_tic_df], axis=0)
+                .sort_values(by="scan")
+                .reindex()
+            )
 
             # get scan text
-            scan_filter_df = pd.DataFrame.from_dict(self.get_all_filters()[0], orient='index')
+            scan_filter_df = pd.DataFrame.from_dict(
+                self.get_all_filters()[0], orient="index"
+            )
             scan_filter_df.reset_index(inplace=True)
-            scan_filter_df.rename(columns={'index': 'scan', 0: 'scan_text'}, inplace=True)
+            scan_filter_df.rename(
+                columns={"index": "scan", 0: "scan_text"}, inplace=True
+            )
 
-            scan_df = scan_df.merge(scan_filter_df, on='scan', how='left')
-            scan_df['scan_window_lower'] = scan_df.scan_text.str.extract(r'\[(\d+\.\d+)-\d+\.\d+\]')
-            scan_df['scan_window_upper'] = scan_df.scan_text.str.extract(r'\[\d+\.\d+-(\d+\.\d+)\]')
-            scan_df['polarity'] = np.where(scan_df.scan_text.str.contains(" - "), "negative", "positive")
-            scan_df['precursor_mz'] = scan_df.scan_text.str.extract(r'(\d+\.\d+)@')
-            scan_df['precursor_mz'] = scan_df['precursor_mz'].astype(float)
-            scan_df['ms_level'] = scan_df['ms_level'].str.replace('ms', '').astype(int)
+            scan_df = scan_df.merge(scan_filter_df, on="scan", how="left")
+            scan_df["scan_window_lower"] = scan_df.scan_text.str.extract(
+                r"\[(\d+\.\d+)-\d+\.\d+\]"
+            )
+            scan_df["scan_window_upper"] = scan_df.scan_text.str.extract(
+                r"\[\d+\.\d+-(\d+\.\d+)\]"
+            )
+            scan_df["polarity"] = np.where(
+                scan_df.scan_text.str.contains(" - "), "negative", "positive"
+            )
+            scan_df["precursor_mz"] = scan_df.scan_text.str.extract(r"(\d+\.\d+)@")
+            scan_df["precursor_mz"] = scan_df["precursor_mz"].astype(float)
+            scan_df["ms_level"] = scan_df["ms_level"].str.replace("ms", "").astype(int)
 
             # Assign each scan as centroid or profile
-            scan_df['ms_format'] = None
+            scan_df["ms_format"] = None
             for i in scan_df.scan.to_list():
                 if self.iRawDataPlus.IsCentroidScanFromScanNumber(i):
-                    scan_df.loc[scan_df.scan == i, 'ms_format'] = 'centroid'
+                    scan_df.loc[scan_df.scan == i, "ms_format"] = "centroid"
                 else:
-                    scan_df.loc[scan_df.scan == i, 'ms_format'] = 'profile'
+                    scan_df.loc[scan_df.scan == i, "ms_format"] = "profile"
 
-        if spectra != "none": 
+        if spectra != "none":
             if spectra == "all":
                 scan_df_forspec = scan_df
             elif spectra == "ms1":
@@ -998,7 +1025,7 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
                 scan_df_forspec = scan_df[scan_df.ms_level == 2]
             else:
                 raise ValueError("spectra must be 'none', 'all', 'ms1', or 'ms2'")
-            
+
             # Result container
             res = {}
 
@@ -1008,15 +1035,19 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
             # Column name container
             cols = {}
 
-            # set at float32 
-            dtype=np.float32
+            # set at float32
+            dtype = np.float32
 
             # First pass: get nrows
             N = defaultdict(lambda: 0)
             for i in scan_df_forspec.scan.to_list():
-                level = scan_df_forspec.loc[scan_df_forspec.scan == i, 'ms_level'].values[0]
+                level = scan_df_forspec.loc[
+                    scan_df_forspec.scan == i, "ms_level"
+                ].values[0]
                 scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(i)
-                profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(i, scanStatistics)
+                profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(
+                    i, scanStatistics
+                )
                 abun = list(profileStream.Intensities)
                 abun = np.array(abun)[np.where(np.array(abun) > 0)[0]]
 
@@ -1025,7 +1056,9 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
             # Second pass: parse
             for i in scan_df_forspec.scan.to_list():
                 scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(i)
-                profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(i, scanStatistics)
+                profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(
+                    i, scanStatistics
+                )
                 abun = list(profileStream.Intensities)
                 mz = list(profileStream.Positions)
 
@@ -1036,8 +1069,10 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
                 abun = np.array(abun)[inx]
                 abun = np.float32(abun)
 
-                level = scan_df_forspec.loc[scan_df_forspec.scan == i, 'ms_level'].values[0]
-                
+                level = scan_df_forspec.loc[
+                    scan_df_forspec.scan == i, "ms_level"
+                ].values[0]
+
                 # Number of rows
                 n = len(mz)
 
@@ -1054,7 +1089,7 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
                 id_dict = i
 
                 # Columns
-                cols[level] = ['scan', 'mz', 'intensity'] 
+                cols[level] = ["scan", "mz", "intensity"]
                 m = len(cols[level])
 
                 # Subarray init
@@ -1073,30 +1108,31 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
                 arr[:, inx] = abun
                 inx += 1
 
-
                 # Initialize output container
                 if level not in res:
                     res[level] = np.empty((N[level], m), dtype=dtype)
                     counter[level] = 0
 
                 # Insert subarray
-                res[level][counter[level]:counter[level] + n, :] = arr
+                res[level][counter[level] : counter[level] + n, :] = arr
                 counter[level] += n
-            
+
             # Construct ms1 and ms2 mz dataframes
             for level in res.keys():
                 res[level] = pd.DataFrame(res[level])
                 res[level].columns = cols[level]
-            # rename keys in res to add 'ms' prefix 
+            # rename keys in res to add 'ms' prefix
             res = {f"ms{key}": value for key, value in res.items()}
         else:
             res = None
-        
+
         return res, scan_df
-    
-    def get_mass_spectrum_from_scan(self, scan_number, spectrum_mode, auto_process=True):
+
+    def get_mass_spectrum_from_scan(
+        self, scan_number, spectrum_mode, auto_process=True
+    ):
         """Instatiate a MassSpecBase object from a single scan number from the binary file, currently only supports profile mode.
-        
+
         Parameters
         ----------
         scan_number : int
@@ -1107,31 +1143,35 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
             The type of mass spectrum to extract.  Must be 'profile' or 'centroid'.
         auto_process : bool, optional
             If True, perform peak picking and noise threshold calculation after creating the mass spectrum object. Default is True.
-        
+
         Returns
         -------
         MassSpecProfile | MassSpecCentroid
-            The MassSpecProfile or MassSpecCentroid object containing the parsed mass spectrum. 
+            The MassSpecProfile or MassSpecCentroid object containing the parsed mass spectrum.
         """
 
-        if spectrum_mode == 'profile':
+        if spectrum_mode == "profile":
             scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan_number)
-            profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(scan_number, scanStatistics)
+            profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(
+                scan_number, scanStatistics
+            )
             abun = list(profileStream.Intensities)
             mz = list(profileStream.Positions)
             data_dict = {
-                    Labels.mz: mz,
-                    Labels.abundance: abun,
-                }
+                Labels.mz: mz,
+                Labels.abundance: abun,
+            }
             d_params = self.set_metadata(
-                firstScanNumber=scan_number, 
+                firstScanNumber=scan_number,
                 lastScanNumber=scan_number,
                 scans_list=False,
-                label=Labels.thermo_profile
-                )
-            mass_spectrum_obj = MassSpecProfile(data_dict, d_params, auto_process=auto_process)
+                label=Labels.thermo_profile,
+            )
+            mass_spectrum_obj = MassSpecProfile(
+                data_dict, d_params, auto_process=auto_process
+            )
 
-        elif spectrum_mode == 'centroid':
+        elif spectrum_mode == "centroid":
             centroid_scan = self.iRawDataPlus.GetCentroidStream(scan_number, False)
             if centroid_scan.Masses is not None:
                 mz = list(centroid_scan.Masses)
@@ -1143,32 +1183,38 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
                 array_noise_std = (np.array(noise) - np.array(baselines)) / 3
                 l_signal_to_noise = np.array(magnitude) / array_noise_std
                 data_dict = {
-                        Labels.mz: mz,
-                        Labels.abundance: abun,
-                        Labels.rp: rp,
-                        Labels.s2n: list(l_signal_to_noise),
-                    }
-            else: # For CID MS2, the centroid data are stored in the profile data location, they do not have any associated rp or baseline data, but they should be treated as centroid data
-                scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(scan_number)
-                profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(scan_number, scanStatistics)
+                    Labels.mz: mz,
+                    Labels.abundance: abun,
+                    Labels.rp: rp,
+                    Labels.s2n: list(l_signal_to_noise),
+                }
+            else:  # For CID MS2, the centroid data are stored in the profile data location, they do not have any associated rp or baseline data, but they should be treated as centroid data
+                scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(
+                    scan_number
+                )
+                profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(
+                    scan_number, scanStatistics
+                )
                 abun = list(profileStream.Intensities)
-                mz = list(profileStream.Positions) 
+                mz = list(profileStream.Positions)
                 data_dict = {
-                        Labels.mz: mz,
-                        Labels.abundance: abun,
-                        Labels.rp: [np.nan] * len(mz),
-                        Labels.s2n: [np.nan] * len(mz),
-                    }  
+                    Labels.mz: mz,
+                    Labels.abundance: abun,
+                    Labels.rp: [np.nan] * len(mz),
+                    Labels.s2n: [np.nan] * len(mz),
+                }
             d_params = self.set_metadata(
-                    firstScanNumber=scan_number, 
-                    lastScanNumber=scan_number,
-                    scans_list=False,
-                    label=Labels.thermo_centroid
-                    )    
-            mass_spectrum_obj = MassSpecCentroid(data_dict, d_params, auto_process=auto_process)
- 
+                firstScanNumber=scan_number,
+                lastScanNumber=scan_number,
+                scans_list=False,
+                label=Labels.thermo_centroid,
+            )
+            mass_spectrum_obj = MassSpecCentroid(
+                data_dict, d_params, auto_process=auto_process
+            )
+
         return mass_spectrum_obj
-    
+
     def get_mass_spectra_obj(self, verbose=True):
         """Instatiate a MassSpectraBase object from the binary data file file.
 
@@ -1190,13 +1236,14 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
             self.analyzer,
             self.instrument_label,
             self.sample_name,
-            self)
-        scan_df = scan_df.set_index('scan', drop = False)
+            self,
+        )
+        scan_df = scan_df.set_index("scan", drop=False)
         mass_spectra_obj.scan_df = scan_df
 
         return mass_spectra_obj
-    
-    def get_lcms_obj(self, verbose = True, spectra = "all"):
+
+    def get_lcms_obj(self, verbose=True, spectra="all"):
         """Instatiates a LCMSBase object from the mzML file.
 
         Parameters
@@ -1213,21 +1260,26 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
         """
         if verbose:
             print("Parsing LCMS object from raw file")
-        _, scan_df = self.run(spectra = "none")                     # first run it to just get scan info
-        res, scan_df = self.run(scan_df = scan_df, spectra=spectra) # second run to parse data
+        _, scan_df = self.run(spectra="none")  # first run it to just get scan info
+        res, scan_df = self.run(
+            scan_df=scan_df, spectra=spectra
+        )  # second run to parse data
         lcms_obj = LCMSBase(
             self.file_location,
             self.analyzer,
             self.instrument_label,
             self.sample_name,
-            self)
+            self,
+        )
         if spectra != "none":
             for key in res:
-                key_int = int(key.replace('ms', ''))
+                key_int = int(key.replace("ms", ""))
                 res[key] = res[key][res[key].intensity > 0]
-                res[key] = res[key].sort_values(by=['scan', 'mz']).reset_index(drop=True)
+                res[key] = (
+                    res[key].sort_values(by=["scan", "mz"]).reset_index(drop=True)
+                )
                 lcms_obj._ms_unprocessed[key_int] = res[key]
-        lcms_obj.scan_df = scan_df.set_index('scan', drop = False)
+        lcms_obj.scan_df = scan_df.set_index("scan", drop=False)
         # Check if polarity is mixed
         if len(set(scan_df.polarity)) > 1:
             raise ValueError("Mixed polarities detected in scan data")
@@ -1237,7 +1289,7 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
         lcms_obj._tic_list = list(scan_df.tic)
 
         return lcms_obj
-        
+
     def get_icr_transient_times(self):
         """Return a list for transient time targets for all scans, or selected scans range
 
