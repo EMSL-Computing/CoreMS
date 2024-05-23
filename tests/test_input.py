@@ -17,7 +17,7 @@ from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
 from corems.mass_spectra.input.brukerSolarix import ReadBruker_SolarixTransientMassSpectra
 from corems.mass_spectra.input.massList import ReadCoremsMassSpectraText
 from corems.mass_spectrum.input.boosterHDF5 import ReadHDF_BoosterMassSpectrum
-from corems.mass_spectrum.input.corems_hdf5 import ReadCoreMSHDF_MassSpectrum
+from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
 from corems.mass_spectrum.input.massList import ReadCoremsMasslist, ReadMassList
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.encapsulation.factory.parameters import MSParameters
