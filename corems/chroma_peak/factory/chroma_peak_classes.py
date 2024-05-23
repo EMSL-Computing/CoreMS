@@ -109,7 +109,7 @@ class LCMSMassFeature(ChromaPeakBase):
     lcms_parent : LCMS
         The parent LCMSBase object.
     mz : float
-        The mass to charge ratio of the feature.
+        The observed mass to charge ratio of the feature.
     retention_time : float
         The retention time of the feature (in minutes), at the apex.
     intensity : float
@@ -122,7 +122,7 @@ class LCMSMassFeature(ChromaPeakBase):
     Attributes
     --------
     _mz_exp : float
-        The measured mass to charge ratio of the feature.
+        The observed mass to charge ratio of the feature.
     _mz_cal : float
         The calibrated mass to charge ratio of the feature.
     _retention_time : float
