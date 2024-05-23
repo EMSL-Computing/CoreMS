@@ -34,7 +34,7 @@ MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
 MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 1
 
 MSParameters.mass_spectrum.noise_threshold_method = 'log'
-MSParameters.mass_spectrum.s2n_threshold = 10
+MSParameters.mass_spectrum.noise_threshold_min_s2n = 10
 
 #Parser for thermo RAW files. 
 parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
