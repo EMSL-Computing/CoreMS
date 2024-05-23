@@ -1,16 +1,18 @@
+from collections import defaultdict
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pymzml
-from collections import defaultdict
-from corems.mass_spectra.factory.lc_class import MassSpectraBase, LCMSBase
-from corems.mass_spectra.input.parserbase import SpectraParserInterface
+
 from corems.encapsulation.constant import Labels
-from corems.mass_spectrum.factory.MassSpectrumClasses import (
-    MassSpecProfile,
-    MassSpecCentroid,
-)
 from corems.encapsulation.factory.parameters import default_parameters
+from corems.mass_spectra.factory.lc_class import LCMSBase, MassSpectraBase
+from corems.mass_spectra.input.parserbase import SpectraParserInterface
+from corems.mass_spectrum.factory.MassSpectrumClasses import (
+    MassSpecCentroid,
+    MassSpecProfile,
+)
 
 
 class MZMLSpectraParser(SpectraParserInterface):
