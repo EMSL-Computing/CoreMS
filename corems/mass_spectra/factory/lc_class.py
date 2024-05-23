@@ -38,13 +38,13 @@ class MassSpectraBase:
     instrument_label : str
         The type of instrument used to generate the mass spectra data. Derived from the spectra parser.
     _scan_info : dict
-        A dictionary containing the scan data with columns for scan number, scan time, ms level, precursor m/z, 
-        scan text, and scan window (lower and upper). 
+        A dictionary containing the scan data with columns for scan number, scan time, ms level, precursor m/z,
+        scan text, and scan window (lower and upper).
         Associated with the property scan_df, which returns a pandas DataFrame or can set this attribute from a pandas DataFrame.
     _ms : dict
         A dictionary containing mass spectra for the dataset, keys of dictionary are scan numbers. Initialized as an empty dictionary.
     _ms_unprocessed: dictionary of pandas.DataFrames or None
-        A dictionary of unprocssed mass spectra data, as an (optional) intermediate data product for peak picking.  
+        A dictionary of unprocssed mass spectra data, as an (optional) intermediate data product for peak picking.
         Key is ms_level, and value is dataframe with columns for scan number, m/z, and intensity. Default is None.
 
     Methods
@@ -148,12 +148,12 @@ class MassSpectraBase:
         scan_list : list of ints
             List of scans to use to populate _ms slot
         spectrum_mode : str or None
-            The spectrum mode to use for the mass spectra.  
-            If None, method will use the spectrum mode from the spectra parser to ascertain the spectrum mode (this allows for mixed types).  
+            The spectrum mode to use for the mass spectra.
+            If None, method will use the spectrum mode from the spectra parser to ascertain the spectrum mode (this allows for mixed types).
             Defaults to None.
         ms_level : int, optional
-            The MS level to use for the mass spectra.  
-            This is used to pass the molecular_search parameters from the LCMS object to the individual MassSpectrum objects. 
+            The MS level to use for the mass spectra.
+            This is used to pass the molecular_search parameters from the LCMS object to the individual MassSpectrum objects.
             Defaults to 1.
         using_parser : bool
             Whether to use the mass spectra parser to get the mass spectra.  Defaults to True.
@@ -307,7 +307,7 @@ class MassSpectraBase:
         Parameters
         -----------
         df : pandas.DataFrame
-            A pandas DataFrame containing the scan data with columns for scan number, scan time, ms level, 
+            A pandas DataFrame containing the scan data with columns for scan number, scan time, ms level,
             precursor m/z, scan text, and scan window (lower and upper).
         """
         self._scan_info = df.to_dict()
@@ -347,13 +347,13 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations):
     _tic_list : numpy.ndarray
         An array of total ion current (TIC) values for the dataset.
     eics : dict
-        A dictionary containing extracted ion chromatograms (EICs) for the dataset. 
+        A dictionary containing extracted ion chromatograms (EICs) for the dataset.
         Key is the mz of the EIC. Initialized as an empty dictionary.
     mass_features : dictionary of LCMSMassFeature objects
-        A dictionary containing mass features for the dataset. 
+        A dictionary containing mass features for the dataset.
         Key is mass feature ID. Initialized as an empty dictionary.
     spectral_search_results : dictionary of MS2SearchResults objects
-        A dictionary containing spectral search results for the dataset. 
+        A dictionary containing spectral search results for the dataset.
         Key is scan number : precursor mz. Initialized as an empty dictionary.
 
     Methods
@@ -361,10 +361,10 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations):
     * get_parameters_json(verbose=True).
         Returns the parameters used for the LC-MS analysis in JSON format.
     * add_associated_ms2_dda(add_to_lcmsobj=True, auto_process=True, use_parser=True)
-        Adds which MS2 scans are associated with each mass feature to the 
+        Adds which MS2 scans are associated with each mass feature to the
         mass_features dictionary and optionally adds the MS2 spectra to the _ms dictionary.
     * add_associated_ms1(add_to_lcmsobj=True, auto_process=True, use_parser=True)
-        Adds the MS1 spectra associated with each mass feature to the 
+        Adds the MS1 spectra associated with each mass feature to the
         mass_features dictionary and adds the MS1 spectra to the _ms dictionary.
     * mass_features_to_df()
         Returns a pandas dataframe summarizing the mass features in the dataset.
@@ -427,8 +427,8 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations):
         use_parser : bool, optional
             If True, envoke the spectra parser to get the MS2 spectra. Default is True.
         spectrum_mode : str or None, optional
-            The spectrum mode to use for the mass spectra.  If None, method will use the spectrum mode 
-            from the spectra parser to ascertain the spectrum mode (this allows for mixed types).  
+            The spectrum mode to use for the mass spectra.  If None, method will use the spectrum mode
+            from the spectra parser to ascertain the spectrum mode (this allows for mixed types).
             Defaults to None. (faster if defined, otherwise will check each scan)
 
         Raises
@@ -500,7 +500,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations):
             If True, envoke the spectra parser to get the MS1 spectra. Default is True.
         spectrum_mode : str or None, optional
             The spectrum mode to use for the mass spectra.  If None, method will use the spectrum mode
-            from the spectra parser to ascertain the spectrum mode (this allows for mixed types).  
+            from the spectra parser to ascertain the spectrum mode (this allows for mixed types).
             Defaults to None. (faster if defined, otherwise will check each scan)
 
         Raises
@@ -621,14 +621,14 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations):
     def mass_features_to_df(self):
         """Returns a pandas dataframe summarizing the mass features.
 
-        The dataframe contains the following columns: mf_id, mz, apex_scan, scan_time, intensity, 
+        The dataframe contains the following columns: mf_id, mz, apex_scan, scan_time, intensity,
         persistence, area, monoisotopic_mf_id, and isotopologue_type.  The index is set to mf_id (mass feature ID).
 
 
         Returns
         --------
         pandas.DataFrame
-            A pandas dataframe of mass features with the following columns: 
+            A pandas dataframe of mass features with the following columns:
             mf_id, mz, apex_scan, scan_time, intensity, persistence, area.
         """
 
@@ -748,7 +748,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations):
         Returns
         --------
         pandas.DataFrame
-            A pandas dataframe of MS1 annotations for the mass features in the dataset. 
+            A pandas dataframe of MS1 annotations for the mass features in the dataset.
             The index is set to mf_id (mass feature ID)
 
         Raises
