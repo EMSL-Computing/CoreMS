@@ -1,4 +1,6 @@
-env/
+cd-tests/
+BATS/
+env*/
 venv/ 
 test_env/ 
 venv310/
