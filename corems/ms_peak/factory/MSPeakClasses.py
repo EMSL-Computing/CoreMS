@@ -392,6 +392,10 @@ class _MSPeak(MSPeakCalculation):
 
         elif self._ms_parent.molecular_search_settings.score_method == "prob_score":
             return self.molecular_formula_highest_prob_score()
+        
+        elif self._ms_parent.molecular_search_settings.score_method == "all_candidates":
+            return self.molecular_formulas
+        
         else:
             raise TypeError(
                 "Unknown score method selected: % s, \

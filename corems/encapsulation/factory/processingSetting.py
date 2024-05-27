@@ -663,7 +663,7 @@ class MolecularFormulaSearchSettings:
         Tuple of score method that can be implemented. 
         Default is ('S_P_lowest_error', 'N_S_P_lowest_error', 'lowest_error', 'prob_score', 'air_filter_error', 'water_filter_error', 'earth_filter_error').
     score_method : str, optional
-        Score method to use. Default is 'prob_score'. Options are 'S_P_lowest_error', 'N_S_P_lowest_error', 'lowest_error', 'prob_score', 'air_filter_error', 'water_filter_error', 'earth_filter_error'.   
+        Score method to use. Default is 'prob_score'. Options are 'S_P_lowest_error', 'N_S_P_lowest_error', 'lowest_error', 'prob_score', 'air_filter_error', 'water_filter_error', 'earth_filter_error', 'all_candidates'.   
     output_min_score : float, optional
         Minimum score for output. Default is 0.1.
     output_score_method : str, optional
@@ -744,7 +744,7 @@ class MolecularFormulaSearchSettings:
     adduct_atoms_pos: tuple = ('Na', 'K')
 
     score_methods: tuple = ('S_P_lowest_error', 'N_S_P_lowest_error', 'lowest_error', 'prob_score',
-                            'air_filter_error', 'water_filter_error', 'earth_filter_error')
+                            'air_filter_error', 'water_filter_error', 'earth_filter_error', 'all_candidates')
 
     score_method: str = 'prob_score'
 

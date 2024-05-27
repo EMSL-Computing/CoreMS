@@ -590,18 +590,37 @@ class HighResMassSpecExport(Thread):
                 # print(ms_peak.mz_exp)
 
                 if ms_peak:
+                    
+                    if selected_score_method == 'all_candidates':
+                        
+                        formula_list = ms_peak.best_molecular_formula_candidate 
 
-                    m_formula = ms_peak.best_molecular_formula_candidate
+                        for m_formula in formula_list:
 
-                    if m_formula:
+                            if m_formula:
 
-                        if not m_formula.is_isotopologue:
+                                if not m_formula.is_isotopologue:
 
-                            add_match_dict_data(index, ms_peak, m_formula)
+                                    add_match_dict_data(index, ms_peak, m_formula)
 
-                            for iso_mspeak_index, iso_mf_formula in m_formula.mspeak_mf_isotopologues_indexes:
-                                iso_ms_peak = mass_spectrum[iso_mspeak_index]
-                                add_match_dict_data(iso_mspeak_index, iso_ms_peak, iso_mf_formula)
+                                    for iso_mspeak_index, iso_mf_formula, in m_formula.mspeak_mf_isotopologues_indexes:
+
+                                        iso_ms_peak = mass_spectrum[iso_mspeak_index]
+                                        add_match_dict_data(iso_mspeak_index, iso_ms_peak, iso_mf_formula)
+
+                    else:
+                        
+                        m_formula = ms_peak.best_molecular_formula_candidate
+
+                        if m_formula:
+
+                            if not m_formula.is_isotopologue:
+
+                                add_match_dict_data(index, ms_peak, m_formula)
+
+                                for iso_mspeak_index, iso_mf_formula in m_formula.mspeak_mf_isotopologues_indexes:
+                                    iso_ms_peak = mass_spectrum[iso_mspeak_index]
+                                    add_match_dict_data(iso_mspeak_index, iso_ms_peak, iso_mf_formula)
                 else:
 
                     if include_no_match and no_match_inline:
