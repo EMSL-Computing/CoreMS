@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 
 class SpectraParserInterface(ABC):
     """
-    Interface for parsing mass spectra data into MassSpectraBase objects. This is an abstract class and should not be instantiated directly.
+    Interface for parsing mass spectra data into MassSpectraBase objects.
 
     Methods
     -------
@@ -18,6 +18,10 @@ class SpectraParserInterface(ABC):
         Return MassSpectraBase object with several attributes populated
     * get_mass_spectrum_from_scan(scan_number).
         Return MassSpecBase data object from scan number.
+
+    Notes
+    -----
+    This is an abstract class and should not be instantiated directly.
     """
 
     @abstractmethod
