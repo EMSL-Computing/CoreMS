@@ -503,7 +503,7 @@ class ThermoBaseClass:
             # plt.show()
 
     def get_tic(
-        self, ms_type="MS !d", peak_detection=True, smooth=True, plot=False, ax=None
+        self, ms_type="MS !d", peak_detection=True, smooth=True, plot=False, ax=None,trace_type='TIC',
     ) -> Tuple[TIC_Data, axes.Axes]:
         """ms_type: str ('MS', MS2')
 
@@ -520,8 +520,12 @@ class ThermoBaseClass:
                 original thermo apex scan number after peak picking
             }
         """
-
-        settings = ChromatogramTraceSettings(TraceType.TIC)
+        if trace_type == 'TIC':
+            settings = ChromatogramTraceSettings(TraceType.TIC)
+        elif trace_type == 'BPC':
+            settings = ChromatogramTraceSettings(TraceType.BasePeak)
+        else:
+            print(f'{trace_type} undefined')
         settings.Filter = ms_type
 
         chroma_settings = IChromatogramSettings(settings)
