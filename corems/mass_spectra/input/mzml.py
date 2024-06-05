@@ -42,7 +42,7 @@ class MZMLSpectraParser(SpectraParserInterface):
 
     Methods
     -------
-    * load()
+    * load().
         Load mzML file using pymzml.run.Reader and return the data as a numpy array.
     * run(spectra=True).
         Parses the mzml file and returns a dictionary of mass spectra dataframes and a scan metadata dataframe.
@@ -91,12 +91,13 @@ class MZMLSpectraParser(SpectraParserInterface):
         return data
 
     def run(self, spectra="all", scan_df=None):
-        """Parse the mzML file and return a dictionary of mass spectra dataframes and a scan metadata dataframe.
+        """Parse the mzML file and return a dictionary of spectra dataframes and a scan metadata dataframe.
 
         Parameters
         ----------
         spectra : str, optional
-            Which mass spectra data to include in the output. Default is all.  Other options: none, ms1, ms2.
+            Which mass spectra data to include in the output. Default is "all".
+            Other options: None, "ms1", "ms2".
         scan_df : pandas.DataFrame, optional
             Scan dataframe.  If not provided, the scan dataframe is created from the mzML file.
 
@@ -372,12 +373,14 @@ class MZMLSpectraParser(SpectraParserInterface):
         Parameters
         ----------
         verbose : bool, optional
-            If True, print a message indicating that the MassSpectra object is being parsed from the mzML file, by default True.
+            If True, print a message indicating that the MassSpectra object is being parsed,
+            by default True.
 
         Returns
         -------
         MassSpectraBase
-            The MassSpectra object containing the parsed mass spectra.  The object is instatiated with the mzML file, analyzer, instrument, sample name, and scan dataframe.
+            The MassSpectra object containing the parsed mass spectra.  
+            The object is instatiated with the mzML file, analyzer, instrument, sample name, and scan dataframe.
         """
         if verbose:
             print("Parsing MassSpectra object from mzML file")
@@ -407,7 +410,9 @@ class MZMLSpectraParser(SpectraParserInterface):
         Returns
         -------
         LCMSBase
-            LCMS object containing mass spectra data. The object is instatiated with the mzML file, analyzer, instrument, sample name, scan dataframe, and mz dataframe(s), as well as lists of scan numbers, retention times, and TICs.
+            LCMS object containing mass spectra data. 
+            The object is instatiated with the mzML file, analyzer, instrument, sample name, scan dataframe, 
+            and mz dataframe(s), as well as lists of scan numbers, retention times, and TICs.
         """
         if verbose:
             print("Parsing LCMS object from mzML file")

@@ -11,7 +11,6 @@ from pathlib import Path
 
 import h5py
 import numpy as np
-from numpy import concatenate
 from openpyxl import load_workbook
 from pandas import DataFrame, ExcelWriter, read_excel
 
@@ -754,7 +753,8 @@ class LowResGCMSExport:
 class HighResMassSpectraExport(HighResMassSpecExport):
     """A class to export high resolution mass spectra data.
 
-    This class provides methods to export high resolution mass spectra data to various formats such as Excel, CSV, HDF5, and Pandas DataFrame.
+    This class provides methods to export high resolution mass spectra data to various formats
+    such as Excel, CSV, HDF5, and Pandas DataFrame.
 
     Parameters
     ----------
@@ -770,7 +770,9 @@ class HighResMassSpectraExport(HighResMassSpecExport):
     output_file : Path
         The output file path without suffix
     dir_loc : Path
-        The directory location for the output file, by default this will be the output_file + ".corems" and all output files will be written into this location
+        The directory location for the output file,
+        by default this will be the output_file + ".corems" and all output files will be
+        written into this location
     mass_spectra : MassSpectraBase
         The high resolution mass spectra object.
     """
@@ -905,7 +907,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
                     self.dir_loc / out_filename.with_suffix(""), mass_spectrum
                 )
 
-    def get_mass_spectra_attrs(self, mass_spectra):
+    def get_mass_spectra_attrs(self):
         """Get the mass spectra attributes as a JSON string.
 
         Parameters:
@@ -967,7 +969,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
                         str(int(mass_spectrum.scan_number))
                     )
                     if list(mass_spectrum.abundance_profile):
-                        mz_abun_array = concatenate(
+                        mz_abun_array = np.concatenate(
                             (
                                 mass_spectrum.abundance_profile,
                                 mass_spectrum.mz_exp_profile,

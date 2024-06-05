@@ -6,6 +6,7 @@ IsoSpecPy~=2.2.2
 lmfit~=1.1.0
 lxml~=4.9.3
 matplotlib~=3.7.0
+ms-entropy~=1.1.2
 netCDF4~=1.6.3
 numpy~=1.24.2
 openpyxl~=3.1.1
@@ -14,6 +15,7 @@ psutil~=5.9.4
 PySide2~=5.15.2.1
 pyswarm~=0.6
 pythonnet~=3.0.1
+requests~=2.31.0
 ripser==0.6.4
 s3path~=0.4.1
 scikit_learn~=1.2.2

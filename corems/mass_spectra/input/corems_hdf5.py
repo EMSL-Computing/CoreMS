@@ -42,18 +42,38 @@ class ReadCoreMSHDFMassSpectra(
 
     Methods
     -------
-    * import_mass_spectra(mass_spectra). Imports all mass spectra from the HDF5 file onto the LCMS or MassSpectraBase object.
-    * get_mass_spectrum_from_scan(scan_number). Return mass spectrum data object from scan number.
-    * load(). Placeholder method to meet the requirements of the SpectraParserInterface.
-    * run(mass_spectra). Runs the importer functions to populate a LCMS or MassSpectraBase object.
-    * import_scan_info(mass_spectra). Imports the scan info from the HDF5 file to populate the _scan_info attribute on the LCMS or MassSpectraBase object
-    * import_ms_unprocessed(mass_spectra). Imports the unprocessed mass spectra from the HDF5 file to populate the _ms_unprocessed attribute on the LCMS or MassSpectraBase object
-    * import_parameters(mass_spectra). Imports the parameters from the HDF5 file to populate the parameters attribute on the LCMS or MassSpectraBase object
-    * import_mass_features(mass_spectra). Imports the mass features from the HDF5 file to populate the mass_features attribute on the LCMS or MassSpectraBase object
-    * import_eics(mass_spectra). Imports the extracted ion chromatograms from the HDF5 file to populate the eics attribute on the LCMS or MassSpectraBase object
-    * import_spectral_search_results(mass_spectra). Imports the spectral search results from the HDF5 file to populate the spectral_search_results attribute on the LCMS or MassSpectraBase object
-    * get_mass_spectra_obj(). Return mass spectra data object, populating the _ms list on the LCMS or MassSpectraBase object from the HDF5 file
-    * get_lcms_obj(). Return LCMSBase object, populating the majority of the attributes on the LCMS object from the HDF5 file
+    * import_mass_spectra(mass_spectra).
+        Imports all mass spectra from the HDF5 file onto the LCMS or MassSpectraBase object.
+    * get_mass_spectrum_from_scan(scan_number).
+        Return mass spectrum data object from scan number.
+    * load().
+        Placeholder method to meet the requirements of the SpectraParserInterface.
+    * run(mass_spectra).
+        Runs the importer functions to populate a LCMS or MassSpectraBase object.
+    * import_scan_info(mass_spectra).
+        Imports the scan info from the HDF5 file to populate the _scan_info attribute
+        on the LCMS or MassSpectraBase object
+    * import_ms_unprocessed(mass_spectra).
+        Imports the unprocessed mass spectra from the HDF5 file to populate the
+        _ms_unprocessed attribute on the LCMS or MassSpectraBase object
+    * import_parameters(mass_spectra).
+        Imports the parameters from the HDF5 file to populate the parameters
+        attribute on the LCMS or MassSpectraBase object
+    * import_mass_features(mass_spectra).
+        Imports the mass features from the HDF5 file to populate the mass_features
+        attribute on the LCMS or MassSpectraBase object
+    * import_eics(mass_spectra).
+        Imports the extracted ion chromatograms from the HDF5 file to populate the
+        eics attribute on the LCMS or MassSpectraBase object
+    * import_spectral_search_results(mass_spectra).
+        Imports the spectral search results from the HDF5 file to populate the
+        spectral_search_results attribute on the LCMS or MassSpectraBase object
+    * get_mass_spectra_obj().
+        Return mass spectra data object, populating the _ms list on the LCMS or
+        MassSpectraBase object from the HDF5 file
+    * get_lcms_obj().
+        Return LCMSBase object, populating the majority of the attributes on the
+        LCMS object from the HDF5 file
 
     """
 
@@ -101,7 +121,7 @@ class ReadCoreMSHDFMassSpectra(
 
         Notes
         -----
-        The following functions are run in this order, checking if the HDF5 file contains the necessary data:
+        The following functions are run in order, if the HDF5 file contains the necessary data:
         1. import_parameters(), which populates the parameters attribute on the LCMS or MassSpectraBase object.
         2. import_mass_spectra(), which populates the _ms list on the LCMS or MassSpectraBase object.
         3. import_scan_info(), which populates the _scan_info on the LCMS or MassSpectraBase object.
@@ -154,7 +174,8 @@ class ReadCoreMSHDFMassSpectra(
 
         Returns
         -------
-        None, but populates the '_ms' list on the LCMS or MassSpectraBase object with mass spectra from the HDF5 file.
+        None, but populates the '_ms' list on the LCMSBase or MassSpectraBase 
+        object with mass spectra from the HDF5 file.
         """
         for scan_number in self.scan_number_list:
             mass_spec = self.get_mass_spectrum(scan_number)
@@ -171,7 +192,8 @@ class ReadCoreMSHDFMassSpectra(
 
         Returns
         -------
-        None, but populates the 'scan_df' attribute on the LCMS or MassSpectraBase object with a pandas DataFrame of the 'scan_info' from the HDF5 file.
+        None, but populates the 'scan_df' attribute on the LCMSBase or MassSpectraBase 
+        object with a pandas DataFrame of the 'scan_info' from the HDF5 file.
 
         """
         scan_info = {}
@@ -197,7 +219,8 @@ class ReadCoreMSHDFMassSpectra(
 
         Returns
         -------
-        None, but populates the '_ms_unprocessed' attribute on the LCMS or MassSpectraBase object with a dictionary of the 'ms_unprocessed' from the HDF5 file.
+        None, but populates the '_ms_unprocessed' attribute on the LCMSBase or MassSpectraBase 
+        object with a dictionary of the 'ms_unprocessed' from the HDF5 file.
 
         """
         ms_unprocessed = {}
@@ -220,7 +243,8 @@ class ReadCoreMSHDFMassSpectra(
 
         Returns
         -------
-        None, but populates the 'parameters' attribute on the LCMS or MassSpectraBase object with a dictionary of the 'parameters' from the HDF5 file.
+        None, but populates the 'parameters' attribute on the LCMS or MassSpectraBase 
+        object with a dictionary of the 'parameters' from the HDF5 file.
 
         """
         if ".json" == self.parameters_location.suffix:
@@ -242,7 +266,8 @@ class ReadCoreMSHDFMassSpectra(
 
         Returns
         -------
-        None, but populates the 'mass_features' attribute on the LCMS or MassSpectraBase object with a dictionary of the 'mass_features' from the HDF5 file.
+        None, but populates the 'mass_features' attribute on the LCMSBase or MassSpectraBase 
+        object with a dictionary of the 'mass_features' from the HDF5 file.
 
         """
         dict_group_load = self.h5pydata["mass_features"]
@@ -299,7 +324,8 @@ class ReadCoreMSHDFMassSpectra(
 
         Returns
         -------
-        None, but populates the 'eics' attribute on the LCMS or MassSpectraBase object with a dictionary of the 'eics' from the HDF5 file.
+        None, but populates the 'eics' attribute on the LCMSBase or MassSpectraBase 
+        object with a dictionary of the 'eics' from the HDF5 file.
 
         """
         dict_group_load = self.h5pydata["eics"]
@@ -323,7 +349,7 @@ class ReadCoreMSHDFMassSpectra(
 
     def get_mass_spectra_obj(self) -> MassSpectraBase:
         """
-        Return mass spectra data object, populating the _ms list on the LCMS or MassSpectraBase object from the HDF5 file.
+        Return mass spectra data object, populating the _ms list on MassSpectraBase object from the HDF5 file.
         """
         # Instantiate the LCMS object
         spectra_obj = MassSpectraBase(
@@ -340,7 +366,7 @@ class ReadCoreMSHDFMassSpectra(
 
     def get_lcms_obj(self) -> LCMSBase:
         """
-        Return LCMSBase object, populating the majority of the attributes on the LCMS object from the HDF5 file.
+        Return LCMSBase object, populating attributes on the LCMSBase object from the HDF5 file.
         """
         # Instantiate the LCMS object
         lcms_obj = LCMSBase(
