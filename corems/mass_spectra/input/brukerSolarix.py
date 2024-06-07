@@ -1,7 +1,6 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Oct 29, 2019"
 
-from future import __annotations__
 from threading import Thread
 from pathlib import Path
 from s3path import S3Path
