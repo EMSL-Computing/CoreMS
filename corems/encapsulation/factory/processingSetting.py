@@ -154,8 +154,13 @@ class LiquidChromatographSetting:
         Retention time tolerance to use for associating MS2 spectra to mass features, in minutes. Called within the LCMSBase.add_associated_ms2_dda() method. Default is 0.15.
     ms2_dda_mz_tolerance : float, optional
         Mass tolerance to use for associating MS2 spectra to mass features. Called within the LCMSBase.add_associated_ms2_dda() method. Default is 0.05.
+    ms2_min_fe_score : float, optional
+        Minimum flash entropy for retaining MS2 annotations. Called within the LCMS_Spectral_Search.fe_search() method. Default is 0.2.
+    search_as_lipids : bool, optional
+        If True, prepare the database for lipid searching. Called within the LCMS_Spectral_Search.fe_prep_search_db() method. Default is False.
+    include_fragment_types : bool, optional
+        If True, include fragment types in the database. Called within the LCMS_Spectral_Search.fe_search() and related methods. Default is False.
     """
-
     scans: list | tuple = (0, 1)
 
     # Parameters used for generating EICs and performing 1D peak picking and EIC/TIC smoothing
@@ -705,6 +710,8 @@ class MolecularFormulaSearchSettings:
         If True, search for adduct ions. Default is False.
     usedAtoms : dict, optional
         Dictionary of atoms and ranges. Default is {'C': (1, 90), 'H': (4, 200), 'O': (0, 12), 'N': (0, 0), 'S': (0, 0), 'P': (0, 0), 'Cl': (0, 0)}.
+    ion_types_excluded : list, optional
+        List of ion types to exclude from molecular id search, commonly ['[M+CH3COO]-]'] or ['[M+COOH]-'] depending on mobile phase content. Default is [].
     ionization_type : str, optional
         Ionization type. Default is 'ESI'.
     min_ppm_error : float, optional
@@ -791,6 +798,7 @@ class MolecularFormulaSearchSettings:
     isAdduct: bool = False
 
     usedAtoms: dict = dataclasses.field(default_factory=dict)
+    ion_types_excluded: list = dataclasses.field(default_factory=list)
 
     # search setting ========
 
