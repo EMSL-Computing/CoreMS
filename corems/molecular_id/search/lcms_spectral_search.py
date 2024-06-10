@@ -2,14 +2,15 @@ import re
 
 import numpy as np
 
-from corems.molecular_id.factory.spectrum_search_results import  SpectrumSearchResults
+from corems.molecular_id.factory.spectrum_search_results import SpectrumSearchResults
+
 
 class LCMSSpectralSearch:
     """
     Methods for searching LCMS spectra.
 
     This class is designed to be a mixin class for the :obj:`~corems.mass_spectra.factory.lc_class.LCMSBase` class.
-    
+
     """
 
     @staticmethod
@@ -121,7 +122,7 @@ class LCMSSpectralSearch:
         fe_lib,
         precursor_mz_list=[],
         use_mass_features=True,
-        ms2_sep_da=0.01,
+        peak_sep_da=0.01,
         get_additional_metrics=True,
     ):
         """
@@ -135,11 +136,12 @@ class LCMSSpectralSearch:
             FlashEntropy Search instance.
         precursor_mz_list : list, optional
             List of precursor m/z values to search, by default [], which implies
-            an open search (or matched with mass features, if use_mass_features is True).
+            matched with mass features; to enable this use_mass_features must be True.
         use_mass_features : bool, optional
             If True, use mass features to get precursor m/z values, by default True.
-        ms2_sep_da : float, optional
-            Minimum separation between MS2 spectra in Da. This needs match the
+            If True, will add search results to mass features' ms2_similarity_results attribute.
+        peak_sep_da : float, optional
+            Minimum separation between m/z peaks spectra in Da. This needs match the
             approximate resolution of the search spectra and the FlashEntropySearch
             instance, by default 0.01.
         get_additional_metrics : bool, optional
@@ -147,7 +149,7 @@ class LCMSSpectralSearch:
 
         Returns
         -------
-        None, but adds results to self.spectral_search_results and associates these 
+        None, but adds results to self.spectral_search_results and associates these
         spectral_search_results with mass_features within the self.mass_features dictionary.
 
         """
@@ -188,11 +190,13 @@ class LCMSSpectralSearch:
                 overall_results_dict[scan_oi] = {}
                 for precursor_mz in precursor_mzs:
                     query_spectrum = fe_lib.clean_spectrum_for_search(
-                        precursor_mz = precursor_mz,
-                        peaks = np.vstack((self._ms[scan_oi].mz_exp, self._ms[scan_oi].abundance)).T,
-                        precursor_ions_removal_da = None,
-                        noise_threshold = noise_threshold,
-                        min_ms2_difference_in_da = ms2_sep_da
+                        precursor_mz=precursor_mz,
+                        peaks=np.vstack(
+                            (self._ms[scan_oi].mz_exp, self._ms[scan_oi].abundance)
+                        ).T,
+                        precursor_ions_removal_da=None,
+                        noise_threshold=noise_threshold,
+                        min_ms2_difference_in_da=peak_sep_da,
                     )
                     search_results = fe_lib.search(
                         precursor_mz=precursor_mz,
@@ -200,7 +204,7 @@ class LCMSSpectralSearch:
                         ms1_tolerance_in_da=self.parameters.ms1_molecular_search.max_ppm_error
                         * 10**-6
                         * precursor_mz,
-                        ms2_tolerance_in_da=ms2_sep_da,
+                        ms2_tolerance_in_da=peak_sep_da,
                         method={"identity"},
                         precursor_ions_removal_da=None,
                         noise_threshold=noise_threshold,
@@ -235,18 +239,22 @@ class LCMSSpectralSearch:
                                 self.get_more_match_quals(
                                     self._ms[scan_oi].mz_exp,
                                     fe_lib[x],
-                                    mz_tol_da=ms2_sep_da,
+                                    mz_tol_da=peak_sep_da,
                                     include_fragment_types=include_fragment_types,
                                 )
                                 for x in match_inds
                             ]
                             overall_results_dict[scan_oi][precursor_mz].update(
                                 {
-                                    "query_mz_in_ref_n": [x[0] for x in more_match_quals],
+                                    "query_mz_in_ref_n": [
+                                        x[0] for x in more_match_quals
+                                    ],
                                     "query_mz_in_ref_fract": [
                                         x[1] for x in more_match_quals
                                     ],
-                                    "ref_mz_in_query_n": [x[2] for x in more_match_quals],
+                                    "ref_mz_in_query_n": [
+                                        x[2] for x in more_match_quals
+                                    ],
                                     "ref_mz_in_query_fract": [
                                         x[3] for x in more_match_quals
                                     ],
@@ -255,8 +263,12 @@ class LCMSSpectralSearch:
                             if include_fragment_types:
                                 overall_results_dict[scan_oi][precursor_mz].update(
                                     {
-                                        "query_frag_types": [x[4] for x in more_match_quals],
-                                        "ref_frag_types": [x[5] for x in more_match_quals],
+                                        "query_frag_types": [
+                                            x[4] for x in more_match_quals
+                                        ],
+                                        "ref_frag_types": [
+                                            x[5] for x in more_match_quals
+                                        ],
                                     }
                                 )
 

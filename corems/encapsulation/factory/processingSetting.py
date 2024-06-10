@@ -155,11 +155,11 @@ class LiquidChromatographSetting:
     ms2_dda_mz_tolerance : float, optional
         Mass tolerance to use for associating MS2 spectra to mass features. Called within the LCMSBase.add_associated_ms2_dda() method. Default is 0.05.
     ms2_min_fe_score : float, optional
-        Minimum flash entropy for retaining MS2 annotations. Called within the LCMS_Spectral_Search.fe_search() method. Default is 0.2.
+        Minimum flash entropy for retaining MS2 annotations. Called within the LCMSSpectralSearch.fe_search() method. Default is 0.2.
     search_as_lipids : bool, optional
-        If True, prepare the database for lipid searching. Called within the LCMS_Spectral_Search.fe_prep_search_db() method. Default is False.
+        If True, prepare the database for lipid searching. Called within the LCMSSpectralSearch.fe_prep_search_db() method. Default is False.
     include_fragment_types : bool, optional
-        If True, include fragment types in the database. Called within the LCMS_Spectral_Search.fe_search() and related methods. Default is False.
+        If True, include fragment types in the database. Called within the LCMSSpectralSearch.fe_search() and related methods. Default is False.
     """
     scans: list | tuple = (0, 1)
 

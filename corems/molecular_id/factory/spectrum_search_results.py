@@ -19,7 +19,7 @@ class SpectrumSearchResults:
     precursor_mz : float
         The precursor m/z of the queried spectrum
 
-    Other Possible Attributes 
+    Other Possible Attributes
     -------------------------
     ref_mol_id : str
         The id of the molecule associated with the query spectrum in reference database
@@ -39,15 +39,15 @@ class SpectrumSearchResults:
         The fraction of query m/z peaks that are in the reference spectrum
     query_frag_types : list
         The fragment types of the query spectrum that are in the reference spectrum,
-        i.e. LSF (lipid specific fragments) or MSF (molecular species fragments), 
+        i.e. LSF (lipid species fragments) or MSF (molecular species fragments),
         generally used for only for lipidomics
     ref_mz_in_query_n : list
         The number of reference m/z peaks that are in the query spectrum
     ref_mz_in_query_fract : float
         The fraction of reference m/z peaks that are in the query spectrum
     ref_frag_types : list
-        The fragment types of the reference spectrum, 
-        i.e. LSF (lipid specific fragments) or MSF (molecular species fragments), 
+        The fragment types of the reference spectrum,
+        i.e. LSF (lipid species fragments) or MSF (molecular species fragments),
         generally used for only for lipidomics
 
     Methods
@@ -57,7 +57,9 @@ class SpectrumSearchResults:
 
     """
 
-    def __init__(self, query_spectrum, precursor_mz, spectral_similarity_search_results):
+    def __init__(
+        self, query_spectrum, precursor_mz, spectral_similarity_search_results
+    ):
         self.query_spectrum = query_spectrum
         self.precursor_mz = precursor_mz
         if query_spectrum is not None:
