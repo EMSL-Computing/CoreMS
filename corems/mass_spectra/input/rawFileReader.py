@@ -505,7 +505,13 @@ class ThermoBaseClass:
     def get_tic(
         self, ms_type="MS !d", peak_detection=True, smooth=True, plot=False, ax=None,trace_type='TIC',
     ) -> Tuple[TIC_Data, axes.Axes]:
-        """ms_type: str ('MS', MS2')
+        """ms_type: str ('MS !d', 'MS2', None)
+            if you use None you get all scans.
+        peak_detection: bool
+        smooth: bool
+        plot: bool
+        ax: matplotlib axis object
+        trace_type: str ('TIC','BPC')
 
         returns:
             chroma: dict
@@ -526,7 +532,10 @@ class ThermoBaseClass:
             settings = ChromatogramTraceSettings(TraceType.BasePeak)
         else:
             print(f'{trace_type} undefined')
-        settings.Filter = ms_type
+        if ms_type == "all":
+            settings.Filter = None
+        else:
+            settings.Filter = ms_type
 
         chroma_settings = IChromatogramSettings(settings)
 
@@ -568,7 +577,7 @@ class ThermoBaseClass:
                     ax = plt.gca()
                     # fig, ax = plt.subplots(figsize=(6, 3))
 
-                ax.plot(data.time, data.tic, label=" TIC")
+                ax.plot(data.time, data.tic, label=trace_type)
                 ax.set_xlabel("Time (min)")
                 ax.set_ylabel("a.u.")
                 if peak_detection:
