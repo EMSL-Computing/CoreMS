@@ -545,7 +545,7 @@ class ThermoBaseClass:
 
         trace = ChromatogramSignal.FromChromatogramData(data)
 
-        data = TIC_Data(time=[], scans=[], tic=[], apexes=[])
+        data = TIC_Data(time=[], scans=[], tic=[], bpc=[], apexes=[])
 
         if trace[0].Length > 0:
             for i in range(trace[0].Length):
@@ -591,8 +591,13 @@ class ThermoBaseClass:
                         )
 
                 # plt.show()
+                if trace_type == 'BPC':
+                    data.bpc = data.tic
+                    data.tic = []
                 return data, ax
-
+            if trace_type == 'BPC':
+                data.bpc = data.tic
+                data.tic = []
             return data, None
 
         else:
