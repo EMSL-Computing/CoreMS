@@ -649,8 +649,8 @@ class MSPeakCalculation:
             x-axis domain for fit
         
         """
-        start_index = self.start_scan - mz_overlay  if not self.start_scan == 0 else 0
-        final_index = self.final_scan + mz_overlay  if not self.final_scan == len(self._ms_parent.mz_exp_profile) else self.final_scan
+        start_index = self.peak_left_index - mz_overlay  if not self.peak_left_index == 0 else 0
+        final_index = self.peak_right_index + mz_overlay  if not self.peak_right_index == len(self._ms_parent.mz_exp_profile) else self.peak_right_index
 
         if oversample_multiplier == 1:
 
