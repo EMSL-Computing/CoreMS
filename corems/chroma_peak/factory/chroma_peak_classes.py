@@ -469,7 +469,7 @@ class LCMSMassFeature(ChromaPeakBase):
             results_df = results_df.sort_values(
                 by="entropy_similarity", ascending=False
             )
-            best_scan_number = results_df.iloc[0]["query_scan_number"]
+            best_scan_number = results_df.iloc[0]["query_spectrum_id"]
             return self.ms2_mass_spectra[best_scan_number]
 
         ms2_scans = list(self.ms2_mass_spectra.keys())

@@ -15,6 +15,7 @@ from corems.mass_spectra.factory.lc_class import LCMSBase, MassSpectraBase
 from corems.mass_spectra.factory.LC_Temp import EIC_Data
 from corems.mass_spectra.input.parserbase import SpectraParserInterface
 from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
+from corems.molecular_id.factory.spectrum_search_results import SpectrumSearchResults
 
 
 class ReadCoreMSHDFMassSpectra(
@@ -163,6 +164,10 @@ class ReadCoreMSHDFMassSpectra(
         if "eics" in self.h5pydata:
             # Populate the eics attribute on the LCMS object
             self.import_eics(mass_spectra)
+
+        if "spectral_search_results" in self.h5pydata:
+            # Populate the spectral_search_results attribute on the LCMS object
+            self.import_spectral_search_results(mass_spectra)
 
     def import_mass_spectra(self, mass_spectra) -> None:
         """Imports all mass spectra from the HDF5 file.
@@ -346,6 +351,59 @@ class ReadCoreMSHDFMassSpectra(
             mz = mass_spectra.mass_features[idx].mz
             if mz in mass_spectra.eics.keys():
                 mass_spectra.mass_features[idx]._eic_data = mass_spectra.eics[mz]
+
+    def import_spectral_search_results(self, mass_spectra):
+        """Imports the spectral search results from the HDF5 file.
+
+        Parameters
+        ----------
+        mass_spectra : LCMSBase | MassSpectraBase
+            The MassSpectraBase or LCMSBase object to populate with spectral search results.
+
+        Returns
+        -------
+        None, but populates the 'spectral_search_results' attribute on the LCMSBase or MassSpectraBase 
+        object with a dictionary of the 'spectral_search_results' from the HDF5 file.
+
+        """
+        overall_results_dict = {}
+        ms2_results_load = self.h5pydata["spectral_search_results"]
+        for k in ms2_results_load.keys():
+            overall_results_dict[int(k)] = {}
+            for k2 in ms2_results_load[k].keys():
+                ms2_search_res = SpectrumSearchResults(
+                    ms2_spectrum=mass_spectra._ms[int(k)],
+                    precursor_mz=ms2_results_load[k][k2].attrs["precursor_mz"],
+                    ms2_search_results={},
+                )
+
+                for key in ms2_results_load[k][k2].keys() - {"precursor_mz"}:
+                    setattr(ms2_search_res, key, list(ms2_results_load[k][k2][key][:]))
+                overall_results_dict[int(k)][
+                    ms2_results_load[k][k2].attrs["precursor_mz"]
+                ] = ms2_search_res
+
+        # add to mass_spectra
+        mass_spectra.spectral_search_results.update(overall_results_dict)
+
+        # If there are mass features, associate the results with each mass feature
+        if len(mass_spectra.mass_features) > 0:
+            for mass_feature_id, mass_feature in mass_spectra.mass_features.items():
+                scan_ids = mass_feature.ms2_scan_numbers
+                for ms2_scan_id in scan_ids:
+                    precursor_mz = mass_feature.mz
+                    try:
+                        mass_spectra.spectral_search_results[ms2_scan_id][precursor_mz]
+                    except KeyError:
+                        pass
+                    else:
+                        mass_spectra.mass_features[
+                            mass_feature_id
+                        ].ms2_similarity_results.append(
+                            mass_spectra.spectral_search_results[ms2_scan_id][
+                                precursor_mz
+                            ]
+                        )
 
     def get_mass_spectra_obj(self) -> MassSpectraBase:
         """

@@ -6,6 +6,7 @@ import pandas as pd
 
 from corems.encapsulation.factory.parameters import LCMSParameters
 from corems.mass_spectra.calc.lc_calc import LCCalculations, PHCalculations
+from corems.molecular_id.search.lcms_spectral_search import LCMSSpectralSearch
 from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
 
 
@@ -316,7 +317,7 @@ class MassSpectraBase:
         return self._ms.get(scan_number)
 
 
-class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations):
+class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSearch):
     """A class representing a liquid chromatography-mass spectrometry (LC-MS) data object.
 
     This class is not intended to be instantiated directly, but rather to be instantiated by an appropriate mass spectra parser using the get_lcms_obj() method.
@@ -796,6 +797,49 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations):
             )
 
         return annot_ms1_df_full
+
+    def mass_features_ms2_annot_to_df(self, molecular_metadata = None):
+        """Returns a pandas dataframe summarizing the MS2 annotations for the mass features in the dataset.
+        
+        Parameters
+        -----------
+        molecular_metadata :  dict of MolecularMetadata objects
+            A dictionary of MolecularMetadata objects, keyed by metabref_mol_id.  Defaults to None.
+        
+        Returns
+        --------
+        pandas.DataFrame
+            A pandas dataframe of MS2 annotations for the mass features in the dataset, and optionally molecular metadata. The index is set to mf_id (mass feature ID)
+        
+        Raises
+        ------
+        Warning
+            If no MS2 annotations were found for the mass features in the dataset.
+        """
+        annot_df_list_ms2 = []
+        for mf_id in self.mass_features.keys():
+            if len(self.mass_features[mf_id].ms2_similarity_results) > 0:
+                # Add ms2 annotations to ms2 annotation list
+                for result in self.mass_features[mf_id].ms2_similarity_results:
+                    annot_df_ms2 = result.to_dataframe()
+                    annot_df_ms2['mf_id'] = mf_id
+                    annot_df_list_ms2.append(annot_df_ms2)
+        
+        if len(annot_df_list_ms2)>0:
+            annot_ms2_df_full = pd.concat(annot_df_list_ms2)
+            if molecular_metadata is not None:
+                molecular_metadata_df = pd.concat([pd.DataFrame.from_dict(v.__dict__, orient='index').transpose() for k, v in molecular_metadata.items()], ignore_index=True)
+                molecular_metadata_df = molecular_metadata_df.rename(columns = {"id":"ref_mol_id"})
+                annot_ms2_df_full = annot_ms2_df_full.merge(molecular_metadata_df, on = "ref_mol_id", how = "left")
+            annot_ms2_df_full  = annot_ms2_df_full.drop_duplicates(subset = ['mf_id', 'query_spectrum_id', 'ref_ms_id']).copy()
+            annot_ms2_df_full = annot_ms2_df_full.set_index('mf_id')
+            annot_ms2_df_full.index.name = 'mf_id'
+        else:
+            annot_ms2_df_full = None
+            # Warn that no ms2 annotations were found
+            logging.warning("No MS2 annotations found for mass features in dataset, were MS2 spectra added and searched against a database?")
+        
+        return annot_ms2_df_full
 
     def __len__(self):
         """
