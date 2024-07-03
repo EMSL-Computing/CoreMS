@@ -15,9 +15,18 @@ from support_code.nmdc.nom.nom_grow_workflow import EMSL_Metadata
 
 env_mediums = {'ENVO_00002042': 'surface water',
                'ENVO_00002007': 'sediment',
+               'ENVO:00001998': 'soil'
                }
-env_local_scales = {'ENVO_00000022': 'river'}    
-env_broad_scales = {'ENVO_01000253': 'freshwater river biome'}    
+env_local_scales = {'ENVO_00000022': 'river',
+                    'ENVO:01000861': 'area of dwarf scrub',
+                    'ENVO:00000516': 'hummock',
+                    'ENVO:01000869': 'area of scrub',
+                    'ENVO:01000887': 'area of sedge- and forb-dominated herbaceous vegetation',
+                    'ENVO:01001370': 'tundra ecosystem'
+                    }    
+env_broad_scales = {'ENVO_01000253': 'freshwater river biome',
+                    'ENVO:00000446': 'terrestrial biome'
+                    }    
 
 
 @dataclass
@@ -26,6 +35,7 @@ class NomAnalysisActivity:
     cluster_name:str = "EMSL-RZR"
     nom_21T_instrument_name: str = "21T_Agilent"
     nom_12T_instrument_name: str = "12T_FTICR_B"
+    nom_7T_instrument_name: str = "7T_FT_ICR_MS"
     
 @dataclass
 class OmicsProcessing:
@@ -33,6 +43,7 @@ class OmicsProcessing:
     nom_omics_processing_description:str = "High resolution MS spectra only"
     nom_21T_instrument_name: str = "21T Agilent"
     nom_12T_instrument_name: str = "12T_FTICR_B"
+    nom_7T_instrument_name: str = "7T_FT_ICR_MS"
 
 @dataclass
 class DataObject:
@@ -42,13 +53,13 @@ class DataObject:
     nom_dp_data_object_description:str = "EnviroMS FT ICR-MS natural organic matter workflow molecular formula assignment output details"
 
 @dataclass
-class BioSample:
+class Biosample:
     pass
 
 @dataclass
 class NMDC_Types: 
     
-    BioSample:str = "nmdc:Biosample"
+    Biosample:str = "nmdc:Biosample"
     OmicsProcessing:str = "nmdc:OmicsProcessing"
     NomAnalysisActivity:str = "nmdc:NomAnalysisActivity"
     DataObject:str = "nmdc:DataObject"
@@ -68,7 +79,7 @@ class NMDC_Mint:
     @property
     def json(self):
         return dumps(self.__dict__)
-    
+
 def mint_nmdc_id(type:NMDC_Types, how_many:int = 1) -> List[str]: 
     
     config = yaml.safe_load(open('./config.yaml','r'))
@@ -93,7 +104,7 @@ def mint_nmdc_id(type:NMDC_Types, how_many:int = 1) -> List[str]:
 
 def get_biosample_object(emsl_metadata:EMSL_Metadata) -> nmdc.Biosample:
     
-    nmdc_id = mint_nmdc_id({'id': NMDC_Types.BioSample})[0]
+    nmdc_id = mint_nmdc_id({'id': NMDC_Types.Biosample})[0]
 
     env_medium = {
                  'has_raw_value': emsl_metadata.env_medium,
@@ -121,7 +132,7 @@ def get_biosample_object(emsl_metadata:EMSL_Metadata) -> nmdc.Biosample:
                 "longitude": emsl_metadata.longitude,
             }
 
-    collection_date = { 'has_raw_value': emsl_metadata.collection_date}
+    collection_date = {'has_raw_value': emsl_metadata.collection_date}
 
     geo_loc_name =  {'has_raw_value': emsl_metadata.geo_loc_name}
     
@@ -166,7 +177,7 @@ def get_data_object(file_path:Path, base_url:str, was_generated_by:str,
                 "description": description,
                 "type": "nmdc:DataObject"
                 } 
-    
+
     data_object = nmdc.DataObject(**data_dict)
 
     return data_object
@@ -228,46 +239,45 @@ def create_nmdc_metadata(raw_data_path:Path, data_product_path:Path, base_url:st
 
     if not biosample_id:
         
-        #biosample_id = mint_nmdc_id({'id': NMDC_Types.BioSample})[0]
+        biosample_id = mint_nmdc_id({'id': NMDC_Types.Biosample})[0]
         bioSample = get_biosample_object(emsl_metadata)
         biosample_id = bioSample.id
     
     else:
         
         ''' needs to finish the logic for creating biosamples, this will fail because it is missing some required fields'''
-        bioSample =  nmdc.BioSample(id=biosample_id)
+        bioSample = None
         
     omicsProcessing = get_omics_processing(raw_data_path,
-                                           OmicsProcessing.nom_12T_instrument_name,
-                                           biosample_id, None, 
+                                           OmicsProcessing.nom_7T_instrument_name,
+                                           biosample_id, 'nmdc:placeholder', 
                                            OmicsProcessing.nom_omics_processing_type,
                                            OmicsProcessing.nom_omics_processing_description,
-                                           emsl_metadata.nmdc_study
+                                           emsl_metadata.nmdc_study 
                                            )
     
-    rawDataObject = get_data_object(raw_data_path, base_url + 'nom/grow/raw/', 
+    rawDataObject = get_data_object(raw_data_path, base_url + 'nom/1000soils/raw/', 
                                     was_generated_by=omicsProcessing.id, 
                                     data_object_type =DataObject.nom_raw_data_object_type,
                                     description =DataObject.nom_raw_data_object_description)
     
     nomAnalysisActivity = get_nom_analysis_activity(NomAnalysisActivity.cluster_name,
                                                 NomAnalysisActivity.codebase_url,
-                                                rawDataObject.id, None, False, 
+                                                rawDataObject.id, 'nmdc:placeholder', False, 
                                                 omicsProcessing.id,
-                                                NomAnalysisActivity.nom_12T_instrument_name)
+                                                NomAnalysisActivity.nom_7T_instrument_name)
 
-    dataProductDataObject = get_data_object(data_product_path, base_url + 'nom/grow/results/', 
+    dataProductDataObject = get_data_object(data_product_path, base_url + 'nom/1000soils/results/', 
                                     was_generated_by=nomAnalysisActivity.id, 
                                     data_object_type =DataObject.nom_dp_data_object_type,
                                     description =DataObject.nom_dp_data_object_description)
     
-    
     #circular dependencies : great! 
-    nomAnalysisActivity.has_input = [rawDataObject.id]
     nomAnalysisActivity.has_output = [dataProductDataObject.id]
     omicsProcessing.has_output = [rawDataObject.id]
 
-    nom_metadata_db.biosample_set.append(bioSample)
+    if bioSample:
+        nom_metadata_db.biosample_set.append(bioSample)
     nom_metadata_db.data_object_set.append(rawDataObject)
     nom_metadata_db.nom_analysis_activity_set.append(nomAnalysisActivity)
     nom_metadata_db.omics_processing_set.append(omicsProcessing)
@@ -276,4 +286,3 @@ def create_nmdc_metadata(raw_data_path:Path, data_product_path:Path, base_url:st
 def dump_nmdc_database(ndmc_database:nmdc.Database, output_filepath:str):
     
     json_dumper.dump(ndmc_database, output_filepath)
-    
