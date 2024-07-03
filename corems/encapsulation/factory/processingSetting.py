@@ -63,16 +63,16 @@ class DataInputSetting:
         self.header_translate = {'m/z': Labels.mz, 
                                  'mOz': Labels.mz,
                                  'Mass': Labels.mz,
-                                 'Resolving Power': 'Resolving Power',
+                                 'Resolving Power': Labels.rp,
                                  'Res.': Labels.rp,
+                                 'resolution': Labels.rp,
                                  'Intensity': Labels.abundance,
                                  'I': Labels.abundance,
                                  'Abundance': Labels.abundance,
+                                 'abs_abu': Labels.abundance,
                                  'Signal/Noise': Labels.s2n,
                                  'S/N': Labels.s2n,
-                                 'abs_abu': Labels.abundance,
-                                 'sn': Labels.s2n,
-                                 'resolution': Labels.rp}
+                                 'sn': Labels.s2n}
 
     def add_mz_label(self, label):
         """Add a label to the header_translate dictionary to be translated to the corems label for mz."""

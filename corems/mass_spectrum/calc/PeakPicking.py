@@ -453,7 +453,10 @@ class PeakPicking:
         elif noise_threshold_method == 'signal_noise':
 
             abundance_threshold = self.settings.noise_threshold_min_s2n
-            factor = self.baseline_noise_std
+            if self.is_centroid:
+                factor = 1
+            else:
+                factor = self.baseline_noise_std
 
         elif noise_threshold_method == "relative_abundance":
 

@@ -503,9 +503,15 @@ class ThermoBaseClass:
             # plt.show()
 
     def get_tic(
-        self, ms_type="MS !d", peak_detection=True, smooth=True, plot=False, ax=None
+        self, ms_type="MS !d", peak_detection=True, smooth=True, plot=False, ax=None,trace_type='TIC',
     ) -> Tuple[TIC_Data, axes.Axes]:
-        """ms_type: str ('MS', MS2')
+        """ms_type: str ('MS !d', 'MS2', None)
+            if you use None you get all scans.
+        peak_detection: bool
+        smooth: bool
+        plot: bool
+        ax: matplotlib axis object
+        trace_type: str ('TIC','BPC')
 
         returns:
             chroma: dict
@@ -520,9 +526,16 @@ class ThermoBaseClass:
                 original thermo apex scan number after peak picking
             }
         """
-
-        settings = ChromatogramTraceSettings(TraceType.TIC)
-        settings.Filter = ms_type
+        if trace_type == 'TIC':
+            settings = ChromatogramTraceSettings(TraceType.TIC)
+        elif trace_type == 'BPC':
+            settings = ChromatogramTraceSettings(TraceType.BasePeak)
+        else:
+            print(f'{trace_type} undefined')
+        if ms_type == "all":
+            settings.Filter = None
+        else:
+            settings.Filter = ms_type
 
         chroma_settings = IChromatogramSettings(settings)
 
@@ -532,7 +545,7 @@ class ThermoBaseClass:
 
         trace = ChromatogramSignal.FromChromatogramData(data)
 
-        data = TIC_Data(time=[], scans=[], tic=[], apexes=[])
+        data = TIC_Data(time=[], scans=[], tic=[], bpc=[], apexes=[])
 
         if trace[0].Length > 0:
             for i in range(trace[0].Length):
@@ -564,7 +577,7 @@ class ThermoBaseClass:
                     ax = plt.gca()
                     # fig, ax = plt.subplots(figsize=(6, 3))
 
-                ax.plot(data.time, data.tic, label=" TIC")
+                ax.plot(data.time, data.tic, label=trace_type)
                 ax.set_xlabel("Time (min)")
                 ax.set_ylabel("a.u.")
                 if peak_detection:
@@ -578,8 +591,13 @@ class ThermoBaseClass:
                         )
 
                 # plt.show()
+                if trace_type == 'BPC':
+                    data.bpc = data.tic
+                    data.tic = []
                 return data, ax
-
+            if trace_type == 'BPC':
+                data.bpc = data.tic
+                data.tic = []
             return data, None
 
         else:

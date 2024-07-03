@@ -27,9 +27,9 @@ class MSPeakCalculation:
         The parent MSParent object associated with the MSPeakCalculation object.
     mz_exp : float
         The experimental m/z value of the peak.
-    start_scan : int
+    peak_left_index : int
         The start scan index of the peak.
-    final_scan : int
+    peak_right_index : int
         The final scan index of the peak.
     resolving_power : float
         The resolving power of the peak.
@@ -136,11 +136,10 @@ class MSPeakCalculation:
         float
             peak area
         """
-        #TODO throughout change final_scan and start_scan when the MSPeakClasses 
-        if self.final_scan > self.start_scan:
+        if self.peak_right_index > self.peak_left_index:
 
-            yy = self._ms_parent.abundance_profile[self.start_scan:self.final_scan]
-            xx = self._ms_parent.mz_exp_profile[self.start_scan:self.final_scan]
+            yy = self._ms_parent.abundance_profile[self.peak_left_index:self.peak_right_index]
+            xx = self._ms_parent.mz_exp_profile[self.peak_left_index:self.peak_right_index]
             # check if the axis is high to low m/z or not. if its MSFromFreq its high mz first, if its from Profile, its low mz first
             if xx[0] > xx[-1]:
                 xx = flip(xx)    
@@ -182,8 +181,8 @@ class MSPeakCalculation:
         mz_extend here extends the x-axis domain so that we have sufficient points either side of the apex to fit.
         Takes about 10ms per peak
         """
-        start_index = self.start_scan - mz_extend  if not self.start_scan == 0 else 0
-        final_index = self.final_scan + mz_extend  if not self.final_scan == len(self._ms_parent.mz_exp_profile) else self.final_scan
+        start_index = self.peak_left_index - mz_extend  if not self.peak_left_index == 0 else 0
+        final_index = self.peak_right_index + mz_extend  if not self.peak_right_index == len(self._ms_parent.mz_exp_profile) else self.peak_right_index
 
         # check if MSPeak contains the resolving power info
         if self.resolving_power:
@@ -385,8 +384,8 @@ class MSPeakCalculation:
             # Thermo data is noise reduced by also noise subtracted, so starts at 0
             # Absorption mode/phased data will have positive and negative components and may not be baseline corrected
 
-        start_index = self.start_scan - mz_extend  if not self.start_scan == 0 else 0
-        final_index = self.final_scan + mz_extend  if not self.final_scan == len(self._ms_parent.mz_exp_profile) else self.final_scan
+        start_index = self.peak_left_index - mz_extend  if not self.peak_left_index == 0 else 0
+        final_index = self.peak_right_index + mz_extend  if not self.peak_right_index == len(self._ms_parent.mz_exp_profile) else self.peak_right_index
 
         # check if MSPeak contains the resolving power info
         if self.resolving_power:
@@ -649,8 +648,8 @@ class MSPeakCalculation:
             x-axis domain for fit
         
         """
-        start_index = self.start_scan - mz_overlay  if not self.start_scan == 0 else 0
-        final_index = self.final_scan + mz_overlay  if not self.final_scan == len(self._ms_parent.mz_exp_profile) else self.final_scan
+        start_index = self.peak_left_index - mz_overlay  if not self.peak_left_index == 0 else 0
+        final_index = self.peak_right_index + mz_overlay  if not self.peak_right_index == len(self._ms_parent.mz_exp_profile) else self.peak_right_index
 
         if oversample_multiplier == 1:
 
