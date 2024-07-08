@@ -1214,7 +1214,7 @@ class LCMSExport(HighResMassSpectraExport):
 
 
 
-class Lipidomics_Export(LCMSExport):
+class LipidomicsExport(LCMSExport):
     def __init__(self, out_file_path, mass_spectra):
         super().__init__(out_file_path, mass_spectra)
         self.ion_type_dict = ion_type_dict

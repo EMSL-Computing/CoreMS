@@ -11,7 +11,7 @@ from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFil
 from corems.mass_spectra.output.export import LCMSExport
 
 
-def test_lcms_peakpick():
+def test_lipidomics_workflow():
     # Instantiate parser based on binary file type
     file_raw = (
         Path.cwd()
@@ -77,4 +77,4 @@ def test_lcms_peakpick():
     )
 
 if __name__ == "__main__":
-    test_lcms_peakpick()
+    test_lipidomics_workflow()
