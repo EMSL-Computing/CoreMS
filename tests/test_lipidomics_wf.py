@@ -8,7 +8,7 @@ import shutil
 
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
-from corems.mass_spectra.output.export import LCMSExport
+from corems.mass_spectra.output.export import LCMSExport, LipidomicsExport
 
 
 def test_lipidomics_workflow():
@@ -41,6 +41,9 @@ def test_lipidomics_workflow():
     myLCMSobj.add_associated_ms1(
         auto_process=True, use_parser=False, spectrum_mode="profile"
     )
+
+    # TODO KRH: Add molecular formula assignment to the mass features
+
     myLCMSobj.integrate_mass_features(drop_if_fail=True)
     myLCMSobj.find_c13_mass_features(verbose=False)
     
@@ -58,13 +61,12 @@ def test_lipidomics_workflow():
 
     # TODO KRH:  Load and read a json of a subset of the database for searching and test search
 
-    # Export the lcms object to an hdf5 file
-    exporter = LCMSExport(
+    # Export the lcms object to an hdf5 file using the LipidomicsExport class
+    exporter = LipidomicsExport(
         "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801", myLCMSobj
     )
     exporter.to_hdf(overwrite=True)
-
-    # TODO KRH: Add a test for the LipidomicsExporter
+    exporter.report_to_csv()
 
     # Import the hdf5 file, assert that its df is same as above and that we can plot a mass feature
     parser = ReadCoreMSHDFMassSpectra(
