@@ -1215,6 +1215,17 @@ class LCMSExport(HighResMassSpectraExport):
 
 
 class LipidomicsExport(LCMSExport):
+    """A class to export lipidomics data.
+
+    This class provides methods to export lipidomics data to various formats and summarize the lipid report.
+
+    Parameters
+    ----------
+    out_file_path : str | Path
+        The output file path, do not include the file extension.
+    mass_spectra : object
+        The high resolution mass spectra object.
+    """
     def __init__(self, out_file_path, mass_spectra):
         super().__init__(out_file_path, mass_spectra)
         self.ion_type_dict = ion_type_dict
@@ -1233,14 +1244,16 @@ class LipidomicsExport(LCMSExport):
         neutral_formula : str
             The neutral formula, this should be a string form from the MolecularFormula class
             (e.g. 'C2 H4 O2', isotopes OK), or simple string (e.g. 'C2H4O2', no isotope handling in this case).
+            In the case of a simple string, the atoms are parsed based on the presence of capital letters,
+            e.g. MgCl2 is parsed as 'Mg Cl2.
         ion_type : str
             The ion type, e.g. 'protonated', '[M+H]+', '[M+Na]+', etc.
-            See the ion_type_dict in the LipidomicsExport class for the available ion types.
+            See the self.ion_type_dict for the available ion types.
 
         Returns
         -------
         str
-            The formula of the ion.
+            The formula of the ion as a string (like 'C2 H4 O2'); or None if the neutral_formula is not a string.
         """
         # If neutral_formula is not a string, return None
         if not isinstance(neutral_formula, str):
@@ -1317,6 +1330,59 @@ class LipidomicsExport(LCMSExport):
             iso_class = None
 
         return iso_class
+
+    def clean_ms1_report(self, ms1_summary_full):
+        """Clean the MS1 report.
+
+        Parameters
+        ----------
+        ms1_summary_full : DataFrame
+            The full MS1 summary DataFrame.
+
+        Returns
+        -------
+        DataFrame
+            The cleaned MS1 summary DataFrame.
+        """
+        ms1_summary_full = ms1_summary_full.reset_index()
+        cols_to_keep = [
+            "mf_id",
+            "Molecular Formula",
+            "Ion Type",
+            "Calculated m/z",
+            "m/z Error (ppm)",
+            "m/z Error Score",
+            "Is Isotopologue",
+            "Isotopologue Similarity",
+            "Confidence Score",
+        ]
+        ms1_summary = ms1_summary_full[cols_to_keep].copy()
+        ms1_summary["ion_formula"] = [
+            self.get_ion_formula(f, a)
+            for f, a in zip(ms1_summary["Molecular Formula"], ms1_summary["Ion Type"])
+        ]
+        ms1_summary["isotopologue_type"] = [
+            self.get_isotope_type(f) for f in ms1_summary["ion_formula"].tolist()
+        ]
+
+        # Reorder columns
+        ms1_summary = ms1_summary[
+            [
+                "mf_id",
+                "ion_formula",
+                "isotopologue_type",
+                "Calculated m/z",
+                "m/z Error (ppm)",
+                "m/z Error Score",
+                "Isotopologue Similarity",
+                "Confidence Score",
+            ]
+        ]
+
+        # Set the index to mf_id
+        ms1_summary = ms1_summary.set_index("mf_id")
+
+        return ms1_summary
 
     def summarize_lipid_report(self, ms2_annot):
         """Summarize the lipid report.
@@ -1567,6 +1633,49 @@ class LipidomicsExport(LCMSExport):
 
         return consensus_annotations
 
+    def clean_ms2_report(self, lipid_summary):
+        """Clean the MS2 report.
+
+        Parameters
+        ----------
+        lipid_summary : DataFrame
+            The full lipid summary DataFrame.
+
+        Returns
+        -------
+        DataFrame
+            The cleaned lipid summary DataFrame.
+        """
+        lipid_summary = lipid_summary.reset_index()
+        lipid_summary["ion_formula"] = [
+            self.get_ion_formula(f, a)
+            for f, a in zip(lipid_summary["formula"], lipid_summary["ref_ion_type"])
+        ]
+
+        # Reorder columns
+        lipid_summary = lipid_summary[
+            [
+                "mf_id",
+                "ion_formula",
+                "ref_ion_type",
+                "formula",
+                "annot_level",
+                "lipid_molecular_species_id",
+                "lipid_summed_name",
+                "lipid_subclass",
+                "lipid_class",
+                "lipid_category",
+                "entropy_similarity",
+                "ref_mz_in_query_fract",
+                "n_spectra_contributing",
+            ]
+        ]
+
+        # Set the index to mf_id
+        lipid_summary = lipid_summary.set_index("mf_id")
+
+        return lipid_summary
+
     def to_report(self, molecular_metadata=None):
         """Create a report of the mass features and their annotations.
 
@@ -1682,99 +1791,3 @@ class LipidomicsExport(LCMSExport):
         report = self.to_report(molecular_metadata=molecular_metadata)
         out_file = self.output_file.with_suffix(".csv")
         report.to_csv(out_file, index=False)
-
-    def clean_ms2_report(self, lipid_summary):
-        """Clean the MS2 report.
-
-        Parameters
-        ----------
-        lipid_summary : DataFrame
-            The full lipid summary DataFrame.
-
-        Returns
-        -------
-        DataFrame
-            The cleaned lipid summary DataFrame.
-        """
-        lipid_summary = lipid_summary.reset_index()
-        lipid_summary["ion_formula"] = [
-            self.get_ion_formula(f, a)
-            for f, a in zip(lipid_summary["formula"], lipid_summary["ref_ion_type"])
-        ]
-
-        # Reorder columns
-        lipid_summary = lipid_summary[
-            [
-                "mf_id",
-                "ion_formula",
-                "ref_ion_type",
-                "formula",
-                "annot_level",
-                "lipid_molecular_species_id",
-                "lipid_summed_name",
-                "lipid_subclass",
-                "lipid_class",
-                "lipid_category",
-                "entropy_similarity",
-                "ref_mz_in_query_fract",
-                "n_spectra_contributing",
-            ]
-        ]
-
-        # Set the index to mf_id
-        lipid_summary = lipid_summary.set_index("mf_id")
-
-        return lipid_summary
-
-    def clean_ms1_report(self, ms1_summary_full):
-        """Clean the MS1 report.
-
-        Parameters
-        ----------
-        ms1_summary_full : DataFrame
-            The full MS1 summary DataFrame.
-
-        Returns
-        -------
-        DataFrame
-            The cleaned MS1 summary DataFrame.
-        """
-        ms1_summary_full = ms1_summary_full.reset_index()
-        cols_to_keep = [
-            "mf_id",
-            "Molecular Formula",
-            "Ion Type",
-            "Calculated m/z",
-            "m/z Error (ppm)",
-            "m/z Error Score",
-            "Is Isotopologue",
-            "Isotopologue Similarity",
-            "Confidence Score",
-        ]
-        ms1_summary = ms1_summary_full[cols_to_keep].copy()
-        ms1_summary["ion_formula"] = [
-            self.get_ion_formula(f, a)
-            for f, a in zip(ms1_summary["Molecular Formula"], ms1_summary["Ion Type"])
-        ]
-        ms1_summary["isotopologue_type"] = [
-            self.get_isotope_type(f) for f in ms1_summary["ion_formula"].tolist()
-        ]
-
-        # Reorder columns
-        ms1_summary = ms1_summary[
-            [
-                "mf_id",
-                "ion_formula",
-                "isotopologue_type",
-                "Calculated m/z",
-                "m/z Error (ppm)",
-                "m/z Error Score",
-                "Isotopologue Similarity",
-                "Confidence Score",
-            ]
-        ]
-
-        # Set the index to mf_id
-        ms1_summary = ms1_summary.set_index("mf_id")
-
-        return ms1_summary
