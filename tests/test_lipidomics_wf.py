@@ -56,11 +56,15 @@ def test_lipidomics_workflow():
     # Plot a mass feature
     myLCMSobj.mass_features[1].plot(return_fig=False)
 
+    # TODO KRH:  Load and read a json of a subset of the database for searching and test search
+
     # Export the lcms object to an hdf5 file
     exporter = LCMSExport(
         "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801", myLCMSobj
     )
     exporter.to_hdf(overwrite=True)
+
+    # TODO KRH: Add a test for the LipidomicsExporter
 
     # Import the hdf5 file, assert that its df is same as above and that we can plot a mass feature
     parser = ReadCoreMSHDFMassSpectra(
@@ -70,7 +74,7 @@ def test_lipidomics_workflow():
     assert myLCMSobj2.mass_features_to_df().shape == (130, 9)
     myLCMSobj2.mass_features[1].plot(return_fig=False)
 
-        # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
+    # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
     shutil.rmtree(
         "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems",
         ignore_errors=True,
