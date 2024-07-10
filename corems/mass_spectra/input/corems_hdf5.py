@@ -372,9 +372,9 @@ class ReadCoreMSHDFMassSpectra(
             overall_results_dict[int(k)] = {}
             for k2 in ms2_results_load[k].keys():
                 ms2_search_res = SpectrumSearchResults(
-                    ms2_spectrum=mass_spectra._ms[int(k)],
+                    query_spectrum=mass_spectra._ms[int(k)],
                     precursor_mz=ms2_results_load[k][k2].attrs["precursor_mz"],
-                    ms2_search_results={},
+                    spectral_similarity_search_results={},
                 )
 
                 for key in ms2_results_load[k][k2].keys() - {"precursor_mz"}:

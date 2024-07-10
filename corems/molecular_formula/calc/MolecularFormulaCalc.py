@@ -159,7 +159,7 @@ class MolecularFormulaCalc:
         
         """
         
-        if self.ion_charge:
+        if self.ion_charge is not None:
             
             if self._external_mz:
                 return self._external_mz
@@ -177,6 +177,10 @@ class MolecularFormulaCalc:
                 
                     return self.neutral_mass
                 
+                elif self.ion_charge == 0:
+                
+                    return self.neutral_mass
+
                 else:
                     #formula is probably ion form used for bruker ref list
                     return self.neutral_mass

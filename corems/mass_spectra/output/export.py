@@ -4,6 +4,7 @@ __date__ = "Dec 14, 2010"
 
 import csv
 import json
+import re
 import uuid
 import warnings
 from datetime import datetime, timezone
@@ -11,6 +12,7 @@ from pathlib import Path
 
 import h5py
 import numpy as np
+import pandas as pd
 from openpyxl import load_workbook
 from pandas import DataFrame, ExcelWriter, read_excel
 
@@ -22,7 +24,32 @@ from corems.encapsulation.output.parameter_to_json import (
 )
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
 from corems.mass_spectrum.output.export import HighResMassSpecExport
+from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 from corems.molecular_id.calc.SpectralSimilarity import methods_name
+
+ion_type_dict = {
+    # adduct : [atoms to add, atoms to subtract when calculating formula of ion
+    "M+": [{}, {}],
+    "protonated": [{"H": 1}, {}],
+    "[M+H]+": [{"H": 1}, {}],
+    "[M+NH4]+": [{"N": 1, "H": 4}, {}],  # ammonium
+    "[M+Na]+": [{"Na": 1}, {}],
+    "[M+K]+": [{"K": 1}, {}],
+    "[M+2Na+Cl]+": [{"Na": 2, "Cl": 1}, {}],
+    "[M+2Na-H]+": [{"Na": 2}, {"H": 1}],
+    "[M+C2H3Na2O2]+": [{"C": 2, "H": 3, "Na": 2, "O": 2}, {}],
+    "[M+C4H10N3]+": [{"C": 4, "H": 10, "N": 3}, {}],
+    "[M+NH4+ACN]+": [{"C": 2, "H": 7, "N": 2}, {}],
+    "[M+H-H2O]+": [{}, {"H": 1, "O": 1}],
+    "de-protonated": [{}, {"H": 1}],
+    "[M-H]-": [{}, {"H": 1}],
+    "[M+Cl]-": [{"Cl": 1}, {}],
+    "[M+HCOO]-": [{"C": 1, "H": 1, "O": 2}, {}],  # formate
+    "[M+CH3COO]-": [{"C": 2, "H": 3, "O": 2}, {}],  # acetate
+    "[M+2NaAc+Cl]-": [{"Na": 2, "C": 2, "H": 3, "O": 2, "Cl": 1}, {}],
+    "[M+K-2H]-": [{"K": 1}, {"H": 2}],
+    "[M+Na-2H]-": [{"Na": 1}, {"H": 2}],
+}
 
 
 class LowResGCMSExport:
@@ -1184,3 +1211,583 @@ class LCMSExport(HighResMassSpectraExport):
                     filename=self.output_file.with_suffix(".toml"),
                     lcms_obj=self.mass_spectra,
                 )
+
+
+
+class LipidomicsExport(LCMSExport):
+    """A class to export lipidomics data.
+
+    This class provides methods to export lipidomics data to various formats and summarize the lipid report.
+
+    Parameters
+    ----------
+    out_file_path : str | Path
+        The output file path, do not include the file extension.
+    mass_spectra : object
+        The high resolution mass spectra object.
+    """
+    def __init__(self, out_file_path, mass_spectra):
+        super().__init__(out_file_path, mass_spectra)
+        self.ion_type_dict = ion_type_dict
+
+    @staticmethod
+    def get_ion_formula(neutral_formula, ion_type):
+        """From a neutral formula and an ion type, return the formula of the ion.
+
+        Notes
+        -----
+        This is a static method.
+        If the neutral_formula is not a string, this method will return None.
+
+        Parameters
+        ----------
+        neutral_formula : str
+            The neutral formula, this should be a string form from the MolecularFormula class
+            (e.g. 'C2 H4 O2', isotopes OK), or simple string (e.g. 'C2H4O2', no isotope handling in this case).
+            In the case of a simple string, the atoms are parsed based on the presence of capital letters,
+            e.g. MgCl2 is parsed as 'Mg Cl2.
+        ion_type : str
+            The ion type, e.g. 'protonated', '[M+H]+', '[M+Na]+', etc.
+            See the self.ion_type_dict for the available ion types.
+
+        Returns
+        -------
+        str
+            The formula of the ion as a string (like 'C2 H4 O2'); or None if the neutral_formula is not a string.
+        """
+        # If neutral_formula is not a string, return None
+        if not isinstance(neutral_formula, str):
+            return None
+
+        # Check if there are spaces in the formula (these are outputs of the MolecularFormula class and do not need to be processed before being passed to the class)
+        if re.search(r"\s", neutral_formula):
+            neutral_formula = MolecularFormula(neutral_formula, ion_charge=0)
+        else:
+            form_pre = re.sub(r"([A-Z])", r" \1", neutral_formula)[1:]
+            elements = [re.findall(r"[A-Z][a-z]*", x) for x in form_pre.split()]
+            counts = [re.findall(r"\d+", x) for x in form_pre.split()]
+            neutral_formula = MolecularFormula(
+                dict(
+                    zip(
+                        [x[0] for x in elements],
+                        [int(x[0]) if x else 1 for x in counts],
+                    )
+                ),
+                ion_charge=0,
+            )
+        neutral_formula_dict = neutral_formula.to_dict().copy()
+
+        adduct_add_dict = ion_type_dict[ion_type][0]
+        for key in adduct_add_dict:
+            if key in neutral_formula_dict.keys():
+                neutral_formula_dict[key] += adduct_add_dict[key]
+            else:
+                neutral_formula_dict[key] = adduct_add_dict[key]
+
+        adduct_subtract = ion_type_dict[ion_type][1]
+        for key in adduct_subtract:
+            neutral_formula_dict[key] -= adduct_subtract[key]
+
+        return MolecularFormula(neutral_formula_dict, ion_charge=0).string
+
+    @staticmethod
+    def get_isotope_type(ion_formula):
+        """From an ion formula, return the 13C isotope type of the ion.
+
+        Notes
+        -----
+        This is a static method.
+        If the ion_formula is not a string, this method will return None.
+        This is currently only functional for 13C isotopes.
+
+        Parameters
+        ----------
+        ion_formula : str
+            The formula of the ion, expected to be a string like 'C2 H4 O2'.
+
+        Returns
+        -------
+        str
+            The isotope type of the ion, e.g. '13C1', '13C2', etc; or None if the ion_formula does not contain a 13C isotope.
+
+        Raises
+        ------
+        ValueError
+            If the ion_formula is not a string.
+        """
+        if not isinstance(ion_formula, str):
+            return None
+
+        if re.search(r"\s", ion_formula):
+            ion_formula = MolecularFormula(ion_formula, ion_charge=0)
+        else:
+            raise ValueError('ion_formula should be a string like "C2 H4 O2"')
+        ion_formula_dict = ion_formula.to_dict().copy()
+
+        try:
+            iso_class = "13C" + str(ion_formula_dict.pop("13C"))
+        except KeyError:
+            iso_class = None
+
+        return iso_class
+
+    def clean_ms1_report(self, ms1_summary_full):
+        """Clean the MS1 report.
+
+        Parameters
+        ----------
+        ms1_summary_full : DataFrame
+            The full MS1 summary DataFrame.
+
+        Returns
+        -------
+        DataFrame
+            The cleaned MS1 summary DataFrame.
+        """
+        ms1_summary_full = ms1_summary_full.reset_index()
+        cols_to_keep = [
+            "mf_id",
+            "Molecular Formula",
+            "Ion Type",
+            "Calculated m/z",
+            "m/z Error (ppm)",
+            "m/z Error Score",
+            "Is Isotopologue",
+            "Isotopologue Similarity",
+            "Confidence Score",
+        ]
+        ms1_summary = ms1_summary_full[cols_to_keep].copy()
+        ms1_summary["ion_formula"] = [
+            self.get_ion_formula(f, a)
+            for f, a in zip(ms1_summary["Molecular Formula"], ms1_summary["Ion Type"])
+        ]
+        ms1_summary["isotopologue_type"] = [
+            self.get_isotope_type(f) for f in ms1_summary["ion_formula"].tolist()
+        ]
+
+        # Reorder columns
+        ms1_summary = ms1_summary[
+            [
+                "mf_id",
+                "ion_formula",
+                "isotopologue_type",
+                "Calculated m/z",
+                "m/z Error (ppm)",
+                "m/z Error Score",
+                "Isotopologue Similarity",
+                "Confidence Score",
+            ]
+        ]
+
+        # Set the index to mf_id
+        ms1_summary = ms1_summary.set_index("mf_id")
+
+        return ms1_summary
+
+    def summarize_lipid_report(self, ms2_annot):
+        """Summarize the lipid report.
+
+        Parameters
+        ----------
+        ms2_annot : DataFrame
+            The MS2 annotation DataFrame with all annotations.
+
+        Returns
+        -------
+        DataFrame
+            The summarized lipid report.
+        """
+        # Drop unnecessary columns for easier viewing
+        columns_to_drop = [
+            "precursor_mz",
+            "precursor_mz_error_ppm",
+            "metabref_mol_id",
+            "metabref_precursor_mz",
+            "cas",
+            "inchikey",
+            "inchi",
+            "chebi",
+            "smiles",
+            "kegg",
+            "data_id",
+            "iupac_name",
+            "traditional_name",
+            "common_name",
+            "casno",
+        ]
+        ms2_annot = ms2_annot.drop(
+            columns=[col for col in columns_to_drop if col in ms2_annot.columns]
+        )
+
+        # If ion_types_excluded is not empty, remove those ion types
+        ion_types_excluded = (
+            self.mass_spectra.parameters.ms2_molecular_search.ion_types_excluded
+        )
+        if len(ion_types_excluded) > 0:
+            ms2_annot = ms2_annot[~ms2_annot["ref_ion_type"].isin(ion_types_excluded)]
+
+        # If mf_id is not present, check that the index name is mf_id and reset the index
+        if "mf_id" not in ms2_annot.columns:
+            if ms2_annot.index.name == "mf_id":
+                ms2_annot = ms2_annot.reset_index()
+            else:
+                raise ValueError("mf_id is not present in the dataframe")
+
+        # Attempt to get consensus annotations to the MLF level
+        mlf_results_all = []
+        for mf_id in ms2_annot["mf_id"].unique():
+            mlf_results_perid = []
+            ms2_annot_mf = ms2_annot[ms2_annot["mf_id"] == mf_id].copy()
+            ms2_annot_mf["n_spectra_contributing"] = len(ms2_annot_mf)
+
+            for query_scan in ms2_annot["query_spectrum_id"].unique():
+                ms2_annot_sub = ms2_annot_mf[
+                    ms2_annot_mf["query_spectrum_id"] == query_scan
+                ].copy()
+
+                if ms2_annot_sub["lipid_summed_name"].nunique() == 1:
+                    # If there is only one lipid_summed_name, let's try to get consensus molecular species annotation
+                    if ms2_annot_sub["lipid_summed_name"].nunique() == 1:
+                        ms2_annot_sub["entropy_max"] = (
+                            ms2_annot_sub["entropy_similarity"]
+                            == ms2_annot_sub["entropy_similarity"].max()
+                        )
+                        ms2_annot_sub["ref_match_fract_max"] = (
+                            ms2_annot_sub["ref_mz_in_query_fract"]
+                            == ms2_annot_sub["ref_mz_in_query_fract"].max()
+                        )
+                        ms2_annot_sub["frag_max"] = ms2_annot_sub["query_frag_types"].apply(
+                            lambda x: True if "MLF" in x else False
+                        )
+
+                        # New column that looks if there is a consensus between the ranks (one row that is highest in all ranks)
+                        ms2_annot_sub["consensus"] = ms2_annot_sub[
+                            ["entropy_max", "ref_match_fract_max", "frag_max"]
+                        ].all(axis=1)
+
+                        # If there is a consensus, take the row with the highest entropy_similarity
+                        if ms2_annot_sub["consensus"].any():
+                            ms2_annot_sub = ms2_annot_sub[
+                                ms2_annot_sub["entropy_similarity"]
+                                == ms2_annot_sub["entropy_similarity"].max()
+                            ].head(1)
+                            mlf_results_perid.append(ms2_annot_sub)
+            if len(mlf_results_perid) == 0:
+                mlf_results_perid = pd.DataFrame()
+            else:
+                mlf_results_perid = pd.concat(mlf_results_perid)
+                if mlf_results_perid["name"].nunique() == 1:
+                    mlf_results_perid = mlf_results_perid[
+                        mlf_results_perid["entropy_similarity"]
+                        == mlf_results_perid["entropy_similarity"].max()
+                    ].head(1)
+                else:
+                    mlf_results_perid = pd.DataFrame()
+                mlf_results_all.append(mlf_results_perid)
+
+        # These are the consensus annotations to the MLF level
+        if len(mlf_results_all) > 0:
+            mlf_results_all = pd.concat(mlf_results_all)
+            mlf_results_all["annot_level"] = mlf_results_all["structure_level"]
+        else:
+            # Make an empty dataframe
+            mlf_results_all = ms2_annot.head(0)
+
+        # For remaining mf_ids, try to get a consensus annotation to the species level
+        species_results_all = []
+        # Remove mf_ids that have consensus annotations to the MLF level
+        ms2_annot_spec = ms2_annot[
+            ~ms2_annot["mf_id"].isin(mlf_results_all["mf_id"].unique())
+        ]
+        for mf_id in ms2_annot_spec["mf_id"].unique():
+            # Do all the hits have the same lipid_summed_name?
+            ms2_annot_sub = ms2_annot_spec[ms2_annot_spec["mf_id"] == mf_id].copy()
+            ms2_annot_sub["n_spectra_contributing"] = len(ms2_annot_sub)
+
+            if ms2_annot_sub["lipid_summed_name"].nunique() == 1:
+                # Grab the highest entropy_similarity result
+                ms2_annot_sub = ms2_annot_sub[
+                    ms2_annot_sub["entropy_similarity"]
+                    == ms2_annot_sub["entropy_similarity"].max()
+                ].head(1)
+                species_results_all.append(ms2_annot_sub)
+
+        # These are the consensus annotations to the species level
+        if len(species_results_all) > 0:
+            species_results_all = pd.concat(species_results_all)
+            species_results_all["annot_level"] = "species"
+        else:
+            # Make an empty dataframe
+            species_results_all = ms2_annot.head(0)
+
+        # Deal with the remaining mf_ids that do not have consensus annotations to the species level or MLF level
+        # Remove mf_ids that have consensus annotations to the species level
+        ms2_annot_remaining = ms2_annot_spec[
+            ~ms2_annot_spec["mf_id"].isin(species_results_all["mf_id"].unique())
+        ]
+        no_consensus = []
+        for mf_id in ms2_annot_remaining["mf_id"].unique():
+            id_sub = []
+            id_no_con = []
+            ms2_annot_sub_mf = ms2_annot_remaining[
+                ms2_annot_remaining["mf_id"] == mf_id
+            ].copy()
+            for query_scan in ms2_annot_sub_mf["query_scan_number"].unique():
+                ms2_annot_sub = ms2_annot_sub_mf[
+                    ms2_annot_sub_mf["query_scan_number"] == query_scan
+                ].copy()
+
+                # New columns for ranking [HIGHER RANK = BETTER]
+                ms2_annot_sub["entropy_max"] = (
+                    ms2_annot_sub["entropy_similarity"]
+                    == ms2_annot_sub["entropy_similarity"].max()
+                )
+                ms2_annot_sub["ref_match_fract_max"] = (
+                    ms2_annot_sub["ref_mz_in_query_fract"]
+                    == ms2_annot_sub["ref_mz_in_query_fract"].max()
+                )
+                ms2_annot_sub["frag_max"] = ms2_annot_sub["query_frag_types"].apply(
+                    lambda x: True if "MLF" in x else False
+                )
+
+                # New column that looks if there is a consensus between the ranks (one row that is highest in all ranks)
+                ms2_annot_sub["consensus"] = ms2_annot_sub[
+                    ["entropy_max", "ref_match_fract_max", "frag_max"]
+                ].all(axis=1)
+                ms2_annot_sub_con = ms2_annot_sub[ms2_annot_sub["consensus"]]
+                id_sub.append(ms2_annot_sub_con)
+                id_no_con.append(ms2_annot_sub)
+            id_sub = pd.concat(id_sub)
+            id_no_con = pd.concat(id_no_con)
+
+            # Scenario 1: Multiple scans are being resolved to different MLFs [could be coelutions and should both be kept and annotated to MS level]
+            if (
+                id_sub["query_frags"]
+                .apply(lambda x: True if "MLF" in x else False)
+                .all()
+                and len(id_sub) > 0
+            ):
+                idx = id_sub.groupby("name")["entropy_similarity"].idxmax()
+                id_sub = id_sub.loc[idx]
+                # Reorder so highest entropy_similarity is first
+                id_sub = id_sub.sort_values("entropy_similarity", ascending=False)
+                id_sub["annot_level"] = id_sub["structure_level"]
+                no_consensus.append(id_sub)
+
+            # Scenario 2: Multiple scans are being resolved to different species, keep both and annotate to appropriate level
+            elif len(id_sub) == 0:
+                for lipid_summed_name in id_no_con["lipid_summed_name"].unique():
+                    summed_sub = id_no_con[
+                        id_no_con["lipid_summed_name"] == lipid_summed_name
+                    ]
+                    # Any consensus to MLF?
+                    if summed_sub["consensus"].any():
+                        summed_sub = summed_sub[summed_sub["consensus"]]
+                        summed_sub["annot_level"] = summed_sub["structure_level"]
+                        no_consensus.append(summed_sub)
+                    else:
+                        # Grab the highest entropy_similarity, if there are multiple, grab the first one
+                        summed_sub = summed_sub[
+                            summed_sub["entropy_similarity"]
+                            == summed_sub["entropy_similarity"].max()
+                        ].head(1)
+                        # get first row
+                        summed_sub["annot_level"] = "species"
+                        summed_sub["name"] = ""
+                        no_consensus.append(summed_sub)
+            else:
+                raise ValueError("Unexpected scenario for summarizing mf_id: ", mf_id)
+
+        if len(no_consensus) > 0:
+            no_consensus = pd.concat(no_consensus)
+        else:
+            no_consensus = ms2_annot.head(0)
+
+        # Combine all the consensus annotations and reformat the dataframe for output
+        species_results_all = species_results_all.drop(columns=["name"])
+        species_results_all["lipid_molecular_species_id"] = ""
+        mlf_results_all["lipid_molecular_species_id"] = mlf_results_all["name"]
+        no_consensus["lipid_molecular_species_id"] = no_consensus["name"]
+        consensus_annotations = pd.concat(
+            [mlf_results_all, species_results_all, no_consensus]
+        )
+        consensus_annotations = consensus_annotations.sort_values(
+            "mf_id", ascending=True
+        )
+        cols_to_keep = [
+            "mf_id",
+            "ref_ion_type",
+            "entropy_similarity",
+            "ref_mz_in_query_fract",
+            "lipid_molecular_species_id",
+            "lipid_summed_name",
+            "lipid_subclass",
+            "lipid_class",
+            "lipid_category",
+            "formula",
+            "annot_level",
+            "n_spectra_contributing",
+        ]
+        consensus_annotations = consensus_annotations[cols_to_keep]
+        consensus_annotations = consensus_annotations.set_index("mf_id")
+
+        return consensus_annotations
+
+    def clean_ms2_report(self, lipid_summary):
+        """Clean the MS2 report.
+
+        Parameters
+        ----------
+        lipid_summary : DataFrame
+            The full lipid summary DataFrame.
+
+        Returns
+        -------
+        DataFrame
+            The cleaned lipid summary DataFrame.
+        """
+        lipid_summary = lipid_summary.reset_index()
+        lipid_summary["ion_formula"] = [
+            self.get_ion_formula(f, a)
+            for f, a in zip(lipid_summary["formula"], lipid_summary["ref_ion_type"])
+        ]
+
+        # Reorder columns
+        lipid_summary = lipid_summary[
+            [
+                "mf_id",
+                "ion_formula",
+                "ref_ion_type",
+                "formula",
+                "annot_level",
+                "lipid_molecular_species_id",
+                "lipid_summed_name",
+                "lipid_subclass",
+                "lipid_class",
+                "lipid_category",
+                "entropy_similarity",
+                "ref_mz_in_query_fract",
+                "n_spectra_contributing",
+            ]
+        ]
+
+        # Set the index to mf_id
+        lipid_summary = lipid_summary.set_index("mf_id")
+
+        return lipid_summary
+
+    def to_report(self, molecular_metadata=None):
+        """Create a report of the mass features and their annotations.
+
+        Parameters
+        ----------
+        molecular_metadata : dict, optional
+            The molecular metadata. Default is None.
+
+        Returns
+        -------
+        DataFrame
+            The report of the mass features and their annotations.
+
+        Notes
+        -----
+        The report will contain the mass features and their annotations from MS1 and MS2 (if available).
+        """
+        # Get mass feature dataframe
+        mf_report = self.mass_spectra.mass_features_to_df()
+        mf_report = mf_report.reset_index(drop=False)
+
+        # Get and clean ms1 annotation dataframe
+        ms1_annot_report = self.mass_spectra.mass_features_ms1_annot_to_df().copy()
+        ms1_annot_report = self.clean_ms1_report(ms1_annot_report)
+        ms1_annot_report = ms1_annot_report.reset_index(drop=False)
+
+        # Get, summarize, and clean ms2 annotation dataframe
+        ms2_annot_report = self.mass_spectra.mass_features_ms2_annot_to_df(
+            molecular_metadata=molecular_metadata
+        )
+        if ms2_annot_report is not None:
+            ms2_annot_report = self.summarize_lipid_report(ms2_annot_report)
+            ms2_annot_report = self.clean_ms2_report(ms2_annot_report)
+            ms2_annot_report = ms2_annot_report.dropna(axis=1, how="all")
+            ms2_annot_report = ms2_annot_report.reset_index(drop=False)
+
+        # Combine the reports
+        if not ms1_annot_report.empty:
+            # MS1 has been run and has molecular formula information
+            mf_report = pd.merge(
+                mf_report,
+                ms1_annot_report,
+                how="left",
+                on=["mf_id", "isotopologue_type"],
+            )
+        if ms2_annot_report is not None:
+            # pull out the records with ion_formula and drop the ion_formula column (these should be empty if MS1 molecular formula assignment is working correctly)
+            mf_no_ion_formula = mf_report[mf_report["ion_formula"].isna()]
+            mf_no_ion_formula = mf_no_ion_formula.drop(columns=["ion_formula"])
+            mf_no_ion_formula = pd.merge(
+                mf_no_ion_formula, ms2_annot_report, how="left", on=["mf_id"]
+            )
+
+            # pull out the records with ion_formula
+            mf_with_ion_formula = mf_report[~mf_report["ion_formula"].isna()]
+            mf_with_ion_formula = pd.merge(
+                mf_with_ion_formula,
+                ms2_annot_report,
+                how="left",
+                on=["mf_id", "ion_formula"],
+            )
+
+            # put back together
+            mf_report = pd.concat([mf_no_ion_formula, mf_with_ion_formula])
+
+        # Rename colums
+        rename_dict = {
+            "mf_id": "Mass Feature ID",
+            "scan_time": "Retention Time (min)",
+            "mz": "m/z",
+            "apex_scan": "Apex Scan Number",
+            "intensity": "Intensity",
+            "persistence": "Persistence",
+            "area": "Area",
+            "ms2_spectrum": "MS2 Spectrum",
+            "monoisotopic_mf_id": "Monoisotopic Mass Feature ID",
+            "isotopologue_type": "Isotopologue Type",
+            "ion_formula": "Ion Formula",
+            "formula": "Molecular Formula",
+            "ref_ion_type": "Ion Type",
+            "annot_level": "Lipid Annotation Level",
+            "lipid_molecular_species_id": "Lipid Molecular Species",
+            "lipid_summed_name": "Lipid Species",
+            "lipid_subclass": "Lipid Subclass",
+            "lipid_class": "Lipid Class",
+            "lipid_category": "Lipid Category",
+            "entropy_similarity": "Entropy Similarity",
+            "ref_mz_in_query_fract": "Library mzs in Query (fraction)",
+            "n_spectra_contributing": "Spectra with Annotation (n)",
+        }
+        mf_report = mf_report.rename(columns=rename_dict)
+        mf_report["Sample Name"] = self.mass_spectra.sample_name
+        mf_report["Polarity"] = self.mass_spectra.polarity
+        mf_report = mf_report[
+            ["Mass Feature ID", "Sample Name", "Polarity"]
+            + [
+                col
+                for col in mf_report.columns
+                if col not in ["Mass Feature ID", "Sample Name", "Polarity"]
+            ]
+        ]
+
+        return mf_report
+
+    def report_to_csv(self, molecular_metadata=None):
+        """Create a report of the mass features and their annotations and save it as a CSV file.
+
+        Parameters
+        ----------
+        molecular_metadata : dict, optional
+            The molecular metadata. Default is None.
+        """
+        report = self.to_report(molecular_metadata=molecular_metadata)
+        out_file = self.output_file.with_suffix(".csv")
+        report.to_csv(out_file, index=False)
