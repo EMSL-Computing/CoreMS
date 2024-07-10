@@ -381,13 +381,15 @@ class MzDomainCalibration:
             if self.mzsegment:
                 # Recombine the mass domains
                 mz_domain = np.concatenate([mz_domain,mz_exp_peaks_unchanged])
-                mz_profile_calc = np.concatenate([mz_profile_calc,mz_exp_profile_unchanged])
-                # Sort them 
                 mz_domain.sort()
-                mz_profile_calc.sort()
+                if not self.mass_spectrum.is_centroid:
+                    mz_profile_calc = np.concatenate([mz_profile_calc,mz_exp_profile_unchanged])
+                    mz_profile_calc.sort()
+                # Sort them 
                 if mz_exp_peaks[0] > mz_exp_peaks[1]: #If originally descending mass order
                     mz_domain = mz_domain[::-1]
-                    mz_profile_calc = mz_profile_calc[::-1]
+                    if not self.mass_spectrum.is_centroid:
+                        mz_profile_calc = mz_profile_calc[::-1]
 
             self.mass_spectrum.mz_cal = mz_domain
             if not self.mass_spectrum.is_centroid:

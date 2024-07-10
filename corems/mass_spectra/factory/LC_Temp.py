@@ -11,16 +11,18 @@ class TIC_Data:
     time: [floats]
         list of retention times
     tic: [floats]
-        total ion current
-    apexes: [int]
-        original apex scan number after peak picking
-    """
-
-    scans: List[int] = field(default_factory=list)
-    time: List[float] = field(default_factory=list)
-    tic: List[float] = field(default_factory=list)
-    apexes: List[int] = field(default_factory=list)
-
+        total ion current [chromatogram]
+    bpc: [floats]
+        base peak [chromatogram]
+    Apexes: [int]    
+        original thermo apex scan number after peak picking 
+     """
+     
+     scans : List[int] = field(default_factory=list)
+     time : List[float] = field(default_factory=list)
+     tic : List[float] = field(default_factory=list)
+     bpc : List[float] = field(default_factory=list)
+     apexes : List[int] = field(default_factory=list)
 
 @dataclass
 class EIC_Data:

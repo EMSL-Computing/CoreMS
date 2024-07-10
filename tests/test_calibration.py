@@ -16,11 +16,13 @@ from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
-from corems.mass_spectrum.input.massList import ReadMassList
+from corems.mass_spectrum.input.massList import ReadCoremsMasslist, ReadMassList
 from corems.mass_spectrum.calc.AutoRecalibration import HighResRecalibration
 from corems import get_filename
+
+
 def create_mass_spectrum():
-    
+    # Creates a profile mode mass spectrum object
     '''parse transient data from Bruker into a mass spectrum class object
 
         Parameters
@@ -49,13 +51,26 @@ def create_mass_spectrum():
     
     return mass_spectrum
 
+def create_centroid_mass_spectrum():
+    # Creates a centroid mass spectrum object
+    file_location = Path.cwd() / "tests/tests_data/ftms/ESI_NEG_SRFA_UnCal_Unassign.csv"
+    
+    MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
+    MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 0.1
+    
+    #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
+    mass_list_reader = ReadCoremsMasslist(file_location,  analyzer='ICR', instrument_label='12T')
+
+    mass_spectrum = mass_list_reader.get_mass_spectrum(loadSettings=False)
+
+    return mass_spectrum
+ 
+
 
 def test_mz_domain_calibration():
 
     MSParameters.mass_spectrum.min_calib_ppm_error = -10
     MSParameters.mass_spectrum.max_calib_ppm_error = 10
-
-    file_location = Path.cwd() / "tests/tests_data/ftms/ESI_NEG_SRFA.d/"
 
     ref_file_location = Path.cwd() / "tests/tests_data/ftms/SRFA.ref"
 
@@ -65,16 +80,64 @@ def test_mz_domain_calibration():
 
     MzDomainCalibration(mass_spectrum, ref_file_location).run()
 
+def test_mz_domain_calibration_centroid():
+
+    MSParameters.mass_spectrum.min_calib_ppm_error = -10
+    MSParameters.mass_spectrum.max_calib_ppm_error = 10
+    MSParameters.mass_spectrum.calib_pol_order = 1
+
+    ref_file_location = Path.cwd() / "tests/tests_data/ftms/SRFA.ref"
+
+    mass_spectrum = create_centroid_mass_spectrum()
+
+    mass_spectrum.filter_by_noise_threshold()
+
+    MzDomainCalibration(mass_spectrum, ref_file_location).run()
+
+    # check there is an output
+    assert mass_spectrum.calibration_order == 1
+    assert(mass_spectrum.calibration_points == 25)
+    assert(round(mass_spectrum.calibration_RMS, 4) == round(0.8690388563830891, 4))
+
 def test_autorecalibration():
 
     mass_spectrum = create_mass_spectrum()
 
     mass_spectrum.filter_by_noise_threshold()
 
+    auto_error_bounds = HighResRecalibration(mass_spectrum,plot=False,docker=False).determine_error_boundaries()
+
+    MSParameters.mass_spectrum.min_calib_ppm_error = auto_error_bounds[-1][0]
+    MSParameters.mass_spectrum.max_calib_ppm_error =  auto_error_bounds[-1][1]
+
+    ref_file_location = Path.cwd() / "tests/tests_data/ftms/SRFA.ref"
+
+    MzDomainCalibration(mass_spectrum, ref_file_location).run()
+
+
+def test_autorecalibration_centroid():
+
+    mass_spectrum = create_centroid_mass_spectrum()
+
+    mass_spectrum.filter_by_noise_threshold()
+
     HighResRecalibration(mass_spectrum,plot=False,docker=False).determine_error_boundaries()
 
+
 def test_segmentedmzcalibration():
+    # Tests profile mode recalibration
     mass_spectrum = create_mass_spectrum()
+
+    mass_spectrum.filter_by_noise_threshold()
+
+    ref_file_location = Path.cwd() / "tests/tests_data/ftms/SRFA.ref"
+
+    MzDomainCalibration(mass_spectrum, ref_file_location, mzsegment=(0,300)).run()
+
+
+def test_segmentedmzcalibration_centroid():
+    # Tests centroided mode recalibration
+    mass_spectrum = create_centroid_mass_spectrum()
 
     mass_spectrum.filter_by_noise_threshold()
 
