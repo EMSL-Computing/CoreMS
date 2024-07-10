@@ -17,12 +17,11 @@ class TIC_Data:
     Apexes: [int]    
         original thermo apex scan number after peak picking 
      """
-     
-     scans : List[int] = field(default_factory=list)
-     time : List[float] = field(default_factory=list)
-     tic : List[float] = field(default_factory=list)
-     bpc : List[float] = field(default_factory=list)
-     apexes : List[int] = field(default_factory=list)
+    scans : List[int] = field(default_factory=list)
+    time : List[float] = field(default_factory=list)
+    tic : List[float] = field(default_factory=list)
+    bpc : List[float] = field(default_factory=list)
+    apexes : List[int] = field(default_factory=list)
 
 @dataclass
 class EIC_Data:
