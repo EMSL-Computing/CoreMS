@@ -251,6 +251,7 @@ class MolecularFormulaBase(MolecularFormulaCalc):
     @property
     def O_C(self): 
             if 'O' in self._d_molecular_formula.keys():
+                # gather all the Os and Hs, regardless of the isotopic composition
                 Os =sum([self._d_molecular_formula.get(key) for key in ['O'] + Atoms.isotopes['O'][1] if key in self._d_molecular_formula.keys()])
                 Cs = sum([self._d_molecular_formula.get(key) for key in ['C'] + Atoms.isotopes['C'][1] if key in self._d_molecular_formula.keys()])
                 return Os/Cs
