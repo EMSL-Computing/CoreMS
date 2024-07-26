@@ -87,7 +87,7 @@ def test_run_molecular_formula_search():
 def test_run_molecular_formula_search_adduct():
     # Test for generating accurate molecular formula from a single mass using the local sql database
     # Now also tests that it is handling isotopes correctly (for non-adducts)
-    mz = [782.563522, 783.566877] #Na+ adduct of C56H73N1 and it's M+1
+    mz = [782.563522, 783.566877] #Na+ adduct of C56H73N1 and its M+1
     abundance = [1, 0.4]
     rp, s2n = [[1, 1],[1, 1]]
     
@@ -115,7 +115,7 @@ def test_run_molecular_formula_search_adduct():
     assert mass_spectrum_obj[0][0].string == 'C56 H73 N1'
     assert mass_spectrum_obj[0][0].H_C == 73/56
     assert mass_spectrum_obj[1][0].string == 'C55 H73 N1 13C1'
-    assert mass_spectrum_obj[1][0].H_C == 73/56 # This fails because the isotopologue is not being considered in the H/C ratio calculation
+    assert mass_spectrum_obj[1][0].H_C == 73/56
 
 
 
