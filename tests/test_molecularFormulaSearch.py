@@ -112,8 +112,10 @@ def test_run_molecular_formula_search_adduct():
     SearchMolecularFormulas(mass_spectrum_obj, find_isotopologues=True).run_worker_ms_peaks([mass_spectrum_obj[0]])
     mass_spectrum_obj.to_dataframe()
     
-    assert  mass_spectrum_obj[0][0].string == 'C56 H73 N1'
+    assert mass_spectrum_obj[0][0].string == 'C56 H73 N1'
+    assert mass_spectrum_obj[0][0].H_C == 73/56
     assert mass_spectrum_obj[1][0].string == 'C55 H73 N1 13C1'
+    assert mass_spectrum_obj[1][0].H_C == 73/56 # This fails because the isotopologue is not being considered in the H/C ratio calculation
 
 
 
