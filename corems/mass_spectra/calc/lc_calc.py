@@ -10,6 +10,28 @@ from corems.mass_spectra.factory.LC_Temp import EIC_Data
 from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
 
 
+def find_closest(A, target):
+    """Find the index of closest value in A to each value in target.
+
+    Parameters
+    ----------
+    A : :obj:`~numpy.array`
+        The array to search (blueprint). A must be sorted.
+    target : :obj:`~numpy.array`
+        The array of values to search for. target must be sorted.
+
+    Returns
+    -------
+    :obj:`~numpy.array`
+        The indices of the closest values in A to each value in target.
+    """
+    idx = A.searchsorted(target)
+    idx = np.clip(idx, 1, len(A) - 1)
+    left = A[idx - 1]
+    right = A[idx]
+    idx -= target - left < right - target
+    return idx
+
 class LCCalculations:
     """Methods for performing LC calculations on mass spectra data.
 
@@ -27,6 +49,14 @@ class LCCalculations:
         Performs EIC centroid detection on the given EIC data.
     * find_nearest_scan(rt).
         Finds the nearest scan to the given retention time.
+    * get_average_mass_spectrum(scan_list, apex_scan, spectrum_mode="profile", ms_level=1, auto_process=True, use_parser=False, perform_checks=True, polarity=None).
+        Returns an averaged mass spectrum object.
+    * find_mass_features(ms_level=1, verbose=True).
+        Find regions of interest for a given MS level (default is MS1).
+    * integrate_mass_features(drop_if_fail=False, ms_level=1).
+        Integrate mass features of interest and extracts EICs.
+    * find_c13_mass_features(verbose=True).
+        Evaluate mass features and mark likely C13 isotopes.
     """
 
     @staticmethod
@@ -273,7 +303,318 @@ class LCCalculations:
             if auto_process:
                 ms.process_mass_spec()
         return ms
+    
+    def find_mass_features(self, ms_level=1, verbose=True, grid=True):
+        """Find mass features within an LCMSBase object
 
+        Note that this is a wrapper function that calls the find_mass_features_ph function, but can be extended to support other peak picking methods in the future.
+
+        Parameters
+        ----------
+        ms_level : int, optional
+            The MS level to use for peak picking Default is 1.
+        verbose : bool, optional
+            Whether to print progress messages. Default is True.
+        grid : bool, optional
+            If True, will regrid the data before running the persistent homology calculations (after checking if the data is gridded, used for persistent homology peak picking. Default is True.
+
+        Raises
+        ------
+        ValueError
+            If no MS level data is found on the object.
+            If persistent homology peak picking is attempted on non-profile mode data.
+            If data is not gridded and grid is False.
+            If peak picking method is not implemented.
+
+        Returns
+        -------
+        None, but assigns the mass_features and eics attributes to the object.
+
+        """
+        pp_method = self.parameters.lc_ms.peak_picking_method
+
+        if pp_method == "persistent homology":
+            msx_scan_df = self.scan_df[self.scan_df["ms_level"] == ms_level]
+            if all(msx_scan_df["ms_format"] == "profile"):
+                self.find_mass_features_ph(
+                    ms_level=ms_level, verbose=verbose, grid=grid
+                )
+                self.cluster_mass_features(
+                    drop_children=True, sort_by="persistence", verbose=verbose
+                )
+            else:
+                raise ValueError(
+                    "MS{} scans are not profile mode, which is required for persistent homology peak picking.".format(
+                        ms_level
+                    )
+                )
+        else:
+            raise ValueError("Peak picking method not implemented")
+
+    def integrate_mass_features(self, drop_if_fail=False, ms_level=1):
+        """Integrate mass features and extract EICs.
+
+        Populates the _eics attribute on the LCMSBase object for each unique mz in the mass_features dataframe and adds data (start_scan, final_scan, area) to the mass_features attribute.
+
+        Parameters
+        ----------
+        drop_if_fail : bool, optional
+            Whether to drop mass features if the EIC limit calculations fail.
+        ms_level : int, optional
+            The MS level to use. Default is 1.
+
+        Raises
+        ------
+        ValueError
+            If no mass features are found.
+            If no MS level data is found for the given MS level (either in data or in the scan data)
+
+        Returns
+        -------
+        None, but populates the eics attribute on the LCMSBase object and adds data (start_scan, final_scan, area) to the mass_features attribute.
+
+        Notes
+        -----
+        drop_if_fail is useful for discarding mass features that do not have good shapes, usually due to a detection on a shoulder of a peak or a noisy region (especially if minimal smoothing is used during mass feature detection).
+        """
+        # Check if there is data
+        if ms_level in self._ms_unprocessed.keys():
+            raw_data = self._ms_unprocessed[ms_level].copy()
+        else:
+            raise ValueError("No MS level " + str(ms_level) + " data found")
+        if self.mass_features is not None:
+            mf_df = self.mass_features_to_df().copy()
+        else:
+            raise ValueError(
+                "No mass features found, did you run find_mass_features() first?"
+            )
+
+        # Subset scan data to only include correct ms_level
+        scan_df_sub = self.scan_df[
+            self.scan_df["ms_level"] == int(ms_level)
+        ].reset_index(drop=True)
+        if scan_df_sub.empty:
+            raise ValueError("No MS level " + ms_level + " data found in scan data")
+        scan_df_sub = scan_df_sub[["scan", "scan_time"]].copy()
+
+        mzs_to_extract = np.unique(mf_df["mz"].values)
+        mzs_to_extract.sort()
+
+        # Get EICs for each unique mz in mass features list
+        for mz in mzs_to_extract:
+            mz_max = mz + self.parameters.lc_ms.eic_tolerance_ppm * mz / 1e6
+            mz_min = mz - self.parameters.lc_ms.eic_tolerance_ppm * mz / 1e6
+            raw_data_sub = raw_data[
+                (raw_data["mz"] >= mz_min) & (raw_data["mz"] <= mz_max)
+            ].reset_index(drop=True)
+            raw_data_sub = (
+                raw_data_sub.groupby(["scan"])["intensity"].sum().reset_index()
+            )
+            raw_data_sub = scan_df_sub.merge(raw_data_sub, on="scan", how="left")
+            raw_data_sub["intensity"] = raw_data_sub["intensity"].fillna(0)
+            myEIC = EIC_Data(
+                scans=raw_data_sub["scan"].values,
+                time=raw_data_sub["scan_time"].values,
+                eic=raw_data_sub["intensity"].values,
+            )
+            # Smooth EIC
+            smoothed_eic = self.smooth_tic(myEIC.eic)
+            smoothed_eic[smoothed_eic < 0] = 0
+            myEIC.eic_smoothed = smoothed_eic
+            self.eics[mz] = myEIC
+
+        # Get limits of mass features using EIC centroid detector and integrate
+        mf_df["area"] = np.nan
+        for idx, mass_feature in mf_df.iterrows():
+            mz = mass_feature.mz
+            apex_scan = mass_feature.apex_scan
+
+            # Pull EIC data and find apex scan index
+            myEIC = self.eics[mz]
+            self.mass_features[idx]._eic_data = myEIC
+            apex_index = np.where(myEIC.scans == apex_scan)[0][0]
+
+            # Find left and right limits of peak using EIC centroid detector, add to EICData
+            centroid_eics = self.eic_centroid_detector(
+                myEIC.time,
+                myEIC.eic_smoothed,
+                mass_feature.intensity * 1.1,
+                apex_indexes=[int(apex_index)],
+            )
+            l_a_r_scan_idx = [i for i in centroid_eics]
+            if len(l_a_r_scan_idx) > 0:
+                # Add start and final scan to mass_features and EICData
+                left_scan, right_scan = (
+                    myEIC.scans[l_a_r_scan_idx[0][0]],
+                    myEIC.scans[l_a_r_scan_idx[0][2]],
+                )
+                mf_scan_apex = [(left_scan, int(apex_scan), right_scan)]
+                myEIC.apexes = myEIC.apexes + mf_scan_apex
+                self.mass_features[idx].start_scan = left_scan
+                self.mass_features[idx].final_scan = right_scan
+
+                # Find area under peak using limits from EIC centroid detector, add to mass_features and EICData
+                area = np.trapz(
+                    myEIC.eic_smoothed[l_a_r_scan_idx[0][0] : l_a_r_scan_idx[0][2] + 1],
+                    myEIC.time[l_a_r_scan_idx[0][0] : l_a_r_scan_idx[0][2] + 1],
+                )
+                mf_df.at[idx, "area"] = area
+                myEIC.areas = myEIC.areas + [area]
+                self.eics[mz] = myEIC
+                self.mass_features[idx]._area = area
+            else:
+                if drop_if_fail is True:
+                    self.mass_features.pop(idx)
+
+    def find_c13_mass_features(self, verbose=True):
+        """Mark likely C13 isotopes and connect to monoisoitopic mass features.
+
+        Parameters
+        ----------
+        verbose : bool, optional
+            Flag indicating whether to print the percentage of mass features that can be connected  back to monoisotopic masses (default is True).
+
+        Returns
+        -------
+        None, but populates the monoisotopic_mf_id and isotopologue_type attributes to the indivual LCMSMassFeatures within the mass_features attribute of the LCMSBase object.
+
+        Raises
+        ------
+        ValueError
+            If no mass features are found.
+        """
+        if verbose:
+            print("evaluating mass features for C13 isotopes")
+        if self.mass_features is None:
+            raise ValueError("No mass features found, run find_mass_features() first")
+
+        # Data prep fo sparse distance matrix
+        dims = ["mz", "scan_time"]
+        mf_df = self.mass_features_to_df().copy()
+        # Drop mass features that have no area (these are likely to be noise)
+        mf_df = mf_df[mf_df["area"].notnull()]
+        mf_df["mf_id"] = mf_df.index.values
+        dims = ["mz", "scan_time"]
+
+        # Sort my ascending mz so we always get the monoisotopic mass first, regardless of the order/intensity of the mass features
+        mf_df = mf_df.sort_values(by=["mz"]).reset_index(drop=True).copy()
+
+        mz_diff = 1.003355  # C13-C12 mass difference
+        tol = [
+            mf_df["mz"].median()
+            * self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel,
+            self.parameters.lc_ms.mass_feature_cluster_rt_tolerance * 0.5,
+        ]  # mz, in relative; scan_time in minutes
+
+        # Compute inter-feature distances
+        distances = None
+        for i in range(len(dims)):
+            # Construct k-d tree
+            values = mf_df[dims[i]].values
+            tree = KDTree(values.reshape(-1, 1))
+
+            max_tol = tol[i]
+            if dims[i] == "mz":
+                # Maximum absolute tolerance
+                max_tol = mz_diff + tol[i]
+
+            # Compute sparse distance matrix
+            # the larger the max_tol, the slower this operation is
+            sdm = tree.sparse_distance_matrix(tree, max_tol, output_type="coo_matrix")
+
+            # Only consider forward case, exclude diagonal
+            sdm = sparse.triu(sdm, k=1)
+
+            if dims[i] == "mz":
+                min_tol = mz_diff - tol[i]
+                # Get only the ones that are above the min tol
+                idx = sdm.data > min_tol
+
+                # Reconstruct sparse distance matrix
+                sdm = sparse.coo_matrix(
+                    (sdm.data[idx], (sdm.row[idx], sdm.col[idx])),
+                    shape=(len(values), len(values)),
+                )
+
+            # Cast as binary matrix
+            sdm.data = np.ones_like(sdm.data)
+
+            # Stack distances
+            if distances is None:
+                distances = sdm
+            else:
+                distances = distances.multiply(sdm)
+
+        # Extract indices of within-tolerance points
+        distances = distances.tocoo()
+        pairs = np.stack((distances.row, distances.col), axis=1)  # C12 to C13 pairs
+
+        # Turn pairs (which are index of mf_df) into mf_id and then into two dataframes to join to mf_df
+        pairs_mf = pairs.copy()
+        pairs_mf[:, 0] = mf_df.iloc[pairs[:, 0]].mf_id.values
+        pairs_mf[:, 1] = mf_df.iloc[pairs[:, 1]].mf_id.values
+
+        # Connect monoisotopic masses with isotopologes within mass_features
+        monos = np.setdiff1d(np.unique(pairs_mf[:, 0]), np.unique(pairs_mf[:, 1]))
+        for mono in monos:
+            self.mass_features[mono].monoisotopic_mf_id = mono
+        pairs_iso_df = pd.DataFrame(pairs_mf, columns=["parent", "child"])
+        while not pairs_iso_df.empty:
+            pairs_iso_df = pairs_iso_df.set_index("parent", drop=False)
+            m1_isos = pairs_iso_df.loc[monos, "child"].unique()
+            for iso in m1_isos:
+                # Set monoisotopic_mf_id and isotopologue_type for isotopologues
+                parent = pairs_mf[pairs_mf[:, 1] == iso, 0]
+                if len(parent) > 1:
+                    # Choose the parent that is closest in time to the isotopologue
+                    parent_time = [self.mass_features[p].retention_time for p in parent]
+                    time_diff = [
+                        np.abs(self.mass_features[iso].retention_time - x)
+                        for x in parent_time
+                    ]
+                    parent = parent[np.argmin(time_diff)]
+                else:
+                    parent = parent[0]
+                self.mass_features[iso].monoisotopic_mf_id = self.mass_features[
+                    parent
+                ].monoisotopic_mf_id
+                if self.mass_features[iso].monoisotopic_mf_id is not None:
+                    mass_diff = (
+                        self.mass_features[iso].mz
+                        - self.mass_features[
+                            self.mass_features[iso].monoisotopic_mf_id
+                        ].mz
+                    )
+                    self.mass_features[iso].isotopologue_type = "13C" + str(
+                        int(round(mass_diff, 0))
+                    )
+
+            # Drop the mono and iso from the pairs_iso_df
+            pairs_iso_df = pairs_iso_df.drop(
+                index=monos, errors="ignore"
+            )  # Drop pairs where the parent is a child that is a child of a root
+            pairs_iso_df = pairs_iso_df.set_index("child", drop=False)
+            pairs_iso_df = pairs_iso_df.drop(index=m1_isos, errors="ignore")
+
+            if not pairs_iso_df.empty:
+                # Get new monos, recognizing that these are just 13C isotopologues that are connected to other 13C isotopologues to repeat the process
+                monos = np.setdiff1d(
+                    np.unique(pairs_iso_df.parent), np.unique(pairs_iso_df.child)
+                )
+        if verbose:
+            # Report fraction of compounds annotated with isotopes
+            mf_df["c13_flag"] = np.where(
+                np.logical_or(
+                    np.isin(mf_df["mf_id"], pairs_mf[:, 0]),
+                    np.isin(mf_df["mf_id"], pairs_mf[:, 1]),
+                ),
+                1,
+                0,
+            )
+            print(
+                str(round(len(mf_df[mf_df["c13_flag"] == 1]) / len(mf_df), ndigits=3))
+                + " of mass features have or are C13 isotopes"
+            )
 
 class PHCalculations:
     """Methods for performing calculations related to 2D peak picking via persistent homology on LCMS data.
@@ -294,14 +635,10 @@ class PHCalculations:
         Check if the data is gridded in mz space.
     * grid_data(data, verbose=True).
         Grid the data in the mz dimension.
-    * find_mass_features(ms_level=1, verbose=True).
-        Find regions of interest using persistence homology for a given MS level (default is MS1).
+    * find_mass_features_ph(ms_level=1, verbose=True, grid=True).
+        Find mass features within an LCMSBase object using persistent homology.
     * cluster_mass_features(drop_children=True, verbose=True).
         Cluster regions of interest.
-    * integrate_mass_features(ms_level="1").
-        Integrate mass features of interest and extracts EICs.
-    * find_c13_mass_features(verbose=True).
-        Evaluate mass features and mark likely C13 isotopes.
     """
 
     @staticmethod
@@ -607,29 +944,6 @@ class PHCalculations:
             .values.flatten()
         )
 
-        # Re-cast masses to nearest values in mz_dat_np
-        def find_closest(A, target):
-            """Find the index of closest value in A to each value in target.
-
-            Parameters
-            ----------
-            A : :obj:`~numpy.array`
-                The array to search (blueprint). A must be sorted.
-            target : :obj:`~numpy.array`
-                The array of values to search for. target must be sorted.
-
-            Returns
-            -------
-            :obj:`~numpy.array`
-                The indices of the closest values in A to each value in target.
-            """
-            idx = A.searchsorted(target)
-            idx = np.clip(idx, 1, len(A) - 1)
-            left = A[idx - 1]
-            right = A[idx]
-            idx -= target - left < right - target
-            return idx
-
         # Sort data by mz and recast mz to nearest value in mz_dat_np
         data_w = data_w.sort_values(by=["mz"]).reset_index(drop=True).copy()
         data_w["mz_new"] = mz_dat_np[find_closest(mz_dat_np, data_w["mz"].values)]
@@ -654,53 +968,6 @@ class PHCalculations:
             return new_data_w
         else:
             raise ValueError("Gridding failed")
-
-    def find_mass_features(self, ms_level=1, verbose=True, grid=True):
-        """Find mass features within an LCMSBase object
-
-        Note that this is a wrapper function that calls the find_mass_features_ph function, but can be extended to support other peak picking methods in the future.
-
-        Parameters
-        ----------
-        ms_level : int, optional
-            The MS level to use for peak picking Default is 1.
-        verbose : bool, optional
-            Whether to print progress messages. Default is True.
-        grid : bool, optional
-            If True, will regrid the data before running the persistent homology calculations (after checking if the data is gridded, used for persistent homology peak picking. Default is True.
-
-        Raises
-        ------
-        ValueError
-            If no MS level data is found on the object.
-            If persistent homology peak picking is attempted on non-profile mode data.
-            If data is not gridded and grid is False.
-            If peak picking method is not implemented.
-
-        Returns
-        -------
-        None, but assigns the mass_features and eics attributes to the object.
-
-        """
-        pp_method = self.parameters.lc_ms.peak_picking_method
-
-        if pp_method == "persistent homology":
-            msx_scan_df = self.scan_df[self.scan_df["ms_level"] == ms_level]
-            if all(msx_scan_df["ms_format"] == "profile"):
-                self.find_mass_features_ph(
-                    ms_level=ms_level, verbose=verbose, grid=grid
-                )
-                self.cluster_mass_features(
-                    drop_children=True, sort_by="persistence", verbose=verbose
-                )
-            else:
-                raise ValueError(
-                    "MS{} scans are not profile mode, which is required for persistent homology peak picking.".format(
-                        ms_level
-                    )
-                )
-        else:
-            raise ValueError("Peak picking method not implemented")
 
     def find_mass_features_ph(self, ms_level=1, verbose=True, grid=True):
         """Find mass features within an LCMSBase object using persistent homology.
@@ -976,268 +1243,3 @@ class PHCalculations:
             }
         else:
             return cluster_daughters
-
-    def integrate_mass_features(self, drop_if_fail=False, ms_level=1):
-        """Integrate mass features and extract EICs.
-
-        Populates the _eics attribute on the LCMSBase object for each unique mz in the mass_features dataframe and adds data (start_scan, final_scan, area) to the mass_features attribute.
-
-        Parameters
-        ----------
-        drop_if_fail : bool, optional
-            Whether to drop mass features if the EIC limit calculations fail.
-        ms_level : int, optional
-            The MS level to use. Default is 1.
-
-        Raises
-        ------
-        ValueError
-            If no mass features are found.
-            If no MS level data is found for the given MS level (either in data or in the scan data)
-
-        Returns
-        -------
-        None, but populates the eics attribute on the LCMSBase object and adds data (start_scan, final_scan, area) to the mass_features attribute.
-
-        Notes
-        -----
-        drop_if_fail is useful for discarding mass features that do not have good shapes, usually due to a detection on a shoulder of a peak or a noisy region (especially if minimal smoothing is used during mass feature detection).
-        """
-        # Check if there is data
-        if ms_level in self._ms_unprocessed.keys():
-            raw_data = self._ms_unprocessed[ms_level].copy()
-        else:
-            raise ValueError("No MS level " + str(ms_level) + " data found")
-        if self.mass_features is not None:
-            mf_df = self.mass_features_to_df().copy()
-        else:
-            raise ValueError(
-                "No mass features found, did you run find_mass_features() first?"
-            )
-
-        # Subset scan data to only include correct ms_level
-        scan_df_sub = self.scan_df[
-            self.scan_df["ms_level"] == int(ms_level)
-        ].reset_index(drop=True)
-        if scan_df_sub.empty:
-            raise ValueError("No MS level " + ms_level + " data found in scan data")
-        scan_df_sub = scan_df_sub[["scan", "scan_time"]].copy()
-
-        mzs_to_extract = np.unique(mf_df["mz"].values)
-        mzs_to_extract.sort()
-
-        # Get EICs for each unique mz in mass features list
-        for mz in mzs_to_extract:
-            mz_max = mz + self.parameters.lc_ms.eic_tolerance_ppm * mz / 1e6
-            mz_min = mz - self.parameters.lc_ms.eic_tolerance_ppm * mz / 1e6
-            raw_data_sub = raw_data[
-                (raw_data["mz"] >= mz_min) & (raw_data["mz"] <= mz_max)
-            ].reset_index(drop=True)
-            raw_data_sub = (
-                raw_data_sub.groupby(["scan"])["intensity"].sum().reset_index()
-            )
-            raw_data_sub = scan_df_sub.merge(raw_data_sub, on="scan", how="left")
-            raw_data_sub["intensity"] = raw_data_sub["intensity"].fillna(0)
-            myEIC = EIC_Data(
-                scans=raw_data_sub["scan"].values,
-                time=raw_data_sub["scan_time"].values,
-                eic=raw_data_sub["intensity"].values,
-            )
-            # Smooth EIC
-            smoothed_eic = self.smooth_tic(myEIC.eic)
-            smoothed_eic[smoothed_eic < 0] = 0
-            myEIC.eic_smoothed = smoothed_eic
-            self.eics[mz] = myEIC
-
-        # Get limits of mass features using EIC centroid detector and integrate
-        mf_df["area"] = np.nan
-        for idx, mass_feature in mf_df.iterrows():
-            mz = mass_feature.mz
-            apex_scan = mass_feature.apex_scan
-
-            # Pull EIC data and find apex scan index
-            myEIC = self.eics[mz]
-            self.mass_features[idx]._eic_data = myEIC
-            apex_index = np.where(myEIC.scans == apex_scan)[0][0]
-
-            # Find left and right limits of peak using EIC centroid detector, add to EICData
-            centroid_eics = self.eic_centroid_detector(
-                myEIC.time,
-                myEIC.eic_smoothed,
-                mass_feature.intensity * 1.1,
-                apex_indexes=[int(apex_index)],
-            )
-            l_a_r_scan_idx = [i for i in centroid_eics]
-            if len(l_a_r_scan_idx) > 0:
-                # Add start and final scan to mass_features and EICData
-                left_scan, right_scan = (
-                    myEIC.scans[l_a_r_scan_idx[0][0]],
-                    myEIC.scans[l_a_r_scan_idx[0][2]],
-                )
-                mf_scan_apex = [(left_scan, int(apex_scan), right_scan)]
-                myEIC.apexes = myEIC.apexes + mf_scan_apex
-                self.mass_features[idx].start_scan = left_scan
-                self.mass_features[idx].final_scan = right_scan
-
-                # Find area under peak using limits from EIC centroid detector, add to mass_features and EICData
-                area = np.trapz(
-                    myEIC.eic_smoothed[l_a_r_scan_idx[0][0] : l_a_r_scan_idx[0][2] + 1],
-                    myEIC.time[l_a_r_scan_idx[0][0] : l_a_r_scan_idx[0][2] + 1],
-                )
-                mf_df.at[idx, "area"] = area
-                myEIC.areas = myEIC.areas + [area]
-                self.eics[mz] = myEIC
-                self.mass_features[idx]._area = area
-            else:
-                if drop_if_fail is True:
-                    self.mass_features.pop(idx)
-
-    def find_c13_mass_features(self, verbose=True):
-        """Mark likely C13 isotopes and connect to monoisoitopic mass features.
-
-        Parameters
-        ----------
-        verbose : bool, optional
-            Flag indicating whether to print the percentage of mass features that can be connected  back to monoisotopic masses (default is True).
-
-        Returns
-        -------
-        None, but populates the monoisotopic_mf_id and isotopologue_type attributes to the indivual LCMSMassFeatures within the mass_features attribute of the LCMSBase object.
-
-        Raises
-        ------
-        ValueError
-            If no mass features are found.
-        """
-        if verbose:
-            print("evaluating mass features for C13 isotopes")
-        if self.mass_features is None:
-            raise ValueError("No mass features found, run find_mass_features() first")
-
-        # Data prep fo sparse distance matrix
-        dims = ["mz", "scan_time"]
-        mf_df = self.mass_features_to_df().copy()
-        # Drop mass features that have no area (these are likely to be noise)
-        mf_df = mf_df[mf_df["area"].notnull()]
-        mf_df["mf_id"] = mf_df.index.values
-        dims = ["mz", "scan_time"]
-
-        # Sort my ascending mz so we always get the monoisotopic mass first, regardless of the order/intensity of the mass features
-        mf_df = mf_df.sort_values(by=["mz"]).reset_index(drop=True).copy()
-
-        mz_diff = 1.003355  # C13-C12 mass difference
-        tol = [
-            mf_df["mz"].median()
-            * self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel,
-            self.parameters.lc_ms.mass_feature_cluster_rt_tolerance * 0.5,
-        ]  # mz, in relative; scan_time in minutes
-
-        # Compute inter-feature distances
-        distances = None
-        for i in range(len(dims)):
-            # Construct k-d tree
-            values = mf_df[dims[i]].values
-            tree = KDTree(values.reshape(-1, 1))
-
-            max_tol = tol[i]
-            if dims[i] == "mz":
-                # Maximum absolute tolerance
-                max_tol = mz_diff + tol[i]
-
-            # Compute sparse distance matrix
-            # the larger the max_tol, the slower this operation is
-            sdm = tree.sparse_distance_matrix(tree, max_tol, output_type="coo_matrix")
-
-            # Only consider forward case, exclude diagonal
-            sdm = sparse.triu(sdm, k=1)
-
-            if dims[i] == "mz":
-                min_tol = mz_diff - tol[i]
-                # Get only the ones that are above the min tol
-                idx = sdm.data > min_tol
-
-                # Reconstruct sparse distance matrix
-                sdm = sparse.coo_matrix(
-                    (sdm.data[idx], (sdm.row[idx], sdm.col[idx])),
-                    shape=(len(values), len(values)),
-                )
-
-            # Cast as binary matrix
-            sdm.data = np.ones_like(sdm.data)
-
-            # Stack distances
-            if distances is None:
-                distances = sdm
-            else:
-                distances = distances.multiply(sdm)
-
-        # Extract indices of within-tolerance points
-        distances = distances.tocoo()
-        pairs = np.stack((distances.row, distances.col), axis=1)  # C12 to C13 pairs
-
-        # Turn pairs (which are index of mf_df) into mf_id and then into two dataframes to join to mf_df
-        pairs_mf = pairs.copy()
-        pairs_mf[:, 0] = mf_df.iloc[pairs[:, 0]].mf_id.values
-        pairs_mf[:, 1] = mf_df.iloc[pairs[:, 1]].mf_id.values
-
-        # Connect monoisotopic masses with isotopologes within mass_features
-        monos = np.setdiff1d(np.unique(pairs_mf[:, 0]), np.unique(pairs_mf[:, 1]))
-        for mono in monos:
-            self.mass_features[mono].monoisotopic_mf_id = mono
-        pairs_iso_df = pd.DataFrame(pairs_mf, columns=["parent", "child"])
-        while not pairs_iso_df.empty:
-            pairs_iso_df = pairs_iso_df.set_index("parent", drop=False)
-            m1_isos = pairs_iso_df.loc[monos, "child"].unique()
-            for iso in m1_isos:
-                # Set monoisotopic_mf_id and isotopologue_type for isotopologues
-                parent = pairs_mf[pairs_mf[:, 1] == iso, 0]
-                if len(parent) > 1:
-                    # Choose the parent that is closest in time to the isotopologue
-                    parent_time = [self.mass_features[p].retention_time for p in parent]
-                    time_diff = [
-                        np.abs(self.mass_features[iso].retention_time - x)
-                        for x in parent_time
-                    ]
-                    parent = parent[np.argmin(time_diff)]
-                else:
-                    parent = parent[0]
-                self.mass_features[iso].monoisotopic_mf_id = self.mass_features[
-                    parent
-                ].monoisotopic_mf_id
-                if self.mass_features[iso].monoisotopic_mf_id is not None:
-                    mass_diff = (
-                        self.mass_features[iso].mz
-                        - self.mass_features[
-                            self.mass_features[iso].monoisotopic_mf_id
-                        ].mz
-                    )
-                    self.mass_features[iso].isotopologue_type = "13C" + str(
-                        int(round(mass_diff, 0))
-                    )
-
-            # Drop the mono and iso from the pairs_iso_df
-            pairs_iso_df = pairs_iso_df.drop(
-                index=monos, errors="ignore"
-            )  # Drop pairs where the parent is a child that is a child of a root
-            pairs_iso_df = pairs_iso_df.set_index("child", drop=False)
-            pairs_iso_df = pairs_iso_df.drop(index=m1_isos, errors="ignore")
-
-            if not pairs_iso_df.empty:
-                # Get new monos, recognizing that these are just 13C isotopologues that are connected to other 13C isotopologues to repeat the process
-                monos = np.setdiff1d(
-                    np.unique(pairs_iso_df.parent), np.unique(pairs_iso_df.child)
-                )
-        if verbose:
-            # Report fraction of compounds annotated with isotopes
-            mf_df["c13_flag"] = np.where(
-                np.logical_or(
-                    np.isin(mf_df["mf_id"], pairs_mf[:, 0]),
-                    np.isin(mf_df["mf_id"], pairs_mf[:, 1]),
-                ),
-                1,
-                0,
-            )
-            print(
-                str(round(len(mf_df[mf_df["c13_flag"] == 1]) / len(mf_df), ndigits=3))
-                + " of mass features have or are C13 isotopes"
-            )
