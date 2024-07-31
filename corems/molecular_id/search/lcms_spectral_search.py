@@ -204,7 +204,7 @@ class LCMSSpectralSearch:
                         ms1_tolerance_in_da=self.parameters.ms1_molecular_search.max_ppm_error
                         * 10**-6
                         * precursor_mz,
-                        ms2_tolerance_in_da=peak_sep_da,
+                        ms2_tolerance_in_da=peak_sep_da*0.5,
                         method={"identity"},
                         precursor_ions_removal_da=None,
                         noise_threshold=noise_threshold,

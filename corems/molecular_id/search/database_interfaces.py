@@ -244,7 +244,7 @@ class MetabRefInterface(SpectralDatabaseInterface):
             If "min_ms2_difference_in_da" or "max_ms2_tolerance_in_da" are present in `fe_kwargs` and they are not equal.
 
         """
-        # If "min_ms2_difference_in_da" in fe_kwargs, check that "max_ms2_tolerance_in_da" is also present and they are equal
+        # If "min_ms2_difference_in_da" in fe_kwargs, check that "max_ms2_tolerance_in_da" is also present and that min_ms2_difference_in_da = 2xmax_ms2_tolerance_in_da
         if (
             "min_ms2_difference_in_da" in fe_kwargs
             or "max_ms2_tolerance_in_da" in fe_kwargs
@@ -254,14 +254,13 @@ class MetabRefInterface(SpectralDatabaseInterface):
                 or "max_ms2_tolerance_in_da" not in fe_kwargs
             ):
                 raise ValueError(
-                    "Both 'min_ms2_difference_in_da' and 'max_ms2_tolerance_in_da' must be specified and equal."
+                    "Both 'min_ms2_difference_in_da' and 'max_ms2_tolerance_in_da' must be specified."
                 )
             if (
-                fe_kwargs["min_ms2_difference_in_da"]
-                != fe_kwargs["max_ms2_tolerance_in_da"]
+                fe_kwargs["min_ms2_difference_in_da"] != 2*fe_kwargs["max_ms2_tolerance_in_da"]
             ):
                 raise ValueError(
-                    "The values of 'min_ms2_difference_in_da' and 'max_ms2_tolerance_in_da' must be equal."
+                    "The values of 'min_ms2_difference_in_da' must be exactly 2x 'max_ms2_tolerance_in_da'."
                 )
 
         # Initialize empty library
