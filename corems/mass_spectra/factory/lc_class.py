@@ -685,6 +685,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             "_area",
             "monoisotopic_mf_id",
             "isotopologue_type",
+            "mass_spectrum_deconvoluted_parent"
         ]
         df_mf_list = []
         for mf_id in self.mass_features.keys():
@@ -699,6 +700,8 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 # Add MS2 spectra info
                 best_ms2_spectra = self.mass_features[mf_id].best_ms2
                 dict_mf["ms2_spectra"] = mass_spectrum_to_string(best_ms2_spectra)
+            if len(self.mass_features[mf_id].associated_mass_features_deconvoluted)>0:
+                dict_mf["associated_mass_features"] = ", ".join(map(str, self.mass_features[mf_id].associated_mass_features_deconvoluted))
             df_mf_single = pd.DataFrame(dict_mf, index=[mf_id])
             df_mf_single["mz"] = self.mass_features[mf_id].mz
             df_mf_list.append(df_mf_single)
@@ -717,9 +720,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         )
 
         # reorder columns
-        if "ms2_spectra" in df_mf.columns:
-            df_mf = df_mf[
-                [
+        col_order = [
                     "mf_id",
                     "scan_time",
                     "mz",
@@ -729,23 +730,13 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                     "area",
                     "monoisotopic_mf_id",
                     "isotopologue_type",
+                    "mass_spectrum_deconvoluted_parent",
+                    "associated_mass_features",
                     "ms2_spectra",
                 ]
-            ]
-        else:
-            df_mf = df_mf[
-                [
-                    "mf_id",
-                    "scan_time",
-                    "mz",
-                    "apex_scan",
-                    "intensity",
-                    "persistence",
-                    "area",
-                    "monoisotopic_mf_id",
-                    "isotopologue_type",
-                ]
-            ]
+        # drop columns that are not in col_order
+        cols_to_order = [col for col in col_order if col in df_mf.columns]
+        df_mf = df_mf[cols_to_order]
 
         # reset index to mf_id
         df_mf = df_mf.set_index("mf_id")

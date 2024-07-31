@@ -57,6 +57,8 @@ class LCCalculations:
         Integrate mass features of interest and extracts EICs.
     * find_c13_mass_features(verbose=True).
         Evaluate mass features and mark likely C13 isotopes.
+    * deconvolute_ms1_mass_features(verbose=True).
+        Deconvolute mass features' ms1 mass spectra.
     """
 
     @staticmethod
@@ -689,12 +691,12 @@ class LCCalculations:
 
             # Get the indices of the mzs_decon in mass_feature.mass_spectrum.mz_exp and assign to the mass feature
             mzs_decon_idx = [id for id, mz in enumerate(mass_feature.mass_spectrum.mz_exp) if mz in mzs_decon]
-            mass_feature._ms_deconvoluted_idx = mzs_decon_idx #TODO KRH: add this attribute to  mass_feature_df, plotting
+            mass_feature._ms_deconvoluted_idx = mzs_decon_idx #TODO KRH: add this attribute to plotting
             # TODO KRH: Add property to LCMSMassFeature class to get the deconvoluted mass spectrum
 
             # Check if the mass feature's ms1 peak is the largest in the deconvoluted mass spectrum
             if mass_feature.ms1_peak.abundance == mass_feature.mass_spectrum.abundance[mzs_decon_idx].max():
-                mass_feature.mass_spectrum_deconvoluted_parent = True #TODO KRH: add this attribute to mass_feature_df
+                mass_feature.mass_spectrum_deconvoluted_parent = True 
             else:
                 mass_feature.mass_spectrum_deconvoluted_parent = False
 
@@ -706,7 +708,7 @@ class LCCalculations:
             # Subset mass_feature_df to only include mass features that are within 1 ppm of the deconvoluted masses
             mfs_associated_decon = mass_feature_df_sub[mass_feature_df_sub["mz_diff_ppm"] < self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel*10**6].index.values
 
-            mass_feature.associated_mass_features_deconvoluted = mfs_associated_decon #TODO KRH: add this attribute to , mass_feature_df
+            mass_feature.associated_mass_features_deconvoluted = mfs_associated_decon
 
 class PHCalculations:
     """Methods for performing calculations related to 2D peak picking via persistent homology on LCMS data.
