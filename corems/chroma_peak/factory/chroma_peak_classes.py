@@ -135,6 +135,8 @@ class LCMSMassFeature(ChromaPeakBase):
         The persistence of the feature.
     _eic_data : EIC_Data
         The EIC data object associated with the feature.
+    _ms_deconvoluted_idx : [int]
+        The indexes of the mass_spectrum attribute in the deconvoluted mass spectrum.
     is_calibrated : bool
         If True, the feature has been calibrated. Default is False.
     monoisotopic_mf_id : int
@@ -155,6 +157,10 @@ class LCMSMassFeature(ChromaPeakBase):
     id : int
         The ID of the feature, also the key in the parent LCMS object's 
         `mass_features` dictionary.
+    mass_spectrum_deconvoluted_parent : bool
+        If True, the mass feature corresponds to the most intense peak in the deconvoluted mass spectrum. Default is None.
+    associated_mass_features_deconvoluted : list
+        List of mass features associated with the deconvoluted mass spectrum. Default is an empty list.       
 
     """
 
@@ -183,6 +189,7 @@ class LCMSMassFeature(ChromaPeakBase):
         self._intensity: float = intensity
         self._persistence: float = persistence
         self._eic_data: EIC_Data = None
+        self._ms_deconvoluted_idx: [int] = None
 
         # Additional attributes
         self.monoisotopic_mf_id = None
@@ -190,6 +197,8 @@ class LCMSMassFeature(ChromaPeakBase):
         self.ms2_scan_numbers = []
         self.ms2_mass_spectra = {}
         self.ms2_similarity_results = []
+        self.mass_spectrum_deconvoluted_parent: bool = None
+        self.associated_mass_features_deconvoluted = []
 
         if id:
             self.id = id
