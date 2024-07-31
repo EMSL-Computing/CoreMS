@@ -627,9 +627,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             self.mass_features[mf_id].update_mz()
         
         if deconvolute:
-            # Check if _eics is set, raise error if not
-            for mf_id in self.mass_features:
-                self.deconvolute_ms1_mass_features()        
+            self.deconvolute_ms1_mass_features()        
 
     def mass_features_to_df(self):
         """Returns a pandas dataframe summarizing the mass features.

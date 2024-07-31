@@ -655,7 +655,6 @@ class LCCalculations:
 
         # Loop through each mass feature
         for mf_id, mass_feature in self.mass_features.items():
-
             # Get the left and right limits of the EIC of the mass feature
             l_scan, _, r_scan= mass_feature._eic_data.apexes[0]
 
@@ -676,8 +675,8 @@ class LCCalculations:
             # Group by mass_feature_mz and scan and sum intensity
             ms1_data_sub_group = ms1_data_sub.groupby(["mass_feature_mz", "scan"])["intensity"].sum().reset_index()
 
-            # Calculate the correlation of the intensities of the mass feature and the ms1 data
-            corr = ms1_data_sub_group.pivot(index="scan", columns="mass_feature_mz", values="intensity").corr()
+            # Calculate the correlation of the intensities of the mass feature and the ms1 data (set to 0 if no intensity)
+            corr = ms1_data_sub_group.pivot(index="scan", columns="mass_feature_mz", values="intensity").fillna(0).corr()
 
             # Subset the correlation matrix to only include the masses of the mass feature and those with a correlation > 0.8
             #decon_corr_min = self.parameters.lc_ms.ms1_deconvolution_corr_min #TODO KRH: add to parameters
@@ -690,12 +689,12 @@ class LCCalculations:
 
             # Get the indices of the mzs_decon in mass_feature.mass_spectrum.mz_exp and assign to the mass feature
             mzs_decon_idx = [x for x in range(len(mass_feature.mass_spectrum.mz_exp)) if mass_feature.mass_spectrum.mz_exp[x] in mzs_decon]
-            mass_feature._ms_deconvoluted_idx = mzs_decon_idx #TODO KRH: add this attribute to LCMSMassFeature class
+            mass_feature._ms_deconvoluted_idx = mzs_decon_idx #TODO KRH: add this attribute to LCMSMassFeature class, plotting, import, export
             # TODO KRH: Add property to LCMSMassFeature class to get the deconvoluted mass spectrum
 
             # Check if the mass feature's ms1 peak is the largest in the deconvoluted mass spectrum
             if mass_feature.ms1_peak.abundance == mass_feature.mass_spectrum._abundance[mzs_decon_idx].max():
-                mass_feature.mass_spectrum_deconvoluted_parent = True #TODO KRH: add this attribute to LCMSMassFeature class
+                mass_feature.mass_spectrum_deconvoluted_parent = True #TODO KRH: add this attribute to LCMSMassFeature class, import, export
             else:
                 mass_feature.mass_spectrum_deconvoluted_parent = False
 
@@ -707,7 +706,7 @@ class LCCalculations:
             # Subset mass_feature_df to only include mass features that are within 1 ppm of the deconvoluted masses
             mfs_associated_decon = mass_feature_df_sub[mass_feature_df_sub["mz_diff_ppm"] < self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel*10**6].index.values
 
-            mass_feature.associated_mass_features_deconvoluted = mfs_associated_decon #TODO KRH: add this attribute to LCMSMassFeature class
+            mass_feature.associated_mass_features_deconvoluted = mfs_associated_decon #TODO KRH: add this attribute to LCMSMassFeature class, import, export
 
 class PHCalculations:
     """Methods for performing calculations related to 2D peak picking via persistent homology on LCMS data.
