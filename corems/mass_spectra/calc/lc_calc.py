@@ -616,6 +616,99 @@ class LCCalculations:
                 + " of mass features have or are C13 isotopes"
             )
 
+    def deconvolute_ms1_mass_features(self):
+        """Deconvolute MS1 mass features
+
+        Deconvolute mass features ms1 spectrum based on the correlation of all masses within a spectrum over the EIC of the mass features
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None, but assigns the #TODO KRH: add appropriate attributes explicitly to the mass features.
+
+        Raises
+        ------
+        ValueError
+            If no mass features are found, must run find_mass_features() first.
+            If no EICs are found, did you run integrate_mass_features() first?
+
+        """
+        # Checks for set mass_features and eics
+        if self.mass_features is None:
+            raise ValueError("No mass features found, did you run find_mass_features() first?")
+        
+        if self.eics == {}:
+            raise ValueError("No EICs found, did you run integrate_mass_features() first?")
+        
+        if 1 not in self._ms_unprocessed.keys():
+            raise ValueError("No unprocessed MS1 spectra found.")
+
+        # Prep ms1 data
+        ms1_data = self._ms_unprocessed[1].copy()
+        ms1_data = ms1_data.set_index("scan")
+
+        # Prep mass feature summary
+        mass_feature_df = self.mass_features_to_df()
+
+        # Loop through each mass feature
+        for mf_id, mass_feature in self.mass_features.items():
+
+            # Get the left and right limits of the EIC of the mass feature
+            l_scan, _, r_scan= mass_feature._eic_data.apexes[0]
+
+            # Pull from the _ms1_unprocessed data the scan range of interest and sort by mz
+            ms1_data_sub = ms1_data.loc[l_scan:r_scan].copy()
+            ms1_data_sub = ms1_data_sub.sort_values(by=["mz"]).reset_index(drop=False)
+
+            # Get the centroided masses of the mass feature
+            mf_mspeak_mzs = mass_feature.mass_spectrum.mz_exp
+           
+            # Find the closest mz in the ms1 data to the centroided masses of the mass feature
+            ms1_data_sub["mass_feature_mz"] = mf_mspeak_mzs[find_closest(mf_mspeak_mzs, ms1_data_sub.mz.values)]
+
+            # Drop rows with mz_diff > 0.01 between the mass feature mz and the ms1 data mz
+            ms1_data_sub["mz_diff_rel"] = np.abs(ms1_data_sub["mass_feature_mz"] - ms1_data_sub["mz"])/ms1_data_sub["mz"]
+            ms1_data_sub = ms1_data_sub[ms1_data_sub["mz_diff_rel"] < self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel].reset_index(drop=True)
+
+            # Group by mass_feature_mz and scan and sum intensity
+            ms1_data_sub_group = ms1_data_sub.groupby(["mass_feature_mz", "scan"])["intensity"].sum().reset_index()
+
+            # Calculate the correlation of the intensities of the mass feature and the ms1 data
+            corr = ms1_data_sub_group.pivot(index="scan", columns="mass_feature_mz", values="intensity").corr()
+
+            # Subset the correlation matrix to only include the masses of the mass feature and those with a correlation > 0.8
+            #decon_corr_min = self.parameters.lc_ms.ms1_deconvolution_corr_min #TODO KRH: add to parameters
+            decon_corr_min = 0.9
+            corr_subset = corr.loc[mass_feature.mz, ]
+            corr_subset = corr_subset[corr_subset > decon_corr_min]
+
+            # Get the masses from the mass spectrum that are the result of the deconvolution
+            mzs_decon = corr_subset.index.values
+
+            # Get the indices of the mzs_decon in mass_feature.mass_spectrum.mz_exp and assign to the mass feature
+            mzs_decon_idx = [x for x in range(len(mass_feature.mass_spectrum.mz_exp)) if mass_feature.mass_spectrum.mz_exp[x] in mzs_decon]
+            mass_feature._ms_deconvoluted_idx = mzs_decon_idx #TODO KRH: add this attribute to LCMSMassFeature class
+            # TODO KRH: Add property to LCMSMassFeature class to get the deconvoluted mass spectrum
+
+            # Check if the mass feature's ms1 peak is the largest in the deconvoluted mass spectrum
+            if mass_feature.ms1_peak.abundance == mass_feature.mass_spectrum._abundance[mzs_decon_idx].max():
+                mass_feature.mass_spectrum_deconvoluted_parent = True #TODO KRH: add this attribute to LCMSMassFeature class
+            else:
+                mass_feature.mass_spectrum_deconvoluted_parent = False
+
+            # Check for other mass features that are in the deconvoluted mass spectrum and add the deconvoluted mass spectrum to the mass feature
+            # Subset mass_feature_df to only include mass features that are within the clustering tolerance
+            mass_feature_df_sub = mass_feature_df[abs(mass_feature.retention_time - mass_feature_df["scan_time"]) < self.parameters.lc_ms.mass_feature_cluster_rt_tolerance].copy()
+            # Calculate the mz difference in ppm between the mass feature and the peaks in the deconvoluted mass spectrum
+            mass_feature_df_sub["mz_diff_ppm"] = [np.abs(mzs_decon - mz).min()/mz*10**6 for mz in mass_feature_df_sub["mz"]]
+            # Subset mass_feature_df to only include mass features that are within 1 ppm of the deconvoluted masses
+            mfs_associated_decon = mass_feature_df_sub[mass_feature_df_sub["mz_diff_ppm"] < self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel*10**6].index.values
+
+            mass_feature.associated_mass_features_deconvoluted = mfs_associated_decon #TODO KRH: add this attribute to LCMSMassFeature class
+
 class PHCalculations:
     """Methods for performing calculations related to 2D peak picking via persistent homology on LCMS data.
 
