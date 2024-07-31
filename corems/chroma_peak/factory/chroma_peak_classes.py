@@ -189,7 +189,7 @@ class LCMSMassFeature(ChromaPeakBase):
         self._intensity: float = intensity
         self._persistence: float = persistence
         self._eic_data: EIC_Data = None
-        self._ms_deconvoluted_idx: [int] = None
+        self._ms_deconvoluted_idx = None
 
         # Additional attributes
         self.monoisotopic_mf_id = None
