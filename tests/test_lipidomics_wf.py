@@ -57,10 +57,12 @@ def test_lipidomics_workflow():
     # Use persistent homology to find mass features in the lc-ms data
     # Find mass features, cluster, and integrate them.  Then annotate pairs of mass features that are c13 iso pairs.
     myLCMSobj.find_mass_features(verbose=False)
-    myLCMSobj.integrate_mass_features(drop_if_fail=True)
     myLCMSobj.add_associated_ms1(
-        auto_process=True, use_parser=False, spectrum_mode="profile", deconvolute=True
+        auto_process=True, use_parser=False, spectrum_mode="profile"
     )
+    myLCMSobj.integrate_mass_features(drop_if_fail=True)
+    myLCMSobj.deconvolute_ms1_mass_features()        
+
     mass_spec_decon = myLCMSobj.mass_features[1].mass_spectrum_deconvoluted
     assert len(mass_spec_decon.mspeaks) < len(myLCMSobj.mass_features[1].mass_spectrum.mspeaks)
     myLCMSobj.find_c13_mass_features(verbose=False)
@@ -155,7 +157,7 @@ def test_lipidomics_workflow():
     myLCMSobj2 = parser.get_lcms_obj()
     df2 = myLCMSobj2.mass_features_to_df()
     assert df2.shape == (130, 11)
-    myLCMSobj2.mass_features[1].plot(return_fig=False)
+    myLCMSobj2.mass_features[1].plot(return_fig=False) #TODO KRH: Make sure _eic_data are being populated on each mass feature
 
     # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
     shutil.rmtree(

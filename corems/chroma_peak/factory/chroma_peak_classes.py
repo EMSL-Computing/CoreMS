@@ -259,6 +259,10 @@ class LCMSMassFeature(ChromaPeakBase):
             to_plot = [x for x in to_plot if x != "MS2"]
         if self._eic_data is None:
             to_plot = [x for x in to_plot if x != "EIC"]
+        if self._ms_deconvoluted_idx is not None:
+            deconvoluted = True
+        else:
+            deconvoluted = False
 
         fig, axs = plt.subplots(
             len(to_plot), 1, figsize=(9, len(to_plot) * 4), squeeze=False
@@ -317,10 +321,24 @@ class LCMSMassFeature(ChromaPeakBase):
 
         # MS1 plot
         if "MS1" in to_plot:
-            axs[i][0].set_title("MS1", loc="left")
-            axs[i][0].vlines(
-                self.mass_spectrum.mz_exp, 0, self.mass_spectrum.abundance, color="k"
-            )
+            if deconvoluted:
+                axs[i][0].set_title("MS1 (deconvoluted)", loc="left")
+                axs[i][0].vlines(
+                    self.mass_spectrum.mz_exp, 0, self.mass_spectrum.abundance, color="k", alpha=0.2, label="Raw MS1"
+                )
+                axs[i][0].vlines(
+                    self.mass_spectrum_deconvoluted.mz_exp, 0, self.mass_spectrum_deconvoluted.abundance, color="k", label="Deconvoluted MS1"
+                )
+                axs[i][0].set_xlim(self.mass_spectrum_deconvoluted.mz_exp.min()*.8, self.mass_spectrum_deconvoluted.mz_exp.max()*1.1)
+                axs[i][0].set_ylim(0, self.mass_spectrum_deconvoluted.abundance.max() * 1.1)
+            else:
+                axs[i][0].set_title("MS1 (raw)", loc="left")
+                axs[i][0].vlines(
+                    self.mass_spectrum.mz_exp, 0, self.mass_spectrum.abundance, color="k", label="Raw MS1"
+                )
+                axs[i][0].set_xlim(self.mass_spectrum.mz_exp.min()*.8, self.mass_spectrum.mz_exp.max()*1.1)
+                axs[i][0].set_ylim(bottom=0)
+
             if (self.ms1_peak.mz_exp - self.mz) < 0.01:
                 axs[i][0].vlines(
                     self.ms1_peak.mz_exp,
@@ -329,7 +347,7 @@ class LCMSMassFeature(ChromaPeakBase):
                     color="m",
                     label="Feature m/z",
                 )
-                axs[i][0].set_xlim(0, self.ms1_peak.mz_exp * 1.1)
+
             else:
                 if verbose:
                     print(
@@ -340,7 +358,6 @@ class LCMSMassFeature(ChromaPeakBase):
             axs[i][0].legend(loc="upper left")
             axs[i][0].set_ylabel("Intensity")
             axs[i][0].set_xlabel("m/z")
-            axs[i][0].set_ylim(bottom=0)
             axs[i][0].yaxis.set_tick_params(labelleft=False)
             i += 1
 
@@ -355,10 +372,7 @@ class LCMSMassFeature(ChromaPeakBase):
             axs[i][0].set_ylim(bottom=0)
             axs[i][0].yaxis.get_major_formatter().set_scientific(False)
             axs[i][0].yaxis.get_major_formatter().set_useOffset(False)
-            if "MS1" in to_plot:
-                axs[i][0].set_xlim(axs[i - 1][0].get_xlim())
-            else:
-                axs[i][0].set_xlim(0, max(self.best_ms2.mz_exp) * 1.1)
+            axs[i][0].set_xlim(self.best_ms2.mz_exp.min()*.8, self.best_ms2.mz_exp.max()*1.1)
             axs[i][0].yaxis.set_tick_params(labelleft=False)
 
         # Add space between subplots

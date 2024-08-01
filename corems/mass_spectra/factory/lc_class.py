@@ -489,7 +489,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                         ]
 
     def add_associated_ms1(
-        self, auto_process=True, use_parser=True, spectrum_mode=None, deconvolute=True
+        self, auto_process=True, use_parser=True, spectrum_mode=None
     ):
         """Add MS1 spectra associated with mass features to the dataset.
 
@@ -503,8 +503,6 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             The spectrum mode to use for the mass spectra.  If None, method will use the spectrum mode
             from the spectra parser to ascertain the spectrum mode (this allows for mixed types).
             Defaults to None. (faster if defined, otherwise will check each scan)
-        deconvolute : bool, optional
-            If True, deconvolutes the MS1 spectra for each mass feature and populates appropriate attributes. #TODO KRH: add appropriate attributes explicitly
 
         Raises
         ------
@@ -519,11 +517,6 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             raise ValueError(
                 "mass_features not set, must run find_mass_features() first"
             )
-        
-        if deconvolute:
-            if self.eics == {}:
-                raise ValueError("No EICs found, must run integrate_mass_features() first for deconvolution.")
-        
         scans_to_average = self.parameters.lc_ms.ms1_scans_to_average
 
         if scans_to_average == 1:
@@ -625,9 +618,6 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 self.mass_features[mf_id].apex_scan
             ]
             self.mass_features[mf_id].update_mz()
-        
-        if deconvolute:
-            self.deconvolute_ms1_mass_features()        
 
     def mass_features_to_df(self):
         """Returns a pandas dataframe summarizing the mass features.
