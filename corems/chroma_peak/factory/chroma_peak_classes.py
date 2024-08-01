@@ -4,6 +4,7 @@ __date__ = "Jun 12, 2019"
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import copy
 
 from corems.chroma_peak.calc.ChromaPeakCalc import GCPeakCalculation
 from corems.mass_spectra.factory.LC_Temp import EIC_Data
@@ -376,6 +377,16 @@ class LCMSMassFeature(ChromaPeakBase):
             return self._mz_cal
         else:
             return self._mz_exp
+    
+    @property
+    def mass_spectrum_deconvoluted(self):
+        """Returns the deconvoluted mass spectrum object associated with the mass feature, if deconvolution has been performed."""
+        if self._ms_deconvoluted_idx is not None:
+            ms_deconvoluted = copy.deepcopy(self.mass_spectrum)
+            ms_deconvoluted.set_indexes(self._ms_deconvoluted_idx)
+            return ms_deconvoluted
+        else:
+            raise ValueError("Deconvolution has not been performed for mass feature " + str(self.id))
 
     @property
     def retention_time(self):

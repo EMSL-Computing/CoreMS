@@ -629,7 +629,9 @@ class LCCalculations:
 
         Returns
         -------
-        None, but assigns the #TODO KRH: add appropriate attributes explicitly to the mass features.
+        None, but assigns the _ms_deconvoluted_idx, mass_spectrum_deconvoluted_parent, 
+        and associated_mass_features_deconvoluted attributes to the mass features in the 
+        mass_features attribute of the LCMSBase object.
 
         Raises
         ------
@@ -692,7 +694,6 @@ class LCCalculations:
             # Get the indices of the mzs_decon in mass_feature.mass_spectrum.mz_exp and assign to the mass feature
             mzs_decon_idx = [id for id, mz in enumerate(mass_feature.mass_spectrum.mz_exp) if mz in mzs_decon]
             mass_feature._ms_deconvoluted_idx = mzs_decon_idx #TODO KRH: add this attribute to plotting
-            # TODO KRH: Add property to LCMSMassFeature class to get the deconvoluted mass spectrum
 
             # Check if the mass feature's ms1 peak is the largest in the deconvoluted mass spectrum
             if mass_feature.ms1_peak.abundance == mass_feature.mass_spectrum.abundance[mzs_decon_idx].max():

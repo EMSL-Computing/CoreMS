@@ -61,6 +61,8 @@ def test_lipidomics_workflow():
     myLCMSobj.add_associated_ms1(
         auto_process=True, use_parser=False, spectrum_mode="profile", deconvolute=True
     )
+    mass_spec_decon = myLCMSobj.mass_features[1].mass_spectrum_deconvoluted
+    assert len(mass_spec_decon.mspeaks) < len(myLCMSobj.mass_features[1].mass_spectrum.mspeaks)
     myLCMSobj.find_c13_mass_features(verbose=False)
     assert len(myLCMSobj.mass_features) == 130
 
