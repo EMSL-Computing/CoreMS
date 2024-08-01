@@ -688,7 +688,7 @@ class LCCalculations:
             corr = ms1_data_sub_group.pivot(index="scan", columns="mass_feature_mz", values="intensity").fillna(0).corr()
 
             # Subset the correlation matrix to only include the masses of the mass feature and those with a correlation > 0.8
-            #decon_corr_min = self.parameters.lc_ms.ms1_deconvolution_corr_min #TODO KRH: add to parameters
+            decon_corr_min = self.parameters.lc_ms.ms1_deconvolution_corr_min
             decon_corr_min = 0.9
             corr_subset = corr.loc[mass_feature.mz, ]
             corr_subset = corr_subset[corr_subset > decon_corr_min]
@@ -698,7 +698,7 @@ class LCCalculations:
 
             # Get the indices of the mzs_decon in mass_feature.mass_spectrum.mz_exp and assign to the mass feature
             mzs_decon_idx = [id for id, mz in enumerate(mass_feature.mass_spectrum.mz_exp) if mz in mzs_decon]
-            mass_feature._ms_deconvoluted_idx = mzs_decon_idx #TODO KRH: add this attribute to plotting
+            mass_feature._ms_deconvoluted_idx = mzs_decon_idx
 
             # Check if the mass feature's ms1 peak is the largest in the deconvoluted mass spectrum
             if mass_feature.ms1_peak.abundance == mass_feature.mass_spectrum.abundance[mzs_decon_idx].max():

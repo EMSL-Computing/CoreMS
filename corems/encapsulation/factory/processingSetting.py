@@ -130,11 +130,14 @@ class LiquidChromatographSetting:
     eic_buffer_time : float, optional
         Buffer time to add to the start and end of the plot of the extracted ion chromatogram, in minutes. Default is 1.5.
     ph_smooth_it : int, optional
-        Number of iterations to use for smoothing prior to finding mass features. Called within the PHCalculations.find_mass_features() method. Default is 7.
+        Number of iterations to use for smoothing prior to finding mass features. 
+        Called within the PHCalculations.find_mass_features_ph() method. Default is 7.
     ph_smooth_radius_mz : int, optional
-        Radius in m/z steps (not daltons) for smoothing prior to finding mass features. Called within the PHCalculations.find_mass_features() method. Default is 0.
+        Radius in m/z steps (not daltons) for smoothing prior to finding mass features. 
+        Called within the PHCalculations.find_mass_features_ph() method. Default is 0.
     ph_smooth_radius_scan : int, optional
-        Radius in scan steps for smoothing prior to finding mass features. Called within the PHCalculations.find_mass_features() method. Default is 3.
+        Radius in scan steps for smoothing prior to finding mass features. 
+        Called within the PHCalculations.find_mass_features_ph() method. Default is 3.
     ph_inten_min_rel : int, optional
         Relative minimum intensity to use for finding mass features. 
         Calculated as a fraction of the maximum intensity of the unprocessed profile data (mz, scan).
@@ -145,11 +148,20 @@ class LiquidChromatographSetting:
         Should be greater to or equal to ph_inten_min_rel.
         Called within the PH_Calculations.find_mass_features() method. Default is 0.001.
     mass_feature_cluster_mz_tolerance_rel : float, optional
-        Relative m/z tolerance to use for clustering mass features. Called with the PHCalculations.cluster_mass_features() method. Default is 5E-6 (5 ppm).
+        Relative m/z tolerance to use for clustering mass features. 
+        Called with the PHCalculations.cluster_mass_features() and the LCCalculations.deconvolute_ms1_mass_features() methods.
+        Default is 5E-6 (5 ppm).
     mass_feature_cluster_rt_tolerance : float, optional
-        Retention time tolerance to use for clustering mass features, in minutes. Called with the PHCalculations.cluster_mass_features() method. Default is 0.2.
+        Retention time tolerance to use for clustering mass features, in minutes. 
+        Called with the PHCalculations.cluster_mass_features() and the LCCalculations.deconvolute_ms1_mass_features() methods. 
+        Default is 0.2.
     ms1_scans_to_average : int, optional
-        Number of MS1 scans to average for mass-feature associated m/zs. Called within the LCMSBase.add_associated_ms1() method. Default is 1. 
+        Number of MS1 scans to average for mass-feature associated m/zs. 
+        Called within the LCMSBase.add_associated_ms1() method. Default is 1. 
+    ms1_deconvolution_corr_min : float, optional
+        Minimum correlation to use for deconvoluting MS1 mass features. 
+        Called within the LCCalculations.deconvolute_ms1_mass_features() method. 
+        Default is 0.8.
     ms2_dda_rt_tolerance : float, optional
         Retention time tolerance to use for associating MS2 spectra to mass features, in minutes. Called within the LCMSBase.add_associated_ms2_dda() method. Default is 0.15.
     ms2_dda_mz_tolerance : float, optional
@@ -195,8 +207,9 @@ class LiquidChromatographSetting:
     mass_feature_cluster_mz_tolerance_rel: float = 5E-6
     mass_feature_cluster_rt_tolerance: float = 0.3
 
-    # Parameters used in associating MS1 and MS2 spectra to LCMS mass features
+    # Parameters used in associating MS1 and MS2 spectra to LCMS mass features and deconvoluting MS1 mass features
     ms1_scans_to_average: int = 1
+    ms1_deconvolution_corr_min: float = 0.8
     ms2_dda_rt_tolerance: float = 0.15
     ms2_dda_mz_tolerance: float = 0.05
 
