@@ -390,6 +390,11 @@ class LCCalculations:
             raise ValueError(
                 "No mass features found, did you run find_mass_features() first?"
             )
+        # Check if mass_spectrum exists on each mass feature
+        if not all([mf.mass_spectrum is not None for mf in self.mass_features.values()]):
+            raise ValueError(
+                "Mass spectrum must be associated with each mass feature, did you run add_associated_ms1() first?"
+            ) 
 
         # Subset scan data to only include correct ms_level
         scan_df_sub = self.scan_df[
