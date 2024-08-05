@@ -518,13 +518,6 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
     def half_height_width(self):
         """Half height width of the mass feature, average of min and max values, in minutes"""
         return np.mean(self._half_height_width)
-    
-    @half_height_width.setter
-    def half_height_width(self, value):
-        """Set the half height width of the mass feature"""
-        if not isinstance(value, tuple):
-            raise ValueError("The half height width of the mass feature must be a tuple of floats representing the min and max values")
-        self._half_height_width = value
 
     @property
     def best_ms2(self):

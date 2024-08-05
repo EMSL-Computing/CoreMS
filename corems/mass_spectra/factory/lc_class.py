@@ -667,7 +667,6 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
 
         cols_in_df = [
             "id",
-            # "_mz",
             "_apex_scan",
             "_retention_time",
             "_intensity",
@@ -724,6 +723,9 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                     "intensity",
                     "persistence",
                     "area",
+                    "half_height_width",
+                    "tailing_factor",
+                    "dispersity_index",
                     "monoisotopic_mf_id",
                     "isotopologue_type",
                     "mass_spectrum_deconvoluted_parent",

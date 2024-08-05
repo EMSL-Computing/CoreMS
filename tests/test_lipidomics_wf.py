@@ -74,7 +74,7 @@ def test_lipidomics_workflow():
 
     # Export the mass features to a pandas dataframe
     df = myLCMSobj.mass_features_to_df()
-    assert df.shape == (130, 11)
+    assert df.shape == (130, 14)
 
     # Plot a mass feature
     myLCMSobj.mass_features[1].plot(return_fig=False)
@@ -157,7 +157,7 @@ def test_lipidomics_workflow():
     )
     myLCMSobj2 = parser.get_lcms_obj()
     df2 = myLCMSobj2.mass_features_to_df()
-    assert df2.shape == (130, 11)
+    assert df2.shape == (130, 14)
     myLCMSobj2.mass_features[1].plot(return_fig=False)
 
     # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory

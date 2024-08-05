@@ -130,7 +130,6 @@ class LCMSMassFeatureCalculation():
         rt_summ = sorted_rt[np.where(cum_sum < 0.5)]
         d = np.std(rt_summ)
 
-        #TODO KRH: Add to mass_feature_df
         #TODO KRH: Add checks for empty EIC and length of rt_summ
         self._dispersity_index = d
     
@@ -198,7 +197,6 @@ class LCMSMassFeatureCalculation():
         -------
         None, stores the result in the `_half_height_width` attribute of the class.
         """
-        # TODO KRH: Add to mass_feature_df
         min_, max_, estimated = self.calc_fraction_height_width(0.5)
         if not estimated or accept_estimated:
             self._half_height_width = np.array([min_, max_])
@@ -225,16 +223,16 @@ class LCMSMassFeatureCalculation():
 
         if not estimated or accept_estimated:
             # Next calculate the width of the peak at 95% of the peak height
-            max_index = np.argmax(self.eic_list)
+            eic = self._eic_data.eic_smoothed
+            max_index = np.where(self._eic_data.scans == self.apex_scan)[0][0]
             left_index = max_index
-            while self.eic_list[left_index] >  max(self.eic_list)*0.05:
+            while eic[left_index] >  max(eic)*0.05:
                 left_index -= 1
 
-            left_half_time_min = self.eic_rt_list[max_index]-self.eic_rt_list[left_index]
-            left_half_time_max = self.eic_rt_list[max_index]-self.eic_rt_list[left_index+1]
+            left_half_time_min = self._eic_data.time[max_index]-self._eic_data.time[left_index]
+            left_half_time_max = self._eic_data.time[max_index]-self._eic_data.time[left_index+1]
 
             tailing_factor = np.mean([width_min, width_max])/(2*np.mean([left_half_time_min, left_half_time_max]))
 
-            # TODO KRH: Add mass_feature_df
             self._tailing_factor = tailing_factor
             

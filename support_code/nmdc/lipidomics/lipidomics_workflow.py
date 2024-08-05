@@ -11,7 +11,6 @@ import cProfile
 from multiprocessing import Pool
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
@@ -69,29 +68,6 @@ def set_params_on_lcms_obj(myLCMSobj, params_toml):
     # Load parameters from toml file
     load_and_set_toml_parameters_lcms(myLCMSobj, params_toml)
 
-
-def signal_processing_lcms(myLCMSobj, verbose):
-    """Signal processing for LCMS object.
-
-    This includes peak picking, peak grouping, peak integration, annotation of c13 mass features.
-
-    Parameters
-    ----------
-    myLCMSobj : corems LCMS object
-        LCMS object to process
-    verbose : bool
-        Whether to print verbose output
-
-    Returns
-    -------
-    None, processes the LCMS object
-    """
-    # Find mass features, cluster, and integrate them.  Then annotate pairs of mass features that are c13 iso pairs.
-    myLCMSobj.find_mass_features(verbose=verbose)
-    myLCMSobj.integrate_mass_features(drop_if_fail=True)
-    myLCMSobj.find_c13_mass_features(verbose=verbose)
-
-
 def molecular_formula_search(myLCMSobj):
     """Perform molecular search on ms1 spectra
 
@@ -131,8 +107,12 @@ def molecular_formula_search(myLCMSobj):
     print("Finished molecular search")
 
 
-def process_ms1(myLCMSobj, ms1_molecular_search=True):
+def process_ms1(myLCMSobj, verbose, ms1_molecular_search=True):
     """Process ms1 spectra and perform molecular search
+
+    This includes peak picking, adding and processing associated ms1 spectra,
+    integration of mass features, annotation of c13 mass features, deconvolution of ms1 mass features,
+    and adding of peak shape metrics of mass features to the mass feature dataframe.
 
     Parameters
     ----------
@@ -145,11 +125,14 @@ def process_ms1(myLCMSobj, ms1_molecular_search=True):
     -------
     None, processes the LCMS object
     """
+    myLCMSobj.find_mass_features(verbose=verbose)
     myLCMSobj.add_associated_ms1(
         auto_process=True, use_parser=False, spectrum_mode="profile"
     )
+    myLCMSobj.integrate_mass_features(drop_if_fail=True)
+    myLCMSobj.find_c13_mass_features(verbose=verbose)
     myLCMSobj.deconvolute_ms1_mass_features()
-    # myLCMSobj.mass_features_to_df()
+    myLCMSobj.add_peak_metrics()
     if ms1_molecular_search:
         molecular_formula_search(myLCMSobj)
 
@@ -369,8 +352,7 @@ def run_lipid_sp_ms1(
     """
     myLCMSobj = instantiate_lcms_obj(file_in, verbose)
     set_params_on_lcms_obj(myLCMSobj, params_toml)
-    signal_processing_lcms(myLCMSobj, verbose)
-    process_ms1(myLCMSobj, ms1_molecular_search=False) #TODO: change to True when ready
+    process_ms1(myLCMSobj, verbose, ms1_molecular_search=False) #TODO: change to True when ready
     add_ms2(myLCMSobj)
     export_results(myLCMSobj, out_path=out_path, final=False)
     if return_mzs:
@@ -475,7 +457,7 @@ if __name__ == "__main__":
     # Set input variables to run
     cores = 1
     file_dir = Path("tmp_data/thermo_raw_NMDC_mini")
-    out_dir = Path("tmp_data/NMDC_processed_0730b")
+    out_dir = Path("tmp_data/NMDC_processed_0805")
     params_toml = Path("tmp_data/thermo_raw_NMDC_mini/nmdc_lipid_params.toml")
 
     verbose = True
@@ -484,7 +466,7 @@ if __name__ == "__main__":
     out_dir.mkdir(parents=True, exist_ok=True)
 
     # if cores > 1, don't use verbose output
-    if cores > 1:
+    if cores > 2:
         verbose = False
 
     profile = False
