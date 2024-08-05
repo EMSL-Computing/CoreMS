@@ -673,6 +673,8 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             "_intensity",
             "_persistence",
             "_area",
+            "_dispersity_index",
+            "_tailing_factor",
             "monoisotopic_mf_id",
             "isotopologue_type",
         ]
@@ -689,6 +691,8 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 # Add MS2 spectra info
                 best_ms2_spectra = self.mass_features[mf_id].best_ms2
                 dict_mf["ms2_spectra"] = mass_spectrum_to_string(best_ms2_spectra)
+            if self.mass_features[mf_id]._half_height_width is not None:
+                dict_mf["half_height_width"] = self.mass_features[mf_id].half_height_width
             df_mf_single = pd.DataFrame(dict_mf, index=[mf_id])
             df_mf_single["mz"] = self.mass_features[mf_id].mz
             df_mf_list.append(df_mf_single)
@@ -703,6 +707,8 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 "_retention_time": "scan_time",
                 "_intensity": "intensity",
                 "_persistence": "persistence",
+                "_dispersity_index": "dispersity_index",
+                "_tailing_factor": "tailing_factor",
             }
         )
 
