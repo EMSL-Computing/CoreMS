@@ -676,7 +676,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             "_tailing_factor",
             "monoisotopic_mf_id",
             "isotopologue_type",
-            "mass_spectrum_deconvoluted_parent"
+            "mass_spectrum_deconvoluted_parent",
         ]
         df_mf_list = []
         for mf_id in self.mass_features.keys():
@@ -691,10 +691,17 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 # Add MS2 spectra info
                 best_ms2_spectra = self.mass_features[mf_id].best_ms2
                 dict_mf["ms2_spectra"] = mass_spectrum_to_string(best_ms2_spectra)
-            if len(self.mass_features[mf_id].associated_mass_features_deconvoluted)>0:
-                dict_mf["associated_mass_features"] = ", ".join(map(str, self.mass_features[mf_id].associated_mass_features_deconvoluted))
+            if len(self.mass_features[mf_id].associated_mass_features_deconvoluted) > 0:
+                dict_mf["associated_mass_features"] = ", ".join(
+                    map(
+                        str,
+                        self.mass_features[mf_id].associated_mass_features_deconvoluted,
+                    )
+                )
             if self.mass_features[mf_id]._half_height_width is not None:
-                dict_mf["half_height_width"] = self.mass_features[mf_id].half_height_width
+                dict_mf["half_height_width"] = self.mass_features[
+                    mf_id
+                ].half_height_width
             df_mf_single = pd.DataFrame(dict_mf, index=[mf_id])
             df_mf_single["mz"] = self.mass_features[mf_id].mz
             df_mf_list.append(df_mf_single)
@@ -716,22 +723,22 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
 
         # reorder columns
         col_order = [
-                    "mf_id",
-                    "scan_time",
-                    "mz",
-                    "apex_scan",
-                    "intensity",
-                    "persistence",
-                    "area",
-                    "half_height_width",
-                    "tailing_factor",
-                    "dispersity_index",
-                    "monoisotopic_mf_id",
-                    "isotopologue_type",
-                    "mass_spectrum_deconvoluted_parent",
-                    "associated_mass_features",
-                    "ms2_spectra",
-                ]
+            "mf_id",
+            "scan_time",
+            "mz",
+            "apex_scan",
+            "intensity",
+            "persistence",
+            "area",
+            "half_height_width",
+            "tailing_factor",
+            "dispersity_index",
+            "monoisotopic_mf_id",
+            "isotopologue_type",
+            "mass_spectrum_deconvoluted_parent",
+            "associated_mass_features",
+            "ms2_spectra",
+        ]
         # drop columns that are not in col_order
         cols_to_order = [col for col in col_order if col in df_mf.columns]
         df_mf = df_mf[cols_to_order]
@@ -797,19 +804,20 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
 
         return annot_ms1_df_full
 
-    def mass_features_ms2_annot_to_df(self, molecular_metadata = None):
+    def mass_features_ms2_annot_to_df(self, molecular_metadata=None):
         """Returns a pandas dataframe summarizing the MS2 annotations for the mass features in the dataset.
-        
+
         Parameters
         -----------
         molecular_metadata :  dict of MolecularMetadata objects
             A dictionary of MolecularMetadata objects, keyed by metabref_mol_id.  Defaults to None.
-        
+
         Returns
         --------
         pandas.DataFrame
-            A pandas dataframe of MS2 annotations for the mass features in the dataset, and optionally molecular metadata. The index is set to mf_id (mass feature ID)
-        
+            A pandas dataframe of MS2 annotations for the mass features in the dataset, 
+            and optionally molecular metadata. The index is set to mf_id (mass feature ID)
+
         Raises
         ------
         Warning
@@ -821,23 +829,37 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 # Add ms2 annotations to ms2 annotation list
                 for result in self.mass_features[mf_id].ms2_similarity_results:
                     annot_df_ms2 = result.to_dataframe()
-                    annot_df_ms2['mf_id'] = mf_id
+                    annot_df_ms2["mf_id"] = mf_id
                     annot_df_list_ms2.append(annot_df_ms2)
-        
-        if len(annot_df_list_ms2)>0:
+
+        if len(annot_df_list_ms2) > 0:
             annot_ms2_df_full = pd.concat(annot_df_list_ms2)
             if molecular_metadata is not None:
-                molecular_metadata_df = pd.concat([pd.DataFrame.from_dict(v.__dict__, orient='index').transpose() for k, v in molecular_metadata.items()], ignore_index=True)
-                molecular_metadata_df = molecular_metadata_df.rename(columns = {"id":"ref_mol_id"})
-                annot_ms2_df_full = annot_ms2_df_full.merge(molecular_metadata_df, on = "ref_mol_id", how = "left")
-            annot_ms2_df_full  = annot_ms2_df_full.drop_duplicates(subset = ['mf_id', 'query_spectrum_id', 'ref_ms_id']).copy()
-            annot_ms2_df_full = annot_ms2_df_full.set_index('mf_id')
-            annot_ms2_df_full.index.name = 'mf_id'
+                molecular_metadata_df = pd.concat(
+                    [
+                        pd.DataFrame.from_dict(v.__dict__, orient="index").transpose()
+                        for k, v in molecular_metadata.items()
+                    ],
+                    ignore_index=True,
+                )
+                molecular_metadata_df = molecular_metadata_df.rename(
+                    columns={"id": "ref_mol_id"}
+                )
+                annot_ms2_df_full = annot_ms2_df_full.merge(
+                    molecular_metadata_df, on="ref_mol_id", how="left"
+                )
+            annot_ms2_df_full = annot_ms2_df_full.drop_duplicates(
+                subset=["mf_id", "query_spectrum_id", "ref_ms_id"]
+            ).copy()
+            annot_ms2_df_full = annot_ms2_df_full.set_index("mf_id")
+            annot_ms2_df_full.index.name = "mf_id"
         else:
             annot_ms2_df_full = None
             # Warn that no ms2 annotations were found
-            logging.warning("No MS2 annotations found for mass features in dataset, were MS2 spectra added and searched against a database?")
-        
+            logging.warning(
+                "No MS2 annotations found for mass features in dataset, were MS2 spectra added and searched against a database?"
+            )
+
         return annot_ms2_df_full
 
     def __len__(self):

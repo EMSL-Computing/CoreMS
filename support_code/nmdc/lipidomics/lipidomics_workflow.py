@@ -23,6 +23,7 @@ from corems.encapsulation.input.parameter_from_json import (
     load_and_set_toml_parameters_lcms,
 )
 
+
 def instantiate_lcms_obj(file_in, verbose):
     """Instantiate a corems LCMS object from a binary file.  Pull in ms1 spectra into dataframe (without storing as MassSpectrum objects to save memory)
 
@@ -67,6 +68,7 @@ def set_params_on_lcms_obj(myLCMSobj, params_toml):
     """
     # Load parameters from toml file
     load_and_set_toml_parameters_lcms(myLCMSobj, params_toml)
+
 
 def molecular_formula_search(myLCMSobj):
     """Perform molecular search on ms1 spectra
@@ -327,9 +329,7 @@ def export_results(myLCMSobj, out_path, molecular_metadata=None, final=False):
         exporter.report_to_csv(molecular_metadata=molecular_metadata)
 
 
-def run_lipid_sp_ms1(
-    file_in, out_path, params_toml, verbose=True, return_mzs=True
-):
+def run_lipid_sp_ms1(file_in, out_path, params_toml, verbose=True, return_mzs=True):
     """Run signal processing, get associated ms1, add associated ms2, do ms1 molecular search, and export intermediate results
 
     Parameters
@@ -352,7 +352,9 @@ def run_lipid_sp_ms1(
     """
     myLCMSobj = instantiate_lcms_obj(file_in, verbose)
     set_params_on_lcms_obj(myLCMSobj, params_toml)
-    process_ms1(myLCMSobj, verbose, ms1_molecular_search=False) #TODO: change to True when ready
+    process_ms1(
+        myLCMSobj, verbose, ms1_molecular_search=False
+    )  # TODO: change to True when ready
     add_ms2(myLCMSobj)
     export_results(myLCMSobj, out_path=out_path, final=False)
     if return_mzs:
