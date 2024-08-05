@@ -151,14 +151,17 @@ class LCMSMassFeatureCalculation():
 
         Returns
         -------
-        Tuple[float, float]
-            The minimum and maximum half-height width based on scan resolution (in minutes).
+        Tuple[float, float, bool]
+            The minimum and maximum half-height width based on scan resolution (in minutes), and a boolean indicating if the width was estimated.
         """
         #Pull out the EIC data
-        eic = self.eic_list
+        eic = self._eic_data.eic_smoothed
+
+        if self.id == 64:
+            print("Debugging")
 
         # Find the indices of the maximum intensity on either side
-        max_index = np.argmax(eic)
+        max_index = np.where(self._eic_data.scans == self.apex_scan)[0][0]
         left_index = max_index
         right_index = max_index
         while eic[left_index] >  max(eic)*fraction:
@@ -167,18 +170,29 @@ class LCMSMassFeatureCalculation():
             right_index += 1
 
         # Get the retention times of the indexes just below the half height
-        left_rt = self.eic_rt_list[left_index]
-        right_rt = self.eic_rt_list[right_index]
+        left_rt = self._eic_data.time[left_index]
+        right_rt = self._eic_data.time[right_index]
+
+        # If left_rt and right_rt are outside the bounds of the integration, set them to the bounds and set estimated to True
+        estimated = False
+        if left_rt < self.eic_rt_list[0]:
+            left_rt = self.eic_rt_list[0]
+            left_index = np.where(self._eic_data.scans == self._eic_data.apexes[0][0])[0][0]
+            estimated = True
+        if right_rt > self.eic_rt_list[-1]:
+            right_rt = self.eic_rt_list[-1]
+            right_index = np.where(self._eic_data.scans == self._eic_data.apexes[0][-1])[0][0]
+            estimated = True
         half_height_width_max = right_rt - left_rt
 
         # Get the retention times of the indexes just above the half height
-        left_rt = self.eic_rt_list[left_index+1]
-        right_rt = self.eic_rt_list[right_index-1]
+        left_rt = self._eic_data.time[left_index+1]
+        right_rt = self._eic_data.time[right_index-1]
         half_height_width_min = right_rt - left_rt
 
-        return half_height_width_min, half_height_width_max
+        return half_height_width_min, half_height_width_max, estimated
     
-    def calc_half_height_width(self):
+    def calc_half_height_width(self, accept_estimated: bool = False):
         """
         Calculate the half-height width of the mass feature.
 
@@ -193,9 +207,13 @@ class LCMSMassFeatureCalculation():
         # TODO KRH: Add an associated test
         # TODO KRH: Add as a property
         # TODO KRH: Add to export, import, to mass_feature_df
-        self._half_height_width = self.calc_fraction_height_width(0.5)
+        min_, max_, estimated = self.calc_fraction_height_width(0.5)
+        if not estimated or accept_estimated:
+            self._half_height_width = (min_, max_)
+        else:
+            print("Half height width was estimated. Set accept_estimated to True to accept the estimate.")
 
-    def calc_tailing_factor(self):
+    def calc_tailing_factor(self, accept_estimated: bool = False):
         """
         Calculate the peak asymmetry of the mass feature.
 
@@ -213,21 +231,26 @@ class LCMSMassFeatureCalculation():
         2) JIS K0214:2013 Technical terms for analytical chemistry
         """       
         # First calculate the width of the peak at 5% of the peak height
-        width_5 = self.calc_fraction_height_width(0.05)
+        width_min, width_max, estimated = self.calc_fraction_height_width(0.05)
 
-        # Next calculate the width of the peak at 95% of the peak height
-        max_index = np.argmax(self.eic_list)
-        left_index = max_index
-        while self.eic_list[left_index] >  max(self.eic_list)*0.05:
-            left_index -= 1
+        if not estimated or accept_estimated:
+            # Next calculate the width of the peak at 95% of the peak height
+            max_index = np.argmax(self.eic_list)
+            left_index = max_index
+            while self.eic_list[left_index] >  max(self.eic_list)*0.05:
+                left_index -= 1
 
-        left_half_time_min = self.eic_rt_list[max_index]-self.eic_rt_list[left_index]
-        left_half_time_max = self.eic_rt_list[max_index]-self.eic_rt_list[left_index+1]
+            left_half_time_min = self.eic_rt_list[max_index]-self.eic_rt_list[left_index]
+            left_half_time_max = self.eic_rt_list[max_index]-self.eic_rt_list[left_index+1]
 
-        tailing_factor = np.mean(width_5)/(2*np.mean([left_half_time_min, left_half_time_max]))
+            tailing_factor = np.mean([width_min, width_max])/(2*np.mean([left_half_time_min, left_half_time_max]))
 
-        # TODO KRH: Add this as a attribute of the class,
-        # TODO KRH: Add an associated test
-        # TODO KRH: Add as a property
-        # TODO KRH: Add to export, import, to mass_feature_df
-        self._symmetry_factor = tailing_factor
+            # TODO KRH: Add this as a attribute of the class,
+            # TODO KRH: Add an associated test
+            # TODO KRH: Add as a property
+            # TODO KRH: Add to export, import, to mass_feature_df
+            self._symmetry_factor = tailing_factor
+        else:
+            print(str(self.id))
+            print("Tailing factor was estimated. Set accept_estimated to True to accept the estimate.")
+            

@@ -135,6 +135,8 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         The persistence of the feature.
     _eic_data : EIC_Data
         The EIC data object associated with the feature.
+    _dispersity_index : float
+        The dispersity index of the feature.
     is_calibrated : bool
         If True, the feature has been calibrated. Default is False.
     monoisotopic_mf_id : int
@@ -183,6 +185,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         self._intensity: float = intensity
         self._persistence: float = persistence
         self._eic_data: EIC_Data = None
+        self._dispersity_index: float = None
 
         # Additional attributes
         self.monoisotopic_mf_id = None

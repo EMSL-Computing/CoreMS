@@ -146,6 +146,16 @@ class LCCalculations:
 
         return real_scan
 
+    def add_peak_metrics(self):
+        """Add peak metrics to the mass features.
+
+        This function calculates the peak metrics for each mass feature and adds them to the mass feature objects.
+        """
+        for mass_feature in self.mass_features.values():
+            mass_feature.calc_half_height_width()
+            mass_feature.calc_tailing_factor()
+            mass_feature.calc_dispersity_index()
+    
     def get_average_mass_spectrum(
         self,
         scan_list,

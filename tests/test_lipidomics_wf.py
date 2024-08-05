@@ -62,7 +62,7 @@ def test_lipidomics_workflow():
         auto_process=True, use_parser=False, spectrum_mode="profile"
     )
     myLCMSobj.integrate_mass_features(drop_if_fail=True)
-    #myLCMSobj.mass_features[1].calc_dispersity()
+    myLCMSobj.add_peak_metrics()
     myLCMSobj.find_c13_mass_features(verbose=False)
     assert len(myLCMSobj.mass_features) == 130
 
