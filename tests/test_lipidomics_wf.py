@@ -57,11 +57,14 @@ def test_lipidomics_workflow():
     # Use persistent homology to find mass features in the lc-ms data
     # Find mass features, cluster, and integrate them.  Then annotate pairs of mass features that are c13 iso pairs.
     myLCMSobj.find_mass_features(verbose=False)
-    myLCMSobj.cluster_mass_features(verbose=False)
     myLCMSobj.add_associated_ms1(
         auto_process=True, use_parser=False, spectrum_mode="profile"
     )
     myLCMSobj.integrate_mass_features(drop_if_fail=True)
+    myLCMSobj.deconvolute_ms1_mass_features()        
+
+    mass_spec_decon = myLCMSobj.mass_features[1].mass_spectrum_deconvoluted
+    assert len(mass_spec_decon.mspeaks) < len(myLCMSobj.mass_features[1].mass_spectrum.mspeaks)
     myLCMSobj.add_peak_metrics()
     myLCMSobj.find_c13_mass_features(verbose=False)
     assert len(myLCMSobj.mass_features) == 130
@@ -71,7 +74,7 @@ def test_lipidomics_workflow():
 
     # Export the mass features to a pandas dataframe
     df = myLCMSobj.mass_features_to_df()
-    assert df.shape == (130, 9)
+    assert df.shape == (130, 11)
 
     # Plot a mass feature
     myLCMSobj.mass_features[1].plot(return_fig=False)
@@ -111,7 +114,7 @@ def test_lipidomics_workflow():
         normalize=True,
         fe_kwargs={
             "normalize_intensity": True,
-            "min_ms2_difference_in_da": 0.01, #for cleaning spectra
+            "min_ms2_difference_in_da": 0.02, #for cleaning spectra
             "max_ms2_tolerance_in_da": 0.01, #for setting search space
             "max_indexed_mz": 3000,
             "precursor_ions_removal_da": None,
@@ -153,7 +156,8 @@ def test_lipidomics_workflow():
         "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems/Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.hdf5"
     )
     myLCMSobj2 = parser.get_lcms_obj()
-    assert myLCMSobj2.mass_features_to_df().shape == (130, 9)
+    df2 = myLCMSobj2.mass_features_to_df()
+    assert df2.shape == (130, 11)
     myLCMSobj2.mass_features[1].plot(return_fig=False)
 
     # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory

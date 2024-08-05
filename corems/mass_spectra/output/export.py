@@ -1084,7 +1084,10 @@ class LCMSExport(HighResMassSpectraExport):
         ValueError
             If parameter_format is not 'json' or 'toml'.
         """
+        # Write the mass spectra data to the hdf5 file
         super().to_hdf(overwrite=overwrite)
+
+        # Write scan info, ms_unprocessed, mass features, eics, and ms2_search results to the hdf5 file
         with h5py.File(self.output_file.with_suffix(".hdf5"), "a") as hdf_handle:
             # Add scan_info to hdf5 file
             if "scan_info" not in hdf_handle:
@@ -1136,11 +1139,22 @@ class LCMSExport(HighResMassSpectraExport):
                                     mass_features_group[str(k)].create_dataset(
                                         str(k2), data=array
                                     )
+                                elif k2 == "_ms_deconvoluted_idx":
+                                    array = np.array(v2)
+                                    mass_features_group[str(k)].create_dataset(
+                                        str(k2), data=array
+                                    )
+                                elif k2 == "associated_mass_features_deconvoluted":
+                                    array = np.array(v2)
+                                    mass_features_group[str(k)].create_dataset(
+                                        str(k2), data=array
+                                    )
                                 elif (
                                     isinstance(v2, int)
                                     or isinstance(v2, float)
                                     or isinstance(v2, str)
                                     or isinstance(v2, np.integer)
+                                    or isinstance(v2, np.bool_)
                                 ):
                                     mass_features_group[str(k)].attrs[str(k2)] = v2
                                 else:

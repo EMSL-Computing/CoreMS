@@ -4,6 +4,7 @@ __date__ = "Jun 12, 2019"
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import copy
 
 from corems.chroma_peak.calc.ChromaPeakCalc import GCPeakCalculation, LCMSMassFeatureCalculation
 from corems.mass_spectra.factory.LC_Temp import EIC_Data
@@ -142,6 +143,8 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
     _tailing_factor : float
         The tailing factor of the feature. 
         > 1 indicates tailing, < 1 indicates fronting, = 1 indicates symmetrical peak.
+    _ms_deconvoluted_idx : [int]
+        The indexes of the mass_spectrum attribute in the deconvoluted mass spectrum.
     is_calibrated : bool
         If True, the feature has been calibrated. Default is False.
     monoisotopic_mf_id : int
@@ -162,6 +165,10 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
     id : int
         The ID of the feature, also the key in the parent LCMS object's 
         `mass_features` dictionary.
+    mass_spectrum_deconvoluted_parent : bool
+        If True, the mass feature corresponds to the most intense peak in the deconvoluted mass spectrum. Default is None.
+    associated_mass_features_deconvoluted : list
+        List of mass features associated with the deconvoluted mass spectrum. Default is an empty list.       
 
     """
 
@@ -192,6 +199,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         self._eic_data: EIC_Data = None
         self._dispersity_index: float = None
         self._half_height_width: np.ndarray = None
+        self._ms_deconvoluted_idx = None
 
         # Additional attributes
         self.monoisotopic_mf_id = None
@@ -199,6 +207,8 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         self.ms2_scan_numbers = []
         self.ms2_mass_spectra = {}
         self.ms2_similarity_results = []
+        self.mass_spectrum_deconvoluted_parent: bool = None
+        self.associated_mass_features_deconvoluted = []
 
         if id:
             self.id = id
@@ -258,6 +268,10 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             to_plot = [x for x in to_plot if x != "MS2"]
         if self._eic_data is None:
             to_plot = [x for x in to_plot if x != "EIC"]
+        if self._ms_deconvoluted_idx is not None:
+            deconvoluted = True
+        else:
+            deconvoluted = False
 
         fig, axs = plt.subplots(
             len(to_plot), 1, figsize=(9, len(to_plot) * 4), squeeze=False
@@ -316,10 +330,24 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
 
         # MS1 plot
         if "MS1" in to_plot:
-            axs[i][0].set_title("MS1", loc="left")
-            axs[i][0].vlines(
-                self.mass_spectrum.mz_exp, 0, self.mass_spectrum.abundance, color="k"
-            )
+            if deconvoluted:
+                axs[i][0].set_title("MS1 (deconvoluted)", loc="left")
+                axs[i][0].vlines(
+                    self.mass_spectrum.mz_exp, 0, self.mass_spectrum.abundance, color="k", alpha=0.2, label="Raw MS1"
+                )
+                axs[i][0].vlines(
+                    self.mass_spectrum_deconvoluted.mz_exp, 0, self.mass_spectrum_deconvoluted.abundance, color="k", label="Deconvoluted MS1"
+                )
+                axs[i][0].set_xlim(self.mass_spectrum_deconvoluted.mz_exp.min()*.8, self.mass_spectrum_deconvoluted.mz_exp.max()*1.1)
+                axs[i][0].set_ylim(0, self.mass_spectrum_deconvoluted.abundance.max() * 1.1)
+            else:
+                axs[i][0].set_title("MS1 (raw)", loc="left")
+                axs[i][0].vlines(
+                    self.mass_spectrum.mz_exp, 0, self.mass_spectrum.abundance, color="k", label="Raw MS1"
+                )
+                axs[i][0].set_xlim(self.mass_spectrum.mz_exp.min()*.8, self.mass_spectrum.mz_exp.max()*1.1)
+                axs[i][0].set_ylim(bottom=0)
+
             if (self.ms1_peak.mz_exp - self.mz) < 0.01:
                 axs[i][0].vlines(
                     self.ms1_peak.mz_exp,
@@ -328,7 +356,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
                     color="m",
                     label="Feature m/z",
                 )
-                axs[i][0].set_xlim(0, self.ms1_peak.mz_exp * 1.1)
+
             else:
                 if verbose:
                     print(
@@ -339,7 +367,6 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             axs[i][0].legend(loc="upper left")
             axs[i][0].set_ylabel("Intensity")
             axs[i][0].set_xlabel("m/z")
-            axs[i][0].set_ylim(bottom=0)
             axs[i][0].yaxis.set_tick_params(labelleft=False)
             i += 1
 
@@ -354,10 +381,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             axs[i][0].set_ylim(bottom=0)
             axs[i][0].yaxis.get_major_formatter().set_scientific(False)
             axs[i][0].yaxis.get_major_formatter().set_useOffset(False)
-            if "MS1" in to_plot:
-                axs[i][0].set_xlim(axs[i - 1][0].get_xlim())
-            else:
-                axs[i][0].set_xlim(0, max(self.best_ms2.mz_exp) * 1.1)
+            axs[i][0].set_xlim(self.best_ms2.mz_exp.min()*.8, self.best_ms2.mz_exp.max()*1.1)
             axs[i][0].yaxis.set_tick_params(labelleft=False)
 
         # Add space between subplots
@@ -376,6 +400,16 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             return self._mz_cal
         else:
             return self._mz_exp
+    
+    @property
+    def mass_spectrum_deconvoluted(self):
+        """Returns the deconvoluted mass spectrum object associated with the mass feature, if deconvolution has been performed."""
+        if self._ms_deconvoluted_idx is not None:
+            ms_deconvoluted = copy.deepcopy(self.mass_spectrum)
+            ms_deconvoluted.set_indexes(self._ms_deconvoluted_idx)
+            return ms_deconvoluted
+        else:
+            raise ValueError("Deconvolution has not been performed for mass feature " + str(self.id))
 
     @property
     def retention_time(self):
