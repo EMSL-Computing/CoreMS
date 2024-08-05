@@ -130,7 +130,7 @@ class LCMSMassFeatureCalculation():
         rt_summ = sorted_rt[np.where(cum_sum < 0.5)]
         d = np.std(rt_summ)
 
-        #TODO KRH: Add to export, import, to mass_feature_df
+        #TODO KRH: Add to mass_feature_df
         #TODO KRH: Add checks for empty EIC and length of rt_summ
         self._dispersity_index = d
     
@@ -154,8 +154,6 @@ class LCMSMassFeatureCalculation():
         #Pull out the EIC data
         eic = self._eic_data.eic_smoothed
 
-        if self.id == 64:
-            print("Debugging")
 
         # Find the indices of the maximum intensity on either side
         max_index = np.where(self._eic_data.scans == self.apex_scan)[0][0]
@@ -200,12 +198,10 @@ class LCMSMassFeatureCalculation():
         -------
         None, stores the result in the `_half_height_width` attribute of the class.
         """
-        # TODO KRH: Add to export, import, to mass_feature_df
+        # TODO KRH: Add to mass_feature_df
         min_, max_, estimated = self.calc_fraction_height_width(0.5)
         if not estimated or accept_estimated:
-            self._half_height_width = (min_, max_)
-        else:
-            print("Half height width was estimated. Set accept_estimated to True to accept the estimate.")
+            self._half_height_width = np.array([min_, max_])
 
     def calc_tailing_factor(self, accept_estimated: bool = False):
         """
@@ -239,10 +235,6 @@ class LCMSMassFeatureCalculation():
 
             tailing_factor = np.mean([width_min, width_max])/(2*np.mean([left_half_time_min, left_half_time_max]))
 
-            # TODO KRH: Add this as a attribute of the class,
-            # TODO KRH: Add to export, import, to mass_feature_df
+            # TODO KRH: Add mass_feature_df
             self._tailing_factor = tailing_factor
-        else:
-            print(str(self.id))
-            print("Tailing factor was estimated. Set accept_estimated to True to accept the estimate.")
             

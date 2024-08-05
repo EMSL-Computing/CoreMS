@@ -137,8 +137,8 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         The EIC data object associated with the feature.
     _dispersity_index : float
         The dispersity index of the feature.
-    _half_height_width : tuple
-        The half height width of the feature (in minutes, as a tuple of min and max values).
+    _half_height_width : numpy.ndarray
+        The half height width of the feature (in minutes, as an array of min and max values).
     _tailing_factor : float
         The tailing factor of the feature. 
         > 1 indicates tailing, < 1 indicates fronting, = 1 indicates symmetrical peak.
@@ -191,7 +191,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         self._persistence: float = persistence
         self._eic_data: EIC_Data = None
         self._dispersity_index: float = None
-        self._half_height_width: tuple = None
+        self._half_height_width: np.ndarray = None
 
         # Additional attributes
         self.monoisotopic_mf_id = None
@@ -457,12 +457,12 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         return self.mass_spectrum._mspeaks[closest_mz_index]
     
     @property
-    def taling_factor(self):
+    def tailing_factor(self):
         """Tailing factor of the mass feature"""
         return self._tailing_factor
     
-    @taling_factor.setter
-    def taling_factor(self, value):
+    @tailing_factor.setter
+    def tailing_factor(self, value):
         """Set the tailing factor of the mass feature"""
         if not isinstance(value, float):
             raise ValueError("The tailing factor of the mass feature must be a float")
@@ -483,7 +483,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
     @property
     def half_height_width(self):
         """Half height width of the mass feature, average of min and max values, in minutes"""
-        return np.mean([self._half_height_width[0], self._half_height_width[1]])
+        return np.mean(self._half_height_width)
     
     @half_height_width.setter
     def half_height_width(self, value):

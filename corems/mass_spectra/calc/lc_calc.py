@@ -151,10 +151,19 @@ class LCCalculations:
 
         This function calculates the peak metrics for each mass feature and adds them to the mass feature objects.
         """
+        # Check that at least some mass features have eic data
+        if not any([mf._eic_data is not None for mf in self.mass_features.values()]):
+            raise ValueError(
+                "No mass features have EIC data. Run integrate_mass_features first."
+            )
+
         for mass_feature in self.mass_features.values():
-            mass_feature.calc_half_height_width()
-            mass_feature.calc_tailing_factor()
-            mass_feature.calc_dispersity_index()
+            # Check if the mass feature has been integrated
+            if mass_feature._eic_data is not None:
+                # Calculate peak metrics
+                mass_feature.calc_half_height_width()
+                mass_feature.calc_tailing_factor()
+                mass_feature.calc_dispersity_index()
     
     def get_average_mass_spectrum(
         self,
