@@ -130,9 +130,6 @@ class LCMSMassFeatureCalculation():
         rt_summ = sorted_rt[np.where(cum_sum < 0.5)]
         d = np.std(rt_summ)
 
-        #TODO KRH: Add this as a attribute of the class,
-        #TODO KRH: Add an associated test
-        #TODO KRH: Add as a property
         #TODO KRH: Add to export, import, to mass_feature_df
         #TODO KRH: Add checks for empty EIC and length of rt_summ
         self._dispersity_index = d
@@ -203,9 +200,6 @@ class LCMSMassFeatureCalculation():
         -------
         None, stores the result in the `_half_height_width` attribute of the class.
         """
-        # TODO KRH: Add this as a attribute of the class,
-        # TODO KRH: Add an associated test
-        # TODO KRH: Add as a property
         # TODO KRH: Add to export, import, to mass_feature_df
         min_, max_, estimated = self.calc_fraction_height_width(0.5)
         if not estimated or accept_estimated:
@@ -246,10 +240,8 @@ class LCMSMassFeatureCalculation():
             tailing_factor = np.mean([width_min, width_max])/(2*np.mean([left_half_time_min, left_half_time_max]))
 
             # TODO KRH: Add this as a attribute of the class,
-            # TODO KRH: Add an associated test
-            # TODO KRH: Add as a property
             # TODO KRH: Add to export, import, to mass_feature_df
-            self._symmetry_factor = tailing_factor
+            self._tailing_factor = tailing_factor
         else:
             print(str(self.id))
             print("Tailing factor was estimated. Set accept_estimated to True to accept the estimate.")

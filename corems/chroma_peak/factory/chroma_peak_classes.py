@@ -137,6 +137,11 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         The EIC data object associated with the feature.
     _dispersity_index : float
         The dispersity index of the feature.
+    _half_height_width : tuple
+        The half height width of the feature (in minutes, as a tuple of min and max values).
+    _tailing_factor : float
+        The tailing factor of the feature. 
+        > 1 indicates tailing, < 1 indicates fronting, = 1 indicates symmetrical peak.
     is_calibrated : bool
         If True, the feature has been calibrated. Default is False.
     monoisotopic_mf_id : int
@@ -186,6 +191,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         self._persistence: float = persistence
         self._eic_data: EIC_Data = None
         self._dispersity_index: float = None
+        self._half_height_width: tuple = None
 
         # Additional attributes
         self.monoisotopic_mf_id = None
@@ -449,6 +455,42 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         closest_mz_index = self.mass_spectrum.mz_exp.tolist().index(closest_mz)
 
         return self.mass_spectrum._mspeaks[closest_mz_index]
+    
+    @property
+    def taling_factor(self):
+        """Tailing factor of the mass feature"""
+        return self._tailing_factor
+    
+    @taling_factor.setter
+    def taling_factor(self, value):
+        """Set the tailing factor of the mass feature"""
+        if not isinstance(value, float):
+            raise ValueError("The tailing factor of the mass feature must be a float")
+        self._tailing_factor = value
+
+    @property
+    def dispersity_index(self):
+        """Dispersity index of the mass feature"""
+        return self._dispersity_index
+    
+    @dispersity_index.setter
+    def dispersity_index(self, value):
+        """Set the dispersity index of the mass feature"""
+        if not isinstance(value, float):
+            raise ValueError("The dispersity index of the mass feature must be a float")
+        self._dispersity_index = value
+
+    @property
+    def half_height_width(self):
+        """Half height width of the mass feature, average of min and max values, in minutes"""
+        return np.mean([self._half_height_width[0], self._half_height_width[1]])
+    
+    @half_height_width.setter
+    def half_height_width(self, value):
+        """Set the half height width of the mass feature"""
+        if not isinstance(value, tuple):
+            raise ValueError("The half height width of the mass feature must be a tuple of floats representing the min and max values")
+        self._half_height_width = value
 
     @property
     def best_ms2(self):
