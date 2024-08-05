@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from corems.chroma_peak.calc.ChromaPeakCalc import GCPeakCalculation
+from corems.chroma_peak.calc.ChromaPeakCalc import GCPeakCalculation, LCMSMassFeatureCalculation
 from corems.mass_spectra.factory.LC_Temp import EIC_Data
 from corems.molecular_id.factory.EI_SQL import LowResCompoundRef
 
@@ -101,7 +101,7 @@ class ChromaPeakBase:
         ]
 
 
-class LCMSMassFeature(ChromaPeakBase):
+class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
     """Class representing a mass feature in a liquid chromatography (LC) chromatogram.
 
     Parameters

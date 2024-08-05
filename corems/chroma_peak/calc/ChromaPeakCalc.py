@@ -1,5 +1,5 @@
-# from numpy import array, polyfit, poly1d, where, trapz
-from numpy import trapz
+import numpy as np
+from scipy.stats import beta
 
 from bisect import bisect_left
 
@@ -30,7 +30,7 @@ class GCPeakCalculation(object):
             The spacing between data points.
         """
         yy = tic[self.start_scan : self.final_scan]
-        self._area = trapz(yy, dx=dx)
+        self._area = np.trapz(yy, dx=dx)
 
     def linear_ri(
         self, right_ri: float, left_ri: float, left_rt: float, right_rt: float
@@ -94,3 +94,140 @@ class GCPeakCalculation(object):
             right_ri = rt_ri_pairs[index][1]
 
             self._ri = self.linear_ri(right_ri, left_ri, left_rt, right_rt)
+
+class LCMSMassFeatureCalculation():
+    """Class for performing peak calculations in LC-MS mass spectrometry.
+
+    This class is intended to be used as a mixin class for the LCMSMassFeature class.
+    """
+
+    def calc_dispersity_index(self):
+        """
+        Calculate the dispersity index of the mass feature.
+
+        This function calculates the dispersity index of the mass feature and
+        stores the result in the `_dispersity_index` attribute. The dispersity index is calculated as the standard
+        deviation of the retention times that account for 50% of the cummulative intensity, starting from the most
+        intense point, as described in [1].
+        
+        Returns
+        -------
+        None, stores the result in the `_dispersity_index` attribute of the class.
+
+        References
+        ----------
+        1) Boiteau, Rene M., et al. "Relating Molecular Properties to the Persistence of Marine Dissolved 
+        Organic Matter with Liquid Chromatography–Ultrahigh-Resolution Mass Spectrometry." 
+        Environmental Science & Technology 58.7 (2024): 3267-3277.
+        """
+        # Sort the EIC data and RT data by descending intensity
+        eic_in = self.eic_list.argsort()
+        sorted_eic = self.eic_list[eic_in[::-1]]
+        sorted_rt = self.eic_rt_list[eic_in[::-1]]
+        
+        # Calculate the dispersity index
+        cum_sum = np.cumsum(sorted_eic)/np.sum(sorted_eic)
+        rt_summ = sorted_rt[np.where(cum_sum < 0.5)]
+        d = np.std(rt_summ)
+
+        #TODO KRH: Add this as a attribute of the class,
+        #TODO KRH: Add an associated test
+        #TODO KRH: Add as a property
+        #TODO KRH: Add to export, import, to mass_feature_df
+        #TODO KRH: Add checks for empty EIC and length of rt_summ
+        self._dispersity_index = d
+    
+    def calc_fraction_height_width(self, fraction: float):
+        """
+        Calculate the height width of the mass feature at a specfic fraction of the maximum intensity.
+
+        This function returns a tuple with the minimum and maximum half-height width based on scan resolution.
+
+        Parameters
+        ----------
+        fraction : float
+            The fraction of the maximum intensity to calculate the height width.
+            For example, 0.5 will calculate the half-height width.
+
+        Returns
+        -------
+        Tuple[float, float]
+            The minimum and maximum half-height width based on scan resolution (in minutes).
+        """
+        #Pull out the EIC data
+        eic = self.eic_list
+
+        # Find the indices of the maximum intensity on either side
+        max_index = np.argmax(eic)
+        left_index = max_index
+        right_index = max_index
+        while eic[left_index] >  max(eic)*fraction:
+            left_index -= 1
+        while eic[right_index] >  max(eic)*fraction:
+            right_index += 1
+
+        # Get the retention times of the indexes just below the half height
+        left_rt = self.eic_rt_list[left_index]
+        right_rt = self.eic_rt_list[right_index]
+        half_height_width_max = right_rt - left_rt
+
+        # Get the retention times of the indexes just above the half height
+        left_rt = self.eic_rt_list[left_index+1]
+        right_rt = self.eic_rt_list[right_index-1]
+        half_height_width_min = right_rt - left_rt
+
+        return half_height_width_min, half_height_width_max
+    
+    def calc_half_height_width(self):
+        """
+        Calculate the half-height width of the mass feature.
+
+        This function calculates the half-height width of the mass feature and
+        stores the result in the `_half_height_width` attribute
+
+        Returns
+        -------
+        None, stores the result in the `_half_height_width` attribute of the class.
+        """
+        # TODO KRH: Add this as a attribute of the class,
+        # TODO KRH: Add an associated test
+        # TODO KRH: Add as a property
+        # TODO KRH: Add to export, import, to mass_feature_df
+        self._half_height_width = self.calc_fraction_height_width(0.5)
+
+    def calc_tailing_factor(self):
+        """
+        Calculate the peak asymmetry of the mass feature.
+
+        This function calculates the peak asymmetry of the mass feature and
+        stores the result in the `_tailing_factor` attribute.
+        Calculations completed at 5% of the peak height in accordance with the USP tailing factor calculation.
+
+        Returns
+        -------
+        None, stores the result in the `_tailing_factor` attribute of the class.
+
+        References
+        ----------
+        1) JIS K0124:2011 General rules for high performance liquid chromatography
+        2) JIS K0214:2013 Technical terms for analytical chemistry
+        """       
+        # First calculate the width of the peak at 5% of the peak height
+        width_5 = self.calc_fraction_height_width(0.05)
+
+        # Next calculate the width of the peak at 95% of the peak height
+        max_index = np.argmax(self.eic_list)
+        left_index = max_index
+        while self.eic_list[left_index] >  max(self.eic_list)*0.05:
+            left_index -= 1
+
+        left_half_time_min = self.eic_rt_list[max_index]-self.eic_rt_list[left_index]
+        left_half_time_max = self.eic_rt_list[max_index]-self.eic_rt_list[left_index+1]
+
+        tailing_factor = np.mean(width_5)/(2*np.mean([left_half_time_min, left_half_time_max]))
+
+        # TODO KRH: Add this as a attribute of the class,
+        # TODO KRH: Add an associated test
+        # TODO KRH: Add as a property
+        # TODO KRH: Add to export, import, to mass_feature_df
+        self._symmetry_factor = tailing_factor
