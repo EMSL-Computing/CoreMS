@@ -661,7 +661,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         Parameters
         ----------
         list_indexes : list of int
-            A list of indexes of the MSpeaks objects to keep.
+            A list of indexes of the MSpeaks objects to drop.
 
         """
 
