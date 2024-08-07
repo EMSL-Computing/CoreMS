@@ -689,8 +689,8 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 dict_mf[key] = getattr(self.mass_features[mf_id], key)
             if len(self.mass_features[mf_id].ms2_scan_numbers) > 0:
                 # Add MS2 spectra info
-                best_ms2_spectra = self.mass_features[mf_id].best_ms2
-                dict_mf["ms2_spectra"] = mass_spectrum_to_string(best_ms2_spectra)
+                best_ms2_spectrum = self.mass_features[mf_id].best_ms2
+                dict_mf["ms2_spectrum"] = mass_spectrum_to_string(best_ms2_spectrum)
             if len(self.mass_features[mf_id].associated_mass_features_deconvoluted) > 0:
                 dict_mf["associated_mass_features"] = ", ".join(
                     map(

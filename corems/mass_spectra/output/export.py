@@ -1770,9 +1770,14 @@ class LipidomicsExport(LCMSExport):
             "intensity": "Intensity",
             "persistence": "Persistence",
             "area": "Area",
+            "half_height_width": "Half Height Width (min)",
+            "tailing_factor": "Tailing Factor",
+            "dispersity_index": "Dispersity Index",
             "ms2_spectrum": "MS2 Spectrum",
             "monoisotopic_mf_id": "Monoisotopic Mass Feature ID",
             "isotopologue_type": "Isotopologue Type",
+            "mass_spectrum_deconvoluted_parent": "Is Largest Ion after Deconvolution",
+            "associated_mass_features": "Associated Mass Features after Deconvolution",
             "ion_formula": "Ion Formula",
             "formula": "Molecular Formula",
             "ref_ion_type": "Ion Type",
@@ -1797,6 +1802,9 @@ class LipidomicsExport(LCMSExport):
                 if col not in ["Mass Feature ID", "Sample Name", "Polarity"]
             ]
         ]
+
+        # Reorder rows by "Mass Feature ID"
+        mf_report = mf_report.sort_values("Mass Feature ID")
 
         return mf_report
 

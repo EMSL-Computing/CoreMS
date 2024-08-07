@@ -99,7 +99,8 @@ def molecular_formula_search(myLCMSobj):
     total_decon_parent = sum(mf_df.mass_spectrum_deconvoluted_parent)
     for mf_id in mf_df.index:
         if myLCMSobj.mass_features[mf_id].mass_spectrum_deconvoluted_parent:
-            
+            if i > 10:
+                break
             print("searching mf: ", str(i), " of ", str(total_decon_parent))
 
             scan = myLCMSobj.mass_features[mf_id].apex_scan
@@ -512,7 +513,7 @@ if __name__ == "__main__":
     # Set input variables to run
     cores = 1
     file_dir = Path("tmp_data/thermo_raw_NMDC_mini")
-    out_dir = Path("tmp_data/NMDC_processed_0805")
+    out_dir = Path("tmp_data/NMDC_processed_0807")
     params_toml = Path("tmp_data/thermo_raw_NMDC_mini/nmdc_lipid_params.toml")
 
     verbose = True

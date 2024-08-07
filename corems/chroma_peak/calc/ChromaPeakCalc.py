@@ -142,8 +142,6 @@ class LCMSMassFeatureCalculation:
             d = np.std(rt_summ)
             self._dispersity_index = d
 
-        # TODO KRH: Add checks for empty EIC and length of rt_summ
-
     def calc_fraction_height_width(self, fraction: float):
         """
         Calculate the height width of the mass feature at a specfic fraction of the maximum intensity.
