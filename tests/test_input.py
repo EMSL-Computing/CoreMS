@@ -169,6 +169,7 @@ def test_import_corems_hdf5():
     mass_list_reader = ReadCoreMSHDF_MassSpectrum(file_location)
 
     mass_spectrum = mass_list_reader.get_mass_spectrum()
+    mass_spectrum.to_dataframe()
 
     for mspeak in mass_spectrum:
         
@@ -362,11 +363,11 @@ if __name__ == '__main__':
     #test_import_lcms_from_transient()
     #test_import_thermo_profile_mass_list()
     # test_import_transient()
-    #test_import_corems_hdf5()
+    test_import_corems_hdf5()
     #test_import_corems_mass_list()
     #test_import_mass_list()
     #test_import_maglab_pks()
     #test_andi_netcdf_gcms()
-    test_import_corems_mass_list()
+    #test_import_corems_mass_list()
     #test_import_thermo_average()
 
