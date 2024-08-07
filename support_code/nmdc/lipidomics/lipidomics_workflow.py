@@ -73,11 +73,15 @@ def set_params_on_lcms_obj(myLCMSobj, params_toml):
     # If myLCMSobj is a positive mode, remove Cl from atoms used in molecular search
     # This cuts down on the number of molecular formulas searched hugely
     if myLCMSobj.polarity == "positive":
-        myLCMSobj.parameters.ms1_molecular_search.usedAtoms.pop('Cl')
+        myLCMSobj.parameters.ms1_molecular_search.usedAtoms.pop("Cl")
     elif myLCMSobj.polarity == "negative":
-        myLCMSobj.parameters.ms1_molecular_search.usedAtoms.pop('Na')
+        myLCMSobj.parameters.ms1_molecular_search.usedAtoms.pop("Na")
+        #TODO KRH: removing this for now to test
+        myLCMSobj.parameters.ms1_molecular_search.usedAtoms.pop("N")
+        myLCMSobj.parameters.ms1_molecular_search.usedAtoms.pop("P")
 
     print("Parameters set on LCMS object")
+
 
 def molecular_formula_search(myLCMSobj):
     """Perform molecular search on ms1 spectra
@@ -99,7 +103,7 @@ def molecular_formula_search(myLCMSobj):
     total_decon_parent = sum(mf_df.mass_spectrum_deconvoluted_parent)
     for mf_id in mf_df.index:
         if myLCMSobj.mass_features[mf_id].mass_spectrum_deconvoluted_parent:
-            if i > 10:
+            if i > 10: # TODO KRH: remove this when ready
                 break
             print("searching mf: ", str(i), " of ", str(total_decon_parent))
 
@@ -137,9 +141,12 @@ def molecular_formula_search(myLCMSobj):
                 first_hit=False,
                 find_isotopologues=True,
             ).run_worker_ms_peaks(peaks_to_search)
-            print("time to search whole spectrum for all peaks in scan: ", time.time() - time_start)
+            print(
+                "time to search whole spectrum for all peaks in scan: ",
+                time.time() - time_start,
+            )
             i += 1
-    '''
+    """
     # get unique scans to search
     unique_scans = mf_df.apex_scan.unique()
 
@@ -159,7 +166,7 @@ def molecular_formula_search(myLCMSobj):
             find_isotopologues=True,
         ).run_worker_ms_peaks(peaks_to_search)
         i += 1
-    '''
+    """
     print("Finished molecular search")
 
 
@@ -381,6 +388,8 @@ def export_results(myLCMSobj, out_path, molecular_metadata=None, final=False):
     exporter.to_hdf(overwrite=True)
     if final:
         exporter.report_to_csv(molecular_metadata=molecular_metadata)
+    else:
+        exporter.report_to_csv()
 
 
 def run_lipid_sp_ms1(file_in, out_path, params_toml, verbose=True, return_mzs=True):
@@ -513,7 +522,7 @@ if __name__ == "__main__":
     # Set input variables to run
     cores = 1
     file_dir = Path("tmp_data/thermo_raw_NMDC_mini")
-    out_dir = Path("tmp_data/NMDC_processed_0807")
+    out_dir = Path("tmp_data/NMDC_processed_0807b")
     params_toml = Path("tmp_data/thermo_raw_NMDC_mini/nmdc_lipid_params.toml")
 
     verbose = True

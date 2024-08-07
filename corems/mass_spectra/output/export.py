@@ -1277,6 +1277,9 @@ class LipidomicsExport(LCMSExport):
         # If neutral_formula is not a string, return None
         if not isinstance(neutral_formula, str):
             return None
+        
+        if "Cl" in neutral_formula:
+            print("Cl in neutral formula")
 
         # Check if there are spaces in the formula (these are outputs of the MolecularFormula class and do not need to be processed before being passed to the class)
         if re.search(r"\s", neutral_formula):
