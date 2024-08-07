@@ -111,7 +111,7 @@ class ReadCoremsMasslist(MassListBaseClass):
                 else:
                     adduct_atom = None
                 mfobj = MolecularFormula(formula_list, int(ion_charge_df[df_index]), mspeak_parent=mass_spec_obj[ms_peak_index] , ion_type=ion_type, adduct_atom=adduct_atom)
-                mfobj.is_isotopologue = bool(is_isotopologue_df[df_index])
+                mfobj.is_isotopologue = bool(int(is_isotopologue_df[df_index]))
                 mass_spec_obj[ms_peak_index].add_molecular_formula(mfobj)
 
 
