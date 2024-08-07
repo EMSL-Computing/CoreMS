@@ -1551,9 +1551,9 @@ class LipidomicsExport(LCMSExport):
             ms2_annot_sub_mf = ms2_annot_remaining[
                 ms2_annot_remaining["mf_id"] == mf_id
             ].copy()
-            for query_scan in ms2_annot_sub_mf["query_scan_number"].unique():
+            for query_scan in ms2_annot_sub_mf["query_spectrum_id"].unique():
                 ms2_annot_sub = ms2_annot_sub_mf[
-                    ms2_annot_sub_mf["query_scan_number"] == query_scan
+                    ms2_annot_sub_mf["query_spectrum_id"] == query_scan
                 ].copy()
 
                 # New columns for ranking [HIGHER RANK = BETTER]
@@ -1581,7 +1581,7 @@ class LipidomicsExport(LCMSExport):
 
             # Scenario 1: Multiple scans are being resolved to different MLFs [could be coelutions and should both be kept and annotated to MS level]
             if (
-                id_sub["query_frags"]
+                id_sub["query_frag_types"]
                 .apply(lambda x: True if "MLF" in x else False)
                 .all()
                 and len(id_sub) > 0
@@ -1761,6 +1761,7 @@ class LipidomicsExport(LCMSExport):
             mf_report = pd.concat([mf_no_ion_formula, mf_with_ion_formula])
 
         # Rename colums
+        #TODO KRH: Add more columns to rename_dict to deal with peak shape metrics and ms1 deconvolution metrics
         rename_dict = {
             "mf_id": "Mass Feature ID",
             "scan_time": "Retention Time (min)",

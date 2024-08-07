@@ -12,6 +12,7 @@ from multiprocessing import Pool
 from pathlib import Path
 
 import pandas as pd
+import time
 
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 from corems.mass_spectra.input.mzml import MZMLSpectraParser
@@ -69,6 +70,14 @@ def set_params_on_lcms_obj(myLCMSobj, params_toml):
     # Load parameters from toml file
     load_and_set_toml_parameters_lcms(myLCMSobj, params_toml)
 
+    # If myLCMSobj is a positive mode, remove Cl from atoms used in molecular search
+    # This cuts down on the number of molecular formulas searched hugely
+    if myLCMSobj.polarity == "positive":
+        myLCMSobj.parameters.ms1_molecular_search.usedAtoms.pop('Cl')
+    elif myLCMSobj.polarity == "negative":
+        myLCMSobj.parameters.ms1_molecular_search.usedAtoms.pop('Na')
+
+    print("Parameters set on LCMS object")
 
 def molecular_formula_search(myLCMSobj):
     """Perform molecular search on ms1 spectra
@@ -86,6 +95,50 @@ def molecular_formula_search(myLCMSobj):
     # get df of mass features
     mf_df = myLCMSobj.mass_features_to_df()
 
+    # search molecular formulas for each mass feature
+    total_decon_parent = sum(mf_df.mass_spectrum_deconvoluted_parent)
+    for mf_id in mf_df.index:
+        if myLCMSobj.mass_features[mf_id].mass_spectrum_deconvoluted_parent:
+            
+            print("searching mf: ", str(i), " of ", str(total_decon_parent))
+
+            scan = myLCMSobj.mass_features[mf_id].apex_scan
+            """
+            # Search single spectrum for single peak
+            time_start = time.time()
+            SearchMolecularFormulas(
+                myLCMSobj._ms[scan],
+                first_hit=False,
+                find_isotopologues=True,
+            ).run_worker_ms_peaks([myLCMSobj.mass_features[mf_id].ms1_peak])
+            print("time to search whole spectrum for single peak: ", time.time() - time_start)
+            # 139 s for mf_id = 1 (single peak annotated), 145s for mf_id = 2 (single peak annotated)
+
+            # Search single deconvoluted spectrum for single peak
+            time_start = time.time()
+            SearchMolecularFormulas(
+                myLCMSobj.mass_features[mf_id].mass_spectrum_deconvoluted,
+                first_hit=False,
+                find_isotopologues=True,
+            ).run_worker_ms_peaks([myLCMSobj.mass_features[mf_id].ms1_peak])
+            print("time to search whole deconvoluted spectrum for single peak: ", time.time() - time_start)
+            # very similar time to above (actually slightly longer probably due to pulling up the deconvoluted spectrum)
+            """
+
+            # Search single spectrum for all peaks that correspond to the same scan
+            mf_df_scan = mf_df[mf_df.apex_scan == scan]
+            peaks_to_search = [
+                myLCMSobj.mass_features[x].ms1_peak for x in mf_df_scan.index.tolist()
+            ]
+            time_start = time.time()
+            SearchMolecularFormulas(
+                myLCMSobj._ms[scan],
+                first_hit=False,
+                find_isotopologues=True,
+            ).run_worker_ms_peaks(peaks_to_search)
+            print("time to search whole spectrum for all peaks in scan: ", time.time() - time_start)
+            i += 1
+    '''
     # get unique scans to search
     unique_scans = mf_df.apex_scan.unique()
 
@@ -105,7 +158,7 @@ def molecular_formula_search(myLCMSobj):
             find_isotopologues=True,
         ).run_worker_ms_peaks(peaks_to_search)
         i += 1
-
+    '''
     print("Finished molecular search")
 
 
@@ -353,7 +406,7 @@ def run_lipid_sp_ms1(file_in, out_path, params_toml, verbose=True, return_mzs=Tr
     myLCMSobj = instantiate_lcms_obj(file_in, verbose)
     set_params_on_lcms_obj(myLCMSobj, params_toml)
     process_ms1(
-        myLCMSobj, verbose, ms1_molecular_search=False
+        myLCMSobj, verbose, ms1_molecular_search=True
     )  # TODO: change to True when ready
     add_ms2(myLCMSobj)
     export_results(myLCMSobj, out_path=out_path, final=False)
