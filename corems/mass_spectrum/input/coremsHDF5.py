@@ -199,6 +199,11 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
             data_dict = {}
             for data_index, data in enumerate(row):
                 label = columnsLabels[data_index]
+                # if data starts with a b' it is a byte string, so decode it
+                if isinstance(data, bytes):
+                    data = data.decode("utf-8")
+                if data == "nan":
+                    data = None
                 data_dict[label] = data
 
             list_dict.append(data_dict)

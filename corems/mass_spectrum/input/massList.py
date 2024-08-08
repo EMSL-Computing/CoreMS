@@ -1,9 +1,12 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
+import numpy as np
+
+from corems.encapsulation.constant import Atoms
 from corems.mass_spectrum.input.baseClass import MassListBaseClass
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
-from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
+from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula, MolecularFormulaIsotopologue
 from corems.encapsulation.constant import Labels, Atoms
 from corems.encapsulation.factory.processingSetting  import DataInputSetting
 
@@ -101,17 +104,81 @@ class ReadCoremsMasslist(MassListBaseClass):
                 atoms = list(formula_df.columns.astype(str))
                 counts = list(formula_df.iloc[df_index].astype(int))
 
-                formula_list = [sub[item] for item in range(len(atoms))
-                                for sub in [atoms, counts]]
+                formula_dict = dict(zip(atoms, counts))
             if sum(counts) > 0:
 
                 ion_type = str(Labels.ion_type_translate.get(ion_type_df[df_index]))
                 if adduct_df is not None:
                     adduct_atom = str(adduct_df[df_index])
+                    if adduct_atom == 'None':
+                        adduct_atom = None
                 else:
                     adduct_atom = None
-                mfobj = MolecularFormula(formula_list, int(ion_charge_df[df_index]), mspeak_parent=mass_spec_obj[ms_peak_index] , ion_type=ion_type, adduct_atom=adduct_atom)
-                mfobj.is_isotopologue = bool(is_isotopologue_df[df_index])
+
+                # If not isotopologue, cast as MolecularFormula
+                if not bool(int(is_isotopologue_df[df_index])):
+                    mfobj = MolecularFormula(
+                        formula_dict, int(ion_charge_df[df_index]), 
+                        mspeak_parent=mass_spec_obj[ms_peak_index] , 
+                        ion_type=ion_type, adduct_atom=adduct_atom
+                        )
+                    
+                # if is isotopologue, recast as MolecularFormulaIsotopologue
+                if bool(int(is_isotopologue_df[df_index])):
+
+                    # First make a MolecularFormula object for the parent so we can get probabilities etc
+                    formula_list_parent = {}
+                    for atom in formula_dict:
+                        if atom in Atoms.isotopes.keys():
+                            formula_list_parent[atom] = formula_dict[atom]
+                        else:
+                            # remove any numbers from the atom name to cast as a mono-isotopic atom
+                            atom_mono = atom.strip('0123456789')
+                            if atom_mono in Atoms.isotopes.keys():
+                                formula_list_parent[atom_mono] = formula_list_parent[atom_mono]+formula_dict[atom]
+                            else:
+                                print(f"Atom {atom} not in Atoms.atoms_order")
+                    mono_index = int(dataframe.iloc[df_index]['Mono Isotopic Index'])
+                    mono_mfobj = MolecularFormula(
+                        formula_list_parent, 
+                        int(ion_charge_df[df_index]), 
+                        mspeak_parent=mass_spec_obj[mono_index], 
+                        ion_type=ion_type, 
+                        adduct_atom=adduct_atom
+                        )
+                    
+                    # Next, generate isotopologues from the parent
+                    isos = list(
+                        mono_mfobj.isotopologues(
+                        min_abundance = mass_spec_obj[df_index].abundance*0.1, 
+                        current_mono_abundance = mass_spec_obj[mono_index].abundance, 
+                        dynamic_range = mass_spec_obj.dynamic_range
+                         )
+                    )
+
+                    # Finally, find the isotopologue that matches the formula_dict
+                    matched_isos = isos
+                    for iso in isos:
+                        if set(iso.atoms) == set(formula_dict.keys()):
+                            # Check the values of the atoms match
+                            if all([iso[atom] == formula_dict[atom] for atom in formula_dict]):
+                                matched_isos = [iso]
+                    if len(matched_isos) > 1:
+                        raise ValueError("More than one isotopologue matched the formula_dict: {matched_isos}")
+                    if len(matched_isos) == 0:
+                        raise ValueError("No isotopologue matched the formula_dict")
+                    mfobj = matched_isos[0]        
+
+                    # Add the mono isotopic index, confidence score and isotopologue similarity    
+                    mfobj.mspeak_index_mono_isotopic = int(dataframe.iloc[df_index]['Mono Isotopic Index'])
+                
+                # Add the confidence score and isotopologue similarity and average MZ error score
+                if 'm/z Error Score' in dataframe:
+                    mfobj._mass_error_average_score = float(dataframe.iloc[df_index]['m/z Error Score'])
+                if 'Confidence Score' in dataframe:
+                    mfobj._confidence_score = float(dataframe.iloc[df_index]['Confidence Score'])
+                if 'Isotopologue Similarity' in dataframe:
+                    mfobj._isotopologue_similarity = float(dataframe.iloc[df_index]['Isotopologue Similarity'])
                 mass_spec_obj[ms_peak_index].add_molecular_formula(mfobj)
 
 
