@@ -173,9 +173,12 @@ class ReadCoremsMasslist(MassListBaseClass):
                     mfobj.mspeak_index_mono_isotopic = int(dataframe.iloc[df_index]['Mono Isotopic Index'])
                 
                 # Add the confidence score and isotopologue similarity and average MZ error score
-                mfobj._mass_error_average_score = float(dataframe.iloc[df_index]['m/z Error Score'])
-                mfobj._confidence_score = float(dataframe.iloc[df_index]['Confidence Score'])
-                mfobj._isotopologue_similarity = float(dataframe.iloc[df_index]['Isotopologue Similarity'])
+                if 'm/z Error Score' in dataframe:
+                    mfobj._mass_error_average_score = float(dataframe.iloc[df_index]['m/z Error Score'])
+                if 'Confidence Score' in dataframe:
+                    mfobj._confidence_score = float(dataframe.iloc[df_index]['Confidence Score'])
+                if 'Isotopologue Similarity' in dataframe:
+                    mfobj._isotopologue_similarity = float(dataframe.iloc[df_index]['Isotopologue Similarity'])
                 mass_spec_obj[ms_peak_index].add_molecular_formula(mfobj)
 
 
