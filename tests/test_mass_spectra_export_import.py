@@ -8,8 +8,8 @@ def prep_mass_spec_obj():
     # Test for generating accurate molecular formula from a single mass using the local sql database
     # Now also tests that it is handling isotopes correctly (for non-adducts)
     mz = [760.58156938877, 761.58548]
-    abundance = [1, 0.4]
-    rp, s2n = [[1, 1],[1, 1]]
+    abundance = [1000, 400]
+    rp, s2n = [[1, 1],[10, 10]]
     
     MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
     MSParameters.mass_spectrum.noise_threshold_absolute_abundance = 0 
@@ -39,6 +39,7 @@ mass_spectrum_obj = run_molecular_formula_search(mass_spectrum_obj)
 ms_df1 = mass_spectrum_obj.to_dataframe()
 assert  mass_spectrum_obj[0][0].string == 'C56 H73 N1'
 assert ms_df1.shape == (2, 26)
+assert mass_spectrum_obj[1][0].string == 'C55 H73 N1 13C1'
 
 exportMS = HighResMassSpecExport('my_mass_spec', mass_spectrum_obj)
 exportMS._output_type = 'hdf5'
@@ -49,4 +50,7 @@ mass_spectrum_obj2 = parser.get_mass_spectrum(auto_process=True, load_settings=T
 
 # Below errors out:
 ms_df2 = mass_spectrum_obj2.to_dataframe()
+assert  mass_spectrum_obj2[0][0].string == 'C56 H73 N1'
+assert ms_df2.shape == (2, 26)
+assert mass_spectrum_obj2[1][0].string == 'C55 H73 N1 13C1'
     
