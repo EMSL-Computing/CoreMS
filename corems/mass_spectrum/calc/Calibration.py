@@ -152,7 +152,8 @@ class MzDomainCalibration:
                                 calib_ppm_error_threshold : tuple[float, float]=(-1, 1),
                                 calib_snr_threshold : float=5,
                                 calibration_ref_match_method : str='legacy',
-                                calibration_ref_match_tolerance : float=0.003):
+                                calibration_ref_match_tolerance : float=0.003,
+                                calibration_ref_match_std_raw_error_limit: float=1.5):
         """Function to find calibration points in the mass spectrum 
         
         Based on the reference mass list.
@@ -221,6 +222,8 @@ class MzDomainCalibration:
             merged_df['Error_ppm'] = ((merged_df['meas_m/z']-merged_df['m/z'])/merged_df['m/z'])*1e6
             median_raw_error = merged_df['Error_ppm'].median()
             std_raw_error = merged_df['Error_ppm'].std()
+            if std_raw_error > calibration_ref_match_std_raw_error_limit:
+                std_raw_error = calibration_ref_match_std_raw_error_limit
             self.mass_spectrum.calibration_raw_error_median = median_raw_error
             self.mass_spectrum.calibration_raw_error_stdev = std_raw_error
             merged_df= merged_df[(merged_df['Error_ppm']>(median_raw_error-1.5*std_raw_error))&(merged_df['Error_ppm']<(median_raw_error+1.5*std_raw_error))]
@@ -448,6 +451,7 @@ class MzDomainCalibration:
         calib_pol_order = self.mass_spectrum.settings.calib_pol_order
         calibration_ref_match_method = self.mass_spectrum.settings.calibration_ref_match_method
         calibration_ref_match_tolerance = self.mass_spectrum.settings.calibration_ref_match_tolerance
+        calibration_ref_match_std_raw_error_limit = self.mass_spectrum.settings.calibration_ref_match_std_raw_error_limit
 
         # load reference mass list
         df_ref = self.load_ref_mass_list()
@@ -458,7 +462,8 @@ class MzDomainCalibration:
                                                                                   max_calib_ppm_error),
                                                        calib_snr_threshold=calib_ppm_error_threshold,
                                                        calibration_ref_match_method = calibration_ref_match_method,
-                                                       calibration_ref_match_tolerance = calibration_ref_match_tolerance)
+                                                       calibration_ref_match_tolerance = calibration_ref_match_tolerance,
+                                                       calibration_ref_match_std_raw_error_limit = calibration_ref_match_std_raw_error_limit)
         if len(cal_peaks_mz)==2:
             self.mass_spectrum.settings.calib_pol_order = 1
             calib_pol_order = 1

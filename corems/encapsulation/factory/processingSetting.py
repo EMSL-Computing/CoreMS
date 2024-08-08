@@ -266,6 +266,7 @@ class MassSpectrumSetting:
     calibration_ref_match_method: str = 'legacy'
     calibration_ref_match_method_implemented: tuple = ('legacy', 'merged')
     calibration_ref_match_tolerance: float = 0.003
+    calibration_ref_match_std_raw_error_limit: float = 1.5
     #calib_ref_mzs: list = [0]
 
     do_calibration: bool = True
