@@ -144,7 +144,6 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
         mass_spec_obj = MassSpecCentroid(
             dataframe.to_dict(orient="list"), output_parameters, auto_process = False
-            dataframe.to_dict(orient="list"), output_parameters, auto_process = False
         )
 
         if auto_process:
