@@ -167,7 +167,8 @@ def test_import_corems_hdf5():
     #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
     mass_list_reader = ReadCoreMSHDF_MassSpectrum(file_location)
 
-    mass_spectrum = mass_list_reader.get_mass_spectrum(load_settings=False)
+    mass_spectrum = mass_list_reader.get_mass_spectrum()
+    mass_spectrum.to_dataframe()
 
     for mspeak in mass_spectrum:
         
