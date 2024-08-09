@@ -1,17 +1,18 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jul 25, 2019"
 
+import os
 
 import sys
-import time
 from pathlib import Path
 sys.path.append('.')
 
-from numpy import array
-import pytest
 
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
-from corems.encapsulation.factory.processingSetting  import MassSpectrumSetting, TransientSetting
+from corems.encapsulation.factory.processingSetting  import TransientSetting
+from corems.encapsulation.factory.parameters import MSParameters
+from corems.mass_spectrum.output.export import HighResMassSpecExport
+from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
 
 def test_create_mass_spectrum():
 
@@ -26,28 +27,23 @@ def test_create_mass_spectrum():
     TransientSetting.number_of_truncations = 1
     bruker_transient = bruker_reader.get_transient()
 
-    noise_threshold_log_nsigma: int = 6
-    noise_threshold_log_nsigma_corr_factor: float = 0.463 #mFT is 0.463, aFT is 1.0
-    noise_threshold_log_nsigma_bins: int = 500 # bins for the histogram for the noise
+    MSParameters.mass_spectrum.noise_threshold_method  = 'signal_noise'
+    MSParameters.mass_spectrum.noise_threshold_min_s2n = 15
+    mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
+    assert len(mass_spectrum_obj) == 504
+    assert mass_spectrum_obj.settings.noise_threshold_method == 'signal_noise'
 
-    #MassSpectrumSetting.noise_threshold_method = 'log'
-    #MassSpectrumSetting.noise_threshold_log_nsigma = 12
-    #MassSpectrumSetting.noise_threshold_log_nsigma = 1
-    #MassSpectrumSetting.noise_threshold_log_nsigma = 100
-   
-    print('ok2')
-    MassSpectrumSetting.noise_threshold_method = 'signal_noise'
-    MassSpectrumSetting.noise_threshold_min_s2n = 15
+    MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
+    MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 20
     mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
-    print('ok3')
-    MassSpectrumSetting.noise_threshold_method = 'relative_abundance'
-    MassSpectrumSetting.noise_threshold_min_relative_abundance = 20
+    assert len(mass_spectrum_obj) == 212
+    assert mass_spectrum_obj.settings.noise_threshold_method == 'relative_abundance'
+
+    MSParameters.mass_spectrum.noise_threshold_method = 'log'
+    MSParameters.mass_spectrum.noise_threshold_log_nsigma = 20
     mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
-    print('ok4')
-    
-    MassSpectrumSetting.noise_threshold_method = 'log'
-    MassSpectrumSetting.noise_threshold_log_nsigma = 20
-    mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
+    assert len(mass_spectrum_obj) == 1050
+    assert mass_spectrum_obj.settings.noise_threshold_method == 'log'
     
     mass_spectrum_obj.freq_exp
     mass_spectrum_obj.dir_location
@@ -56,7 +52,7 @@ def test_create_mass_spectrum():
     mass_spectrum_obj.max_abundance
     mass_spectrum_obj.filter_by_mz(200, 1000)
     mass_spectrum_obj.reset_indexes()
-    print('ok5')
+
     mass_spectrum_obj.filter_by_abundance(0, 1000)
     mass_spectrum_obj.reset_indexes()
     mass_spectrum_obj.filter_by_max_resolving_power(12, 3)
@@ -65,28 +61,38 @@ def test_create_mass_spectrum():
     mass_spectrum_obj.reset_indexes()
     mass_spectrum_obj.filter_by_noise_threshold()
     mass_spectrum_obj.reset_indexes()
-    print('ok6')
+
     mass_spectrum_obj.get_mz_and_abundance_peaks_tuples()
     mass_spectrum_obj.get_masses_count_by_nominal_mass()
     mass_spectrum_obj.resolving_power_calc(12, 1)
     mass_spectrum_obj._f_to_mz()
     mass_spectrum_obj.number_average_molecular_weight(profile=True)
     
-    print('ok7')
     mass_spectrum_obj.reset_cal_therms(mass_spectrum_obj.Aterm,mass_spectrum_obj.Bterm,mass_spectrum_obj.Cterm)
     mass_spectrum_obj.reset_indexes()
-    
-    print('ok8')
-    #kendrick_group_index = mass_spectrum_obj.kendrick_groups_indexes()
+    mass_spectrum_obj.plot_profile_and_noise_threshold()
 
-    #mass_spectrum_obj.reset_indexes()
+    return mass_spectrum_obj
 
-    print('ok9')
-    #return mass_spectrum_obj, kendrick_group_index
+def test_export_import_profile():
+    os.remove("my_mass_spec.hdf5")
+    mass_spectrum_obj = test_create_mass_spectrum()
+    assert not mass_spectrum_obj.is_centroid
+    assert mass_spectrum_obj.to_dataframe().shape[0] == 1050
 
-    print('ok10')
+    exportMS = HighResMassSpecExport("my_mass_spec", mass_spectrum_obj)
+    exportMS._output_type = "hdf5"
+    exportMS.save()
+
+    parser = ReadCoreMSHDF_MassSpectrum("my_mass_spec.hdf5")
+    mass_spectrum_obj2 = parser.get_mass_spectrum(auto_process=True, load_settings=True)
+    assert mass_spectrum_obj2.to_dataframe().shape[0] == 1050
+
+    os.remove("my_mass_spec.hdf5")
+
 
 if __name__ == "__main__":
     # mass_spectrum_obj, kendrick_group_index = test_create_mass_spectrum()
     # mass_spectrum_obj.plot_profile_and_noise_threshold()
-    test_create_mass_spectrum()
+    #test_create_mass_spectrum()
+    test_export_import_profile()

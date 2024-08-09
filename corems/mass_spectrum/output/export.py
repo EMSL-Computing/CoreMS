@@ -299,6 +299,7 @@ class HighResMassSpecExport(Thread):
                 hdf_handle.attrs['analyzer'] = self.mass_spectrum.analyzer
                 hdf_handle.attrs['instrument_label'] = self.mass_spectrum.instrument_label
                 hdf_handle.attrs['sample_name'] = self.mass_spectrum.sample_name
+                hdf_handle.attrs['label'] = self.mass_spectrum.label
 
             group_key = str(self.mass_spectrum.scan_number)
 

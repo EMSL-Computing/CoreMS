@@ -142,7 +142,7 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
         if auto_process:
             # Set the settings on the mass spectrum object to relative abuncance of 0 so all peaks get added
-            mass_spec_obj.settings.noise_threshold_method = "relative_abundance"
+            mass_spec_obj.settings.noise_threshold_method = "absolute_abundance"
             mass_spec_obj.settings.noise_threshold_absolute_abundance = 0
             mass_spec_obj.process_mass_spec()
 
@@ -413,5 +413,6 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         d_params['analyzer'] = self.get_high_level_attr_data('analyzer')
         d_params['instrument_label'] = self.get_high_level_attr_data('instrument_label')
         d_params['sample_name'] = self.get_high_level_attr_data('sample_name')
+        d_params['label'] = self.get_high_level_attr_data('label')
 
         return d_params
