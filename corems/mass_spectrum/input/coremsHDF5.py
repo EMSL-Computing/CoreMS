@@ -140,7 +140,6 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         polarity = dataframe["Ion Charge"].values[0]
 
         output_parameters = self.get_output_parameters(polarity, scan_index=scan_index)
-        output_parameters = self.get_output_parameters(polarity, scan_index=scan_index)
 
         mass_spec_obj = MassSpecCentroid(
             dataframe.to_dict(orient="list"), output_parameters, auto_process = False
@@ -159,9 +158,6 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
                 scan_index=scan_index, 
                 time_index=time_index
             )
-
-        if auto_process:
-            mass_spec_obj.process_mass_spec()
 
         if load_raw:
             self.load_raw_data(
