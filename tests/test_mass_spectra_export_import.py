@@ -50,6 +50,7 @@ def test_mass_spec_export_import_with_annote():
     assert mass_spectrum_obj[0][0].string == "C56 H73 N1"
     assert ms_df1.shape == (2, 26)
     assert mass_spectrum_obj[1][0].string == "C55 H73 N1 13C1"
+    assert mass_spectrum_obj._mz_exp[0] == 760.58156938877
 
     exportMS = HighResMassSpecExport("my_mass_spec", mass_spectrum_obj)
     exportMS._output_type = "hdf5"
@@ -62,6 +63,7 @@ def test_mass_spec_export_import_with_annote():
     assert mass_spectrum_obj2[0][0].string == "C56 H73 N1"
     assert ms_df2.shape == (2, 26)
     assert mass_spectrum_obj2[1][0].string == "C55 H73 N1 13C1"
+    assert mass_spectrum_obj2._mz_exp[0] == 760.58156938877
 
     # Remove the file
     shutil.rmtree(
