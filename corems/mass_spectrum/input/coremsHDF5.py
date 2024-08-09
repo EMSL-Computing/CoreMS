@@ -66,13 +66,16 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
         scan_label = self.scans[scan_index]
 
-        mz_profile = self.h5pydata[scan_label]["raw_ms"][0]
+        # Check if the "raw_ms" group in the scan is empty
+        if self.h5pydata[scan_label]["raw_ms"].shape is not None:
 
-        abundance_profile = self.h5pydata[scan_label]["raw_ms"][1]
+            mz_profile = self.h5pydata[scan_label]["raw_ms"][0]
 
-        mass_spectrum.mz_exp_profile = mz_profile
+            abundance_profile = self.h5pydata[scan_label]["raw_ms"][1]
 
-        mass_spectrum.abundance_profile = abundance_profile
+            mass_spectrum.mz_exp_profile = mz_profile
+
+            mass_spectrum.abundance_profile = abundance_profile
 
     def get_mass_spectrum(
         self,
@@ -124,6 +127,10 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
             )
 
         dataframe.rename(columns=self.parameters.header_translate, inplace=True)
+
+        # Cast m/z, and 'Peak Height' to float
+        dataframe["m/z"] = dataframe["m/z"].astype(float)
+        dataframe["Peak Height"] = dataframe["Peak Height"].astype(float)
 
         polarity = dataframe["Ion Charge"].values[0]
 

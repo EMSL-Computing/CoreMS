@@ -1,4 +1,4 @@
-import shutil
+import os
 
 from corems.mass_spectrum.input.numpyArray import ms_from_array_centroid
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
@@ -66,10 +66,7 @@ def test_mass_spec_export_import_with_annote():
     assert mass_spectrum_obj2._mz_exp[0] == 760.58156938877
 
     # Remove the file
-    shutil.rmtree(
-        "my_mass_spec.hdf5",
-        ignore_errors=True,
-    )
+    os.remove("my_mass_spec.hdf5")
 
 
 if __name__ == "__main__":
