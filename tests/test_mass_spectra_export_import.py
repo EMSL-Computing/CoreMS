@@ -44,7 +44,8 @@ def run_molecular_formula_search(mass_spectrum_obj):
 
 
 def test_mass_spec_export_import_with_annote():
-    os.remove("my_mass_spec.hdf5")
+    if os.path.exists("my_mass_spec.hdf5"):
+        os.remove("my_mass_spec.hdf5")
     mass_spectrum_obj = prep_mass_spec_obj()
     mass_spectrum_obj = run_molecular_formula_search(mass_spectrum_obj)
     ms_df1 = mass_spectrum_obj.to_dataframe()

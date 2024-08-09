@@ -28,9 +28,9 @@ def test_create_mass_spectrum():
     bruker_transient = bruker_reader.get_transient()
 
     MSParameters.mass_spectrum.noise_threshold_method  = 'signal_noise'
-    MSParameters.mass_spectrum.noise_threshold_min_s2n = 15
+    MSParameters.mass_spectrum.noise_threshold_min_s2n = 4
     mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
-    assert len(mass_spectrum_obj) == 504
+    assert len(mass_spectrum_obj) == 2175
     assert mass_spectrum_obj.settings.noise_threshold_method == 'signal_noise'
 
     MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
