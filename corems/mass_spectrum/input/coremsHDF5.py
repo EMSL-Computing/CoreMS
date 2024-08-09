@@ -87,7 +87,9 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         load_molecular_formula=True,
     ):
         """
-        Get a mass spectrum object.
+        Instantiate a mass spectrum object from the CoreMS HDF5 file. 
+        Note that this always returns a centroid mass spectrum object; functionality for profile and
+        frequency mass spectra is not yet implemented.
 
         Parameters
         ----------
@@ -413,6 +415,5 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         d_params['analyzer'] = self.get_high_level_attr_data('analyzer')
         d_params['instrument_label'] = self.get_high_level_attr_data('instrument_label')
         d_params['sample_name'] = self.get_high_level_attr_data('sample_name')
-        d_params['label'] = self.get_high_level_attr_data('label')
 
         return d_params

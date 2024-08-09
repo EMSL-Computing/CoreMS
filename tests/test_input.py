@@ -175,6 +175,7 @@ def test_import_corems_hdf5():
     assert len(mass_spectrum) == 20
 
     # Import unprocessed mass spectrum, check that the mass spectrum is loaded correctly
+    MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
     mass_spectrum2 = mass_list_reader.get_mass_spectrum(
         load_settings=False, 
         auto_process=False,

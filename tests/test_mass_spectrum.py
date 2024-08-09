@@ -75,7 +75,8 @@ def test_create_mass_spectrum():
     return mass_spectrum_obj
 
 def test_export_import_profile():
-    os.remove("my_mass_spec.hdf5")
+    if os.path.exists("my_mass_spec.hdf5"):
+        os.remove("my_mass_spec.hdf5")
     mass_spectrum_obj = test_create_mass_spectrum()
     assert not mass_spectrum_obj.is_centroid
     assert mass_spectrum_obj.to_dataframe().shape[0] == 1050
