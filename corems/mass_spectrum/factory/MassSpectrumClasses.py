@@ -119,6 +119,8 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self.calibration_points = None
         self.calibration_RMS = None
         self.calibration_segment = None
+        self.calibration_raw_error_median = None
+        self.calibration_raw_error_stdev = None
 
     def _init_settings(self):
         """Initializes the settings for the mass spectrum."""

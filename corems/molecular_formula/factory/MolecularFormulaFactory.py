@@ -250,14 +250,20 @@ class MolecularFormulaBase(MolecularFormulaCalc):
 
     @property
     def O_C(self): 
-            
             if 'O' in self._d_molecular_formula.keys():
-                return self._d_molecular_formula.get("O")/self._d_molecular_formula.get("C")
+                # gather all the Os and Hs, regardless of the isotopic composition
+                Os =sum([self._d_molecular_formula.get(key) for key in ['O'] + Atoms.isotopes['O'][1] if key in self._d_molecular_formula.keys()])
+                Cs = sum([self._d_molecular_formula.get(key) for key in ['C'] + Atoms.isotopes['C'][1] if key in self._d_molecular_formula.keys()])
+                return Os/Cs
             else:
                 return 0    
     
     @property
-    def H_C(self): return self._d_molecular_formula.get("H")/self._d_molecular_formula.get("C")
+    def H_C(self): 
+        # gather all the Cs and Hs, regardless of the isotopic composition
+        Cs = sum([self._d_molecular_formula.get(key) for key in ['C'] + Atoms.isotopes['C'][1] if key in self._d_molecular_formula.keys()])
+        Hs = sum([self._d_molecular_formula.get(key) for key in ['H'] + Atoms.isotopes['H'][1] if key in self._d_molecular_formula.keys()])
+        return Hs/Cs
     
     @property
     def dbe(self): return self._calc_dbe()

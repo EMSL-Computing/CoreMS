@@ -116,7 +116,7 @@ class MzDomainCalibration:
                                 3: 'Form2'
                                 }, axis=1)
 
-        df_ref.sort_values(by='m/z', ascending=False)
+        df_ref.sort_values(by='m/z', ascending=True,inplace=True)
         print("Reference mass list loaded - " + str(len(df_ref)) + " calibration masses loaded.")
 
         return df_ref
@@ -150,7 +150,10 @@ class MzDomainCalibration:
 
     def find_calibration_points(self, df_ref,
                                 calib_ppm_error_threshold : tuple[float, float]=(-1, 1),
-                                calib_snr_threshold : float=5):
+                                calib_snr_threshold : float=5,
+                                calibration_ref_match_method : str='legacy',
+                                calibration_ref_match_tolerance : float=0.003,
+                                calibration_ref_match_std_raw_error_limit: float=1.5):
         """Function to find calibration points in the mass spectrum 
         
         Based on the reference mass list.
@@ -186,23 +189,49 @@ class MzDomainCalibration:
                     peaks_mz.append(x.mz_exp)
         peaks_mz = np.asarray(peaks_mz)
         
-        cal_peaks_mz = []
-        cal_refs_mz = []
-        for mzref in df_ref['m/z']:
-            tmp_peaks_mz = peaks_mz[abs(peaks_mz-mzref)<1]
-            for mzmeas in tmp_peaks_mz:
-                delta_mass = ((mzmeas-mzref)/mzref)*1e6
-                if delta_mass < max(calib_ppm_error_threshold):
-                    if delta_mass > min(calib_ppm_error_threshold):
-                        cal_peaks_mz.append(mzmeas)
-                        cal_refs_mz.append(mzref)
+        if calibration_ref_match_method == 'legacy':
+            # This legacy approach iterates through each reference match and finds the entries within 1 mz and within the user defined PPM error threshold
+            # Then it removes ambiguities - which means the calibration threshold hasto be very tight.
+            cal_peaks_mz = []
+            cal_refs_mz = []
+            for mzref in df_ref['m/z']:
+                tmp_peaks_mz = peaks_mz[abs(peaks_mz-mzref)<1]
+                for mzmeas in tmp_peaks_mz:
+                    delta_mass = ((mzmeas-mzref)/mzref)*1e6
+                    if delta_mass < max(calib_ppm_error_threshold):
+                        if delta_mass > min(calib_ppm_error_threshold):
+                            cal_peaks_mz.append(mzmeas)
+                            cal_refs_mz.append(mzref)
 
-        # To remove entries with duplicated indices (reference masses matching multiple peaks)
-        tmpdf = pd.Series(index = cal_refs_mz,data = cal_peaks_mz,dtype=float)
-        tmpdf = tmpdf[~tmpdf.index.duplicated(keep=False)]
+            # To remove entries with duplicated indices (reference masses matching multiple peaks)
+            tmpdf = pd.Series(index = cal_refs_mz,data = cal_peaks_mz,dtype=float)
+            tmpdf = tmpdf[~tmpdf.index.duplicated(keep=False)]
 
-        cal_peaks_mz = list(tmpdf.values)
-        cal_refs_mz = list(tmpdf.index)
+            cal_peaks_mz = list(tmpdf.values)
+            cal_refs_mz = list(tmpdf.index)
+        elif calibration_ref_match_method == 'merged':
+            print('Using experimental new reference mass list merging')
+            # This is a new approach (August 2024) which uses Pandas 'merged_asof' to find the peaks closest in m/z between 
+            # reference and measured masses. This is a quicker way to match, and seems to get more matches.
+            # It may not work as well when the data are far from correc initial mass
+            # e.g. if the correct peak is further from the reference than an incorrect peak.
+            meas_df = pd.DataFrame(columns=['meas_m/z'],data = peaks_mz)
+            tolerance = calibration_ref_match_tolerance
+            merged_df = pd.merge_asof(df_ref, meas_df, left_on='m/z', right_on = 'meas_m/z',tolerance=tolerance,direction='nearest')
+            merged_df.dropna(how='any',inplace=True)
+            merged_df['Error_ppm'] = ((merged_df['meas_m/z']-merged_df['m/z'])/merged_df['m/z'])*1e6
+            median_raw_error = merged_df['Error_ppm'].median()
+            std_raw_error = merged_df['Error_ppm'].std()
+            if std_raw_error > calibration_ref_match_std_raw_error_limit:
+                std_raw_error = calibration_ref_match_std_raw_error_limit
+            self.mass_spectrum.calibration_raw_error_median = median_raw_error
+            self.mass_spectrum.calibration_raw_error_stdev = std_raw_error
+            merged_df= merged_df[(merged_df['Error_ppm']>(median_raw_error-1.5*std_raw_error))&(merged_df['Error_ppm']<(median_raw_error+1.5*std_raw_error))]
+            #merged_df= merged_df[(merged_df['Error_ppm']>min(calib_ppm_error_threshold))&(merged_df['Error_ppm']<max(calib_ppm_error_threshold))]
+            cal_peaks_mz = list(merged_df['meas_m/z'])
+            cal_refs_mz = list(merged_df['m/z'])   
+        else:
+            print(f'{calibration_ref_match_method} not allowed.')
 
         if False:
             min_calib_ppm_error = calib_ppm_error_threshold[0]
@@ -420,6 +449,9 @@ class MzDomainCalibration:
         max_calib_ppm_error = self.mass_spectrum.settings.max_calib_ppm_error
         min_calib_ppm_error = self.mass_spectrum.settings.min_calib_ppm_error
         calib_pol_order = self.mass_spectrum.settings.calib_pol_order
+        calibration_ref_match_method = self.mass_spectrum.settings.calibration_ref_match_method
+        calibration_ref_match_tolerance = self.mass_spectrum.settings.calibration_ref_match_tolerance
+        calibration_ref_match_std_raw_error_limit = self.mass_spectrum.settings.calibration_ref_match_std_raw_error_limit
 
         # load reference mass list
         df_ref = self.load_ref_mass_list()
@@ -428,7 +460,10 @@ class MzDomainCalibration:
         cal_peaks_mz, cal_refs_mz = self.find_calibration_points(df_ref,
                                                        calib_ppm_error_threshold=(min_calib_ppm_error,
                                                                                   max_calib_ppm_error),
-                                                       calib_snr_threshold=calib_ppm_error_threshold)
+                                                       calib_snr_threshold=calib_ppm_error_threshold,
+                                                       calibration_ref_match_method = calibration_ref_match_method,
+                                                       calibration_ref_match_tolerance = calibration_ref_match_tolerance,
+                                                       calibration_ref_match_std_raw_error_limit = calibration_ref_match_std_raw_error_limit)
         if len(cal_peaks_mz)==2:
             self.mass_spectrum.settings.calib_pol_order = 1
             calib_pol_order = 1

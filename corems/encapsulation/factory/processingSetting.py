@@ -173,7 +173,7 @@ class LiquidChromatographSetting:
     include_fragment_types : bool, optional
         If True, include fragment types in the database. Called within the LCMSSpectralSearch.fe_search() and related methods. Default is False.
     """
-    scans: list | tuple = (0, 1)
+    scans: list | tuple = (-1,-1)
 
     # Parameters used for generating EICs and performing 1D peak picking and EIC/TIC smoothing
     eic_tolerance_ppm: float = 5
@@ -271,6 +271,10 @@ class MassSpectrumSetting:
         Minimum ppm error to use for calibration. Default is -1.0.
     calib_sn_threshold : float, optional
         Signal to noise threshold to use for calibration. Default is 2.0.
+    calibration_ref_match_method: string, optional
+        Method for matching reference masses with measured masses for recalibration. Default is 'legacy'. 
+    calibration_ref_match_tolerance: float, optional
+        If using the new method for calibration reference mass matching, this tolerance is the initial matching tolerance. Default is 0.003
     do_calibration : bool, optional
         If True, perform calibration. Default is True.    
     """
@@ -306,6 +310,10 @@ class MassSpectrumSetting:
     max_calib_ppm_error: float = 1.0
     min_calib_ppm_error: float = -1.0
     calib_sn_threshold: float = 2.0
+    calibration_ref_match_method: str = 'legacy'
+    calibration_ref_match_method_implemented: tuple = ('legacy', 'merged')
+    calibration_ref_match_tolerance: float = 0.003
+    calibration_ref_match_std_raw_error_limit: float = 1.5
     #calib_ref_mzs: list = [0]
 
     do_calibration: bool = True
