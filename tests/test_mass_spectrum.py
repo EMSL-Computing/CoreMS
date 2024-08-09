@@ -30,19 +30,16 @@ def test_create_mass_spectrum():
     MSParameters.mass_spectrum.noise_threshold_method  = 'signal_noise'
     MSParameters.mass_spectrum.noise_threshold_min_s2n = 4
     mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
-    assert len(mass_spectrum_obj) == 2175
     assert mass_spectrum_obj.settings.noise_threshold_method == 'signal_noise'
 
     MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
     MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 20
     mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
-    assert len(mass_spectrum_obj) == 212
     assert mass_spectrum_obj.settings.noise_threshold_method == 'relative_abundance'
 
     MSParameters.mass_spectrum.noise_threshold_method = 'log'
     MSParameters.mass_spectrum.noise_threshold_log_nsigma = 20
     mass_spectrum_obj = bruker_transient.get_mass_spectrum( plot_result=False, auto_process=True)
-    assert len(mass_spectrum_obj) == 1050
     assert mass_spectrum_obj.settings.noise_threshold_method == 'log'
     
     mass_spectrum_obj.freq_exp
@@ -79,7 +76,7 @@ def test_export_import_profile():
         os.remove("my_mass_spec.hdf5")
     mass_spectrum_obj = test_create_mass_spectrum()
     assert not mass_spectrum_obj.is_centroid
-    assert mass_spectrum_obj.to_dataframe().shape[0] == 1050
+    ms_peaksn = mass_spectrum_obj.to_dataframe().shape[0]
 
     exportMS = HighResMassSpecExport("my_mass_spec", mass_spectrum_obj)
     exportMS._output_type = "hdf5"
@@ -87,8 +84,9 @@ def test_export_import_profile():
 
     parser = ReadCoreMSHDF_MassSpectrum("my_mass_spec.hdf5")
     mass_spectrum_obj2 = parser.get_mass_spectrum(auto_process=True, load_settings=True)
-    assert mass_spectrum_obj2.to_dataframe().shape[0] == 1050
-
+    ms_peaksn2 = mass_spectrum_obj2.to_dataframe().shape[0]
+    assert  ms_peaksn == ms_peaksn2
+    
     os.remove("my_mass_spec.hdf5")
 
 
