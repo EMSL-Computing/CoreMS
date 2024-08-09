@@ -66,13 +66,16 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
         scan_label = self.scans[scan_index]
 
-        mz_profile = self.h5pydata[scan_label]["raw_ms"][0]
+        # Check if the "raw_ms" group in the scan is empty
+        if self.h5pydata[scan_label]["raw_ms"].shape is not None:
 
-        abundance_profile = self.h5pydata[scan_label]["raw_ms"][1]
+            mz_profile = self.h5pydata[scan_label]["raw_ms"][0]
 
-        mass_spectrum.mz_exp_profile = mz_profile
+            abundance_profile = self.h5pydata[scan_label]["raw_ms"][1]
 
-        mass_spectrum.abundance_profile = abundance_profile
+            mass_spectrum.mz_exp_profile = mz_profile
+
+            mass_spectrum.abundance_profile = abundance_profile
 
     def get_mass_spectrum(
         self,
@@ -80,10 +83,13 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         time_index=-1,
         auto_process=True,
         load_settings=True,
-        load_raw=True
+        load_raw=True,
+        load_molecular_formula=True,
     ):
         """
-        Get a mass spectrum object.
+        Instantiate a mass spectrum object from the CoreMS HDF5 file. 
+        Note that this always returns a centroid mass spectrum object; functionality for profile and
+        frequency mass spectra is not yet implemented.
 
         Parameters
         ----------
@@ -97,11 +103,20 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
             Whether to load the settings into the mass spectrum object. Default is True.
         load_raw : bool, optional
             Whether to load the raw data into the mass spectrum object. Default is True.
+        load_molecular_formula : bool, optional
+            Whether to load the molecular formula into the mass spectrum object.
+            Default is True.
 
         Returns
         -------
         MassSpecCentroid
             The mass spectrum object.
+        
+        Raises
+        ------
+        ValueError
+            If the CoreMS file is not valid.
+            If the mass spectrum has not been processed and load_molecular_formula is True.
         """
         if "mass_spectra" in self.scans[0]:
             scan_index = self.scans.index("mass_spectra/" + str(scan_number))
@@ -118,26 +133,50 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
         dataframe.rename(columns=self.parameters.header_translate, inplace=True)
 
+        # Cast m/z, and 'Peak Height' to float
+        dataframe["m/z"] = dataframe["m/z"].astype(float)
+        dataframe["Peak Height"] = dataframe["Peak Height"].astype(float)
+
         polarity = dataframe["Ion Charge"].values[0]
 
+        output_parameters = self.get_output_parameters(polarity, scan_index=scan_index)
         output_parameters = self.get_output_parameters(polarity, scan_index=scan_index)
 
         mass_spec_obj = MassSpecCentroid(
             dataframe.to_dict(orient="list"), output_parameters, auto_process = False
+            dataframe.to_dict(orient="list"), output_parameters, auto_process = False
         )
 
+        if auto_process:
+            # Set the settings on the mass spectrum object to relative abuncance of 0 so all peaks get added
+            mass_spec_obj.settings.noise_threshold_method = "absolute_abundance"
+            mass_spec_obj.settings.noise_threshold_absolute_abundance = 0
+            mass_spec_obj.process_mass_spec()
+
         if load_settings:
+            # Load settings into the mass spectrum object
             self.load_settings(
-                mass_spec_obj, scan_index=scan_index, time_index=time_index
+                mass_spec_obj, 
+                scan_index=scan_index, 
+                time_index=time_index
             )
 
         if auto_process:
             mass_spec_obj.process_mass_spec()
 
         if load_raw:
-            self.load_raw_data(mass_spec_obj, scan_index=scan_index)
+            self.load_raw_data(
+                mass_spec_obj, 
+                scan_index=scan_index
+                )
 
-        self.add_molecular_formula(mass_spec_obj, dataframe)
+        if load_molecular_formula:
+            if not auto_process:
+                raise ValueError(
+                    "Can only add molecular formula if the mass spectrum has been processed"
+                )
+            else:
+                self.add_molecular_formula(mass_spec_obj, dataframe)
 
         return mass_spec_obj
 
