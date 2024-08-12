@@ -161,8 +161,7 @@ class LCMSMassFeatureCalculation:
         Tuple[float, float, bool]
             The minimum and maximum half-height width based on scan resolution (in minutes), and a boolean indicating if the width was estimated.
         """
-        if self.id == 230:
-            print("Calculating half height width of mass feature 230")
+
         # Pull out the EIC data
         eic = self._eic_data.eic_smoothed
 
