@@ -77,6 +77,8 @@ class ReadCoremsMasslist(MassListBaseClass):
 
         # check if is coreMS file
         if 'Is Isotopologue' in dataframe:
+            # Reindex dataframe to row index to avoid issues with duplicated indexes (e.g. when multiple formula map to single mz_exp)
+            dataframe = dataframe.reset_index(drop=True)
 
             mz_exp_df = dataframe[Labels.mz].astype(float)
             formula_df = dataframe[dataframe.columns.intersection(Atoms.atoms_order)].copy()
@@ -105,8 +107,11 @@ class ReadCoremsMasslist(MassListBaseClass):
                 counts = list(formula_df.iloc[df_index].astype(int))
 
                 formula_dict = dict(zip(atoms, counts))
-            if sum(counts) > 0:
 
+                # Drop any atoms with 0 counts
+                formula_dict = {atom: formula_dict[atom] for atom in formula_dict if formula_dict[atom] > 0}
+
+            if sum(counts) > 0:
                 ion_type = str(Labels.ion_type_translate.get(ion_type_df[df_index]))
                 if adduct_df is not None:
                     adduct_atom = str(adduct_df[df_index])
@@ -134,8 +139,10 @@ class ReadCoremsMasslist(MassListBaseClass):
                         else:
                             # remove any numbers from the atom name to cast as a mono-isotopic atom
                             atom_mono = atom.strip('0123456789')
-                            if atom_mono in Atoms.isotopes.keys():
+                            if atom_mono in Atoms.isotopes.keys() and atom_mono in formula_list_parent.keys():
                                 formula_list_parent[atom_mono] = formula_list_parent[atom_mono]+formula_dict[atom]
+                            elif atom_mono in Atoms.isotopes.keys():
+                                formula_list_parent[atom_mono] = formula_dict[atom]
                             else:
                                 print(f"Atom {atom} not in Atoms.atoms_order")
                     mono_index = int(dataframe.iloc[df_index]['Mono Isotopic Index'])
@@ -150,21 +157,22 @@ class ReadCoremsMasslist(MassListBaseClass):
                     # Next, generate isotopologues from the parent
                     isos = list(
                         mono_mfobj.isotopologues(
-                        min_abundance = mass_spec_obj[df_index].abundance*0.1, 
+                        min_abundance = mass_spec_obj[df_index].abundance*0.001, 
                         current_mono_abundance = mass_spec_obj[mono_index].abundance, 
                         dynamic_range = mass_spec_obj.dynamic_range
                          )
                     )
 
                     # Finally, find the isotopologue that matches the formula_dict
-                    matched_isos = isos
+                    matched_isos = []
                     for iso in isos:
-                        if set(iso.atoms) == set(formula_dict.keys()):
-                            # Check the values of the atoms match
-                            if all([iso[atom] == formula_dict[atom] for atom in formula_dict]):
-                                matched_isos = [iso]
-                    if len(matched_isos) > 1:
-                        raise ValueError("More than one isotopologue matched the formula_dict: {matched_isos}")
+                        while len(matched_isos) < 1:
+                            # Check the atoms match
+                            if set(iso.atoms) == set(formula_dict.keys()):
+                                # Check the values of the atoms match
+                                if all([iso[atom] == formula_dict[atom] for atom in formula_dict]):
+                                    matched_isos.append(iso)
+
                     if len(matched_isos) == 0:
                         raise ValueError("No isotopologue matched the formula_dict")
                     mfobj = matched_isos[0]        

@@ -206,13 +206,25 @@ class MolecularFormulaBase(MolecularFormulaCalc):
     def _from_str(self, molecular_formula_str,  ion_type, adduct_atom):
         # string has to be in the format 
         #'C10 H21 13C1 Cl1 37Cl1 etc'
-        molecular_formula_list = molecular_formula_str.split(' ')
-        final_formula = []
-        for i in molecular_formula_list:
-            atoms_count = self.split(Atoms.atoms_order, i)
-            final_formula.extend(atoms_count)
-        print(final_formula)
-        self._from_list(final_formula, ion_type, adduct_atom)
+        # Check if there are spaces in the string
+        if ' ' not in molecular_formula_str:
+            raise ValueError("The molecular formula string should have spaces, input: %s" % molecular_formula_str)
+
+        # Split the string by spaces
+        # Grab the text before a digit for each element after splitting on spaces (atoms)
+        elements = [re.sub(r'\d+$', '', x) for x in molecular_formula_str.split()]
+        # Grab the digits at the end of each element after splitting on spaces (counts)
+        counts = [re.findall(r'\d+$', x)[0] for x in molecular_formula_str.split()]
+        # Check that the number of elements and counts are the same
+        if len(elements) != len(counts):
+            raise ValueError("The number of elements and counts do not match, input: %s" % molecular_formula_str)
+        
+        # Create a dictionary from the elements and counts and add it to the molecular formula
+        dict_ = dict(zip(elements, counts))
+        # Cast counts to integers
+        dict_ = {key: int(val) for key, val in dict_.items()}
+        self._from_dict(dict_, ion_type, adduct_atom)
+
 
     def split(self, delimiters, string, maxsplit=0): #pragma: no cover
         """Splits the molecular formula string.

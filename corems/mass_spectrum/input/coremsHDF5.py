@@ -123,17 +123,6 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         else:
             scan_index = self.scans.index(str(scan_number))
         dataframe = self.get_dataframe(scan_index, time_index=time_index)
-        if dataframe["Molecular Formula"].any() and not dataframe["C"].any():
-            #TODO KRH: figure out why this is necessary
-            cols = dataframe.columns.tolist()
-            cols = cols[cols.index("Molecular Formula") + 1 :]
-            for index, row in dataframe.iterrows():
-                if row["Molecular Formula"] is not None:
-                    og_formula = row["Molecular Formula"]
-                    for col in cols:
-                        if "col" in og_formula:
-                            # get the digit after the element ("col") in the molecular formula and set it to the dataframe
-                            row[col] = int(og_formula.split(col)[1].split(" ")[0])
 
         if not set(
             ["H/C", "O/C", "Heteroatom Class", "Ion Type", "Is Isotopologue"]
@@ -257,7 +246,15 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
             list_dict.append(data_dict)
 
-        return DataFrame(list_dict)
+        # Reorder the columns from low to high "Index" to match the order of the dataframe
+        df = DataFrame(list_dict)
+        # set the "Index" column to int so it sorts correctly
+        df["Index"] = df["Index"].astype(int)
+        df = df.sort_values(by="Index")
+        # Reset index to match the "Index" column
+        df = df.set_index("Index", drop=False)
+
+        return df
 
     def get_time_index_to_pull(self, scan_label, time_index):
         """

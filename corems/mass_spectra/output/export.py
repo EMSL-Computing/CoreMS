@@ -988,74 +988,6 @@ class HighResMassSpectraExport(HighResMassSpecExport):
                 group_key = str(int(mass_spectrum.scan_number))
 
                 self.add_mass_spectrum_to_hdf5(hdf_handle, mass_spectrum, group_key, mass_spectra_group)
-                #TODO KRH: move this to a separate method
-                '''
-                list_results = self.list_dict_to_list(mass_spectrum, is_hdf5=True)
-                dict_ms_attrs = self.get_mass_spec_attrs(mass_spectrum)
-                setting_dicts = parameter_to_dict.get_dict_data_ms(mass_spectrum)
-                columns_labels = json.dumps(
-                    self.columns_label + self.get_all_used_atoms_in_order(mass_spectrum)
-                )
-                group_key = str(int(mass_spectrum.scan_number))
-                if group_key not in mass_spectra_group.keys():
-                    scan_group = mass_spectra_group.create_group(
-                        str(int(mass_spectrum.scan_number))
-                    )
-                    if not mass_spectrum.is_centroid:
-                        mz_abun_array = np.concatenate(
-                            (
-                                mass_spectrum.abundance_profile,
-                                mass_spectrum.mz_exp_profile,
-                            ),
-                            axis=0,
-                        )
-                        raw_ms_dataset = scan_group.create_dataset(
-                            "raw_ms", data=mz_abun_array, dtype="f8"
-                        )
-                    else:
-                        # create empy dataset for missing raw data
-                        raw_ms_dataset = scan_group.create_dataset("raw_ms", dtype="f8")
-                    raw_ms_dataset.attrs["MassSpecAttrs"] = json.dumps(
-                        dict_ms_attrs, sort_keys=False, indent=4, separators=(",", ": ")
-                    )
-                    if isinstance(mass_spectrum, MassSpecfromFreq):
-                        raw_ms_dataset.attrs["TransientSetting"] = json.dumps(
-                            setting_dicts.get("TransientSetting"),
-                            sort_keys=False,
-                            indent=4,
-                            separators=(",", ": "),
-                        )
-                else:
-                    scan_group = mass_spectra_group.get(group_key)
-                    # if there is not processed data len = 0, otherwise len() will return next index
-                index_processed_data = str(len(scan_group.keys()))
-                timenow = str(
-                    datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z")
-                )
-                processed_dset = scan_group.create_dataset(
-                    index_processed_data, data=list_results
-                )
-                processed_dset.attrs["date_utc"] = timenow
-                processed_dset.attrs["ColumnsLabels"] = columns_labels
-                processed_dset.attrs["MoleculaSearchSetting"] = json.dumps(
-                    setting_dicts.get("MoleculaSearch"),
-                    sort_keys=False,
-                    indent=4,
-                    separators=(",", ": "),
-                )
-                processed_dset.attrs["MassSpecPeakSetting"] = json.dumps(
-                    setting_dicts.get("MassSpecPeak"),
-                    sort_keys=False,
-                    indent=4,
-                    separators=(",", ": "),
-                )
-                processed_dset.attrs["MassSpectrumSetting"] = json.dumps(
-                    setting_dicts.get("MassSpectrum"),
-                    sort_keys=False,
-                    indent=4,
-                    separators=(",", ": "),
-                )
-                '''
 
 
 class LCMSExport(HighResMassSpectraExport):
@@ -1284,9 +1216,6 @@ class LipidomicsExport(LCMSExport):
         # If neutral_formula is not a string, return None
         if not isinstance(neutral_formula, str):
             return None
-        
-        if "Cl" in neutral_formula:
-            print("Cl in neutral formula")
 
         # Check if there are spaces in the formula (these are outputs of the MolecularFormula class and do not need to be processed before being passed to the class)
         if re.search(r"\s", neutral_formula):
@@ -1771,7 +1700,6 @@ class LipidomicsExport(LCMSExport):
             mf_report = pd.concat([mf_no_ion_formula, mf_with_ion_formula])
 
         # Rename colums
-        #TODO KRH: Add more columns to rename_dict to deal with peak shape metrics and ms1 deconvolution metrics
         rename_dict = {
             "mf_id": "Mass Feature ID",
             "scan_time": "Retention Time (min)",
