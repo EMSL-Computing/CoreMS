@@ -138,9 +138,11 @@ class LCMSMassFeatureCalculation:
         # Calculate the dispersity index
         cum_sum = np.cumsum(sorted_eic) / np.sum(sorted_eic)
         rt_summ = sorted_rt[np.where(cum_sum < 0.5)]
-        if len(rt_summ) > 2:
+        if len(rt_summ) > 1:
             d = np.std(rt_summ)
             self._dispersity_index = d
+        elif len(rt_summ) == 1:
+            self._dispersity_index = 0
 
     def calc_fraction_height_width(self, fraction: float):
         """
@@ -159,6 +161,8 @@ class LCMSMassFeatureCalculation:
         Tuple[float, float, bool]
             The minimum and maximum half-height width based on scan resolution (in minutes), and a boolean indicating if the width was estimated.
         """
+        if self.id == 230:
+            print("Calculating half height width of mass feature 230")
         # Pull out the EIC data
         eic = self._eic_data.eic_smoothed
 
@@ -166,9 +170,9 @@ class LCMSMassFeatureCalculation:
         max_index = np.where(self._eic_data.scans == self.apex_scan)[0][0]
         left_index = max_index
         right_index = max_index
-        while eic[left_index] > max(eic) * fraction:
+        while eic[left_index] > eic[max_index] * fraction:
             left_index -= 1
-        while eic[right_index] > max(eic) * fraction:
+        while eic[right_index] > eic[max_index] * fraction:
             right_index += 1
 
         # Get the retention times of the indexes just below the half height
@@ -238,7 +242,7 @@ class LCMSMassFeatureCalculation:
             eic = self._eic_data.eic_smoothed
             max_index = np.where(self._eic_data.scans == self.apex_scan)[0][0]
             left_index = max_index
-            while eic[left_index] > max(eic) * 0.05:
+            while eic[left_index] > eic[max_index] * 0.05:
                 left_index -= 1
 
             left_half_time_min = (
