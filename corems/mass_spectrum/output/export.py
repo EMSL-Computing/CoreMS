@@ -276,7 +276,7 @@ class HighResMassSpecExport(Thread):
         # output = json.dumps(dict_data, sort_keys=True, indent=4, separators=(',', ': '))
         return df.to_json(orient='records')
 
-    def add_mass_spectrum_to_hdf5(self, hdf_handle, mass_spectrum, group_key):
+    def add_mass_spectrum_to_hdf5(self, hdf_handle, mass_spectrum, group_key, mass_spectra_group=None):
         """Adds the mass spectrum data to an HDF5 file.
         
         Parameters
@@ -287,7 +287,22 @@ class HighResMassSpecExport(Thread):
             The mass spectrum to add to the HDF5 file.
         group_key : str
             The group key (where to add the mass spectrum data within the HDF5 file).
+        mass_spectra_group : h5py.Group, optional
+            The mass spectra group. Defaults to None (no group, mass spectrum is added to the root).
         """
+        if mass_spectra_group is None:
+
+            # Check if the file has the necessary attributes and add them if not
+            # This assumes that if there is a mass_spectra_group, these attributes were already added to the file
+            if not hdf_handle.attrs.get("date_utc"):
+                timenow = str(datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z"))
+                hdf_handle.attrs["date_utc"] = timenow
+                hdf_handle.attrs["file_name"] = mass_spectrum.filename.name
+                hdf_handle.attrs["data_structure"] = "mass_spectrum"
+                hdf_handle.attrs["analyzer"] = mass_spectrum.analyzer
+                hdf_handle.attrs["instrument_label"] = mass_spectrum.instrument_label
+                hdf_handle.attrs["sample_name"] = mass_spectrum.sample_name
+        
         list_results = self.list_dict_to_list(mass_spectrum, is_hdf5=True)
 
         dict_ms_attrs = self.get_mass_spec_attrs(mass_spectrum)
@@ -301,16 +316,10 @@ class HighResMassSpecExport(Thread):
             separators=(",", ": "),
         )
 
-        if not hdf_handle.attrs.get("date_utc"):
-            timenow = str(datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z"))
-            hdf_handle.attrs["date_utc"] = timenow
-            hdf_handle.attrs["file_name"] = mass_spectrum.filename.name
-            hdf_handle.attrs["data_structure"] = "mass_spectrum"
-            hdf_handle.attrs["analyzer"] = mass_spectrum.analyzer
-            hdf_handle.attrs["instrument_label"] = mass_spectrum.instrument_label
-            hdf_handle.attrs["sample_name"] = mass_spectrum.sample_name
-
         group_key = group_key
+
+        if mass_spectra_group is not None:
+            hdf_handle = mass_spectra_group
 
         if group_key not in hdf_handle.keys():
             scan_group = hdf_handle.create_group(group_key)
@@ -347,8 +356,6 @@ class HighResMassSpecExport(Thread):
 
         # if there is not processed data len = 0, otherwise len() will return next index
         index_processed_data = str(len(scan_group.keys()))
-
-        print("index_processed_data", index_processed_data)
 
         timenow = str(datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z"))
 
@@ -404,12 +411,7 @@ class HighResMassSpecExport(Thread):
         dict_setting['instrument_label'] = self.mass_spectrum.instrument_label
         dict_setting['sample_name'] = self.mass_spectrum.sample_name
 
-        import re
-        #pretty print 
         output = toml.dumps(dict_setting)
-        #output = json.dumps(dict_setting, sort_keys=False, indent=4, separators=(',', ': '))
-        
-        #output = re.sub(r'",\s+', '", ', output)
         
         return output
 
@@ -429,12 +431,7 @@ class HighResMassSpecExport(Thread):
         dict_setting['instrument_label'] = self.mass_spectrum.instrument_label
         dict_setting['sample_name'] = self.mass_spectrum.sample_name
 
-        import re
-        # pretty print
         output = json.dumps(dict_setting)
-        # output = json.dumps(dict_setting, sort_keys=False, indent=4, separators=(',', ': '))
-
-        # output = re.sub(r'",\s+', '", ', output)
 
         return output
 
@@ -611,7 +608,12 @@ class HighResMassSpecExport(Thread):
             if mformula.is_isotopologue:
                 dict_result['Mono Isotopic Index'] = mformula.mspeak_index_mono_isotopic
 
-            for atom in self.atoms_order_list:
+            if self.atoms_order_list is None:
+                atoms_order_list = self.get_all_used_atoms_in_order(mass_spectrum)
+            else:
+                atoms_order_list = self.atoms_order_list
+
+            for atom in atoms_order_list:
                 if atom in formula_dict.keys():
                     dict_result[atom] = formula_dict.get(atom)
 
