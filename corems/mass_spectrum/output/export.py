@@ -288,14 +288,14 @@ class HighResMassSpecExport(Thread):
         group_key : str
             The group key (where to add the mass spectrum data within the HDF5 file).
         """
-        list_results = self.list_dict_to_list(self.mass_spectrum, is_hdf5=True)
+        list_results = self.list_dict_to_list(mass_spectrum, is_hdf5=True)
 
-        dict_ms_attrs = self.get_mass_spec_attrs(self.mass_spectrum)
+        dict_ms_attrs = self.get_mass_spec_attrs(mass_spectrum)
 
-        setting_dicts = parameter_to_dict.get_dict_data_ms(self.mass_spectrum)
+        setting_dicts = parameter_to_dict.get_dict_data_ms(mass_spectrum)
 
         columns_labels = json.dumps(
-            self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum),
+            self.columns_label + self.get_all_used_atoms_in_order(mass_spectrum),
             sort_keys=False,
             indent=4,
             separators=(",", ": "),
@@ -304,25 +304,25 @@ class HighResMassSpecExport(Thread):
         if not hdf_handle.attrs.get("date_utc"):
             timenow = str(datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z"))
             hdf_handle.attrs["date_utc"] = timenow
-            hdf_handle.attrs["file_name"] = self.mass_spectrum.filename.name
+            hdf_handle.attrs["file_name"] = mass_spectrum.filename.name
             hdf_handle.attrs["data_structure"] = "mass_spectrum"
-            hdf_handle.attrs["analyzer"] = self.mass_spectrum.analyzer
-            hdf_handle.attrs["instrument_label"] = self.mass_spectrum.instrument_label
-            hdf_handle.attrs["sample_name"] = self.mass_spectrum.sample_name
+            hdf_handle.attrs["analyzer"] = mass_spectrum.analyzer
+            hdf_handle.attrs["instrument_label"] = mass_spectrum.instrument_label
+            hdf_handle.attrs["sample_name"] = mass_spectrum.sample_name
 
-        group_key = str(self.mass_spectrum.scan_number)
+        group_key = group_key
 
         if group_key not in hdf_handle.keys():
-            scan_group = hdf_handle.create_group(str(self.mass_spectrum.scan_number))
+            scan_group = hdf_handle.create_group(group_key)
 
             # If there is raw data (from profile data) save it
-            if not self.mass_spectrum.is_centroid:
+            if not mass_spectrum.is_centroid:
                 mz_abun_array = empty(
-                    shape=(2, len(self.mass_spectrum.abundance_profile))
+                    shape=(2, len(mass_spectrum.abundance_profile))
                 )
 
-                mz_abun_array[0] = self.mass_spectrum.abundance_profile
-                mz_abun_array[1] = self.mass_spectrum.mz_exp_profile
+                mz_abun_array[0] = mass_spectrum.abundance_profile
+                mz_abun_array[1] = mass_spectrum.mz_exp_profile
 
                 raw_ms_dataset = scan_group.create_dataset(
                     "raw_ms", data=mz_abun_array, dtype="f8"
@@ -334,7 +334,7 @@ class HighResMassSpecExport(Thread):
 
             raw_ms_dataset.attrs["MassSpecAttrs"] = json.dumps(dict_ms_attrs)
 
-            if isinstance(self.mass_spectrum, MassSpecfromFreq):
+            if isinstance(mass_spectrum, MassSpecfromFreq):
                 raw_ms_dataset.attrs["TransientSetting"] = json.dumps(
                     setting_dicts.get("TransientSetting"),
                     sort_keys=False,
