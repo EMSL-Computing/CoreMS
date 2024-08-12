@@ -444,3 +444,25 @@ class ReadCoreMSHDFMassSpectra(
         lcms_obj._tic_list = list(lcms_obj.scan_df.tic)
 
         return lcms_obj
+    
+class ReadCoreMSHDFMassSpectraCollection(
+    ReadCoreMSHDFMassSpectra
+):
+    def __init__(
+            self, 
+            folder_location: str,
+            manifest_file: str
+            ):        
+        self.manifest = self._parse_manifest(manifest_file)
+    
+    def _parse_manifest(self, manifest_file):
+        manifest = pd.read_csv(manifest_file)
+        self._manifest_dict = manifest.to_dict(orient='records')
+
+    @property
+    def manifest(self):
+        return self._manifest_dict
+    
+
+
+        
