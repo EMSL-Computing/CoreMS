@@ -815,6 +815,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
         self.output_file = self.dir_loc / Path(out_file_path).name
         self._output_type = output_type  # 'excel', 'csv', 'pandas' or 'hdf5'
         self.mass_spectra = mass_spectra
+        self.atoms_order_list = None
         self._init_columns()
 
     def get_pandas_df(self):
@@ -964,7 +965,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
 
         with h5py.File(self.output_file.with_suffix(".hdf5"), "a") as hdf_handle:
             if not hdf_handle.attrs.get("date_utc"):
-                # Set metadata
+                # Set metadata for all mass spectra
                 timenow = str(
                     datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z")
                 )
@@ -984,6 +985,11 @@ class HighResMassSpectraExport(HighResMassSpecExport):
                 mass_spectra_group = hdf_handle.get("mass_spectra")
 
             for mass_spectrum in self.mass_spectra:
+                group_key = str(int(mass_spectrum.scan_number))
+
+                self.add_mass_spectrum_to_hdf5(hdf_handle, mass_spectrum, group_key, mass_spectra_group)
+                #TODO KRH: move this to a separate method
+                '''
                 list_results = self.list_dict_to_list(mass_spectrum, is_hdf5=True)
                 dict_ms_attrs = self.get_mass_spec_attrs(mass_spectrum)
                 setting_dicts = parameter_to_dict.get_dict_data_ms(mass_spectrum)
@@ -995,7 +1001,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
                     scan_group = mass_spectra_group.create_group(
                         str(int(mass_spectrum.scan_number))
                     )
-                    if list(mass_spectrum.abundance_profile):
+                    if not mass_spectrum.is_centroid:
                         mz_abun_array = np.concatenate(
                             (
                                 mass_spectrum.abundance_profile,
@@ -1049,6 +1055,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
                     indent=4,
                     separators=(",", ": "),
                 )
+                '''
 
 
 class LCMSExport(HighResMassSpectraExport):

@@ -1,5 +1,6 @@
 from pathlib import Path
 from copy import deepcopy
+import numpy as np
 
 
 #from matplotlib import rcParamsDefault, rcParams
@@ -1458,53 +1459,50 @@ class MassSpecCentroid(MassSpecBase):
         # overwrite process_mass_spec 
         # mspeak objs are usually added inside the PeaKPicking class 
         # for profile and freq based data
-        
         data_dict = self.data_dict
-        s2n = True
         ion_charge = self.polarity
-        #l_exp_mz_centroid = data_dict.get(Labels.mz)
-        #l_intes_centr = data_dict.get(Labels.abundance)
-        #l_peak_resolving_power = data_dict.get(Labels.rp)
-        l_s2n = list(data_dict.get(Labels.s2n))
-        
-        if not l_s2n: s2n = False
-                
+
+        # Check if resolving power is present
+        rp_present = True
+        if not data_dict.get(Labels.rp):
+            rp_present = False
+        if rp_present and list(data_dict.get(Labels.rp)) == [None]*len(data_dict.get(Labels.rp)):
+            rp_present = False
+
+        # Check if s2n is present
+        s2n_present = True
+        if not data_dict.get(Labels.s2n):
+            s2n_present = False
+        if s2n_present and list(data_dict.get(Labels.s2n)) == [None]*len(data_dict.get(Labels.s2n)):
+            s2n_present = False
+
+        # Pull out abundance data        
         abun = array(data_dict.get(Labels.abundance)).astype(float)
         
         abundance_threshold, factor = self.get_threshold(abun)
         
+        # Set rp_i and s2n_i to None which will be overwritten if present
+        rp_i, s2n_i = np.nan, np.nan
         for index, mz in enumerate(data_dict.get(Labels.mz)):
-            
+            if rp_present:
+                rp_i = float(data_dict.get(Labels.rp)[index])
+            if s2n_present:
+                s2n_i = float(data_dict.get(Labels.s2n)[index])
+
             # centroid peak does not have start and end peak index pos
             massspec_indexes = (index, index, index)
-            
-            if s2n:
-                
-                if abun[index]/factor >= abundance_threshold:
+                           
+            if abun[index]/factor >= abundance_threshold:
 
-                    self.add_mspeak(
-                        ion_charge,
-                        mz,
-                        abun[index],
-                        float(data_dict.get(Labels.rp)[index]),
-                        float(l_s2n[index]),
-                        massspec_indexes,
-                        ms_parent=self
-                    )
-
-            else:
-
-                if data_dict.get(Labels.abundance)[index]/factor >= abundance_threshold:
-
-                    self.add_mspeak(
-                        ion_charge,
-                        mz,
-                        abun[index],
-                        float(data_dict.get(Labels.rp)[index]),
-                        -999,
-                        massspec_indexes,
-                        ms_parent=self
-                    )
+                self.add_mspeak(
+                    ion_charge,
+                    mz,
+                    abun[index],
+                    rp_i,
+                    s2n_i,
+                    massspec_indexes,
+                    ms_parent=self
+                )
 
         self.mspeaks = self._mspeaks
         self._dynamic_range = self.max_abundance / self.min_abundance

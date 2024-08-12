@@ -737,7 +737,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             "isotopologue_type",
             "mass_spectrum_deconvoluted_parent",
             "associated_mass_features",
-            "ms2_spectra",
+            "ms2_spectrum",
         ]
         # drop columns that are not in col_order
         cols_to_order = [col for col in col_order if col in df_mf.columns]
