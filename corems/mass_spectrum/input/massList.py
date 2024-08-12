@@ -166,7 +166,10 @@ class ReadCoremsMasslist(MassListBaseClass):
                     # Finally, find the isotopologue that matches the formula_dict
                     matched_isos = []
                     for iso in isos:
-                        while len(matched_isos) < 1:
+                        # If match was already found, exit the loop
+                        if len(matched_isos) > 0:
+                            break
+                        else:
                             # Check the atoms match
                             if set(iso.atoms) == set(formula_dict.keys()):
                                 # Check the values of the atoms match
