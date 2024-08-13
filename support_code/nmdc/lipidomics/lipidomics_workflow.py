@@ -10,6 +10,9 @@ sys.path.append("./")
 import cProfile
 from multiprocessing import Pool
 from pathlib import Path
+import datetime
+import toml
+import warnings
 
 import pandas as pd
 import time
@@ -53,7 +56,7 @@ def instantiate_lcms_obj(file_in, verbose):
     return myLCMSobj
 
 
-def set_params_on_lcms_obj(myLCMSobj, params_toml):
+def set_params_on_lcms_obj(myLCMSobj, params_toml, verbose):
     """Set parameters on the LCMS object
 
     Parameters
@@ -76,11 +79,82 @@ def set_params_on_lcms_obj(myLCMSobj, params_toml):
         myLCMSobj.parameters.ms1_molecular_search.usedAtoms.pop("Cl")
     elif myLCMSobj.polarity == "negative":
         myLCMSobj.parameters.ms1_molecular_search.usedAtoms.pop("Na")
-        #TODO KRH: removing this for now to test
-        myLCMSobj.parameters.ms1_molecular_search.usedAtoms.pop("N")
-        myLCMSobj.parameters.ms1_molecular_search.usedAtoms.pop("P")
 
-    print("Parameters set on LCMS object")
+    if verbose:
+        print("Parameters set on LCMS object")
+
+
+def export_results(myLCMSobj, out_path, molecular_metadata=None, final=False):
+    """Export results to hdf5 and csv as a lipid report
+
+    Parameters
+    ----------
+    myLCMSobj : corems LCMS object
+        LCMS object to process
+    out_path : str or Path
+        Path to output file
+    molecular_metadata : dict
+        Dict with molecular metadata
+    final : bool
+        Whether to export final results
+
+    Returns
+    -------
+    None, exports results to hdf5 and csv as a lipid report
+    """
+    exporter = LipidomicsExport(out_path, myLCMSobj)
+    exporter.to_hdf(overwrite=True)
+    if final:
+        # Do not show warnings, these are expected       
+        exporter.report_to_csv(molecular_metadata=molecular_metadata)
+    else:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            exporter.report_to_csv()
+
+
+def save_times(myLCMSobj, time_start, out_path, time_end=None):
+    """Get times for processing steps
+
+    Parameters
+    ----------
+    myLCMSobj : corems LCMS object
+        LCMS object to process
+    time_start : float
+        Start time of processing
+    out_path : str or Path
+        Path to output file
+    time_end : float
+        End time of processing
+
+    Returns
+    -------
+    None, writes out times to a file within the output directory
+    """
+    # Check if out_path (with .corems) exisits
+    out_dir = Path(str(out_path) + ".corems/")
+    if not out_dir.exists():
+        print("Output directory does not exist")
+
+    time_toml_path = out_dir / "times.toml"
+    if not time_toml_path.exists():
+        raw_data_creation_time = myLCMSobj.spectra_parser.get_creation_time().strftime("%Y-%m-%dT%H:%M:%SZ")
+        processed_data_creation_time = time_start.strftime("%Y-%m-%dT%H:%M:%SZ")
+        time_dict = {
+            "raw_data_creation_time": raw_data_creation_time, 
+            "metabolomics_workflow_start_time": processed_data_creation_time
+            }
+        # save as a toml file
+        toml_string = toml.dumps(time_dict)  # Output to a string
+        with open(time_toml_path, "w") as f:
+            f.write(toml_string)
+        print("here")
+    elif time_toml_path.exists() and time_end is not None:
+        time_dict = toml.load(time_toml_path)
+        time_dict["metabolomics_workflow_end_time"] = time_end.strftime("%Y-%m-%dT%H:%M:%SZ")
+        toml_string = toml.dumps(time_dict)
+        with open(time_toml_path, "w") as f:
+            f.write(toml_string)
 
 
 def molecular_formula_search(myLCMSobj):
@@ -103,7 +177,7 @@ def molecular_formula_search(myLCMSobj):
     total_decon_parent = sum(mf_df.mass_spectrum_deconvoluted_parent)
     for mf_id in mf_df.index:
         if myLCMSobj.mass_features[mf_id].mass_spectrum_deconvoluted_parent:
-            if i > 10: # TODO KRH: remove this when ready
+            if i > 10:  # TODO KRH: remove this when ready
                 break
             print("searching mf: ", str(i), " of ", str(total_decon_parent))
 
@@ -170,7 +244,7 @@ def molecular_formula_search(myLCMSobj):
     print("Finished molecular search")
 
 
-def process_ms1(myLCMSobj, verbose, ms1_molecular_search=True):
+def add_mass_features(myLCMSobj, verbose):
     """Process ms1 spectra and perform molecular search
 
     This includes peak picking, adding and processing associated ms1 spectra,
@@ -196,22 +270,6 @@ def process_ms1(myLCMSobj, verbose, ms1_molecular_search=True):
     myLCMSobj.find_c13_mass_features(verbose=verbose)
     myLCMSobj.deconvolute_ms1_mass_features()
     myLCMSobj.add_peak_metrics()
-    if ms1_molecular_search:
-        molecular_formula_search(myLCMSobj)
-
-
-def add_ms2(myLCMSobj):
-    """Add ms2 spectra to LCMS object
-
-    Parameters
-    ----------
-    myLCMSobj : corems LCMS object
-        LCMS object to process
-
-    Returns
-    -------
-    None, processes the LCMS object
-    """
     myLCMSobj.add_associated_ms2_dda(spectrum_mode="centroid")
 
 
@@ -243,6 +301,7 @@ def prep_metadata(mz_dicts, out_dir):
         metadata["mzs"].update(d)
 
     metabref = MetabRefLCInterface()
+    #TODO KRH: set token to the same folder as the raw data
     metabref.set_token("tmp_data/thermo_raw_NMDC/metabref.token")
 
     print("Preparing positive lipid library")
@@ -366,33 +425,14 @@ def process_ms2(myLCMSobj, metadata):
         )
 
 
-def export_results(myLCMSobj, out_path, molecular_metadata=None, final=False):
-    """Export results to hdf5 and csv as a lipid report
-
-    Parameters
-    ----------
-    myLCMSobj : corems LCMS object
-        LCMS object to process
-    out_path : str or Path
-        Path to output file
-    molecular_metadata : dict
-        Dict with molecular metadata
-    final : bool
-        Whether to export final results
-
-    Returns
-    -------
-    None, exports results to hdf5 and csv as a lipid report
-    """
-    exporter = LipidomicsExport(out_path, myLCMSobj)
-    exporter.to_hdf(overwrite=True)
-    if final:
-        exporter.report_to_csv(molecular_metadata=molecular_metadata)
-    else:
-        exporter.report_to_csv()
-
-
-def run_lipid_sp_ms1(file_in, out_path, params_toml, verbose=True, return_mzs=True):
+def run_lipid_sp_ms1(
+    file_in,
+    out_path,
+    params_toml,
+    verbose=True,
+    return_mzs=True,
+    ms1_molecular_search=False,
+):
     """Run signal processing, get associated ms1, add associated ms2, do ms1 molecular search, and export intermediate results
 
     Parameters
@@ -413,13 +453,14 @@ def run_lipid_sp_ms1(file_in, out_path, params_toml, verbose=True, return_mzs=Tr
     mz_dict : dict
         Dict with keys "positive" and "negative" and values of lists of precursor mzs
     """
+    time_start = datetime.datetime.now()
     myLCMSobj = instantiate_lcms_obj(file_in, verbose)
-    set_params_on_lcms_obj(myLCMSobj, params_toml)
-    process_ms1(
-        myLCMSobj, verbose, ms1_molecular_search=True
-    )  # TODO: change to True when ready
-    add_ms2(myLCMSobj)
+    set_params_on_lcms_obj(myLCMSobj, params_toml, verbose)
+    add_mass_features(myLCMSobj, verbose)
+    if ms1_molecular_search:
+        molecular_formula_search(myLCMSobj)
     export_results(myLCMSobj, out_path=out_path, final=False)
+    save_times(myLCMSobj, time_start, out_path)
     if return_mzs:
         precursor_mz_list = list(
             set(
@@ -456,9 +497,13 @@ def run_lipid_ms2(out_path, metadata):
     # Process ms2 spectra, perform spectral search, and export final results
     process_ms2(myLCMSobj, metadata)
     export_results(myLCMSobj, str(out_path), metadata["molecular_metadata"], final=True)
+    time_end = datetime.datetime.now()
+    save_times(myLCMSobj, time_start=None, out_path=out_path, time_end=time_end)
 
 
-def run_lipid_workflow(file_dir, out_dir, params_toml, verbose, cores=1):
+def run_lipid_workflow(
+    file_dir, out_dir, params_toml, verbose, ms1_molecular_search=False, cores=1
+):
     """Run lipidomics workflow
 
     Parameters
@@ -488,7 +533,11 @@ def run_lipid_workflow(file_dir, out_dir, params_toml, verbose, cores=1):
         mz_dicts = []
         for file_in, file_out in list(zip(files_list, out_paths_list)):
             mz_dict = run_lipid_sp_ms1(
-                str(file_in), str(file_out), params_toml, verbose
+                str(file_in),
+                str(file_out),
+                params_toml,
+                verbose,
+                ms1_molecular_search=ms1_molecular_search,
             )
             mz_dicts.append(mz_dict)
     elif cores > 1:
@@ -520,11 +569,10 @@ def run_lipid_workflow(file_dir, out_dir, params_toml, verbose, cores=1):
 
 if __name__ == "__main__":
     # Set input variables to run
-    cores = 1
-    file_dir = Path("tmp_data/thermo_raw_NMDC_mini")
-    out_dir = Path("tmp_data/NMDC_processed_0807b")
+    cores = 3
+    file_dir = Path("tmp_data/thermo_raw_collection")
+    out_dir = Path("tmp_data/NMDC_processed_0813")
     params_toml = Path("tmp_data/thermo_raw_NMDC_mini/nmdc_lipid_params.toml")
-
     verbose = True
 
     # Set up output directory
@@ -534,20 +582,10 @@ if __name__ == "__main__":
     if cores > 2:
         verbose = False
 
-    profile = False
-    if profile:
-        with cProfile.Profile() as pr:
-            run_lipid_workflow(file_dir, out_dir, params_toml, verbose, cores)
-
-        df = pd.DataFrame(
-            pr.getstats(),
-            columns=["func", "ncalls", "ccalls", "tottime", "cumtime", "callers"],
-        )
-        df.sort_values("cumtime", ascending=False, inplace=True)
-        df.drop("callers", axis=1, inplace=True)
-        df["func"] = df["func"].apply(lambda x: str(x))
-        df_small = df.head(1000)
-        df_small.to_csv(out_dir / "profile.csv", index=False)
-        pr.dump_stats(out_dir / "profile.prof")
-    else:
-        run_lipid_workflow(file_dir, out_dir, params_toml, verbose, cores)
+    run_lipid_workflow(
+        file_dir=file_dir,
+        out_dir=out_dir,
+        params_toml=params_toml,
+        verbose=verbose,
+        cores=cores,
+    )
