@@ -9,4 +9,6 @@ if __name__ == "__main__":
             folder_location = collection_path,
             manifest_file = manifest_file
             )
+    lcms_collection = parser.get_lcms_collection(load_raw=False)
+    lcms_collection._lcms[lcms_collection.ordered_samples[0]].mass_features_to_df()
     print("Here")

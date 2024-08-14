@@ -13,7 +13,7 @@ from corems.encapsulation.input.parameter_from_json import (
     load_and_set_json_parameters_lcms,
     load_and_set_toml_parameters_lcms,
 )
-from corems.mass_spectra.factory.lc_class import LCMSBase, MassSpectraBase
+from corems.mass_spectra.factory.lc_class import LCMSBase, MassSpectraBase, LCMSCollection
 from corems.mass_spectra.factory.LC_Temp import EIC_Data
 from corems.mass_spectra.input.parserbase import SpectraParserInterface
 from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
@@ -119,7 +119,7 @@ class ReadCoreMSHDFMassSpectra(
         """ """
         pass
 
-    def run(self, mass_spectra) -> None:
+    def run(self, mass_spectra, load_raw=True) -> None:
         """Runs the importer functions to populate a LCMS or MassSpectraBase object.
 
         Notes
@@ -137,7 +137,8 @@ class ReadCoreMSHDFMassSpectra(
         ----------
         mass_spectra : LCMSBase or MassSpectraBase
             The LCMS or MassSpectraBase object to populate with mass spectra, generally instantiated with only the file_location, analyzer, and instrument_label attributes.
-
+        load_raw : bool
+            If True, load raw data (unprocessed) from HDF5 files for overall lcms object and individual mass spectra. Default is True.
         Returns
         -------
         None, but populates several attributes on the LCMS or MassSpectraBase object.
@@ -149,13 +150,13 @@ class ReadCoreMSHDFMassSpectra(
 
         if "mass_spectra" in self.h5pydata:
             # Populate the _ms list on the LCMS object
-            self.import_mass_spectra(mass_spectra)
+            self.import_mass_spectra(mass_spectra, load_raw=load_raw)
 
         if "scan_info" in self.h5pydata:
             # Populate the _scan_info attribute on the LCMS object
             self.import_scan_info(mass_spectra)
 
-        if "ms_unprocessed" in self.h5pydata:
+        if "ms_unprocessed" in self.h5pydata and load_raw:
             # Populate the _ms_unprocessed attribute on the LCMS object
             self.import_ms_unprocessed(mass_spectra)
 
@@ -171,21 +172,23 @@ class ReadCoreMSHDFMassSpectra(
             # Populate the spectral_search_results attribute on the LCMS object
             self.import_spectral_search_results(mass_spectra)
 
-    def import_mass_spectra(self, mass_spectra) -> None:
+    def import_mass_spectra(self, mass_spectra, load_raw=True) -> None:
         """Imports all mass spectra from the HDF5 file.
 
         Parameters
         ----------
         mass_spectra : LCMSBase | MassSpectraBase
             The MassSpectraBase or LCMSBase object to populate with mass spectra.
+        load_raw : bool
+            If True, load raw data (unprocessed) from HDF5 files for overall lcms object and individual mass spectra. Default
 
         Returns
         -------
-        None, but populates the '_ms' list on the LCMSBase or MassSpectraBase 
+        None, but populates the '_ms' list on the LCMSBase or MassSpectraBase
         object with mass spectra from the HDF5 file.
         """
         for scan_number in self.scan_number_list:
-            mass_spec = self.get_mass_spectrum(scan_number)
+            mass_spec = self.get_mass_spectrum(scan_number, load_raw=load_raw)
             mass_spec.scan_number = scan_number
             mass_spectra.add_mass_spectrum(mass_spec)
 
@@ -199,7 +202,7 @@ class ReadCoreMSHDFMassSpectra(
 
         Returns
         -------
-        None, but populates the 'scan_df' attribute on the LCMSBase or MassSpectraBase 
+        None, but populates the 'scan_df' attribute on the LCMSBase or MassSpectraBase
         object with a pandas DataFrame of the 'scan_info' from the HDF5 file.
 
         """
@@ -226,7 +229,7 @@ class ReadCoreMSHDFMassSpectra(
 
         Returns
         -------
-        None, but populates the '_ms_unprocessed' attribute on the LCMSBase or MassSpectraBase 
+        None, but populates the '_ms_unprocessed' attribute on the LCMSBase or MassSpectraBase
         object with a dictionary of the 'ms_unprocessed' from the HDF5 file.
 
         """
@@ -250,7 +253,7 @@ class ReadCoreMSHDFMassSpectra(
 
         Returns
         -------
-        None, but populates the 'parameters' attribute on the LCMS or MassSpectraBase 
+        None, but populates the 'parameters' attribute on the LCMS or MassSpectraBase
         object with a dictionary of the 'parameters' from the HDF5 file.
 
         """
@@ -273,7 +276,7 @@ class ReadCoreMSHDFMassSpectra(
 
         Returns
         -------
-        None, but populates the 'mass_features' attribute on the LCMSBase or MassSpectraBase 
+        None, but populates the 'mass_features' attribute on the LCMSBase or MassSpectraBase
         object with a dictionary of the 'mass_features' from the HDF5 file.
 
         """
@@ -331,7 +334,7 @@ class ReadCoreMSHDFMassSpectra(
 
         Returns
         -------
-        None, but populates the 'eics' attribute on the LCMSBase or MassSpectraBase 
+        None, but populates the 'eics' attribute on the LCMSBase or MassSpectraBase
         object with a dictionary of the 'eics' from the HDF5 file.
 
         """
@@ -364,7 +367,7 @@ class ReadCoreMSHDFMassSpectra(
 
         Returns
         -------
-        None, but populates the 'spectral_search_results' attribute on the LCMSBase or MassSpectraBase 
+        None, but populates the 'spectral_search_results' attribute on the LCMSBase or MassSpectraBase
         object with a dictionary of the 'spectral_search_results' from the HDF5 file.
 
         """
@@ -424,7 +427,7 @@ class ReadCoreMSHDFMassSpectra(
 
         return spectra_obj
 
-    def get_lcms_obj(self) -> LCMSBase:
+    def get_lcms_obj(self, load_raw=True) -> LCMSBase:
         """
         Return LCMSBase object, populating attributes on the LCMSBase object from the HDF5 file.
         """
@@ -437,7 +440,7 @@ class ReadCoreMSHDFMassSpectra(
         )
 
         # This will populate the majority of the attributes on the LCMS object
-        self.run(lcms_obj)
+        self.run(lcms_obj, load_raw=load_raw)
 
         # Set final attributes of the LCMS object
         lcms_obj.polarity = self.h5pydata.attrs["polarity"]
@@ -446,24 +449,21 @@ class ReadCoreMSHDFMassSpectra(
         lcms_obj._tic_list = list(lcms_obj.scan_df.tic)
 
         return lcms_obj
-    
-class ReadCoreMSHDFMassSpectraCollection():
-    def __init__(
-            self, 
-            folder_location: str,
-            manifest_file: str
-            ):
+
+
+class ReadCoreMSHDFMassSpectraCollection:
+    def __init__(self, folder_location: str, manifest_file: str):
         # Check for folder location and manifest file
         if not folder_location.exists():
             raise FileNotFoundError(f"Folder location {folder_location} not found.")
         if not manifest_file.exists():
             raise FileNotFoundError(f"Manifest file {manifest_file} not found.")
-        
+
         # Check if the manifest file is a CSV
         if manifest_file.suffix != ".csv":
             raise ValueError("Manifest file must be a CSV.")
-        
-        self.folder_location = folder_location      
+
+        self.folder_location = folder_location
         self._parse_manifest(manifest_file)
         self._validate_manifest()
         self._validate_parameters()
@@ -472,12 +472,16 @@ class ReadCoreMSHDFMassSpectraCollection():
         """Parse the manifest file and set the manifest dictionary."""
         manifest = pd.read_csv(manifest_file)
         # Check if the following columns exisit in the manifest file
-        if not all(col in manifest.columns for col in ['sample_name', 'order', 'batch']):
-            raise ValueError("Manifest file must contain the following columns: 'sample_name', 'order', 'batch'.")
+        if not all(
+            col in manifest.columns for col in ["sample_name", "order", "batch"]
+        ):
+            raise ValueError(
+                "Manifest file must contain the following columns: 'sample_name', 'order', 'batch'."
+            )
         # Set index to the 'sample_name' column
-        manifest.set_index('sample_name', inplace=True)
-        self._manifest_dict = manifest.to_dict(orient='index')
-    
+        manifest.set_index("sample_name", inplace=True)
+        self._manifest_dict = manifest.to_dict(orient="index")
+
     def _validate_manifest(self):
         """Validate the manifest dictionary against the CoreMS folder location."""
         # Check if the folder location contains HDF5 files for each sample
@@ -488,14 +492,14 @@ class ReadCoreMSHDFMassSpectraCollection():
             hdf5_file = corems_dir / f"{sample_name}.hdf5"
             if not hdf5_file.exists():
                 raise FileNotFoundError(f"HDF5 file for {sample_name} not found.")
-            
+
     def _validate_parameters(self):
         """Validate that the parameters used for all samples within a batch are the same."""
         # Check if parameters files are saved as JSON or TOML
         if self.parameters_files[0].suffix == ".json":
             importer = json
             suffix = ".json"
-            
+
         elif self.parameters_files[0].suffix == ".toml":
             importer = toml
             suffix = ".toml"
@@ -503,49 +507,88 @@ class ReadCoreMSHDFMassSpectraCollection():
         manfiest_df = self.manifest_dataframe
 
         # Split up samples by batch
-        batches = manfiest_df['batch'].unique()
+        batches = manfiest_df["batch"].unique()
 
         for batch in batches:
-            samples = manfiest_df[manfiest_df['batch'] == batch].index
+            samples = manfiest_df[manfiest_df["batch"] == batch].index
             # check if self.parameters_files end with .json or .toml
-            batch_param_files = [self.folder_location / f"{sample_name}.corems/{sample_name}{suffix}" for sample_name in self._manifest_dict.keys() if sample_name in samples]
-            with open(batch_param_files[0], 'r', encoding='utf8',) as stream:
+            batch_param_files = [
+                self.folder_location / f"{sample_name}.corems/{sample_name}{suffix}"
+                for sample_name in self._manifest_dict.keys()
+                if sample_name in samples
+            ]
+            with open(
+                batch_param_files[0],
+                "r",
+                encoding="utf8",
+            ) as stream:
                 first_parameters = importer.load(stream)
             for parameters_file in batch_param_files[1:]:
-                with open(parameters_file, 'r', encoding='utf8',) as stream:
+                with open(
+                    parameters_file,
+                    "r",
+                    encoding="utf8",
+                ) as stream:
                     parameters = importer.load(stream)
                 if parameters != first_parameters:
-                    raise ValueError(f"Parameters files for samples in batch {batch} are not equal.")
-                
+                    raise ValueError(
+                        f"Parameters files for samples in batch {batch} are not equal."
+                    )
 
+    def get_lcms_collection(self, load_raw=False) -> LCMSCollection:
+        """Return a LCMSCollection object
         
-        # Load the first parameters file and check if is all equal to the others
+        Parameters
+        ----------
+        load_raw : bool
+            If True, load raw data from HDF5 files. Default is False.        
+        """
+        # Instantiate the LCMSCollection object
+        lcms_coll = LCMSCollection(
+            collection_location=self.folder_location,
+            manifest=self.manifest,
+            collection_parser=self
+        )
 
+        # Add LCMS objects to the collection
+        samples = self._manifest_dict.keys()
+
+        for sample_name in samples:
+            hdf5_file = self.folder_location / f"{sample_name}.corems/{sample_name}.hdf5"
+            parser = ReadCoreMSHDFMassSpectra(hdf5_file)
+            lcms_coll._lcms[sample_name] = parser.get_lcms_obj(load_raw=load_raw)
+        
+        return lcms_coll
 
     @property
     def manifest(self):
         return self._manifest_dict
-    
+
     @property
     def manifest_dataframe(self):
         return pd.DataFrame(self._manifest_dict).T
-    
+
     @property
     def hdf5_files(self):
-        return [self.folder_location / f"{sample_name}.corems/{sample_name}.hdf5" for sample_name in self._manifest_dict.keys()]
-    
+        return [
+            self.folder_location / f"{sample_name}.corems/{sample_name}.hdf5"
+            for sample_name in self._manifest_dict.keys()
+        ]
+
     @property
     def parameters_files(self):
         # Check if parameters files are saved as JSON or TOML
-        json_files = [self.folder_location / f"{sample_name}.corems/{sample_name}.json" for sample_name in self._manifest_dict.keys()]
-        toml_files = [self.folder_location / f"{sample_name}.corems/{sample_name}.toml" for sample_name in self._manifest_dict.keys()]
+        json_files = [
+            self.folder_location / f"{sample_name}.corems/{sample_name}.json"
+            for sample_name in self._manifest_dict.keys()
+        ]
+        toml_files = [
+            self.folder_location / f"{sample_name}.corems/{sample_name}.toml"
+            for sample_name in self._manifest_dict.keys()
+        ]
         if all([x.exists() for x in json_files]):
             return json_files
         elif all([x.exists() for x in toml_files]):
             return toml_files
         else:
             raise ValueError("Parameters files are not saved for all samples.")
-    
-
-
-        

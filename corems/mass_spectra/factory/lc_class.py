@@ -1067,3 +1067,46 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             A list of TIC values for the dataset.
         """
         self._tic_list = np.array(tic_list)
+
+class LCMSCollection:
+    """A class representing a collection of liquid chromatography-mass spectrometry (LC-MS) runs.
+
+    Parameters
+    -----------
+
+    Attributes
+    -----------
+
+    Methods
+    --------
+    """
+
+    def __init__(
+            self,
+            collection_location,
+            manifest,
+            collection_parser=None
+    ):
+        self.collection_location = collection_location
+        self._manifest_dict = manifest
+        self.collection_parser = collection_parser
+        self._lcms = {}
+
+    @property
+    def samples(self):
+        return set(self._lcms.keys())
+    
+    @property
+    def ordered_samples(self):
+        manifest_df = self.manifest_dataframe
+        # order by batch, then by order
+        manifest_df = manifest_df.sort_values(by=['batch', 'order'])
+        return manifest_df.index.tolist()
+    
+    @property
+    def manifest(self):
+        return self._manifest_dict
+    
+    @property
+    def manifest_dataframe(self):
+        return pd.DataFrame(self._manifest_dict).T
