@@ -1,11 +1,12 @@
 from pathlib import Path
-from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
+from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectraCollection
 
 
 if __name__ == "__main__":
-
-    out_path = Path("tmp_data/NMDC_processed_0812/EMSL_49991_Brodie_123_Lipids_Neg_12Aug19_Lola-WCSH417820")
-    out_path_hdf5 = str(out_path) + ".corems/" + out_path.stem + ".hdf5"
-    parser = ReadCoreMSHDFMassSpectra(out_path_hdf5)
-    myLCMSobj = parser.get_lcms_obj()
-    myLCMSobj.mass_features_to_df()
+    collection_path = Path("tmp_data/NMDC_processed_collection_0813")
+    manifest_file = collection_path / "manifest.csv"
+    parser = ReadCoreMSHDFMassSpectraCollection(
+            folder_location = collection_path,
+            manifest_file = manifest_file
+            )
+    print("Here")

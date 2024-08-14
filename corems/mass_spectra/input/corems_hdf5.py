@@ -3,6 +3,8 @@ __date__ = "Oct 29, 2019"
 
 
 from threading import Thread
+import toml
+import json
 
 import pandas as pd
 
@@ -445,23 +447,104 @@ class ReadCoreMSHDFMassSpectra(
 
         return lcms_obj
     
-class ReadCoreMSHDFMassSpectraCollection(
-    ReadCoreMSHDFMassSpectra
-):
+class ReadCoreMSHDFMassSpectraCollection():
     def __init__(
             self, 
             folder_location: str,
             manifest_file: str
-            ):        
-        self.manifest = self._parse_manifest(manifest_file)
-    
+            ):
+        # Check for folder location and manifest file
+        if not folder_location.exists():
+            raise FileNotFoundError(f"Folder location {folder_location} not found.")
+        if not manifest_file.exists():
+            raise FileNotFoundError(f"Manifest file {manifest_file} not found.")
+        
+        # Check if the manifest file is a CSV
+        if manifest_file.suffix != ".csv":
+            raise ValueError("Manifest file must be a CSV.")
+        
+        self.folder_location = folder_location      
+        self._parse_manifest(manifest_file)
+        self._validate_manifest()
+        self._validate_parameters()
+
     def _parse_manifest(self, manifest_file):
+        """Parse the manifest file and set the manifest dictionary."""
         manifest = pd.read_csv(manifest_file)
-        self._manifest_dict = manifest.to_dict(orient='records')
+        # Check if the following columns exisit in the manifest file
+        if not all(col in manifest.columns for col in ['sample_name', 'order', 'batch']):
+            raise ValueError("Manifest file must contain the following columns: 'sample_name', 'order', 'batch'.")
+        # Set index to the 'sample_name' column
+        manifest.set_index('sample_name', inplace=True)
+        self._manifest_dict = manifest.to_dict(orient='index')
+    
+    def _validate_manifest(self):
+        """Validate the manifest dictionary against the CoreMS folder location."""
+        # Check if the folder location contains HDF5 files for each sample
+        for sample_name in self._manifest_dict.keys():
+            corems_dir = self.folder_location / f"{sample_name}.corems"
+            if not corems_dir.exists():
+                raise FileNotFoundError(f"CoreMS folder for {sample_name} not found.")
+            hdf5_file = corems_dir / f"{sample_name}.hdf5"
+            if not hdf5_file.exists():
+                raise FileNotFoundError(f"HDF5 file for {sample_name} not found.")
+            
+    def _validate_parameters(self):
+        """Validate that the parameters used for all samples within a batch are the same."""
+        # Check if parameters files are saved as JSON or TOML
+        if self.parameters_files[0].suffix == ".json":
+            importer = json
+            suffix = ".json"
+            
+        elif self.parameters_files[0].suffix == ".toml":
+            importer = toml
+            suffix = ".toml"
+
+        manfiest_df = self.manifest_dataframe
+
+        # Split up samples by batch
+        batches = manfiest_df['batch'].unique()
+
+        for batch in batches:
+            samples = manfiest_df[manfiest_df['batch'] == batch].index
+            # check if self.parameters_files end with .json or .toml
+            batch_param_files = [self.folder_location / f"{sample_name}.corems/{sample_name}{suffix}" for sample_name in self._manifest_dict.keys() if sample_name in samples]
+            with open(batch_param_files[0], 'r', encoding='utf8',) as stream:
+                first_parameters = importer.load(stream)
+            for parameters_file in batch_param_files[1:]:
+                with open(parameters_file, 'r', encoding='utf8',) as stream:
+                    parameters = importer.load(stream)
+                if parameters != first_parameters:
+                    raise ValueError(f"Parameters files for samples in batch {batch} are not equal.")
+                
+
+        
+        # Load the first parameters file and check if is all equal to the others
+
 
     @property
     def manifest(self):
         return self._manifest_dict
+    
+    @property
+    def manifest_dataframe(self):
+        return pd.DataFrame(self._manifest_dict).T
+    
+    @property
+    def hdf5_files(self):
+        return [self.folder_location / f"{sample_name}.corems/{sample_name}.hdf5" for sample_name in self._manifest_dict.keys()]
+    
+    @property
+    def parameters_files(self):
+        # Check if parameters files are saved as JSON or TOML
+        json_files = [self.folder_location / f"{sample_name}.corems/{sample_name}.json" for sample_name in self._manifest_dict.keys()]
+        toml_files = [self.folder_location / f"{sample_name}.corems/{sample_name}.toml" for sample_name in self._manifest_dict.keys()]
+        if all([x.exists() for x in json_files]):
+            return json_files
+        elif all([x.exists() for x in toml_files]):
+            return toml_files
+        else:
+            raise ValueError("Parameters files are not saved for all samples.")
     
 
 
