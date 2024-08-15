@@ -1093,6 +1093,11 @@ class LCMSCollection(LCMSCollectionCalculations):
         self._lcms = {}
         self.consensus_mass_features = {}
 
+    def __getitem__(self, index):
+        samp_name = self.ordered_samples[index]
+        self._lcms[samp_name]
+        return self._lcms[samp_name]
+
     @property
     def samples(self):
         return set(self._lcms.keys())
@@ -1111,3 +1116,5 @@ class LCMSCollection(LCMSCollectionCalculations):
     @property
     def manifest_dataframe(self):
         return pd.DataFrame(self._manifest_dict).T
+    
+

@@ -563,7 +563,7 @@ class ReadCoreMSHDFMassSpectraCollection:
             raise ValueError("All samples must have the same polarity.")
         
         # Set ids on the LCMS objects
-        i = 1
+        i = 0
         for sample in lcms_coll.ordered_samples:
             lcms_coll._manifest_dict[sample]["collection_id"] = i
             i += 1

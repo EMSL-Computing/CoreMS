@@ -528,7 +528,7 @@ def run_lipid_workflow(
     files_list = list(file_dir.glob("*.raw"))
     out_paths_list = [out_dir / f.stem for f in files_list]
 
-    # Run signal processing, get associated ms1, add associated ms2, do ms1 molecular search, and export temp results
+    # Run signal processing, get associated ms1, add associated ms2, and export temp results
     if cores == 1 or len(files_list) == 1:
         mz_dicts = []
         for file_in, file_out in list(zip(files_list, out_paths_list)):
@@ -549,7 +549,7 @@ def run_lipid_workflow(
         mz_dicts = pool.starmap(run_lipid_sp_ms1, args)
         pool.close()
         pool.join()
-
+    """
     # Prepare ms2 spectral search space
     metadata = prep_metadata(mz_dicts, out_dir)
 
@@ -563,7 +563,7 @@ def run_lipid_workflow(
         mz_dicts = pool.starmap(run_lipid_ms2, args)
         pool.close()
         pool.join()
-
+    """
     print("Finished processing, data are written in " + str(out_dir))
 
 
@@ -571,7 +571,7 @@ if __name__ == "__main__":
     # Set input variables to run
     cores = 1
     file_dir = Path("tmp_data/thermo_raw_collection")
-    out_dir = Path("tmp_data/NMDC_processed_collection_0813")
+    out_dir = Path("tmp_data/NMDC_processed_collection_0815")
     params_toml = Path("tmp_data/thermo_raw_collection/nmdc_lipid_params.toml")
 
     verbose = True
