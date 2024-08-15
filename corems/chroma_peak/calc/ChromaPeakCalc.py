@@ -169,9 +169,9 @@ class LCMSMassFeatureCalculation:
         max_index = np.where(self._eic_data.scans == self.apex_scan)[0][0]
         left_index = max_index
         right_index = max_index
-        while eic[left_index] > eic[max_index] * fraction:
+        while eic[left_index] > eic[max_index] * fraction and left_index > 0:
             left_index -= 1
-        while eic[right_index] > eic[max_index] * fraction:
+        while eic[right_index] > eic[max_index] * fraction and right_index < len(eic) - 1:
             right_index += 1
 
         # Get the retention times of the indexes just below the half height
@@ -241,7 +241,7 @@ class LCMSMassFeatureCalculation:
             eic = self._eic_data.eic_smoothed
             max_index = np.where(self._eic_data.scans == self.apex_scan)[0][0]
             left_index = max_index
-            while eic[left_index] > eic[max_index] * 0.05:
+            while eic[left_index] > eic[max_index] * 0.05 and left_index > 0:
                 left_index -= 1
 
             left_half_time_min = (
