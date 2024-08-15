@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from corems.encapsulation.factory.parameters import LCMSParameters
-from corems.mass_spectra.calc.lc_calc import LCCalculations, PHCalculations
+from corems.mass_spectra.calc.lc_calc import LCCalculations, PHCalculations, LCMSCollectionCalculations
 from corems.molecular_id.search.lcms_spectral_search import LCMSSpectralSearch
 from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
 
@@ -1068,7 +1068,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         """
         self._tic_list = np.array(tic_list)
 
-class LCMSCollection:
+class LCMSCollection(LCMSCollectionCalculations):
     """A class representing a collection of liquid chromatography-mass spectrometry (LC-MS) runs.
 
     Parameters
@@ -1091,6 +1091,7 @@ class LCMSCollection:
         self._manifest_dict = manifest
         self.collection_parser = collection_parser
         self._lcms = {}
+        self.consensus_mass_features = {}
 
     @property
     def samples(self):

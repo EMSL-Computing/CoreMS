@@ -11,4 +11,5 @@ if __name__ == "__main__":
             )
     lcms_collection = parser.get_lcms_collection(load_raw=False)
     lcms_collection._lcms[lcms_collection.ordered_samples[0]].mass_features_to_df()
+    lcms_collection.add_consensus_mass_features()
     print("Here")

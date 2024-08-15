@@ -3,6 +3,7 @@ import pandas as pd
 from ripser import ripser
 from scipy import sparse
 from scipy.spatial import KDTree
+from ms_entropy import FlashEntropySearch
 
 from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
 from corems.mass_spectra.calc import SignalProcessing as sp
@@ -1404,3 +1405,136 @@ class PHCalculations:
             }
         else:
             return cluster_daughters
+        
+class LCMSCollectionCalculations:
+    """Methods for performing calculations related to LCMS collections.
+
+    Notes
+    -----
+    This class is intended as a mixin for the LCMSCollection class.
+    """
+    def clean_sparse_matrix(self, sparse_matrix):
+        """Clean a sparse matrix by removing duplicates and sorting.
+
+        Parameters
+        ----------
+        sparse_matrix : :obj:`~numpy.array`
+            A sparse matrix to clean.
+
+        Returns
+        -------
+        :obj:`~numpy.array`
+            A cleaned sparse matrix.
+        """
+        for match in sparse_matrix:
+            match.sort()
+        sparse_matrix.sort()
+        dereplicated_sparse_matrix = np.unique(sparse_matrix, axis=0)
+        return dereplicated_sparse_matrix
+
+    
+    def get_ms1_sparse_matrix(self):
+        """Get a sparse matrix of MS1 matches.
+
+        Parameters
+        ----------
+        mode : str, optional
+            The mode to use for matching. Default is "open". Other options are "identity".
+
+        Returns
+        -------
+        :obj:`~numpy.array`
+            A sparse matrix of MS1 matches, with each row containing the ids of the mass features that match.
+        """
+        # Grab all deconvoluted ms1s from all mass features
+        ms1_decon_fe_lib = []
+        max_mz = 0
+        for key, lcms_obj in self._lcms.items():
+            if lcms_obj.mass_features is None:
+                raise ValueError(
+                    "No mass features found in LCMSBase object, run find_mass_features() first"
+                )
+            for mf_id, mass_feature in lcms_obj.mass_features.items():
+                lib_entry = {
+                    "id": str(self.manifest[key]['collection_id']) + "_" + str(mass_feature.id), #TODO KRH: create id for each lcms_obj that is not its name
+                    "precursor_mz": mass_feature.mz,
+                    "peaks": np.column_stack((mass_feature.mass_spectrum.mz_exp, mass_feature.mass_spectrum.abundance))
+                }
+                ms1_decon_fe_lib.append(lib_entry)
+                if mass_feature.mz > max_mz:
+                    max_mz = mass_feature.mz
+
+        # Build flash entropy search index      
+        fes = FlashEntropySearch(
+            max_ms2_tolerance_in_da = 0.001 #TODO KRH: source this from a parameter
+            )
+        fes.build_index(
+            all_spectra_list = ms1_decon_fe_lib,
+            max_indexed_mz = max_mz+5,
+            precursor_ions_removal_da = None,
+            noise_threshold=0,
+            min_ms2_difference_in_da = 0.001, #TODO KRH: source this from a parameter
+            max_peak_num = 0,
+            clean_spectra = True
+        )
+
+        results_sparse_open = []
+        results_sparse_identity = []
+        min_match_score = 0.1 #TODO KRH: source this from a parameter
+
+        for spec in fes:
+            search_results = fes.search(
+                            precursor_mz=spec['precursor_mz'],
+                            peaks=spec['peaks'],
+                            ms1_tolerance_in_da=0.001, #TODO KRH: source this from a parameter
+                            ms2_tolerance_in_da=0.001, #TODO KRH: source this from a parameter [note this isn't really MS2]
+                            method={"open", "identity"},
+                            precursor_ions_removal_da=None,
+                            noise_threshold=0,
+                            target="cpu",
+                        )
+            
+            match_inds_open = np.where(search_results["open_search"] > min_match_score)[0]
+            if len(match_inds_open) > 0:
+                ref_ms_ids = [fes[x]["id"] for x in match_inds_open]
+                # drop ref_ms_ids if it matches spec["id"]
+                ref_ms_ids = [x for x in ref_ms_ids if x != spec["id"]]
+                if len(ref_ms_ids) > 0:
+                    for ref_ms_id in ref_ms_ids:
+                        results_sparse_open.append([spec["id"], ref_ms_id])
+            match_inds_identity = np.where(search_results["identity_search"] > min_match_score)[0]
+            if len(match_inds_identity) > 0:
+                ref_ms_ids = [fes[x]["id"] for x in match_inds_identity]
+                # drop ref_ms_ids if it matches spec["id"]
+                ref_ms_ids = [x for x in ref_ms_ids if x != spec["id"]]
+                if len(ref_ms_ids) > 0:
+                    for ref_ms_id in ref_ms_ids:
+                        results_sparse_identity.append([spec["id"], ref_ms_id])
+
+        results_sparse_open = self.clean_sparse_matrix(results_sparse_open)
+        results_sparse_identity = self.clean_sparse_matrix(results_sparse_identity)
+
+        return results_sparse_open, results_sparse_identity
+
+
+    def add_consensus_mass_features(self):
+        """Add consensus mass features to the LCMSCollection object.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None, but assigns the consensus_mass_features attribute to the LCMSCollection object.
+
+        Raises
+        ------
+        ValueError
+            If no mass features are found in any of the LCMSBase objects in the LCMSCollection object.
+        """
+        # Get a series of sparse matrices of matches between lcms objects' mass features
+        ms1_open_sm, ms1_identity_sm = self.get_ms1_sparse_matrix()
+        
+
+

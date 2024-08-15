@@ -533,7 +533,7 @@ class ReadCoreMSHDFMassSpectraCollection:
                 if parameters != first_parameters:
                     raise ValueError(
                         f"Parameters files for samples in batch {batch} are not equal."
-                    )
+                    )    
 
     def get_lcms_collection(self, load_raw=False) -> LCMSCollection:
         """Return a LCMSCollection object
@@ -557,6 +557,16 @@ class ReadCoreMSHDFMassSpectraCollection:
             hdf5_file = self.folder_location / f"{sample_name}.corems/{sample_name}.hdf5"
             parser = ReadCoreMSHDFMassSpectra(hdf5_file)
             lcms_coll._lcms[sample_name] = parser.get_lcms_obj(load_raw=load_raw)
+
+        # Check that all LCMS objects have the same polarity
+        if len(set([x.polarity for k, x in lcms_coll._lcms.items()])) != 1:
+            raise ValueError("All samples must have the same polarity.")
+        
+        # Set ids on the LCMS objects
+        i = 1
+        for sample in lcms_coll.ordered_samples:
+            lcms_coll._manifest_dict[sample]["collection_id"] = i
+            i += 1
         
         return lcms_coll
 
