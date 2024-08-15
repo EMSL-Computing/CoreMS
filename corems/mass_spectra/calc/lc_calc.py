@@ -690,6 +690,11 @@ class LCCalculations:
 
         # Loop through each mass feature
         for mf_id, mass_feature in self.mass_features.items():
+            
+            # Check that the mass_feature.mz attribute == the mz of the mass feature in the mass_feature_df
+            if mass_feature.mz != mass_feature.ms1_peak.mz_exp:
+                continue
+
             # Get the left and right limits of the EIC of the mass feature
             l_scan, _, r_scan = mass_feature._eic_data.apexes[0]
 
