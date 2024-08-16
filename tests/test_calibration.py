@@ -18,8 +18,6 @@ from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFor
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.mass_spectrum.input.massList import ReadCoremsMasslist, ReadMassList
 from corems.mass_spectrum.calc.AutoRecalibration import HighResRecalibration
-from corems import get_filename
-
 
 def create_mass_spectrum():
     # Creates a profile mode mass spectrum object
