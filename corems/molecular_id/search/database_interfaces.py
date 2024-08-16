@@ -721,6 +721,30 @@ class MetabRefLCInterface(MetabRefInterface):
             )
 
         return lib
+    
+    def request_all_precursors(self, polarity):
+        """
+        Request all precursor m/z values from MetabRef.
+        
+        Parameters
+        ----------
+        polarity : str
+            Ionization polarity, either "positive" or "negative".
+        
+        Returns
+        -------
+        list
+            List of all precursor m/z values.
+        """
+        # If polarity is anything other than positive or negative, raise error
+        if polarity not in ["positive", "negative"]:
+            raise ValueError("Polarity must be 'positive' or 'negative'")
+        
+        # Query MetabRef for all precursor m/z values
+        return self.get_query(self.PRECURSOR_MZ_URL.format("all", 0, polarity))
+    
+
+    
 
     def get_lipid_library(
         self,
@@ -761,6 +785,11 @@ class MetabRefLCInterface(MetabRefInterface):
             Library in requested format and lipid metadata as a LipidMetadata dataclass.
 
         """
+        print("here")
+        precusors_in_lib = self.request_all_precursors(
+            polarity=polarity
+        )
+
         lib = self.query_by_precursor(
             mz_list=mz_list,
             polarity=polarity,
