@@ -361,3 +361,16 @@ class SuppressPrints:
     def __exit__(self, exc_type, exc_val, exc_tb):
         sys.stdout.close()
         sys.stdout = self._original_stdout
+
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
+def corems_md5(fname):
+
+    bytes_io = fname.open('rb').read()
+
+    md5_returned = hashlib.sha256(bytes_io).hexdigest()
+
+    return "{}:{}".format("sha256", md5_returned)
