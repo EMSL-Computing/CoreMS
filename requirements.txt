@@ -1,6 +1,5 @@
 beautifulsoup4~=4.12.0
 chardet~=5.1.0
-comtypes~=1.1.14
 h5py~=3.8.0
 IsoSpecPy~=2.2.2
 lmfit~=1.1.0
