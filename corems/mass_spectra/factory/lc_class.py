@@ -1093,17 +1093,32 @@ class LCMSCollection(LCMSCollectionCalculations):
         self._lcms = {}
         self.consensus_mass_features = {}
 
+    def _reorder_lcms_objects(self):
+        """
+        Reorders the LCMS objects in the collection based on the order in the manifest.
+        """
+        ordered_samples = self.samples
+        self._lcms = {k: self._lcms[k] for k in ordered_samples}
+
     def __getitem__(self, index):
-        samp_name = self.ordered_samples[index]
+        samp_name = self.samples[index]
         self._lcms[samp_name]
         return self._lcms[samp_name]
+    
+    def mass_features_to_df(self):
+        """Returns a pandas dataframe summarizing all the mass features in the collection."""
+        mf_df_list = []
+        for lcms_obj, sample in zip(self._lcms, self.samples):
+            mf_df = lcms_obj.mass_features_to_df()
+            # Remove index
+            mf_df = mf_df.reset_index(drop=False)
+            # Add sample name and sample id to the dataframe
+            mf_df["sample_name"] = lcms_obj.sample_name
+            mf_df["sample_id"] = self.manifest[sample]["collection_id"]
+            mf_df["coll_mf_id"] = mf_df["sample_id"].astype(str) + "_" + mf_df["mf_id"].astype(str)
 
     @property
     def samples(self):
-        return set(self._lcms.keys())
-    
-    @property
-    def ordered_samples(self):
         manifest_df = self.manifest_dataframe
         # order by batch, then by order
         manifest_df = manifest_df.sort_values(by=['batch', 'order'])

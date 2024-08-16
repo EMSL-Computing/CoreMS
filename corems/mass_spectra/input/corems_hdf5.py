@@ -564,9 +564,12 @@ class ReadCoreMSHDFMassSpectraCollection:
         
         # Set ids on the LCMS objects
         i = 0
-        for sample in lcms_coll.ordered_samples:
+        for sample in lcms_coll.samples:
             lcms_coll._manifest_dict[sample]["collection_id"] = i
             i += 1
+        
+        # Reorder the LCMS objects
+        lcms_coll._reorder_lcms_objects()
         
         return lcms_coll
 
