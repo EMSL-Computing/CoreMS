@@ -18,3 +18,4 @@ setuptools~=67.3.3
 SQLAlchemy~=1.4.47
 toml~=0.10.2
 tqdm~=4.64.1
+scikit_learn~=1.2.2
