@@ -569,10 +569,10 @@ def run_lipid_workflow(
 
 if __name__ == "__main__":
     # Set input variables to run
-    cores = 3
+    cores = 1
     file_dir = Path("tmp_data/thermo_raw_collection")
-    out_dir = Path("tmp_data/NMDC_processed_0813")
-    params_toml = Path("tmp_data/thermo_raw_NMDC_mini/nmdc_lipid_params.toml")
+    out_dir = Path("tmp_data/NMDC_processed_0816")
+    params_toml = Path("tmp_data/thermo_raw_collection/nmdc_lipid_params.toml")
     verbose = True
 
     # Set up output directory
