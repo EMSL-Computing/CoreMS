@@ -3,13 +3,13 @@ from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectraCollec
 
 
 if __name__ == "__main__":
-    collection_path = Path("tmp_data/NMDC_processed_collection_0813")
+    collection_path = Path("tmp_data/NMDC_processed_collection_0819")
     manifest_file = collection_path / "manifest.csv"
     parser = ReadCoreMSHDFMassSpectraCollection(
             folder_location = collection_path,
             manifest_file = manifest_file
             )
     lcms_collection = parser.get_lcms_collection(load_raw=False)
-    lcms_collection[0].mass_features_to_df()
+    #lcms_collection.plot_tics()
     lcms_collection.align_lcms_objects()
     print("Here")

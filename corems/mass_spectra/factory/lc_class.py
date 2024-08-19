@@ -1105,6 +1105,9 @@ class LCMSCollection(LCMSCollectionCalculations):
         self._lcms[samp_name]
         return self._lcms[samp_name]
     
+    def __len__(self):
+        return len(self.samples)
+    
     def mass_features_to_df(self):
         """Returns a pandas dataframe summarizing all the mass features in the collection."""
         mf_df_list = []
@@ -1116,6 +1119,32 @@ class LCMSCollection(LCMSCollectionCalculations):
             mf_df["sample_name"] = lcms_obj.sample_name
             mf_df["sample_id"] = self.manifest[sample]["collection_id"]
             mf_df["coll_mf_id"] = mf_df["sample_id"].astype(str) + "_" + mf_df["mf_id"].astype(str)
+
+    def plot_tics(self, ms_level=1, corrected_rt=False):
+        """Plots the TICs for all the LCMS objects in the collection.
+        
+        Parameters
+        -----------
+        ms_level : int, optional
+            The MS level to plot the TICs for. Defaults to 1.
+        corrected_rt : bool, optional
+            If True, plots the corrected retention time. Defaults to False.
+        """
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots()
+        for lcms_obj in self:
+            scan_df = lcms_obj.scan_df
+            scan_df = scan_df[scan_df.ms_level == ms_level]
+            ax.plot(scan_df.scan_time, scan_df.tic, label=lcms_obj.sample_name)
+        ax.set_xlabel("Retention Time (min)")
+        ax.set_ylabel("TIC")
+        ax.legend()
+        # Add overall title
+        if corrected_rt:
+            plt.suptitle("TICs for LCMS Collection (Corrected RT)")
+        else:
+            plt.suptitle("TICs for LCMS Collection")
+        plt.show()
 
     @property
     def samples(self):

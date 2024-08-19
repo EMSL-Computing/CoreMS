@@ -1539,20 +1539,119 @@ class LCMSCollectionCalculations:
                 )
             mf_df = lcms_obj.mass_features_to_df()
             mf_df = mf_df[mf_df["mass_spectrum_deconvoluted_parent"]]
-            mf_df = mf_df[~mf_df["ms2_spectrum"].isnull()]
             for mf_id, mass_feature in lcms_obj.mass_features.items():
                 if mf_id in mf_df.index:
                     mass_feature.anchor_feature = True
                 else:
                     mass_feature.anchor_feature = False
     
+    def get_anchor_feature_ids(self, lcms_obj):
+        """Returns the ids of the anchor features in the mass features of an LCMSBase object."""
+        anchor_feature_ids = []
+        for mf_id, mass_feature in lcms_obj.mass_features.items():
+            if mass_feature.anchor_feature:
+                anchor_feature_ids.append(mf_id)
+        return anchor_feature_ids
+    
+    def match_mfs(self, lc_obj, mf1_sub):
+        if a is None or b is None:
+            return None, None
+
+        # Safely cast to list
+        dims = deimos.utils.safelist(dims)
+        tol = deimos.utils.safelist(tol)
+        relative = deimos.utils.safelist(relative)
+
+        # Check dims
+        deimos.utils.check_length([dims, tol, relative])
+
+        # Compute inter-feature distances
+        idx = []
+        for i, f in enumerate(dims):
+            # vectors
+            v1 = a[f].values.reshape(-1, 1)
+            v2 = b[f].values.reshape(-1, 1)
+
+            # Distances
+            d = scipy.spatial.distance.cdist(v1, v2)
+
+            if relative[i] is True:
+                # Divisor
+                basis = np.repeat(v1, v2.shape[0], axis=1)
+                fix = np.repeat(v2, v1.shape[0], axis=1).T
+                basis = np.where(basis == 0, fix, basis)
+
+                # Divide
+                d = np.divide(d, basis, out=np.zeros_like(basis), where=basis != 0)
+
+            # Check tol
+            idx.append(d <= tol[i])
+
+        # Stack truth arrays
+        idx = np.prod(np.dstack(idx), axis=-1, dtype=bool)
+
+        # Compute normalized 3d distance
+        v1 = a[dims].values / tol
+        v2 = b[dims].values / tol
+        dist3d = scipy.spatial.distance.cdist(v1, v2, 'cityblock')
+        dist3d = np.multiply(dist3d, idx)
+
+        # Normalize to 0-1
+        mx = dist3d.max()
+        if mx > 0:
+            dist3d = dist3d / dist3d.max()
+
+        # Intensities
+        intensity = np.repeat(a['intensity'].values.reshape(-1, 1),
+                            b.shape[0], axis=1)
+        intensity = np.multiply(intensity, idx)
+
+        # Max over dims
+        maxcols = np.max(intensity, axis=0, keepdims=True)
+
+        # Zero out nonmax over dims
+        intensity[intensity != maxcols] = 0
+
+        # Break ties by distance
+        intensity = intensity - dist3d
+
+        # Max over clusters
+        maxrows = np.max(intensity, axis=1, keepdims=True)
+
+        # Where max and nonzero
+        ii, jj = np.where((intensity == maxrows) & (intensity > 0))
+
+        # Reorder
+        a = a.iloc[ii]
+        b = b.iloc[jj]
+
+        if len(a.index) < 1 or len(b.index) < 1:
+            return None, None
+
+        return a, b
+    
     def align_lcms_objects(self):
         """Align LCMS objects in the collection."""
-        # Set anchors
+        
+        # Set anchors on all LCMS objects' mass features
         self.set_anchor_features()
-        ms1_sparse = self.get_sparse_matrix(anchors_only=True, ms_level=1)
-        ms2_sparse = self.get_sparse_matrix(anchors_only=True, ms_level=2)      
-        print("here")
+
+        # Prepare the center LCMS object
+        center_obj_id = 0 #KRH TODO: make this part of the manifest (QC sample or the center in the order)
+        center_lcms_obj = self[center_obj_id]
+        mf1 = center_lcms_obj.mass_features_to_df() 
+        anchors = self.get_anchor_feature_ids(center_lcms_obj)
+        mf1_sub = mf1[mf1.index.isin(anchors)]
+
+        # Loop through the other LCMS objects in the collection (going forward)
+        i = center_obj_id + 1
+        while i < (len(self)-1):
+            anchors_i = self.get_anchor_feature_ids(lc_obj)
+            mf_i = lc_obj.mass_features_to_df()
+            mf_i_sub = mf_i[mf_i.index.isin(anchors_i)]
+            matches = self.match_mfs(lc_obj, mf_i_sub) #match the mass features in the LCMS object to the anchor mass features in the center LCMS object.  
+            self.fit_rts(lc_obj, mf1_sub, matches) #fit the retention times of the LCMS object to the center LCMS object using the matched
+
    
     def add_consensus_mass_features(self):
         """
