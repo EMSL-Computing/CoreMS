@@ -119,7 +119,7 @@ class ReadCoreMSHDFMassSpectra(
         """ """
         pass
 
-    def run(self, mass_spectra, load_raw=True) -> None:
+    def run(self, mass_spectra, load_raw=True, load_light=False) -> None:
         """Runs the importer functions to populate a LCMS or MassSpectraBase object.
 
         Notes
@@ -139,6 +139,9 @@ class ReadCoreMSHDFMassSpectra(
             The LCMS or MassSpectraBase object to populate with mass spectra, generally instantiated with only the file_location, analyzer, and instrument_label attributes.
         load_raw : bool
             If True, load raw data (unprocessed) from HDF5 files for overall lcms object and individual mass spectra. Default is True.
+        load_light : bool
+            If True, only load the parameters, mass features, and scan info. Default is False.
+
         Returns
         -------
         None, but populates several attributes on the LCMS or MassSpectraBase object.
@@ -148,7 +151,7 @@ class ReadCoreMSHDFMassSpectra(
             # Populate the parameters attribute on the LCMS object
             self.import_parameters(mass_spectra)
 
-        if "mass_spectra" in self.h5pydata:
+        if "mass_spectra" in self.h5pydata and not load_light:
             # Populate the _ms list on the LCMS object
             self.import_mass_spectra(mass_spectra, load_raw=load_raw)
 
@@ -156,7 +159,7 @@ class ReadCoreMSHDFMassSpectra(
             # Populate the _scan_info attribute on the LCMS object
             self.import_scan_info(mass_spectra)
 
-        if "ms_unprocessed" in self.h5pydata and load_raw:
+        if "ms_unprocessed" in self.h5pydata and load_raw and not load_light:
             # Populate the _ms_unprocessed attribute on the LCMS object
             self.import_ms_unprocessed(mass_spectra)
 
@@ -164,11 +167,11 @@ class ReadCoreMSHDFMassSpectra(
             # Populate the mass_features attribute on the LCMS object
             self.import_mass_features(mass_spectra)
 
-        if "eics" in self.h5pydata:
+        if "eics" in self.h5pydata and not load_light:
             # Populate the eics attribute on the LCMS object
             self.import_eics(mass_spectra)
 
-        if "spectral_search_results" in self.h5pydata:
+        if "spectral_search_results" in self.h5pydata and not load_light:
             # Populate the spectral_search_results attribute on the LCMS object
             self.import_spectral_search_results(mass_spectra)
 
@@ -410,7 +413,7 @@ class ReadCoreMSHDFMassSpectra(
                             ]
                         )
 
-    def get_mass_spectra_obj(self, load_raw=True) -> MassSpectraBase:
+    def get_mass_spectra_obj(self, load_raw=True, load_light=False) -> MassSpectraBase:
         """
         Return mass spectra data object, populating the _ms list on MassSpectraBase object from the HDF5 file.
         
@@ -418,6 +421,8 @@ class ReadCoreMSHDFMassSpectra(
         ----------
         load_raw : bool
             If True, load raw data (unprocessed) from HDF5 files for overall spectra object and individual mass spectra. Default is True.
+        load_light : bool
+            If True, only load the parameters, mass features, and scan info. Default is False.
         
         """
         # Instantiate the LCMS object
@@ -429,11 +434,11 @@ class ReadCoreMSHDFMassSpectra(
         )
 
         # This will populate the _ms list on the LCMS or MassSpectraBase object
-        self.run(spectra_obj, load_raw=load_raw)
+        self.run(spectra_obj, load_raw=load_raw, load_light=load_light)
 
         return spectra_obj
 
-    def get_lcms_obj(self, load_raw=True) -> LCMSBase:
+    def get_lcms_obj(self, load_raw=True, load_light=False) -> LCMSBase:
         """
         Return LCMSBase object, populating attributes on the LCMSBase object from the HDF5 file.
 
@@ -441,6 +446,10 @@ class ReadCoreMSHDFMassSpectra(
         ----------
         load_raw : bool
             If True, load raw data (unprocessed) from HDF5 files for overall lcms object and individual mass spectra. Default is True.
+        load_light : bool
+            If True, only load the parameters, mass features, and scan info. Default is False.
+        return_generator : bool
+            If True, return a generator object. Default is False.
         """
         # Instantiate the LCMS object
         lcms_obj = LCMSBase(
@@ -451,7 +460,7 @@ class ReadCoreMSHDFMassSpectra(
         )
 
         # This will populate the majority of the attributes on the LCMS object
-        self.run(lcms_obj, load_raw=load_raw)
+        self.run(lcms_obj, load_raw=load_raw, load_light=load_light)
 
         # Set final attributes of the LCMS object
         lcms_obj.polarity = self.h5pydata.attrs["polarity"]
@@ -544,15 +553,33 @@ class ReadCoreMSHDFMassSpectraCollection:
                 if parameters != first_parameters:
                     raise ValueError(
                         f"Parameters files for samples in batch {batch} are not equal."
-                    )    
-
-    def get_lcms_collection(self, load_raw=False) -> LCMSCollection:
+                    )        
+    
+    def get_lcms_obj(self, sample_name: str, load_raw=False, load_light=True) -> LCMSBase:
+        """Return a LCMSBase object for a given sample name within the collection.
+        
+        Parameters
+        ----------
+        sample_name : str
+            The sample name to retrieve the LCMS object for.
+        load_raw : bool
+            If True, load raw data from HDF5 files. Default is False. 
+        load_light : bool
+            If True, only load the parameters, mass features, and scan info are initially loaded for each lcms object. Default is True.   
+        """
+        hdf5_file = self.folder_location / f"{sample_name}.corems/{sample_name}.hdf5"
+        parser = ReadCoreMSHDFMassSpectra(hdf5_file)
+        return parser.get_lcms_obj(load_raw=load_raw, load_light=load_light)
+    
+    def get_lcms_collection(self, load_raw = False, load_light = True) -> LCMSCollection:
         """Return a LCMSCollection object
         
         Parameters
         ----------
         load_raw : bool
-            If True, load raw data from HDF5 files. Default is False.        
+            If True, load raw data from HDF5 files. Default is False. 
+        load_light : bool
+            If True, only load the parameters, mass features, and scan info are initially loaded for each lcms object. Default is True.   
         """
         # Instantiate the LCMSCollection object
         lcms_coll = LCMSCollection(
@@ -564,16 +591,15 @@ class ReadCoreMSHDFMassSpectraCollection:
         # Add LCMS objects to the collection
         samples = self._manifest_dict.keys()
 
+        # Initialize the LCMS object dictionary
         for sample_name in samples:
-            hdf5_file = self.folder_location / f"{sample_name}.corems/{sample_name}.hdf5"
-            parser = ReadCoreMSHDFMassSpectra(hdf5_file)
-            lcms_coll._lcms[sample_name] = parser.get_lcms_obj(load_raw=load_raw)
+            lcms_coll._lcms[sample_name] = self.get_lcms_obj(sample_name, load_raw=load_raw, load_light=load_light)
 
         # Check that all LCMS objects have the same polarity
         if len(set([x.polarity for k, x in lcms_coll._lcms.items()])) != 1:
             raise ValueError("All samples must have the same polarity.")
         
-        # Set ids on the LCMS objects
+        # Set ids on the LCMS objects in the manifest
         i = 0
         for sample in lcms_coll.samples:
             lcms_coll._manifest_dict[sample]["collection_id"] = i

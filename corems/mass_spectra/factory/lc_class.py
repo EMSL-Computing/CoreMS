@@ -690,7 +690,8 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             if len(self.mass_features[mf_id].ms2_scan_numbers) > 0:
                 # Add MS2 spectra info
                 best_ms2_spectrum = self.mass_features[mf_id].best_ms2
-                dict_mf["ms2_spectrum"] = mass_spectrum_to_string(best_ms2_spectrum)
+                if best_ms2_spectrum is not None:
+                    dict_mf["ms2_spectrum"] = mass_spectrum_to_string(best_ms2_spectrum)
             if len(self.mass_features[mf_id].associated_mass_features_deconvoluted) > 0:
                 dict_mf["associated_mass_features"] = ", ".join(
                     map(
@@ -1091,6 +1092,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         self._manifest_dict = manifest
         self.collection_parser = collection_parser
         self._lcms = {}
+        self._combined_mass_features = None
         self.consensus_mass_features = {}
 
     def _reorder_lcms_objects(self):
@@ -1108,17 +1110,49 @@ class LCMSCollection(LCMSCollectionCalculations):
     def __len__(self):
         return len(self.samples)
     
-    def mass_features_to_df(self):
-        """Returns a pandas dataframe summarizing all the mass features in the collection."""
+    def combine_mass_features(self):
+        """
+        Concatenates the mass features from all the LCMS objects in the collection.
+        """
         mf_df_list = []
-        for lcms_obj, sample in zip(self._lcms, self.samples):
+        for lcms_obj in self:
             mf_df = lcms_obj.mass_features_to_df()
             # Remove index
             mf_df = mf_df.reset_index(drop=False)
             # Add sample name and sample id to the dataframe
             mf_df["sample_name"] = lcms_obj.sample_name
-            mf_df["sample_id"] = self.manifest[sample]["collection_id"]
+            mf_df["sample_id"] = self.manifest[lcms_obj.sample_name]["collection_id"]
             mf_df["coll_mf_id"] = mf_df["sample_id"].astype(str) + "_" + mf_df["mf_id"].astype(str)
+    
+            # Check if scan_df has scan_time_aligned and add to mf_df if so
+            if "scan_time_aligned" in lcms_obj.scan_df.columns:
+                scan_df = lcms_obj.scan_df[["scan", "scan_time_aligned"]].copy()
+                scan_df = scan_df.rename(columns={"scan": "apex_scan"})
+                mf_df = mf_df.merge(scan_df, left_on="apex_scan", right_index=True)
+            mf_df_list.append(mf_df)
+        combined_mass_features = pd.concat(mf_df_list)
+        # Move coll_mf_id, sample_name, and sample_id to front
+        cols = combined_mass_features.columns.tolist()
+        top_cols = ["coll_mf_id", "sample_name", "sample_id", "mz", "scan_time_aligned", "a test"]
+        cols = [x for x in top_cols + [col for col in cols if col not in top_cols] if x in cols]
+        combined_mass_features = combined_mass_features[cols]
+        self._combined_mass_features = combined_mass_features.to_dict()     
+
+    def mass_features_to_df(self):
+        """Returns a pandas dataframe summarizing all the mass features in the collection."""
+        # Check if combined_mass_features is set, set if not
+        if self._combined_mass_features is None:
+            self.combine_mass_features()
+   
+        # Check if scan_time_aligned is in combined_mass_features, try to add if not
+        elif self._combined_mass_features is not None and "scan_time_aligned" not in self._combined_mass_features:
+            if all([True for x in self if "scan_time_aligned" in x.scan_df.columns]):
+                self.combine_mass_features()
+                
+        df = pd.DataFrame(self._combined_mass_features)
+        return df
+
+
 
     def plot_tics(self, ms_level=1, corrected_rt=False):
         """Plots the TICs for all the LCMS objects in the collection.
@@ -1135,13 +1169,20 @@ class LCMSCollection(LCMSCollectionCalculations):
         for lcms_obj in self:
             scan_df = lcms_obj.scan_df
             scan_df = scan_df[scan_df.ms_level == ms_level]
-            ax.plot(scan_df.scan_time, scan_df.tic, label=lcms_obj.sample_name)
+            if corrected_rt:
+                # Check that scan_time_aligned is key in scan_df
+                if "scan_time_aligned" not in scan_df.columns:
+                    raise ValueError(f"scan_time_aligned not found in scan_df for {lcms_obj.sample_name}")
+                else:
+                    ax.plot(scan_df.scan_time_aligned, scan_df.tic, label=lcms_obj.sample_name)
+            else:
+                ax.plot(scan_df.scan_time, scan_df.tic, label=lcms_obj.sample_name)
         ax.set_xlabel("Retention Time (min)")
         ax.set_ylabel("TIC")
         ax.legend()
         # Add overall title
         if corrected_rt:
-            plt.suptitle("TICs for LCMS Collection (Corrected RT)")
+            plt.suptitle("TICs for LCMS Collection (Aligned RT)")
         else:
             plt.suptitle("TICs for LCMS Collection")
         plt.show()

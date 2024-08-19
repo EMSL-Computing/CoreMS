@@ -9,7 +9,11 @@ if __name__ == "__main__":
             folder_location = collection_path,
             manifest_file = manifest_file
             )
-    lcms_collection = parser.get_lcms_collection(load_raw=False)
+    lcms_collection = parser.get_lcms_collection(load_raw=False, load_light=True)
     #lcms_collection.plot_tics()
     lcms_collection.align_lcms_objects()
+    #lcms_collection.plot_tics(corrected_rt=True)
+    mass_feature_df = lcms_collection.mass_features_to_df()
     print("Here")
+
+    #lcms_collection.

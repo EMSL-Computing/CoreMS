@@ -1,9 +1,12 @@
 import numpy as np
 import pandas as pd
 from ripser import ripser
+import scipy 
 from scipy import sparse
 from scipy.spatial import KDTree
 from ms_entropy import FlashEntropySearch
+from sklearn.cluster import AgglomerativeClustering
+from sklearn.svm import SVR
 
 from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
 from corems.mass_spectra.calc import SignalProcessing as sp
@@ -1519,58 +1522,22 @@ class LCMSCollectionCalculations:
         results_sparse_identity = self.clean_sparse_matrix(results_sparse_identity)
 
         return results_sparse_identity
-
-
-    def set_anchor_features(self):
-        """Set anchor features within the mass features of the LCMS objects in the collection.
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None, but assigns the anchor_feature attribute to the mass features in the mass_features attribute of the LCMSBase objects in the collection.
-        """
-        for key, lcms_obj in self._lcms.items():
-            if lcms_obj.mass_features is None:
-                raise ValueError(
-                    "No mass features found in LCMSBase object, run find_mass_features() first"
-                )
-            mf_df = lcms_obj.mass_features_to_df()
-            mf_df = mf_df[mf_df["mass_spectrum_deconvoluted_parent"]]
-            for mf_id, mass_feature in lcms_obj.mass_features.items():
-                if mf_id in mf_df.index:
-                    mass_feature.anchor_feature = True
-                else:
-                    mass_feature.anchor_feature = False
-    
-    def get_anchor_feature_ids(self, lcms_obj):
-        """Returns the ids of the anchor features in the mass features of an LCMSBase object."""
-        anchor_feature_ids = []
-        for mf_id, mass_feature in lcms_obj.mass_features.items():
-            if mass_feature.anchor_feature:
-                anchor_feature_ids.append(mf_id)
-        return anchor_feature_ids
-    
-    def match_mfs(self, lc_obj, mf1_sub):
-        if a is None or b is None:
+      
+    def match_mfs(self, mf_c, mf_i):
+        if mf_c is None or mf_i is None:
             return None, None
 
         # Safely cast to list
-        dims = deimos.utils.safelist(dims)
-        tol = deimos.utils.safelist(tol)
-        relative = deimos.utils.safelist(relative)
-
-        # Check dims
-        deimos.utils.check_length([dims, tol, relative])
+        dims = ["mz", "scan_time"]
+        relative = [False, False]
+        tol = [0.0001, 1] #TODO KRH: source this from a parameter, make mz relative
 
         # Compute inter-feature distances
         idx = []
         for i, f in enumerate(dims):
             # vectors
-            v1 = a[f].values.reshape(-1, 1)
-            v2 = b[f].values.reshape(-1, 1)
+            v1 = mf_c[f].values.reshape(-1, 1)
+            v2 = mf_i[f].values.reshape(-1, 1)
 
             # Distances
             d = scipy.spatial.distance.cdist(v1, v2)
@@ -1591,8 +1558,8 @@ class LCMSCollectionCalculations:
         idx = np.prod(np.dstack(idx), axis=-1, dtype=bool)
 
         # Compute normalized 3d distance
-        v1 = a[dims].values / tol
-        v2 = b[dims].values / tol
+        v1 = mf_c[dims].values / tol
+        v2 = mf_i[dims].values / tol
         dist3d = scipy.spatial.distance.cdist(v1, v2, 'cityblock')
         dist3d = np.multiply(dist3d, idx)
 
@@ -1602,8 +1569,8 @@ class LCMSCollectionCalculations:
             dist3d = dist3d / dist3d.max()
 
         # Intensities
-        intensity = np.repeat(a['intensity'].values.reshape(-1, 1),
-                            b.shape[0], axis=1)
+        intensity = np.repeat(mf_c['intensity'].values.reshape(-1, 1),
+                            mf_i.shape[0], axis=1)
         intensity = np.multiply(intensity, idx)
 
         # Max over dims
@@ -1622,35 +1589,123 @@ class LCMSCollectionCalculations:
         ii, jj = np.where((intensity == maxrows) & (intensity > 0))
 
         # Reorder
-        a = a.iloc[ii]
-        b = b.iloc[jj]
+        mf_c = mf_c.iloc[ii]
+        mf_i = mf_i.iloc[jj]
 
-        if len(a.index) < 1 or len(b.index) < 1:
+        if len(mf_c.index) < 1 or len(mf_i.index) < 1:
             return None, None
 
-        return a, b
+        return mf_c, mf_i
+    
+    def fit_rts(self, a, b, align='scan_time', **kwargs):
+        '''
+        Fit a support vector regressor to matched features.
+
+        Parameters
+        ----------
+        a : :obj:`~pandas.DataFrame`
+            First set of input feature coordinates and intensities.
+        b : :obj:`~pandas.DataFrame`
+            Second set of input feature coordinates and intensities.
+        align : str
+            Dimension to align.
+        kwargs
+            Keyword arguments for support vector regressor
+            (:class:`sklearn.svm.SVR`).
+
+        Returns
+        -------
+        :obj:`~scipy.interpolate.interp1d`
+            Interpolated fit of the SVR result.
+
+        '''
+
+        # Uniqueify
+        x = a[align].values
+        y = b[align].values
+        arr = np.vstack((x, y)).T
+        arr = np.unique(arr, axis=0)
+
+        # Check kwargs
+        if 'kernel' in kwargs:
+            kernel = kwargs.get('kernel')
+        else:
+            kernel = 'linear'
+
+        # Construct interpolation axis
+        newx = np.linspace(arr[:, 0].min(), arr[:, 0].max(), 1000)
+
+        # Linear kernel
+        if kernel == 'linear':
+            reg = scipy.stats.linregress(x, y)
+            newy = reg.slope * newx + reg.intercept
+
+        # Other kernels
+        else:
+            # Fit
+            svr = SVR(**kwargs)
+            svr.fit(arr[:, 0].reshape(-1, 1), arr[:, 1])
+
+            # Predict
+            newy = svr.predict(newx.reshape(-1, 1))
+
+        return scipy.interpolate.interp1d(newx, newy,
+                                        kind='linear', fill_value='extrapolate')
     
     def align_lcms_objects(self):
         """Align LCMS objects in the collection."""
-        
-        # Set anchors on all LCMS objects' mass features
-        self.set_anchor_features()
-
+        #TODO KRH: add the ability to do this by batch and then connect the batches
         # Prepare the center LCMS object
-        center_obj_id = 0 #KRH TODO: make this part of the manifest (QC sample or the center in the order)
-        center_lcms_obj = self[center_obj_id]
-        mf1 = center_lcms_obj.mass_features_to_df() 
-        anchors = self.get_anchor_feature_ids(center_lcms_obj)
-        mf1_sub = mf1[mf1.index.isin(anchors)]
+        center_obj_id = 0 #KRH TODO: make this part of the manifest or infer during intialization (QC sample or the center in the order)
+        mf_df_c = self[center_obj_id].mass_features_to_df().copy()
+        # Drop mass featuers with nan in mass_spectrum_deconvoluted_parent
+        mf_df_c = mf_df_c.dropna(subset=["mass_spectrum_deconvoluted_parent"])  
+        mf_df_c = mf_df_c[mf_df_c["mass_spectrum_deconvoluted_parent"]]
+        center_scan_df = self[center_obj_id].scan_df.copy()
+        center_scan_df['scan_time_aligned'] = center_scan_df['scan_time']
+        self[center_obj_id].scan_df = center_scan_df
 
-        # Loop through the other LCMS objects in the collection (going forward)
-        i = center_obj_id + 1
-        while i < (len(self)-1):
-            anchors_i = self.get_anchor_feature_ids(lc_obj)
-            mf_i = lc_obj.mass_features_to_df()
-            mf_i_sub = mf_i[mf_i.index.isin(anchors_i)]
-            matches = self.match_mfs(lc_obj, mf_i_sub) #match the mass features in the LCMS object to the anchor mass features in the center LCMS object.  
-            self.fit_rts(lc_obj, mf1_sub, matches) #fit the retention times of the LCMS object to the center LCMS object using the matched
+        index_steps = (1, -1)
+        # Run this twice, once going forward (+1 indexing) and once going backward (-1 indexing)
+        for index_step in index_steps:
+            # Loop through the other LCMS objects in the collection (going forward)
+            i = center_obj_id + index_step
+            if i < len(self) and i >= 0:
+                # Grab the first LCMS object after the center object
+                lc_obj = self[i]
+                mf_df_i = lc_obj.mass_features_to_df().copy()
+                mf_df_i['scan_time_og'] = mf_df_i['scan_time']
+
+                while mf_df_i is not None:
+                    mf_df_i = mf_df_i.dropna(subset=["mass_spectrum_deconvoluted_parent"])
+                    mf_df_i = mf_df_i[mf_df_i["mass_spectrum_deconvoluted_parent"]]
+
+                    # Match the mass features in the LCMS object to the anchor mass features in the center LCMS object.
+                    matches_c, matches_i = self.match_mfs(mf_df_c, mf_df_i) 
+                    if matches_c is not None:
+                        # Reset the scan_time to the original scan_time
+                        matches_i = matches_i.copy()
+                        matches_i['scan_time'] = matches_i['scan_time_og']
+
+                        # Fit the retention times of the LCMS object to the center LCMS object using the matched mass features
+                        spl = self.fit_rts(matches_c, matches_i, kernel='rbf', C=1000)
+                        # Set new retention times on scan_df for lc_obj
+                        new_times = spl(lc_obj.scan_df['scan_time'])
+                        new_scan_info = lc_obj.scan_df.copy()
+                        new_scan_info['scan_time_aligned'] = new_times
+                        lc_obj.scan_df = new_scan_info
+                        i += index_step
+                        if i >= len(self) or i == 0:
+                            mf_df_i = None
+                        else:
+                            # Grab the next LCMS object and use the previous spline fitting to get a better starting point
+                            lc_obj = self[i]
+                            mf_df_i = lc_obj.mass_features_to_df().copy()
+                            mf_df_i['scan_time_og'] = mf_df_i['scan_time']
+                            # Set scan_time to previous sample's predicted scan_time to find closer matches
+                            mf_df_i['scan_time'] = spl(mf_df_i['scan_time'])
+                    else:
+                        raise ValueError(f'No matches found between the center object and {self.samples[i]}')
 
    
     def add_consensus_mass_features(self):
