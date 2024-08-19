@@ -410,9 +410,15 @@ class ReadCoreMSHDFMassSpectra(
                             ]
                         )
 
-    def get_mass_spectra_obj(self) -> MassSpectraBase:
+    def get_mass_spectra_obj(self, load_raw=True) -> MassSpectraBase:
         """
         Return mass spectra data object, populating the _ms list on MassSpectraBase object from the HDF5 file.
+        
+        Parameters
+        ----------
+        load_raw : bool
+            If True, load raw data (unprocessed) from HDF5 files for overall spectra object and individual mass spectra. Default is True.
+        
         """
         # Instantiate the LCMS object
         spectra_obj = MassSpectraBase(
@@ -423,13 +429,18 @@ class ReadCoreMSHDFMassSpectra(
         )
 
         # This will populate the _ms list on the LCMS or MassSpectraBase object
-        self.run(spectra_obj)
+        self.run(spectra_obj, load_raw=load_raw)
 
         return spectra_obj
 
     def get_lcms_obj(self, load_raw=True) -> LCMSBase:
         """
         Return LCMSBase object, populating attributes on the LCMSBase object from the HDF5 file.
+
+        Parameters
+        ----------
+        load_raw : bool
+            If True, load raw data (unprocessed) from HDF5 files for overall lcms object and individual mass spectra. Default is True.
         """
         # Instantiate the LCMS object
         lcms_obj = LCMSBase(
