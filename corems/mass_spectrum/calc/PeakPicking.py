@@ -291,7 +291,6 @@ class PeakPicking:
                 peak_height_plus = intes[index_plus]
             except IndexError:
                 return nan
-
             #print "massa", "," , "intes", "," , massa[index_plus], "," , peak_height_plus
 
         x = [massa[index_plus],  massa[index_plus - 1]]
