@@ -1551,7 +1551,7 @@ class LCMSCollectionCalculations:
         # Safely cast to list
         dims = ["mz", "scan_time"]
         relative = [False, False]
-        tol = [0.0001, 1] #TODO KRH: source this from a parameter, make mz relative
+        tol = [0.001, 1.5] #TODO KRH: source this from a parameter, make mz relative
 
         # Compute inter-feature distances
         idx = []
@@ -1585,29 +1585,25 @@ class LCMSCollectionCalculations:
         dist3d = np.multiply(dist3d, idx)
 
         # Normalize to 0-1
-        mx = dist3d.max()
+        mx = dist3d.max() 
         if mx > 0:
+            # Lower distance is better
             dist3d = dist3d / dist3d.max()
 
-        # Intensities
-        intensity = np.repeat(mf_c['intensity'].values.reshape(-1, 1),
-                            mf_i.shape[0], axis=1)
-        intensity = np.multiply(intensity, idx)
+        # Turn zeros to inf (no match)
+        dist3d[dist3d == 0] = np.inf
 
-        # Max over dims
-        maxcols = np.max(intensity, axis=0, keepdims=True)
+        # Min over dims
+        mincols = np.min(dist3d, axis=0, keepdims=True)
 
-        # Zero out nonmax over dims
-        intensity[intensity != maxcols] = 0
+        # Zero out mincols over dims
+        dist3d[dist3d != mincols] = np.inf
 
-        # Break ties by distance
-        intensity = intensity - dist3d
-
-        # Max over clusters
-        maxrows = np.max(intensity, axis=1, keepdims=True)
+        # Min over clusters
+        minrows = np.min(dist3d, axis=1, keepdims=True)
 
         # Where max and nonzero
-        ii, jj = np.where((intensity == maxrows) & (intensity > 0))
+        ii, jj = np.where((dist3d == minrows) & (dist3d < np.inf))
 
         # Reorder
         mf_c = mf_c.iloc[ii]
@@ -1625,9 +1621,9 @@ class LCMSCollectionCalculations:
         Parameters
         ----------
         a : :obj:`~pandas.DataFrame`
-            First set of input feature coordinates and intensities.
+            First set of input feature coordinates and intensities; the center object and the object to align to.
         b : :obj:`~pandas.DataFrame`
-            Second set of input feature coordinates and intensities.
+            Second set of input feature coordinates and intensities; the object to align to the center object.
         align : str
             Dimension to align.
         kwargs
@@ -1636,8 +1632,8 @@ class LCMSCollectionCalculations:
 
         Returns
         -------
-        :obj:`~scipy.interpolate.interp1d`
-            Interpolated fit of the SVR result.
+        :obj:`~function`
+            An interpolation function where one can input a retention time and get the predicted retention time.
 
         Notes
         -----
@@ -1670,14 +1666,53 @@ class LCMSCollectionCalculations:
         else:
             # Fit
             svr = SVR(**kwargs)
-            svr.fit(arr[:, 0].reshape(-1, 1), arr[:, 1])
+            svr.fit(arr[:, 1].reshape(-1, 1), arr[:, 0])
 
             # Predict
             newy = svr.predict(newx.reshape(-1, 1))
+       
+        # Pad x and y_pred with zeros to force interpolation to start at 0
+        newx = np.concatenate(([0], newx))
+        newy = np.concatenate(([0], newy))
 
-        return scipy.interpolate.interp1d(newx, newy,
-                                        kind='linear', fill_value='extrapolate')
+        # Pad x and y_pred with max time to force interpolation to end at max time to force interpolation to match at end max time
+        max_time = self[0].scan_df['scan_time'].max()
+        newx = np.concatenate((newx, [max_time]))
+        newy = np.concatenate((newy, [max_time]))
+
+        # Return an interpolation function for the x and y_pred
+        def interp(x):
+            pred_y = np.interp(x, newx, newy)
+            return pred_y
+        
+        return interp
     
+    def get_anchor_mass_features(self, mf_df):
+        """
+        Get the anchor mass features from a DataFrame of mass features.
+
+        Parameters
+        ----------
+        mf_df : :obj:`~pandas.DataFrame`
+            The mass features to filter to just the anchor mass features.
+
+        Returns
+        -------
+        :obj:`~pandas.DataFrame`
+            The anchor mass features dataframe.
+        """
+        #TODO KRH: add error handling and the ability to implement other anchoring techniques through parameters
+        mf_df = mf_df.copy()
+
+        # Drop features that are not mass_spectrum_deconvoluted_parent or are NA as mass_spectrum_deconvoluted_parent
+        mf_df = mf_df.dropna(subset=["mass_spectrum_deconvoluted_parent"])
+        mf_df = mf_df[mf_df["mass_spectrum_deconvoluted_parent"]]
+
+        # Drop features that have NA as dispersity_index or half_height_width (generally bad shape)
+        mf_df = mf_df.dropna(subset=["dispersity_index", "half_height_width", "mass_spectrum_deconvoluted_parent"])
+
+        return mf_df
+
     def align_lcms_objects(self):
         """
         Align LCMS objects in the collection.
@@ -1686,6 +1721,8 @@ class LCMSCollectionCalculations:
         First, the mass features in the center LCMS object are matched to the mass features in the other LCMS objects,
         starting with the LCMS object immediately following the center LCMS object. The retention times of the LCMS objects
         are then fit to the center LCMS object using the matched mass features.
+
+        Currently, this function only aligns LCMS objects within each batch, but not between batches.
         
         Returns
         -------
@@ -1698,65 +1735,74 @@ class LCMSCollectionCalculations:
         """
         #TODO KRH: add the ability to do this by batch and then connect the batches
         # Prepare the center LCMS object
-        center_obj_id = 0 #KRH TODO: make this part of the manifest or infer during intialization (QC sample or the center in the order)
-        mf_df_c = self[center_obj_id].mass_features_to_df().copy()
-        # Drop mass featuers with nan in mass_spectrum_deconvoluted_parent
-        mf_df_c = mf_df_c.dropna(subset=["mass_spectrum_deconvoluted_parent"])  
-        mf_df_c = mf_df_c[mf_df_c["mass_spectrum_deconvoluted_parent"]]
-        center_scan_df = self[center_obj_id].scan_df.copy()
-        center_scan_df['scan_time_aligned'] = center_scan_df['scan_time']
-        self[center_obj_id].scan_df = center_scan_df
+        center_obj_ids = self.manifest_dataframe[self.manifest_dataframe['center']].collection_id.values
+        for center_obj_id in center_obj_ids:
+            mf_df_c = self[center_obj_id].mass_features_to_df().copy()
+            mf_df_c = mf_df_c.reset_index(drop=False)
+            # Drop mass featuers with nan in mass_spectrum_deconvoluted_parent
+            mf_df_c = self.get_anchor_mass_features(mf_df_c)
+            center_scan_df = self[center_obj_id].scan_df.copy()
+            center_scan_df['scan_time_aligned'] = center_scan_df['scan_time']
+            self[center_obj_id].scan_df = center_scan_df
 
-        index_steps = (1, -1)
-        # Run this twice, once going forward (+1 indexing) and once going backward (-1 indexing)
-        for index_step in index_steps:
-            # Loop through the other LCMS objects in the collection (going forward)
-            i = center_obj_id + index_step
-            if i < len(self) and i >= 0:
-                # Grab the first LCMS object after the center object
-                lc_obj = self[i]
-                mf_df_i = lc_obj.mass_features_to_df().copy()
-                mf_df_i['scan_time_og'] = mf_df_i['scan_time']
+            index_steps = (1, -1)
+            # Run this twice, once going forward (+1 indexing) and once going backward (-1 indexing)
+            for index_step in index_steps:
+                # Loop through the other LCMS objects in the collection (going forward)
+                i = center_obj_id + index_step
+                if i < len(self) and i >= 0:
+                    # Grab the first LCMS object after the center object
+                    lc_obj = self[i]
+                    mf_df_i = lc_obj.mass_features_to_df().copy()
+                    # Remove index from mass features
+                    mf_df_i = mf_df_i.reset_index(drop=False)
+                    mf_df_i['scan_time_og'] = mf_df_i['scan_time']
 
-                while mf_df_i is not None:
-                    mf_df_i = mf_df_i.dropna(subset=["mass_spectrum_deconvoluted_parent"])
-                    mf_df_i = mf_df_i[mf_df_i["mass_spectrum_deconvoluted_parent"]]
+                    while mf_df_i is not None:
+                        mf_df_i = self.get_anchor_mass_features(mf_df_i)
 
-                    # Match the mass features in the LCMS object to the anchor mass features in the center LCMS object.
-                    matches_c, matches_i = self.match_mfs(mf_df_c, mf_df_i) 
-                    if matches_c is not None:
-                        # Reset the scan_time to the original scan_time
-                        matches_i = matches_i.copy()
-                        matches_i['scan_time'] = matches_i['scan_time_og']
+                        # Match the mass features in the LCMS object to the anchor mass features in the center LCMS object.
+                        matches_c, matches_i = self.match_mfs(mf_df_c, mf_df_i) 
+                        if matches_c is not None:
+                            # Reset the scan_time to the original scan_time
+                            matches_i = matches_i.copy()
+                            matches_i['scan_time'] = matches_i['scan_time_og']
 
-                        # Fit the retention times of the LCMS object to the center LCMS object using the matched mass features
-                        spl = self.fit_rts(matches_c, matches_i, kernel='rbf', C=1000)
-                        # Set new retention times on scan_df for lc_obj
-                        new_times = spl(lc_obj.scan_df['scan_time'])
-                        new_scan_info = lc_obj.scan_df.copy()
-                        new_scan_info['scan_time_aligned'] = new_times
-                        lc_obj.scan_df = new_scan_info
-                        i += index_step
-                        if i >= len(self) or i == 0:
-                            mf_df_i = None
+                            # Fit the retention times of the LCMS object to the center LCMS object using the matched mass features
+                            spl = self.fit_rts(matches_c, matches_i, kernel='rbf', C=1000)
+                            # Set new retention times on scan_df for lc_obj
+                            matches_i['scan_time_fit'] = spl(matches_i['scan_time'])
+                            new_times = spl(lc_obj.scan_df['scan_time'])
+                            new_scan_info = lc_obj.scan_df.copy()
+                            new_scan_info['scan_time_aligned'] = new_times
+                            lc_obj.scan_df = new_scan_info
+                            i += index_step
+                            if i >= len(self) or i < 0:
+                                mf_df_i = None
+                            else:
+                                # Grab the next LCMS object and use the previous spline fitting to get a better starting point
+                                lc_obj = self[i]
+                                mf_df_i = lc_obj.mass_features_to_df().copy()
+                                mf_df_i['scan_time_og'] = mf_df_i['scan_time']
+                                mf_df_i = mf_df_i.reset_index(drop=False)
+                                # Set scan_time to previous sample's predicted scan_time to find closer matches
+                                mf_df_i['scan_time'] = spl(mf_df_i['scan_time'])
                         else:
-                            # Grab the next LCMS object and use the previous spline fitting to get a better starting point
-                            lc_obj = self[i]
-                            mf_df_i = lc_obj.mass_features_to_df().copy()
-                            mf_df_i['scan_time_og'] = mf_df_i['scan_time']
-                            # Set scan_time to previous sample's predicted scan_time to find closer matches
-                            mf_df_i['scan_time'] = spl(mf_df_i['scan_time'])
-                    else:
-                        raise ValueError(f'No matches found between the center object and {self.samples[i]}')
+                            raise ValueError(f'No matches found between the center object and {self.samples[i]}')
 
     def add_consensus_mass_features(self):
-        # Check if the LCMS objects are aligned
-        if not all([True for x in self if "scan_time_aligned" in x.scan_df.columns]):
-            raise ValueError("LCMS objects are not aligned, run align_lcms_objects() first")
-        
         # Get the combined mass features from all LCMS objects
-        combined_mfs = self.mass_features_to_df().copy()
-        self.agglomerative_clustering(combined_mfs)
+        combined_mfs = self.mass_features_dataframe
+
+        # Check if the mass features have been aligned
+        if 'scan_time_aligned' not in combined_mfs.columns:
+            raise ValueError('Mass features have not been aligned, run align_lcms_objects() first')
+        
+        # Drop mass features with nan in mass_spectrum_deconvoluted_parent and if they are not mass_spectrum_deconvoluted_parent
+        combined_mfs = combined_mfs.dropna(subset=["mass_spectrum_deconvoluted_parent"])
+        combined_mfs = combined_mfs[combined_mfs["mass_spectrum_deconvoluted_parent"]]
+
+        test = self.agglomerative_clustering(combined_mfs)
 
     def agglomerative_clustering(self, features):
         '''
@@ -1789,17 +1835,19 @@ class LCMSCollectionCalculations:
         # Safely cast to list
         dims = ["mz", "scan_time"]
         relative = [False, False]
-        tol = [0.0001, 1] #TODO KRH: source this from a parameter, make mz relative
+        tol = [0.001, 0.3] #TODO KRH: source this from a parameter, make mz relative
 
         # Copy input
         features = features.copy()
 
         # Make connectivity matrix for masking within sample mass features
-        if 'sample_idx' not in features.columns:
+        if 'sample_id' not in features.columns:
             cmat = None
         else:
             vals = features['sample_id'].values.reshape(-1, 1)
-            cmat = cdist(vals, vals, metric=lambda x, y: x != y).astype(bool)
+            cmat = scipy.spatial.distance.cdist(vals, vals)
+            # Convert to binary (0 if same sample, 1 if different)
+            cmat = np.where(cmat == 0, np.nan, 1)
 
         # Compute inter-feature distances
         distances = []
@@ -1820,22 +1868,37 @@ class LCMSCollectionCalculations:
                 dist = np.divide(dist, basis, out=np.zeros_like(
                     basis), where=basis != 0)
 
-            # Check tol
-            distances.append(dist / tol[i])
+            # Check tolerance, convert to binary for masking
+            idx = dist <= tol[i]
+            idx = np.where(idx, 1, np.nan)
 
-        # Stack distances
+            # Multiply by distance
+            dist = np.multiply(dist, idx)
+
+            # Normalize to the maximum distance that is not nan
+            dist = dist / np.nanmax(dist)
+
+            distances.append(dist)
+
+        # Mutliply distances
         distances = np.dstack(distances)
 
-        # Max distance
-        distances = np.max(distances, axis=-1)
+        # Mean distance 
+        distances = np.prod(distances, axis=-1)
+
+        # Multiply by connectivity matrix for more masking
+        if cmat is not None:
+            distances = np.multiply(distances, cmat)
+
+        # Recast nan to 1 (maximum distance, no linkage)
+        distances[np.isnan(distances)] = 1
 
         # Perform clustering
         try:
             clustering = AgglomerativeClustering(n_clusters=None,
                                                 linkage='complete',
                                                 metric='precomputed',
-                                                distance_threshold=1,
-                                                connectivity=cmat).fit(distances)
+                                                distance_threshold=1).fit(distances)
             features['cluster'] = clustering.labels_
 
         # All data points are singleton clusters

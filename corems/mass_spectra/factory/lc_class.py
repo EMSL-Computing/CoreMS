@@ -1144,10 +1144,24 @@ class LCMSCollection(LCMSCollectionCalculations):
         top_cols = ["coll_mf_id", "sample_name", "sample_id", "mz", "scan_time_aligned", "a test"]
         cols = [x for x in top_cols + [col for col in cols if col not in top_cols] if x in cols]
         combined_mass_features = combined_mass_features[cols]
+        # Make coll_mf_id the index
+        combined_mass_features = combined_mass_features.set_index("coll_mf_id")
         self._combined_mass_features = combined_mass_features.to_dict()     
 
     def mass_features_to_df(self):
-        """Returns a pandas dataframe summarizing all the mass features in the collection."""
+        """Returns a pandas dataframe summarizing all the mass features in the collection.
+        
+        Returns
+        --------
+        pandas.DataFrame
+            A pandas dataframe of mass features in the collection.
+
+        Notes
+        ------
+        If _combined_mass_features is not set, calls _combine_mass_features to set it.
+        If scan_time_aligned is not in the _combined_mass_features, tries to add it.
+
+        """
         # Check if combined_mass_features is set, set if not
         if self._combined_mass_features is None:
             self._combine_mass_features()
@@ -1199,6 +1213,27 @@ class LCMSCollection(LCMSCollectionCalculations):
             ax.legend()
         plt.show()
 
+    def plot_alignments(self):
+        """Plots the alignment of the LCMS objects in the collection."""
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots(figsize=(10, 5))
+        for lcms_obj in self:
+            scan_df = lcms_obj.scan_df
+            if "scan_time_aligned" not in scan_df.columns:
+                raise ValueError(f"scan_time_aligned not found in scan_df for {lcms_obj.sample_name}")
+            scan_df['time_diff'] = scan_df.scan_time - scan_df.scan_time_aligned
+            ax.plot(scan_df.scan_time_aligned, scan_df.time_diff, label=lcms_obj.sample_name)
+        ax.set_xlabel("Aligned Retention Time (min)")
+        ax.set_ylabel("Time Difference (min)")
+        ax.legend()
+        plt.show()
+
+    @property
+    def mass_features_dataframe(self):
+        if self._combined_mass_features is None:
+            self._combine_mass_features()
+        return self.mass_features_to_df()
+    
     @property
     def samples(self):
         manifest_df = self.manifest_dataframe
