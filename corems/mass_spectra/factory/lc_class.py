@@ -1110,9 +1110,13 @@ class LCMSCollection(LCMSCollectionCalculations):
     def __len__(self):
         return len(self.samples)
     
-    def combine_mass_features(self):
+    def _combine_mass_features(self):
         """
         Concatenates the mass features from all the LCMS objects in the collection.
+
+        Returns
+        --------
+        None, sets the _combined_mass_features attribute.
         """
         mf_df_list = []
         for lcms_obj in self:
@@ -1142,49 +1146,53 @@ class LCMSCollection(LCMSCollectionCalculations):
         """Returns a pandas dataframe summarizing all the mass features in the collection."""
         # Check if combined_mass_features is set, set if not
         if self._combined_mass_features is None:
-            self.combine_mass_features()
+            self._combine_mass_features()
    
         # Check if scan_time_aligned is in combined_mass_features, try to add if not
         elif self._combined_mass_features is not None and "scan_time_aligned" not in self._combined_mass_features:
             if all([True for x in self if "scan_time_aligned" in x.scan_df.columns]):
-                self.combine_mass_features()
-                
+                self._combine_mass_features()
+
         df = pd.DataFrame(self._combined_mass_features)
         return df
 
-
-
-    def plot_tics(self, ms_level=1, corrected_rt=False):
+    def plot_tics(self, ms_level=1, type = "raw"):
         """Plots the TICs for all the LCMS objects in the collection.
         
         Parameters
         -----------
         ms_level : int, optional
             The MS level to plot the TICs for. Defaults to 1.
-        corrected_rt : bool, optional
-            If True, plots the corrected retention time. Defaults to False.
+        type : str, optional
+            The type of TIC to plot, either "raw" or "corrected" or "both". Defaults to "raw".
         """
         import matplotlib.pyplot as plt
-        fig, ax = plt.subplots()
-        for lcms_obj in self:
-            scan_df = lcms_obj.scan_df
-            scan_df = scan_df[scan_df.ms_level == ms_level]
-            if corrected_rt:
-                # Check that scan_time_aligned is key in scan_df
-                if "scan_time_aligned" not in scan_df.columns:
-                    raise ValueError(f"scan_time_aligned not found in scan_df for {lcms_obj.sample_name}")
-                else:
-                    ax.plot(scan_df.scan_time_aligned, scan_df.tic, label=lcms_obj.sample_name)
-            else:
-                ax.plot(scan_df.scan_time, scan_df.tic, label=lcms_obj.sample_name)
-        ax.set_xlabel("Retention Time (min)")
-        ax.set_ylabel("TIC")
-        ax.legend()
-        # Add overall title
-        if corrected_rt:
-            plt.suptitle("TICs for LCMS Collection (Aligned RT)")
+        to_plot = []
+        if type == "both":
+            to_plot = ["raw", "corrected"]
         else:
-            plt.suptitle("TICs for LCMS Collection")
+            to_plot = [type]
+
+        fig, axs = plt.subplots(
+            len(to_plot), 1, figsize=(10, 5 * len(to_plot)), sharex=True, squeeze=False
+        )
+        
+        for i, plot_type in enumerate(to_plot):
+            ax = axs[i, 0]
+            for lcms_obj in self:
+                scan_df = lcms_obj.scan_df
+                scan_df = scan_df[scan_df.ms_level == ms_level]
+                if plot_type == "corrected":
+                    # Check that scan_time_aligned is key in scan_df
+                    if "scan_time_aligned" not in scan_df.columns:
+                        raise ValueError(f"scan_time_aligned not found in scan_df for {lcms_obj.sample_name}")
+                    else:
+                        ax.plot(scan_df.scan_time_aligned, scan_df.tic, label=lcms_obj.sample_name)
+                elif plot_type == "raw":
+                    ax.plot(scan_df.scan_time, scan_df.tic, label=lcms_obj.sample_name)
+            ax.set_xlabel("Retention Time (min," + f" {plot_type})" )
+            ax.set_ylabel("TIC")
+            ax.legend()
         plt.show()
 
     @property

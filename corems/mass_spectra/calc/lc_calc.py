@@ -4,6 +4,7 @@ from ripser import ripser
 import scipy 
 from scipy import sparse
 from scipy.spatial import KDTree
+from scipy.spatial.distance import cdist
 from ms_entropy import FlashEntropySearch
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.svm import SVR
@@ -1415,7 +1416,7 @@ class PHCalculations:
             return cluster_daughters
         
 class LCMSCollectionCalculations:
-    """Methods for performing calculations related to LCMS collections.
+    """Methods for performing calculations related to LCMSCollection objects.
 
     Notes
     -----
@@ -1439,7 +1440,6 @@ class LCMSCollectionCalculations:
         sparse_matrix.sort()
         dereplicated_sparse_matrix = np.unique(sparse_matrix, axis=0)
         return dereplicated_sparse_matrix
-
 
     def get_sparse_matrix(self, anchors_only=True, ms_level=1):
         """Get a sparse matrix of MS1 matches.
@@ -1524,6 +1524,27 @@ class LCMSCollectionCalculations:
         return results_sparse_identity
       
     def match_mfs(self, mf_c, mf_i):
+        """Match mass features between two LCMS objects.
+
+        Parameters
+        ----------
+        mf_c : :obj:`~pandas.DataFrame`
+            The mass features to match against.
+        mf_i : :obj:`~pandas.DataFrame`
+            The mass features to match.
+
+        Returns
+        -------
+        :obj:`~pandas.DataFrame`
+            The matched mass features from mf_c.
+        :obj:`~pandas.DataFrame`
+            The matched mass features from mf_i.
+
+        Notes
+        -----
+        This function has been adapted from the original implementation in the Deimos package:
+        https://github.com/pnnl/deimos
+        """
         if mf_c is None or mf_i is None:
             return None, None
 
@@ -1598,7 +1619,7 @@ class LCMSCollectionCalculations:
         return mf_c, mf_i
     
     def fit_rts(self, a, b, align='scan_time', **kwargs):
-        '''
+        """
         Fit a support vector regressor to matched features.
 
         Parameters
@@ -1618,7 +1639,12 @@ class LCMSCollectionCalculations:
         :obj:`~scipy.interpolate.interp1d`
             Interpolated fit of the SVR result.
 
-        '''
+        Notes
+        -----
+        This function has been adapted from the original implementation in the Deimos package:
+        https://github.com/pnnl/deimos
+
+        """
 
         # Uniqueify
         x = a[align].values
@@ -1653,7 +1679,23 @@ class LCMSCollectionCalculations:
                                         kind='linear', fill_value='extrapolate')
     
     def align_lcms_objects(self):
-        """Align LCMS objects in the collection."""
+        """
+        Align LCMS objects in the collection.
+        
+        Aligns the LCMS objects in the collection by aligning the retention times of the mass features in the LCMS objects.
+        First, the mass features in the center LCMS object are matched to the mass features in the other LCMS objects,
+        starting with the LCMS object immediately following the center LCMS object. The retention times of the LCMS objects
+        are then fit to the center LCMS object using the matched mass features.
+        
+        Returns
+        -------
+        None, but aligns the LCMS objects in the collection and sets the scan_time_aligned column in the scan_df attribute of each LCMS object.
+
+        Notes
+        -----
+        This function has been adapted from the original implementation in the Deimos package:
+        https://github.com/pnnl/deimos
+        """
         #TODO KRH: add the ability to do this by batch and then connect the batches
         # Prepare the center LCMS object
         center_obj_id = 0 #KRH TODO: make this part of the manifest or infer during intialization (QC sample or the center in the order)
@@ -1707,24 +1749,101 @@ class LCMSCollectionCalculations:
                     else:
                         raise ValueError(f'No matches found between the center object and {self.samples[i]}')
 
-   
     def add_consensus_mass_features(self):
-        """
-        """
-        # Get a series of sparse matrices of matches between lcms objects' mass features
-        # Get the easy ones first
-        self.get_distance_matrices()
+        # Check if the LCMS objects are aligned
+        if not all([True for x in self if "scan_time_aligned" in x.scan_df.columns]):
+            raise ValueError("LCMS objects are not aligned, run align_lcms_objects() first")
+        
+        # Get the combined mass features from all LCMS objects
+        combined_mfs = self.mass_features_to_df().copy()
+        self.agglomerative_clustering(combined_mfs)
 
-        # Get the ms1 sparse matrices
-        ms1_open_sm, ms1_identity_sm = self.get_ms1_sparse_matrix()
+    def agglomerative_clustering(self, features):
+        '''
+        Cluster features within provided linkage tolerances. Recursively merges
+        the pair of clusters that minimally increases a given linkage distance.
+        See :class:`sklearn.cluster.AgglomerativeClustering`.
 
-        # Next get the rt sparse matrices
+        Parameters
+        ----------
+        features : :obj:`~pandas.DataFrame` or :obj:`~dask.dataframe.DataFrame`
+            Input feature coordinates and intensities per sample.
+        dims : str or list
+            Dimensions considered in clustering.
+        tol : float or list
+            Tolerance in each dimension to define maximum cluster linkage
+            distance.
+        relative : bool or list
+            Whether to use relative or absolute tolerances per dimension.
 
-        # Next get the mz sparse matrices
+        Returns
+        -------
+        features : :obj:`~pandas.DataFrame`
+            Features concatenated over samples with cluster labels.
 
-        # Next get the ms2 sparse matrices
+        '''
 
-        # Next get the peak shape sparse matrices
+        if features is None:
+            return None
+
+        # Safely cast to list
+        dims = ["mz", "scan_time"]
+        relative = [False, False]
+        tol = [0.0001, 1] #TODO KRH: source this from a parameter, make mz relative
+
+        # Copy input
+        features = features.copy()
+
+        # Make connectivity matrix for masking within sample mass features
+        if 'sample_idx' not in features.columns:
+            cmat = None
+        else:
+            vals = features['sample_id'].values.reshape(-1, 1)
+            cmat = cdist(vals, vals, metric=lambda x, y: x != y).astype(bool)
+
+        # Compute inter-feature distances
+        distances = []
+        for i, d in enumerate(dims):
+            # Vectors
+            v1 = features[d].values.reshape(-1, 1)
+
+            # Distances
+            dist = scipy.spatial.distance.cdist(v1, v1)
+
+            if relative[i] is True:
+                # Divisor
+                basis = np.repeat(v1, v1.shape[0], axis=1)
+                fix = np.repeat(v1, v1.shape[0], axis=1).T
+                basis = np.where(basis == 0, fix, basis)
+
+                # Divide
+                dist = np.divide(dist, basis, out=np.zeros_like(
+                    basis), where=basis != 0)
+
+            # Check tol
+            distances.append(dist / tol[i])
+
+        # Stack distances
+        distances = np.dstack(distances)
+
+        # Max distance
+        distances = np.max(distances, axis=-1)
+
+        # Perform clustering
+        try:
+            clustering = AgglomerativeClustering(n_clusters=None,
+                                                linkage='complete',
+                                                metric='precomputed',
+                                                distance_threshold=1,
+                                                connectivity=cmat).fit(distances)
+            features['cluster'] = clustering.labels_
+
+        # All data points are singleton clusters
+        except:
+            features['cluster'] = np.arange(len(features.index))
+
+        return features
+
 
 
         
