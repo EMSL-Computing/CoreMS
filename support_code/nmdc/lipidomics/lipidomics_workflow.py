@@ -571,7 +571,7 @@ if __name__ == "__main__":
     # Set input variables to run
     cores = 1
     file_dir = Path("tmp_data/thermo_raw_collection")
-    out_dir = Path("tmp_data/NMDC_processed_0816")
+    out_dir = Path("tmp_data/NMDC_processed_0820")
     params_toml = Path("tmp_data/thermo_raw_collection/nmdc_lipid_params.toml")
     verbose = True
 

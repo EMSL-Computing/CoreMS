@@ -266,11 +266,7 @@ class PeakPicking:
             try: 
                 peak_height_minus = intes[index_minus]
             except IndexError:
-                print('Res. calc. warning - peak index minus adjacent to spectrum edge \n \
-                        Zeroing the first 5 data points of abundance. Peaks at spectrum edge may be incorrectly reported')
-                intes[:5] = 0
-                peak_height_minus = target_peak_height
-                index_minus -= 1 
+                return nan
             #print "massa", "," , "intes", "," , massa[index_minus], "," , peak_height_minus
         x = [ massa[index_minus],  massa[index_minus+1]]
         y = [ intes[index_minus],  intes[index_minus+1]]
@@ -294,11 +290,7 @@ class PeakPicking:
             try: 
                 peak_height_plus = intes[index_plus]
             except IndexError:
-                print('Res. calc. warning - peak index plus adjacent to spectrum edge \n \
-                        Zeroing the last 5 data points of abundance. Peaks at spectrum edge may be incorrectly reported')
-                intes[-5:] = 0
-                peak_height_plus = target_peak_height
-                index_plus += 1 
+                return nan
             #print "massa", "," , "intes", "," , massa[index_plus], "," , peak_height_plus
 
         x = [massa[index_plus],  massa[index_plus - 1]]
