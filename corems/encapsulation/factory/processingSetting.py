@@ -67,6 +67,7 @@ class DataInputSetting:
                                  'Res.': Labels.rp,
                                  'resolution': Labels.rp,
                                  'Intensity': Labels.abundance,
+                                 'Peak Height': Labels.abundance,
                                  'I': Labels.abundance,
                                  'Abundance': Labels.abundance,
                                  'abs_abu': Labels.abundance,
@@ -313,6 +314,9 @@ class MassSpecPeakSetting:
     legacy_resolving_power : bool, optional
         Flag indicating whether to use the legacy (CoreMS v1) resolving power calculation.
         Defaults to True.
+    centroid_legacy_polyfit : bool, optional
+        Use legacy (numpy polyfit) to fit centroid
+        Default false.
     """
 
     kendrick_base: Dict = dataclasses.field(default_factory=dict)
@@ -332,7 +336,10 @@ class MassSpecPeakSetting:
     peak_height_max_percent: float = 10  # 1-100 % used for baseline detection
 
     legacy_resolving_power: bool = True # Use the legacy (CoreMS v1) resolving power calculation (True)
-    
+    # TODO revisit this default
+
+    centroid_legacy_polyfit: bool = False
+
     def __post_init__(self):
 
         # default to CH2

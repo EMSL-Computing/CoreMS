@@ -404,15 +404,15 @@ class PeakPicking:
         for indexes_tuple in include_indexes:
             
             apex_index = indexes_tuple[1]
-            
-            mz_exp_centroid, freq_centr, intes_centr = self.find_apex_fit_quadratic(mass, abund, freq, apex_index)
 
-            if mz_exp_centroid:
+            peak_indexes = self.check_prominence(abund, apex_index, len_signal, peak_height_diff )
+
+            if peak_indexes:
                 
-                peak_indexes = self.check_prominence(abund, apex_index, len_signal, peak_height_diff )
-                
-                if peak_indexes:
-                    
+                mz_exp_centroid, freq_centr, intes_centr = self.find_apex_fit_quadratic(mass, abund, freq, apex_index)
+
+                if mz_exp_centroid:
+                                   
                     peak_resolving_power = self.calculate_resolving_power( abund, mass, apex_index)
                     s2n = intes_centr/self.baseline_noise_std
                     self.add_mspeak(self.polarity, mz_exp_centroid, abund[apex_index] , peak_resolving_power, s2n, indexes_tuple, exp_freq=freq_centr, ms_parent=self)
@@ -478,9 +478,29 @@ class PeakPicking:
             raise  Exception("%s method was not implemented, please refer to corems.mass_spectrum.calc.NoiseCalc Class" % noise_threshold_method)
         
         return abundance_threshold, factor
+    
+    def algebraic_quadratic(self, list_mass, list_y):
+        """
+        Find the apex of a peak - algebraically. 
+        Faster than using numpy polyfit by ~28x per fit.
+        """
+        x_1, x_2, x_3 = list_mass
+        y_1, y_2, y_3 = list_y 
+
+        a = y_1/((x_1-x_2)*(x_1-x_3)) + y_2/((x_2-x_1)*(x_2-x_3)) + y_3/((x_3-x_1)*(x_3-x_2))
+
+        b = (-y_1*(x_2+x_3)/((x_1-x_2)*(x_1-x_3))
+            -y_2*(x_1+x_3)/((x_2-x_1)*(x_2-x_3))
+            -y_3*(x_1+x_2)/((x_3-x_1)*(x_3-x_2)))
         
+        c = (y_1*x_2*x_3/((x_1-x_2)*(x_1-x_3))
+            +y_2*x_1*x_3/((x_2-x_1)*(x_2-x_3))
+            +y_3*x_1*x_2/((x_3-x_1)*(x_3-x_2)))
+        return a, b, c
+
     def find_apex_fit_quadratic(self, mass, abund, freq, current_index):
-        """ Find the apex of a peak.
+        """ 
+        Find the apex of a peak.
         
         Parameters
         ----------
@@ -517,9 +537,13 @@ class PeakPicking:
         list_mass = [mass[current_index - 1], mass[current_index], mass[current_index +1]]
         list_y = [abund[current_index - 1],abund[current_index], abund[current_index +1]]
         
-        z = polyfit(list_mass, list_y, 2)
-        a = z[0]
-        b = z[1]
+        if self.mspeaks_settings.centroid_legacy_polyfit:
+            z = polyfit(list_mass, list_y, 2)
+            a = z[0]
+            b = z[1]
+        else:
+            a, b, c = self.algebraic_quadratic(list_mass, list_y)
+
 
         calculated = -b/(2*a)
         
@@ -535,10 +559,13 @@ class PeakPicking:
             
             # fit parabola to three most abundant frequency datapoints
             list_freq = [freq[current_index - 1], freq[current_index], freq[current_index +1]]
-            z = polyfit(list_freq, list_y, 2)
-            a = z[0]
-            b = z[1]
-
+            if self.mspeaks_settings.centroid_legacy_polyfit:
+                z = polyfit(list_mass, list_y, 2)
+                a = z[0]
+                b = z[1]
+            else:
+                a, b, c = self.algebraic_quadratic(list_mass, list_y)
+            
             calculated_freq = -b/(2*a)
 
             if calculated_freq < 1 or int(calculated_freq) != freq[current_index]:
@@ -549,8 +576,14 @@ class PeakPicking:
         
         else:
                 freq_centr = None
-                
-        return mz_exp_centroid, freq_centr, abund[current_index]
+
+        if self.mspeaks_settings.centroid_legacy_polyfit:
+            abundance_centroid = abund[current_index]
+        else: 
+            abundance_centroid = a*mz_exp_centroid**2 + b*mz_exp_centroid + c
+
+        return mz_exp_centroid, freq_centr, abundance_centroid 
+    
     
     def check_prominence(self, abun, current_index, len_abundance, peak_height_diff ) -> tuple or False:
         """ Check the prominence of a peak.
