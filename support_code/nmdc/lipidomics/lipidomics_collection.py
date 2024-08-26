@@ -10,7 +10,6 @@ if __name__ == "__main__":
             manifest_file = manifest_file
             )
     lcms_collection = parser.get_lcms_collection(load_raw=False, load_light=True)
-    #lcms_collection.plot_tics()
     lcms_collection.align_lcms_objects()
     #lcms_collection.plot_tics(type="both")
     #lcms_collection.plot_alignments()

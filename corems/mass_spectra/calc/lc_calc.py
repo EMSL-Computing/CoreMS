@@ -1548,9 +1548,16 @@ class LCMSCollectionCalculations:
         if mf_c is None or mf_i is None:
             return None, None
 
-        # Safely cast to list
-        dims = ["mz", "scan_time"]
-        relative = [False, False]
+        # Prepare dataframes
+        mf_c = mf_c.copy()
+        mf_c['id_i'] = 0
+        mf_i = mf_i.copy()
+        mf_i['id_i'] = 1
+        mf_ci = pd.concat([mf_c, mf_i], axis=0)
+
+        # Set dimensions for matching
+        dims = ["mz", "scan_time"] #TODO KRH: source this from a parameter, make mz relative
+        relative = [False, False] #TODO KRH: source this from a parameter, make mz relative
         tol = [0.001, 1.5] #TODO KRH: source this from a parameter, make mz relative
 
         # Compute inter-feature distances
@@ -1799,8 +1806,8 @@ class LCMSCollectionCalculations:
             raise ValueError('Mass features have not been aligned, run align_lcms_objects() first')
         
         # Drop mass features with nan in mass_spectrum_deconvoluted_parent and if they are not mass_spectrum_deconvoluted_parent
-        combined_mfs = combined_mfs.dropna(subset=["mass_spectrum_deconvoluted_parent"])
-        combined_mfs = combined_mfs[combined_mfs["mass_spectrum_deconvoluted_parent"]]
+        #combined_mfs = combined_mfs.dropna(subset=["mass_spectrum_deconvoluted_parent"])
+        #combined_mfs = combined_mfs[combined_mfs["mass_spectrum_deconvoluted_parent"]]
 
         test = self.agglomerative_clustering(combined_mfs)
 
@@ -1833,12 +1840,20 @@ class LCMSCollectionCalculations:
             return None
 
         # Safely cast to list
-        dims = ["mz", "scan_time"]
-        relative = [False, False]
-        tol = [0.001, 0.3] #TODO KRH: source this from a parameter, make mz relative
+        # TODO KRH: source this from a parameter
+        # TODO KRH: make mz relative
+        dims = ["mz", "scan_time_aligned", "tailing_factor", "dispersity_index"]        
+        relative = [False, False, False, False]                                         
+        tol = [0.001, 0.2, 0.4, 0.1]                                                         
+        dist_weight = [1, 1, 0.2, 0.5]                                                       
+        na_fill = [None, None, 1, np.nanmedian(features.dispersity_index)]                                                       
+
+        # Check that the dimensions and tolerances are the same length
+        if len(dims) != len(tol) or len(dims) != len(relative) or len(dims) != len(na_fill) or len(dims) != len(dist_weight):
+            raise ValueError("The dimensions, tolerances, relative, dist_weight, and na_allow lists must be the same length")
 
         # Copy input
-        features = features.copy()
+        features = features.copy().reset_index(drop=False)
 
         # Make connectivity matrix for masking within sample mass features
         if 'sample_id' not in features.columns:
@@ -1847,51 +1862,76 @@ class LCMSCollectionCalculations:
             vals = features['sample_id'].values.reshape(-1, 1)
             cmat = scipy.spatial.distance.cdist(vals, vals)
             # Convert to binary (0 if same sample, 1 if different)
-            cmat = np.where(cmat == 0, np.nan, 1)
+            cmat = np.where(cmat == 0, 0, 1)
+            # Convert to coorindate matrix for sparse operations later
+            cmat = sparse.coo_matrix(cmat)
 
-        # Compute inter-feature distances
-        distances = []
-        for i, d in enumerate(dims):
-            # Vectors
-            v1 = features[d].values.reshape(-1, 1)
+        # Compute inter-feature distances using sparse matrix approach
+        distances = None
+        for i in range(len(dims)):
+            # Construct k-d tree
+            values = features[dims[i]].values
 
-            # Distances
-            dist = scipy.spatial.distance.cdist(v1, v1)
+            # Fill NAs if applicable
+            if na_fill[i] is not None:
+                values = np.where(np.isnan(values), na_fill[i], values)
 
+            tree = KDTree(values.reshape(-1, 1))
+
+            max_tol = tol[i]
             if relative[i] is True:
-                # Divisor
-                basis = np.repeat(v1, v1.shape[0], axis=1)
-                fix = np.repeat(v1, v1.shape[0], axis=1).T
-                basis = np.where(basis == 0, fix, basis)
+                # Maximum absolute tolerance
+                max_tol = tol[i] * values.max()
 
-                # Divide
-                dist = np.divide(dist, basis, out=np.zeros_like(
-                    basis), where=basis != 0)
+            # Compute sparse distance matrix
+            # the larger the max_tol, the slower this operation is
+            sdm = tree.sparse_distance_matrix(tree, max_tol, output_type="coo_matrix")
 
-            # Check tolerance, convert to binary for masking
-            idx = dist <= tol[i]
-            idx = np.where(idx, 1, np.nan)
+            # Only consider forward case, exclude diagonal
+            sdm = sparse.triu(sdm, k=1)
 
-            # Multiply by distance
-            dist = np.multiply(dist, idx)
+            # Filter relative distances
+            if relative[i] is True:
+                # Compute relative distances
+                rel_dists = sdm.data / values[sdm.row]  # or col?
 
-            # Normalize to the maximum distance that is not nan
-            dist = dist / np.nanmax(dist)
+                # Indices of relative distances less than tolerance
+                idx = rel_dists <= tol[i]
 
-            distances.append(dist)
+                # Reconstruct sparse distance matrix
+                sdm = sparse.coo_matrix(
+                    (rel_dists[idx], (sdm.row[idx], sdm.col[idx])),
+                    shape=(len(values), len(values)),
+                )
 
-        # Mutliply distances
-        distances = np.dstack(distances)
+            # Stack distances for dimensions where na_allow is False
+            if distances is None:
+                sdm.data = sdm.data*dist_weight[i]
+                distances = sdm
+            else:
+                # Prepare sdm to match shape of existing distances
+                distances_truth = distances.copy()
+                distances_truth.data = np.ones_like(distances_truth.data)
+                sdm = distances_truth.multiply(sdm)
+                sdm.data = sdm.data*dist_weight[i]
 
-        # Mean distance 
-        distances = np.prod(distances, axis=-1)
+                sdm_truth = sdm.copy()
+                sdm_truth.data = np.ones_like(sdm_truth.data)
+
+                # remove the distances that are not sdm
+                distances = distances.multiply(sdm_truth)
+
+                # Add the new distances
+                distances = distances + sdm
 
         # Multiply by connectivity matrix for more masking
-        if cmat is not None:
-            distances = np.multiply(distances, cmat)
+        distances = distances.multiply(cmat)
 
-        # Recast nan to 1 (maximum distance, no linkage)
-        distances[np.isnan(distances)] = 1
+        # Convert to full matrix
+        distances = distances.todense()
+        # Cast all 0s to 1s for a distance matrix
+        distances[distances == 0] = 1
+        distances = np.asarray(distances)
 
         # Perform clustering
         try:
@@ -1905,6 +1945,7 @@ class LCMSCollectionCalculations:
         except:
             features['cluster'] = np.arange(len(features.index))
 
+        features_sub = features[['cluster', 'mz', 'scan_time_aligned', 'sample_id', 'tailing_factor', 'dispersity_index', 'half_height_width', 'mass_spectrum_deconvoluted_parent']]
         return features
 
 
