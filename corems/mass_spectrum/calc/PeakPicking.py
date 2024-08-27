@@ -293,7 +293,8 @@ class PeakPicking:
                 peak_height_minus = intes[index_minus]
             except IndexError:
                 print('Res. calc. warning - peak index minus adjacent to spectrum edge \n \
-                        Zeroing the first 5 data points of abundance. Peaks at spectrum edge may be incorrectly reported')
+                        Zeroing the first 5 data points of abundance. Peaks at spectrum edge may be incorrectly reported \n \
+                      Perhaps try to increase picking_point_extrapolate (e.g. to 3)')
                 intes[:5] = 0
                 peak_height_minus = target_peak_height
                 index_minus -= 1 
