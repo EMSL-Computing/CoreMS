@@ -38,6 +38,22 @@ class PeakPicking:
         Calculate the centroid of a peak.
 
     """
+    def prepare_peak_picking_data(self):
+        """ Prepare the data for peak picking.
+
+        Returns
+        -------
+        None
+
+        """
+        # First apply cut_mz_domain_peak_picking
+        mz, abundance, freq = self.cut_mz_domain_peak_picking()
+
+        # Then extrapolate the axes for peak picking
+        if self.settings.picking_point_extrapolate > 0:
+            mz, abundance, freq = self.extrapolate_axes_for_pp(mz, abundance, freq)
+        return mz, abundance, freq
+    
     def cut_mz_domain_peak_picking(self):
         """
         Cut the m/z domain for peak picking.
@@ -123,8 +139,17 @@ class PeakPicking:
         
         return pad_array
     
-    def extrapolate_axes_for_pp(self):
+    def extrapolate_axes_for_pp(self, mz=None, abund=None, freq=None):
         """ Extrapolate the m/z axis and fill the abundance axis with 0s.
+
+        Parameters
+        ----------
+        mz : ndarray or None
+            The m/z axis, if available. If None, the experimental m/z axis is used.
+        abund : ndarray or None
+            The abundance axis, if available. If None, the experimental abundance axis is used.
+        freq : ndarray or None
+            The frequency axis, if available. If None, the experimental frequency axis is used.
 
         Returns
         -------
@@ -137,18 +162,21 @@ class PeakPicking:
 
         Notes
         --------
-        This function will extrapolate the mz axis by N datapoints, and fill the abundance axis with 0s. 
+        This function will extrapolate the mz axis by the number of datapoints specified in the settings,
+        and fill the abundance axis with 0s. 
         This should prevent peak picking issues at the spectrum edge.
 
         """ 
-        mz, abund = self.mz_exp_profile, self.abundance_profile
-        if self.has_frequency:
-            freq = self.freq_exp_profile
-        else: 
-            freq = None
-        pts = self.settings.picking_point_extrapolate
-        if pts == 0:
-            return mz, abund, freq
+        # Check if the input arrays are provided
+        if mz is None or abund is None:
+            mz, abund = self.mz_exp_profile, self.abundance_profile
+            if self.has_frequency:
+                freq = self.freq_exp_profile
+            else: 
+                freq = None
+            pts = self.settings.picking_point_extrapolate
+            if pts == 0:
+                return mz, abund, freq
         
         mz = self.extrapolate_axis(mz, pts)
         abund = pad(abund, (pts, pts), mode = 'constant', constant_values=(0,0))
@@ -160,16 +188,7 @@ class PeakPicking:
         """ Perform peak picking.
 
         """
-        mz, abundance, freq = self.cut_mz_domain_peak_picking()
-        self.mz_exp_profile = mz
-        self.abundance_profile = abundance
-        self.freq_exp_profile = freq
-        
-        if self.settings.picking_point_extrapolate > 0:
-            mz, abundance, freq = self.extrapolate_axes_for_pp()
-            self.mz_exp_profile = mz
-            self.abundance_profile = abundance
-            self.freq_exp_profile = freq
+        mz, abundance, freq = self.prepare_peak_picking_data()
         
         if self.label == Labels.bruker_frequency or self.label == Labels.midas_frequency:
             self.calc_centroid(mz, abundance, freq)
