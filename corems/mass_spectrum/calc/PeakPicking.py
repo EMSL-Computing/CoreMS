@@ -274,10 +274,10 @@ class PeakPicking:
         # This solution will return nan for resolving power when a peak is possibly too close to an edge to avoid the issue
         
         if current_index <5:
-            print("peak at low spectrum edge, returning no resolving power")
+            Warning("peak at low spectrum edge, returning no resolving power")
             return nan
         elif abs(current_index-len(intes))<5:
-            print("peak at high spectrum edge, returning no resolving power")
+            Warning("peak at high spectrum edge, returning no resolving power")
             return nan
         else:
             pass
@@ -286,19 +286,17 @@ class PeakPicking:
         while peak_height_minus  >= target_peak_height:
 
             index_minus = index_minus -1
-            
-            # TODO : see if this try/except can be removed.
-            
-            try: 
-                peak_height_minus = intes[index_minus]
-            except IndexError:
-                print('Res. calc. warning - peak index minus adjacent to spectrum edge \n \
+            if index_minus < 0:
+                Warning('Res. calc. warning - peak index minus adjacent to spectrum edge \n \
                         Zeroing the first 5 data points of abundance. Peaks at spectrum edge may be incorrectly reported \n \
-                      Perhaps try to increase picking_point_extrapolate (e.g. to 3)')
+                        Perhaps try to increase picking_point_extrapolate (e.g. to 3)')
+                # Pad the first 5 data points with zeros and restart the loop
                 intes[:5] = 0
                 peak_height_minus = target_peak_height
-                index_minus -= 1 
-            #print "massa", "," , "intes", "," , massa[index_minus], "," , peak_height_minus
+                index_minus = current_index            
+            else:
+                peak_height_minus = intes[index_minus]
+
         if self.mspeaks_settings.centroid_legacy_polyfit:
             x = [ massa[index_minus],  massa[index_minus+1]]
             y = [ intes[index_minus],  intes[index_minus+1]]
@@ -318,18 +316,18 @@ class PeakPicking:
         while peak_height_plus  >= target_peak_height:
 
             index_plus = index_plus + 1
-            
-            # TODO : see if this try/except can be removed.
-            
+               
             try: 
                 peak_height_plus = intes[index_plus]
             except IndexError:
-                print('Res. calc. warning - peak index plus adjacent to spectrum edge \n \
-                        Zeroing the last 5 data points of abundance. Peaks at spectrum edge may be incorrectly reported')
+                Warning('Res. calc. warning - peak index plus adjacent to spectrum edge \n \
+                        Zeroing the last 5 data points of abundance. Peaks at spectrum edge may be incorrectly reported\
+                        Perhaps try to increase picking_point_extrapolate (e.g. to 3)')
+                # Pad the first 5 data points with zeros and restart the loop
                 intes[-5:] = 0
                 peak_height_plus = target_peak_height
-                index_plus += 1 
-            #print "massa", "," , "intes", "," , massa[index_plus], "," , peak_height_plus
+                index_plus = current_index 
+
         if self.mspeaks_settings.centroid_legacy_polyfit:
             x = [massa[index_plus],  massa[index_plus - 1]]
             y = [intes[index_plus],  intes[index_plus - 1]]
