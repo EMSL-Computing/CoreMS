@@ -22,29 +22,51 @@ class PeakPicking:
 
     Methods
     -------
+    * prepare_peak_picking_data().
+        Prepare the mz, abundance, and frequence data for peak picking.
     * cut_mz_domain_peak_picking().
         Cut the m/z domain for peak picking.
-    * extrapolate_axes_for_pp().
+    * extrapolate_axes_for_pp(mz=None, abund=None, freq=None).
         Extrapolate the m/z axis and fill the abundance axis with 0s.
     * do_peak_picking().
         Perform peak picking.
     * find_minima(apex_index, abundance, len_abundance, right=True).
         Find the minima of a peak.
+    * linear_fit_calc(intes, massa, index_term, index_sign).
+        Algebraic solution to a linear fit.
     * calculate_resolving_power(intes, massa, current_index).
         Calculate the resolving power of a peak.
     * cal_minima(mass, abun).
         Calculate the minima of a peak.
     * calc_centroid(mass, abund, freq).
         Calculate the centroid of a peak.
+    * get_threshold(intes).
+        Get the intensity threshold for peak picking.
+    * algebraic_quadratic(list_mass, list_y).
+        Find the apex of a peak - algebraically.
+    * find_apex_fit_quadratic(mass, abund, freq, current_index).
+        Find the apex of a peak.
+    * check_prominence(abun, current_index, len_abundance, peak_height_diff).
+        Check the prominence of a peak.
+    * use_the_max(mass, abund, current_index, len_abundance, peak_height_diff).
+        Use the max peak height as the centroid.
+    * calc_centroid_legacy(mass, abund, freq).
+        Legacy centroid calculation. Deprecated - for deletion.       
 
     """
     def prepare_peak_picking_data(self):
         """ Prepare the data for peak picking.
 
+        This function will prepare the m/z, abundance, and frequency data for peak picking according to the settings.
+
         Returns
         -------
-        None
-
+        mz : ndarray
+            The m/z axis.
+        abundance : ndarray
+            The abundance axis.
+        freq : ndarray or None
+            The frequency axis, if available.
         """
         # First apply cut_mz_domain_peak_picking
         mz, abundance, freq = self.cut_mz_domain_peak_picking()
@@ -648,7 +670,6 @@ class PeakPicking:
 
         return mz_exp_centroid, freq_centr, abundance_centroid 
     
-    
     def check_prominence(self, abun, current_index, len_abundance, peak_height_diff ) -> tuple or False:
         """ Check the prominence of a peak.
         
@@ -722,12 +743,12 @@ class PeakPicking:
             
             return mass[current_index], abund[current_index], peak_indexes
 
-
     def calc_centroid_legacy(self, mass, abund, freq):
         """ Legacy centroid calculation
         Deprecated - for deletion.
         
         """
+        warnings.warn("Legacy centroid calculation is deprecated. Please use the new centroid calculation method.")
         pass
         if False:
             len_abundance = len(abund)
