@@ -75,7 +75,54 @@ class PeakPicking:
         else:
 
             return mz_domain_X_low_cutoff[max_start:max_final], mz_domain_low_Y_cutoff[max_start:max_final], None
+
+    @staticmethod 
+    def extrapolate_axis(initial_array, pts):
+        """
+        This function will extrapolate an input array in both directions by N pts.
+
+        Parameters
+        ----------
+        initial_array : ndarray
+            The input array.
+        pts : int
+            The number of points to extrapolate.
+
+        Returns
+        -------
+        ndarray
+            The extrapolated array.
+
+        Notes
+        --------
+        This is a static method.        
+        """
+        initial_array_len = len(initial_array)
+        right_delta = initial_array[-1] - initial_array[-2]  
+        left_delta = initial_array[1] - initial_array[0]  
         
+        # Create an array with extra space for extrapolation
+        pad_array = zeros(initial_array_len + 2 * pts)
+        
+        # Copy original array into the middle of the padded array
+        pad_array[pts:pts + initial_array_len] = initial_array
+        
+        # Extrapolate the right side
+        for pt in range(pts):
+            final_value = initial_array[-1]
+            value_to_add = right_delta * (pt + 1)
+            new_value = final_value + value_to_add
+            pad_array[initial_array_len + pts + pt] = new_value
+        
+        # Extrapolate the left side
+        for pt in range(pts):
+            first_value = initial_array[0]
+            value_to_subtract = left_delta * (pt + 1)
+            new_value = first_value - value_to_subtract
+            pad_array[pts - pt - 1] = new_value
+        
+        return pad_array
+    
     def extrapolate_axes_for_pp(self):
         """ Extrapolate the m/z axis and fill the abundance axis with 0s.
 
@@ -93,39 +140,7 @@ class PeakPicking:
         This function will extrapolate the mz axis by N datapoints, and fill the abundance axis with 0s. 
         This should prevent peak picking issues at the spectrum edge.
 
-        """
-        
-        
-        def extrapolate_axis(initial_array, pts):
-            """
-            This function will extrapolate an input array in both directions by N pts.
-            """
-            initial_array_len = len(initial_array)
-            right_delta = initial_array[-1] - initial_array[-2]  
-            left_delta = initial_array[1] - initial_array[0]  
-            
-            # Create an array with extra space for extrapolation
-            pad_array = zeros(initial_array_len + 2 * pts)
-            
-            # Copy original array into the middle of the padded array
-            pad_array[pts:pts + initial_array_len] = initial_array
-            
-            # Extrapolate the right side
-            for pt in range(pts):
-                final_value = initial_array[-1]
-                value_to_add = right_delta * (pt + 1)
-                new_value = final_value + value_to_add
-                pad_array[initial_array_len + pts + pt] = new_value
-            
-            # Extrapolate the left side
-            for pt in range(pts):
-                first_value = initial_array[0]
-                value_to_subtract = left_delta * (pt + 1)
-                new_value = first_value - value_to_subtract
-                pad_array[pts - pt - 1] = new_value
-            
-            return pad_array
-        
+        """ 
         mz, abund = self.mz_exp_profile, self.abundance_profile
         if self.has_frequency:
             freq = self.freq_exp_profile
@@ -135,13 +150,11 @@ class PeakPicking:
         if pts == 0:
             return mz, abund, freq
         
-        mz = extrapolate_axis(mz, pts)
+        mz = self.extrapolate_axis(mz, pts)
         abund = pad(abund, (pts, pts), mode = 'constant', constant_values=(0,0))
         if freq is not None:
-                freq = extrapolate_axis(freq, pts)
+            freq = self.extrapolate_axis(freq, pts)
         return mz, abund, freq
-
-
 
     def do_peak_picking(self):
         """ Perform peak picking.
@@ -159,20 +172,19 @@ class PeakPicking:
             self.freq_exp_profile = freq
         
         if self.label == Labels.bruker_frequency or self.label == Labels.midas_frequency:
-
             self.calc_centroid(mz, abundance, freq)
 
         elif self.label == Labels.thermo_profile:
-            self.calc_centroid(mz, abundance, self.freq_exp_profile)
+            self.calc_centroid(mz, abundance, freq)
 
         elif self.label == Labels.bruker_profile:
-            self.calc_centroid(mz, abundance, self.freq_exp_profile)
+            self.calc_centroid(mz, abundance, freq)
 
         elif self.label == Labels.booster_profile:
-            self.calc_centroid(mz, abundance, self.freq_exp_profile)
+            self.calc_centroid(mz, abundance, freq)
 
         elif self.label == Labels.simulated_profile:
-            self.calc_centroid(mz, abundance, self.freq_exp_profile)
+            self.calc_centroid(mz, abundance, freq)
 
         else: 
             raise Exception("Unknow mass spectrum type", self.label)
@@ -230,7 +242,7 @@ class PeakPicking:
             x1, x2 = massa[index_term], massa[index_term - 1]
             y1, y2 = intes[index_term], intes[index_term - 1]
         else:
-            print('error in linear fit calc, unknown index sign')
+            warnings.warn('error in linear fit calc, unknown index sign')
         
         # Calculate the slope (m)
         slope = (y2 - y1) / (x2 - x1)

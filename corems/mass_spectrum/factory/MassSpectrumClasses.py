@@ -449,7 +449,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         else:
 
             return array([mspeak.mz_exp for mspeak in self.mspeaks])
-
+ 
     @property
     def freq_exp_profile(self):
         """Return the experimental frequency profile of the mass spectrum."""
@@ -457,6 +457,12 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     
     @freq_exp_profile.setter
     def freq_exp_profile(self, new_data): self._frequency_domain = array(new_data)
+
+    @property
+    def freq_exp_pp(self):
+        """Return the experimental frequency values of the mass spectrum that are used for peak picking."""
+        #TODO KRH: impelement the self.cut_mz_domain_peak_picking() and self.extrapolate_axes_for_pp()
+        return self.freq_exp_profile
 
     @property
     def mz_exp_profile(self): 
@@ -470,6 +476,12 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     def mz_exp_profile(self, new_data ): self._mz_exp = array(new_data)
 
     @property
+    def mz_exp_pp(self):
+        """Return the experimental m/z values of the mass spectrum that are used for peak picking."""
+        #TODO KRH: impelement the self.cut_mz_domain_peak_picking() and self.extrapolate_axes_for_pp()
+        return self.mz_exp_profile
+
+    @property
     def abundance_profile(self): 
         """Return the abundance profile of the mass spectrum."""
         return self._abundance
@@ -477,6 +489,12 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     @abundance_profile.setter
     def abundance_profile(self, new_data): self._abundance = array(new_data)
 
+    @property
+    def abundance_profile_pp(self):
+        """Return the abundance profile of the mass spectrum that is used for peak picking."""
+        #TODO KRH: impelement the self.cut_mz_domain_peak_picking() and self.extrapolate_axes_for_pp()
+        return self.abundance_profile
+    
     @property
     def abundance(self):
         """Return the abundance values of the mass spectrum."""
