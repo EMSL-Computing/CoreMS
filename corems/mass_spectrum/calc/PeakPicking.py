@@ -4,6 +4,7 @@
 '''
 
 from logging import warn
+import warnings
 from numpy import hstack, inf, isnan, where, array, polyfit, nan, pad, arange, zeros
 from corems.encapsulation.constant import Labels
 from corems.mass_spectra.calc import SignalProcessing as sp
@@ -128,7 +129,8 @@ class PeakPicking:
         mz, abund = self.mz_exp_profile, self.abundance_profile
         if self.has_frequency:
             freq = self.freq_exp_profile
-        else: freq = None
+        else: 
+            freq = None
         pts = self.settings.picking_point_extrapolate
         if pts == 0:
             return mz, abund, freq
@@ -172,7 +174,8 @@ class PeakPicking:
         elif self.label == Labels.simulated_profile:
             self.calc_centroid(mz, abundance, self.freq_exp_profile)
 
-        else: raise Exception("Unknow mass spectrum type", self.label)
+        else: 
+            raise Exception("Unknow mass spectrum type", self.label)
 
     def find_minima(self, apex_index, abundance, len_abundance, right=True):
         """ Find the minima of a peak.
@@ -274,10 +277,10 @@ class PeakPicking:
         # This solution will return nan for resolving power when a peak is possibly too close to an edge to avoid the issue
         
         if current_index <5:
-            Warning("peak at low spectrum edge, returning no resolving power")
+            warnings.warn("peak at low spectrum edge, returning no resolving power")
             return nan
         elif abs(current_index-len(intes))<5:
-            Warning("peak at high spectrum edge, returning no resolving power")
+            warnings.warn("peak at high spectrum edge, returning no resolving power")
             return nan
         else:
             pass
@@ -287,7 +290,7 @@ class PeakPicking:
 
             index_minus = index_minus -1
             if index_minus < 0:
-                Warning('Res. calc. warning - peak index minus adjacent to spectrum edge \n \
+                warnings.warn('Res. calc. warning - peak index minus adjacent to spectrum edge \n \
                         Zeroing the first 5 data points of abundance. Peaks at spectrum edge may be incorrectly reported \n \
                         Perhaps try to increase picking_point_extrapolate (e.g. to 3)')
                 # Pad the first 5 data points with zeros and restart the loop
@@ -320,7 +323,7 @@ class PeakPicking:
             try: 
                 peak_height_plus = intes[index_plus]
             except IndexError:
-                Warning('Res. calc. warning - peak index plus adjacent to spectrum edge \n \
+                warnings.warn('Res. calc. warning - peak index plus adjacent to spectrum edge \n \
                         Zeroing the last 5 data points of abundance. Peaks at spectrum edge may be incorrectly reported\
                         Perhaps try to increase picking_point_extrapolate (e.g. to 3)')
                 # Pad the first 5 data points with zeros and restart the loop
