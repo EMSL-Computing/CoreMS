@@ -4,7 +4,7 @@
 '''
 
 from logging import warn
-from numpy import hstack, inf, isnan, where, array, polyfit, nan, pad, arange
+from numpy import hstack, inf, isnan, where, array, polyfit, nan, pad, arange, zeros
 from corems.encapsulation.constant import Labels
 from corems.mass_spectra.calc import SignalProcessing as sp
 
@@ -96,31 +96,34 @@ class PeakPicking:
         
         
         def extrapolate_axis(initial_array, pts):
-           """
-           this function will extrapolate an input array in both directions by N pts
-           """
-           initial_array_len = len(initial_array)
-           right_delta = initial_array[-1] - initial_array[-2]  
-           left_delta = initial_array[1] - initial_array[0]  
-
-           pad_array = pad(initial_array, (pts, pts), 'constant', constant_values= (0,0))
-           ptlist = list(range(pts))
-           for pt in range(pts+1):
-               # This loop will extrapolate the right side of the array
-               final_value = initial_array[-1]
-               value_to_add = (right_delta*pt)
-               new_value = final_value+value_to_add
-               index_to_update = initial_array_len+(pt+1)
-               pad_array[index_to_update] = new_value
-               
-           for pt in range(pts+1):
-               # this loop will extrapolate the left side of the array
-               first_value = initial_array[0]
-               value_to_subtract = (left_delta*pt)
-               new_value = first_value-value_to_subtract
-               pad_array[ptlist[-pt]] = new_value
-               
-           return pad_array 
+            """
+            This function will extrapolate an input array in both directions by N pts.
+            """
+            initial_array_len = len(initial_array)
+            right_delta = initial_array[-1] - initial_array[-2]  
+            left_delta = initial_array[1] - initial_array[0]  
+            
+            # Create an array with extra space for extrapolation
+            pad_array = zeros(initial_array_len + 2 * pts)
+            
+            # Copy original array into the middle of the padded array
+            pad_array[pts:pts + initial_array_len] = initial_array
+            
+            # Extrapolate the right side
+            for pt in range(pts):
+                final_value = initial_array[-1]
+                value_to_add = right_delta * (pt + 1)
+                new_value = final_value + value_to_add
+                pad_array[initial_array_len + pts + pt] = new_value
+            
+            # Extrapolate the left side
+            for pt in range(pts):
+                first_value = initial_array[0]
+                value_to_subtract = left_delta * (pt + 1)
+                new_value = first_value - value_to_subtract
+                pad_array[pts - pt - 1] = new_value
+            
+            return pad_array
         
         mz, abund = self.mz_exp_profile, self.abundance_profile
         if self.has_frequency:
