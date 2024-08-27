@@ -174,9 +174,9 @@ class PeakPicking:
                 freq = self.freq_exp_profile
             else: 
                 freq = None
-            pts = self.settings.picking_point_extrapolate
-            if pts == 0:
-                return mz, abund, freq
+        pts = self.settings.picking_point_extrapolate
+        if pts == 0:
+            return mz, abund, freq
         
         mz = self.extrapolate_axis(mz, pts)
         abund = pad(abund, (pts, pts), mode = 'constant', constant_values=(0,0))
