@@ -213,6 +213,29 @@ class PeakPicking:
         if right: return j
         else: return j
 
+    def linear_fit_calc(self, intes, massa, index_term, index_sign):
+        '''
+        Algebraic solution to a linear fit - roughly 25-50x faster than numpy polyfit when passing only two vals and doing a 1st order fit
+        '''
+        if index_sign == '+':
+            x1, x2 = massa[index_term], massa[index_term + 1]
+            y1, y2 = intes[index_term], intes[index_term + 1]
+        elif index_sign =='-':
+            x1, x2 = massa[index_term], massa[index_term - 1]
+            y1, y2 = intes[index_term], intes[index_term - 1]
+        else:
+            print('error in linear fit calc, unknown index sign')
+        
+        # Calculate the slope (m)
+        slope = (y2 - y1) / (x2 - x1)
+        
+        # Calculate the intercept (b)
+        intercept = y1 - slope * x1
+        
+        # The coefficients array would be [slope, intercept]
+        coefficients = array([slope, intercept])
+        return coefficients
+
     def calculate_resolving_power(self, intes, massa, current_index):
         """ Calculate the resolving power of a peak.
 
@@ -272,9 +295,12 @@ class PeakPicking:
                 peak_height_minus = target_peak_height
                 index_minus -= 1 
             #print "massa", "," , "intes", "," , massa[index_minus], "," , peak_height_minus
-        x = [ massa[index_minus],  massa[index_minus+1]]
-        y = [ intes[index_minus],  intes[index_minus+1]]
-        coefficients = polyfit(x, y, 1)
+        if self.mspeaks_settings.centroid_legacy_polyfit:
+            x = [ massa[index_minus],  massa[index_minus+1]]
+            y = [ intes[index_minus],  intes[index_minus+1]]
+            coefficients = polyfit(x, y, 1)
+        else:
+            coefficients = self.linear_fit_calc(intes, massa, index_minus,index_sign='+')
 
         a = coefficients[0]
         b = coefficients[1]
@@ -300,11 +326,13 @@ class PeakPicking:
                 peak_height_plus = target_peak_height
                 index_plus += 1 
             #print "massa", "," , "intes", "," , massa[index_plus], "," , peak_height_plus
+        if self.mspeaks_settings.centroid_legacy_polyfit:
+            x = [massa[index_plus],  massa[index_plus - 1]]
+            y = [intes[index_plus],  intes[index_plus - 1]]
+            coefficients = polyfit(x, y, 1)
+        else:
+            coefficients = self.linear_fit_calc(intes, massa, index_plus,index_sign='-')
 
-        x = [massa[index_plus],  massa[index_plus - 1]]
-        y = [intes[index_plus],  intes[index_plus - 1]]
-
-        coefficients = polyfit(x, y, 1)
         a = coefficients[0]
         b = coefficients[1]
 
