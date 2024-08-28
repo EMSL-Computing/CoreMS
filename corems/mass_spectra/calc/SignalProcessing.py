@@ -9,7 +9,7 @@ from scipy.signal.windows import boxcar
 from scipy import interpolate
 from matplotlib import pyplot as plt
 from numpy import abs
-from numpy import array, poly1d, polyfit
+from numpy import array, polyfit, asarray
 
 def peak_detector(tic, max_tic):
 
@@ -26,7 +26,7 @@ def peak_detector(tic, max_tic):
 
 def find_nearest_scan(data, nodes):
 
-    array_data = array(nodes)
+    array_data = asarray(nodes)
 
     scan_index = (abs(array_data - data)).argmin()
 
@@ -34,9 +34,23 @@ def find_nearest_scan(data, nodes):
 
 def peak_picking_first_derivative(domain, signal, max_height, max_prominence, max_signal, 
                                   min_peak_datapoints,
-                                  peak_derivative_thresould,
+                                  peak_derivative_threshold,
                                   signal_threshold=0.1, correct_baseline=True, plot_res=False, 
                                   abun_norm=100, check_abundance=False):
+    
+    def check_corrected_abundance():
+        
+        x = [closest_left, closest_right]
+        y = [signal[closest_left], signal[closest_right]]
+        
+        pol = polyfit(x, y, 1)
+
+        corrected_peak_height = signal[apex_index] - pol(apex_index)
+
+        if (corrected_peak_height / max_signal) * abun_norm > signal_threshold:
+            return corrected_peak_height
+        else:
+            return False
     
     if correct_baseline:
         signal = signal - baseline_detector(signal, domain, max_height, max_prominence)
@@ -47,18 +61,16 @@ def peak_picking_first_derivative(domain, signal, max_height, max_prominence, ma
 
     dy = derivate(signal)
     apex_indexes = np.where((np.hstack((dy, 0)) < 0) & (np.hstack((0, dy)) > 0))[0]
-    # min_indexes = np.where((np.hstack((dy, 0)) > 0) & (np.hstack((0, dy)) < 0))[0]
     
     if apex_indexes.size and apex_indexes is not None:
             apex_indexes = apex_indexes[signal[apex_indexes]/max_signal >= signal_threshold]
 
-    
     signal = signal/max(signal)
     start_peak = []
     end_peak = []
 
-    pos_dy_threshold = peak_derivative_thresould  #max(dy) * peak_derivative_thresould
-    neg_dy_threshold = -peak_derivative_thresould #min(dy) * peak_derivative_thresould
+    pos_dy_threshold = peak_derivative_threshold  #max(dy) * peak_derivative_threshold
+    neg_dy_threshold = -peak_derivative_threshold #min(dy) * peak_derivative_threshold
     len_dy = len(dy)
     # take apex_index and move left to find start
     for index in apex_indexes:
@@ -88,38 +100,17 @@ def peak_picking_first_derivative(domain, signal, max_height, max_prominence, ma
     start_peak = array(start_peak)
     end_peak = array(end_peak)
     
-    # left_index = []
-    # right_index = []
-
-    last_closest_right = 0
-    
-    def check_corrected_abundance():
-        
-        x = [closest_left, closest_right]
-        y = [signal[closest_left], signal[closest_right]]
-        
-        pol = poly1d(polyfit(x, y, 1))
-
-        corrected_peak_height = signal[apex_index] - pol(apex_index)
-
-        if (corrected_peak_height / max_signal) * abun_norm > signal_threshold:
-            return corrected_peak_height
-        else:
-            return False
 
     for apex_index in apex_indexes:
-        #print(apex_index, len(apex_indexes))
-        index_gt_apex = np.where(end_peak >= apex_index)[0]
-        index_lt_apex = np.where(start_peak <= apex_index)[0]
-        # index_gt_apex = np.where(min_indexes >= apex_index)[0]
-        # index_lt_apex = np.where(min_indexes <= apex_index)[0]
+        #index_gt_apex = np.where(end_peak >= apex_index)[0]
+        #index_lt_apex = np.where(start_peak <= apex_index)[0]
+        index_gt_apex = np.arange(np.searchsorted(end_peak, apex_index),  len(end_peak))
+        index_lt_apex = np.arange(0, np.searchsorted(start_peak, apex_index,side='right'))
 
         if not index_gt_apex.size == 0 and not index_lt_apex.size == 0:
 
             closest_right = find_nearest_scan(apex_index, end_peak[index_gt_apex])
             closest_left = find_nearest_scan(apex_index,  start_peak[index_lt_apex])
-            # closest_right = find_nearest_scan(apex_index, min_indexes[index_gt_apex])
-            # closest_left = find_nearest_scan(apex_index, min_indexes[index_lt_apex])
             if check_abundance:
                 corrected_peak_height = check_corrected_abundance()
             else:
@@ -128,41 +119,14 @@ def peak_picking_first_derivative(domain, signal, max_height, max_prominence, ma
             if (closest_right - closest_left) >= min_peak_datapoints:
 
                 if plot_res:
-
-                    # plt.plot(domain[closest_left: closest_right+1], dydy[closest_left:closest_right+1], c='black')
                     plt.plot(domain[closest_left: closest_right + 1], dy[closest_left:closest_right + 1], c='red')
-                    #plt.plot(domain[[apex_index, apex_index]], [signal[apex_index], pol(apex_index)], c='red')
-                    #plt.plot(domain[start_peak], signal[start_peak], c='blue', linewidth='0', marker="^")
-                    # plt.plot(domain[[closest_left,apex_index,closest_right]], signal[[closest_left,apex_index,closest_right]], c='blue', linewidth='0', marker="s")    
-                    # plt.plot(domain[[closest_left,apex_index,closest_right]], pol([closest_left, apex_index, closest_right]), c='red')
                     plt.plot(domain[closest_left: closest_right + 1], signal[closest_left:closest_right + 1], c='black')
                     plt.title(str((corrected_peak_height / max_signal) * 100))
-                    
                     plt.show()
-
-                # if not closest_right <= apex_index:
-                #right_index.append(closest_right)
-                #print (closest_right, apex_index)
-
-                #left_index.append(closest_left)
-                #print (closest_left, apex_index)
-                #plt.show()
-                #if closest_left < last_closest_right:
-                #    closest_left = last_closest_right
                 
-        
                 yield (closest_left, apex_index, closest_right)
-                last_closest_right = closest_right
     
                 
-    #plt.plot(domain, dydy, c='black')
-    #plt.plot(domain, np.hstack((0, dy)), c='green')
-    #plt.plot(domain, [0 for i in range(len(domain))], c='blue')
-    #plt.plot(domain[right_index], signal[right_index], c='blue', linewidth='0', marker="s")
-    #plt.plot(domain[left_index], signal[left_index], c='yellow', linewidth='0', marker="^")
-    #plt.plot(domain[apex_indexes], signal[apex_indexes], c='red', linewidth='0', marker="^")
-    #plt.plot(domain[right_indexes], signal[right_indexes], c='green', linewidth='0', marker="^")
-    #plt.show()
 
 def find_minima(index, tic, right=True):
             
