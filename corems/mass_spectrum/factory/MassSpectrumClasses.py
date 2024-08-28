@@ -933,12 +933,19 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         for nominal_mass in all_nominal_masses:
 
-            indexes = self.get_nominal_mass_indexes(nominal_mass)
+            #indexes = self.get_nominal_mass_indexes(nominal_mass)
+            # Convert the iterator to a list to avoid multiple calls
+            indexes = list(self.get_nominal_mass_indexes(nominal_mass))
 
-            defaultvalue = None
-            first = last = next(indexes, defaultvalue)
-            for last in indexes:
-                pass
+            # If the list is not empty, find the first and last; otherwise, set None
+            if indexes:
+                first, last = indexes[0], indexes[-1]
+            else:
+                first = last = None
+            #defaultvalue = None
+            #first = last = next(indexes, defaultvalue)
+            #for last in indexes:
+            #    pass
 
             dict_nominal_masses_indexes[nominal_mass] = (first, last)
 
