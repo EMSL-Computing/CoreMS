@@ -5,7 +5,7 @@
 
 from logging import warn
 import warnings
-from numpy import hstack, inf, isnan, where, array, polyfit, nan, pad, arange, zeros
+from numpy import hstack, inf, isnan, where, array, polyfit, nan, pad, arange, zeros, searchsorted
 from corems.encapsulation.constant import Labels
 from corems.mass_spectra.calc import SignalProcessing as sp
 
@@ -95,8 +95,10 @@ class PeakPicking:
         max_picking_mz = self.settings.max_picking_mz
         min_picking_mz = self.settings.min_picking_mz
         
-        min_start =  where(self.mz_exp_profile  > min_picking_mz)[0][0]
-        max_final =  where(self.mz_exp_profile < max_picking_mz)[-1][-1]
+        #min_start =  where(self.mz_exp_profile  > min_picking_mz)[0][0]
+        #max_final =  where(self.mz_exp_profile < max_picking_mz)[-1][-1]
+        min_start =  searchsorted(a = self.mz_exp_profile, v = min_picking_mz)
+        max_final =  searchsorted(a = self.mz_exp_profile, v = max_picking_mz)
 
         if self.has_frequency:
 
