@@ -80,6 +80,39 @@ class PeakPicking:
         """
         Cut the m/z domain for peak picking.
 
+        Simplified function
+        
+        Returns
+        -------
+        mz_domain_X_low_cutoff : ndarray
+            The m/z values within the specified range.
+        mz_domain_low_Y_cutoff : ndarray
+            The abundance values within the specified range.
+        freq_domain_low_Y_cutoff : ndarray or None
+            The frequency values within the specified range, if available.
+
+        """
+        max_picking_mz = self.settings.max_picking_mz
+        min_picking_mz = self.settings.min_picking_mz
+        
+        min_start =  where(self.mz_exp_profile  > min_picking_mz)[0][0]
+        max_final =  where(self.mz_exp_profile < max_picking_mz)[-1][-1]
+
+        if self.has_frequency:
+
+            if self.freq_exp_profile.any():
+
+                return self.mz_exp_profile[min_start:max_final], self.abundance_profile[min_start:max_final], self.freq_exp_profile[min_start:max_final]
+
+        else:
+
+            return self.mz_exp_profile[min_start:max_final], self.abundance_profile[min_start:max_final], None
+        
+        
+    def legacy_cut_mz_domain_peak_picking(self):
+        """
+        Cut the m/z domain for peak picking.
+        DEPRECATED
         Returns
         -------
         mz_domain_X_low_cutoff : ndarray
