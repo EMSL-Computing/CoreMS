@@ -214,7 +214,7 @@ class MassSpectrumSetting:
     max_picking_mz : float, optional
         Maximum m/z to use for peak picking. Default is 1200.0.
     picking_point_extrapolate : int, optional
-        How many data points (in each direction) to extrapolate the mz axis and 0 pad the abundance axis. Default is 0.
+        How many data points (in each direction) to extrapolate the mz axis and 0 pad the abundance axis. Default is 3.
         Recommend 3 for reduced profile data or if peak picking faults
     calib_minimize_method : str, optional
         Minimization method to use for calibration. Default is 'Powell'.
