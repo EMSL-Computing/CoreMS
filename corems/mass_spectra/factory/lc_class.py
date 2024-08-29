@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import warnings
 
 from corems.encapsulation.factory.parameters import LCMSParameters
 from corems.mass_spectra.calc.lc_calc import LCCalculations, PHCalculations
@@ -89,20 +90,24 @@ class MassSpectraBase:
                 self.sample_name is not None
                 and self.sample_name != self.spectra_parser.sample_name
             ):
-                logging.warning(
-                    "sample_name provided to MassSpectraBase object does not match sample_name provided to spectra parser object"
+                warnings.warn(
+                    "sample_name provided to MassSpectraBase object does not match sample_name provided to spectra parser object",
+                    UserWarning
                 )
             if self.analyzer != self.spectra_parser.analyzer:
-                logging.warning(
-                    "analyzer provided to MassSpectraBase object does not match analyzer provided to spectra parser object"
+                warnings.warn(
+                    "analyzer provided to MassSpectraBase object does not match analyzer provided to spectra parser object",
+                    UserWarning
                 )
             if self.instrument_label != self.spectra_parser.instrument_label:
-                logging.warning(
-                    "instrument provided to MassSpectraBase object does not match instrument provided to spectra parser object"
+                warnings.warn(
+                    "instrument provided to MassSpectraBase object does not match instrument provided to spectra parser object",
+                    UserWarning
                 )
             if self.file_location != self.spectra_parser.file_location:
-                logging.warning(
-                    "file_location provided to MassSpectraBase object does not match file_location provided to spectra parser object"
+                warnings.warn(
+                    "file_location provided to MassSpectraBase object does not match file_location provided to spectra parser object",
+                    UserWarning
                 )
 
         # Instantiate empty dictionaries for scan information and mass spectra
@@ -802,8 +807,9 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         else:
             annot_ms1_df_full = None
             # Warn that no ms1 annotations were found
-            logging.warning(
-                "No MS1 annotations found for mass features in dataset, were MS1 spectra added and processed within the dataset?"
+            warnings.warn(
+                "No MS1 annotations found for mass features in dataset, were MS1 spectra added and processed within the dataset?",
+                UserWarning
             )
 
         return annot_ms1_df_full
@@ -860,8 +866,9 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         else:
             annot_ms2_df_full = None
             # Warn that no ms2 annotations were found
-            logging.warning(
-                "No MS2 annotations found for mass features in dataset, were MS2 spectra added and searched against a database?"
+            warnings.warn(
+                "No MS2 annotations found for mass features in dataset, were MS2 spectra added and searched against a database?",
+                UserWarning
             )
 
         return annot_ms2_df_full
