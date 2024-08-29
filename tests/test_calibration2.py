@@ -129,7 +129,7 @@ def test_old_calibration(mass_spectrum_ftms):
     # Check that the calibration was successful
     assert set(mass_spectrum_ftms.mz_cal) != {None}
 
-def test_mz_domain_calibration_centroid(mass_spectrum_centroid):
+def test_mz_domain_calibration_centroid():
     pass
     """
     # This test is failing because the way that the centroided mass spectrum is created is not correct, 
@@ -152,7 +152,7 @@ def test_mz_domain_calibration_centroid(mass_spectrum_centroid):
     assert(round(mass_spectrum_centroid.calibration_RMS, 4) == round(0.8690388563830891, 4))
     """
 
-def test_auto_calibration_centroid(mass_spectrum_centroid):
+def test_auto_calibration_centroid():
     pass
     """
     # This test is failing because the way that the centroided mass spectrum is created is not correct, 
@@ -176,7 +176,7 @@ def test_auto_calibration_centroid(mass_spectrum_centroid):
     assert mass_spectrum_centroid.calibration_RMS < 0.6
     """
 
-def test_segmentedmzcalibration_centroid(mass_spectrum_centroid, ref_file_location):
+def test_segmentedmzcalibration_centroid():
     pass
     """
     # This test is failing because the way that the centroided mass spectrum is created is not correct, 
