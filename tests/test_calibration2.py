@@ -38,35 +38,79 @@ def mass_spectrum_ftms():
     return mass_spectrum
 
 @pytest.fixture
-def centroid_mass_spectrum():
-    """Creates a centroid mass spectrum object to be used in the tests"""
-    file_location = Path.cwd() / "tests/tests_data/ftms/ESI_NEG_SRFA_UnCal_Unassign.csv"
+def ref_file_location():
+    return Path.cwd() / "tests/tests_data/ftms/SRFA.ref"
 
-    MSParameters.mass_spectrum.noise_threshold_method = "relative_abundance"
-    MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 0.1
-
-    # load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
-    mass_list_reader = ReadCoremsMasslist(
-        file_location, analyzer="ICR", instrument_label="12T"
-    )
-
-    mass_spectrum = mass_list_reader.get_mass_spectrum(loadSettings=False)
-
-    return mass_spectrum
-
-
-def test_mz_domain_calibration(mass_spectrum_ftms):
+def test_mz_domain_calibration(mass_spectrum_ftms, ref_file_location):
     print("test_mz_domain_calibration")
     mass_spectrum_ftms.settings.min_calib_ppm_error = -10
     mass_spectrum_ftms.settings.max_calib_ppm_error = 10
     mass_spectrum_ftms.filter_by_noise_threshold()
 
-    ref_file_location = Path.cwd() / "tests/tests_data/ftms/SRFA.ref"
-
     # Check that mass_spectrum_ftms has not been calibrated
-    assert mass_spectrum_ftms.calibration_RMS is None
+    assert set(mass_spectrum_ftms.mz_cal) == {None}
+
     MzDomainCalibration(mass_spectrum_ftms, ref_file_location).run()
 
     # Check that the calibration was successful
     assert mass_spectrum_ftms.calibration_RMS < 0.6
 
+
+def test_autorecalibration(mass_spectrum_ftms, ref_file_location):
+    mass_spectrum_ftms.filter_by_noise_threshold()
+
+    # Check that mass_spectrum_ftms has not been calibrated
+    assert set(mass_spectrum_ftms.mz_cal) == {None}
+
+    auto_error_bounds = HighResRecalibration(
+        mass_spectrum_ftms, plot=False, docker=False
+    ).determine_error_boundaries()
+
+    mass_spectrum_ftms.settings.min_calib_ppm_error = auto_error_bounds[-1][0]
+    mass_spectrum_ftms.settings.max_calib_ppm_error = auto_error_bounds[-1][1]
+
+    MzDomainCalibration(mass_spectrum_ftms, ref_file_location).run()
+
+    # Check that the calibration was successful
+    assert mass_spectrum_ftms.calibration_RMS < 0.6
+
+def test_segmentedmzcalibration(mass_spectrum_ftms, ref_file_location):
+    # Tests profile mode recalibration
+    mass_spectrum_ftms.filter_by_noise_threshold()
+
+    # Check that mass_spectrum_ftms has not been calibrated
+    assert set(mass_spectrum_ftms.mz_cal) == {None}
+
+    MzDomainCalibration(mass_spectrum_ftms, ref_file_location, mzsegment=(0, 300)).run()
+
+    # Check that the calibration was successful
+    assert mass_spectrum_ftms.calibration_RMS < 0.6
+
+def test_old_calibration(mass_spectrum_ftms):
+    usedatoms = {'C': (1,100) , 'H': (4,200), 'O': (1,10)}
+
+    mass_spectrum_ftms.molecular_search_settings.url_database = ''
+    mass_spectrum_ftms.molecular_search_settings.error_method = 'None'
+    mass_spectrum_ftms.molecular_search_settings.min_ppm_error = -5
+    mass_spectrum_ftms.molecular_search_settings.max_ppm_error = 5
+    mass_spectrum_ftms.molecular_search_settings.mz_error_range = 1
+    mass_spectrum_ftms.molecular_search_settings.isProtonated = True
+    mass_spectrum_ftms.molecular_search_settings.isRadical = True
+    mass_spectrum_ftms.molecular_search_settings.usedAtoms = usedatoms
+
+    # Check that mass_spectrum_ftms has not been calibrated by checking that mz_cal are all None
+    assert set(mass_spectrum_ftms.mz_cal) == {None}
+
+    find_formula_thread = FindOxygenPeaks(mass_spectrum_ftms)
+    find_formula_thread.run()
+
+    mspeaks_results = find_formula_thread.get_list_found_peaks()
+    
+    calibrate = FreqDomain_Calibration(mass_spectrum_ftms, mspeaks_results)
+    calibrate.linear()
+    calibrate.step_fit()
+    calibrate.quadratic(iteration=True)
+    calibrate.ledford_calibration()
+
+    # Check that the calibration was successful
+    assert set(mass_spectrum_ftms.mz_cal) != {None}
