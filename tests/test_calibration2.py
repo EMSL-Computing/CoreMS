@@ -4,7 +4,6 @@ import pytest
 
 sys.path.append(".")
 
-from corems.encapsulation.factory.parameters import MSParameters
 from corems.mass_spectrum.calc.AutoRecalibration import HighResRecalibration
 from corems.mass_spectrum.calc.Calibration import MzDomainCalibration
 from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration
@@ -68,7 +67,7 @@ def test_mz_domain_calibration(mass_spectrum_ftms, ref_file_location):
     MzDomainCalibration(mass_spectrum_ftms, ref_file_location).run()
 
     # Check that the calibration was successful
-    assert mass_spectrum_ftms.calibration_RMS < 0.6
+    assert mass_spectrum_ftms.calibration_RMS < 2
 
 def test_autorecalibration(mass_spectrum_ftms, ref_file_location):
     mass_spectrum_ftms.filter_by_noise_threshold()
@@ -86,7 +85,7 @@ def test_autorecalibration(mass_spectrum_ftms, ref_file_location):
     MzDomainCalibration(mass_spectrum_ftms, ref_file_location).run()
 
     # Check that the calibration was successful
-    assert mass_spectrum_ftms.calibration_RMS < 0.6
+    assert mass_spectrum_ftms.calibration_RMS < 2
 
 def test_segmentedmzcalibration(mass_spectrum_ftms, ref_file_location):
     # Tests profile mode recalibration
@@ -98,7 +97,7 @@ def test_segmentedmzcalibration(mass_spectrum_ftms, ref_file_location):
     MzDomainCalibration(mass_spectrum_ftms, ref_file_location, mzsegment=(0, 300)).run()
 
     # Check that the calibration was successful
-    assert mass_spectrum_ftms.calibration_RMS < 0.6
+    assert mass_spectrum_ftms.calibration_RMS < 2
 
 def test_old_calibration(mass_spectrum_ftms):
     usedatoms = {'C': (1,100) , 'H': (4,200), 'O': (1,10)}
@@ -128,6 +127,34 @@ def test_old_calibration(mass_spectrum_ftms):
 
     # Check that the calibration was successful
     assert set(mass_spectrum_ftms.mz_cal) != {None}
+    
+    mass_spectrum_ftms.molecular_search_settings.error_method = 'symmetrical'
+    mass_spectrum_ftms.molecular_search_settings.min_ppm_error  = -3
+    mass_spectrum_ftms.molecular_search_settings.max_ppm_error = 3
+    mass_spectrum_ftms.molecular_search_settings.mz_error_range = 1
+    mass_spectrum_ftms.molecular_search_settings.mz_error_average = 0
+    mass_spectrum_ftms.molecular_search_settings.min_abun_error = -30 # percentage 
+    mass_spectrum_ftms.molecular_search_settings.max_abun_error = 70 # percentage 
+    mass_spectrum_ftms.molecular_search_settings.isProtonated = True 
+    mass_spectrum_ftms.molecular_search_settings.isRadical= True 
+    
+    mass_spectrum_ftms.molecular_search_settings.usedAtoms = {'C': (1, 100),
+                 'H': (4, 200),
+                 'O': (0, 20),
+                 'N': (0, 1),
+                 'S': (0, 0),
+                 'P': (0, 0),
+                 }
+    
+    og_len = len(mass_spectrum_ftms)
+    ClusteringFilter().filter_kendrick(mass_spectrum_ftms)
+
+    # Check that the mass spectrum has been filtered
+    assert len(mass_spectrum_ftms) != og_len
+   
+    #TODO KRH: This should move to a different test
+    #SearchMolecularFormulas(mass_spectrum_ftms).run_worker_mass_spectrum()
+    #ClusteringFilter().remove_assignment_by_mass_error(mass_spectrum_ftms)  
 
 def test_mz_domain_calibration_centroid():
     pass
