@@ -1,25 +1,13 @@
-__author__ = "Yuri E. Corilo"
-__date__ = "Aug 26, 2019"
-
-
 import sys
-import time
 from pathlib import Path
-
-import matplotlib
-import pytest
 
 sys.path.append(".")
 
-import numpy as np
-from matplotlib import pyplot
-
-from corems import get_filename
 from corems.encapsulation.factory.parameters import MSParameters
 from corems.mass_spectrum.calc.AutoRecalibration import HighResRecalibration
 from corems.mass_spectrum.calc.Calibration import MzDomainCalibration
 from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration
-from corems.mass_spectrum.input.massList import ReadCoremsMasslist, ReadMassList
+from corems.mass_spectrum.input.massList import ReadCoremsMasslist
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
