@@ -1494,7 +1494,7 @@ class MassSpecCentroid(MassSpecBase):
         
         if not l_s2n: s2n = False
         
-        print("Loading mass spectrum object")
+        #print("Loading mass spectrum object")
         
         abun = array(data_dict.get(Labels.abundance)).astype(float)
         
