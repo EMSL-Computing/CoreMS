@@ -790,6 +790,7 @@ class MetabRefLCInterface(MetabRefInterface):
         """
         mz_list.sort()
 
+        # Get all precursors in the library matching the polarity
         precusors_in_lib = self.request_all_precursors(
             polarity=polarity
         )
