@@ -6,6 +6,7 @@ from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFor
 from corems.mass_spectrum.output.export import HighResMassSpecExport
 from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
 
+
 @pytest.fixture
 def mass_spectrum_silico():
     # Test for generating accurate molecular formula from a single mass using the local sql database
@@ -53,7 +54,6 @@ def test_molecular_formula_search(mass_spectrum_silico):
 
 
 def test_mass_spec_export_import_with_annote(mass_spectrum_silico):
-
     SearchMolecularFormulas(
         mass_spectrum_silico, find_isotopologues=True
     ).run_worker_ms_peaks([mass_spectrum_silico[0]])
