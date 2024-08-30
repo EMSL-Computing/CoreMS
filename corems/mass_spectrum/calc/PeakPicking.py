@@ -307,10 +307,31 @@ class PeakPicking:
         if right: return j
         else: return j
 
-    def linear_fit_calc(self, intes, massa, index_term, index_sign):
-        '''
+    @staticmethod
+    def linear_fit_calc(intes, massa, index_term, index_sign):
+        """
         Algebraic solution to a linear fit - roughly 25-50x faster than numpy polyfit when passing only two vals and doing a 1st order fit
-        '''
+
+        Parameters
+        ----------
+        intes : ndarray
+            The intensity values.
+        massa : ndarray
+            The mass values.
+        index_term : int
+            The index of the current term.
+        index_sign : str
+            The index sign
+        
+        Returns
+        -------
+        ndarray
+            The coefficients of the linear fit.
+        
+        Notes
+        --------
+        This is a static method.
+        """
         if index_sign == '+':
             x1, x2 = massa[index_term], massa[index_term + 1]
             y1, y2 = intes[index_term], intes[index_term + 1]
@@ -600,10 +621,27 @@ class PeakPicking:
         
         return abundance_threshold, factor
     
-    def algebraic_quadratic(self, list_mass, list_y):
+    @staticmethod
+    def algebraic_quadratic(list_mass, list_y):
         """
         Find the apex of a peak - algebraically. 
         Faster than using numpy polyfit by ~28x per fit.
+
+        Parameters
+        ----------
+        list_mass : ndarray
+            list of m/z values (3 points)
+        list_y : ndarray
+            list of abundance values (3 points)
+
+        Returns
+        -------
+        a, b, c: float
+            coefficients of the quadratic equation.
+
+        Notes
+        --------
+        This is a static method. 
         """
         x_1, x_2, x_3 = list_mass
         y_1, y_2, y_3 = list_y 
