@@ -177,7 +177,7 @@ def test_import_numpy_array_profile(mass_spectrum_ftms):
 
     assert mass_spectrum_new.to_dataframe().shape[0] > 0
     assert round(mass_spectrum_new[0].mz_exp, 0) == 190
-    assert mass_spectrum_new.is_centroid == False
+    assert not mass_spectrum_new.is_centroid
 
     mass_spectrum_new.plot_mz_domain_profile()
 
