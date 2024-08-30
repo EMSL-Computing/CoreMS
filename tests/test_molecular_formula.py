@@ -40,6 +40,7 @@ def test_molecular_formula_from_string():
     formula_obj = MolecularFormula(formula_str, ion_charge)
     assert formula_obj.string == "C10 H21 N1"
     assert formula_obj.ion_type is None
+    # This returns a neutral mass since the ion type is not set and therefore the ion_type is interpreted as None - is that expected?
     assert round(formula_obj.mz_calc, 2) == round(formula_obj.neutral_mass, 2)
 
 
