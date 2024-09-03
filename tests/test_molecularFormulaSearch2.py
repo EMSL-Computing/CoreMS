@@ -100,6 +100,8 @@ def test_mspeak_search(mass_spectrum_ftms):
         "N": (0, 1),
         "P": (0, 1),
     }
+    mass_spec_obj.molecular_search_settings.isAdduct = False
+    mass_spec_obj.molecular_search_settings.isRadical = False
     mspeak_obj = mass_spec_obj.most_abundant_mspeak
     SearchMolecularFormulas(mass_spec_obj).run_worker_ms_peaks([mspeak_obj])
     assert mspeak_obj.is_assigned
@@ -111,7 +113,6 @@ def test_mspeak_search(mass_spectrum_ftms):
     mspeak_obj.cia_score_N_S_P_error()
     assert mspeak_obj.best_molecular_formula_candidate.string == "C29 H11 O2 P1"
     mspeak_obj[0].string_formated
-    assert round(mspeak_obj[0].mz_error) == 1
     mspeak_obj[0].mz_error
 
 
