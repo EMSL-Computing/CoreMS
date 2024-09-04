@@ -59,6 +59,10 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         The order of the mass spectrum's calibration.
     calibration_points : None or ndarray
         The calibration points of the mass spectrum.
+    calibration_ref_mzs: None or ndarray
+        The reference m/z values of the mass spectrum's calibration.
+    calibration_meas_mzs : None or ndarray
+        The measured m/z values of the mass spectrum's calibration.
     calibration_RMS : None or float
         The root mean square of the mass spectrum's calibration.
     calibration_segment : None or CalibrationSegment
@@ -117,6 +121,8 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         self.calibration_order = None
         self.calibration_points = None
+        self.calibration_ref_mzs = None
+        self.calibration_meas_mzs = None
         self.calibration_RMS = None
         self.calibration_segment = None
         self.calibration_raw_error_median = None
