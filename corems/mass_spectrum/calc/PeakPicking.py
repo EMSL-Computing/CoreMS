@@ -612,7 +612,7 @@ class PeakPicking:
 
         elif noise_threshold_method == 'log':
             if self.is_centroid:
-                warnings.warn("log noise not tested for centroid data - proceed with caution")
+                raise  Exception("log noise Not tested for centroid data")
             abundance_threshold = self.settings.noise_threshold_log_nsigma
             factor = self.baseline_noise_std
 

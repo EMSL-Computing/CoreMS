@@ -1,7 +1,7 @@
 import time
 from typing import Tuple
 
-from numpy import where, average, std, isnan, inf, hstack, median, argmax, percentile, log10, histogram, nan, asarray
+from numpy import where, average, std, isnan, inf, hstack, median, argmax, percentile, log10, histogram, nan
 #from scipy.signal import argrelmax
 from corems import chunks
 import warnings
@@ -148,7 +148,6 @@ class NoiseThresholdCalc:
 
     def cut_mz_domain_noise(self):
         """Cut the m/z domain to the noise threshold regions.
-        Full profile data is used here.
 
         Returns
         -------
@@ -198,49 +197,6 @@ class NoiseThresholdCalc:
             # pyplot.plot(self.mz_exp_profile[high_mz_index:low_mz_index], self.abundance_profile[high_mz_index:low_mz_index])
             # pyplot.show()
             return self.mz_exp_profile[high_mz_index:low_mz_index], self.abundance_profile[high_mz_index:low_mz_index]
-      
-    def cut_mz_domain_noise_centroid(self):
-        """Cut the m/z domain to the noise threshold regions.
-        Centroided  data is used here.
-
-        Returns
-        -------
-        Tuple[np.array, np.array]
-            A tuple containing the m/z and abundance arrays of the truncated spectrum region.
-        """
-        mz_exp_tmp = asarray(self._mz_exp)
-        min_mz_whole_ms = mz_exp_tmp.min()
-        max_mz_whole_ms = mz_exp_tmp.max()
-
-        if self.settings.noise_threshold_method == 'minima':
-            
-            # this calculation is taking too long (about 2 seconds)
-            number_average_molecular_weight = self.weight_average_molecular_weight(
-                profile=True)
-           
-            # +-200 is a guess for testing only, it needs adjustment for each type of analysis
-            # need to check min mz here or it will break
-            min_mz_noise = number_average_molecular_weight - 100
-            # need to check max mz here or it will break
-            max_mz_noise = number_average_molecular_weight + 100
-
-        else:
-            min_mz_noise = self.settings.noise_min_mz
-            max_mz_noise = self.settings.noise_max_mz
-
-        if min_mz_noise < min_mz_whole_ms:
-            min_mz_noise = min_mz_whole_ms
-
-        if max_mz_noise > max_mz_whole_ms:
-            max_mz_noise = max_mz_whole_ms
-
-        low_mz_index = (where(mz_exp_tmp >= min_mz_noise)[0][0])
-        high_mz_index = (where(mz_exp_tmp <= max_mz_noise)[-1][-1])
-
-        if high_mz_index > low_mz_index:
-            return self._mz_exp[high_mz_index:low_mz_index], self._abundance[low_mz_index:high_mz_index]
-        else:
-            return self._mz_exp[high_mz_index:low_mz_index], self._abundance[high_mz_index:low_mz_index]
       
 
     def get_noise_average(self, ymincentroid):
@@ -333,34 +289,33 @@ class NoiseThresholdCalc:
         """
 
         if self.is_centroid:
-            warnings.warn("log noise not tested for centroid data - proceed with caution")
-            mz_cut, abundance_cut = self.cut_mz_domain_noise_centroid()
+            raise  Exception("log noise Not tested for centroid data")
         else:
             # cut the spectrum to ROI
             mz_cut, abundance_cut = self.cut_mz_domain_noise()
-        # If there are 0 values, the log will fail
-        # But we may have negative values for aFT data, so we check if 0 exists
-        # Need to make a copy of the abundance cut values so we dont overwrite it....
-        tmp_abundance = abundance_cut.copy()
-        if 0 in tmp_abundance:
-            tmp_abundance[tmp_abundance==0] = nan
-            tmp_abundance = tmp_abundance[~isnan(tmp_abundance)]
-            # It seems there are edge cases of sparse but high S/N data where the wrong values may be determined. 
-            # Hard to generalise - needs more investigation.
+            # If there are 0 values, the log will fail
+            # But we may have negative values for aFT data, so we check if 0 exists
+            # Need to make a copy of the abundance cut values so we dont overwrite it....
+            tmp_abundance = abundance_cut.copy()
+            if 0 in tmp_abundance:
+                tmp_abundance[tmp_abundance==0] = nan
+                tmp_abundance = tmp_abundance[~isnan(tmp_abundance)]
+                # It seems there are edge cases of sparse but high S/N data where the wrong values may be determined. 
+                # Hard to generalise - needs more investigation.
 
-        # calculate a histogram of the log10 of the abundance data
-        hist_values = histogram(log10(tmp_abundance),bins=self.settings.noise_threshold_log_nsigma_bins) 
-        #find the apex of this histogram
-        maxvalidx = where(hist_values[0] == max(hist_values[0]))
-        # get the value of this apex (note - still in log10 units)
-        log_sigma = hist_values[1][maxvalidx]
-        # If the histogram had more than one maximum frequency bin, we need to reduce that to one entry
-        if len(log_sigma)>1:
-            log_sigma = average(log_sigma)
-        ## To do : check if aFT or mFT and adjust method
-        noise_mid = 10**log_sigma
-        noise_1std = noise_mid*self.settings.noise_threshold_log_nsigma_corr_factor #for mFT 0.463
-        return float(noise_mid), float(noise_1std)
+            # calculate a histogram of the log10 of the abundance data
+            hist_values = histogram(log10(tmp_abundance),bins=self.settings.noise_threshold_log_nsigma_bins) 
+            #find the apex of this histogram
+            maxvalidx = where(hist_values[0] == max(hist_values[0]))
+            # get the value of this apex (note - still in log10 units)
+            log_sigma = hist_values[1][maxvalidx]
+            # If the histogram had more than one maximum frequency bin, we need to reduce that to one entry
+            if len(log_sigma)>1:
+                log_sigma = average(log_sigma)
+            ## To do : check if aFT or mFT and adjust method
+            noise_mid = 10**log_sigma
+            noise_1std = noise_mid*self.settings.noise_threshold_log_nsigma_corr_factor #for mFT 0.463
+            return float(noise_mid), float(noise_1std)
 
     def run_noise_threshold_calc(self):
         """ Runs noise threshold calculation (not log based method)

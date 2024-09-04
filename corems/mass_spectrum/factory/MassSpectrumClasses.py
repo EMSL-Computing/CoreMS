@@ -1,7 +1,6 @@
 from pathlib import Path
 from copy import deepcopy
 
-import warnings
 
 #from matplotlib import rcParamsDefault, rcParams
 from numpy import array, power, float64, where, histogram, trapz
@@ -64,10 +63,6 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         The root mean square of the mass spectrum's calibration.
     calibration_segment : None or CalibrationSegment
         The calibration segment of the mass spectrum.
-    calibration_ref_mzs: None or list
-        Reference masses used for calibration
-    calibration_meas_mzs: None or list
-        Measured masses used for calibration
     _abundance : ndarray
         The abundance values of the mass spectrum.
     _mz_exp : ndarray
@@ -126,8 +121,6 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         self.calibration_segment = None
         self.calibration_raw_error_median = None
         self.calibration_raw_error_stdev = None
-        self.calibration_ref_mzs = None
-        self.calibration_meas_mzs = None
 
     def _init_settings(self):
         """Initializes the settings for the mass spectrum."""
@@ -1504,13 +1497,6 @@ class MassSpecCentroid(MassSpecBase):
         #print("Loading mass spectrum object")
         
         abun = array(data_dict.get(Labels.abundance)).astype(float)
-
-        if self.label != Labels.thermo_centroid:
-            if self.settings.noise_threshold_method == 'log':
-                warnings.warn("log noise not tested for centroid data")
-                self._baseline_noise, self._baseline_noise_std = self.run_log_noise_threshold_calc()
-            else:
-                self._baseline_noise, self._baseline_noise_std = self.run_noise_threshold_calc()
         
         abundance_threshold, factor = self.get_threshold(abun)
         
@@ -1551,7 +1537,15 @@ class MassSpecCentroid(MassSpecBase):
         self._dynamic_range = self.max_abundance / self.min_abundance
         self._set_nominal_masses_start_final_indexes()
         
-
+        if self.label != Labels.thermo_centroid:
+            
+            if self.settings.noise_threshold_method == 'log':
+                
+                raise  Exception("log noise Not tested for centroid data")
+                #self._baseline_noise, self._baseline_noise_std = self.run_log_noise_threshold_calc()
+            
+            else:
+                self._baseline_noise, self._baseline_noise_std = self.run_noise_threshold_calc()
         
         del self.data_dict
     
