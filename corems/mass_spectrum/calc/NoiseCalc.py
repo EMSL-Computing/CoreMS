@@ -281,7 +281,7 @@ class NoiseThresholdCalc:
         np.array
             The abundance minima array.
         """ 
-        maximum = self.abundance.max()
+        maximum = self.abundance_profile.max()
         threshold_min = (maximum * 1.00)
 
         y = -abun_cut
