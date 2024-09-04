@@ -1,5 +1,5 @@
-import shutil
 import pytest
+import os
 
 from corems.mass_spectrum.input.numpyArray import ms_from_array_centroid
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
@@ -71,7 +71,4 @@ def test_mass_spec_export_import_with_annote(mass_spectrum_silico):
     assert mass_spectrum_obj2[1][0].string == "C55 H73 N1 13C1"
 
     # Remove the file
-    shutil.rmtree(
-        "my_mass_spec.hdf5",
-        ignore_errors=True,
-    )
+    os.remove("my_mass_spec.hdf5")
