@@ -262,14 +262,28 @@ def add_mass_features(myLCMSobj, verbose):
     -------
     None, processes the LCMS object
     """
+    if verbose:
+        print("Finding mass features")
     myLCMSobj.find_mass_features(verbose=verbose)
+    if verbose:
+        print("Adding associated ms1 spectra")
     myLCMSobj.add_associated_ms1(
         auto_process=True, use_parser=False, spectrum_mode="profile"
     )
+    if verbose:
+        print("Integrating mass features")
     myLCMSobj.integrate_mass_features(drop_if_fail=True)
+    if verbose:
+        print("Annotating c13 mass features")
     myLCMSobj.find_c13_mass_features(verbose=verbose)
+    if verbose:
+        print("Deconvoluting mass features")
     myLCMSobj.deconvolute_ms1_mass_features()
+    if verbose:
+        print("Adding peak metrics")
     myLCMSobj.add_peak_metrics()
+    if verbose:
+        print("Adding associated ms2 spectra")
     myLCMSobj.add_associated_ms2_dda(spectrum_mode="centroid")
 
 
@@ -532,6 +546,12 @@ def run_lipid_workflow(
     if cores == 1 or len(files_list) == 1:
         mz_dicts = []
         for file_in, file_out in list(zip(files_list, out_paths_list)):
+            # Check if folder already exists
+            if Path(str(file_out) + ".corems").exists():
+                print("File already exists, skipping: ", file_out)
+                continue
+            if verbose:
+                print("Processing file: ", file_in)
             mz_dict = run_lipid_sp_ms1(
                 str(file_in),
                 str(file_out),
@@ -569,10 +589,13 @@ def run_lipid_workflow(
 
 if __name__ == "__main__":
     # Set input variables to run
-    cores = 7
-    file_dir = Path("tmp_data/thermo_raw_collection")
-    out_dir = Path("tmp_data/NMDC_processed_collection_0820")
-    params_toml = Path("tmp_data/thermo_raw_collection/nmdc_lipid_params.toml")
+    cores = 1
+    #file_dir = Path("tmp_data/thermo_raw_collection")
+    file_dir = Path("/Users/heal742/LOCAL/10_lcms_collection_testing/KidsFirst_T-ALL_neg/raw_files")
+    #out_dir = Path("tmp_data/NMDC_processed_collection_0820")
+    out_dir = Path("/Users/heal742/LOCAL/10_lcms_collection_testing/KidsFirst_T-ALL_neg/processed_files")
+    #params_toml = Path("tmp_data/thermo_raw_collection/nmdc_lipid_params.toml")
+    params_toml = Path("/Users/heal742/LOCAL/10_lcms_collection_testing/KidsFirst_T-ALL_neg/lipid_workflow_params.toml")
 
     verbose = True
 

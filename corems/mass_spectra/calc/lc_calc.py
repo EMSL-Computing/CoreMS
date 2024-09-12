@@ -1553,12 +1553,11 @@ class LCMSCollectionCalculations:
         mf_c['id_i'] = 0
         mf_i = mf_i.copy()
         mf_i['id_i'] = 1
-        mf_ci = pd.concat([mf_c, mf_i], axis=0)
 
         # Set dimensions for matching
         dims = ["mz", "scan_time"] #TODO KRH: source this from a parameter, make mz relative
         relative = [False, False] #TODO KRH: source this from a parameter, make mz relative
-        tol = [0.001, 1.5] #TODO KRH: source this from a parameter, make mz relative
+        tol = [0.0005, 0.1] #TODO KRH: source this from a parameter, make mz relative
 
         # Compute inter-feature distances
         idx = []
@@ -1708,19 +1707,16 @@ class LCMSCollectionCalculations:
         :obj:`~pandas.DataFrame`
             The anchor mass features dataframe.
         """
-        #TODO KRH: add error handling and the ability to implement other anchoring techniques through parameters
+        #TODO KRH: add anchoring_technique parameter to source this from a parameter
         mf_df = mf_df.copy()
 
         # Drop features that are not mass_spectrum_deconvoluted_parent or are NA as mass_spectrum_deconvoluted_parent
         mf_df = mf_df.dropna(subset=["mass_spectrum_deconvoluted_parent"])
         mf_df = mf_df[mf_df["mass_spectrum_deconvoluted_parent"]]
 
-        # Drop features that have NA as dispersity_index or half_height_width (generally bad shape)
-        mf_df = mf_df.dropna(subset=["dispersity_index", "half_height_width", "mass_spectrum_deconvoluted_parent"])
-
         return mf_df
 
-    def align_lcms_objects(self):
+    def align_lcms_objects(self, overwrite=False):
         """
         Align LCMS objects in the collection.
         
@@ -1743,11 +1739,20 @@ class LCMSCollectionCalculations:
         #TODO KRH: add the ability to do this by batch and then connect the batches
         # Prepare the center LCMS object
         center_obj_ids = self.manifest_dataframe[self.manifest_dataframe['center']].collection_id.values
+
+        full_mf_df = self.mass_features_dataframe
+        # re-index to sample_name for faster lookups
+        full_mf_df = full_mf_df.reset_index().set_index('sample_name')
+
+        if 'scan_time_aligned' in full_mf_df.columns and not overwrite:
+            raise ValueError('Mass features have already been aligned')
+
         for center_obj_id in center_obj_ids:
-            mf_df_c = self[center_obj_id].mass_features_to_df().copy()
-            mf_df_c = mf_df_c.reset_index(drop=False)
-            # Drop mass featuers with nan in mass_spectrum_deconvoluted_parent
+            # Get the anchor mass features from the center LCMS object
+            mf_df_c = full_mf_df.loc[self.samples[center_obj_id]]
             mf_df_c = self.get_anchor_mass_features(mf_df_c)
+
+            # Set scan_time_aligned to scan_time for the center LCMS object
             center_scan_df = self[center_obj_id].scan_df.copy()
             center_scan_df['scan_time_aligned'] = center_scan_df['scan_time']
             self[center_obj_id].scan_df = center_scan_df
@@ -1759,10 +1764,7 @@ class LCMSCollectionCalculations:
                 i = center_obj_id + index_step
                 if i < len(self) and i >= 0:
                     # Grab the first LCMS object after the center object
-                    lc_obj = self[i]
-                    mf_df_i = lc_obj.mass_features_to_df().copy()
-                    # Remove index from mass features
-                    mf_df_i = mf_df_i.reset_index(drop=False)
+                    mf_df_i = full_mf_df.loc[self.samples[i]].copy()
                     mf_df_i['scan_time_og'] = mf_df_i['scan_time']
 
                     while mf_df_i is not None:
@@ -1779,21 +1781,20 @@ class LCMSCollectionCalculations:
                             spl = self.fit_rts(matches_c, matches_i, kernel='rbf', C=1000)
                             # Set new retention times on scan_df for lc_obj
                             matches_i['scan_time_fit'] = spl(matches_i['scan_time'])
-                            new_times = spl(lc_obj.scan_df['scan_time'])
-                            new_scan_info = lc_obj.scan_df.copy()
+                            new_times = spl(self[i].scan_df['scan_time'])
+                            new_scan_info = self[i].scan_df.copy()
                             new_scan_info['scan_time_aligned'] = new_times
-                            lc_obj.scan_df = new_scan_info
+                            self[i].scan_df = new_scan_info
                             i += index_step
                             if i >= len(self) or i < 0:
                                 mf_df_i = None
                             else:
                                 # Grab the next LCMS object and use the previous spline fitting to get a better starting point
-                                lc_obj = self[i]
-                                mf_df_i = lc_obj.mass_features_to_df().copy()
+                                mf_df_i = full_mf_df.loc[self.samples[i]].copy()
                                 mf_df_i['scan_time_og'] = mf_df_i['scan_time']
                                 mf_df_i = mf_df_i.reset_index(drop=False)
                                 # Set scan_time to previous sample's predicted scan_time to find closer matches
-                                mf_df_i['scan_time'] = spl(mf_df_i['scan_time'])
+                                mf_df_i['scan_time'] = spl(mf_df_i['scan_time']) #might need to add a copy step here
                         else:
                             raise ValueError(f'No matches found between the center object and {self.samples[i]}')
 
@@ -1804,14 +1805,43 @@ class LCMSCollectionCalculations:
         # Check if the mass features have been aligned
         if 'scan_time_aligned' not in combined_mfs.columns:
             raise ValueError('Mass features have not been aligned, run align_lcms_objects() first')
+
+        # Partition the mass features by mz so we can parallelize the matching before clustering
+        from corems.chroma_peak.calc import subset as corems_subset
+        lazy_partitions = corems_subset.multi_sample_partition(combined_mfs, split_on = 'mz')
+
+        # Make distance matrix for each partition
+        distance_matrix = lazy_partitions.map(self.create_distance_matrix)
+
         
         # Drop mass features with nan in mass_spectrum_deconvoluted_parent and if they are not mass_spectrum_deconvoluted_parent
         #combined_mfs = combined_mfs.dropna(subset=["mass_spectrum_deconvoluted_parent"])
         #combined_mfs = combined_mfs[combined_mfs["mass_spectrum_deconvoluted_parent"]]
+        
+        # Partition the mass features by mz so we can parallelize the matching before clustering
+        #combined_mfs = combined_mfs.sort_values(by='mz')
+        #combined_mfs = combined_mfs.reset_index(drop=True)
+
 
         test = self.agglomerative_clustering(combined_mfs)
 
-    def agglomerative_clustering(self, features):
+    def partition_mass_features(self, combined_mfs):
+        # Partition the mass features by mz so we can parallelize the matching before clustering
+        combined_mfs = combined_mfs.sort_values(by='mz')
+        combined_mfs = combined_mfs.reset_index(drop=True)
+
+        # Get the unique mz values
+        mz_vals = combined_mfs['mz'].unique()
+
+        # Partition the mass features by mz
+        partitions = []
+        for mz in mz_vals:
+            partition = combined_mfs[combined_mfs['mz'] == mz]
+            partitions.append(partition)
+
+        yield partitions
+    
+    def create_distance_matrix(self, features):
         '''
         Cluster features within provided linkage tolerances. Recursively merges
         the pair of clusters that minimally increases a given linkage distance.
@@ -1842,11 +1872,11 @@ class LCMSCollectionCalculations:
         # Safely cast to list
         # TODO KRH: source this from a parameter
         # TODO KRH: make mz relative
-        dims = ["mz", "scan_time_aligned", "tailing_factor", "dispersity_index"]        
-        relative = [False, False, False, False]                                         
-        tol = [0.001, 0.2, 0.4, 0.1]                                                         
-        dist_weight = [1, 1, 0.2, 0.5]                                                       
-        na_fill = [None, None, 1, np.nanmedian(features.dispersity_index)]                                                       
+        dims = ["mz", "scan_time_aligned"]        
+        relative = [False, False]                                
+        tol = [0.001, 0.2]                                                         
+        dist_weight = [1, 1]                                                       
+        na_fill = [None, None]                                                       
 
         # Check that the dimensions and tolerances are the same length
         if len(dims) != len(tol) or len(dims) != len(relative) or len(dims) != len(na_fill) or len(dims) != len(dist_weight):
@@ -1933,6 +1963,9 @@ class LCMSCollectionCalculations:
         distances[distances == 0] = 1
         distances = np.asarray(distances)
 
+        return distances
+    
+    '''
         # Perform clustering
         try:
             clustering = AgglomerativeClustering(n_clusters=None,
@@ -1947,7 +1980,7 @@ class LCMSCollectionCalculations:
 
         features_sub = features[['cluster', 'mz', 'scan_time_aligned', 'sample_id', 'tailing_factor', 'dispersity_index', 'half_height_width', 'mass_spectrum_deconvoluted_parent']]
         return features
-
+    '''
 
 
         

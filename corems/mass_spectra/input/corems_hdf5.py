@@ -5,6 +5,7 @@ __date__ = "Oct 29, 2019"
 from threading import Thread
 import toml
 import json
+import multiprocessing
 
 import pandas as pd
 
@@ -472,7 +473,7 @@ class ReadCoreMSHDFMassSpectra(
 
 
 class ReadCoreMSHDFMassSpectraCollection:
-    def __init__(self, folder_location: str, manifest_file: str):
+    def __init__(self, folder_location: str, manifest_file: str, cores: int = 1):
         # Check for folder location and manifest file
         if not folder_location.exists():
             raise FileNotFoundError(f"Folder location {folder_location} not found.")
@@ -487,6 +488,17 @@ class ReadCoreMSHDFMassSpectraCollection:
         self._parse_manifest(manifest_file)
         self._validate_manifest()
         self._validate_parameters()
+        self._validate_cores(cores)
+
+    def _validate_cores(self, cores):
+        # Check if the cores parameter is an integer greater than 0 and less than the number of cores available
+        if not isinstance(cores, int) or cores < 1:
+            raise ValueError("Cores must be an integer greater than 0.")
+        if cores > multiprocessing.cpu_count():
+            raise ValueError(
+                f"Cores must be less than or equal to the number of cores available ({multiprocessing.cpu_count()})."
+            )
+        self._cores = cores
 
     def _parse_manifest(self, manifest_file):
         """Parse the manifest file and set the manifest dictionary."""
@@ -569,7 +581,12 @@ class ReadCoreMSHDFMassSpectraCollection:
         """
         hdf5_file = self.folder_location / f"{sample_name}.corems/{sample_name}.hdf5"
         parser = ReadCoreMSHDFMassSpectra(hdf5_file)
-        return parser.get_lcms_obj(load_raw=load_raw, load_light=load_light)
+        lcms_obj = parser.get_lcms_obj(load_raw=load_raw, load_light=load_light)
+        if load_light:
+            mf_df = lcms_obj.mass_features_to_df()
+            lcms_obj.mass_features = {}
+            lcms_obj.light_mf_df = mf_df
+        return lcms_obj
     
     def get_lcms_collection(self, load_raw = False, load_light = True) -> LCMSCollection:
         """Return a LCMSCollection object
@@ -579,7 +596,9 @@ class ReadCoreMSHDFMassSpectraCollection:
         load_raw : bool
             If True, load raw data from HDF5 files. Default is False. 
         load_light : bool
-            If True, only load the parameters, mass features, and scan info are initially loaded for each lcms object. Default is True.   
+            If True, only load the parameters, mass features, and scan info are initially loaded for each lcms object. 
+            After concatenating the mass_features, remove the mass_features attribute from the individual LCMS objects for memory efficiency. Default is True.
+            Default is True.   
         """
         # Instantiate the LCMSCollection object
         lcms_coll = LCMSCollection(
@@ -592,8 +611,26 @@ class ReadCoreMSHDFMassSpectraCollection:
         samples = self._manifest_dict.keys()
 
         # Initialize the LCMS object dictionary
-        for sample_name in samples:
-            lcms_coll._lcms[sample_name] = self.get_lcms_obj(sample_name, load_raw=load_raw, load_light=load_light)
+        if self._cores > 1:
+            if self._cores > len(samples):
+                ncores = len(samples)
+            else:
+                ncores = self._cores
+            # Create a pool of workers (one for each core or sample, whichever is smaller)
+            pool = multiprocessing.Pool(ncores)
+            # Load the LCMS objects in parallel
+            args = [(sample, load_raw, load_light) for sample in samples]
+            lcms_objs = pool.starmap(self.get_lcms_obj, args)
+            for sample_name, lcms_obj in zip(samples, lcms_objs):
+                lcms_coll._lcms[sample_name] = lcms_obj
+
+        elif self._cores == 1:
+            # Load the LCMS objects sequentially
+            for sample_name in samples:
+                lcms_coll._lcms[sample_name] = self.get_lcms_obj(sample_name, load_raw=load_raw, load_light=load_light)
+
+        else:
+            raise ValueError("Number of cores must be greater than 0 and set on the ReadCoreMSHDFMassSpectraCollection object.")
 
         # Check that all LCMS objects have the same polarity
         if len(set([x.polarity for k, x in lcms_coll._lcms.items()])) != 1:
@@ -608,6 +645,16 @@ class ReadCoreMSHDFMassSpectraCollection:
         # Reorder the LCMS objects
         lcms_coll._reorder_lcms_objects()
         
+        # Collect the mass features from the LCMS objects and combine them into a single dataframe for the collection
+        lcms_coll._combine_mass_features()
+        
+        # If load_light, remove the mass_feature attribute from the individual LCMS objects
+        if load_light:
+            for sample_name in lcms_coll.samples:
+                lcms_coll._lcms[sample_name].mass_features = {}
+                lcms_coll._lcms[sample_name].light_mf_df = None
+
+
         return lcms_coll
 
     @property
