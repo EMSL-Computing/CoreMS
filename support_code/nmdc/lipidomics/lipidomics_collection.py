@@ -5,7 +5,7 @@ from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectraCollec
 
 if __name__ == "__main__":
     collection_path = Path("/Users/heal742/LOCAL/10_lcms_collection_testing/KidsFirst_T-ALL_neg/processed_files")
-    manifest_file = collection_path / "manifest_small.csv"
+    manifest_file = collection_path / "manifest.csv"
     
     '''
     # Read in manifest file
@@ -31,18 +31,24 @@ if __name__ == "__main__":
     start_time = time.time()
     lcms_collection = parser.get_lcms_collection(load_raw=False, load_light=True)
     print("Time to load LCMS collection ", time.time() - start_time, "seconds -", len(lcms_collection), " LCMS runs and ", ncores, " cores") #10s for 7 samples, 10 cores; 
-    
+    lcms_collection.mass_features_dataframe
+
+
     print("Aligning LCMS collection")
     start_time = time.time()
     lcms_collection.align_lcms_objects()
     print("Time to align LCMS collection: ", time.time() - start_time, "seconds") # 1.5s for 7 samples, 15s for 70 samples
-
     lcms_collection.mass_features_dataframe
+    assert lcms_collection.mass_features_dataframe.index.name == "coll_mf_id"
+
+
     #lcms_collection.plot_tics(type="both")
     #lcms_collection.plot_alignments()
     #mass_feature_df = lcms_collection.mass_features_to_df()
     #print("Adding consensus mass features")
-    #lcms_collection.add_consensus_mass_features()
-    #print("Here")
+    start_time = time.time()    
+    lcms_collection.add_consensus_mass_features()
+    print("Time to calculate distance matrices: ", time.time() - start_time, "seconds -", len(lcms_collection.mass_features_dataframe), " total mass features", ncores, " cores")
+    print("Here")
 
     #lcms_collection.

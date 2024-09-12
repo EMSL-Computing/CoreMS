@@ -1808,10 +1808,11 @@ class LCMSCollectionCalculations:
 
         # Partition the mass features by mz so we can parallelize the matching before clustering
         from corems.chroma_peak.calc import subset as corems_subset
-        lazy_partitions = corems_subset.multi_sample_partition(combined_mfs, split_on = 'mz')
+        lazy_partitions = corems_subset.multi_sample_partition(combined_mfs, split_on = 'mz', size=1000, tol=0.001)
 
         # Make distance matrix for each partition
-        distance_matrix = lazy_partitions.map(self.create_distance_matrix)
+        distance_matrix = lazy_partitions.map(self.create_distance_matrix, processes=self.parameter_dict["cores"])
+        self.distance_matrix = distance_matrix
 
         
         # Drop mass features with nan in mass_spectrum_deconvoluted_parent and if they are not mass_spectrum_deconvoluted_parent
@@ -1823,23 +1824,7 @@ class LCMSCollectionCalculations:
         #combined_mfs = combined_mfs.reset_index(drop=True)
 
 
-        test = self.agglomerative_clustering(combined_mfs)
-
-    def partition_mass_features(self, combined_mfs):
-        # Partition the mass features by mz so we can parallelize the matching before clustering
-        combined_mfs = combined_mfs.sort_values(by='mz')
-        combined_mfs = combined_mfs.reset_index(drop=True)
-
-        # Get the unique mz values
-        mz_vals = combined_mfs['mz'].unique()
-
-        # Partition the mass features by mz
-        partitions = []
-        for mz in mz_vals:
-            partition = combined_mfs[combined_mfs['mz'] == mz]
-            partitions.append(partition)
-
-        yield partitions
+        #test = self.agglomerative_clustering(combined_mfs)
     
     def create_distance_matrix(self, features):
         '''
@@ -1923,7 +1908,7 @@ class LCMSCollectionCalculations:
             # Filter relative distances
             if relative[i] is True:
                 # Compute relative distances
-                rel_dists = sdm.data / values[sdm.row]  # or col?
+                rel_dists = sdm.data / values[sdm.row]
 
                 # Indices of relative distances less than tolerance
                 idx = rel_dists <= tol[i]
@@ -1957,15 +1942,26 @@ class LCMSCollectionCalculations:
         # Multiply by connectivity matrix for more masking
         distances = distances.multiply(cmat)
 
-        # Convert to full matrix
+        # Extract indices of within-tolerance points
+        distances = distances.tocoo()
+        pairs = np.stack((distances.row, distances.col, distances.data), axis=1)
+
+        # Convert to coll_mf_ids rather than indices
+        mfid1 = features['coll_mf_id'].values[pairs[:, 0].astype(int)]
+        mfid2 = features['coll_mf_id'].values[pairs[:, 1].astype(int)]
+        pairs = np.column_stack((mfid1, mfid2, pairs[:, 2]))
+
+        # Convert to DataFrame
+        pairs = pd.DataFrame(pairs, columns=['coll_mf_id1', 'coll_mf_id2', 'distance'])
+
+        return pairs
+    
+    '''       
+      # Convert to full matrix
         distances = distances.todense()
         # Cast all 0s to 1s for a distance matrix
         distances[distances == 0] = 1
         distances = np.asarray(distances)
-
-        return distances
-    
-    '''
         # Perform clustering
         try:
             clustering = AgglomerativeClustering(n_clusters=None,

@@ -1197,14 +1197,23 @@ class LCMSCollection(LCMSCollectionCalculations):
         """  
         # Check if scan_time_aligned is in combined_mass_features, try to add if not
         if self._combined_mass_features is not None and "scan_time_aligned" not in self._combined_mass_features.columns:
+            cmb_mf = self._combined_mass_features.copy()
+            cmb_mf = cmb_mf.reset_index(drop=False)
             lcms_aligned = [True for x in self if "scan_time_aligned" in x.scan_df.columns]
             if len(lcms_aligned) == len(self):
                 # Add scan_time_aligned to combined_mass_features dataframe
                 scan_time_aligned_list = []
                 for lcms_obj in self:
-                    scan_time_aligned_list.append(lcms_obj.scan_df[["scan", "scan_time_aligned"]])
+                    scan_time_df_i = lcms_obj.scan_df[["scan", "scan_time_aligned"]]
+                    scan_time_df_i["sample_name"] = lcms_obj.sample_name
+                    scan_time_aligned_list.append(scan_time_df_i)
                 scan_time_aligned_df = pd.concat(scan_time_aligned_list)
-                self._combined_mass_features = self._combined_mass_features.merge(scan_time_aligned_df, left_on="apex_scan", right_on="scan")
+                # Rename scan to apex_scan
+                scan_time_aligned_df = scan_time_aligned_df.rename(columns={"scan": "apex_scan"})
+                cmb_mf_merged = cmb_mf.merge(scan_time_aligned_df, on=["apex_scan", "sample_name"])
+                cmb_mf_mergd = cmb_mf_merged.set_index("coll_mf_id")
+                # Merge scan_time_aligned_df with combined_mass_features on apex_scan and sample_name
+                self._combined_mass_features = cmb_mf_mergd
  
     def plot_tics(self, ms_level=1, type = "raw", plot_legend=False):
         """Plots the TICs for all the LCMS objects in the collection.
@@ -1280,8 +1289,6 @@ class LCMSCollection(LCMSCollectionCalculations):
 
     @property
     def mass_features_dataframe(self):
-        if self._combined_mass_features is None:
-            self._combine_mass_features()
         self._check_mass_features_df()
         return self._combined_mass_features
     

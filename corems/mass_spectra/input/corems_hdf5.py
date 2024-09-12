@@ -652,7 +652,8 @@ class ReadCoreMSHDFMassSpectraCollection:
         if load_light:
             for sample_name in lcms_coll.samples:
                 lcms_coll._lcms[sample_name].mass_features = {}
-                lcms_coll._lcms[sample_name].light_mf_df = None
+                # Remove the light_mf_df attribute from the individual LCMS objects
+                del lcms_coll._lcms[sample_name].light_mf_df
 
 
         return lcms_coll
