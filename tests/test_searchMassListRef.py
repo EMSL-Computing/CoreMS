@@ -6,6 +6,7 @@ sys.path.append(".")
 from corems.molecular_formula.input.masslist_ref import ImportMassListRef
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.encapsulation.constant import Labels
+from corems.encapsulation.factory.parameters import MSParameters
 
 import pytest
 
@@ -25,8 +26,10 @@ def get_mass_spectrum():
     return ReadMassList(file_location).get_mass_spectrum(polarity, auto_process=True)
     
 def test_search_imported_ref_files():
-
+    MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
+    MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 1
     mass_spectrum_obj = get_mass_spectrum()
+    mass_spectrum_obj.parameters.molecular_search.url_database = ''
     
     ref_file_location = os.path.join(os.getcwd(),  os.path.normcase("tests/tests_data/ftms/")) + "SRFA.ref"
 

@@ -76,6 +76,7 @@ def test_run_molecular_formula_search():
     MSParameters.molecular_search.usedAtoms = usedatoms
     mass_spectrum_obj = ms_from_array_centroid(mz, abundance, rp, s2n, 'single mf search', polarity=1, auto_process=True)
     mass_spectrum_obj.settings.noise_threshold_method = 'relative threshold'
+    mass_spectrum_obj.parameters.molecular_search.url_database = ''
     mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = False
     mass_spectrum_obj.molecular_search_settings.use_isotopologue_filter = False
     SearchMolecularFormulas(mass_spectrum_obj, find_isotopologues=True).run_worker_ms_peaks([mass_spectrum_obj[0]])
@@ -109,6 +110,7 @@ def test_run_molecular_formula_search_adduct():
     mass_spectrum_obj.settings.noise_threshold_method = 'relative threshold'
     mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = False
     mass_spectrum_obj.molecular_search_settings.use_isotopologue_filter = False
+    mass_spectrum_obj.molecular_search_settings.url_database = ''
     SearchMolecularFormulas(mass_spectrum_obj, find_isotopologues=True).run_worker_ms_peaks([mass_spectrum_obj[0]])
     mass_spectrum_obj.to_dataframe()
     
@@ -122,6 +124,7 @@ def test_run_molecular_formula_search_adduct():
 def test_mspeak_search():
 
     mass_spec_obj = create_mass_spectrum()
+    mass_spec_obj.parameters.molecular_search.url_database = ''
     mspeak_obj = mass_spec_obj.most_abundant_mspeak
     SearchMolecularFormulas(mass_spec_obj).run_worker_ms_peaks([mspeak_obj])
     if mspeak_obj.is_assigned:
@@ -142,7 +145,8 @@ def test_molecular_formula_search_db():
     MSParameters.molecular_search.isRadical = False
 
     mass_spec_obj = create_mass_spectrum()
-    
+    mass_spec_obj.parameters.molecular_search.url_database = ''
+
     time1 = time.time()
     
     SearchMolecularFormulas(mass_spec_obj, first_hit=True).run_worker_mass_spectrum()
@@ -183,6 +187,7 @@ def test_priorityAssignment():
     
     mass_spec_obj = create_mass_spectrum()
     mass_spec_obj.process_mass_spec()
+    mass_spec_obj.parameters.molecular_search.url_database = ''
 
     assignOx = OxygenPriorityAssignment(mass_spec_obj) 
 
