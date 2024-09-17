@@ -957,8 +957,16 @@ class HighResMassSpectraExport(HighResMassSpecExport):
             dict_ms_attrs, sort_keys=False, indent=4, separators=(",", ": ")
         )
 
-    def to_hdf(self, overwrite=False):
-        """Export the data to an HDF5 file."""
+    def to_hdf(self, overwrite=False, export_raw=True):
+        """Export the data to an HDF5 file.
+        
+        Parameters
+        ----------
+        overwrite : bool, optional
+            Whether to overwrite the output file. Default is False.
+        export_raw : bool, optional
+            Whether to export the raw mass spectra data. Default is True.
+        """
         if overwrite:
             if self.output_file.with_suffix(".hdf5").exists():
                 self.output_file.with_suffix(".hdf5").unlink()
@@ -987,7 +995,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
             for mass_spectrum in self.mass_spectra:
                 group_key = str(int(mass_spectrum.scan_number))
 
-                self.add_mass_spectrum_to_hdf5(hdf_handle, mass_spectrum, group_key, mass_spectra_group)
+                self.add_mass_spectrum_to_hdf5(hdf_handle, mass_spectrum, group_key, mass_spectra_group, export_raw)
 
 
 class LCMSExport(HighResMassSpectraExport):
@@ -1023,8 +1031,10 @@ class LCMSExport(HighResMassSpectraExport):
         ValueError
             If parameter_format is not 'json' or 'toml'.
         """
+        export_profile_spectra = self.mass_spectra.parameters.lc_ms.export_profile_spectra
+        
         # Write the mass spectra data to the hdf5 file
-        super().to_hdf(overwrite=overwrite)
+        super().to_hdf(overwrite=overwrite, export_raw=export_profile_spectra)
 
         # Write scan info, ms_unprocessed, mass features, eics, and ms2_search results to the hdf5 file
         with h5py.File(self.output_file.with_suffix(".hdf5"), "a") as hdf_handle:
@@ -1038,7 +1048,8 @@ class LCMSExport(HighResMassSpectraExport):
                     scan_info_group.create_dataset(k, data=array)
 
             # Add ms_unprocessed to hdf5 file
-            if self.mass_spectra._ms_unprocessed:
+            export_unprocessed_ms1 = self.mass_spectra.parameters.lc_ms.export_unprocessed_ms1
+            if self.mass_spectra._ms_unprocessed and export_unprocessed_ms1:
                 if "ms_unprocessed" not in hdf_handle:
                     ms_unprocessed_group = hdf_handle.create_group("ms_unprocessed")
                 else:
@@ -1102,7 +1113,8 @@ class LCMSExport(HighResMassSpectraExport):
                                     )
 
             # Add EIC data to hdf5 file
-            if len(self.mass_spectra.eics) > 0:
+            export_eics = self.mass_spectra.parameters.lc_ms.export_eics
+            if len(self.mass_spectra.eics) > 0 and export_eics:
                 if "eics" not in hdf_handle:
                     eic_group = hdf_handle.create_group("eics")
                 else:

@@ -218,6 +218,11 @@ class LiquidChromatographSetting:
     search_as_lipids: bool = False
     include_fragment_types: bool = False
 
+    # Parameters used for saving the data
+    export_profile_spectra: bool = False
+    export_eics: bool = False
+    export_unprocessed_ms1: bool = False
+
     def __post_init__(self):
         # enforce datatype
         for field in dataclasses.fields(self):

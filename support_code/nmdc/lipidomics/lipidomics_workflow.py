@@ -302,7 +302,7 @@ def prep_metadata(mz_dicts, out_dir):
 
     metabref = MetabRefLCInterface()
     #TODO KRH: set token to the same folder as the raw data
-    metabref.set_token("tmp_data/thermo_raw_NMDC/metabref.token")
+    metabref.set_token("tmp_data/thermo_raw_collection/metabref.token")
 
     print("Preparing positive lipid library")
     if metadata["mzs"]["positive"] is not None:
@@ -549,7 +549,6 @@ def run_lipid_workflow(
         mz_dicts = pool.starmap(run_lipid_sp_ms1, args)
         pool.close()
         pool.join()
-
     # Prepare ms2 spectral search space
     metadata = prep_metadata(mz_dicts, out_dir)
 
@@ -566,12 +565,11 @@ def run_lipid_workflow(
 
     print("Finished processing, data are written in " + str(out_dir))
 
-
 if __name__ == "__main__":
     # Set input variables to run
-    cores = 4
-    file_dir = Path("tmp_data/thermo_raw_collection")
-    out_dir = Path("tmp_data/NMDC_processed_0829")
+    cores = 1
+    file_dir = Path("tmp_data/thermo_raw_mini")
+    out_dir = Path("tmp_data/NMDC_processed_09179b_lite_export")
     params_toml = Path("tmp_data/thermo_raw_collection/nmdc_lipid_params.toml")
     verbose = True
 
