@@ -316,7 +316,7 @@ def prep_metadata(mz_dicts, out_dir):
 
     metabref = MetabRefLCInterface()
     #TODO KRH: set token to the same folder as the raw data
-    metabref.set_token("tmp_data/thermo_raw_NMDC/metabref.token")
+    metabref.set_token("tmp_data/thermo_raw_collection/metabref.token")
 
     print("Preparing positive lipid library")
     if metadata["mzs"]["positive"] is not None:
@@ -585,7 +585,6 @@ def run_lipid_workflow(
         pool.join()
     """
     print("Finished processing, data are written in " + str(out_dir))
-
 
 if __name__ == "__main__":
     # Set input variables to run
