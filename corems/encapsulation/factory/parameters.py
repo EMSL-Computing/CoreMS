@@ -5,17 +5,35 @@ from corems.encapsulation.factory.processingSetting  import CompoundSearchSettin
 from corems.encapsulation.factory.processingSetting  import DataInputSetting
 
 def reset_ms_parameters():
-    """Reset the parameters to the default values"""
+    """Reset the MSParameter class to the default values"""
     MSParameters.molecular_search = MolecularFormulaSearchSettings()
     MSParameters.transient = TransientSetting()
     MSParameters.mass_spectrum = MassSpectrumSetting()
     MSParameters.ms_peak = MassSpecPeakSetting()
     MSParameters.data_input = DataInputSetting()
 
+def reset_gcms_parameters():
+    """Reset the GCMSParameters class to the default values"""
+    GCMSParameters.molecular_search = CompoundSearchSettings()
+    GCMSParameters.gc_ms = GasChromatographSetting()
+
+def reset_lcms_parameters():
+    """Reset the LCMSParameters class to the default values"""
+    LCMSParameters.lc_ms = LiquidChromatographSetting()
+    LCMSParameters.mass_spectrum = MassSpectrumSetting()
+    LCMSParameters.ms_peak = MassSpecPeakSetting()
+    LCMSParameters.ms1_molecular_search = MolecularFormulaSearchSettings()
+    LCMSParameters.ms2_molecular_search = MolecularFormulaSearchSettings()
+
 class MSParameters:
     """MSParameters class is used to store the parameters used for the processing of the mass spectrum
     
     Each attibute is a class that contains the parameters for the processing of the mass spectrum, see the corems.encapsulation.factory.processingSetting module for more details.
+
+    Parameters
+    ----------
+    use_defaults: bool, optional
+        if True, the class will be instantiated with the default values, otherwise the current values will be used. Default is False.
 
     Attributes
     -----------
@@ -29,6 +47,11 @@ class MSParameters:
         MassSpecPeakSetting object
     data_input: DataInputSetting
         DataInputSetting object
+
+    Notes
+    -----
+    One can use the use_defaults parameter to reset the parameters to the default values.
+    Alternatively, to use the current values - modify the class's contents before instantiating the class.
     """
 
     molecular_search = MolecularFormulaSearchSettings()
@@ -56,12 +79,22 @@ class GCMSParameters:
 
     Each attibute is a class that contains the parameters for the processing of the data, see the corems.encapsulation.factory.processingSetting module for more details.
 
+    Parameters
+    ----------
+    use_defaults: bool, optional
+        if True, the class will be instantiated with the default values, otherwise the current values will be used. Default is False.
+
     Attributes
     -----------
     molecular_search: MolecularFormulaSearchSettings
         MolecularFormulaSearchSettings object
     gc_ms: GasChromatographSetting
         GasChromatographSetting object
+
+    Notes
+    -----
+    One can use the use_defaults parameter to reset the parameters to the default values.
+    Alternatively, to use the current values - modify the class's contents before instantiating the class.
     """
 
     molecular_search = CompoundSearchSettings()
@@ -80,6 +113,11 @@ class LCMSParameters:
 
     Each attibute is a class that contains the parameters for the processing of the data, see the corems.encapsulation.factory.processingSetting module for more details.
 
+    Parameters
+    ----------
+    use_defaults: bool, optional
+        if True, the class will be instantiated with the default values, otherwise the current values will be used. Default is False.
+
     Attributes
     -----------
     lc_ms: LiquidChromatographSetting
@@ -92,6 +130,11 @@ class LCMSParameters:
         MolecularFormulaSearchSettings object
     ms2_molecular_search: MolecularFormulaSearchSettings
         MolecularFormulaSearchSettings object
+
+    Notes
+    -----
+    One can use the use_defaults parameter to reset the parameters to the default values.
+    Alternatively, to use the current values - modify the class's contents before instantiating the class.
     """
     lc_ms = LiquidChromatographSetting()
     mass_spectrum = MassSpectrumSetting()

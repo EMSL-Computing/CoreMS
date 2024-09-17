@@ -1,3 +1,5 @@
+# This script demonstrates how to set global parameters and instantiate a mass spectrum object using them
+
 from corems.encapsulation.factory.parameters import MSParameters
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 
