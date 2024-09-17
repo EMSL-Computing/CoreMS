@@ -1746,7 +1746,7 @@ class LCMSCollectionCalculations:
                                 mf_df_i = mf_df_i.reset_index(drop=False)
                                 if use_spline_alignment:
                                     # Set scan_time to previous sample's predicted scan_time to find closer matches
-                                    mf_df_i['scan_time'] = spl(mf_df_i['scan_time']) #might need to add a copy step here
+                                    mf_df_i['scan_time'] = spl(mf_df_i['scan_time']) 
                         else:
                             raise ValueError(f'No matches found between the center object and {self.samples[i]}')
 
