@@ -30,17 +30,16 @@ if __name__ == "__main__":
     print("Loading LCMS collection with", len(parser.manifest), "samples using", ncores, " cores")
     start_time = time.time()
     lcms_collection = parser.get_lcms_collection(load_raw=False, load_light=True)
-    print("Time to load LCMS collection ", time.time() - start_time, "seconds -", len(lcms_collection), " LCMS runs and ", ncores, " cores") #10s for 7 samples, 10 cores; 
+    print("Time to load LCMS collection ", time.time() - start_time, "seconds -", len(lcms_collection), " LCMS runs and ", ncores, " cores") 
+    #10s for 7 samples, 10 cores; 162s for 70 samples, 10 cores
     lcms_collection.mass_features_dataframe
 
 
     print("Aligning LCMS collection")
     start_time = time.time()
     lcms_collection.align_lcms_objects()
-    print("Time to align LCMS collection: ", time.time() - start_time, "seconds") # 1.5s for 7 samples, 15s for 70 samples
-    lcms_collection.mass_features_dataframe
-    assert lcms_collection.mass_features_dataframe.index.name == "coll_mf_id"
-
+    print("Time to align LCMS collection: ", time.time() - start_time, "seconds") 
+    #1.5s for 7 samples; 15s for 70 samples
 
     #lcms_collection.plot_tics(type="both")
     #lcms_collection.plot_alignments()
@@ -49,6 +48,8 @@ if __name__ == "__main__":
     start_time = time.time()    
     lcms_collection.add_consensus_mass_features()
     print("Time to calculate distance matrices: ", time.time() - start_time, "seconds -", len(lcms_collection.mass_features_dataframe), " total mass features", ncores, " cores")
+    # 33 seconds for 22K mass features (7 samples) - 10 cores; 290 seconds for 250K mass features (70 samples) - 10 cores
+    lcms_collection.mass_features_dataframe.to_csv(collection_path / "collection_mass_features_ward.csv", index=True)
     print("Here")
 
     #lcms_collection.

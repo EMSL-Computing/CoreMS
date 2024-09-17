@@ -219,6 +219,8 @@ class MultiSamplePartitions:
         Target partition size.
     tol : float
         Largest allowed distance between unique `split_on` observations.
+    n_partitions : int
+        Number of partitions in the data.
 
     '''
 
@@ -292,6 +294,9 @@ class MultiSamplePartitions:
         self._counts.append(current_count)
 
         self.bounds = np.array([[x.min(), x.max()] for x in bins])
+
+        # Number of partitions in the data
+        self.n_partitions = len(bins)
 
     def __iter__(self):
         return self

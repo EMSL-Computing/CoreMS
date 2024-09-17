@@ -1440,89 +1440,7 @@ class LCMSCollectionCalculations:
         sparse_matrix.sort()
         dereplicated_sparse_matrix = np.unique(sparse_matrix, axis=0)
         return dereplicated_sparse_matrix
-
-    def get_sparse_matrix(self, anchors_only=True, ms_level=1):
-        """Get a sparse matrix of MS1 matches.
-
-        Parameters
-        ----------
-        mode : str, optional
-            The mode to use for matching. Default is "open". Other options are "identity".
-
-        Returns
-        -------
-        :obj:`~numpy.array`
-            A sparse matrix of MS1 matches, with each row containing the ids of the mass features that match.
-        """
-        # Grab all deconvoluted ms1s from all mass features
-        ms_lib = []
-        max_mz = 0
-        for key, lcms_obj in self._lcms.items():
-            if lcms_obj.mass_features is None:
-                raise ValueError(
-                    "No mass features found in LCMSBase object, run find_mass_features() first"
-                )
-            for mf_id, mass_feature in lcms_obj.mass_features.items():
-                if anchors_only and not mass_feature.anchor_feature:
-                    continue
-                if ms_level == 1:
-                    ms_list = [mass_feature.mass_spectrum_deconvoluted]
-                elif ms_level == 2:
-                    ms_list = [x for k, x in mass_feature.ms2_mass_spectra.items()]
-                if ms_list is None:
-                    continue
-                for ms in ms_list:
-                    lib_entry = {
-                        "id": str(self.manifest[key]['collection_id']) + "_" + str(mass_feature.id) + "_" + str(ms.scan_number), #lcmsID_mfID_scanNumber [unique ID for the mass spectrum associated with the mass feature]
-                        "precursor_mz": mass_feature.mz,
-                        "peaks": np.column_stack((ms.mz_exp, ms.abundance)),
-                        "mf_id": str(self.manifest[key]['collection_id']) + "_" + str(mass_feature.id) #lcmsID_mfID [unique ID for the mass feature]
-                    }
-                    ms_lib.append(lib_entry)
-                    if mass_feature.mz > max_mz:
-                        max_mz = mass_feature.mz
-
-        # Build flash entropy search index      
-        fes = FlashEntropySearch(
-            max_ms2_tolerance_in_da = 0.001 #TODO KRH: source this from a parameter
-            )
-        fes.build_index(
-            all_spectra_list = ms_lib,
-            max_indexed_mz = max_mz+5,
-            precursor_ions_removal_da = None,
-            noise_threshold=0,
-            min_ms2_difference_in_da = 0.001, #TODO KRH: source this from a parameter
-            max_peak_num = 0,
-            clean_spectra = True
-        )
-
-        results_sparse_identity = []
-        min_match_score = 0.8 #TODO KRH: source this from a parameter
-
-        for spec in fes:
-            search_results = fes.search(
-                            precursor_mz=spec['precursor_mz'],
-                            peaks=spec['peaks'],
-                            ms1_tolerance_in_da=0.001, #TODO KRH: source this from a parameter
-                            ms2_tolerance_in_da=0.001, #TODO KRH: source this from a parameter [note this isn't really MS2]
-                            method={"identity"},
-                            precursor_ions_removal_da=None,
-                            noise_threshold=0,
-                            target="cpu",
-                        )
-            match_inds_identity = np.where(search_results["identity_search"] > min_match_score)[0]
-            if len(match_inds_identity) > 0:
-                ref_ms_ids = [fes[x]["mf_id"] for x in match_inds_identity]
-                # drop ref_ms_ids if it matches spec["id"]
-                ref_ms_ids = [x for x in ref_ms_ids if x != spec["mf_id"]]
-                if len(ref_ms_ids) > 0:
-                    for ref_ms_id in ref_ms_ids:
-                        results_sparse_identity.append([spec["mf_id"], ref_ms_id])
-
-        results_sparse_identity = self.clean_sparse_matrix(results_sparse_identity)
-
-        return results_sparse_identity
-      
+     
     def match_mfs(self, mf_c, mf_i):
         """Match mass features between two LCMS objects.
 
@@ -1808,25 +1726,35 @@ class LCMSCollectionCalculations:
 
         # Partition the mass features by mz so we can parallelize the matching before clustering
         from corems.chroma_peak.calc import subset as corems_subset
-        lazy_partitions = corems_subset.multi_sample_partition(combined_mfs, split_on = 'mz', size=1000, tol=0.001)
 
-        # Make distance matrix for each partition
-        distance_matrix = lazy_partitions.map(self.create_distance_matrix, processes=self.parameter_dict["cores"])
-        self.distance_matrix = distance_matrix
+        # TODO KRH: source partition size and tol from parameters
+        lazy_partitions = corems_subset.multi_sample_partition(combined_mfs, split_on = 'mz', size=10000, tol=0.001)
 
-        
-        # Drop mass features with nan in mass_spectrum_deconvoluted_parent and if they are not mass_spectrum_deconvoluted_parent
-        #combined_mfs = combined_mfs.dropna(subset=["mass_spectrum_deconvoluted_parent"])
-        #combined_mfs = combined_mfs[combined_mfs["mass_spectrum_deconvoluted_parent"]]
-        
-        # Partition the mass features by mz so we can parallelize the matching before clustering
-        #combined_mfs = combined_mfs.sort_values(by='mz')
-        #combined_mfs = combined_mfs.reset_index(drop=True)
+        # Make distance matrix for each partition and cluster
+        if self.parameter_dict["cores"] > lazy_partitions.n_partitions:
+            cores_to_use = lazy_partitions.n_partitions
+        else:
+            cores_to_use = self.parameter_dict["cores"]
+        mfs_with_clusters = lazy_partitions.map(self.cluster_mass_features, processes=cores_to_use)
 
+        if len(mfs_with_clusters.partition_idx.unique()) > 1:
+            # Clean up the cluster ids
+            new_cluster_ids = mfs_with_clusters[['cluster', 'partition_idx']].drop_duplicates().reset_index(drop=True)
+            new_cluster_ids['cluster_unqiue'] = new_cluster_ids.index
+            mfs_with_clusters = mfs_with_clusters.merge(new_cluster_ids, on=['cluster', 'partition_idx'])
+            mfs_with_clusters['cluster'] = mfs_with_clusters['cluster_unqiue']
+            mfs_with_clusters = mfs_with_clusters.drop(columns=['cluster_unqiue'])
 
-        #test = self.agglomerative_clustering(combined_mfs)
+        mfs_with_clusters = mfs_with_clusters.drop(columns=['partition_idx'])
+
+        # Set coll_mf_id as the index
+        mfs_with_clusters = mfs_with_clusters.set_index('coll_mf_id')
+
+        # Set the mass_features_dataframe property with the mfs_with_clusters attribtute
+        self.mass_features_dataframe = mfs_with_clusters
+
     
-    def create_distance_matrix(self, features):
+    def cluster_mass_features(self, features):
         '''
         Cluster features within provided linkage tolerances. Recursively merges
         the pair of clusters that minimally increases a given linkage distance.
@@ -1854,7 +1782,7 @@ class LCMSCollectionCalculations:
         if features is None:
             return None
 
-        # Safely cast to list
+        # Define how to calculate the distance between features
         # TODO KRH: source this from a parameter
         # TODO KRH: make mz relative
         dims = ["mz", "scan_time_aligned"]        
@@ -1942,23 +1870,12 @@ class LCMSCollectionCalculations:
         # Multiply by connectivity matrix for more masking
         distances = distances.multiply(cmat)
 
-        # Extract indices of within-tolerance points
-        distances = distances.tocoo()
-        pairs = np.stack((distances.row, distances.col, distances.data), axis=1)
+        # Set attribute holding distance matrix
+        self._sparse_distance_matrix = distances
 
-        # Convert to coll_mf_ids rather than indices
-        mfid1 = features['coll_mf_id'].values[pairs[:, 0].astype(int)]
-        mfid2 = features['coll_mf_id'].values[pairs[:, 1].astype(int)]
-        pairs = np.column_stack((mfid1, mfid2, pairs[:, 2]))
-
-        # Convert to DataFrame
-        pairs = pd.DataFrame(pairs, columns=['coll_mf_id1', 'coll_mf_id2', 'distance'])
-
-        return pairs
-    
-    '''       
-      # Convert to full matrix
+        # Convert to full matrix
         distances = distances.todense()
+
         # Cast all 0s to 1s for a distance matrix
         distances[distances == 0] = 1
         distances = np.asarray(distances)
@@ -1974,9 +1891,7 @@ class LCMSCollectionCalculations:
         except:
             features['cluster'] = np.arange(len(features.index))
 
-        features_sub = features[['cluster', 'mz', 'scan_time_aligned', 'sample_id', 'tailing_factor', 'dispersity_index', 'half_height_width', 'mass_spectrum_deconvoluted_parent']]
         return features
-    '''
 
 
         

@@ -1292,6 +1292,20 @@ class LCMSCollection(LCMSCollectionCalculations):
         self._check_mass_features_df()
         return self._combined_mass_features
     
+    @mass_features_dataframe.setter
+    def mass_features_dataframe(self, df):
+        # Check that the dataframe has the expected columns
+        expected_cols = ["sample_name", "sample_id", "mz", "scan_time"]
+        if not all([col in df.columns for col in expected_cols]):
+            raise ValueError(f"Expected columns not found in dataframe: {expected_cols}")
+        
+        # Check that coll_mf_id is the index and it is unique
+        if df.index.name != "coll_mf_id":
+            raise ValueError("coll_mf_id must be the index of the dataframe")
+        if not df.index.is_unique:
+            raise ValueError("coll_mf_id must be unique")
+        self._combined_mass_features = df
+    
     @property
     def samples(self):
         manifest_df = self.manifest_dataframe
