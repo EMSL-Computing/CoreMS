@@ -5,7 +5,7 @@ from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectraCollec
 
 if __name__ == "__main__":
     collection_path = Path("/Users/heal742/LOCAL/10_lcms_collection_testing/KidsFirst_T-ALL_neg/processed_files")
-    manifest_file = collection_path / "manifest.csv"
+    manifest_file = collection_path / "manifest_small.csv"
     
     '''
     # Read in manifest file

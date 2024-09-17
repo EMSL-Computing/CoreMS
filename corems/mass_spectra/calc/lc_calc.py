@@ -1690,19 +1690,52 @@ class LCMSCollectionCalculations:
 
                         # Match the mass features in the LCMS object to the anchor mass features in the center LCMS object.
                         matches_c, matches_i = self.match_mfs(mf_df_c, mf_df_i) 
+
                         if matches_c is not None:
+                            # Hold out a subset of matches_c and matches_i for spline fitting
+                            matches_c.reset_index(drop=False, inplace=True)
+                            matches_i.reset_index(drop=False, inplace=True)
+
+                            #TODO KRH: source holdout fraction from a parameter
+                            #TODO KRH: source random seed from a parameter for reproducibility
+                            idx_holdout = np.random.choice(matches_c.index, size=int(len(matches_c) * 0.3), replace=False)
+                            matches_c_holdout = matches_c.loc[idx_holdout].copy()
+                            matches_i_holdout = matches_i.loc[idx_holdout].copy()
+
+                            # Remove the holdout matches from the matches_c and matches_i DataFrames and reset the index
+                            matches_c = matches_c.drop(index=idx_holdout).set_index('sample_name')
+                            matches_i = matches_i.drop(index=idx_holdout).set_index('sample_name')
+
                             # Reset the scan_time to the original scan_time
                             matches_i = matches_i.copy()
                             matches_i['scan_time'] = matches_i['scan_time_og']
 
                             # Fit the retention times of the LCMS object to the center LCMS object using the matched mass features
                             spl = self.fit_rts(matches_c, matches_i, kernel='rbf', C=1000)
-                            # Set new retention times on scan_df for lc_obj
-                            matches_i['scan_time_fit'] = spl(matches_i['scan_time'])
-                            new_times = spl(self[i].scan_df['scan_time'])
-                            new_scan_info = self[i].scan_df.copy()
-                            new_scan_info['scan_time_aligned'] = new_times
-                            self[i].scan_df = new_scan_info
+
+                            # Check if the spline fitting improved the alignment for the holdout matches
+                            matches_i_holdout['scan_time_fit'] = spl(matches_i_holdout['scan_time'])
+                            og_diff = np.abs(matches_i_holdout['scan_time'] - matches_c_holdout['scan_time'])
+                            fit_diff = np.abs(matches_i_holdout['scan_time_fit'] - matches_c_holdout['scan_time'])
+                            fraction_improved = np.sum(fit_diff < og_diff) / len(og_diff)
+
+                            #TODO KRH: source improvement threshold from a parameter
+                            use_spline_alignment = fraction_improved > 0.5                  
+                            #TODO KRH: use_spline_alignment in the LCMS collection object          
+
+                            if use_spline_alignment:
+                                # Set new retention times on scan_df for lc_obj using the spline fitting
+                                matches_i['scan_time_fit'] = spl(matches_i['scan_time'])
+                                new_times = spl(self[i].scan_df['scan_time'])
+                                new_scan_info = self[i].scan_df.copy()
+                                new_scan_info['scan_time_aligned'] = new_times
+                                self[i].scan_df = new_scan_info
+                            else:
+                                # Set aligned retention times on scan_df for lc_obj using the original retention times
+                                new_scan_info = self[i].scan_df.copy()
+                                new_scan_info['scan_time_aligned'] = new_scan_info['scan_time']
+                                self[i].scan_df = new_scan_info
+
                             i += index_step
                             if i >= len(self) or i < 0:
                                 mf_df_i = None
@@ -1711,8 +1744,9 @@ class LCMSCollectionCalculations:
                                 mf_df_i = full_mf_df.loc[self.samples[i]].copy()
                                 mf_df_i['scan_time_og'] = mf_df_i['scan_time']
                                 mf_df_i = mf_df_i.reset_index(drop=False)
-                                # Set scan_time to previous sample's predicted scan_time to find closer matches
-                                mf_df_i['scan_time'] = spl(mf_df_i['scan_time']) #might need to add a copy step here
+                                if use_spline_alignment:
+                                    # Set scan_time to previous sample's predicted scan_time to find closer matches
+                                    mf_df_i['scan_time'] = spl(mf_df_i['scan_time']) #might need to add a copy step here
                         else:
                             raise ValueError(f'No matches found between the center object and {self.samples[i]}')
 
@@ -1730,15 +1764,15 @@ class LCMSCollectionCalculations:
         # TODO KRH: source partition size and tol from parameters
         lazy_partitions = corems_subset.multi_sample_partition(combined_mfs, split_on = 'mz', size=10000, tol=0.001)
 
-        # Make distance matrix for each partition and cluster
+        # Cluster the mass features within each partition
         if self.parameter_dict["cores"] > lazy_partitions.n_partitions:
             cores_to_use = lazy_partitions.n_partitions
         else:
             cores_to_use = self.parameter_dict["cores"]
         mfs_with_clusters = lazy_partitions.map(self.cluster_mass_features, processes=cores_to_use)
 
+        # Combine the mass features with clusters into a single dataframe and clean up the cluster ids
         if len(mfs_with_clusters.partition_idx.unique()) > 1:
-            # Clean up the cluster ids
             new_cluster_ids = mfs_with_clusters[['cluster', 'partition_idx']].drop_duplicates().reset_index(drop=True)
             new_cluster_ids['cluster_unqiue'] = new_cluster_ids.index
             mfs_with_clusters = mfs_with_clusters.merge(new_cluster_ids, on=['cluster', 'partition_idx'])
