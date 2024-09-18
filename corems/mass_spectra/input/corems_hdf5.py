@@ -117,6 +117,35 @@ class ReadCoreMSHDFMassSpectra(
         """ """
         pass
 
+    def get_ms_raw(self, spectra = None, scan_df = None) -> dict:
+        """ """
+        # Warn if spectra or scan_df are not None that they are not used for CoreMS HDF5 files and should be rerun after instantiation
+        if spectra is not None or scan_df is not None:
+            SyntaxWarning("get_ms_raw method for CoreMS HDF5 files can only access saved data, consider rerunning after instantiation.")
+        ms_unprocessed = {}
+        dict_group_load = self.h5pydata["ms_unprocessed"]
+        dict_group_keys = dict_group_load.keys()
+        for k in dict_group_keys:
+            ms_up_int = dict_group_load[k][:]
+            ms_unprocessed[int(k)] = pd.DataFrame(
+                ms_up_int, columns=["scan", "mz", "intensity"]
+            )
+        return ms_unprocessed
+
+    def get_scan_df(self) -> pd.DataFrame:
+        scan_info = {}
+        dict_group_load = self.h5pydata["scan_info"]
+        dict_group_keys = dict_group_load.keys()
+        for k in dict_group_keys:
+            scan_info[k] = dict_group_load[k][:]
+        scan_df = pd.DataFrame(scan_info)
+        scan_df.set_index("scan", inplace=True, drop=False)
+        str_df = scan_df.select_dtypes([object])
+        str_df = str_df.stack().str.decode("utf-8").unstack()
+        for col in str_df:
+            scan_df[col] = str_df[col]
+        return scan_df
+    
     def run(self, mass_spectra, load_raw=True) -> None:
         """Runs the importer functions to populate a LCMS or MassSpectraBase object.
 
@@ -204,17 +233,7 @@ class ReadCoreMSHDFMassSpectra(
         object with a pandas DataFrame of the 'scan_info' from the HDF5 file.
 
         """
-        scan_info = {}
-        dict_group_load = self.h5pydata["scan_info"]
-        dict_group_keys = dict_group_load.keys()
-        for k in dict_group_keys:
-            scan_info[k] = dict_group_load[k][:]
-        scan_df = pd.DataFrame(scan_info)
-        scan_df.set_index("scan", inplace=True, drop=False)
-        str_df = scan_df.select_dtypes([object])
-        str_df = str_df.stack().str.decode("utf-8").unstack()
-        for col in str_df:
-            scan_df[col] = str_df[col]
+        scan_df = self.get_scan_df()
         mass_spectra.scan_df = scan_df
 
     def import_ms_unprocessed(self, mass_spectra) -> None:
@@ -231,14 +250,7 @@ class ReadCoreMSHDFMassSpectra(
         object with a dictionary of the 'ms_unprocessed' from the HDF5 file.
 
         """
-        ms_unprocessed = {}
-        dict_group_load = self.h5pydata["ms_unprocessed"]
-        dict_group_keys = dict_group_load.keys()
-        for k in dict_group_keys:
-            ms_up_int = dict_group_load[k][:]
-            ms_unprocessed[int(k)] = pd.DataFrame(
-                ms_up_int, columns=["scan", "mz", "intensity"]
-            )
+        ms_unprocessed = self.get_ms_raw()
         mass_spectra._ms_unprocessed = ms_unprocessed
 
     def import_parameters(self, mass_spectra) -> None:
