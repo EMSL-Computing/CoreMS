@@ -3,6 +3,7 @@ __date__ = "Oct 29, 2019"
 
 
 from threading import Thread
+from pathlib import Path
 
 import pandas as pd
 
@@ -16,7 +17,8 @@ from corems.mass_spectra.factory.LC_Temp import EIC_Data
 from corems.mass_spectra.input.parserbase import SpectraParserInterface
 from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
 from corems.molecular_id.factory.spectrum_search_results import SpectrumSearchResults
-
+from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
+from corems.mass_spectra.input.mzml import MZMLSpectraParser
 
 class ReadCoreMSHDFMassSpectra(
     SpectraParserInterface, ReadCoreMSHDF_MassSpectrum, Thread
@@ -443,7 +445,7 @@ class ReadCoreMSHDFMassSpectra(
 
         return spectra_obj
 
-    def get_lcms_obj(self, load_raw=True) -> LCMSBase:
+    def get_lcms_obj(self, load_raw=True, use_original_parser=True, raw_file_path=None) -> LCMSBase:
         """
         Return LCMSBase object, populating attributes on the LCMSBase object from the HDF5 file.
 
@@ -451,6 +453,12 @@ class ReadCoreMSHDFMassSpectra(
         ----------
         load_raw : bool
             If True, load raw data (unprocessed) from HDF5 files for overall lcms object and individual mass spectra. Default is True.
+        use_original_parser : bool
+            If True, use the original parser to populate the LCMS object. Default is True.        
+        raw_file_path : str
+            The location of the raw file to parse if attempting to use original parser.
+            Default is None, which attempts to get the raw file path from the HDF5 file.
+            If the original file path has moved, this parameter can be used to specify the new location.
         """
         # Instantiate the LCMS object
         lcms_obj = LCMSBase(
@@ -469,4 +477,42 @@ class ReadCoreMSHDFMassSpectra(
         lcms_obj._retention_time_list = list(lcms_obj.scan_df.scan_time)
         lcms_obj._tic_list = list(lcms_obj.scan_df.tic)
 
+        # If use_original_parser is True, instantiate the original parser and populate the LCMS object
+        if use_original_parser:
+            lcms_obj = self.add_original_parser(lcms_obj, raw_file_path=raw_file_path)
+
         return lcms_obj
+    
+    def add_original_parser(self, mass_spectra, raw_file_path=None):
+        """
+        Add the original parser to the mass spectra object.
+
+        Parameters
+        ----------
+        mass_spectra : MassSpectraBase | LCMSBase
+            The MassSpectraBase or LCMSBase object to add the original parser to.
+        raw_file_path : str
+            The location of the raw file to parse. Default is None, which attempts to get the raw file path from the HDF5 file.
+        """
+        # Try to get the raw file path from the HDF5 file
+        if raw_file_path is None:
+            raw_file_path = self.h5pydata.attrs["original_file_location"]
+            #Check if og_file_location exists, if not raise an error
+            raw_file_path = self.h5pydata.attrs["original_file_location"]
+
+        raw_file_path = Path(raw_file_path)
+        if not raw_file_path.exists():
+            raise FileExistsError("File does not exist: " + str(raw_file_path), ". Cannot use original parser for instatiating the lcms_obj.")
+
+        # Get the original parser type
+        og_parser_type = self.h5pydata.attrs["parser_type"]
+
+        if og_parser_type == "ImportMassSpectraThermoMSFileReader":
+            parser = ImportMassSpectraThermoMSFileReader(raw_file_path)
+        elif og_parser_type == "MZMLSpectraParser":
+            parser = MZMLSpectraParser(raw_file_path)
+
+        mass_spectra.spectra_parser_class = parser.__class__
+        mass_spectra.spectra_parser = parser
+
+        return mass_spectra
