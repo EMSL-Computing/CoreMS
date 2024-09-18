@@ -90,6 +90,188 @@ class MZMLSpectraParser(SpectraParserInterface):
         data = pymzml.run.Reader(self.file_location)
         return data
 
+    def get_scan_df(self, data):
+        """
+        Return scan data as a pandas DataFrame.
+
+        Parameters
+        ----------
+        data : pymzml.run.Reader
+            The mass spectra data.
+
+        Returns
+        -------
+        pandas.DataFrame
+            A pandas DataFrame containing metadata for each scan, including scan number, MS level, polarity, and scan time.
+        """
+        # Scan dict
+        # instatinate scan dict, with empty lists of size of scans
+        n_scans = data.get_spectrum_count()
+        scan_dict = {
+            "scan": np.empty(n_scans, dtype=np.int32),
+            "scan_time": np.empty(n_scans, dtype=np.float32),
+            "ms_level": [None] * n_scans,
+            "polarity": [None] * n_scans,
+            "precursor_mz": [None] * n_scans,
+            "scan_text": [None] * n_scans,
+            "scan_window_lower": np.empty(n_scans, dtype=np.float32),
+            "scan_window_upper": np.empty(n_scans, dtype=np.float32),
+            "scan_precision": [None] * n_scans,
+            "tic": np.empty(n_scans, dtype=np.float32),
+            "ms_format": [None] * n_scans,
+        }
+
+        # First pass: loop through scans to get scan info
+        for i, spec in enumerate(data):
+            scan_dict["scan"][i] = spec.ID
+            scan_dict["ms_level"][i] = spec.ms_level
+            scan_dict["scan_precision"][i] = spec._measured_precision
+            scan_dict["tic"][i] = spec.TIC
+            if spec.selected_precursors:
+                scan_dict["precursor_mz"][i] = spec.selected_precursors[0].get(
+                    "mz", None
+                )
+            if spec["negative scan"] is not None:
+                scan_dict["polarity"][i] = "negative"
+            if spec["positive scan"] is not None:
+                scan_dict["polarity"][i] = "positive"
+            if (
+                spec["negative scan"] is not None
+                and spec["positive scan"] is not None
+            ):
+                # raise error and stop
+                print(
+                    "Error: scan {0} has both negative and positive polarity".format(
+                        spec.ID
+                    )
+                )
+
+            scan_dict["scan_time"][i] = spec.get("MS:1000016")
+            scan_dict["scan_text"][i] = spec.get("MS:1000512")
+            scan_dict["scan_window_lower"][i] = spec.get("MS:1000501")
+            scan_dict["scan_window_upper"][i] = spec.get("MS:1000500")
+            if spec.get("MS:1000128"):
+                scan_dict["ms_format"][i] = "profile"
+            elif spec.get("MS:1000127"):
+                scan_dict["ms_format"][i] = "centroid"
+            else:
+                scan_dict["ms_format"][i] = None
+
+        scan_df = pd.DataFrame(scan_dict)
+
+        return scan_df
+
+    def get_ms_raw(self, spectra, scan_df, data):
+        """Return a dictionary of mass spectra data as a pandas DataFrame.
+
+        Parameters
+        ----------
+        spectra : str
+            Which mass spectra data to include in the output. 
+            Options: None, "ms1", "ms2", "all".
+        scan_df : pandas.DataFrame
+            Scan dataframe. Output from get_scan_df().
+        data : pymzml.run.Reader
+            The mass spectra data.
+
+        Returns
+        -------
+        dict
+            A dictionary containing the mass spectra data as pandas DataFrames, with keys corresponding to the MS level.
+        
+        """
+        if spectra == "all":
+            scan_df_forspec = scan_df
+        elif spectra == "ms1":
+            scan_df_forspec = scan_df[scan_df.ms_level == 1]
+        elif spectra == "ms2":
+            scan_df_forspec = scan_df[scan_df.ms_level == 2]
+        else:
+            raise ValueError("spectra must be 'all', 'ms1', or 'ms2'")
+
+        # Result container
+        res = {}
+
+        # Row count container
+        counter = {}
+
+        # Column name container
+        cols = {}
+
+        # set at float32
+        dtype = np.float32
+
+        # First pass: get nrows
+        N = defaultdict(lambda: 0)
+        for i, spec in enumerate(data):
+            if i in scan_df_forspec.scan:
+                # Get ms level
+                level = "ms{}".format(spec.ms_level)
+
+                # Number of rows
+                N[level] += spec.mz.shape[0]
+
+        # Second pass: parse
+        for i, spec in enumerate(data):
+            if i in scan_df_forspec.scan:
+                # Number of rows
+                n = spec.mz.shape[0]
+
+                # No measurements
+                if n == 0:
+                    continue
+
+                # Dimension check
+                if len(spec.mz) != len(spec.i):
+                    # raise an error if the mz and intensity arrays are not the same length
+                    raise ValueError("m/z and intensity array dimension mismatch")
+
+                # Scan/frame info
+                id_dict = spec.id_dict
+
+                # Get ms level
+                level = "ms{}".format(spec.ms_level)
+
+                # Columns
+                cols[level] = list(id_dict.keys()) + ["mz", "intensity"]
+                m = len(cols[level])
+
+                # Subarray init
+                arr = np.empty((n, m), dtype=dtype)
+                inx = 0
+
+                # Populate scan/frame info
+                for k, v in id_dict.items():
+                    arr[:, inx] = v
+                    inx += 1
+
+                # Populate m/z
+                arr[:, inx] = spec.mz
+                inx += 1
+
+                # Populate intensity
+                arr[:, inx] = spec.i
+                inx += 1
+
+                # Initialize output container
+                if level not in res:
+                    res[level] = np.empty((N[level], m), dtype=dtype)
+                    counter[level] = 0
+
+                # Insert subarray
+                res[level][counter[level] : counter[level] + n, :] = arr
+                counter[level] += n
+
+        # Construct ms1 and ms2 mz dataframes
+        for level in res.keys():
+            res[level] = pd.DataFrame(res[level], columns=cols[level]).drop(
+                columns=["controllerType", "controllerNumber"],
+                axis=1,
+                inplace=False,
+            )
+        
+        return res
+
     def run(self, spectra="all", scan_df=None):
         """Parse the mzML file and return a dictionary of spectra dataframes and a scan metadata dataframe.
 
@@ -113,151 +295,11 @@ class MZMLSpectraParser(SpectraParserInterface):
         data = self.load()
 
         if scan_df is None:
-            # Scan dict
-            # instatinate scan dict, with empty lists of size of scans
-            n_scans = data.get_spectrum_count()
-            scan_dict = {
-                "scan": np.empty(n_scans, dtype=np.int32),
-                "scan_time": np.empty(n_scans, dtype=np.float32),
-                "ms_level": [None] * n_scans,
-                "polarity": [None] * n_scans,
-                "precursor_mz": [None] * n_scans,
-                "scan_text": [None] * n_scans,
-                "scan_window_lower": np.empty(n_scans, dtype=np.float32),
-                "scan_window_upper": np.empty(n_scans, dtype=np.float32),
-                "scan_precision": [None] * n_scans,
-                "tic": np.empty(n_scans, dtype=np.float32),
-                "ms_format": [None] * n_scans,
-            }
-
-            # First pass: loop through scans to get scan info
-            for i, spec in enumerate(data):
-                scan_dict["scan"][i] = spec.ID
-                scan_dict["ms_level"][i] = spec.ms_level
-                scan_dict["scan_precision"][i] = spec._measured_precision
-                scan_dict["tic"][i] = spec.TIC
-                if spec.selected_precursors:
-                    scan_dict["precursor_mz"][i] = spec.selected_precursors[0].get(
-                        "mz", None
-                    )
-                if spec["negative scan"] is not None:
-                    scan_dict["polarity"][i] = "negative"
-                if spec["positive scan"] is not None:
-                    scan_dict["polarity"][i] = "positive"
-                if (
-                    spec["negative scan"] is not None
-                    and spec["positive scan"] is not None
-                ):
-                    # raise error and stop
-                    print(
-                        "Error: scan {0} has both negative and positive polarity".format(
-                            spec.ID
-                        )
-                    )
-
-                scan_dict["scan_time"][i] = spec.get("MS:1000016")
-                scan_dict["scan_text"][i] = spec.get("MS:1000512")
-                scan_dict["scan_window_lower"][i] = spec.get("MS:1000501")
-                scan_dict["scan_window_upper"][i] = spec.get("MS:1000500")
-                if spec.get("MS:1000128"):
-                    scan_dict["ms_format"][i] = "profile"
-                elif spec.get("MS:1000127"):
-                    scan_dict["ms_format"][i] = "centroid"
-                else:
-                    scan_dict["ms_format"][i] = None
-
-            scan_df = pd.DataFrame(scan_dict)
+            scan_df = self.get_scan_df(data)
 
         if spectra != "none":
-            if spectra == "all":
-                scan_df_forspec = scan_df
-            elif spectra == "ms1":
-                scan_df_forspec = scan_df[scan_df.ms_level == 1]
-            elif spectra == "ms2":
-                scan_df_forspec = scan_df[scan_df.ms_level == 2]
-            else:
-                raise ValueError("spectra must be 'all', 'ms1', or 'ms2'")
-
-            # Result container
-            res = {}
-
-            # Row count container
-            counter = {}
-
-            # Column name container
-            cols = {}
-
-            # set at float32
-            dtype = np.float32
-
-            # First pass: get nrows
-            N = defaultdict(lambda: 0)
-            for i, spec in enumerate(data):
-                if i in scan_df_forspec.scan:
-                    # Get ms level
-                    level = "ms{}".format(spec.ms_level)
-
-                    # Number of rows
-                    N[level] += spec.mz.shape[0]
-
-            # Second pass: parse
-            for i, spec in enumerate(data):
-                if i in scan_df_forspec.scan:
-                    # Number of rows
-                    n = spec.mz.shape[0]
-
-                    # No measurements
-                    if n == 0:
-                        continue
-
-                    # Dimension check
-                    if len(spec.mz) != len(spec.i):
-                        # raise an error if the mz and intensity arrays are not the same length
-                        raise ValueError("m/z and intensity array dimension mismatch")
-
-                    # Scan/frame info
-                    id_dict = spec.id_dict
-
-                    # Get ms level
-                    level = "ms{}".format(spec.ms_level)
-
-                    # Columns
-                    cols[level] = list(id_dict.keys()) + ["mz", "intensity"]
-                    m = len(cols[level])
-
-                    # Subarray init
-                    arr = np.empty((n, m), dtype=dtype)
-                    inx = 0
-
-                    # Populate scan/frame info
-                    for k, v in id_dict.items():
-                        arr[:, inx] = v
-                        inx += 1
-
-                    # Populate m/z
-                    arr[:, inx] = spec.mz
-                    inx += 1
-
-                    # Populate intensity
-                    arr[:, inx] = spec.i
-                    inx += 1
-
-                    # Initialize output container
-                    if level not in res:
-                        res[level] = np.empty((N[level], m), dtype=dtype)
-                        counter[level] = 0
-
-                    # Insert subarray
-                    res[level][counter[level] : counter[level] + n, :] = arr
-                    counter[level] += n
-
-            # Construct ms1 and ms2 mz dataframes
-            for level in res.keys():
-                res[level] = pd.DataFrame(res[level], columns=cols[level]).drop(
-                    columns=["controllerType", "controllerNumber"],
-                    axis=1,
-                    inplace=False,
-                )
+            res = self.get_ms_raw(spectra, scan_df, data)
+            
         else:
             res = None
 

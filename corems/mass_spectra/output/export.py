@@ -986,6 +986,8 @@ class HighResMassSpectraExport(HighResMassSpecExport):
                 )
                 hdf_handle.attrs["sample_name"] = self.mass_spectra.sample_name
                 hdf_handle.attrs["polarity"] = self.mass_spectra.polarity
+                hdf_handle.attrs["parser_type"] = self.mass_spectra.spectra_parser_class.__name__
+                hdf_handle.attrs["original_file_location"] = self.mass_spectra.file_location._str
 
             if "mass_spectra" not in hdf_handle:
                 mass_spectra_group = hdf_handle.create_group("mass_spectra")

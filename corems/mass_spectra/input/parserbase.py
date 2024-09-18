@@ -39,6 +39,20 @@ class SpectraParserInterface(ABC):
         pass
 
     @abstractmethod
+    def get_scan_df(self):
+        """
+        Return scan data as a pandas DataFrame.
+        """
+        pass
+
+    @abstractmethod
+    def get_ms_raw(self, spectra, scan_df):
+        """
+        Return a dictionary of mass spectra data as a pandas DataFrame.
+        """
+        pass
+
+    @abstractmethod
     def get_mass_spectra_obj(self):
         """
         Return mass spectra data object.

@@ -10,10 +10,33 @@ import json
 
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
+from corems.mass_spectra.input.mzml import MZMLSpectraParser
 from corems.mass_spectra.output.export import LipidomicsExport
 from corems.molecular_id.search.database_interfaces import MetabRefLCInterface
 from corems.molecular_id.factory.lipid_molecular_metadata import LipidMetadata
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
+
+
+def test_import_lcmsobj_mzml():
+    # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
+    # Instantiate parser based on binary file type
+    file_mzml = (
+        Path.cwd()
+        / "tests/tests_data/lcms/"
+        / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.mzML"
+    )
+
+    parser = MZMLSpectraParser(file_mzml)
+
+    # Instatiate lc-ms data object using parser and pull in ms1 spectra into dataframe (without storing as MassSpectrum objects to save memory)
+    myLCMSobj = parser.get_lcms_obj(spectra="ms1", verbose=False)
+    myLCMSobj.find_mass_features(verbose=False)
+    myLCMSobj.add_associated_ms1(
+        auto_process=True, use_parser=False, spectrum_mode="profile"
+    )
+    myLCMSobj.integrate_mass_features(drop_if_fail=True)
+    mass_features_df = myLCMSobj.mass_features_to_df()
+    assert mass_features_df.shape == (197, 10)
 
 
 def test_lipidomics_workflow():
@@ -151,7 +174,7 @@ def test_lipidomics_workflow():
     """
     metabref = MetabRefLCInterface()
 
-    # Load an exampple json spectral library and convert to flashentropy format
+    # Load an example json spectral library and convert to flashentropy format
     with open("tests/tests_data/lcms/metabref_spec_lib.json") as f:
         spectra_library_json = json.load(f)
     spectra_library_fe = metabref._to_flashentropy(
@@ -201,6 +224,7 @@ def test_lipidomics_workflow():
         "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems/Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.hdf5"
     )
     myLCMSobj2 = parser.get_lcms_obj()
+    assert myLCMSobj2.spectra_parser_class.__name__ == "ImportMassSpectraThermoMSFileReader"
     df2 = myLCMSobj2.mass_features_to_df()
     assert df2.shape == (130, 14)
     myLCMSobj2.mass_features[1].mass_spectrum.to_dataframe()

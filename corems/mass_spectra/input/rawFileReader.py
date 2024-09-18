@@ -951,6 +951,182 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
     def load(self):
         pass
 
+    def get_scan_df(self):
+        # This automatically brings in all the data
+        self.chromatogram_settings.scans = (-1, -1)
+
+        # Get scan df info; starting with bulk ms1 and ms2 scans
+        ms1_tic_data, _ = self.get_tic(
+            ms_type="MS", peak_detection=False, smooth=False
+        )
+        ms1_scan_dict = {
+            "scan": ms1_tic_data.scans,
+            "scan_time": ms1_tic_data.time,
+            "tic": ms1_tic_data.tic,
+        }
+        ms1_tic_df = pd.DataFrame.from_dict(ms1_scan_dict)
+        ms1_tic_df["ms_level"] = "ms1"
+
+        ms2_tic_data, _ = self.get_tic(
+            ms_type="MS2", peak_detection=False, smooth=False
+        )
+        ms2_scan_dict = {
+            "scan": ms2_tic_data.scans,
+            "scan_time": ms2_tic_data.time,
+            "tic": ms2_tic_data.tic,
+        }
+        ms2_tic_df = pd.DataFrame.from_dict(ms2_scan_dict)
+        ms2_tic_df["ms_level"] = "ms2"
+
+        scan_df = (
+            pd.concat([ms1_tic_df, ms2_tic_df], axis=0)
+            .sort_values(by="scan")
+            .reindex()
+        )
+
+        # get scan text
+        scan_filter_df = pd.DataFrame.from_dict(
+            self.get_all_filters()[0], orient="index"
+        )
+        scan_filter_df.reset_index(inplace=True)
+        scan_filter_df.rename(
+            columns={"index": "scan", 0: "scan_text"}, inplace=True
+        )
+
+        scan_df = scan_df.merge(scan_filter_df, on="scan", how="left")
+        scan_df["scan_window_lower"] = scan_df.scan_text.str.extract(
+            r"\[(\d+\.\d+)-\d+\.\d+\]"
+        )
+        scan_df["scan_window_upper"] = scan_df.scan_text.str.extract(
+            r"\[\d+\.\d+-(\d+\.\d+)\]"
+        )
+        scan_df["polarity"] = np.where(
+            scan_df.scan_text.str.contains(" - "), "negative", "positive"
+        )
+        scan_df["precursor_mz"] = scan_df.scan_text.str.extract(r"(\d+\.\d+)@")
+        scan_df["precursor_mz"] = scan_df["precursor_mz"].astype(float)
+        scan_df["ms_level"] = scan_df["ms_level"].str.replace("ms", "").astype(int)
+
+        # Assign each scan as centroid or profile
+        scan_df["ms_format"] = None
+        for i in scan_df.scan.to_list():
+            if self.iRawDataPlus.IsCentroidScanFromScanNumber(i):
+                scan_df.loc[scan_df.scan == i, "ms_format"] = "centroid"
+            else:
+                scan_df.loc[scan_df.scan == i, "ms_format"] = "profile"
+        
+        return scan_df
+
+    def get_ms_raw(self, spectra, scan_df):
+        if spectra == "all":
+                scan_df_forspec = scan_df
+        elif spectra == "ms1":
+            scan_df_forspec = scan_df[scan_df.ms_level == 1]
+        elif spectra == "ms2":
+            scan_df_forspec = scan_df[scan_df.ms_level == 2]
+        else:
+            raise ValueError("spectra must be 'none', 'all', 'ms1', or 'ms2'")
+
+        # Result container
+        res = {}
+
+        # Row count container
+        counter = {}
+
+        # Column name container
+        cols = {}
+
+        # set at float32
+        dtype = np.float32
+
+        # First pass: get nrows
+        N = defaultdict(lambda: 0)
+        for i in scan_df_forspec.scan.to_list():
+            level = scan_df_forspec.loc[
+                scan_df_forspec.scan == i, "ms_level"
+            ].values[0]
+            scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(i)
+            profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(
+                i, scanStatistics
+            )
+            abun = list(profileStream.Intensities)
+            abun = np.array(abun)[np.where(np.array(abun) > 0)[0]]
+
+            N[level] += len(abun)
+
+        # Second pass: parse
+        for i in scan_df_forspec.scan.to_list():
+            scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(i)
+            profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(
+                i, scanStatistics
+            )
+            abun = list(profileStream.Intensities)
+            mz = list(profileStream.Positions)
+
+            # Get index of abun that are > 0
+            inx = np.where(np.array(abun) > 0)[0]
+            mz = np.array(mz)[inx]
+            mz = np.float32(mz)
+            abun = np.array(abun)[inx]
+            abun = np.float32(abun)
+
+            level = scan_df_forspec.loc[
+                scan_df_forspec.scan == i, "ms_level"
+            ].values[0]
+
+            # Number of rows
+            n = len(mz)
+
+            # No measurements
+            if n == 0:
+                continue
+
+            # Dimension check
+            if len(mz) != len(abun):
+                warnings.warn("m/z and intensity array dimension mismatch")
+                continue
+
+            # Scan/frame info
+            id_dict = i
+
+            # Columns
+            cols[level] = ["scan", "mz", "intensity"]
+            m = len(cols[level])
+
+            # Subarray init
+            arr = np.empty((n, m), dtype=dtype)
+            inx = 0
+
+            # Populate scan/frame info
+            arr[:, inx] = i
+            inx += 1
+
+            # Populate m/z
+            arr[:, inx] = mz
+            inx += 1
+
+            # Populate intensity
+            arr[:, inx] = abun
+            inx += 1
+
+            # Initialize output container
+            if level not in res:
+                res[level] = np.empty((N[level], m), dtype=dtype)
+                counter[level] = 0
+
+            # Insert subarray
+            res[level][counter[level] : counter[level] + n, :] = arr
+            counter[level] += n
+
+        # Construct ms1 and ms2 mz dataframes
+        for level in res.keys():
+            res[level] = pd.DataFrame(res[level])
+            res[level].columns = cols[level]
+        # rename keys in res to add 'ms' prefix
+        res = {f"ms{key}": value for key, value in res.items()}
+
+        return res
+    
     def run(self, spectra="all", scan_df=None):
         """
         Extracts mass spectra data from a raw file.
@@ -970,177 +1146,13 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
             - A pandas DataFrame containing scan information, including scan number, scan time, TIC, MS level,
                 scan text, scan window lower and upper bounds, polarity, and precursor m/z (if applicable).
         """
+        # Prepare scan_df
         if scan_df is None:
-            # This automatically brings in all the data
-            self.chromatogram_settings.scans = (-1, -1)
+            scan_df = self.get_scan_df()
 
-            # Get scan df info; starting with bulk ms1 and ms2 scans
-            ms1_tic_data, _ = self.get_tic(
-                ms_type="MS", peak_detection=False, smooth=False
-            )
-            ms1_scan_dict = {
-                "scan": ms1_tic_data.scans,
-                "scan_time": ms1_tic_data.time,
-                "tic": ms1_tic_data.tic,
-            }
-            ms1_tic_df = pd.DataFrame.from_dict(ms1_scan_dict)
-            ms1_tic_df["ms_level"] = "ms1"
-
-            ms2_tic_data, _ = self.get_tic(
-                ms_type="MS2", peak_detection=False, smooth=False
-            )
-            ms2_scan_dict = {
-                "scan": ms2_tic_data.scans,
-                "scan_time": ms2_tic_data.time,
-                "tic": ms2_tic_data.tic,
-            }
-            ms2_tic_df = pd.DataFrame.from_dict(ms2_scan_dict)
-            ms2_tic_df["ms_level"] = "ms2"
-
-            scan_df = (
-                pd.concat([ms1_tic_df, ms2_tic_df], axis=0)
-                .sort_values(by="scan")
-                .reindex()
-            )
-
-            # get scan text
-            scan_filter_df = pd.DataFrame.from_dict(
-                self.get_all_filters()[0], orient="index"
-            )
-            scan_filter_df.reset_index(inplace=True)
-            scan_filter_df.rename(
-                columns={"index": "scan", 0: "scan_text"}, inplace=True
-            )
-
-            scan_df = scan_df.merge(scan_filter_df, on="scan", how="left")
-            scan_df["scan_window_lower"] = scan_df.scan_text.str.extract(
-                r"\[(\d+\.\d+)-\d+\.\d+\]"
-            )
-            scan_df["scan_window_upper"] = scan_df.scan_text.str.extract(
-                r"\[\d+\.\d+-(\d+\.\d+)\]"
-            )
-            scan_df["polarity"] = np.where(
-                scan_df.scan_text.str.contains(" - "), "negative", "positive"
-            )
-            scan_df["precursor_mz"] = scan_df.scan_text.str.extract(r"(\d+\.\d+)@")
-            scan_df["precursor_mz"] = scan_df["precursor_mz"].astype(float)
-            scan_df["ms_level"] = scan_df["ms_level"].str.replace("ms", "").astype(int)
-
-            # Assign each scan as centroid or profile
-            scan_df["ms_format"] = None
-            for i in scan_df.scan.to_list():
-                if self.iRawDataPlus.IsCentroidScanFromScanNumber(i):
-                    scan_df.loc[scan_df.scan == i, "ms_format"] = "centroid"
-                else:
-                    scan_df.loc[scan_df.scan == i, "ms_format"] = "profile"
-
+        # Prepare mass spectra data
         if spectra != "none":
-            if spectra == "all":
-                scan_df_forspec = scan_df
-            elif spectra == "ms1":
-                scan_df_forspec = scan_df[scan_df.ms_level == 1]
-            elif spectra == "ms2":
-                scan_df_forspec = scan_df[scan_df.ms_level == 2]
-            else:
-                raise ValueError("spectra must be 'none', 'all', 'ms1', or 'ms2'")
-
-            # Result container
-            res = {}
-
-            # Row count container
-            counter = {}
-
-            # Column name container
-            cols = {}
-
-            # set at float32
-            dtype = np.float32
-
-            # First pass: get nrows
-            N = defaultdict(lambda: 0)
-            for i in scan_df_forspec.scan.to_list():
-                level = scan_df_forspec.loc[
-                    scan_df_forspec.scan == i, "ms_level"
-                ].values[0]
-                scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(i)
-                profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(
-                    i, scanStatistics
-                )
-                abun = list(profileStream.Intensities)
-                abun = np.array(abun)[np.where(np.array(abun) > 0)[0]]
-
-                N[level] += len(abun)
-
-            # Second pass: parse
-            for i in scan_df_forspec.scan.to_list():
-                scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(i)
-                profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(
-                    i, scanStatistics
-                )
-                abun = list(profileStream.Intensities)
-                mz = list(profileStream.Positions)
-
-                # Get index of abun that are > 0
-                inx = np.where(np.array(abun) > 0)[0]
-                mz = np.array(mz)[inx]
-                mz = np.float32(mz)
-                abun = np.array(abun)[inx]
-                abun = np.float32(abun)
-
-                level = scan_df_forspec.loc[
-                    scan_df_forspec.scan == i, "ms_level"
-                ].values[0]
-
-                # Number of rows
-                n = len(mz)
-
-                # No measurements
-                if n == 0:
-                    continue
-
-                # Dimension check
-                if len(mz) != len(abun):
-                    warnings.warn("m/z and intensity array dimension mismatch")
-                    continue
-
-                # Scan/frame info
-                id_dict = i
-
-                # Columns
-                cols[level] = ["scan", "mz", "intensity"]
-                m = len(cols[level])
-
-                # Subarray init
-                arr = np.empty((n, m), dtype=dtype)
-                inx = 0
-
-                # Populate scan/frame info
-                arr[:, inx] = i
-                inx += 1
-
-                # Populate m/z
-                arr[:, inx] = mz
-                inx += 1
-
-                # Populate intensity
-                arr[:, inx] = abun
-                inx += 1
-
-                # Initialize output container
-                if level not in res:
-                    res[level] = np.empty((N[level], m), dtype=dtype)
-                    counter[level] = 0
-
-                # Insert subarray
-                res[level][counter[level] : counter[level] + n, :] = arr
-                counter[level] += n
-
-            # Construct ms1 and ms2 mz dataframes
-            for level in res.keys():
-                res[level] = pd.DataFrame(res[level])
-                res[level].columns = cols[level]
-            # rename keys in res to add 'ms' prefix
-            res = {f"ms{key}": value for key, value in res.items()}
+            res = self.get_ms_raw(spectra=spectra, scan_df=scan_df)
         else:
             res = None
 
