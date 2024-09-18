@@ -419,6 +419,30 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             print(self.parameters.to_json())
         return self.parameters.to_json()
 
+    def remove_unprocessed_data(self, ms_level=None):
+        """Removes the unprocessed data from the LCMSBase object.
+
+        Parameters
+        -----------
+        ms_level : int, optional
+            The MS level to remove the unprocessed data for. If None, removes unprocessed data for all MS levels.
+
+        Raises
+        ------
+        ValueError
+            If ms_level is not 1 or 2.
+
+        Notes
+        -----
+        This method is useful for freeing up memory after the data has been processed.
+        """
+        if ms_level is None:
+            for ms_level in self._ms_unprocessed.keys():
+                self._ms_unprocessed[ms_level] = None
+        if ms_level not in [1, 2]:
+            raise ValueError("ms_level must be 1 or 2")
+        self._ms_unprocessed[ms_level] = None
+
     def add_associated_ms2_dda(
         self, auto_process=True, use_parser=True, spectrum_mode=None
     ):

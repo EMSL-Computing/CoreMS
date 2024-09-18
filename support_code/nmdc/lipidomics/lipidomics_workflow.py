@@ -457,6 +457,7 @@ def run_lipid_sp_ms1(
     myLCMSobj = instantiate_lcms_obj(file_in, verbose)
     set_params_on_lcms_obj(myLCMSobj, params_toml, verbose)
     add_mass_features(myLCMSobj, verbose)
+    myLCMSobj.remove_unprocessed_data()
     if ms1_molecular_search:
         molecular_formula_search(myLCMSobj)
     export_results(myLCMSobj, out_path=out_path, final=False)
