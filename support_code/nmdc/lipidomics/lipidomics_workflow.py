@@ -588,11 +588,11 @@ def run_lipid_workflow(
 
 if __name__ == "__main__":
     # Set input variables to run
-    cores = 1
+    cores = 6
     #file_dir = Path("tmp_data/thermo_raw_collection")
     file_dir = Path("/Users/heal742/LOCAL/10_lcms_collection_testing/KidsFirst_T-ALL_neg/raw_files")
     #out_dir = Path("tmp_data/NMDC_processed_collection_0820")
-    out_dir = Path("/Users/heal742/LOCAL/10_lcms_collection_testing/KidsFirst_T-ALL_neg/processed_files")
+    out_dir = Path("/Users/heal742/LOCAL/10_lcms_collection_testing/KidsFirst_T-ALL_neg/processed_files2")
     #params_toml = Path("tmp_data/thermo_raw_collection/nmdc_lipid_params.toml")
     params_toml = Path("/Users/heal742/LOCAL/10_lcms_collection_testing/KidsFirst_T-ALL_neg/lipid_workflow_params.toml")
 
