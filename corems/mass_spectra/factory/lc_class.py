@@ -8,7 +8,7 @@ import multiprocessing
 
 import matplotlib.pyplot as plt
 
-from corems.encapsulation.factory.parameters import LCMSParameters
+from corems.encapsulation.factory.parameters import LCMSParameters, LCMSCollectionParameters
 from corems.mass_spectra.calc.lc_calc import LCCalculations, PHCalculations, LCMSCollectionCalculations
 from corems.molecular_id.search.lcms_spectral_search import LCMSSpectralSearch
 from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
@@ -1133,11 +1133,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         self._lcms = {}
         self._combined_mass_features = None
         self.consensus_mass_features = {}
-
-        # TODO KRH: parameters that should be sourced from somewhere else and better stored
-        self.parameter_dict = {}
-        self.parameter_dict["cores"] = self.collection_parser._cores
-        self.parameter_dict["df_type"] = "dask"
+        self._parameters = LCMSCollectionParameters()
 
     def _reorder_lcms_objects(self):
         """
@@ -1187,19 +1183,19 @@ class LCMSCollection(LCMSCollectionCalculations):
         None, sets the _combined_mass_features attribute.
         """
 
-        if self.parameter_dict["cores"] == 1:
+        if self.parameters.lcms_collection.cores == 1:
             # Prepare mass features for combination sequentially
             mf_df_list = []
             for lcms_obj in self:
                 mf_df = self._prepare_lcms_mass_features_for_combination(lcms_obj)
                 mf_df_list.append(mf_df)
 
-        if self.parameter_dict["cores"] > 1:
+        if self.parameters.lcms_collection.cores > 1:
             # Parallelize the mass feature preparation
-            if self.parameter_dict["cores"] > len(self):
+            if self.parameters.lcms_collection.cores > len(self):
                 ncores = len(self)
             else:
-                ncores = self.parameter_dict["cores"]
+                ncores = self.parameters.lcms_collection.cores
             pool = multiprocessing.Pool(ncores)
             mf_df_list = pool.starmap(self._prepare_lcms_mass_features_for_combination, [(lcms_obj,) for lcms_obj in self])
 
@@ -1318,6 +1314,25 @@ class LCMSCollection(LCMSCollectionCalculations):
             ax.legend()
         plt.show()
 
+    @property
+    def parameters(self):
+        """
+        LCMSCollectionParameters : The parameters used for the LCMS collection.
+        """
+        return self._parameters
+    
+    @parameters.setter
+    def parameters(self, paramsinstance):
+        """
+        Sets the parameters used for the LCMS analysis collection.
+
+        Parameters
+        -----------
+        paramsinstance : LCMSCollectionParameters
+            The parameters used for the LC-MS analysis.
+        """
+        self._parameters = paramsinstance
+    
     @property
     def mass_features_dataframe(self):
         self._check_mass_features_df()

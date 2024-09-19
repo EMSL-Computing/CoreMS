@@ -886,3 +886,7 @@ class MolecularFormulaSearchSettings:
                     #will get the first number of all possible covalances, which should be the most commum 
                     self.used_atom_valences[atom] = covalence[0]
 
+@dataclasses.dataclass
+class LCMSCollectionSettings:
+    cores = 1
+    

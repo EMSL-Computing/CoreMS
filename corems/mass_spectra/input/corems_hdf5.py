@@ -623,7 +623,7 @@ class ReadCoreMSHDFMassSpectraCollection:
                         f"Parameters files for samples in batch {batch} are not equal."
                     )        
     
-    def get_lcms_obj(self, sample_name: str, load_raw=False, load_light=True) -> LCMSBase:
+    def get_lcms_obj(self, sample_name: str, load_raw=False, load_light=True, use_original_parser=True, raw_file_path=None) -> LCMSBase:
         """Return a LCMSBase object for a given sample name within the collection.
         
         Parameters
@@ -637,7 +637,7 @@ class ReadCoreMSHDFMassSpectraCollection:
         """
         hdf5_file = self.folder_location / f"{sample_name}.corems/{sample_name}.hdf5"
         parser = ReadCoreMSHDFMassSpectra(hdf5_file)
-        lcms_obj = parser.get_lcms_obj(load_raw=load_raw, load_light=load_light)
+        lcms_obj = parser.get_lcms_obj(load_raw=load_raw, load_light=load_light, use_original_parser=use_original_parser, raw_file_path=raw_file_path)
         if load_light:
             mf_df = lcms_obj.mass_features_to_df()
             lcms_obj.mass_features = {}
@@ -663,6 +663,9 @@ class ReadCoreMSHDFMassSpectraCollection:
             collection_parser=self
         )
 
+        # Set the number of cores on the LCMSCollection object from the ReadCoreMSHDFMassSpectraCollection object
+        lcms_coll.parameters.lcms_collection.cores = self._cores
+
         # Add LCMS objects to the collection
         samples = self._manifest_dict.keys()
 
@@ -674,16 +677,17 @@ class ReadCoreMSHDFMassSpectraCollection:
                 ncores = self._cores
             # Create a pool of workers (one for each core or sample, whichever is smaller)
             pool = multiprocessing.Pool(ncores)
-            # Load the LCMS objects in parallel
-            args = [(sample, load_raw, load_light) for sample in samples]
+            # Load the LCMS objects in parallel - do not instantiate the original parser by default
+            use_original_parser = False
+            args = [(sample, load_raw, load_light, use_original_parser) for sample in samples]
             lcms_objs = pool.starmap(self.get_lcms_obj, args)
             for sample_name, lcms_obj in zip(samples, lcms_objs):
                 lcms_coll._lcms[sample_name] = lcms_obj
 
         elif self._cores == 1:
-            # Load the LCMS objects sequentially
+            # Load the LCMS objects sequentially - do not instantiate the original parser by default
             for sample_name in samples:
-                lcms_coll._lcms[sample_name] = self.get_lcms_obj(sample_name, load_raw=load_raw, load_light=load_light)
+                lcms_coll._lcms[sample_name] = self.get_lcms_obj(sample_name, load_raw=load_raw, load_light=load_light, use_original_parser=False)
 
         else:
             raise ValueError("Number of cores must be greater than 0 and set on the ReadCoreMSHDFMassSpectraCollection object.")

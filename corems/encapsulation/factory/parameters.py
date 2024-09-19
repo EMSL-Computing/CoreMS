@@ -1,4 +1,4 @@
-from corems.encapsulation.factory.processingSetting  import LiquidChromatographSetting, MolecularFormulaSearchSettings, TransientSetting, MassSpecPeakSetting, MassSpectrumSetting
+from corems.encapsulation.factory.processingSetting  import LiquidChromatographSetting, MolecularFormulaSearchSettings, TransientSetting, MassSpecPeakSetting, MassSpectrumSetting, LCMSCollectionSettings
 from corems.encapsulation.factory.processingSetting  import CompoundSearchSettings, GasChromatographSetting
 from corems.encapsulation.factory.processingSetting  import DataInputSetting
 
@@ -70,6 +70,9 @@ class LCMSParameters:
     ms1_molecular_search = MolecularFormulaSearchSettings()
     
     ms2_molecular_search = MolecularFormulaSearchSettings()
+   
+class LCMSCollectionParameters:
+    lcms_collection = LCMSCollectionSettings()
 
 def default_parameters(file_location):  # pragma: no cover
     """Generate parameters dictionary with the default parameters for data processing
