@@ -1701,9 +1701,9 @@ class LCMSCollectionCalculations:
                             matches_c.reset_index(drop=False, inplace=True)
                             matches_i.reset_index(drop=False, inplace=True)
 
-                            #TODO KRH: source holdout fraction from a parameter
-                            #TODO KRH: source random seed from a parameter for reproducibility
-                            idx_holdout = np.random.choice(matches_c.index, size=int(len(matches_c) * 0.3), replace=False)
+                            hold_out_fraction = self.parameters.lcms_collection.alignment_hold_out_fraction
+                            #TODO KRH: pull idx_holdout not randomly, but by scan_time, grabbing a reproducible subset of the full range of scan_times
+                            idx_holdout = np.random.choice(matches_c.index, size=int(len(matches_c) * hold_out_fraction), replace=False)
                             matches_c_holdout = matches_c.loc[idx_holdout].copy()
                             matches_i_holdout = matches_i.loc[idx_holdout].copy()
 
@@ -1722,11 +1722,13 @@ class LCMSCollectionCalculations:
                             matches_i_holdout['scan_time_fit'] = spl(matches_i_holdout['scan_time'])
                             og_diff = np.abs(matches_i_holdout['scan_time'] - matches_c_holdout['scan_time'])
                             fit_diff = np.abs(matches_i_holdout['scan_time_fit'] - matches_c_holdout['scan_time'])
-                            fraction_improved = np.sum(fit_diff < og_diff) / len(og_diff)
 
-                            #TODO KRH: source improvement threshold from a parameter
-                            use_spline_alignment = fraction_improved > 0.5                  
-                            #TODO KRH: use_spline_alignment in the LCMS collection object          
+                            if self.parameters.lcms_collection.alignment_acceptance_techinque == "fraction_improved":
+                                fraction_improved = np.sum(fit_diff < og_diff) / len(og_diff)
+                                use_spline_alignment = fraction_improved > self.parameters.lcms_collection.alignment_fraction_improved_threshold              
+                                #TODO KRH: add use_spline_alignment attribute to in the LCMS collection object somewhere
+                            else:
+                                raise ValueError(f'Alignment acceptance technique {self.parameters.lcms_collection.alignment_acceptance_techinque} not recognized')       
 
                             if use_spline_alignment:
                                 # Set new retention times on scan_df for lc_obj using the spline fitting
@@ -1770,10 +1772,10 @@ class LCMSCollectionCalculations:
         lazy_partitions = corems_subset.multi_sample_partition(combined_mfs, split_on = 'mz', size=10000, tol=0.001)
 
         # Cluster the mass features within each partition
-        if self.parameter_dict["cores"] > lazy_partitions.n_partitions:
+        if self.parameters.lcms_collection.cores > lazy_partitions.n_partitions:
             cores_to_use = lazy_partitions.n_partitions
         else:
-            cores_to_use = self.parameter_dict["cores"]
+            cores_to_use = self.parameters.lcms_collection.cores
         mfs_with_clusters = lazy_partitions.map(self.cluster_mass_features, processes=cores_to_use)
 
         # Combine the mass features with clusters into a single dataframe and clean up the cluster ids

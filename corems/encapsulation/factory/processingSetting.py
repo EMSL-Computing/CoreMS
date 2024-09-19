@@ -888,8 +888,16 @@ class MolecularFormulaSearchSettings:
 
 @dataclasses.dataclass
 class LCMSCollectionSettings:
+    
+    # Settings for general processing
     cores = 1
+
+    # Settings for doing mass feature alignment
     mass_feature_anchor_technique = ["deconvoluted_mass_spectra"]
     mass_feature_anchor_techniques_available = ("deconvoluted_mass_spectra", "absolute_intensity")
     mass_feature_anchor_aboslute_intensity_threshold = 10000
+    alignment_hold_out_fraction = 0.3
+    alignment_acceptance_techinque = "fraction_improved"
+    alignment_acceptance_techinques_available = ("fraction_improved")
+    alignment_fraction_improved_threshold = 0.3
     
