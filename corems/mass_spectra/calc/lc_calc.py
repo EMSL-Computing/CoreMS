@@ -1473,8 +1473,8 @@ class LCMSCollectionCalculations:
         mf_i['id_i'] = 1
 
         # Set dimensions for matching
-        dims = ["mz", "scan_time"] #TODO KRH: source this from a parameter, make mz relative
-        relative = [False, False] #TODO KRH: source this from a parameter, make mz relative
+        dims = ["mz", "scan_time"] 
+        relative = [False, False] 
         tol = [0.0005, 0.1] #TODO KRH: source this from a parameter, make mz relative
 
         # Compute inter-feature distances
@@ -1625,12 +1625,17 @@ class LCMSCollectionCalculations:
         :obj:`~pandas.DataFrame`
             The anchor mass features dataframe.
         """
-        #TODO KRH: add anchoring_technique parameter to source this from a parameter
         mf_df = mf_df.copy()
 
-        # Drop features that are not mass_spectrum_deconvoluted_parent or are NA as mass_spectrum_deconvoluted_parent
-        mf_df = mf_df.dropna(subset=["mass_spectrum_deconvoluted_parent"])
-        mf_df = mf_df[mf_df["mass_spectrum_deconvoluted_parent"]]
+        if "deconvoluted_mass_spectra"  in self.parameters.lcms_collection.mass_feature_anchor_technique:
+            # Drop features that are not mass_spectrum_deconvoluted_parent or are NA as mass_spectrum_deconvoluted_parent
+            mf_df = mf_df.dropna(subset=["mass_spectrum_deconvoluted_parent"])
+            mf_df = mf_df[mf_df["mass_spectrum_deconvoluted_parent"]]
+
+        if "absolute_intensity" in self.parameters.lcms_collection.mass_feature_anchor_technique:
+            # Drop features that have an absolute_intensity lower than the threshold
+            threshold = self.parameters.lcms_collection.mass_feature_anchor_aboslute_intensity_threshold
+            mf_df = mf_df[mf_df["absolute_intensity"] > threshold]
 
         return mf_df
 

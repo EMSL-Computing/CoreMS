@@ -889,4 +889,7 @@ class MolecularFormulaSearchSettings:
 @dataclasses.dataclass
 class LCMSCollectionSettings:
     cores = 1
+    mass_feature_anchor_technique = ["deconvoluted_mass_spectra"]
+    mass_feature_anchor_techniques_available = ("deconvoluted_mass_spectra", "absolute_intensity")
+    mass_feature_anchor_aboslute_intensity_threshold = 10000
     
