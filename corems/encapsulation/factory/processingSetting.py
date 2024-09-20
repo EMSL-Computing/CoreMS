@@ -888,16 +888,91 @@ class MolecularFormulaSearchSettings:
 
 @dataclasses.dataclass
 class LCMSCollectionSettings:
-    
+    """Settings for LCMS collection class
+
+    Attributes
+    ----------
+    cores : int, optional
+        Number of cores to use for processing. Default is 1.
+    mass_feature_anchor_technique: list, optional
+        List of mass feature anchor techniques for retention time alignment. 
+        Default is ['deconvoluted_mass_spectra'].
+    mass_feature_anchor_techniques_available: tuple, optional
+        Tuple of available mass feature anchor techniques for retention time alignment.
+        Default is ('deconvoluted_mass_spectra', 'absolute_intensity').
+    mass_feature_anchor_aboslute_intensity_threshold: int, optional
+        Absolute intensity threshold for mass feature anchor for retention time alignment.
+        Default is 10000.
+    alignment_hold_out_fraction: float, optional
+        Hold out fraction for testing retention time alignment.
+        Default is 0.3.
+    alignment_acceptance_techinque: list, optional
+        List of alignment acceptance techniques for retention time alignment.
+        Default is ['fraction_improved', 'mean_squared_error_improved'].
+    alignment_acceptance_techinques_available: tuple, optional
+        Tuple of available alignment acceptance techniques for retention time alignment.
+        Default is ('fraction_improved', 'mean_squared_error_improved').
+    alignment_acceptance_fraction_improved_threshold: float, optional
+        Threshold for the improved fraction of the hold out mass features for accepting retention time alignment.
+        Default is 0.5.
+    alignment_mz_tol_ppm: int, optional
+        m/z tolerance in ppm for retention time alignment, in ppm. Default is 5.
+    alignment_rt_tol: float, optional
+        Retention time tolerance for retention time alignment, in minutes. Default is 0.3.
+    consensus_mz_tol_ppm: int, optional
+        m/z tolerance in ppm for consensus mass feature alignment. Default is 5.
+        The recommendation is that this value should be the same as alignment_mz_tol_ppm.
+    consensus_rt_tol: float, optional
+        Retention time tolerance for consensus mass feature alignment, in minutes. Default is 0.2.
+    """
     # Settings for general processing
     cores = 1
 
     # Settings for doing mass feature alignment
-    mass_feature_anchor_technique = ["deconvoluted_mass_spectra"]
-    mass_feature_anchor_techniques_available = ("deconvoluted_mass_spectra", "absolute_intensity")
-    mass_feature_anchor_aboslute_intensity_threshold = 10000
-    alignment_hold_out_fraction = 0.3
-    alignment_acceptance_techinque = "fraction_improved"
-    alignment_acceptance_techinques_available = ("fraction_improved")
-    alignment_fraction_improved_threshold = 0.3
-    
+    _mass_feature_anchor_technique: list = dataclasses.field(default_factory=lambda: ["deconvoluted_mass_spectra"])
+    mass_feature_anchor_techniques_available: tuple = ("deconvoluted_mass_spectra", "absolute_intensity")
+    mass_feature_anchor_aboslute_intensity_threshold: int = 10000
+    alignment_hold_out_fraction: float = 0.3
+    _alignment_acceptance_techinque: list = dataclasses.field(default_factory=lambda: ["fraction_improved", "mean_squared_error_improved"])
+    alignment_acceptance_techinques_available: tuple = ("fraction_improved", "mean_squared_error_improved")
+    alignment_acceptance_fraction_improved_threshold: float = 0.5
+    alignment_mz_tol_ppm: int = 5
+    alignment_rt_tol: float = 0.3      
+
+    # Consensus mass feature settings
+    consensus_mz_tol_ppm = alignment_mz_tol_ppm
+    consensus_rt_tol = 0.2
+
+    def __post_init__(self):
+        self.consensus_mz_tol_ppm = self.alignment_mz_tol_ppm
+        self._validate_alignment_acceptance_techinque(self.alignment_acceptance_techinque)
+        self._validate_mass_feature_anchor_technique(self.mass_feature_anchor_technique)
+
+    def _validate_alignment_acceptance_techinque(self, techniques):
+        for technique in techniques:
+            if technique not in self.alignment_acceptance_techinques_available:
+                raise ValueError(f"Alignment acceptance technique '{technique}' is not available. Alignment acceptance technique must be passed as a list. Available techniques: {self.alignment_acceptance_techinques_available}")
+
+    def _validate_mass_feature_anchor_technique(self, techniques):
+        for technique in techniques:
+            if technique not in self.mass_feature_anchor_techniques_available:
+                raise ValueError(f"Mass feature anchor technique '{technique}' is not available. Alignment acceptance technique must be passed as a list. Available techniques: {self.mass_feature_anchor_techniques_available}")
+
+    @property
+    def alignment_acceptance_techinque(self):
+        return self._alignment_acceptance_techinque
+
+    @alignment_acceptance_techinque.setter
+    def alignment_acceptance_techinque(self, value):
+        self._validate_alignment_acceptance_techinque(value)
+        self._alignment_acceptance_techinque = value
+
+    @property
+    def mass_feature_anchor_technique(self):
+        return self._mass_feature_anchor_technique
+
+    @mass_feature_anchor_technique.setter
+    def mass_feature_anchor_technique(self, value):
+        self._validate_mass_feature_anchor_technique(value)
+        self._mass_feature_anchor_technique = value
+

@@ -1474,8 +1474,10 @@ class LCMSCollectionCalculations:
 
         # Set dimensions for matching
         dims = ["mz", "scan_time"] 
-        relative = [False, False] 
-        tol = [0.0005, 0.1] #TODO KRH: source this from a parameter, make mz relative
+        relative = [True, False] 
+        mz_tol = self.parameters.lcms_collection.alignment_mz_tol_ppm * 1E-6
+        rt_tol = self.parameters.lcms_collection.alignment_rt_tol
+        tol = [mz_tol, rt_tol] 
 
         # Compute inter-feature distances
         idx = []
@@ -1701,9 +1703,14 @@ class LCMSCollectionCalculations:
                             matches_c.reset_index(drop=False, inplace=True)
                             matches_i.reset_index(drop=False, inplace=True)
 
+                            # Rearrange matches_c and matches_i to be in the order of the scan_time of matches_c
+                            matches_c = matches_c.sort_values(by='scan_time')
+                            matches_i = matches_i.iloc[matches_c.index.values]
+
                             hold_out_fraction = self.parameters.lcms_collection.alignment_hold_out_fraction
-                            #TODO KRH: pull idx_holdout not randomly, but by scan_time, grabbing a reproducible subset of the full range of scan_times
-                            idx_holdout = np.random.choice(matches_c.index, size=int(len(matches_c) * hold_out_fraction), replace=False)
+                            # starting with an array of length len(matches_c), select equally spaced indices to hold out
+                            idx_holdout = matches_c.index.values[np.arange(0, len(matches_c), int(1/hold_out_fraction))]
+
                             matches_c_holdout = matches_c.loc[idx_holdout].copy()
                             matches_i_holdout = matches_i.loc[idx_holdout].copy()
 
@@ -1723,12 +1730,17 @@ class LCMSCollectionCalculations:
                             og_diff = np.abs(matches_i_holdout['scan_time'] - matches_c_holdout['scan_time'])
                             fit_diff = np.abs(matches_i_holdout['scan_time_fit'] - matches_c_holdout['scan_time'])
 
-                            if self.parameters.lcms_collection.alignment_acceptance_techinque == "fraction_improved":
+                            if "fraction_improved" in self.parameters.lcms_collection.alignment_acceptance_techinque:
                                 fraction_improved = np.sum(fit_diff < og_diff) / len(og_diff)
-                                use_spline_alignment = fraction_improved > self.parameters.lcms_collection.alignment_fraction_improved_threshold              
-                                #TODO KRH: add use_spline_alignment attribute to in the LCMS collection object somewhere
-                            else:
-                                raise ValueError(f'Alignment acceptance technique {self.parameters.lcms_collection.alignment_acceptance_techinque} not recognized')       
+                                use_spline_alignment = fraction_improved > self.parameters.lcms_collection.alignment_acceptance_fraction_improved_threshold              
+                            if "mean_squared_error_improved" in self.parameters.lcms_collection.alignment_acceptance_techinque:
+                                mse_og = np.mean(og_diff**2)
+                                mse = np.mean(fit_diff**2)
+                                use_spline_alignment = mse < mse_og
+     
+                            # Record if we used alignment for this sample
+                            sample_name = self.samples[i]
+                            self._manifest_dict[sample_name]['use_rt_alignment'] = use_spline_alignment
 
                             if use_spline_alignment:
                                 # Set new retention times on scan_df for lc_obj using the spline fitting
@@ -1824,16 +1836,14 @@ class LCMSCollectionCalculations:
             return None
 
         # Define how to calculate the distance between features
-        # TODO KRH: source this from a parameter
-        # TODO KRH: make mz relative
         dims = ["mz", "scan_time_aligned"]        
-        relative = [False, False]                                
-        tol = [0.001, 0.2]                                                         
+        relative = [True, False]              
+        mz_tol_relative = self.parameters.lcms_collection.consensus_mz_tol_ppm*1e-6                  
+        tol = [mz_tol_relative, self.parameters.lcms_collection.consensus_rt_tol]                                                         
         dist_weight = [1, 1]                                                       
-        na_fill = [None, None]                                                       
 
         # Check that the dimensions and tolerances are the same length
-        if len(dims) != len(tol) or len(dims) != len(relative) or len(dims) != len(na_fill) or len(dims) != len(dist_weight):
+        if len(dims) != len(tol) or len(dims) != len(relative) or len(dims) != len(dist_weight):
             raise ValueError("The dimensions, tolerances, relative, dist_weight, and na_allow lists must be the same length")
 
         # Copy input
@@ -1855,10 +1865,6 @@ class LCMSCollectionCalculations:
         for i in range(len(dims)):
             # Construct k-d tree
             values = features[dims[i]].values
-
-            # Fill NAs if applicable
-            if na_fill[i] is not None:
-                values = np.where(np.isnan(values), na_fill[i], values)
 
             tree = KDTree(values.reshape(-1, 1))
 
