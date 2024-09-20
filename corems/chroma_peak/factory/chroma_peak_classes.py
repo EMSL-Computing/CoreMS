@@ -217,7 +217,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             self.id = (
                 max(lcms_parent.mass_features.keys()) + 1
                 if lcms_parent.mass_features.keys()
-                else 1
+                else 0
             )
 
     def update_mz(self):

@@ -1369,21 +1369,25 @@ class PHCalculations:
         distances = distances.tocoo()
         pairs = np.stack((distances.row, distances.col), axis=1)
         pairs_df = pd.DataFrame(pairs, columns=["parent", "child"])
+        pairs_df = pairs_df.set_index("parent")
 
         to_drop = []
         while not pairs_df.empty:
-            pairs_df = pairs_df.set_index("parent")
-
             # Find root_parents and their children
-            root_parents = np.setdiff1d(np.unique(pairs[:, 0]), np.unique(pairs[:, 1]))
+            root_parents = np.setdiff1d(np.unique(pairs_df.index.values), np.unique(pairs_df.child.values))
             children_of_roots = pairs_df.loc[root_parents, "child"].unique()
             to_drop = np.append(to_drop, children_of_roots)
 
+            # Remove root_children as possible parents from pairs_df for next iteration
             pairs_df = pairs_df.drop(
                 index=children_of_roots, errors="ignore"
-            )  # Drop pairs where the parent is a child that is a child of a root
-            pairs_df = pairs_df.set_index("child")
+            )  
+            pairs_df = pairs_df.reset_index().set_index("child")
+            # Remove root_children as possible children from pairs_df for next iteration
             pairs_df = pairs_df.drop(index=children_of_roots)
+
+            # Prepare for next iteration
+            pairs_df = pairs_df.reset_index().set_index("parent")
 
         # Drop mass features that are not cluster parents
         mf_df = mf_df.drop(index=np.array(to_drop))

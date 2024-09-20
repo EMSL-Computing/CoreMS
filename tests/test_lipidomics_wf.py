@@ -133,9 +133,9 @@ def test_lipidomics_workflow():
         i += 1
 
     # Check results of molecular search
-    assert myLCMSobj.mass_features[1].ms1_peak[0].string == "C20 H30 O2"
+    assert myLCMSobj.mass_features[0].ms1_peak[0].string == "C20 H30 O2"
     assert myLCMSobj.mass_features_ms1_annot_to_df().shape == (130, 25)
-    myLCMSobj.mass_features[1].mass_spectrum.to_dataframe()
+    myLCMSobj.mass_features[0].mass_spectrum.to_dataframe()
     
     # Add ms2 data to lcms object
     myLCMSobj.add_associated_ms2_dda(spectrum_mode="centroid")
@@ -145,7 +145,7 @@ def test_lipidomics_workflow():
     assert df.shape == (130, 14)
 
     # Plot a mass feature
-    myLCMSobj.mass_features[1].plot(return_fig=False)
+    myLCMSobj.mass_features[0].plot(return_fig=False)
 
     """
     # This code should be left as an example for how to generate example json data
@@ -227,10 +227,10 @@ def test_lipidomics_workflow():
     assert myLCMSobj2.spectra_parser_class.__name__ == "ImportMassSpectraThermoMSFileReader"
     df2 = myLCMSobj2.mass_features_to_df()
     assert df2.shape == (130, 14)
-    myLCMSobj2.mass_features[1].mass_spectrum.to_dataframe()
-    assert myLCMSobj2.mass_features[1].ms1_peak[0].string == "C20 H30 O2"
+    myLCMSobj2.mass_features[0].mass_spectrum.to_dataframe()
+    assert myLCMSobj2.mass_features[0].ms1_peak[0].string == "C20 H30 O2"
     assert myLCMSobj2.mass_features_ms1_annot_to_df().shape == (130, 25)
-    myLCMSobj2.mass_features[1].plot(return_fig=False)
+    myLCMSobj2.mass_features[0].plot(return_fig=False)
 
     # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
     shutil.rmtree(
