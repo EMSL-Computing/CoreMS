@@ -1134,6 +1134,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         self._combined_mass_features = None
         self.consensus_mass_features = {}
         self._parameters = LCMSCollectionParameters()
+        self.isotopes_dropped = False
 
     def _reorder_lcms_objects(self):
         """
@@ -1222,6 +1223,10 @@ class LCMSCollection(LCMSCollectionCalculations):
         If scan_time_aligned is not in the _combined_mass_features, tries to add it.
 
         """  
+        # Check if parameters are set to drop isotopologues and drop if so
+        if self.parameters.lcms_collection.drop_isotopologues:
+            if not self.isotopes_dropped:
+                self._drop_isotopologues()
         # Check if scan_time_aligned is in combined_mass_features, try to add if not
         if self._combined_mass_features is not None and "scan_time_aligned" not in self._combined_mass_features.columns:
             cmb_mf = self._combined_mass_features.copy()
@@ -1313,6 +1318,22 @@ class LCMSCollection(LCMSCollectionCalculations):
         if plot_legend:
             ax.legend()
         plt.show()
+
+    def _drop_isotopologues(self):
+        """Drops isotopologues from the mass features in combined_mass_features dataframe."""
+        cmb_mf_df = self._combined_mass_features
+
+        # Keep monos or if no monos
+        cmb_monos = cmb_mf_df[cmb_mf_df.monoisotopic_mf_id == cmb_mf_df.mf_id]
+        cmb_nomonos = cmb_mf_df[cmb_mf_df.monoisotopic_mf_id.isnull()]
+        # Keep deconvoluted parent or if no deconvoluted parent
+        cmb_decon_parent = cmb_mf_df[cmb_mf_df.mass_spectrum_deconvoluted_parent | cmb_mf_df.monoisotopic_mf_id.isnull()]
+
+        cmb_mf_df2 = pd.concat([cmb_monos, cmb_nomonos, cmb_decon_parent])
+        cmb_mf_df2 = cmb_mf_df2[~cmb_mf_df2.index.duplicated(keep='first')]
+
+        self.isotopes_dropped = True
+        self._combined_mass_features = cmb_mf_df2
 
     @property
     def parameters(self):

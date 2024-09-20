@@ -894,6 +894,11 @@ class LCMSCollectionSettings:
     ----------
     cores : int, optional
         Number of cores to use for processing. Default is 1.
+    drop_isotopologues : bool, optional
+        If True, drop isotopologues from all analyses.
+        Note that this will keep mass features identified as monoisotopes or largest ion in deconvoluted mass spectrum.
+        It will also keep mass features not identified as isotopologues or monoisotopes.
+        Default is True.
     mass_feature_anchor_technique: list, optional
         List of mass feature anchor techniques for retention time alignment. 
         Default is ['deconvoluted_mass_spectra'].
@@ -927,6 +932,7 @@ class LCMSCollectionSettings:
     """
     # Settings for general processing
     cores = 1
+    drop_isotopologues: bool = False
 
     # Settings for doing mass feature alignment
     _mass_feature_anchor_technique: list = dataclasses.field(default_factory=lambda: ["deconvoluted_mass_spectra"])

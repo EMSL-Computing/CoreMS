@@ -33,6 +33,9 @@ if __name__ == "__main__":
     print("Time to load LCMS collection ", time.time() - start_time, "seconds -", len(lcms_collection), " LCMS runs and ", ncores, " cores") 
     #10s for 7 samples, 10 cores; 162s for 70 samples, 10 cores
     lcms_collection.mass_features_dataframe
+    lcms_collection.parameters.lcms_collection.drop_isotopologues = True
+    lcms_collection.mass_features_dataframe
+    print("Calculating distance matrices")
 
 
     print("Aligning LCMS collection")
