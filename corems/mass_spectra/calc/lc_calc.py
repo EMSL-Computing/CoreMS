@@ -373,7 +373,7 @@ class LCCalculations:
         else:
             raise ValueError("Peak picking method not implemented")
 
-    def integrate_mass_features(self, drop_if_fail=False, ms_level=1):
+    def integrate_mass_features(self, drop_if_fail=True, drop_duplicates=True, ms_level=1):
         """Integrate mass features and extract EICs.
 
         Populates the _eics attribute on the LCMSBase object for each unique mz in the mass_features dataframe and adds data (start_scan, final_scan, area) to the mass_features attribute.
@@ -382,6 +382,11 @@ class LCCalculations:
         ----------
         drop_if_fail : bool, optional
             Whether to drop mass features if the EIC limit calculations fail.
+            Default is True.
+        drop_duplicates : bool, optional
+            Whether to mass features that appear to be duplicates 
+            (i.e., mz is similar to another mass feature and limits of the EIC are similar or encapsulating).
+            Default is True.
         ms_level : int, optional
             The MS level to use. Default is 1.
 
@@ -494,6 +499,27 @@ class LCCalculations:
             else:
                 if drop_if_fail is True:
                     self.mass_features.pop(idx)
+        
+        if drop_duplicates:
+            # Prepare mass feature dataframe
+            mf_df = self.mass_features_to_df().copy()
+
+            # For each mass feature, find all mass features within the clustering tolerance ppm and drop if their start and end times are within another mass feature
+            # Kepp the first mass fea
+            for idx, mass_feature in mf_df.iterrows():
+                mz = mass_feature.mz
+                apex_scan = mass_feature.apex_scan
+
+                mf_df["mz_diff_ppm"] = np.abs(mf_df["mz"] - mz) / mz * 10**6
+                mf_df_sub = mf_df[mf_df["mz_diff_ppm"] < self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel * 10**6].copy()
+
+                # For all mass features within the clustering tolerance, check if the start and end times are within the start and end times of the mass feature
+                for idx2, mass_feature2 in mf_df_sub.iterrows():
+                    if idx2 != idx:
+                        if mass_feature2.start_scan >= mass_feature.start_scan and mass_feature2.final_scan <= mass_feature.final_scan:
+                            self.mass_features.pop(idx2)
+
+    
 
     def find_c13_mass_features(self, verbose=True):
         """Mark likely C13 isotopes and connect to monoisoitopic mass features.

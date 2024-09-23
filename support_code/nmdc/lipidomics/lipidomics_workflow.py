@@ -267,6 +267,8 @@ def add_mass_features(myLCMSobj, verbose):
         auto_process=True, use_parser=False, spectrum_mode="profile"
     )
     myLCMSobj.integrate_mass_features(drop_if_fail=True)
+    # Count and report how many mass features are left after integration
+    print("Number of mass features after integration: ", len(myLCMSobj.mass_features))
     myLCMSobj.find_c13_mass_features(verbose=verbose)
     myLCMSobj.deconvolute_ms1_mass_features()
     myLCMSobj.add_peak_metrics()
@@ -570,7 +572,7 @@ if __name__ == "__main__":
     # Set input variables to run
     cores = 1
     file_dir = Path("tmp_data/thermo_raw_mini")
-    out_dir = Path("tmp_data/NMDC_processed_09179b_lite_export")
+    out_dir = Path("tmp_data/NMDC_processed_09123_lite_export")
     params_toml = Path("tmp_data/thermo_raw_collection/nmdc_lipid_params.toml")
     verbose = True
 

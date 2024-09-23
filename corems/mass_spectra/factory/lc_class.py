@@ -701,6 +701,8 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         cols_in_df = [
             "id",
             "_apex_scan",
+            "start_scan",
+            "final_scan",
             "_retention_time",
             "_intensity",
             "_persistence",
@@ -735,6 +737,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 dict_mf["half_height_width"] = self.mass_features[
                     mf_id
                 ].half_height_width
+            # Check if EIC for mass feature is set
             df_mf_single = pd.DataFrame(dict_mf, index=[mf_id])
             df_mf_single["mz"] = self.mass_features[mf_id].mz
             df_mf_list.append(df_mf_single)
@@ -760,6 +763,8 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             "scan_time",
             "mz",
             "apex_scan",
+            "start_scan",
+            "final_scan",
             "intensity",
             "persistence",
             "area",

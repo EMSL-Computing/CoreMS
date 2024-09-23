@@ -34,9 +34,9 @@ def test_import_lcmsobj_mzml():
     myLCMSobj.add_associated_ms1(
         auto_process=True, use_parser=False, spectrum_mode="profile"
     )
-    myLCMSobj.integrate_mass_features(drop_if_fail=True)
+    myLCMSobj.integrate_mass_features()
     mass_features_df = myLCMSobj.mass_features_to_df()
-    assert mass_features_df.shape == (197, 10)
+    assert mass_features_df.shape == (197, 12)
 
 
 def test_lipidomics_workflow():
@@ -94,6 +94,8 @@ def test_lipidomics_workflow():
     ## reporting settings
     myLCMSobj.parameters.lc_ms.search_as_lipids = True
     myLCMSobj.parameters.lc_ms.include_fragment_types = True
+    myLCMSobj.parameters.lc_ms.export_eics = True
+    myLCMSobj.parameters.lc_ms.export_profile_spectra = True
 
     # Use persistent homology to find mass features in the lc-ms data
     # Find mass features, cluster, and integrate them.  Then annotate pairs of mass features that are c13 iso pairs.
@@ -142,7 +144,7 @@ def test_lipidomics_workflow():
 
     # Export the mass features to a pandas dataframe
     df = myLCMSobj.mass_features_to_df()
-    assert df.shape == (130, 14)
+    assert df.shape == (130, 16)
 
     # Plot a mass feature
     myLCMSobj.mass_features[0].plot(return_fig=False)
@@ -226,7 +228,7 @@ def test_lipidomics_workflow():
     myLCMSobj2 = parser.get_lcms_obj()
     assert myLCMSobj2.spectra_parser_class.__name__ == "ImportMassSpectraThermoMSFileReader"
     df2 = myLCMSobj2.mass_features_to_df()
-    assert df2.shape == (130, 14)
+    assert df2.shape == (130, 16)
     myLCMSobj2.mass_features[0].mass_spectrum.to_dataframe()
     assert myLCMSobj2.mass_features[0].ms1_peak[0].string == "C20 H30 O2"
     assert myLCMSobj2.mass_features_ms1_annot_to_df().shape == (130, 25)

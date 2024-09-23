@@ -358,8 +358,12 @@ class ReadCoreMSHDFMassSpectra(
                 time=dict_group_load[k]["time"][:],
                 eic=dict_group_load[k]["eic"][:],
             )
-            for key in dict_group_load[k].attrs.keys() - {"scans", "time", "eic", "mz"}:
-                setattr(my_eic, key, dict_group_load[k][key][:])
+            for key in dict_group_load[k].keys():
+                if key not in ["scans", "time", "eic"]:
+                    setattr(my_eic, key, dict_group_load[k][key][:])
+                    # if key is apexes, convert to a tuple of a list
+                    if key == "apexes" and len(my_eic.apexes) > 0:
+                        my_eic.apexes = [tuple(x) for x in my_eic.apexes]
             # Add to mass_spectra object
             mass_spectra.eics[dict_group_load[k].attrs["mz"]] = my_eic
 
