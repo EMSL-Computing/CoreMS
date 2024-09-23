@@ -275,6 +275,7 @@ def add_mass_features(myLCMSobj, verbose):
     myLCMSobj.integrate_mass_features(drop_if_fail=True)
     if verbose:
         print("Annotating c13 mass features")
+        print("Number of mass features after integration: ", len(myLCMSobj.mass_features))
     myLCMSobj.find_c13_mass_features(verbose=verbose)
     if verbose:
         print("Deconvoluting mass features")
