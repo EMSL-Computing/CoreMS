@@ -1785,7 +1785,7 @@ class LCMSCollectionCalculations:
         from corems.chroma_peak.calc import subset as corems_subset
 
         # TODO KRH: source partition size and tol from parameters
-        lazy_partitions = corems_subset.multi_sample_partition(combined_mfs, split_on = 'mz', size=10000, tol=0.001)
+        lazy_partitions = corems_subset.multi_sample_partition(combined_mfs, split_on = 'mz', size=10000, tol=0.01)
 
         # Cluster the mass features within each partition
         if self.parameters.lcms_collection.cores > lazy_partitions.n_partitions:
@@ -1794,18 +1794,25 @@ class LCMSCollectionCalculations:
             cores_to_use = self.parameters.lcms_collection.cores
         mfs_with_clusters = lazy_partitions.map(self.cluster_mass_features, processes=cores_to_use)
 
-        # Combine the mass features with clusters into a single dataframe and clean up the cluster ids
-        if len(mfs_with_clusters.partition_idx.unique()) > 1:
-            new_cluster_ids = mfs_with_clusters[['cluster', 'partition_idx']].drop_duplicates().reset_index(drop=True)
-            new_cluster_ids['cluster_unqiue'] = new_cluster_ids.index
-            mfs_with_clusters = mfs_with_clusters.merge(new_cluster_ids, on=['cluster', 'partition_idx'])
-            mfs_with_clusters['cluster'] = mfs_with_clusters['cluster_unqiue']
-            mfs_with_clusters = mfs_with_clusters.drop(columns=['cluster_unqiue'])
+        # Clean up cluster id names
+        new_cluster_ids = mfs_with_clusters[['cluster', 'partition_idx']].drop_duplicates().reset_index(drop=True)
+        new_cluster_ids['cluster_unqiue'] = new_cluster_ids.index
+        mfs_with_clusters = mfs_with_clusters.merge(new_cluster_ids, on=['cluster', 'partition_idx'])
+        mfs_with_clusters['cluster'] = mfs_with_clusters['cluster_unqiue']
+        mfs_with_clusters = mfs_with_clusters.drop(columns=['cluster_unqiue'])
 
-        mfs_with_clusters = mfs_with_clusters.drop(columns=['partition_idx'])
+        # Deal with duplicated mass features <=> clusters [these arise when a mass feature is a daughter of multiple parents....need to break ties somehow]
+
+        # Tag mass features that are duplicated in multiple clusters
+        mfs_with_clusters['duplicated'] = mfs_with_clusters.duplicated(subset=['coll_mf_id'], keep=False)
 
         # Set coll_mf_id as the index
         mfs_with_clusters = mfs_with_clusters.set_index('coll_mf_id')
+
+        # Find any non-unique index values
+        if mfs_with_clusters.index.duplicated().any():
+            dup_index = mfs_with_clusters[mfs_with_clusters.index.duplicated()]
+            dup_index.sort_index(inplace=True)
 
         # Set the mass_features_dataframe property with the mfs_with_clusters attribtute
         self.mass_features_dataframe = mfs_with_clusters
@@ -1851,7 +1858,8 @@ class LCMSCollectionCalculations:
             raise ValueError("The dimensions, tolerances, relative, dist_weight, and na_allow lists must be the same length")
 
         # Copy input
-        features = features.copy().reset_index(drop=False)
+        features = features.copy().sort_values(by='intensity', ascending=False).reset_index(drop=False)
+        #TODO KRH: order by central sample, and then by intensity?
 
         # Make connectivity matrix for masking within sample mass features
         if 'sample_id' not in features.columns:
@@ -1924,6 +1932,66 @@ class LCMSCollectionCalculations:
         # Set attribute holding distance matrix
         self._sparse_distance_matrix = distances
 
+        # Roll up features
+        # Extract indices of within-tolerance points
+        distances = distances.tocoo()
+        pairs = np.stack((distances.row, distances.col), axis=1)
+        pairs_df = pd.DataFrame(pairs, columns=["parent", "child"])
+        pairs_df = pairs_df.set_index("parent")
+
+        to_drop = []
+        final_pairs_df = []
+        while not pairs_df.empty:
+            # Find root_parents and their children
+            root_parents = np.setdiff1d(np.unique(pairs_df.index.values), np.unique(pairs_df.child.values))
+            children_of_roots = pairs_df.loc[root_parents, "child"].unique()
+            to_drop = np.append(to_drop, children_of_roots)
+
+            # Add the root_parents and children_of_roots to the final_pairs_df
+            final_pairs_df.append(pairs_df.loc[root_parents])
+
+            # Remove root_children as possible parents from pairs_df for next iteration
+            pairs_df = pairs_df.drop(
+                index=children_of_roots, errors="ignore"
+            )  
+            pairs_df = pairs_df.reset_index().set_index("child")
+            # Remove root_children as possible children from pairs_df for next iteration
+            pairs_df = pairs_df.drop(index=children_of_roots)
+
+            # Prepare for next iteration
+            pairs_df = pairs_df.reset_index().set_index("parent")
+        
+        # Clean up the final_pairs_df
+        final_pairs_df = pd.concat(final_pairs_df)
+
+        ## For each  parent, add itself as a child to final_pairs_df
+        add_df = pd.DataFrame(np.stack((np.unique(final_pairs_df.index), np.unique(final_pairs_df.index)), axis=1), columns=["parent", "child"])
+        add_df = add_df.set_index("parent")
+        final_pairs_df = pd.concat([final_pairs_df, add_df])
+        final_pairs_df = final_pairs_df.sort_index()
+
+        # Make a dataframe with unique parents (index of final_pairs_df) and cluster id
+        cluster_df = pd.DataFrame(np.arange(len(np.unique(final_pairs_df.index))), index=np.unique(final_pairs_df.index), columns=["cluster"])
+        cluster_df.index.name = "parent"
+
+        # Add the cluster id to the final_pairs_df
+        mf_cluster_df = final_pairs_df.merge(cluster_df, left_index=True, right_index=True).reset_index(drop=True)
+        # reset the index so it's the child and take off the name
+        mf_cluster_df = mf_cluster_df.set_index("child")
+
+        # Add the cluster id to the features
+        features_final = features.merge(mf_cluster_df, left_index=True, right_index=True, how="left")
+
+        # Add a tag if the features is the parent
+        features_final['is_largest'] = np.where(features_final.index.isin(np.unique(final_pairs_df.index)), True, False) 
+
+        # If a feature is not part of a cluster, assign it to its own cluster
+        features_final['cluster'] = features_final['cluster'].fillna(features_final.coll_mf_id)
+
+        return features_final
+
+
+        """
         # Convert to full matrix
         distances = distances.todense()
 
@@ -1943,7 +2011,7 @@ class LCMSCollectionCalculations:
             features['cluster'] = np.arange(len(features.index))
 
         return features
-
+        """
 
         
 
