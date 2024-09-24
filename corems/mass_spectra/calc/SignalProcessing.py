@@ -4,7 +4,8 @@ import numpy as np
 
 from pandas import Series, DataFrame
 
-from scipy.signal import savgol_filter, boxcar
+from scipy.signal import savgol_filter
+from scipy.signal.windows import boxcar
 from scipy import interpolate
 from matplotlib import pyplot as plt
 from numpy import abs
