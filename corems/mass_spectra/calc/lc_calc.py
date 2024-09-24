@@ -517,7 +517,8 @@ class LCCalculations:
                 for idx2, mass_feature2 in mf_df_sub.iterrows():
                     if idx2 != idx:
                         if mass_feature2.start_scan >= mass_feature.start_scan and mass_feature2.final_scan <= mass_feature.final_scan:
-                            self.mass_features.pop(idx2)
+                            if idx2 in self.mass_features.keys():
+                                self.mass_features.pop(idx2)
 
     
 
