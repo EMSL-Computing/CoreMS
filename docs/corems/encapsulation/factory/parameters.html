@@ -31,8 +31,20 @@
             <h2>API Documentation</h2>
                 <ul class="memberlist">
             <li>
+                    <a class="function" href="#reset_ms_parameters">reset_ms_parameters</a>
+            </li>
+            <li>
+                    <a class="function" href="#reset_gcms_parameters">reset_gcms_parameters</a>
+            </li>
+            <li>
+                    <a class="function" href="#reset_lcms_parameters">reset_lcms_parameters</a>
+            </li>
+            <li>
                     <a class="class" href="#MSParameters">MSParameters</a>
                             <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#MSParameters.__init__">MSParameters</a>
+                        </li>
                         <li>
                                 <a class="variable" href="#MSParameters.molecular_search">molecular_search</a>
                         </li>
@@ -55,6 +67,9 @@
                     <a class="class" href="#GCMSParameters">GCMSParameters</a>
                             <ul class="memberlist">
                         <li>
+                                <a class="function" href="#GCMSParameters.__init__">GCMSParameters</a>
+                        </li>
+                        <li>
                                 <a class="variable" href="#GCMSParameters.molecular_search">molecular_search</a>
                         </li>
                         <li>
@@ -66,6 +81,9 @@
             <li>
                     <a class="class" href="#LCMSParameters">LCMSParameters</a>
                             <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#LCMSParameters.__init__">LCMSParameters</a>
+                        </li>
                         <li>
                                 <a class="variable" href="#LCMSParameters.lc_ms">lc_ms</a>
                         </li>
@@ -108,145 +126,305 @@
 
                         <label class="view-source-button" for="mod-parameters-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.factory.processingSetting</span>  <span class="kn">import</span> <span class="n">LiquidChromatographSetting</span><span class="p">,</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">,</span> <span class="n">TransientSetting</span><span class="p">,</span> <span class="n">MassSpecPeakSetting</span><span class="p">,</span> <span class="n">MassSpectrumSetting</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.factory.processingSetting</span>  <span class="kn">import</span> <span class="n">CompoundSearchSettings</span><span class="p">,</span> <span class="n">GasChromatographSetting</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.factory.processingSetting</span>  <span class="kn">import</span> <span class="n">DataInputSetting</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="k">class</span> <span class="nc">MSParameters</span><span class="p">:</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;MSParameters class is used to store the parameters used for the processing of the mass spectrum</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="sd">    </span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="sd">    Each attibute is a class that contains the parameters for the processing of the mass spectrum, see the corems.encapsulation.factory.processingSetting module for more details.</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="sd">    Attributes</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="sd">    -----------</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="sd">    molecular_search: MolecularFormulaSearchSettings</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="sd">        MolecularFormulaSearchSettings object</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="sd">    transient: TransientSetting</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="sd">        TransientSetting object</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="sd">    mass_spectrum: MassSpectrumSetting</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="sd">        MassSpectrumSetting object</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="sd">    ms_peak: MassSpecPeakSetting</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="sd">        MassSpecPeakSetting object</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="sd">    data_input: DataInputSetting</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="sd">        DataInputSetting object</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a>
-</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>    <span class="n">molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>    <span class="n">transient</span> <span class="o">=</span> <span class="n">TransientSetting</span><span class="p">()</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a>    <span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">MassSpectrumSetting</span><span class="p">()</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a>    <span class="n">ms_peak</span> <span class="o">=</span> <span class="n">MassSpecPeakSetting</span><span class="p">()</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a>    <span class="n">data_input</span> <span class="o">=</span> <span class="n">DataInputSetting</span><span class="p">()</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a>
-</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a><span class="k">class</span> <span class="nc">GCMSParameters</span><span class="p">:</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;GCMSParameters class is used to store the parameters used for the processing of the gas chromatograph mass spectrum</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">import</span> <span class="nn">dataclasses</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.factory.processingSetting</span>  <span class="kn">import</span> <span class="n">LiquidChromatographSetting</span><span class="p">,</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">,</span> <span class="n">TransientSetting</span><span class="p">,</span> <span class="n">MassSpecPeakSetting</span><span class="p">,</span> <span class="n">MassSpectrumSetting</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.factory.processingSetting</span>  <span class="kn">import</span> <span class="n">CompoundSearchSettings</span><span class="p">,</span> <span class="n">GasChromatographSetting</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.factory.processingSetting</span>  <span class="kn">import</span> <span class="n">DataInputSetting</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="k">def</span> <span class="nf">reset_ms_parameters</span><span class="p">():</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Reset the MSParameter class to the default values&quot;&quot;&quot;</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>    <span class="n">MSParameters</span><span class="o">.</span><span class="n">molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>    <span class="n">MSParameters</span><span class="o">.</span><span class="n">transient</span> <span class="o">=</span> <span class="n">TransientSetting</span><span class="p">()</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>    <span class="n">MSParameters</span><span class="o">.</span><span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">MassSpectrumSetting</span><span class="p">()</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>    <span class="n">MSParameters</span><span class="o">.</span><span class="n">ms_peak</span> <span class="o">=</span> <span class="n">MassSpecPeakSetting</span><span class="p">()</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>    <span class="n">MSParameters</span><span class="o">.</span><span class="n">data_input</span> <span class="o">=</span> <span class="n">DataInputSetting</span><span class="p">()</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="k">def</span> <span class="nf">reset_gcms_parameters</span><span class="p">():</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Reset the GCMSParameters class to the default values&quot;&quot;&quot;</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>    <span class="n">GCMSParameters</span><span class="o">.</span><span class="n">molecular_search</span> <span class="o">=</span> <span class="n">CompoundSearchSettings</span><span class="p">()</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>    <span class="n">GCMSParameters</span><span class="o">.</span><span class="n">gc_ms</span> <span class="o">=</span> <span class="n">GasChromatographSetting</span><span class="p">()</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="k">def</span> <span class="nf">reset_lcms_parameters</span><span class="p">():</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Reset the LCMSParameters class to the default values&quot;&quot;&quot;</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>    <span class="n">LCMSParameters</span><span class="o">.</span><span class="n">lc_ms</span> <span class="o">=</span> <span class="n">LiquidChromatographSetting</span><span class="p">()</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a>    <span class="n">LCMSParameters</span><span class="o">.</span><span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">MassSpectrumSetting</span><span class="p">()</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>    <span class="n">LCMSParameters</span><span class="o">.</span><span class="n">ms_peak</span> <span class="o">=</span> <span class="n">MassSpecPeakSetting</span><span class="p">()</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>    <span class="n">LCMSParameters</span><span class="o">.</span><span class="n">ms1_molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a>    <span class="n">LCMSParameters</span><span class="o">.</span><span class="n">ms2_molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a>
+</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="k">class</span> <span class="nc">MSParameters</span><span class="p">:</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;MSParameters class is used to store the parameters used for the processing of the mass spectrum</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a><span class="sd">    </span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="sd">    Each attibute is a class that contains the parameters for the processing of the mass spectrum, see the corems.encapsulation.factory.processingSetting module for more details.</span>
 </span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a>
-</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a><span class="sd">    Each attibute is a class that contains the parameters for the processing of the data, see the corems.encapsulation.factory.processingSetting module for more details.</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>
-</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="sd">    Attributes</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a><span class="sd">    -----------</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="sd">    molecular_search: MolecularFormulaSearchSettings</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="sd">        MolecularFormulaSearchSettings object</span>
-</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a><span class="sd">    gc_ms: GasChromatographSetting</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a><span class="sd">        GasChromatographSetting object</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>
-</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>    <span class="n">molecular_search</span> <span class="o">=</span> <span class="n">CompoundSearchSettings</span><span class="p">()</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>    <span class="n">gc_ms</span> <span class="o">=</span> <span class="n">GasChromatographSetting</span><span class="p">()</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>
-</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a><span class="k">class</span> <span class="nc">LCMSParameters</span><span class="p">:</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;LCMSParameters class is used to store the parameters used for the processing of the liquid chromatograph mass spectrum</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>
-</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a><span class="sd">    Each attibute is a class that contains the parameters for the processing of the data, see the corems.encapsulation.factory.processingSetting module for more details.</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a><span class="sd">    Parameters</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a><span class="sd">    ----------</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="sd">    use_defaults: bool, optional</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a><span class="sd">        if True, the class will be instantiated with the default values, otherwise the current values will be used. Default is False.</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a>
+</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="sd">    Attributes</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a><span class="sd">    -----------</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a><span class="sd">    molecular_search: MolecularFormulaSearchSettings</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a><span class="sd">        MolecularFormulaSearchSettings object</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a><span class="sd">    transient: TransientSetting</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a><span class="sd">        TransientSetting object</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a><span class="sd">    mass_spectrum: MassSpectrumSetting</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a><span class="sd">        MassSpectrumSetting object</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a><span class="sd">    ms_peak: MassSpecPeakSetting</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a><span class="sd">        MassSpecPeakSetting object</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a><span class="sd">    data_input: DataInputSetting</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a><span class="sd">        DataInputSetting object</span>
 </span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>
-</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a><span class="sd">    Attributes</span>
-</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="sd">    -----------</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a><span class="sd">    lc_ms: LiquidChromatographSetting</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a><span class="sd">        LiquidChromatographSetting object</span>
-</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a><span class="sd">    mass_spectrum: MassSpectrumSetting</span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="sd">        MassSpectrumSetting object</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="sd">    ms_peak: MassSpecPeakSetting</span>
-</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="sd">        MassSpecPeakSetting object</span>
-</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a><span class="sd">    ms1_molecular_search: MolecularFormulaSearchSettings</span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="sd">        MolecularFormulaSearchSettings object</span>
-</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="sd">    ms2_molecular_search: MolecularFormulaSearchSettings</span>
-</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a><span class="sd">        MolecularFormulaSearchSettings object</span>
-</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>    <span class="n">lc_ms</span> <span class="o">=</span> <span class="n">LiquidChromatographSetting</span><span class="p">()</span>
-</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>    
-</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>    <span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">MassSpectrumSetting</span><span class="p">()</span>
-</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>
-</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>    <span class="n">ms_peak</span> <span class="o">=</span> <span class="n">MassSpecPeakSetting</span><span class="p">()</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>
-</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>    <span class="n">ms1_molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
-</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>    
-</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>    <span class="n">ms2_molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
-</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>
-</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a><span class="k">def</span> <span class="nf">default_parameters</span><span class="p">(</span><span class="n">file_location</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
-</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate parameters dictionary with the default parameters for data processing</span>
-</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a><span class="sd">       To gather parameters from instrument data during the data parsing step, a parameters dictionary with the default parameters needs to be generated.</span>
-</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a><span class="sd">       This dictionary acts as a placeholder and is later used as an argument for all the class constructor methods during instantiation. </span>
-</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a><span class="sd">       The data gathered from the instrument is added to the class properties.</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a><span class="sd">    Notes</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="sd">    -----</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a><span class="sd">    One can use the use_defaults parameter to reset the parameters to the default values.</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a><span class="sd">    Alternatively, to use the current values - modify the class&#39;s contents before instantiating the class.</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>
+</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>    <span class="n">molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>    <span class="n">transient</span> <span class="o">=</span> <span class="n">TransientSetting</span><span class="p">()</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>    <span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">MassSpectrumSetting</span><span class="p">()</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>    <span class="n">ms_peak</span> <span class="o">=</span> <span class="n">MassSpecPeakSetting</span><span class="p">()</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>    <span class="n">data_input</span> <span class="o">=</span> <span class="n">DataInputSetting</span><span class="p">()</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_defaults</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">use_defaults</span><span class="p">:</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">molecular_search</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">MSParameters</span><span class="o">.</span><span class="n">molecular_search</span><span class="p">)</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">transient</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">MSParameters</span><span class="o">.</span><span class="n">transient</span><span class="p">)</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">MSParameters</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="p">)</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms_peak</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">MSParameters</span><span class="o">.</span><span class="n">ms_peak</span><span class="p">)</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">data_input</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">MSParameters</span><span class="o">.</span><span class="n">data_input</span><span class="p">)</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
+</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">transient</span> <span class="o">=</span> <span class="n">TransientSetting</span><span class="p">()</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">MassSpectrumSetting</span><span class="p">()</span>
+</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms_peak</span> <span class="o">=</span> <span class="n">MassSpecPeakSetting</span><span class="p">()</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">data_input</span> <span class="o">=</span> <span class="n">DataInputSetting</span><span class="p">()</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>
+</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a><span class="k">class</span> <span class="nc">GCMSParameters</span><span class="p">:</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;GCMSParameters class is used to store the parameters used for the processing of the gas chromatograph mass spectrum</span>
 </span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="sd">    Parameters</span>
-</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="sd">    ----------</span>
-</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="sd">    file_location: str</span>
-</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="sd">        path to the file</span>
-</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>
-</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="sd">    Returns</span>
-</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a><span class="sd">    -------</span>
-</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a><span class="sd">    parameters: dict</span>
-</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a><span class="sd">        dictionary with the default parameters for data processing    </span>
-</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>
-</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>    <span class="n">parameters</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>
-</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;Aterm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>
-</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;Bterm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>
-</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;Cterm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>
-</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;exc_high_freq&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>
-</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;exc_low_freq&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="sd">    Each attibute is a class that contains the parameters for the processing of the data, see the corems.encapsulation.factory.processingSetting module for more details.</span>
+</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="sd">    Parameters</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="sd">    ----------</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="sd">    use_defaults: bool, optional</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="sd">        if True, the class will be instantiated with the default values, otherwise the current values will be used. Default is False.</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a><span class="sd">    Attributes</span>
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a><span class="sd">    -----------</span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a><span class="sd">    molecular_search: MolecularFormulaSearchSettings</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a><span class="sd">        MolecularFormulaSearchSettings object</span>
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a><span class="sd">    gc_ms: GasChromatographSetting</span>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a><span class="sd">        GasChromatographSetting object</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a><span class="sd">    Notes</span>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a><span class="sd">    -----</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a><span class="sd">    One can use the use_defaults parameter to reset the parameters to the default values.</span>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a><span class="sd">    Alternatively, to use the current values - modify the class&#39;s contents before instantiating the class.</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>    <span class="n">molecular_search</span> <span class="o">=</span> <span class="n">CompoundSearchSettings</span><span class="p">()</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>    <span class="n">gc_ms</span> <span class="o">=</span> <span class="n">GasChromatographSetting</span><span class="p">()</span>
 </span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>
-</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;mw_low&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>        
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;mw_high&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>
-</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;qpd_enabled&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>
-</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;bandwidth&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_defaults</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">use_defaults</span><span class="p">:</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">molecular_search</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">GCMSParameters</span><span class="o">.</span><span class="n">molecular_search</span><span class="p">)</span>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">gc_ms</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">GCMSParameters</span><span class="o">.</span><span class="n">gc_ms</span><span class="p">)</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">molecular_search</span> <span class="o">=</span> <span class="n">CompoundSearchSettings</span><span class="p">()</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">gc_ms</span> <span class="o">=</span> <span class="n">GasChromatographSetting</span><span class="p">()</span>
 </span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>
-</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;analyzer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span>
-</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>
-</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;acquisition_time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>
-</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;instrument_label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span> 
-</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>
-</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;sample_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span>
-</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>
-</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;number_data_points&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="k">class</span> <span class="nc">LCMSParameters</span><span class="p">:</span>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;LCMSParameters class is used to store the parameters used for the processing of the liquid chromatograph mass spectrum</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="sd">    Each attibute is a class that contains the parameters for the processing of the data, see the corems.encapsulation.factory.processingSetting module for more details.</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="sd">    Parameters</span>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a><span class="sd">    ----------</span>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a><span class="sd">    use_defaults: bool, optional</span>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a><span class="sd">        if True, the class will be instantiated with the default values, otherwise the current values will be used. Default is False.</span>
 </span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>
-</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;polarity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span>
-</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>
-</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;filename_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
-</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>
-</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;scan_number and rt will be need to lc ms&quot;&quot;&quot;</span>
-</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>
-</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;mobility_scan&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>
-</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;mobility_rt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>
-</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;scan_number&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>
-</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;rt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>
-</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>    <span class="k">return</span> <span class="n">parameters</span>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a><span class="sd">    Attributes</span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a><span class="sd">    -----------</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="sd">    lc_ms: LiquidChromatographSetting</span>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a><span class="sd">        LiquidChromatographSetting object</span>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="sd">    mass_spectrum: MassSpectrumSetting</span>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a><span class="sd">        MassSpectrumSetting object</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a><span class="sd">    ms_peak: MassSpecPeakSetting</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a><span class="sd">        MassSpecPeakSetting object</span>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a><span class="sd">    ms1_molecular_search: MolecularFormulaSearchSettings</span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a><span class="sd">        MolecularFormulaSearchSettings object</span>
+</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a><span class="sd">    ms2_molecular_search: MolecularFormulaSearchSettings</span>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a><span class="sd">        MolecularFormulaSearchSettings object</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>
+</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a><span class="sd">    Notes</span>
+</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a><span class="sd">    -----</span>
+</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a><span class="sd">    One can use the use_defaults parameter to reset the parameters to the default values.</span>
+</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a><span class="sd">    Alternatively, to use the current values - modify the class&#39;s contents before instantiating the class.</span>
+</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>    <span class="n">lc_ms</span> <span class="o">=</span> <span class="n">LiquidChromatographSetting</span><span class="p">()</span>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>    <span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">MassSpectrumSetting</span><span class="p">()</span>
+</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>    <span class="n">ms_peak</span> <span class="o">=</span> <span class="n">MassSpecPeakSetting</span><span class="p">()</span>
+</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>    <span class="n">ms1_molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
+</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>    <span class="n">ms2_molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
+</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>
+</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_defaults</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">use_defaults</span><span class="p">:</span>
+</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">lc_ms</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">LCMSParameters</span><span class="o">.</span><span class="n">lc_ms</span><span class="p">)</span>
+</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">LCMSParameters</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="p">)</span>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms_peak</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">LCMSParameters</span><span class="o">.</span><span class="n">ms_peak</span><span class="p">)</span>
+</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms1_molecular_search</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">LCMSParameters</span><span class="o">.</span><span class="n">ms1_molecular_search</span><span class="p">)</span>
+</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms2_molecular_search</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">LCMSParameters</span><span class="o">.</span><span class="n">ms2_molecular_search</span><span class="p">)</span>
+</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">lc_ms</span> <span class="o">=</span> <span class="n">LiquidChromatographSetting</span><span class="p">()</span>
+</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">MassSpectrumSetting</span><span class="p">()</span>
+</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms_peak</span> <span class="o">=</span> <span class="n">MassSpecPeakSetting</span><span class="p">()</span>
+</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms1_molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
+</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms2_molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
+</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>
+</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a><span class="k">def</span> <span class="nf">default_parameters</span><span class="p">(</span><span class="n">file_location</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate parameters dictionary with the default parameters for data processing</span>
+</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a><span class="sd">       To gather parameters from instrument data during the data parsing step, a parameters dictionary with the default parameters needs to be generated.</span>
+</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a><span class="sd">       This dictionary acts as a placeholder and is later used as an argument for all the class constructor methods during instantiation. </span>
+</span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a><span class="sd">       The data gathered from the instrument is added to the class properties.</span>
+</span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a>
+</span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a><span class="sd">    Parameters</span>
+</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a><span class="sd">    ----------</span>
+</span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a><span class="sd">    file_location: str</span>
+</span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a><span class="sd">        path to the file</span>
+</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a>
+</span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a><span class="sd">    Returns</span>
+</span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a><span class="sd">    -------</span>
+</span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a><span class="sd">    parameters: dict</span>
+</span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a><span class="sd">        dictionary with the default parameters for data processing    </span>
+</span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a>
+</span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a>    <span class="n">parameters</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+</span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a>
+</span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;Aterm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a>
+</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;Bterm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a>
+</span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;Cterm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a>
+</span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;exc_high_freq&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-185"><a href="#L-185"><span class="linenos">185</span></a>
+</span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;exc_low_freq&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-187"><a href="#L-187"><span class="linenos">187</span></a>
+</span><span id="L-188"><a href="#L-188"><span class="linenos">188</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;mw_low&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a>        
+</span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;mw_high&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a>
+</span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;qpd_enabled&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a>
+</span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;bandwidth&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a>
+</span><span id="L-196"><a href="#L-196"><span class="linenos">196</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;analyzer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span>
+</span><span id="L-197"><a href="#L-197"><span class="linenos">197</span></a>
+</span><span id="L-198"><a href="#L-198"><span class="linenos">198</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;acquisition_time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-199"><a href="#L-199"><span class="linenos">199</span></a>
+</span><span id="L-200"><a href="#L-200"><span class="linenos">200</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;instrument_label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span> 
+</span><span id="L-201"><a href="#L-201"><span class="linenos">201</span></a>
+</span><span id="L-202"><a href="#L-202"><span class="linenos">202</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;sample_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span>
+</span><span id="L-203"><a href="#L-203"><span class="linenos">203</span></a>
+</span><span id="L-204"><a href="#L-204"><span class="linenos">204</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;number_data_points&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-205"><a href="#L-205"><span class="linenos">205</span></a>
+</span><span id="L-206"><a href="#L-206"><span class="linenos">206</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;polarity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span>
+</span><span id="L-207"><a href="#L-207"><span class="linenos">207</span></a>
+</span><span id="L-208"><a href="#L-208"><span class="linenos">208</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;filename_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
+</span><span id="L-209"><a href="#L-209"><span class="linenos">209</span></a>
+</span><span id="L-210"><a href="#L-210"><span class="linenos">210</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;scan_number and rt will be need to lc ms&quot;&quot;&quot;</span>
+</span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a>
+</span><span id="L-212"><a href="#L-212"><span class="linenos">212</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;mobility_scan&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a>
+</span><span id="L-214"><a href="#L-214"><span class="linenos">214</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;mobility_rt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-215"><a href="#L-215"><span class="linenos">215</span></a>
+</span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;scan_number&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-217"><a href="#L-217"><span class="linenos">217</span></a>
+</span><span id="L-218"><a href="#L-218"><span class="linenos">218</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;rt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a>
+</span><span id="L-220"><a href="#L-220"><span class="linenos">220</span></a>    <span class="k">return</span> <span class="n">parameters</span>
 </span></pre></div>
 
 
             </section>
+                <section id="reset_ms_parameters">
+                            <input id="reset_ms_parameters-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">reset_ms_parameters</span><span class="signature pdoc-code condensed">(<span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="reset_ms_parameters-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#reset_ms_parameters"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="reset_ms_parameters-8"><a href="#reset_ms_parameters-8"><span class="linenos"> 8</span></a><span class="k">def</span> <span class="nf">reset_ms_parameters</span><span class="p">():</span>
+</span><span id="reset_ms_parameters-9"><a href="#reset_ms_parameters-9"><span class="linenos"> 9</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Reset the MSParameter class to the default values&quot;&quot;&quot;</span>
+</span><span id="reset_ms_parameters-10"><a href="#reset_ms_parameters-10"><span class="linenos">10</span></a>    <span class="n">MSParameters</span><span class="o">.</span><span class="n">molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
+</span><span id="reset_ms_parameters-11"><a href="#reset_ms_parameters-11"><span class="linenos">11</span></a>    <span class="n">MSParameters</span><span class="o">.</span><span class="n">transient</span> <span class="o">=</span> <span class="n">TransientSetting</span><span class="p">()</span>
+</span><span id="reset_ms_parameters-12"><a href="#reset_ms_parameters-12"><span class="linenos">12</span></a>    <span class="n">MSParameters</span><span class="o">.</span><span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">MassSpectrumSetting</span><span class="p">()</span>
+</span><span id="reset_ms_parameters-13"><a href="#reset_ms_parameters-13"><span class="linenos">13</span></a>    <span class="n">MSParameters</span><span class="o">.</span><span class="n">ms_peak</span> <span class="o">=</span> <span class="n">MassSpecPeakSetting</span><span class="p">()</span>
+</span><span id="reset_ms_parameters-14"><a href="#reset_ms_parameters-14"><span class="linenos">14</span></a>    <span class="n">MSParameters</span><span class="o">.</span><span class="n">data_input</span> <span class="o">=</span> <span class="n">DataInputSetting</span><span class="p">()</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Reset the MSParameter class to the default values</p>
+</div>
+
+
+                </section>
+                <section id="reset_gcms_parameters">
+                            <input id="reset_gcms_parameters-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">reset_gcms_parameters</span><span class="signature pdoc-code condensed">(<span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="reset_gcms_parameters-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#reset_gcms_parameters"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="reset_gcms_parameters-16"><a href="#reset_gcms_parameters-16"><span class="linenos">16</span></a><span class="k">def</span> <span class="nf">reset_gcms_parameters</span><span class="p">():</span>
+</span><span id="reset_gcms_parameters-17"><a href="#reset_gcms_parameters-17"><span class="linenos">17</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Reset the GCMSParameters class to the default values&quot;&quot;&quot;</span>
+</span><span id="reset_gcms_parameters-18"><a href="#reset_gcms_parameters-18"><span class="linenos">18</span></a>    <span class="n">GCMSParameters</span><span class="o">.</span><span class="n">molecular_search</span> <span class="o">=</span> <span class="n">CompoundSearchSettings</span><span class="p">()</span>
+</span><span id="reset_gcms_parameters-19"><a href="#reset_gcms_parameters-19"><span class="linenos">19</span></a>    <span class="n">GCMSParameters</span><span class="o">.</span><span class="n">gc_ms</span> <span class="o">=</span> <span class="n">GasChromatographSetting</span><span class="p">()</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Reset the GCMSParameters class to the default values</p>
+</div>
+
+
+                </section>
+                <section id="reset_lcms_parameters">
+                            <input id="reset_lcms_parameters-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">reset_lcms_parameters</span><span class="signature pdoc-code condensed">(<span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="reset_lcms_parameters-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#reset_lcms_parameters"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="reset_lcms_parameters-21"><a href="#reset_lcms_parameters-21"><span class="linenos">21</span></a><span class="k">def</span> <span class="nf">reset_lcms_parameters</span><span class="p">():</span>
+</span><span id="reset_lcms_parameters-22"><a href="#reset_lcms_parameters-22"><span class="linenos">22</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Reset the LCMSParameters class to the default values&quot;&quot;&quot;</span>
+</span><span id="reset_lcms_parameters-23"><a href="#reset_lcms_parameters-23"><span class="linenos">23</span></a>    <span class="n">LCMSParameters</span><span class="o">.</span><span class="n">lc_ms</span> <span class="o">=</span> <span class="n">LiquidChromatographSetting</span><span class="p">()</span>
+</span><span id="reset_lcms_parameters-24"><a href="#reset_lcms_parameters-24"><span class="linenos">24</span></a>    <span class="n">LCMSParameters</span><span class="o">.</span><span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">MassSpectrumSetting</span><span class="p">()</span>
+</span><span id="reset_lcms_parameters-25"><a href="#reset_lcms_parameters-25"><span class="linenos">25</span></a>    <span class="n">LCMSParameters</span><span class="o">.</span><span class="n">ms_peak</span> <span class="o">=</span> <span class="n">MassSpecPeakSetting</span><span class="p">()</span>
+</span><span id="reset_lcms_parameters-26"><a href="#reset_lcms_parameters-26"><span class="linenos">26</span></a>    <span class="n">LCMSParameters</span><span class="o">.</span><span class="n">ms1_molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
+</span><span id="reset_lcms_parameters-27"><a href="#reset_lcms_parameters-27"><span class="linenos">27</span></a>    <span class="n">LCMSParameters</span><span class="o">.</span><span class="n">ms2_molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Reset the LCMSParameters class to the default values</p>
+</div>
+
+
+                </section>
                 <section id="MSParameters">
                             <input id="MSParameters-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr class">
@@ -258,36 +436,67 @@
 
     </div>
     <a class="headerlink" href="#MSParameters"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MSParameters-6"><a href="#MSParameters-6"><span class="linenos"> 6</span></a><span class="k">class</span> <span class="nc">MSParameters</span><span class="p">:</span>
-</span><span id="MSParameters-7"><a href="#MSParameters-7"><span class="linenos"> 7</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;MSParameters class is used to store the parameters used for the processing of the mass spectrum</span>
-</span><span id="MSParameters-8"><a href="#MSParameters-8"><span class="linenos"> 8</span></a><span class="sd">    </span>
-</span><span id="MSParameters-9"><a href="#MSParameters-9"><span class="linenos"> 9</span></a><span class="sd">    Each attibute is a class that contains the parameters for the processing of the mass spectrum, see the corems.encapsulation.factory.processingSetting module for more details.</span>
-</span><span id="MSParameters-10"><a href="#MSParameters-10"><span class="linenos">10</span></a>
-</span><span id="MSParameters-11"><a href="#MSParameters-11"><span class="linenos">11</span></a><span class="sd">    Attributes</span>
-</span><span id="MSParameters-12"><a href="#MSParameters-12"><span class="linenos">12</span></a><span class="sd">    -----------</span>
-</span><span id="MSParameters-13"><a href="#MSParameters-13"><span class="linenos">13</span></a><span class="sd">    molecular_search: MolecularFormulaSearchSettings</span>
-</span><span id="MSParameters-14"><a href="#MSParameters-14"><span class="linenos">14</span></a><span class="sd">        MolecularFormulaSearchSettings object</span>
-</span><span id="MSParameters-15"><a href="#MSParameters-15"><span class="linenos">15</span></a><span class="sd">    transient: TransientSetting</span>
-</span><span id="MSParameters-16"><a href="#MSParameters-16"><span class="linenos">16</span></a><span class="sd">        TransientSetting object</span>
-</span><span id="MSParameters-17"><a href="#MSParameters-17"><span class="linenos">17</span></a><span class="sd">    mass_spectrum: MassSpectrumSetting</span>
-</span><span id="MSParameters-18"><a href="#MSParameters-18"><span class="linenos">18</span></a><span class="sd">        MassSpectrumSetting object</span>
-</span><span id="MSParameters-19"><a href="#MSParameters-19"><span class="linenos">19</span></a><span class="sd">    ms_peak: MassSpecPeakSetting</span>
-</span><span id="MSParameters-20"><a href="#MSParameters-20"><span class="linenos">20</span></a><span class="sd">        MassSpecPeakSetting object</span>
-</span><span id="MSParameters-21"><a href="#MSParameters-21"><span class="linenos">21</span></a><span class="sd">    data_input: DataInputSetting</span>
-</span><span id="MSParameters-22"><a href="#MSParameters-22"><span class="linenos">22</span></a><span class="sd">        DataInputSetting object</span>
-</span><span id="MSParameters-23"><a href="#MSParameters-23"><span class="linenos">23</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="MSParameters-24"><a href="#MSParameters-24"><span class="linenos">24</span></a>
-</span><span id="MSParameters-25"><a href="#MSParameters-25"><span class="linenos">25</span></a>    <span class="n">molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
-</span><span id="MSParameters-26"><a href="#MSParameters-26"><span class="linenos">26</span></a>    <span class="n">transient</span> <span class="o">=</span> <span class="n">TransientSetting</span><span class="p">()</span>
-</span><span id="MSParameters-27"><a href="#MSParameters-27"><span class="linenos">27</span></a>    <span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">MassSpectrumSetting</span><span class="p">()</span>
-</span><span id="MSParameters-28"><a href="#MSParameters-28"><span class="linenos">28</span></a>    <span class="n">ms_peak</span> <span class="o">=</span> <span class="n">MassSpecPeakSetting</span><span class="p">()</span>
-</span><span id="MSParameters-29"><a href="#MSParameters-29"><span class="linenos">29</span></a>    <span class="n">data_input</span> <span class="o">=</span> <span class="n">DataInputSetting</span><span class="p">()</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MSParameters-29"><a href="#MSParameters-29"><span class="linenos">29</span></a><span class="k">class</span> <span class="nc">MSParameters</span><span class="p">:</span>
+</span><span id="MSParameters-30"><a href="#MSParameters-30"><span class="linenos">30</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;MSParameters class is used to store the parameters used for the processing of the mass spectrum</span>
+</span><span id="MSParameters-31"><a href="#MSParameters-31"><span class="linenos">31</span></a><span class="sd">    </span>
+</span><span id="MSParameters-32"><a href="#MSParameters-32"><span class="linenos">32</span></a><span class="sd">    Each attibute is a class that contains the parameters for the processing of the mass spectrum, see the corems.encapsulation.factory.processingSetting module for more details.</span>
+</span><span id="MSParameters-33"><a href="#MSParameters-33"><span class="linenos">33</span></a>
+</span><span id="MSParameters-34"><a href="#MSParameters-34"><span class="linenos">34</span></a><span class="sd">    Parameters</span>
+</span><span id="MSParameters-35"><a href="#MSParameters-35"><span class="linenos">35</span></a><span class="sd">    ----------</span>
+</span><span id="MSParameters-36"><a href="#MSParameters-36"><span class="linenos">36</span></a><span class="sd">    use_defaults: bool, optional</span>
+</span><span id="MSParameters-37"><a href="#MSParameters-37"><span class="linenos">37</span></a><span class="sd">        if True, the class will be instantiated with the default values, otherwise the current values will be used. Default is False.</span>
+</span><span id="MSParameters-38"><a href="#MSParameters-38"><span class="linenos">38</span></a>
+</span><span id="MSParameters-39"><a href="#MSParameters-39"><span class="linenos">39</span></a><span class="sd">    Attributes</span>
+</span><span id="MSParameters-40"><a href="#MSParameters-40"><span class="linenos">40</span></a><span class="sd">    -----------</span>
+</span><span id="MSParameters-41"><a href="#MSParameters-41"><span class="linenos">41</span></a><span class="sd">    molecular_search: MolecularFormulaSearchSettings</span>
+</span><span id="MSParameters-42"><a href="#MSParameters-42"><span class="linenos">42</span></a><span class="sd">        MolecularFormulaSearchSettings object</span>
+</span><span id="MSParameters-43"><a href="#MSParameters-43"><span class="linenos">43</span></a><span class="sd">    transient: TransientSetting</span>
+</span><span id="MSParameters-44"><a href="#MSParameters-44"><span class="linenos">44</span></a><span class="sd">        TransientSetting object</span>
+</span><span id="MSParameters-45"><a href="#MSParameters-45"><span class="linenos">45</span></a><span class="sd">    mass_spectrum: MassSpectrumSetting</span>
+</span><span id="MSParameters-46"><a href="#MSParameters-46"><span class="linenos">46</span></a><span class="sd">        MassSpectrumSetting object</span>
+</span><span id="MSParameters-47"><a href="#MSParameters-47"><span class="linenos">47</span></a><span class="sd">    ms_peak: MassSpecPeakSetting</span>
+</span><span id="MSParameters-48"><a href="#MSParameters-48"><span class="linenos">48</span></a><span class="sd">        MassSpecPeakSetting object</span>
+</span><span id="MSParameters-49"><a href="#MSParameters-49"><span class="linenos">49</span></a><span class="sd">    data_input: DataInputSetting</span>
+</span><span id="MSParameters-50"><a href="#MSParameters-50"><span class="linenos">50</span></a><span class="sd">        DataInputSetting object</span>
+</span><span id="MSParameters-51"><a href="#MSParameters-51"><span class="linenos">51</span></a>
+</span><span id="MSParameters-52"><a href="#MSParameters-52"><span class="linenos">52</span></a><span class="sd">    Notes</span>
+</span><span id="MSParameters-53"><a href="#MSParameters-53"><span class="linenos">53</span></a><span class="sd">    -----</span>
+</span><span id="MSParameters-54"><a href="#MSParameters-54"><span class="linenos">54</span></a><span class="sd">    One can use the use_defaults parameter to reset the parameters to the default values.</span>
+</span><span id="MSParameters-55"><a href="#MSParameters-55"><span class="linenos">55</span></a><span class="sd">    Alternatively, to use the current values - modify the class&#39;s contents before instantiating the class.</span>
+</span><span id="MSParameters-56"><a href="#MSParameters-56"><span class="linenos">56</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="MSParameters-57"><a href="#MSParameters-57"><span class="linenos">57</span></a>
+</span><span id="MSParameters-58"><a href="#MSParameters-58"><span class="linenos">58</span></a>    <span class="n">molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
+</span><span id="MSParameters-59"><a href="#MSParameters-59"><span class="linenos">59</span></a>    <span class="n">transient</span> <span class="o">=</span> <span class="n">TransientSetting</span><span class="p">()</span>
+</span><span id="MSParameters-60"><a href="#MSParameters-60"><span class="linenos">60</span></a>    <span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">MassSpectrumSetting</span><span class="p">()</span>
+</span><span id="MSParameters-61"><a href="#MSParameters-61"><span class="linenos">61</span></a>    <span class="n">ms_peak</span> <span class="o">=</span> <span class="n">MassSpecPeakSetting</span><span class="p">()</span>
+</span><span id="MSParameters-62"><a href="#MSParameters-62"><span class="linenos">62</span></a>    <span class="n">data_input</span> <span class="o">=</span> <span class="n">DataInputSetting</span><span class="p">()</span>
+</span><span id="MSParameters-63"><a href="#MSParameters-63"><span class="linenos">63</span></a>
+</span><span id="MSParameters-64"><a href="#MSParameters-64"><span class="linenos">64</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_defaults</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="MSParameters-65"><a href="#MSParameters-65"><span class="linenos">65</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">use_defaults</span><span class="p">:</span>
+</span><span id="MSParameters-66"><a href="#MSParameters-66"><span class="linenos">66</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">molecular_search</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">MSParameters</span><span class="o">.</span><span class="n">molecular_search</span><span class="p">)</span>
+</span><span id="MSParameters-67"><a href="#MSParameters-67"><span class="linenos">67</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">transient</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">MSParameters</span><span class="o">.</span><span class="n">transient</span><span class="p">)</span>
+</span><span id="MSParameters-68"><a href="#MSParameters-68"><span class="linenos">68</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">MSParameters</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="p">)</span>
+</span><span id="MSParameters-69"><a href="#MSParameters-69"><span class="linenos">69</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms_peak</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">MSParameters</span><span class="o">.</span><span class="n">ms_peak</span><span class="p">)</span>
+</span><span id="MSParameters-70"><a href="#MSParameters-70"><span class="linenos">70</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">data_input</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">MSParameters</span><span class="o">.</span><span class="n">data_input</span><span class="p">)</span>
+</span><span id="MSParameters-71"><a href="#MSParameters-71"><span class="linenos">71</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="MSParameters-72"><a href="#MSParameters-72"><span class="linenos">72</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
+</span><span id="MSParameters-73"><a href="#MSParameters-73"><span class="linenos">73</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">transient</span> <span class="o">=</span> <span class="n">TransientSetting</span><span class="p">()</span>
+</span><span id="MSParameters-74"><a href="#MSParameters-74"><span class="linenos">74</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">MassSpectrumSetting</span><span class="p">()</span>
+</span><span id="MSParameters-75"><a href="#MSParameters-75"><span class="linenos">75</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms_peak</span> <span class="o">=</span> <span class="n">MassSpecPeakSetting</span><span class="p">()</span>
+</span><span id="MSParameters-76"><a href="#MSParameters-76"><span class="linenos">76</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">data_input</span> <span class="o">=</span> <span class="n">DataInputSetting</span><span class="p">()</span>
 </span></pre></div>
 
 
             <div class="docstring"><p>MSParameters class is used to store the parameters used for the processing of the mass spectrum</p>
 
 <p>Each attibute is a class that contains the parameters for the processing of the mass spectrum, see the <a href="processingSetting.html">corems.encapsulation.factory.processingSetting</a> module for more details.</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>use_defaults</strong> (bool, optional):
+if True, the class will be instantiated with the default values, otherwise the current values will be used. Default is False.</li>
+</ul>
 
 <h6 id="attributes">Attributes</h6>
 
@@ -303,9 +512,43 @@ MassSpecPeakSetting object</li>
 <li><strong>data_input</strong> (DataInputSetting):
 DataInputSetting object</li>
 </ul>
+
+<h6 id="notes">Notes</h6>
+
+<p>One can use the use_defaults parameter to reset the parameters to the default values.
+Alternatively, to use the current values - modify the class's contents before instantiating the class.</p>
 </div>
 
 
+                            <div id="MSParameters.__init__" class="classattr">
+                                        <input id="MSParameters.__init__-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="name">MSParameters</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">use_defaults</span><span class="o">=</span><span class="kc">False</span></span>)</span>
+
+                <label class="view-source-button" for="MSParameters.__init__-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#MSParameters.__init__"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MSParameters.__init__-64"><a href="#MSParameters.__init__-64"><span class="linenos">64</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_defaults</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="MSParameters.__init__-65"><a href="#MSParameters.__init__-65"><span class="linenos">65</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">use_defaults</span><span class="p">:</span>
+</span><span id="MSParameters.__init__-66"><a href="#MSParameters.__init__-66"><span class="linenos">66</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">molecular_search</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">MSParameters</span><span class="o">.</span><span class="n">molecular_search</span><span class="p">)</span>
+</span><span id="MSParameters.__init__-67"><a href="#MSParameters.__init__-67"><span class="linenos">67</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">transient</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">MSParameters</span><span class="o">.</span><span class="n">transient</span><span class="p">)</span>
+</span><span id="MSParameters.__init__-68"><a href="#MSParameters.__init__-68"><span class="linenos">68</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">MSParameters</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="p">)</span>
+</span><span id="MSParameters.__init__-69"><a href="#MSParameters.__init__-69"><span class="linenos">69</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms_peak</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">MSParameters</span><span class="o">.</span><span class="n">ms_peak</span><span class="p">)</span>
+</span><span id="MSParameters.__init__-70"><a href="#MSParameters.__init__-70"><span class="linenos">70</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">data_input</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">MSParameters</span><span class="o">.</span><span class="n">data_input</span><span class="p">)</span>
+</span><span id="MSParameters.__init__-71"><a href="#MSParameters.__init__-71"><span class="linenos">71</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="MSParameters.__init__-72"><a href="#MSParameters.__init__-72"><span class="linenos">72</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
+</span><span id="MSParameters.__init__-73"><a href="#MSParameters.__init__-73"><span class="linenos">73</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">transient</span> <span class="o">=</span> <span class="n">TransientSetting</span><span class="p">()</span>
+</span><span id="MSParameters.__init__-74"><a href="#MSParameters.__init__-74"><span class="linenos">74</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">MassSpectrumSetting</span><span class="p">()</span>
+</span><span id="MSParameters.__init__-75"><a href="#MSParameters.__init__-75"><span class="linenos">75</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms_peak</span> <span class="o">=</span> <span class="n">MassSpecPeakSetting</span><span class="p">()</span>
+</span><span id="MSParameters.__init__-76"><a href="#MSParameters.__init__-76"><span class="linenos">76</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">data_input</span> <span class="o">=</span> <span class="n">DataInputSetting</span><span class="p">()</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
                             <div id="MSParameters.molecular_search" class="classattr">
                                 <div class="attr variable">
             <span class="name">molecular_search</span>        =
@@ -383,27 +626,52 @@ DataInputSetting object</li>
 
     </div>
     <a class="headerlink" href="#GCMSParameters"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="GCMSParameters-31"><a href="#GCMSParameters-31"><span class="linenos">31</span></a><span class="k">class</span> <span class="nc">GCMSParameters</span><span class="p">:</span>
-</span><span id="GCMSParameters-32"><a href="#GCMSParameters-32"><span class="linenos">32</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;GCMSParameters class is used to store the parameters used for the processing of the gas chromatograph mass spectrum</span>
-</span><span id="GCMSParameters-33"><a href="#GCMSParameters-33"><span class="linenos">33</span></a>
-</span><span id="GCMSParameters-34"><a href="#GCMSParameters-34"><span class="linenos">34</span></a><span class="sd">    Each attibute is a class that contains the parameters for the processing of the data, see the corems.encapsulation.factory.processingSetting module for more details.</span>
-</span><span id="GCMSParameters-35"><a href="#GCMSParameters-35"><span class="linenos">35</span></a>
-</span><span id="GCMSParameters-36"><a href="#GCMSParameters-36"><span class="linenos">36</span></a><span class="sd">    Attributes</span>
-</span><span id="GCMSParameters-37"><a href="#GCMSParameters-37"><span class="linenos">37</span></a><span class="sd">    -----------</span>
-</span><span id="GCMSParameters-38"><a href="#GCMSParameters-38"><span class="linenos">38</span></a><span class="sd">    molecular_search: MolecularFormulaSearchSettings</span>
-</span><span id="GCMSParameters-39"><a href="#GCMSParameters-39"><span class="linenos">39</span></a><span class="sd">        MolecularFormulaSearchSettings object</span>
-</span><span id="GCMSParameters-40"><a href="#GCMSParameters-40"><span class="linenos">40</span></a><span class="sd">    gc_ms: GasChromatographSetting</span>
-</span><span id="GCMSParameters-41"><a href="#GCMSParameters-41"><span class="linenos">41</span></a><span class="sd">        GasChromatographSetting object</span>
-</span><span id="GCMSParameters-42"><a href="#GCMSParameters-42"><span class="linenos">42</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="GCMSParameters-43"><a href="#GCMSParameters-43"><span class="linenos">43</span></a>
-</span><span id="GCMSParameters-44"><a href="#GCMSParameters-44"><span class="linenos">44</span></a>    <span class="n">molecular_search</span> <span class="o">=</span> <span class="n">CompoundSearchSettings</span><span class="p">()</span>
-</span><span id="GCMSParameters-45"><a href="#GCMSParameters-45"><span class="linenos">45</span></a>    <span class="n">gc_ms</span> <span class="o">=</span> <span class="n">GasChromatographSetting</span><span class="p">()</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="GCMSParameters-78"><a href="#GCMSParameters-78"><span class="linenos"> 78</span></a><span class="k">class</span> <span class="nc">GCMSParameters</span><span class="p">:</span>
+</span><span id="GCMSParameters-79"><a href="#GCMSParameters-79"><span class="linenos"> 79</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;GCMSParameters class is used to store the parameters used for the processing of the gas chromatograph mass spectrum</span>
+</span><span id="GCMSParameters-80"><a href="#GCMSParameters-80"><span class="linenos"> 80</span></a>
+</span><span id="GCMSParameters-81"><a href="#GCMSParameters-81"><span class="linenos"> 81</span></a><span class="sd">    Each attibute is a class that contains the parameters for the processing of the data, see the corems.encapsulation.factory.processingSetting module for more details.</span>
+</span><span id="GCMSParameters-82"><a href="#GCMSParameters-82"><span class="linenos"> 82</span></a>
+</span><span id="GCMSParameters-83"><a href="#GCMSParameters-83"><span class="linenos"> 83</span></a><span class="sd">    Parameters</span>
+</span><span id="GCMSParameters-84"><a href="#GCMSParameters-84"><span class="linenos"> 84</span></a><span class="sd">    ----------</span>
+</span><span id="GCMSParameters-85"><a href="#GCMSParameters-85"><span class="linenos"> 85</span></a><span class="sd">    use_defaults: bool, optional</span>
+</span><span id="GCMSParameters-86"><a href="#GCMSParameters-86"><span class="linenos"> 86</span></a><span class="sd">        if True, the class will be instantiated with the default values, otherwise the current values will be used. Default is False.</span>
+</span><span id="GCMSParameters-87"><a href="#GCMSParameters-87"><span class="linenos"> 87</span></a>
+</span><span id="GCMSParameters-88"><a href="#GCMSParameters-88"><span class="linenos"> 88</span></a><span class="sd">    Attributes</span>
+</span><span id="GCMSParameters-89"><a href="#GCMSParameters-89"><span class="linenos"> 89</span></a><span class="sd">    -----------</span>
+</span><span id="GCMSParameters-90"><a href="#GCMSParameters-90"><span class="linenos"> 90</span></a><span class="sd">    molecular_search: MolecularFormulaSearchSettings</span>
+</span><span id="GCMSParameters-91"><a href="#GCMSParameters-91"><span class="linenos"> 91</span></a><span class="sd">        MolecularFormulaSearchSettings object</span>
+</span><span id="GCMSParameters-92"><a href="#GCMSParameters-92"><span class="linenos"> 92</span></a><span class="sd">    gc_ms: GasChromatographSetting</span>
+</span><span id="GCMSParameters-93"><a href="#GCMSParameters-93"><span class="linenos"> 93</span></a><span class="sd">        GasChromatographSetting object</span>
+</span><span id="GCMSParameters-94"><a href="#GCMSParameters-94"><span class="linenos"> 94</span></a>
+</span><span id="GCMSParameters-95"><a href="#GCMSParameters-95"><span class="linenos"> 95</span></a><span class="sd">    Notes</span>
+</span><span id="GCMSParameters-96"><a href="#GCMSParameters-96"><span class="linenos"> 96</span></a><span class="sd">    -----</span>
+</span><span id="GCMSParameters-97"><a href="#GCMSParameters-97"><span class="linenos"> 97</span></a><span class="sd">    One can use the use_defaults parameter to reset the parameters to the default values.</span>
+</span><span id="GCMSParameters-98"><a href="#GCMSParameters-98"><span class="linenos"> 98</span></a><span class="sd">    Alternatively, to use the current values - modify the class&#39;s contents before instantiating the class.</span>
+</span><span id="GCMSParameters-99"><a href="#GCMSParameters-99"><span class="linenos"> 99</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="GCMSParameters-100"><a href="#GCMSParameters-100"><span class="linenos">100</span></a>
+</span><span id="GCMSParameters-101"><a href="#GCMSParameters-101"><span class="linenos">101</span></a>    <span class="n">molecular_search</span> <span class="o">=</span> <span class="n">CompoundSearchSettings</span><span class="p">()</span>
+</span><span id="GCMSParameters-102"><a href="#GCMSParameters-102"><span class="linenos">102</span></a>    <span class="n">gc_ms</span> <span class="o">=</span> <span class="n">GasChromatographSetting</span><span class="p">()</span>
+</span><span id="GCMSParameters-103"><a href="#GCMSParameters-103"><span class="linenos">103</span></a>
+</span><span id="GCMSParameters-104"><a href="#GCMSParameters-104"><span class="linenos">104</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_defaults</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="GCMSParameters-105"><a href="#GCMSParameters-105"><span class="linenos">105</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">use_defaults</span><span class="p">:</span>
+</span><span id="GCMSParameters-106"><a href="#GCMSParameters-106"><span class="linenos">106</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">molecular_search</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">GCMSParameters</span><span class="o">.</span><span class="n">molecular_search</span><span class="p">)</span>
+</span><span id="GCMSParameters-107"><a href="#GCMSParameters-107"><span class="linenos">107</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">gc_ms</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">GCMSParameters</span><span class="o">.</span><span class="n">gc_ms</span><span class="p">)</span>
+</span><span id="GCMSParameters-108"><a href="#GCMSParameters-108"><span class="linenos">108</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="GCMSParameters-109"><a href="#GCMSParameters-109"><span class="linenos">109</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">molecular_search</span> <span class="o">=</span> <span class="n">CompoundSearchSettings</span><span class="p">()</span>
+</span><span id="GCMSParameters-110"><a href="#GCMSParameters-110"><span class="linenos">110</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">gc_ms</span> <span class="o">=</span> <span class="n">GasChromatographSetting</span><span class="p">()</span>
 </span></pre></div>
 
 
             <div class="docstring"><p>GCMSParameters class is used to store the parameters used for the processing of the gas chromatograph mass spectrum</p>
 
 <p>Each attibute is a class that contains the parameters for the processing of the data, see the <a href="processingSetting.html">corems.encapsulation.factory.processingSetting</a> module for more details.</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>use_defaults</strong> (bool, optional):
+if True, the class will be instantiated with the default values, otherwise the current values will be used. Default is False.</li>
+</ul>
 
 <h6 id="attributes">Attributes</h6>
 
@@ -413,9 +681,37 @@ MolecularFormulaSearchSettings object</li>
 <li><strong>gc_ms</strong> (GasChromatographSetting):
 GasChromatographSetting object</li>
 </ul>
+
+<h6 id="notes">Notes</h6>
+
+<p>One can use the use_defaults parameter to reset the parameters to the default values.
+Alternatively, to use the current values - modify the class's contents before instantiating the class.</p>
 </div>
 
 
+                            <div id="GCMSParameters.__init__" class="classattr">
+                                        <input id="GCMSParameters.__init__-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="name">GCMSParameters</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">use_defaults</span><span class="o">=</span><span class="kc">False</span></span>)</span>
+
+                <label class="view-source-button" for="GCMSParameters.__init__-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#GCMSParameters.__init__"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="GCMSParameters.__init__-104"><a href="#GCMSParameters.__init__-104"><span class="linenos">104</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_defaults</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="GCMSParameters.__init__-105"><a href="#GCMSParameters.__init__-105"><span class="linenos">105</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">use_defaults</span><span class="p">:</span>
+</span><span id="GCMSParameters.__init__-106"><a href="#GCMSParameters.__init__-106"><span class="linenos">106</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">molecular_search</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">GCMSParameters</span><span class="o">.</span><span class="n">molecular_search</span><span class="p">)</span>
+</span><span id="GCMSParameters.__init__-107"><a href="#GCMSParameters.__init__-107"><span class="linenos">107</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">gc_ms</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">GCMSParameters</span><span class="o">.</span><span class="n">gc_ms</span><span class="p">)</span>
+</span><span id="GCMSParameters.__init__-108"><a href="#GCMSParameters.__init__-108"><span class="linenos">108</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="GCMSParameters.__init__-109"><a href="#GCMSParameters.__init__-109"><span class="linenos">109</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">molecular_search</span> <span class="o">=</span> <span class="n">CompoundSearchSettings</span><span class="p">()</span>
+</span><span id="GCMSParameters.__init__-110"><a href="#GCMSParameters.__init__-110"><span class="linenos">110</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">gc_ms</span> <span class="o">=</span> <span class="n">GasChromatographSetting</span><span class="p">()</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
                             <div id="GCMSParameters.molecular_search" class="classattr">
                                 <div class="attr variable">
             <span class="name">molecular_search</span>        =
@@ -454,39 +750,66 @@ GasChromatographSetting object</li>
 
     </div>
     <a class="headerlink" href="#LCMSParameters"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSParameters-47"><a href="#LCMSParameters-47"><span class="linenos">47</span></a><span class="k">class</span> <span class="nc">LCMSParameters</span><span class="p">:</span>
-</span><span id="LCMSParameters-48"><a href="#LCMSParameters-48"><span class="linenos">48</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;LCMSParameters class is used to store the parameters used for the processing of the liquid chromatograph mass spectrum</span>
-</span><span id="LCMSParameters-49"><a href="#LCMSParameters-49"><span class="linenos">49</span></a>
-</span><span id="LCMSParameters-50"><a href="#LCMSParameters-50"><span class="linenos">50</span></a><span class="sd">    Each attibute is a class that contains the parameters for the processing of the data, see the corems.encapsulation.factory.processingSetting module for more details.</span>
-</span><span id="LCMSParameters-51"><a href="#LCMSParameters-51"><span class="linenos">51</span></a>
-</span><span id="LCMSParameters-52"><a href="#LCMSParameters-52"><span class="linenos">52</span></a><span class="sd">    Attributes</span>
-</span><span id="LCMSParameters-53"><a href="#LCMSParameters-53"><span class="linenos">53</span></a><span class="sd">    -----------</span>
-</span><span id="LCMSParameters-54"><a href="#LCMSParameters-54"><span class="linenos">54</span></a><span class="sd">    lc_ms: LiquidChromatographSetting</span>
-</span><span id="LCMSParameters-55"><a href="#LCMSParameters-55"><span class="linenos">55</span></a><span class="sd">        LiquidChromatographSetting object</span>
-</span><span id="LCMSParameters-56"><a href="#LCMSParameters-56"><span class="linenos">56</span></a><span class="sd">    mass_spectrum: MassSpectrumSetting</span>
-</span><span id="LCMSParameters-57"><a href="#LCMSParameters-57"><span class="linenos">57</span></a><span class="sd">        MassSpectrumSetting object</span>
-</span><span id="LCMSParameters-58"><a href="#LCMSParameters-58"><span class="linenos">58</span></a><span class="sd">    ms_peak: MassSpecPeakSetting</span>
-</span><span id="LCMSParameters-59"><a href="#LCMSParameters-59"><span class="linenos">59</span></a><span class="sd">        MassSpecPeakSetting object</span>
-</span><span id="LCMSParameters-60"><a href="#LCMSParameters-60"><span class="linenos">60</span></a><span class="sd">    ms1_molecular_search: MolecularFormulaSearchSettings</span>
-</span><span id="LCMSParameters-61"><a href="#LCMSParameters-61"><span class="linenos">61</span></a><span class="sd">        MolecularFormulaSearchSettings object</span>
-</span><span id="LCMSParameters-62"><a href="#LCMSParameters-62"><span class="linenos">62</span></a><span class="sd">    ms2_molecular_search: MolecularFormulaSearchSettings</span>
-</span><span id="LCMSParameters-63"><a href="#LCMSParameters-63"><span class="linenos">63</span></a><span class="sd">        MolecularFormulaSearchSettings object</span>
-</span><span id="LCMSParameters-64"><a href="#LCMSParameters-64"><span class="linenos">64</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="LCMSParameters-65"><a href="#LCMSParameters-65"><span class="linenos">65</span></a>    <span class="n">lc_ms</span> <span class="o">=</span> <span class="n">LiquidChromatographSetting</span><span class="p">()</span>
-</span><span id="LCMSParameters-66"><a href="#LCMSParameters-66"><span class="linenos">66</span></a>    
-</span><span id="LCMSParameters-67"><a href="#LCMSParameters-67"><span class="linenos">67</span></a>    <span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">MassSpectrumSetting</span><span class="p">()</span>
-</span><span id="LCMSParameters-68"><a href="#LCMSParameters-68"><span class="linenos">68</span></a>
-</span><span id="LCMSParameters-69"><a href="#LCMSParameters-69"><span class="linenos">69</span></a>    <span class="n">ms_peak</span> <span class="o">=</span> <span class="n">MassSpecPeakSetting</span><span class="p">()</span>
-</span><span id="LCMSParameters-70"><a href="#LCMSParameters-70"><span class="linenos">70</span></a>
-</span><span id="LCMSParameters-71"><a href="#LCMSParameters-71"><span class="linenos">71</span></a>    <span class="n">ms1_molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
-</span><span id="LCMSParameters-72"><a href="#LCMSParameters-72"><span class="linenos">72</span></a>    
-</span><span id="LCMSParameters-73"><a href="#LCMSParameters-73"><span class="linenos">73</span></a>    <span class="n">ms2_molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSParameters-112"><a href="#LCMSParameters-112"><span class="linenos">112</span></a><span class="k">class</span> <span class="nc">LCMSParameters</span><span class="p">:</span>
+</span><span id="LCMSParameters-113"><a href="#LCMSParameters-113"><span class="linenos">113</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;LCMSParameters class is used to store the parameters used for the processing of the liquid chromatograph mass spectrum</span>
+</span><span id="LCMSParameters-114"><a href="#LCMSParameters-114"><span class="linenos">114</span></a>
+</span><span id="LCMSParameters-115"><a href="#LCMSParameters-115"><span class="linenos">115</span></a><span class="sd">    Each attibute is a class that contains the parameters for the processing of the data, see the corems.encapsulation.factory.processingSetting module for more details.</span>
+</span><span id="LCMSParameters-116"><a href="#LCMSParameters-116"><span class="linenos">116</span></a>
+</span><span id="LCMSParameters-117"><a href="#LCMSParameters-117"><span class="linenos">117</span></a><span class="sd">    Parameters</span>
+</span><span id="LCMSParameters-118"><a href="#LCMSParameters-118"><span class="linenos">118</span></a><span class="sd">    ----------</span>
+</span><span id="LCMSParameters-119"><a href="#LCMSParameters-119"><span class="linenos">119</span></a><span class="sd">    use_defaults: bool, optional</span>
+</span><span id="LCMSParameters-120"><a href="#LCMSParameters-120"><span class="linenos">120</span></a><span class="sd">        if True, the class will be instantiated with the default values, otherwise the current values will be used. Default is False.</span>
+</span><span id="LCMSParameters-121"><a href="#LCMSParameters-121"><span class="linenos">121</span></a>
+</span><span id="LCMSParameters-122"><a href="#LCMSParameters-122"><span class="linenos">122</span></a><span class="sd">    Attributes</span>
+</span><span id="LCMSParameters-123"><a href="#LCMSParameters-123"><span class="linenos">123</span></a><span class="sd">    -----------</span>
+</span><span id="LCMSParameters-124"><a href="#LCMSParameters-124"><span class="linenos">124</span></a><span class="sd">    lc_ms: LiquidChromatographSetting</span>
+</span><span id="LCMSParameters-125"><a href="#LCMSParameters-125"><span class="linenos">125</span></a><span class="sd">        LiquidChromatographSetting object</span>
+</span><span id="LCMSParameters-126"><a href="#LCMSParameters-126"><span class="linenos">126</span></a><span class="sd">    mass_spectrum: MassSpectrumSetting</span>
+</span><span id="LCMSParameters-127"><a href="#LCMSParameters-127"><span class="linenos">127</span></a><span class="sd">        MassSpectrumSetting object</span>
+</span><span id="LCMSParameters-128"><a href="#LCMSParameters-128"><span class="linenos">128</span></a><span class="sd">    ms_peak: MassSpecPeakSetting</span>
+</span><span id="LCMSParameters-129"><a href="#LCMSParameters-129"><span class="linenos">129</span></a><span class="sd">        MassSpecPeakSetting object</span>
+</span><span id="LCMSParameters-130"><a href="#LCMSParameters-130"><span class="linenos">130</span></a><span class="sd">    ms1_molecular_search: MolecularFormulaSearchSettings</span>
+</span><span id="LCMSParameters-131"><a href="#LCMSParameters-131"><span class="linenos">131</span></a><span class="sd">        MolecularFormulaSearchSettings object</span>
+</span><span id="LCMSParameters-132"><a href="#LCMSParameters-132"><span class="linenos">132</span></a><span class="sd">    ms2_molecular_search: MolecularFormulaSearchSettings</span>
+</span><span id="LCMSParameters-133"><a href="#LCMSParameters-133"><span class="linenos">133</span></a><span class="sd">        MolecularFormulaSearchSettings object</span>
+</span><span id="LCMSParameters-134"><a href="#LCMSParameters-134"><span class="linenos">134</span></a>
+</span><span id="LCMSParameters-135"><a href="#LCMSParameters-135"><span class="linenos">135</span></a><span class="sd">    Notes</span>
+</span><span id="LCMSParameters-136"><a href="#LCMSParameters-136"><span class="linenos">136</span></a><span class="sd">    -----</span>
+</span><span id="LCMSParameters-137"><a href="#LCMSParameters-137"><span class="linenos">137</span></a><span class="sd">    One can use the use_defaults parameter to reset the parameters to the default values.</span>
+</span><span id="LCMSParameters-138"><a href="#LCMSParameters-138"><span class="linenos">138</span></a><span class="sd">    Alternatively, to use the current values - modify the class&#39;s contents before instantiating the class.</span>
+</span><span id="LCMSParameters-139"><a href="#LCMSParameters-139"><span class="linenos">139</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="LCMSParameters-140"><a href="#LCMSParameters-140"><span class="linenos">140</span></a>    <span class="n">lc_ms</span> <span class="o">=</span> <span class="n">LiquidChromatographSetting</span><span class="p">()</span>
+</span><span id="LCMSParameters-141"><a href="#LCMSParameters-141"><span class="linenos">141</span></a>    <span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">MassSpectrumSetting</span><span class="p">()</span>
+</span><span id="LCMSParameters-142"><a href="#LCMSParameters-142"><span class="linenos">142</span></a>    <span class="n">ms_peak</span> <span class="o">=</span> <span class="n">MassSpecPeakSetting</span><span class="p">()</span>
+</span><span id="LCMSParameters-143"><a href="#LCMSParameters-143"><span class="linenos">143</span></a>    <span class="n">ms1_molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
+</span><span id="LCMSParameters-144"><a href="#LCMSParameters-144"><span class="linenos">144</span></a>    <span class="n">ms2_molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
+</span><span id="LCMSParameters-145"><a href="#LCMSParameters-145"><span class="linenos">145</span></a>
+</span><span id="LCMSParameters-146"><a href="#LCMSParameters-146"><span class="linenos">146</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_defaults</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="LCMSParameters-147"><a href="#LCMSParameters-147"><span class="linenos">147</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">use_defaults</span><span class="p">:</span>
+</span><span id="LCMSParameters-148"><a href="#LCMSParameters-148"><span class="linenos">148</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">lc_ms</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">LCMSParameters</span><span class="o">.</span><span class="n">lc_ms</span><span class="p">)</span>
+</span><span id="LCMSParameters-149"><a href="#LCMSParameters-149"><span class="linenos">149</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">LCMSParameters</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="p">)</span>
+</span><span id="LCMSParameters-150"><a href="#LCMSParameters-150"><span class="linenos">150</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms_peak</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">LCMSParameters</span><span class="o">.</span><span class="n">ms_peak</span><span class="p">)</span>
+</span><span id="LCMSParameters-151"><a href="#LCMSParameters-151"><span class="linenos">151</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms1_molecular_search</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">LCMSParameters</span><span class="o">.</span><span class="n">ms1_molecular_search</span><span class="p">)</span>
+</span><span id="LCMSParameters-152"><a href="#LCMSParameters-152"><span class="linenos">152</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms2_molecular_search</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">LCMSParameters</span><span class="o">.</span><span class="n">ms2_molecular_search</span><span class="p">)</span>
+</span><span id="LCMSParameters-153"><a href="#LCMSParameters-153"><span class="linenos">153</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="LCMSParameters-154"><a href="#LCMSParameters-154"><span class="linenos">154</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">lc_ms</span> <span class="o">=</span> <span class="n">LiquidChromatographSetting</span><span class="p">()</span>
+</span><span id="LCMSParameters-155"><a href="#LCMSParameters-155"><span class="linenos">155</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">MassSpectrumSetting</span><span class="p">()</span>
+</span><span id="LCMSParameters-156"><a href="#LCMSParameters-156"><span class="linenos">156</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms_peak</span> <span class="o">=</span> <span class="n">MassSpecPeakSetting</span><span class="p">()</span>
+</span><span id="LCMSParameters-157"><a href="#LCMSParameters-157"><span class="linenos">157</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms1_molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
+</span><span id="LCMSParameters-158"><a href="#LCMSParameters-158"><span class="linenos">158</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms2_molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
 </span></pre></div>
 
 
             <div class="docstring"><p>LCMSParameters class is used to store the parameters used for the processing of the liquid chromatograph mass spectrum</p>
 
 <p>Each attibute is a class that contains the parameters for the processing of the data, see the <a href="processingSetting.html">corems.encapsulation.factory.processingSetting</a> module for more details.</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>use_defaults</strong> (bool, optional):
+if True, the class will be instantiated with the default values, otherwise the current values will be used. Default is False.</li>
+</ul>
 
 <h6 id="attributes">Attributes</h6>
 
@@ -502,9 +825,43 @@ MolecularFormulaSearchSettings object</li>
 <li><strong>ms2_molecular_search</strong> (MolecularFormulaSearchSettings):
 MolecularFormulaSearchSettings object</li>
 </ul>
+
+<h6 id="notes">Notes</h6>
+
+<p>One can use the use_defaults parameter to reset the parameters to the default values.
+Alternatively, to use the current values - modify the class's contents before instantiating the class.</p>
 </div>
 
 
+                            <div id="LCMSParameters.__init__" class="classattr">
+                                        <input id="LCMSParameters.__init__-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="name">LCMSParameters</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">use_defaults</span><span class="o">=</span><span class="kc">False</span></span>)</span>
+
+                <label class="view-source-button" for="LCMSParameters.__init__-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#LCMSParameters.__init__"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSParameters.__init__-146"><a href="#LCMSParameters.__init__-146"><span class="linenos">146</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_defaults</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="LCMSParameters.__init__-147"><a href="#LCMSParameters.__init__-147"><span class="linenos">147</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">use_defaults</span><span class="p">:</span>
+</span><span id="LCMSParameters.__init__-148"><a href="#LCMSParameters.__init__-148"><span class="linenos">148</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">lc_ms</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">LCMSParameters</span><span class="o">.</span><span class="n">lc_ms</span><span class="p">)</span>
+</span><span id="LCMSParameters.__init__-149"><a href="#LCMSParameters.__init__-149"><span class="linenos">149</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">LCMSParameters</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="p">)</span>
+</span><span id="LCMSParameters.__init__-150"><a href="#LCMSParameters.__init__-150"><span class="linenos">150</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms_peak</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">LCMSParameters</span><span class="o">.</span><span class="n">ms_peak</span><span class="p">)</span>
+</span><span id="LCMSParameters.__init__-151"><a href="#LCMSParameters.__init__-151"><span class="linenos">151</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms1_molecular_search</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">LCMSParameters</span><span class="o">.</span><span class="n">ms1_molecular_search</span><span class="p">)</span>
+</span><span id="LCMSParameters.__init__-152"><a href="#LCMSParameters.__init__-152"><span class="linenos">152</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms2_molecular_search</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">LCMSParameters</span><span class="o">.</span><span class="n">ms2_molecular_search</span><span class="p">)</span>
+</span><span id="LCMSParameters.__init__-153"><a href="#LCMSParameters.__init__-153"><span class="linenos">153</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="LCMSParameters.__init__-154"><a href="#LCMSParameters.__init__-154"><span class="linenos">154</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">lc_ms</span> <span class="o">=</span> <span class="n">LiquidChromatographSetting</span><span class="p">()</span>
+</span><span id="LCMSParameters.__init__-155"><a href="#LCMSParameters.__init__-155"><span class="linenos">155</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">MassSpectrumSetting</span><span class="p">()</span>
+</span><span id="LCMSParameters.__init__-156"><a href="#LCMSParameters.__init__-156"><span class="linenos">156</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms_peak</span> <span class="o">=</span> <span class="n">MassSpecPeakSetting</span><span class="p">()</span>
+</span><span id="LCMSParameters.__init__-157"><a href="#LCMSParameters.__init__-157"><span class="linenos">157</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms1_molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
+</span><span id="LCMSParameters.__init__-158"><a href="#LCMSParameters.__init__-158"><span class="linenos">158</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ms2_molecular_search</span> <span class="o">=</span> <span class="n">MolecularFormulaSearchSettings</span><span class="p">()</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
                             <div id="LCMSParameters.lc_ms" class="classattr">
                                 <div class="attr variable">
             <span class="name">lc_ms</span>        =
@@ -582,68 +939,68 @@ MolecularFormulaSearchSettings object</li>
 
     </div>
     <a class="headerlink" href="#default_parameters"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="default_parameters-75"><a href="#default_parameters-75"><span class="linenos"> 75</span></a><span class="k">def</span> <span class="nf">default_parameters</span><span class="p">(</span><span class="n">file_location</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
-</span><span id="default_parameters-76"><a href="#default_parameters-76"><span class="linenos"> 76</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate parameters dictionary with the default parameters for data processing</span>
-</span><span id="default_parameters-77"><a href="#default_parameters-77"><span class="linenos"> 77</span></a><span class="sd">       To gather parameters from instrument data during the data parsing step, a parameters dictionary with the default parameters needs to be generated.</span>
-</span><span id="default_parameters-78"><a href="#default_parameters-78"><span class="linenos"> 78</span></a><span class="sd">       This dictionary acts as a placeholder and is later used as an argument for all the class constructor methods during instantiation. </span>
-</span><span id="default_parameters-79"><a href="#default_parameters-79"><span class="linenos"> 79</span></a><span class="sd">       The data gathered from the instrument is added to the class properties.</span>
-</span><span id="default_parameters-80"><a href="#default_parameters-80"><span class="linenos"> 80</span></a>
-</span><span id="default_parameters-81"><a href="#default_parameters-81"><span class="linenos"> 81</span></a><span class="sd">    Parameters</span>
-</span><span id="default_parameters-82"><a href="#default_parameters-82"><span class="linenos"> 82</span></a><span class="sd">    ----------</span>
-</span><span id="default_parameters-83"><a href="#default_parameters-83"><span class="linenos"> 83</span></a><span class="sd">    file_location: str</span>
-</span><span id="default_parameters-84"><a href="#default_parameters-84"><span class="linenos"> 84</span></a><span class="sd">        path to the file</span>
-</span><span id="default_parameters-85"><a href="#default_parameters-85"><span class="linenos"> 85</span></a>
-</span><span id="default_parameters-86"><a href="#default_parameters-86"><span class="linenos"> 86</span></a><span class="sd">    Returns</span>
-</span><span id="default_parameters-87"><a href="#default_parameters-87"><span class="linenos"> 87</span></a><span class="sd">    -------</span>
-</span><span id="default_parameters-88"><a href="#default_parameters-88"><span class="linenos"> 88</span></a><span class="sd">    parameters: dict</span>
-</span><span id="default_parameters-89"><a href="#default_parameters-89"><span class="linenos"> 89</span></a><span class="sd">        dictionary with the default parameters for data processing    </span>
-</span><span id="default_parameters-90"><a href="#default_parameters-90"><span class="linenos"> 90</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="default_parameters-91"><a href="#default_parameters-91"><span class="linenos"> 91</span></a>
-</span><span id="default_parameters-92"><a href="#default_parameters-92"><span class="linenos"> 92</span></a>    <span class="n">parameters</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-</span><span id="default_parameters-93"><a href="#default_parameters-93"><span class="linenos"> 93</span></a>
-</span><span id="default_parameters-94"><a href="#default_parameters-94"><span class="linenos"> 94</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;Aterm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="default_parameters-95"><a href="#default_parameters-95"><span class="linenos"> 95</span></a>
-</span><span id="default_parameters-96"><a href="#default_parameters-96"><span class="linenos"> 96</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;Bterm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="default_parameters-97"><a href="#default_parameters-97"><span class="linenos"> 97</span></a>
-</span><span id="default_parameters-98"><a href="#default_parameters-98"><span class="linenos"> 98</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;Cterm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="default_parameters-99"><a href="#default_parameters-99"><span class="linenos"> 99</span></a>
-</span><span id="default_parameters-100"><a href="#default_parameters-100"><span class="linenos">100</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;exc_high_freq&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="default_parameters-101"><a href="#default_parameters-101"><span class="linenos">101</span></a>
-</span><span id="default_parameters-102"><a href="#default_parameters-102"><span class="linenos">102</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;exc_low_freq&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="default_parameters-103"><a href="#default_parameters-103"><span class="linenos">103</span></a>
-</span><span id="default_parameters-104"><a href="#default_parameters-104"><span class="linenos">104</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;mw_low&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="default_parameters-105"><a href="#default_parameters-105"><span class="linenos">105</span></a>        
-</span><span id="default_parameters-106"><a href="#default_parameters-106"><span class="linenos">106</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;mw_high&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="default_parameters-107"><a href="#default_parameters-107"><span class="linenos">107</span></a>
-</span><span id="default_parameters-108"><a href="#default_parameters-108"><span class="linenos">108</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;qpd_enabled&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="default_parameters-109"><a href="#default_parameters-109"><span class="linenos">109</span></a>
-</span><span id="default_parameters-110"><a href="#default_parameters-110"><span class="linenos">110</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;bandwidth&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="default_parameters-111"><a href="#default_parameters-111"><span class="linenos">111</span></a>
-</span><span id="default_parameters-112"><a href="#default_parameters-112"><span class="linenos">112</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;analyzer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span>
-</span><span id="default_parameters-113"><a href="#default_parameters-113"><span class="linenos">113</span></a>
-</span><span id="default_parameters-114"><a href="#default_parameters-114"><span class="linenos">114</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;acquisition_time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="default_parameters-115"><a href="#default_parameters-115"><span class="linenos">115</span></a>
-</span><span id="default_parameters-116"><a href="#default_parameters-116"><span class="linenos">116</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;instrument_label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span> 
-</span><span id="default_parameters-117"><a href="#default_parameters-117"><span class="linenos">117</span></a>
-</span><span id="default_parameters-118"><a href="#default_parameters-118"><span class="linenos">118</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;sample_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span>
-</span><span id="default_parameters-119"><a href="#default_parameters-119"><span class="linenos">119</span></a>
-</span><span id="default_parameters-120"><a href="#default_parameters-120"><span class="linenos">120</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;number_data_points&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="default_parameters-121"><a href="#default_parameters-121"><span class="linenos">121</span></a>
-</span><span id="default_parameters-122"><a href="#default_parameters-122"><span class="linenos">122</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;polarity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span>
-</span><span id="default_parameters-123"><a href="#default_parameters-123"><span class="linenos">123</span></a>
-</span><span id="default_parameters-124"><a href="#default_parameters-124"><span class="linenos">124</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;filename_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
-</span><span id="default_parameters-125"><a href="#default_parameters-125"><span class="linenos">125</span></a>
-</span><span id="default_parameters-126"><a href="#default_parameters-126"><span class="linenos">126</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;scan_number and rt will be need to lc ms&quot;&quot;&quot;</span>
-</span><span id="default_parameters-127"><a href="#default_parameters-127"><span class="linenos">127</span></a>
-</span><span id="default_parameters-128"><a href="#default_parameters-128"><span class="linenos">128</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;mobility_scan&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="default_parameters-129"><a href="#default_parameters-129"><span class="linenos">129</span></a>
-</span><span id="default_parameters-130"><a href="#default_parameters-130"><span class="linenos">130</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;mobility_rt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="default_parameters-131"><a href="#default_parameters-131"><span class="linenos">131</span></a>
-</span><span id="default_parameters-132"><a href="#default_parameters-132"><span class="linenos">132</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;scan_number&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="default_parameters-133"><a href="#default_parameters-133"><span class="linenos">133</span></a>
-</span><span id="default_parameters-134"><a href="#default_parameters-134"><span class="linenos">134</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;rt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="default_parameters-135"><a href="#default_parameters-135"><span class="linenos">135</span></a>
-</span><span id="default_parameters-136"><a href="#default_parameters-136"><span class="linenos">136</span></a>    <span class="k">return</span> <span class="n">parameters</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="default_parameters-160"><a href="#default_parameters-160"><span class="linenos">160</span></a><span class="k">def</span> <span class="nf">default_parameters</span><span class="p">(</span><span class="n">file_location</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+</span><span id="default_parameters-161"><a href="#default_parameters-161"><span class="linenos">161</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate parameters dictionary with the default parameters for data processing</span>
+</span><span id="default_parameters-162"><a href="#default_parameters-162"><span class="linenos">162</span></a><span class="sd">       To gather parameters from instrument data during the data parsing step, a parameters dictionary with the default parameters needs to be generated.</span>
+</span><span id="default_parameters-163"><a href="#default_parameters-163"><span class="linenos">163</span></a><span class="sd">       This dictionary acts as a placeholder and is later used as an argument for all the class constructor methods during instantiation. </span>
+</span><span id="default_parameters-164"><a href="#default_parameters-164"><span class="linenos">164</span></a><span class="sd">       The data gathered from the instrument is added to the class properties.</span>
+</span><span id="default_parameters-165"><a href="#default_parameters-165"><span class="linenos">165</span></a>
+</span><span id="default_parameters-166"><a href="#default_parameters-166"><span class="linenos">166</span></a><span class="sd">    Parameters</span>
+</span><span id="default_parameters-167"><a href="#default_parameters-167"><span class="linenos">167</span></a><span class="sd">    ----------</span>
+</span><span id="default_parameters-168"><a href="#default_parameters-168"><span class="linenos">168</span></a><span class="sd">    file_location: str</span>
+</span><span id="default_parameters-169"><a href="#default_parameters-169"><span class="linenos">169</span></a><span class="sd">        path to the file</span>
+</span><span id="default_parameters-170"><a href="#default_parameters-170"><span class="linenos">170</span></a>
+</span><span id="default_parameters-171"><a href="#default_parameters-171"><span class="linenos">171</span></a><span class="sd">    Returns</span>
+</span><span id="default_parameters-172"><a href="#default_parameters-172"><span class="linenos">172</span></a><span class="sd">    -------</span>
+</span><span id="default_parameters-173"><a href="#default_parameters-173"><span class="linenos">173</span></a><span class="sd">    parameters: dict</span>
+</span><span id="default_parameters-174"><a href="#default_parameters-174"><span class="linenos">174</span></a><span class="sd">        dictionary with the default parameters for data processing    </span>
+</span><span id="default_parameters-175"><a href="#default_parameters-175"><span class="linenos">175</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="default_parameters-176"><a href="#default_parameters-176"><span class="linenos">176</span></a>
+</span><span id="default_parameters-177"><a href="#default_parameters-177"><span class="linenos">177</span></a>    <span class="n">parameters</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+</span><span id="default_parameters-178"><a href="#default_parameters-178"><span class="linenos">178</span></a>
+</span><span id="default_parameters-179"><a href="#default_parameters-179"><span class="linenos">179</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;Aterm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="default_parameters-180"><a href="#default_parameters-180"><span class="linenos">180</span></a>
+</span><span id="default_parameters-181"><a href="#default_parameters-181"><span class="linenos">181</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;Bterm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="default_parameters-182"><a href="#default_parameters-182"><span class="linenos">182</span></a>
+</span><span id="default_parameters-183"><a href="#default_parameters-183"><span class="linenos">183</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;Cterm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="default_parameters-184"><a href="#default_parameters-184"><span class="linenos">184</span></a>
+</span><span id="default_parameters-185"><a href="#default_parameters-185"><span class="linenos">185</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;exc_high_freq&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="default_parameters-186"><a href="#default_parameters-186"><span class="linenos">186</span></a>
+</span><span id="default_parameters-187"><a href="#default_parameters-187"><span class="linenos">187</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;exc_low_freq&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="default_parameters-188"><a href="#default_parameters-188"><span class="linenos">188</span></a>
+</span><span id="default_parameters-189"><a href="#default_parameters-189"><span class="linenos">189</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;mw_low&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="default_parameters-190"><a href="#default_parameters-190"><span class="linenos">190</span></a>        
+</span><span id="default_parameters-191"><a href="#default_parameters-191"><span class="linenos">191</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;mw_high&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="default_parameters-192"><a href="#default_parameters-192"><span class="linenos">192</span></a>
+</span><span id="default_parameters-193"><a href="#default_parameters-193"><span class="linenos">193</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;qpd_enabled&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="default_parameters-194"><a href="#default_parameters-194"><span class="linenos">194</span></a>
+</span><span id="default_parameters-195"><a href="#default_parameters-195"><span class="linenos">195</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;bandwidth&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="default_parameters-196"><a href="#default_parameters-196"><span class="linenos">196</span></a>
+</span><span id="default_parameters-197"><a href="#default_parameters-197"><span class="linenos">197</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;analyzer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span>
+</span><span id="default_parameters-198"><a href="#default_parameters-198"><span class="linenos">198</span></a>
+</span><span id="default_parameters-199"><a href="#default_parameters-199"><span class="linenos">199</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;acquisition_time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="default_parameters-200"><a href="#default_parameters-200"><span class="linenos">200</span></a>
+</span><span id="default_parameters-201"><a href="#default_parameters-201"><span class="linenos">201</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;instrument_label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span> 
+</span><span id="default_parameters-202"><a href="#default_parameters-202"><span class="linenos">202</span></a>
+</span><span id="default_parameters-203"><a href="#default_parameters-203"><span class="linenos">203</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;sample_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span>
+</span><span id="default_parameters-204"><a href="#default_parameters-204"><span class="linenos">204</span></a>
+</span><span id="default_parameters-205"><a href="#default_parameters-205"><span class="linenos">205</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;number_data_points&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="default_parameters-206"><a href="#default_parameters-206"><span class="linenos">206</span></a>
+</span><span id="default_parameters-207"><a href="#default_parameters-207"><span class="linenos">207</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;polarity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span>
+</span><span id="default_parameters-208"><a href="#default_parameters-208"><span class="linenos">208</span></a>
+</span><span id="default_parameters-209"><a href="#default_parameters-209"><span class="linenos">209</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;filename_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
+</span><span id="default_parameters-210"><a href="#default_parameters-210"><span class="linenos">210</span></a>
+</span><span id="default_parameters-211"><a href="#default_parameters-211"><span class="linenos">211</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;scan_number and rt will be need to lc ms&quot;&quot;&quot;</span>
+</span><span id="default_parameters-212"><a href="#default_parameters-212"><span class="linenos">212</span></a>
+</span><span id="default_parameters-213"><a href="#default_parameters-213"><span class="linenos">213</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;mobility_scan&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="default_parameters-214"><a href="#default_parameters-214"><span class="linenos">214</span></a>
+</span><span id="default_parameters-215"><a href="#default_parameters-215"><span class="linenos">215</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;mobility_rt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="default_parameters-216"><a href="#default_parameters-216"><span class="linenos">216</span></a>
+</span><span id="default_parameters-217"><a href="#default_parameters-217"><span class="linenos">217</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;scan_number&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="default_parameters-218"><a href="#default_parameters-218"><span class="linenos">218</span></a>
+</span><span id="default_parameters-219"><a href="#default_parameters-219"><span class="linenos">219</span></a>    <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;rt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="default_parameters-220"><a href="#default_parameters-220"><span class="linenos">220</span></a>
+</span><span id="default_parameters-221"><a href="#default_parameters-221"><span class="linenos">221</span></a>    <span class="k">return</span> <span class="n">parameters</span>
 </span></pre></div>
 
 
