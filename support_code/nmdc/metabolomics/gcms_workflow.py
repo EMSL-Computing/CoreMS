@@ -13,7 +13,7 @@ from corems.molecular_id.input.nistMSI import ReadNistMSI
 from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
 from corems.molecular_id.search.compoundSearch import LowResMassSpectralMatch
 from corems.mass_spectra.calc.GC_RI_Calibration import get_rt_ri_pairs
-from corems import get_dirname, get_filename
+from support_code.filefinder import get_dirname, get_filename
 
 import glob
 from nmdc.metadata.nmdc_registration import NMDC_Metadata

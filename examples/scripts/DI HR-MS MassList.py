@@ -21,12 +21,14 @@ from corems.mass_spectrum.input.massList import ReadMassList
 from corems.molecular_id.factory.classification import HeteroatomsClassification
 from corems.mass_spectrum.calc.Calibration import MzDomainCalibration
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
-from corems import SuppressPrints, get_filename, get_filenames
+from corems import SuppressPrints
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.mass_spectra.input import rawFileReader
 
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.factory.parameters import MSParameters
+
+from support_code.filefinder import get_filename, get_filenames
 
 def mzdomain_calibration(mass_spectrum):
 
