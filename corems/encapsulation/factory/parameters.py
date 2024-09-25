@@ -1,11 +1,39 @@
+import dataclasses
+
 from corems.encapsulation.factory.processingSetting  import LiquidChromatographSetting, MolecularFormulaSearchSettings, TransientSetting, MassSpecPeakSetting, MassSpectrumSetting
 from corems.encapsulation.factory.processingSetting  import CompoundSearchSettings, GasChromatographSetting
 from corems.encapsulation.factory.processingSetting  import DataInputSetting
+
+def reset_ms_parameters():
+    """Reset the MSParameter class to the default values"""
+    MSParameters.molecular_search = MolecularFormulaSearchSettings()
+    MSParameters.transient = TransientSetting()
+    MSParameters.mass_spectrum = MassSpectrumSetting()
+    MSParameters.ms_peak = MassSpecPeakSetting()
+    MSParameters.data_input = DataInputSetting()
+
+def reset_gcms_parameters():
+    """Reset the GCMSParameters class to the default values"""
+    GCMSParameters.molecular_search = CompoundSearchSettings()
+    GCMSParameters.gc_ms = GasChromatographSetting()
+
+def reset_lcms_parameters():
+    """Reset the LCMSParameters class to the default values"""
+    LCMSParameters.lc_ms = LiquidChromatographSetting()
+    LCMSParameters.mass_spectrum = MassSpectrumSetting()
+    LCMSParameters.ms_peak = MassSpecPeakSetting()
+    LCMSParameters.ms1_molecular_search = MolecularFormulaSearchSettings()
+    LCMSParameters.ms2_molecular_search = MolecularFormulaSearchSettings()
 
 class MSParameters:
     """MSParameters class is used to store the parameters used for the processing of the mass spectrum
     
     Each attibute is a class that contains the parameters for the processing of the mass spectrum, see the corems.encapsulation.factory.processingSetting module for more details.
+
+    Parameters
+    ----------
+    use_defaults: bool, optional
+        if True, the class will be instantiated with the default values, otherwise the current values will be used. Default is False.
 
     Attributes
     -----------
@@ -19,6 +47,11 @@ class MSParameters:
         MassSpecPeakSetting object
     data_input: DataInputSetting
         DataInputSetting object
+
+    Notes
+    -----
+    One can use the use_defaults parameter to reset the parameters to the default values.
+    Alternatively, to use the current values - modify the class's contents before instantiating the class.
     """
 
     molecular_search = MolecularFormulaSearchSettings()
@@ -27,10 +60,29 @@ class MSParameters:
     ms_peak = MassSpecPeakSetting()
     data_input = DataInputSetting()
 
+    def __init__(self, use_defaults = False) -> None:
+        if not use_defaults:
+            self.molecular_search = dataclasses.replace(MSParameters.molecular_search)
+            self.transient = dataclasses.replace(MSParameters.transient)
+            self.mass_spectrum = dataclasses.replace(MSParameters.mass_spectrum)
+            self.ms_peak = dataclasses.replace(MSParameters.ms_peak)
+            self.data_input = dataclasses.replace(MSParameters.data_input)
+        else:
+            self.molecular_search = MolecularFormulaSearchSettings()
+            self.transient = TransientSetting()
+            self.mass_spectrum = MassSpectrumSetting()
+            self.ms_peak = MassSpecPeakSetting()
+            self.data_input = DataInputSetting()
+
 class GCMSParameters:
     """GCMSParameters class is used to store the parameters used for the processing of the gas chromatograph mass spectrum
 
     Each attibute is a class that contains the parameters for the processing of the data, see the corems.encapsulation.factory.processingSetting module for more details.
+
+    Parameters
+    ----------
+    use_defaults: bool, optional
+        if True, the class will be instantiated with the default values, otherwise the current values will be used. Default is False.
 
     Attributes
     -----------
@@ -38,15 +90,33 @@ class GCMSParameters:
         MolecularFormulaSearchSettings object
     gc_ms: GasChromatographSetting
         GasChromatographSetting object
+
+    Notes
+    -----
+    One can use the use_defaults parameter to reset the parameters to the default values.
+    Alternatively, to use the current values - modify the class's contents before instantiating the class.
     """
 
     molecular_search = CompoundSearchSettings()
     gc_ms = GasChromatographSetting()
 
+    def __init__(self, use_defaults = False) -> None:
+        if not use_defaults:
+            self.molecular_search = dataclasses.replace(GCMSParameters.molecular_search)
+            self.gc_ms = dataclasses.replace(GCMSParameters.gc_ms)
+        else:
+            self.molecular_search = CompoundSearchSettings()
+            self.gc_ms = GasChromatographSetting()
+
 class LCMSParameters:
     """LCMSParameters class is used to store the parameters used for the processing of the liquid chromatograph mass spectrum
 
     Each attibute is a class that contains the parameters for the processing of the data, see the corems.encapsulation.factory.processingSetting module for more details.
+
+    Parameters
+    ----------
+    use_defaults: bool, optional
+        if True, the class will be instantiated with the default values, otherwise the current values will be used. Default is False.
 
     Attributes
     -----------
@@ -60,16 +130,31 @@ class LCMSParameters:
         MolecularFormulaSearchSettings object
     ms2_molecular_search: MolecularFormulaSearchSettings
         MolecularFormulaSearchSettings object
+
+    Notes
+    -----
+    One can use the use_defaults parameter to reset the parameters to the default values.
+    Alternatively, to use the current values - modify the class's contents before instantiating the class.
     """
     lc_ms = LiquidChromatographSetting()
-    
     mass_spectrum = MassSpectrumSetting()
-
     ms_peak = MassSpecPeakSetting()
-
     ms1_molecular_search = MolecularFormulaSearchSettings()
-    
     ms2_molecular_search = MolecularFormulaSearchSettings()
+
+    def __init__(self, use_defaults = False) -> None:
+        if not use_defaults:
+            self.lc_ms = dataclasses.replace(LCMSParameters.lc_ms)
+            self.mass_spectrum = dataclasses.replace(LCMSParameters.mass_spectrum)
+            self.ms_peak = dataclasses.replace(LCMSParameters.ms_peak)
+            self.ms1_molecular_search = dataclasses.replace(LCMSParameters.ms1_molecular_search)
+            self.ms2_molecular_search = dataclasses.replace(LCMSParameters.ms2_molecular_search)
+        else:
+            self.lc_ms = LiquidChromatographSetting()
+            self.mass_spectrum = MassSpectrumSetting()
+            self.ms_peak = MassSpecPeakSetting()
+            self.ms1_molecular_search = MolecularFormulaSearchSettings()
+            self.ms2_molecular_search = MolecularFormulaSearchSettings()
 
 def default_parameters(file_location):  # pragma: no cover
     """Generate parameters dictionary with the default parameters for data processing
