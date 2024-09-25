@@ -4,22 +4,28 @@ from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectraCollec
 
 
 if __name__ == "__main__":
-    collection_path = Path("/Users/heal742/LOCAL/10_lcms_collection_testing/KidsFirst_T-ALL_neg/processed_files4")
-    manifest_file = collection_path / "manifest_small.csv"
-    
-    '''
+    collection_path = Path("/Users/heal742/LOCAL/10_lcms_collection_testing/UDN_neg/processed_data")
+    manifest_file = collection_path / "manifest_working.csv"
+    """
     # Read in manifest file
     import pandas as pd
     manifest_df = pd.read_csv(manifest_file)
+    missing_files = []
     # Remove any rows with missing file paths
     for index, row in manifest_df.iterrows():
         sample_folder = Path(row["sample_name"] + ".corems")
         # Check if sample_folder exists in collection_path
         if not (collection_path / sample_folder).exists():
+            missing_files.append(row["sample_name"])
             manifest_df.drop(index, inplace=True)
 
-    manifest_df.to_csv(manifest_file, index=False)
-    '''
+
+    manifest_df.to_csv(collection_path / "manifest_working.csv", index=False)
+    # save missing files to a text file
+    with open(collection_path / "missing_files.txt", "w") as f:
+        for item in missing_files:
+            f.write("%s\n" % item)
+    """
     ncores = 10
     parser = ReadCoreMSHDFMassSpectraCollection(
             folder_location = collection_path,
@@ -34,9 +40,6 @@ if __name__ == "__main__":
     #10s for 7 samples, 10 cores; 162s for 70 samples, 10 cores
     lcms_collection.parameters.lcms_collection.drop_isotopologues = True
     print("Number of total mass features: ", len(lcms_collection.mass_features_dataframe))
-    
-    print("Calculating distance matrices")
-
 
     print("Aligning LCMS collection")
     start_time = time.time()
@@ -45,7 +48,7 @@ if __name__ == "__main__":
     #1.5s for 7 samples; 15s for 70 samples
 
     #lcms_collection.plot_tics(type="both")
-    #lcms_collection.plot_alignments()
+    lcms_collection.plot_alignments()
     #mass_feature_df = lcms_collection.mass_features_to_df()
     #print("Adding consensus mass features")
     start_time = time.time()    

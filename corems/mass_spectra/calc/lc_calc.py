@@ -1672,6 +1672,52 @@ class LCMSCollectionCalculations:
 
         return mf_df
 
+    def attempt_alignment(self, matches_c, matches_i):
+        """
+        Check if alignment is needed for the LCMS objects in the collection.
+        """
+        
+        # Hold out a subset of matches_c and matches_i for spline fitting
+        matches_c.reset_index(drop=False, inplace=True)
+        matches_i.reset_index(drop=False, inplace=True)
+
+        # Rearrange matches_c and matches_i to be in the order of the scan_time of matches_c
+        matches_c = matches_c.sort_values(by='scan_time')
+        matches_i = matches_i.iloc[matches_c.index.values]
+
+        hold_out_fraction = self.parameters.lcms_collection.alignment_hold_out_fraction
+        # starting with an array of length len(matches_c), select equally spaced indices to hold out
+        idx_holdout = matches_c.index.values[np.arange(0, len(matches_c), int(1/hold_out_fraction))]
+
+        matches_c_holdout = matches_c.loc[idx_holdout].copy()
+        matches_i_holdout = matches_i.loc[idx_holdout].copy()
+
+        # Remove the holdout matches from the matches_c and matches_i DataFrames and reset the index
+        matches_c = matches_c.drop(index=idx_holdout).set_index('sample_name')
+        matches_i = matches_i.drop(index=idx_holdout).set_index('sample_name')
+
+        # Reset the scan_time to the original scan_time
+        matches_i = matches_i.copy()
+        matches_i['scan_time'] = matches_i['scan_time_og']
+
+        # Fit the retention times of the LCMS object to the center LCMS object using the matched mass features
+        spl = self.fit_rts(matches_c, matches_i, kernel='rbf', C=1000)
+
+        # Check if the spline fitting improved the alignment for the holdout matches
+        matches_i_holdout['scan_time_fit'] = spl(matches_i_holdout['scan_time'])
+        og_diff = np.abs(matches_i_holdout['scan_time'] - matches_c_holdout['scan_time'])
+        fit_diff = np.abs(matches_i_holdout['scan_time_fit'] - matches_c_holdout['scan_time'])
+
+        if "fraction_improved" in self.parameters.lcms_collection.alignment_acceptance_techinque:
+            fraction_improved = np.sum(fit_diff < og_diff) / len(og_diff)
+            use_spline_alignment = fraction_improved > self.parameters.lcms_collection.alignment_acceptance_fraction_improved_threshold              
+        if "mean_squared_error_improved" in self.parameters.lcms_collection.alignment_acceptance_techinque:
+            mse_og = np.mean(og_diff**2)
+            mse = np.mean(fit_diff**2)
+            use_spline_alignment = mse < mse_og
+
+        return use_spline_alignment, spl
+    
     def align_lcms_objects(self, overwrite=False):
         """
         Align LCMS objects in the collection.
@@ -1702,11 +1748,13 @@ class LCMSCollectionCalculations:
 
         if 'scan_time_aligned' in full_mf_df.columns and not overwrite:
             raise ValueError('Mass features have already been aligned')
-
+        
+        anchor_mf_dfs = []
         for center_obj_id in center_obj_ids:
             # Get the anchor mass features from the center LCMS object
             mf_df_c = full_mf_df.loc[self.samples[center_obj_id]]
             mf_df_c = self.get_anchor_mass_features(mf_df_c)
+            anchor_mf_dfs.append(mf_df_c)
 
             # Set scan_time_aligned to scan_time for the center LCMS object
             center_scan_df = self[center_obj_id].scan_df.copy()
@@ -1730,44 +1778,7 @@ class LCMSCollectionCalculations:
                         matches_c, matches_i = self.match_mfs(mf_df_c, mf_df_i) 
 
                         if matches_c is not None:
-                            # Hold out a subset of matches_c and matches_i for spline fitting
-                            matches_c.reset_index(drop=False, inplace=True)
-                            matches_i.reset_index(drop=False, inplace=True)
-
-                            # Rearrange matches_c and matches_i to be in the order of the scan_time of matches_c
-                            matches_c = matches_c.sort_values(by='scan_time')
-                            matches_i = matches_i.iloc[matches_c.index.values]
-
-                            hold_out_fraction = self.parameters.lcms_collection.alignment_hold_out_fraction
-                            # starting with an array of length len(matches_c), select equally spaced indices to hold out
-                            idx_holdout = matches_c.index.values[np.arange(0, len(matches_c), int(1/hold_out_fraction))]
-
-                            matches_c_holdout = matches_c.loc[idx_holdout].copy()
-                            matches_i_holdout = matches_i.loc[idx_holdout].copy()
-
-                            # Remove the holdout matches from the matches_c and matches_i DataFrames and reset the index
-                            matches_c = matches_c.drop(index=idx_holdout).set_index('sample_name')
-                            matches_i = matches_i.drop(index=idx_holdout).set_index('sample_name')
-
-                            # Reset the scan_time to the original scan_time
-                            matches_i = matches_i.copy()
-                            matches_i['scan_time'] = matches_i['scan_time_og']
-
-                            # Fit the retention times of the LCMS object to the center LCMS object using the matched mass features
-                            spl = self.fit_rts(matches_c, matches_i, kernel='rbf', C=1000)
-
-                            # Check if the spline fitting improved the alignment for the holdout matches
-                            matches_i_holdout['scan_time_fit'] = spl(matches_i_holdout['scan_time'])
-                            og_diff = np.abs(matches_i_holdout['scan_time'] - matches_c_holdout['scan_time'])
-                            fit_diff = np.abs(matches_i_holdout['scan_time_fit'] - matches_c_holdout['scan_time'])
-
-                            if "fraction_improved" in self.parameters.lcms_collection.alignment_acceptance_techinque:
-                                fraction_improved = np.sum(fit_diff < og_diff) / len(og_diff)
-                                use_spline_alignment = fraction_improved > self.parameters.lcms_collection.alignment_acceptance_fraction_improved_threshold              
-                            if "mean_squared_error_improved" in self.parameters.lcms_collection.alignment_acceptance_techinque:
-                                mse_og = np.mean(og_diff**2)
-                                mse = np.mean(fit_diff**2)
-                                use_spline_alignment = mse < mse_og
+                            use_spline_alignment, spl = self.attempt_alignment(matches_c, matches_i)
      
                             # Record if we used alignment for this sample
                             sample_name = self.samples[i]
@@ -1799,6 +1810,46 @@ class LCMSCollectionCalculations:
                                     mf_df_i['scan_time'] = spl(mf_df_i['scan_time']) 
                         else:
                             raise ValueError(f'No matches found between the center object and {self.samples[i]}')
+
+        # Now align each batch using the center objects as anchors with the other batches
+        mf_df_c = anchor_mf_dfs[0]
+        for i in center_obj_ids[1:]:
+            mf_df_i = full_mf_df.loc[self.samples[i]].copy()
+            mf_df_i['scan_time_og'] = mf_df_i['scan_time']
+            mf_df_i = self.get_anchor_mass_features(mf_df_i)
+            
+            matches_c, matches_i = self.match_mfs(mf_df_c, mf_df_i)
+            if matches_c is not None:
+                use_spline_alignment, spl = self.attempt_alignment(matches_c, matches_i)
+
+                # Record if we used alignment for this sample
+                sample_name = self.samples[i]
+                self._manifest_dict[sample_name]['use_rt_alignment'] = use_spline_alignment
+
+                if use_spline_alignment:
+                    # Set new retention times on all this object's 
+                    new_times = spl(self[i].scan_df['scan_time'])
+                    new_scan_info = self[i].scan_df.copy()
+                    new_scan_info['scan_time_aligned'] = new_times
+                    self[i].scan_df = new_scan_info
+
+                    # Get the batch that this object belongs to
+                    batch = self.manifest[self.samples[i]]['batch']
+
+                    for j in range(len(self)):
+                        if self.manifest[self.samples[j]]['batch'] == batch:
+                            if j != i:
+                                sample_name = self.samples[j]
+                                self._manifest_dict[sample_name]['use_rt_alignment'] = use_spline_alignment
+                                new_scan_info = self[j].scan_df.copy()
+                                new_scan_info['scan_time_aligned'] = spl(self[j].scan_df['scan_time_aligned'])
+                                self[j].scan_df = new_scan_info
+        
+        # Set final mass_features_dataframe with the aligned scan_time
+        center_sample_name = self.samples[center_obj_ids[0]]
+        self._manifest_dict[center_sample_name]['use_rt_alignment'] = False
+        new_scan_info = self[center_obj_ids[0]].scan_df.copy()
+        new_scan_info['scan_time_aligned'] = new_scan_info['scan_time']
 
     def add_consensus_mass_features(self):
         # Get the combined mass features from all LCMS objects
