@@ -22,11 +22,12 @@ from corems.mass_spectrum.input.massList import ReadMassList
 from corems.molecular_id.factory.classification import HeteroatomsClassification, Labels
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
-from corems import SuppressPrints, get_filename, get_dirnames
+from corems import SuppressPrints
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.mass_spectra.input import rawFileReader
 from corems.encapsulation.factory.parameters import MSParameters
 from support_code.nmdc.metadata.nmdc_registration import DMS_Mapping, NMDC_Metadata
+from support_code.filefinder import get_dirnames, get_filename
 
 def run_bruker(file_location):
 

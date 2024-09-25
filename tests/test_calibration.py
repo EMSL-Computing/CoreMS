@@ -165,6 +165,7 @@ def test_old_calibration():
     MSParameters.molecular_search.isRadical= True 
     MSParameters.molecular_search.usedAtoms = usedatoms
     mass_spectrum = create_mass_spectrum()
+    mass_spectrum.parameters.molecular_search.url_database = ''
 
     find_formula_thread = FindOxygenPeaks(mass_spectrum)
     find_formula_thread.run()
@@ -178,17 +179,17 @@ def test_old_calibration():
     calibrate.quadratic(iteration=True)
     calibrate.ledford_calibration()
     
-    MSParameters.molecular_search.error_method = 'symmetrical'
-    MSParameters.molecular_search.min_ppm_error  = -3
-    MSParameters.molecular_search.max_ppm_error = 3
-    MSParameters.molecular_search.mz_error_range = 1
-    MSParameters.molecular_search.mz_error_average = 0
-    MSParameters.molecular_search.min_abun_error = -30 # percentage 
-    MSParameters.molecular_search.max_abun_error = 70 # percentage 
-    MSParameters.molecular_search.isProtonated = True 
-    MSParameters.molecular_search.isRadical= True 
+    mass_spectrum.parameters.molecular_search.error_method = 'symmetrical'
+    mass_spectrum.parameters.molecular_search.min_ppm_error  = -3
+    mass_spectrum.parameters.molecular_search.max_ppm_error = 3
+    mass_spectrum.parameters.molecular_search.mz_error_range = 1
+    mass_spectrum.parameters.molecular_search.mz_error_average = 0
+    mass_spectrum.parameters.molecular_search.min_abun_error = -30 # percentage 
+    mass_spectrum.parameters.molecular_search.max_abun_error = 70 # percentage 
+    mass_spectrum.parameters.molecular_search.isProtonated = True 
+    mass_spectrum.parameters.molecular_search.isRadical= True 
     
-    MSParameters.molecular_search.usedAtoms = {'C': (1, 100),
+    mass_spectrum.parameters.molecular_search.usedAtoms = {'C': (1, 100),
                  'H': (4, 200),
                  'O': (0, 20),
                  'N': (0, 1),
