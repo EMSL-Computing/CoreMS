@@ -161,23 +161,28 @@ def test_import_corems_hdf5():
 
     file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_SRFA_CoreMS.hdf5"
     
-    MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
-    MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 0.1
-    
     #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
     mass_list_reader = ReadCoreMSHDF_MassSpectrum(file_location)
 
+    # Import processed mass spectrum, check that the mass spectrum is loaded correctly
     mass_spectrum = mass_list_reader.get_mass_spectrum()
     mass_spectrum.to_dataframe()
+    assert round(mass_spectrum[0].mz_exp,3) == 576.075
+    assert mass_spectrum[0][0].string == 'C25 H20 O16'
+    assert mass_spectrum.to_dataframe().shape == (20, 26)
+    assert mass_spectrum.settings.noise_threshold_method == 'log'
+    assert len(mass_spectrum) == 20
 
-    for mspeak in mass_spectrum:
-        
-        if mspeak:
-            
-            for mf in mspeak:
-                
-                print('mass_spectrum', mf.string)
-    
+    # Import unprocessed mass spectrum, check that the mass spectrum is loaded correctly
+    MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
+    mass_spectrum2 = mass_list_reader.get_mass_spectrum(
+        load_settings=False, 
+        auto_process=False,
+        load_molecular_formula=False
+    )
+    assert mass_spectrum2.settings.noise_threshold_method == 'relative_abundance' 
+    assert len(mass_spectrum2) == 0
+
  
 def test_import_corems_mass_list():
 
@@ -259,6 +264,23 @@ def test_import_maglab_pks():
     mass_spectrum = mass_list_reader.get_mass_spectrum(polarity)
 
     #MzDomainCalibration(mass_spectrum, ref_file_location).run()
+
+def test_import_xml_mass_list():
+
+    file_location = Path.cwd() / "tests/tests_data/ftms/" / "srfa_neg_xml_example.xml"
+
+    mass_list_reader = ReadMassList(file_location, isCentroid=True, isThermoProfile=False)
+    polarity = -1
+
+    MSParameters.mass_spectrum.noise_threshold_method = 'absolute_abundance' 
+    MSParameters.mass_spectrum.noise_threshold_absolute_abundance = 1000 
+
+    mass_spectrum = mass_list_reader.get_mass_spectrum(polarity, auto_process=True, loadSettings=False)
+    # check there are lots of peaks (should be ~36k)
+    assert len(mass_spectrum)>30_000
+    # check the 100th peak is as expected 
+    assert round(mass_spectrum.mz_exp[100],3) == 118.049
+
 
 def test_import_mass_list():
 

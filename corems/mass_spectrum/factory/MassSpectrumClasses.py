@@ -1,5 +1,6 @@
 from pathlib import Path
 from copy import deepcopy
+import numpy as np
 
 
 #from matplotlib import rcParamsDefault, rcParams
@@ -59,6 +60,10 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         The order of the mass spectrum's calibration.
     calibration_points : None or ndarray
         The calibration points of the mass spectrum.
+    calibration_ref_mzs: None or ndarray
+        The reference m/z values of the mass spectrum's calibration.
+    calibration_meas_mzs : None or ndarray
+        The measured m/z values of the mass spectrum's calibration.
     calibration_RMS : None or float
         The root mean square of the mass spectrum's calibration.
     calibration_segment : None or CalibrationSegment
@@ -117,6 +122,8 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         self.calibration_order = None
         self.calibration_points = None
+        self.calibration_ref_mzs = None
+        self.calibration_meas_mzs = None
         self.calibration_RMS = None
         self.calibration_segment = None
         self.calibration_raw_error_median = None
@@ -449,7 +456,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         else:
 
             return array([mspeak.mz_exp for mspeak in self.mspeaks])
-
+ 
     @property
     def freq_exp_profile(self):
         """Return the experimental frequency profile of the mass spectrum."""
@@ -457,6 +464,12 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     
     @freq_exp_profile.setter
     def freq_exp_profile(self, new_data): self._frequency_domain = array(new_data)
+
+    @property
+    def freq_exp_pp(self):
+        """Return the experimental frequency values of the mass spectrum that are used for peak picking."""
+        _, _, freq = self.prepare_peak_picking_data()
+        return freq
 
     @property
     def mz_exp_profile(self): 
@@ -470,6 +483,12 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     def mz_exp_profile(self, new_data ): self._mz_exp = array(new_data)
 
     @property
+    def mz_exp_pp(self):
+        """Return the experimental m/z values of the mass spectrum that are used for peak picking."""
+        mz, _, _ = self.prepare_peak_picking_data()
+        return mz
+
+    @property
     def abundance_profile(self): 
         """Return the abundance profile of the mass spectrum."""
         return self._abundance
@@ -477,6 +496,12 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
     @abundance_profile.setter
     def abundance_profile(self, new_data): self._abundance = array(new_data)
 
+    @property
+    def abundance_profile_pp(self):
+        """Return the abundance profile of the mass spectrum that is used for peak picking."""
+        _, abundance, _ = self.prepare_peak_picking_data()
+        return abundance
+    
     @property
     def abundance(self):
         """Return the abundance values of the mass spectrum."""
@@ -915,12 +940,19 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         for nominal_mass in all_nominal_masses:
 
-            indexes = self.get_nominal_mass_indexes(nominal_mass)
+            #indexes = self.get_nominal_mass_indexes(nominal_mass)
+            # Convert the iterator to a list to avoid multiple calls
+            indexes = list(self.get_nominal_mass_indexes(nominal_mass))
 
-            defaultvalue = None
-            first = last = next(indexes, defaultvalue)
-            for last in indexes:
-                pass
+            # If the list is not empty, find the first and last; otherwise, set None
+            if indexes:
+                first, last = indexes[0], indexes[-1]
+            else:
+                first = last = None
+            #defaultvalue = None
+            #first = last = next(indexes, defaultvalue)
+            #for last in indexes:
+            #    pass
 
             dict_nominal_masses_indexes[nominal_mass] = (first, last)
 
@@ -1458,53 +1490,50 @@ class MassSpecCentroid(MassSpecBase):
         # overwrite process_mass_spec 
         # mspeak objs are usually added inside the PeaKPicking class 
         # for profile and freq based data
-        
         data_dict = self.data_dict
-        s2n = True
         ion_charge = self.polarity
-        #l_exp_mz_centroid = data_dict.get(Labels.mz)
-        #l_intes_centr = data_dict.get(Labels.abundance)
-        #l_peak_resolving_power = data_dict.get(Labels.rp)
-        l_s2n = list(data_dict.get(Labels.s2n))
-        
-        if not l_s2n: s2n = False
-                
+
+        # Check if resolving power is present
+        rp_present = True
+        if not data_dict.get(Labels.rp):
+            rp_present = False
+        if rp_present and list(data_dict.get(Labels.rp)) == [None]*len(data_dict.get(Labels.rp)):
+            rp_present = False
+
+        # Check if s2n is present
+        s2n_present = True
+        if not data_dict.get(Labels.s2n):
+            s2n_present = False
+        if s2n_present and list(data_dict.get(Labels.s2n)) == [None]*len(data_dict.get(Labels.s2n)):
+            s2n_present = False
+
+        # Pull out abundance data        
         abun = array(data_dict.get(Labels.abundance)).astype(float)
         
         abundance_threshold, factor = self.get_threshold(abun)
         
+        # Set rp_i and s2n_i to None which will be overwritten if present
+        rp_i, s2n_i = np.nan, np.nan
         for index, mz in enumerate(data_dict.get(Labels.mz)):
-            
+            if rp_present:
+                rp_i = float(data_dict.get(Labels.rp)[index])
+            if s2n_present:
+                s2n_i = float(data_dict.get(Labels.s2n)[index])
+
             # centroid peak does not have start and end peak index pos
             massspec_indexes = (index, index, index)
-            
-            if s2n:
-                
-                if abun[index]/factor >= abundance_threshold:
+                           
+            if abun[index]/factor >= abundance_threshold:
 
-                    self.add_mspeak(
-                        ion_charge,
-                        mz,
-                        abun[index],
-                        float(data_dict.get(Labels.rp)[index]),
-                        float(l_s2n[index]),
-                        massspec_indexes,
-                        ms_parent=self
-                    )
-
-            else:
-
-                if data_dict.get(Labels.abundance)[index]/factor >= abundance_threshold:
-
-                    self.add_mspeak(
-                        ion_charge,
-                        mz,
-                        abun[index],
-                        float(data_dict.get(Labels.rp)[index]),
-                        -999,
-                        massspec_indexes,
-                        ms_parent=self
-                    )
+                self.add_mspeak(
+                    ion_charge,
+                    mz,
+                    abun[index],
+                    rp_i,
+                    s2n_i,
+                    massspec_indexes,
+                    ms_parent=self
+                )
 
         self.mspeaks = self._mspeaks
         self._dynamic_range = self.max_abundance / self.min_abundance

@@ -64,18 +64,6 @@
 
             </li>
             <li>
-                    <a class="function" href="#get_filenames">get_filenames</a>
-            </li>
-            <li>
-                    <a class="function" href="#get_filename">get_filename</a>
-            </li>
-            <li>
-                    <a class="function" href="#get_dirname">get_dirname</a>
-            </li>
-            <li>
-                    <a class="function" href="#get_dirnames">get_dirnames</a>
-            </li>
-            <li>
                     <a class="function" href="#chunks">chunks</a>
             </li>
             <li>
@@ -502,7 +490,7 @@ reflect those of the United States Government or any agency thereof.</p>
                         <label class="view-source-button" for="mod-corems-view-source"><span>View Source</span></label>
 
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Yuri E. Corilo&#39;</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;2.0.5&#39;</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;2.1.0&#39;</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="vm">__doc__</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="s1">&lt;div align=&quot;left&quot;&gt;</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a>
@@ -865,106 +853,18 @@ reflect those of the United States Government or any agency thereof.</p>
 </span><span id="L-362"><a href="#L-362"><span class="linenos">362</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span><span id="L-363"><a href="#L-363"><span class="linenos">363</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_stdout</span>
 </span><span id="L-364"><a href="#L-364"><span class="linenos">364</span></a>
-</span><span id="L-365"><a href="#L-365"><span class="linenos">365</span></a><span class="k">def</span> <span class="nf">get_filenames</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-366"><a href="#L-366"><span class="linenos">366</span></a>
-</span><span id="L-367"><a href="#L-367"><span class="linenos">367</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
-</span><span id="L-368"><a href="#L-368"><span class="linenos">368</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span>
-</span><span id="L-369"><a href="#L-369"><span class="linenos">369</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</span><span id="L-370"><a href="#L-370"><span class="linenos">370</span></a>
-</span><span id="L-371"><a href="#L-371"><span class="linenos">371</span></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
-</span><span id="L-372"><a href="#L-372"><span class="linenos">372</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
-</span><span id="L-373"><a href="#L-373"><span class="linenos">373</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowStaysOnTopHint</span><span class="p">)</span>
-</span><span id="L-374"><a href="#L-374"><span class="linenos">374</span></a>    <span class="n">file_location</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">getOpenFileNames</span><span class="p">()</span>
+</span><span id="L-365"><a href="#L-365"><span class="linenos">365</span></a><span class="k">def</span> <span class="nf">chunks</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+</span><span id="L-366"><a href="#L-366"><span class="linenos">366</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Yield successive n-sized chunks from lst.&quot;&quot;&quot;</span>
+</span><span id="L-367"><a href="#L-367"><span class="linenos">367</span></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">),</span> <span class="n">n</span><span class="p">):</span>
+</span><span id="L-368"><a href="#L-368"><span class="linenos">368</span></a>        <span class="k">yield</span> <span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">n</span><span class="p">]</span>
+</span><span id="L-369"><a href="#L-369"><span class="linenos">369</span></a>
+</span><span id="L-370"><a href="#L-370"><span class="linenos">370</span></a><span class="k">def</span> <span class="nf">corems_md5</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+</span><span id="L-371"><a href="#L-371"><span class="linenos">371</span></a>
+</span><span id="L-372"><a href="#L-372"><span class="linenos">372</span></a>    <span class="n">bytes_io</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</span><span id="L-373"><a href="#L-373"><span class="linenos">373</span></a>
+</span><span id="L-374"><a href="#L-374"><span class="linenos">374</span></a>    <span class="n">md5_returned</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">bytes_io</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
 </span><span id="L-375"><a href="#L-375"><span class="linenos">375</span></a>
-</span><span id="L-376"><a href="#L-376"><span class="linenos">376</span></a>    <span class="k">if</span> <span class="n">file_location</span><span class="p">:</span>
-</span><span id="L-377"><a href="#L-377"><span class="linenos">377</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
-</span><span id="L-378"><a href="#L-378"><span class="linenos">378</span></a>        <span class="k">return</span> <span class="n">file_location</span>
-</span><span id="L-379"><a href="#L-379"><span class="linenos">379</span></a>
-</span><span id="L-380"><a href="#L-380"><span class="linenos">380</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="L-381"><a href="#L-381"><span class="linenos">381</span></a>
-</span><span id="L-382"><a href="#L-382"><span class="linenos">382</span></a>        <span class="k">return</span> <span class="kc">None</span>
-</span><span id="L-383"><a href="#L-383"><span class="linenos">383</span></a>
-</span><span id="L-384"><a href="#L-384"><span class="linenos">384</span></a><span class="k">def</span> <span class="nf">get_filename</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-385"><a href="#L-385"><span class="linenos">385</span></a>
-</span><span id="L-386"><a href="#L-386"><span class="linenos">386</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
-</span><span id="L-387"><a href="#L-387"><span class="linenos">387</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span>
-</span><span id="L-388"><a href="#L-388"><span class="linenos">388</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</span><span id="L-389"><a href="#L-389"><span class="linenos">389</span></a>
-</span><span id="L-390"><a href="#L-390"><span class="linenos">390</span></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
-</span><span id="L-391"><a href="#L-391"><span class="linenos">391</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
-</span><span id="L-392"><a href="#L-392"><span class="linenos">392</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowStaysOnTopHint</span><span class="p">)</span>
-</span><span id="L-393"><a href="#L-393"><span class="linenos">393</span></a>    <span class="n">file_location</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">getOpenFileName</span><span class="p">()</span>
-</span><span id="L-394"><a href="#L-394"><span class="linenos">394</span></a>
-</span><span id="L-395"><a href="#L-395"><span class="linenos">395</span></a>    <span class="k">if</span> <span class="n">file_location</span><span class="p">:</span>
-</span><span id="L-396"><a href="#L-396"><span class="linenos">396</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
-</span><span id="L-397"><a href="#L-397"><span class="linenos">397</span></a>        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
-</span><span id="L-398"><a href="#L-398"><span class="linenos">398</span></a>
-</span><span id="L-399"><a href="#L-399"><span class="linenos">399</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="L-400"><a href="#L-400"><span class="linenos">400</span></a>
-</span><span id="L-401"><a href="#L-401"><span class="linenos">401</span></a>        <span class="k">return</span> <span class="kc">None</span>
-</span><span id="L-402"><a href="#L-402"><span class="linenos">402</span></a>
-</span><span id="L-403"><a href="#L-403"><span class="linenos">403</span></a><span class="k">def</span> <span class="nf">get_dirname</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-404"><a href="#L-404"><span class="linenos">404</span></a>
-</span><span id="L-405"><a href="#L-405"><span class="linenos">405</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
-</span><span id="L-406"><a href="#L-406"><span class="linenos">406</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span> 
-</span><span id="L-407"><a href="#L-407"><span class="linenos">407</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</span><span id="L-408"><a href="#L-408"><span class="linenos">408</span></a>
-</span><span id="L-409"><a href="#L-409"><span class="linenos">409</span></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
-</span><span id="L-410"><a href="#L-410"><span class="linenos">410</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
-</span><span id="L-411"><a href="#L-411"><span class="linenos">411</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowStaysOnTopHint</span><span class="p">)</span>
-</span><span id="L-412"><a href="#L-412"><span class="linenos">412</span></a>    <span class="n">file_location</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">getExistingDirectory</span><span class="p">()</span>
-</span><span id="L-413"><a href="#L-413"><span class="linenos">413</span></a>
-</span><span id="L-414"><a href="#L-414"><span class="linenos">414</span></a>    <span class="k">if</span> <span class="n">file_location</span><span class="p">:</span>
-</span><span id="L-415"><a href="#L-415"><span class="linenos">415</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
-</span><span id="L-416"><a href="#L-416"><span class="linenos">416</span></a>        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
-</span><span id="L-417"><a href="#L-417"><span class="linenos">417</span></a>
-</span><span id="L-418"><a href="#L-418"><span class="linenos">418</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="L-419"><a href="#L-419"><span class="linenos">419</span></a>
-</span><span id="L-420"><a href="#L-420"><span class="linenos">420</span></a>        <span class="k">return</span> <span class="kc">None</span>
-</span><span id="L-421"><a href="#L-421"><span class="linenos">421</span></a>
-</span><span id="L-422"><a href="#L-422"><span class="linenos">422</span></a><span class="k">def</span> <span class="nf">get_dirnames</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-423"><a href="#L-423"><span class="linenos">423</span></a>
-</span><span id="L-424"><a href="#L-424"><span class="linenos">424</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
-</span><span id="L-425"><a href="#L-425"><span class="linenos">425</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span><span class="p">,</span> <span class="n">QTreeView</span><span class="p">,</span> <span class="n">QListView</span><span class="p">,</span> <span class="n">QAbstractItemView</span>
-</span><span id="L-426"><a href="#L-426"><span class="linenos">426</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</span><span id="L-427"><a href="#L-427"><span class="linenos">427</span></a>
-</span><span id="L-428"><a href="#L-428"><span class="linenos">428</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">app</span><span class="p">:</span>
-</span><span id="L-429"><a href="#L-429"><span class="linenos">429</span></a>        <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
-</span><span id="L-430"><a href="#L-430"><span class="linenos">430</span></a>    <span class="c1"># file_dialog = QFileDialog()</span>
-</span><span id="L-431"><a href="#L-431"><span class="linenos">431</span></a>    <span class="c1"># file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)</span>
-</span><span id="L-432"><a href="#L-432"><span class="linenos">432</span></a>    <span class="c1"># file_location = file_dialog.getOpenFileNames()</span>
-</span><span id="L-433"><a href="#L-433"><span class="linenos">433</span></a>
-</span><span id="L-434"><a href="#L-434"><span class="linenos">434</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
-</span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setFileMode</span><span class="p">(</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">DirectoryOnly</span><span class="p">)</span>
-</span><span id="L-436"><a href="#L-436"><span class="linenos">436</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setOption</span><span class="p">(</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">DontUseNativeDialog</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-</span><span id="L-437"><a href="#L-437"><span class="linenos">437</span></a>    <span class="n">file_view</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">findChild</span><span class="p">(</span><span class="n">QListView</span><span class="p">,</span> <span class="s1">&#39;listView&#39;</span><span class="p">)</span>
-</span><span id="L-438"><a href="#L-438"><span class="linenos">438</span></a>
-</span><span id="L-439"><a href="#L-439"><span class="linenos">439</span></a>    <span class="c1"># to make it possible to select multiple directories:</span>
-</span><span id="L-440"><a href="#L-440"><span class="linenos">440</span></a>    <span class="k">if</span> <span class="n">file_view</span><span class="p">:</span>
-</span><span id="L-441"><a href="#L-441"><span class="linenos">441</span></a>        <span class="n">file_view</span><span class="o">.</span><span class="n">setSelectionMode</span><span class="p">(</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">MultiSelection</span><span class="p">)</span>
-</span><span id="L-442"><a href="#L-442"><span class="linenos">442</span></a>    <span class="n">f_tree_view</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">findChild</span><span class="p">(</span><span class="n">QTreeView</span><span class="p">)</span>
-</span><span id="L-443"><a href="#L-443"><span class="linenos">443</span></a>    <span class="k">if</span> <span class="n">f_tree_view</span><span class="p">:</span>
-</span><span id="L-444"><a href="#L-444"><span class="linenos">444</span></a>        <span class="n">f_tree_view</span><span class="o">.</span><span class="n">setSelectionMode</span><span class="p">(</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">MultiSelection</span><span class="p">)</span>
-</span><span id="L-445"><a href="#L-445"><span class="linenos">445</span></a>
-</span><span id="L-446"><a href="#L-446"><span class="linenos">446</span></a>    <span class="k">if</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">exec</span><span class="p">():</span>
-</span><span id="L-447"><a href="#L-447"><span class="linenos">447</span></a>        <span class="n">paths</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">selectedFiles</span><span class="p">()</span>
-</span><span id="L-448"><a href="#L-448"><span class="linenos">448</span></a>
-</span><span id="L-449"><a href="#L-449"><span class="linenos">449</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
-</span><span id="L-450"><a href="#L-450"><span class="linenos">450</span></a>        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">:</span>
-</span><span id="L-451"><a href="#L-451"><span class="linenos">451</span></a>            <span class="k">yield</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-</span><span id="L-452"><a href="#L-452"><span class="linenos">452</span></a>
-</span><span id="L-453"><a href="#L-453"><span class="linenos">453</span></a><span class="k">def</span> <span class="nf">chunks</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-</span><span id="L-454"><a href="#L-454"><span class="linenos">454</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Yield successive n-sized chunks from lst.&quot;&quot;&quot;</span>
-</span><span id="L-455"><a href="#L-455"><span class="linenos">455</span></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">),</span> <span class="n">n</span><span class="p">):</span>
-</span><span id="L-456"><a href="#L-456"><span class="linenos">456</span></a>        <span class="k">yield</span> <span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">n</span><span class="p">]</span>
-</span><span id="L-457"><a href="#L-457"><span class="linenos">457</span></a>
-</span><span id="L-458"><a href="#L-458"><span class="linenos">458</span></a><span class="k">def</span> <span class="nf">corems_md5</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
-</span><span id="L-459"><a href="#L-459"><span class="linenos">459</span></a>
-</span><span id="L-460"><a href="#L-460"><span class="linenos">460</span></a>    <span class="n">bytes_io</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-</span><span id="L-461"><a href="#L-461"><span class="linenos">461</span></a>
-</span><span id="L-462"><a href="#L-462"><span class="linenos">462</span></a>    <span class="n">md5_returned</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">bytes_io</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
-</span><span id="L-463"><a href="#L-463"><span class="linenos">463</span></a>
-</span><span id="L-464"><a href="#L-464"><span class="linenos">464</span></a>    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;sha256&quot;</span><span class="p">,</span> <span class="n">md5_returned</span><span class="p">)</span>
+</span><span id="L-376"><a href="#L-376"><span class="linenos">376</span></a>    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;sha256&quot;</span><span class="p">,</span> <span class="n">md5_returned</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -1024,158 +924,6 @@ reflect those of the United States Government or any agency thereof.</p>
     
 
                 </section>
-                <section id="get_filenames">
-                            <input id="get_filenames-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
-<div class="attr function">
-            
-        <span class="def">def</span>
-        <span class="name">get_filenames</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">app</span><span class="o">=</span><span class="kc">None</span></span><span class="return-annotation">):</span></span>
-
-                <label class="view-source-button" for="get_filenames-view-source"><span>View Source</span></label>
-
-    </div>
-    <a class="headerlink" href="#get_filenames"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_filenames-366"><a href="#get_filenames-366"><span class="linenos">366</span></a><span class="k">def</span> <span class="nf">get_filenames</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="get_filenames-367"><a href="#get_filenames-367"><span class="linenos">367</span></a>
-</span><span id="get_filenames-368"><a href="#get_filenames-368"><span class="linenos">368</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
-</span><span id="get_filenames-369"><a href="#get_filenames-369"><span class="linenos">369</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span>
-</span><span id="get_filenames-370"><a href="#get_filenames-370"><span class="linenos">370</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</span><span id="get_filenames-371"><a href="#get_filenames-371"><span class="linenos">371</span></a>
-</span><span id="get_filenames-372"><a href="#get_filenames-372"><span class="linenos">372</span></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
-</span><span id="get_filenames-373"><a href="#get_filenames-373"><span class="linenos">373</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
-</span><span id="get_filenames-374"><a href="#get_filenames-374"><span class="linenos">374</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowStaysOnTopHint</span><span class="p">)</span>
-</span><span id="get_filenames-375"><a href="#get_filenames-375"><span class="linenos">375</span></a>    <span class="n">file_location</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">getOpenFileNames</span><span class="p">()</span>
-</span><span id="get_filenames-376"><a href="#get_filenames-376"><span class="linenos">376</span></a>
-</span><span id="get_filenames-377"><a href="#get_filenames-377"><span class="linenos">377</span></a>    <span class="k">if</span> <span class="n">file_location</span><span class="p">:</span>
-</span><span id="get_filenames-378"><a href="#get_filenames-378"><span class="linenos">378</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
-</span><span id="get_filenames-379"><a href="#get_filenames-379"><span class="linenos">379</span></a>        <span class="k">return</span> <span class="n">file_location</span>
-</span><span id="get_filenames-380"><a href="#get_filenames-380"><span class="linenos">380</span></a>
-</span><span id="get_filenames-381"><a href="#get_filenames-381"><span class="linenos">381</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="get_filenames-382"><a href="#get_filenames-382"><span class="linenos">382</span></a>
-</span><span id="get_filenames-383"><a href="#get_filenames-383"><span class="linenos">383</span></a>        <span class="k">return</span> <span class="kc">None</span>
-</span></pre></div>
-
-
-    
-
-                </section>
-                <section id="get_filename">
-                            <input id="get_filename-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
-<div class="attr function">
-            
-        <span class="def">def</span>
-        <span class="name">get_filename</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">app</span><span class="o">=</span><span class="kc">None</span></span><span class="return-annotation">):</span></span>
-
-                <label class="view-source-button" for="get_filename-view-source"><span>View Source</span></label>
-
-    </div>
-    <a class="headerlink" href="#get_filename"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_filename-385"><a href="#get_filename-385"><span class="linenos">385</span></a><span class="k">def</span> <span class="nf">get_filename</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="get_filename-386"><a href="#get_filename-386"><span class="linenos">386</span></a>
-</span><span id="get_filename-387"><a href="#get_filename-387"><span class="linenos">387</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
-</span><span id="get_filename-388"><a href="#get_filename-388"><span class="linenos">388</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span>
-</span><span id="get_filename-389"><a href="#get_filename-389"><span class="linenos">389</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</span><span id="get_filename-390"><a href="#get_filename-390"><span class="linenos">390</span></a>
-</span><span id="get_filename-391"><a href="#get_filename-391"><span class="linenos">391</span></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
-</span><span id="get_filename-392"><a href="#get_filename-392"><span class="linenos">392</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
-</span><span id="get_filename-393"><a href="#get_filename-393"><span class="linenos">393</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowStaysOnTopHint</span><span class="p">)</span>
-</span><span id="get_filename-394"><a href="#get_filename-394"><span class="linenos">394</span></a>    <span class="n">file_location</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">getOpenFileName</span><span class="p">()</span>
-</span><span id="get_filename-395"><a href="#get_filename-395"><span class="linenos">395</span></a>
-</span><span id="get_filename-396"><a href="#get_filename-396"><span class="linenos">396</span></a>    <span class="k">if</span> <span class="n">file_location</span><span class="p">:</span>
-</span><span id="get_filename-397"><a href="#get_filename-397"><span class="linenos">397</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
-</span><span id="get_filename-398"><a href="#get_filename-398"><span class="linenos">398</span></a>        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
-</span><span id="get_filename-399"><a href="#get_filename-399"><span class="linenos">399</span></a>
-</span><span id="get_filename-400"><a href="#get_filename-400"><span class="linenos">400</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="get_filename-401"><a href="#get_filename-401"><span class="linenos">401</span></a>
-</span><span id="get_filename-402"><a href="#get_filename-402"><span class="linenos">402</span></a>        <span class="k">return</span> <span class="kc">None</span>
-</span></pre></div>
-
-
-    
-
-                </section>
-                <section id="get_dirname">
-                            <input id="get_dirname-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
-<div class="attr function">
-            
-        <span class="def">def</span>
-        <span class="name">get_dirname</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">app</span><span class="o">=</span><span class="kc">None</span></span><span class="return-annotation">):</span></span>
-
-                <label class="view-source-button" for="get_dirname-view-source"><span>View Source</span></label>
-
-    </div>
-    <a class="headerlink" href="#get_dirname"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_dirname-404"><a href="#get_dirname-404"><span class="linenos">404</span></a><span class="k">def</span> <span class="nf">get_dirname</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="get_dirname-405"><a href="#get_dirname-405"><span class="linenos">405</span></a>
-</span><span id="get_dirname-406"><a href="#get_dirname-406"><span class="linenos">406</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
-</span><span id="get_dirname-407"><a href="#get_dirname-407"><span class="linenos">407</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span> 
-</span><span id="get_dirname-408"><a href="#get_dirname-408"><span class="linenos">408</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</span><span id="get_dirname-409"><a href="#get_dirname-409"><span class="linenos">409</span></a>
-</span><span id="get_dirname-410"><a href="#get_dirname-410"><span class="linenos">410</span></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
-</span><span id="get_dirname-411"><a href="#get_dirname-411"><span class="linenos">411</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
-</span><span id="get_dirname-412"><a href="#get_dirname-412"><span class="linenos">412</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowStaysOnTopHint</span><span class="p">)</span>
-</span><span id="get_dirname-413"><a href="#get_dirname-413"><span class="linenos">413</span></a>    <span class="n">file_location</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">getExistingDirectory</span><span class="p">()</span>
-</span><span id="get_dirname-414"><a href="#get_dirname-414"><span class="linenos">414</span></a>
-</span><span id="get_dirname-415"><a href="#get_dirname-415"><span class="linenos">415</span></a>    <span class="k">if</span> <span class="n">file_location</span><span class="p">:</span>
-</span><span id="get_dirname-416"><a href="#get_dirname-416"><span class="linenos">416</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
-</span><span id="get_dirname-417"><a href="#get_dirname-417"><span class="linenos">417</span></a>        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
-</span><span id="get_dirname-418"><a href="#get_dirname-418"><span class="linenos">418</span></a>
-</span><span id="get_dirname-419"><a href="#get_dirname-419"><span class="linenos">419</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="get_dirname-420"><a href="#get_dirname-420"><span class="linenos">420</span></a>
-</span><span id="get_dirname-421"><a href="#get_dirname-421"><span class="linenos">421</span></a>        <span class="k">return</span> <span class="kc">None</span>
-</span></pre></div>
-
-
-    
-
-                </section>
-                <section id="get_dirnames">
-                            <input id="get_dirnames-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
-<div class="attr function">
-            
-        <span class="def">def</span>
-        <span class="name">get_dirnames</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">app</span><span class="o">=</span><span class="kc">None</span></span><span class="return-annotation">):</span></span>
-
-                <label class="view-source-button" for="get_dirnames-view-source"><span>View Source</span></label>
-
-    </div>
-    <a class="headerlink" href="#get_dirnames"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_dirnames-423"><a href="#get_dirnames-423"><span class="linenos">423</span></a><span class="k">def</span> <span class="nf">get_dirnames</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="get_dirnames-424"><a href="#get_dirnames-424"><span class="linenos">424</span></a>
-</span><span id="get_dirnames-425"><a href="#get_dirnames-425"><span class="linenos">425</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QCoreApplication</span>
-</span><span id="get_dirnames-426"><a href="#get_dirnames-426"><span class="linenos">426</span></a>    <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFileDialog</span><span class="p">,</span> <span class="n">QTreeView</span><span class="p">,</span> <span class="n">QListView</span><span class="p">,</span> <span class="n">QAbstractItemView</span>
-</span><span id="get_dirnames-427"><a href="#get_dirnames-427"><span class="linenos">427</span></a>    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</span><span id="get_dirnames-428"><a href="#get_dirnames-428"><span class="linenos">428</span></a>
-</span><span id="get_dirnames-429"><a href="#get_dirnames-429"><span class="linenos">429</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">app</span><span class="p">:</span>
-</span><span id="get_dirnames-430"><a href="#get_dirnames-430"><span class="linenos">430</span></a>        <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
-</span><span id="get_dirnames-431"><a href="#get_dirnames-431"><span class="linenos">431</span></a>    <span class="c1"># file_dialog = QFileDialog()</span>
-</span><span id="get_dirnames-432"><a href="#get_dirnames-432"><span class="linenos">432</span></a>    <span class="c1"># file_dialog.setWindowFlags(Qt.WindowStaysOnTopHint)</span>
-</span><span id="get_dirnames-433"><a href="#get_dirnames-433"><span class="linenos">433</span></a>    <span class="c1"># file_location = file_dialog.getOpenFileNames()</span>
-</span><span id="get_dirnames-434"><a href="#get_dirnames-434"><span class="linenos">434</span></a>
-</span><span id="get_dirnames-435"><a href="#get_dirnames-435"><span class="linenos">435</span></a>    <span class="n">file_dialog</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="p">()</span>
-</span><span id="get_dirnames-436"><a href="#get_dirnames-436"><span class="linenos">436</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setFileMode</span><span class="p">(</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">DirectoryOnly</span><span class="p">)</span>
-</span><span id="get_dirnames-437"><a href="#get_dirnames-437"><span class="linenos">437</span></a>    <span class="n">file_dialog</span><span class="o">.</span><span class="n">setOption</span><span class="p">(</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">DontUseNativeDialog</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-</span><span id="get_dirnames-438"><a href="#get_dirnames-438"><span class="linenos">438</span></a>    <span class="n">file_view</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">findChild</span><span class="p">(</span><span class="n">QListView</span><span class="p">,</span> <span class="s1">&#39;listView&#39;</span><span class="p">)</span>
-</span><span id="get_dirnames-439"><a href="#get_dirnames-439"><span class="linenos">439</span></a>
-</span><span id="get_dirnames-440"><a href="#get_dirnames-440"><span class="linenos">440</span></a>    <span class="c1"># to make it possible to select multiple directories:</span>
-</span><span id="get_dirnames-441"><a href="#get_dirnames-441"><span class="linenos">441</span></a>    <span class="k">if</span> <span class="n">file_view</span><span class="p">:</span>
-</span><span id="get_dirnames-442"><a href="#get_dirnames-442"><span class="linenos">442</span></a>        <span class="n">file_view</span><span class="o">.</span><span class="n">setSelectionMode</span><span class="p">(</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">MultiSelection</span><span class="p">)</span>
-</span><span id="get_dirnames-443"><a href="#get_dirnames-443"><span class="linenos">443</span></a>    <span class="n">f_tree_view</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">findChild</span><span class="p">(</span><span class="n">QTreeView</span><span class="p">)</span>
-</span><span id="get_dirnames-444"><a href="#get_dirnames-444"><span class="linenos">444</span></a>    <span class="k">if</span> <span class="n">f_tree_view</span><span class="p">:</span>
-</span><span id="get_dirnames-445"><a href="#get_dirnames-445"><span class="linenos">445</span></a>        <span class="n">f_tree_view</span><span class="o">.</span><span class="n">setSelectionMode</span><span class="p">(</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">MultiSelection</span><span class="p">)</span>
-</span><span id="get_dirnames-446"><a href="#get_dirnames-446"><span class="linenos">446</span></a>
-</span><span id="get_dirnames-447"><a href="#get_dirnames-447"><span class="linenos">447</span></a>    <span class="k">if</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">exec</span><span class="p">():</span>
-</span><span id="get_dirnames-448"><a href="#get_dirnames-448"><span class="linenos">448</span></a>        <span class="n">paths</span> <span class="o">=</span> <span class="n">file_dialog</span><span class="o">.</span><span class="n">selectedFiles</span><span class="p">()</span>
-</span><span id="get_dirnames-449"><a href="#get_dirnames-449"><span class="linenos">449</span></a>
-</span><span id="get_dirnames-450"><a href="#get_dirnames-450"><span class="linenos">450</span></a>        <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
-</span><span id="get_dirnames-451"><a href="#get_dirnames-451"><span class="linenos">451</span></a>        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">:</span>
-</span><span id="get_dirnames-452"><a href="#get_dirnames-452"><span class="linenos">452</span></a>            <span class="k">yield</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-</span></pre></div>
-
-
-    
-
-                </section>
                 <section id="chunks">
                             <input id="chunks-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
@@ -1187,10 +935,10 @@ reflect those of the United States Government or any agency thereof.</p>
 
     </div>
     <a class="headerlink" href="#chunks"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="chunks-454"><a href="#chunks-454"><span class="linenos">454</span></a><span class="k">def</span> <span class="nf">chunks</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-</span><span id="chunks-455"><a href="#chunks-455"><span class="linenos">455</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Yield successive n-sized chunks from lst.&quot;&quot;&quot;</span>
-</span><span id="chunks-456"><a href="#chunks-456"><span class="linenos">456</span></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">),</span> <span class="n">n</span><span class="p">):</span>
-</span><span id="chunks-457"><a href="#chunks-457"><span class="linenos">457</span></a>        <span class="k">yield</span> <span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">n</span><span class="p">]</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="chunks-366"><a href="#chunks-366"><span class="linenos">366</span></a><span class="k">def</span> <span class="nf">chunks</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+</span><span id="chunks-367"><a href="#chunks-367"><span class="linenos">367</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Yield successive n-sized chunks from lst.&quot;&quot;&quot;</span>
+</span><span id="chunks-368"><a href="#chunks-368"><span class="linenos">368</span></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">),</span> <span class="n">n</span><span class="p">):</span>
+</span><span id="chunks-369"><a href="#chunks-369"><span class="linenos">369</span></a>        <span class="k">yield</span> <span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">n</span><span class="p">]</span>
 </span></pre></div>
 
 
@@ -1210,13 +958,13 @@ reflect those of the United States Government or any agency thereof.</p>
 
     </div>
     <a class="headerlink" href="#corems_md5"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="corems_md5-459"><a href="#corems_md5-459"><span class="linenos">459</span></a><span class="k">def</span> <span class="nf">corems_md5</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
-</span><span id="corems_md5-460"><a href="#corems_md5-460"><span class="linenos">460</span></a>
-</span><span id="corems_md5-461"><a href="#corems_md5-461"><span class="linenos">461</span></a>    <span class="n">bytes_io</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-</span><span id="corems_md5-462"><a href="#corems_md5-462"><span class="linenos">462</span></a>
-</span><span id="corems_md5-463"><a href="#corems_md5-463"><span class="linenos">463</span></a>    <span class="n">md5_returned</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">bytes_io</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
-</span><span id="corems_md5-464"><a href="#corems_md5-464"><span class="linenos">464</span></a>
-</span><span id="corems_md5-465"><a href="#corems_md5-465"><span class="linenos">465</span></a>    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;sha256&quot;</span><span class="p">,</span> <span class="n">md5_returned</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="corems_md5-371"><a href="#corems_md5-371"><span class="linenos">371</span></a><span class="k">def</span> <span class="nf">corems_md5</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+</span><span id="corems_md5-372"><a href="#corems_md5-372"><span class="linenos">372</span></a>
+</span><span id="corems_md5-373"><a href="#corems_md5-373"><span class="linenos">373</span></a>    <span class="n">bytes_io</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</span><span id="corems_md5-374"><a href="#corems_md5-374"><span class="linenos">374</span></a>
+</span><span id="corems_md5-375"><a href="#corems_md5-375"><span class="linenos">375</span></a>    <span class="n">md5_returned</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">bytes_io</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+</span><span id="corems_md5-376"><a href="#corems_md5-376"><span class="linenos">376</span></a>
+</span><span id="corems_md5-377"><a href="#corems_md5-377"><span class="linenos">377</span></a>    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;sha256&quot;</span><span class="p">,</span> <span class="n">md5_returned</span><span class="p">)</span>
 </span></pre></div>
 
 

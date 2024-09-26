@@ -6,13 +6,16 @@ from pathlib import Path
 
 from numpy import string_, array, NaN, empty
 from pandas import DataFrame
-import json, toml
+import json
+import toml
 
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.output import parameter_to_dict
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
 
+import h5py
+from datetime import datetime, timezone
 
 class HighResMassSpecExport(Thread):
     """A class for exporting high-resolution mass spectra.
@@ -273,79 +276,124 @@ class HighResMassSpecExport(Thread):
         # output = json.dumps(dict_data, sort_keys=True, indent=4, separators=(',', ': '))
         return df.to_json(orient='records')
 
+    def add_mass_spectrum_to_hdf5(self, hdf_handle, mass_spectrum, group_key, mass_spectra_group=None):
+        """Adds the mass spectrum data to an HDF5 file.
+        
+        Parameters
+        ----------
+        hdf_handle : h5py.File
+            The HDF5 file handle.
+        mass_spectrum : MassSpectrum
+            The mass spectrum to add to the HDF5 file.
+        group_key : str
+            The group key (where to add the mass spectrum data within the HDF5 file).
+        mass_spectra_group : h5py.Group, optional
+            The mass spectra group. Defaults to None (no group, mass spectrum is added to the root).
+        """
+        if mass_spectra_group is None:
+
+            # Check if the file has the necessary attributes and add them if not
+            # This assumes that if there is a mass_spectra_group, these attributes were already added to the file
+            if not hdf_handle.attrs.get("date_utc"):
+                timenow = str(datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z"))
+                hdf_handle.attrs["date_utc"] = timenow
+                hdf_handle.attrs["file_name"] = mass_spectrum.filename.name
+                hdf_handle.attrs["data_structure"] = "mass_spectrum"
+                hdf_handle.attrs["analyzer"] = mass_spectrum.analyzer
+                hdf_handle.attrs["instrument_label"] = mass_spectrum.instrument_label
+                hdf_handle.attrs["sample_name"] = mass_spectrum.sample_name
+        
+        list_results = self.list_dict_to_list(mass_spectrum, is_hdf5=True)
+
+        dict_ms_attrs = self.get_mass_spec_attrs(mass_spectrum)
+
+        setting_dicts = parameter_to_dict.get_dict_data_ms(mass_spectrum)
+
+        columns_labels = json.dumps(
+            self.columns_label + self.get_all_used_atoms_in_order(mass_spectrum),
+            sort_keys=False,
+            indent=4,
+            separators=(",", ": "),
+        )
+
+        group_key = group_key
+
+        if mass_spectra_group is not None:
+            hdf_handle = mass_spectra_group
+
+        if group_key not in hdf_handle.keys():
+            scan_group = hdf_handle.create_group(group_key)
+
+            # If there is raw data (from profile data) save it
+            if not mass_spectrum.is_centroid:
+                mz_abun_array = empty(
+                    shape=(2, len(mass_spectrum.abundance_profile))
+                )
+
+                mz_abun_array[0] = mass_spectrum.abundance_profile
+                mz_abun_array[1] = mass_spectrum.mz_exp_profile
+
+                raw_ms_dataset = scan_group.create_dataset(
+                    "raw_ms", data=mz_abun_array, dtype="f8"
+                )
+
+            else:
+                #  create empy dataset for missing raw data
+                raw_ms_dataset = scan_group.create_dataset("raw_ms", dtype="f8")
+
+            raw_ms_dataset.attrs["MassSpecAttrs"] = json.dumps(dict_ms_attrs)
+
+            if isinstance(mass_spectrum, MassSpecfromFreq):
+                raw_ms_dataset.attrs["TransientSetting"] = json.dumps(
+                    setting_dicts.get("TransientSetting"),
+                    sort_keys=False,
+                    indent=4,
+                    separators=(",", ": "),
+                )
+
+        else:
+            scan_group = hdf_handle.get(group_key)
+
+        # if there is not processed data len = 0, otherwise len() will return next index
+        index_processed_data = str(len(scan_group.keys()))
+
+        timenow = str(datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z"))
+
+        processed_dset = scan_group.create_dataset(
+            index_processed_data, data=list_results
+        )
+
+        processed_dset.attrs["date_utc"] = timenow
+
+        processed_dset.attrs["ColumnsLabels"] = columns_labels
+
+        processed_dset.attrs["MoleculaSearchSetting"] = json.dumps(
+            setting_dicts.get("MoleculaSearch"),
+            sort_keys=False,
+            indent=4,
+            separators=(",", ": "),
+        )
+
+        processed_dset.attrs["MassSpecPeakSetting"] = json.dumps(
+            setting_dicts.get("MassSpecPeak"),
+            sort_keys=False,
+            indent=4,
+            separators=(",", ": "),
+        )
+
+        processed_dset.attrs["MassSpectrumSetting"] = json.dumps(
+            setting_dicts.get("MassSpectrum"),
+            sort_keys=False,
+            indent=4,
+            separators=(",", ": "),
+        )
+
     def to_hdf(self):
         """Exports the mass spectrum data to an HDF5 file."""
 
-        import h5py
-        import json
-        from datetime import datetime, timezone
-
         with h5py.File(self.output_file.with_suffix('.hdf5'), 'a') as hdf_handle:
 
-            list_results = self.list_dict_to_list(self.mass_spectrum, is_hdf5=True)
-
-            dict_ms_attrs = self.get_mass_spec_attrs(self.mass_spectrum)
-
-            setting_dicts = parameter_to_dict.get_dict_data_ms(self.mass_spectrum)
-
-            columns_labels = json.dumps(self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum), sort_keys=False, indent=4, separators=(',', ': '))
-
-            if not hdf_handle.attrs.get('date_utc'):
-
-                timenow = str(datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z"))
-                hdf_handle.attrs['date_utc'] = timenow
-                hdf_handle.attrs['file_name'] = self.mass_spectrum.filename.name
-                hdf_handle.attrs['data_structure'] = 'mass_spectrum'
-                hdf_handle.attrs['analyzer'] = self.mass_spectrum.analyzer
-                hdf_handle.attrs['instrument_label'] = self.mass_spectrum.instrument_label
-                hdf_handle.attrs['sample_name'] = self.mass_spectrum.sample_name
-
-            group_key = str(self.mass_spectrum.scan_number)
-
-            if group_key not in hdf_handle.keys():
-
-                scan_group = hdf_handle.create_group(str(self.mass_spectrum.scan_number))
-
-                if list(self.mass_spectrum.abundance_profile):
-
-                    mz_abun_array = empty(shape=(2, len(self.mass_spectrum.abundance_profile)))
-
-                    mz_abun_array[0] = self.mass_spectrum.abundance_profile
-                    mz_abun_array[1] = self.mass_spectrum.mz_exp_profile
-
-                    raw_ms_dataset = scan_group.create_dataset('raw_ms', data=mz_abun_array, dtype="f8")
-
-                else:
-                    #  create empy dataset for missing raw data
-                    raw_ms_dataset = scan_group.create_dataset('raw_ms', dtype="f8")
-
-                raw_ms_dataset.attrs['MassSpecAttrs'] = json.dumps(dict_ms_attrs)
-
-                if isinstance(self.mass_spectrum, MassSpecfromFreq):
-                    raw_ms_dataset.attrs['TransientSetting'] = json.dumps(setting_dicts.get('TransientSetting'), sort_keys=False, indent=4, separators=(',', ': '))
-
-            else:
-
-                scan_group = hdf_handle.get(group_key)
-
-            # if there is not processed data len = 0, otherwise len() will return next index
-            index_processed_data = str(len(scan_group.keys()))
-
-            print('index_processed_data', index_processed_data)
-
-            timenow = str(datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z"))
-
-            processed_dset = scan_group.create_dataset(index_processed_data, data=list_results)
-
-            processed_dset.attrs['date_utc'] = timenow
-
-            processed_dset.attrs['ColumnsLabels'] = columns_labels
-
-            processed_dset.attrs['MoleculaSearchSetting'] = json.dumps(setting_dicts.get('MoleculaSearch'), sort_keys=False, indent=4, separators=(',', ': '))
-
-            processed_dset.attrs['MassSpecPeakSetting'] = json.dumps(setting_dicts.get('MassSpecPeak'), sort_keys=False, indent=4, separators=(',', ': '))
-
-            processed_dset.attrs['MassSpectrumSetting'] = json.dumps(setting_dicts.get('MassSpectrum'), sort_keys=False, indent=4, separators=(',', ': '))
+            self.add_mass_spectrum_to_hdf5(hdf_handle, self.mass_spectrum, str(self.mass_spectrum.scan_number))
 
     def parameters_to_toml(self):
         """Converts the mass spectrum parameters to a TOML string.
@@ -363,12 +411,7 @@ class HighResMassSpecExport(Thread):
         dict_setting['instrument_label'] = self.mass_spectrum.instrument_label
         dict_setting['sample_name'] = self.mass_spectrum.sample_name
 
-        import re
-        #pretty print 
         output = toml.dumps(dict_setting)
-        #output = json.dumps(dict_setting, sort_keys=False, indent=4, separators=(',', ': '))
-        
-        #output = re.sub(r'",\s+', '", ', output)
         
         return output
 
@@ -388,12 +431,7 @@ class HighResMassSpecExport(Thread):
         dict_setting['instrument_label'] = self.mass_spectrum.instrument_label
         dict_setting['sample_name'] = self.mass_spectrum.sample_name
 
-        import re
-        # pretty print
         output = json.dumps(dict_setting)
-        # output = json.dumps(dict_setting, sort_keys=False, indent=4, separators=(',', ': '))
-
-        # output = re.sub(r'",\s+', '", ', output)
 
         return output
 
@@ -570,7 +608,12 @@ class HighResMassSpecExport(Thread):
             if mformula.is_isotopologue:
                 dict_result['Mono Isotopic Index'] = mformula.mspeak_index_mono_isotopic
 
-            for atom in self.atoms_order_list:
+            if self.atoms_order_list is None:
+                atoms_order_list = self.get_all_used_atoms_in_order(mass_spectrum)
+            else:
+                atoms_order_list = self.atoms_order_list
+
+            for atom in atoms_order_list:
                 if atom in formula_dict.keys():
                     dict_result[atom] = formula_dict.get(atom)
 

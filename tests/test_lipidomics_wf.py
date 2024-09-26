@@ -13,9 +13,16 @@ from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFil
 from corems.mass_spectra.output.export import LipidomicsExport
 from corems.molecular_id.search.database_interfaces import MetabRefLCInterface
 from corems.molecular_id.factory.lipid_molecular_metadata import LipidMetadata
+from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 
 
 def test_lipidomics_workflow():
+    # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
+    shutil.rmtree(
+        "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems",
+        ignore_errors=True,
+    )
+
     # Instantiate parser based on binary file type
     file_raw = (
         Path.cwd()
@@ -47,6 +54,17 @@ def test_lipidomics_workflow():
     )  # automatically processes the whole mz range in the data
     myLCMSobj.parameters.ms_peak.legacy_resolving_power = False
 
+    ## molecular searching parameters for ms1 molecular search
+    myLCMSobj.parameters.ms1_molecular_search.url_database = ""
+    myLCMSobj.parameters.ms1_molecular_search.usedAtoms = {
+        'C': (10, 30),
+        'H': (18, 200),
+        'O': (1, 23),
+        'N': (0, 3),
+        'P': (0, 1),
+        'S': (0, 1),
+    }
+
     ## molecular searching parameters for ms2 molecular search
     myLCMSobj.parameters.ms2_molecular_search.ion_types_excluded = ["[M+HCOO]-"]
 
@@ -68,6 +86,31 @@ def test_lipidomics_workflow():
     myLCMSobj.find_c13_mass_features(verbose=False)
     assert len(myLCMSobj.mass_features) == 130
 
+    # Perform a molecular search on a few of the mass features
+    mf_df = myLCMSobj.mass_features_to_df() 
+    unique_scans = mf_df.apex_scan.unique()
+    i = 0
+    for scan in unique_scans:
+        if i > 1:  # only search first 3 scans for testing
+            break
+        print("searching mz for scan: ", str(i), " of ", str(len(unique_scans)))
+        # gather mass features for this scan
+        mf_df_scan = mf_df[mf_df.apex_scan == scan]
+        peaks_to_search = [
+            myLCMSobj.mass_features[x].ms1_peak for x in mf_df_scan.index.tolist()
+        ]
+        SearchMolecularFormulas(
+            myLCMSobj._ms[scan],
+            first_hit=False,
+            find_isotopologues=True,
+        ).run_worker_ms_peaks(peaks_to_search)
+        i += 1
+
+    # Check results of molecular search
+    assert myLCMSobj.mass_features[1].ms1_peak[0].string == "C20 H30 O2"
+    assert myLCMSobj.mass_features_ms1_annot_to_df().shape == (130, 25)
+    myLCMSobj.mass_features[1].mass_spectrum.to_dataframe() # does this have the C / H / O columns?  Why is it getting lost on save/load?
+    
     # Add ms2 data to lcms object
     myLCMSobj.add_associated_ms2_dda(spectrum_mode="centroid")
 
@@ -148,7 +191,7 @@ def test_lipidomics_workflow():
     exporter.to_hdf(overwrite=True)
     exporter.report_to_csv(molecular_metadata=lipid_metadata)
     report = exporter.to_report(molecular_metadata=lipid_metadata)
-    assert report['Ion Formula'][1] == 'C24 H47 O2'
+    assert any(report['Ion Formula'][1] == 'C24 H47 O2')
 
     # Import the hdf5 file, assert that its df is same as above and that we can plot a mass feature
     parser = ReadCoreMSHDFMassSpectra(
@@ -157,6 +200,9 @@ def test_lipidomics_workflow():
     myLCMSobj2 = parser.get_lcms_obj()
     df2 = myLCMSobj2.mass_features_to_df()
     assert df2.shape == (130, 11)
+    myLCMSobj2.mass_features[1].mass_spectrum.to_dataframe()
+    assert myLCMSobj2.mass_features[1].ms1_peak[0].string == "C20 H30 O2"
+    assert myLCMSobj2.mass_features_ms1_annot_to_df().shape == (130, 25)
     myLCMSobj2.mass_features[1].plot(return_fig=False)
 
     # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
