@@ -397,6 +397,7 @@ class MassListBaseClass:
             pandas.DataFrame
                 A DataFrame containing the peak data with columns: 'm/z', 'I', 'Resolving Power', 'Area', 'S/N', 'fwhm'.
             '''
+            from numpy import nan
             with open(data, "r") as file:
                 content = file.readlines()
                 content = "".join(content)
@@ -412,12 +413,12 @@ class MassListBaseClass:
             sn = []
             #iterate through the peaks appending to each list
             for peak in peaks_xml:
-                areas.append(float(peak['a']))
-                fwhms.append(float(peak['fwhm']))
-                intensities.append(float(peak['i']))
-                mzs.append(float(peak['mz']))
-                res.append(float(peak['res']))
-                sn.append(float(peak['sn']))
+                areas.append(float(peak.get('a', nan)))      # Use a default value if key 'a' is missing
+                fwhms.append(float(peak.get('fwhm', nan)))   # Use a default value if key 'fwhm' is missing
+                intensities.append(float(peak.get('i', nan))) # Use a default value if key 'i' is missing
+                mzs.append(float(peak.get('mz', nan)))       # Use a default value if key 'mz' is missing
+                res.append(float(peak.get('res', nan)))      # Use a default value if key 'res' is missing
+                sn.append(float(peak.get('sn', nan)))       # Use a default value if key 'sn' is missing
 
             #Compile pandas dataframe of these values    
             names=["m/z", "I", "Resolving Power", "Area", 'S/N','fwhm']    

@@ -58,6 +58,12 @@
                                 <a class="variable" href="#MassSpecBase.calibration_points">calibration_points</a>
                         </li>
                         <li>
+                                <a class="variable" href="#MassSpecBase.calibration_ref_mzs">calibration_ref_mzs</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#MassSpecBase.calibration_meas_mzs">calibration_meas_mzs</a>
+                        </li>
+                        <li>
                                 <a class="variable" href="#MassSpecBase.calibration_RMS">calibration_RMS</a>
                         </li>
                         <li>
@@ -121,10 +127,19 @@
                                 <a class="variable" href="#MassSpecBase.freq_exp_profile">freq_exp_profile</a>
                         </li>
                         <li>
+                                <a class="variable" href="#MassSpecBase.freq_exp_pp">freq_exp_pp</a>
+                        </li>
+                        <li>
                                 <a class="variable" href="#MassSpecBase.mz_exp_profile">mz_exp_profile</a>
                         </li>
                         <li>
+                                <a class="variable" href="#MassSpecBase.mz_exp_pp">mz_exp_pp</a>
+                        </li>
+                        <li>
                                 <a class="variable" href="#MassSpecBase.abundance_profile">abundance_profile</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#MassSpecBase.abundance_profile_pp">abundance_profile_pp</a>
                         </li>
                         <li>
                                 <a class="variable" href="#MassSpecBase.abundance">abundance</a>
@@ -3195,6 +3210,10 @@ Whether the mass spectrum has a frequency domain.</li>
 The order of the mass spectrum's calibration.</li>
 <li><strong>calibration_points</strong> (None or ndarray):
 The calibration points of the mass spectrum.</li>
+<li><strong>calibration_ref_mzs</strong> (None or ndarray):
+The reference m/z values of the mass spectrum's calibration.</li>
+<li><strong>calibration_meas_mzs</strong> (None or ndarray):
+The measured m/z values of the mass spectrum's calibration.</li>
 <li><strong>calibration_RMS</strong> (None or float):
 The root mean square of the mass spectrum's calibration.</li>
 <li><strong>calibration_segment</strong> (None or CalibrationSegment):
@@ -3340,6 +3359,28 @@ including calculating the noise threshold, peak picking, and resetting the MSpea
         
     </div>
     <a class="headerlink" href="#MassSpecBase.calibration_points"></a>
+    
+    
+
+                            </div>
+                            <div id="MassSpecBase.calibration_ref_mzs" class="classattr">
+                                <div class="attr variable">
+            <span class="name">calibration_ref_mzs</span>
+
+        
+    </div>
+    <a class="headerlink" href="#MassSpecBase.calibration_ref_mzs"></a>
+    
+    
+
+                            </div>
+                            <div id="MassSpecBase.calibration_meas_mzs" class="classattr">
+                                <div class="attr variable">
+            <span class="name">calibration_meas_mzs</span>
+
+        
+    </div>
+    <a class="headerlink" href="#MassSpecBase.calibration_meas_mzs"></a>
     
     
 
@@ -3893,6 +3934,19 @@ The path to the JSON file containing the parameters.</li>
 
 
                             </div>
+                            <div id="MassSpecBase.freq_exp_pp" class="classattr">
+                                <div class="attr variable">
+            <span class="name">freq_exp_pp</span>
+
+        
+    </div>
+    <a class="headerlink" href="#MassSpecBase.freq_exp_pp"></a>
+    
+            <div class="docstring"><p>Return the experimental frequency values of the mass spectrum that are used for peak picking.</p>
+</div>
+
+
+                            </div>
                             <div id="MassSpecBase.mz_exp_profile" class="classattr">
                                 <div class="attr variable">
             <span class="name">mz_exp_profile</span>
@@ -3906,6 +3960,19 @@ The path to the JSON file containing the parameters.</li>
 
 
                             </div>
+                            <div id="MassSpecBase.mz_exp_pp" class="classattr">
+                                <div class="attr variable">
+            <span class="name">mz_exp_pp</span>
+
+        
+    </div>
+    <a class="headerlink" href="#MassSpecBase.mz_exp_pp"></a>
+    
+            <div class="docstring"><p>Return the experimental m/z values of the mass spectrum that are used for peak picking.</p>
+</div>
+
+
+                            </div>
                             <div id="MassSpecBase.abundance_profile" class="classattr">
                                 <div class="attr variable">
             <span class="name">abundance_profile</span>
@@ -3915,6 +3982,19 @@ The path to the JSON file containing the parameters.</li>
     <a class="headerlink" href="#MassSpecBase.abundance_profile"></a>
     
             <div class="docstring"><p>Return the abundance profile of the mass spectrum.</p>
+</div>
+
+
+                            </div>
+                            <div id="MassSpecBase.abundance_profile_pp" class="classattr">
+                                <div class="attr variable">
+            <span class="name">abundance_profile_pp</span>
+
+        
+    </div>
+    <a class="headerlink" href="#MassSpecBase.abundance_profile_pp"></a>
+    
+            <div class="docstring"><p>Return the abundance profile of the mass spectrum that is used for peak picking.</p>
 </div>
 
 
@@ -5546,14 +5626,19 @@ Whether to write the metadata to the CSV file. Defaults to True.</li>
 
             </div>
             <div><dt><a href="../calc/PeakPicking.html#PeakPicking">corems.mass_spectrum.calc.PeakPicking.PeakPicking</a></dt>
-                                <dd id="MassSpecBase.cut_mz_domain_peak_picking" class="function"><a href="../calc/PeakPicking.html#PeakPicking.cut_mz_domain_peak_picking">cut_mz_domain_peak_picking</a></dd>
+                                <dd id="MassSpecBase.prepare_peak_picking_data" class="function"><a href="../calc/PeakPicking.html#PeakPicking.prepare_peak_picking_data">prepare_peak_picking_data</a></dd>
+                <dd id="MassSpecBase.cut_mz_domain_peak_picking" class="function"><a href="../calc/PeakPicking.html#PeakPicking.cut_mz_domain_peak_picking">cut_mz_domain_peak_picking</a></dd>
+                <dd id="MassSpecBase.legacy_cut_mz_domain_peak_picking" class="function"><a href="../calc/PeakPicking.html#PeakPicking.legacy_cut_mz_domain_peak_picking">legacy_cut_mz_domain_peak_picking</a></dd>
+                <dd id="MassSpecBase.extrapolate_axis" class="function"><a href="../calc/PeakPicking.html#PeakPicking.extrapolate_axis">extrapolate_axis</a></dd>
                 <dd id="MassSpecBase.extrapolate_axes_for_pp" class="function"><a href="../calc/PeakPicking.html#PeakPicking.extrapolate_axes_for_pp">extrapolate_axes_for_pp</a></dd>
                 <dd id="MassSpecBase.do_peak_picking" class="function"><a href="../calc/PeakPicking.html#PeakPicking.do_peak_picking">do_peak_picking</a></dd>
                 <dd id="MassSpecBase.find_minima" class="function"><a href="../calc/PeakPicking.html#PeakPicking.find_minima">find_minima</a></dd>
+                <dd id="MassSpecBase.linear_fit_calc" class="function"><a href="../calc/PeakPicking.html#PeakPicking.linear_fit_calc">linear_fit_calc</a></dd>
                 <dd id="MassSpecBase.calculate_resolving_power" class="function"><a href="../calc/PeakPicking.html#PeakPicking.calculate_resolving_power">calculate_resolving_power</a></dd>
                 <dd id="MassSpecBase.cal_minima" class="function"><a href="../calc/PeakPicking.html#PeakPicking.cal_minima">cal_minima</a></dd>
                 <dd id="MassSpecBase.calc_centroid" class="function"><a href="../calc/PeakPicking.html#PeakPicking.calc_centroid">calc_centroid</a></dd>
                 <dd id="MassSpecBase.get_threshold" class="function"><a href="../calc/PeakPicking.html#PeakPicking.get_threshold">get_threshold</a></dd>
+                <dd id="MassSpecBase.algebraic_quadratic" class="function"><a href="../calc/PeakPicking.html#PeakPicking.algebraic_quadratic">algebraic_quadratic</a></dd>
                 <dd id="MassSpecBase.find_apex_fit_quadratic" class="function"><a href="../calc/PeakPicking.html#PeakPicking.find_apex_fit_quadratic">find_apex_fit_quadratic</a></dd>
                 <dd id="MassSpecBase.check_prominence" class="function"><a href="../calc/PeakPicking.html#PeakPicking.check_prominence">check_prominence</a></dd>
                 <dd id="MassSpecBase.use_the_max" class="function"><a href="../calc/PeakPicking.html#PeakPicking.use_the_max">use_the_max</a></dd>
@@ -5708,6 +5793,8 @@ _mspeaks : list
                 <dd id="MassSpecProfile.has_frequency" class="variable"><a href="#MassSpecBase.has_frequency">has_frequency</a></dd>
                 <dd id="MassSpecProfile.calibration_order" class="variable"><a href="#MassSpecBase.calibration_order">calibration_order</a></dd>
                 <dd id="MassSpecProfile.calibration_points" class="variable"><a href="#MassSpecBase.calibration_points">calibration_points</a></dd>
+                <dd id="MassSpecProfile.calibration_ref_mzs" class="variable"><a href="#MassSpecBase.calibration_ref_mzs">calibration_ref_mzs</a></dd>
+                <dd id="MassSpecProfile.calibration_meas_mzs" class="variable"><a href="#MassSpecBase.calibration_meas_mzs">calibration_meas_mzs</a></dd>
                 <dd id="MassSpecProfile.calibration_RMS" class="variable"><a href="#MassSpecBase.calibration_RMS">calibration_RMS</a></dd>
                 <dd id="MassSpecProfile.calibration_segment" class="variable"><a href="#MassSpecBase.calibration_segment">calibration_segment</a></dd>
                 <dd id="MassSpecProfile.calibration_raw_error_median" class="variable"><a href="#MassSpecBase.calibration_raw_error_median">calibration_raw_error_median</a></dd>
@@ -5729,8 +5816,11 @@ _mspeaks : list
                 <dd id="MassSpecProfile.mz_cal" class="variable"><a href="#MassSpecBase.mz_cal">mz_cal</a></dd>
                 <dd id="MassSpecProfile.mz_exp" class="variable"><a href="#MassSpecBase.mz_exp">mz_exp</a></dd>
                 <dd id="MassSpecProfile.freq_exp_profile" class="variable"><a href="#MassSpecBase.freq_exp_profile">freq_exp_profile</a></dd>
+                <dd id="MassSpecProfile.freq_exp_pp" class="variable"><a href="#MassSpecBase.freq_exp_pp">freq_exp_pp</a></dd>
                 <dd id="MassSpecProfile.mz_exp_profile" class="variable"><a href="#MassSpecBase.mz_exp_profile">mz_exp_profile</a></dd>
+                <dd id="MassSpecProfile.mz_exp_pp" class="variable"><a href="#MassSpecBase.mz_exp_pp">mz_exp_pp</a></dd>
                 <dd id="MassSpecProfile.abundance_profile" class="variable"><a href="#MassSpecBase.abundance_profile">abundance_profile</a></dd>
+                <dd id="MassSpecProfile.abundance_profile_pp" class="variable"><a href="#MassSpecBase.abundance_profile_pp">abundance_profile_pp</a></dd>
                 <dd id="MassSpecProfile.abundance" class="variable"><a href="#MassSpecBase.abundance">abundance</a></dd>
                 <dd id="MassSpecProfile.freq_exp" class="function"><a href="#MassSpecBase.freq_exp">freq_exp</a></dd>
                 <dd id="MassSpecProfile.resolving_power" class="variable"><a href="#MassSpecBase.resolving_power">resolving_power</a></dd>
@@ -5794,14 +5884,19 @@ _mspeaks : list
 
             </div>
             <div><dt><a href="../calc/PeakPicking.html#PeakPicking">corems.mass_spectrum.calc.PeakPicking.PeakPicking</a></dt>
-                                <dd id="MassSpecProfile.cut_mz_domain_peak_picking" class="function"><a href="../calc/PeakPicking.html#PeakPicking.cut_mz_domain_peak_picking">cut_mz_domain_peak_picking</a></dd>
+                                <dd id="MassSpecProfile.prepare_peak_picking_data" class="function"><a href="../calc/PeakPicking.html#PeakPicking.prepare_peak_picking_data">prepare_peak_picking_data</a></dd>
+                <dd id="MassSpecProfile.cut_mz_domain_peak_picking" class="function"><a href="../calc/PeakPicking.html#PeakPicking.cut_mz_domain_peak_picking">cut_mz_domain_peak_picking</a></dd>
+                <dd id="MassSpecProfile.legacy_cut_mz_domain_peak_picking" class="function"><a href="../calc/PeakPicking.html#PeakPicking.legacy_cut_mz_domain_peak_picking">legacy_cut_mz_domain_peak_picking</a></dd>
+                <dd id="MassSpecProfile.extrapolate_axis" class="function"><a href="../calc/PeakPicking.html#PeakPicking.extrapolate_axis">extrapolate_axis</a></dd>
                 <dd id="MassSpecProfile.extrapolate_axes_for_pp" class="function"><a href="../calc/PeakPicking.html#PeakPicking.extrapolate_axes_for_pp">extrapolate_axes_for_pp</a></dd>
                 <dd id="MassSpecProfile.do_peak_picking" class="function"><a href="../calc/PeakPicking.html#PeakPicking.do_peak_picking">do_peak_picking</a></dd>
                 <dd id="MassSpecProfile.find_minima" class="function"><a href="../calc/PeakPicking.html#PeakPicking.find_minima">find_minima</a></dd>
+                <dd id="MassSpecProfile.linear_fit_calc" class="function"><a href="../calc/PeakPicking.html#PeakPicking.linear_fit_calc">linear_fit_calc</a></dd>
                 <dd id="MassSpecProfile.calculate_resolving_power" class="function"><a href="../calc/PeakPicking.html#PeakPicking.calculate_resolving_power">calculate_resolving_power</a></dd>
                 <dd id="MassSpecProfile.cal_minima" class="function"><a href="../calc/PeakPicking.html#PeakPicking.cal_minima">cal_minima</a></dd>
                 <dd id="MassSpecProfile.calc_centroid" class="function"><a href="../calc/PeakPicking.html#PeakPicking.calc_centroid">calc_centroid</a></dd>
                 <dd id="MassSpecProfile.get_threshold" class="function"><a href="../calc/PeakPicking.html#PeakPicking.get_threshold">get_threshold</a></dd>
+                <dd id="MassSpecProfile.algebraic_quadratic" class="function"><a href="../calc/PeakPicking.html#PeakPicking.algebraic_quadratic">algebraic_quadratic</a></dd>
                 <dd id="MassSpecProfile.find_apex_fit_quadratic" class="function"><a href="../calc/PeakPicking.html#PeakPicking.find_apex_fit_quadratic">find_apex_fit_quadratic</a></dd>
                 <dd id="MassSpecProfile.check_prominence" class="function"><a href="../calc/PeakPicking.html#PeakPicking.check_prominence">check_prominence</a></dd>
                 <dd id="MassSpecProfile.use_the_max" class="function"><a href="../calc/PeakPicking.html#PeakPicking.use_the_max">use_the_max</a></dd>
@@ -6185,6 +6280,8 @@ This appears to work well or nOmega datasets, but may not work well for 1x datas
                 <dd id="MassSpecfromFreq.is_centroid" class="variable"><a href="#MassSpecBase.is_centroid">is_centroid</a></dd>
                 <dd id="MassSpecfromFreq.calibration_order" class="variable"><a href="#MassSpecBase.calibration_order">calibration_order</a></dd>
                 <dd id="MassSpecfromFreq.calibration_points" class="variable"><a href="#MassSpecBase.calibration_points">calibration_points</a></dd>
+                <dd id="MassSpecfromFreq.calibration_ref_mzs" class="variable"><a href="#MassSpecBase.calibration_ref_mzs">calibration_ref_mzs</a></dd>
+                <dd id="MassSpecfromFreq.calibration_meas_mzs" class="variable"><a href="#MassSpecBase.calibration_meas_mzs">calibration_meas_mzs</a></dd>
                 <dd id="MassSpecfromFreq.calibration_RMS" class="variable"><a href="#MassSpecBase.calibration_RMS">calibration_RMS</a></dd>
                 <dd id="MassSpecfromFreq.calibration_segment" class="variable"><a href="#MassSpecBase.calibration_segment">calibration_segment</a></dd>
                 <dd id="MassSpecfromFreq.calibration_raw_error_median" class="variable"><a href="#MassSpecBase.calibration_raw_error_median">calibration_raw_error_median</a></dd>
@@ -6206,8 +6303,11 @@ This appears to work well or nOmega datasets, but may not work well for 1x datas
                 <dd id="MassSpecfromFreq.mz_cal" class="variable"><a href="#MassSpecBase.mz_cal">mz_cal</a></dd>
                 <dd id="MassSpecfromFreq.mz_exp" class="variable"><a href="#MassSpecBase.mz_exp">mz_exp</a></dd>
                 <dd id="MassSpecfromFreq.freq_exp_profile" class="variable"><a href="#MassSpecBase.freq_exp_profile">freq_exp_profile</a></dd>
+                <dd id="MassSpecfromFreq.freq_exp_pp" class="variable"><a href="#MassSpecBase.freq_exp_pp">freq_exp_pp</a></dd>
                 <dd id="MassSpecfromFreq.mz_exp_profile" class="variable"><a href="#MassSpecBase.mz_exp_profile">mz_exp_profile</a></dd>
+                <dd id="MassSpecfromFreq.mz_exp_pp" class="variable"><a href="#MassSpecBase.mz_exp_pp">mz_exp_pp</a></dd>
                 <dd id="MassSpecfromFreq.abundance_profile" class="variable"><a href="#MassSpecBase.abundance_profile">abundance_profile</a></dd>
+                <dd id="MassSpecfromFreq.abundance_profile_pp" class="variable"><a href="#MassSpecBase.abundance_profile_pp">abundance_profile_pp</a></dd>
                 <dd id="MassSpecfromFreq.abundance" class="variable"><a href="#MassSpecBase.abundance">abundance</a></dd>
                 <dd id="MassSpecfromFreq.freq_exp" class="function"><a href="#MassSpecBase.freq_exp">freq_exp</a></dd>
                 <dd id="MassSpecfromFreq.resolving_power" class="variable"><a href="#MassSpecBase.resolving_power">resolving_power</a></dd>
@@ -6271,14 +6371,19 @@ This appears to work well or nOmega datasets, but may not work well for 1x datas
 
             </div>
             <div><dt><a href="../calc/PeakPicking.html#PeakPicking">corems.mass_spectrum.calc.PeakPicking.PeakPicking</a></dt>
-                                <dd id="MassSpecfromFreq.cut_mz_domain_peak_picking" class="function"><a href="../calc/PeakPicking.html#PeakPicking.cut_mz_domain_peak_picking">cut_mz_domain_peak_picking</a></dd>
+                                <dd id="MassSpecfromFreq.prepare_peak_picking_data" class="function"><a href="../calc/PeakPicking.html#PeakPicking.prepare_peak_picking_data">prepare_peak_picking_data</a></dd>
+                <dd id="MassSpecfromFreq.cut_mz_domain_peak_picking" class="function"><a href="../calc/PeakPicking.html#PeakPicking.cut_mz_domain_peak_picking">cut_mz_domain_peak_picking</a></dd>
+                <dd id="MassSpecfromFreq.legacy_cut_mz_domain_peak_picking" class="function"><a href="../calc/PeakPicking.html#PeakPicking.legacy_cut_mz_domain_peak_picking">legacy_cut_mz_domain_peak_picking</a></dd>
+                <dd id="MassSpecfromFreq.extrapolate_axis" class="function"><a href="../calc/PeakPicking.html#PeakPicking.extrapolate_axis">extrapolate_axis</a></dd>
                 <dd id="MassSpecfromFreq.extrapolate_axes_for_pp" class="function"><a href="../calc/PeakPicking.html#PeakPicking.extrapolate_axes_for_pp">extrapolate_axes_for_pp</a></dd>
                 <dd id="MassSpecfromFreq.do_peak_picking" class="function"><a href="../calc/PeakPicking.html#PeakPicking.do_peak_picking">do_peak_picking</a></dd>
                 <dd id="MassSpecfromFreq.find_minima" class="function"><a href="../calc/PeakPicking.html#PeakPicking.find_minima">find_minima</a></dd>
+                <dd id="MassSpecfromFreq.linear_fit_calc" class="function"><a href="../calc/PeakPicking.html#PeakPicking.linear_fit_calc">linear_fit_calc</a></dd>
                 <dd id="MassSpecfromFreq.calculate_resolving_power" class="function"><a href="../calc/PeakPicking.html#PeakPicking.calculate_resolving_power">calculate_resolving_power</a></dd>
                 <dd id="MassSpecfromFreq.cal_minima" class="function"><a href="../calc/PeakPicking.html#PeakPicking.cal_minima">cal_minima</a></dd>
                 <dd id="MassSpecfromFreq.calc_centroid" class="function"><a href="../calc/PeakPicking.html#PeakPicking.calc_centroid">calc_centroid</a></dd>
                 <dd id="MassSpecfromFreq.get_threshold" class="function"><a href="../calc/PeakPicking.html#PeakPicking.get_threshold">get_threshold</a></dd>
+                <dd id="MassSpecfromFreq.algebraic_quadratic" class="function"><a href="../calc/PeakPicking.html#PeakPicking.algebraic_quadratic">algebraic_quadratic</a></dd>
                 <dd id="MassSpecfromFreq.find_apex_fit_quadratic" class="function"><a href="../calc/PeakPicking.html#PeakPicking.find_apex_fit_quadratic">find_apex_fit_quadratic</a></dd>
                 <dd id="MassSpecfromFreq.check_prominence" class="function"><a href="../calc/PeakPicking.html#PeakPicking.check_prominence">check_prominence</a></dd>
                 <dd id="MassSpecfromFreq.use_the_max" class="function"><a href="../calc/PeakPicking.html#PeakPicking.use_the_max">use_the_max</a></dd>
@@ -6772,6 +6877,8 @@ Simulate profile data based on Gaussian or Lorentzian peak shape. Needs theoreti
                 <dd id="MassSpecCentroid.has_frequency" class="variable"><a href="#MassSpecBase.has_frequency">has_frequency</a></dd>
                 <dd id="MassSpecCentroid.calibration_order" class="variable"><a href="#MassSpecBase.calibration_order">calibration_order</a></dd>
                 <dd id="MassSpecCentroid.calibration_points" class="variable"><a href="#MassSpecBase.calibration_points">calibration_points</a></dd>
+                <dd id="MassSpecCentroid.calibration_ref_mzs" class="variable"><a href="#MassSpecBase.calibration_ref_mzs">calibration_ref_mzs</a></dd>
+                <dd id="MassSpecCentroid.calibration_meas_mzs" class="variable"><a href="#MassSpecBase.calibration_meas_mzs">calibration_meas_mzs</a></dd>
                 <dd id="MassSpecCentroid.calibration_RMS" class="variable"><a href="#MassSpecBase.calibration_RMS">calibration_RMS</a></dd>
                 <dd id="MassSpecCentroid.calibration_segment" class="variable"><a href="#MassSpecBase.calibration_segment">calibration_segment</a></dd>
                 <dd id="MassSpecCentroid.calibration_raw_error_median" class="variable"><a href="#MassSpecBase.calibration_raw_error_median">calibration_raw_error_median</a></dd>
@@ -6792,6 +6899,9 @@ Simulate profile data based on Gaussian or Lorentzian peak shape. Needs theoreti
                 <dd id="MassSpecCentroid.mz_cal" class="variable"><a href="#MassSpecBase.mz_cal">mz_cal</a></dd>
                 <dd id="MassSpecCentroid.mz_exp" class="variable"><a href="#MassSpecBase.mz_exp">mz_exp</a></dd>
                 <dd id="MassSpecCentroid.freq_exp_profile" class="variable"><a href="#MassSpecBase.freq_exp_profile">freq_exp_profile</a></dd>
+                <dd id="MassSpecCentroid.freq_exp_pp" class="variable"><a href="#MassSpecBase.freq_exp_pp">freq_exp_pp</a></dd>
+                <dd id="MassSpecCentroid.mz_exp_pp" class="variable"><a href="#MassSpecBase.mz_exp_pp">mz_exp_pp</a></dd>
+                <dd id="MassSpecCentroid.abundance_profile_pp" class="variable"><a href="#MassSpecBase.abundance_profile_pp">abundance_profile_pp</a></dd>
                 <dd id="MassSpecCentroid.abundance" class="variable"><a href="#MassSpecBase.abundance">abundance</a></dd>
                 <dd id="MassSpecCentroid.freq_exp" class="function"><a href="#MassSpecBase.freq_exp">freq_exp</a></dd>
                 <dd id="MassSpecCentroid.resolving_power" class="variable"><a href="#MassSpecBase.resolving_power">resolving_power</a></dd>
@@ -6854,14 +6964,19 @@ Simulate profile data based on Gaussian or Lorentzian peak shape. Needs theoreti
 
             </div>
             <div><dt><a href="../calc/PeakPicking.html#PeakPicking">corems.mass_spectrum.calc.PeakPicking.PeakPicking</a></dt>
-                                <dd id="MassSpecCentroid.cut_mz_domain_peak_picking" class="function"><a href="../calc/PeakPicking.html#PeakPicking.cut_mz_domain_peak_picking">cut_mz_domain_peak_picking</a></dd>
+                                <dd id="MassSpecCentroid.prepare_peak_picking_data" class="function"><a href="../calc/PeakPicking.html#PeakPicking.prepare_peak_picking_data">prepare_peak_picking_data</a></dd>
+                <dd id="MassSpecCentroid.cut_mz_domain_peak_picking" class="function"><a href="../calc/PeakPicking.html#PeakPicking.cut_mz_domain_peak_picking">cut_mz_domain_peak_picking</a></dd>
+                <dd id="MassSpecCentroid.legacy_cut_mz_domain_peak_picking" class="function"><a href="../calc/PeakPicking.html#PeakPicking.legacy_cut_mz_domain_peak_picking">legacy_cut_mz_domain_peak_picking</a></dd>
+                <dd id="MassSpecCentroid.extrapolate_axis" class="function"><a href="../calc/PeakPicking.html#PeakPicking.extrapolate_axis">extrapolate_axis</a></dd>
                 <dd id="MassSpecCentroid.extrapolate_axes_for_pp" class="function"><a href="../calc/PeakPicking.html#PeakPicking.extrapolate_axes_for_pp">extrapolate_axes_for_pp</a></dd>
                 <dd id="MassSpecCentroid.do_peak_picking" class="function"><a href="../calc/PeakPicking.html#PeakPicking.do_peak_picking">do_peak_picking</a></dd>
                 <dd id="MassSpecCentroid.find_minima" class="function"><a href="../calc/PeakPicking.html#PeakPicking.find_minima">find_minima</a></dd>
+                <dd id="MassSpecCentroid.linear_fit_calc" class="function"><a href="../calc/PeakPicking.html#PeakPicking.linear_fit_calc">linear_fit_calc</a></dd>
                 <dd id="MassSpecCentroid.calculate_resolving_power" class="function"><a href="../calc/PeakPicking.html#PeakPicking.calculate_resolving_power">calculate_resolving_power</a></dd>
                 <dd id="MassSpecCentroid.cal_minima" class="function"><a href="../calc/PeakPicking.html#PeakPicking.cal_minima">cal_minima</a></dd>
                 <dd id="MassSpecCentroid.calc_centroid" class="function"><a href="../calc/PeakPicking.html#PeakPicking.calc_centroid">calc_centroid</a></dd>
                 <dd id="MassSpecCentroid.get_threshold" class="function"><a href="../calc/PeakPicking.html#PeakPicking.get_threshold">get_threshold</a></dd>
+                <dd id="MassSpecCentroid.algebraic_quadratic" class="function"><a href="../calc/PeakPicking.html#PeakPicking.algebraic_quadratic">algebraic_quadratic</a></dd>
                 <dd id="MassSpecCentroid.find_apex_fit_quadratic" class="function"><a href="../calc/PeakPicking.html#PeakPicking.find_apex_fit_quadratic">find_apex_fit_quadratic</a></dd>
                 <dd id="MassSpecCentroid.check_prominence" class="function"><a href="../calc/PeakPicking.html#PeakPicking.check_prominence">check_prominence</a></dd>
                 <dd id="MassSpecCentroid.use_the_max" class="function"><a href="../calc/PeakPicking.html#PeakPicking.use_the_max">use_the_max</a></dd>
@@ -7123,6 +7238,8 @@ The m/z values of the mass spectrum.</li>
                 <dd id="MassSpecCentroidLowRes.has_frequency" class="variable"><a href="#MassSpecBase.has_frequency">has_frequency</a></dd>
                 <dd id="MassSpecCentroidLowRes.calibration_order" class="variable"><a href="#MassSpecBase.calibration_order">calibration_order</a></dd>
                 <dd id="MassSpecCentroidLowRes.calibration_points" class="variable"><a href="#MassSpecBase.calibration_points">calibration_points</a></dd>
+                <dd id="MassSpecCentroidLowRes.calibration_ref_mzs" class="variable"><a href="#MassSpecBase.calibration_ref_mzs">calibration_ref_mzs</a></dd>
+                <dd id="MassSpecCentroidLowRes.calibration_meas_mzs" class="variable"><a href="#MassSpecBase.calibration_meas_mzs">calibration_meas_mzs</a></dd>
                 <dd id="MassSpecCentroidLowRes.calibration_RMS" class="variable"><a href="#MassSpecBase.calibration_RMS">calibration_RMS</a></dd>
                 <dd id="MassSpecCentroidLowRes.calibration_segment" class="variable"><a href="#MassSpecBase.calibration_segment">calibration_segment</a></dd>
                 <dd id="MassSpecCentroidLowRes.calibration_raw_error_median" class="variable"><a href="#MassSpecBase.calibration_raw_error_median">calibration_raw_error_median</a></dd>
@@ -7142,6 +7259,9 @@ The m/z values of the mass spectrum.</li>
                 <dd id="MassSpecCentroidLowRes.mz_cal_profile" class="variable"><a href="#MassSpecBase.mz_cal_profile">mz_cal_profile</a></dd>
                 <dd id="MassSpecCentroidLowRes.mz_cal" class="variable"><a href="#MassSpecBase.mz_cal">mz_cal</a></dd>
                 <dd id="MassSpecCentroidLowRes.freq_exp_profile" class="variable"><a href="#MassSpecBase.freq_exp_profile">freq_exp_profile</a></dd>
+                <dd id="MassSpecCentroidLowRes.freq_exp_pp" class="variable"><a href="#MassSpecBase.freq_exp_pp">freq_exp_pp</a></dd>
+                <dd id="MassSpecCentroidLowRes.mz_exp_pp" class="variable"><a href="#MassSpecBase.mz_exp_pp">mz_exp_pp</a></dd>
+                <dd id="MassSpecCentroidLowRes.abundance_profile_pp" class="variable"><a href="#MassSpecBase.abundance_profile_pp">abundance_profile_pp</a></dd>
                 <dd id="MassSpecCentroidLowRes.freq_exp" class="function"><a href="#MassSpecBase.freq_exp">freq_exp</a></dd>
                 <dd id="MassSpecCentroidLowRes.resolving_power" class="variable"><a href="#MassSpecBase.resolving_power">resolving_power</a></dd>
                 <dd id="MassSpecCentroidLowRes.signal_to_noise" class="variable"><a href="#MassSpecBase.signal_to_noise">signal_to_noise</a></dd>
@@ -7203,14 +7323,19 @@ The m/z values of the mass spectrum.</li>
 
             </div>
             <div><dt><a href="../calc/PeakPicking.html#PeakPicking">corems.mass_spectrum.calc.PeakPicking.PeakPicking</a></dt>
-                                <dd id="MassSpecCentroidLowRes.cut_mz_domain_peak_picking" class="function"><a href="../calc/PeakPicking.html#PeakPicking.cut_mz_domain_peak_picking">cut_mz_domain_peak_picking</a></dd>
+                                <dd id="MassSpecCentroidLowRes.prepare_peak_picking_data" class="function"><a href="../calc/PeakPicking.html#PeakPicking.prepare_peak_picking_data">prepare_peak_picking_data</a></dd>
+                <dd id="MassSpecCentroidLowRes.cut_mz_domain_peak_picking" class="function"><a href="../calc/PeakPicking.html#PeakPicking.cut_mz_domain_peak_picking">cut_mz_domain_peak_picking</a></dd>
+                <dd id="MassSpecCentroidLowRes.legacy_cut_mz_domain_peak_picking" class="function"><a href="../calc/PeakPicking.html#PeakPicking.legacy_cut_mz_domain_peak_picking">legacy_cut_mz_domain_peak_picking</a></dd>
+                <dd id="MassSpecCentroidLowRes.extrapolate_axis" class="function"><a href="../calc/PeakPicking.html#PeakPicking.extrapolate_axis">extrapolate_axis</a></dd>
                 <dd id="MassSpecCentroidLowRes.extrapolate_axes_for_pp" class="function"><a href="../calc/PeakPicking.html#PeakPicking.extrapolate_axes_for_pp">extrapolate_axes_for_pp</a></dd>
                 <dd id="MassSpecCentroidLowRes.do_peak_picking" class="function"><a href="../calc/PeakPicking.html#PeakPicking.do_peak_picking">do_peak_picking</a></dd>
                 <dd id="MassSpecCentroidLowRes.find_minima" class="function"><a href="../calc/PeakPicking.html#PeakPicking.find_minima">find_minima</a></dd>
+                <dd id="MassSpecCentroidLowRes.linear_fit_calc" class="function"><a href="../calc/PeakPicking.html#PeakPicking.linear_fit_calc">linear_fit_calc</a></dd>
                 <dd id="MassSpecCentroidLowRes.calculate_resolving_power" class="function"><a href="../calc/PeakPicking.html#PeakPicking.calculate_resolving_power">calculate_resolving_power</a></dd>
                 <dd id="MassSpecCentroidLowRes.cal_minima" class="function"><a href="../calc/PeakPicking.html#PeakPicking.cal_minima">cal_minima</a></dd>
                 <dd id="MassSpecCentroidLowRes.calc_centroid" class="function"><a href="../calc/PeakPicking.html#PeakPicking.calc_centroid">calc_centroid</a></dd>
                 <dd id="MassSpecCentroidLowRes.get_threshold" class="function"><a href="../calc/PeakPicking.html#PeakPicking.get_threshold">get_threshold</a></dd>
+                <dd id="MassSpecCentroidLowRes.algebraic_quadratic" class="function"><a href="../calc/PeakPicking.html#PeakPicking.algebraic_quadratic">algebraic_quadratic</a></dd>
                 <dd id="MassSpecCentroidLowRes.find_apex_fit_quadratic" class="function"><a href="../calc/PeakPicking.html#PeakPicking.find_apex_fit_quadratic">find_apex_fit_quadratic</a></dd>
                 <dd id="MassSpecCentroidLowRes.check_prominence" class="function"><a href="../calc/PeakPicking.html#PeakPicking.check_prominence">check_prominence</a></dd>
                 <dd id="MassSpecCentroidLowRes.use_the_max" class="function"><a href="../calc/PeakPicking.html#PeakPicking.use_the_max">use_the_max</a></dd>

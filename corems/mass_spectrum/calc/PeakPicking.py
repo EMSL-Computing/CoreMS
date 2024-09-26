@@ -4,7 +4,8 @@
 '''
 
 from logging import warn
-from numpy import hstack, inf, isnan, where, array, polyfit, nan, pad, arange
+import warnings
+from numpy import hstack, inf, isnan, where, array, polyfit, nan, pad, arange, zeros, searchsorted
 from corems.encapsulation.constant import Labels
 from corems.mass_spectra.calc import SignalProcessing as sp
 
@@ -21,26 +22,99 @@ class PeakPicking:
 
     Methods
     -------
+    * prepare_peak_picking_data().
+        Prepare the mz, abundance, and frequence data for peak picking.
     * cut_mz_domain_peak_picking().
         Cut the m/z domain for peak picking.
-    * extrapolate_axes_for_pp().
+    * extrapolate_axes_for_pp(mz=None, abund=None, freq=None).
         Extrapolate the m/z axis and fill the abundance axis with 0s.
     * do_peak_picking().
         Perform peak picking.
     * find_minima(apex_index, abundance, len_abundance, right=True).
         Find the minima of a peak.
+    * linear_fit_calc(intes, massa, index_term, index_sign).
+        Algebraic solution to a linear fit.
     * calculate_resolving_power(intes, massa, current_index).
         Calculate the resolving power of a peak.
     * cal_minima(mass, abun).
         Calculate the minima of a peak.
     * calc_centroid(mass, abund, freq).
         Calculate the centroid of a peak.
+    * get_threshold(intes).
+        Get the intensity threshold for peak picking.
+    * algebraic_quadratic(list_mass, list_y).
+        Find the apex of a peak - algebraically.
+    * find_apex_fit_quadratic(mass, abund, freq, current_index).
+        Find the apex of a peak.
+    * check_prominence(abun, current_index, len_abundance, peak_height_diff).
+        Check the prominence of a peak.
+    * use_the_max(mass, abund, current_index, len_abundance, peak_height_diff).
+        Use the max peak height as the centroid.
+    * calc_centroid_legacy(mass, abund, freq).
+        Legacy centroid calculation. Deprecated - for deletion.       
 
     """
+    def prepare_peak_picking_data(self):
+        """ Prepare the data for peak picking.
+
+        This function will prepare the m/z, abundance, and frequency data for peak picking according to the settings.
+
+        Returns
+        -------
+        mz : ndarray
+            The m/z axis.
+        abundance : ndarray
+            The abundance axis.
+        freq : ndarray or None
+            The frequency axis, if available.
+        """
+        # First apply cut_mz_domain_peak_picking
+        mz, abundance, freq = self.cut_mz_domain_peak_picking()
+
+        # Then extrapolate the axes for peak picking
+        if self.settings.picking_point_extrapolate > 0:
+            mz, abundance, freq = self.extrapolate_axes_for_pp(mz, abundance, freq)
+        return mz, abundance, freq
+    
     def cut_mz_domain_peak_picking(self):
         """
         Cut the m/z domain for peak picking.
 
+        Simplified function
+        
+        Returns
+        -------
+        mz_domain_X_low_cutoff : ndarray
+            The m/z values within the specified range.
+        mz_domain_low_Y_cutoff : ndarray
+            The abundance values within the specified range.
+        freq_domain_low_Y_cutoff : ndarray or None
+            The frequency values within the specified range, if available.
+
+        """
+        max_picking_mz = self.settings.max_picking_mz
+        min_picking_mz = self.settings.min_picking_mz
+        
+        #min_start =  where(self.mz_exp_profile  > min_picking_mz)[0][0]
+        #max_final =  where(self.mz_exp_profile < max_picking_mz)[-1][-1]
+        min_start =  searchsorted(a = self.mz_exp_profile, v = min_picking_mz)
+        max_final =  searchsorted(a = self.mz_exp_profile, v = max_picking_mz)
+
+        if self.has_frequency:
+
+            if self.freq_exp_profile.any():
+
+                return self.mz_exp_profile[min_start:max_final], self.abundance_profile[min_start:max_final], self.freq_exp_profile[min_start:max_final]
+
+        else:
+
+            return self.mz_exp_profile[min_start:max_final], self.abundance_profile[min_start:max_final], None
+        
+        
+    def legacy_cut_mz_domain_peak_picking(self):
+        """
+        Cut the m/z domain for peak picking.
+        DEPRECATED
         Returns
         -------
         mz_domain_X_low_cutoff : ndarray
@@ -74,9 +148,65 @@ class PeakPicking:
         else:
 
             return mz_domain_X_low_cutoff[max_start:max_final], mz_domain_low_Y_cutoff[max_start:max_final], None
+
+    @staticmethod 
+    def extrapolate_axis(initial_array, pts):
+        """
+        This function will extrapolate an input array in both directions by N pts.
+
+        Parameters
+        ----------
+        initial_array : ndarray
+            The input array.
+        pts : int
+            The number of points to extrapolate.
+
+        Returns
+        -------
+        ndarray
+            The extrapolated array.
+
+        Notes
+        --------
+        This is a static method.        
+        """
+        initial_array_len = len(initial_array)
+        right_delta = initial_array[-1] - initial_array[-2]  
+        left_delta = initial_array[1] - initial_array[0]  
         
-    def extrapolate_axes_for_pp(self):
+        # Create an array with extra space for extrapolation
+        pad_array = zeros(initial_array_len + 2 * pts)
+        
+        # Copy original array into the middle of the padded array
+        pad_array[pts:pts + initial_array_len] = initial_array
+        
+        # Extrapolate the right side
+        for pt in range(pts):
+            final_value = initial_array[-1]
+            value_to_add = right_delta * (pt + 1)
+            new_value = final_value + value_to_add
+            pad_array[initial_array_len + pts + pt] = new_value
+        
+        # Extrapolate the left side
+        for pt in range(pts):
+            first_value = initial_array[0]
+            value_to_subtract = left_delta * (pt + 1)
+            new_value = first_value - value_to_subtract
+            pad_array[pts - pt - 1] = new_value
+        
+        return pad_array
+    
+    def extrapolate_axes_for_pp(self, mz=None, abund=None, freq=None):
         """ Extrapolate the m/z axis and fill the abundance axis with 0s.
+
+        Parameters
+        ----------
+        mz : ndarray or None
+            The m/z axis, if available. If None, the experimental m/z axis is used.
+        abund : ndarray or None
+            The abundance axis, if available. If None, the experimental abundance axis is used.
+        freq : ndarray or None
+            The frequency axis, if available. If None, the experimental frequency axis is used.
 
         Returns
         -------
@@ -89,87 +219,51 @@ class PeakPicking:
 
         Notes
         --------
-        This function will extrapolate the mz axis by N datapoints, and fill the abundance axis with 0s. 
+        This function will extrapolate the mz axis by the number of datapoints specified in the settings,
+        and fill the abundance axis with 0s. 
         This should prevent peak picking issues at the spectrum edge.
 
-        """
-        
-        
-        def extrapolate_axis(initial_array, pts):
-           """
-           this function will extrapolate an input array in both directions by N pts
-           """
-           initial_array_len = len(initial_array)
-           right_delta = initial_array[-1] - initial_array[-2]  
-           left_delta = initial_array[1] - initial_array[0]  
-
-           pad_array = pad(initial_array, (pts, pts), 'constant', constant_values= (0,0))
-           ptlist = list(range(pts))
-           for pt in range(pts+1):
-               # This loop will extrapolate the right side of the array
-               final_value = initial_array[-1]
-               value_to_add = (right_delta*pt)
-               new_value = final_value+value_to_add
-               index_to_update = initial_array_len+(pt+1)
-               pad_array[index_to_update] = new_value
-               
-           for pt in range(pts+1):
-               # this loop will extrapolate the left side of the array
-               first_value = initial_array[0]
-               value_to_subtract = (left_delta*pt)
-               new_value = first_value-value_to_subtract
-               pad_array[ptlist[-pt]] = new_value
-               
-           return pad_array 
-        
-        mz, abund = self.mz_exp_profile, self.abundance_profile
-        if self.has_frequency:
-            freq = self.freq_exp_profile
-        else: freq = None
+        """ 
+        # Check if the input arrays are provided
+        if mz is None or abund is None:
+            mz, abund = self.mz_exp_profile, self.abundance_profile
+            if self.has_frequency:
+                freq = self.freq_exp_profile
+            else: 
+                freq = None
         pts = self.settings.picking_point_extrapolate
         if pts == 0:
             return mz, abund, freq
         
-        mz = extrapolate_axis(mz, pts)
+        mz = self.extrapolate_axis(mz, pts)
         abund = pad(abund, (pts, pts), mode = 'constant', constant_values=(0,0))
         if freq is not None:
-                freq = extrapolate_axis(freq, pts)
+            freq = self.extrapolate_axis(freq, pts)
         return mz, abund, freq
-
-
 
     def do_peak_picking(self):
         """ Perform peak picking.
 
         """
-        mz, abundance, freq = self.cut_mz_domain_peak_picking()
-        self.mz_exp_profile = mz
-        self.abundance_profile = abundance
-        self.freq_exp_profile = freq
-        
-        if self.settings.picking_point_extrapolate > 0:
-            mz, abundance, freq = self.extrapolate_axes_for_pp()
-            self.mz_exp_profile = mz
-            self.abundance_profile = abundance
-            self.freq_exp_profile = freq
+        mz, abundance, freq = self.prepare_peak_picking_data()
         
         if self.label == Labels.bruker_frequency or self.label == Labels.midas_frequency:
-
             self.calc_centroid(mz, abundance, freq)
 
         elif self.label == Labels.thermo_profile:
-            self.calc_centroid(mz, abundance, self.freq_exp_profile)
+            self.calc_centroid(mz, abundance, freq)
 
         elif self.label == Labels.bruker_profile:
-            self.calc_centroid(mz, abundance, self.freq_exp_profile)
+            self.calc_centroid(mz, abundance, freq)
 
         elif self.label == Labels.booster_profile:
-            self.calc_centroid(mz, abundance, self.freq_exp_profile)
+            self.calc_centroid(mz, abundance, freq)
 
         elif self.label == Labels.simulated_profile:
-            self.calc_centroid(mz, abundance, self.freq_exp_profile)
+            self.calc_centroid(mz, abundance, freq)
 
-        else: raise Exception("Unknow mass spectrum type", self.label)
+        else: 
+            raise Exception("Unknow mass spectrum type", self.label)
 
     def find_minima(self, apex_index, abundance, len_abundance, right=True):
         """ Find the minima of a peak.
@@ -213,6 +307,50 @@ class PeakPicking:
         if right: return j
         else: return j
 
+    @staticmethod
+    def linear_fit_calc(intes, massa, index_term, index_sign):
+        """
+        Algebraic solution to a linear fit - roughly 25-50x faster than numpy polyfit when passing only two vals and doing a 1st order fit
+
+        Parameters
+        ----------
+        intes : ndarray
+            The intensity values.
+        massa : ndarray
+            The mass values.
+        index_term : int
+            The index of the current term.
+        index_sign : str
+            The index sign
+        
+        Returns
+        -------
+        ndarray
+            The coefficients of the linear fit.
+        
+        Notes
+        --------
+        This is a static method.
+        """
+        if index_sign == '+':
+            x1, x2 = massa[index_term], massa[index_term + 1]
+            y1, y2 = intes[index_term], intes[index_term + 1]
+        elif index_sign =='-':
+            x1, x2 = massa[index_term], massa[index_term - 1]
+            y1, y2 = intes[index_term], intes[index_term - 1]
+        else:
+            warnings.warn('error in linear fit calc, unknown index sign')
+        
+        # Calculate the slope (m)
+        slope = (y2 - y1) / (x2 - x1)
+        
+        # Calculate the intercept (b)
+        intercept = y1 - slope * x1
+        
+        # The coefficients array would be [slope, intercept]
+        coefficients = array([slope, intercept])
+        return coefficients
+
     def calculate_resolving_power(self, intes, massa, current_index):
         """ Calculate the resolving power of a peak.
 
@@ -248,10 +386,10 @@ class PeakPicking:
         # This solution will return nan for resolving power when a peak is possibly too close to an edge to avoid the issue
         
         if current_index <5:
-            print("peak at low spectrum edge, returning no resolving power")
+            warnings.warn("peak at low spectrum edge, returning no resolving power")
             return nan
         elif abs(current_index-len(intes))<5:
-            print("peak at high spectrum edge, returning no resolving power")
+            warnings.warn("peak at high spectrum edge, returning no resolving power")
             return nan
         else:
             pass
@@ -260,21 +398,23 @@ class PeakPicking:
         while peak_height_minus  >= target_peak_height:
 
             index_minus = index_minus -1
-            
-            # TODO : see if this try/except can be removed.
-            
-            try: 
-                peak_height_minus = intes[index_minus]
-            except IndexError:
-                print('Res. calc. warning - peak index minus adjacent to spectrum edge \n \
-                        Zeroing the first 5 data points of abundance. Peaks at spectrum edge may be incorrectly reported')
+            if index_minus < 0:
+                warnings.warn('Res. calc. warning - peak index minus adjacent to spectrum edge \n \
+                        Zeroing the first 5 data points of abundance. Peaks at spectrum edge may be incorrectly reported \n \
+                        Perhaps try to increase picking_point_extrapolate (e.g. to 3)')
+                # Pad the first 5 data points with zeros and restart the loop
                 intes[:5] = 0
                 peak_height_minus = target_peak_height
-                index_minus -= 1 
-            #print "massa", "," , "intes", "," , massa[index_minus], "," , peak_height_minus
-        x = [ massa[index_minus],  massa[index_minus+1]]
-        y = [ intes[index_minus],  intes[index_minus+1]]
-        coefficients = polyfit(x, y, 1)
+                index_minus = current_index            
+            else:
+                peak_height_minus = intes[index_minus]
+
+        if self.mspeaks_settings.centroid_legacy_polyfit:
+            x = [ massa[index_minus],  massa[index_minus+1]]
+            y = [ intes[index_minus],  intes[index_minus+1]]
+            coefficients = polyfit(x, y, 1)
+        else:
+            coefficients = self.linear_fit_calc(intes, massa, index_minus,index_sign='+')
 
         a = coefficients[0]
         b = coefficients[1]
@@ -288,23 +428,25 @@ class PeakPicking:
         while peak_height_plus  >= target_peak_height:
 
             index_plus = index_plus + 1
-            
-            # TODO : see if this try/except can be removed.
-            
+               
             try: 
                 peak_height_plus = intes[index_plus]
             except IndexError:
-                print('Res. calc. warning - peak index plus adjacent to spectrum edge \n \
-                        Zeroing the last 5 data points of abundance. Peaks at spectrum edge may be incorrectly reported')
+                warnings.warn('Res. calc. warning - peak index plus adjacent to spectrum edge \n \
+                        Zeroing the last 5 data points of abundance. Peaks at spectrum edge may be incorrectly reported\
+                        Perhaps try to increase picking_point_extrapolate (e.g. to 3)')
+                # Pad the first 5 data points with zeros and restart the loop
                 intes[-5:] = 0
                 peak_height_plus = target_peak_height
-                index_plus += 1 
-            #print "massa", "," , "intes", "," , massa[index_plus], "," , peak_height_plus
+                index_plus = current_index 
 
-        x = [massa[index_plus],  massa[index_plus - 1]]
-        y = [intes[index_plus],  intes[index_plus - 1]]
+        if self.mspeaks_settings.centroid_legacy_polyfit:
+            x = [massa[index_plus],  massa[index_plus - 1]]
+            y = [intes[index_plus],  intes[index_plus - 1]]
+            coefficients = polyfit(x, y, 1)
+        else:
+            coefficients = self.linear_fit_calc(intes, massa, index_plus,index_sign='-')
 
-        coefficients = polyfit(x, y, 1)
         a = coefficients[0]
         b = coefficients[1]
 
@@ -404,15 +546,15 @@ class PeakPicking:
         for indexes_tuple in include_indexes:
             
             apex_index = indexes_tuple[1]
-            
-            mz_exp_centroid, freq_centr, intes_centr = self.find_apex_fit_quadratic(mass, abund, freq, apex_index)
 
-            if mz_exp_centroid:
+            peak_indexes = self.check_prominence(abund, apex_index, len_signal, peak_height_diff )
+
+            if peak_indexes:
                 
-                peak_indexes = self.check_prominence(abund, apex_index, len_signal, peak_height_diff )
-                
-                if peak_indexes:
-                    
+                mz_exp_centroid, freq_centr, intes_centr = self.find_apex_fit_quadratic(mass, abund, freq, apex_index)
+
+                if mz_exp_centroid:
+                                   
                     peak_resolving_power = self.calculate_resolving_power( abund, mass, apex_index)
                     s2n = intes_centr/self.baseline_noise_std
                     self.add_mspeak(self.polarity, mz_exp_centroid, abund[apex_index] , peak_resolving_power, s2n, indexes_tuple, exp_freq=freq_centr, ms_parent=self)
@@ -478,9 +620,46 @@ class PeakPicking:
             raise  Exception("%s method was not implemented, please refer to corems.mass_spectrum.calc.NoiseCalc Class" % noise_threshold_method)
         
         return abundance_threshold, factor
+    
+    @staticmethod
+    def algebraic_quadratic(list_mass, list_y):
+        """
+        Find the apex of a peak - algebraically. 
+        Faster than using numpy polyfit by ~28x per fit.
+
+        Parameters
+        ----------
+        list_mass : ndarray
+            list of m/z values (3 points)
+        list_y : ndarray
+            list of abundance values (3 points)
+
+        Returns
+        -------
+        a, b, c: float
+            coefficients of the quadratic equation.
+
+        Notes
+        --------
+        This is a static method. 
+        """
+        x_1, x_2, x_3 = list_mass
+        y_1, y_2, y_3 = list_y 
+
+        a = y_1/((x_1-x_2)*(x_1-x_3)) + y_2/((x_2-x_1)*(x_2-x_3)) + y_3/((x_3-x_1)*(x_3-x_2))
+
+        b = (-y_1*(x_2+x_3)/((x_1-x_2)*(x_1-x_3))
+            -y_2*(x_1+x_3)/((x_2-x_1)*(x_2-x_3))
+            -y_3*(x_1+x_2)/((x_3-x_1)*(x_3-x_2)))
         
+        c = (y_1*x_2*x_3/((x_1-x_2)*(x_1-x_3))
+            +y_2*x_1*x_3/((x_2-x_1)*(x_2-x_3))
+            +y_3*x_1*x_2/((x_3-x_1)*(x_3-x_2)))
+        return a, b, c
+
     def find_apex_fit_quadratic(self, mass, abund, freq, current_index):
-        """ Find the apex of a peak.
+        """ 
+        Find the apex of a peak.
         
         Parameters
         ----------
@@ -517,9 +696,13 @@ class PeakPicking:
         list_mass = [mass[current_index - 1], mass[current_index], mass[current_index +1]]
         list_y = [abund[current_index - 1],abund[current_index], abund[current_index +1]]
         
-        z = polyfit(list_mass, list_y, 2)
-        a = z[0]
-        b = z[1]
+        if self.mspeaks_settings.centroid_legacy_polyfit:
+            z = polyfit(list_mass, list_y, 2)
+            a = z[0]
+            b = z[1]
+        else:
+            a, b, c = self.algebraic_quadratic(list_mass, list_y)
+
 
         calculated = -b/(2*a)
         
@@ -535,10 +718,13 @@ class PeakPicking:
             
             # fit parabola to three most abundant frequency datapoints
             list_freq = [freq[current_index - 1], freq[current_index], freq[current_index +1]]
-            z = polyfit(list_freq, list_y, 2)
-            a = z[0]
-            b = z[1]
-
+            if self.mspeaks_settings.centroid_legacy_polyfit:
+                z = polyfit(list_mass, list_y, 2)
+                a = z[0]
+                b = z[1]
+            else:
+                a, b, c = self.algebraic_quadratic(list_mass, list_y)
+            
             calculated_freq = -b/(2*a)
 
             if calculated_freq < 1 or int(calculated_freq) != freq[current_index]:
@@ -549,8 +735,13 @@ class PeakPicking:
         
         else:
                 freq_centr = None
-                
-        return mz_exp_centroid, freq_centr, abund[current_index]
+
+        if self.mspeaks_settings.centroid_legacy_polyfit:
+            abundance_centroid = abund[current_index]
+        else: 
+            abundance_centroid = a*mz_exp_centroid**2 + b*mz_exp_centroid + c
+
+        return mz_exp_centroid, freq_centr, abundance_centroid 
     
     def check_prominence(self, abun, current_index, len_abundance, peak_height_diff ) -> tuple or False:
         """ Check the prominence of a peak.
@@ -625,12 +816,12 @@ class PeakPicking:
             
             return mass[current_index], abund[current_index], peak_indexes
 
-
     def calc_centroid_legacy(self, mass, abund, freq):
         """ Legacy centroid calculation
         Deprecated - for deletion.
         
         """
+        warnings.warn("Legacy centroid calculation is deprecated. Please use the new centroid calculation method.")
         pass
         if False:
             len_abundance = len(abund)
