@@ -1884,8 +1884,19 @@ class LCMSCollectionCalculations:
         mfs_with_clusters['cluster'] = mfs_with_clusters['cluster_unqiue']
         mfs_with_clusters = mfs_with_clusters.drop(columns=['cluster_unqiue'])
 
+        # Deal with duplicates
+        cluster_summary = self.summarize_clusters(mfs_with_clusters)
+        # Scenario 1: Two mass features from single sample are in the same cluster
+        # Solution: First see if there is a different cluster that one of the mass features can be moved to (based on mz and rt)
+        # If not, then choose the mass feature with the highest intensity as the representative mass feature and move the other mass feature to a new cluster (its own cluster)
+
+        # Scenario 2: A single mass feature belongs to multiple clusters
+        # Solution: Choose the cluster with the closest median rt to the mass feature and assign the mass feature to that cluster
+
+
         # Warn if any mass features are in multiple clusters
         if mfs_with_clusters.duplicated(subset='coll_mf_id', keep=False).any():
+
             warnings.warn('Some mass features are in multiple clusters! This may indicate that the mz_tol or rt_tol is too large.')
 
         # Set the index back to coll_mf_id
@@ -1895,6 +1906,32 @@ class LCMSCollectionCalculations:
 
         #TODO KRH: drop consensus mass features that were not observed in previously set fraction of samples
     
+    def summarize_clusters(self, features):
+        """
+        Summarize the clusters of mass features by median attributes
+        """
+        # First check if there are minimum columsn in the features dataframe
+        if len(features.columns) < 1:
+            return None
+
+        summary_df = features.groupby('cluster').agg({
+            'mz': 'median',
+            'scan_time_aligned': 'median',
+            'half_height_width': 'median',
+            'tailing_factor': 'median',
+            'dispersity_index': 'median',
+            'sample_id': ['nunique', 'count'],
+            'intensity': ['max', 'median'],
+            'persistence': ['max', 'median']
+        }).reset_index()
+
+        # Fix the column names
+        summary_df.columns = ['_'.join(col).strip() for col in summary_df.columns.values if col != 'cluster']
+        summary_df = summary_df.rename(columns={'cluster_': 'cluster'})
+        summary_df = summary_df.reset_index(drop=True)
+
+        return summary_df
+   
     def cluster_mass_features(self, features):
         '''
         Cluster features within provided linkage tolerances. Recursively merges
@@ -2032,7 +2069,7 @@ class LCMSCollectionCalculations:
 
             # Add the root_parents and children_of_roots to the final_pairs_df
             df_to_add = pairs_df.loc[root_parents]
-            df_to_add = df_to_add.drop_duplicates(subset='child', keep='first')
+            #df_to_add = df_to_add.drop_duplicates(subset='child', keep='first')
             final_pairs_df.append(df_to_add)
 
             # Remove root_children as possible parents from pairs_df for next iteration
