@@ -1,13 +1,12 @@
 import numpy as np
 import pandas as pd
+import warnings
 from ripser import ripser
 import scipy 
 from scipy import sparse
 from scipy.spatial import KDTree
-from scipy.spatial.distance import cdist
-from ms_entropy import FlashEntropySearch
-from sklearn.cluster import AgglomerativeClustering
 from sklearn.svm import SVR
+
 
 from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
 from corems.mass_spectra.calc import SignalProcessing as sp
@@ -1862,8 +1861,14 @@ class LCMSCollectionCalculations:
         # Partition the mass features by mz so we can parallelize the matching before clustering
         from corems.chroma_peak.calc import subset as corems_subset
 
-        # TODO KRH: source partition size and tol from parameters
-        lazy_partitions = corems_subset.multi_sample_partition(combined_mfs, split_on = 'mz', size=10000, tol=0.01)
+        # get max mz from combined_mfs and calculate tolerance from ppm
+        mz_tol = self.parameters.lcms_collection.consensus_mz_tol_ppm * 1e-6
+        n_partition_size = self.parameters.lcms_collection.consensus_partition_size
+        lazy_partitions = corems_subset.multi_sample_partition(combined_mfs, split_on = 'mz', size=n_partition_size, tol=mz_tol, relative=True)
+
+        # If any of lazy_partitions._counts is 2xn_partition_size, issue a warning
+        if np.array(lazy_partitions._counts).max() > 2*n_partition_size:
+            warnings.warn('Some partitions are larger than 2x the goal partition size. Consider increasing the partition or decreasing the mz_tol.')
 
         # Cluster the mass features within each partition
         if self.parameters.lcms_collection.cores > lazy_partitions.n_partitions:
@@ -1879,22 +1884,16 @@ class LCMSCollectionCalculations:
         mfs_with_clusters['cluster'] = mfs_with_clusters['cluster_unqiue']
         mfs_with_clusters = mfs_with_clusters.drop(columns=['cluster_unqiue'])
 
-        # Deal with duplicated mass features <=> clusters [these arise when a mass feature is a daughter of multiple parents....need to break ties somehow]
+        # Warn if any mass features are in multiple clusters
+        if mfs_with_clusters.duplicated(subset='coll_mf_id', keep=False).any():
+            warnings.warn('Some mass features are in multiple clusters! This may indicate that the mz_tol or rt_tol is too large.')
 
-        # Tag mass features that are duplicated in multiple clusters
-        mfs_with_clusters['duplicated'] = mfs_with_clusters.duplicated(subset=['coll_mf_id'], keep=False)
-
-        # Set coll_mf_id as the index
+        # Set the index back to coll_mf_id
         mfs_with_clusters = mfs_with_clusters.set_index('coll_mf_id')
 
-        # Find any non-unique index values
-        if mfs_with_clusters.index.duplicated().any():
-            dup_index = mfs_with_clusters[mfs_with_clusters.index.duplicated()]
-            dup_index.sort_index(inplace=True)
-
-        # Set the mass_features_dataframe property with the mfs_with_clusters attribtute
         self.mass_features_dataframe = mfs_with_clusters
 
+        #TODO KRH: drop consensus mass features that were not observed in previously set fraction of samples
     
     def cluster_mass_features(self, features):
         '''
@@ -1923,6 +1922,8 @@ class LCMSCollectionCalculations:
 
         if features is None:
             return None
+        else:
+            features = features.copy()
 
         # Define how to calculate the distance between features
         dims = ["mz", "scan_time_aligned"]        
@@ -1935,8 +1936,11 @@ class LCMSCollectionCalculations:
         if len(dims) != len(tol) or len(dims) != len(relative) or len(dims) != len(dist_weight):
             raise ValueError("The dimensions, tolerances, relative, dist_weight, and na_allow lists must be the same length")
 
-        # Copy input
-        features = features.copy().sort_values(by='intensity', ascending=False).reset_index(drop=False)
+        center_obj_ids = self.manifest_dataframe[self.manifest_dataframe['center']].collection_id.values
+        features['center_obj'] = features['sample_id'] == center_obj_ids[0]
+
+        # First sort by center_obj and then by intensity
+        features = features.sort_values(by=['center_obj', 'sample_id', 'intensity'], ascending=[False, True, False]).reset_index(drop=False)
         #TODO KRH: order by central sample, and then by intensity?
 
         # Make connectivity matrix for masking within sample mass features
@@ -2022,11 +2026,14 @@ class LCMSCollectionCalculations:
         while not pairs_df.empty:
             # Find root_parents and their children
             root_parents = np.setdiff1d(np.unique(pairs_df.index.values), np.unique(pairs_df.child.values))
+            # Check if there are any repeat children of roots
             children_of_roots = pairs_df.loc[root_parents, "child"].unique()
             to_drop = np.append(to_drop, children_of_roots)
 
             # Add the root_parents and children_of_roots to the final_pairs_df
-            final_pairs_df.append(pairs_df.loc[root_parents])
+            df_to_add = pairs_df.loc[root_parents]
+            df_to_add = df_to_add.drop_duplicates(subset='child', keep='first')
+            final_pairs_df.append(df_to_add)
 
             # Remove root_children as possible parents from pairs_df for next iteration
             pairs_df = pairs_df.drop(

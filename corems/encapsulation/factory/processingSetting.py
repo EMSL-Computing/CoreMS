@@ -896,7 +896,7 @@ class LCMSCollectionSettings:
         Number of cores to use for processing. Default is 1.
     drop_isotopologues : bool, optional
         If True, drop isotopologues from all analyses.
-        Note that this will keep mass features identified as monoisotopes or largest ion in deconvoluted mass spectrum.
+        Note that this will keep mass features identified as monoisotopes and any largest ion in deconvoluted mass spectrum.
         It will also keep mass features not identified as isotopologues or monoisotopes.
         Default is True.
     mass_feature_anchor_technique: list, optional
@@ -929,6 +929,8 @@ class LCMSCollectionSettings:
         The recommendation is that this value should be the same as alignment_mz_tol_ppm.
     consensus_rt_tol: float, optional
         Retention time tolerance for consensus mass feature alignment, in minutes. Default is 0.2.
+    consensus_partition_size: int, optional
+        Partition size for consensus mass feature alignment. Default is 5000.
     """
     # Settings for general processing
     cores = 1
@@ -943,11 +945,14 @@ class LCMSCollectionSettings:
     alignment_acceptance_techinques_available: tuple = ("fraction_improved", "mean_squared_error_improved")
     alignment_acceptance_fraction_improved_threshold: float = 0.5
     alignment_mz_tol_ppm: int = 5
-    alignment_rt_tol: float = 0.3      
+    alignment_rt_tol: float = 0.4      
 
     # Consensus mass feature settings
     consensus_mz_tol_ppm = alignment_mz_tol_ppm
-    consensus_rt_tol = 0.2
+    consensus_rt_tol = 0.3
+    consensus_partition_size = 10000
+    filter_consensus_mass_features = True
+    consensus_min_sample_fraction = 0.2
 
     def __post_init__(self):
         self.consensus_mz_tol_ppm = self.alignment_mz_tol_ppm

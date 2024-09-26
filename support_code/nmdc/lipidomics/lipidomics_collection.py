@@ -5,7 +5,8 @@ from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectraCollec
 
 if __name__ == "__main__":
     collection_path = Path("/Users/heal742/LOCAL/10_lcms_collection_testing/UDN_neg/processed_data")
-    manifest_file = collection_path / "manifest_working.csv"
+    manifest_file = collection_path / "manifest_small_test.csv"
+
     """
     # Read in manifest file
     import pandas as pd
@@ -26,6 +27,7 @@ if __name__ == "__main__":
         for item in missing_files:
             f.write("%s\n" % item)
     """
+
     ncores = 10
     parser = ReadCoreMSHDFMassSpectraCollection(
             folder_location = collection_path,
@@ -48,18 +50,20 @@ if __name__ == "__main__":
     #1.5s for 7 samples; 15s for 70 samples
 
     #lcms_collection.plot_tics(type="both")
-    lcms_collection.plot_alignments()
+    #lcms_collection.plot_alignments()
     #mass_feature_df = lcms_collection.mass_features_to_df()
     #print("Adding consensus mass features")
     start_time = time.time()    
     lcms_collection.add_consensus_mass_features()
-    print("Time to calculate distance matrices: ", time.time() - start_time, "seconds -", len(lcms_collection.mass_features_dataframe), " total mass features", ncores, " cores")
-    # 33 seconds for 22K mass features (7 samples) - 10 cores; 290 seconds for 250K mass features (70 samples) - 10 cores
-    
+    print("Time to roll up consensus mass features: ", time.time() - start_time, "seconds -", len(lcms_collection.mass_features_dataframe), " total mass features", ncores, " cores")   
 
     # Prepare mass features dataframe for export for examination
     collection_mass_features = lcms_collection.mass_features_dataframe
 
+    # Save mass features to csv
+    collection_mass_features.to_csv(collection_path / "collection_mass_features.csv", index=False)
+    
+    """
     # Pivot the mass features dataframe, sample_id as columns and cluster_id as index, then remove the index name
     mass_feature_pivot = collection_mass_features.pivot(index='cluster', columns='sample_name', values='area').reset_index()
     mass_feature_pivot.columns.name = None
@@ -78,4 +82,9 @@ if __name__ == "__main__":
     # Save mass_feature_pivot to csv
     mass_feature_pivot.to_csv(collection_path / "collection_mass_features_pivot_rollup_area.csv", index=True)
 
+    #TODO KRH: Add code to load and save information about chromatographic settings
+    #TODO KRH: Add code to save and load collection to HDF5 file
+    #TODO KRH: Add code to plot a consensus mass feature
+
     print("here")
+    """

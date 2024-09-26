@@ -1114,7 +1114,8 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
 
 class LCMSCollection(LCMSCollectionCalculations):
     """A class representing a collection of liquid chromatography-mass spectrometry (LC-MS) runs.
-    These runs can be from the same or different samples, but must be from the same instrument and have the same parameters.
+    These runs can be from the same or different samples, but must be from the same instrument and have the same parameters 
+    for the initial processing steps.  The LCMS objects are stored in an ordered dictionary with the sample name as the key.
 
     Parameters
     -----------
@@ -1392,5 +1393,21 @@ class LCMSCollection(LCMSCollectionCalculations):
     @property
     def manifest_dataframe(self):
         return pd.DataFrame(self._manifest_dict).T
+
+    @property
+    def consensus_mass_feature_dataframe(self):
+        df = self.mass_features_dataframe
+        #TODO KRH: build this out
+
+        # Check if mass features are clustered 
+        if 'cluster' not in df.columns:
+            return None
+        else:
+            # Group by cluster and summarize median mz, median scan_time, min max and median intensity, and count
+            cluster_summary = df.groupby('cluster').agg({'mz': 'median', 'scan_time': 'median', 'intensity': ['min', 'max', 'median'], 'mf_id': 'count'})
+
+            # Clean up column names
+            cluster_summary.columns = ['_'.join(col).strip() for col in cluster_summary.columns.values]
+
     
 
