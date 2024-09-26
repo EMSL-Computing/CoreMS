@@ -221,7 +221,7 @@ class LiquidChromatographSetting:
 
     # Parameters used for saving the data
     export_profile_spectra: bool = False
-    export_eics: bool = False
+    export_eics: bool = True
     export_unprocessed_ms1: bool = False
 
     def __post_init__(self):
