@@ -258,6 +258,9 @@
                         <li>
                                 <a class="variable" href="#MassSpecPeakSetting.legacy_resolving_power">legacy_resolving_power</a>
                         </li>
+                        <li>
+                                <a class="variable" href="#MassSpecPeakSetting.centroid_legacy_polyfit">centroid_legacy_polyfit</a>
+                        </li>
                 </ul>
 
             </li>
@@ -1665,9 +1668,9 @@ Dictionary with the header labels to be translated to the corems labels. For exa
 
     </div>
     <a class="headerlink" href="#DataInputSetting.add_mz_label"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="DataInputSetting.add_mz_label-78"><a href="#DataInputSetting.add_mz_label-78"><span class="linenos">78</span></a>    <span class="k">def</span> <span class="nf">add_mz_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
-</span><span id="DataInputSetting.add_mz_label-79"><a href="#DataInputSetting.add_mz_label-79"><span class="linenos">79</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a label to the header_translate dictionary to be translated to the corems label for mz.&quot;&quot;&quot;</span>
-</span><span id="DataInputSetting.add_mz_label-80"><a href="#DataInputSetting.add_mz_label-80"><span class="linenos">80</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">header_translate</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">mz</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="DataInputSetting.add_mz_label-79"><a href="#DataInputSetting.add_mz_label-79"><span class="linenos">79</span></a>    <span class="k">def</span> <span class="nf">add_mz_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+</span><span id="DataInputSetting.add_mz_label-80"><a href="#DataInputSetting.add_mz_label-80"><span class="linenos">80</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a label to the header_translate dictionary to be translated to the corems label for mz.&quot;&quot;&quot;</span>
+</span><span id="DataInputSetting.add_mz_label-81"><a href="#DataInputSetting.add_mz_label-81"><span class="linenos">81</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">header_translate</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">mz</span>
 </span></pre></div>
 
 
@@ -1687,10 +1690,10 @@ Dictionary with the header labels to be translated to the corems labels. For exa
 
     </div>
     <a class="headerlink" href="#DataInputSetting.add_peak_height_label"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="DataInputSetting.add_peak_height_label-82"><a href="#DataInputSetting.add_peak_height_label-82"><span class="linenos">82</span></a>    <span class="k">def</span> <span class="nf">add_peak_height_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
-</span><span id="DataInputSetting.add_peak_height_label-83"><a href="#DataInputSetting.add_peak_height_label-83"><span class="linenos">83</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a label to the header_translate dictionary to be translated to the corems label for peak height.&quot;&quot;&quot;</span>
-</span><span id="DataInputSetting.add_peak_height_label-84"><a href="#DataInputSetting.add_peak_height_label-84"><span class="linenos">84</span></a>
-</span><span id="DataInputSetting.add_peak_height_label-85"><a href="#DataInputSetting.add_peak_height_label-85"><span class="linenos">85</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">header_translate</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">abundance</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="DataInputSetting.add_peak_height_label-83"><a href="#DataInputSetting.add_peak_height_label-83"><span class="linenos">83</span></a>    <span class="k">def</span> <span class="nf">add_peak_height_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+</span><span id="DataInputSetting.add_peak_height_label-84"><a href="#DataInputSetting.add_peak_height_label-84"><span class="linenos">84</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a label to the header_translate dictionary to be translated to the corems label for peak height.&quot;&quot;&quot;</span>
+</span><span id="DataInputSetting.add_peak_height_label-85"><a href="#DataInputSetting.add_peak_height_label-85"><span class="linenos">85</span></a>
+</span><span id="DataInputSetting.add_peak_height_label-86"><a href="#DataInputSetting.add_peak_height_label-86"><span class="linenos">86</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">header_translate</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">abundance</span>
 </span></pre></div>
 
 
@@ -1710,9 +1713,9 @@ Dictionary with the header labels to be translated to the corems labels. For exa
 
     </div>
     <a class="headerlink" href="#DataInputSetting.add_sn_label"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="DataInputSetting.add_sn_label-87"><a href="#DataInputSetting.add_sn_label-87"><span class="linenos">87</span></a>    <span class="k">def</span> <span class="nf">add_sn_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
-</span><span id="DataInputSetting.add_sn_label-88"><a href="#DataInputSetting.add_sn_label-88"><span class="linenos">88</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a label to the header_translate dictionary to be translated to the corems label for signal to noise.&quot;&quot;&quot;</span>
-</span><span id="DataInputSetting.add_sn_label-89"><a href="#DataInputSetting.add_sn_label-89"><span class="linenos">89</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">header_translate</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">s2n</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="DataInputSetting.add_sn_label-88"><a href="#DataInputSetting.add_sn_label-88"><span class="linenos">88</span></a>    <span class="k">def</span> <span class="nf">add_sn_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+</span><span id="DataInputSetting.add_sn_label-89"><a href="#DataInputSetting.add_sn_label-89"><span class="linenos">89</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a label to the header_translate dictionary to be translated to the corems label for signal to noise.&quot;&quot;&quot;</span>
+</span><span id="DataInputSetting.add_sn_label-90"><a href="#DataInputSetting.add_sn_label-90"><span class="linenos">90</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">header_translate</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">s2n</span>
 </span></pre></div>
 
 
@@ -1732,9 +1735,9 @@ Dictionary with the header labels to be translated to the corems labels. For exa
 
     </div>
     <a class="headerlink" href="#DataInputSetting.add_resolving_power_label"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="DataInputSetting.add_resolving_power_label-91"><a href="#DataInputSetting.add_resolving_power_label-91"><span class="linenos">91</span></a>    <span class="k">def</span> <span class="nf">add_resolving_power_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
-</span><span id="DataInputSetting.add_resolving_power_label-92"><a href="#DataInputSetting.add_resolving_power_label-92"><span class="linenos">92</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a label to the header_translate dictionary to be translated to the corems label for resolving power.&quot;&quot;&quot;</span>
-</span><span id="DataInputSetting.add_resolving_power_label-93"><a href="#DataInputSetting.add_resolving_power_label-93"><span class="linenos">93</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">header_translate</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">rp</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="DataInputSetting.add_resolving_power_label-92"><a href="#DataInputSetting.add_resolving_power_label-92"><span class="linenos">92</span></a>    <span class="k">def</span> <span class="nf">add_resolving_power_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+</span><span id="DataInputSetting.add_resolving_power_label-93"><a href="#DataInputSetting.add_resolving_power_label-93"><span class="linenos">93</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a label to the header_translate dictionary to be translated to the corems label for resolving power.&quot;&quot;&quot;</span>
+</span><span id="DataInputSetting.add_resolving_power_label-94"><a href="#DataInputSetting.add_resolving_power_label-94"><span class="linenos">94</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">header_translate</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">rp</span>
 </span></pre></div>
 
 
@@ -2267,7 +2270,8 @@ Minimum m/z to use for peak picking. Default is 50.0.</li>
 <li><strong>max_picking_mz</strong> (float, optional):
 Maximum m/z to use for peak picking. Default is 1200.0.</li>
 <li><strong>picking_point_extrapolate</strong> (int, optional):
-How many data points (in each direction) to extrapolate the mz axis and 0 pad the abundance axis. Default is 3.</li>
+How many data points (in each direction) to extrapolate the mz axis and 0 pad the abundance axis. Default is 3.
+Recommend 3 for reduced profile data or if peak picking faults</li>
 <li><strong>calib_minimize_method</strong> (str, optional):
 Minimization method to use for calibration. Default is 'Powell'.</li>
 <li><strong>calib_pol_order</strong> (int, optional):
@@ -2701,6 +2705,9 @@ Defaults to 10.</li>
 <li><strong>legacy_resolving_power</strong> (bool, optional):
 Flag indicating whether to use the legacy (CoreMS v1) resolving power calculation.
 Defaults to True.</li>
+<li><strong>centroid_legacy_polyfit</strong> (bool, optional):
+Use legacy (numpy polyfit) to fit centroid
+Default false.</li>
 </ul>
 </div>
 
@@ -2708,7 +2715,7 @@ Defaults to True.</li>
                             <div id="MassSpecPeakSetting.__init__" class="classattr">
                                 <div class="attr function">
             
-        <span class="name">MassSpecPeakSetting</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">kendrick_base</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">factory</span><span class="o">&gt;</span>,</span><span class="param">	<span class="n">kendrick_rounding_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;floor&#39;</span>,</span><span class="param">	<span class="n">implemented_kendrick_rounding_methods</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;floor&#39;</span><span class="p">,</span> <span class="s1">&#39;ceil&#39;</span><span class="p">,</span> <span class="s1">&#39;round&#39;</span><span class="p">)</span>,</span><span class="param">	<span class="n">peak_derivative_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>,</span><span class="param">	<span class="n">peak_min_prominence_percent</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>,</span><span class="param">	<span class="n">min_peak_datapoints</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">5</span>,</span><span class="param">	<span class="n">peak_max_prominence_percent</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>,</span><span class="param">	<span class="n">peak_height_max_percent</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">10</span>,</span><span class="param">	<span class="n">legacy_resolving_power</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span></span>)</span>
+        <span class="name">MassSpecPeakSetting</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">kendrick_base</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">factory</span><span class="o">&gt;</span>,</span><span class="param">	<span class="n">kendrick_rounding_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;floor&#39;</span>,</span><span class="param">	<span class="n">implemented_kendrick_rounding_methods</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;floor&#39;</span><span class="p">,</span> <span class="s1">&#39;ceil&#39;</span><span class="p">,</span> <span class="s1">&#39;round&#39;</span><span class="p">)</span>,</span><span class="param">	<span class="n">peak_derivative_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>,</span><span class="param">	<span class="n">peak_min_prominence_percent</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>,</span><span class="param">	<span class="n">min_peak_datapoints</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">5</span>,</span><span class="param">	<span class="n">peak_max_prominence_percent</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>,</span><span class="param">	<span class="n">peak_height_max_percent</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">10</span>,</span><span class="param">	<span class="n">legacy_resolving_power</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>,</span><span class="param">	<span class="n">centroid_legacy_polyfit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span></span>)</span>
 
         
     </div>
@@ -2820,6 +2827,18 @@ Defaults to True.</li>
         
     </div>
     <a class="headerlink" href="#MassSpecPeakSetting.legacy_resolving_power"></a>
+    
+    
+
+                            </div>
+                            <div id="MassSpecPeakSetting.centroid_legacy_polyfit" class="classattr">
+                                <div class="attr variable">
+            <span class="name">centroid_legacy_polyfit</span><span class="annotation">: bool</span>        =
+<span class="default_value">False</span>
+
+        
+    </div>
+    <a class="headerlink" href="#MassSpecPeakSetting.centroid_legacy_polyfit"></a>
     
     
 

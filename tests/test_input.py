@@ -275,6 +275,23 @@ def test_import_maglab_pks():
 
     #MzDomainCalibration(mass_spectrum, ref_file_location).run()
 
+def test_import_xml_mass_list():
+
+    file_location = Path.cwd() / "tests/tests_data/ftms/" / "srfa_neg_xml_example.xml"
+
+    mass_list_reader = ReadMassList(file_location, isCentroid=True, isThermoProfile=False)
+    polarity = -1
+
+    MSParameters.mass_spectrum.noise_threshold_method = 'absolute_abundance' 
+    MSParameters.mass_spectrum.noise_threshold_absolute_abundance = 1000 
+
+    mass_spectrum = mass_list_reader.get_mass_spectrum(polarity, auto_process=True, loadSettings=False)
+    # check there are lots of peaks (should be ~36k)
+    assert len(mass_spectrum)>30_000
+    # check the 100th peak is as expected 
+    assert round(mass_spectrum.mz_exp[100],3) == 118.049
+
+
 def test_import_mass_list():
 
     file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_SRFA_CoreMS.xlsx"
