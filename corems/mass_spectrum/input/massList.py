@@ -234,7 +234,7 @@ class ReadMassList(MassListBaseClass):
 
             output_parameters = self.get_output_parameters(polarity)
 
-            mass_spec = MassSpecCentroid(dataframe.to_dict(orient='list'), output_parameters)
+            mass_spec = MassSpecCentroid(dataframe.to_dict(orient='list'), output_parameters, auto_process=auto_process)
 
             if loadSettings:
                 self.load_settings(mass_spec, output_parameters)
@@ -312,7 +312,7 @@ class ReadBrukerXMLList(MassListBaseClass):
 
         output_parameters = self.get_output_parameters(polarity)
 
-        mass_spec = MassSpecCentroid(dataframe.to_dict(orient='list'), output_parameters)
+        mass_spec = MassSpecCentroid(dataframe.to_dict(orient='list'), output_parameters, auto_process=auto_process)
 
         if loadSettings:
             self.load_settings(mass_spec, output_parameters)

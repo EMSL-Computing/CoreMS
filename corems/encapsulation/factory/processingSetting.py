@@ -67,6 +67,7 @@ class DataInputSetting:
                                  'Res.': Labels.rp,
                                  'resolution': Labels.rp,
                                  'Intensity': Labels.abundance,
+                                 'Peak Height': Labels.abundance,
                                  'I': Labels.abundance,
                                  'Abundance': Labels.abundance,
                                  'abs_abu': Labels.abundance,
@@ -261,6 +262,7 @@ class MassSpectrumSetting:
         Maximum m/z to use for peak picking. Default is 1200.0.
     picking_point_extrapolate : int, optional
         How many data points (in each direction) to extrapolate the mz axis and 0 pad the abundance axis. Default is 3.
+        Recommend 3 for reduced profile data or if peak picking faults
     calib_minimize_method : str, optional
         Minimization method to use for calibration. Default is 'Powell'.
     calib_pol_order : int, optional
@@ -303,7 +305,7 @@ class MassSpectrumSetting:
     # How many data points (in each direction) to extrapolate the mz axis and 0 pad the abundance axis
     # This will fix peak picking at spectrum limit issues
     #  0 to keep normal behaviour, typical value 3 to fix
-    picking_point_extrapolate: int = 0 
+    picking_point_extrapolate: int = 3 
 
     calib_minimize_method: str = 'Powell'
     calib_pol_order: int = 2
@@ -360,6 +362,9 @@ class MassSpecPeakSetting:
     legacy_resolving_power : bool, optional
         Flag indicating whether to use the legacy (CoreMS v1) resolving power calculation.
         Defaults to True.
+    centroid_legacy_polyfit : bool, optional
+        Use legacy (numpy polyfit) to fit centroid
+        Default false.
     """
 
     kendrick_base: Dict = dataclasses.field(default_factory=dict)
@@ -379,7 +384,10 @@ class MassSpecPeakSetting:
     peak_height_max_percent: float = 10  # 1-100 % used for baseline detection
 
     legacy_resolving_power: bool = True # Use the legacy (CoreMS v1) resolving power calculation (True)
-    
+    # TODO revisit this default
+
+    centroid_legacy_polyfit: bool = False
+
     def __post_init__(self):
 
         # default to CH2
