@@ -306,7 +306,8 @@ class HighResMassSpecExport(Thread):
 
                 scan_group = hdf_handle.create_group(str(self.mass_spectrum.scan_number))
 
-                if list(self.mass_spectrum.abundance_profile):
+                # If there is raw data (from profile data) save it
+                if not self.mass_spectrum.is_centroid:
 
                     mz_abun_array = empty(shape=(2, len(self.mass_spectrum.abundance_profile)))
 

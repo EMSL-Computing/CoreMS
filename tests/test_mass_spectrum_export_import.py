@@ -1,5 +1,5 @@
-import pytest
 import os
+import pytest
 
 from corems.mass_spectrum.input.numpyArray import ms_from_array_centroid
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
@@ -69,6 +69,7 @@ def test_mass_spec_export_import_with_annote(mass_spectrum_silico):
     assert mass_spectrum_obj2[0][0].string == "C56 H73 N1"
     assert ms_df2.shape == (2, 26)
     assert mass_spectrum_obj2[1][0].string == "C55 H73 N1 13C1"
+    assert mass_spectrum_obj2._mz_exp[0] == 760.58156938877
 
     # Remove the file
     os.remove("my_mass_spec.hdf5")
