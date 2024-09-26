@@ -50,6 +50,12 @@ def test_create_mass_spectrum():
     mass_spectrum_obj.filter_by_mz(200, 1000)
     mass_spectrum_obj.reset_indexes()
 
+    og_length = len(mass_spectrum_obj.mz_exp_pp)
+    assert len(mass_spectrum_obj.mz_exp_pp) == len(mass_spectrum_obj.abundance_profile_pp)
+    mass_spectrum_obj.settings.picking_point_extrapolate = 5 
+    assert len(mass_spectrum_obj.mz_exp_pp) == len(mass_spectrum_obj.abundance_profile_pp)
+    assert len(mass_spectrum_obj.mz_exp_pp) > og_length
+
     mass_spectrum_obj.filter_by_abundance(0, 1000)
     mass_spectrum_obj.reset_indexes()
     mass_spectrum_obj.filter_by_max_resolving_power(12, 3)

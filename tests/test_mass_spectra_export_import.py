@@ -47,6 +47,7 @@ def test_mass_spec_export_import_with_annote():
     if os.path.exists("my_mass_spec.hdf5"):
         os.remove("my_mass_spec.hdf5")
     mass_spectrum_obj = prep_mass_spec_obj()
+    mass_spectrum_obj.parameters.molecular_search.url_database = ""
     mass_spectrum_obj = run_molecular_formula_search(mass_spectrum_obj)
     ms_df1 = mass_spectrum_obj.to_dataframe()
     assert mass_spectrum_obj[0][0].string == "C56 H73 N1"

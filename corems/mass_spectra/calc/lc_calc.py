@@ -149,7 +149,7 @@ class LCCalculations:
             max_prominence=max_prominence,
             max_signal=max_eic,
             min_peak_datapoints=min_peak_datapoints,
-            peak_derivative_thresould=peak_derivative_threshold,
+            peak_derivative_threshold=peak_derivative_threshold,
             signal_threshold=signal_threshold,
             correct_baseline=False,
             plot_res=False,
