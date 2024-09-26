@@ -427,8 +427,8 @@ class MzDomainCalibration:
             self.mass_spectrum.calibration_order = order
             self.mass_spectrum.calibration_RMS = float(res['fun'])
             self.mass_spectrum.calibration_points = int(len(cal_refs_mz))
-            self.mass_spectrum.calib_ref_mzs = cal_refs_mz
-            #self.mass_spectrum.calib_meas_mzs = cal_refs_mz
+            self.mass_spectrum.calibration_ref_mzs = cal_refs_mz
+            self.mass_spectrum.calibration_meas_mzs = cal_peaks_mz
 
             self.mass_spectrum.calibration_segment = self.mzsegment
 

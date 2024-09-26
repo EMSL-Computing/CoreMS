@@ -29,7 +29,7 @@ from corems.mass_spectra.calc.MZSearch import MZSearch
 from corems.molecular_formula.input.masslist_ref import ImportMassListRef
 from corems.encapsulation.constant import Labels
 from corems.mass_spectra.input import rawFileReader
-from corems import get_dirname, get_filename
+from support_code.filefinder import get_dirname, get_filename
 
 def _write_frame_to_new_sheet(path_to_file=None, sheet_name='sheet', data=None):
     

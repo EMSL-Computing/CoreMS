@@ -109,8 +109,8 @@ class HighResRecalibration:
         self.mass_spectrum.molecular_search_settings.isAdduct = True
         self.mass_spectrum.molecular_search_settings.adduct_atoms_pos = ['Na']
 
-
-    def get_error_range(self, errors: list):
+    @staticmethod
+    def get_error_range(errors: list, ppmFWHMprior: float=3, plot_logic: bool=False):
         """ Get the error range from the error distribution
 
         Using lmfit and seaborn kdeplot to extract the error range from the error distribution of assigned species. 
@@ -119,6 +119,21 @@ class HighResRecalibration:
         ----------
         errors : list
             list of the errors of the assigned species (ppm)
+        ppmFWHMprior : float, optional
+            The FWHM of the prior distribution (ppm). The default is 3.
+        plot_logic : bool, optional
+            Whether to plot the error distribution. The default is False.
+        
+        Returns
+        -------
+        mean_error : float
+            mean mass error of the Gaussian distribution (ppm)
+        fwhm_error : float
+            full width half max of the gaussian error distribution (ppm)
+        ppm_thresh : list
+            recommended thresholds for the recalibration parameters (ppm)
+            Consists of [mean_error-fwhm_error,mean_error+fwhm_error]
+        
         """
         kde = sns.kdeplot(errors) 
 
@@ -133,12 +148,12 @@ class HighResRecalibration:
         
         lmmodel = GaussianModel()
         lmpars = lmmodel.guess(kde_data[1], x=kde_data[0])
-        lmpars['sigma'].value = 2.3548/self.ppmFWHMprior
+        lmpars['sigma'].value = 2.3548/ppmFWHMprior
         lmpars['center'].value = kde_apex_ppm
         lmpars['amplitude'].value = kde_apex_val
         lmout = lmmodel.fit(kde_data[1], lmpars, x=kde_data[0])
         
-        if self.plot:
+        if plot_logic:
             fig,ax = plt.subplots(figsize=(8,4))
             lmout.plot_fit(ax=ax,data_kws ={'color':'tab:blue'},fit_kws ={'color':'tab:red'})
             ax.set_xlabel('$m/z$ Error (ppm)')
@@ -200,5 +215,5 @@ class HighResRecalibration:
             print("fewer than 5 peaks assigned, cannot determine error range")
             return np.nan,np.nan,[np.nan,np.nan]
         else:
-            mean_error,fwhm_error,ppm_thresh = self.get_error_range(errors)
+            mean_error,fwhm_error,ppm_thresh = self.get_error_range(errors, self.ppmFWHMprior, self.plot)
             return mean_error,fwhm_error,ppm_thresh

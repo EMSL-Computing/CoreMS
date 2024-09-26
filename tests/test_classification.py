@@ -26,6 +26,7 @@ def test_heteroatoms_classification():
     #MSParameters.molecular_search.usedAtoms = usedatoms
     
     mass_spec_obj = create_mass_spectrum()
+    mass_spec_obj.parameters.molecular_search.url_database = ''
     
     assignOx = SearchMolecularFormulas(mass_spec_obj).run_worker_mass_spectrum()
     
