@@ -1,4 +1,4 @@
-import shutil
+import os
 
 from corems.mass_spectrum.input.numpyArray import ms_from_array_centroid
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
@@ -44,6 +44,8 @@ def run_molecular_formula_search(mass_spectrum_obj):
 
 
 def test_mass_spec_export_import_with_annote():
+    if os.path.exists("my_mass_spec.hdf5"):
+        os.remove("my_mass_spec.hdf5")
     mass_spectrum_obj = prep_mass_spec_obj()
     mass_spectrum_obj.parameters.molecular_search.url_database = ""
     mass_spectrum_obj = run_molecular_formula_search(mass_spectrum_obj)
@@ -51,6 +53,7 @@ def test_mass_spec_export_import_with_annote():
     assert mass_spectrum_obj[0][0].string == "C56 H73 N1"
     assert ms_df1.shape == (2, 26)
     assert mass_spectrum_obj[1][0].string == "C55 H73 N1 13C1"
+    assert mass_spectrum_obj._mz_exp[0] == 760.58156938877
 
     exportMS = HighResMassSpecExport("my_mass_spec", mass_spectrum_obj)
     exportMS._output_type = "hdf5"
@@ -63,12 +66,10 @@ def test_mass_spec_export_import_with_annote():
     assert mass_spectrum_obj2[0][0].string == "C56 H73 N1"
     assert ms_df2.shape == (2, 26)
     assert mass_spectrum_obj2[1][0].string == "C55 H73 N1 13C1"
+    assert mass_spectrum_obj2._mz_exp[0] == 760.58156938877
 
     # Remove the file
-    shutil.rmtree(
-        "my_mass_spec.hdf5",
-        ignore_errors=True,
-    )
+    os.remove("my_mass_spec.hdf5")
 
 
 if __name__ == "__main__":
