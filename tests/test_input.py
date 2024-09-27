@@ -45,7 +45,9 @@ def test_import_booster_mass_spectrum_hdf():
 
     booster_reader = ReadHDF_BoosterMassSpectrum(file_path, isCentroid=False)
 
-    mass_spectrum = booster_reader.get_mass_spectrum(auto_process=True)
+    mass_spectrum = booster_reader.get_mass_spectrum(auto_process=False)
+    mass_spectrum.parameters = MSParameters(use_defaults=True)
+    mass_spectrum.process_mass_spec()
 
     assert len(mass_spectrum) > 0
     assert mass_spectrum.number_average_molecular_weight() > 0
@@ -114,12 +116,13 @@ def test_import_corems_hdf5():
     assert len(mass_spectrum) == 20
 
     # Import unprocessed mass spectrum, check that the mass spectrum is loaded correctly
-    MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
     mass_spectrum2 = mass_list_reader.get_mass_spectrum(
         load_settings=False, 
         auto_process=False,
         load_molecular_formula=False
     )
+    mass_spectrum2.parameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
+
     assert mass_spectrum2.settings.noise_threshold_method == 'relative_abundance' 
     assert len(mass_spectrum2) == 0
  
@@ -168,24 +171,30 @@ def test_import_thermo_profile_mass_list():
     polarity = +1
 
     mass_spectrum = mass_list_reader.get_mass_spectrum(
-        polarity, auto_process=True, loadSettings=False
+        polarity, auto_process=False, loadSettings=False
     )
+    mass_spectrum.parameters = MSParameters(use_defaults=True)
+    mass_spectrum.process_mass_spec()
 
     assert mass_spectrum.to_dataframe().shape[0] > 0
     assert round(mass_spectrum[0].mz_exp, 0) == 59
 
 
 def test_import_numpy_array_profile(mass_spectrum_ftms):
+    #TODO KRH: This test is failing to create a replicated mass spectrum as the original one
     mass_spectrum_new = ms_from_array_profile(
         mz=mass_spectrum_ftms.mz_exp_profile,
         abundance=mass_spectrum_ftms.abundance_profile,
         dataname="test",
         polarity=-1,
         data_type=Labels.booster_profile,
+        auto_process=False
     )
-
-    assert mass_spectrum_new.to_dataframe().shape[0] > 0
-    assert round(mass_spectrum_new[0].mz_exp, 0) == 190
+    mass_spectrum_new.parameters = mass_spectrum_ftms.parameters
+    mass_spectrum_new.process_mass_spec()
+    
+    assert mass_spectrum_new.to_dataframe().shape == mass_spectrum_ftms.to_dataframe().shape
+    assert round(mass_spectrum_new[0].mz_exp, 0) == round(mass_spectrum_ftms[0].mz_exp, 0)
     assert not mass_spectrum_new.is_centroid
 
     mass_spectrum_new.plot_mz_domain_profile()
@@ -254,13 +263,12 @@ def test_import_mass_list():
     # polarity need to be set or read from the file
     polarity = -1
 
-    # TODO KRH: We should be able to remove these parameters after MR https://code.emsl.pnl.gov/mass-spectrometry/corems/-/merge_requests/122
-    MSParameters.mass_spectrum.noise_threshold_method = "relative_abundance"
-    MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 1
-
     mass_list_reader = ReadMassList(file_location)
 
-    mass_spectrum = mass_list_reader.get_mass_spectrum(polarity, auto_process=True)
+    mass_spectrum = mass_list_reader.get_mass_spectrum(polarity, auto_process=False)
+    mass_spectrum.parameters.mass_spectrum.noise_threshold_method = "relative_abundance"
+    mass_spectrum.parameters.mass_spectrum.noise_threshold_min_relative_abundance = 1
+    mass_spectrum.process_mass_spec()
 
     assert mass_spectrum.baseline_noise > 10000
     assert mass_spectrum.baseline_noise_std > 10000
@@ -278,23 +286,27 @@ def test_import_mass_list():
 
 
 def test_import_thermo_average():
+    #TODO KRH: Revisit this test to check that assertions are implemented at each step
     file_location = Path.cwd() / "tests/tests_data/ftms/" / "SRFA_NEG_ESI_ORB.raw"
-
-    # change parameters here
-    MSParameters.mass_spectrum.noise_threshold_method = "relative_abundance"
-    MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 1
 
     # creates the parser obj
     parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
 
     # sums all the mass spectra
-
     parser.chromatogram_settings.scans = (-1, -1)
-    mass_spectrum = parser.get_average_mass_spectrum(spectrum_mode="profile")
+    mass_spectrum = parser.get_average_mass_spectrum(spectrum_mode="profile", auto_process=False)
+    mass_spectrum.parameters = MSParameters(use_defaults=True)
+    mass_spectrum.parameters.mass_spectrum.noise_threshold_method = "relative_abundance"
+    mass_spectrum.parameters.mass_spectrum.noise_threshold_min_relative_abundance = 1
+    mass_spectrum.process_mass_spec()
 
     # sums scans in selected range
     parser.chromatogram_settings.scans = (1, 1)
     mass_spectrum = parser.get_average_mass_spectrum(spectrum_mode="profile")
+    mass_spectrum.parameters = MSParameters(use_defaults=True)
+    mass_spectrum.parameters.mass_spectrum.noise_threshold_method = "relative_abundance"
+    mass_spectrum.parameters.mass_spectrum.noise_threshold_min_relative_abundance = 1
+    mass_spectrum.process_mass_spec()
 
     parser.chromatogram_settings.scans = [1]
 

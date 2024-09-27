@@ -12,6 +12,8 @@ from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 
+#TODO KRH: Revisit all tests in this file
+
 @pytest.fixture
 def mass_spectrum_centroid():
     file_location = Path.cwd() / "tests/tests_data/ftms/ESI_NEG_SRFA_UnCal_Unassign.csv"

@@ -14,6 +14,8 @@ from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 
+#TODO KRH: Remove this test file once all tests have been moved to test_calibration2.py
+
 def create_mass_spectrum():
     # Creates a profile mode mass spectrum object
     '''parse transient data from Bruker into a mass spectrum class object

@@ -2,6 +2,7 @@ import pytest
 from pathlib import Path
 
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
+from corems.encapsulation.factory.parameters import MSParameters
 
 @pytest.fixture
 def mass_spectrum_ftms(bruker_transient):
@@ -10,11 +11,7 @@ def mass_spectrum_ftms(bruker_transient):
     mass_spectrum = bruker_transient.get_mass_spectrum(
         plot_result=False, auto_process=False, keep_profile=True
     )
-
-    mass_spectrum.settings.noise_threshold_method = "log"
-    mass_spectrum.settings.noise_threshold_log_nsigma = 12
-    mass_spectrum.mspeaks_settings.peak_min_prominence_percent = 0.01
-
+    mass_spectrum.parameters = MSParameters(use_defaults=True)
     # Process the mass spectrum
     mass_spectrum.process_mass_spec()
 
