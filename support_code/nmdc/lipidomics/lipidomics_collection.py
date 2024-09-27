@@ -5,7 +5,8 @@ from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectraCollec
 
 if __name__ == "__main__":
     collection_path = Path("/Users/heal742/LOCAL/10_lcms_collection_testing/UDN_neg/processed_data")
-    manifest_file = collection_path / "manifest_small_test.csv"
+    manifest_file = collection_path / "manifest_very_small.csv"
+    chromatography_file = collection_path / "long_lipid_gradient_chroma.csv"
 
     """
     # Read in manifest file
@@ -32,6 +33,7 @@ if __name__ == "__main__":
     parser = ReadCoreMSHDFMassSpectraCollection(
             folder_location = collection_path,
             manifest_file = manifest_file,
+            chromatography_file=chromatography_file,
             cores = ncores
             )
     

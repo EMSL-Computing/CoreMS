@@ -533,7 +533,36 @@ class ReadCoreMSHDFMassSpectra(
 
 
 class ReadCoreMSHDFMassSpectraCollection:
-    def __init__(self, folder_location: str, manifest_file: str, cores: int = 1):
+    """Class to read a collection of CoreMS HDF5 files and populate a LCMSCollection object.
+    
+    Parameters
+    ----------
+    folder_location : str
+        The location of the folder containing the CoreMS HDF5 files.
+    manifest_file : str
+        The location of the manifest file containing the sample names, order, and batch.
+        This must be a csv with the following columns: 'sample_name', 'order', 'batch'.
+        Other fields can be included in the manifest file, but these are required.
+    chromatography_file: str, optional
+        The location of the chromatography file containing at a minimum time_min and A (fraction of solvent A).
+        Default is None.
+    cores : int
+        The number of cores to use for multiprocessing. Default is 1.
+
+    Attributes
+    ----------
+    folder_location : str
+        The location of the folder containing the CoreMS HDF5 files.
+    manifest_filepath : str
+        The location of the manifest file containing the sample names, order, and batch.
+    """
+    def __init__(
+            self, 
+            folder_location: str, 
+            manifest_file: str, 
+            chromatography_file: str = None,
+            cores: int = 1
+            ):
         # Check for folder location and manifest file
         if not folder_location.exists():
             raise FileNotFoundError(f"Folder location {folder_location} not found.")
@@ -545,11 +574,41 @@ class ReadCoreMSHDFMassSpectraCollection:
             raise ValueError("Manifest file must be a CSV.")
 
         self.folder_location = folder_location
+        self._chromatography_df = None
+        self._manifest_dict = None
         self._parse_manifest(manifest_file)
         self._validate_manifest()
         self._validate_parameters()
         self._validate_cores(cores)
+        if chromatography_file is not None:
+            self._validate_chromatography_file(chromatography_file)
 
+    def _validate_chromatography_file(self, chromatography_file):
+        # Check if the chromatography file exists
+        if not chromatography_file.exists():
+            raise FileNotFoundError(f"Chromatography file {chromatography_file} not found.")
+        # Read in the chromatography file, if the first line starts with #, skip it
+        with open(chromatography_file, "r") as f:
+            first_line = f.readline()
+            if first_line.startswith('\ufeff"#'):
+                chromat_df = pd.read_csv(chromatography_file, skiprows=1)
+            else:
+                chromat_df = pd.read_csv(chromatography_file)
+        
+        # Check if the following columns exist in the chromatography file
+        if not all(col in chromat_df.columns for col in ["time_min", "A"]):
+            raise ValueError("Chromatography file must contain the following columns: 'time_min', 'A'.")
+        
+        # Check if the time_min column is in ascending order
+        if not chromat_df["time_min"].is_monotonic_increasing:
+            raise ValueError("Chromatography file must be in ascending order by 'time_min'.")
+        
+        # Check if the A column is between 0 and 1
+        if not chromat_df["A"].between(0, 1).all():
+            raise ValueError("Chromatography file 'A' column must be between 0 and 1.")
+        
+        self._chromatography_df = chromat_df
+ 
     def _validate_cores(self, cores):
         # Check if the cores parameter is an integer greater than 0 and less than the number of cores available
         if not isinstance(cores, int) or cores < 1:
@@ -562,6 +621,7 @@ class ReadCoreMSHDFMassSpectraCollection:
 
     def _parse_manifest(self, manifest_file):
         """Parse the manifest file and set the manifest dictionary."""
+        self.manifest_filepath = manifest_file
         manifest = pd.read_csv(manifest_file)
         # Check if the following columns exisit in the manifest file
         if not all(
@@ -669,6 +729,7 @@ class ReadCoreMSHDFMassSpectraCollection:
 
         # Set the number of cores on the LCMSCollection object from the ReadCoreMSHDFMassSpectraCollection object
         lcms_coll.parameters.lcms_collection.cores = self._cores
+        lcms_coll._chromatography_df = self._chromatography_df
 
         # Add LCMS objects to the collection
         samples = self._manifest_dict.keys()
@@ -708,9 +769,17 @@ class ReadCoreMSHDFMassSpectraCollection:
         
         # Reorder the LCMS objects
         lcms_coll._reorder_lcms_objects()
-        
+
         # Collect the mass features from the LCMS objects and combine them into a single dataframe for the collection
         lcms_coll._combine_mass_features()
+
+        # If chromatography file is provided, interpolate the chromatography data
+        if self._chromatography_df is not None:
+            lcms_coll._interpolate_chromatography_data()
+            # Add the chromatography data to the combined mass features dataframe
+            combined_mf_df = lcms_coll.mass_features_dataframe
+            combined_mf_df['fraction_A'] = lcms_coll._convert_solvent_A(combined_mf_df.scan_time.values)
+            lcms_coll.mass_features_dataframe = combined_mf_df
         
         # If load_light, remove the mass_feature attribute from the individual LCMS objects
         if load_light:
@@ -729,6 +798,10 @@ class ReadCoreMSHDFMassSpectraCollection:
     @property
     def manifest_dataframe(self):
         return pd.DataFrame(self._manifest_dict).T
+
+    @property
+    def chromatography_df(self):
+        return self._chromatography_df
 
     @property
     def hdf5_files(self):

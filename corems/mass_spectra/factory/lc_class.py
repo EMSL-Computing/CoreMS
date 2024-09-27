@@ -1125,6 +1125,10 @@ class LCMSCollection(LCMSCollectionCalculations):
 
     Methods
     --------
+
+    Notes
+    ------
+    This class is not intended to be instantiated directly, but rather instantiated using a parser object and then interacted with.
     """
 
     def __init__(
@@ -1136,6 +1140,9 @@ class LCMSCollection(LCMSCollectionCalculations):
         self.collection_location = collection_location
         self._manifest_dict = manifest
         self.collection_parser = collection_parser
+
+        # These attributes are generally set by the parser during instantiation of this class
+        self._chromatography_df = None
         self._lcms = {}
         self._combined_mass_features = None
         self.consensus_mass_features = {}
@@ -1181,6 +1188,41 @@ class LCMSCollection(LCMSCollectionCalculations):
         
         return mf_df
     
+    def _convert_solvent_A(self, x):
+        """
+        Converts the solvent A fraction based on the scan time.
+
+        Parameters
+        -----------
+        x : float or numpy.ndarray
+            The scan time in minutes or an array of scan times in minutes.
+
+        Returns
+        --------
+        float or numpy.ndarray or None
+            The solvent A fraction at the scan time or an array of solvent A fractions at the scan times (if the function is set)
+
+        Notes
+        ------
+        This function is set by the _interpolate_chromatography_data method and is used to convert the solvent A fraction based on the scan time (in minutes)
+        """
+        pass
+    
+    def _interpolate_chromatography_data(self):
+        """
+        Interpolates the chromatography data for each LCMS object in the collection and defines the _convert_solvent_A function.
+        """
+        chromatogram_df = self._chromatography_df.copy()
+        xp = chromatogram_df.time_min.values
+        yp = chromatogram_df.A.values
+
+        # Define a function to interpolate the chromatogram data
+        def interp(x):
+            pred_y = np.interp(x, xp, yp)
+            return pred_y
+
+        self._convert_solvent_A = interp
+    
     def _combine_mass_features(self):
         """
         Concatenates the mass features from all the LCMS objects in the collection.
@@ -1207,13 +1249,22 @@ class LCMSCollection(LCMSCollectionCalculations):
             mf_df_list = pool.starmap(self._prepare_lcms_mass_features_for_combination, [(lcms_obj,) for lcms_obj in self])
 
         combined_mass_features = pd.concat(mf_df_list)
+
         # Move coll_mf_id, sample_name, and sample_id to front
         cols = combined_mass_features.columns.tolist()
         top_cols = ["coll_mf_id", "sample_name", "sample_id", "mz", "scan_time_aligned"]
         cols = [x for x in top_cols + [col for col in cols if col not in top_cols] if x in cols]
         combined_mass_features = combined_mass_features[cols]
+
         # Make coll_mf_id the index
         combined_mass_features = combined_mass_features.set_index("coll_mf_id")
+
+        # If _chromatogram_df is set, combine it with the mass features dataframe to add A fraction for each mass feature
+        if self._chromatography_df is not None:
+
+            # Add solvent A fraction to the combined mass features dataframe
+            combined_mass_features['solvent_A_frac'] = self._convert_solvent_A(combined_mass_features.scan_time.values)
+
         self._combined_mass_features = combined_mass_features
 
     def _check_mass_features_df(self):
