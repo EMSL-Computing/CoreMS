@@ -64,6 +64,8 @@ def test_autorecalibration(mass_spectrum_ftms, ref_file_location):
 def test_segmentedmzcalibration(mass_spectrum_ftms, ref_file_location):
     # Tests profile mode recalibration
     mass_spectrum_ftms.filter_by_noise_threshold()
+    mass_spectrum_ftms.parameters.mass_spectrum.min_calib_ppm_error = -5
+    mass_spectrum_ftms.parameters.mass_spectrum.max_calib_ppm_error = 5
 
     # Check that mass_spectrum_ftms has not been calibrated
     assert set(mass_spectrum_ftms.mz_cal) == {None}
