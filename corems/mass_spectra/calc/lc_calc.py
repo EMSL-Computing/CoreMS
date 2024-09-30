@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import warnings
 from ripser import ripser
-import scipy 
+import scipy
 from scipy import sparse
 from scipy.spatial import KDTree
 from sklearn.svm import SVR
@@ -378,7 +378,9 @@ class LCCalculations:
         else:
             raise ValueError("Peak picking method not implemented")
 
-    def integrate_mass_features(self, drop_if_fail=True, drop_duplicates=True, ms_level=1):
+    def integrate_mass_features(
+        self, drop_if_fail=True, drop_duplicates=True, ms_level=1
+    ):
         """Integrate mass features and extract EICs.
 
         Populates the _eics attribute on the LCMSBase object for each unique mz in the mass_features dataframe and adds data (start_scan, final_scan, area) to the mass_features attribute.
@@ -389,7 +391,7 @@ class LCCalculations:
             Whether to drop mass features if the EIC limit calculations fail.
             Default is True.
         drop_duplicates : bool, optional
-            Whether to mass features that appear to be duplicates 
+            Whether to mass features that appear to be duplicates
             (i.e., mz is similar to another mass feature and limits of the EIC are similar or encapsulating).
             Default is True.
         ms_level : int, optional
@@ -504,7 +506,7 @@ class LCCalculations:
             else:
                 if drop_if_fail is True:
                     self.mass_features.pop(idx)
-        
+
         if drop_duplicates:
             # Prepare mass feature dataframe
             mf_df = self.mass_features_to_df().copy()
@@ -516,16 +518,21 @@ class LCCalculations:
                 apex_scan = mass_feature.apex_scan
 
                 mf_df["mz_diff_ppm"] = np.abs(mf_df["mz"] - mz) / mz * 10**6
-                mf_df_sub = mf_df[mf_df["mz_diff_ppm"] < self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel * 10**6].copy()
+                mf_df_sub = mf_df[
+                    mf_df["mz_diff_ppm"]
+                    < self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel
+                    * 10**6
+                ].copy()
 
                 # For all mass features within the clustering tolerance, check if the start and end times are within the start and end times of the mass feature
                 for idx2, mass_feature2 in mf_df_sub.iterrows():
                     if idx2 != idx:
-                        if mass_feature2.start_scan >= mass_feature.start_scan and mass_feature2.final_scan <= mass_feature.final_scan:
+                        if (
+                            mass_feature2.start_scan >= mass_feature.start_scan
+                            and mass_feature2.final_scan <= mass_feature.final_scan
+                        ):
                             if idx2 in self.mass_features.keys():
                                 self.mass_features.pop(idx2)
-
-    
 
     def find_c13_mass_features(self, verbose=True):
         """Mark likely C13 isotopes and connect to monoisoitopic mass features.
@@ -722,7 +729,6 @@ class LCCalculations:
 
         # Loop through each mass feature
         for mf_id, mass_feature in self.mass_features.items():
-            
             # Check that the mass_feature.mz attribute == the mz of the mass feature in the mass_feature_df
             if mass_feature.mz != mass_feature.ms1_peak.mz_exp:
                 continue
@@ -1406,14 +1412,14 @@ class PHCalculations:
         to_drop = []
         while not pairs_df.empty:
             # Find root_parents and their children
-            root_parents = np.setdiff1d(np.unique(pairs_df.index.values), np.unique(pairs_df.child.values))
+            root_parents = np.setdiff1d(
+                np.unique(pairs_df.index.values), np.unique(pairs_df.child.values)
+            )
             children_of_roots = pairs_df.loc[root_parents, "child"].unique()
             to_drop = np.append(to_drop, children_of_roots)
 
             # Remove root_children as possible parents from pairs_df for next iteration
-            pairs_df = pairs_df.drop(
-                index=children_of_roots, errors="ignore"
-            )  
+            pairs_df = pairs_df.drop(index=children_of_roots, errors="ignore")
             pairs_df = pairs_df.reset_index().set_index("child")
             # Remove root_children as possible children from pairs_df for next iteration
             pairs_df = pairs_df.drop(index=children_of_roots)
@@ -1445,7 +1451,8 @@ class PHCalculations:
             }
         else:
             return cluster_daughters
-        
+
+
 class LCMSCollectionCalculations:
     """Methods for performing calculations related to LCMSCollection objects.
 
@@ -1453,6 +1460,7 @@ class LCMSCollectionCalculations:
     -----
     This class is intended as a mixin for the LCMSCollection class.
     """
+
     def clean_sparse_matrix(self, sparse_matrix):
         """Clean a sparse matrix by removing duplicates and sorting.
 
@@ -1471,7 +1479,7 @@ class LCMSCollectionCalculations:
         sparse_matrix.sort()
         dereplicated_sparse_matrix = np.unique(sparse_matrix, axis=0)
         return dereplicated_sparse_matrix
-     
+
     def match_mfs(self, mf_c, mf_i):
         """Match mass features between two LCMS objects.
 
@@ -1499,16 +1507,16 @@ class LCMSCollectionCalculations:
 
         # Prepare dataframes
         mf_c = mf_c.copy()
-        mf_c['id_i'] = 0
+        mf_c["id_i"] = 0
         mf_i = mf_i.copy()
-        mf_i['id_i'] = 1
+        mf_i["id_i"] = 1
 
         # Set dimensions for matching
-        dims = ["mz", "scan_time"] 
-        relative = [True, False] 
-        mz_tol = self.parameters.lcms_collection.alignment_mz_tol_ppm * 1E-6
+        dims = ["mz", "scan_time"]
+        relative = [True, False]
+        mz_tol = self.parameters.lcms_collection.alignment_mz_tol_ppm * 1e-6
         rt_tol = self.parameters.lcms_collection.alignment_rt_tol
-        tol = [mz_tol, rt_tol] 
+        tol = [mz_tol, rt_tol]
 
         # Compute inter-feature distances
         idx = []
@@ -1538,11 +1546,11 @@ class LCMSCollectionCalculations:
         # Compute normalized 3d distance
         v1 = mf_c[dims].values / tol
         v2 = mf_i[dims].values / tol
-        dist3d = scipy.spatial.distance.cdist(v1, v2, 'cityblock')
+        dist3d = scipy.spatial.distance.cdist(v1, v2, "cityblock")
         dist3d = np.multiply(dist3d, idx)
 
         # Normalize to 0-1
-        mx = dist3d.max() 
+        mx = dist3d.max()
         if mx > 0:
             # Lower distance is better
             dist3d = dist3d / dist3d.max()
@@ -1570,8 +1578,8 @@ class LCMSCollectionCalculations:
             return None, None
 
         return mf_c, mf_i
-    
-    def fit_rts(self, a, b, align='scan_time', **kwargs):
+
+    def fit_rts(self, a, b, align="scan_time", **kwargs):
         """
         Fit a support vector regressor to matched features.
 
@@ -1606,16 +1614,16 @@ class LCMSCollectionCalculations:
         arr = np.unique(arr, axis=0)
 
         # Check kwargs
-        if 'kernel' in kwargs:
-            kernel = kwargs.get('kernel')
+        if "kernel" in kwargs:
+            kernel = kwargs.get("kernel")
         else:
-            kernel = 'linear'
+            kernel = "linear"
 
         # Construct interpolation axis
         newx = np.linspace(arr[:, 0].min(), arr[:, 0].max(), 1000)
 
         # Linear kernel
-        if kernel == 'linear':
+        if kernel == "linear":
             reg = scipy.stats.linregress(x, y)
             newy = reg.slope * newx + reg.intercept
 
@@ -1627,13 +1635,13 @@ class LCMSCollectionCalculations:
 
             # Predict
             newy = svr.predict(newx.reshape(-1, 1))
-       
+
         # Pad x and y_pred with zeros to force interpolation to start at 0
         newx = np.concatenate(([0], newx))
         newy = np.concatenate(([0], newy))
 
         # Pad x and y_pred with max time to force interpolation to end at max time to force interpolation to match at end max time
-        max_time = self[0].scan_df['scan_time'].max()
+        max_time = self[0].scan_df["scan_time"].max()
         newx = np.concatenate((newx, [max_time]))
         newy = np.concatenate((newy, [max_time]))
 
@@ -1641,9 +1649,9 @@ class LCMSCollectionCalculations:
         def interp(x):
             pred_y = np.interp(x, newx, newy)
             return pred_y
-        
+
         return interp
-    
+
     def get_anchor_mass_features(self, mf_df):
         """
         Get the anchor mass features from a DataFrame of mass features.
@@ -1660,12 +1668,18 @@ class LCMSCollectionCalculations:
         """
         mf_df = mf_df.copy()
 
-        if "deconvoluted_mass_spectra"  in self.parameters.lcms_collection.mass_feature_anchor_technique:
+        if (
+            "deconvoluted_mass_spectra"
+            in self.parameters.lcms_collection.mass_feature_anchor_technique
+        ):
             # Drop features that are not mass_spectrum_deconvoluted_parent or are NA as mass_spectrum_deconvoluted_parent
             mf_df = mf_df.dropna(subset=["mass_spectrum_deconvoluted_parent"])
             mf_df = mf_df[mf_df["mass_spectrum_deconvoluted_parent"]]
 
-        if "absolute_intensity" in self.parameters.lcms_collection.mass_feature_anchor_technique:
+        if (
+            "absolute_intensity"
+            in self.parameters.lcms_collection.mass_feature_anchor_technique
+        ):
             # Drop features that have an absolute_intensity lower than the threshold
             threshold = self.parameters.lcms_collection.mass_feature_anchor_aboslute_intensity_threshold
             mf_df = mf_df[mf_df["absolute_intensity"] > threshold]
@@ -1676,59 +1690,74 @@ class LCMSCollectionCalculations:
         """
         Check if alignment is needed for the LCMS objects in the collection.
         """
-        
+
         # Hold out a subset of matches_c and matches_i for spline fitting
         matches_c.reset_index(drop=False, inplace=True)
         matches_i.reset_index(drop=False, inplace=True)
 
         # Rearrange matches_c and matches_i to be in the order of the scan_time of matches_c
-        matches_c = matches_c.sort_values(by='scan_time')
+        matches_c = matches_c.sort_values(by="scan_time")
         matches_i = matches_i.iloc[matches_c.index.values]
 
         hold_out_fraction = self.parameters.lcms_collection.alignment_hold_out_fraction
         # starting with an array of length len(matches_c), select equally spaced indices to hold out
-        idx_holdout = matches_c.index.values[np.arange(0, len(matches_c), int(1/hold_out_fraction))]
+        idx_holdout = matches_c.index.values[
+            np.arange(0, len(matches_c), int(1 / hold_out_fraction))
+        ]
 
         matches_c_holdout = matches_c.loc[idx_holdout].copy()
         matches_i_holdout = matches_i.loc[idx_holdout].copy()
 
         # Remove the holdout matches from the matches_c and matches_i DataFrames and reset the index
-        matches_c = matches_c.drop(index=idx_holdout).set_index('sample_name')
-        matches_i = matches_i.drop(index=idx_holdout).set_index('sample_name')
+        matches_c = matches_c.drop(index=idx_holdout).set_index("sample_name")
+        matches_i = matches_i.drop(index=idx_holdout).set_index("sample_name")
 
         # Reset the scan_time to the original scan_time
         matches_i = matches_i.copy()
-        matches_i['scan_time'] = matches_i['scan_time_og']
+        matches_i["scan_time"] = matches_i["scan_time_og"]
 
         # Fit the retention times of the LCMS object to the center LCMS object using the matched mass features
-        spl = self.fit_rts(matches_c, matches_i, kernel='rbf', C=1000)
+        spl = self.fit_rts(matches_c, matches_i, kernel="rbf", C=1000)
 
         # Check if the spline fitting improved the alignment for the holdout matches
-        matches_i_holdout['scan_time_fit'] = spl(matches_i_holdout['scan_time'])
-        og_diff = np.abs(matches_i_holdout['scan_time'] - matches_c_holdout['scan_time'])
-        fit_diff = np.abs(matches_i_holdout['scan_time_fit'] - matches_c_holdout['scan_time'])
+        matches_i_holdout["scan_time_fit"] = spl(matches_i_holdout["scan_time"])
+        og_diff = np.abs(
+            matches_i_holdout["scan_time"] - matches_c_holdout["scan_time"]
+        )
+        fit_diff = np.abs(
+            matches_i_holdout["scan_time_fit"] - matches_c_holdout["scan_time"]
+        )
 
-        if "fraction_improved" in self.parameters.lcms_collection.alignment_acceptance_techinque:
+        if (
+            "fraction_improved"
+            in self.parameters.lcms_collection.alignment_acceptance_techinque
+        ):
             fraction_improved = np.sum(fit_diff < og_diff) / len(og_diff)
-            use_spline_alignment = fraction_improved > self.parameters.lcms_collection.alignment_acceptance_fraction_improved_threshold              
-        if "mean_squared_error_improved" in self.parameters.lcms_collection.alignment_acceptance_techinque:
+            use_spline_alignment = (
+                fraction_improved
+                > self.parameters.lcms_collection.alignment_acceptance_fraction_improved_threshold
+            )
+        if (
+            "mean_squared_error_improved"
+            in self.parameters.lcms_collection.alignment_acceptance_techinque
+        ):
             mse_og = np.mean(og_diff**2)
             mse = np.mean(fit_diff**2)
             use_spline_alignment = mse < mse_og
 
         return use_spline_alignment, spl
-    
+
     def align_lcms_objects(self, overwrite=False):
         """
         Align LCMS objects in the collection.
-        
+
         Aligns the LCMS objects in the collection by aligning the retention times of the mass features in the LCMS objects.
         First, the mass features in the center LCMS object are matched to the mass features in the other LCMS objects,
         starting with the LCMS object immediately following the center LCMS object. The retention times of the LCMS objects
         are then fit to the center LCMS object using the matched mass features.
 
         Currently, this function only aligns LCMS objects within each batch, but not between batches.
-        
+
         Returns
         -------
         None, but aligns the LCMS objects in the collection and sets the scan_time_aligned column in the scan_df attribute of each LCMS object.
@@ -1738,17 +1767,18 @@ class LCMSCollectionCalculations:
         This function has been adapted from the original implementation in the Deimos package:
         https://github.com/pnnl/deimos
         """
-        #TODO KRH: add the ability to do this by batch and then connect the batches
         # Prepare the center LCMS object
-        center_obj_ids = self.manifest_dataframe[self.manifest_dataframe['center']].collection_id.values
+        center_obj_ids = self.manifest_dataframe[
+            self.manifest_dataframe["center"]
+        ].collection_id.values
 
         full_mf_df = self.mass_features_dataframe
         # re-index to sample_name for faster lookups
-        full_mf_df = full_mf_df.reset_index().set_index('sample_name')
+        full_mf_df = full_mf_df.reset_index().set_index("sample_name")
 
-        if 'scan_time_aligned' in full_mf_df.columns and not overwrite:
-            raise ValueError('Mass features have already been aligned')
-        
+        if "scan_time_aligned" in full_mf_df.columns and not overwrite:
+            raise ValueError("Mass features have already been aligned")
+
         anchor_mf_dfs = []
         for center_obj_id in center_obj_ids:
             # Get the anchor mass features from the center LCMS object
@@ -1758,7 +1788,7 @@ class LCMSCollectionCalculations:
 
             # Set scan_time_aligned to scan_time for the center LCMS object
             center_scan_df = self[center_obj_id].scan_df.copy()
-            center_scan_df['scan_time_aligned'] = center_scan_df['scan_time']
+            center_scan_df["scan_time_aligned"] = center_scan_df["scan_time"]
             self[center_obj_id].scan_df = center_scan_df
 
             index_steps = (1, -1)
@@ -1769,32 +1799,38 @@ class LCMSCollectionCalculations:
                 if i < len(self) and i >= 0:
                     # Grab the first LCMS object after the center object
                     mf_df_i = full_mf_df.loc[self.samples[i]].copy()
-                    mf_df_i['scan_time_og'] = mf_df_i['scan_time']
+                    mf_df_i["scan_time_og"] = mf_df_i["scan_time"]
 
                     while mf_df_i is not None:
                         mf_df_i = self.get_anchor_mass_features(mf_df_i)
 
                         # Match the mass features in the LCMS object to the anchor mass features in the center LCMS object.
-                        matches_c, matches_i = self.match_mfs(mf_df_c, mf_df_i) 
+                        matches_c, matches_i = self.match_mfs(mf_df_c, mf_df_i)
 
                         if matches_c is not None:
-                            use_spline_alignment, spl = self.attempt_alignment(matches_c, matches_i)
-     
+                            use_spline_alignment, spl = self.attempt_alignment(
+                                matches_c, matches_i
+                            )
+
                             # Record if we used alignment for this sample
                             sample_name = self.samples[i]
-                            self._manifest_dict[sample_name]['use_rt_alignment'] = use_spline_alignment
+                            self._manifest_dict[sample_name]["use_rt_alignment"] = (
+                                use_spline_alignment
+                            )
 
                             if use_spline_alignment:
                                 # Set new retention times on scan_df for lc_obj using the spline fitting
-                                matches_i['scan_time_fit'] = spl(matches_i['scan_time'])
-                                new_times = spl(self[i].scan_df['scan_time'])
+                                matches_i["scan_time_fit"] = spl(matches_i["scan_time"])
+                                new_times = spl(self[i].scan_df["scan_time"])
                                 new_scan_info = self[i].scan_df.copy()
-                                new_scan_info['scan_time_aligned'] = new_times
+                                new_scan_info["scan_time_aligned"] = new_times
                                 self[i].scan_df = new_scan_info
                             else:
                                 # Set aligned retention times on scan_df for lc_obj using the original retention times
                                 new_scan_info = self[i].scan_df.copy()
-                                new_scan_info['scan_time_aligned'] = new_scan_info['scan_time']
+                                new_scan_info["scan_time_aligned"] = new_scan_info[
+                                    "scan_time"
+                                ]
                                 self[i].scan_df = new_scan_info
 
                             i += index_step
@@ -1803,62 +1839,72 @@ class LCMSCollectionCalculations:
                             else:
                                 # Grab the next LCMS object and use the previous spline fitting to get a better starting point
                                 mf_df_i = full_mf_df.loc[self.samples[i]].copy()
-                                mf_df_i['scan_time_og'] = mf_df_i['scan_time']
+                                mf_df_i["scan_time_og"] = mf_df_i["scan_time"]
                                 mf_df_i = mf_df_i.reset_index(drop=False)
                                 if use_spline_alignment:
                                     # Set scan_time to previous sample's predicted scan_time to find closer matches
-                                    mf_df_i['scan_time'] = spl(mf_df_i['scan_time']) 
+                                    mf_df_i["scan_time"] = spl(mf_df_i["scan_time"])
                         else:
-                            raise ValueError(f'No matches found between the center object and {self.samples[i]}')
+                            raise ValueError(
+                                f"No matches found between the center object and {self.samples[i]}"
+                            )
 
         # Now align each batch using the center objects as anchors with the other batches
         mf_df_c = anchor_mf_dfs[0]
         for i in center_obj_ids[1:]:
             mf_df_i = full_mf_df.loc[self.samples[i]].copy()
-            mf_df_i['scan_time_og'] = mf_df_i['scan_time']
+            mf_df_i["scan_time_og"] = mf_df_i["scan_time"]
             mf_df_i = self.get_anchor_mass_features(mf_df_i)
-            
+
             matches_c, matches_i = self.match_mfs(mf_df_c, mf_df_i)
             if matches_c is not None:
                 use_spline_alignment, spl = self.attempt_alignment(matches_c, matches_i)
 
                 # Record if we used alignment for this sample
                 sample_name = self.samples[i]
-                self._manifest_dict[sample_name]['use_rt_alignment'] = use_spline_alignment
+                self._manifest_dict[sample_name]["use_rt_alignment"] = (
+                    use_spline_alignment
+                )
 
                 if use_spline_alignment:
-                    # Set new retention times on all this object's 
-                    new_times = spl(self[i].scan_df['scan_time'])
+                    # Set new retention times on all this object's
+                    new_times = spl(self[i].scan_df["scan_time"])
                     new_scan_info = self[i].scan_df.copy()
-                    new_scan_info['scan_time_aligned'] = new_times
+                    new_scan_info["scan_time_aligned"] = new_times
                     self[i].scan_df = new_scan_info
 
                     # Get the batch that this object belongs to
-                    batch = self.manifest[self.samples[i]]['batch']
+                    batch = self.manifest[self.samples[i]]["batch"]
 
                     for j in range(len(self)):
-                        if self.manifest[self.samples[j]]['batch'] == batch:
+                        if self.manifest[self.samples[j]]["batch"] == batch:
                             if j != i:
                                 sample_name = self.samples[j]
-                                self._manifest_dict[sample_name]['use_rt_alignment'] = use_spline_alignment
+                                self._manifest_dict[sample_name]["use_rt_alignment"] = (
+                                    use_spline_alignment
+                                )
                                 new_scan_info = self[j].scan_df.copy()
-                                new_scan_info['scan_time_aligned'] = spl(self[j].scan_df['scan_time_aligned'])
+                                new_scan_info["scan_time_aligned"] = spl(
+                                    self[j].scan_df["scan_time_aligned"]
+                                )
                                 self[j].scan_df = new_scan_info
-        
+
         # Set final mass_features_dataframe with the aligned scan_time
         center_sample_name = self.samples[center_obj_ids[0]]
-        self._manifest_dict[center_sample_name]['use_rt_alignment'] = False
+        self._manifest_dict[center_sample_name]["use_rt_alignment"] = False
         new_scan_info = self[center_obj_ids[0]].scan_df.copy()
-        new_scan_info['scan_time_aligned'] = new_scan_info['scan_time']
+        new_scan_info["scan_time_aligned"] = new_scan_info["scan_time"]
 
     def add_consensus_mass_features(self):
         # Get the combined mass features from all LCMS objects, keep the original index as a separate column
         combined_mfs = self.mass_features_dataframe.copy()
-        combined_mfs['coll_mf_id'] = combined_mfs.index
+        combined_mfs["coll_mf_id"] = combined_mfs.index
 
         # Check if the mass features have been aligned
-        if 'scan_time_aligned' not in combined_mfs.columns:
-            raise ValueError('Mass features have not been aligned, run align_lcms_objects() first')
+        if "scan_time_aligned" not in combined_mfs.columns:
+            raise ValueError(
+                "Mass features have not been aligned, run align_lcms_objects() first"
+            )
 
         # Partition the mass features by mz so we can parallelize the matching before clustering
         from corems.chroma_peak.calc import subset as corems_subset
@@ -1866,134 +1912,74 @@ class LCMSCollectionCalculations:
         # get max mz from combined_mfs and calculate tolerance from ppm
         mz_tol = self.parameters.lcms_collection.consensus_mz_tol_ppm * 1e-6
         n_partition_size = self.parameters.lcms_collection.consensus_partition_size
-        lazy_partitions = corems_subset.multi_sample_partition(combined_mfs, split_on = 'mz', size=n_partition_size, tol=mz_tol, relative=True)
+        lazy_partitions = corems_subset.multi_sample_partition(
+            combined_mfs,
+            split_on="mz",
+            size=n_partition_size,
+            tol=mz_tol,
+            relative=True,
+        )
 
         # If any of lazy_partitions._counts is 2xn_partition_size, issue a warning
-        if np.array(lazy_partitions._counts).max() > 2*n_partition_size:
-            warnings.warn('Some partitions are larger than 2x the goal partition size. Consider increasing the partition or decreasing the mz_tol.')
+        if np.array(lazy_partitions._counts).max() > 2 * n_partition_size:
+            warnings.warn(
+                "Some partitions are larger than 2x the goal partition size. Consider increasing the partition or decreasing the mz_tol."
+            )
 
         # Cluster the mass features within each partition
         if self.parameters.lcms_collection.cores > lazy_partitions.n_partitions:
             cores_to_use = lazy_partitions.n_partitions
         else:
             cores_to_use = self.parameters.lcms_collection.cores
-        #mfs_with_clusters = lazy_partitions.map(self.cluster_mass_features, processes=cores_to_use)
-        mfs_with_clusters = lazy_partitions.map(self.cluster_mass_features_agg_cluster, processes=cores_to_use)
+        # mfs_with_clusters = lazy_partitions.map(self.cluster_mass_features, processes=cores_to_use)
+        mfs_with_clusters = lazy_partitions.map(
+            self.cluster_mass_features_agg_cluster, processes=cores_to_use
+        )
 
         # Clean up cluster id names after partitioning
-        new_cluster_ids = mfs_with_clusters[['cluster', 'partition_idx']].drop_duplicates().reset_index(drop=True)
-        new_cluster_ids['cluster_unqiue'] = new_cluster_ids.index
-        mfs_with_clusters = mfs_with_clusters.merge(new_cluster_ids, on=['cluster', 'partition_idx'])
-        mfs_with_clusters['cluster'] = mfs_with_clusters['cluster_unqiue']
-        mfs_with_clusters = mfs_with_clusters.drop(columns=['cluster_unqiue'])
+        new_cluster_ids = (
+            mfs_with_clusters[["cluster", "partition_idx"]]
+            .drop_duplicates()
+            .reset_index(drop=True)
+        )
+        new_cluster_ids["cluster_unqiue"] = new_cluster_ids.index
+        mfs_with_clusters = mfs_with_clusters.merge(
+            new_cluster_ids, on=["cluster", "partition_idx"]
+        )
+        mfs_with_clusters["cluster"] = mfs_with_clusters["cluster_unqiue"]
+        mfs_with_clusters = mfs_with_clusters.drop(columns=["cluster_unqiue"])
 
         # Embed a new cluster id into the mass features dataframe and set as index
-        mfs_with_clusters['idx'] = mfs_with_clusters.index
+        mfs_with_clusters["idx"] = mfs_with_clusters.index
 
         # Check if any clusters can be merged into a single cluster
         eval_dict = self.evaluate_clusters_for_repeats(mfs_with_clusters)
 
         # Merge clusters identified in eval_dict
-        while len(eval_dict['merge_these_clusters']) > 0:
-            list_of_clusters_to_merge = [[x[0], x[1]] for x in eval_dict['merge_these_clusters']]
+        while len(eval_dict["merge_these_clusters"]) > 0:
+            list_of_clusters_to_merge = [
+                [x[0], x[1]] for x in eval_dict["merge_these_clusters"]
+            ]
             # Convert to a dataframe with columns "new_cluster" and "cluster"
-            df = pd.DataFrame(np.array(list_of_clusters_to_merge), columns=["new_cluster", "cluster"])
+            df = pd.DataFrame(
+                np.array(list_of_clusters_to_merge), columns=["new_cluster", "cluster"]
+            )
             # Drop duplicates of "child" clusters
             df = df.drop_duplicates("cluster", keep="first")
             df = df.drop_duplicates("new_cluster", keep="first")
             mfs_with_clusters = mfs_with_clusters.merge(df, on="cluster", how="left")
-            mfs_with_clusters["cluster"] = mfs_with_clusters["new_cluster"].fillna(mfs_with_clusters["cluster"])
+            mfs_with_clusters["cluster"] = mfs_with_clusters["new_cluster"].fillna(
+                mfs_with_clusters["cluster"]
+            )
             mfs_with_clusters = mfs_with_clusters.drop(columns=["new_cluster"])
 
             # Re-evaluate clusters for repeats
             eval_dict = self.evaluate_clusters_for_repeats(mfs_with_clusters)
 
-        #TODO KRH: Deal with isomers better? Pool them together and then split them out using samples with 2 as the template?
+        # TODO KRH: Deal with isomers better? Pool them together and then split them out using samples with 2 as the template?
 
         self.mass_features_dataframe = mfs_with_clusters
 
-        """
-        # Deal with duplicates
-        to_reassign = []
-
-        # Find the overlap of clusters that have multiple mass features and mass features that are in multiple clusters
-        mfs_with_clusters["mf_in_dupe_cluster"] = mfs_with_clusters.duplicated(subset='coll_mf_id', keep=False)
-
-        cluster_summary = self.summarize_clusters(mfs_with_clusters)
-        clusters_with_dupes = cluster_summary[cluster_summary['sample_id_nunique'] < cluster_summary['sample_id_count']]
-
-        mfs_with_clusters["cluster_with_dupe_mf"] = mfs_with_clusters['cluster'].isin(clusters_with_dupes['cluster'])
-
-        # Scenario 1: One mass feature is assigned to multiple clusters
-        # Solution, choose the cluster with the closest median rt to the mass feature and assign the mass feature to that cluster
-        if len(clusters_with_dupes) > 0:
-            mfs_with_clusters_dupes = mfs_with_clusters[mfs_with_clusters['mf_in_dupe_cluster']]
-            for mf in mfs_with_clusters_dupes['coll_mf_id'].values:
-                # Pull out the cluster it is assigned to
-                distances = []
-                
-
-        # Scenario 1: Two mass features from a single sample are assigned into a single cluster and neither is in a different cluster
-        # Choose one to stay in the cluster and the other to marked for reassignment
-        if len(clusters_with_dupes) > 0:
-            for cluster in clusters_with_dupes['cluster'].values:
-                cluster_summary_sub = cluster_summary[cluster_summary['cluster'] == cluster]
-                sub_df = mfs_with_clusters[mfs_with_clusters['cluster'] == cluster].copy()
-                # Mark if sample_id is duplicated
-                sub_df['sample_id_duplicated'] = sub_df.duplicated(subset='sample_id', keep=False)
-                # Get the mass features that are duplicated in this cluster and are not in any other cluster
-                #TODO KRH: This is still pulling mass features that are in other clusters (7_0 is the example)
-                duplicated_sample_ids = sub_df[sub_df['sample_id_duplicated'] & ~sub_df['mf_in_dupe_cluster']]['sample_id'].unique()
-                for sample_id in duplicated_sample_ids:
-                    # Print length of mfs_with_clusters
-                    print("Length of mfs_with_clusters: ", len(mfs_with_clusters))
-                    # Pull mass features
-                    sample_mfs = sub_df[sub_df['sample_id'] == sample_id][['idx', 'coll_mf_id', 'mz', 'scan_time_aligned', 'intensity', 'persistence', 'mass_spectrum_deconvoluted_parent']]
-                    # Compare mz to the median mz of the cluster
-                    sample_mfs['ppm_diff'] = np.abs(sample_mfs['mz'] - cluster_summary_sub['mz_median'].values[0])/cluster_summary_sub['mz_median'].values[0]*1e6
-                    sample_mfs['ppm_diff_rank'] = sample_mfs['ppm_diff'].rank()
-                    sample_mfs['time_diff'] = np.abs(sample_mfs['scan_time_aligned'] - cluster_summary_sub['scan_time_aligned_median'].values[0])
-                    sample_mfs['time_diff_rank'] = sample_mfs['time_diff'].rank()
-                    
-                    # Check if there is a clear winner (lowest ppm_diff_rank and time_diff_rank)
-                    sample_mfs['rank_sum'] = sample_mfs['ppm_diff_rank'] + sample_mfs['time_diff_rank']
-                    best_mf = sample_mfs[sample_mfs['rank_sum'] == sample_mfs['rank_sum'].min()]
-                    if len(best_mf) == 1:
-                        orphan_idx = sample_mfs[sample_mfs['rank_sum'] != sample_mfs['rank_sum'].min()]['idx'].values
-                        orphan_mfs = mfs_with_clusters.loc[orphan_idx]
-                        # Drop orphan_mf records from mfs_with_clusters but add them to clusters_to_reassign
-                        to_reassign.append(orphan_mfs)
-                        mfs_with_clusters = mfs_with_clusters.drop(index=orphan_idx)
-                    else:
-                        print("here")
-                        # Check if these coll_mf_id are in a different cluster too
-                        check_cluster = mfs_with_clusters[mfs_with_clusters['coll_mf_id'].isin(best_mf['coll_mf_id']) & (mfs_with_clusters['cluster'] != cluster)]
-        
-        # Check if there are still duplicates
-        cluster_summary = self.summarize_clusters(mfs_with_clusters)
-        clusters_with_dupes = cluster_summary[cluster_summary['sample_id_nunique'] < cluster_summary['sample_id_count']]
-
-
-        print("here")
-        # Solution: First see if there is a different cluster that one of the mass features can be moved to (based on mz and rt)
-        # If not, then choose the mass feature with the highest intensity as the representative mass feature and move the other mass feature to a new cluster (its own cluster)
-
-        # Scenario 2: A single mass feature belongs to multiple clusters
-        # Solution: Choose the cluster with the closest median rt to the mass feature and assign the mass feature to that cluster
-
-
-        # Warn if any mass features are in multiple clusters
-        if mfs_with_clusters.duplicated(subset='coll_mf_id', keep=False).any():
-
-            warnings.warn('Some mass features are in multiple clusters! This may indicate that the mz_tol or rt_tol is too large.')
-
-        # Set the index back to coll_mf_id
-        mfs_with_clusters = mfs_with_clusters.set_index('coll_mf_id')
-
-        self.mass_features_dataframe = mfs_with_clusters
-
-        #TODO KRH: drop consensus mass features that were not observed in previously set fraction of samples
-        """  
     def summarize_clusters(self, features):
         """
         Summarize the clusters of mass features by median attributes
@@ -2002,24 +1988,34 @@ class LCMSCollectionCalculations:
         if len(features.columns) < 1:
             return None
 
-        summary_df = features.groupby('cluster').agg({
-            'mz': 'median',
-            'scan_time_aligned': 'median',
-            'half_height_width': 'median',
-            'tailing_factor': 'median',
-            'dispersity_index': 'median',
-            'sample_id': ['nunique', 'count'],
-            'intensity': ['max', 'median'],
-            'persistence': ['max', 'median']
-        }).reset_index()
+        summary_df = (
+            features.groupby("cluster")
+            .agg(
+                {
+                    "mz": "median",
+                    "scan_time_aligned": "median",
+                    "half_height_width": "median",
+                    "tailing_factor": "median",
+                    "dispersity_index": "median",
+                    "sample_id": ["nunique", "count"],
+                    "intensity": ["max", "median"],
+                    "persistence": ["max", "median"],
+                }
+            )
+            .reset_index()
+        )
 
         # Fix the column names
-        summary_df.columns = ['_'.join(col).strip() for col in summary_df.columns.values if col != 'cluster']
-        summary_df = summary_df.rename(columns={'cluster_': 'cluster'})
+        summary_df.columns = [
+            "_".join(col).strip()
+            for col in summary_df.columns.values
+            if col != "cluster"
+        ]
+        summary_df = summary_df.rename(columns={"cluster_": "cluster"})
         summary_df = summary_df.reset_index(drop=True)
 
         return summary_df
-   
+
     def add_sparse_distance_matrix(self, features):
         if features is None:
             return None
@@ -2027,22 +2023,27 @@ class LCMSCollectionCalculations:
             features = features.copy()
 
         # Define how to calculate the distance between features
-        dims = ["mz", "scan_time_aligned"]        
-        relative = [True, False]              
-        mz_tol_relative = self.parameters.lcms_collection.consensus_mz_tol_ppm*1e-6                  
-        tol = [mz_tol_relative, self.parameters.lcms_collection.consensus_rt_tol]                                                         
-        dist_weight = [1, 1]                                                       
+        dims = ["mz", "scan_time_aligned"]
+        relative = [True, False]
+        mz_tol_relative = self.parameters.lcms_collection.consensus_mz_tol_ppm * 1e-6
+        tol = [mz_tol_relative, self.parameters.lcms_collection.consensus_rt_tol]
+        dist_weight = [1, 1]
 
         # Check that the dimensions and tolerances are the same length
-        if len(dims) != len(tol) or len(dims) != len(relative) or len(dims) != len(dist_weight):
-            raise ValueError("The dimensions, tolerances, relative, dist_weight, and na_allow lists must be the same length")
-
+        if (
+            len(dims) != len(tol)
+            or len(dims) != len(relative)
+            or len(dims) != len(dist_weight)
+        ):
+            raise ValueError(
+                "The dimensions, tolerances, relative, dist_weight, and na_allow lists must be the same length"
+            )
 
         # Make connectivity matrix for masking within sample mass features
-        if 'sample_id' not in features.columns:
+        if "sample_id" not in features.columns:
             cmat = None
         else:
-            vals = features['sample_id'].values.reshape(-1, 1)
+            vals = features["sample_id"].values.reshape(-1, 1)
             cmat = scipy.spatial.distance.cdist(vals, vals)
             # Convert to binary (0 if same sample, 1 if different)
             cmat = np.where(cmat == 0, 0, 1)
@@ -2085,14 +2086,14 @@ class LCMSCollectionCalculations:
 
             # Stack distances for dimensions where na_allow is False
             if distances is None:
-                sdm.data = sdm.data*dist_weight[i]
+                sdm.data = sdm.data * dist_weight[i]
                 distances = sdm
             else:
                 # Prepare sdm to match shape of existing distances
                 distances_truth = distances.copy()
                 distances_truth.data = np.ones_like(distances_truth.data)
                 sdm = distances_truth.multiply(sdm)
-                sdm.data = sdm.data*dist_weight[i]
+                sdm.data = sdm.data * dist_weight[i]
 
                 sdm_truth = sdm.copy()
                 sdm_truth.data = np.ones_like(sdm_truth.data)
@@ -2108,113 +2109,23 @@ class LCMSCollectionCalculations:
 
         # Set attribute holding distance matrix
         self._sparse_distance_matrix = distances
-    
-    def cluster_mass_features(self, features):
-        '''
-        Cluster features within provided linkage tolerances. Recursively merges
-        the pair of clusters that minimally increases a given linkage distance.
-        See :class:`sklearn.cluster.AgglomerativeClustering`.
 
-        Parameters
-        ----------
-        features : :obj:`~pandas.DataFrame` or :obj:`~dask.dataframe.DataFrame`
-            Input feature coordinates and intensities per sample.
-        dims : str or list
-            Dimensions considered in clustering.
-        tol : float or list
-            Tolerance in each dimension to define maximum cluster linkage
-            distance.
-        relative : bool or list
-            Whether to use relative or absolute tolerances per dimension.
-
-        Returns
-        -------
-        features : :obj:`~pandas.DataFrame`
-            Features concatenated over samples with cluster labels.
-
-        '''
-        if features is None:
-            return None
-        else:
-            self.add_sparse_distance_matrix(features)
-        
-        distances = self._sparse_distance_matrix
-
-        # Roll up features
-        # Extract indices of within-tolerance points
-        distances = distances.tocoo()
-        pairs = np.stack((distances.row, distances.col), axis=1)
-        pairs_df = pd.DataFrame(pairs, columns=["parent", "child"])
-        pairs_df = pairs_df.set_index("parent")
-
-        to_drop = []
-        final_pairs_df = []
-        while not pairs_df.empty:
-            # Find root_parents and their children
-            root_parents = np.setdiff1d(np.unique(pairs_df.index.values), np.unique(pairs_df.child.values))
-            # Check if there are any repeat children of roots
-            children_of_roots = pairs_df.loc[root_parents, "child"].unique()
-            to_drop = np.append(to_drop, children_of_roots)
-
-            # Add the root_parents and children_of_roots to the final_pairs_df
-            df_to_add = pairs_df.loc[root_parents]
-            #df_to_add = df_to_add.drop_duplicates(subset='child', keep='first')
-            final_pairs_df.append(df_to_add)
-
-            # Remove root_children as possible parents from pairs_df for next iteration
-            pairs_df = pairs_df.drop(
-                index=children_of_roots, errors="ignore"
-            )  
-            pairs_df = pairs_df.reset_index().set_index("child")
-            # Remove root_children as possible children from pairs_df for next iteration
-            pairs_df = pairs_df.drop(index=children_of_roots)
-
-            # Prepare for next iteration
-            pairs_df = pairs_df.reset_index().set_index("parent")
-        
-        # Clean up the final_pairs_df
-        final_pairs_df = pd.concat(final_pairs_df)
-
-        ## For each  parent, add itself as a child to final_pairs_df
-        add_df = pd.DataFrame(np.stack((np.unique(final_pairs_df.index), np.unique(final_pairs_df.index)), axis=1), columns=["parent", "child"])
-        add_df = add_df.set_index("parent")
-        final_pairs_df = pd.concat([final_pairs_df, add_df])
-        final_pairs_df = final_pairs_df.sort_index()
-
-        # Make a dataframe with unique parents (index of final_pairs_df) and cluster id
-        cluster_df = pd.DataFrame(np.arange(len(np.unique(final_pairs_df.index))), index=np.unique(final_pairs_df.index), columns=["cluster"])
-        cluster_df.index.name = "parent"
-
-        # Add the cluster id to the final_pairs_df
-        mf_cluster_df = final_pairs_df.merge(cluster_df, left_index=True, right_index=True).reset_index(drop=True)
-        # reset the index so it's the child and take off the name
-        mf_cluster_df = mf_cluster_df.set_index("child")
-
-        # Add the cluster id to the features
-        features_final = features.merge(mf_cluster_df, left_index=True, right_index=True, how="left")
-
-        # Add a tag if the features is the parent
-        features_final['is_largest'] = np.where(features_final.index.isin(np.unique(final_pairs_df.index)), True, False) 
-
-        # If a feature is not part of a cluster, assign it to its own cluster
-        features_final['cluster'] = features_final['cluster'].fillna(features_final.coll_mf_id)
-
-        return features_final
-    
     def evaluate_clusters_for_repeats(self, features):
         summary_df = self.summarize_clusters(features)
         summary_df = summary_df.copy()
 
         # Arrange by decreasing median intensity
-        summary_df = summary_df.sort_values(by='intensity_median', ascending=False).reset_index(drop=True)
+        summary_df = summary_df.sort_values(
+            by="intensity_median", ascending=False
+        ).reset_index(drop=True)
 
         # Find clusters that are within the mz_tol and rt_tol of each other (on the medians)
         # Create a distance matrix
         # Define how to calculate the distance between features
-        dims = ["mz_median", "scan_time_aligned_median"]        
-        relative = [True, False]              
-        mz_tol_relative = self.parameters.lcms_collection.consensus_mz_tol_ppm*1e-6                  
-        tol = [mz_tol_relative, self.parameters.lcms_collection.consensus_rt_tol]                                                         
+        dims = ["mz_median", "scan_time_aligned_median"]
+        relative = [True, False]
+        mz_tol_relative = self.parameters.lcms_collection.consensus_mz_tol_ppm * 1e-6
+        tol = [mz_tol_relative, self.parameters.lcms_collection.consensus_rt_tol]
 
         # Compute inter-feature distances
         distances = None
@@ -2257,22 +2168,26 @@ class LCMSCollectionCalculations:
                 distances = sdm
             else:
                 distances = distances.multiply(sdm)
-        
+
         # Roll up features
         # Extract indices of within-tolerance points
         distances = distances.tocoo()
-        pairs = np.stack((distances.row, distances.col), axis=1) # These are the index values of the clusters, not the cluster ids
-        # Conver to cluster ids       
+        pairs = np.stack(
+            (distances.row, distances.col), axis=1
+        )  # These are the index values of the clusters, not the cluster ids
+        # Conver to cluster ids
         pairs_df = pd.DataFrame(pairs, columns=["parent", "child"])
-        pairs_df["parent"] = summary_df.loc[pairs[:,0]]["cluster"].values
-        pairs_df["child"] = summary_df.loc[pairs[:,1]]["cluster"].values
+        pairs_df["parent"] = summary_df.loc[pairs[:, 0]]["cluster"].values
+        pairs_df["child"] = summary_df.loc[pairs[:, 1]]["cluster"].values
         pairs_df = pairs_df.set_index("parent")
 
         merge_these_clusters = []
         possible_overlaps = []
-        root_parents = np.setdiff1d(np.unique(pairs_df.index.values), np.unique(pairs_df.child.values))
+        root_parents = np.setdiff1d(
+            np.unique(pairs_df.index.values), np.unique(pairs_df.child.values)
+        )
         for parent in root_parents:
-            parent_features = features[features['cluster'] == parent]
+            parent_features = features[features["cluster"] == parent]
             children = pairs_df.loc[[parent], "child"].tolist()
             for child in children:
                 overlap = self.check_merge(parent_features, child, features)
@@ -2280,79 +2195,54 @@ class LCMSCollectionCalculations:
                     merge_these_clusters.append((parent, child, len(overlap)))
                 else:
                     possible_overlaps.append((parent, child, len(overlap)))
-        
+
         result_dict = {}
-        result_dict['merge_these_clusters'] = merge_these_clusters
-        result_dict['possible_overlaps'] = possible_overlaps
+        result_dict["merge_these_clusters"] = merge_these_clusters
+        result_dict["possible_overlaps"] = possible_overlaps
 
         return result_dict
-                
-        
+
     def check_merge(self, parent_features, child, features):
         # Grab the features of the parent and children
-        child_features = features[features['cluster'] == child]
+        child_features = features[features["cluster"] == child]
 
         # Check if there is an overlap between mf_coll_id in the parent and child clusters
-        overlap = np.intersect1d(parent_features['sample_id'].values, child_features['sample_id'].values)
+        overlap = np.intersect1d(
+            parent_features["sample_id"].values, child_features["sample_id"].values
+        )
 
         return overlap
 
     def cluster_mass_features_agg_cluster(self, features):
         if features is None:
             return None
-        
+
         features = features.copy()
 
         self.add_sparse_distance_matrix(features)
 
         distances = self._sparse_distance_matrix
-        
+
         # Convert to full matrix
         distances = distances.todense()
 
         # Cast all 0s to 1s for a distance matrix
         distances[distances == 0] = 1
         distances = np.asarray(distances)
-        
+
         # Perform clustering
         try:
-            clustering = AgglomerativeClustering(n_clusters=None,
-                                                linkage='complete',
-                                                # using complete linkage will prevent one sample from being assigned to multiple clusters
-                                                metric='precomputed',
-                                                distance_threshold=1).fit(distances)
-            features['cluster'] = clustering.labels_
+            clustering = AgglomerativeClustering(
+                n_clusters=None,
+                linkage="complete",
+                # using complete linkage will prevent one sample from being assigned to multiple clusters
+                metric="precomputed",
+                distance_threshold=1,
+            ).fit(distances)
+            features["cluster"] = clustering.labels_
 
         # All data points are singleton clusters
         except:
-            features['cluster'] = np.arange(len(features.index))
-        
-        return features
-
-
-
-        """
-        # Convert to full matrix
-        distances = distances.todense()
-
-        # Cast all 0s to 1s for a distance matrix
-        distances[distances == 0] = 1
-        distances = np.asarray(distances)
-        # Perform clustering
-        try:
-            clustering = AgglomerativeClustering(n_clusters=None,
-                                                linkage='complete',
-                                                metric='precomputed',
-                                                distance_threshold=1).fit(distances)
-            features['cluster'] = clustering.labels_
-
-        # All data points are singleton clusters
-        except:
-            features['cluster'] = np.arange(len(features.index))
+            features["cluster"] = np.arange(len(features.index))
 
         return features
-        """
-
-        
-
-
