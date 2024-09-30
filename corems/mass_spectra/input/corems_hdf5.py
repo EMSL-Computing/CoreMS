@@ -775,7 +775,6 @@ class ReadCoreMSHDFMassSpectraCollection:
 
         # If chromatography file is provided, interpolate the chromatography data
         if self._chromatography_df is not None:
-            lcms_coll._interpolate_chromatography_data()
             # Add the chromatography data to the combined mass features dataframe
             combined_mf_df = lcms_coll.mass_features_dataframe
             combined_mf_df['fraction_A'] = lcms_coll._convert_solvent_A(combined_mf_df.scan_time.values)

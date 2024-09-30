@@ -6,6 +6,7 @@ import scipy
 from scipy import sparse
 from scipy.spatial import KDTree
 from sklearn.svm import SVR
+from sklearn.cluster import AgglomerativeClustering
 
 
 from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
@@ -1851,8 +1852,9 @@ class LCMSCollectionCalculations:
         new_scan_info['scan_time_aligned'] = new_scan_info['scan_time']
 
     def add_consensus_mass_features(self):
-        # Get the combined mass features from all LCMS objects
-        combined_mfs = self.mass_features_dataframe
+        # Get the combined mass features from all LCMS objects, keep the original index as a separate column
+        combined_mfs = self.mass_features_dataframe.copy()
+        combined_mfs['coll_mf_id'] = combined_mfs.index
 
         # Check if the mass features have been aligned
         if 'scan_time_aligned' not in combined_mfs.columns:
@@ -1875,18 +1877,104 @@ class LCMSCollectionCalculations:
             cores_to_use = lazy_partitions.n_partitions
         else:
             cores_to_use = self.parameters.lcms_collection.cores
-        mfs_with_clusters = lazy_partitions.map(self.cluster_mass_features, processes=cores_to_use)
+        #mfs_with_clusters = lazy_partitions.map(self.cluster_mass_features, processes=cores_to_use)
+        mfs_with_clusters = lazy_partitions.map(self.cluster_mass_features_agg_cluster, processes=cores_to_use)
 
-        # Clean up cluster id names
+        # Clean up cluster id names after partitioning
         new_cluster_ids = mfs_with_clusters[['cluster', 'partition_idx']].drop_duplicates().reset_index(drop=True)
         new_cluster_ids['cluster_unqiue'] = new_cluster_ids.index
         mfs_with_clusters = mfs_with_clusters.merge(new_cluster_ids, on=['cluster', 'partition_idx'])
         mfs_with_clusters['cluster'] = mfs_with_clusters['cluster_unqiue']
         mfs_with_clusters = mfs_with_clusters.drop(columns=['cluster_unqiue'])
 
+        # Embed a new cluster id into the mass features dataframe and set as index
+        mfs_with_clusters['idx'] = mfs_with_clusters.index
+
+        # Check if any clusters can be merged into a single cluster
+        eval_dict = self.evaluate_clusters_for_repeats(mfs_with_clusters)
+
+        # Merge clusters identified in eval_dict
+        while len(eval_dict['merge_these_clusters']) > 0:
+            list_of_clusters_to_merge = [[x[0], x[1]] for x in eval_dict['merge_these_clusters']]
+            # Convert to a dataframe with columns "new_cluster" and "cluster"
+            df = pd.DataFrame(np.array(list_of_clusters_to_merge), columns=["new_cluster", "cluster"])
+            # Drop duplicates of "child" clusters
+            df = df.drop_duplicates("cluster", keep="first")
+            df = df.drop_duplicates("new_cluster", keep="first")
+            mfs_with_clusters = mfs_with_clusters.merge(df, on="cluster", how="left")
+            mfs_with_clusters["cluster"] = mfs_with_clusters["new_cluster"].fillna(mfs_with_clusters["cluster"])
+            mfs_with_clusters = mfs_with_clusters.drop(columns=["new_cluster"])
+
+            # Re-evaluate clusters for repeats
+            eval_dict = self.evaluate_clusters_for_repeats(mfs_with_clusters)
+
+        #TODO KRH: Deal with isomers better? Pool them together and then split them out using samples with 2 as the template?
+
+        self.mass_features_dataframe = mfs_with_clusters
+
+        """
         # Deal with duplicates
+        to_reassign = []
+
+        # Find the overlap of clusters that have multiple mass features and mass features that are in multiple clusters
+        mfs_with_clusters["mf_in_dupe_cluster"] = mfs_with_clusters.duplicated(subset='coll_mf_id', keep=False)
+
         cluster_summary = self.summarize_clusters(mfs_with_clusters)
-        # Scenario 1: Two mass features from single sample are in the same cluster
+        clusters_with_dupes = cluster_summary[cluster_summary['sample_id_nunique'] < cluster_summary['sample_id_count']]
+
+        mfs_with_clusters["cluster_with_dupe_mf"] = mfs_with_clusters['cluster'].isin(clusters_with_dupes['cluster'])
+
+        # Scenario 1: One mass feature is assigned to multiple clusters
+        # Solution, choose the cluster with the closest median rt to the mass feature and assign the mass feature to that cluster
+        if len(clusters_with_dupes) > 0:
+            mfs_with_clusters_dupes = mfs_with_clusters[mfs_with_clusters['mf_in_dupe_cluster']]
+            for mf in mfs_with_clusters_dupes['coll_mf_id'].values:
+                # Pull out the cluster it is assigned to
+                distances = []
+                
+
+        # Scenario 1: Two mass features from a single sample are assigned into a single cluster and neither is in a different cluster
+        # Choose one to stay in the cluster and the other to marked for reassignment
+        if len(clusters_with_dupes) > 0:
+            for cluster in clusters_with_dupes['cluster'].values:
+                cluster_summary_sub = cluster_summary[cluster_summary['cluster'] == cluster]
+                sub_df = mfs_with_clusters[mfs_with_clusters['cluster'] == cluster].copy()
+                # Mark if sample_id is duplicated
+                sub_df['sample_id_duplicated'] = sub_df.duplicated(subset='sample_id', keep=False)
+                # Get the mass features that are duplicated in this cluster and are not in any other cluster
+                #TODO KRH: This is still pulling mass features that are in other clusters (7_0 is the example)
+                duplicated_sample_ids = sub_df[sub_df['sample_id_duplicated'] & ~sub_df['mf_in_dupe_cluster']]['sample_id'].unique()
+                for sample_id in duplicated_sample_ids:
+                    # Print length of mfs_with_clusters
+                    print("Length of mfs_with_clusters: ", len(mfs_with_clusters))
+                    # Pull mass features
+                    sample_mfs = sub_df[sub_df['sample_id'] == sample_id][['idx', 'coll_mf_id', 'mz', 'scan_time_aligned', 'intensity', 'persistence', 'mass_spectrum_deconvoluted_parent']]
+                    # Compare mz to the median mz of the cluster
+                    sample_mfs['ppm_diff'] = np.abs(sample_mfs['mz'] - cluster_summary_sub['mz_median'].values[0])/cluster_summary_sub['mz_median'].values[0]*1e6
+                    sample_mfs['ppm_diff_rank'] = sample_mfs['ppm_diff'].rank()
+                    sample_mfs['time_diff'] = np.abs(sample_mfs['scan_time_aligned'] - cluster_summary_sub['scan_time_aligned_median'].values[0])
+                    sample_mfs['time_diff_rank'] = sample_mfs['time_diff'].rank()
+                    
+                    # Check if there is a clear winner (lowest ppm_diff_rank and time_diff_rank)
+                    sample_mfs['rank_sum'] = sample_mfs['ppm_diff_rank'] + sample_mfs['time_diff_rank']
+                    best_mf = sample_mfs[sample_mfs['rank_sum'] == sample_mfs['rank_sum'].min()]
+                    if len(best_mf) == 1:
+                        orphan_idx = sample_mfs[sample_mfs['rank_sum'] != sample_mfs['rank_sum'].min()]['idx'].values
+                        orphan_mfs = mfs_with_clusters.loc[orphan_idx]
+                        # Drop orphan_mf records from mfs_with_clusters but add them to clusters_to_reassign
+                        to_reassign.append(orphan_mfs)
+                        mfs_with_clusters = mfs_with_clusters.drop(index=orphan_idx)
+                    else:
+                        print("here")
+                        # Check if these coll_mf_id are in a different cluster too
+                        check_cluster = mfs_with_clusters[mfs_with_clusters['coll_mf_id'].isin(best_mf['coll_mf_id']) & (mfs_with_clusters['cluster'] != cluster)]
+        
+        # Check if there are still duplicates
+        cluster_summary = self.summarize_clusters(mfs_with_clusters)
+        clusters_with_dupes = cluster_summary[cluster_summary['sample_id_nunique'] < cluster_summary['sample_id_count']]
+
+
+        print("here")
         # Solution: First see if there is a different cluster that one of the mass features can be moved to (based on mz and rt)
         # If not, then choose the mass feature with the highest intensity as the representative mass feature and move the other mass feature to a new cluster (its own cluster)
 
@@ -1905,7 +1993,7 @@ class LCMSCollectionCalculations:
         self.mass_features_dataframe = mfs_with_clusters
 
         #TODO KRH: drop consensus mass features that were not observed in previously set fraction of samples
-    
+        """  
     def summarize_clusters(self, features):
         """
         Summarize the clusters of mass features by median attributes
@@ -1932,31 +2020,7 @@ class LCMSCollectionCalculations:
 
         return summary_df
    
-    def cluster_mass_features(self, features):
-        '''
-        Cluster features within provided linkage tolerances. Recursively merges
-        the pair of clusters that minimally increases a given linkage distance.
-        See :class:`sklearn.cluster.AgglomerativeClustering`.
-
-        Parameters
-        ----------
-        features : :obj:`~pandas.DataFrame` or :obj:`~dask.dataframe.DataFrame`
-            Input feature coordinates and intensities per sample.
-        dims : str or list
-            Dimensions considered in clustering.
-        tol : float or list
-            Tolerance in each dimension to define maximum cluster linkage
-            distance.
-        relative : bool or list
-            Whether to use relative or absolute tolerances per dimension.
-
-        Returns
-        -------
-        features : :obj:`~pandas.DataFrame`
-            Features concatenated over samples with cluster labels.
-
-        '''
-
+    def add_sparse_distance_matrix(self, features):
         if features is None:
             return None
         else:
@@ -1973,12 +2037,6 @@ class LCMSCollectionCalculations:
         if len(dims) != len(tol) or len(dims) != len(relative) or len(dims) != len(dist_weight):
             raise ValueError("The dimensions, tolerances, relative, dist_weight, and na_allow lists must be the same length")
 
-        center_obj_ids = self.manifest_dataframe[self.manifest_dataframe['center']].collection_id.values
-        features['center_obj'] = features['sample_id'] == center_obj_ids[0]
-
-        # First sort by center_obj and then by intensity
-        features = features.sort_values(by=['center_obj', 'sample_id', 'intensity'], ascending=[False, True, False]).reset_index(drop=False)
-        #TODO KRH: order by central sample, and then by intensity?
 
         # Make connectivity matrix for masking within sample mass features
         if 'sample_id' not in features.columns:
@@ -2050,6 +2108,37 @@ class LCMSCollectionCalculations:
 
         # Set attribute holding distance matrix
         self._sparse_distance_matrix = distances
+    
+    def cluster_mass_features(self, features):
+        '''
+        Cluster features within provided linkage tolerances. Recursively merges
+        the pair of clusters that minimally increases a given linkage distance.
+        See :class:`sklearn.cluster.AgglomerativeClustering`.
+
+        Parameters
+        ----------
+        features : :obj:`~pandas.DataFrame` or :obj:`~dask.dataframe.DataFrame`
+            Input feature coordinates and intensities per sample.
+        dims : str or list
+            Dimensions considered in clustering.
+        tol : float or list
+            Tolerance in each dimension to define maximum cluster linkage
+            distance.
+        relative : bool or list
+            Whether to use relative or absolute tolerances per dimension.
+
+        Returns
+        -------
+        features : :obj:`~pandas.DataFrame`
+            Features concatenated over samples with cluster labels.
+
+        '''
+        if features is None:
+            return None
+        else:
+            self.add_sparse_distance_matrix(features)
+        
+        distances = self._sparse_distance_matrix
 
         # Roll up features
         # Extract indices of within-tolerance points
@@ -2111,6 +2200,135 @@ class LCMSCollectionCalculations:
         features_final['cluster'] = features_final['cluster'].fillna(features_final.coll_mf_id)
 
         return features_final
+    
+    def evaluate_clusters_for_repeats(self, features):
+        summary_df = self.summarize_clusters(features)
+        summary_df = summary_df.copy()
+
+        # Arrange by decreasing median intensity
+        summary_df = summary_df.sort_values(by='intensity_median', ascending=False).reset_index(drop=True)
+
+        # Find clusters that are within the mz_tol and rt_tol of each other (on the medians)
+        # Create a distance matrix
+        # Define how to calculate the distance between features
+        dims = ["mz_median", "scan_time_aligned_median"]        
+        relative = [True, False]              
+        mz_tol_relative = self.parameters.lcms_collection.consensus_mz_tol_ppm*1e-6                  
+        tol = [mz_tol_relative, self.parameters.lcms_collection.consensus_rt_tol]                                                         
+
+        # Compute inter-feature distances
+        distances = None
+        for i in range(len(dims)):
+            # Construct k-d tree
+            values = summary_df[dims[i]].values
+            tree = KDTree(values.reshape(-1, 1))
+
+            max_tol = tol[i]
+            if relative[i] is True:
+                # Maximum absolute tolerance
+                max_tol = tol[i] * values.max()
+
+            # Compute sparse distance matrix
+            # the larger the max_tol, the slower this operation is
+            sdm = tree.sparse_distance_matrix(tree, max_tol, output_type="coo_matrix")
+
+            # Only consider forward case, exclude diagonal
+            sdm = sparse.triu(sdm, k=1)
+
+            # Filter relative distances
+            if relative[i] is True:
+                # Compute relative distances
+                rel_dists = sdm.data / values[sdm.row]  # or col?
+
+                # Indices of relative distances less than tolerance
+                idx = rel_dists <= tol[i]
+
+                # Reconstruct sparse distance matrix
+                sdm = sparse.coo_matrix(
+                    (rel_dists[idx], (sdm.row[idx], sdm.col[idx])),
+                    shape=(len(values), len(values)),
+                )
+
+            # Cast as binary matrix
+            sdm.data = np.ones_like(sdm.data)
+
+            # Stack distances
+            if distances is None:
+                distances = sdm
+            else:
+                distances = distances.multiply(sdm)
+        
+        # Roll up features
+        # Extract indices of within-tolerance points
+        distances = distances.tocoo()
+        pairs = np.stack((distances.row, distances.col), axis=1) # These are the index values of the clusters, not the cluster ids
+        # Conver to cluster ids       
+        pairs_df = pd.DataFrame(pairs, columns=["parent", "child"])
+        pairs_df["parent"] = summary_df.loc[pairs[:,0]]["cluster"].values
+        pairs_df["child"] = summary_df.loc[pairs[:,1]]["cluster"].values
+        pairs_df = pairs_df.set_index("parent")
+
+        merge_these_clusters = []
+        possible_overlaps = []
+        root_parents = np.setdiff1d(np.unique(pairs_df.index.values), np.unique(pairs_df.child.values))
+        for parent in root_parents:
+            parent_features = features[features['cluster'] == parent]
+            children = pairs_df.loc[[parent], "child"].tolist()
+            for child in children:
+                overlap = self.check_merge(parent_features, child, features)
+                if len(overlap) == 0:
+                    merge_these_clusters.append((parent, child, len(overlap)))
+                else:
+                    possible_overlaps.append((parent, child, len(overlap)))
+        
+        result_dict = {}
+        result_dict['merge_these_clusters'] = merge_these_clusters
+        result_dict['possible_overlaps'] = possible_overlaps
+
+        return result_dict
+                
+        
+    def check_merge(self, parent_features, child, features):
+        # Grab the features of the parent and children
+        child_features = features[features['cluster'] == child]
+
+        # Check if there is an overlap between mf_coll_id in the parent and child clusters
+        overlap = np.intersect1d(parent_features['sample_id'].values, child_features['sample_id'].values)
+
+        return overlap
+
+    def cluster_mass_features_agg_cluster(self, features):
+        if features is None:
+            return None
+        
+        features = features.copy()
+
+        self.add_sparse_distance_matrix(features)
+
+        distances = self._sparse_distance_matrix
+        
+        # Convert to full matrix
+        distances = distances.todense()
+
+        # Cast all 0s to 1s for a distance matrix
+        distances[distances == 0] = 1
+        distances = np.asarray(distances)
+        
+        # Perform clustering
+        try:
+            clustering = AgglomerativeClustering(n_clusters=None,
+                                                linkage='complete',
+                                                # using complete linkage will prevent one sample from being assigned to multiple clusters
+                                                metric='precomputed',
+                                                distance_threshold=1).fit(distances)
+            features['cluster'] = clustering.labels_
+
+        # All data points are singleton clusters
+        except:
+            features['cluster'] = np.arange(len(features.index))
+        
+        return features
+
 
 
         """

@@ -1201,28 +1201,17 @@ class LCMSCollection(LCMSCollectionCalculations):
         --------
         float or numpy.ndarray or None
             The solvent A fraction at the scan time or an array of solvent A fractions at the scan times (if the function is set)
+    """
+        if self._chromatography_df is not None:
+            xp = self._chromatography_df.time_min.values
+            yp = self._chromatography_df.A.values
 
-        Notes
-        ------
-        This function is set by the _interpolate_chromatography_data method and is used to convert the solvent A fraction based on the scan time (in minutes)
-        """
-        pass
-    
-    def _interpolate_chromatography_data(self):
-        """
-        Interpolates the chromatography data for each LCMS object in the collection and defines the _convert_solvent_A function.
-        """
-        chromatogram_df = self._chromatography_df.copy()
-        xp = chromatogram_df.time_min.values
-        yp = chromatogram_df.A.values
-
-        # Define a function to interpolate the chromatogram data
-        def interp(x):
+            # Define a function to interpolate the chromatogram data
             pred_y = np.interp(x, xp, yp)
             return pred_y
-
-        self._convert_solvent_A = interp
-    
+        else:
+            return None
+       
     def _combine_mass_features(self):
         """
         Concatenates the mass features from all the LCMS objects in the collection.
