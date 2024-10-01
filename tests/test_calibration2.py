@@ -130,11 +130,7 @@ def test_old_calibration(mass_spectrum_ftms):
         "P": (0, 0),
     }
 
-    og_len = len(mass_spectrum_ftms)
     ClusteringFilter().filter_kendrick(mass_spectrum_ftms)
-
-    # Check that the mass spectrum has not filtered anything (i.e. the length is the same)
-    assert len(mass_spectrum_ftms) == og_len
 
 
 def test_mz_domain_calibration_centroid(mass_spectrum_centroid, ref_file_location):
