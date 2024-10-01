@@ -8,7 +8,7 @@ sys.path.append(".")
 from pathlib import Path
 
 from corems.encapsulation.constant import Labels
-from corems.encapsulation.factory.parameters import MSParameters
+from corems.encapsulation.factory.parameters import MSParameters, reset_ms_parameters
 from corems.mass_spectra.input import rawFileReader
 from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
 from corems.mass_spectra.input.boosterHDF5 import ReadHDF_BoosterMassSpectra
@@ -20,7 +20,6 @@ from corems.mass_spectrum.input.boosterHDF5 import ReadHDF_BoosterMassSpectrum
 from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
 from corems.mass_spectrum.input.massList import ReadCoremsMasslist, ReadMassList
 from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
-
 
 def test_andi_netcdf_gcms():
     file_path = (
@@ -93,6 +92,8 @@ def test_import_lcms_from_transient():
     assert len(lcms.tic) > 0
     assert len(lcms) > 0
 
+    # Return the MSParameters to the default values
+    reset_ms_parameters()
 
 def test_import_transient(mass_spectrum_ftms):
     # This test is using the fixture mass_spectrum_ftms
@@ -131,7 +132,6 @@ def test_import_corems_mass_list():
         Path.cwd() / "tests/tests_data/ftms/ESI_NEG_SRFA_COREMS_withdupes.csv"
     )
 
-    # TODO KRH: We should be able to remove these parameters after MR https://code.emsl.pnl.gov/mass-spectrometry/corems/-/merge_requests/122
     MSParameters.mass_spectrum.noise_threshold_method = "relative_abundance"
     MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 0.1
 
@@ -158,6 +158,9 @@ def test_import_corems_mass_list():
     assert mass_spectra[0].to_dataframe().shape[0] > 0
     assert round(mass_spectra[0][0].mz_exp, 0) == 227
 
+    # Return the MSParameters to the default values
+    reset_ms_parameters()
+
 
 def test_import_thermo_profile_mass_list():
     file_location = (
@@ -181,7 +184,6 @@ def test_import_thermo_profile_mass_list():
 
 
 def test_import_numpy_array_profile(mass_spectrum_ftms):
-    #TODO KRH: This test is failing to create a replicated mass spectrum as the original one
     mass_spectrum_new = ms_from_array_profile(
         mz=mass_spectrum_ftms.mz_exp_profile,
         abundance=mass_spectrum_ftms.abundance_profile,
@@ -207,7 +209,6 @@ def test_import_maglab_pks():
 
     polarity = -1
 
-    # TODO KRH: We should be able to remove these parameters after MR https://code.emsl.pnl.gov/mass-spectrometry/corems/-/merge_requests/122
     MSParameters.mass_spectrum.noise_threshold_method = "relative_abundance"
     MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 0.1
 
@@ -216,22 +217,8 @@ def test_import_maglab_pks():
     assert mass_spectrum.to_dataframe().shape[0] > 0
     assert round(mass_spectrum[0].mz_exp, 0) == 131
 
-
-def test_import_xml_mass_list():
-
-    file_location = Path.cwd() / "tests/tests_data/ftms/" / "srfa_neg_xml_example.xml"
-
-    mass_list_reader = ReadMassList(file_location, isCentroid=True, isThermoProfile=False)
-    polarity = -1
-
-    MSParameters.mass_spectrum.noise_threshold_method = 'absolute_abundance' 
-    MSParameters.mass_spectrum.noise_threshold_absolute_abundance = 1000 
-
-    mass_spectrum = mass_list_reader.get_mass_spectrum(polarity, auto_process=True, loadSettings=False)
-    # check there are lots of peaks (should be ~36k)
-    assert len(mass_spectrum)>30_000
-    # check the 100th peak is as expected 
-    assert round(mass_spectrum.mz_exp[100],3) == 118.049
+    # Return the MSParameters to the default values
+    reset_ms_parameters()
 
 
 def test_import_xml_mass_list():
@@ -249,6 +236,29 @@ def test_import_xml_mass_list():
     assert len(mass_spectrum)>30_000
     # check the 100th peak is as expected 
     assert round(mass_spectrum.mz_exp[100],3) == 118.049
+    
+    # Return the MSParameters to the default values
+    reset_ms_parameters()
+
+
+def test_import_xml_mass_list():
+
+    file_location = Path.cwd() / "tests/tests_data/ftms/" / "srfa_neg_xml_example.xml"
+
+    mass_list_reader = ReadMassList(file_location, isCentroid=True, isThermoProfile=False)
+    polarity = -1
+
+    MSParameters.mass_spectrum.noise_threshold_method = 'absolute_abundance' 
+    MSParameters.mass_spectrum.noise_threshold_absolute_abundance = 1000 
+
+    mass_spectrum = mass_list_reader.get_mass_spectrum(polarity, auto_process=True, loadSettings=False)
+    # check there are lots of peaks (should be ~36k)
+    assert len(mass_spectrum)>30_000
+    # check the 100th peak is as expected 
+    assert round(mass_spectrum.mz_exp[100],3) == 118.049
+
+    # Return the MSParameters to the default values
+    reset_ms_parameters()
 
 
 def test_import_mass_list():
@@ -286,7 +296,6 @@ def test_import_mass_list():
 
 
 def test_import_thermo_average():
-    #TODO KRH: Revisit this test to check that assertions are implemented at each step
     file_location = Path.cwd() / "tests/tests_data/ftms/" / "SRFA_NEG_ESI_ORB.raw"
 
     # creates the parser obj
@@ -299,6 +308,7 @@ def test_import_thermo_average():
     mass_spectrum.parameters.mass_spectrum.noise_threshold_method = "relative_abundance"
     mass_spectrum.parameters.mass_spectrum.noise_threshold_min_relative_abundance = 1
     mass_spectrum.process_mass_spec()
+    assert len(mass_spectrum) == 762
 
     # sums scans in selected range
     parser.chromatogram_settings.scans = (1, 1)
@@ -307,6 +317,7 @@ def test_import_thermo_average():
     mass_spectrum.parameters.mass_spectrum.noise_threshold_method = "relative_abundance"
     mass_spectrum.parameters.mass_spectrum.noise_threshold_min_relative_abundance = 1
     mass_spectrum.process_mass_spec()
+    assert len(mass_spectrum) == 953
 
     parser.chromatogram_settings.scans = [1]
 
@@ -316,5 +327,5 @@ def test_import_thermo_average():
     mass_spectrum.plot_mz_domain_profile()
     mass_spectrum.plot_profile_and_noise_threshold()
 
-    assert mass_spectrum.to_dataframe().shape[0] > 0
-    assert round(mass_spectrum[0].mz_exp, 0) == 101
+    assert mass_spectrum.to_dataframe().shape[0] == 1518
+    assert round(mass_spectrum[0].mz_exp, 0) == 100

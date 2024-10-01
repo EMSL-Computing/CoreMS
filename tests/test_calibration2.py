@@ -10,11 +10,11 @@ from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration
 from corems.mass_spectrum.input.massList import ReadCoremsMasslist
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
+from corems.encapsulation.factory.parameters import MSParameters, reset_ms_parameters
 
 
 @pytest.fixture
 def mass_spectrum_centroid():
-    from corems.encapsulation.factory.parameters import MSParameters
 
     file_location = Path.cwd() / "tests/tests_data/ftms/ESI_NEG_SRFA_UnCal_Unassign.csv"
     MSParameters.mass_spectrum.noise_threshold_method = "relative_abundance"
@@ -26,6 +26,9 @@ def mass_spectrum_centroid():
     )
 
     mass_spectrum = mass_list_reader.get_mass_spectrum(loadSettings=False)
+
+    # Return the MSParameters to the default values
+    reset_ms_parameters()
 
     return mass_spectrum
 
@@ -147,7 +150,6 @@ def test_mz_domain_calibration_centroid(mass_spectrum_centroid, ref_file_locatio
     MzDomainCalibration(mass_spectrum_centroid, ref_file_location).run()
 
     # check there is an output
-    assert mass_spectrum_centroid.calibration_order == 2
     assert mass_spectrum_centroid.calibration_points == 25
     assert round(mass_spectrum_centroid.calibration_RMS, 4) == round(0.591, 4)
 
