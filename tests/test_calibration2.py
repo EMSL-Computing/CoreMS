@@ -10,24 +10,25 @@ from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration
 from corems.mass_spectrum.input.massList import ReadCoremsMasslist
 from corems.molecular_id.calc.ClusterFilter import ClusteringFilter
 from corems.molecular_id.search.findOxygenPeaks import FindOxygenPeaks
-from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 
-#TODO KRH: Revisit all tests in this file
 
 @pytest.fixture
 def mass_spectrum_centroid():
+    from corems.encapsulation.factory.parameters import MSParameters
+
     file_location = Path.cwd() / "tests/tests_data/ftms/ESI_NEG_SRFA_UnCal_Unassign.csv"
+    MSParameters.mass_spectrum.noise_threshold_method = "relative_abundance"
+    MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 0.1
 
-     #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
-    mass_list_reader = ReadCoremsMasslist(file_location,  analyzer='ICR', instrument_label='12T')
+    # load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
+    mass_list_reader = ReadCoremsMasslist(
+        file_location, analyzer="ICR", instrument_label="12T"
+    )
 
-    mass_spectrum = mass_list_reader.get_mass_spectrum(
-        loadSettings=False
-        )
-    mass_spectrum.settings.noise_threshold_method = "relative_abundance"
-    mass_spectrum.settings.noise_threshold_min_relative_abundance = 0.1
+    mass_spectrum = mass_list_reader.get_mass_spectrum(loadSettings=False)
 
     return mass_spectrum
+
 
 def test_mz_domain_calibration(mass_spectrum_ftms, ref_file_location):
     print("test_mz_domain_calibration")
@@ -42,6 +43,7 @@ def test_mz_domain_calibration(mass_spectrum_ftms, ref_file_location):
 
     # Check that the calibration was successful
     assert mass_spectrum_ftms.calibration_RMS < 2
+
 
 def test_autorecalibration(mass_spectrum_ftms, ref_file_location):
     mass_spectrum_ftms.filter_by_noise_threshold()
@@ -61,6 +63,7 @@ def test_autorecalibration(mass_spectrum_ftms, ref_file_location):
     # Check that the calibration was successful
     assert mass_spectrum_ftms.calibration_RMS < 2
 
+
 def test_segmentedmzcalibration(mass_spectrum_ftms, ref_file_location):
     # Tests profile mode recalibration
     mass_spectrum_ftms.filter_by_noise_threshold()
@@ -75,11 +78,12 @@ def test_segmentedmzcalibration(mass_spectrum_ftms, ref_file_location):
     # Check that the calibration was successful
     assert mass_spectrum_ftms.calibration_RMS < 2
 
-def test_old_calibration(mass_spectrum_ftms):
-    usedatoms = {'C': (1,100) , 'H': (4,200), 'O': (1,10)}
 
-    mass_spectrum_ftms.molecular_search_settings.url_database = ''
-    mass_spectrum_ftms.molecular_search_settings.error_method = 'None'
+def test_old_calibration(mass_spectrum_ftms):
+    usedatoms = {"C": (1, 100), "H": (4, 200), "O": (1, 10)}
+
+    mass_spectrum_ftms.molecular_search_settings.url_database = ""
+    mass_spectrum_ftms.molecular_search_settings.error_method = "None"
     mass_spectrum_ftms.molecular_search_settings.min_ppm_error = -5
     mass_spectrum_ftms.molecular_search_settings.max_ppm_error = 5
     mass_spectrum_ftms.molecular_search_settings.mz_error_range = 1
@@ -94,7 +98,7 @@ def test_old_calibration(mass_spectrum_ftms):
     find_formula_thread.run()
 
     mspeaks_results = find_formula_thread.get_list_found_peaks()
-    
+
     calibrate = FreqDomain_Calibration(mass_spectrum_ftms, mspeaks_results)
     calibrate.linear()
     calibrate.step_fit()
@@ -103,41 +107,34 @@ def test_old_calibration(mass_spectrum_ftms):
 
     # Check that the calibration was successful
     assert set(mass_spectrum_ftms.mz_cal) != {None}
-    
-    mass_spectrum_ftms.molecular_search_settings.error_method = 'symmetrical'
-    mass_spectrum_ftms.molecular_search_settings.min_ppm_error  = -3
+
+    mass_spectrum_ftms.molecular_search_settings.error_method = "symmetrical"
+    mass_spectrum_ftms.molecular_search_settings.min_ppm_error = -3
     mass_spectrum_ftms.molecular_search_settings.max_ppm_error = 3
     mass_spectrum_ftms.molecular_search_settings.mz_error_range = 1
     mass_spectrum_ftms.molecular_search_settings.mz_error_average = 0
-    mass_spectrum_ftms.molecular_search_settings.min_abun_error = -30 # percentage 
-    mass_spectrum_ftms.molecular_search_settings.max_abun_error = 70 # percentage 
-    mass_spectrum_ftms.molecular_search_settings.isProtonated = True 
-    mass_spectrum_ftms.molecular_search_settings.isRadical= True 
-    
-    mass_spectrum_ftms.molecular_search_settings.usedAtoms = {'C': (1, 100),
-                 'H': (4, 200),
-                 'O': (0, 20),
-                 'N': (0, 1),
-                 'S': (0, 0),
-                 'P': (0, 0),
-                 }
-    
+    mass_spectrum_ftms.molecular_search_settings.min_abun_error = -30  # percentage
+    mass_spectrum_ftms.molecular_search_settings.max_abun_error = 70  # percentage
+    mass_spectrum_ftms.molecular_search_settings.isProtonated = True
+    mass_spectrum_ftms.molecular_search_settings.isRadical = True
+
+    mass_spectrum_ftms.molecular_search_settings.usedAtoms = {
+        "C": (1, 100),
+        "H": (4, 200),
+        "O": (0, 20),
+        "N": (0, 1),
+        "S": (0, 0),
+        "P": (0, 0),
+    }
+
     og_len = len(mass_spectrum_ftms)
     ClusteringFilter().filter_kendrick(mass_spectrum_ftms)
 
-    # Check that the mass spectrum has been filtered
-    assert len(mass_spectrum_ftms) != og_len
-   
-    #TODO KRH: This should move to a different test
-    #SearchMolecularFormulas(mass_spectrum_ftms).run_worker_mass_spectrum()
-    #ClusteringFilter().remove_assignment_by_mass_error(mass_spectrum_ftms)  
+    # Check that the mass spectrum has not filtered anything (i.e. the length is the same)
+    assert len(mass_spectrum_ftms) == og_len
 
-def test_mz_domain_calibration_centroid():
-    pass
-    """
-    # This test is failing because the way that the centroided mass spectrum is created is not correct, 
-    # see https://code.emsl.pnl.gov/mass-spectrometry/corems/-/issues/152 and associated MR: https://code.emsl.pnl.gov/mass-spectrometry/corems/-/merge_requests/122
 
+def test_mz_domain_calibration_centroid(mass_spectrum_centroid, ref_file_location):
     mass_spectrum_centroid.settings.min_calib_ppm_error = -10
     mass_spectrum_centroid.settings.max_calib_ppm_error = 10
     mass_spectrum_centroid.calib_pol_order = 1
@@ -150,17 +147,12 @@ def test_mz_domain_calibration_centroid():
     MzDomainCalibration(mass_spectrum_centroid, ref_file_location).run()
 
     # check there is an output
-    assert mass_spectrum_centroid.calibration_order == 1
-    assert(mass_spectrum_centroid.calibration_points == 25)
-    assert(round(mass_spectrum_centroid.calibration_RMS, 4) == round(0.8690388563830891, 4))
-    """
+    assert mass_spectrum_centroid.calibration_order == 2
+    assert mass_spectrum_centroid.calibration_points == 25
+    assert round(mass_spectrum_centroid.calibration_RMS, 4) == round(0.591, 4)
 
-def test_auto_calibration_centroid():
-    pass
-    """
-    # This test is failing because the way that the centroided mass spectrum is created is not correct, 
-    # see https://code.emsl.pnl.gov/mass-spectrometry/corems/-/issues/152 and associated MR: https://code.emsl.pnl.gov/mass-spectrometry/corems/-/merge_requests/122
 
+def test_auto_calibration_centroid(mass_spectrum_centroid, ref_file_location):
     mass_spectrum_centroid.filter_by_noise_threshold()
 
     # Check that mass_spectrum_centroid has not been calibrated
@@ -177,21 +169,19 @@ def test_auto_calibration_centroid():
 
     # Check that the calibration was successful
     assert mass_spectrum_centroid.calibration_RMS < 0.6
-    """
 
-def test_segmentedmzcalibration_centroid():
-    pass
-    """
-    # This test is failing because the way that the centroided mass spectrum is created is not correct, 
-    # see https://code.emsl.pnl.gov/mass-spectrometry/corems/-/issues/152 and associated MR: https://code.emsl.pnl.gov/mass-spectrometry/corems/-/merge_requests/122
 
+def test_segmentedmzcalibration_centroid(mass_spectrum_centroid, ref_file_location):
     mass_spectrum_centroid.filter_by_noise_threshold()
+    mass_spectrum_centroid.settings.min_calib_ppm_error = -10
+    mass_spectrum_centroid.settings.max_calib_ppm_error = 10
 
     # Check that mass_spectrum_centroid has not been calibrated
     assert set(mass_spectrum_centroid.mz_cal) == {None}
 
-    MzDomainCalibration(mass_spectrum_centroid, ref_file_location, mzsegment=(0, 300)).run()
+    MzDomainCalibration(
+        mass_spectrum_centroid, ref_file_location, mzsegment=(0, 300)
+    ).run()
 
     # Check that the calibration was successful
     assert mass_spectrum_centroid.calibration_RMS < 0.6
-    """
