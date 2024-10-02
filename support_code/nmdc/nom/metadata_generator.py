@@ -18,8 +18,6 @@ import yaml
 import oauthlib
 import requests_oauthlib
 
-
-# TODO: ReadMe/Dcoumentation. This script looks to see if biosample_id exists in the metadata spreadsheet, if it doesn't it mints ids. Need to figure out how to not add Biosamp objects if biosamples already exist in Mongo.
 # TODO: Update script to for Sample Processing - has_input for MassSpectrometry will have to be changed to be a processed sample id - not biosample id
 # TODO: og_url in ApiInfoGetter in metadata_gen_supplement.py to be regular url once Berkeley is integrated
 
