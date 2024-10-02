@@ -3,7 +3,7 @@ from pathlib import Path
 from dataclasses import asdict
 from datetime import datetime
 from metadata_parser import BiosampleIncludedMetadata, MetadataParser, NmdcTypes
-# from nom_workflow import run_nmdc_workflow
+from nom_workflow import run_nmdc_workflow
 from linkml_runtime.dumpers import json_dumper
 from tqdm import tqdm
 
