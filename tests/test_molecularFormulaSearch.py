@@ -82,6 +82,8 @@ def test_run_molecular_formula_search():
     SearchMolecularFormulas(mass_spectrum_obj, find_isotopologues=True).run_worker_ms_peaks([mass_spectrum_obj[0]])
     mass_spectrum_obj.to_dataframe()
     
+    assert  mass_spectrum_obj[0][0].A_I == mass_spectrum_obj[1][0].A_I
+    assert  mass_spectrum_obj[0][0].A_I_mod == mass_spectrum_obj[1][0].A_I_mod
     assert  mass_spectrum_obj[0][0].string == 'C56 H73 N1'
     assert mass_spectrum_obj[1][0].string == 'C55 H73 N1 13C1'
 

@@ -264,6 +264,14 @@ class MolecularFormulaBase(MolecularFormulaCalc):
         Cs = sum([self._d_molecular_formula.get(key) for key in ['C'] + Atoms.isotopes['C'][1] if key in self._d_molecular_formula.keys()])
         Hs = sum([self._d_molecular_formula.get(key) for key in ['H'] + Atoms.isotopes['H'][1] if key in self._d_molecular_formula.keys()])
         return Hs/Cs
+
+    @property
+    def A_I(self):
+        return self._calc_aromaticity_index()
+
+    @property
+    def A_I_mod(self):
+        return self._calc_aromaticity_index_mod()
     
     @property
     def dbe(self): return self._calc_dbe()

@@ -517,6 +517,77 @@ class MolecularFormulaCalc:
             
             raise Exception("Please calc_isotopologues")    
 
+    def _calc_aromaticity_index_mod(self):
+        """Calculate the modified aromaticity index of the molecular formula.
+        
+        Returns
+        -------
+        float
+            The aromaticity index of the molecular formula.
+
+        Notes
+        -----
+        Source Koch and Dittmar, 2006 https://doi.org/10.1002/rcm.2386
+        corrected in https://doi.org/10.1002/rcm.7433
+        """
+        # Prepare empty dictionary to store the number of atoms of each element
+        ai_es = {'C':0, 'H':0, 'O':0, 'N':0, 'S':0}
+
+        # Count the number of atoms of each element in the molecular formula, inclusive of isotopes
+        for element in ai_es:
+            elements_w_iso = [element] + Atoms.isotopes.get(element)[1]
+            for element_w_iso in elements_w_iso:
+                if element_w_iso in self._d_molecular_formula:
+                    ai_es[element] += self._d_molecular_formula[element_w_iso]
+        
+        ai_n = 1 + ai_es['C'] - (0.5 * ai_es['O']) - ai_es['S'] - (0.5 * (ai_es['N'] + ai_es['H']))
+        ai_d = ai_es['C'] - (0.5 * ai_es['O']) - ai_es['N'] - ai_es['S']
+
+        ai = ai_n/ai_d
+
+        if ai < 0:
+            ai = 0
+        if ai > 1:
+            ai = 1
+
+        return ai
+    
+    def _calc_aromaticity_index(self):
+        """Calculate the aromaticity index of the molecular formula.
+        
+        Returns
+        -------
+        float
+            The aromaticity index of the molecular formula.
+
+        Notes
+        -----
+        Source Koch and Dittmar, 2006 https://doi.org/10.1002/rcm.2386
+        corrected in https://doi.org/10.1002/rcm.7433
+        """
+        # Prepare empty dictionary to store the number of atoms of each element
+        ai_es = {'C':0, 'H':0, 'O':0, 'N':0, 'S':0}
+
+        # Count the number of atoms of each element in the molecular formula, inclusive of isotopes
+        for element in ai_es:
+            elements_w_iso = [element] + Atoms.isotopes.get(element)[1]
+            for element_w_iso in elements_w_iso:
+                if element_w_iso in self._d_molecular_formula:
+                    ai_es[element] += self._d_molecular_formula[element_w_iso]
+        
+                ai_n = 1 + ai_es['C'] - (ai_es['O']) - ai_es['S'] - (0.5 * (ai_es['N'] + ai_es['H']))
+        ai_d = ai_es['C'] - (ai_es['O']) - ai_es['N'] - ai_es['S']
+
+        ai = ai_n/ai_d
+
+        if ai < 0:
+            ai = 0
+        if ai > 1:
+            ai = 1
+
+        return ai
+        
+
     @property
     def dbe_ai(self):
         """Calculate the double bond equivalent (DBE) of the molecular formula, based on the number of carbons, hydrogens, and oxygens."""
