@@ -587,6 +587,35 @@ class MolecularFormulaCalc:
 
         return ai
         
+    def _calc_nosc(self):
+        """Calculate the average nominal oxidation state of carbon
+        
+        Returns
+        -------
+        float
+            The average nominal oxidation state of carbon
+
+        Notes
+        -----
+        Source LaRowe and Van Cappellen, 2011 https://doi.org/10.1016/j.gca.2011.01.020
+        """
+        # Prepare empty dictionary to store the number of atoms of each element
+        nosc_es = {'C':0, 'H':0, 'O':0, 'N':0, 'S':0, 'P':0}
+
+        # Count the number of atoms of each element in the molecular formula, inclusive of isotopes
+        for element in nosc_es:
+            elements_w_iso = [element] + Atoms.isotopes.get(element)[1]
+            for element_w_iso in elements_w_iso:
+                if element_w_iso in self._d_molecular_formula:
+                    nosc_es[element] += self._d_molecular_formula[element_w_iso]
+    
+        nosc = -( (4 * nosc_es['C'] + nosc_es['H'] - 3 * nosc_es['N'] - 2 * nosc_es['O'] + 5 * nosc_es['P'] - 2 * nosc_es['S']) / nosc_es['C']) + 4
+
+        # If nosc is infinite or negative infinity, set it to nan
+        if nosc == float('inf') or nosc == float('-inf'):
+            nosc = float('nan')
+
+        return nosc
 
     @property
     def dbe_ai(self):

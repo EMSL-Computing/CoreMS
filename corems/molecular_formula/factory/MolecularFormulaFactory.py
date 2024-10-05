@@ -267,11 +267,18 @@ class MolecularFormulaBase(MolecularFormulaCalc):
 
     @property
     def A_I(self):
+        """Aromaticity index"""
         return self._calc_aromaticity_index()
 
     @property
     def A_I_mod(self):
+        """Modified aromaticity index"""
         return self._calc_aromaticity_index_mod()
+
+    @property
+    def nosc(self):
+        """Nominal oxidation state of carbon"""
+        return self._calc_nosc()
     
     @property
     def dbe(self): return self._calc_dbe()
