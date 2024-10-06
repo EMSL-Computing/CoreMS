@@ -163,7 +163,19 @@ class HighResMassSpecExport(Thread):
         self.save()
 
     def get_pandas_df(self, additional_columns=None):
-        """Returns the mass spectrum data as a pandas DataFrame."""
+        """Returns the mass spectrum data as a pandas DataFrame.
+        
+        Parameters
+        ----------
+        additional_columns : list, optional
+            Additional columns to include in the DataFrame. Defaults to None.
+            Suitable additional columns are: 'Aromaticity Index', 'NOSC', 'Aromaticity Index (modified)'.
+
+        Returns
+        -------
+        DataFrame
+            The mass spectrum data as a pandas DataFrame.
+        """
         if additional_columns is  not None:
             possible_additional_columns = ['Aromaticity Index', 'NOSC', 'Aromaticity Index (modified)']
             if additional_columns:

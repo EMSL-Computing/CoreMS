@@ -1153,6 +1153,12 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
     def to_dataframe(self, additional_columns=None):
         """Return the mass spectrum as a Pandas dataframe.
+
+        Parameters
+        ----------
+        additional_columns : list, optional
+            A list of additional columns to include in the dataframe. Defaults to None.
+            Suitable columns are: "Aromaticity Index", "Aromaticity Index (modified)", and "NOSC"
         
         Returns
         -------
