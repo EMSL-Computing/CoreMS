@@ -162,10 +162,18 @@ class HighResMassSpecExport(Thread):
         It calls the save method to perform the export."""
         self.save()
 
-    def get_pandas_df(self):
+    def get_pandas_df(self, additional_columns=None):
         """Returns the mass spectrum data as a pandas DataFrame."""
-        columns = self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum)
-        dict_data_list = self.get_list_dict_data(self.mass_spectrum)
+        if additional_columns is  not None:
+            possible_additional_columns = ['Aromaticity Index', 'NOSC', 'Aromaticity Index (modified)']
+            if additional_columns:
+                for column in additional_columns:
+                    if column not in possible_additional_columns:
+                        raise ValueError("Invalid additional column: %s" % column)
+            columns = self.columns_label + additional_columns + self.get_all_used_atoms_in_order(self.mass_spectrum)
+        else:
+            columns = self.columns_label + self.get_all_used_atoms_in_order(self.mass_spectrum)
+        dict_data_list = self.get_list_dict_data(self.mass_spectrum, additional_columns=additional_columns)
         df = DataFrame(dict_data_list, columns=columns)
         df.name = self.output_file
         return df
@@ -526,7 +534,8 @@ class HighResMassSpecExport(Thread):
         return all_lines
 
     def get_list_dict_data(self, mass_spectrum, include_no_match=True, include_isotopologues=True,
-                           isotopologue_inline=True, no_match_inline=False, is_hdf5=False):
+                           isotopologue_inline=True, no_match_inline=False, is_hdf5=False,
+                           additional_columns=None):
         """Returns the mass spectrum data as a list of dictionaries.
 
         Parameters
@@ -574,7 +583,7 @@ class HighResMassSpecExport(Thread):
 
             dict_data_list.append(dict_result)
 
-        def add_match_dict_data(index, ms_peak, mformula):
+        def add_match_dict_data(index, ms_peak, mformula, additional_columns=None):
             '''
             Export dictionary of mspeak info for assigned (match) data
             '''
@@ -601,6 +610,14 @@ class HighResMassSpecExport(Thread):
                            'Is Isotopologue': int(mformula.is_isotopologue),
                            'Molecular Formula': eval("mformula.string{}".format(encode))
                            }
+            if additional_columns is not None:
+                possible_dict = {
+                    'Aromaticity Index':mformula.A_I, 
+                    'NOSC':mformula.nosc, 
+                    'Aromaticity Index (modified)':mformula.A_I_mod
+                    }
+                for column in additional_columns:
+                    dict_result[column] = possible_dict.get(column)
             
             if mformula.adduct_atom:
                 dict_result['Adduct'] = eval("mformula.adduct_atom{}".format(encode))
@@ -640,11 +657,11 @@ class HighResMassSpecExport(Thread):
 
                         if not m_formula.is_isotopologue:
 
-                            add_match_dict_data(index, ms_peak, m_formula)
+                            add_match_dict_data(index, ms_peak, m_formula, additional_columns=additional_columns)
 
                             for iso_mspeak_index, iso_mf_formula in m_formula.mspeak_mf_isotopologues_indexes:
                                 iso_ms_peak = mass_spectrum[iso_mspeak_index]
-                                add_match_dict_data(iso_mspeak_index, iso_ms_peak, iso_mf_formula)
+                                add_match_dict_data(iso_mspeak_index, iso_ms_peak, iso_mf_formula, additional_columns=additional_columns)
                 else:
 
                     if include_no_match and no_match_inline:
@@ -674,9 +691,9 @@ class HighResMassSpecExport(Thread):
 
                                 if m_formula.is_isotopologue:  # isotopologues inline
                                     if include_isotopologues and isotopologue_inline:
-                                        add_match_dict_data(index, ms_peak, m_formula)
+                                        add_match_dict_data(index, ms_peak, m_formula, additional_columns=additional_columns)
                                 else:
-                                    add_match_dict_data(index, ms_peak, m_formula)  # add monoisotopic peak
+                                    add_match_dict_data(index, ms_peak, m_formula, additional_columns=additional_columns)  # add monoisotopic peak
 
                             # cutoff because of low score
                             else:
@@ -685,9 +702,9 @@ class HighResMassSpecExport(Thread):
                         else:
                             if m_formula.is_isotopologue:  # isotopologues inline
                                 if include_isotopologues and isotopologue_inline:
-                                    add_match_dict_data(index, ms_peak, m_formula)
+                                    add_match_dict_data(index, ms_peak, m_formula, additional_columns=additional_columns)
                             else:
-                                add_match_dict_data(index, ms_peak, m_formula)  # add monoisotopic peak
+                                add_match_dict_data(index, ms_peak, m_formula, additional_columns=additional_columns)  # add monoisotopic peak
                 else:
                     # include not_match
                     if include_no_match and no_match_inline:
@@ -698,7 +715,7 @@ class HighResMassSpecExport(Thread):
                     for m_formula in ms_peak:
                         if m_formula.is_isotopologue:
                             if m_formula.confidence_score >= mass_spectrum.molecular_search_settings.output_min_score:
-                                add_match_dict_data(index, ms_peak, m_formula)
+                                add_match_dict_data(index, ms_peak, m_formula, additional_columns=additional_columns)
 
             if include_no_match and not no_match_inline:
                 for index, ms_peak in enumerate(mass_spectrum):
