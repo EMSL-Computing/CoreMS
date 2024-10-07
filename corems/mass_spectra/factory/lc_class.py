@@ -409,6 +409,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             The parameters used for the LC-MS analysis in JSON format.
         """
         if verbose:
+            #TODO KRH: test and fix this
             print(self.parameters.to_json())
         return self.parameters.to_json()
 
@@ -505,7 +506,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 )
             ]
             dda_scans = dda_scans + ms2_scans_filtered.scan.tolist()
-            self.mass_features[i].ms2_scan_numbers = ms2_scans_filtered.scan.tolist()
+            self.mass_features[i].ms2_scan_numbers = ms2_scans_filtered.scan.tolist() + self.mass_features[i].ms2_scan_numbers
         # add to _ms attribute
         self.add_mass_spectra(
             scan_list=list(set(dda_scans)),

@@ -1393,7 +1393,7 @@ class LipidomicsExport(LCMSExport):
 
         # If ion_types_excluded is not empty, remove those ion types
         ion_types_excluded = (
-            self.mass_spectra.parameters.ms2_molecular_search.ion_types_excluded
+            self.mass_spectra.parameters.mass_spectrum['ms2'].molecular_search.ion_types_excluded
         )
         if len(ion_types_excluded) > 0:
             ms2_annot = ms2_annot[~ms2_annot["ref_ion_type"].isin(ion_types_excluded)]
@@ -1757,6 +1757,9 @@ class LipidomicsExport(LCMSExport):
 
         # Reorder rows by "Mass Feature ID"
         mf_report = mf_report.sort_values("Mass Feature ID")
+
+        # Reset index
+        mf_report = mf_report.reset_index(drop=True)
 
         return mf_report
 
