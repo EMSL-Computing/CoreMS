@@ -208,6 +208,7 @@ class LCCalculations:
         use_parser=False,
         perform_checks=True,
         polarity=None,
+        ms_params=None,
     ):
         """Returns an averaged mass spectrum object
 
@@ -229,6 +230,8 @@ class LCCalculations:
             If True, the function will check if the data are within the ms_unprocessed dictionary and are the correct mode. Defaults to True. Only set to False if you are sure the data are profile, and (if not using the parser) are in the ms_unprocessed dictionary!  ms_unprocessed dictionary also must be indexed on scan
         polarity : int, optional
             The polarity of the mass spectra (1 or -1). If not set, the polarity will be determined from the dataset. Defaults to None. (fastest if set to -1 or 1)
+        ms_params : MSParameters, optional
+            The mass spectrum parameters to use. If not set (None), the globally set parameters will be used. Defaults to None.            
 
         Returns
         -------
@@ -313,14 +316,8 @@ class LCCalculations:
 
         # Set the mass spectrum parameters, auto-process if auto_process is True, and add to the dataset
         if ms is not None:
-            ms.parameters.mass_spectrum = self.parameters.mass_spectrum
-            ms.parameters.ms_peak = self.parameters.ms_peak
-            if ms_level == 1:
-                ms.parameters.molecular_search = self.parameters.ms1_molecular_search
-            elif ms_level == 2:
-                ms.parameters.molecular_search = self.parameters.ms2_molecular_search
-            else:
-                raise ValueError("ms_level must be 1 or 2")
+            if ms_params is not None:
+                ms.parameters = ms_params
             ms.scan_number = apex_scan
             if auto_process:
                 ms.process_mass_spec()

@@ -157,9 +157,6 @@ class LCMSSpectralSearch:
         # include_fragment_types should used for lipids queries only, not general metabolomics
         include_fragment_types = self.parameters.lc_ms.include_fragment_types
         min_match_score = self.parameters.lc_ms.ms2_min_fe_score
-        noise_threshold = (
-            self.parameters.mass_spectrum.noise_threshold_min_relative_abundance / 100
-        )
 
         # If precursor_mz_list is empty and use_mass_features is True, get precursor m/z values from mass features for each scan in scan_list
         if use_mass_features and len(precursor_mz_list) == 0:
@@ -195,19 +192,19 @@ class LCMSSpectralSearch:
                             (self._ms[scan_oi].mz_exp, self._ms[scan_oi].abundance)
                         ).T,
                         precursor_ions_removal_da=None,
-                        noise_threshold=noise_threshold,
+                        noise_threshold=self._ms[scan_oi].parameters.mass_spectrum.noise_threshold_min_relative_abundance / 100,
                         min_ms2_difference_in_da=peak_sep_da,
                     )
                     search_results = fe_lib.search(
                         precursor_mz=precursor_mz,
                         peaks=query_spectrum,
-                        ms1_tolerance_in_da=self.parameters.ms1_molecular_search.max_ppm_error
+                        ms1_tolerance_in_da=self.parameters.mass_spectrum['ms1'].molecular_search.max_ppm_error
                         * 10**-6
                         * precursor_mz,
                         ms2_tolerance_in_da=peak_sep_da*0.5,
                         method={"identity"},
                         precursor_ions_removal_da=None,
-                        noise_threshold=noise_threshold,
+                        noise_threshold=self._ms[scan_oi].parameters.mass_spectrum.noise_threshold_min_relative_abundance / 100,
                         target="cpu",
                     )["identity_search"]
                     match_inds = np.where(search_results > min_match_score)[0]

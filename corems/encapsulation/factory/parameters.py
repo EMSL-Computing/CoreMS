@@ -19,11 +19,8 @@ def reset_gcms_parameters():
 
 def reset_lcms_parameters():
     """Reset the LCMSParameters class to the default values"""
+    reset_ms_parameters()
     LCMSParameters.lc_ms = LiquidChromatographSetting()
-    LCMSParameters.mass_spectrum = MassSpectrumSetting()
-    LCMSParameters.ms_peak = MassSpecPeakSetting()
-    LCMSParameters.ms1_molecular_search = MolecularFormulaSearchSettings()
-    LCMSParameters.ms2_molecular_search = MolecularFormulaSearchSettings()
 
 class MSParameters:
     """MSParameters class is used to store the parameters used for the processing of the mass spectrum
@@ -84,6 +81,8 @@ class MSParameters:
         new_ms_parameters.data_input = dataclasses.replace(self.data_input)
 
         return new_ms_parameters
+    
+    # TODO: add print method
 
 class GCMSParameters:
     """GCMSParameters class is used to store the parameters used for the processing of the gas chromatograph mass spectrum
@@ -126,6 +125,8 @@ class GCMSParameters:
         new_gcms_parameters.gc_ms = dataclasses.replace(self.gc_ms)
 
         return new_gcms_parameters
+    
+    # TODO KRH: add print method
 
 class LCMSParameters:
     """LCMSParameters class is used to store the parameters used for the processing of the liquid chromatograph mass spectrum
@@ -168,6 +169,26 @@ class LCMSParameters:
             new_lcms_parameters.mass_spectrum[key] = self.mass_spectrum[key].copy()
 
         return new_lcms_parameters
+    
+    def __eq__(self, value: object) -> bool:
+        # Check that the object is of the same type
+        if not isinstance(value, LCMSParameters):
+            return False
+        equality_check = []
+        equality_check.append(self.lc_ms == value.lc_ms)
+
+        # Check that the mass_spectrum dictionary has the same keys
+        equality_check.append(self.mass_spectrum.keys() == value.mass_spectrum.keys())
+
+        # Check that the values of the mass_spectrum dictionary are equal
+        for key in self.mass_spectrum.keys():
+            equality_check.append(self.mass_spectrum[key].mass_spectrum == value.mass_spectrum[key].mass_spectrum)
+            equality_check.append(self.mass_spectrum[key].ms_peak == value.mass_spectrum[key].ms_peak)
+            equality_check.append(self.mass_spectrum[key].molecular_search == value.mass_spectrum[key].molecular_search)
+            equality_check.append(self.mass_spectrum[key].transient == value.mass_spectrum[key].transient)
+            equality_check.append(self.mass_spectrum[key].data_input == value.mass_spectrum[key].data_input)
+            
+        return all(equality_check)
 
 def default_parameters(file_location):  # pragma: no cover
     """Generate parameters dictionary with the default parameters for data processing

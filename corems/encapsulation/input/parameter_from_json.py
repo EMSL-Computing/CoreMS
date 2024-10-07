@@ -1,8 +1,9 @@
 from pathlib import Path
 import json, toml
 
+from corems.encapsulation.factory.parameters import MSParameters, LCMSParameters
 from corems.encapsulation.factory.processingSetting  import MolecularFormulaSearchSettings, TransientSetting
-from corems.encapsulation.factory.processingSetting  import MassSpectrumSetting
+from corems.encapsulation.factory.processingSetting  import MassSpectrumSetting, DataInputSetting
 from corems.encapsulation.factory.processingSetting  import MassSpecPeakSetting
 from corems.encapsulation.factory.processingSetting  import GasChromatographSetting, LiquidChromatographSetting
 from corems.encapsulation.factory.processingSetting import CompoundSearchSettings
@@ -246,37 +247,57 @@ def _set_dict_data_lcms(data_loaded, lcms_obj):
         corems LCMSBase object
     """
 
-    classes = [
-        LiquidChromatographSetting(),
-        MassSpectrumSetting(),
-        MassSpecPeakSetting(),
-        MolecularFormulaSearchSettings(),
-        MolecularFormulaSearchSettings()
+    # Load the lcms parameters
+    default_params = LCMSParameters(use_defaults=True)
+    lcms_params = data_loaded.get("LiquidChromatograph")
+    for item, value in lcms_params.items():
+        # If the original value is a tuple but the new one is a list we need to convert the list to a tuple
+        if isinstance(value, list) and isinstance(getattr(default_params.lc_ms, item), tuple):
+            setattr(lcms_obj.parameters.lc_ms, item, tuple(value))
+        else:
+            setattr(lcms_obj.parameters.lc_ms, item, value)
+    
+    def set_ms_params_by_key(ms_key):
+        classes = [
+                MassSpectrumSetting,
+                MassSpecPeakSetting,
+                MolecularFormulaSearchSettings,
+                DataInputSetting,
+                TransientSetting
               ]
 
-    labels = [
-        "LiquidChromatograph", 
-        "MassSpectrum",
-        "MassSpecPeak",
-        "MS1MolecularSearch",
-        "MS2MolecularSearch"
-              ]
-    
-    label_class = zip(labels, classes)
+        labels = [
+            "mass_spectrum",
+            "ms_peak",
+            "molecular_search",
+            "data_input",
+            "transient"
+                ]
+        
+        label_class = zip(labels, classes)
 
-    if data_loaded:
-    
         for label, classe in label_class:
-            class_data = data_loaded.get(label)
-            if class_data:
+            class_data = data_loaded.get("mass_spectrum").get(ms_key).get(label)
+            param_instance = classe()
+            if class_data is not None:
+                # Set the attributes of the nested class
                 for item, value in class_data.items():
-                    setattr(classe, item, value)
+                    if item == "usedAtoms":
+                        # Convert the lists to tuples
+                        for atom, atom_value in value.items():
+                            value[atom] = tuple(atom_value)
+                    if isinstance(value, list) and isinstance(getattr(param_instance, item), tuple):
+                        setattr(param_instance, item, tuple(value))
+                    else:
+                        setattr(param_instance, item, value)
+            setattr(lcms_obj.parameters.mass_spectrum[ms_key], label, param_instance)
 
-    lcms_obj.parameters.lc_ms = classes[0]
-    lcms_obj.parameters.mass_spectrum = classes[1]
-    lcms_obj.parameters.ms_peak = classes[2]
-    lcms_obj.parameters.ms1_molecular_search = classes[3]
-    lcms_obj.parameters.ms2_molecular_search = classes[4]
+    # Load the mass spectrum parameters
+    ms_keys = data_loaded["mass_spectrum"].keys()
+    for ms_key in ms_keys:
+        lcms_obj.parameters.mass_spectrum[ms_key] = MSParameters()
+        set_ms_params_by_key(ms_key)
+
 
 def _set_dict_data_ms(data_loaded, mass_spec_obj):
     """Set the parameters in the MassSpectrum object from a dict
