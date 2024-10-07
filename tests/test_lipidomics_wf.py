@@ -66,20 +66,15 @@ def test_lipidomics_workflow():
     myLCMSobj.parameters.lc_ms.ms2_min_fe_score = 0.3
     myLCMSobj.parameters.lc_ms.ms1_scans_to_average = 5
 
-    ## mass peak parameters
-    myLCMSobj.parameters.mass_spectrum.noise_threshold_method = "relative_abundance"
-    myLCMSobj.parameters.mass_spectrum.noise_threshold_min_relative_abundance = 1
-    myLCMSobj.parameters.mass_spectrum.noise_min_mz = 0
-    myLCMSobj.parameters.mass_spectrum.noise_max_mz = np.inf
-    myLCMSobj.parameters.mass_spectrum.min_picking_mz = 0
-    myLCMSobj.parameters.mass_spectrum.max_picking_mz = (
-        np.inf
-    )  # automatically processes the whole mz range in the data
-    myLCMSobj.parameters.ms_peak.legacy_resolving_power = False
-
-    ## molecular searching parameters for ms1 molecular search
-    myLCMSobj.parameters.ms1_molecular_search.url_database = ""
-    myLCMSobj.parameters.ms1_molecular_search.usedAtoms = {
+    ## MSParameters for ms1 mass spectra
+    ms1_params = myLCMSobj.parameters.mass_spectrum['ms1']
+    ms1_params.mass_spectrum.noise_threshold_method = "relative_abundance"
+    ms1_params.mass_spectrum.noise_threshold_min_relative_abundance = 0.1
+    ms1_params.mass_spectrum.noise_min_mz, ms1_params.mass_spectrum.min_picking_mz = 0, 0
+    ms1_params.mass_spectrum.noise_max_mz, ms1_params.mass_spectrum.max_picking_mz = np.inf, np.inf
+    ms1_params.ms_peak.legacy_resolving_power = False
+    ms1_params.molecular_search.url_database = ""
+    ms1_params.molecular_search.usedAtoms = {
         'C': (10, 30),
         'H': (18, 200),
         'O': (1, 23),
@@ -88,8 +83,16 @@ def test_lipidomics_workflow():
         'S': (0, 1),
     }
 
-    ## molecular searching parameters for ms2 molecular search
-    myLCMSobj.parameters.ms2_molecular_search.ion_types_excluded = ["[M+HCOO]-"]
+    ## settings for ms2 data (HCD scans)
+    ms2_params_hcd = ms1_params.copy()
+    ms2_params_hcd.molecular_search.ion_types_excluded = ["[M+HCOO]-"]
+    myLCMSobj.parameters.mass_spectrum['ms2'] = ms2_params_hcd
+
+    ## settings for ms2 data (CID scans)
+    ms2_params_cid = ms2_params_hcd.copy()
+    ms2_params_cid.molecular_search.max_ppm_error = 200 # wider ppm error for CID scans
+    ms2_params_cid.mass_spectrum.noise_threshold_min_relative_abundance = 0.01 # lower noise threshold for CID scans
+    myLCMSobj.parameters.mass_spectrum['ms2_cid'] = ms2_params_cid
 
     ## reporting settings
     myLCMSobj.parameters.lc_ms.search_as_lipids = True
@@ -99,10 +102,12 @@ def test_lipidomics_workflow():
 
     # Use persistent homology to find mass features in the lc-ms data
     # Find mass features, cluster, and integrate them.  Then annotate pairs of mass features that are c13 iso pairs.
+
     myLCMSobj.find_mass_features(verbose=False)
     myLCMSobj.add_associated_ms1(
         auto_process=True, use_parser=False, spectrum_mode="profile"
     )
+
     myLCMSobj.integrate_mass_features(drop_if_fail=True)
     myLCMSobj.deconvolute_ms1_mass_features()
 
@@ -136,11 +141,18 @@ def test_lipidomics_workflow():
 
     # Check results of molecular search
     assert myLCMSobj.mass_features[0].ms1_peak[0].string == "C20 H30 O2"
-    assert myLCMSobj.mass_features_ms1_annot_to_df().shape == (130, 25)
+    assert myLCMSobj.mass_features_ms1_annot_to_df().shape == (130, 26)
     myLCMSobj.mass_features[0].mass_spectrum.to_dataframe()
-    
-    # Add ms2 data to lcms object
-    myLCMSobj.add_associated_ms2_dda(spectrum_mode="centroid")
+
+    # Add hcd ms2 data to lcms object, using the ms2 mass spectrum parameters
+    og_ms_len = len(myLCMSobj._ms)
+    myLCMSobj.add_associated_ms2_dda(spectrum_mode="centroid", scan_filter="hcd")
+    assert len(myLCMSobj._ms) > og_ms_len
+
+    # Add cid ms2 data to lcms object, using the ms2_cid mass spectrum parameters
+    og_ms_len = len(myLCMSobj._ms)
+    myLCMSobj.add_associated_ms2_dda(spectrum_mode="centroid", ms_params_key="ms2_cid", scan_filter="cid")
+    assert len(myLCMSobj._ms) > og_ms_len
 
     # Export the mass features to a pandas dataframe
     df = myLCMSobj.mass_features_to_df()
@@ -191,7 +203,7 @@ def test_lipidomics_workflow():
             "noise_threshold": 0,
         },
     )
-
+    
     # Load the associated lipid metadata and convert to correct class
     with open("tests/tests_data/lcms/metabref_lipid_metadata.json") as f:
         lipid_metadata_json = json.load(f)
@@ -211,7 +223,6 @@ def test_lipidomics_workflow():
     myLCMSobj.fe_search(
         scan_list=ms2_scans_oi_hr, fe_lib=spectra_library_fe, peak_sep_da=0.01
     )
-
     # Export the lcms object to an hdf5 file using the LipidomicsExport class
     exporter = LipidomicsExport(
         "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801", myLCMSobj
@@ -219,19 +230,21 @@ def test_lipidomics_workflow():
     exporter.to_hdf(overwrite=True)
     exporter.report_to_csv(molecular_metadata=lipid_metadata)
     report = exporter.to_report(molecular_metadata=lipid_metadata)
-    assert any(report['Ion Formula'][1] == 'C24 H47 O2')
+    assert report['Ion Formula'][1] == 'C24 H47 O2'
 
     # Import the hdf5 file, assert that its df is same as above and that we can plot a mass feature
     parser = ReadCoreMSHDFMassSpectra(
         "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems/Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.hdf5"
     )
     myLCMSobj2 = parser.get_lcms_obj()
+    # Check that the parameters match
+    assert myLCMSobj2.parameters == myLCMSobj.parameters
     assert myLCMSobj2.spectra_parser_class.__name__ == "ImportMassSpectraThermoMSFileReader"
     df2 = myLCMSobj2.mass_features_to_df()
     assert df2.shape == (130, 16)
     myLCMSobj2.mass_features[0].mass_spectrum.to_dataframe()
     assert myLCMSobj2.mass_features[0].ms1_peak[0].string == "C20 H30 O2"
-    assert myLCMSobj2.mass_features_ms1_annot_to_df().shape == (130, 25)
+    assert myLCMSobj2.mass_features_ms1_annot_to_df().shape == (130, 26)
     myLCMSobj2.mass_features[0].plot(return_fig=False)
 
     # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
