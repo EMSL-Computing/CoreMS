@@ -15,6 +15,7 @@ from corems.mass_spectra.output.export import LipidomicsExport
 from corems.molecular_id.search.database_interfaces import MetabRefLCInterface
 from corems.molecular_id.factory.lipid_molecular_metadata import LipidMetadata
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
+from corems.encapsulation.factory.parameters import LCMSParameters
 
 
 def test_import_lcmsobj_mzml():
@@ -56,6 +57,9 @@ def test_lipidomics_workflow():
 
     # Instatiate lc-ms data object using parser and pull in ms1 spectra into dataframe (without storing as MassSpectrum objects to save memory)
     myLCMSobj = parser.get_lcms_obj(spectra="ms1", verbose=False)
+
+    # Set parmaeters to the defaults for reproducible testing
+    myLCMSobj.parameters = LCMSParameters(use_defaults=True)
 
     # Set parameters on the LCMS object that are reasonable for testing
     ## persistent homology parameters

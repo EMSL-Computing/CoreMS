@@ -82,7 +82,13 @@ class MSParameters:
 
         return new_ms_parameters
     
-    # TODO: add print method
+    def print(self):
+        """Print the MSParameters object"""
+        for k, v in self.__dict__.items():
+            print(k, type(v).__name__)
+
+            for k2, v2 in v.__dict__.items():
+                print("    {}: {}".format(k2, v2))
 
 class GCMSParameters:
     """GCMSParameters class is used to store the parameters used for the processing of the gas chromatograph mass spectrum
@@ -126,7 +132,23 @@ class GCMSParameters:
 
         return new_gcms_parameters
     
-    # TODO KRH: add print method
+    def __eq__(self, value: object) -> bool:
+        # Check that the object is of the same type
+        if not isinstance(value, GCMSParameters):
+            return False
+        equality_check = []
+        equality_check.append(self.molecular_search == value.molecular_search)
+        equality_check.append(self.gc_ms == value.gc_ms)
+
+        return all(equality_check)
+
+    def print(self):
+        """Print the GCMSParameters object"""
+        for k, v in self.__dict__.items():
+            print(k, type(v).__name__)
+
+            for k2, v2 in v.__dict__.items():
+                print("    {}: {}".format(k2, v2))
 
 class LCMSParameters:
     """LCMSParameters class is used to store the parameters used for the processing of the liquid chromatograph mass spectrum
@@ -187,8 +209,23 @@ class LCMSParameters:
             equality_check.append(self.mass_spectrum[key].molecular_search == value.mass_spectrum[key].molecular_search)
             equality_check.append(self.mass_spectrum[key].transient == value.mass_spectrum[key].transient)
             equality_check.append(self.mass_spectrum[key].data_input == value.mass_spectrum[key].data_input)
-            
+
         return all(equality_check)
+    
+    def print(self):
+        """Print the LCMSParameters object"""
+        # Print the lcms paramters
+        for k, v in self.__dict__.items():
+            if k == "lc_ms":
+                print(k, type(v).__name__)
+
+        for k2, v2 in self.mass_spectrum.items():
+            """Print the MSParameters object"""
+            for k3, v3 in v2.__dict__.items():
+                print("{} - {}: {}".format(k2, k3, type(v3).__name__))
+
+                for k4, v4 in v3.__dict__.items():
+                    print("    {}: {}".format(k4, v4))
 
 def default_parameters(file_location):  # pragma: no cover
     """Generate parameters dictionary with the default parameters for data processing
