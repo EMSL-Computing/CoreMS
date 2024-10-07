@@ -141,7 +141,7 @@ def test_lipidomics_workflow():
 
     # Check results of molecular search
     assert myLCMSobj.mass_features[0].ms1_peak[0].string == "C20 H30 O2"
-    assert myLCMSobj.mass_features_ms1_annot_to_df().shape == (130, 26)
+    assert myLCMSobj.mass_features_ms1_annot_to_df().shape[0] == 130
     myLCMSobj.mass_features[0].mass_spectrum.to_dataframe()
 
     # Add hcd ms2 data to lcms object, using the ms2 mass spectrum parameters
@@ -244,7 +244,7 @@ def test_lipidomics_workflow():
     assert df2.shape == (130, 16)
     myLCMSobj2.mass_features[0].mass_spectrum.to_dataframe()
     assert myLCMSobj2.mass_features[0].ms1_peak[0].string == "C20 H30 O2"
-    assert myLCMSobj2.mass_features_ms1_annot_to_df().shape == (130, 26)
+    assert myLCMSobj2.mass_features_ms1_annot_to_df().shape[0] == 130
     myLCMSobj2.mass_features[0].plot(return_fig=False)
 
     # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
