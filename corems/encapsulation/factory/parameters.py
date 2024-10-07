@@ -73,6 +73,17 @@ class MSParameters:
             self.mass_spectrum = MassSpectrumSetting()
             self.ms_peak = MassSpecPeakSetting()
             self.data_input = DataInputSetting()
+    
+    def copy(self):
+        """Create a copy of the MSParameters object"""
+        new_ms_parameters = MSParameters()
+        new_ms_parameters.molecular_search = dataclasses.replace(self.molecular_search)
+        new_ms_parameters.transient = dataclasses.replace(self.transient)
+        new_ms_parameters.mass_spectrum = dataclasses.replace(self.mass_spectrum)
+        new_ms_parameters.ms_peak = dataclasses.replace(self.ms_peak)
+        new_ms_parameters.data_input = dataclasses.replace(self.data_input)
+
+        return new_ms_parameters
 
 class GCMSParameters:
     """GCMSParameters class is used to store the parameters used for the processing of the gas chromatograph mass spectrum
@@ -108,6 +119,14 @@ class GCMSParameters:
             self.molecular_search = CompoundSearchSettings()
             self.gc_ms = GasChromatographSetting()
 
+    def copy(self):
+        """Create a copy of the GCMSParameters object"""
+        new_gcms_parameters = GCMSParameters()
+        new_gcms_parameters.molecular_search = dataclasses.replace(self.molecular_search)
+        new_gcms_parameters.gc_ms = dataclasses.replace(self.gc_ms)
+
+        return new_gcms_parameters
+
 class LCMSParameters:
     """LCMSParameters class is used to store the parameters used for the processing of the liquid chromatograph mass spectrum
 
@@ -122,14 +141,8 @@ class LCMSParameters:
     -----------
     lc_ms: LiquidChromatographSetting
         LiquidChromatographSetting object
-    mass_spectrum: MassSpectrumSetting
-        MassSpectrumSetting object
-    ms_peak: MassSpecPeakSetting
-        MassSpecPeakSetting object
-    ms1_molecular_search: MolecularFormulaSearchSettings
-        MolecularFormulaSearchSettings object
-    ms2_molecular_search: MolecularFormulaSearchSettings
-        MolecularFormulaSearchSettings object
+    mass_spectrum: dict
+        dictionary with the mass spectrum parameters for ms1 and ms2, each value is a MSParameters object
 
     Notes
     -----
@@ -137,24 +150,24 @@ class LCMSParameters:
     Alternatively, to use the current values - modify the class's contents before instantiating the class.
     """
     lc_ms = LiquidChromatographSetting()
-    mass_spectrum = MassSpectrumSetting()
-    ms_peak = MassSpecPeakSetting()
-    ms1_molecular_search = MolecularFormulaSearchSettings()
-    ms2_molecular_search = MolecularFormulaSearchSettings()
+    mass_spectrum = {"ms1":MSParameters(), "ms2":MSParameters()}
 
     def __init__(self, use_defaults = False) -> None:
         if not use_defaults:
             self.lc_ms = dataclasses.replace(LCMSParameters.lc_ms)
-            self.mass_spectrum = dataclasses.replace(LCMSParameters.mass_spectrum)
-            self.ms_peak = dataclasses.replace(LCMSParameters.ms_peak)
-            self.ms1_molecular_search = dataclasses.replace(LCMSParameters.ms1_molecular_search)
-            self.ms2_molecular_search = dataclasses.replace(LCMSParameters.ms2_molecular_search)
+            self.mass_spectrum = {"ms1":MSParameters(use_defaults=False), "ms2":MSParameters(use_defaults=False)}
         else:
             self.lc_ms = LiquidChromatographSetting()
-            self.mass_spectrum = MassSpectrumSetting()
-            self.ms_peak = MassSpecPeakSetting()
-            self.ms1_molecular_search = MolecularFormulaSearchSettings()
-            self.ms2_molecular_search = MolecularFormulaSearchSettings()
+            self.mass_spectrum = {"ms1":MSParameters(use_defaults=True), "ms2":MSParameters(use_defaults=True)}
+
+    def copy(self):
+        """Create a copy of the LCMSParameters object"""
+        new_lcms_parameters = LCMSParameters()
+        new_lcms_parameters.lc_ms = dataclasses.replace(self.lc_ms)
+        for key in self.mass_spectrum:
+            new_lcms_parameters.mass_spectrum[key] = self.mass_spectrum[key].copy()
+
+        return new_lcms_parameters
 
 def default_parameters(file_location):  # pragma: no cover
     """Generate parameters dictionary with the default parameters for data processing
