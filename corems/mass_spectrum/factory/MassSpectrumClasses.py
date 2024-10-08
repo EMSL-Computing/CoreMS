@@ -1540,7 +1540,6 @@ class MassSpecCentroid(MassSpecBase):
                     ms_parent=self
                 )
             if self.parameters.mass_spectrum.noise_threshold_method == 'signal_noise' and s2n_i >= self.parameters.mass_spectrum.noise_threshold_min_s2n:
-                print("s2n_i", s2n_i)
                 self.add_mspeak(
                     ion_charge,
                     mz,
