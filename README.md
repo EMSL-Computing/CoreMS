@@ -25,7 +25,7 @@
   - [Thermo Raw File on Mac and Linux](#thermo-raw-file-access)  
 - Execution     
   - [Jupyter Notebook and Docker containers](#docker-stack)  
-  - [Simple Example](#simple-script-example)  
+  - [Example for FT-ICR Data Processing](#simple-script-example)  
   - [Python Examples](examples/scripts)
   - [Jupyter Notebook Examples](examples/notebooks)  
 - Sibling Projects    
@@ -57,6 +57,7 @@ CoreMS aims to provide
 ## Main Developers/Contact 
 - [Yuri. E. Corilo](mailto:corilo@pnnl.gov)  
 - [William Kew](mailto:william.kew@pnnl.gov)
+- [Katherine Heal](mailto:katherine.heal@pnnl.gov)
 
 ***
 
@@ -75,6 +76,7 @@ As an open source project, CoreMS welcomes contributions of all forms. Before co
 - Spectroswiss signal booster data-acquisition station (.hdf5)
 - MagLab ICR data-acquisition station (FT and magnitude mode) (.dat)
 - ANDI NetCDF for GC-MS (.cdf)
+- mzml for LC-MS (.mzml)
 - Generic mass list in profile and centroid mde (include all delimiters types and Excel formats)
 - CoreMS exported processed mass list files(excel, .csv, .txt, pandas dataframe as .pkl)
 - CoreMS self-containing Hierarchical Data Format (.hdf5)
@@ -87,7 +89,7 @@ As an open source project, CoreMS welcomes contributions of all forms. Before co
 - Text Files (.csv, tab separated .txt, etc)
 - Microsoft Excel (xlsx)
 - Automatic JSON for metadata storage and reuse
-- Self-containing Hierarchical Data Format (.hdf5) including raw data and ime-series data-point for processed data-sets with all associated metadata stored as json attributes
+- Self-containing Hierarchical Data Format (.hdf5) including raw data and time-series data-point for processed data-sets with all associated metadata stored as json attributes
 
 ### Data structure types
 
@@ -98,12 +100,6 @@ As an open source project, CoreMS welcomes contributions of all forms. Before co
 - Mass Spectrum
 - Mass Spectral Peak
 - Molecular Formula
-
-### In progress data structures
-- IMS-MS
-- LC-IMS-MS 
-- Collections 
-- Molecular Structure
 
 ***
 
@@ -146,6 +142,16 @@ As an open source project, CoreMS welcomes contributions of all forms. Before co
 - Peak position in function of data points, signal to noise and resolving power (Lorentz and Gaussian)
 - Prediction of mass error distribution
 - Calculated ICR Resolving Power based on magnetic field (B), and transient time(T)
+
+### LC-MS Signal Processing, Molecular Formula Search and Assignment, and Spectral Similarity Searches
+- Two dimensional (m/z and retention time) peak picking using persistent homology
+- Extraction, smoothing, and cetroid detection of ion chromatograms
+- Peak integration 
+- Peak shape metric calculations
+- MS1 deconvolution of mass features
+- Idenfitication of 13C isotopes within the mass features
+- Molecular formula search on MS1 spectra
+- Spectral search capability using entropy similarity
 
 ***
 
@@ -239,7 +245,7 @@ If you don't have docker installed, the easiest way is to [install docker for de
 
 ***
 
-## Simple Script Example
+## Example for FT-ICR Data Processing
 
 More examples can be found under the directory examples/scripts, examples/notebooks
 
