@@ -397,7 +397,7 @@ class MZMLSpectraParser(SpectraParserInterface):
 
         return mass_spectra_obj
 
-    def get_lcms_obj(self, verbose=True, spectra="all"):
+    def get_lcms_obj(self, spectra="all"):
         """Instatiates a LCMSBase object from the mzML file.
 
         Parameters
@@ -414,8 +414,6 @@ class MZMLSpectraParser(SpectraParserInterface):
             The object is instatiated with the mzML file, analyzer, instrument, sample name, scan dataframe, 
             and mz dataframe(s), as well as lists of scan numbers, retention times, and TICs.
         """
-        if verbose:
-            print("Parsing LCMS object from mzML file")
         _, scan_df = self.run(spectra="none")  # first run it to just get scan info
         res, scan_df = self.run(
             scan_df=scan_df, spectra=spectra

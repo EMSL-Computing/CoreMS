@@ -51,13 +51,13 @@ class LCCalculations:
         Finds the nearest scan to the given retention time.
     * get_average_mass_spectrum(scan_list, apex_scan, spectrum_mode="profile", ms_level=1, auto_process=True, use_parser=False, perform_checks=True, polarity=None).
         Returns an averaged mass spectrum object.
-    * find_mass_features(ms_level=1, verbose=True).
+    * find_mass_features(ms_level=1).
         Find regions of interest for a given MS level (default is MS1).
     * integrate_mass_features(drop_if_fail=False, ms_level=1).
         Integrate mass features of interest and extracts EICs.
-    * find_c13_mass_features(verbose=True).
+    * find_c13_mass_features().
         Evaluate mass features and mark likely C13 isotopes.
-    * deconvolute_ms1_mass_features(verbose=True).
+    * deconvolute_ms1_mass_features().
         Deconvolute mass features' ms1 mass spectra.
     """
 
@@ -279,7 +279,7 @@ class LCCalculations:
             my_ms_df = pd.concat(my_ms_df)
 
         if not self.check_if_grid(my_ms_df):
-            my_ms_df = self.grid_data(my_ms_df, verbose=False)
+            my_ms_df = self.grid_data(my_ms_df, verbose=False) #TODO KRH: remove verbose=False
 
         my_ms_ave = my_ms_df.groupby("mz")["intensity"].sum().reset_index()
 
@@ -306,7 +306,7 @@ class LCCalculations:
                 ms.process_mass_spec()
         return ms
     
-    def find_mass_features(self, ms_level=1, verbose=True, grid=True):
+    def find_mass_features(self, ms_level=1, grid=True):
         """Find mass features within an LCMSBase object
 
         Note that this is a wrapper function that calls the find_mass_features_ph function, but can be extended to support other peak picking methods in the future.
@@ -315,8 +315,6 @@ class LCCalculations:
         ----------
         ms_level : int, optional
             The MS level to use for peak picking Default is 1.
-        verbose : bool, optional
-            Whether to print progress messages. Default is True.
         grid : bool, optional
             If True, will regrid the data before running the persistent homology calculations (after checking if the data is gridded, used for persistent homology peak picking. Default is True.
 
@@ -334,16 +332,17 @@ class LCCalculations:
 
         """
         pp_method = self.parameters.lc_ms.peak_picking_method
+        verbose = self.parameters.lc_ms.verbose_processing
 
         if pp_method == "persistent homology":
             msx_scan_df = self.scan_df[self.scan_df["ms_level"] == ms_level]
             if all(msx_scan_df["ms_format"] == "profile"):
                 self.find_mass_features_ph(
                     ms_level=ms_level, verbose=verbose, grid=grid
-                )
+                ) #TODO KRH: remove verbose=verbose
                 self.cluster_mass_features(
                     drop_children=True, sort_by="persistence", verbose=verbose
-                )
+                ) #TODO KRH: remove verbose=verbose
             else:
                 raise ValueError(
                     "MS{} scans are not profile mode, which is required for persistent homology peak picking.".format(
@@ -473,13 +472,8 @@ class LCCalculations:
                 if drop_if_fail is True:
                     self.mass_features.pop(idx)
 
-    def find_c13_mass_features(self, verbose=True):
+    def find_c13_mass_features(self):
         """Mark likely C13 isotopes and connect to monoisoitopic mass features.
-
-        Parameters
-        ----------
-        verbose : bool, optional
-            Flag indicating whether to print the percentage of mass features that can be connected  back to monoisotopic masses (default is True).
 
         Returns
         -------
@@ -490,6 +484,7 @@ class LCCalculations:
         ValueError
             If no mass features are found.
         """
+        verbose = self.parameters.lc_ms.verbose_processing
         if verbose:
             print("evaluating mass features for C13 isotopes")
         if self.mass_features is None:
