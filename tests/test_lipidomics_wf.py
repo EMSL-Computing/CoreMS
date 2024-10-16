@@ -32,7 +32,7 @@ def test_lipidomics_workflow():
     parser = ImportMassSpectraThermoMSFileReader(file_raw)
 
     # Instatiate lc-ms data object using parser and pull in ms1 spectra into dataframe (without storing as MassSpectrum objects to save memory)
-    myLCMSobj = parser.get_lcms_obj(spectra="ms1", verbose=False)
+    myLCMSobj = parser.get_lcms_obj(spectra="ms1")
 
     # Set parameters on the LCMS object that are reasonable for testing
     ## persistent homology parameters
@@ -74,7 +74,7 @@ def test_lipidomics_workflow():
 
     # Use persistent homology to find mass features in the lc-ms data
     # Find mass features, cluster, and integrate them.  Then annotate pairs of mass features that are c13 iso pairs.
-    myLCMSobj.find_mass_features(verbose=False)
+    myLCMSobj.find_mass_features()
     myLCMSobj.add_associated_ms1(
         auto_process=True, use_parser=False, spectrum_mode="profile"
     )
@@ -83,7 +83,7 @@ def test_lipidomics_workflow():
 
     mass_spec_decon = myLCMSobj.mass_features[1].mass_spectrum_deconvoluted
     assert len(mass_spec_decon.mspeaks) < len(myLCMSobj.mass_features[1].mass_spectrum.mspeaks)
-    myLCMSobj.find_c13_mass_features(verbose=False)
+    myLCMSobj.find_c13_mass_features()
     assert len(myLCMSobj.mass_features) == 130
 
     # Perform a molecular search on a few of the mass features
