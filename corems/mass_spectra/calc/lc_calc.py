@@ -727,11 +727,11 @@ class PHCalculations:
         Sparse implementation of an upper star filtration.
     * check_if_grid(data).
         Check if the data is gridded in mz space.
-    * grid_data(data, verbose=True).
+    * grid_data(data).
         Grid the data in the mz dimension.
-    * find_mass_features_ph(ms_level=1, verbose=True, grid=True).
+    * find_mass_features_ph(ms_level=1, grid=True).
         Find mass features within an LCMSBase object using persistent homology.
-    * cluster_mass_features(drop_children=True, verbose=True).
+    * cluster_mass_features(drop_children=True).
         Cluster regions of interest.
     """
 

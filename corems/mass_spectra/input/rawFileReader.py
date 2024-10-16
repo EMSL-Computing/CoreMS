@@ -915,9 +915,9 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
         Parses the RAW file and returns a dictionary of mass spectra dataframes and a scan metadata dataframe.
     * get_mass_spectrum_from_scan(scan_number, polarity, auto_process=True)
         Parses the RAW file and returns a MassSpecBase object from a single scan.
-    * get_mass_spectra_obj(verbose=True).
+    * get_mass_spectra_obj().
         Parses the RAW file and instantiates a MassSpectraBase object.
-    * get_lcms_obj(verbose=True).
+    * get_lcms_obj().
         Parses the RAW file and instantiates an LCMSBase object.
     * get_icr_transient_times().
         Return a list for transient time targets for all scans, or selected scans range

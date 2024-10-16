@@ -49,9 +49,9 @@ class MZMLSpectraParser(SpectraParserInterface):
         Parses the mzml file and returns a dictionary of mass spectra dataframes and a scan metadata dataframe.
     * get_mass_spectrum_from_scan(scan_number, polarity, auto_process=True)
         Parses the mzml file and returns a MassSpecBase object from a single scan.
-    * get_mass_spectra_obj(verbose=True).
+    * get_mass_spectra_obj().
         Parses the mzml file and instantiates a MassSpectraBase object.
-    * get_lcms_obj(verbose=True).
+    * get_lcms_obj().
         Parses the mzml file and instantiates an LCMSBase object.
 
     Inherits from ThermoBaseClass and SpectraParserInterface

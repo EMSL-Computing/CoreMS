@@ -70,15 +70,15 @@ class MzDomainCalibration:
 
         # define reference mass list - bruker .ref format
         self.ref_mass_list_path = ref_masslist
-        if self.mass_spectrum.percentile_assigned(verbose=False)[0]!=0:
-            print('Warning: calibrating spectra which have already been assigned may yield erroneous results')
-            #TODO KRH: Change this to a warning
+        if self.mass_spectrum.percentile_assigned()[0]!=0:
+            warnings.warn('Warning: calibrating spectra which have already been assigned may yield erroneous results')
         self.mass_spectrum.mz_cal = self.mass_spectrum.mz_exp    
         self.mass_spectrum.mz_cal_profile = self.mass_spectrum._mz_exp  
         
-        print("MS Obj loaded - "+str(len(mass_spectrum.mspeaks))+" peaks found.") #TODO KRH: Change this to use an encapsulated verbose flag
+        if self.mass_spectrum.parameters.mass_spectrum.verbose_processing:
+            print("MS Obj loaded - "+str(len(mass_spectrum.mspeaks))+" peaks found.")
 
-        print("MS Obj loaded - " + str(len(mass_spectrum.mspeaks)) + " peaks found.") #TODO KRH: Change this to use an encapsulated verbose flag
+            print("MS Obj loaded - " + str(len(mass_spectrum.mspeaks)) + " peaks found.")
 
     def load_ref_mass_list(self):
         """ Load reference mass list (Bruker format)
@@ -119,7 +119,8 @@ class MzDomainCalibration:
                                 }, axis=1)
 
         df_ref.sort_values(by='m/z', ascending=True,inplace=True)
-        print("Reference mass list loaded - " + str(len(df_ref)) + " calibration masses loaded.") #TODO KRH: Change this to use an encapsulated verbose flag
+        if self.mass_spectrum.parameters.mass_spectrum.verbose_processing:
+            print("Reference mass list loaded - " + str(len(df_ref)) + " calibration masses loaded.")
 
         return df_ref
 
@@ -147,7 +148,8 @@ class MzDomainCalibration:
         df = df[df['Confidence Score'] > min_conf]
         df_ref = pd.DataFrame(columns=['m/z'])
         df_ref['m/z'] = df['Calculated m/z']
-        print("Reference mass list generated - " + str(len(df_ref)) + " calibration masses.") #TODO KRH: Change this to use an encapsulated verbose flag
+        if self.mass_spectrum.parameters.mass_spectrum.verbose_processing:
+            print("Reference mass list generated - " + str(len(df_ref)) + " calibration masses.")
         return df_ref
 
     def find_calibration_points(self, df_ref,
@@ -212,7 +214,7 @@ class MzDomainCalibration:
             cal_peaks_mz = list(tmpdf.values)
             cal_refs_mz = list(tmpdf.index)
         elif calibration_ref_match_method == 'merged':
-            print('Using experimental new reference mass list merging') #TODO KRH: Change this to use an encapsulated verbose flag
+            warnings.warn('Using experimental new reference mass list merging')
             # This is a new approach (August 2024) which uses Pandas 'merged_asof' to find the peaks closest in m/z between 
             # reference and measured masses. This is a quicker way to match, and seems to get more matches.
             # It may not work as well when the data are far from correc initial mass
@@ -233,7 +235,7 @@ class MzDomainCalibration:
             cal_peaks_mz = list(merged_df['meas_m/z'])
             cal_refs_mz = list(merged_df['m/z'])   
         else:
-            print(f'{calibration_ref_match_method} not allowed.') #TODO KRH: Change this to use an encapsulated verbose flag
+            raise ValueError(f'{calibration_ref_match_method} not allowed.')
 
         if False:
             min_calib_ppm_error = calib_ppm_error_threshold[0]
@@ -265,7 +267,8 @@ class MzDomainCalibration:
         # corems likes to do masses from high to low.
         cal_refs_mz.sort(reverse=False)
         cal_peaks_mz.sort(reverse=False)
-        print(str(len(cal_peaks_mz)) + " calibration points matched within thresholds.") #TODO KRH: Change this to use an encapsulated verbose flag
+        if self.mass_spectrum.parameters.mass_spectrum.verbose_processing:
+            print(str(len(cal_peaks_mz)) + " calibration points matched within thresholds.")
         return cal_peaks_mz, cal_refs_mz
 
     def robust_calib(self, param : list[float], 
@@ -389,8 +392,9 @@ class MzDomainCalibration:
 
             minimize_method = self.mass_spectrum.settings.calib_minimize_method
             res = minimize(self.robust_calib, Po, args=(cal_peaks_mz, cal_refs_mz, order), method=minimize_method)
-            print("minimize function completed with RMS error of: {:0.3f} ppm".format(res['fun'])) #TODO KRH: Change this to use an encapsulated verbose flag
-            print("minimize function performed {:1d} fn evals and {:1d} iterations".format(res['nfev'], res['nit'])) #TODO KRH: Change this to use an encapsulated verbose flag
+            if self.mass_spectrum.parameters.mass_spectrum.verbose_processing:
+                print("minimize function completed with RMS error of: {:0.3f} ppm".format(res['fun']))
+                print("minimize function performed {:1d} fn evals and {:1d} iterations".format(res['nfev'], res['nit']))
             Pn = res.x
 
             #mz_exp_ms = np.array([mspeak.mz_exp for mspeak in self.mass_spectrum])
@@ -437,7 +441,7 @@ class MzDomainCalibration:
                 return self.mass_spectrum,res
             return self.mass_spectrum
         else:
-            print("Too few calibration points - aborting.") #TODO KRH: Change this to use an encapsulated verbose flag or warning
+            warnings.warn("Too few calibration points - aborting.")
             return self.mass_spectrum
 
     def run(self):
@@ -468,7 +472,7 @@ class MzDomainCalibration:
         if len(cal_peaks_mz)==2:
             self.mass_spectrum.settings.calib_pol_order = 1
             calib_pol_order = 1
-            if self.mass_spectrum.paramters.mass_spectrum.verbose_processing:
+            if self.mass_spectrum.parameters.mass_spectrum.verbose_processing:
                 print('Only 2 calibration points found, forcing a linear recalibration')
         elif len(cal_peaks_mz)<2:
             warnings.warn('Too few calibration points found, function will fail')

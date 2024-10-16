@@ -24,7 +24,6 @@ if legacy_isospec:
     from IsoSpecPy import IsoSpecPy
     warnings.warn(f"IsoSpecPy version {isospec_version} is installed, and support is deprecated. Please update to 2.2.2", DeprecationWarning)
 
-
 class MolecularFormulaCalc:
     """Class of calculations related to molecular formula
 

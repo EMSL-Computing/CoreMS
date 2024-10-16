@@ -359,7 +359,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
 
     Methods
     --------
-    * get_parameters_json(verbose=True).
+    * get_parameters_json().
         Returns the parameters used for the LC-MS analysis in JSON format.
     * add_associated_ms2_dda(add_to_lcmsobj=True, auto_process=True, use_parser=True)
         Adds which MS2 scans are associated with each mass feature to the

@@ -160,7 +160,7 @@ class KendrickGrouping:
 
                 last_index = kendrick_group_index[group][-1]
                 
-                if self.paramters.mass_spectrum.verbose_processing:
+                if self.parameters.mass_spectrum.verbose_processing:
                     print(abs(mspeak.kmd - self.mspeaks[last_index].kmd )) 
                 
                 if abs(mspeak.kmd - self.mspeaks[last_index].kmd ) < 0.001:

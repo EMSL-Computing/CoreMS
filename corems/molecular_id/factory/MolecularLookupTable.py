@@ -396,7 +396,6 @@ class MolecularCombinations:
             if settings.db_jobs > 1: 
                 list_insert_chunks = list(chunks(all_results, self.sql_db.chunks_count))
                 print( "Started database insert using {} iterations for a total of {} rows".format(len(list_insert_chunks), len(all_results)))
-                #TODO KRH: use encapsulated verbose flag
                 worker_args = [(chunk, settings.url_database) for chunk in list_insert_chunks]
                 p = multiprocessing.Pool(settings.db_jobs)
                 for class_list in tqdm(p.imap_unordered(insert_database_worker, worker_args)):

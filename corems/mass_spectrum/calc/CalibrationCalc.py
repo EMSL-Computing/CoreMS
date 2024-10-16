@@ -95,7 +95,7 @@ class FreqDomain_Calibration:
         """
         matrix = np.vstack([1/self.freq_exp, np.ones(len(self.freq_exp))]).T
         Aterm, Bterm = np.linalg.lstsq(matrix, self.mz_calc, rcond=None)[0]
-        if self.mass_spectrum.paramters.mass_spectrum.verbose_processing:
+        if self.mass_spectrum.parameters.mass_spectrum.verbose_processing:
             print("%.2f Aterm,  %.2f Bterm" %  (Aterm, Bterm))
             print('Linear Calibration %.2f Aterm,  %.2f Bterm ' %(Aterm, Bterm))
         mz_domain = (Aterm/self.freq_exp_ms) + Bterm
@@ -127,7 +127,7 @@ class FreqDomain_Calibration:
             error = ((mz_exp-mz_calc)/mz_calc)*1000000
             rms = np.sqrt(np.mean(error**2))
             std = np.std(error)
-            if self.paramters.mass_spectrum.verbose_processing:
+            if self.mass_spectrum.parameters.mass_spectrum.verbose_processing:
                 print("%.2f Aterm,  %.2f Bterm" %  (Aterm, Bterm))
                 print('Quadratic Calibration %.2f RMS,  %.2f std,  %.2f Aterm,  %.2f Bterm ' %(rms, std, Aterm, Bterm))
             if rms < last_rms:
@@ -167,7 +167,7 @@ class FreqDomain_Calibration:
             error = ((mz_exp-mz_calc)/mz_calc)*1000000
             rms = np.sqrt(np.mean(error**2))
             std = np.std(error)
-            if self.paramters.mass_spectrum.verbose_processing:
+            if self.mass_spectrum.parameters.mass_spectrum.verbose_processing:
                 print("%.2f Aterm,  %.2f Bterm" %  (Aterm, Bterm))
                 print('Ledford Calibration %.2f RMS,  %.2f std,  %.2f Aterm,  %.2f Bterm ' %(rms, std, Aterm, Bterm))
             if rms < last_rms:
