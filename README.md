@@ -13,12 +13,12 @@
   - [CoreMS](#CoreMS)  
   - [Current Version](#current-version)  
   - [Contact Information](#main-developers/contact )  
+  - [Documentation](https://emsl-computing.github.io/CoreMS/corems.html)
   - [Contribution Information](#contributing)
   - [Data Input](#data-input-formats)  
   - [Data Output](#data-output-formats)  
   - [Data Structure](#data-structure-types)  
   - [Features](#available-features)  
-  - [Overview Slides](examples/CoreMS-Overview.pdf)
   - [Framework Documentation](https://emsl-computing.github.io/CoreMS/)
 - Installation
   - [Installation](#corems-installation)  
@@ -58,6 +58,14 @@ CoreMS aims to provide
 - [Yuri. E. Corilo](mailto:corilo@pnnl.gov)  
 - [William Kew](mailto:william.kew@pnnl.gov)
 - [Katherine Heal](mailto:katherine.heal@pnnl.gov)
+
+***
+
+## Documentation
+
+API documentation can be found [here](https://emsl-computing.github.io/CoreMS/corems.html).
+
+Overview slides can be found [here](https://github.com/EMSL-Computing/CoreMS/blob/master/examples/CoreMS-Overview.pdf).
 
 ***
 
@@ -145,12 +153,11 @@ As an open source project, CoreMS welcomes contributions of all forms. Before co
 
 ### LC-MS Signal Processing, Molecular Formula Search and Assignment, and Spectral Similarity Searches
 - Two dimensional (m/z and retention time) peak picking using persistent homology
-- Extraction, smoothing, and cetroid detection of ion chromatograms
-- Peak integration 
-- Peak shape metric calculations
+- Smoothing, cetroid detection, and integration of extracted ion chromatograms
+- Peak shape metric calculations including half peak height, tailing factor, and dispersity index
 - MS1 deconvolution of mass features
-- Idenfitication of 13C isotopes within the mass features
-- Molecular formula search on MS1 spectra
+- Idenfitication of <sup>13</sup>C isotopes within the mass features
+- Compatibility with molecular formula searching on MS1 or MS2 spectra
 - Spectral search capability using entropy similarity
 
 ***
