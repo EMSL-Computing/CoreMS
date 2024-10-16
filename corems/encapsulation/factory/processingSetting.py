@@ -283,7 +283,9 @@ class MassSpectrumSetting:
     calibration_ref_match_tolerance: float, optional
         If using the new method for calibration reference mass matching, this tolerance is the initial matching tolerance. Default is 0.003
     do_calibration : bool, optional
-        If True, perform calibration. Default is True.    
+        If True, perform calibration. Default is True.
+    verbose_processing : bool, optional
+        If True, print verbose processing information. Default is True.    
     """
     noise_threshold_method: str = 'log'
 
@@ -324,6 +326,7 @@ class MassSpectrumSetting:
     #calib_ref_mzs: list = [0]
 
     do_calibration: bool = True
+    verbose_processing: bool = True
 
     def __post_init__(self):
         # enforce datatype
@@ -451,6 +454,8 @@ class GasChromatographSetting:
         0-100 % used for extracted ion chromatogram peak detection. Default is 0.01.
     max_rt_distance : float, optional
         Maximum distance allowance for hierarchical cluster, in minutes. Default is 0.025.
+    verbose_processing : bool, optional
+        If True, print verbose processing information. Default is True.
     """
     use_deconvolution: bool = False
 
@@ -486,6 +491,8 @@ class GasChromatographSetting:
     eic_signal_threshold: float = 0.01  # 0-100 % used for extracted ion chromatogram peak detection
 
     max_rt_distance: float = 0.025  # minutes, max distance allowance hierarchical clutter
+
+    verbose_processing: bool = True
 
     def __post_init__(self):
 
