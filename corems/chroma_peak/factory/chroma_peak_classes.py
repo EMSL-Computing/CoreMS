@@ -228,7 +228,7 @@ class LCMSMassFeature(ChromaPeakBase):
         if abs(mz_diff) < 0.01:
             self._mz_exp = new_mz
 
-    def plot(self, to_plot=["EIC", "MS1", "MS2"], return_fig=True, verbose=False):
+    def plot(self, to_plot=["EIC", "MS1", "MS2"], return_fig=True):
         """Plot the mass feature.
 
         Parameters
@@ -239,8 +239,6 @@ class LCMSMassFeature(ChromaPeakBase):
             Default is ["EIC", "MS1", "MS2"].
         return_fig : bool, optional
             If True, the figure is returned. Default is True.
-        verbose : bool, optional
-            If True, print messages. Default is False.
 
         Returns
         -------
@@ -291,7 +289,7 @@ class LCMSMassFeature(ChromaPeakBase):
                     self.eic_rt_list, self.eic_list, color="b", alpha=0.2
                 )
             else:
-                if verbose:
+                if self.chromatogram_parent.parameters.lc_ms.verbose_processing:
                     print(
                         "No start and final scan numbers were provided for mass feature "
                         + str(self.id)
@@ -349,7 +347,7 @@ class LCMSMassFeature(ChromaPeakBase):
                 )
 
             else:
-                if verbose:
+                if self.chromatogram_parent.parameters.lc_ms.verbose_processing:
                     print(
                         "The m/z of the mass feature "
                         + str(self.id)

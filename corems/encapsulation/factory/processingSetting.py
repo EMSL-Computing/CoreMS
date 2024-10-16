@@ -173,6 +173,8 @@ class LiquidChromatographSetting:
         If True, prepare the database for lipid searching. Called within the LCMSSpectralSearch.fe_prep_search_db() method. Default is False.
     include_fragment_types : bool, optional
         If True, include fragment types in the database. Called within the LCMSSpectralSearch.fe_search() and related methods. Default is False.
+    verbose_processing : bool, optional
+        If True, print verbose processing information. Default is True.
     """
     scans: list | tuple = (-1,-1)
 
@@ -218,6 +220,9 @@ class LiquidChromatographSetting:
     ms2_min_fe_score: float = 0.2
     search_as_lipids: bool = False
     include_fragment_types: bool = False
+
+    # Parameters used for verbose processing
+    verbose_processing: bool = True
 
     def __post_init__(self):
         # enforce datatype
