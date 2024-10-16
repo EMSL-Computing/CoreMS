@@ -6,6 +6,7 @@ import sys
 sys.path.append(".")  # Why?
 from pathlib import Path
 from threading import Thread
+import warnings
 from corems.mass_spectrum.input.massList import ReadCoremsMasslist
 from corems.mass_spectra.factory.lc_class import LCMSBase
 
@@ -87,7 +88,7 @@ class ReadCoremsMassSpectraText(ReadCoremsMasslist, Thread):
             elif file_path_obj.suffix == ".txt":
                 self.data_type == "txt"
                 self.delimiter = "\t"
-                print("WARNING using tab as delimiter") #TODO KRH: Change to warning
+                warnings.warn("using tab as delimiter")
             else:
                 raise NotImplementedError(
                     "%s data not yet supported " % file_path_obj.suffix

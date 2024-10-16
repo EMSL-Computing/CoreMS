@@ -528,7 +528,7 @@ class ThermoBaseClass:
         elif trace_type == 'BPC':
             settings = ChromatogramTraceSettings(TraceType.BasePeak)
         else:
-            print(f'{trace_type} undefined') #TODO KRH: Change to warning or error?
+            raise ValueError(f'{trace_type} undefined')
         if ms_type == "all":
             settings.Filter = None
         else:

@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pymzml
+import warnings
 
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.factory.parameters import default_parameters
@@ -148,9 +149,7 @@ class MZMLSpectraParser(SpectraParserInterface):
                     spec["negative scan"] is not None
                     and spec["positive scan"] is not None
                 ):
-                    # raise error and stop
-                    # TODO KRH: Change to error message raised
-                    print(
+                    raise ValueError(
                         "Error: scan {0} has both negative and positive polarity".format(
                             spec.ID
                         )
