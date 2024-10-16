@@ -342,7 +342,7 @@ class _MSPeak(MSPeakCalculation):
             return ax
 
         else:
-            print("Centroid Peak Object")
+            print("Centroid Peak Object") #TODO KRH: Use a verbose flag to control the print statements or change to warning/error
 
     @property
     def best_molecular_formula_candidate(self):
@@ -462,7 +462,7 @@ class ICRMassPeak(_MSPeak):
 
         return freq_domain
         """
-        print("Function not confirmed to work, disabled.")
+        print("Function not confirmed to work, disabled.") #TODO KRH: Raise an error or warning instead of print statement
         return None
 
 

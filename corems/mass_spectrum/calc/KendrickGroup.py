@@ -160,7 +160,7 @@ class KendrickGrouping:
 
                 last_index = kendrick_group_index[group][-1]
                 
-                print(abs(mspeak.kmd - self.mspeaks[last_index].kmd ))
+                print(abs(mspeak.kmd - self.mspeaks[last_index].kmd )) #TODO KRH: Change this to use an encapsulated verbose flag
                 
                 if abs(mspeak.kmd - self.mspeaks[last_index].kmd ) < 0.001:
 

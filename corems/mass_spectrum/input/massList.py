@@ -138,6 +138,7 @@ class ReadCoremsMasslist(MassListBaseClass):
                                 formula_list_parent[atom_mono] = formula_list_parent[atom_mono]+formula_dict[atom]
                             else:
                                 print(f"Atom {atom} not in Atoms.atoms_order")
+                                # TODO KRH: Change to a warning here
                     mono_index = int(dataframe.iloc[df_index]['Mono Isotopic Index'])
                     mono_mfobj = MolecularFormula(
                         formula_list_parent, 

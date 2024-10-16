@@ -140,8 +140,6 @@ class ImportMassListRef():#Thread
             
             df = pd.read_csv(ref_f, header=0,  encoding= 'unicode_escape')
             
-            print(df)
-
             for index, row in df.iterrows():
                 
                 formula_s = row["Neutral Formula"]

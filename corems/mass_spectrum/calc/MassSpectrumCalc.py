@@ -46,6 +46,7 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
             Report the error of the assigned peaks. Default is False.
         verbose: bool, optional
             Print the results. Default is True.
+            #TODO KRH: Change this to use an encapsulated verbose flag
         """
         assign_abun = 0
         not_assign_abun = 0
@@ -70,11 +71,13 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
         if report_error:
             rms_error = sqrt(mean(array(error)**2))
             if verbose:
+                #TODO KRH: Change this to use an encapsulated verbose flag
                 print('%i assigned peaks and %i unassigned peaks, total  = %.2f %%, relative abundance = %.2f %%, RMS error (best candidate) (ppm) = %.3f' % (i, j, total_percent, total_relative_abundance, rms_error))
             return i, j, total_percent, total_relative_abundance, rms_error
 
         else:
             if verbose:
+                #TODO KRH: Change this to use an encapsulated verbose flag
                 print('%i assigned peaks and %i unassigned peaks , total  = %.2f %%, relative abundance = %.2f %%' % (i, j, total_percent, total_relative_abundance,))
             return i, j, total_percent, total_relative_abundance
 

@@ -397,21 +397,14 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         self.mass_features = {}
         self.spectral_search_results = {}
 
-    def get_parameters_json(self, verbose=False):
+    def get_parameters_json(self):
         """Returns the parameters stored for the LC-MS object in JSON format.
-
-        Parameters
-        -----------
-        verbose : bool, optional
-            If True, prints the JSON string to the console. Default is False.
 
         Returns
         --------
         str
             The parameters used for the LC-MS analysis in JSON format.
         """
-        if verbose:
-            print(self.parameters.to_json())
         return self.parameters.to_json()
 
     def add_associated_ms2_dda(

@@ -782,6 +782,7 @@ class SearchMolecularFormulasLC(SearchMolecularFormulas):
             candidate_formulas = peak.targeted_molecular_formulas
 
             for i in candidate_formulas:
+                #TODO KRH: Use a verbose flag to control the print statements
                 print(i)
             if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
 

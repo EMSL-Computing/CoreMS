@@ -63,13 +63,13 @@ class GC_Calculations:
         from numpy import percentile
         q25, q75 = percentile(data, 25), percentile(data, 75)
         iqr = q75 - q25
-        print('Percentiles: 25th=%.3f, 75th=%.3f, IQR=%.3f' % (q25, q75, iqr))
+        print('Percentiles: 25th=%.3f, 75th=%.3f, IQR=%.3f' % (q25, q75, iqr)) #TODO KRH: remove print after encapusulating in a verbose flag
         # calculate the outlier cutoff
         cut_off = iqr * 1.5
         lower, upper = q25 - cut_off, q75 + cut_off
         # identify outliers
         outliers = [x for x in data if x < lower or x > upper]
-        print('Identified outliers: %d' % len(outliers))
+        print('Identified outliers: %d' % len(outliers)) #TODO KRH: remove print after encapusulating in a verbose flag
         # remove outliers
         nanfilled_outliers = Series([x if lower <= x <= upper else np.nan for x in data])
 

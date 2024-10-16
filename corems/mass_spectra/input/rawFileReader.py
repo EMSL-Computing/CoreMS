@@ -528,7 +528,7 @@ class ThermoBaseClass:
         elif trace_type == 'BPC':
             settings = ChromatogramTraceSettings(TraceType.BasePeak)
         else:
-            print(f'{trace_type} undefined')
+            print(f'{trace_type} undefined') #TODO KRH: Change to warning or error?
         if ms_type == "all":
             settings.Filter = None
         else:
@@ -1233,21 +1233,14 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
 
         return mass_spectrum_obj
 
-    def get_mass_spectra_obj(self, verbose=True):
+    def get_mass_spectra_obj(self):
         """Instatiate a MassSpectraBase object from the binary data file file.
-
-        Parameters
-        ----------
-        verbose : bool, optional
-            If True, print progress messages. Default is True.
 
         Returns
         -------
         MassSpectraBase
             The MassSpectra object containing the parsed mass spectra.  The object is instatiated with the mzML file, analyzer, instrument, sample name, and scan dataframe.
         """
-        if verbose:
-            print("Parsing MassSpectra object from raw file")
         _, scan_df = self.run(spectra="none")
         mass_spectra_obj = MassSpectraBase(
             self.file_location,

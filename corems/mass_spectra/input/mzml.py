@@ -149,6 +149,7 @@ class MZMLSpectraParser(SpectraParserInterface):
                     and spec["positive scan"] is not None
                 ):
                     # raise error and stop
+                    # TODO KRH: Change to error message raised
                     print(
                         "Error: scan {0} has both negative and positive polarity".format(
                             spec.ID
@@ -367,14 +368,9 @@ class MZMLSpectraParser(SpectraParserInterface):
 
         return mass_spectrum_obj
 
-    def get_mass_spectra_obj(self, verbose=True):
+    def get_mass_spectra_obj(self):
         """Instatiate a MassSpectraBase object from the mzML file.
 
-        Parameters
-        ----------
-        verbose : bool, optional
-            If True, print a message indicating that the MassSpectra object is being parsed,
-            by default True.
 
         Returns
         -------
@@ -382,8 +378,6 @@ class MZMLSpectraParser(SpectraParserInterface):
             The MassSpectra object containing the parsed mass spectra.  
             The object is instatiated with the mzML file, analyzer, instrument, sample name, and scan dataframe.
         """
-        if verbose:
-            print("Parsing MassSpectra object from mzML file")
         _, scan_df = self.run(spectra=False)
         mass_spectra_obj = MassSpectraBase(
             self.file_location,
@@ -402,8 +396,6 @@ class MZMLSpectraParser(SpectraParserInterface):
 
         Parameters
         ----------
-        verbose : bool, optional
-            If True, print progress messages. Default is True.
         spectra : str, optional
             Which mass spectra data to include in the output. Default is all.  Other options: none, ms1, ms2.
 

@@ -22,6 +22,7 @@ else: legacy_isospec = True
 if legacy_isospec:
     from IsoSpecPy import IsoSpecPy
     print(f"IsoSpecPy version {isospec_version} is installed, and support is deprecated. Please update to 2.2.2")
+    #TODO KRH: Change this to a warning
 
 
 class MolecularFormulaCalc:

@@ -217,7 +217,7 @@ def bhattacharya_1_distance(v, y):
     # TODO:Fix this!
     if s > 1:
         if s > 1 + 1e-6:
-            print("Error in calculating Bhattacharya 1 distance, got arccos {}".format(s))
+            print("Error in calculating Bhattacharya 1 distance, got arccos {}".format(s)) #TODO KRH: Change this to a warning
         s = 1
     return np.power(np.arccos(s), 2)
 

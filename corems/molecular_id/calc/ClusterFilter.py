@@ -130,9 +130,8 @@ class ClusteringFilter():
             if clusters[i] == -1:
                 indexes.append(i)
         
-        print('Estimated number of clusters: %d' % n_clusters_)
-        print('Estimated number of noise points: %d' % n_noise_)
-        print()
+        print('Estimated number of clusters: %d' % n_clusters_) #TODO KRH: Change this to use an encapsulated verbose flag
+        print('Estimated number of noise points: %d' % n_noise_) #TODO KRH: Change this to use an encapsulated verbose flag
         mass_spectrum.filter_by_index(indexes)
         #from matplotlib import pyplot as plt
         #plt.scatter(matrix_data[:, 0], matrix_data[:, 1], c=clusters, cmap="jet")
@@ -180,9 +179,8 @@ class ClusteringFilter():
         n_clusters_ = len(set(clusters)) - (1 if -1 in clusters else 0)
         n_noise_ = list(clusters).count(-1)
         
-        print('Estimated number of clusters: %d' % n_clusters_)
-        print('Estimated number of noise points: %d' % n_noise_)
-        print()
+        print('Estimated number of clusters: %d' % n_clusters_) #TODO KRH: Change this to use an encapsulated verbose flag
+        print('Estimated number of noise points: %d' % n_noise_) #TODO KRH: Change this to use an encapsulated verbose flag
 
         noise_idx = []
         

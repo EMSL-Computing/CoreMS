@@ -211,7 +211,6 @@ class MolecularFormulaBase(MolecularFormulaCalc):
         for i in molecular_formula_list:
             atoms_count = self.split(Atoms.atoms_order, i)
             final_formula.extend(atoms_count)
-        print(final_formula)
         self._from_list(final_formula, ion_type, adduct_atom)
 
     def split(self, delimiters, string, maxsplit=0): #pragma: no cover
