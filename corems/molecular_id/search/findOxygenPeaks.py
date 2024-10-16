@@ -84,13 +84,13 @@ class FindOxygenPeaks(Thread):
         # needs to be wrapped inside the mass_spec class
         ClusteringFilter().filter_kendrick(self.mass_spectrum_obj)
         
-        #TODO KRH: Use a verbose flag to control the print statements
-        print("Start most abundant mass spectral peak search") 
+        if self.mass_spectrum_obj.parameters.mass_spectrum.verbose_processing:
+            print("Start most abundant mass spectral peak search") 
         molecular_formula_obj_reference = self.find_most_abundant_formula(self.mass_spectrum_obj)
         
-        print("Select most abundant peak with molecular formula =  %s with a m/z error of %s ppm" % (molecular_formula_obj_reference.string, molecular_formula_obj_reference.mz_error))
-        
-        print("Started mass spectral peak series search")
+        if self.mass_spectrum_obj.parameters.mass_spectrum.verbose_processing:
+            print("Select most abundant peak with molecular formula =  %s with a m/z error of %s ppm" % (molecular_formula_obj_reference.string, molecular_formula_obj_reference.mz_error))
+            print("Started mass spectral peak series search")
 
         self.list_found_mspeaks = self.find_series_mspeaks(self.mass_spectrum_obj,
                                                            molecular_formula_obj_reference, 
@@ -105,8 +105,8 @@ class FindOxygenPeaks(Thread):
         self.mass_spectrum_obj.reset_indexes()
 
         self.mass_spectrum_obj.filter_by_noise_threshold()
-        #TODO KRH: Use a verbose flag to control the print statements
-        print("Done with mass spectral peak series search")
+        if self.mass_spectrum_obj.parameters.mass_spectrum.verbose_processing:
+            print("Done with mass spectral peak series search")
 
         self.sql_db.close()
 
@@ -133,8 +133,8 @@ class FindOxygenPeaks(Thread):
         abun_std = std(abundances, axis=0)
         
         upper_limit = abun_mean + 7* abun_std
-        #TODO KRH: Use a verbose flag to control the print statements
-        print("Maximum abundance limit  = %s and max abundance kendrick cluster = %s"  % (upper_limit, max(mass_spectrum_obj, key=lambda m: m.abundance).abundance))
+        if mass_spectrum_obj.parameters.mass_spectrum.verbose_processing:
+            print("Maximum abundance limit  = %s and max abundance kendrick cluster = %s"  % (upper_limit, max(mass_spectrum_obj, key=lambda m: m.abundance).abundance))
         
         mspeak_most_abundant = max(mass_spectrum_obj, key=lambda m: m.abundance if m.abundance <= upper_limit else 0)
 
@@ -255,10 +255,11 @@ class FindOxygenPeaks(Thread):
                 #mspeak_most_abundant = max(ms_peaks, key=lambda m: m.abundance)
                 
                 list_most_abundant_peaks.append(mspeak_most_abundant)
-        #TODO KRH: Use a verbose flag to control the print statements
-        print('Start molecular formula search')
+        if mass_spectrum_obj.parameters.mass_spectrum.verbose_processing:
+            print('Start molecular formula search')
         SearchMolecularFormulas(mass_spectrum_obj, self.sql_db).run_worker_ms_peaks(list_most_abundant_peaks)
-        print('Done molecular formula search')
+        if mass_spectrum_obj.parameters.mass_spectrum.verbose_processing:
+            print('Done molecular formula search')
         return [mspeak for mspeak in list_most_abundant_peaks if mspeak]            
                 
     

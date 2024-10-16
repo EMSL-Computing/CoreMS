@@ -624,7 +624,7 @@ class MetabRefGCInterface(MetabRefInterface):
             try:
                 sqlite_obj.add_compound(data_dict)
             except:
-                print(data_dict["NAME"]) #TODO KRH: Change to warning?
+                print(data_dict["NAME"])
 
         return sqlite_obj
 

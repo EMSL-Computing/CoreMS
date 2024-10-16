@@ -342,7 +342,7 @@ class _MSPeak(MSPeakCalculation):
             return ax
 
         else:
-            print("Centroid Peak Object") #TODO KRH: Use a verbose flag to control the print statements or change to warning/error
+            raise AttributeError("No parent mass spectrum object found to plot the peak.")
 
     @property
     def best_molecular_formula_candidate(self):
@@ -462,9 +462,7 @@ class ICRMassPeak(_MSPeak):
 
         return freq_domain
         """
-        print("Function not confirmed to work, disabled.") #TODO KRH: Raise an error or warning instead of print statement
-        return None
-
+        raise RuntimeError("Function not confirmed to work, disabled.") 
 
 class TOFMassPeak(_MSPeak):
     """ A class representing a peak in a TOF mass spectrum.

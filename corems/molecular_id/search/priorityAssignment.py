@@ -128,19 +128,22 @@ class OxygenPriorityAssignment(Thread):
 
 
         # get the most abundant peak and them every 14Da, only allow Ox and its derivatives
-        print("Getting Oxygen Series") #TODO KRH: Use a verbose flag to control the print statements
+        if self.mass_spectrum_obj.parameters.mass_spectrum.verbose_processing:
+            print("Getting Oxygen Series") 
         find_formula_thread = FindOxygenPeaks(self.mass_spectrum_obj, self.sql_db)
         find_formula_thread.run()
         
         #mass spec obj indexes are set to interate over only the peaks with a molecular formula candidate
-        print("Getting Oxygen Series") #TODO KRH: Use a verbose flag to control the print statements
+        if self.mass_spectrum_obj.parameters.mass_spectrum.verbose_processing:
+            print("Getting Oxygen Series")
         find_formula_thread.set_mass_spec_indexes_by_found_peaks()
         
         #get the Ox class and the DBE for the lowest error molecular formula candidate
         dict_ox_class_and_ms_peak = self.ox_classes_and_peaks_in_order_()
                       
         # sort the classes by abundance
-        print("Getting Oxygen Series Order") #TODO KRH: Use a verbose flag to control the print statements
+        if self.mass_spectrum_obj.parameters.mass_spectrum.verbose_processing:
+            print("Getting Oxygen Series Order")
         assign_classes_order_str_dict_tuple_list = self.get_classes_in_order(dict_ox_class_and_ms_peak)
         
         create_molecular_database()

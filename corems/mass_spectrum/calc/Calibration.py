@@ -12,6 +12,7 @@ import os
 import csv
 from io import BytesIO
 from pathlib import Path
+import warnings
 
 from s3path import S3Path
 # import corems modules
@@ -467,7 +468,8 @@ class MzDomainCalibration:
         if len(cal_peaks_mz)==2:
             self.mass_spectrum.settings.calib_pol_order = 1
             calib_pol_order = 1
-            print('Only 2 calibration points found, forcing a linear recalibration') #TODO KRH: Change this to use an encapsulated verbose flag
+            if self.mass_spectrum.paramters.mass_spectrum.verbose_processing:
+                print('Only 2 calibration points found, forcing a linear recalibration')
         elif len(cal_peaks_mz)<2:
-            print('Too few calibration points found, function will fail') #TODO KRH: Change this to use an encapsulated verbose flag
+            warnings.warn('Too few calibration points found, function will fail')
         self.recalibrate_mass_spectrum(cal_peaks_mz, cal_refs_mz, order=calib_pol_order)

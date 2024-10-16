@@ -1,4 +1,5 @@
 import gc
+import warnings
 
 from numpy import hamming, hanning, blackman, zeros, fft, sqrt, arange, where, power, absolute, kaiser, pi, sin, linspace, ceil, log2
 
@@ -258,7 +259,7 @@ class TransientCalculations(object):
         if self._exc_low_freq > self._exc_high_freq:
             # TODO: This needs to be tested
             # I'm not sure that this is relevant anyway - the excitation pulse is ramped in frequency but the detection is simulatenous
-            print("This is not tested. Please check the results.") #TODO KRH: Change this to warn
+            warnings.warn("This is not tested. Please check the results.")
             final =  where(freqdomain_X > low_freq)[0][0]
             start =  where(freqdomain_X > high_freq)[0][0]
 

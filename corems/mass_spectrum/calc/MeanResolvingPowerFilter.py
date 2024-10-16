@@ -14,7 +14,7 @@ Calculates a m/z normalised resolving power, fits a gaussian distribution to thi
 
 
 """
-
+import warnings
 from lmfit.models import GaussianModel
 from scipy import stats
 import seaborn as sns
@@ -101,8 +101,7 @@ class MeanResolvingPowerFilter():
         if self.mass_spectrum.analyzer == 'ICR':
             tmpdf_ms['crp'] = tmpdf_ms['rp'] * np.sqrt(tmpdf_ms['mz']**2)
         else:
-            #TODO KRH: Change this to warning?
-            print('Analyzer type not yet supported.')
+            warnings.warn(f'Analyzer type {self.mass_spectrum.analyzer} not yet supported.', UserWarning)
         return tmpdf_ms
 
     def calculate_distribution(self, tmpdf_ms):

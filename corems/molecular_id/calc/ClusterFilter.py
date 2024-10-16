@@ -179,8 +179,9 @@ class ClusteringFilter():
         n_clusters_ = len(set(clusters)) - (1 if -1 in clusters else 0)
         n_noise_ = list(clusters).count(-1)
         
-        print('Estimated number of clusters: %d' % n_clusters_) #TODO KRH: Change this to use an encapsulated verbose flag
-        print('Estimated number of noise points: %d' % n_noise_) #TODO KRH: Change this to use an encapsulated verbose flag
+        if mass_spectrum_obj.parameters.mass_spectrum.verbose_processing:
+            print('Estimated number of clusters: %d' % n_clusters_)
+            print('Estimated number of noise points: %d' % n_noise_)
 
         noise_idx = []
         

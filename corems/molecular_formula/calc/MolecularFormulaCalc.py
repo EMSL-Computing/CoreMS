@@ -3,6 +3,7 @@ __date__ = "Jun 24, 2019"
 
 
 from numpy import isnan, power, exp, nextafter, array
+import warnings
 from pandas import DataFrame
 from scipy.stats import pearsonr, spearmanr, kendalltau
 
@@ -21,8 +22,7 @@ if version.parse(isospec_version) > version.parse('2.0.2'):
 else: legacy_isospec = True
 if legacy_isospec:
     from IsoSpecPy import IsoSpecPy
-    print(f"IsoSpecPy version {isospec_version} is installed, and support is deprecated. Please update to 2.2.2")
-    #TODO KRH: Change this to a warning
+    warnings.warn(f"IsoSpecPy version {isospec_version} is installed, and support is deprecated. Please update to 2.2.2", DeprecationWarning)
 
 
 class MolecularFormulaCalc:

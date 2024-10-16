@@ -213,7 +213,7 @@ class HighResRecalibration:
         # We want to make sure the spectrum is capture in the database though - so we return the stats entries (0 assignments) and the number of assignments
         if nassign <5:
             if self.mass_spectrum.parameters.mass_spectrum.verbose_processing:
-                print("fewer than 5 peaks assigned, cannot determine error range") #TODO KRH: remove print after encapusulating in a verbose flag
+                print("fewer than 5 peaks assigned, cannot determine error range")
             return np.nan,np.nan,[np.nan,np.nan]
         else:
             mean_error,fwhm_error,ppm_thresh = self.get_error_range(errors, self.ppmFWHMprior, self.plot)
