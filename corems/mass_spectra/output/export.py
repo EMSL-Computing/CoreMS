@@ -957,8 +957,16 @@ class HighResMassSpectraExport(HighResMassSpecExport):
             dict_ms_attrs, sort_keys=False, indent=4, separators=(",", ": ")
         )
 
-    def to_hdf(self, overwrite=False):
-        """Export the data to an HDF5 file."""
+    def to_hdf(self, overwrite=False, export_raw=True):
+        """Export the data to an HDF5 file.
+        
+        Parameters
+        ----------
+        overwrite : bool, optional
+            Whether to overwrite the output file. Default is False.
+        export_raw : bool, optional
+            Whether to export the raw mass spectra data. Default is True.
+        """
         if overwrite:
             if self.output_file.with_suffix(".hdf5").exists():
                 self.output_file.with_suffix(".hdf5").unlink()
@@ -978,6 +986,8 @@ class HighResMassSpectraExport(HighResMassSpecExport):
                 )
                 hdf_handle.attrs["sample_name"] = self.mass_spectra.sample_name
                 hdf_handle.attrs["polarity"] = self.mass_spectra.polarity
+                hdf_handle.attrs["parser_type"] = self.mass_spectra.spectra_parser_class.__name__
+                hdf_handle.attrs["original_file_location"] = self.mass_spectra.file_location._str
 
             if "mass_spectra" not in hdf_handle:
                 mass_spectra_group = hdf_handle.create_group("mass_spectra")
@@ -987,7 +997,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
             for mass_spectrum in self.mass_spectra:
                 group_key = str(int(mass_spectrum.scan_number))
 
-                self.add_mass_spectrum_to_hdf5(hdf_handle, mass_spectrum, group_key, mass_spectra_group)
+                self.add_mass_spectrum_to_hdf5(hdf_handle, mass_spectrum, group_key, mass_spectra_group, export_raw)
 
 
 class LCMSExport(HighResMassSpectraExport):
@@ -1023,8 +1033,10 @@ class LCMSExport(HighResMassSpectraExport):
         ValueError
             If parameter_format is not 'json' or 'toml'.
         """
+        export_profile_spectra = self.mass_spectra.parameters.lc_ms.export_profile_spectra
+        
         # Write the mass spectra data to the hdf5 file
-        super().to_hdf(overwrite=overwrite)
+        super().to_hdf(overwrite=overwrite, export_raw=export_profile_spectra)
 
         # Write scan info, ms_unprocessed, mass features, eics, and ms2_search results to the hdf5 file
         with h5py.File(self.output_file.with_suffix(".hdf5"), "a") as hdf_handle:
@@ -1038,7 +1050,8 @@ class LCMSExport(HighResMassSpectraExport):
                     scan_info_group.create_dataset(k, data=array)
 
             # Add ms_unprocessed to hdf5 file
-            if self.mass_spectra._ms_unprocessed:
+            export_unprocessed_ms1 = self.mass_spectra.parameters.lc_ms.export_unprocessed_ms1
+            if self.mass_spectra._ms_unprocessed and export_unprocessed_ms1:
                 if "ms_unprocessed" not in hdf_handle:
                     ms_unprocessed_group = hdf_handle.create_group("ms_unprocessed")
                 else:
@@ -1073,6 +1086,11 @@ class LCMSExport(HighResMassSpectraExport):
                                     mass_features_group[str(k)].create_dataset(
                                         str(k2), data=array
                                     )
+                                elif k2 == "_half_height_width":
+                                    array = np.array(v2)
+                                    mass_features_group[str(k)].create_dataset(
+                                        str(k2), data=array
+                                    )
                                 elif k2 == "_ms_deconvoluted_idx":
                                     array = np.array(v2)
                                     mass_features_group[str(k)].create_dataset(
@@ -1097,7 +1115,8 @@ class LCMSExport(HighResMassSpectraExport):
                                     )
 
             # Add EIC data to hdf5 file
-            if len(self.mass_spectra.eics) > 0:
+            export_eics = self.mass_spectra.parameters.lc_ms.export_eics
+            if len(self.mass_spectra.eics) > 0 and export_eics:
                 if "eics" not in hdf_handle:
                     eic_group = hdf_handle.create_group("eics")
                 else:
@@ -1485,9 +1504,9 @@ class LipidomicsExport(LCMSExport):
             ms2_annot_sub_mf = ms2_annot_remaining[
                 ms2_annot_remaining["mf_id"] == mf_id
             ].copy()
-            for query_scan in ms2_annot_sub_mf["query_scan_number"].unique():
+            for query_scan in ms2_annot_sub_mf["query_spectrum_id"].unique():
                 ms2_annot_sub = ms2_annot_sub_mf[
-                    ms2_annot_sub_mf["query_scan_number"] == query_scan
+                    ms2_annot_sub_mf["query_spectrum_id"] == query_scan
                 ].copy()
 
                 # New columns for ranking [HIGHER RANK = BETTER]
@@ -1515,7 +1534,7 @@ class LipidomicsExport(LCMSExport):
 
             # Scenario 1: Multiple scans are being resolved to different MLFs [could be coelutions and should both be kept and annotated to MS level]
             if (
-                id_sub["query_frags"]
+                id_sub["query_frag_types"]
                 .apply(lambda x: True if "MLF" in x else False)
                 .all()
                 and len(id_sub) > 0
@@ -1703,9 +1722,14 @@ class LipidomicsExport(LCMSExport):
             "intensity": "Intensity",
             "persistence": "Persistence",
             "area": "Area",
+            "half_height_width": "Half Height Width (min)",
+            "tailing_factor": "Tailing Factor",
+            "dispersity_index": "Dispersity Index",
             "ms2_spectrum": "MS2 Spectrum",
             "monoisotopic_mf_id": "Monoisotopic Mass Feature ID",
             "isotopologue_type": "Isotopologue Type",
+            "mass_spectrum_deconvoluted_parent": "Is Largest Ion after Deconvolution",
+            "associated_mass_features": "Associated Mass Features after Deconvolution",
             "ion_formula": "Ion Formula",
             "formula": "Molecular Formula",
             "ref_ion_type": "Ion Type",
@@ -1730,6 +1754,9 @@ class LipidomicsExport(LCMSExport):
                 if col not in ["Mass Feature ID", "Sample Name", "Polarity"]
             ]
         ]
+
+        # Reorder rows by "Mass Feature ID"
+        mf_report = mf_report.sort_values("Mass Feature ID")
 
         return mf_report
 

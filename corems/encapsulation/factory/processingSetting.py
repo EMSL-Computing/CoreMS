@@ -221,6 +221,11 @@ class LiquidChromatographSetting:
     search_as_lipids: bool = False
     include_fragment_types: bool = False
 
+    # Parameters used for saving the data
+    export_profile_spectra: bool = False
+    export_eics: bool = True
+    export_unprocessed_ms1: bool = False
+
     # Parameters used for verbose processing
     verbose_processing: bool = True
 

@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import warnings
 
 from corems.encapsulation.factory.parameters import LCMSParameters
 from corems.mass_spectra.calc.lc_calc import LCCalculations, PHCalculations
@@ -89,20 +90,24 @@ class MassSpectraBase:
                 self.sample_name is not None
                 and self.sample_name != self.spectra_parser.sample_name
             ):
-                logging.warning(
-                    "sample_name provided to MassSpectraBase object does not match sample_name provided to spectra parser object"
+                warnings.warn(
+                    "sample_name provided to MassSpectraBase object does not match sample_name provided to spectra parser object",
+                    UserWarning
                 )
             if self.analyzer != self.spectra_parser.analyzer:
-                logging.warning(
-                    "analyzer provided to MassSpectraBase object does not match analyzer provided to spectra parser object"
+                warnings.warn(
+                    "analyzer provided to MassSpectraBase object does not match analyzer provided to spectra parser object",
+                    UserWarning
                 )
             if self.instrument_label != self.spectra_parser.instrument_label:
-                logging.warning(
-                    "instrument provided to MassSpectraBase object does not match instrument provided to spectra parser object"
+                warnings.warn(
+                    "instrument provided to MassSpectraBase object does not match instrument provided to spectra parser object",
+                    UserWarning
                 )
             if self.file_location != self.spectra_parser.file_location:
-                logging.warning(
-                    "file_location provided to MassSpectraBase object does not match file_location provided to spectra parser object"
+                warnings.warn(
+                    "file_location provided to MassSpectraBase object does not match file_location provided to spectra parser object",
+                    UserWarning
                 )
 
         # Instantiate empty dictionaries for scan information and mass spectra
@@ -407,6 +412,30 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         """
         return self.parameters.to_json()
 
+    def remove_unprocessed_data(self, ms_level=None):
+        """Removes the unprocessed data from the LCMSBase object.
+
+        Parameters
+        -----------
+        ms_level : int, optional
+            The MS level to remove the unprocessed data for. If None, removes unprocessed data for all MS levels.
+
+        Raises
+        ------
+        ValueError
+            If ms_level is not 1 or 2.
+
+        Notes
+        -----
+        This method is useful for freeing up memory after the data has been processed.
+        """
+        if ms_level is None:
+            for ms_level in self._ms_unprocessed.keys():
+                self._ms_unprocessed[ms_level] = None
+        if ms_level not in [1, 2]:
+            raise ValueError("ms_level must be 1 or 2")
+        self._ms_unprocessed[ms_level] = None
+
     def add_associated_ms2_dda(
         self, auto_process=True, use_parser=True, spectrum_mode=None
     ):
@@ -611,6 +640,10 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 self.mass_features[mf_id].apex_scan
             ]
             self.mass_features[mf_id].update_mz()
+        
+        # Re-process clustering if persistent homology is selected to remove duplicate mass features after adding and processing MS1 spectra
+        if self.parameters.lc_ms.peak_picking_method == "persistent homology":
+            self.cluster_mass_features(drop_children=True, sort_by="persistence")
 
     def mass_features_to_df(self):
         """Returns a pandas dataframe summarizing the mass features.
@@ -660,15 +693,18 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
 
         cols_in_df = [
             "id",
-            # "_mz",
             "_apex_scan",
+            "start_scan",
+            "final_scan",
             "_retention_time",
             "_intensity",
             "_persistence",
             "_area",
+            "_dispersity_index",
+            "_tailing_factor",
             "monoisotopic_mf_id",
             "isotopologue_type",
-            "mass_spectrum_deconvoluted_parent"
+            "mass_spectrum_deconvoluted_parent",
         ]
         df_mf_list = []
         for mf_id in self.mass_features.keys():
@@ -681,10 +717,20 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 dict_mf[key] = getattr(self.mass_features[mf_id], key)
             if len(self.mass_features[mf_id].ms2_scan_numbers) > 0:
                 # Add MS2 spectra info
-                best_ms2_spectra = self.mass_features[mf_id].best_ms2
-                dict_mf["ms2_spectra"] = mass_spectrum_to_string(best_ms2_spectra)
-            if len(self.mass_features[mf_id].associated_mass_features_deconvoluted)>0:
-                dict_mf["associated_mass_features"] = ", ".join(map(str, self.mass_features[mf_id].associated_mass_features_deconvoluted))
+                best_ms2_spectrum = self.mass_features[mf_id].best_ms2
+                dict_mf["ms2_spectrum"] = mass_spectrum_to_string(best_ms2_spectrum)
+            if len(self.mass_features[mf_id].associated_mass_features_deconvoluted) > 0:
+                dict_mf["associated_mass_features"] = ", ".join(
+                    map(
+                        str,
+                        self.mass_features[mf_id].associated_mass_features_deconvoluted,
+                    )
+                )
+            if self.mass_features[mf_id]._half_height_width is not None:
+                dict_mf["half_height_width"] = self.mass_features[
+                    mf_id
+                ].half_height_width
+            # Check if EIC for mass feature is set
             df_mf_single = pd.DataFrame(dict_mf, index=[mf_id])
             df_mf_single["mz"] = self.mass_features[mf_id].mz
             df_mf_list.append(df_mf_single)
@@ -699,24 +745,31 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 "_retention_time": "scan_time",
                 "_intensity": "intensity",
                 "_persistence": "persistence",
+                "_dispersity_index": "dispersity_index",
+                "_tailing_factor": "tailing_factor",
             }
         )
 
         # reorder columns
         col_order = [
-                    "mf_id",
-                    "scan_time",
-                    "mz",
-                    "apex_scan",
-                    "intensity",
-                    "persistence",
-                    "area",
-                    "monoisotopic_mf_id",
-                    "isotopologue_type",
-                    "mass_spectrum_deconvoluted_parent",
-                    "associated_mass_features",
-                    "ms2_spectra",
-                ]
+            "mf_id",
+            "scan_time",
+            "mz",
+            "apex_scan",
+            "start_scan",
+            "final_scan",
+            "intensity",
+            "persistence",
+            "area",
+            "half_height_width",
+            "tailing_factor",
+            "dispersity_index",
+            "monoisotopic_mf_id",
+            "isotopologue_type",
+            "mass_spectrum_deconvoluted_parent",
+            "associated_mass_features",
+            "ms2_spectrum",
+        ]
         # drop columns that are not in col_order
         cols_to_order = [col for col in col_order if col in df_mf.columns]
         df_mf = df_mf[cols_to_order]
@@ -776,25 +829,27 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         else:
             annot_ms1_df_full = None
             # Warn that no ms1 annotations were found
-            logging.warning(
-                "No MS1 annotations found for mass features in dataset, were MS1 spectra added and processed within the dataset?"
+            warnings.warn(
+                "No MS1 annotations found for mass features in dataset, were MS1 spectra added and processed within the dataset?",
+                UserWarning
             )
 
         return annot_ms1_df_full
 
-    def mass_features_ms2_annot_to_df(self, molecular_metadata = None):
+    def mass_features_ms2_annot_to_df(self, molecular_metadata=None):
         """Returns a pandas dataframe summarizing the MS2 annotations for the mass features in the dataset.
-        
+
         Parameters
         -----------
         molecular_metadata :  dict of MolecularMetadata objects
             A dictionary of MolecularMetadata objects, keyed by metabref_mol_id.  Defaults to None.
-        
+
         Returns
         --------
         pandas.DataFrame
-            A pandas dataframe of MS2 annotations for the mass features in the dataset, and optionally molecular metadata. The index is set to mf_id (mass feature ID)
-        
+            A pandas dataframe of MS2 annotations for the mass features in the dataset, 
+            and optionally molecular metadata. The index is set to mf_id (mass feature ID)
+
         Raises
         ------
         Warning
@@ -806,23 +861,38 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 # Add ms2 annotations to ms2 annotation list
                 for result in self.mass_features[mf_id].ms2_similarity_results:
                     annot_df_ms2 = result.to_dataframe()
-                    annot_df_ms2['mf_id'] = mf_id
+                    annot_df_ms2["mf_id"] = mf_id
                     annot_df_list_ms2.append(annot_df_ms2)
-        
-        if len(annot_df_list_ms2)>0:
+
+        if len(annot_df_list_ms2) > 0:
             annot_ms2_df_full = pd.concat(annot_df_list_ms2)
             if molecular_metadata is not None:
-                molecular_metadata_df = pd.concat([pd.DataFrame.from_dict(v.__dict__, orient='index').transpose() for k, v in molecular_metadata.items()], ignore_index=True)
-                molecular_metadata_df = molecular_metadata_df.rename(columns = {"id":"ref_mol_id"})
-                annot_ms2_df_full = annot_ms2_df_full.merge(molecular_metadata_df, on = "ref_mol_id", how = "left")
-            annot_ms2_df_full  = annot_ms2_df_full.drop_duplicates(subset = ['mf_id', 'query_spectrum_id', 'ref_ms_id']).copy()
-            annot_ms2_df_full = annot_ms2_df_full.set_index('mf_id')
-            annot_ms2_df_full.index.name = 'mf_id'
+                molecular_metadata_df = pd.concat(
+                    [
+                        pd.DataFrame.from_dict(v.__dict__, orient="index").transpose()
+                        for k, v in molecular_metadata.items()
+                    ],
+                    ignore_index=True,
+                )
+                molecular_metadata_df = molecular_metadata_df.rename(
+                    columns={"id": "ref_mol_id"}
+                )
+                annot_ms2_df_full = annot_ms2_df_full.merge(
+                    molecular_metadata_df, on="ref_mol_id", how="left"
+                )
+            annot_ms2_df_full = annot_ms2_df_full.drop_duplicates(
+                subset=["mf_id", "query_spectrum_id", "ref_ms_id"]
+            ).copy()
+            annot_ms2_df_full = annot_ms2_df_full.set_index("mf_id")
+            annot_ms2_df_full.index.name = "mf_id"
         else:
             annot_ms2_df_full = None
             # Warn that no ms2 annotations were found
-            logging.warning("No MS2 annotations found for mass features in dataset, were MS2 spectra added and searched against a database?")
-        
+            warnings.warn(
+                "No MS2 annotations found for mass features in dataset, were MS2 spectra added and searched against a database?",
+                UserWarning
+            )
+
         return annot_ms2_df_full
 
     def __len__(self):

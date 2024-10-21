@@ -3,6 +3,7 @@ __date__ = "Oct 29, 2019"
 
 
 from threading import Thread
+from pathlib import Path
 
 import pandas as pd
 
@@ -16,7 +17,8 @@ from corems.mass_spectra.factory.LC_Temp import EIC_Data
 from corems.mass_spectra.input.parserbase import SpectraParserInterface
 from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
 from corems.molecular_id.factory.spectrum_search_results import SpectrumSearchResults
-
+from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
+from corems.mass_spectra.input.mzml import MZMLSpectraParser
 
 class ReadCoreMSHDFMassSpectra(
     SpectraParserInterface, ReadCoreMSHDF_MassSpectrum, Thread
@@ -117,7 +119,36 @@ class ReadCoreMSHDFMassSpectra(
         """ """
         pass
 
-    def run(self, mass_spectra) -> None:
+    def get_ms_raw(self, spectra = None, scan_df = None) -> dict:
+        """ """
+        # Warn if spectra or scan_df are not None that they are not used for CoreMS HDF5 files and should be rerun after instantiation
+        if spectra is not None or scan_df is not None:
+            SyntaxWarning("get_ms_raw method for CoreMS HDF5 files can only access saved data, consider rerunning after instantiation.")
+        ms_unprocessed = {}
+        dict_group_load = self.h5pydata["ms_unprocessed"]
+        dict_group_keys = dict_group_load.keys()
+        for k in dict_group_keys:
+            ms_up_int = dict_group_load[k][:]
+            ms_unprocessed[int(k)] = pd.DataFrame(
+                ms_up_int, columns=["scan", "mz", "intensity"]
+            )
+        return ms_unprocessed
+
+    def get_scan_df(self) -> pd.DataFrame:
+        scan_info = {}
+        dict_group_load = self.h5pydata["scan_info"]
+        dict_group_keys = dict_group_load.keys()
+        for k in dict_group_keys:
+            scan_info[k] = dict_group_load[k][:]
+        scan_df = pd.DataFrame(scan_info)
+        scan_df.set_index("scan", inplace=True, drop=False)
+        str_df = scan_df.select_dtypes([object])
+        str_df = str_df.stack().str.decode("utf-8").unstack()
+        for col in str_df:
+            scan_df[col] = str_df[col]
+        return scan_df
+    
+    def run(self, mass_spectra, load_raw=True) -> None:
         """Runs the importer functions to populate a LCMS or MassSpectraBase object.
 
         Notes
@@ -135,7 +166,8 @@ class ReadCoreMSHDFMassSpectra(
         ----------
         mass_spectra : LCMSBase or MassSpectraBase
             The LCMS or MassSpectraBase object to populate with mass spectra, generally instantiated with only the file_location, analyzer, and instrument_label attributes.
-
+        load_raw : bool
+            If True, load raw data (unprocessed) from HDF5 files for overall lcms object and individual mass spectra. Default is True.
         Returns
         -------
         None, but populates several attributes on the LCMS or MassSpectraBase object.
@@ -147,13 +179,13 @@ class ReadCoreMSHDFMassSpectra(
 
         if "mass_spectra" in self.h5pydata:
             # Populate the _ms list on the LCMS object
-            self.import_mass_spectra(mass_spectra)
+            self.import_mass_spectra(mass_spectra, load_raw=load_raw)
 
         if "scan_info" in self.h5pydata:
             # Populate the _scan_info attribute on the LCMS object
             self.import_scan_info(mass_spectra)
 
-        if "ms_unprocessed" in self.h5pydata:
+        if "ms_unprocessed" in self.h5pydata and load_raw:
             # Populate the _ms_unprocessed attribute on the LCMS object
             self.import_ms_unprocessed(mass_spectra)
 
@@ -169,21 +201,23 @@ class ReadCoreMSHDFMassSpectra(
             # Populate the spectral_search_results attribute on the LCMS object
             self.import_spectral_search_results(mass_spectra)
 
-    def import_mass_spectra(self, mass_spectra) -> None:
+    def import_mass_spectra(self, mass_spectra, load_raw=True) -> None:
         """Imports all mass spectra from the HDF5 file.
 
         Parameters
         ----------
         mass_spectra : LCMSBase | MassSpectraBase
             The MassSpectraBase or LCMSBase object to populate with mass spectra.
+        load_raw : bool
+            If True, load raw data (unprocessed) from HDF5 files for overall lcms object and individual mass spectra. Default
 
         Returns
         -------
-        None, but populates the '_ms' list on the LCMSBase or MassSpectraBase 
+        None, but populates the '_ms' list on the LCMSBase or MassSpectraBase
         object with mass spectra from the HDF5 file.
         """
         for scan_number in self.scan_number_list:
-            mass_spec = self.get_mass_spectrum(scan_number)
+            mass_spec = self.get_mass_spectrum(scan_number, load_raw=load_raw)
             mass_spec.scan_number = scan_number
             mass_spectra.add_mass_spectrum(mass_spec)
 
@@ -197,21 +231,11 @@ class ReadCoreMSHDFMassSpectra(
 
         Returns
         -------
-        None, but populates the 'scan_df' attribute on the LCMSBase or MassSpectraBase 
+        None, but populates the 'scan_df' attribute on the LCMSBase or MassSpectraBase
         object with a pandas DataFrame of the 'scan_info' from the HDF5 file.
 
         """
-        scan_info = {}
-        dict_group_load = self.h5pydata["scan_info"]
-        dict_group_keys = dict_group_load.keys()
-        for k in dict_group_keys:
-            scan_info[k] = dict_group_load[k][:]
-        scan_df = pd.DataFrame(scan_info)
-        scan_df.set_index("scan", inplace=True, drop=False)
-        str_df = scan_df.select_dtypes([object])
-        str_df = str_df.stack().str.decode("utf-8").unstack()
-        for col in str_df:
-            scan_df[col] = str_df[col]
+        scan_df = self.get_scan_df()
         mass_spectra.scan_df = scan_df
 
     def import_ms_unprocessed(self, mass_spectra) -> None:
@@ -224,18 +248,11 @@ class ReadCoreMSHDFMassSpectra(
 
         Returns
         -------
-        None, but populates the '_ms_unprocessed' attribute on the LCMSBase or MassSpectraBase 
+        None, but populates the '_ms_unprocessed' attribute on the LCMSBase or MassSpectraBase
         object with a dictionary of the 'ms_unprocessed' from the HDF5 file.
 
         """
-        ms_unprocessed = {}
-        dict_group_load = self.h5pydata["ms_unprocessed"]
-        dict_group_keys = dict_group_load.keys()
-        for k in dict_group_keys:
-            ms_up_int = dict_group_load[k][:]
-            ms_unprocessed[int(k)] = pd.DataFrame(
-                ms_up_int, columns=["scan", "mz", "intensity"]
-            )
+        ms_unprocessed = self.get_ms_raw()
         mass_spectra._ms_unprocessed = ms_unprocessed
 
     def import_parameters(self, mass_spectra) -> None:
@@ -248,7 +265,7 @@ class ReadCoreMSHDFMassSpectra(
 
         Returns
         -------
-        None, but populates the 'parameters' attribute on the LCMS or MassSpectraBase 
+        None, but populates the 'parameters' attribute on the LCMS or MassSpectraBase
         object with a dictionary of the 'parameters' from the HDF5 file.
 
         """
@@ -271,7 +288,7 @@ class ReadCoreMSHDFMassSpectra(
 
         Returns
         -------
-        None, but populates the 'mass_features' attribute on the LCMSBase or MassSpectraBase 
+        None, but populates the 'mass_features' attribute on the LCMSBase or MassSpectraBase
         object with a dictionary of the 'mass_features' from the HDF5 file.
 
         """
@@ -329,7 +346,7 @@ class ReadCoreMSHDFMassSpectra(
 
         Returns
         -------
-        None, but populates the 'eics' attribute on the LCMSBase or MassSpectraBase 
+        None, but populates the 'eics' attribute on the LCMSBase or MassSpectraBase
         object with a dictionary of the 'eics' from the HDF5 file.
 
         """
@@ -341,8 +358,12 @@ class ReadCoreMSHDFMassSpectra(
                 time=dict_group_load[k]["time"][:],
                 eic=dict_group_load[k]["eic"][:],
             )
-            for key in dict_group_load[k].attrs.keys() - {"scans", "time", "eic", "mz"}:
-                setattr(my_eic, key, dict_group_load[k][key][:])
+            for key in dict_group_load[k].keys():
+                if key not in ["scans", "time", "eic"]:
+                    setattr(my_eic, key, dict_group_load[k][key][:])
+                    # if key is apexes, convert to a tuple of a list
+                    if key == "apexes" and len(my_eic.apexes) > 0:
+                        my_eic.apexes = [tuple(x) for x in my_eic.apexes]
             # Add to mass_spectra object
             mass_spectra.eics[dict_group_load[k].attrs["mz"]] = my_eic
 
@@ -362,7 +383,7 @@ class ReadCoreMSHDFMassSpectra(
 
         Returns
         -------
-        None, but populates the 'spectral_search_results' attribute on the LCMSBase or MassSpectraBase 
+        None, but populates the 'spectral_search_results' attribute on the LCMSBase or MassSpectraBase
         object with a dictionary of the 'spectral_search_results' from the HDF5 file.
 
         """
@@ -405,9 +426,15 @@ class ReadCoreMSHDFMassSpectra(
                             ]
                         )
 
-    def get_mass_spectra_obj(self) -> MassSpectraBase:
+    def get_mass_spectra_obj(self, load_raw=True) -> MassSpectraBase:
         """
         Return mass spectra data object, populating the _ms list on MassSpectraBase object from the HDF5 file.
+        
+        Parameters
+        ----------
+        load_raw : bool
+            If True, load raw data (unprocessed) from HDF5 files for overall spectra object and individual mass spectra. Default is True.
+        
         """
         # Instantiate the LCMS object
         spectra_obj = MassSpectraBase(
@@ -418,13 +445,24 @@ class ReadCoreMSHDFMassSpectra(
         )
 
         # This will populate the _ms list on the LCMS or MassSpectraBase object
-        self.run(spectra_obj)
+        self.run(spectra_obj, load_raw=load_raw)
 
         return spectra_obj
 
-    def get_lcms_obj(self) -> LCMSBase:
+    def get_lcms_obj(self, load_raw=True, use_original_parser=True, raw_file_path=None) -> LCMSBase:
         """
         Return LCMSBase object, populating attributes on the LCMSBase object from the HDF5 file.
+
+        Parameters
+        ----------
+        load_raw : bool
+            If True, load raw data (unprocessed) from HDF5 files for overall lcms object and individual mass spectra. Default is True.
+        use_original_parser : bool
+            If True, use the original parser to populate the LCMS object. Default is True.        
+        raw_file_path : str
+            The location of the raw file to parse if attempting to use original parser.
+            Default is None, which attempts to get the raw file path from the HDF5 file.
+            If the original file path has moved, this parameter can be used to specify the new location.
         """
         # Instantiate the LCMS object
         lcms_obj = LCMSBase(
@@ -435,7 +473,7 @@ class ReadCoreMSHDFMassSpectra(
         )
 
         # This will populate the majority of the attributes on the LCMS object
-        self.run(lcms_obj)
+        self.run(lcms_obj, load_raw=load_raw)
 
         # Set final attributes of the LCMS object
         lcms_obj.polarity = self.h5pydata.attrs["polarity"]
@@ -443,4 +481,42 @@ class ReadCoreMSHDFMassSpectra(
         lcms_obj._retention_time_list = list(lcms_obj.scan_df.scan_time)
         lcms_obj._tic_list = list(lcms_obj.scan_df.tic)
 
+        # If use_original_parser is True, instantiate the original parser and populate the LCMS object
+        if use_original_parser:
+            lcms_obj = self.add_original_parser(lcms_obj, raw_file_path=raw_file_path)
+
         return lcms_obj
+    
+    def add_original_parser(self, mass_spectra, raw_file_path=None):
+        """
+        Add the original parser to the mass spectra object.
+
+        Parameters
+        ----------
+        mass_spectra : MassSpectraBase | LCMSBase
+            The MassSpectraBase or LCMSBase object to add the original parser to.
+        raw_file_path : str
+            The location of the raw file to parse. Default is None, which attempts to get the raw file path from the HDF5 file.
+        """
+        # Try to get the raw file path from the HDF5 file
+        if raw_file_path is None:
+            raw_file_path = self.h5pydata.attrs["original_file_location"]
+            #Check if og_file_location exists, if not raise an error
+            raw_file_path = self.h5pydata.attrs["original_file_location"]
+
+        raw_file_path = Path(raw_file_path)
+        if not raw_file_path.exists():
+            raise FileExistsError("File does not exist: " + str(raw_file_path), ". Cannot use original parser for instatiating the lcms_obj.")
+
+        # Get the original parser type
+        og_parser_type = self.h5pydata.attrs["parser_type"]
+
+        if og_parser_type == "ImportMassSpectraThermoMSFileReader":
+            parser = ImportMassSpectraThermoMSFileReader(raw_file_path)
+        elif og_parser_type == "MZMLSpectraParser":
+            parser = MZMLSpectraParser(raw_file_path)
+
+        mass_spectra.spectra_parser_class = parser.__class__
+        mass_spectra.spectra_parser = parser
+
+        return mass_spectra

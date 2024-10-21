@@ -4,11 +4,12 @@ from abc import ABC
 
 import numpy as np
 import requests
+import pandas as pd
 from ms_entropy import FlashEntropySearch
 
 from corems.molecular_id.factory.EI_SQL import EI_LowRes_SQLite, Metadatar
 from corems.molecular_id.factory.lipid_molecular_metadata import LipidMetadata
-
+from corems.mass_spectra.calc.lc_calc import find_closest
 
 class SpectralDatabaseInterface(ABC):
     """
@@ -647,6 +648,11 @@ class MetabRefLCInterface(MetabRefInterface):
             "https://metabref.emsl.pnnl.gov/api/precursors/m/{}/t/{}/{}"
         )
 
+        # API endpoint for returning full list of precursor m/z values in database
+        self.PRECURSOR_MZ_ALL_URL = (
+            "https://metabref.emsl.pnnl.gov/api/precursors/{}"
+        )
+
         self.__init_format_map__()
 
     def __init_format_map__(self):
@@ -721,7 +727,28 @@ class MetabRefLCInterface(MetabRefInterface):
             )
 
         return lib
-
+    
+    def request_all_precursors(self, polarity):
+        """
+        Request all precursor m/z values from MetabRef.
+        
+        Parameters
+        ----------
+        polarity : str
+            Ionization polarity, either "positive" or "negative".
+        
+        Returns
+        -------
+        list
+            List of all precursor m/z values.
+        """
+        # If polarity is anything other than positive or negative, raise error
+        if polarity not in ["positive", "negative"]:
+            raise ValueError("Polarity must be 'positive' or 'negative'")
+        
+        # Query MetabRef for all precursor m/z values
+        return self.get_query(self.PRECURSOR_MZ_ALL_URL.format(polarity))
+    
     def get_lipid_library(
         self,
         mz_list,
@@ -761,8 +788,27 @@ class MetabRefLCInterface(MetabRefInterface):
             Library in requested format and lipid metadata as a LipidMetadata dataclass.
 
         """
+        mz_list.sort()
+
+        # Get all precursors in the library matching the polarity
+        precusors_in_lib = self.request_all_precursors(
+            polarity=polarity
+        )
+        precusors_in_lib.sort()
+        precusors_in_lib = np.array(precusors_in_lib)
+
+        # Compare the mz_list with the precursors in the library, keep any mzs that are within mz_tol of any precursor in the library
+        mz_list = np.array(mz_list)
+        mz_df = pd.DataFrame(mz_list, columns=['mass_feature_mz'])
+        mz_df["closest_lib_pre_mz"] = precusors_in_lib[
+                find_closest(precusors_in_lib, mz_df.mass_feature_mz.values)
+            ]
+        mz_df["mz_diff_ppm"] = np.abs((mz_df["mass_feature_mz"] - mz_df["closest_lib_pre_mz"])/mz_df["mass_feature_mz"]*1e6)
+        mz_df_sub = mz_df[mz_df["mz_diff_ppm"] <= mz_tol_ppm]
+
+        # Query the library for the precursors in the mz_list that are in the library to retrieve the spectra and metadata
         lib = self.query_by_precursor(
-            mz_list=mz_list,
+            mz_list=mz_df_sub.mass_feature_mz.values,
             polarity=polarity,
             mz_tol_ppm=mz_tol_ppm,
             mz_tol_da_api=mz_tol_da_api,

@@ -256,7 +256,15 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
             list_dict.append(data_dict)
 
-        return DataFrame(list_dict)
+        # Reorder the columns from low to high "Index" to match the order of the dataframe
+        df = DataFrame(list_dict)
+        # set the "Index" column to int so it sorts correctly
+        df["Index"] = df["Index"].astype(int)
+        df = df.sort_values(by="Index")
+        # Reset index to match the "Index" column
+        df = df.set_index("Index", drop=False)
+
+        return df
 
     def get_time_index_to_pull(self, scan_label, time_index):
         """

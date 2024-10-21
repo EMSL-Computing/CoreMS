@@ -1527,9 +1527,15 @@ class MassSpecCentroid(MassSpecBase):
         rp_i, s2n_i = np.nan, np.nan
         for index, mz in enumerate(data_dict.get(Labels.mz)):
             if rp_present:
-                rp_i = float(data_dict.get(Labels.rp)[index])
+                if not data_dict.get(Labels.rp)[index]:
+                    rp_i = np.nan
+                else:
+                    rp_i = float(data_dict.get(Labels.rp)[index])
             if s2n_present:
-                s2n_i = float(data_dict.get(Labels.s2n)[index])
+                if not data_dict.get(Labels.s2n)[index]:
+                    s2n_i = np.nan
+                else:
+                    s2n_i = float(data_dict.get(Labels.s2n)[index])
 
             # centroid peak does not have start and end peak index pos
             massspec_indexes = (index, index, index)

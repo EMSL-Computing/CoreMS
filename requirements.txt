@@ -12,6 +12,7 @@ openpyxl~=3.1.1
 pandas~=1.5.3
 pyswarm~=0.6
 pythonnet~=3.0.1
+pymzml~=2.5.2
 requests~=2.31.0
 ripser==0.6.4
 s3path~=0.4.1

@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import copy
 
-from corems.chroma_peak.calc.ChromaPeakCalc import GCPeakCalculation
+from corems.chroma_peak.calc.ChromaPeakCalc import GCPeakCalculation, LCMSMassFeatureCalculation
 from corems.mass_spectra.factory.LC_Temp import EIC_Data
 from corems.molecular_id.factory.EI_SQL import LowResCompoundRef
 
@@ -102,7 +102,7 @@ class ChromaPeakBase:
         ]
 
 
-class LCMSMassFeature(ChromaPeakBase):
+class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
     """Class representing a mass feature in a liquid chromatography (LC) chromatogram.
 
     Parameters
@@ -136,6 +136,13 @@ class LCMSMassFeature(ChromaPeakBase):
         The persistence of the feature.
     _eic_data : EIC_Data
         The EIC data object associated with the feature.
+    _dispersity_index : float
+        The dispersity index of the feature.
+    _half_height_width : numpy.ndarray
+        The half height width of the feature (in minutes, as an array of min and max values).
+    _tailing_factor : float
+        The tailing factor of the feature. 
+        > 1 indicates tailing, < 1 indicates fronting, = 1 indicates symmetrical peak.
     _ms_deconvoluted_idx : [int]
         The indexes of the mass_spectrum attribute in the deconvoluted mass spectrum.
     is_calibrated : bool
@@ -190,6 +197,8 @@ class LCMSMassFeature(ChromaPeakBase):
         self._intensity: float = intensity
         self._persistence: float = persistence
         self._eic_data: EIC_Data = None
+        self._dispersity_index: float = None
+        self._half_height_width: np.ndarray = None
         self._ms_deconvoluted_idx = None
 
         # Additional attributes
@@ -208,7 +217,7 @@ class LCMSMassFeature(ChromaPeakBase):
             self.id = (
                 max(lcms_parent.mass_features.keys()) + 1
                 if lcms_parent.mass_features.keys()
-                else 1
+                else 0
             )
 
     def update_mz(self):
@@ -478,6 +487,35 @@ class LCMSMassFeature(ChromaPeakBase):
         closest_mz_index = self.mass_spectrum.mz_exp.tolist().index(closest_mz)
 
         return self.mass_spectrum._mspeaks[closest_mz_index]
+    
+    @property
+    def tailing_factor(self):
+        """Tailing factor of the mass feature"""
+        return self._tailing_factor
+    
+    @tailing_factor.setter
+    def tailing_factor(self, value):
+        """Set the tailing factor of the mass feature"""
+        if not isinstance(value, float):
+            raise ValueError("The tailing factor of the mass feature must be a float")
+        self._tailing_factor = value
+
+    @property
+    def dispersity_index(self):
+        """Dispersity index of the mass feature"""
+        return self._dispersity_index
+    
+    @dispersity_index.setter
+    def dispersity_index(self, value):
+        """Set the dispersity index of the mass feature"""
+        if not isinstance(value, float):
+            raise ValueError("The dispersity index of the mass feature must be a float")
+        self._dispersity_index = value
+
+    @property
+    def half_height_width(self):
+        """Half height width of the mass feature, average of min and max values, in minutes"""
+        return np.mean(self._half_height_width)
 
     @property
     def best_ms2(self):

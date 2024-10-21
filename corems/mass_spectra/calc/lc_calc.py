@@ -32,6 +32,7 @@ def find_closest(A, target):
     idx -= target - left < right - target
     return idx
 
+
 class LCCalculations:
     """Methods for performing LC calculations on mass spectra data.
 
@@ -177,6 +178,25 @@ class LCCalculations:
         real_scan = self.scans_number[scan_index]
 
         return real_scan
+
+    def add_peak_metrics(self):
+        """Add peak metrics to the mass features.
+
+        This function calculates the peak metrics for each mass feature and adds them to the mass feature objects.
+        """
+        # Check that at least some mass features have eic data
+        if not any([mf._eic_data is not None for mf in self.mass_features.values()]):
+            raise ValueError(
+                "No mass features have EIC data. Run integrate_mass_features first."
+            )
+
+        for mass_feature in self.mass_features.values():
+            # Check if the mass feature has been integrated
+            if mass_feature._eic_data is not None:
+                # Calculate peak metrics
+                mass_feature.calc_half_height_width()
+                mass_feature.calc_tailing_factor()
+                mass_feature.calc_dispersity_index()
 
     def get_average_mass_spectrum(
         self,
@@ -351,7 +371,7 @@ class LCCalculations:
         else:
             raise ValueError("Peak picking method not implemented")
 
-    def integrate_mass_features(self, drop_if_fail=False, ms_level=1):
+    def integrate_mass_features(self, drop_if_fail=True, drop_duplicates=True, ms_level=1):
         """Integrate mass features and extract EICs.
 
         Populates the _eics attribute on the LCMSBase object for each unique mz in the mass_features dataframe and adds data (start_scan, final_scan, area) to the mass_features attribute.
@@ -360,6 +380,11 @@ class LCCalculations:
         ----------
         drop_if_fail : bool, optional
             Whether to drop mass features if the EIC limit calculations fail.
+            Default is True.
+        drop_duplicates : bool, optional
+            Whether to mass features that appear to be duplicates 
+            (i.e., mz is similar to another mass feature and limits of the EIC are similar or encapsulating).
+            Default is True.
         ms_level : int, optional
             The MS level to use. Default is 1.
 
@@ -389,10 +414,12 @@ class LCCalculations:
                 "No mass features found, did you run find_mass_features() first?"
             )
         # Check if mass_spectrum exists on each mass feature
-        if not all([mf.mass_spectrum is not None for mf in self.mass_features.values()]):
+        if not all(
+            [mf.mass_spectrum is not None for mf in self.mass_features.values()]
+        ):
             raise ValueError(
                 "Mass spectrum must be associated with each mass feature, did you run add_associated_ms1() first?"
-            ) 
+            )
 
         # Subset scan data to only include correct ms_level
         scan_df_sub = self.scan_df[
@@ -470,6 +497,28 @@ class LCCalculations:
             else:
                 if drop_if_fail is True:
                     self.mass_features.pop(idx)
+        
+        if drop_duplicates:
+            # Prepare mass feature dataframe
+            mf_df = self.mass_features_to_df().copy()
+
+            # For each mass feature, find all mass features within the clustering tolerance ppm and drop if their start and end times are within another mass feature
+            # Kepp the first mass fea
+            for idx, mass_feature in mf_df.iterrows():
+                mz = mass_feature.mz
+                apex_scan = mass_feature.apex_scan
+
+                mf_df["mz_diff_ppm"] = np.abs(mf_df["mz"] - mz) / mz * 10**6
+                mf_df_sub = mf_df[mf_df["mz_diff_ppm"] < self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel * 10**6].copy()
+
+                # For all mass features within the clustering tolerance, check if the start and end times are within the start and end times of the mass feature
+                for idx2, mass_feature2 in mf_df_sub.iterrows():
+                    if idx2 != idx:
+                        if mass_feature2.start_scan >= mass_feature.start_scan and mass_feature2.final_scan <= mass_feature.final_scan:
+                            if idx2 in self.mass_features.keys():
+                                self.mass_features.pop(idx2)
+
+    
 
     def find_c13_mass_features(self):
         """Mark likely C13 isotopes and connect to monoisoitopic mass features.
@@ -628,8 +677,8 @@ class LCCalculations:
 
         Returns
         -------
-        None, but assigns the _ms_deconvoluted_idx, mass_spectrum_deconvoluted_parent, 
-        and associated_mass_features_deconvoluted attributes to the mass features in the 
+        None, but assigns the _ms_deconvoluted_idx, mass_spectrum_deconvoluted_parent,
+        and associated_mass_features_deconvoluted attributes to the mass features in the
         mass_features attribute of the LCMSBase object.
 
         Raises
@@ -641,11 +690,15 @@ class LCCalculations:
         """
         # Checks for set mass_features and eics
         if self.mass_features is None:
-            raise ValueError("No mass features found, did you run find_mass_features() first?")
-        
+            raise ValueError(
+                "No mass features found, did you run find_mass_features() first?"
+            )
+
         if self.eics == {}:
-            raise ValueError("No EICs found, did you run integrate_mass_features() first?")
-        
+            raise ValueError(
+                "No EICs found, did you run integrate_mass_features() first?"
+            )
+
         if 1 not in self._ms_unprocessed.keys():
             raise ValueError("No unprocessed MS1 spectra found.")
 
@@ -658,8 +711,13 @@ class LCCalculations:
 
         # Loop through each mass feature
         for mf_id, mass_feature in self.mass_features.items():
+            
+            # Check that the mass_feature.mz attribute == the mz of the mass feature in the mass_feature_df
+            if mass_feature.mz != mass_feature.ms1_peak.mz_exp:
+                continue
+
             # Get the left and right limits of the EIC of the mass feature
-            l_scan, _, r_scan= mass_feature._eic_data.apexes[0]
+            l_scan, _, r_scan = mass_feature._eic_data.apexes[0]
 
             # Pull from the _ms1_unprocessed data the scan range of interest and sort by mz
             ms1_data_sub = ms1_data.loc[l_scan:r_scan].copy()
@@ -667,48 +725,83 @@ class LCCalculations:
 
             # Get the centroided masses of the mass feature
             mf_mspeak_mzs = mass_feature.mass_spectrum.mz_exp
-           
+
             # Find the closest mz in the ms1 data to the centroided masses of the mass feature
-            ms1_data_sub["mass_feature_mz"] = mf_mspeak_mzs[find_closest(mf_mspeak_mzs, ms1_data_sub.mz.values)]
+            ms1_data_sub["mass_feature_mz"] = mf_mspeak_mzs[
+                find_closest(mf_mspeak_mzs, ms1_data_sub.mz.values)
+            ]
 
             # Drop rows with mz_diff > 0.01 between the mass feature mz and the ms1 data mz
-            ms1_data_sub["mz_diff_rel"] = np.abs(ms1_data_sub["mass_feature_mz"] - ms1_data_sub["mz"])/ms1_data_sub["mz"]
-            ms1_data_sub = ms1_data_sub[ms1_data_sub["mz_diff_rel"] < self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel].reset_index(drop=True)
+            ms1_data_sub["mz_diff_rel"] = (
+                np.abs(ms1_data_sub["mass_feature_mz"] - ms1_data_sub["mz"])
+                / ms1_data_sub["mz"]
+            )
+            ms1_data_sub = ms1_data_sub[
+                ms1_data_sub["mz_diff_rel"]
+                < self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel
+            ].reset_index(drop=True)
 
             # Group by mass_feature_mz and scan and sum intensity
-            ms1_data_sub_group = ms1_data_sub.groupby(["mass_feature_mz", "scan"])["intensity"].sum().reset_index()
+            ms1_data_sub_group = (
+                ms1_data_sub.groupby(["mass_feature_mz", "scan"])["intensity"]
+                .sum()
+                .reset_index()
+            )
 
             # Calculate the correlation of the intensities of the mass feature and the ms1 data (set to 0 if no intensity)
-            corr = ms1_data_sub_group.pivot(index="scan", columns="mass_feature_mz", values="intensity").fillna(0).corr()
+            corr = (
+                ms1_data_sub_group.pivot(
+                    index="scan", columns="mass_feature_mz", values="intensity"
+                )
+                .fillna(0)
+                .corr()
+            )
 
             # Subset the correlation matrix to only include the masses of the mass feature and those with a correlation > 0.8
             decon_corr_min = self.parameters.lc_ms.ms1_deconvolution_corr_min
             decon_corr_min = 0.9
-            corr_subset = corr.loc[mass_feature.mz, ]
+            corr_subset = corr.loc[mass_feature.mz,]
             corr_subset = corr_subset[corr_subset > decon_corr_min]
 
             # Get the masses from the mass spectrum that are the result of the deconvolution
             mzs_decon = corr_subset.index.values
 
             # Get the indices of the mzs_decon in mass_feature.mass_spectrum.mz_exp and assign to the mass feature
-            mzs_decon_idx = [id for id, mz in enumerate(mass_feature.mass_spectrum.mz_exp) if mz in mzs_decon]
+            mzs_decon_idx = [
+                id
+                for id, mz in enumerate(mass_feature.mass_spectrum.mz_exp)
+                if mz in mzs_decon
+            ]
             mass_feature._ms_deconvoluted_idx = mzs_decon_idx
 
             # Check if the mass feature's ms1 peak is the largest in the deconvoluted mass spectrum
-            if mass_feature.ms1_peak.abundance == mass_feature.mass_spectrum.abundance[mzs_decon_idx].max():
-                mass_feature.mass_spectrum_deconvoluted_parent = True 
+            if (
+                mass_feature.ms1_peak.abundance
+                == mass_feature.mass_spectrum.abundance[mzs_decon_idx].max()
+            ):
+                mass_feature.mass_spectrum_deconvoluted_parent = True
             else:
                 mass_feature.mass_spectrum_deconvoluted_parent = False
 
             # Check for other mass features that are in the deconvoluted mass spectrum and add the deconvoluted mass spectrum to the mass feature
             # Subset mass_feature_df to only include mass features that are within the clustering tolerance
-            mass_feature_df_sub = mass_feature_df[abs(mass_feature.retention_time - mass_feature_df["scan_time"]) < self.parameters.lc_ms.mass_feature_cluster_rt_tolerance].copy()
+            mass_feature_df_sub = mass_feature_df[
+                abs(mass_feature.retention_time - mass_feature_df["scan_time"])
+                < self.parameters.lc_ms.mass_feature_cluster_rt_tolerance
+            ].copy()
             # Calculate the mz difference in ppm between the mass feature and the peaks in the deconvoluted mass spectrum
-            mass_feature_df_sub["mz_diff_ppm"] = [np.abs(mzs_decon - mz).min()/mz*10**6 for mz in mass_feature_df_sub["mz"]]
+            mass_feature_df_sub["mz_diff_ppm"] = [
+                np.abs(mzs_decon - mz).min() / mz * 10**6
+                for mz in mass_feature_df_sub["mz"]
+            ]
             # Subset mass_feature_df to only include mass features that are within 1 ppm of the deconvoluted masses
-            mfs_associated_decon = mass_feature_df_sub[mass_feature_df_sub["mz_diff_ppm"] < self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel*10**6].index.values
+            mfs_associated_decon = mass_feature_df_sub[
+                mass_feature_df_sub["mz_diff_ppm"]
+                < self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel * 10**6
+            ].index.values
 
             mass_feature.associated_mass_features_deconvoluted = mfs_associated_decon
+
 
 class PHCalculations:
     """Methods for performing calculations related to 2D peak picking via persistent homology on LCMS data.
@@ -1287,21 +1380,25 @@ class PHCalculations:
         distances = distances.tocoo()
         pairs = np.stack((distances.row, distances.col), axis=1)
         pairs_df = pd.DataFrame(pairs, columns=["parent", "child"])
+        pairs_df = pairs_df.set_index("parent")
 
         to_drop = []
         while not pairs_df.empty:
-            pairs_df = pairs_df.set_index("parent")
-
             # Find root_parents and their children
-            root_parents = np.setdiff1d(np.unique(pairs[:, 0]), np.unique(pairs[:, 1]))
+            root_parents = np.setdiff1d(np.unique(pairs_df.index.values), np.unique(pairs_df.child.values))
             children_of_roots = pairs_df.loc[root_parents, "child"].unique()
             to_drop = np.append(to_drop, children_of_roots)
 
+            # Remove root_children as possible parents from pairs_df for next iteration
             pairs_df = pairs_df.drop(
                 index=children_of_roots, errors="ignore"
-            )  # Drop pairs where the parent is a child that is a child of a root
-            pairs_df = pairs_df.set_index("child")
+            )  
+            pairs_df = pairs_df.reset_index().set_index("child")
+            # Remove root_children as possible children from pairs_df for next iteration
             pairs_df = pairs_df.drop(index=children_of_roots)
+
+            # Prepare for next iteration
+            pairs_df = pairs_df.reset_index().set_index("parent")
 
         # Drop mass features that are not cluster parents
         mf_df = mf_df.drop(index=np.array(to_drop))

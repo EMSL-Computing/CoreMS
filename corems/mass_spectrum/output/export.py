@@ -296,7 +296,7 @@ class HighResMassSpecExport(Thread):
         # output = json.dumps(dict_data, sort_keys=True, indent=4, separators=(',', ': '))
         return df.to_json(orient='records')
 
-    def add_mass_spectrum_to_hdf5(self, hdf_handle, mass_spectrum, group_key, mass_spectra_group=None):
+    def add_mass_spectrum_to_hdf5(self, hdf_handle, mass_spectrum, group_key, mass_spectra_group=None, export_raw=True):
         """Adds the mass spectrum data to an HDF5 file.
         
         Parameters
@@ -309,6 +309,9 @@ class HighResMassSpecExport(Thread):
             The group key (where to add the mass spectrum data within the HDF5 file).
         mass_spectra_group : h5py.Group, optional
             The mass spectra group. Defaults to None (no group, mass spectrum is added to the root).
+        export_raw : bool, optional
+            Whether to export the raw data. Defaults to True. 
+            If False, only the processed data (peaks) is exported (essentially centroided data).
         """
         if mass_spectra_group is None:
 
@@ -345,7 +348,7 @@ class HighResMassSpecExport(Thread):
             scan_group = hdf_handle.create_group(group_key)
 
             # If there is raw data (from profile data) save it
-            if not mass_spectrum.is_centroid:
+            if not mass_spectrum.is_centroid and export_raw:
                 mz_abun_array = empty(
                     shape=(2, len(mass_spectrum.abundance_profile))
                 )
