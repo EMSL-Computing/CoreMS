@@ -1,0 +1,9 @@
+pyyaml
+nmdc-schema==11.0.0rc17
+requests
+requests-oauthlib
+pandas
+numpy
+linkml-runtime
+toml
+tqdm
