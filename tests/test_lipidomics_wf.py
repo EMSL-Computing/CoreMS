@@ -107,7 +107,7 @@ def test_lipidomics_workflow():
     # Use persistent homology to find mass features in the lc-ms data
     # Find mass features, cluster, and integrate them.  Then annotate pairs of mass features that are c13 iso pairs.
 
-    myLCMSobj.find_mass_features(verbose=False)
+    myLCMSobj.find_mass_features()
     myLCMSobj.add_associated_ms1(
         auto_process=True, use_parser=False, spectrum_mode="profile"
     )
