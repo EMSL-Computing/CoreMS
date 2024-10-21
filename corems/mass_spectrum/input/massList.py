@@ -2,6 +2,7 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
 import numpy as np
+import warnings
 
 from corems.encapsulation.constant import Atoms
 from corems.mass_spectrum.input.baseClass import MassListBaseClass
@@ -144,7 +145,7 @@ class ReadCoremsMasslist(MassListBaseClass):
                             elif atom_mono in Atoms.isotopes.keys():
                                 formula_list_parent[atom_mono] = formula_dict[atom]
                             else:
-                                print(f"Atom {atom} not in Atoms.atoms_order")
+                                warnings.warn(f"Atom {atom} not in Atoms.atoms_order")
                     mono_index = int(dataframe.iloc[df_index]['Mono Isotopic Index'])
                     mono_mfobj = MolecularFormula(
                         formula_list_parent, 

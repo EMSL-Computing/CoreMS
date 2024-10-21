@@ -6,6 +6,7 @@ import sys
 sys.path.append(".")  # Why?
 from pathlib import Path
 from threading import Thread
+import warnings
 from corems.mass_spectrum.input.massList import ReadCoremsMasslist
 from corems.mass_spectra.factory.lc_class import LCMSBase
 
@@ -87,7 +88,7 @@ class ReadCoremsMassSpectraText(ReadCoremsMasslist, Thread):
             elif file_path_obj.suffix == ".txt":
                 self.data_type == "txt"
                 self.delimiter = "\t"
-                print("WARNING using tab as delimiter")
+                warnings.warn("using tab as delimiter")
             else:
                 raise NotImplementedError(
                     "%s data not yet supported " % file_path_obj.suffix
@@ -133,15 +134,3 @@ class ReadCoremsMassSpectraText(ReadCoremsMasslist, Thread):
         else:
             raise Exception("returning an empty lcms class")
 
-
-if __name__ == "__main__":
-    file_location = Path.cwd() / "NEG_ESI_SRFA_CoreMS.corems"
-
-    all_other = file_location.glob("*_scan*[!.json]")
-
-    all_json = file_location.glob("*_scan*.json")
-
-    names_scans = [filename.stem.split("scan") for filename in all_other]
-
-    print(names_scans[0])
-    # names_scans.sort(key=lambda m: int(m[1]))

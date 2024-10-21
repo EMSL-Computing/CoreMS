@@ -52,13 +52,13 @@ class LCCalculations:
         Finds the nearest scan to the given retention time.
     * get_average_mass_spectrum(scan_list, apex_scan, spectrum_mode="profile", ms_level=1, auto_process=True, use_parser=False, perform_checks=True, polarity=None).
         Returns an averaged mass spectrum object.
-    * find_mass_features(ms_level=1, verbose=True).
+    * find_mass_features(ms_level=1).
         Find regions of interest for a given MS level (default is MS1).
     * integrate_mass_features(drop_if_fail=False, ms_level=1).
         Integrate mass features of interest and extracts EICs.
-    * find_c13_mass_features(verbose=True).
+    * find_c13_mass_features().
         Evaluate mass features and mark likely C13 isotopes.
-    * deconvolute_ms1_mass_features(verbose=True).
+    * deconvolute_ms1_mass_features().
         Deconvolute mass features' ms1 mass spectra.
     """
 
@@ -299,7 +299,7 @@ class LCCalculations:
             my_ms_df = pd.concat(my_ms_df)
 
         if not self.check_if_grid(my_ms_df):
-            my_ms_df = self.grid_data(my_ms_df, verbose=False)
+            my_ms_df = self.grid_data(my_ms_df)
 
         my_ms_ave = my_ms_df.groupby("mz")["intensity"].sum().reset_index()
 
@@ -325,8 +325,8 @@ class LCCalculations:
             if auto_process:
                 ms.process_mass_spec()
         return ms
-
-    def find_mass_features(self, ms_level=1, verbose=True, grid=True):
+    
+    def find_mass_features(self, ms_level=1, grid=True):
         """Find mass features within an LCMSBase object
 
         Note that this is a wrapper function that calls the find_mass_features_ph function, but can be extended to support other peak picking methods in the future.
@@ -335,8 +335,6 @@ class LCCalculations:
         ----------
         ms_level : int, optional
             The MS level to use for peak picking Default is 1.
-        verbose : bool, optional
-            Whether to print progress messages. Default is True.
         grid : bool, optional
             If True, will regrid the data before running the persistent homology calculations (after checking if the data is gridded, used for persistent homology peak picking. Default is True.
 
@@ -359,10 +357,10 @@ class LCCalculations:
             msx_scan_df = self.scan_df[self.scan_df["ms_level"] == ms_level]
             if all(msx_scan_df["ms_format"] == "profile"):
                 self.find_mass_features_ph(
-                    ms_level=ms_level, verbose=verbose, grid=grid
+                    ms_level=ms_level, grid=grid
                 )
                 self.cluster_mass_features(
-                    drop_children=True, sort_by="persistence", verbose=verbose
+                    drop_children=True, sort_by="persistence"
                 )
             else:
                 raise ValueError(
@@ -522,13 +520,8 @@ class LCCalculations:
 
     
 
-    def find_c13_mass_features(self, verbose=True):
+    def find_c13_mass_features(self):
         """Mark likely C13 isotopes and connect to monoisoitopic mass features.
-
-        Parameters
-        ----------
-        verbose : bool, optional
-            Flag indicating whether to print the percentage of mass features that can be connected  back to monoisotopic masses (default is True).
 
         Returns
         -------
@@ -539,6 +532,7 @@ class LCCalculations:
         ValueError
             If no mass features are found.
         """
+        verbose = self.parameters.lc_ms.verbose_processing
         if verbose:
             print("evaluating mass features for C13 isotopes")
         if self.mass_features is None:
@@ -826,11 +820,11 @@ class PHCalculations:
         Sparse implementation of an upper star filtration.
     * check_if_grid(data).
         Check if the data is gridded in mz space.
-    * grid_data(data, verbose=True).
+    * grid_data(data).
         Grid the data in the mz dimension.
-    * find_mass_features_ph(ms_level=1, verbose=True, grid=True).
+    * find_mass_features_ph(ms_level=1, grid=True).
         Find mass features within an LCMSBase object using persistent homology.
-    * cluster_mass_features(drop_children=True, verbose=True).
+    * cluster_mass_features(drop_children=True).
         Cluster regions of interest.
     """
 
@@ -1074,7 +1068,7 @@ class PHCalculations:
         else:
             return True
 
-    def grid_data(self, data, verbose=True):
+    def grid_data(self, data):
         """Grid the data in the mz dimension.
 
         Data must be gridded prior to persistent homology calculations.
@@ -1083,8 +1077,6 @@ class PHCalculations:
         ----------
         data : DataFrame
             The input data containing mz, scan, scan_time, and intensity columns.
-        verbose : bool, optional
-            If True, print gridding progress. Defaults to True.
 
         Returns
         -------
@@ -1096,8 +1088,6 @@ class PHCalculations:
         ValueError
             If gridding fails.
         """
-        if verbose:
-            print("gridding data")
 
         # Calculate the difference between consecutive mz values in a single scan for grid spacing
         data_w = data.copy().reset_index(drop=True)
@@ -1162,7 +1152,7 @@ class PHCalculations:
         else:
             raise ValueError("Gridding failed")
 
-    def find_mass_features_ph(self, ms_level=1, verbose=True, grid=True):
+    def find_mass_features_ph(self, ms_level=1, grid=True):
         """Find mass features within an LCMSBase object using persistent homology.
 
         Assigns the mass_features attribute to the object (a dictionary of LCMSMassFeature objects, keyed by mass feature id)
@@ -1171,8 +1161,6 @@ class PHCalculations:
         ----------
         ms_level : int, optional
             The MS level to use. Default is 1.
-        verbose : bool, optional
-            Whether to print progress messages. Default is True.
         grid : bool, optional
             If True, will regrid the data before running the persistent homology calculations (after checking if the data is gridded). Default is True.
 
@@ -1204,8 +1192,6 @@ class PHCalculations:
         # Drop rows with missing intensity values and reset index
         data = data.dropna(subset=["intensity"]).reset_index(drop=True)
 
-        if verbose:
-            print("finding mass features using persistent homology")
 
         # Threshold data
         dims = ["mz", "scan_time"]
@@ -1220,7 +1206,7 @@ class PHCalculations:
                     "Data are not gridded in mz dimension, try reprocessing with a different params or grid data before running this function"
                 )
             else:
-                data_thres = self.grid_data(data_thres, verbose=verbose)
+                data_thres = self.grid_data(data_thres)
 
         # Add build factors and add scan_time
         data_thres = data_thres.merge(self.scan_df[["scan", "scan_time"]], on="scan")
@@ -1300,11 +1286,11 @@ class PHCalculations:
             lcms_feature = LCMSMassFeature(self, **row_dict)
             self.mass_features[lcms_feature.id] = lcms_feature
 
-        if verbose:
-            print("found " + str(len(mass_features)) + " initial mass features")
+        if self.parameters.lc_ms.verbose_processing:
+            print("Found " + str(len(mass_features)) + " initial mass features")
 
     def cluster_mass_features(
-        self, drop_children=True, sort_by="persistence", verbose=True
+        self, drop_children=True, sort_by="persistence"
     ):
         """Cluster mass features
 
@@ -1316,8 +1302,6 @@ class PHCalculations:
             Whether to drop the mass features that are not cluster parents. Default is True.
         sort_by : str, optional
             The column to sort the mass features by, this will determine which mass features get rolled up into a parent mass feature. Default is "persistence".
-        verbose : bool, optional
-            Whether to print progress messages. Default is True.
 
         Raises
         ------
@@ -1329,8 +1313,8 @@ class PHCalculations:
         -------
         None if drop_children is True, otherwise returns a list of mass feature ids that are not cluster parents.
         """
-        if verbose:
-            print("clustering mass features")
+        verbose = self.parameters.lc_ms.verbose_processing
+
         if self.mass_features is None:
             raise ValueError("No mass features found, run find_mass_features() first")
         if len(self.mass_features) > 400000:

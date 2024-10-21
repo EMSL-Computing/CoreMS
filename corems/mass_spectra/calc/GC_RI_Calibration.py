@@ -25,8 +25,8 @@ def get_rt_ri_pairs(gcms_ref_obj, sql_obj=None):
             else:
                 
                 dict_ri_rt[compound_obj.ri].append((gcms_peak.mass_spectrum.retention_time, compound_obj))
-            
-            print(compound_obj.name, gcms_peak.mass_spectrum.retention_time, compound_obj.spectral_similarity_score)
+            if gcms_ref_obj.parameters.gc_ms.verbose_processing:
+                print(compound_obj.name, gcms_peak.mass_spectrum.retention_time, compound_obj.spectral_similarity_score)
     
     ris = [i for i in  dict_ri_rt.keys()]
     rts = [max(i, key = lambda c: c[1].spectral_similarity_score)[0] for i in dict_ri_rt.values()]

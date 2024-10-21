@@ -528,7 +528,7 @@ class ThermoBaseClass:
         elif trace_type == 'BPC':
             settings = ChromatogramTraceSettings(TraceType.BasePeak)
         else:
-            print(f'{trace_type} undefined')
+            raise ValueError(f'{trace_type} undefined')
         if ms_type == "all":
             settings.Filter = None
         else:
@@ -915,9 +915,9 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
         Parses the RAW file and returns a dictionary of mass spectra dataframes and a scan metadata dataframe.
     * get_mass_spectrum_from_scan(scan_number, polarity, auto_process=True)
         Parses the RAW file and returns a MassSpecBase object from a single scan.
-    * get_mass_spectra_obj(verbose=True).
+    * get_mass_spectra_obj().
         Parses the RAW file and instantiates a MassSpectraBase object.
-    * get_lcms_obj(verbose=True).
+    * get_lcms_obj().
         Parses the RAW file and instantiates an LCMSBase object.
     * get_icr_transient_times().
         Return a list for transient time targets for all scans, or selected scans range
@@ -1245,21 +1245,14 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
 
         return mass_spectrum_obj
 
-    def get_mass_spectra_obj(self, verbose=True):
+    def get_mass_spectra_obj(self):
         """Instatiate a MassSpectraBase object from the binary data file file.
-
-        Parameters
-        ----------
-        verbose : bool, optional
-            If True, print progress messages. Default is True.
 
         Returns
         -------
         MassSpectraBase
             The MassSpectra object containing the parsed mass spectra.  The object is instatiated with the mzML file, analyzer, instrument, sample name, and scan dataframe.
         """
-        if verbose:
-            print("Parsing MassSpectra object from raw file")
         _, scan_df = self.run(spectra="none")
         mass_spectra_obj = MassSpectraBase(
             self.file_location,
@@ -1273,7 +1266,7 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
 
         return mass_spectra_obj
 
-    def get_lcms_obj(self, verbose=True, spectra="all"):
+    def get_lcms_obj(self, spectra="all"):
         """Instatiates a LCMSBase object from the mzML file.
 
         Parameters
@@ -1288,8 +1281,6 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
         LCMSBase
             LCMS object containing mass spectra data. The object is instatiated with the file location, analyzer, instrument, sample name, scan info, mz dataframe (as specifified), polarity, as well as the attributes holding the scans, retention times, and tics.
         """
-        if verbose:
-            print("Parsing LCMS object from raw file")
         _, scan_df = self.run(spectra="none")  # first run it to just get scan info
         res, scan_df = self.run(
             scan_df=scan_df, spectra=spectra
