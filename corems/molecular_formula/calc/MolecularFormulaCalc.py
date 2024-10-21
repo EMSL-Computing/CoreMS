@@ -3,6 +3,7 @@ __date__ = "Jun 24, 2019"
 
 
 from numpy import isnan, power, exp, nextafter, array
+import warnings
 from pandas import DataFrame
 from scipy.stats import pearsonr, spearmanr, kendalltau
 
@@ -21,8 +22,7 @@ if version.parse(isospec_version) > version.parse('2.0.2'):
 else: legacy_isospec = True
 if legacy_isospec:
     from IsoSpecPy import IsoSpecPy
-    print(f"IsoSpecPy version {isospec_version} is installed, and support is deprecated. Please update to 2.2.2")
-
+    warnings.warn(f"IsoSpecPy version {isospec_version} is installed, and support is deprecated. Please update to 2.2.2", DeprecationWarning)
 
 class MolecularFormulaCalc:
     """Class of calculations related to molecular formula
@@ -516,6 +516,106 @@ class MolecularFormulaCalc:
         else:
             
             raise Exception("Please calc_isotopologues")    
+
+    def _calc_aromaticity_index_mod(self):
+        """Calculate the modified aromaticity index of the molecular formula.
+        
+        Returns
+        -------
+        float
+            The aromaticity index of the molecular formula.
+
+        Notes
+        -----
+        Source Koch and Dittmar, 2006 https://doi.org/10.1002/rcm.2386
+        corrected in https://doi.org/10.1002/rcm.7433
+        """
+        # Prepare empty dictionary to store the number of atoms of each element
+        ai_es = {'C':0, 'H':0, 'O':0, 'N':0, 'S':0}
+
+        # Count the number of atoms of each element in the molecular formula, inclusive of isotopes
+        for element in ai_es:
+            elements_w_iso = [element] + Atoms.isotopes.get(element)[1]
+            for element_w_iso in elements_w_iso:
+                if element_w_iso in self._d_molecular_formula:
+                    ai_es[element] += self._d_molecular_formula[element_w_iso]
+        
+        ai_n = 1 + ai_es['C'] - (0.5 * ai_es['O']) - ai_es['S'] - (0.5 * (ai_es['N'] + ai_es['H']))
+        ai_d = ai_es['C'] - (0.5 * ai_es['O']) - ai_es['N'] - ai_es['S']
+
+        ai = ai_n/ai_d
+
+        if ai < 0:
+            ai = 0
+        if ai > 1:
+            ai = 1
+
+        return ai
+    
+    def _calc_aromaticity_index(self):
+        """Calculate the aromaticity index of the molecular formula.
+        
+        Returns
+        -------
+        float
+            The aromaticity index of the molecular formula.
+
+        Notes
+        -----
+        Source Koch and Dittmar, 2006 https://doi.org/10.1002/rcm.2386
+        corrected in https://doi.org/10.1002/rcm.7433
+        """
+        # Prepare empty dictionary to store the number of atoms of each element
+        ai_es = {'C':0, 'H':0, 'O':0, 'N':0, 'S':0}
+
+        # Count the number of atoms of each element in the molecular formula, inclusive of isotopes
+        for element in ai_es:
+            elements_w_iso = [element] + Atoms.isotopes.get(element)[1]
+            for element_w_iso in elements_w_iso:
+                if element_w_iso in self._d_molecular_formula:
+                    ai_es[element] += self._d_molecular_formula[element_w_iso]
+        
+                ai_n = 1 + ai_es['C'] - (ai_es['O']) - ai_es['S'] - (0.5 * (ai_es['N'] + ai_es['H']))
+        ai_d = ai_es['C'] - (ai_es['O']) - ai_es['N'] - ai_es['S']
+
+        ai = ai_n/ai_d
+
+        if ai < 0:
+            ai = 0
+        if ai > 1:
+            ai = 1
+
+        return ai
+        
+    def _calc_nosc(self):
+        """Calculate the average nominal oxidation state of carbon
+        
+        Returns
+        -------
+        float
+            The average nominal oxidation state of carbon
+
+        Notes
+        -----
+        Source LaRowe and Van Cappellen, 2011 https://doi.org/10.1016/j.gca.2011.01.020
+        """
+        # Prepare empty dictionary to store the number of atoms of each element
+        nosc_es = {'C':0, 'H':0, 'O':0, 'N':0, 'S':0, 'P':0}
+
+        # Count the number of atoms of each element in the molecular formula, inclusive of isotopes
+        for element in nosc_es:
+            elements_w_iso = [element] + Atoms.isotopes.get(element)[1]
+            for element_w_iso in elements_w_iso:
+                if element_w_iso in self._d_molecular_formula:
+                    nosc_es[element] += self._d_molecular_formula[element_w_iso]
+    
+        nosc = -( (4 * nosc_es['C'] + nosc_es['H'] - 3 * nosc_es['N'] - 2 * nosc_es['O'] + 5 * nosc_es['P'] - 2 * nosc_es['S']) / nosc_es['C']) + 4
+
+        # If nosc is infinite or negative infinity, set it to nan
+        if nosc == float('inf') or nosc == float('-inf'):
+            nosc = float('nan')
+
+        return nosc
 
     @property
     def dbe_ai(self):

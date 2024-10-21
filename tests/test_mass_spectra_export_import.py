@@ -49,9 +49,9 @@ def test_mass_spec_export_import_with_annote():
     mass_spectrum_obj = prep_mass_spec_obj()
     mass_spectrum_obj.parameters.molecular_search.url_database = ""
     mass_spectrum_obj = run_molecular_formula_search(mass_spectrum_obj)
-    ms_df1 = mass_spectrum_obj.to_dataframe()
+    ms_df1 = mass_spectrum_obj.to_dataframe(additional_columns = ['Aromaticity Index', 'NOSC', 'Aromaticity Index (modified)'])
     assert mass_spectrum_obj[0][0].string == "C56 H73 N1"
-    assert ms_df1.shape == (2, 26)
+    assert ms_df1.shape == (2, 29)
     assert mass_spectrum_obj[1][0].string == "C55 H73 N1 13C1"
     assert mass_spectrum_obj._mz_exp[0] == 760.58156938877
 

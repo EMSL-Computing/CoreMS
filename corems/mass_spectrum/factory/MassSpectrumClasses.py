@@ -1151,8 +1151,14 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         exportMS = HighResMassSpecExport(out_file_path, self)
         exportMS.to_pandas(write_metadata=write_metadata)
 
-    def to_dataframe(self,):
+    def to_dataframe(self, additional_columns=None):
         """Return the mass spectrum as a Pandas dataframe.
+
+        Parameters
+        ----------
+        additional_columns : list, optional
+            A list of additional columns to include in the dataframe. Defaults to None.
+            Suitable columns are: "Aromaticity Index", "Aromaticity Index (modified)", and "NOSC"
         
         Returns
         -------
@@ -1161,7 +1167,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         """
         from corems.mass_spectrum.output.export import HighResMassSpecExport
         exportMS = HighResMassSpecExport(self.filename, self)
-        return exportMS.get_pandas_df()
+        return exportMS.get_pandas_df(additional_columns = additional_columns)
 
     def to_json(self):
         """Return the mass spectrum as a JSON file."""
@@ -1506,10 +1512,15 @@ class MassSpecCentroid(MassSpecBase):
             s2n_present = False
         if s2n_present and list(data_dict.get(Labels.s2n)) == [None]*len(data_dict.get(Labels.s2n)):
             s2n_present = False
+        
+        # Warning if no s2n data but noise thresholding is set to signal_noise
+        if not s2n_present and self.parameters.mass_spectrum.noise_threshold_method == 'signal_noise':
+            raise Exception("Signal to Noise data is missing for noise thresholding")
 
         # Pull out abundance data        
         abun = array(data_dict.get(Labels.abundance)).astype(float)
         
+        # Get the threshold for filtering if using minima, relative, or absolute abundance thresholding
         abundance_threshold, factor = self.get_threshold(abun)
         
         # Set rp_i and s2n_i to None which will be overwritten if present
@@ -1528,9 +1539,19 @@ class MassSpecCentroid(MassSpecBase):
 
             # centroid peak does not have start and end peak index pos
             massspec_indexes = (index, index, index)
-                           
-            if abun[index]/factor >= abundance_threshold:
 
+            # Add peaks based on the noise thresholding method
+            if self.parameters.mass_spectrum.noise_threshold_method in ['minima', 'relative_abundance', 'absolute_abundance'] and abun[index]/factor >= abundance_threshold:             
+                self.add_mspeak(
+                    ion_charge,
+                    mz,
+                    abun[index],
+                    rp_i,
+                    s2n_i,
+                    massspec_indexes,
+                    ms_parent=self
+                )
+            if self.parameters.mass_spectrum.noise_threshold_method == 'signal_noise' and s2n_i >= self.parameters.mass_spectrum.noise_threshold_min_s2n:
                 self.add_mspeak(
                     ion_charge,
                     mz,

@@ -173,6 +173,8 @@ class LiquidChromatographSetting:
         If True, prepare the database for lipid searching. Called within the LCMSSpectralSearch.fe_prep_search_db() method. Default is False.
     include_fragment_types : bool, optional
         If True, include fragment types in the database. Called within the LCMSSpectralSearch.fe_search() and related methods. Default is False.
+    verbose_processing : bool, optional
+        If True, print verbose processing information. Default is True.
     """
     scans: list | tuple = (-1,-1)
 
@@ -223,6 +225,9 @@ class LiquidChromatographSetting:
     export_profile_spectra: bool = False
     export_eics: bool = True
     export_unprocessed_ms1: bool = False
+
+    # Parameters used for verbose processing
+    verbose_processing: bool = True
 
     def __post_init__(self):
         # enforce datatype
@@ -283,7 +288,9 @@ class MassSpectrumSetting:
     calibration_ref_match_tolerance: float, optional
         If using the new method for calibration reference mass matching, this tolerance is the initial matching tolerance. Default is 0.003
     do_calibration : bool, optional
-        If True, perform calibration. Default is True.    
+        If True, perform calibration. Default is True.
+    verbose_processing : bool, optional
+        If True, print verbose processing information. Default is True.    
     """
     noise_threshold_method: str = 'log'
 
@@ -324,6 +331,7 @@ class MassSpectrumSetting:
     #calib_ref_mzs: list = [0]
 
     do_calibration: bool = True
+    verbose_processing: bool = True
 
     def __post_init__(self):
         # enforce datatype
@@ -451,6 +459,8 @@ class GasChromatographSetting:
         0-100 % used for extracted ion chromatogram peak detection. Default is 0.01.
     max_rt_distance : float, optional
         Maximum distance allowance for hierarchical cluster, in minutes. Default is 0.025.
+    verbose_processing : bool, optional
+        If True, print verbose processing information. Default is True.
     """
     use_deconvolution: bool = False
 
@@ -486,6 +496,8 @@ class GasChromatographSetting:
     eic_signal_threshold: float = 0.01  # 0-100 % used for extracted ion chromatogram peak detection
 
     max_rt_distance: float = 0.025  # minutes, max distance allowance hierarchical clutter
+
+    verbose_processing: bool = True
 
     def __post_init__(self):
 
@@ -594,14 +606,6 @@ class MolecularLookupDictSettings:
         If True, search for radical ions. Default is True.
     isProtonated : bool, optional
         If True, search for protonated ions. Default is True.
-    min_op_filter : float, optional
-        Minimum oxygen to phosphorous ratio. Default is 2.
-    min_hc_filter : float, optional
-        Minimum hydrogen to carbon ratio. Default is 0.3.
-    min_oc_filter : float, optional
-        Minimum oxygen to carbon ratio. Default is 1.2.
-    max_oc_filter : float, optional
-        Maximum oxygen to carbon ratio. Default is 0.0.
     url_database : str, optional
         URL for the database. Default is None.
     db_jobs : int, optional
@@ -647,14 +651,6 @@ class MolecularLookupDictSettings:
         self.isRadical = True
 
         self.isProtonated = True
-
-        self.min_op_filter = 2
-
-        self.min_hc_filter = 0.3
-
-        self.min_oc_filter = 1.2
-
-        self.max_oc_filter = 0.0
 
         self.url_database = None
 

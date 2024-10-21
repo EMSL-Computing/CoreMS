@@ -146,7 +146,7 @@ class MZSearch(Thread):
                     
                     if i == len(self.calculated_mzs)-1:
                         start_list.add(i)
-                        print(i, 'break3')
+                        #print(i, 'break3')
                         break
 
                     
