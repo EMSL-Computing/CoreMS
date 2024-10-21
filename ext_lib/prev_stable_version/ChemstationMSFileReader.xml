@@ -1,0 +1,126 @@
+﻿<?xml version="1.0"?>
+<doc>
+<assembly>
+<name>
+ChemstationMSFileReader
+</name>
+</assembly>
+<members>
+<member name="M:ChemstationMSFileReader.clsChemstationDataMSFileReader.#ctor(System.String)">
+	<summary>
+ Open the specified data file and read the data headers
+ </summary>
+	<param name="sDatafilePath">Path to the file to read</param>
+	<remarks></remarks>
+</member><member name="M:ChemstationMSFileReader.clsChemstationDataMSFileReader.GetSpectrum(System.Int32,ChemstationMSFileReader.clsSpectralRecord@,System.Int32@)">
+	<summary>
+  Returns the mass spectrum at the specified index
+ </summary>
+	<param name="intSpectrumIndex">0-based spectrum index</param>
+	<param name="oSpectrum">Spectrum object (output)</param>
+	<param name="intTotalSignalRawFromIndex">TIC value as reported by the Index; this value has been scaled down by some sort of polynomial transformation</param>
+	<returns>True if success, false if an error</returns>
+</member><member name="M:ChemstationMSFileReader.clsChemstationDataMSFileReader.ReadHeaders(System.String)">
+	<summary>
+ Open the data file and read the header sections from the data file
+ </summary>
+	<param name="sDataFilePath">Path to the file to read</param>
+	<returns>True if success, false if an error</returns>
+	<remarks>The file handle will remain open until this class is disposed of</remarks>
+</member><member name="M:ChemstationMSFileReader.clsChemstationDataMSFileReader.ReadIndexRecords(System.IO.FileStream@)">
+	<summary>
+ Reads the index entries (aka directory records)
+ </summary>
+	<param name="fsDatafile"></param>
+	<returns>True if success, false if an error</returns>
+</member><member name="M:ChemstationMSFileReader.clsChemstationDataMSFileReader.ReadNormalizationRecords(System.IO.FileStream@)">
+	<summary>
+ Reads the 10 normalization records from the data file
+ </summary>
+	<param name="fsDatafile"></param>
+	<returns>True if success, false if an error</returns>
+</member><member name="M:ChemstationMSFileReader.clsSpectralRecord.#ctor">
+	<summary>
+ Instantiate a new spectrum object
+ </summary>
+	<remarks></remarks>
+</member><member name="M:ChemstationMSFileReader.clsSpectralRecord.#ctor(System.IO.FileStream@,System.Int32)">
+	<summary>
+ Populate a spectrum object with the data at the specified byte offset
+ </summary>
+</member><member name="M:ChemstationMSFileReader.clsSpectralRecord.Clear">
+	<summary>
+ Initialize the variables and data structures
+ </summary>
+	<remarks></remarks>
+</member><member name="M:ChemstationMSFileReader.clsSpectralRecord.ReadFromFile(System.IO.FileStream@,System.Int32)">
+	<summary>
+ Read the spectrum at the specified byte offset
+ </summary>
+	<param name="fsDatafile"></param>
+	<param name="intByteOffsetStart"></param>
+	<remarks></remarks>
+</member><member name="M:ChemstationMSFileReader.clsSpectralRecord.ReadPackedAbundance(System.IO.FileStream@)">
+	<summary>
+ Read packed abundance stored as 2-bit scale with 14 bit mantissa
+ </summary>
+	<param name="fs">FileStream object</param>
+	<returns>Unpacked abundance</returns>
+</member><member name="M:ChemstationMSFileReader.clsByteConverter.ReadInt16SwapBytes(System.IO.FileStream@)">
+	<summary>
+ Reads an Int16 from the filestream
+ Swaps bytes prior to converting
+ </summary>
+	<param name="fs">FileStream object</param>
+	<returns>The value, as an Int16 number</returns>
+</member><member name="M:ChemstationMSFileReader.clsByteConverter.ReadUInt16SwapBytes(System.IO.FileStream@)">
+	<summary>
+ Reads an UInt16 from the filestream
+ Swaps bytes prior to converting
+ </summary>
+	<param name="fs">FileStream object</param>
+	<returns>The value, as an Int32 number</returns>
+</member><member name="M:ChemstationMSFileReader.clsByteConverter.ReadInt32SwapBytes(System.IO.FileStream@)">
+	<summary>
+ Reads an Int32 from the filestream
+ Swaps bytes prior to converting
+ </summary>
+	<param name="fs">FileStream object</param>
+	<returns>The value, as an Int32 number</returns>
+</member><member name="M:ChemstationMSFileReader.clsByteConverter.ReadSingleSwapBytes(System.IO.FileStream@)">
+	<summary>
+ Reads a 4-byte single (real) from the filestream
+ Swaps bytes prior to converting
+ </summary>
+	<param name="fs">FileStream object</param>
+	<returns>The value, as a single-precision number</returns>
+</member><member name="M:ChemstationMSFileReader.clsByteConverter.ReadString(System.IO.FileStream@,System.Int32,System.Boolean)">
+	<summary>
+ Reads a fixed-length string from the filestream
+ Optionally advances the reader one byte after reading the string
+ </summary>
+	<param name="fs">FileStream object</param>
+	<param name="iStringLength">String length</param>
+	<param name="bAdvanceExtraByte">If true, then advances the read an extra byte after reading the string</param>
+	<returns>The string read</returns>
+</member><member name="M:ChemstationMSFileReader.clsByteConverter.WordOffsetToBytes(System.Int32)">
+	<summary>
+ Convert byte-offset stored in words into bytes
+ </summary>
+	<param name="iOffsetWords"></param>
+	<returns>The byte offset, in bytes</returns>
+</member><member name="M:ChemstationMSFileReader.clsDataHeader.#ctor(System.IO.FileStream@)">
+	<summary>
+ Read header from the specified file
+ </summary>
+	<param name="fsDatafile"></param>
+	<remarks></remarks>
+</member><member name="M:ChemstationMSFileReader.clsDataHeader.ReadFromFile(System.IO.FileStream@)">
+	<summary>
+ Read header from the specified file
+ </summary>
+	<param name="fs">Input file stream</param>
+	<returns>True if success, false if an error</returns>
+</member>
+</members>
+</doc>
