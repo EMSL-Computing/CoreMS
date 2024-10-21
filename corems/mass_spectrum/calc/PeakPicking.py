@@ -409,7 +409,7 @@ class PeakPicking:
             else:
                 peak_height_minus = intes[index_minus]
 
-        if self.mspeaks_settings.centroid_legacy_polyfit:
+        if self.mspeaks_settings.legacy_centroid_polyfit:
             x = [ massa[index_minus],  massa[index_minus+1]]
             y = [ intes[index_minus],  intes[index_minus+1]]
             coefficients = polyfit(x, y, 1)
@@ -440,7 +440,7 @@ class PeakPicking:
                 peak_height_plus = target_peak_height
                 index_plus = current_index 
 
-        if self.mspeaks_settings.centroid_legacy_polyfit:
+        if self.mspeaks_settings.legacy_centroid_polyfit:
             x = [massa[index_plus],  massa[index_plus - 1]]
             y = [intes[index_plus],  intes[index_plus - 1]]
             coefficients = polyfit(x, y, 1)
@@ -696,7 +696,7 @@ class PeakPicking:
         list_mass = [mass[current_index - 1], mass[current_index], mass[current_index +1]]
         list_y = [abund[current_index - 1],abund[current_index], abund[current_index +1]]
         
-        if self.mspeaks_settings.centroid_legacy_polyfit:
+        if self.mspeaks_settings.legacy_centroid_polyfit:
             z = polyfit(list_mass, list_y, 2)
             a = z[0]
             b = z[1]
@@ -718,7 +718,7 @@ class PeakPicking:
             
             # fit parabola to three most abundant frequency datapoints
             list_freq = [freq[current_index - 1], freq[current_index], freq[current_index +1]]
-            if self.mspeaks_settings.centroid_legacy_polyfit:
+            if self.mspeaks_settings.legacy_centroid_polyfit:
                 z = polyfit(list_mass, list_y, 2)
                 a = z[0]
                 b = z[1]
@@ -736,7 +736,7 @@ class PeakPicking:
         else:
                 freq_centr = None
 
-        if self.mspeaks_settings.centroid_legacy_polyfit:
+        if self.mspeaks_settings.legacy_centroid_polyfit:
             abundance_centroid = abund[current_index]
         else: 
             abundance_centroid = a*mz_exp_centroid**2 + b*mz_exp_centroid + c

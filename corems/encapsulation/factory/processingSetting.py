@@ -370,7 +370,7 @@ class MassSpecPeakSetting:
     legacy_resolving_power : bool, optional
         Flag indicating whether to use the legacy (CoreMS v1) resolving power calculation.
         Defaults to True.
-    centroid_legacy_polyfit : bool, optional
+    legacy_centroid_polyfit : bool, optional
         Use legacy (numpy polyfit) to fit centroid
         Default false.
     """
@@ -392,9 +392,8 @@ class MassSpecPeakSetting:
     peak_height_max_percent: float = 10  # 1-100 % used for baseline detection
 
     legacy_resolving_power: bool = True # Use the legacy (CoreMS v1) resolving power calculation (True)
-    # TODO revisit this default
 
-    centroid_legacy_polyfit: bool = False
+    legacy_centroid_polyfit: bool = False
 
     def __post_init__(self):
 
