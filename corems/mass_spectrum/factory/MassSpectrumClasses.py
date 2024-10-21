@@ -1151,8 +1151,14 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         exportMS = HighResMassSpecExport(out_file_path, self)
         exportMS.to_pandas(write_metadata=write_metadata)
 
-    def to_dataframe(self,):
+    def to_dataframe(self, additional_columns=None):
         """Return the mass spectrum as a Pandas dataframe.
+
+        Parameters
+        ----------
+        additional_columns : list, optional
+            A list of additional columns to include in the dataframe. Defaults to None.
+            Suitable columns are: "Aromaticity Index", "Aromaticity Index (modified)", and "NOSC"
         
         Returns
         -------
@@ -1161,7 +1167,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         """
         from corems.mass_spectrum.output.export import HighResMassSpecExport
         exportMS = HighResMassSpecExport(self.filename, self)
-        return exportMS.get_pandas_df()
+        return exportMS.get_pandas_df(additional_columns = additional_columns)
 
     def to_json(self):
         """Return the mass spectrum as a JSON file."""

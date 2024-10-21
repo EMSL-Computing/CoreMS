@@ -601,14 +601,6 @@ class MolecularLookupDictSettings:
         If True, search for radical ions. Default is True.
     isProtonated : bool, optional
         If True, search for protonated ions. Default is True.
-    min_op_filter : float, optional
-        Minimum oxygen to phosphorous ratio. Default is 2.
-    min_hc_filter : float, optional
-        Minimum hydrogen to carbon ratio. Default is 0.3.
-    min_oc_filter : float, optional
-        Minimum oxygen to carbon ratio. Default is 1.2.
-    max_oc_filter : float, optional
-        Maximum oxygen to carbon ratio. Default is 0.0.
     url_database : str, optional
         URL for the database. Default is None.
     db_jobs : int, optional
@@ -654,14 +646,6 @@ class MolecularLookupDictSettings:
         self.isRadical = True
 
         self.isProtonated = True
-
-        self.min_op_filter = 2
-
-        self.min_hc_filter = 0.3
-
-        self.min_oc_filter = 1.2
-
-        self.max_oc_filter = 0.0
 
         self.url_database = None
 
