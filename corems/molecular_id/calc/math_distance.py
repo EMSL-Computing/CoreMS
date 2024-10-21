@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.stats
+import warnings
 """ Collection of spectral similarity methods.
 
 Based on  Yuanyue Li code at https://github.com/YuanyueLi/SpectralEntropy/blob/master/spectral_entropy/math_distance.py 
@@ -217,7 +218,7 @@ def bhattacharya_1_distance(v, y):
     # TODO:Fix this!
     if s > 1:
         if s > 1 + 1e-6:
-            print("Error in calculating Bhattacharya 1 distance, got arccos {}".format(s))
+            warnings.warn("Error in calculating Bhattacharya 1 distance, got arccos {}".format(s))
         s = 1
     return np.power(np.arccos(s), 2)
 

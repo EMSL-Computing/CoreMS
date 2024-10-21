@@ -212,7 +212,8 @@ class HighResRecalibration:
         # Here we say at least 5 features assigned are needed - it probably should be greater, but we are just trying to stop it breaking the code
         # We want to make sure the spectrum is capture in the database though - so we return the stats entries (0 assignments) and the number of assignments
         if nassign <5:
-            print("fewer than 5 peaks assigned, cannot determine error range")
+            if self.mass_spectrum.parameters.mass_spectrum.verbose_processing:
+                print("fewer than 5 peaks assigned, cannot determine error range")
             return np.nan,np.nan,[np.nan,np.nan]
         else:
             mean_error,fwhm_error,ppm_thresh = self.get_error_range(errors, self.ppmFWHMprior, self.plot)

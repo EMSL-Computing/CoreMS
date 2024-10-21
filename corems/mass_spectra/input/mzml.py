@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pymzml
+import warnings
 
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.factory.parameters import default_parameters
@@ -48,9 +49,9 @@ class MZMLSpectraParser(SpectraParserInterface):
         Parses the mzml file and returns a dictionary of mass spectra dataframes and a scan metadata dataframe.
     * get_mass_spectrum_from_scan(scan_number, polarity, auto_process=True)
         Parses the mzml file and returns a MassSpecBase object from a single scan.
-    * get_mass_spectra_obj(verbose=True).
+    * get_mass_spectra_obj().
         Parses the mzml file and instantiates a MassSpectraBase object.
-    * get_lcms_obj(verbose=True).
+    * get_lcms_obj().
         Parses the mzml file and instantiates an LCMSBase object.
 
     Inherits from ThermoBaseClass and SpectraParserInterface
@@ -148,8 +149,7 @@ class MZMLSpectraParser(SpectraParserInterface):
                     spec["negative scan"] is not None
                     and spec["positive scan"] is not None
                 ):
-                    # raise error and stop
-                    print(
+                    raise ValueError(
                         "Error: scan {0} has both negative and positive polarity".format(
                             spec.ID
                         )
@@ -367,14 +367,9 @@ class MZMLSpectraParser(SpectraParserInterface):
 
         return mass_spectrum_obj
 
-    def get_mass_spectra_obj(self, verbose=True):
+    def get_mass_spectra_obj(self):
         """Instatiate a MassSpectraBase object from the mzML file.
 
-        Parameters
-        ----------
-        verbose : bool, optional
-            If True, print a message indicating that the MassSpectra object is being parsed,
-            by default True.
 
         Returns
         -------
@@ -382,8 +377,6 @@ class MZMLSpectraParser(SpectraParserInterface):
             The MassSpectra object containing the parsed mass spectra.  
             The object is instatiated with the mzML file, analyzer, instrument, sample name, and scan dataframe.
         """
-        if verbose:
-            print("Parsing MassSpectra object from mzML file")
         _, scan_df = self.run(spectra=False)
         mass_spectra_obj = MassSpectraBase(
             self.file_location,
@@ -397,13 +390,11 @@ class MZMLSpectraParser(SpectraParserInterface):
 
         return mass_spectra_obj
 
-    def get_lcms_obj(self, verbose=True, spectra="all"):
+    def get_lcms_obj(self, spectra="all"):
         """Instatiates a LCMSBase object from the mzML file.
 
         Parameters
         ----------
-        verbose : bool, optional
-            If True, print progress messages. Default is True.
         spectra : str, optional
             Which mass spectra data to include in the output. Default is all.  Other options: none, ms1, ms2.
 
@@ -414,8 +405,6 @@ class MZMLSpectraParser(SpectraParserInterface):
             The object is instatiated with the mzML file, analyzer, instrument, sample name, scan dataframe, 
             and mz dataframe(s), as well as lists of scan numbers, retention times, and TICs.
         """
-        if verbose:
-            print("Parsing LCMS object from mzML file")
         _, scan_df = self.run(spectra="none")  # first run it to just get scan info
         res, scan_df = self.run(
             scan_df=scan_df, spectra=spectra

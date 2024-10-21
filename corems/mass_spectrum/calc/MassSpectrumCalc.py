@@ -27,7 +27,7 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
         Check if the mspeaks attribute is populated
     * sort_by_abundance(). 
         Sort the mspeaks by abundance
-    * percentile_assigned(report_error=False,verbose=True). 
+    * percentile_assigned(report_error=False). 
         Calculate the percentage of assigned peaks
     * resolving_power_calc(B, T). 
         Calculate the resolving power
@@ -37,16 +37,15 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc ):
         Calculate the weight average molecular weight
     """
 
-    def percentile_assigned(self, report_error : bool=False, verbose : bool=True):
+    def percentile_assigned(self, report_error : bool=False):
         """ Percentage of peaks which are assigned
 
         Parameters
         -----------
         report_error: bool, optional
             Report the error of the assigned peaks. Default is False.
-        verbose: bool, optional
-            Print the results. Default is True.
         """
+        verbose = self.parameters.mass_spectrum.verbose_processing
         assign_abun = 0
         not_assign_abun = 0
         i = 0

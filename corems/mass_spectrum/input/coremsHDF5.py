@@ -124,7 +124,6 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
             scan_index = self.scans.index(str(scan_number))
         dataframe = self.get_dataframe(scan_index, time_index=time_index)
         if dataframe["Molecular Formula"].any() and not dataframe["C"].any():
-            #TODO KRH: figure out why this is necessary
             cols = dataframe.columns.tolist()
             cols = cols[cols.index("Molecular Formula") + 1 :]
             for index, row in dataframe.iterrows():

@@ -342,7 +342,7 @@ class _MSPeak(MSPeakCalculation):
             return ax
 
         else:
-            print("Centroid Peak Object")
+            raise AttributeError("No parent mass spectrum object found to plot the peak.")
 
     @property
     def best_molecular_formula_candidate(self):
@@ -462,9 +462,7 @@ class ICRMassPeak(_MSPeak):
 
         return freq_domain
         """
-        print("Function not confirmed to work, disabled.")
-        return None
-
+        raise RuntimeError("Function not confirmed to work, disabled.") 
 
 class TOFMassPeak(_MSPeak):
     """ A class representing a peak in a TOF mass spectrum.
