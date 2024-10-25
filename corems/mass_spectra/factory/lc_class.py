@@ -1,4 +1,3 @@
-import logging
 from pathlib import Path
 
 import numpy as np
@@ -9,7 +8,6 @@ from corems.encapsulation.factory.parameters import LCMSParameters
 from corems.mass_spectra.calc.lc_calc import LCCalculations, PHCalculations
 from corems.molecular_id.search.lcms_spectral_search import LCMSSpectralSearch
 from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
-
 
 class MassSpectraBase:
     """Base class for mass spectra objects.
@@ -403,9 +401,6 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         str
             The parameters used for the LC-MS analysis in JSON format.
         """
-        if verbose:
-            #TODO KRH: test and fix this
-            print(self.parameters.to_json())
         return self.parameters.to_json()
 
     def remove_unprocessed_data(self, ms_level=None):

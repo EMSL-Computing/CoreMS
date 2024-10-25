@@ -7,7 +7,7 @@ import pandas as pd
 import copy
 
 from corems.chroma_peak.calc.ChromaPeakCalc import GCPeakCalculation, LCMSMassFeatureCalculation
-from corems.mass_spectra.factory.LC_Temp import EIC_Data
+from corems.mass_spectra.factory.chromat_data import EIC_Data
 from corems.molecular_id.factory.EI_SQL import LowResCompoundRef
 
 

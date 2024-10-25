@@ -13,7 +13,7 @@ from corems.encapsulation.input.parameter_from_json import (
     load_and_set_toml_parameters_lcms,
 )
 from corems.mass_spectra.factory.lc_class import LCMSBase, MassSpectraBase
-from corems.mass_spectra.factory.LC_Temp import EIC_Data
+from corems.mass_spectra.factory.chromat_data import EIC_Data
 from corems.mass_spectra.input.parserbase import SpectraParserInterface
 from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
 from corems.molecular_id.factory.spectrum_search_results import SpectrumSearchResults

@@ -6,7 +6,7 @@ from scipy.spatial import KDTree
 
 from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
 from corems.mass_spectra.calc import SignalProcessing as sp
-from corems.mass_spectra.factory.LC_Temp import EIC_Data
+from corems.mass_spectra.factory.chromat_data import EIC_Data
 from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
 
 
