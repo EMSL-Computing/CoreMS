@@ -74,7 +74,7 @@
             The averaged background
             </returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.BackgroundSubtractor.GetScanStatistics(ThermoFisher.CommonCore.Data.Interfaces.IRawDataPlus,System.Int32,System.Int32,System.String)">
+        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.BackgroundSubtractor.GetScanStatistics(ThermoFisher.CommonCore.Data.Interfaces.IDetectorReaderPlus,System.Int32,System.Int32,System.String)">
             <summary>
             Get scan statistics.
             </summary>
@@ -90,6 +90,27 @@
             <param name="filter">
             The scan filter.
             </param>
+        </member>
+        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.BackgroundSubtractor.InitializeScanList(ThermoFisher.CommonCore.Data.Interfaces.IDetectorReader,System.Int32,System.Int32,System.String)">
+            <summary>Initializes the scan list.</summary>
+            <param name="detectorReader">The detector reader.</param>
+            <param name="start">The start.</param>
+            <param name="end">The end.</param>
+            <param name="filter">The filter.</param>
+            <exception cref="T:System.ArgumentNullException">detectorReader</exception>
+        </member>
+        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.BackgroundSubtractor.InitializeScanList(ThermoFisher.CommonCore.Data.Interfaces.IRawData,System.Int32,System.Int32,System.String)">
+            <summary>Initializes the scan list.</summary>
+            <param name="rawData">The raw data.</param>
+            <param name="start">The start.</param>
+            <param name="end">The end.</param>
+            <param name="filter">The filter.</param>
+            <exception cref="T:System.ArgumentNullException">rawData</exception>
+        </member>
+        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.BackgroundSubtractor.UpdateScanList(System.String,ThermoFisher.CommonCore.Data.Business.Scan)">
+            <summary>Updates the scan list.</summary>
+            <param name="filter">The filter.</param>
+            <param name="scan">The scan.</param>
         </member>
         <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.BackgroundSubtractor.GetBackgroundSubtraction(ThermoFisher.CommonCore.Data.Interfaces.IRawData,System.String,ThermoFisher.CommonCore.BackgroundSubtraction.BackgroundSubtractionSettings,System.Double,System.Double)">
             <summary>
@@ -115,6 +136,30 @@
             Scan object containing the subtracted scan.
             </returns>
         </member>
+        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.BackgroundSubtractor.GetBackgroundSubtraction(ThermoFisher.CommonCore.Data.Interfaces.IDetectorReader,System.String,ThermoFisher.CommonCore.BackgroundSubtraction.BackgroundSubtractionSettings,System.Double,System.Double)">
+            <summary>
+            Computes the average scan and then subtracts the background average scan and 
+            return the average subtracted scan.
+            </summary>
+            <param name="detectorReader">
+            Raw file to read scans based on time.
+            </param>
+            <param name="filter">
+            scan filter
+            </param>
+            <param name="backSettings">
+            Background Information.
+            </param>
+            <param name="startTime">
+            Foreground StartTime.
+            </param>
+            <param name="endTime">
+            Foreground EndTime.
+            </param>
+            <returns>
+            Scan object containing the subtracted scan.
+            </returns>
+        </member>
         <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.BackgroundSubtractor.GetBackgroundSubtraction(ThermoFisher.CommonCore.Data.Interfaces.IRawData,System.String,ThermoFisher.CommonCore.BackgroundSubtraction.BackgroundSubtractionSettings,ThermoFisher.CommonCore.Data.Business.Scan)">
             <summary>
             Computes the average scan and then subtracts the background average scan and 
@@ -122,6 +167,27 @@
             </summary>
             <param name="rawFile">
             Raw file to read scans based on time.
+            </param>
+            <param name="filter">
+            scan filter
+            </param>
+            <param name="backSettings">
+            Background Information.
+            </param>
+            <param name="foreAverageScan">
+            Scan which data is subtracted from
+            </param>
+            <returns>
+            The subtracted scan.
+            </returns>
+        </member>
+        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.BackgroundSubtractor.GetBackgroundSubtraction(ThermoFisher.CommonCore.Data.Interfaces.IDetectorReader,System.String,ThermoFisher.CommonCore.BackgroundSubtraction.BackgroundSubtractionSettings,ThermoFisher.CommonCore.Data.Business.Scan)">
+            <summary>
+            Computes the average scan and then subtracts the background average scan and 
+            return the average subtracted scan.
+            </summary>
+            <param name="detectorReader">
+            Detector reader to read scans based on time.
             </param>
             <param name="filter">
             scan filter
@@ -817,9 +883,9 @@
             This class owns and manages a Scan that is produced by averaging a list of scans.
             </summary>
         </member>
-        <member name="P:ThermoFisher.CommonCore.BackgroundSubtraction.ScanAverager.RawFilePlus">
+        <member name="P:ThermoFisher.CommonCore.BackgroundSubtraction.ScanAverager.RawDataReaderPlus">
             <summary>
-            Gets the raw file plus.
+            Gets the raw data plus.
             </summary>
         </member>
         <member name="P:ThermoFisher.CommonCore.BackgroundSubtraction.ScanAverager.ScanCreator">
@@ -838,6 +904,20 @@
             Factory Method to return the IScanAverage interface.
             </summary>
             <param name="data">
+            Access to the raw data, to read the scans.
+            </param>
+            <param name="cacheLimit">
+            Permits the FT averaging algorithm to cache a number of scans. Default 20 
+            </param>
+            <returns>
+            An interface to average scans.
+            </returns>
+        </member>
+        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.ScanAverager.FromDetector(ThermoFisher.CommonCore.Data.Interfaces.IDetectorReader,System.Int32)">
+            <summary>
+            Factory Method to return the IScanAverage interface.
+            </summary>
+            <param name="rawDataReader">
             Access to the raw data, to read the scans.
             </param>
             <param name="cacheLimit">
@@ -872,7 +952,7 @@
             returns the averaged scan.
             </returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.ScanAverager.GetAverageScanInTimeRange(System.Double,System.Double,System.String,System.Double,ThermoFisher.CommonCore.Data.Business.ToleranceMode)">
+        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.ScanAverager.GetAverageScanInTimeRange(System.Double,System.Double,System.String,System.Double,ThermoFisher.CommonCore.Data.ToleranceMode)">
             <summary>
             Gets the average scan between the given times.
             If "PermitRedirection" and the supplied raw file reader supports IScanAverage,
@@ -908,7 +988,7 @@
             The scan range.
             </returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.ScanAverager.AverageScanInScanRange(System.String,System.Double,ThermoFisher.CommonCore.Data.Business.ToleranceMode,System.Tuple{System.Int32,System.Int32})">
+        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.ScanAverager.AverageScanInScanRange(System.String,System.Double,ThermoFisher.CommonCore.Data.ToleranceMode,System.Tuple{System.Int32,System.Int32})">
             <summary>
             Average scan in a given scan range.
             </summary>
@@ -948,7 +1028,7 @@
             returns the averaged scan.
             </returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.ScanAverager.GetAverageScanInScanRange(System.Int32,System.Int32,System.String,System.Double,ThermoFisher.CommonCore.Data.Business.ToleranceMode)">
+        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.ScanAverager.GetAverageScanInScanRange(System.Int32,System.Int32,System.String,System.Double,ThermoFisher.CommonCore.Data.ToleranceMode)">
             <summary>
             Gets the average scan between the given times.
             If "PermitRedirection" and the supplied raw file reader supports IScanAverage,
@@ -986,7 +1066,7 @@
             The average of all scans in the list
             </returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.ScanAverager.#ctor(ThermoFisher.CommonCore.Data.Interfaces.IRawData)">
+        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.ScanAverager.#ctor(ThermoFisher.CommonCore.Data.Interfaces.IDetectorReaderBase)">
             <summary>
             Initializes a new instance of the <see cref="T:ThermoFisher.CommonCore.BackgroundSubtraction.ScanAverager"/> class.
             </summary>
@@ -994,7 +1074,7 @@
             The data.
             </param>
         </member>
-        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.ScanAverager.AverageScans(System.Boolean,System.Double,ThermoFisher.CommonCore.Data.Business.ToleranceMode,System.Boolean)">
+        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.ScanAverager.AverageScans(System.Boolean,System.Double,ThermoFisher.CommonCore.Data.ToleranceMode,System.Boolean)">
             <summary>
             Calculates the average scan given the list of scans.
             </summary>
@@ -1083,7 +1163,7 @@
             The unit.
             </param>
             <returns>
-            The <see cref="T:ThermoFisher.CommonCore.Data.Business.ToleranceMode"/>.
+            The <see cref="T:ThermoFisher.CommonCore.Data.ToleranceMode"/>.
             </returns>
         </member>
         <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.ScanAverager.GetScanStatistics(System.Int32,System.Int32,System.String)">
@@ -1115,19 +1195,30 @@
             Implements the IScanAveragePlus interface against a raw file
             </summary>
         </member>
-        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.ScanAveragerPlus.#ctor(ThermoFisher.CommonCore.Data.Interfaces.IRawDataPlus)">
+        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.ScanAveragerPlus.#ctor(ThermoFisher.CommonCore.Data.Interfaces.IDetectorReaderPlus)">
             <summary>
             Initializes a new instance of the <see cref="T:ThermoFisher.CommonCore.BackgroundSubtraction.ScanAveragerPlus"/> class.
             </summary>
-            <param name="data">
-            The data.
+            <param name="rawDataReaderPlus">
+            The raw data reader plus.
             </param>
         </member>
-        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.ScanAveragerPlus.FromFile(ThermoFisher.CommonCore.Data.Interfaces.IRawDataPlus)">
+        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.ScanAveragerPlus.FromFile(ThermoFisher.CommonCore.Data.Interfaces.IDetectorReaderPlus)">
             <summary>
             Factory Method to return the IScanAverage interface.
             </summary>
-            <param name="data">
+            <param name="rawData">
+            Access to the raw data, to read the scans.
+            </param>
+            <returns>
+            An interface to average scans.
+            </returns>
+        </member>
+        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.ScanAveragerPlus.FromDetector(ThermoFisher.CommonCore.Data.Interfaces.IDetectorReader)">
+            <summary>
+            Factory Method to return the IScanAverage interface.
+            </summary>
+            <param name="detectorReader">
             Access to the raw data, to read the scans.
             </param>
             <returns>
@@ -1297,7 +1388,7 @@
         </member>
         <member name="T:ThermoFisher.CommonCore.BackgroundSubtraction.ScanFromFileCreator">
             <summary>
-            Get scan data from a file, based on a know list of scans.
+            Get scan data from a raw data, based on a know list of scans.
             Can avoid getting the same can multiple times, using a cache.
             </summary>
         </member>
@@ -1309,11 +1400,11 @@
         <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.ScanFromFileCreator.Initialize(System.Collections.Generic.List{System.Int32},System.Int32)">
             <inheritdoc />
         </member>
-        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.ScanFromFileCreator.#ctor(ThermoFisher.CommonCore.Data.Interfaces.IRawData)">
+        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.ScanFromFileCreator.#ctor(ThermoFisher.CommonCore.Data.Interfaces.IDetectorReaderBase)">
             <summary>
             Initializes a new instance of the <see cref="T:ThermoFisher.CommonCore.BackgroundSubtraction.ScanFromFileCreator"/> class.
             </summary>
-            <param name="rawFile">
+            <param name="rawDataReader">
             The raw file.
             </param>
         </member>
@@ -1494,7 +1585,7 @@
             </param>
             <returns>The found centroids.</returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.SpectrumAverager.GetAverage(ThermoFisher.CommonCore.Data.Interfaces.IRawData,System.Collections.Generic.List{ThermoFisher.CommonCore.Data.Business.ScanStatistics},ThermoFisher.CommonCore.Data.Business.Scan,System.Int32,ThermoFisher.CommonCore.Data.Interfaces.IScanCreator)">
+        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.SpectrumAverager.GetAverage(ThermoFisher.CommonCore.Data.Interfaces.IDetectorReaderBase,System.Collections.Generic.List{ThermoFisher.CommonCore.Data.Business.ScanStatistics},ThermoFisher.CommonCore.Data.Business.Scan,System.Int32,ThermoFisher.CommonCore.Data.Interfaces.IScanCreator)">
             <summary>
             Create the average scan from a collection of raw scans.
             </summary>
@@ -1569,11 +1660,11 @@
             Gets Length.
             </summary>
         </member>
-        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.SpectrumAverager.GetAverage(ThermoFisher.CommonCore.Data.Interfaces.IRawData,ThermoFisher.CommonCore.BackgroundSubtraction.SpectrumAverager.FindSegmentedScan,System.Collections.Generic.List{System.Int32},ThermoFisher.CommonCore.Data.Business.Scan,ThermoFisher.CommonCore.BackgroundSubtraction.SpectrumAverager.FindCentroids)">
+        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.SpectrumAverager.GetAverage(ThermoFisher.CommonCore.Data.Interfaces.IDetectorReaderBase,ThermoFisher.CommonCore.BackgroundSubtraction.SpectrumAverager.FindSegmentedScan,System.Collections.Generic.List{System.Int32},ThermoFisher.CommonCore.Data.Business.Scan,ThermoFisher.CommonCore.BackgroundSubtraction.SpectrumAverager.FindCentroids)">
             <summary>
             Create the average scan from a collection of raw scans.
             </summary>
-            <param name="rawFile">file which has data to average</param>
+            <param name="rawDataReader">file which has data to average</param>
             <param name="segmentedScanCreator">
             method to return segmented scans when requested (by scan list index)
             </param>
@@ -1887,7 +1978,7 @@
              The centroids detected.
              </returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.SpectrumAverager.CalculateNoiseInfo(ThermoFisher.CommonCore.Data.Interfaces.IRawData,ThermoFisher.CommonCore.BackgroundSubtraction.SpectrumAverager.FindCentroids,System.Collections.Generic.List{ThermoFisher.CommonCore.BackgroundSubtraction.CentroidStreamPoint},System.Collections.Generic.List{System.Int32},System.Boolean)">
+        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.SpectrumAverager.CalculateNoiseInfo(ThermoFisher.CommonCore.Data.Interfaces.IDetectorReaderBase,ThermoFisher.CommonCore.BackgroundSubtraction.SpectrumAverager.FindCentroids,System.Collections.Generic.List{ThermoFisher.CommonCore.BackgroundSubtraction.CentroidStreamPoint},System.Collections.Generic.List{System.Int32},System.Boolean)">
             <summary>
             Recalculates the baseline and noise information for the averaged spectrum.
             </summary>
@@ -1941,7 +2032,7 @@
             Values for each mass can be interpolated from this table.
             </summary>
         </member>
-        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.SpectrumAverager.CalculateNoiseInfoUsingNoiseTable(ThermoFisher.CommonCore.Data.Interfaces.IRawDataPlus,System.Collections.Generic.List{ThermoFisher.CommonCore.BackgroundSubtraction.CentroidStreamPoint},System.Collections.Generic.List{System.Int32})">
+        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.SpectrumAverager.CalculateNoiseInfoUsingNoiseTable(ThermoFisher.CommonCore.Data.Interfaces.IDetectorReaderPlus,System.Collections.Generic.List{ThermoFisher.CommonCore.BackgroundSubtraction.CentroidStreamPoint},System.Collections.Generic.List{System.Int32})">
             <summary>
             Recalculates the baseline and noise information for the averaged spectrum.
             </summary>
@@ -2007,11 +2098,11 @@
             the noise generation algorithm.
             </summary>
         </member>
-        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.SpectrumAverager.NoiseFromFile.#ctor(ThermoFisher.CommonCore.Data.Interfaces.IRawDataPlus,System.Collections.Generic.List{System.Int32})">
+        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.SpectrumAverager.NoiseFromFile.#ctor(ThermoFisher.CommonCore.Data.Interfaces.IDetectorReaderPlus,System.Collections.Generic.List{System.Int32})">
             <summary>
             Initializes a new instance of the <see cref="T:ThermoFisher.CommonCore.BackgroundSubtraction.SpectrumAverager.NoiseFromFile"/> class.
             </summary>
-            <param name="file">
+            <param name="rawDataReaderPlus">
             The file.
             </param>
             <param name="scanNumbers">
@@ -2286,7 +2377,7 @@
             An empty centroid stream, with arrays allocated to the indicated size.
             </returns>
         </member>
-        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.SpectrumAverager.CreateSegmentedScan(System.Int32,System.Double[],System.Double[],ThermoFisher.CommonCore.Data.Business.Range)">
+        <member name="M:ThermoFisher.CommonCore.BackgroundSubtraction.SpectrumAverager.CreateSegmentedScan(System.Int32,System.Double[],System.Double[],ThermoFisher.CommonCore.Data.Interfaces.IRangeAccess)">
             <summary>
             Create the <see cref="T:ThermoFisher.CommonCore.Data.Business.SegmentedScan"/> object withe given size, and attach the mass and intensity arrays.
             </summary>
