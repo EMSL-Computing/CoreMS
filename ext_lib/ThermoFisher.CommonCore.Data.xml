@@ -11287,7 +11287,7 @@
         </member>
         <member name="M:ThermoFisher.CommonCore.Data.Business.Scan.SubtractProfileSegments(System.Boolean,ThermoFisher.CommonCore.Data.Business.Scan,ThermoFisher.CommonCore.Data.Business.Scan)">
             <summary>
-            The subtract profile segments.
+            subtract profile data, with segmented scans
             </summary>
             <param name="identicalFlag">
             The identical flag.
@@ -18228,6 +18228,12 @@
             Match any type
             </summary>
         </member>
+        <member name="F:ThermoFisher.CommonCore.Data.FilterEnums.MassAnalyzerType.MassAnalyzerASTMS">
+            <summary>
+            Asymmetric Track Lossless (ASTRAL)
+            AS         T 
+            </summary>
+        </member>
         <member name="T:ThermoFisher.CommonCore.Data.FilterEnums.SectorScanType">
             <summary>
             Specifies type of sector scan.
@@ -20487,6 +20493,38 @@
                 Gets the tic.
             </summary>
         </member>
+        <member name="T:ThermoFisher.CommonCore.Data.Interfaces.IBinaryMsInstrumentData">
+            <summary>
+            Data ready to be written to a raw file, with most values in byte array format.
+            Note that scan statistics is provided as an in interface, as properties need to be inspected
+            in order to write the binary data
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.IBinaryMsInstrumentData.PackedScanEvent">
+            <summary>
+            Get the definition of how the analyzer is scanned
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.IBinaryMsInstrumentData.StatisticsData">
+            <summary>
+            Gets general information about about this scan
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.IBinaryMsInstrumentData.ScanData">
+            <summary>
+            gets all data ro record for a scan
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.IBinaryMsInstrumentData.ProfileIndexCount">
+            <summary>
+            for certain formats, gets additional index record count
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.IBinaryMsInstrumentData.ProfileData">
+            <summary>
+            gets Index records for some profile formats
+            </summary>
+        </member>
         <member name="T:ThermoFisher.CommonCore.Data.Interfaces.ICalibrationCurveDataAccess">
             <summary>
             Read only access to calibration curve
@@ -22028,6 +22066,26 @@
             The precision.
             </value>
         </member>
+        <member name="T:ThermoFisher.CommonCore.Data.Interfaces.IPackedMassSpecHeaders">
+            <summary>
+            Binary (byte array) data from the generic headers of a mass spectrometer.
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.IPackedMassSpecHeaders.TrailerExtraHeader">
+            <summary>
+            Packed trailer extra headers
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.IPackedMassSpecHeaders.StatusLogHeader">
+            <summary>
+             Packed status log headers
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.IPackedMassSpecHeaders.TuneHeader">
+            <summary>
+             Packed tune headers
+            </summary>
+        </member>
         <member name="T:ThermoFisher.CommonCore.Data.Interfaces.IMsInstrumentData">
             <summary>
             Defines access to data which can be written to an MS instrument, for one scan.
@@ -22105,6 +22163,36 @@
             If caller is not intended to use the status log data, pass a null argument or zero length array.<para/>
             ex. WriteStatusLogHeader(null) or WriteStatusLogHeader(new IHeaderItem[0])
             </summary>    
+        </member>
+        <member name="T:ThermoFisher.CommonCore.Data.Interfaces.IPackedMsInstrumentData">
+            <summary>
+            Data for a scan, converted into byte arrays
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.IPackedMsInstrumentData.PackedScanEvent">
+            <summary>
+            Gets or sets the converted scan event
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.IPackedMsInstrumentData.PackedScanStats">
+            <summary>
+            Gets or sets the converted scan stats
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.IPackedMsInstrumentData.ScanData">
+            <summary>
+            Gets or sets the converted scan data
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.IPackedMsInstrumentData.ProfilePaketCount">
+            <summary>
+            Gets the number of profile index records
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.IPackedMsInstrumentData.ProfileArray">
+            <summary>
+            Gets the profile index records
+            </summary>
         </member>
         <member name="T:ThermoFisher.CommonCore.Data.Interfaces.IPdaDeviceWriter">
             <summary>
@@ -27891,6 +27979,93 @@
             Saves Sequence data to disk.
             </summary>
             <returns>True saved data to disk; false otherwise.</returns>
+        </member>
+        <member name="T:ThermoFisher.CommonCore.Data.Interfaces.ISignalToNoiseResultsAccess">
+            <summary>
+            Defines signal to noise calculation measurements
+            which may be shown on a peak label or tabulated.
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.ISignalToNoiseResultsAccess.NoiseClassification">
+            <summary>
+            Gets the noise classification, which must be
+            checked to see if a valid noise value is available.
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.ISignalToNoiseResultsAccess.PeakRetentionTime">
+            <summary>
+            Gets the peak retention time.
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.ISignalToNoiseResultsAccess.PeakWidthHalfHeight">
+            <summary>
+            Gets the peak width at half height above baseline
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.ISignalToNoiseResultsAccess.PeakArea">
+            <summary>
+            Gets the peak area.
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.ISignalToNoiseResultsAccess.PeakHeight">
+            <summary>
+            Gets the height of the signal (i.e. peak height above baseline).
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.ISignalToNoiseResultsAccess.PeakBaseline">
+            <summary>
+            Gets the peak baseline value determined by the noise slope and intercept values.
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.ISignalToNoiseResultsAccess.PeakStartTime">
+            <summary>
+            Gets the start time of the peak (i.e. peak left extent)
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.ISignalToNoiseResultsAccess.PeakEndTime">
+            <summary>
+            Gets the end time of the peak (i.e. peak right extent)
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.ISignalToNoiseResultsAccess.NoiseStartTime">
+            <summary>
+            Gets the start time of the noise determination range.
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.ISignalToNoiseResultsAccess.NoiseEndTime">
+            <summary>
+            Gets the end time of the noise determination range.
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.ISignalToNoiseResultsAccess.NoiseMinIntensity">
+            <summary>
+            Gets the minimum intensity of noise points.
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.ISignalToNoiseResultsAccess.NoiseMaxIntensity">
+            <summary>
+            Gets the Maximum intensity of noise points.
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.ISignalToNoiseResultsAccess.Noise">
+            <summary>
+            Gets the noise part of the signal to noise estimation.
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.ISignalToNoiseResultsAccess.NoiseSlope">
+            <summary>
+            Gets the slope of the fitted line.
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.ISignalToNoiseResultsAccess.NoiseOffset">
+            <summary>
+            Gets the offset of the fitted line.
+            </summary>
+        </member>
+        <member name="P:ThermoFisher.CommonCore.Data.Interfaces.ISignalToNoiseResultsAccess.SignalToNoiseRatio">
+            <summary>
+            Gets the ratio of the signal to noise estimation (<see cref="P:ThermoFisher.CommonCore.Data.Interfaces.ISignalToNoiseResultsAccess.PeakHeight"/> divided by <see cref="P:ThermoFisher.CommonCore.Data.Interfaces.ISignalToNoiseResultsAccess.Noise"/>).
+            </summary>
         </member>
         <member name="T:ThermoFisher.CommonCore.Data.Interfaces.ISimpleScanAccess">
             <summary>

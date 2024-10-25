@@ -1,0 +1,18 @@
+This file updated October 21st, 2024
+
+---------------------------------
+Source repo: https://github.com/thermofisherlsms/RawFileReader/tree/main
+---------------------------------
+
+corems/ext_lib/ uses Libs/Net471/ from source repo
+
+Their commit message: Update the RawFileReader version to support Orbitrap ASTRAL files.  For .Framework 4.7.1, these files are version 5.0.93 while the .NetCore version of the files are 7.1.21.  The .NetCore version of the DLLs were compiled with .Net Core 5 but will work with .Net Core 6 and 7.
+
+Source updated "last year"
+
+
+corems/ext_lib/dotnet/ uses Libs/NetCore/Net8/Assemblies from source repo
+
+Source updated October 9th, 2024
+
+Note: Files starting with "System" are not found in the source repo and thus have not been updated. 
