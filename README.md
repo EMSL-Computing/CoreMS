@@ -88,7 +88,7 @@ As an open source project, CoreMS welcomes contributions of all forms. Before co
 - CoreMS exported processed mass list files(excel, .csv, .txt, pandas dataframe as .pkl)
 - CoreMS self-containing Hierarchical Data Format (.hdf5)
 - Pandas Dataframe
-- Support for cloud Storage using s3path.S3path(see examples of usage here: [S3 Support](tests/s3_test.py))
+- Support for cloud Storage using s3path.S3path
 
 ### Data output formats
 
