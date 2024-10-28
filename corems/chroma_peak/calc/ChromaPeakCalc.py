@@ -171,7 +171,9 @@ class LCMSMassFeatureCalculation:
         right_index = max_index
         while eic[left_index] > eic[max_index] * fraction and left_index > 0:
             left_index -= 1
-        while eic[right_index] > eic[max_index] * fraction and right_index < len(eic) - 1:
+        while (
+            eic[right_index] > eic[max_index] * fraction and right_index < len(eic) - 1
+        ):
             right_index += 1
 
         # Get the retention times of the indexes just below the half height

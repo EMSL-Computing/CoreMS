@@ -6,7 +6,10 @@ import numpy as np
 import pandas as pd
 import copy
 
-from corems.chroma_peak.calc.ChromaPeakCalc import GCPeakCalculation, LCMSMassFeatureCalculation
+from corems.chroma_peak.calc.ChromaPeakCalc import (
+    GCPeakCalculation,
+    LCMSMassFeatureCalculation,
+)
 from corems.mass_spectra.factory.chromat_data import EIC_Data
 from corems.molecular_id.factory.EI_SQL import LowResCompoundRef
 
@@ -141,7 +144,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
     _half_height_width : numpy.ndarray
         The half height width of the feature (in minutes, as an array of min and max values).
     _tailing_factor : float
-        The tailing factor of the feature. 
+        The tailing factor of the feature.
         > 1 indicates tailing, < 1 indicates fronting, = 1 indicates symmetrical peak.
     _ms_deconvoluted_idx : [int]
         The indexes of the mass_spectrum attribute in the deconvoluted mass spectrum.
@@ -151,24 +154,24 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         Mass feature id that is the monoisotopic version of self.
         If self.id, then self is the monoisotopic feature). Default is None.
     isotopologue_type : str
-        The isotopic class of the feature, i.e. "13C1", "13C2", "13C1 37Cl1" etc. 
+        The isotopic class of the feature, i.e. "13C1", "13C2", "13C1 37Cl1" etc.
         Default is None.
     ms2_scan_numbers : list
-        List of scan numbers of the MS2 spectra associated with the feature. 
+        List of scan numbers of the MS2 spectra associated with the feature.
         Default is an empty list.
     ms2_mass_spectra : dict
-        Dictionary of MS2 spectra associated with the feature (key = scan number for DDA). 
+        Dictionary of MS2 spectra associated with the feature (key = scan number for DDA).
         Default is an empty dictionary.
     ms2_similarity_results : list
-        List of MS2 similarity results associated with the mass feature. 
+        List of MS2 similarity results associated with the mass feature.
         Default is an empty list.
     id : int
-        The ID of the feature, also the key in the parent LCMS object's 
+        The ID of the feature, also the key in the parent LCMS object's
         `mass_features` dictionary.
     mass_spectrum_deconvoluted_parent : bool
         If True, the mass feature corresponds to the most intense peak in the deconvoluted mass spectrum. Default is None.
     associated_mass_features_deconvoluted : list
-        List of mass features associated with the deconvoluted mass spectrum. Default is an empty list.       
+        List of mass features associated with the deconvoluted mass spectrum. Default is an empty list.
 
     """
 
@@ -243,8 +246,8 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         Parameters
         ----------
         to_plot : list, optional
-            List of strings specifying what to plot, any iteration of 
-            "EIC", "MS2", and "MS1". 
+            List of strings specifying what to plot, any iteration of
+            "EIC", "MS2", and "MS1".
             Default is ["EIC", "MS1", "MS2"].
         return_fig : bool, optional
             If True, the figure is returned. Default is True.
@@ -252,7 +255,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         Returns
         -------
         matplotlib.figure.Figure or None
-            The figure object if `return_fig` is True. 
+            The figure object if `return_fig` is True.
             Otherwise None and the figure is displayed.
         """
 
@@ -331,19 +334,40 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             if deconvoluted:
                 axs[i][0].set_title("MS1 (deconvoluted)", loc="left")
                 axs[i][0].vlines(
-                    self.mass_spectrum.mz_exp, 0, self.mass_spectrum.abundance, color="k", alpha=0.2, label="Raw MS1"
+                    self.mass_spectrum.mz_exp,
+                    0,
+                    self.mass_spectrum.abundance,
+                    color="k",
+                    alpha=0.2,
+                    label="Raw MS1",
                 )
                 axs[i][0].vlines(
-                    self.mass_spectrum_deconvoluted.mz_exp, 0, self.mass_spectrum_deconvoluted.abundance, color="k", label="Deconvoluted MS1"
+                    self.mass_spectrum_deconvoluted.mz_exp,
+                    0,
+                    self.mass_spectrum_deconvoluted.abundance,
+                    color="k",
+                    label="Deconvoluted MS1",
                 )
-                axs[i][0].set_xlim(self.mass_spectrum_deconvoluted.mz_exp.min()*.8, self.mass_spectrum_deconvoluted.mz_exp.max()*1.1)
-                axs[i][0].set_ylim(0, self.mass_spectrum_deconvoluted.abundance.max() * 1.1)
+                axs[i][0].set_xlim(
+                    self.mass_spectrum_deconvoluted.mz_exp.min() * 0.8,
+                    self.mass_spectrum_deconvoluted.mz_exp.max() * 1.1,
+                )
+                axs[i][0].set_ylim(
+                    0, self.mass_spectrum_deconvoluted.abundance.max() * 1.1
+                )
             else:
                 axs[i][0].set_title("MS1 (raw)", loc="left")
                 axs[i][0].vlines(
-                    self.mass_spectrum.mz_exp, 0, self.mass_spectrum.abundance, color="k", label="Raw MS1"
+                    self.mass_spectrum.mz_exp,
+                    0,
+                    self.mass_spectrum.abundance,
+                    color="k",
+                    label="Raw MS1",
                 )
-                axs[i][0].set_xlim(self.mass_spectrum.mz_exp.min()*.8, self.mass_spectrum.mz_exp.max()*1.1)
+                axs[i][0].set_xlim(
+                    self.mass_spectrum.mz_exp.min() * 0.8,
+                    self.mass_spectrum.mz_exp.max() * 1.1,
+                )
                 axs[i][0].set_ylim(bottom=0)
 
             if (self.ms1_peak.mz_exp - self.mz) < 0.01:
@@ -379,7 +403,9 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             axs[i][0].set_ylim(bottom=0)
             axs[i][0].yaxis.get_major_formatter().set_scientific(False)
             axs[i][0].yaxis.get_major_formatter().set_useOffset(False)
-            axs[i][0].set_xlim(self.best_ms2.mz_exp.min()*.8, self.best_ms2.mz_exp.max()*1.1)
+            axs[i][0].set_xlim(
+                self.best_ms2.mz_exp.min() * 0.8, self.best_ms2.mz_exp.max() * 1.1
+            )
             axs[i][0].yaxis.set_tick_params(labelleft=False)
 
         # Add space between subplots
@@ -398,7 +424,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             return self._mz_cal
         else:
             return self._mz_exp
-    
+
     @property
     def mass_spectrum_deconvoluted(self):
         """Returns the deconvoluted mass spectrum object associated with the mass feature, if deconvolution has been performed."""
@@ -407,7 +433,9 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             ms_deconvoluted.set_indexes(self._ms_deconvoluted_idx)
             return ms_deconvoluted
         else:
-            raise ValueError("Deconvolution has not been performed for mass feature " + str(self.id))
+            raise ValueError(
+                "Deconvolution has not been performed for mass feature " + str(self.id)
+            )
 
     @property
     def retention_time(self):
@@ -487,12 +515,12 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         closest_mz_index = self.mass_spectrum.mz_exp.tolist().index(closest_mz)
 
         return self.mass_spectrum._mspeaks[closest_mz_index]
-    
+
     @property
     def tailing_factor(self):
         """Tailing factor of the mass feature"""
         return self._tailing_factor
-    
+
     @tailing_factor.setter
     def tailing_factor(self, value):
         """Set the tailing factor of the mass feature"""
@@ -504,7 +532,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
     def dispersity_index(self):
         """Dispersity index of the mass feature"""
         return self._dispersity_index
-    
+
     @dispersity_index.setter
     def dispersity_index(self, value):
         """Set the dispersity index of the mass feature"""
