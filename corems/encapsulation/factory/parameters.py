@@ -1,8 +1,18 @@
 import dataclasses
 
-from corems.encapsulation.factory.processingSetting  import LiquidChromatographSetting, MolecularFormulaSearchSettings, TransientSetting, MassSpecPeakSetting, MassSpectrumSetting
-from corems.encapsulation.factory.processingSetting  import CompoundSearchSettings, GasChromatographSetting
-from corems.encapsulation.factory.processingSetting  import DataInputSetting
+from corems.encapsulation.factory.processingSetting import (
+    LiquidChromatographSetting,
+    MolecularFormulaSearchSettings,
+    TransientSetting,
+    MassSpecPeakSetting,
+    MassSpectrumSetting,
+)
+from corems.encapsulation.factory.processingSetting import (
+    CompoundSearchSettings,
+    GasChromatographSetting,
+)
+from corems.encapsulation.factory.processingSetting import DataInputSetting
+
 
 def reset_ms_parameters():
     """Reset the MSParameter class to the default values"""
@@ -12,19 +22,22 @@ def reset_ms_parameters():
     MSParameters.ms_peak = MassSpecPeakSetting()
     MSParameters.data_input = DataInputSetting()
 
+
 def reset_gcms_parameters():
     """Reset the GCMSParameters class to the default values"""
     GCMSParameters.molecular_search = CompoundSearchSettings()
     GCMSParameters.gc_ms = GasChromatographSetting()
+
 
 def reset_lcms_parameters():
     """Reset the LCMSParameters class to the default values"""
     reset_ms_parameters()
     LCMSParameters.lc_ms = LiquidChromatographSetting()
 
+
 class MSParameters:
     """MSParameters class is used to store the parameters used for the processing of the mass spectrum
-    
+
     Each attibute is a class that contains the parameters for the processing of the mass spectrum, see the corems.encapsulation.factory.processingSetting module for more details.
 
     Parameters
@@ -57,7 +70,7 @@ class MSParameters:
     ms_peak = MassSpecPeakSetting()
     data_input = DataInputSetting()
 
-    def __init__(self, use_defaults = False) -> None:
+    def __init__(self, use_defaults=False) -> None:
         if not use_defaults:
             self.molecular_search = dataclasses.replace(MSParameters.molecular_search)
             self.transient = dataclasses.replace(MSParameters.transient)
@@ -70,7 +83,7 @@ class MSParameters:
             self.mass_spectrum = MassSpectrumSetting()
             self.ms_peak = MassSpecPeakSetting()
             self.data_input = DataInputSetting()
-    
+
     def copy(self):
         """Create a copy of the MSParameters object"""
         new_ms_parameters = MSParameters()
@@ -81,7 +94,7 @@ class MSParameters:
         new_ms_parameters.data_input = dataclasses.replace(self.data_input)
 
         return new_ms_parameters
-    
+
     def print(self):
         """Print the MSParameters object"""
         for k, v in self.__dict__.items():
@@ -89,7 +102,7 @@ class MSParameters:
 
             for k2, v2 in v.__dict__.items():
                 print("    {}: {}".format(k2, v2))
-    
+
     def __eq__(self, value: object) -> bool:
         # Check that the object is of the same type
         if not isinstance(value, MSParameters):
@@ -97,11 +110,12 @@ class MSParameters:
         equality_check = []
         equality_check.append(self.molecular_search == value.molecular_search)
         equality_check.append(self.transient == value.transient)
-        equality_check.append(self.mass_spectrum ==value.mass_spectrum)
+        equality_check.append(self.mass_spectrum == value.mass_spectrum)
         equality_check.append(self.ms_peak == value.ms_peak)
         equality_check.append(self.data_input == value.data_input)
 
         return all(equality_check)
+
 
 class GCMSParameters:
     """GCMSParameters class is used to store the parameters used for the processing of the gas chromatograph mass spectrum
@@ -129,7 +143,7 @@ class GCMSParameters:
     molecular_search = CompoundSearchSettings()
     gc_ms = GasChromatographSetting()
 
-    def __init__(self, use_defaults = False) -> None:
+    def __init__(self, use_defaults=False) -> None:
         if not use_defaults:
             self.molecular_search = dataclasses.replace(GCMSParameters.molecular_search)
             self.gc_ms = dataclasses.replace(GCMSParameters.gc_ms)
@@ -140,11 +154,13 @@ class GCMSParameters:
     def copy(self):
         """Create a copy of the GCMSParameters object"""
         new_gcms_parameters = GCMSParameters()
-        new_gcms_parameters.molecular_search = dataclasses.replace(self.molecular_search)
+        new_gcms_parameters.molecular_search = dataclasses.replace(
+            self.molecular_search
+        )
         new_gcms_parameters.gc_ms = dataclasses.replace(self.gc_ms)
 
         return new_gcms_parameters
-    
+
     def __eq__(self, value: object) -> bool:
         # Check that the object is of the same type
         if not isinstance(value, GCMSParameters):
@@ -162,6 +178,7 @@ class GCMSParameters:
 
             for k2, v2 in v.__dict__.items():
                 print("    {}: {}".format(k2, v2))
+
 
 class LCMSParameters:
     """LCMSParameters class is used to store the parameters used for the processing of the liquid chromatograph mass spectrum
@@ -185,16 +202,23 @@ class LCMSParameters:
     One can use the use_defaults parameter to reset the parameters to the default values.
     Alternatively, to use the current values - modify the class's contents before instantiating the class.
     """
-    lc_ms = LiquidChromatographSetting()
-    mass_spectrum = {"ms1":MSParameters(), "ms2":MSParameters()}
 
-    def __init__(self, use_defaults = False) -> None:
+    lc_ms = LiquidChromatographSetting()
+    mass_spectrum = {"ms1": MSParameters(), "ms2": MSParameters()}
+
+    def __init__(self, use_defaults=False) -> None:
         if not use_defaults:
             self.lc_ms = dataclasses.replace(LCMSParameters.lc_ms)
-            self.mass_spectrum = {"ms1":MSParameters(use_defaults=False), "ms2":MSParameters(use_defaults=False)}
+            self.mass_spectrum = {
+                "ms1": MSParameters(use_defaults=False),
+                "ms2": MSParameters(use_defaults=False),
+            }
         else:
             self.lc_ms = LiquidChromatographSetting()
-            self.mass_spectrum = {"ms1":MSParameters(use_defaults=True), "ms2":MSParameters(use_defaults=True)}
+            self.mass_spectrum = {
+                "ms1": MSParameters(use_defaults=True),
+                "ms2": MSParameters(use_defaults=True),
+            }
 
     def copy(self):
         """Create a copy of the LCMSParameters object"""
@@ -204,7 +228,7 @@ class LCMSParameters:
             new_lcms_parameters.mass_spectrum[key] = self.mass_spectrum[key].copy()
 
         return new_lcms_parameters
-    
+
     def __eq__(self, value: object) -> bool:
         # Check that the object is of the same type
         if not isinstance(value, LCMSParameters):
@@ -217,14 +241,27 @@ class LCMSParameters:
 
         # Check that the values of the mass_spectrum dictionary are equal
         for key in self.mass_spectrum.keys():
-            equality_check.append(self.mass_spectrum[key].mass_spectrum == value.mass_spectrum[key].mass_spectrum)
-            equality_check.append(self.mass_spectrum[key].ms_peak == value.mass_spectrum[key].ms_peak)
-            equality_check.append(self.mass_spectrum[key].molecular_search == value.mass_spectrum[key].molecular_search)
-            equality_check.append(self.mass_spectrum[key].transient == value.mass_spectrum[key].transient)
-            equality_check.append(self.mass_spectrum[key].data_input == value.mass_spectrum[key].data_input)
+            equality_check.append(
+                self.mass_spectrum[key].mass_spectrum
+                == value.mass_spectrum[key].mass_spectrum
+            )
+            equality_check.append(
+                self.mass_spectrum[key].ms_peak == value.mass_spectrum[key].ms_peak
+            )
+            equality_check.append(
+                self.mass_spectrum[key].molecular_search
+                == value.mass_spectrum[key].molecular_search
+            )
+            equality_check.append(
+                self.mass_spectrum[key].transient == value.mass_spectrum[key].transient
+            )
+            equality_check.append(
+                self.mass_spectrum[key].data_input
+                == value.mass_spectrum[key].data_input
+            )
 
         return all(equality_check)
-    
+
     def print(self):
         """Print the LCMSParameters object"""
         # Print the lcms paramters
@@ -240,10 +277,11 @@ class LCMSParameters:
                 for k4, v4 in v3.__dict__.items():
                     print("    {}: {}".format(k4, v4))
 
+
 def default_parameters(file_location):  # pragma: no cover
     """Generate parameters dictionary with the default parameters for data processing
        To gather parameters from instrument data during the data parsing step, a parameters dictionary with the default parameters needs to be generated.
-       This dictionary acts as a placeholder and is later used as an argument for all the class constructor methods during instantiation. 
+       This dictionary acts as a placeholder and is later used as an argument for all the class constructor methods during instantiation.
        The data gathered from the instrument is added to the class properties.
 
     Parameters
@@ -254,7 +292,7 @@ def default_parameters(file_location):  # pragma: no cover
     Returns
     -------
     parameters: dict
-        dictionary with the default parameters for data processing    
+        dictionary with the default parameters for data processing
     """
 
     parameters = dict()
@@ -270,24 +308,24 @@ def default_parameters(file_location):  # pragma: no cover
     parameters["exc_low_freq"] = 0
 
     parameters["mw_low"] = 0
-        
+
     parameters["mw_high"] = 0
 
     parameters["qpd_enabled"] = 0
 
     parameters["bandwidth"] = 0
 
-    parameters['analyzer'] = 'Unknown'
+    parameters["analyzer"] = "Unknown"
 
-    parameters['acquisition_time'] = None
+    parameters["acquisition_time"] = None
 
-    parameters['instrument_label'] = 'Unknown' 
+    parameters["instrument_label"] = "Unknown"
 
-    parameters['sample_name'] = 'Unknown'
+    parameters["sample_name"] = "Unknown"
 
     parameters["number_data_points"] = 0
 
-    parameters["polarity"] = 'Unknown'
+    parameters["polarity"] = "Unknown"
 
     parameters["filename_path"] = str(file_location)
 
