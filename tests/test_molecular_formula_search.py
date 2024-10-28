@@ -103,6 +103,7 @@ def test_mspeak_search(mass_spectrum_ftms):
     mass_spec_obj.molecular_search_settings.isAdduct = False
     mass_spec_obj.molecular_search_settings.isRadical = False
     mspeak_obj = mass_spec_obj.most_abundant_mspeak
+    assert round(mass_spec_obj.most_abundant_mspeak.mz_exp, 2) == 421.04
     SearchMolecularFormulas(mass_spec_obj).run_worker_ms_peaks([mspeak_obj])
     assert mspeak_obj.is_assigned
     # Try each of the possible filters
