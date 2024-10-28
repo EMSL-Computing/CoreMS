@@ -89,6 +89,19 @@ class MSParameters:
 
             for k2, v2 in v.__dict__.items():
                 print("    {}: {}".format(k2, v2))
+    
+    def __eq__(self, value: object) -> bool:
+        # Check that the object is of the same type
+        if not isinstance(value, MSParameters):
+            return False
+        equality_check = []
+        equality_check.append(self.molecular_search == value.molecular_search)
+        equality_check.append(self.transient == value.transient)
+        equality_check.append(self.mass_spectrum ==value.mass_spectrum)
+        equality_check.append(self.ms_peak == value.ms_peak)
+        equality_check.append(self.data_input == value.data_input)
+
+        return all(equality_check)
 
 class GCMSParameters:
     """GCMSParameters class is used to store the parameters used for the processing of the gas chromatograph mass spectrum
