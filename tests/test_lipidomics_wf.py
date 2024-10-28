@@ -15,7 +15,7 @@ from corems.mass_spectra.output.export import LipidomicsExport
 from corems.molecular_id.search.database_interfaces import MetabRefLCInterface
 from corems.molecular_id.factory.lipid_molecular_metadata import LipidMetadata
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
-from corems.encapsulation.factory.parameters import LCMSParameters, MSParameters, reset_lcms_parameters, reset_ms_parameters
+from corems.encapsulation.factory.parameters import LCMSParameters, reset_lcms_parameters, reset_ms_parameters
 
 
 def test_import_lcmsobj_mzml():
@@ -32,7 +32,7 @@ def test_import_lcmsobj_mzml():
     # Instatiate lc-ms data object using parser and pull in ms1 spectra into dataframe (without storing as MassSpectrum objects to save memory)
     myLCMSobj = parser.get_lcms_obj(spectra="ms1")
     myLCMSobj.parameters = LCMSParameters(use_defaults=True)
-    
+
     myLCMSobj.find_mass_features()
     myLCMSobj.add_associated_ms1(
         auto_process=True, use_parser=False, spectrum_mode="profile"
