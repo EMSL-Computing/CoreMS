@@ -192,19 +192,27 @@ class LCMSSpectralSearch:
                             (self._ms[scan_oi].mz_exp, self._ms[scan_oi].abundance)
                         ).T,
                         precursor_ions_removal_da=None,
-                        noise_threshold=self._ms[scan_oi].parameters.mass_spectrum.noise_threshold_min_relative_abundance / 100,
+                        noise_threshold=self._ms[
+                            scan_oi
+                        ].parameters.mass_spectrum.noise_threshold_min_relative_abundance
+                        / 100,
                         min_ms2_difference_in_da=peak_sep_da,
                     )
                     search_results = fe_lib.search(
                         precursor_mz=precursor_mz,
                         peaks=query_spectrum,
-                        ms1_tolerance_in_da=self.parameters.mass_spectrum['ms1'].molecular_search.max_ppm_error
+                        ms1_tolerance_in_da=self.parameters.mass_spectrum[
+                            "ms1"
+                        ].molecular_search.max_ppm_error
                         * 10**-6
                         * precursor_mz,
-                        ms2_tolerance_in_da=peak_sep_da*0.5,
+                        ms2_tolerance_in_da=peak_sep_da * 0.5,
                         method={"identity"},
                         precursor_ions_removal_da=None,
-                        noise_threshold=self._ms[scan_oi].parameters.mass_spectrum.noise_threshold_min_relative_abundance / 100,
+                        noise_threshold=self._ms[
+                            scan_oi
+                        ].parameters.mass_spectrum.noise_threshold_min_relative_abundance
+                        / 100,
                         target="cpu",
                     )["identity_search"]
                     match_inds = np.where(search_results > min_match_score)[0]

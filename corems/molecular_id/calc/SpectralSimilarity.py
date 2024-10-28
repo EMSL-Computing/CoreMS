@@ -2,25 +2,28 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 09, 2021"
 
 from numpy.fft import rfft
-from scipy.spatial.distance import cosine, jaccard, euclidean, cityblock
 from scipy.stats import pearsonr, spearmanr, kendalltau
-from sklearn.metrics.pairwise import cosine_similarity
-from numpy import power, dot, absolute, subtract, intersect1d, where, average, corrcoef, sqrt
+from numpy import (
+    power,
+    dot,
+    absolute,
+    sqrt,
+)
 from numpy import sum as np_sum
 from numpy.linalg import norm
 from pandas import DataFrame
 import numpy as np
 
 methods_name = {
-    #"entropy_distance": "Entropy Distance",
-    #"weighted_entropy_distance": "Dynamic weighted entropy Distance",
+    # "entropy_distance": "Entropy Distance",
+    # "weighted_entropy_distance": "Dynamic weighted entropy Distance",
     "chebyshev_distance": "Chebyshev Distance",
     "squared_euclidean_distance": "Squared Euclidean Distance",
     "fidelity_similarity": "Fidelity Similarity",
     "matusita_distance": "Matusita Distance",
     "squared_chord_distance": "Squared-chord Distance",
-    #"bhattacharya_1_distance": "Bhattacharya 1 Distance",
-    #"bhattacharya_2_distance": "Bhattacharya 2 Distance",
+    # "bhattacharya_1_distance": "Bhattacharya 1 Distance",
+    # "bhattacharya_2_distance": "Bhattacharya 2 Distance",
     "harmonic_mean_similarity": "Harmonic mean Distance",
     "Pearson_chi_squared_distance": "Pearson Chi Squared Distance",
     "Neyman_chi_squared_distance": "Neyman Chi Squared Distance",
@@ -29,22 +32,22 @@ methods_name = {
     "chernoff_distance": "Chernoff Distance",
     "ruzicka_distance": "Ruzicka Distance",
     "roberts_distance": "Roberts Distance",
-    #"intersection_distance": "Intersection Distance",
+    # "intersection_distance": "Intersection Distance",
     "motyka_distance": "Motyka Distance",
     "canberra_distance": "Canberra Distance",
     "canberra_metric": "Canberra Metric",
     "kulczynski_1_distance": "Kulczynski 1 Distance",
-    #"baroni_urbani_buser_distance": "Baroni-Urbani-Buser Distance",
-    #"penrose_size_distance": "Penrose size Distance",
-    #"mean_character_distance": "Mean character Distance",
+    # "baroni_urbani_buser_distance": "Baroni-Urbani-Buser Distance",
+    # "penrose_size_distance": "Penrose size Distance",
+    # "mean_character_distance": "Mean character Distance",
     "lorentzian_distance": "Lorentzian Distance",
-    #"penrose_shape_distance": "Penrose shape Distance",
+    # "penrose_shape_distance": "Penrose shape Distance",
     "clark_distance": "Clark Distance",
     "hellinger_distance": "Hellinger Distance",
     "whittaker_index_of_association_distance": "Whittaker index of association Distance",
-    #"similarity_index_distance": "Similarity Index Distance",
-    #"improved_similarity_distance": "Improved Similarity",
-    #"absolute_value_distance": "Absolute Value Distance",
+    # "similarity_index_distance": "Similarity Index Distance",
+    # "improved_similarity_distance": "Improved Similarity",
+    # "absolute_value_distance": "Absolute Value Distance",
     "spectral_contrast_angle_distance": "Spectral Contrast Angle",
     "wave_hedges_distance": "Wave Hedges Distance",
     "dice_similarity": "Dice Similarity",
@@ -59,8 +62,8 @@ methods_name = {
     "vicis_symmetric_chi_squared_3_distance": "Vicis-Symmetric X2 3 Distance",
     "max_symmetric_chi_squared_distance": "Max Symmetric Chi Squared Distance",
     "min_symmetric_chi_squared_distance": "Min Symmetric Chi Squared Distance",
-    #"ms_for_id_v1": "MSforID Distance version 1",
-    #"ms_for_id": "MSforID Distance",
+    # "ms_for_id_v1": "MSforID Distance version 1",
+    # "ms_for_id": "MSforID Distance",
     "additive_sym_chi_sq": "Additive Symmetric Chi Squared",
     "bhattacharya_distance": "Battacharya Distance",
     "generalized_ochiai_index": "Generalized Ochiai Index",
@@ -120,12 +123,13 @@ methods_scale = {
     "topsoe": [0, np.sqrt(2)],
     "vicis_symmetric_chi_squared_3": [0, 2],
     "wave_hedges": [0, np.inf],
-    "whittaker_index_of_association": [0, np.inf]
+    "whittaker_index_of_association": [0, np.inf],
 }
 
-class SpectralSimilarity():
-    """ Class containing methods for calculating spectral similarity between two mass spectra.
-    
+
+class SpectralSimilarity:
+    """Class containing methods for calculating spectral similarity between two mass spectra.
+
     Parameters
     ----------
     ms_mz_abun_dict : dict
@@ -134,7 +138,7 @@ class SpectralSimilarity():
         Dictionary of mass to abundance values for the reference mass spectrum.
     norm_func : function
         Function to normalize the abundance values.
-    
+
     Attributes
     ----------
     normalize_func : function
@@ -161,7 +165,7 @@ class SpectralSimilarity():
         List of common mass values between the experimental and reference mass spectra.
     n_x_y : int
         Number of common mass values between the experimental and reference mass spectra.
-    
+
     Methods
     -------
     * nan_fill(df, fill_with=0).
@@ -179,10 +183,10 @@ class SpectralSimilarity():
     * spearman_correlation().
         Calculate the Spearman correlation between the experimental and reference mass spectra.
 
-    
-    """
-    def __init__(self, ms_mz_abun_dict, ref_obj, norm_func=sum):
 
+    """
+
+    def __init__(self, ms_mz_abun_dict, ref_obj, norm_func=sum):
         self.normalize_func = norm_func
         self.ms_mz_abun_dict = ms_mz_abun_dict
         self.ref_obj = ref_obj
@@ -200,9 +204,9 @@ class SpectralSimilarity():
 
         # fill missing mz with abundance 0
         x, y = self.nan_fill(self.df, fill_with=1e-10)
-        
+
         self.zero_filled_u_l = self.normalize(x, y, norm_func=self.normalize_func)
-        
+
         # filter out the mass values that have zero intensities in self.exp_abun
         exp_mz_filtered = set([k for k in self.exp_mz if self.ms_mz_abun_dict[k] != 0])
 
@@ -210,22 +214,24 @@ class SpectralSimilarity():
         ref_mz_filtered = set([k for k in self.ref_mz if self.ref_mz_abun_dict[k] != 0])
 
         # find the intersection/common mass values of both ref and exp, and sort them
-        self.common_mz_values = sorted(list(exp_mz_filtered.intersection(ref_mz_filtered)))
+        self.common_mz_values = sorted(
+            list(exp_mz_filtered.intersection(ref_mz_filtered))
+        )
 
         # find the number of common mass values (after filtering 0s)
         self.n_x_y = len(self.common_mz_values)
         # print(self.n_x_y)
 
     def nan_fill(self, df, fill_with=0):
-        """ Fill missing mass values with a given value.
-        
+        """Fill missing mass values with a given value.
+
         Parameters
         ----------
         df : DataFrame
             DataFrame containing the experimental and reference mass spectrum data.
         fill_with : float
             Value to fill missing mass values with.
-        
+
         Returns
         -------
         x : list
@@ -237,8 +243,8 @@ class SpectralSimilarity():
         return df.T[0].values, df.T[1].values
 
     def normalize(self, x, y, norm_func=sum):
-        """ Normalize the abundance values.
-        
+        """Normalize the abundance values.
+
         Parameters
         ----------
         x : list
@@ -248,7 +254,7 @@ class SpectralSimilarity():
         norm_func : function
             Function to normalize the abundance values.
             Default is sum
-        
+
         Returns
         -------
         u_l : tuple
@@ -261,8 +267,8 @@ class SpectralSimilarity():
             return (x, y)
 
     def weighted_cosine_correlation(self, a=0.5, b=1.3, nanfill=1e-10):
-        """ Calculate the weighted cosine correlation between the experimental and reference mass spectra.
-        
+        """Calculate the weighted cosine correlation between the experimental and reference mass spectra.
+
         Parameters
         ----------
         a : float
@@ -274,7 +280,7 @@ class SpectralSimilarity():
         nanfill : float
             Value to fill missing mass values with.
             Default is 1e-10
-        
+
         Returns
         -------
         correlation : float
@@ -307,13 +313,13 @@ class SpectralSimilarity():
         return correlation
 
     def cosine_correlation(self):
-        """ Calculate the cosine correlation between the experimental and reference mass spectra.
+        """Calculate the cosine correlation between the experimental and reference mass spectra.
 
         Returns
         -------
         correlation : float
             Cosine correlation between the experimental and reference mass spectra.
-        
+
         """
         # calculate cosine correlation,
         x = self.zero_filled_u_l[0]
@@ -326,8 +332,8 @@ class SpectralSimilarity():
         return correlation
 
     def stein_scott(self):
-        """ Calculate the Stein-Scott similarity between the experimental and reference mass spectra.
-        
+        """Calculate the Stein-Scott similarity between the experimental and reference mass spectra.
+
         Returns
         -------
         s_ss_x_y : float
@@ -335,8 +341,9 @@ class SpectralSimilarity():
         s_ss_x_y_nist : float
             Stein-Scott similarity between the experimental and reference mass spectra.
         """
-        #TODO check this code
-        if self.n_x_y == 0: return 0, 0
+        # TODO check this code
+        if self.n_x_y == 0:
+            return 0, 0
 
         # count number of non-zero abundance/peak intensity values
         n_x = sum(a != 0 for a in self.exp_abun)
@@ -346,7 +353,6 @@ class SpectralSimilarity():
         a, b = 1, 0
 
         for i in range(1, self.n_x_y):
-
             current_value = self.common_mz_values[i]
             previous_value = self.common_mz_values[i - 1]
 
@@ -373,7 +379,7 @@ class SpectralSimilarity():
                 n = 1
             else:
                 n = -1
-            
+
             s_r_x_y = s_r_x_y + power(temp_computation, n)
 
         # finish the calculation of S_R(X,Y)
@@ -386,26 +392,30 @@ class SpectralSimilarity():
 
         s_wc_x_y_nist = self.weighted_cosine_correlation(a=0.5, b=1.3, nanfill=0)
 
-        s_ss_x_y_nist = ((n_x * s_wc_x_y_nist) + (self.n_x_y * s_r_x_y)) / (n_x + self.n_x_y)    
+        s_ss_x_y_nist = ((n_x * s_wc_x_y_nist) + (self.n_x_y * s_r_x_y)) / (
+            n_x + self.n_x_y
+        )
         # final step
 
         return s_ss_x_y, s_ss_x_y_nist
 
-    def pearson_correlation(self,):
-        """ Calculate the Pearson correlation between the experimental and reference mass spectra.
-        
+    def pearson_correlation(
+        self,
+    ):
+        """Calculate the Pearson correlation between the experimental and reference mass spectra.
+
         Returns
         -------
         correlation : float
-            Pearson correlation between the experimental and reference mass spectra.    
+            Pearson correlation between the experimental and reference mass spectra.
         """
         correlation = pearsonr(self.zero_filled_u_l[0], self.zero_filled_u_l[1])
 
         return correlation[0]
 
     def spearman_correlation(self):
-        """ Calculate the Spearman correlation between the experimental and reference mass spectra.
-        
+        """Calculate the Spearman correlation between the experimental and reference mass spectra.
+
         Returns
         -------
         coorelation : float
@@ -413,13 +423,15 @@ class SpectralSimilarity():
         """
         # calculate Spearman correlation
         # ## TODO - Check axis
-        correlation = spearmanr(self.zero_filled_u_l[0], self.zero_filled_u_l[1], axis=0)
+        correlation = spearmanr(
+            self.zero_filled_u_l[0], self.zero_filled_u_l[1], axis=0
+        )
 
         return correlation[0]
 
     def kendall_tau(self):
-        """ Calculate the Kendall's tau correlation between the experimental and reference mass spectra.
-        
+        """Calculate the Kendall's tau correlation between the experimental and reference mass spectra.
+
         Returns
         -------
         correlation : float
@@ -435,7 +447,7 @@ class SpectralSimilarity():
         return correlation[0]
 
     def dft_correlation(self):
-        """ Calculate the DFT correlation between the experimental and reference mass spectra.
+        """Calculate the DFT correlation between the experimental and reference mass spectra.
 
         Returns
         -------
@@ -449,14 +461,14 @@ class SpectralSimilarity():
         n_x = sum(a != 0 for a in self.exp_abun)
 
         x, y = self.nan_fill(self.df, fill_with=0)
-        
+
         x, y = self.normalize(x, y, norm_func=self.normalize_func)
-        
+
         # get the Fourier transform of x and y
         x_dft = rfft(x).real
         y_dft = rfft(y).real
 
-        s_dft_xy = dot(x_dft, y_dft)/(norm(x_dft)*norm(y_dft))
+        s_dft_xy = dot(x_dft, y_dft) / (norm(x_dft) * norm(y_dft))
 
         # using the existing weighted_cosine_correlation function to get S_WC(X,Y)
         s_wc_x_y = self.weighted_cosine_correlation(nanfill=0)
@@ -467,21 +479,21 @@ class SpectralSimilarity():
         return s_dft
 
     def dwt_correlation(self):
-        """ Calculate the DWT correlation between the experimental and reference mass spectra.
+        """Calculate the DWT correlation between the experimental and reference mass spectra.
 
         Returns
         -------
         correlation : float
             DWT correlation between the experimental and reference mass spectra.
-        
+
         Notes
         -----
-        This function requires the PyWavelets library to be installed. 
-            This is not a default requirement as this function is not widely used. 
+        This function requires the PyWavelets library to be installed.
+            This is not a default requirement as this function is not widely used.
         """
 
-        from pywt import dwt 
-        
+        from pywt import dwt
+
         if self.n_x_y == 0:
             return 0
 
@@ -490,7 +502,7 @@ class SpectralSimilarity():
 
         # calculate cosine correlation,
         x, y = self.nan_fill(self.df, fill_with=0)
-        
+
         x, y = self.normalize(x, y, norm_func=self.normalize_func)
 
         # Make x and y into an array
@@ -499,8 +511,8 @@ class SpectralSimilarity():
 
         # get the wavelet transform of x and y (Daubechies with a filter length of 4. Asymmetric. pywavelets function)
         # Will only use the detail dwt (dwtDd
-        x_dwtD = dwt(x_a, 'db2')[1]
-        y_dwtD = dwt(y_a, 'db2')[1]
+        x_dwtD = dwt(x_a, "db2")[1]
+        y_dwtD = dwt(y_a, "db2")[1]
 
         s_dwt_xy = dot(x_dwtD, y_dwtD) / (norm(x_dwtD) * norm(y_dwtD))
 
@@ -513,8 +525,8 @@ class SpectralSimilarity():
         return s_dwt
 
     def euclidean_distance(self):
-        """ Calculate the Euclidean distance between the experimental and reference mass spectra.
-        
+        """Calculate the Euclidean distance between the experimental and reference mass spectra.
+
         Returns
         -------
         correlation : float
@@ -529,8 +541,8 @@ class SpectralSimilarity():
         return correlation
 
     def manhattan_distance(self):
-        """ Calculate the Manhattan distance between the experimental and reference mass spectra.
-        
+        """Calculate the Manhattan distance between the experimental and reference mass spectra.
+
         Returns
         -------
         correlation : float
@@ -542,8 +554,8 @@ class SpectralSimilarity():
         return np_sum(absolute(qlist - rlist))
 
     def jaccard_distance(self):
-        """ Calculate the Jaccard distance between the experimental and reference mass spectra.
-        
+        """Calculate the Jaccard distance between the experimental and reference mass spectra.
+
         Returns
         -------
         correlation : float
@@ -551,7 +563,6 @@ class SpectralSimilarity():
         """
 
         def jaccard_similarity(list1, list2):
-
             intersection = len(list(set(list1).intersection(list2)))
             union = (len(list1) + len(list2)) - intersection
             return float(intersection) / union
@@ -559,12 +570,14 @@ class SpectralSimilarity():
         qlist = self.zero_filled_u_l[0]
         rlist = self.zero_filled_u_l[1]
 
-        return np_sum(power(qlist - rlist, 2)) / (np_sum(power(qlist, 2)) + np_sum(power(rlist, 2)) - np_sum(qlist * rlist))
+        return np_sum(power(qlist - rlist, 2)) / (
+            np_sum(power(qlist, 2)) + np_sum(power(rlist, 2)) - np_sum(qlist * rlist)
+        )
         # correlation = jaccard_similarity(self.zero_filled_u_l[0], self.zero_filled_u_l[1])
         # @return correlation
 
     def extra_distances(self):
-        """ Function to calculate distances using additional metrics defined in math_distance.py
+        """Function to calculate distances using additional metrics defined in math_distance.py
 
         Currently, calculates all distances.
 
@@ -572,12 +585,12 @@ class SpectralSimilarity():
         -------
         dict_res : dict
             Dictionary containing the distances between the experimental and reference mass spectra.
-    
+
         """
         from corems.molecular_id.calc import math_distance
 
-        #qlist = self.zero_filled_u_l[2]
-        #rlist = self.zero_filled_u_l[3]
+        # qlist = self.zero_filled_u_l[2]
+        # rlist = self.zero_filled_u_l[3]
 
         dict_res = {}
 
@@ -588,7 +601,6 @@ class SpectralSimilarity():
                 f = getattr(math_distance, function_name)
 
                 if function_name == "canberra_metric":
-
                     x, y = self.nan_fill(self.df, fill_with=0)
 
                     qlist, rlist = self.normalize(x, y, norm_func=self.normalize_func)
@@ -602,19 +614,19 @@ class SpectralSimilarity():
                     rlist = self.zero_filled_u_l[1]
 
                 dist = f(qlist, rlist)
-                #if method == "Minokowski_3":
+                # if method == "Minokowski_3":
                 #    print("qlist:")
                 #    print(qlist)
                 #    print("rlist")
                 #    print(rlist)
                 #    exit()
                 # if dist == np.nan or dis == np.inf:
-                    # print(self.exp_abun)
-                    # print(self.exp_mz)
-                    #print(function_name)
-                    # print(len(self.exp_abun))
-                    # print(len(self.exp_mz))
-                    # print(self.zero_filled_u_l[1])
+                # print(self.exp_abun)
+                # print(self.exp_mz)
+                # print(function_name)
+                # print(len(self.exp_abun))
+                # print(len(self.exp_mz))
+                # print(self.zero_filled_u_l[1])
                 dict_res[method] = dist
 
         return dict_res
