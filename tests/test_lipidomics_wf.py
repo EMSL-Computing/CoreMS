@@ -31,6 +31,8 @@ def test_import_lcmsobj_mzml():
 
     # Instatiate lc-ms data object using parser and pull in ms1 spectra into dataframe (without storing as MassSpectrum objects to save memory)
     myLCMSobj = parser.get_lcms_obj(spectra="ms1")
+    myLCMSobj.parameters = LCMSParameters(use_defaults=True)
+    
     myLCMSobj.find_mass_features()
     myLCMSobj.add_associated_ms1(
         auto_process=True, use_parser=False, spectrum_mode="profile"
@@ -38,6 +40,10 @@ def test_import_lcmsobj_mzml():
     myLCMSobj.integrate_mass_features()
     mass_features_df = myLCMSobj.mass_features_to_df()
     assert mass_features_df.shape == (197, 12)
+    
+    # Reset the MSParameters to the original values
+    reset_lcms_parameters()
+    reset_ms_parameters()
 
 
 def test_lipidomics_workflow():
