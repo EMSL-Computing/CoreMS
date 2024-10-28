@@ -15,7 +15,7 @@ from corems.mass_spectra.output.export import LipidomicsExport
 from corems.molecular_id.search.database_interfaces import MetabRefLCInterface
 from corems.molecular_id.factory.lipid_molecular_metadata import LipidMetadata
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
-from corems.encapsulation.factory.parameters import LCMSParameters
+from corems.encapsulation.factory.parameters import LCMSParameters, MSParameters, reset_lcms_parameters, reset_ms_parameters
 
 
 def test_import_lcmsobj_mzml():
@@ -241,6 +241,7 @@ def test_lipidomics_workflow():
         "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems/Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.hdf5"
     )
     myLCMSobj2 = parser.get_lcms_obj()
+
     # Check that the parameters match
     assert myLCMSobj2.parameters == myLCMSobj.parameters
     assert myLCMSobj2.spectra_parser_class.__name__ == "ImportMassSpectraThermoMSFileReader"
@@ -256,3 +257,7 @@ def test_lipidomics_workflow():
         "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems",
         ignore_errors=True,
     )
+
+    # Reset the MSParameters to the original values
+    reset_lcms_parameters()
+    reset_ms_parameters()
