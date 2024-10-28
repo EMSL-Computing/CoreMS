@@ -1,15 +1,16 @@
-
 from io import BytesIO
 
 import h5py
 from s3path import S3Path
-from corems.mass_spectrum.input.baseClass import MassListBaseClass
-from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile
+
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.factory.parameters import default_parameters
+from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile
+from corems.mass_spectrum.input.baseClass import MassListBaseClass
+
 
 class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
-    """ The ReadHDF_BoosterMassSpectrum class parses the mass spectrum data from an HDF file and generate a mass spectrum object.
+    """The ReadHDF_BoosterMassSpectrum class parses the mass spectrum data from an HDF file and generate a mass spectrum object.
 
     Parameters
     ----------
@@ -39,7 +40,7 @@ class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
     def __init__(self, file_location, isCentroid=False):
         self.polarity = self.get_polarity(file_location)
         super().__init__(file_location, isCentroid=False)
-        
+
     def get_data_profile(self, mz, abundance, auto_process) -> MassSpecProfile:
         """
         Returns a MassSpecProfile object from the given m/z and abundance arrays.
@@ -62,7 +63,7 @@ class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
         data_dict = {Labels.mz: mz, Labels.abundance: abundance}
         output_parameters = self.get_output_parameters()
         return MassSpecProfile(data_dict, output_parameters, auto_process=auto_process)
-    
+
     def get_attr_data(self, scan, attr_srt):
         """
         Returns the attribute value for the given scan and attribute name.
@@ -82,7 +83,7 @@ class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
         """
         return self.h5pydata[self.scans[scan]].attrs[attr_srt]
 
-    def get_polarity(self, file_location:str | S3Path) -> int:
+    def get_polarity(self, file_location: str | S3Path) -> int:
         """
         Returns the polarity of the mass spectrum.
 
@@ -98,19 +99,19 @@ class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
 
         """
         if isinstance(file_location, S3Path):
-            data = BytesIO(file_location.open('rb').read())
+            data = BytesIO(file_location.open("rb").read())
         else:
             data = file_location
-        
-        self.h5pydata = h5py.File(data, 'r')
+
+        self.h5pydata = h5py.File(data, "r")
         self.scans = list(self.h5pydata.keys())
-        
-        polarity = self.get_attr_data(0,'r_h_polarity')
-        
-        if polarity == 'negative scan':
+
+        polarity = self.get_attr_data(0, "r_h_polarity")
+
+        if polarity == "negative scan":
             return -1
         else:
-            return +1    
+            return +1
 
     def get_mass_spectrum(self, auto_process=True) -> MassSpecProfile:
         """
@@ -129,7 +130,7 @@ class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
         """
         if len(self.scans) == 1:
             booster_data = self.h5pydata[self.scans[0]]
-            
+
             if self.isCentroid:
                 raise NotImplementedError
             else:
@@ -153,13 +154,8 @@ class ReadHDF_BoosterMassSpectrum(MassListBaseClass):
         d_params["mobility_scan"] = 0
         d_params["mobility_rt"] = 0
         d_params["scan_number"] = 0
-        d_params["rt"] = self.get_attr_data(0, 'r_h_start_time')
-        d_params['label'] = Labels.booster_profile
-        d_params["Aterm"] = self.get_attr_data(0, 'r_cparams')[0]
-        d_params["Bterm"] = self.get_attr_data(0, 'r_cparams')[1]
+        d_params["rt"] = self.get_attr_data(0, "r_h_start_time")
+        d_params["label"] = Labels.booster_profile
+        d_params["Aterm"] = self.get_attr_data(0, "r_cparams")[0]
+        d_params["Bterm"] = self.get_attr_data(0, "r_cparams")[1]
         return d_params
-
-
-    
-    
-    
