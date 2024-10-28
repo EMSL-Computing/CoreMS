@@ -40,7 +40,6 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
         auto_process=True,
         keep_profile=False,
     ):
-        
         Thread.__init__(self)
 
         if isinstance(d_directory_location, str):

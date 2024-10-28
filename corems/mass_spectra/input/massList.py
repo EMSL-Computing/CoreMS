@@ -38,18 +38,17 @@ class ReadCoremsMassSpectraText(ReadCoremsMasslist, Thread):
     * get_lcms_obj(). Get the LCMSBase object.
     """
 
-    def __init__(self, file_location, analyzer='Unknown', instrument_label='Unknown'):
-        
+    def __init__(self, file_location, analyzer="Unknown", instrument_label="Unknown"):
         if isinstance(file_location, str):
             # if obj is a string it defaults to create a Path obj, pass the S3Path if needed
             file_location = Path(file_location)
 
         if not file_location.exists():
             raise FileNotFoundError("%s not found" % file_location)
-        
-        if not file_location.suffix == '.corems':
+
+        if not file_location.suffix == ".corems":
             raise TypeError("%s is not a valid CoreMS file" % file_location)
-        
+
         Thread.__init__(self)
 
         ReadCoremsMasslist.__init__(self, file_location)
@@ -133,4 +132,3 @@ class ReadCoremsMassSpectraText(ReadCoremsMasslist, Thread):
             return self.lcms
         else:
             raise Exception("returning an empty lcms class")
-

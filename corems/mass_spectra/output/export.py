@@ -22,7 +22,6 @@ from corems.encapsulation.output.parameter_to_json import (
     dump_lcms_settings_json,
     dump_lcms_settings_toml,
 )
-from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
 from corems.mass_spectrum.output.export import HighResMassSpecExport
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 from corems.molecular_id.calc.SpectralSimilarity import methods_name
@@ -959,7 +958,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
 
     def to_hdf(self, overwrite=False, export_raw=True):
         """Export the data to an HDF5 file.
-        
+
         Parameters
         ----------
         overwrite : bool, optional
@@ -986,8 +985,12 @@ class HighResMassSpectraExport(HighResMassSpecExport):
                 )
                 hdf_handle.attrs["sample_name"] = self.mass_spectra.sample_name
                 hdf_handle.attrs["polarity"] = self.mass_spectra.polarity
-                hdf_handle.attrs["parser_type"] = self.mass_spectra.spectra_parser_class.__name__
-                hdf_handle.attrs["original_file_location"] = self.mass_spectra.file_location._str
+                hdf_handle.attrs["parser_type"] = (
+                    self.mass_spectra.spectra_parser_class.__name__
+                )
+                hdf_handle.attrs["original_file_location"] = (
+                    self.mass_spectra.file_location._str
+                )
 
             if "mass_spectra" not in hdf_handle:
                 mass_spectra_group = hdf_handle.create_group("mass_spectra")
@@ -997,7 +1000,9 @@ class HighResMassSpectraExport(HighResMassSpecExport):
             for mass_spectrum in self.mass_spectra:
                 group_key = str(int(mass_spectrum.scan_number))
 
-                self.add_mass_spectrum_to_hdf5(hdf_handle, mass_spectrum, group_key, mass_spectra_group, export_raw)
+                self.add_mass_spectrum_to_hdf5(
+                    hdf_handle, mass_spectrum, group_key, mass_spectra_group, export_raw
+                )
 
 
 class LCMSExport(HighResMassSpectraExport):
@@ -1033,8 +1038,10 @@ class LCMSExport(HighResMassSpectraExport):
         ValueError
             If parameter_format is not 'json' or 'toml'.
         """
-        export_profile_spectra = self.mass_spectra.parameters.lc_ms.export_profile_spectra
-        
+        export_profile_spectra = (
+            self.mass_spectra.parameters.lc_ms.export_profile_spectra
+        )
+
         # Write the mass spectra data to the hdf5 file
         super().to_hdf(overwrite=overwrite, export_raw=export_profile_spectra)
 
@@ -1050,7 +1057,9 @@ class LCMSExport(HighResMassSpectraExport):
                     scan_info_group.create_dataset(k, data=array)
 
             # Add ms_unprocessed to hdf5 file
-            export_unprocessed_ms1 = self.mass_spectra.parameters.lc_ms.export_unprocessed_ms1
+            export_unprocessed_ms1 = (
+                self.mass_spectra.parameters.lc_ms.export_unprocessed_ms1
+            )
             if self.mass_spectra._ms_unprocessed and export_unprocessed_ms1:
                 if "ms_unprocessed" not in hdf_handle:
                     ms_unprocessed_group = hdf_handle.create_group("ms_unprocessed")
@@ -1185,7 +1194,6 @@ class LCMSExport(HighResMassSpectraExport):
                 )
 
 
-
 class LipidomicsExport(LCMSExport):
     """A class to export lipidomics data.
 
@@ -1198,6 +1206,7 @@ class LipidomicsExport(LCMSExport):
     mass_spectra : object
         The high resolution mass spectra object.
     """
+
     def __init__(self, out_file_path, mass_spectra):
         super().__init__(out_file_path, mass_spectra)
         self.ion_type_dict = ion_type_dict
@@ -1392,9 +1401,9 @@ class LipidomicsExport(LCMSExport):
         )
 
         # If ion_types_excluded is not empty, remove those ion types
-        ion_types_excluded = (
-            self.mass_spectra.parameters.mass_spectrum['ms2'].molecular_search.ion_types_excluded
-        )
+        ion_types_excluded = self.mass_spectra.parameters.mass_spectrum[
+            "ms2"
+        ].molecular_search.ion_types_excluded
         if len(ion_types_excluded) > 0:
             ms2_annot = ms2_annot[~ms2_annot["ref_ion_type"].isin(ion_types_excluded)]
 
@@ -1428,9 +1437,9 @@ class LipidomicsExport(LCMSExport):
                             ms2_annot_sub["ref_mz_in_query_fract"]
                             == ms2_annot_sub["ref_mz_in_query_fract"].max()
                         )
-                        ms2_annot_sub["frag_max"] = ms2_annot_sub["query_frag_types"].apply(
-                            lambda x: True if "MLF" in x else False
-                        )
+                        ms2_annot_sub["frag_max"] = ms2_annot_sub[
+                            "query_frag_types"
+                        ].apply(lambda x: True if "MLF" in x else False)
 
                         # New column that looks if there is a consensus between the ranks (one row that is highest in all ranks)
                         ms2_annot_sub["consensus"] = ms2_annot_sub[

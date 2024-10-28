@@ -1,6 +1,3 @@
-__author__ = "Katherine Heal"
-__date__ = "November 8, 2023"
-
 from abc import ABC, abstractmethod
 
 

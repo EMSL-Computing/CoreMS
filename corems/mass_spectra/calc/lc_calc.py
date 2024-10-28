@@ -231,7 +231,7 @@ class LCCalculations:
         polarity : int, optional
             The polarity of the mass spectra (1 or -1). If not set, the polarity will be determined from the dataset. Defaults to None. (fastest if set to -1 or 1)
         ms_params : MSParameters, optional
-            The mass spectrum parameters to use. If not set (None), the globally set parameters will be used. Defaults to None.            
+            The mass spectrum parameters to use. If not set (None), the globally set parameters will be used. Defaults to None.
 
         Returns
         -------
@@ -322,7 +322,7 @@ class LCCalculations:
             if auto_process:
                 ms.process_mass_spec()
         return ms
-    
+
     def find_mass_features(self, ms_level=1, grid=True):
         """Find mass features within an LCMSBase object
 
@@ -353,12 +353,8 @@ class LCCalculations:
         if pp_method == "persistent homology":
             msx_scan_df = self.scan_df[self.scan_df["ms_level"] == ms_level]
             if all(msx_scan_df["ms_format"] == "profile"):
-                self.find_mass_features_ph(
-                    ms_level=ms_level, grid=grid
-                )
-                self.cluster_mass_features(
-                    drop_children=True, sort_by="persistence"
-                )
+                self.find_mass_features_ph(ms_level=ms_level, grid=grid)
+                self.cluster_mass_features(drop_children=True, sort_by="persistence")
             else:
                 raise ValueError(
                     "MS{} scans are not profile mode, which is required for persistent homology peak picking.".format(
@@ -368,7 +364,9 @@ class LCCalculations:
         else:
             raise ValueError("Peak picking method not implemented")
 
-    def integrate_mass_features(self, drop_if_fail=True, drop_duplicates=True, ms_level=1):
+    def integrate_mass_features(
+        self, drop_if_fail=True, drop_duplicates=True, ms_level=1
+    ):
         """Integrate mass features and extract EICs.
 
         Populates the _eics attribute on the LCMSBase object for each unique mz in the mass_features dataframe and adds data (start_scan, final_scan, area) to the mass_features attribute.
@@ -379,7 +377,7 @@ class LCCalculations:
             Whether to drop mass features if the EIC limit calculations fail.
             Default is True.
         drop_duplicates : bool, optional
-            Whether to mass features that appear to be duplicates 
+            Whether to mass features that appear to be duplicates
             (i.e., mz is similar to another mass feature and limits of the EIC are similar or encapsulating).
             Default is True.
         ms_level : int, optional
@@ -494,7 +492,7 @@ class LCCalculations:
             else:
                 if drop_if_fail is True:
                     self.mass_features.pop(idx)
-        
+
         if drop_duplicates:
             # Prepare mass feature dataframe
             mf_df = self.mass_features_to_df().copy()
@@ -506,16 +504,21 @@ class LCCalculations:
                 apex_scan = mass_feature.apex_scan
 
                 mf_df["mz_diff_ppm"] = np.abs(mf_df["mz"] - mz) / mz * 10**6
-                mf_df_sub = mf_df[mf_df["mz_diff_ppm"] < self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel * 10**6].copy()
+                mf_df_sub = mf_df[
+                    mf_df["mz_diff_ppm"]
+                    < self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel
+                    * 10**6
+                ].copy()
 
                 # For all mass features within the clustering tolerance, check if the start and end times are within the start and end times of the mass feature
                 for idx2, mass_feature2 in mf_df_sub.iterrows():
                     if idx2 != idx:
-                        if mass_feature2.start_scan >= mass_feature.start_scan and mass_feature2.final_scan <= mass_feature.final_scan:
+                        if (
+                            mass_feature2.start_scan >= mass_feature.start_scan
+                            and mass_feature2.final_scan <= mass_feature.final_scan
+                        ):
                             if idx2 in self.mass_features.keys():
                                 self.mass_features.pop(idx2)
-
-    
 
     def find_c13_mass_features(self):
         """Mark likely C13 isotopes and connect to monoisoitopic mass features.
@@ -708,7 +711,6 @@ class LCCalculations:
 
         # Loop through each mass feature
         for mf_id, mass_feature in self.mass_features.items():
-            
             # Check that the mass_feature.mz attribute == the mz of the mass feature in the mass_feature_df
             if mass_feature.mz != mass_feature.ms1_peak.mz_exp:
                 continue
@@ -1189,7 +1191,6 @@ class PHCalculations:
         # Drop rows with missing intensity values and reset index
         data = data.dropna(subset=["intensity"]).reset_index(drop=True)
 
-
         # Threshold data
         dims = ["mz", "scan_time"]
         threshold = self.parameters.lc_ms.ph_inten_min_rel * data.intensity.max()
@@ -1286,9 +1287,7 @@ class PHCalculations:
         if self.parameters.lc_ms.verbose_processing:
             print("Found " + str(len(mass_features)) + " initial mass features")
 
-    def cluster_mass_features(
-        self, drop_children=True, sort_by="persistence"
-    ):
+    def cluster_mass_features(self, drop_children=True, sort_by="persistence"):
         """Cluster mass features
 
         Based on their proximity in the mz and scan_time dimensions, priorizies the mass features with the highest persistence.
@@ -1382,14 +1381,14 @@ class PHCalculations:
         to_drop = []
         while not pairs_df.empty:
             # Find root_parents and their children
-            root_parents = np.setdiff1d(np.unique(pairs_df.index.values), np.unique(pairs_df.child.values))
+            root_parents = np.setdiff1d(
+                np.unique(pairs_df.index.values), np.unique(pairs_df.child.values)
+            )
             children_of_roots = pairs_df.loc[root_parents, "child"].unique()
             to_drop = np.append(to_drop, children_of_roots)
 
             # Remove root_children as possible parents from pairs_df for next iteration
-            pairs_df = pairs_df.drop(
-                index=children_of_roots, errors="ignore"
-            )  
+            pairs_df = pairs_df.drop(index=children_of_roots, errors="ignore")
             pairs_df = pairs_df.reset_index().set_index("child")
             # Remove root_children as possible children from pairs_df for next iteration
             pairs_df = pairs_df.drop(index=children_of_roots)

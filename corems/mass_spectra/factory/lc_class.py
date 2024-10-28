@@ -9,6 +9,7 @@ from corems.mass_spectra.calc.lc_calc import LCCalculations, PHCalculations
 from corems.molecular_id.search.lcms_spectral_search import LCMSSpectralSearch
 from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
 
+
 class MassSpectraBase:
     """Base class for mass spectra objects.
 
@@ -90,22 +91,22 @@ class MassSpectraBase:
             ):
                 warnings.warn(
                     "sample_name provided to MassSpectraBase object does not match sample_name provided to spectra parser object",
-                    UserWarning
+                    UserWarning,
                 )
             if self.analyzer != self.spectra_parser.analyzer:
                 warnings.warn(
                     "analyzer provided to MassSpectraBase object does not match analyzer provided to spectra parser object",
-                    UserWarning
+                    UserWarning,
                 )
             if self.instrument_label != self.spectra_parser.instrument_label:
                 warnings.warn(
                     "instrument provided to MassSpectraBase object does not match instrument provided to spectra parser object",
-                    UserWarning
+                    UserWarning,
                 )
             if self.file_location != self.spectra_parser.file_location:
                 warnings.warn(
                     "file_location provided to MassSpectraBase object does not match file_location provided to spectra parser object",
-                    UserWarning
+                    UserWarning,
                 )
 
         # Instantiate empty dictionaries for scan information and mass spectra
@@ -428,7 +429,12 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         self._ms_unprocessed[ms_level] = None
 
     def add_associated_ms2_dda(
-        self, auto_process=True, use_parser=True, spectrum_mode=None, ms_params_key="ms2", scan_filter=None
+        self,
+        auto_process=True,
+        use_parser=True,
+        spectrum_mode=None,
+        ms_params_key="ms2",
+        scan_filter=None,
     ):
         """Add MS2 spectra associated with mass features to the dataset.
 
@@ -463,7 +469,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             raise ValueError(
                 "mass_features not set, must run find_mass_features() first"
             )
-        
+
         # reconfigure ms_params to get the correct mass spectrum parameters from the key
         ms_params = self.parameters.mass_spectrum[ms_params_key]
 
@@ -496,7 +502,10 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 )
             ]
             dda_scans = dda_scans + ms2_scans_filtered.scan.tolist()
-            self.mass_features[i].ms2_scan_numbers = ms2_scans_filtered.scan.tolist() + self.mass_features[i].ms2_scan_numbers
+            self.mass_features[i].ms2_scan_numbers = (
+                ms2_scans_filtered.scan.tolist()
+                + self.mass_features[i].ms2_scan_numbers
+            )
         # add to _ms attribute
         self.add_mass_spectra(
             scan_list=list(set(dda_scans)),
@@ -647,7 +656,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 self.mass_features[mf_id].apex_scan
             ]
             self.mass_features[mf_id].update_mz()
-        
+
         # Re-process clustering if persistent homology is selected to remove duplicate mass features after adding and processing MS1 spectra
         if self.parameters.lc_ms.peak_picking_method == "persistent homology":
             self.cluster_mass_features(drop_children=True, sort_by="persistence")
@@ -838,7 +847,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             # Warn that no ms1 annotations were found
             warnings.warn(
                 "No MS1 annotations found for mass features in dataset, were MS1 spectra added and processed within the dataset?",
-                UserWarning
+                UserWarning,
             )
 
         return annot_ms1_df_full
@@ -854,7 +863,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         Returns
         --------
         pandas.DataFrame
-            A pandas dataframe of MS2 annotations for the mass features in the dataset, 
+            A pandas dataframe of MS2 annotations for the mass features in the dataset,
             and optionally molecular metadata. The index is set to mf_id (mass feature ID)
 
         Raises
@@ -897,7 +906,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             # Warn that no ms2 annotations were found
             warnings.warn(
                 "No MS2 annotations found for mass features in dataset, were MS2 spectra added and searched against a database?",
-                UserWarning
+                UserWarning,
             )
 
         return annot_ms2_df_full

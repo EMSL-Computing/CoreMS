@@ -4,7 +4,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pymzml
-import warnings
 
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.factory.parameters import default_parameters
@@ -136,10 +135,7 @@ class MZMLSpectraParser(SpectraParserInterface):
                 scan_dict["polarity"][i] = "negative"
             if spec["positive scan"] is not None:
                 scan_dict["polarity"][i] = "positive"
-            if (
-                spec["negative scan"] is not None
-                and spec["positive scan"] is not None
-            ):
+            if spec["negative scan"] is not None and spec["positive scan"] is not None:
                 raise ValueError(
                     "Error: scan {0} has both negative and positive polarity".format(
                         spec.ID
@@ -167,7 +163,7 @@ class MZMLSpectraParser(SpectraParserInterface):
         Parameters
         ----------
         spectra : str
-            Which mass spectra data to include in the output. 
+            Which mass spectra data to include in the output.
             Options: None, "ms1", "ms2", "all".
         scan_df : pandas.DataFrame
             Scan dataframe. Output from get_scan_df().
@@ -178,7 +174,7 @@ class MZMLSpectraParser(SpectraParserInterface):
         -------
         dict
             A dictionary containing the mass spectra data as pandas DataFrames, with keys corresponding to the MS level.
-        
+
         """
         if spectra == "all":
             scan_df_forspec = scan_df
@@ -269,7 +265,7 @@ class MZMLSpectraParser(SpectraParserInterface):
                 axis=1,
                 inplace=False,
             )
-        
+
         return res
 
     def run(self, spectra="all", scan_df=None):
@@ -299,7 +295,7 @@ class MZMLSpectraParser(SpectraParserInterface):
 
         if spectra != "none":
             res = self.get_ms_raw(spectra, scan_df, data)
-            
+
         else:
             res = None
 
@@ -416,7 +412,7 @@ class MZMLSpectraParser(SpectraParserInterface):
         Returns
         -------
         MassSpectraBase
-            The MassSpectra object containing the parsed mass spectra.  
+            The MassSpectra object containing the parsed mass spectra.
             The object is instatiated with the mzML file, analyzer, instrument, sample name, and scan dataframe.
         """
         _, scan_df = self.run(spectra=False)
@@ -443,8 +439,8 @@ class MZMLSpectraParser(SpectraParserInterface):
         Returns
         -------
         LCMSBase
-            LCMS object containing mass spectra data. 
-            The object is instatiated with the mzML file, analyzer, instrument, sample name, scan dataframe, 
+            LCMS object containing mass spectra data.
+            The object is instatiated with the mzML file, analyzer, instrument, sample name, scan dataframe,
             and mz dataframe(s), as well as lists of scan numbers, retention times, and TICs.
         """
         _, scan_df = self.run(spectra="none")  # first run it to just get scan info
