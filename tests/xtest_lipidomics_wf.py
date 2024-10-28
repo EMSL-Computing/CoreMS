@@ -256,7 +256,3 @@ def test_lipidomics_workflow():
         "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems",
         ignore_errors=True,
     )
-
-
-if __name__ == "__main__":
-    test_lipidomics_workflow()
