@@ -91,19 +91,19 @@ def test_run_molecular_formula_search_adduct():
 
 
 def test_mspeak_search(mass_spectrum_ftms):
-    mass_spec_obj = mass_spectrum_ftms
-    mass_spec_obj.molecular_search_settings.url_database = ""
-    mass_spec_obj.molecular_search_settings.usedAtoms = {
+    mass_spectrum_ftms.molecular_search_settings.url_database = ""
+    mass_spectrum_ftms.molecular_search_settings.usedAtoms = {
         "C": (1, 100),
         "H": (4, 200),
         "O": (0, 10),
         "N": (0, 1),
         "P": (0, 1),
     }
-    mass_spec_obj.molecular_search_settings.isAdduct = False
-    mass_spec_obj.molecular_search_settings.isRadical = False
-    mspeak_obj = mass_spec_obj.most_abundant_mspeak
-    SearchMolecularFormulas(mass_spec_obj).run_worker_ms_peaks([mspeak_obj])
+    mass_spectrum_ftms.molecular_search_settings.isAdduct = False
+    mass_spectrum_ftms.molecular_search_settings.isRadical = False
+    mspeak_obj = mass_spectrum_ftms.most_abundant_mspeak
+    assert round(mass_spectrum_ftms.most_abundant_mspeak.mz_exp, 2) == 421.04
+    SearchMolecularFormulas(mass_spectrum_ftms).run_worker_ms_peaks([mspeak_obj])
     assert mspeak_obj.is_assigned
     # Try each of the possible filters
     mspeak_obj.molecular_formula_earth_filter()
@@ -117,9 +117,8 @@ def test_mspeak_search(mass_spectrum_ftms):
 
 
 def test_molecular_formula_search_db(mass_spectrum_ftms):
-    mass_spec_obj = mass_spectrum_ftms
-    mass_spec_obj.molecular_search_settings.url_database = ""
-    mass_spec_obj.molecular_search_settings.usedAtoms = {
+    mass_spectrum_ftms.molecular_search_settings.url_database = ""
+    mass_spectrum_ftms.molecular_search_settings.usedAtoms = {
         "C": (1, 100),
         "H": (4, 200),
         "O": (0, 10),
@@ -127,7 +126,7 @@ def test_molecular_formula_search_db(mass_spectrum_ftms):
         "P": (0, 1),
     }
 
-    SearchMolecularFormulas(mass_spec_obj, first_hit=True).run_worker_mass_spectrum()
+    SearchMolecularFormulas(mass_spectrum_ftms, first_hit=True).run_worker_mass_spectrum()
 
     i = 0
     j = 0
@@ -135,7 +134,7 @@ def test_molecular_formula_search_db(mass_spectrum_ftms):
     mass = list()
     abundance = list()
 
-    for mspeak in mass_spec_obj.sort_by_abundance():
+    for mspeak in mass_spectrum_ftms.sort_by_abundance():
         if mspeak.is_assigned:
             i += 1
             for mformula in mspeak:

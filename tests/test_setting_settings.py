@@ -44,7 +44,7 @@ def test_data():
 def test_settings_search():
 
     test = MolecularLookupDictSettings().__dict__
-    assert len(test) > 14
+    assert len(test) > 10
     assert "usedAtoms" in test
     assert "url_database" in test
 

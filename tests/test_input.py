@@ -86,8 +86,8 @@ def test_import_lcms_from_transient():
     lcms = read_lcms.get_lcms_obj()
     lcms.find_nearest_scan(0)
     lcms.scans_number
-    lcms.set_retention_time_from_data()
-    lcms.set_tic_list_from_data()
+    lcms.set_retention_time_from_data(overwrite=True)
+    lcms.set_tic_list_from_data(overwrite=True)
     assert lcms.retention_time[0] > 0
     assert len(lcms.tic) > 0
     assert len(lcms) > 0

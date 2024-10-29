@@ -13,7 +13,7 @@ from corems.mass_spectra.calc.GC_Calc import GC_Calculations
 from corems.mass_spectra.calc.GC_Deconvolution import MassDeconvolution
 from corems.mass_spectra.calc import SignalProcessing as sp
 
-from corems.chroma_peak.factory.ChromaPeakClasses import GCPeak
+from corems.chroma_peak.factory.chroma_peak_classes import GCPeak
 from corems.mass_spectra.output.export import LowResGCMSExport
 from corems.encapsulation.factory.parameters import GCMSParameters
 
@@ -67,14 +67,18 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
     * plot_gc_peaks(ax=None, color='red'). Plot the GC peaks.
     """
 
-    def __init__(self, file_location, analyzer='Unknown', instrument_label='Unknown', sample_name=None):
-
+    def __init__(
+        self,
+        file_location,
+        analyzer="Unknown",
+        instrument_label="Unknown",
+        sample_name=None,
+    ):
         if isinstance(file_location, str):
             # if obj is a string it defaults to create a Path obj, pass the S3Path if needed
             file_location = Path(file_location)
 
         if not file_location.exists():
-
             raise FileExistsError("File does not exist: " + str(file_location))
 
         self.file_location = file_location
@@ -123,13 +127,13 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
     def process_chromatogram(self, plot_res=False):
         """Process the chromatogram.
-        
+
         This method processes the chromatogram.
-        
+
         Parameters
         ----------
         plot_res : bool, optional
-            If True, plot the results. Defaults to False.           
+            If True, plot the results. Defaults to False.
         """
 
         # tic = self.tic - self.baseline_detector(self.tic)
@@ -137,24 +141,22 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         self._processed_tic = self.smooth_tic(self.tic)
 
         for index, tic in enumerate(self._processed_tic):
-
             self._ms[index]._processed_tic = tic
 
         # self.second_derivative_threshold(self._processed_tic)
 
         if self.chromatogram_settings.use_deconvolution:
-
             self.run_deconvolution(plot_res=False)
 
         else:
-
-            peaks_index = self.centroid_detector(self._processed_tic, self.retention_time)
+            peaks_index = self.centroid_detector(
+                self._processed_tic, self.retention_time
+            )
 
             for i in peaks_index:
-
                 apex_index = i[1]
 
-                gc_peak = GCPeak(self, self._ms[apex_index], i )
+                gc_peak = GCPeak(self, self._ms[apex_index], i)
 
                 gc_peak.calc_area(self._processed_tic, 1)
 
@@ -188,7 +190,6 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         retention_time_list = []
 
         for key_ms in sorted(self._ms.keys()):
-
             retention_time_list.append(self._ms.get(key_ms).retention_time)
 
         self.retention_time = retention_time_list
@@ -216,7 +217,6 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
     @molecular_search_settings.setter
     def molecular_search_settings(self, settings_class_instance):
-
         self.parameter.molecular_search = settings_class_instance
 
     @property
@@ -291,34 +291,40 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         for gc_peak in self:
             if gc_peak:
                 for compound_obj in gc_peak:
-
                     if compound_obj.name in metabolites.keys():
-                        current_score = metabolites[compound_obj.name]["highest_similarity_score"]
+                        current_score = metabolites[compound_obj.name][
+                            "highest_similarity_score"
+                        ]
                         compound_score = compound_obj.spectral_similarity_score
-                        metabolites[compound_obj.name]["highest_similarity_score"] = compound_score if compound_score > current_score else current_score
+                        metabolites[compound_obj.name]["highest_similarity_score"] = (
+                            compound_score
+                            if compound_score > current_score
+                            else current_score
+                        )
 
                     else:
                         if compound_obj.metadata:
                             metabolites[compound_obj.name] = {
-                                                                "name": compound_obj.name,
-                                                                "highest_similarity_score": compound_obj.spectral_similarity_score,
-                                                                "casno": compound_obj.metadata.cas,
-                                                                "kegg": compound_obj.metadata.kegg,
-                                                                "inchi": compound_obj.metadata.inchi,
-                                                                "inchi_key": compound_obj.metadata.inchikey,
-                                                                "chebi": compound_obj.metadata.chebi,
-                                                                "smiles": compound_obj.metadata.smiles
-                                                              }
+                                "name": compound_obj.name,
+                                "highest_similarity_score": compound_obj.spectral_similarity_score,
+                                "casno": compound_obj.metadata.cas,
+                                "kegg": compound_obj.metadata.kegg,
+                                "inchi": compound_obj.metadata.inchi,
+                                "inchi_key": compound_obj.metadata.inchikey,
+                                "chebi": compound_obj.metadata.chebi,
+                                "smiles": compound_obj.metadata.smiles,
+                            }
                         else:
-                            metabolites[compound_obj.name] = {  "name": compound_obj.name,
-                                                                "highest_similarity_score": compound_obj.spectral_similarity_score,
-                                                                "casno": "",
-                                                                "kegg": "",
-                                                                "inchi": "",
-                                                                "inchikey": "",
-                                                                "chebi": "",
-                                                                "smiles": ""
-                                                                }                       
+                            metabolites[compound_obj.name] = {
+                                "name": compound_obj.name,
+                                "highest_similarity_score": compound_obj.spectral_similarity_score,
+                                "casno": "",
+                                "kegg": "",
+                                "inchi": "",
+                                "inchikey": "",
+                                "chebi": "",
+                                "smiles": "",
+                            }
 
         return list(metabolites.values())
 
@@ -334,19 +340,17 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
     @scans_number.setter
     def scans_number(self, alist):
-
         self._scans_number_list = alist
 
     @tic.setter
     def tic(self, alist):
-
         self._tic_list = array(alist)
 
     def plot_gc_peaks(self, ax=None, color="red"):  # pragma: no cover
         """Plot the GC peaks.
-        
+
         This method plots the GC peaks.
-        
+
         Parameters
         ----------
         ax : matplotlib.axes.Axes, optional
@@ -356,6 +360,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         """
 
         import matplotlib.pyplot as plt
+
         fig = plt.gcf()
         if ax is None:
             ax = plt.gca()
@@ -367,29 +372,75 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         # min_tics = [self._ms[gc_peak.start_index].tic for gc_peak in self] + [self._ms[gc_peak.final_index].tic for gc_peak in self]
         # sc = ax.scatter(min_rts, min_tics, color='yellow', linewidth=0, marker='v')
 
-        sc = ax.scatter(max_rts, max_tics, color=color, marker='v')
+        sc = ax.scatter(max_rts, max_tics, color=color, marker="v")
 
-        ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
+        ax.set(xlabel="Retention Time (s)", ylabel="Total Ion Chromatogram")
 
-        annot = ax.annotate("", xy=(0, 0), xytext=(20, 20), textcoords="offset points",
-                            bbox=dict(boxstyle="round", fc="w"),
-                            arrowprops=dict(arrowstyle="->"))
+        annot = ax.annotate(
+            "",
+            xy=(0, 0),
+            xytext=(20, 20),
+            textcoords="offset points",
+            bbox=dict(boxstyle="round", fc="w"),
+            arrowprops=dict(arrowstyle="->"),
+        )
         annot.set_visible(False)
-        annot.get_bbox_patch().set_facecolor(('lightblue'))
+        annot.get_bbox_patch().set_facecolor(("lightblue"))
         annot.get_bbox_patch().set_alpha(0.8)
 
         def update_annot(ind):
-
             pos = sc.get_offsets()[ind["ind"][0]]
             annot.xy = pos
 
-            text = "RT: {}\nRT Ref: {}\nRI: {}\nRI Ref: {}\nSimilarity Score: {}\nName: {}".format(" ".join([str(round(self[n].retention_time, 2)) for n in ind["ind"]]),
-                           " ".join([str(round(self[n].highest_score_compound.retention_time, 2) if self[n].highest_score_compound else None) for n in ind["ind"]]),
-                           " ".join([str(round(self[n].ri, 2) if self[n].ri else None) for n in ind["ind"]]),
-                           " ".join([str(round(self[n].highest_score_compound.ri, 2) if self[n].highest_score_compound else None) for n in ind["ind"]]),                           
-                           " ".join([str(round(self[n].highest_score_compound.similarity_score, 4) if self[n].highest_score_compound else None) for n in ind["ind"]]),
-                           " ".join([str(self[n].highest_score_compound.name if self[n].highest_score_compound else None) for n in ind["ind"]])
-                           )
+            text = "RT: {}\nRT Ref: {}\nRI: {}\nRI Ref: {}\nSimilarity Score: {}\nName: {}".format(
+                " ".join([str(round(self[n].retention_time, 2)) for n in ind["ind"]]),
+                " ".join(
+                    [
+                        str(
+                            round(self[n].highest_score_compound.retention_time, 2)
+                            if self[n].highest_score_compound
+                            else None
+                        )
+                        for n in ind["ind"]
+                    ]
+                ),
+                " ".join(
+                    [
+                        str(round(self[n].ri, 2) if self[n].ri else None)
+                        for n in ind["ind"]
+                    ]
+                ),
+                " ".join(
+                    [
+                        str(
+                            round(self[n].highest_score_compound.ri, 2)
+                            if self[n].highest_score_compound
+                            else None
+                        )
+                        for n in ind["ind"]
+                    ]
+                ),
+                " ".join(
+                    [
+                        str(
+                            round(self[n].highest_score_compound.similarity_score, 4)
+                            if self[n].highest_score_compound
+                            else None
+                        )
+                        for n in ind["ind"]
+                    ]
+                ),
+                " ".join(
+                    [
+                        str(
+                            self[n].highest_score_compound.name
+                            if self[n].highest_score_compound
+                            else None
+                        )
+                        for n in ind["ind"]
+                    ]
+                ),
+            )
             annot.set_text(text)
 
         def hover(event):
@@ -409,7 +460,9 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
         return ax
 
-    def to_excel(self, out_file_path, write_mode='ab', write_metadata=True, id_label="corems:"):
+    def to_excel(
+        self, out_file_path, write_mode="ab", write_metadata=True, id_label="corems:"
+    ):
         """Export the GC-MS data to an Excel file.
 
         This method exports the GC-MS data to an Excel file.
@@ -431,11 +484,19 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
             out_file_path = Path(out_file_path)
 
         exportMS = LowResGCMSExport(out_file_path, self)
-        exportMS.to_excel(id_label=id_label, write_mode=write_mode, write_metadata=write_metadata)
+        exportMS.to_excel(
+            id_label=id_label, write_mode=write_mode, write_metadata=write_metadata
+        )
 
-        return out_file_path.with_suffix('.xlsx')
+        return out_file_path.with_suffix(".xlsx")
 
-    def to_csv(self, out_file_path, separate_output=False, write_metadata=True, id_label="corems:"):
+    def to_csv(
+        self,
+        out_file_path,
+        separate_output=False,
+        write_metadata=True,
+        id_label="corems:",
+    ):
         """Export the GC-MS data to a CSV file.
 
         Parameters
@@ -453,9 +514,13 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
             out_file_path = Path(out_file_path)
 
         exportMS = LowResGCMSExport(out_file_path, self)
-        exportMS.to_csv(id_label=id_label, separate_output=separate_output, write_metadata=write_metadata)
+        exportMS.to_csv(
+            id_label=id_label,
+            separate_output=separate_output,
+            write_metadata=write_metadata,
+        )
 
-        return out_file_path.with_suffix('.csv')
+        return out_file_path.with_suffix(".csv")
 
     def to_pandas(self, out_file_path, write_metadata=True, id_label="corems:"):
         """Export the GC-MS data to a Pandas dataframe.
@@ -470,14 +535,14 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
             Label of the ID. Defaults to 'corems:'.
 
         """
-        
+
         if isinstance(out_file_path, str):
             out_file_path = Path(out_file_path)
         # pickle dataframe (pkl extension)
         exportMS = LowResGCMSExport(out_file_path, self)
         exportMS.to_pandas(id_label=id_label, write_metadata=write_metadata)
 
-        return out_file_path.with_suffix('.pkl')
+        return out_file_path.with_suffix(".pkl")
 
     def to_dataframe(self, id_label="corems:"):
         """Export the GC-MS data to a Pandas dataframe.
@@ -486,7 +551,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         ----------
         id_label : str, optional
             Label of the ID. Defaults to 'corems:'.
-        
+
         """
 
         # returns pandas dataframe
@@ -494,10 +559,8 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         return exportMS.get_pandas_df(id_label=id_label)
 
     def processing_stats(self):
-        """Return the processing statistics.
+        """Return the processing statistics."""
 
-        """
-        
         # returns json string
         exportMS = LowResGCMSExport(self.sample_name, self)
         return exportMS.get_data_stats(self)
@@ -524,8 +587,8 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         ----------
         id_label : str, optional
             Label of the ID. Defaults to 'corems:'.
-        
-        """      
+
+        """
 
         # returns pandas dataframe
         exportMS = LowResGCMSExport(self.sample_name, self)
@@ -545,16 +608,16 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         exportMS = LowResGCMSExport(self.sample_name, self)
         return exportMS.to_hdf(id_label=id_label)
 
-    def plot_chromatogram(self, ax=None, color="blue"): #pragma: no cover
+    def plot_chromatogram(self, ax=None, color="blue"):  # pragma: no cover
         """Plot the chromatogram.
-        
+
         Parameters
         ----------
         ax : matplotlib.axes.Axes, optional
             Axes object to plot the chromatogram. Defaults to None.
         color : str, optional
             Color of the chromatogram. Defaults to 'blue'.
-            
+
         """
 
         import matplotlib.pyplot as plt
@@ -563,31 +626,30 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
             ax = plt.gca()
 
         ax.plot(self.retention_time, self.tic, color=color)
-        ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
+        ax.set(xlabel="Retention Time (s)", ylabel="Total Ion Chromatogram")
 
         return ax
 
-    def plot_smoothed_chromatogram(self, ax=None, color="green"):  #pragma: no cover
+    def plot_smoothed_chromatogram(self, ax=None, color="green"):  # pragma: no cover
         """Plot the smoothed chromatogram.
-        
+
         Parameters
         ----------
         ax : matplotlib.axes.Axes, optional
             Axes object to plot the smoothed chromatogram. Defaults to None.
         color : str, optional
             Color of the smoothed chromatogram. Defaults to 'green'.
-            
+
         """
 
         import matplotlib.pyplot as plt
 
         if ax is None:
-
             ax = plt.gca()
 
         ax.plot(self.retention_time, self.smooth_tic(self.tic), color=color)
 
-        ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
+        ax.set(xlabel="Retention Time (s)", ylabel="Total Ion Chromatogram")
 
         return ax
 
@@ -606,15 +668,16 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         import matplotlib.pyplot as plt
 
         if ax is None:
-
             ax = plt.gca()
 
         max_height = self.chromatogram_settings.peak_height_max_percent
         max_prominence = self.chromatogram_settings.peak_max_prominence_percent
 
-        baseline = sp.baseline_detector(self.tic, self.retention_time, max_height, max_prominence)
+        baseline = sp.baseline_detector(
+            self.tic, self.retention_time, max_height, max_prominence
+        )
         ax.plot(self.retention_time, color=color)
-        ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
+        ax.set(xlabel="Retention Time (s)", ylabel="Total Ion Chromatogram")
 
         return ax
 
@@ -633,29 +696,30 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         import matplotlib.pyplot as plt
 
         if ax is None:
-
             ax = plt.gca()
 
         max_height = self.chromatogram_settings.peak_height_max_percent
 
         max_prominence = self.chromatogram_settings.peak_max_prominence_percent
 
-        x = self.tic + sp.baseline_detector(self.tic, self.retention_time, max_height, max_prominence)
+        x = self.tic + sp.baseline_detector(
+            self.tic, self.retention_time, max_height, max_prominence
+        )
 
         ax.plot(self.retention_time, x, color=color)
 
-        ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
+        ax.set(xlabel="Retention Time (s)", ylabel="Total Ion Chromatogram")
 
         return ax
 
     def peaks_rt_tic(self, json_string=False):
         """Return the peaks, retention time, and total ion chromatogram.
-        
+
         Parameters
         ----------
         json_string : bool, optional
             If True, return the peaks, retention time, and total ion chromatogram in JSON format. Defaults to False.
-        
+
         """
 
         peaks_list = dict()
@@ -665,29 +729,27 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         all_peaks_data = {}
 
         for gcms_peak in self.sorted_gcpeaks:
-
-            dict_data = {'rt': gcms_peak.rt_list,
-                         'tic': gcms_peak.tic_list,
-                         'mz': gcms_peak.mass_spectrum.mz_exp.tolist(),
-                         'abundance': gcms_peak.mass_spectrum.abundance.tolist(),
-                         'candidate_names': gcms_peak.compound_names,
-                         }
+            dict_data = {
+                "rt": gcms_peak.rt_list,
+                "tic": gcms_peak.tic_list,
+                "mz": gcms_peak.mass_spectrum.mz_exp.tolist(),
+                "abundance": gcms_peak.mass_spectrum.abundance.tolist(),
+                "candidate_names": gcms_peak.compound_names,
+            }
 
             peaks_list[gcms_peak.retention_time] = dict_data
 
             for compound in gcms_peak:
-
                 if compound.name not in all_candidates_data.keys():
                     mz = array(compound.mz).tolist()
                     abundance = array(compound.abundance).tolist()
-                    data = {'mz': mz, "abundance": abundance}
+                    data = {"mz": mz, "abundance": abundance}
                     all_candidates_data[compound.name] = data
 
         all_peaks_data["peak_data"] = peaks_list
         all_peaks_data["ref_data"] = all_candidates_data
 
         if json_string:
-
             return json.dumps(all_peaks_data)
 
         else:
@@ -704,15 +766,14 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
             Color of the processed chromatogram. Defaults to 'black'.
 
         """
-        
+
         import matplotlib.pyplot as plt
 
         if ax is None:
-
             ax = plt.gca()
 
         ax.plot(self.retention_time, self.processed_tic, color=color)
 
-        ax.set(xlabel='Retention Time (s)', ylabel='Total Ion Chromatogram')
+        ax.set(xlabel="Retention Time (s)", ylabel="Total Ion Chromatogram")
 
         return ax

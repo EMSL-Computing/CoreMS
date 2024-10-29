@@ -83,3 +83,4 @@ r00*/
 ext_lib/
 *.egg*
 config.yaml
+*.token

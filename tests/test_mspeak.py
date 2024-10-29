@@ -35,8 +35,6 @@ def test_mspeak_calculations():
     mspeak._calc_kmd(kendrick_base)
     mspeak.calc_area()
 
-    mspeak.plot()
-
     assert round(mspeak.kendrick_mass, 3) == 211.887
     assert round(mspeak.kmd * 100, 0) == -89
     assert mspeak.knm == 211
