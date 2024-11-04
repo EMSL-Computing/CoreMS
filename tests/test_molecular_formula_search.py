@@ -21,7 +21,7 @@ def test_run_molecular_formula_search():
     mass_spectrum_obj.settings.noise_threshold_absolute_abundance = 0
 
     # Set the settings for the molecular search on the mass spectrum object
-    mass_spectrum_obj.molecular_search_settings.url_database = "postgresql://coremsdb:coremsmolform@localhost:5432/molformula"
+    mass_spectrum_obj.molecular_search_settings.url_database = "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"
     mass_spectrum_obj.molecular_search_settings.error_method = "None"
     mass_spectrum_obj.molecular_search_settings.min_ppm_error = -5
     mass_spectrum_obj.molecular_search_settings.max_ppm_error = 5
