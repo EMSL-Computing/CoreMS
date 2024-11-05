@@ -27,9 +27,6 @@ test-source:
     - k8s 
     - rzr
     - codebuilds
-  before_script:
-    - apt-get update && apt-get install -y wait-for-it
-    - wait-for-it -t 20 postgres:5432
   script:
     - python3 -V  # Print out python version for debugging
     - python3 -m pip install --upgrade pip
