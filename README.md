@@ -4,7 +4,7 @@
 
 <br>
 <br>
-<a href="https://doi.org/10.5281/zenodo.4641552"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.4641552.svg" alt="CoreMS DOI" style="width:150px"></a>
+<a href="https://doi.org/10.5281/zenodo.14009575"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.14009575.svg" alt="DOI"></a>
 <br>
 </div>
 
