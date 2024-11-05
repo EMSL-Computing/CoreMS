@@ -36,7 +36,6 @@ test-source:
     - python3 -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
     - export PYTHONNET_RUNTIME=coreclr
     - pytest --cache-clear
-    - docker logs postgres  # Debug step: Check logs of the PostgreSQL service to ensure it's running correctly
   
   artifacts:
     paths:
