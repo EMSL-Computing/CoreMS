@@ -206,28 +206,6 @@ def molecular_formula_search(myLCMSobj):
             print("searching mf: ", str(i), " of ", str(total_decon_parent))
 
             scan = myLCMSobj.mass_features[mf_id].apex_scan
-            """
-            # Search single spectrum for single peak
-            time_start = time.time()
-            SearchMolecularFormulas(
-                myLCMSobj._ms[scan],
-                first_hit=False,
-                find_isotopologues=True,
-            ).run_worker_ms_peaks([myLCMSobj.mass_features[mf_id].ms1_peak])
-            print("time to search whole spectrum for single peak: ", time.time() - time_start)
-            # 139 s for mf_id = 1 (single peak annotated), 145s for mf_id = 2 (single peak annotated)
-
-            # Search single deconvoluted spectrum for single peak
-            time_start = time.time()
-            SearchMolecularFormulas(
-                myLCMSobj.mass_features[mf_id].mass_spectrum_deconvoluted,
-                first_hit=False,
-                find_isotopologues=True,
-            ).run_worker_ms_peaks([myLCMSobj.mass_features[mf_id].ms1_peak])
-            print("time to search whole deconvoluted spectrum for single peak: ", time.time() - time_start)
-            # very similar time to above (actually slightly longer probably due to pulling up the deconvoluted spectrum)
-            """
-
             # Search single spectrum for all peaks that correspond to the same scan
             mf_df_scan = mf_df[mf_df.apex_scan == scan]
             peaks_to_search = [
@@ -244,27 +222,6 @@ def molecular_formula_search(myLCMSobj):
                 time.time() - time_start,
             )
             i += 1
-    """
-    # get unique scans to search
-    unique_scans = mf_df.apex_scan.unique()
-
-    # search molecular formulas for each mass feature
-    for scan in unique_scans:
-        if i > 3:  # only search first 3 scans for testing
-            break
-        print("searching mz for scan: ", str(i), " of ", str(len(unique_scans)))
-        # gather mass features for this scan
-        mf_df_scan = mf_df[mf_df.apex_scan == scan]
-        peaks_to_search = [
-            myLCMSobj.mass_features[x].ms1_peak for x in mf_df_scan.index.tolist()
-        ]
-        SearchMolecularFormulas(
-            myLCMSobj._ms[scan],
-            first_hit=False,
-            find_isotopologues=True,
-        ).run_worker_ms_peaks(peaks_to_search)
-        i += 1
-    """
     print("Finished molecular search")
 
 
@@ -603,7 +560,7 @@ def run_lipid_workflow(
     token_path,
     scan_translator=None,
     verbose=True,
-    ms1_molecular_search=False,
+    ms1_molecular_search=True,
     cores=1,
 ):
     """Run lipidomics workflow
