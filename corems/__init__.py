@@ -8,9 +8,17 @@ import hashlib
 # Get the path to the README file
 readme_path = os.path.join(os.path.dirname(__file__), "..", "README.md")
 
-# Read the contents of the README file
-with open(readme_path, "r", encoding="utf-8") as readme_file:
-    __doc__ = readme_file.read()
+# Read the contents of the README file if it exists
+if os.path.exists(readme_path):
+    try:
+        with open(readme_path, "r", encoding="utf-8") as readme_file:
+            __doc__ = readme_file.read()
+    except Exception as e:
+        __doc__ = "CoreMS: A comprehensive mass spectrometry framework for software development and data analysis of small molecules analysis."
+        print(f"Warning: Could not read README.md file. Error: {e}")
+else:
+    __doc__ = "CoreMS: A comprehensive mass spectrometry framework for software development and data analysis of small molecules analysis."
+
 
 
 def timeit(method):
