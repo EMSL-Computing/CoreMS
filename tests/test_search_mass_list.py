@@ -7,7 +7,7 @@ from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFor
 
 def test_search_imported_ref_files(mass_spectrum_ftms, ref_file_location):
     mass_spectrum_obj = mass_spectrum_ftms
-    mass_spectrum_obj.molecular_search_settings.url_database = ""
+    mass_spectrum_obj.molecular_search_settings.url_database = "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"
     mf_references_list = ImportMassListRef(ref_file_location).from_bruker_ref_file()
     assert len(mf_references_list) == 60
     assert round(mf_references_list[0].mz_calc, 2) == 149.06

@@ -23,7 +23,7 @@ def mass_spectrum_silico():
     mass_spectrum_obj.settings.noise_threshold_method = "relative_abundance"
     mass_spectrum_obj.settings.noise_threshold_absolute_abundance = 0
 
-    mass_spectrum_obj.molecular_search_settings.url_database = ""
+    mass_spectrum_obj.molecular_search_settings.url_database = "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"
     mass_spectrum_obj.molecular_search_settings.error_method = "None"
     mass_spectrum_obj.molecular_search_settings.min_ppm_error = -5
     mass_spectrum_obj.molecular_search_settings.max_ppm_error = 5

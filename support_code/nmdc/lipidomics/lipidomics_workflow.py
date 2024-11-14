@@ -7,7 +7,6 @@ Assumes that ms1 are collected in profile mode, persistent homology not applicab
 import sys
 
 sys.path.append("./")
-import cProfile
 from multiprocessing import Pool
 from pathlib import Path
 import datetime
