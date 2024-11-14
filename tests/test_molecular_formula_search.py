@@ -21,7 +21,7 @@ def test_run_molecular_formula_search():
     mass_spectrum_obj.settings.noise_threshold_absolute_abundance = 0
 
     # Set the settings for the molecular search on the mass spectrum object
-    mass_spectrum_obj.molecular_search_settings.url_database = ""
+    mass_spectrum_obj.molecular_search_settings.url_database = "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"
     mass_spectrum_obj.molecular_search_settings.error_method = "None"
     mass_spectrum_obj.molecular_search_settings.min_ppm_error = -5
     mass_spectrum_obj.molecular_search_settings.max_ppm_error = 5
@@ -60,7 +60,7 @@ def test_run_molecular_formula_search_adduct():
     mass_spectrum_obj.settings.noise_threshold_absolute_abundance = 0
 
     # Set the settings for the molecular search on the mass spectrum object
-    mass_spectrum_obj.molecular_search_settings.url_database = ""
+    mass_spectrum_obj.molecular_search_settings.url_database = "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"
     mass_spectrum_obj.molecular_search_settings.error_method = "None"
     mass_spectrum_obj.molecular_search_settings.min_ppm_error = -5
     mass_spectrum_obj.molecular_search_settings.max_ppm_error = 5
@@ -91,7 +91,7 @@ def test_run_molecular_formula_search_adduct():
 
 
 def test_mspeak_search(mass_spectrum_ftms):
-    mass_spectrum_ftms.molecular_search_settings.url_database = ""
+    mass_spectrum_ftms.molecular_search_settings.url_database = "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"
     mass_spectrum_ftms.molecular_search_settings.usedAtoms = {
         "C": (1, 100),
         "H": (4, 200),
@@ -117,7 +117,7 @@ def test_mspeak_search(mass_spectrum_ftms):
 
 
 def test_molecular_formula_search_db(mass_spectrum_ftms):
-    mass_spectrum_ftms.molecular_search_settings.url_database = ""
+    mass_spectrum_ftms.molecular_search_settings.url_database = "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"
     mass_spectrum_ftms.molecular_search_settings.usedAtoms = {
         "C": (1, 100),
         "H": (4, 200),
@@ -149,7 +149,7 @@ def test_molecular_formula_search_db(mass_spectrum_ftms):
 
 
 def test_priorityAssignment(mass_spectrum_ftms):
-    mass_spectrum_ftms.molecular_search_settings.url_database = ""
+    mass_spectrum_ftms.molecular_search_settings.url_database = "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"
     mass_spectrum_ftms.molecular_search_settings.error_method = "None"
     mass_spectrum_ftms.molecular_search_settings.min_ppm_error = -3
     mass_spectrum_ftms.molecular_search_settings.max_ppm_error = 5

@@ -4,7 +4,7 @@
 
 <br>
 <br>
-<a href="https://doi.org/10.5281/zenodo.4641552"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.4641552.svg" alt="CoreMS DOI" style="width:150px"></a>
+<a href="https://doi.org/10.5281/zenodo.14009575"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.14009575.svg" alt="DOI"></a>
 <br>
 </div>
 
@@ -337,9 +337,9 @@ If you use CoreMS in your work, please use the following citation:
 
 Version [3.0.0 Release on GitHub](https://github.com/EMSL-Computing/CoreMS/releases/tag/v3.0.0), archived on Zenodo:  
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4641552.svg)](https://doi.org/10.5281/zenodo.4641552)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14009575.svg)](https://doi.org/10.5281/zenodo.14009575)
 
-Yuri E. Corilo, William R. Kew, Lee Ann McCue (2021, March 27). EMSL-Computing/CoreMS: CoreMS 2.0.1 (Version v2.0.1), as developed on Github. Zenodo. http://doi.org/10.5281/zenodo.4641552
+Yuri E. Corilo, William R. Kew, Lee Ann McCue, Katherine R . Heal, James C. Carr (2024, October 29). EMSL-Computing/CoreMS: CoreMS 3.0.0 (Version v3.0.0), as developed on Github. Zenodo. http://doi.org/10.5281/zenodo.14009575
 
 ```
 

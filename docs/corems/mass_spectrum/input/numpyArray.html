@@ -63,110 +63,136 @@
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Yuri E. Corilo&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="n">__date__</span> <span class="o">=</span> <span class="s2">&quot;Oct 23, 2019&quot;</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span> <span class="nn">corems.mass_spectrum.factory.MassSpectrumClasses</span> <span class="kn">import</span> <span class="n">MassSpecProfile</span><span class="p">,</span> <span class="n">MassSpecCentroid</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.constant</span> <span class="kn">import</span> <span class="n">Labels</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.factory.parameters</span> <span class="kn">import</span> <span class="n">default_parameters</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.constant</span> <span class="kn">import</span> <span class="n">Labels</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="k">def</span> <span class="nf">ms_from_array_profile</span><span class="p">(</span><span class="n">mz</span><span class="p">,</span> <span class="n">abundance</span><span class="p">,</span> <span class="n">dataname</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">polarity</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">auto_process</span><span class="p">:</span><span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">data_type</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">simulated_profile</span><span class="p">):</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a MassSpecProfile object from an array of m/z values and abundance values.</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span> <span class="nn">corems.mass_spectrum.factory.MassSpectrumClasses</span> <span class="kn">import</span> <span class="p">(</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>    <span class="n">MassSpecCentroid</span><span class="p">,</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>    <span class="n">MassSpecProfile</span><span class="p">,</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="p">)</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="sd">    Parameters</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="sd">    ----------</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="sd">    mz : numpy.ndarray</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="sd">        Array of m/z values.</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="sd">    abundance : numpy.ndarray</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="sd">        Array of abundance values.</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="sd">    dataname : str</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="sd">        Name of the data.</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="sd">    polarity : int, optional</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="sd">        Polarity of the data. The default is -1.</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="sd">    auto_process : bool, optional</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="sd">        Flag to automatically process the data. The default is True.</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="sd">    data_type : str, optional</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="sd">        Type of the data. The default is Labels.simulated_profile.</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>
-</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="sd">    Returns</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="sd">    -------</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="sd">    MassSpecProfile</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="sd">        The created MassSpecProfile object.</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a>    <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">Labels</span><span class="o">.</span><span class="n">mz</span><span class="p">:</span> <span class="n">mz</span><span class="p">,</span> <span class="n">Labels</span><span class="o">.</span><span class="n">abundance</span><span class="p">:</span> <span class="n">abundance</span><span class="p">}</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a>    
-</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a>    <span class="n">output_parameters</span> <span class="o">=</span> <span class="n">get_output_parameters</span><span class="p">(</span><span class="n">polarity</span><span class="p">,</span> <span class="n">dataname</span><span class="p">)</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>    
-</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a>    <span class="n">output_parameters</span><span class="p">[</span><span class="n">Labels</span><span class="o">.</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_type</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="k">def</span> <span class="nf">ms_from_array_profile</span><span class="p">(</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>    <span class="n">mz</span><span class="p">,</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>    <span class="n">abundance</span><span class="p">,</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>    <span class="n">dataname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>    <span class="n">polarity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>    <span class="n">auto_process</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>    <span class="n">data_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">simulated_profile</span><span class="p">,</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="p">):</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a MassSpecProfile object from an array of m/z values and abundance values.</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="sd">    Parameters</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="sd">    ----------</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="sd">    mz : numpy.ndarray</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="sd">        Array of m/z values.</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="sd">    abundance : numpy.ndarray</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="sd">        Array of abundance values.</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="sd">    dataname : str</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="sd">        Name of the data.</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a><span class="sd">    polarity : int, optional</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="sd">        Polarity of the data. The default is -1.</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="sd">    auto_process : bool, optional</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a><span class="sd">        Flag to automatically process the data. The default is True.</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a><span class="sd">    data_type : str, optional</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="sd">        Type of the data. The default is Labels.simulated_profile.</span>
 </span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a>
-</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a>    <span class="n">ms</span> <span class="o">=</span> <span class="n">MassSpecProfile</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">output_parameters</span><span class="p">,</span> <span class="n">auto_process</span><span class="o">=</span><span class="n">auto_process</span><span class="p">)</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a>    
-</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>    <span class="k">return</span> <span class="n">ms</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>
-</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a><span class="k">def</span> <span class="nf">ms_from_array_centroid</span><span class="p">(</span><span class="n">mz</span><span class="p">,</span> <span class="n">abundance</span><span class="p">,</span> <span class="n">rp</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">s2n</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">dataname</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">polarity</span><span class="p">:</span><span class="nb">int</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">auto_process</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a MassSpecCentroid object from an array of m/z values, abundance values, resolution power, and signal-to-noise ratio.</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="sd">    Returns</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="sd">    -------</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a><span class="sd">    MassSpecProfile</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a><span class="sd">        The created MassSpecProfile object.</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>    <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">Labels</span><span class="o">.</span><span class="n">mz</span><span class="p">:</span> <span class="n">mz</span><span class="p">,</span> <span class="n">Labels</span><span class="o">.</span><span class="n">abundance</span><span class="p">:</span> <span class="n">abundance</span><span class="p">}</span>
 </span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>
-</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a><span class="sd">    Parameters</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a><span class="sd">    ----------</span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a><span class="sd">    mz : numpy.ndarray</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a><span class="sd">        Array of m/z values.</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a><span class="sd">    abundance : numpy.ndarray</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a><span class="sd">        Array of abundance values.</span>
-</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a><span class="sd">    rp : list(float)</span>
-</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a><span class="sd">        List of resolving power values.</span>
-</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="sd">    s2n : list(float)</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a><span class="sd">        List of signal-to-noise ratio values.</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a><span class="sd">    dataname : str</span>
-</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a><span class="sd">        Name of the data.</span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="sd">    polarity : int, optional</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="sd">        Polarity of the data. The default is -1.</span>
-</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="sd">    auto_process : bool, optional</span>
-</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>
-</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="sd">    Returns</span>
-</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="sd">    -------</span>
-</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a><span class="sd">    MassSpecCentroid</span>
-</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a><span class="sd">        The created MassSpecCentroid object.</span>
-</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>    <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">Labels</span><span class="o">.</span><span class="n">mz</span><span class="p">:</span> <span class="n">mz</span><span class="p">,</span> <span class="n">Labels</span><span class="o">.</span><span class="n">abundance</span><span class="p">:</span> <span class="n">abundance</span><span class="p">,</span> <span class="n">Labels</span><span class="o">.</span><span class="n">s2n</span> <span class="p">:</span> <span class="n">s2n</span><span class="p">,</span> <span class="n">Labels</span><span class="o">.</span><span class="n">rp</span><span class="p">:</span> <span class="n">rp</span><span class="p">}</span>
-</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>    
-</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>    <span class="n">output_parameters</span> <span class="o">=</span> <span class="n">get_output_parameters</span><span class="p">(</span><span class="n">polarity</span><span class="p">,</span> <span class="n">dataname</span><span class="p">)</span>
-</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>    <span class="n">output_parameters</span><span class="p">[</span><span class="n">Labels</span><span class="o">.</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">corems_centroid</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>    
-</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>    <span class="k">return</span> <span class="n">MassSpecCentroid</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">output_parameters</span><span class="p">,</span> <span class="n">auto_process</span><span class="p">)</span>
-</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>    
-</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a><span class="k">def</span> <span class="nf">get_output_parameters</span><span class="p">(</span><span class="n">polarity</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">file_location</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
-</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate the output parameters for creating a MassSpecProfile or MassSpecCentroid object.</span>
-</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>
-</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a><span class="sd">    Parameters</span>
-</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a><span class="sd">    ----------</span>
-</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a><span class="sd">    polarity : int</span>
-</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a><span class="sd">        Polarity of the data.</span>
-</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a><span class="sd">    file_location : str</span>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="sd">        File location.</span>
-</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>
-</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="sd">    Returns</span>
-</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="sd">    -------</span>
-</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="sd">    dict</span>
-</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="sd">        Output parameters.</span>
-</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>    <span class="n">d_params</span> <span class="o">=</span> <span class="n">default_parameters</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
-</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>    
-</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s1">&#39;analyzer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Generic Simulated&#39;</span>
-</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>
-</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s1">&#39;instrument_label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Generic Simulated&#39;</span>
-</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>
-</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;polarity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">polarity</span>
-</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>    
-</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;filename_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">file_location</span>
-</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>    
-</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;mobility_scan&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>    
-</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;mobility_rt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>    
-</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;scan_number&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>    
-</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;rt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="n">Labels</span><span class="o">.</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">simulated_profile</span>
-</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>    
-</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>    <span class="k">return</span> <span class="n">d_params</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>    <span class="n">output_parameters</span> <span class="o">=</span> <span class="n">get_output_parameters</span><span class="p">(</span><span class="n">polarity</span><span class="p">,</span> <span class="n">dataname</span><span class="p">)</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>
+</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a>    <span class="n">output_parameters</span><span class="p">[</span><span class="n">Labels</span><span class="o">.</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_type</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>
+</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>    <span class="n">ms</span> <span class="o">=</span> <span class="n">MassSpecProfile</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">output_parameters</span><span class="p">,</span> <span class="n">auto_process</span><span class="o">=</span><span class="n">auto_process</span><span class="p">)</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a>
+</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>    <span class="k">return</span> <span class="n">ms</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>
+</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a>
+</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a><span class="k">def</span> <span class="nf">ms_from_array_centroid</span><span class="p">(</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>    <span class="n">mz</span><span class="p">,</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>    <span class="n">abundance</span><span class="p">,</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>    <span class="n">rp</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>    <span class="n">s2n</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>    <span class="n">dataname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>    <span class="n">polarity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>    <span class="n">auto_process</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="p">):</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a MassSpecCentroid object from an array of m/z values, abundance values, resolution power, and signal-to-noise ratio.</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>
+</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a><span class="sd">    Parameters</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="sd">    ----------</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="sd">    mz : numpy.ndarray</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="sd">        Array of m/z values.</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="sd">    abundance : numpy.ndarray</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a><span class="sd">        Array of abundance values.</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="sd">    rp : list(float)</span>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a><span class="sd">        List of resolving power values.</span>
+</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a><span class="sd">    s2n : list(float)</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a><span class="sd">        List of signal-to-noise ratio values.</span>
+</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a><span class="sd">    dataname : str</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a><span class="sd">        Name of the data.</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a><span class="sd">    polarity : int, optional</span>
+</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a><span class="sd">        Polarity of the data. The default is -1.</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a><span class="sd">    auto_process : bool, optional</span>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="sd">    Returns</span>
+</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="sd">    -------</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="sd">    MassSpecCentroid</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="sd">        The created MassSpecCentroid object.</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>    <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>        <span class="n">Labels</span><span class="o">.</span><span class="n">mz</span><span class="p">:</span> <span class="n">mz</span><span class="p">,</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>        <span class="n">Labels</span><span class="o">.</span><span class="n">abundance</span><span class="p">:</span> <span class="n">abundance</span><span class="p">,</span>
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>        <span class="n">Labels</span><span class="o">.</span><span class="n">s2n</span><span class="p">:</span> <span class="n">s2n</span><span class="p">,</span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>        <span class="n">Labels</span><span class="o">.</span><span class="n">rp</span><span class="p">:</span> <span class="n">rp</span><span class="p">,</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>    <span class="p">}</span>
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>    <span class="n">output_parameters</span> <span class="o">=</span> <span class="n">get_output_parameters</span><span class="p">(</span><span class="n">polarity</span><span class="p">,</span> <span class="n">dataname</span><span class="p">)</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>    <span class="n">output_parameters</span><span class="p">[</span><span class="n">Labels</span><span class="o">.</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">corems_centroid</span>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>    <span class="k">return</span> <span class="n">MassSpecCentroid</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">output_parameters</span><span class="p">,</span> <span class="n">auto_process</span><span class="p">)</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a><span class="k">def</span> <span class="nf">get_output_parameters</span><span class="p">(</span><span class="n">polarity</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">file_location</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate the output parameters for creating a MassSpecProfile or MassSpecCentroid object.</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a><span class="sd">    Parameters</span>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a><span class="sd">    ----------</span>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a><span class="sd">    polarity : int</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a><span class="sd">        Polarity of the data.</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a><span class="sd">    file_location : str</span>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a><span class="sd">        File location.</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="sd">    Returns</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a><span class="sd">    -------</span>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a><span class="sd">    dict</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="sd">        Output parameters.</span>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>    <span class="n">d_params</span> <span class="o">=</span> <span class="n">default_parameters</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;analyzer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Generic Simulated&quot;</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;instrument_label&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Generic Simulated&quot;</span>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;polarity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">polarity</span>
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;filename_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">file_location</span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;mobility_scan&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;mobility_rt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;scan_number&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;rt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>
+</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="n">Labels</span><span class="o">.</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">simulated_profile</span>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>    <span class="k">return</span> <span class="n">d_params</span>
 </span></pre></div>
 
 
@@ -182,38 +208,45 @@
 
     </div>
     <a class="headerlink" href="#ms_from_array_profile"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ms_from_array_profile-10"><a href="#ms_from_array_profile-10"><span class="linenos">10</span></a><span class="k">def</span> <span class="nf">ms_from_array_profile</span><span class="p">(</span><span class="n">mz</span><span class="p">,</span> <span class="n">abundance</span><span class="p">,</span> <span class="n">dataname</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">polarity</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">auto_process</span><span class="p">:</span><span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">data_type</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">simulated_profile</span><span class="p">):</span>
-</span><span id="ms_from_array_profile-11"><a href="#ms_from_array_profile-11"><span class="linenos">11</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a MassSpecProfile object from an array of m/z values and abundance values.</span>
-</span><span id="ms_from_array_profile-12"><a href="#ms_from_array_profile-12"><span class="linenos">12</span></a>
-</span><span id="ms_from_array_profile-13"><a href="#ms_from_array_profile-13"><span class="linenos">13</span></a><span class="sd">    Parameters</span>
-</span><span id="ms_from_array_profile-14"><a href="#ms_from_array_profile-14"><span class="linenos">14</span></a><span class="sd">    ----------</span>
-</span><span id="ms_from_array_profile-15"><a href="#ms_from_array_profile-15"><span class="linenos">15</span></a><span class="sd">    mz : numpy.ndarray</span>
-</span><span id="ms_from_array_profile-16"><a href="#ms_from_array_profile-16"><span class="linenos">16</span></a><span class="sd">        Array of m/z values.</span>
-</span><span id="ms_from_array_profile-17"><a href="#ms_from_array_profile-17"><span class="linenos">17</span></a><span class="sd">    abundance : numpy.ndarray</span>
-</span><span id="ms_from_array_profile-18"><a href="#ms_from_array_profile-18"><span class="linenos">18</span></a><span class="sd">        Array of abundance values.</span>
-</span><span id="ms_from_array_profile-19"><a href="#ms_from_array_profile-19"><span class="linenos">19</span></a><span class="sd">    dataname : str</span>
-</span><span id="ms_from_array_profile-20"><a href="#ms_from_array_profile-20"><span class="linenos">20</span></a><span class="sd">        Name of the data.</span>
-</span><span id="ms_from_array_profile-21"><a href="#ms_from_array_profile-21"><span class="linenos">21</span></a><span class="sd">    polarity : int, optional</span>
-</span><span id="ms_from_array_profile-22"><a href="#ms_from_array_profile-22"><span class="linenos">22</span></a><span class="sd">        Polarity of the data. The default is -1.</span>
-</span><span id="ms_from_array_profile-23"><a href="#ms_from_array_profile-23"><span class="linenos">23</span></a><span class="sd">    auto_process : bool, optional</span>
-</span><span id="ms_from_array_profile-24"><a href="#ms_from_array_profile-24"><span class="linenos">24</span></a><span class="sd">        Flag to automatically process the data. The default is True.</span>
-</span><span id="ms_from_array_profile-25"><a href="#ms_from_array_profile-25"><span class="linenos">25</span></a><span class="sd">    data_type : str, optional</span>
-</span><span id="ms_from_array_profile-26"><a href="#ms_from_array_profile-26"><span class="linenos">26</span></a><span class="sd">        Type of the data. The default is Labels.simulated_profile.</span>
-</span><span id="ms_from_array_profile-27"><a href="#ms_from_array_profile-27"><span class="linenos">27</span></a>
-</span><span id="ms_from_array_profile-28"><a href="#ms_from_array_profile-28"><span class="linenos">28</span></a><span class="sd">    Returns</span>
-</span><span id="ms_from_array_profile-29"><a href="#ms_from_array_profile-29"><span class="linenos">29</span></a><span class="sd">    -------</span>
-</span><span id="ms_from_array_profile-30"><a href="#ms_from_array_profile-30"><span class="linenos">30</span></a><span class="sd">    MassSpecProfile</span>
-</span><span id="ms_from_array_profile-31"><a href="#ms_from_array_profile-31"><span class="linenos">31</span></a><span class="sd">        The created MassSpecProfile object.</span>
-</span><span id="ms_from_array_profile-32"><a href="#ms_from_array_profile-32"><span class="linenos">32</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="ms_from_array_profile-33"><a href="#ms_from_array_profile-33"><span class="linenos">33</span></a>    <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">Labels</span><span class="o">.</span><span class="n">mz</span><span class="p">:</span> <span class="n">mz</span><span class="p">,</span> <span class="n">Labels</span><span class="o">.</span><span class="n">abundance</span><span class="p">:</span> <span class="n">abundance</span><span class="p">}</span>
-</span><span id="ms_from_array_profile-34"><a href="#ms_from_array_profile-34"><span class="linenos">34</span></a>    
-</span><span id="ms_from_array_profile-35"><a href="#ms_from_array_profile-35"><span class="linenos">35</span></a>    <span class="n">output_parameters</span> <span class="o">=</span> <span class="n">get_output_parameters</span><span class="p">(</span><span class="n">polarity</span><span class="p">,</span> <span class="n">dataname</span><span class="p">)</span>
-</span><span id="ms_from_array_profile-36"><a href="#ms_from_array_profile-36"><span class="linenos">36</span></a>    
-</span><span id="ms_from_array_profile-37"><a href="#ms_from_array_profile-37"><span class="linenos">37</span></a>    <span class="n">output_parameters</span><span class="p">[</span><span class="n">Labels</span><span class="o">.</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_type</span>
-</span><span id="ms_from_array_profile-38"><a href="#ms_from_array_profile-38"><span class="linenos">38</span></a>
-</span><span id="ms_from_array_profile-39"><a href="#ms_from_array_profile-39"><span class="linenos">39</span></a>    <span class="n">ms</span> <span class="o">=</span> <span class="n">MassSpecProfile</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">output_parameters</span><span class="p">,</span> <span class="n">auto_process</span><span class="o">=</span><span class="n">auto_process</span><span class="p">)</span>
-</span><span id="ms_from_array_profile-40"><a href="#ms_from_array_profile-40"><span class="linenos">40</span></a>    
-</span><span id="ms_from_array_profile-41"><a href="#ms_from_array_profile-41"><span class="linenos">41</span></a>    <span class="k">return</span> <span class="n">ms</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ms_from_array_profile-13"><a href="#ms_from_array_profile-13"><span class="linenos">13</span></a><span class="k">def</span> <span class="nf">ms_from_array_profile</span><span class="p">(</span>
+</span><span id="ms_from_array_profile-14"><a href="#ms_from_array_profile-14"><span class="linenos">14</span></a>    <span class="n">mz</span><span class="p">,</span>
+</span><span id="ms_from_array_profile-15"><a href="#ms_from_array_profile-15"><span class="linenos">15</span></a>    <span class="n">abundance</span><span class="p">,</span>
+</span><span id="ms_from_array_profile-16"><a href="#ms_from_array_profile-16"><span class="linenos">16</span></a>    <span class="n">dataname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="ms_from_array_profile-17"><a href="#ms_from_array_profile-17"><span class="linenos">17</span></a>    <span class="n">polarity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+</span><span id="ms_from_array_profile-18"><a href="#ms_from_array_profile-18"><span class="linenos">18</span></a>    <span class="n">auto_process</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+</span><span id="ms_from_array_profile-19"><a href="#ms_from_array_profile-19"><span class="linenos">19</span></a>    <span class="n">data_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">simulated_profile</span><span class="p">,</span>
+</span><span id="ms_from_array_profile-20"><a href="#ms_from_array_profile-20"><span class="linenos">20</span></a><span class="p">):</span>
+</span><span id="ms_from_array_profile-21"><a href="#ms_from_array_profile-21"><span class="linenos">21</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a MassSpecProfile object from an array of m/z values and abundance values.</span>
+</span><span id="ms_from_array_profile-22"><a href="#ms_from_array_profile-22"><span class="linenos">22</span></a>
+</span><span id="ms_from_array_profile-23"><a href="#ms_from_array_profile-23"><span class="linenos">23</span></a><span class="sd">    Parameters</span>
+</span><span id="ms_from_array_profile-24"><a href="#ms_from_array_profile-24"><span class="linenos">24</span></a><span class="sd">    ----------</span>
+</span><span id="ms_from_array_profile-25"><a href="#ms_from_array_profile-25"><span class="linenos">25</span></a><span class="sd">    mz : numpy.ndarray</span>
+</span><span id="ms_from_array_profile-26"><a href="#ms_from_array_profile-26"><span class="linenos">26</span></a><span class="sd">        Array of m/z values.</span>
+</span><span id="ms_from_array_profile-27"><a href="#ms_from_array_profile-27"><span class="linenos">27</span></a><span class="sd">    abundance : numpy.ndarray</span>
+</span><span id="ms_from_array_profile-28"><a href="#ms_from_array_profile-28"><span class="linenos">28</span></a><span class="sd">        Array of abundance values.</span>
+</span><span id="ms_from_array_profile-29"><a href="#ms_from_array_profile-29"><span class="linenos">29</span></a><span class="sd">    dataname : str</span>
+</span><span id="ms_from_array_profile-30"><a href="#ms_from_array_profile-30"><span class="linenos">30</span></a><span class="sd">        Name of the data.</span>
+</span><span id="ms_from_array_profile-31"><a href="#ms_from_array_profile-31"><span class="linenos">31</span></a><span class="sd">    polarity : int, optional</span>
+</span><span id="ms_from_array_profile-32"><a href="#ms_from_array_profile-32"><span class="linenos">32</span></a><span class="sd">        Polarity of the data. The default is -1.</span>
+</span><span id="ms_from_array_profile-33"><a href="#ms_from_array_profile-33"><span class="linenos">33</span></a><span class="sd">    auto_process : bool, optional</span>
+</span><span id="ms_from_array_profile-34"><a href="#ms_from_array_profile-34"><span class="linenos">34</span></a><span class="sd">        Flag to automatically process the data. The default is True.</span>
+</span><span id="ms_from_array_profile-35"><a href="#ms_from_array_profile-35"><span class="linenos">35</span></a><span class="sd">    data_type : str, optional</span>
+</span><span id="ms_from_array_profile-36"><a href="#ms_from_array_profile-36"><span class="linenos">36</span></a><span class="sd">        Type of the data. The default is Labels.simulated_profile.</span>
+</span><span id="ms_from_array_profile-37"><a href="#ms_from_array_profile-37"><span class="linenos">37</span></a>
+</span><span id="ms_from_array_profile-38"><a href="#ms_from_array_profile-38"><span class="linenos">38</span></a><span class="sd">    Returns</span>
+</span><span id="ms_from_array_profile-39"><a href="#ms_from_array_profile-39"><span class="linenos">39</span></a><span class="sd">    -------</span>
+</span><span id="ms_from_array_profile-40"><a href="#ms_from_array_profile-40"><span class="linenos">40</span></a><span class="sd">    MassSpecProfile</span>
+</span><span id="ms_from_array_profile-41"><a href="#ms_from_array_profile-41"><span class="linenos">41</span></a><span class="sd">        The created MassSpecProfile object.</span>
+</span><span id="ms_from_array_profile-42"><a href="#ms_from_array_profile-42"><span class="linenos">42</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="ms_from_array_profile-43"><a href="#ms_from_array_profile-43"><span class="linenos">43</span></a>    <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">Labels</span><span class="o">.</span><span class="n">mz</span><span class="p">:</span> <span class="n">mz</span><span class="p">,</span> <span class="n">Labels</span><span class="o">.</span><span class="n">abundance</span><span class="p">:</span> <span class="n">abundance</span><span class="p">}</span>
+</span><span id="ms_from_array_profile-44"><a href="#ms_from_array_profile-44"><span class="linenos">44</span></a>
+</span><span id="ms_from_array_profile-45"><a href="#ms_from_array_profile-45"><span class="linenos">45</span></a>    <span class="n">output_parameters</span> <span class="o">=</span> <span class="n">get_output_parameters</span><span class="p">(</span><span class="n">polarity</span><span class="p">,</span> <span class="n">dataname</span><span class="p">)</span>
+</span><span id="ms_from_array_profile-46"><a href="#ms_from_array_profile-46"><span class="linenos">46</span></a>
+</span><span id="ms_from_array_profile-47"><a href="#ms_from_array_profile-47"><span class="linenos">47</span></a>    <span class="n">output_parameters</span><span class="p">[</span><span class="n">Labels</span><span class="o">.</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_type</span>
+</span><span id="ms_from_array_profile-48"><a href="#ms_from_array_profile-48"><span class="linenos">48</span></a>
+</span><span id="ms_from_array_profile-49"><a href="#ms_from_array_profile-49"><span class="linenos">49</span></a>    <span class="n">ms</span> <span class="o">=</span> <span class="n">MassSpecProfile</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">output_parameters</span><span class="p">,</span> <span class="n">auto_process</span><span class="o">=</span><span class="n">auto_process</span><span class="p">)</span>
+</span><span id="ms_from_array_profile-50"><a href="#ms_from_array_profile-50"><span class="linenos">50</span></a>
+</span><span id="ms_from_array_profile-51"><a href="#ms_from_array_profile-51"><span class="linenos">51</span></a>    <span class="k">return</span> <span class="n">ms</span>
 </span></pre></div>
 
 
@@ -256,36 +289,49 @@ Type of the data. The default is Labels.simulated_profile.</li>
 
     </div>
     <a class="headerlink" href="#ms_from_array_centroid"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ms_from_array_centroid-43"><a href="#ms_from_array_centroid-43"><span class="linenos">43</span></a><span class="k">def</span> <span class="nf">ms_from_array_centroid</span><span class="p">(</span><span class="n">mz</span><span class="p">,</span> <span class="n">abundance</span><span class="p">,</span> <span class="n">rp</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">s2n</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">dataname</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">polarity</span><span class="p">:</span><span class="nb">int</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">auto_process</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-</span><span id="ms_from_array_centroid-44"><a href="#ms_from_array_centroid-44"><span class="linenos">44</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a MassSpecCentroid object from an array of m/z values, abundance values, resolution power, and signal-to-noise ratio.</span>
-</span><span id="ms_from_array_centroid-45"><a href="#ms_from_array_centroid-45"><span class="linenos">45</span></a>
-</span><span id="ms_from_array_centroid-46"><a href="#ms_from_array_centroid-46"><span class="linenos">46</span></a><span class="sd">    Parameters</span>
-</span><span id="ms_from_array_centroid-47"><a href="#ms_from_array_centroid-47"><span class="linenos">47</span></a><span class="sd">    ----------</span>
-</span><span id="ms_from_array_centroid-48"><a href="#ms_from_array_centroid-48"><span class="linenos">48</span></a><span class="sd">    mz : numpy.ndarray</span>
-</span><span id="ms_from_array_centroid-49"><a href="#ms_from_array_centroid-49"><span class="linenos">49</span></a><span class="sd">        Array of m/z values.</span>
-</span><span id="ms_from_array_centroid-50"><a href="#ms_from_array_centroid-50"><span class="linenos">50</span></a><span class="sd">    abundance : numpy.ndarray</span>
-</span><span id="ms_from_array_centroid-51"><a href="#ms_from_array_centroid-51"><span class="linenos">51</span></a><span class="sd">        Array of abundance values.</span>
-</span><span id="ms_from_array_centroid-52"><a href="#ms_from_array_centroid-52"><span class="linenos">52</span></a><span class="sd">    rp : list(float)</span>
-</span><span id="ms_from_array_centroid-53"><a href="#ms_from_array_centroid-53"><span class="linenos">53</span></a><span class="sd">        List of resolving power values.</span>
-</span><span id="ms_from_array_centroid-54"><a href="#ms_from_array_centroid-54"><span class="linenos">54</span></a><span class="sd">    s2n : list(float)</span>
-</span><span id="ms_from_array_centroid-55"><a href="#ms_from_array_centroid-55"><span class="linenos">55</span></a><span class="sd">        List of signal-to-noise ratio values.</span>
-</span><span id="ms_from_array_centroid-56"><a href="#ms_from_array_centroid-56"><span class="linenos">56</span></a><span class="sd">    dataname : str</span>
-</span><span id="ms_from_array_centroid-57"><a href="#ms_from_array_centroid-57"><span class="linenos">57</span></a><span class="sd">        Name of the data.</span>
-</span><span id="ms_from_array_centroid-58"><a href="#ms_from_array_centroid-58"><span class="linenos">58</span></a><span class="sd">    polarity : int, optional</span>
-</span><span id="ms_from_array_centroid-59"><a href="#ms_from_array_centroid-59"><span class="linenos">59</span></a><span class="sd">        Polarity of the data. The default is -1.</span>
-</span><span id="ms_from_array_centroid-60"><a href="#ms_from_array_centroid-60"><span class="linenos">60</span></a><span class="sd">    auto_process : bool, optional</span>
-</span><span id="ms_from_array_centroid-61"><a href="#ms_from_array_centroid-61"><span class="linenos">61</span></a>
-</span><span id="ms_from_array_centroid-62"><a href="#ms_from_array_centroid-62"><span class="linenos">62</span></a><span class="sd">    Returns</span>
-</span><span id="ms_from_array_centroid-63"><a href="#ms_from_array_centroid-63"><span class="linenos">63</span></a><span class="sd">    -------</span>
-</span><span id="ms_from_array_centroid-64"><a href="#ms_from_array_centroid-64"><span class="linenos">64</span></a><span class="sd">    MassSpecCentroid</span>
-</span><span id="ms_from_array_centroid-65"><a href="#ms_from_array_centroid-65"><span class="linenos">65</span></a><span class="sd">        The created MassSpecCentroid object.</span>
-</span><span id="ms_from_array_centroid-66"><a href="#ms_from_array_centroid-66"><span class="linenos">66</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="ms_from_array_centroid-67"><a href="#ms_from_array_centroid-67"><span class="linenos">67</span></a>    <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">Labels</span><span class="o">.</span><span class="n">mz</span><span class="p">:</span> <span class="n">mz</span><span class="p">,</span> <span class="n">Labels</span><span class="o">.</span><span class="n">abundance</span><span class="p">:</span> <span class="n">abundance</span><span class="p">,</span> <span class="n">Labels</span><span class="o">.</span><span class="n">s2n</span> <span class="p">:</span> <span class="n">s2n</span><span class="p">,</span> <span class="n">Labels</span><span class="o">.</span><span class="n">rp</span><span class="p">:</span> <span class="n">rp</span><span class="p">}</span>
-</span><span id="ms_from_array_centroid-68"><a href="#ms_from_array_centroid-68"><span class="linenos">68</span></a>    
-</span><span id="ms_from_array_centroid-69"><a href="#ms_from_array_centroid-69"><span class="linenos">69</span></a>    <span class="n">output_parameters</span> <span class="o">=</span> <span class="n">get_output_parameters</span><span class="p">(</span><span class="n">polarity</span><span class="p">,</span> <span class="n">dataname</span><span class="p">)</span>
-</span><span id="ms_from_array_centroid-70"><a href="#ms_from_array_centroid-70"><span class="linenos">70</span></a>    <span class="n">output_parameters</span><span class="p">[</span><span class="n">Labels</span><span class="o">.</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">corems_centroid</span>
-</span><span id="ms_from_array_centroid-71"><a href="#ms_from_array_centroid-71"><span class="linenos">71</span></a>    
-</span><span id="ms_from_array_centroid-72"><a href="#ms_from_array_centroid-72"><span class="linenos">72</span></a>    <span class="k">return</span> <span class="n">MassSpecCentroid</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">output_parameters</span><span class="p">,</span> <span class="n">auto_process</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ms_from_array_centroid-54"><a href="#ms_from_array_centroid-54"><span class="linenos">54</span></a><span class="k">def</span> <span class="nf">ms_from_array_centroid</span><span class="p">(</span>
+</span><span id="ms_from_array_centroid-55"><a href="#ms_from_array_centroid-55"><span class="linenos">55</span></a>    <span class="n">mz</span><span class="p">,</span>
+</span><span id="ms_from_array_centroid-56"><a href="#ms_from_array_centroid-56"><span class="linenos">56</span></a>    <span class="n">abundance</span><span class="p">,</span>
+</span><span id="ms_from_array_centroid-57"><a href="#ms_from_array_centroid-57"><span class="linenos">57</span></a>    <span class="n">rp</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+</span><span id="ms_from_array_centroid-58"><a href="#ms_from_array_centroid-58"><span class="linenos">58</span></a>    <span class="n">s2n</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+</span><span id="ms_from_array_centroid-59"><a href="#ms_from_array_centroid-59"><span class="linenos">59</span></a>    <span class="n">dataname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="ms_from_array_centroid-60"><a href="#ms_from_array_centroid-60"><span class="linenos">60</span></a>    <span class="n">polarity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+</span><span id="ms_from_array_centroid-61"><a href="#ms_from_array_centroid-61"><span class="linenos">61</span></a>    <span class="n">auto_process</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+</span><span id="ms_from_array_centroid-62"><a href="#ms_from_array_centroid-62"><span class="linenos">62</span></a><span class="p">):</span>
+</span><span id="ms_from_array_centroid-63"><a href="#ms_from_array_centroid-63"><span class="linenos">63</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a MassSpecCentroid object from an array of m/z values, abundance values, resolution power, and signal-to-noise ratio.</span>
+</span><span id="ms_from_array_centroid-64"><a href="#ms_from_array_centroid-64"><span class="linenos">64</span></a>
+</span><span id="ms_from_array_centroid-65"><a href="#ms_from_array_centroid-65"><span class="linenos">65</span></a><span class="sd">    Parameters</span>
+</span><span id="ms_from_array_centroid-66"><a href="#ms_from_array_centroid-66"><span class="linenos">66</span></a><span class="sd">    ----------</span>
+</span><span id="ms_from_array_centroid-67"><a href="#ms_from_array_centroid-67"><span class="linenos">67</span></a><span class="sd">    mz : numpy.ndarray</span>
+</span><span id="ms_from_array_centroid-68"><a href="#ms_from_array_centroid-68"><span class="linenos">68</span></a><span class="sd">        Array of m/z values.</span>
+</span><span id="ms_from_array_centroid-69"><a href="#ms_from_array_centroid-69"><span class="linenos">69</span></a><span class="sd">    abundance : numpy.ndarray</span>
+</span><span id="ms_from_array_centroid-70"><a href="#ms_from_array_centroid-70"><span class="linenos">70</span></a><span class="sd">        Array of abundance values.</span>
+</span><span id="ms_from_array_centroid-71"><a href="#ms_from_array_centroid-71"><span class="linenos">71</span></a><span class="sd">    rp : list(float)</span>
+</span><span id="ms_from_array_centroid-72"><a href="#ms_from_array_centroid-72"><span class="linenos">72</span></a><span class="sd">        List of resolving power values.</span>
+</span><span id="ms_from_array_centroid-73"><a href="#ms_from_array_centroid-73"><span class="linenos">73</span></a><span class="sd">    s2n : list(float)</span>
+</span><span id="ms_from_array_centroid-74"><a href="#ms_from_array_centroid-74"><span class="linenos">74</span></a><span class="sd">        List of signal-to-noise ratio values.</span>
+</span><span id="ms_from_array_centroid-75"><a href="#ms_from_array_centroid-75"><span class="linenos">75</span></a><span class="sd">    dataname : str</span>
+</span><span id="ms_from_array_centroid-76"><a href="#ms_from_array_centroid-76"><span class="linenos">76</span></a><span class="sd">        Name of the data.</span>
+</span><span id="ms_from_array_centroid-77"><a href="#ms_from_array_centroid-77"><span class="linenos">77</span></a><span class="sd">    polarity : int, optional</span>
+</span><span id="ms_from_array_centroid-78"><a href="#ms_from_array_centroid-78"><span class="linenos">78</span></a><span class="sd">        Polarity of the data. The default is -1.</span>
+</span><span id="ms_from_array_centroid-79"><a href="#ms_from_array_centroid-79"><span class="linenos">79</span></a><span class="sd">    auto_process : bool, optional</span>
+</span><span id="ms_from_array_centroid-80"><a href="#ms_from_array_centroid-80"><span class="linenos">80</span></a>
+</span><span id="ms_from_array_centroid-81"><a href="#ms_from_array_centroid-81"><span class="linenos">81</span></a><span class="sd">    Returns</span>
+</span><span id="ms_from_array_centroid-82"><a href="#ms_from_array_centroid-82"><span class="linenos">82</span></a><span class="sd">    -------</span>
+</span><span id="ms_from_array_centroid-83"><a href="#ms_from_array_centroid-83"><span class="linenos">83</span></a><span class="sd">    MassSpecCentroid</span>
+</span><span id="ms_from_array_centroid-84"><a href="#ms_from_array_centroid-84"><span class="linenos">84</span></a><span class="sd">        The created MassSpecCentroid object.</span>
+</span><span id="ms_from_array_centroid-85"><a href="#ms_from_array_centroid-85"><span class="linenos">85</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="ms_from_array_centroid-86"><a href="#ms_from_array_centroid-86"><span class="linenos">86</span></a>    <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="ms_from_array_centroid-87"><a href="#ms_from_array_centroid-87"><span class="linenos">87</span></a>        <span class="n">Labels</span><span class="o">.</span><span class="n">mz</span><span class="p">:</span> <span class="n">mz</span><span class="p">,</span>
+</span><span id="ms_from_array_centroid-88"><a href="#ms_from_array_centroid-88"><span class="linenos">88</span></a>        <span class="n">Labels</span><span class="o">.</span><span class="n">abundance</span><span class="p">:</span> <span class="n">abundance</span><span class="p">,</span>
+</span><span id="ms_from_array_centroid-89"><a href="#ms_from_array_centroid-89"><span class="linenos">89</span></a>        <span class="n">Labels</span><span class="o">.</span><span class="n">s2n</span><span class="p">:</span> <span class="n">s2n</span><span class="p">,</span>
+</span><span id="ms_from_array_centroid-90"><a href="#ms_from_array_centroid-90"><span class="linenos">90</span></a>        <span class="n">Labels</span><span class="o">.</span><span class="n">rp</span><span class="p">:</span> <span class="n">rp</span><span class="p">,</span>
+</span><span id="ms_from_array_centroid-91"><a href="#ms_from_array_centroid-91"><span class="linenos">91</span></a>    <span class="p">}</span>
+</span><span id="ms_from_array_centroid-92"><a href="#ms_from_array_centroid-92"><span class="linenos">92</span></a>
+</span><span id="ms_from_array_centroid-93"><a href="#ms_from_array_centroid-93"><span class="linenos">93</span></a>    <span class="n">output_parameters</span> <span class="o">=</span> <span class="n">get_output_parameters</span><span class="p">(</span><span class="n">polarity</span><span class="p">,</span> <span class="n">dataname</span><span class="p">)</span>
+</span><span id="ms_from_array_centroid-94"><a href="#ms_from_array_centroid-94"><span class="linenos">94</span></a>    <span class="n">output_parameters</span><span class="p">[</span><span class="n">Labels</span><span class="o">.</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">corems_centroid</span>
+</span><span id="ms_from_array_centroid-95"><a href="#ms_from_array_centroid-95"><span class="linenos">95</span></a>
+</span><span id="ms_from_array_centroid-96"><a href="#ms_from_array_centroid-96"><span class="linenos">96</span></a>    <span class="k">return</span> <span class="n">MassSpecCentroid</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">output_parameters</span><span class="p">,</span> <span class="n">auto_process</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -329,42 +375,42 @@ Polarity of the data. The default is -1.</li>
 
     </div>
     <a class="headerlink" href="#get_output_parameters"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_output_parameters-74"><a href="#get_output_parameters-74"><span class="linenos"> 74</span></a><span class="k">def</span> <span class="nf">get_output_parameters</span><span class="p">(</span><span class="n">polarity</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">file_location</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
-</span><span id="get_output_parameters-75"><a href="#get_output_parameters-75"><span class="linenos"> 75</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate the output parameters for creating a MassSpecProfile or MassSpecCentroid object.</span>
-</span><span id="get_output_parameters-76"><a href="#get_output_parameters-76"><span class="linenos"> 76</span></a>
-</span><span id="get_output_parameters-77"><a href="#get_output_parameters-77"><span class="linenos"> 77</span></a><span class="sd">    Parameters</span>
-</span><span id="get_output_parameters-78"><a href="#get_output_parameters-78"><span class="linenos"> 78</span></a><span class="sd">    ----------</span>
-</span><span id="get_output_parameters-79"><a href="#get_output_parameters-79"><span class="linenos"> 79</span></a><span class="sd">    polarity : int</span>
-</span><span id="get_output_parameters-80"><a href="#get_output_parameters-80"><span class="linenos"> 80</span></a><span class="sd">        Polarity of the data.</span>
-</span><span id="get_output_parameters-81"><a href="#get_output_parameters-81"><span class="linenos"> 81</span></a><span class="sd">    file_location : str</span>
-</span><span id="get_output_parameters-82"><a href="#get_output_parameters-82"><span class="linenos"> 82</span></a><span class="sd">        File location.</span>
-</span><span id="get_output_parameters-83"><a href="#get_output_parameters-83"><span class="linenos"> 83</span></a>
-</span><span id="get_output_parameters-84"><a href="#get_output_parameters-84"><span class="linenos"> 84</span></a><span class="sd">    Returns</span>
-</span><span id="get_output_parameters-85"><a href="#get_output_parameters-85"><span class="linenos"> 85</span></a><span class="sd">    -------</span>
-</span><span id="get_output_parameters-86"><a href="#get_output_parameters-86"><span class="linenos"> 86</span></a><span class="sd">    dict</span>
-</span><span id="get_output_parameters-87"><a href="#get_output_parameters-87"><span class="linenos"> 87</span></a><span class="sd">        Output parameters.</span>
-</span><span id="get_output_parameters-88"><a href="#get_output_parameters-88"><span class="linenos"> 88</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="get_output_parameters-89"><a href="#get_output_parameters-89"><span class="linenos"> 89</span></a>    <span class="n">d_params</span> <span class="o">=</span> <span class="n">default_parameters</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
-</span><span id="get_output_parameters-90"><a href="#get_output_parameters-90"><span class="linenos"> 90</span></a>    
-</span><span id="get_output_parameters-91"><a href="#get_output_parameters-91"><span class="linenos"> 91</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s1">&#39;analyzer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Generic Simulated&#39;</span>
-</span><span id="get_output_parameters-92"><a href="#get_output_parameters-92"><span class="linenos"> 92</span></a>
-</span><span id="get_output_parameters-93"><a href="#get_output_parameters-93"><span class="linenos"> 93</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s1">&#39;instrument_label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Generic Simulated&#39;</span>
-</span><span id="get_output_parameters-94"><a href="#get_output_parameters-94"><span class="linenos"> 94</span></a>
-</span><span id="get_output_parameters-95"><a href="#get_output_parameters-95"><span class="linenos"> 95</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;polarity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">polarity</span>
-</span><span id="get_output_parameters-96"><a href="#get_output_parameters-96"><span class="linenos"> 96</span></a>    
-</span><span id="get_output_parameters-97"><a href="#get_output_parameters-97"><span class="linenos"> 97</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;filename_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">file_location</span>
-</span><span id="get_output_parameters-98"><a href="#get_output_parameters-98"><span class="linenos"> 98</span></a>    
-</span><span id="get_output_parameters-99"><a href="#get_output_parameters-99"><span class="linenos"> 99</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;mobility_scan&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="get_output_parameters-100"><a href="#get_output_parameters-100"><span class="linenos">100</span></a>    
-</span><span id="get_output_parameters-101"><a href="#get_output_parameters-101"><span class="linenos">101</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;mobility_rt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="get_output_parameters-102"><a href="#get_output_parameters-102"><span class="linenos">102</span></a>    
-</span><span id="get_output_parameters-103"><a href="#get_output_parameters-103"><span class="linenos">103</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;scan_number&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="get_output_parameters-104"><a href="#get_output_parameters-104"><span class="linenos">104</span></a>    
-</span><span id="get_output_parameters-105"><a href="#get_output_parameters-105"><span class="linenos">105</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;rt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="get_output_parameters-106"><a href="#get_output_parameters-106"><span class="linenos">106</span></a>
-</span><span id="get_output_parameters-107"><a href="#get_output_parameters-107"><span class="linenos">107</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="n">Labels</span><span class="o">.</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">simulated_profile</span>
-</span><span id="get_output_parameters-108"><a href="#get_output_parameters-108"><span class="linenos">108</span></a>    
-</span><span id="get_output_parameters-109"><a href="#get_output_parameters-109"><span class="linenos">109</span></a>    <span class="k">return</span> <span class="n">d_params</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_output_parameters-99"><a href="#get_output_parameters-99"><span class="linenos"> 99</span></a><span class="k">def</span> <span class="nf">get_output_parameters</span><span class="p">(</span><span class="n">polarity</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">file_location</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="get_output_parameters-100"><a href="#get_output_parameters-100"><span class="linenos">100</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate the output parameters for creating a MassSpecProfile or MassSpecCentroid object.</span>
+</span><span id="get_output_parameters-101"><a href="#get_output_parameters-101"><span class="linenos">101</span></a>
+</span><span id="get_output_parameters-102"><a href="#get_output_parameters-102"><span class="linenos">102</span></a><span class="sd">    Parameters</span>
+</span><span id="get_output_parameters-103"><a href="#get_output_parameters-103"><span class="linenos">103</span></a><span class="sd">    ----------</span>
+</span><span id="get_output_parameters-104"><a href="#get_output_parameters-104"><span class="linenos">104</span></a><span class="sd">    polarity : int</span>
+</span><span id="get_output_parameters-105"><a href="#get_output_parameters-105"><span class="linenos">105</span></a><span class="sd">        Polarity of the data.</span>
+</span><span id="get_output_parameters-106"><a href="#get_output_parameters-106"><span class="linenos">106</span></a><span class="sd">    file_location : str</span>
+</span><span id="get_output_parameters-107"><a href="#get_output_parameters-107"><span class="linenos">107</span></a><span class="sd">        File location.</span>
+</span><span id="get_output_parameters-108"><a href="#get_output_parameters-108"><span class="linenos">108</span></a>
+</span><span id="get_output_parameters-109"><a href="#get_output_parameters-109"><span class="linenos">109</span></a><span class="sd">    Returns</span>
+</span><span id="get_output_parameters-110"><a href="#get_output_parameters-110"><span class="linenos">110</span></a><span class="sd">    -------</span>
+</span><span id="get_output_parameters-111"><a href="#get_output_parameters-111"><span class="linenos">111</span></a><span class="sd">    dict</span>
+</span><span id="get_output_parameters-112"><a href="#get_output_parameters-112"><span class="linenos">112</span></a><span class="sd">        Output parameters.</span>
+</span><span id="get_output_parameters-113"><a href="#get_output_parameters-113"><span class="linenos">113</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="get_output_parameters-114"><a href="#get_output_parameters-114"><span class="linenos">114</span></a>    <span class="n">d_params</span> <span class="o">=</span> <span class="n">default_parameters</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
+</span><span id="get_output_parameters-115"><a href="#get_output_parameters-115"><span class="linenos">115</span></a>
+</span><span id="get_output_parameters-116"><a href="#get_output_parameters-116"><span class="linenos">116</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;analyzer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Generic Simulated&quot;</span>
+</span><span id="get_output_parameters-117"><a href="#get_output_parameters-117"><span class="linenos">117</span></a>
+</span><span id="get_output_parameters-118"><a href="#get_output_parameters-118"><span class="linenos">118</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;instrument_label&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Generic Simulated&quot;</span>
+</span><span id="get_output_parameters-119"><a href="#get_output_parameters-119"><span class="linenos">119</span></a>
+</span><span id="get_output_parameters-120"><a href="#get_output_parameters-120"><span class="linenos">120</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;polarity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">polarity</span>
+</span><span id="get_output_parameters-121"><a href="#get_output_parameters-121"><span class="linenos">121</span></a>
+</span><span id="get_output_parameters-122"><a href="#get_output_parameters-122"><span class="linenos">122</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;filename_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">file_location</span>
+</span><span id="get_output_parameters-123"><a href="#get_output_parameters-123"><span class="linenos">123</span></a>
+</span><span id="get_output_parameters-124"><a href="#get_output_parameters-124"><span class="linenos">124</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;mobility_scan&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="get_output_parameters-125"><a href="#get_output_parameters-125"><span class="linenos">125</span></a>
+</span><span id="get_output_parameters-126"><a href="#get_output_parameters-126"><span class="linenos">126</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;mobility_rt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="get_output_parameters-127"><a href="#get_output_parameters-127"><span class="linenos">127</span></a>
+</span><span id="get_output_parameters-128"><a href="#get_output_parameters-128"><span class="linenos">128</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;scan_number&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="get_output_parameters-129"><a href="#get_output_parameters-129"><span class="linenos">129</span></a>
+</span><span id="get_output_parameters-130"><a href="#get_output_parameters-130"><span class="linenos">130</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="s2">&quot;rt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="get_output_parameters-131"><a href="#get_output_parameters-131"><span class="linenos">131</span></a>
+</span><span id="get_output_parameters-132"><a href="#get_output_parameters-132"><span class="linenos">132</span></a>    <span class="n">d_params</span><span class="p">[</span><span class="n">Labels</span><span class="o">.</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">simulated_profile</span>
+</span><span id="get_output_parameters-133"><a href="#get_output_parameters-133"><span class="linenos">133</span></a>
+</span><span id="get_output_parameters-134"><a href="#get_output_parameters-134"><span class="linenos">134</span></a>    <span class="k">return</span> <span class="n">d_params</span>
 </span></pre></div>
 
 
