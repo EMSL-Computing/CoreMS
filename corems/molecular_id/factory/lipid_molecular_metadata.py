@@ -9,7 +9,7 @@ from .EI_SQL import MetaboliteMetadata
 @dataclass
 class LipidMetadata(MetaboliteMetadata):
     """Dataclass for the Lipid Metadata
-    
+
     Parameters
     ----------
     name : str
@@ -23,7 +23,7 @@ class LipidMetadata(MetaboliteMetadata):
     structure_level : str
         The structure level of the lipid, following the LIPID MAPS classification
     lipid_summed_name : str
-        The summed name of the lipid, aka lipid species, 
+        The summed name of the lipid, aka lipid species,
         following the LIPID MAPS classification
     lipid_subclass : str
         The subclass of the lipid, following the LIPID MAPS classification

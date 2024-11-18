@@ -23,7 +23,7 @@ from s3path import S3Path
 from typing import Any, Dict, List, Optional, Tuple
 from corems.encapsulation.constant import Labels
 from corems.mass_spectra.factory.lc_class import MassSpectraBase, LCMSBase
-from corems.mass_spectra.factory.LC_Temp import EIC_Data, TIC_Data
+from corems.mass_spectra.factory.chromat_data import EIC_Data, TIC_Data
 from corems.mass_spectrum.factory.MassSpectrumClasses import (
     MassSpecProfile,
     MassSpecCentroid,
@@ -500,7 +500,13 @@ class ThermoBaseClass:
             # plt.show()
 
     def get_tic(
-        self, ms_type="MS !d", peak_detection=True, smooth=True, plot=False, ax=None,trace_type='TIC',
+        self,
+        ms_type="MS !d",
+        peak_detection=True,
+        smooth=True,
+        plot=False,
+        ax=None,
+        trace_type="TIC",
     ) -> Tuple[TIC_Data, axes.Axes]:
         """ms_type: str ('MS !d', 'MS2', None)
             if you use None you get all scans.
@@ -523,12 +529,12 @@ class ThermoBaseClass:
                 original thermo apex scan number after peak picking
             }
         """
-        if trace_type == 'TIC':
+        if trace_type == "TIC":
             settings = ChromatogramTraceSettings(TraceType.TIC)
-        elif trace_type == 'BPC':
+        elif trace_type == "BPC":
             settings = ChromatogramTraceSettings(TraceType.BasePeak)
         else:
-            print(f'{trace_type} undefined')
+            raise ValueError(f"{trace_type} undefined")
         if ms_type == "all":
             settings.Filter = None
         else:
@@ -588,11 +594,11 @@ class ThermoBaseClass:
                         )
 
                 # plt.show()
-                if trace_type == 'BPC':
+                if trace_type == "BPC":
                     data.bpc = data.tic
                     data.tic = []
                 return data, ax
-            if trace_type == 'BPC':
+            if trace_type == "BPC":
                 data.bpc = data.tic
                 data.tic = []
             return data, None
@@ -915,9 +921,9 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
         Parses the RAW file and returns a dictionary of mass spectra dataframes and a scan metadata dataframe.
     * get_mass_spectrum_from_scan(scan_number, polarity, auto_process=True)
         Parses the RAW file and returns a MassSpecBase object from a single scan.
-    * get_mass_spectra_obj(verbose=True).
+    * get_mass_spectra_obj().
         Parses the RAW file and instantiates a MassSpectraBase object.
-    * get_lcms_obj(verbose=True).
+    * get_lcms_obj().
         Parses the RAW file and instantiates an LCMSBase object.
     * get_icr_transient_times().
         Return a list for transient time targets for all scans, or selected scans range
@@ -956,9 +962,7 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
         self.chromatogram_settings.scans = (-1, -1)
 
         # Get scan df info; starting with bulk ms1 and ms2 scans
-        ms1_tic_data, _ = self.get_tic(
-            ms_type="MS", peak_detection=False, smooth=False
-        )
+        ms1_tic_data, _ = self.get_tic(ms_type="MS", peak_detection=False, smooth=False)
         ms1_scan_dict = {
             "scan": ms1_tic_data.scans,
             "scan_time": ms1_tic_data.time,
@@ -979,9 +983,7 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
         ms2_tic_df["ms_level"] = "ms2"
 
         scan_df = (
-            pd.concat([ms1_tic_df, ms2_tic_df], axis=0)
-            .sort_values(by="scan")
-            .reindex()
+            pd.concat([ms1_tic_df, ms2_tic_df], axis=0).sort_values(by="scan").reindex()
         )
 
         # get scan text
@@ -989,9 +991,7 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
             self.get_all_filters()[0], orient="index"
         )
         scan_filter_df.reset_index(inplace=True)
-        scan_filter_df.rename(
-            columns={"index": "scan", 0: "scan_text"}, inplace=True
-        )
+        scan_filter_df.rename(columns={"index": "scan", 0: "scan_text"}, inplace=True)
 
         scan_df = scan_df.merge(scan_filter_df, on="scan", how="left")
         scan_df["scan_window_lower"] = scan_df.scan_text.str.extract(
@@ -1014,12 +1014,12 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
                 scan_df.loc[scan_df.scan == i, "ms_format"] = "centroid"
             else:
                 scan_df.loc[scan_df.scan == i, "ms_format"] = "profile"
-        
+
         return scan_df
 
     def get_ms_raw(self, spectra, scan_df):
         if spectra == "all":
-                scan_df_forspec = scan_df
+            scan_df_forspec = scan_df
         elif spectra == "ms1":
             scan_df_forspec = scan_df[scan_df.ms_level == 1]
         elif spectra == "ms2":
@@ -1042,9 +1042,7 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
         # First pass: get nrows
         N = defaultdict(lambda: 0)
         for i in scan_df_forspec.scan.to_list():
-            level = scan_df_forspec.loc[
-                scan_df_forspec.scan == i, "ms_level"
-            ].values[0]
+            level = scan_df_forspec.loc[scan_df_forspec.scan == i, "ms_level"].values[0]
             scanStatistics = self.iRawDataPlus.GetScanStatsForScanNumber(i)
             profileStream = self.iRawDataPlus.GetSegmentedScanFromScanNumber(
                 i, scanStatistics
@@ -1070,9 +1068,7 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
             abun = np.array(abun)[inx]
             abun = np.float32(abun)
 
-            level = scan_df_forspec.loc[
-                scan_df_forspec.scan == i, "ms_level"
-            ].values[0]
+            level = scan_df_forspec.loc[scan_df_forspec.scan == i, "ms_level"].values[0]
 
             # Number of rows
             n = len(mz)
@@ -1126,7 +1122,7 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
         res = {f"ms{key}": value for key, value in res.items()}
 
         return res
-    
+
     def run(self, spectra="all", scan_df=None):
         """
         Extracts mass spectra data from a raw file.
@@ -1245,21 +1241,14 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
 
         return mass_spectrum_obj
 
-    def get_mass_spectra_obj(self, verbose=True):
+    def get_mass_spectra_obj(self):
         """Instatiate a MassSpectraBase object from the binary data file file.
-
-        Parameters
-        ----------
-        verbose : bool, optional
-            If True, print progress messages. Default is True.
 
         Returns
         -------
         MassSpectraBase
             The MassSpectra object containing the parsed mass spectra.  The object is instatiated with the mzML file, analyzer, instrument, sample name, and scan dataframe.
         """
-        if verbose:
-            print("Parsing MassSpectra object from raw file")
         _, scan_df = self.run(spectra="none")
         mass_spectra_obj = MassSpectraBase(
             self.file_location,
@@ -1273,7 +1262,7 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
 
         return mass_spectra_obj
 
-    def get_lcms_obj(self, verbose=True, spectra="all"):
+    def get_lcms_obj(self, spectra="all"):
         """Instatiates a LCMSBase object from the mzML file.
 
         Parameters
@@ -1288,8 +1277,6 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
         LCMSBase
             LCMS object containing mass spectra data. The object is instatiated with the file location, analyzer, instrument, sample name, scan info, mz dataframe (as specifified), polarity, as well as the attributes holding the scans, retention times, and tics.
         """
-        if verbose:
-            print("Parsing LCMS object from raw file")
         _, scan_df = self.run(spectra="none")  # first run it to just get scan info
         res, scan_df = self.run(
             scan_df=scan_df, spectra=spectra

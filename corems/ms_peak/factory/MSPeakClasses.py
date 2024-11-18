@@ -1,17 +1,17 @@
 __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
-from copy import deepcopy
 import math
-from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
+
 from numpy import nan
-from corems.ms_peak.calc.MSPeakCalc import MSPeakCalculation
+
 from corems.mass_spectra.calc import SignalProcessing as sp
-from numpy import NaN, power
+from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
+from corems.ms_peak.calc.MSPeakCalc import MSPeakCalculation
 
 
 class _MSPeak(MSPeakCalculation):
-    """ A class representing a peak in a mass spectrum.
+    """A class representing a peak in a mass spectrum.
 
     Parameters:
     ----------
@@ -127,8 +127,8 @@ class _MSPeak(MSPeakCalculation):
         return self.molecular_formulas[position]
 
     def change_kendrick_base(self, kendrick_dict_base):
-        """ Changes the kendrick base for the peak.
-        
+        """Changes the kendrick base for the peak.
+
         Parameters:
         ----------
         kendrick_dict_base : dict
@@ -140,7 +140,7 @@ class _MSPeak(MSPeakCalculation):
         )
 
     def add_molecular_formula(self, molecular_formula_obj):
-        """ Adds a molecular formula to the peak.
+        """Adds a molecular formula to the peak.
 
         Parameters:
         ----------
@@ -151,7 +151,7 @@ class _MSPeak(MSPeakCalculation):
         -------
         MolecularFormula
             The molecular formula object added.
-        
+
         """
         # freeze state
         molecular_formula_obj._mspeak_parent = self
@@ -166,7 +166,7 @@ class _MSPeak(MSPeakCalculation):
         return molecular_formula_obj
 
     def remove_molecular_formula(self, mf_obj):
-        """ Removes a molecular formula from the peak.
+        """Removes a molecular formula from the peak.
 
         Parameters:
         ----------
@@ -176,13 +176,12 @@ class _MSPeak(MSPeakCalculation):
         self.molecular_formulas.remove(mf_obj)
 
     def clear_molecular_formulas(self):
-        """ Clears all molecular formulas associated with the peak.
-        """
+        """Clears all molecular formulas associated with the peak."""
         self.molecular_formulas = []
 
     @property
     def mz_exp(self):
-        """ The experimental m/z value of the peak."""
+        """The experimental m/z value of the peak."""
         if self.mz_cal:
             return self.mz_cal
         else:
@@ -190,12 +189,12 @@ class _MSPeak(MSPeakCalculation):
 
     @mz_exp.setter
     def mz_exp(self, mz_exp):
-        """ Sets the experimental m/z value of the peak."""
+        """Sets the experimental m/z value of the peak."""
         self._mz_exp = mz_exp
 
     @property
     def area(self):
-        """ The area of the peak."""
+        """The area of the peak."""
         if self._ms_parent.is_centroid:
             return nan
         else:
@@ -203,27 +202,27 @@ class _MSPeak(MSPeakCalculation):
 
     @property
     def nominal_mz_exp(self):
-        """ The experimental nominal (integer) m/z value of the peak."""
+        """The experimental nominal (integer) m/z value of the peak."""
         return math.floor(self.mz_exp)
 
     @property
     def kmd(self):
-        """ The Kendrick mass defect of the peak."""
+        """The Kendrick mass defect of the peak."""
         return self._kmd
 
     @property
     def kendrick_mass(self):
-        """ The Kendrick mass of the peak."""
+        """The Kendrick mass of the peak."""
         return self._kendrick_mass
 
     @property
     def knm(self):
-        """ The Kendrick nominal mass of the peak."""
+        """The Kendrick nominal mass of the peak."""
         return self._nominal_km
 
     @property
     def is_assigned(self) -> bool:
-        """ Whether the peak is assigned or not."""
+        """Whether the peak is assigned or not."""
         return bool(self.molecular_formulas)
 
     def plot_simulation(
@@ -235,7 +234,7 @@ class _MSPeak(MSPeakCalculation):
         delta_rp=0,
         mz_overlay=1,
     ):
-        """ Plots the simulated peak.
+        """Plots the simulated peak.
 
         Parameters:
         ----------
@@ -257,7 +256,7 @@ class _MSPeak(MSPeakCalculation):
         mz_overlay : int, optional
             The mz overlay.
             Default is 1.
-        
+
         Returns:
         -------
         matplotlib.axes
@@ -288,8 +287,13 @@ class _MSPeak(MSPeakCalculation):
             return ax
 
     def plot(
-        self, ax=None, color :str="black", derivative : bool=True, deriv_color :str="red"):  # pragma: no cover
-        """ Plots the peak.
+        self,
+        ax=None,
+        color: str = "black",
+        derivative: bool = True,
+        deriv_color: str = "red",
+    ):  # pragma: no cover
+        """Plots the peak.
 
         Parameters:
         ----------
@@ -317,8 +321,12 @@ class _MSPeak(MSPeakCalculation):
 
             if ax is None:
                 ax = plt.gca()
-            x = self._ms_parent.mz_exp_profile[self.peak_left_index : self.peak_right_index]
-            y = self._ms_parent.abundance_profile[self.peak_left_index : self.peak_right_index]
+            x = self._ms_parent.mz_exp_profile[
+                self.peak_left_index : self.peak_right_index
+            ]
+            y = self._ms_parent.abundance_profile[
+                self.peak_left_index : self.peak_right_index
+            ]
 
             ax.plot(x, y, color=color, label="Data")
             ax.set(xlabel="m/z", ylabel="abundance")
@@ -342,21 +350,23 @@ class _MSPeak(MSPeakCalculation):
             return ax
 
         else:
-            print("Centroid Peak Object")
+            raise AttributeError(
+                "No parent mass spectrum object found to plot the peak."
+            )
 
     @property
     def best_molecular_formula_candidate(self):
-        """ The best molecular formula candidate for the peak.
-        
+        """The best molecular formula candidate for the peak.
+
         Returns a single best formula candidate based on the user defined score method.
         Score method is set with:
             molecular_search_settings.score_method
-        
+
         Returns
         -------
         MolecularFormula
             The best molecular formula candidate for the peak.
-        
+
         """
         if (
             self._ms_parent.molecular_search_settings.score_method
@@ -401,22 +411,21 @@ class _MSPeak(MSPeakCalculation):
 
 
 class ICRMassPeak(_MSPeak):
-    """A class representing a peak in an ICR mass spectrum.
-    
-    """
+    """A class representing a peak in an ICR mass spectrum."""
+
     def __init__(self, *args, ms_parent=None, exp_freq=None):
         super().__init__(*args, exp_freq=exp_freq, ms_parent=ms_parent)
 
     def resolving_power_calc(self, B, T):
-        """ Calculate the theoretical resolving power of the peak.
-        
+        """Calculate the theoretical resolving power of the peak.
+
         Parameters
         ----------
         T: float
             transient time
         B: float
             Magnetic Filed Strength (Tesla)
-        
+
         Returns
         -------
         float
@@ -429,14 +438,13 @@ class ICRMassPeak(_MSPeak):
         """
         return (1.274e7 * self.ion_charge * B * T) / (self.mz_exp * self.ion_charge)
 
-    def set_calc_resolving_power(self, B : float, T : float):
-        """ Set the resolving power of the peak to the calculated one.
-        """
+    def set_calc_resolving_power(self, B: float, T: float):
+        """Set the resolving power of the peak to the calculated one."""
         self.resolving_power = self.resolving_power_calc(B, T)
 
     def _mz_to_f_bruker(self):
-        """ [Not Functional] Convert a peak m/z value to frequency
-        
+        """[Not Functional] Convert a peak m/z value to frequency
+
         # Currently Broken - Not sure why
         if self.mz_cal:
             mz_val = self.mz_cal
@@ -444,15 +452,15 @@ class ICRMassPeak(_MSPeak):
             mz_val = self.mz_exp
         Aterm, Bterm, Cterm = self._ms_parent.Aterm, self._ms_parent.Bterm, self._ms_parent.Cterm
         # Check if the Bterm of Ledford equation scales with the ICR trap voltage or not then Bterm = Bterm*trap_voltage
-        
+
         if Cterm == 0:
-            
+
             if Bterm == 0:
                 #uncalibrated data
                 freq_domain = Aterm / mz_val
-                
+
             else:
-                
+
                 freq_domain = (Aterm / (mz_val)) - Bterm
 
         # @will I need you insight here, not sure what is the inverted ledford equation that Bruker refers to
@@ -462,15 +470,12 @@ class ICRMassPeak(_MSPeak):
 
         return freq_domain
         """
-        print("Function not confirmed to work, disabled.")
-        return None
+        raise RuntimeError("Function not confirmed to work, disabled.")
 
 
 class TOFMassPeak(_MSPeak):
-    """ A class representing a peak in a TOF mass spectrum.
-    
-    
-    """
+    """A class representing a peak in a TOF mass spectrum."""
+
     def __init__(self, *args, exp_freq=None):
         super().__init__(*args, exp_freq=exp_freq)
 
@@ -479,9 +484,8 @@ class TOFMassPeak(_MSPeak):
 
 
 class OrbiMassPeak(_MSPeak):
-    """ A class representing a peak in an Orbitrap mass spectrum.
-    
-    """
+    """A class representing a peak in an Orbitrap mass spectrum."""
+
     def __init__(self, *args, exp_freq=None):
         super().__init__(*args, exp_freq=exp_freq)
 

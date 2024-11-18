@@ -1,6 +1,6 @@
 pylint
-pytest~=7.2.1
-pytest-cov
+pytest~=8.3.2
+pytest-cov~=5.0.0
 pyprof2calltree
 memory_profiler
 twine

@@ -3,14 +3,14 @@ include:
 
 
 services:
-  - postgres
+  - postgres:13
 
 variables:
   POSTGRES_DB: molformula
   POSTGRES_USER: coremsdb
   POSTGRES_PASSWORD: coremsmolform
   POSTGRES_HOST_AUTH_METHOD: trust
-  COREMS_DATABASE_URL: postgresql://coremsdb:coremsmolform@localhost:5432/molformula
+  COREMS_DATABASE_URL: postgresql://coremsdb:coremsmolform@postgres:5432/molformula
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
 stages:
@@ -32,6 +32,7 @@ test-source:
     - python3 -m pip install --upgrade pip
     - python3 -m pip install -r requirements.txt
     - python3 -m pip install pytest pytest-cov
+    - python3 -m pip install psycopg2
     - python3 -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
     - export PYTHONNET_RUNTIME=coreclr
     - pytest --cache-clear

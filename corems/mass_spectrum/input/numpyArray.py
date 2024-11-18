@@ -1,12 +1,22 @@
-
 __author__ = "Yuri E. Corilo"
 __date__ = "Oct 23, 2019"
 
-from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecProfile, MassSpecCentroid
-from corems.encapsulation.factory.parameters import default_parameters
 from corems.encapsulation.constant import Labels
+from corems.encapsulation.factory.parameters import default_parameters
+from corems.mass_spectrum.factory.MassSpectrumClasses import (
+    MassSpecCentroid,
+    MassSpecProfile,
+)
 
-def ms_from_array_profile(mz, abundance, dataname:str, polarity:int = -1, auto_process:bool = True, data_type:str = Labels.simulated_profile):
+
+def ms_from_array_profile(
+    mz,
+    abundance,
+    dataname: str,
+    polarity: int = -1,
+    auto_process: bool = True,
+    data_type: str = Labels.simulated_profile,
+):
     """Create a MassSpecProfile object from an array of m/z values and abundance values.
 
     Parameters
@@ -30,16 +40,25 @@ def ms_from_array_profile(mz, abundance, dataname:str, polarity:int = -1, auto_p
         The created MassSpecProfile object.
     """
     data_dict = {Labels.mz: mz, Labels.abundance: abundance}
-    
+
     output_parameters = get_output_parameters(polarity, dataname)
-    
+
     output_parameters[Labels.label] = data_type
 
     ms = MassSpecProfile(data_dict, output_parameters, auto_process=auto_process)
-    
+
     return ms
 
-def ms_from_array_centroid(mz, abundance, rp:list[float], s2n:list[float], dataname:str, polarity:int=-1, auto_process:bool=True):
+
+def ms_from_array_centroid(
+    mz,
+    abundance,
+    rp: list[float],
+    s2n: list[float],
+    dataname: str,
+    polarity: int = -1,
+    auto_process: bool = True,
+):
     """Create a MassSpecCentroid object from an array of m/z values, abundance values, resolution power, and signal-to-noise ratio.
 
     Parameters
@@ -63,14 +82,20 @@ def ms_from_array_centroid(mz, abundance, rp:list[float], s2n:list[float], datan
     MassSpecCentroid
         The created MassSpecCentroid object.
     """
-    data_dict = {Labels.mz: mz, Labels.abundance: abundance, Labels.s2n : s2n, Labels.rp: rp}
-    
+    data_dict = {
+        Labels.mz: mz,
+        Labels.abundance: abundance,
+        Labels.s2n: s2n,
+        Labels.rp: rp,
+    }
+
     output_parameters = get_output_parameters(polarity, dataname)
     output_parameters[Labels.label] = Labels.corems_centroid
-    
+
     return MassSpecCentroid(data_dict, output_parameters, auto_process)
-    
-def get_output_parameters(polarity:int, file_location:str):
+
+
+def get_output_parameters(polarity: int, file_location: str):
     """Generate the output parameters for creating a MassSpecProfile or MassSpecCentroid object.
 
     Parameters
@@ -86,23 +111,23 @@ def get_output_parameters(polarity:int, file_location:str):
         Output parameters.
     """
     d_params = default_parameters(file_location)
-    
-    d_params['analyzer'] = 'Generic Simulated'
 
-    d_params['instrument_label'] = 'Generic Simulated'
+    d_params["analyzer"] = "Generic Simulated"
+
+    d_params["instrument_label"] = "Generic Simulated"
 
     d_params["polarity"] = polarity
-    
+
     d_params["filename_path"] = file_location
-    
+
     d_params["mobility_scan"] = 0
-    
+
     d_params["mobility_rt"] = 0
-    
+
     d_params["scan_number"] = 0
-    
+
     d_params["rt"] = 0
 
     d_params[Labels.label] = Labels.simulated_profile
-    
+
     return d_params

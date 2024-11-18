@@ -68,6 +68,6 @@ fresh-stack-up:
 	@docker-compose up -d   
 	@docker run --rm -v ./data:/home/CoreMS/data corems:local
 
-docs:
+docu:
 	
 	pdoc --output-dir docs --docformat numpy corems

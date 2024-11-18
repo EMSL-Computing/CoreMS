@@ -54,15 +54,15 @@ class ReadAndiNetCDF(Thread):
 
     Methods
     --------
-    * polarity(). 
+    * polarity().
             Get the polarity of the ionization.
-    * get_mass_spectrum(mz, abun, rp, d_params). 
+    * get_mass_spectrum(mz, abun, rp, d_params).
             Add a mass spectrum to the GCMSBase object.
-    * run(). 
+    * run().
             Populate the GCMSBase object with mass spectra data.
-    * import_mass_spectra(d_params). 
+    * import_mass_spectra(d_params).
             Import mass spectra data from the AndiNetCDF file.
-    * get_gcms_obj(). 
+    * get_gcms_obj().
             Get the GCMSBase object.
 
     """
@@ -74,7 +74,6 @@ class ReadAndiNetCDF(Thread):
         instrument_label="GCMS-Agilent",
         auto_process=True,
     ):
-
         Thread.__init__(self)
 
         if isinstance(file_location, str):
