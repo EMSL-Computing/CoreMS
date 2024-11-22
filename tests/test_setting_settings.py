@@ -1,6 +1,5 @@
 import sys
 import os
-sys.path.append(".")
 
 from corems.encapsulation.output import parameter_to_json, parameter_to_dict
 from corems.encapsulation.factory.processingSetting  import MolecularLookupDictSettings

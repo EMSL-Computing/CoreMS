@@ -1,6 +1,5 @@
 import sys
 
-sys.path.append(".")
 from corems.ms_peak.factory.MSPeakClasses import ICRMassPeak
 
 
