@@ -1,5 +1,4 @@
 import sys
-sys.path.append(".")
 import os
 
 from corems.mass_spectrum.output.export import HighResMassSpecExport

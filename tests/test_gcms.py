@@ -5,7 +5,6 @@ import warnings
 warnings.filterwarnings("ignore")
 
 import sys
-sys.path.append(".")
 
 import pytest
 from pathlib import Path

@@ -1,7 +1,6 @@
 import os
 import sys
 
-sys.path.append(".")
 from copy import deepcopy
 from threading import Thread
 from itertools import product
