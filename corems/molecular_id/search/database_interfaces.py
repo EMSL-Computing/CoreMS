@@ -705,7 +705,7 @@ class MetabRefLCInterface(MetabRefInterface):
         mz_list.sort()
         mz_groups = [[mz_list[0]]]
         for x in mz_list[1:]:
-            if abs(x - mz_groups[-1][-1]) <= mz_tol_da_api:
+            if abs(x - mz_groups[-1][0]) <= mz_tol_da_api:
                 mz_groups[-1].append(x)
             else:
                 mz_groups.append([x])
