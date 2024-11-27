@@ -416,8 +416,8 @@ def run_lipid_sp_ms1(
     check_scan_translator(myLCMSobj, scan_translator)
     add_mass_features(myLCMSobj, scan_translator)
     myLCMSobj.remove_unprocessed_data()
-    if ms1_molecular_search:
-        molecular_formula_search(myLCMSobj)
+    #if ms1_molecular_search:
+    #    molecular_formula_search(myLCMSobj)
     export_results(myLCMSobj, out_path=out_path, final=False)
     save_times(myLCMSobj, time_start, out_path)
     if return_mzs:
@@ -472,7 +472,6 @@ def prep_metadata(mz_dicts, out_dir, token_path):
             mz_list=metadata["mzs"]["positive"],
             polarity="positive",
             mz_tol_ppm=5,
-            mz_tol_da_api=0.01,
             format="flashentropy",
             normalize=True,
             fe_kwargs={
