@@ -2,6 +2,7 @@ from metadata_generator import MetadataGenerator
 import toml
 from pathlib import Path
 
+
 def main():
     """
     Runs the MetadataGenerator using the configuration provided in a TOML file.
@@ -53,7 +54,7 @@ def main():
 
 
     # Load arguments from TOML file
-    config_data = toml.load('enviroMS/nmdc_metadata_generation/config.toml')
+    config_data = toml.load('support_code/nmdc/nom/config.toml')
 
     generator = MetadataGenerator(
         metadata_file=config_data['metadata_file'],

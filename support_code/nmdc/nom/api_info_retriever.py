@@ -34,7 +34,7 @@ class ApiInfoRetriever:
         filter = f'{{"{slot_name}": "{slot_field_value}"}}'
         field = "id"
 
-        og_url = f'https://api-berkeley.microbiomedata.org/nmdcschema/{self.collection_name}?&filter={filter}&projection={field}'
+        og_url = f'https://api.microbiomedata.org/nmdcschema/{self.collection_name}?&filter={filter}&projection={field}'
         resp = requests.get(og_url)
 
         # Check if the response status is 200
@@ -45,7 +45,7 @@ class ApiInfoRetriever:
 
         # Ensure there is at least one resource in the response
         if not data['resources']:
-            raise ValueError(f"No resources found for {slot_name} with value {slot_field_value}")
+            raise ValueError(f"No resources found for '{slot_name}' slot in {self.collection_name} with value {slot_field_value}")
         
         identifier = data['resources'][0]['id']
 
