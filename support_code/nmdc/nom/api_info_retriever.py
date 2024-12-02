@@ -45,7 +45,7 @@ class ApiInfoRetriever:
 
         # Ensure there is at least one resource in the response
         if not data['resources']:
-            raise ValueError(f"No resources found for '{slot_name}' slot in {self.collection_name} with value {slot_field_value}")
+            raise ValueError(f"No resources in Mongo found for '{slot_name}' slot in {self.collection_name} with value {slot_field_value}")
         
         identifier = data['resources'][0]['id']
 
