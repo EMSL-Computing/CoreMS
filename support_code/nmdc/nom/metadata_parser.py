@@ -4,6 +4,7 @@ import numpy as np
 from dataclasses import dataclass
 from typing import Optional
 from pathlib import Path
+from api_info_retriever import ApiInfoRetriever
 
 @ dataclass
 class BiosampleIncludedMetadata:
@@ -128,6 +129,8 @@ class MetadataParser:
         else:
             raise ValueError(f'Unsupported file extension: {metadata_file_path.suffix}')
         
+        # Check that all configs are valid
+        self.check_for_valid_configs(metadata_df)
         # Check that 'chrom__config_name' column value is present if eluent_intro is 'liquid_chromatography)
         self.check_chrom_config(metadata_df)
 
@@ -169,6 +172,47 @@ class MetadataParser:
 
         if not invalid_no_config_rows.empty:
             raise ValueError(f"'chrom_config_name' should be empty for the following rows where 'eluent_intro' is 'direct_infusion_syringe' or 'direct_infusion_autosampler': {(invalid_no_config_rows.index+2).tolist()}")
+
+    def check_for_valid_configs(sefl, df: pd.DataFrame):
+        """
+        Get unique values for all columns containing 'config' in their name and verify they exist in API.
+        
+        Parameters
+        ----------
+        df : pd.DataFrame
+            DataFrame to analyze
+            
+        Raises
+        ------
+        ValueError
+            If any config value doesn't exist in the API
+        """
+
+        # Instantiate configuration_set info retriever
+        api_config_getter = ApiInfoRetriever(
+            collection_name="configuration_set")
+        
+        config_columns = ['chrom_config_name', 'mass_spec_config']
+        invalid_configs = []
+
+        for col in config_columns:
+            unique_vals = [val for val in df[col].unique() if pd.notna(val)]
+
+            for val in unique_vals:
+                try:
+                    # skip empty values
+                    if not val:
+                        continue
+                    api_config_getter.get_id_by_slot_from_collection(slot_name="name", slot_field_value=val)
+                except ValueError:
+                    invalid_configs.append((col, val))
+
+        # If any invalid conifgs were found, raise error
+        if invalid_configs:
+            error_msg = "The following configurations were not found in the API:\n"
+            for col, val in invalid_configs:
+                error_msg += f"  Column '{col}': '{val}'\n"
+            raise ValueError(error_msg)
 
     def check_for_biosamples(self, row: pd.Series) -> bool:
         """
