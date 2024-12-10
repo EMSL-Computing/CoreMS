@@ -20,7 +20,7 @@ import requests_oauthlib
 # TODO: Update script to for Sample Processing - has_input for MassSpectrometry will have to be changed to be a processed sample id - not biosample id
 # TODO: og_url in ApiInfoGetter in metadata_gen_supplement.py to be regular url once Berkeley is integrated
 # TODO: uncomment and comment testing lines (modules), ms, issue, etc. see below in run
-# TODO: remove break statement
+
 
 class MetadataGenerator:
    
@@ -75,6 +75,8 @@ class MetadataGenerator:
                                       "spectrometry data.")
         self.workflow_git_url = "https://github.com/microbiomedata/enviroMS"
         self.processed_data_category = "processed_data"
+        self.workflow_param_data_category = "workflow_parameter_data"
+        self.workflow_param_data_object_type = "Configuration toml"
 
     def run(self):
         """
@@ -83,16 +85,9 @@ class MetadataGenerator:
         This method processes the metadata file, generates biosamples (if needed) 
         and metadata, and manages the workflow for generating NOM analysis data.
         """
+
         file_ext = '.d'
-
-        raw_dir_zip = self.data_dir / Path("raw_zip/")
-        raw_dir_zip.mkdir(parents=True, exist_ok=True)
-
-        results_dir = self.data_dir / Path("results/")
-        results_dir.mkdir(parents=True, exist_ok=True)
-
-        registration_dir = self.data_dir / 'registration'
-        registration_dir.mkdir(parents=True, exist_ok=True)
+        raw_dir_zip, results_dir, registration_dir = self.setup_directories()
         registration_file = registration_dir / self.database_dump_json_path
 
         # Dictionary to track failures
@@ -115,19 +110,10 @@ class MetadataGenerator:
         for index, row in tqdm(metadata_df.iterrows(), total=metadata_df.shape[0], desc="\033[95mProcessing rows\033[0m"):
             # Do not generate biosamples if biosample_id exists in spreadsheet
             try:
-                if parser.check_for_biosamples(row):
-                    emsl_metadata = parser.parse_no_biosample_metadata(row)
-                    biosample_id = emsl_metadata.biosample_id
-                    tqdm.write(f"Biosample already exists for {emsl_metadata.data_path}, will not generate Biosample...")
-                else:
-                    # Generate biosamples if no biosample_id in spreadsheet
-                    emsl_metadata = parser.parse_biosample_metadata(row)
-                    biosample = self.generate_biosample(biosamp_metadata=emsl_metadata)
-
-                    # Append biosample instance to nmdc_database
-                    nmdc_database.biosample_set.append(biosample)
-                    biosample_id = biosample.id
-                    tqdm.write(f"Generating Biosamples for {emsl_metadata.data_path}")
+                
+                # Check if biosample_id is in metadata_csv. If no biosample_id, then will generate biosamples,
+                # if biosample_id exists, will return None for biosample.
+                emsl_metadata, biosample_id, biosample = self.handle_biosample(parser, row)
 
                 # Create raw_file_path
                 raw_file_path = self.data_dir / emsl_metadata.data_path.with_suffix(file_ext)
@@ -136,66 +122,133 @@ class MetadataGenerator:
                 # issue, ms = run_nmdc_workflow((raw_file_path, self.ref_calibration_path, self.field_strength))
                 # Remove these lines before pushing and uncomment above and uncomment module import. Uncomment ms.to_csv line as well.
                 issue = None
-                ms = True
+                class MockMS:
+                    def __init__(self):
+                        self.data = "test"
+                    
+                    def to_csv(self, path, write_metadata=False):
+                        # Just pass for testing
+                        pass
+                ms = MockMS()
 
-                try:
-                    if ms:
-                        if raw_file_path.suffix == '.d':
-                            raw_file_to_upload_path = Path(raw_dir_zip / raw_file_path.stem)
-                            # Create a zip file
-                            shutil.make_archive(raw_file_to_upload_path, 'zip', raw_file_path)
-                        else:
-                            raw_file_to_upload_path = raw_file_path
+                if ms:
 
-                        result_file_name = Path(raw_file_path.name)
-                        output_file_path = results_dir / result_file_name.with_suffix('.csv')
-                        # ms.to_csv(output_file_path, write_metadata=False)
+                    # Process data files
+                    raw_file_to_upload_path, output_file_path, toml_file_path = self.process_data_files(
+                        ms, raw_file_path, raw_dir_zip, results_dir
+                    )
 
-                        self.create_nmdc_metadata(raw_data_path=raw_file_to_upload_path.with_suffix('.zip'),
-                                                data_product_path=output_file_path,
-                                                emsl_metadata=emsl_metadata,
-                                                biosample_id=biosample_id,
-                                                nom_metadata_db=nmdc_database)
-                    else:
-                        tqdm.write(f"Workflow issue for {raw_file_path}: {issue}")
-                        failed_metadata['processing_errors'].append({
-                            'row_index': index + 2,
-                            'filename': str(raw_file_path),
-                            'error': f"Workflow issue: {issue}"
-                        })
-
-                except Exception as inst:
-                    tqdm.write(f"Error processing {raw_file_path}: {str(inst)}")
-                    failed_metadata['processing_errors'].append({
-                        'row_index': index + 2,
-                        'filename': str(raw_file_path),
-                        'error': str(inst)
-                    })
-                    continue
+                    # Generate NMDC metadata
+                    self.create_nmdc_metadata(raw_data_path=raw_file_to_upload_path.with_suffix('.zip'),
+                                            data_product_path=output_file_path,
+                                            emsl_metadata=emsl_metadata,
+                                            biosample_id=biosample_id,
+                                            toml_workflow_param_path=toml_file_path,
+                                            nom_metadata_db=nmdc_database)
+                    
+                    # Add biosample to database if it was newly generated
+                    if biosample:
+                        nmdc_database.biosample_set.append(biosample)
+                
+                else:
+                    self.record_processing_error(failed_metadata, index, raw_file_path, f"Workflow issue: {issue}")
 
             except Exception as e:
                 # Record the failed row with its error
-                failed_metadata['processing_errors'].append({
-                    'row_index': index + 2,
-                    'filename': row.get('LC-MS filename', 'Unknown'),
-                    'error': str(e)
-                })
-                tqdm.write(f"Error processing row {index + 2}: {str(e)}")
+                self.record_processing_error(
+                    failed_metadata, 
+                    index,
+                    row.get('LC-MS filename', 'Unknown'),
+                    str(e)
+                )
                 continue
 
         # At the end of processing, save the failed metadata if there are any errors
+        self.save_error_log(failed_metadata, results_dir)
+
+        self.dump_nmdc_database(nmdc_database, registration_file)
+
+        tqdm.write("\033[92mMetadata processing completed.\033[0m")
+
+    def setup_directories(self) -> tuple[Path, Path, Path]:
+        "Create and return necessary directory paths"
+
+        raw_dir_zip = self.data_dir / Path("raw_zip/")
+        raw_dir_zip.mkdir(parents=True, exist_ok=True)
+
+        results_dir = self.data_dir / Path("results/")
+        results_dir.mkdir(parents=True, exist_ok=True)
+
+        registration_dir = self.data_dir / 'registration'
+        registration_dir.mkdir(parents=True, exist_ok=True)
+
+        return raw_dir_zip, results_dir, registration_dir
+    
+    def handle_biosample(self, parser: MetadataParser, row: pd.Series) -> tuple:
+        """Process biosample data from row"""
+
+        if parser.check_for_biosamples(row):
+            emsl_metadata = parser.parse_no_biosample_metadata(row)
+            biosample_id = emsl_metadata.biosample_id
+            tqdm.write(f"Biosample already exists for {emsl_metadata.data_path}, will not generate Biosample...")
+            return emsl_metadata, biosample_id, None
+        else:
+            # Generate biosamples if no biosample_id in spreadsheet
+            emsl_metadata = parser.parse_biosample_metadata(row)
+            biosample = self.generate_biosample(biosamp_metadata=emsl_metadata)
+            biosample_id = biosample.id
+            tqdm.write(f"Generating Biosamples for {emsl_metadata.data_path}")
+            return emsl_metadata, biosample_id, biosample
+
+    def process_data_files(self, ms, raw_file_path: Path, raw_dir_zip: Path, results_dir: Path) -> tuple[Path, Path, Path]:
+        #TODO uncomment necessary lines
+        """Process and prepare data files"""
+
+        if raw_file_path.suffix == '.d':
+            raw_file_to_upload_path = Path(raw_dir_zip / raw_file_path.stem)
+            # Create a zip file
+            shutil.make_archive(raw_file_to_upload_path, 'zip', raw_file_path)
+        else:
+            raw_file_to_upload_path = raw_file_path
+
+        result_file_name = Path(raw_file_path.name)
+        output_file_path = results_dir / result_file_name.with_suffix('.csv')
+        ms.to_csv(output_file_path, write_metadata=True)
+        #to_csv will save two files two disc (csv and same path and file name but toml file) add this to the registry
+        # switched write_metadata=True to be able to save the toml file which needs to be saved.
+
+        # Get workflow parameter toml path
+        toml_file_path = output_file_path.with_suffix('.toml')
+
+        return raw_file_to_upload_path, output_file_path, toml_file_path
+    
+    def record_processing_error(self, failed_metadata: dict, index: int, filename: str, error: str) -> None:
+        """Record a processing error in the failed_metadata dictionary and log it.
+    
+        Args:
+            failed_metadata: Dictionary tracking processing errors
+            index: Row index from the dataframe
+            filename: Name of the file being processed
+            error: Error message or description
+        """
+        failed_metadata['processing_errors'].append({
+            'row_index': index + 2,
+            'filename': str(filename),
+            'error': str(error)
+        })
+        tqdm.write(f"Error processing row {index + 2}: {str(error)}")
+
+    def save_error_log(self, failed_metadata: dict, results_dir: Path) -> None:
+        """Save error log if there are any errors."""
         if any(failed_metadata.values()):
             error_file = results_dir / 'failed_metadata_rows.json'
             with open(error_file, 'w') as f:
                 json.dump(failed_metadata, f, indent=2)
             tqdm.write(f"\n\033[91mSome rows failed processing. See {error_file} for details.\033[0m")
 
-        self.dump_nmdc_database(nmdc_database, registration_file)
-
-        tqdm.write("\033[92mMetadata processing completed.\033[0m")
-  
     def create_nmdc_metadata(self, raw_data_path: Path, data_product_path: Path,
                               emsl_metadata: object, biosample_id: str,
+                              toml_workflow_param_path: Path,
                               nom_metadata_db: nmdc.Database):
         """
         Create NMDC metadata entries.
@@ -210,6 +263,8 @@ class MetadataGenerator:
             The EMSL metadata object containing information about the sample.
         biosample_id : str
             The ID of the biosample.
+        toml_workflow_param_path: Path
+            The path to the workflow parameter metadata toml file.
         nom_metadata_db : nmdc.Database
             The database instance to store the generated metadata.
         """
@@ -242,6 +297,15 @@ class MetadataGenerator:
                                                           data_object_type=self.processed_data_object_type,
                                                           description=processed_data_object_desc,
                                                           was_generated_by=nom_analysis.id)
+        
+        # Generate workflow parameter data object
+        workflow_param_data_object_desc = (f"CoreMS processing parameters for natural organic matter analysis "
+                                           "used to generate {processed_data_object.id}")
+        parameter_data_object = self.generate_data_object(file_path=toml_workflow_param_path,
+                                                          data_category=self.workflow_param_data_category,
+                                                          data_object_type=self.workflow_param_data_object_type,
+                                                          description=workflow_param_data_object_desc)
+
 
         # Update the outputs for mass_spectrometry and nom_analysis
         self.update_outputs(mass_spec_obj=mass_spectrometry,
@@ -254,6 +318,7 @@ class MetadataGenerator:
         nom_metadata_db.workflow_execution_set.append(nom_analysis)
         nom_metadata_db.data_generation_set.append(mass_spectrometry)
         nom_metadata_db.data_object_set.append(processed_data_object)
+        nom_metadata_db.data_object_set.append(parameter_data_object)
 
     def mint_nmdc_id(self, nmdc_type: str) -> list[str]:
         """
