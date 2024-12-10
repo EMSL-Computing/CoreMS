@@ -4,7 +4,7 @@ import numpy as np
 from dataclasses import dataclass
 from typing import Optional
 from pathlib import Path
-from api_info_retriever import ApiInfoRetriever
+from api_info_retriever import NmdcApiInfoRetriever, BioOntologyInfoRetriever
 
 @ dataclass
 class BiosampleIncludedMetadata:
@@ -76,27 +76,10 @@ class NmdcTypes:
     QuantityValue: str = "nmdc:QuantityValue"
     CalibrationInformation: str = "nmdc:CalibrationInformation"
 
-env_mediums = {'ENVO_00002042': 'surface water',
-               'ENVO_00002007': 'sediment',
-               'ENVO:00001998': 'soil'
-               }
-
-env_local_scales = {'ENVO_00000022': 'river',
-                    'ENVO:01000861': 'area of dwarf scrub',
-                    'ENVO:00000516': 'hummock',
-                    'ENVO:01000869': 'area of scrub',
-                    'ENVO:01000887': 'area of sedge- and forb-dominated herbaceous vegetation',
-                    'ENVO:01001370': 'tundra ecosystem'
-                    }    
-
-env_broad_scales = {'ENVO_01000253': 'freshwater river biome',
-                    'ENVO:00000446': 'terrestrial biome'
-                    }    
-
 class MetadataParser:
     """Parsers metadata from input metadata spreadsheet."""
 
-    def __init__(self, metadata_file):
+    def __init__(self, metadata_file, config_path):
         """
         Parameters
         ----------
@@ -105,6 +88,7 @@ class MetadataParser:
         """
 
         self.metadata_file = metadata_file
+        self.config_path = config_path
 
     def load_metadata_file(self) -> pd.DataFrame:
         """
@@ -189,7 +173,7 @@ class MetadataParser:
         """
 
         # Instantiate configuration_set info retriever
-        api_config_getter = ApiInfoRetriever(
+        api_config_getter = NmdcApiInfoRetriever(
             collection_name="configuration_set")
         
         config_columns = ['chrom_config_name', 'mass_spec_config']
@@ -305,6 +289,9 @@ class MetadataParser:
             An instance of BiosampleIncludedMetadata populated with the parsed values.
         """
 
+        # Initialize BioOntologyInfoRetriever
+        envo_retriever = BioOntologyInfoRetriever(config_path=self.config_path)
+        
         # Initialize the metadata dictionary
         metadata_dict = {
             'data_path': Path(self.get_value(row, 'LC-MS filename')),
@@ -312,13 +299,13 @@ class MetadataParser:
             'myemsl_link': self.get_value(row,'MyEMSL link'),
             'sample_type': self.get_value(row,'Sample Type'),
             'samp_name': self.get_value(row,'samp_name'),
-            'env_medium': self.create_controlled_identified_term_value(self.get_value(row, 'env_medium'), env_mediums) if self.get_value(row, 'env_medium') else None,
+            'env_medium': self.create_controlled_identified_term_value(self.get_value(row, 'env_medium'), envo_retriever.get_envo_terms(self.get_value(row, 'env_medium'))) if self.get_value(row, 'env_medium') else None,
             'name': self.get_value(row,'name'),
             'geo_loc_name': self.create_text_value(self.get_value(row, 'geo_loc_name'), is_list=False) if self.get_value(row, 'geo_loc_name') else None,
             'lat_lon': self.create_geo_loc_value(raw_value=self.get_value(row, 'lat_lon: has_raw_value'), lat_value=self.get_value(row,'latitude'), long_value=self.get_value(row, 'longitude'))
                         if self.get_value(row, 'lat_lon: has_raw_value') and self.get_value(row, 'latitude') and self.get_value(row,'longitude') else None,
-            'env_broad_scale': self.create_controlled_identified_term_value(self.get_value(row,'env_broad_scale'), env_broad_scales) if self.get_value(row, 'env_broad_scale') else None,
-            'env_local_scale': self.create_controlled_identified_term_value(self.get_value(row, 'env_local_scale'), env_local_scales) if self.get_value(row,'env_local_scale') else None,
+            'env_broad_scale': self.create_controlled_identified_term_value(self.get_value(row,'env_broad_scale'), envo_retriever.get_envo_terms(self.get_value(row, 'env_broad_scale'))) if self.get_value(row, 'env_broad_scale') else None,
+            'env_local_scale': self.create_controlled_identified_term_value(self.get_value(row, 'env_local_scale'), envo_retriever.get_envo_terms(self.get_value(row, 'env_local_scale'))) if self.get_value(row,'env_local_scale') else None,
             'description': self.get_value(row, 'description'),
             'collection_date': self.create_time_stamp_value(row_value=self.get_value(row, 'collection_date:has_raw_value')) if self.get_value(row, 'collection_date:has_raw_value') else None,
             'associated_studies': [study.strip() for study in self.get_value(row, 'NMDC Study ID').split(',')] if self.get_value(row, 'NMDC Study ID') else None,
@@ -353,7 +340,6 @@ class MetadataParser:
         metadata = BiosampleIncludedMetadata(**metadata_dict)
         
         return metadata
-    
     
     def create_controlled_identified_term_value(self, row_value: str, slot_enum_dict: dict):
         """
