@@ -364,14 +364,17 @@ class MolecularCombinations:
                     self.sql_db.session.execute(insert_query)
                 self.sql_db.session.commit()
 
-    @timeit
-    def runworker(self, molecular_search_settings):
+    @timeit(print_time=True)
+    def runworker(self, molecular_search_settings, **kwargs):
         """Run the molecular formula lookup table worker.
 
         Parameters
         ----------
         molecular_search_settings : object
             An object containing user-defined settings.
+        kwargs : dict
+            A dictionary of keyword arguments.
+            Most notably, the print_time argument which is passed to the timeit decorator.
 
         Returns
         -------

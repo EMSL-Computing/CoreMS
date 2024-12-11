@@ -268,7 +268,7 @@ class SearchMolecularFormulas:
 
         return dict_res
 
-    @timeit
+    @timeit(print_time=True)
     def run_molecular_formula(self, ms_peaks, **kwargs):
         """Run the molecular formula search on the given list of mass spectrum peaks.
 
@@ -307,6 +307,7 @@ class SearchMolecularFormulas:
         # check database for all possible molecular formula combinations based on the setting passed to self.mass_spectrum_obj.molecular_search_settings
         classes = MolecularCombinations(self.sql_db).runworker(
             self.mass_spectrum_obj.molecular_search_settings,
+            print_time=self.mass_spectrum_obj.molecular_search_settings.verbose_processing
         )
 
         # split the database load to not blowout the memory
