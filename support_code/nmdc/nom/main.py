@@ -68,7 +68,7 @@ def main():
         execution_resource=config_data['execution_resource'],
         field_strength=config_data['field_strength'],
         workflow_version=config_data['workflow_version'],
-        config_path=config_data['minting_client_config_path']
+        config_path=config_data['config_path']
     )
     
     generator.run()
