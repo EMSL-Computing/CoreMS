@@ -77,10 +77,6 @@ class MzDomainCalibration:
                 "MS Obj loaded - " + str(len(mass_spectrum.mspeaks)) + " peaks found."
             )
 
-            print(
-                "MS Obj loaded - " + str(len(mass_spectrum.mspeaks)) + " peaks found."
-            )
-
     def load_ref_mass_list(self):
         """Load reference mass list (Bruker format)
 
