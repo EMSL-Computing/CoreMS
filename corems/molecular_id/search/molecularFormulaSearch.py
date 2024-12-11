@@ -191,7 +191,10 @@ class SearchMolecularFormulas:
 
     def run_worker_mass_spectrum(self):
         """Run the molecular formula search on the mass spectrum object."""
-        self.run_molecular_formula(self.mass_spectrum_obj.sort_by_abundance())
+        self.run_molecular_formula(
+            self.mass_spectrum_obj.sort_by_abundance(), 
+            print_time=self.mass_spectrum_obj.molecular_search_settings.verbose_processing
+            )
 
     def run_worker_ms_peaks(self, ms_peaks):
         """Run the molecular formula search on the given list of mass spectrum peaks.
@@ -201,7 +204,10 @@ class SearchMolecularFormulas:
         ms_peaks : list of MSPeak
             The list of mass spectrum peaks.
         """
-        self.run_molecular_formula(ms_peaks)
+        self.run_molecular_formula(
+            ms_peaks,
+            print_time=self.mass_spectrum_obj.molecular_search_settings.verbose_processing
+        )
 
     @staticmethod
     def database_to_dict(classe_str_list, nominal_mzs, mf_search_settings, ion_charge):
@@ -263,13 +269,17 @@ class SearchMolecularFormulas:
         return dict_res
 
     @timeit
-    def run_molecular_formula(self, ms_peaks):
+    def run_molecular_formula(self, ms_peaks, **kwargs):
         """Run the molecular formula search on the given list of mass spectrum peaks.
 
         Parameters
         ----------
         ms_peaks : list of MSPeak
             The list of mass spectrum peaks.
+        **kwargs
+            Additional keyword arguments. 
+            Most notably, print_time, which is a boolean flag to indicate whether to print the time 
+            and passed to the timeit decorator.
         """
         # number_of_process = multiprocessing.cpu_count()
 
@@ -909,7 +919,10 @@ class SearchMolecularFormulasLC(SearchMolecularFormulas):
         # do molecular formula based on the parameters set for ms1 search
         for peak in self.lcms_obj:
             self.mass_spectrum_obj = peak.mass_spectrum
-            self.run_molecular_formula(peak.mass_spectrum.sort_by_abundance())
+            self.run_molecular_formula(
+                peak.mass_spectrum.sort_by_abundance(),
+                print_time=self.lcms_obj.parameters.lc_ms.verbose_processing
+                )
 
     def run_target_worker_ms1(self):
         """Run targeted molecular formula search on the ms1 mass spectrum."""

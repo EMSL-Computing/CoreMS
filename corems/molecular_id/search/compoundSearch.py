@@ -127,7 +127,6 @@ class LowResMassSpectralMatch(Thread):
 
         return spectral_similarity_scores, ri_score, similarity_score
 
-    # @timeit
     def run(self):
         """Runs the low-resolution mass spectral match."""
         # TODO select the best gcms peak

@@ -21,7 +21,7 @@ else:
 
 
 
-def timeit(method):
+def timeit(method, print_time=True):
     def timed(*args, **kw):
         ts = time.time()
         result = method(*args, **kw)
@@ -29,7 +29,7 @@ def timeit(method):
         if "log_time" in kw:
             name = kw.get("log_name", method.__name__.upper())
             kw["log_time"][name] = int((te - ts) * 1000)
-        else:
+        elif print_time:
             print("%r  %2.2f ms" % (method.__name__, (te - ts) * 1000))
         return result
 
