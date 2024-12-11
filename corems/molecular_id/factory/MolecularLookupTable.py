@@ -380,6 +380,7 @@ class MolecularCombinations:
 
 
         """
+        verbose = self.parameters.mass_spectrum.verbose_processing
 
         classes_list, class_to_create, existing_classes_objs = (
             self.check_database_get_class_list(molecular_search_settings)
@@ -412,7 +413,11 @@ class MolecularCombinations:
             self.even_ch_dbe = [obj.dbe for obj in even_ch_obj]
 
             all_results = list()
-            for class_tuple in tqdm(class_to_create):
+            if verbose:
+                iterator = tqdm(class_to_create)
+            else:
+                iterator = class_to_create
+            for class_tuple in iterator:
                 results = self.populate_combinations(class_tuple, settings)
                 all_results.extend(results)
                 if settings.db_jobs == 1:
@@ -437,9 +442,13 @@ class MolecularCombinations:
                     (chunk, settings.url_database) for chunk in list_insert_chunks
                 ]
                 p = multiprocessing.Pool(settings.db_jobs)
-                for class_list in tqdm(
-                    p.imap_unordered(insert_database_worker, worker_args)
-                ):
+                if verbose:
+                    iterator = tqdm(
+                        p.imap_unordered(insert_database_worker, worker_args)
+                        )
+                else:
+                    iterator = p.imap_unordered(insert_database_worker, worker_args)
+                for class_list in iterator:
                     pass
                 p.close()
                 p.join()
