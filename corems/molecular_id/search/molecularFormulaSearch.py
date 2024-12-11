@@ -288,6 +288,7 @@ class SearchMolecularFormulas:
         # needs to improve to bin by mass defect instead, faster db creation and faster search execution time
         nominal_mzs = self.mass_spectrum_obj.nominal_mz
 
+        verbose = self.mass_spectrum_obj.molecular_search_settings.verbose_processing
         # reset average error, only relevant is average mass error method is being used
         SearchMolecularFormulaWorker(
             find_isotopologues=self.find_isotopologues
@@ -295,7 +296,7 @@ class SearchMolecularFormulas:
 
         # check database for all possible molecular formula combinations based on the setting passed to self.mass_spectrum_obj.molecular_search_settings
         classes = MolecularCombinations(self.sql_db).runworker(
-            self.mass_spectrum_obj.molecular_search_settings
+            self.mass_spectrum_obj.molecular_search_settings,
         )
 
         # split the database load to not blowout the memory
@@ -315,8 +316,10 @@ class SearchMolecularFormulas:
                     self.mass_spectrum_obj.molecular_search_settings,
                     ion_charge,
                 )
-
-                pbar = tqdm.tqdm(classe_chunk)
+                if verbose:
+                    pbar = tqdm.tqdm(classe_chunk)
+                else:
+                    pbar = classe_chunk
 
                 for classe_tuple in pbar:
                     # class string is a json serialized dict
@@ -325,12 +328,12 @@ class SearchMolecularFormulas:
 
                     if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
                         ion_type = Labels.protonated_de_ion
-
-                        pbar.set_description_str(
-                            desc="Started molecular formula search for class %s, (de)protonated "
-                            % classe_str,
-                            refresh=True,
-                        )
+                        if verbose:
+                            pbar.set_description_str(
+                                desc="Started molecular formula search for class %s, (de)protonated "
+                                % classe_str,
+                                refresh=True,
+                            )
 
                         candidate_formulas = dict_res.get(ion_type).get(classe_str)
 
@@ -344,11 +347,12 @@ class SearchMolecularFormulas:
                             )
 
                     if self.mass_spectrum_obj.molecular_search_settings.isRadical:
-                        pbar.set_description_str(
-                            desc="Started molecular formula search for class %s, radical "
-                            % classe_str,
-                            refresh=True,
-                        )
+                        if verbose:
+                            pbar.set_description_str(
+                                desc="Started molecular formula search for class %s, radical "
+                                % classe_str,
+                                refresh=True,
+                            )
 
                         ion_type = Labels.radical_ion
 
@@ -365,11 +369,12 @@ class SearchMolecularFormulas:
                     # looks for adduct, used_atom_valences should be 0
                     # this code does not support H exchance by halogen atoms
                     if self.mass_spectrum_obj.molecular_search_settings.isAdduct:
-                        pbar.set_description_str(
-                            desc="Started molecular formula search for class %s, adduct "
-                            % classe_str,
-                            refresh=True,
-                        )
+                        if verbose:
+                            pbar.set_description_str(
+                                desc="Started molecular formula search for class %s, adduct "
+                                % classe_str,
+                                refresh=True,
+                            )
 
                         ion_type = Labels.adduct_ion
                         dict_atoms_formulas = dict_res.get(ion_type)
