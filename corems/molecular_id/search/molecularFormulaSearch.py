@@ -914,13 +914,16 @@ class SearchMolecularFormulasLC(SearchMolecularFormulas):
     def run_target_worker_ms1(self):
         """Run targeted molecular formula search on the ms1 mass spectrum."""
         # do molecular formula based on the external molecular reference list
-        pbar = tqdm.tqdm(self.lcms_obj)
+        verbose = self.lcms_obj.parameters.lc_ms.verbose_processing
+        if verbose:
+            pbar = tqdm.tqdm(self.lcms_obj)
 
         for peak in self.lcms_obj:
-            pbar.set_description_str(
-                desc=f"Started molecular formulae search for mass spectrum at RT {peak.retention_time} s",
-                refresh=True,
-            )
+            if verbose:
+                pbar.set_description_str(
+                    desc=f"Started molecular formulae search for mass spectrum at RT {peak.retention_time} s",
+                    refresh=True,
+                )
 
             self.mass_spectrum_obj = peak.mass_spectrum
 
@@ -929,7 +932,7 @@ class SearchMolecularFormulasLC(SearchMolecularFormulas):
             candidate_formulas = peak.targeted_molecular_formulas
 
             for i in candidate_formulas:
-                if self.lcms_obj.parameters.lc_ms.verbose_processing:
+                if verbose:
                     print(i)
             if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
                 ion_type = Labels.protonated_de_ion
