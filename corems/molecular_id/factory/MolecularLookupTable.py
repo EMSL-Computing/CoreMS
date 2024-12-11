@@ -416,11 +416,7 @@ class MolecularCombinations:
             self.even_ch_dbe = [obj.dbe for obj in even_ch_obj]
 
             all_results = list()
-            if verbose:
-                iterator = tqdm(class_to_create)
-            else:
-                iterator = class_to_create
-            for class_tuple in iterator:
+            for class_tuple in tqdm(class_to_create, disable = not verbose):
                 results = self.populate_combinations(class_tuple, settings)
                 all_results.extend(results)
                 if settings.db_jobs == 1:
@@ -445,13 +441,9 @@ class MolecularCombinations:
                     (chunk, settings.url_database) for chunk in list_insert_chunks
                 ]
                 p = multiprocessing.Pool(settings.db_jobs)
-                if verbose:
-                    iterator = tqdm(
-                        p.imap_unordered(insert_database_worker, worker_args)
-                        )
-                else:
-                    iterator = p.imap_unordered(insert_database_worker, worker_args)
-                for class_list in iterator:
+                for class_list in tqdm(
+                        p.imap_unordered(insert_database_worker, worker_args), disable= not verbose
+                        ):
                     pass
                 p.close()
                 p.join()

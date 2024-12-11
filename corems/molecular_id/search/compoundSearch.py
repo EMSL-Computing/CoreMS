@@ -147,8 +147,8 @@ class LowResMassSpectralMatch(Thread):
         self.gcms_obj.chromatogram_settings.use_deconvolution = (
             original_use_deconvolution
         )
-
-        for gc_peak in tqdm.tqdm(self.gcms_obj):
+        verbose = self.gcms_obj.chromatogram_settings.verbose_processing
+        for gc_peak in tqdm.tqdm(self.gcms_obj, disable = not verbose):
             if not self.calibration:
                 window = self.gcms_obj.molecular_search_settings.ri_search_range
 

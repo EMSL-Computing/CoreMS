@@ -278,9 +278,7 @@ class OxygenPriorityAssignment(Thread):
 
         list_classes_str = [i[0] for i in assign_classes_order_tuples]
         verbose = self.mass_spectrum_obj.parameters.mass_spectrum.verbose_processing
-        if verbose:
-            pbar = tqdm.tqdm(assign_classes_order_tuples)
-
+        pbar = tqdm.tqdm(assign_classes_order_tuples, disable= not verbose)
         dict_molecular_lookup_table = self.get_dict_molecular_database(list_classes_str)
 
         for classe_tuple in pbar:

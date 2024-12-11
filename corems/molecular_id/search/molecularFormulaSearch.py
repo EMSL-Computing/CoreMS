@@ -327,11 +327,7 @@ class SearchMolecularFormulas:
                     self.mass_spectrum_obj.molecular_search_settings,
                     ion_charge,
                 )
-                if verbose:
-                    pbar = tqdm.tqdm(classe_chunk)
-                else:
-                    pbar = classe_chunk
-
+                pbar = tqdm.tqdm(classe_chunk, disable = not verbose)
                 for classe_tuple in pbar:
                     # class string is a json serialized dict
                     classe_str = classe_tuple[0]

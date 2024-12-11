@@ -566,11 +566,7 @@ class MolForm_SQL:
 
                 elif ion_type == Labels.adduct_ion and adduct_atom:
                     return int(formula_obj._adduct_mz(ion_charge, adduct_atom))
-            if verbose:
-                iterator = tqdm.tqdm(formulas, desc="Loading molecular formula database")
-            else:
-                iterator = formulas
-            for formula_obj, ch_obj, classe_obj in iterator:
+            for formula_obj, ch_obj, classe_obj in tqdm.tqdm(formulas, desc="Loading molecular formula database", disable = not verbose):
                 nominal_mz = nominal_mass_by_ion_type(formula_obj)
 
                 if self.type != "normal":

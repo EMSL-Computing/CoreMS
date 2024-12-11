@@ -95,11 +95,7 @@ class MassErrorPrediction(Thread):
 
         indexes_without_results = list(range(len(self.mass_spectrum_obj)))
         # loop trough mass spectrum
-        if verbose:
-            iterator = enumerate(tqdm(self.mass_spectrum_obj))
-        else:
-            iterator = enumerate(self.mass_spectrum_obj)
-        for peak_obj_idx, peak_obj in iterator:
+        for peak_obj_idx, peak_obj in enumerate(tqdm(self.mass_spectrum_obj), disable=not verbose):
             # access ms peaks triplets ( peak_obj_idx -1, peak_obj_idx, and peak_obj_idx + 1)
             # check lower and upper boundaries to not excesses mass spectrum range
 
