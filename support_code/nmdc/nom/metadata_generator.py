@@ -47,7 +47,7 @@ class MetadataGenerator:
     workflow_version : str
         The version of the workflow.
     config_path : str
-        The path to the minting client configuration file.
+        The path to the minting client and BioPortal api_key configuration file.
     """
 
     def __init__(self, metadata_file: str, data_dir: str, ref_calibration_path: str,
