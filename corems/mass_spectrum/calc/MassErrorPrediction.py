@@ -90,7 +90,7 @@ class MassErrorPrediction(Thread):
 
     def calc_error_dist(self):
         """Calculate the error distribution."""
-        verbose = self.parameters.mass_spectrum.verbose_processing
+        verbose = self.mass_spectrum_obj.parameters.mass_spectrum.verbose_processing
         results_list = []
 
         indexes_without_results = list(range(len(self.mass_spectrum_obj)))

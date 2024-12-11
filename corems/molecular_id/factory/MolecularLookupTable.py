@@ -380,7 +380,7 @@ class MolecularCombinations:
 
 
         """
-        verbose = self.parameters.mass_spectrum.verbose_processing
+        verbose = molecular_search_settings.verbose_processing
 
         classes_list, class_to_create, existing_classes_objs = (
             self.check_database_get_class_list(molecular_search_settings)
