@@ -3,6 +3,7 @@ import os
 
 from corems.encapsulation.output import parameter_to_json, parameter_to_dict
 from corems.encapsulation.factory.processingSetting  import MolecularLookupDictSettings
+from corems.encapsulation.factory.parameters import hush_output, reset_ms_parameters, reset_gcms_parameters, reset_lcms_parameters, LCMSParameters, MSParameters, GCMSParameters
 
 def test_toml():
       
@@ -47,3 +48,28 @@ def test_settings_search():
     assert "usedAtoms" in test
     assert "url_database" in test
 
+def test_hush_setting():
+    LCMSParameters.lc_ms.eic_tolerance_ppm = 10 # set to 10
+
+    assert LCMSParameters.lc_ms.eic_tolerance_ppm == 10
+
+    reset_ms_parameters()
+    reset_gcms_parameters()
+    reset_lcms_parameters()
+
+    assert LCMSParameters.lc_ms.eic_tolerance_ppm == 5 # default value
+    assert LCMSParameters.lc_ms.verbose_processing
+    assert MSParameters.mass_spectrum.verbose_processing
+    assert MSParameters.molecular_search.verbose_processing
+    assert GCMSParameters.gc_ms.verbose_processing
+
+    hush_output()
+
+    assert not LCMSParameters.lc_ms.verbose_processing
+    assert not MSParameters.mass_spectrum.verbose_processing
+    assert not MSParameters.molecular_search.verbose_processing
+    assert not GCMSParameters.gc_ms.verbose_processing
+
+    reset_ms_parameters()
+    reset_gcms_parameters()
+    reset_lcms_parameters()
