@@ -210,6 +210,18 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
     def parameters(self, gcms_parameters_instance):
         self._parameters = gcms_parameters_instance
 
+    # Note: maintaining `parameter` for backwards compatibility,
+    # but proper usage would reference `parameters` to conform
+    # to other classes.
+    @property
+    def parameter(self):
+        """GCMS Parameters"""
+        return self._parameters
+
+    @parameter.setter
+    def parameter(self, gcms_parameters_instance):
+        self._parameters = gcms_parameters_instance
+
     @property
     def molecular_search_settings(self):
         """Molecular Search Settings"""
