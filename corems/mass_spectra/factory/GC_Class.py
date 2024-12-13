@@ -206,8 +206,8 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         """GCMS Parameters"""
         return self._parameters
 
-    @parameter.setter
-    def parameter(self, gcms_parameters_instance):
+    @parameters.setter
+    def parameters(self, gcms_parameters_instance):
         self._parameters = gcms_parameters_instance
 
     @property
