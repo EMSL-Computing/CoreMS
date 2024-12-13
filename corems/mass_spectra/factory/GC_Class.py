@@ -213,20 +213,20 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
     @property
     def molecular_search_settings(self):
         """Molecular Search Settings"""
-        return self.parameter.molecular_search
+        return self.parameters.molecular_search
 
     @molecular_search_settings.setter
     def molecular_search_settings(self, settings_class_instance):
-        self.parameter.molecular_search = settings_class_instance
+        self.parameters.molecular_search = settings_class_instance
 
     @property
     def chromatogram_settings(self):
         """Chromatogram Settings"""
-        return self.parameter.gc_ms
+        return self.parameters.gc_ms
 
     @chromatogram_settings.setter
     def chromatogram_settings(self, settings_class_instance):
-        self.parameter.gc_ms = settings_class_instance
+        self.parameters.gc_ms = settings_class_instance
 
     @property
     def scans_number(self):
