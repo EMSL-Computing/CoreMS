@@ -1,5 +1,4 @@
 import sys
-sys.path.append('.')
 
 from corems.molecular_id.factory.classification import  HeteroatomsClassification, Labels
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas

@@ -14,6 +14,8 @@ import sys
 import site
 from pathlib import Path
 import datetime
+import importlib.util
+import os
 
 import clr
 import pandas as pd
@@ -31,9 +33,9 @@ from corems.mass_spectrum.factory.MassSpectrumClasses import (
 from corems.encapsulation.factory.parameters import LCMSParameters, default_parameters
 from corems.mass_spectra.input.parserbase import SpectraParserInterface
 
-# do not change the order from the imports statements and reference ThermoFisher below
-sys.path.append(site.getsitepackages()[0] + "/ext_lib/dotnet/")
-sys.path.append("ext_lib/dotnet/")
+# Add the path of the Thermo .NET libraries to the system path
+spec = importlib.util.find_spec("corems")
+sys.path.append(str(Path(os.path.dirname(spec.origin)).parent) + "/ext_lib/dotnet/")
 
 clr.AddReference("ThermoFisher.CommonCore.RawFileReader")
 clr.AddReference("ThermoFisher.CommonCore.Data")

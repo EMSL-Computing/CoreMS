@@ -3,7 +3,6 @@ __date__ = "Jun 12, 2019"
 
 import sys
 
-sys.path.append(".")  # Why?
 from pathlib import Path
 from threading import Thread
 import warnings
