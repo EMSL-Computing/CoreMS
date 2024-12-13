@@ -202,7 +202,7 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
         self.scans_number = sorted(self._ms.keys())
 
     @property
-    def parameter(self):
+    def parameters(self):
         """GCMS Parameters"""
         return self._parameters
 

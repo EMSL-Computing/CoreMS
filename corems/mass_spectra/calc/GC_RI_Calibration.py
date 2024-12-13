@@ -26,7 +26,7 @@ def get_rt_ri_pairs(gcms_ref_obj, sql_obj=None):
                 dict_ri_rt[compound_obj.ri].append(
                     (gcms_peak.mass_spectrum.retention_time, compound_obj)
                 )
-            if gcms_ref_obj._parameters.gc_ms.verbose_processing:
+            if gcms_ref_obj.parameters.gc_ms.verbose_processing:
                 print(
                     compound_obj.name,
                     gcms_peak.mass_spectrum.retention_time,
