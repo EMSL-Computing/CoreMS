@@ -88,7 +88,7 @@ class LCMSSpectralSearch:
                 )
 
             # Get types of fragments in the lib entry
-            lib_frags = lib_entry["fragment_types"].split(", ")
+            lib_frags = lib_entry["fragment_types"]
             # make list of the fragment types that are present in the query spectrum
             lib_in_query_ids = list(
                 set(

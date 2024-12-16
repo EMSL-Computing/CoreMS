@@ -878,6 +878,12 @@ class MetabRefLCInterface(MetabRefInterface):
             {k: v for k, v in x.items() if k not in ["Molecular Data", "Lipid Tree"]}
             for x in lib
         ]
+        # Unpack the 'Lipid Fragments' key and the 'MSO Data" key from each entry
+        for x in lib:
+            if "Lipid Fragments" in x.keys():
+                x.update(x.pop("Lipid Fragments"))
+            if "MSO Data" in x.keys():
+                x.update(x.pop("MSO Data"))
 
         # Format the spectral library
         format_func = self._get_format_func(format)
