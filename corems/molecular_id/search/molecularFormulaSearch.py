@@ -886,7 +886,7 @@ class SearchMolecularFormulasLC():
             self.sql_db = sql_db
 
     def search_spectra_against_candidates(self, mass_spectrum_list, ms_peaks_list, candidate_formulas, ion_type, ion_charge):
-        """Search the mass spectrum peaks against the candidate formulas.
+        """Search a list of mass spectra against a list of candidate formulas with a given ion type and charge.
 
         Parameters
         ----------
@@ -899,7 +899,11 @@ class SearchMolecularFormulasLC():
         ion_type : str
             The ion type.
         ion_charge : int
-            The ion charge.
+            The ion charge, either 1 or -1.
+
+        Notes
+        -----
+        This function is designed to be used with the bulk_run_molecular_formula_search function.
         """
         for mass_spectrum, ms_peaks in zip(mass_spectrum_list, ms_peaks_list):
             single_ms_search = SearchMolecularFormulas(
