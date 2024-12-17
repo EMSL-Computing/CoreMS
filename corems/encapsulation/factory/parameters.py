@@ -13,6 +13,12 @@ from corems.encapsulation.factory.processingSetting import (
 )
 from corems.encapsulation.factory.processingSetting import DataInputSetting
 
+def hush_output():
+    """Toggle all the verbose_processing flags to False on the MSParameters, GCMSParameters and LCMSParameters classes"""
+    MSParameters.molecular_search.verbose_processing = False
+    MSParameters.mass_spectrum.verbose_processing = False
+    GCMSParameters.gc_ms.verbose_processing = False
+    LCMSParameters.lc_ms.verbose_processing = False
 
 def reset_ms_parameters():
     """Reset the MSParameter class to the default values"""

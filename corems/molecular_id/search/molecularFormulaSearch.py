@@ -191,7 +191,10 @@ class SearchMolecularFormulas:
 
     def run_worker_mass_spectrum(self):
         """Run the molecular formula search on the mass spectrum object."""
-        self.run_molecular_formula(self.mass_spectrum_obj.sort_by_abundance())
+        self.run_molecular_formula(
+            self.mass_spectrum_obj.sort_by_abundance(), 
+            print_time=self.mass_spectrum_obj.molecular_search_settings.verbose_processing
+            )
 
     def run_worker_ms_peaks(self, ms_peaks):
         """Run the molecular formula search on the given list of mass spectrum peaks.
@@ -201,7 +204,10 @@ class SearchMolecularFormulas:
         ms_peaks : list of MSPeak
             The list of mass spectrum peaks.
         """
-        self.run_molecular_formula(ms_peaks)
+        self.run_molecular_formula(
+            ms_peaks,
+            print_time=self.mass_spectrum_obj.molecular_search_settings.verbose_processing
+        )
 
     @staticmethod
     def database_to_dict(classe_str_list, nominal_mzs, mf_search_settings, ion_charge):
@@ -262,14 +268,18 @@ class SearchMolecularFormulas:
 
         return dict_res
 
-    @timeit
-    def run_molecular_formula(self, ms_peaks):
+    @timeit(print_time=True)
+    def run_molecular_formula(self, ms_peaks, **kwargs):
         """Run the molecular formula search on the given list of mass spectrum peaks.
 
         Parameters
         ----------
         ms_peaks : list of MSPeak
             The list of mass spectrum peaks.
+        **kwargs
+            Additional keyword arguments. 
+            Most notably, print_time, which is a boolean flag to indicate whether to print the time 
+            and passed to the timeit decorator.
         """
         # number_of_process = multiprocessing.cpu_count()
 
@@ -288,6 +298,7 @@ class SearchMolecularFormulas:
         # needs to improve to bin by mass defect instead, faster db creation and faster search execution time
         nominal_mzs = self.mass_spectrum_obj.nominal_mz
 
+        verbose = self.mass_spectrum_obj.molecular_search_settings.verbose_processing
         # reset average error, only relevant is average mass error method is being used
         SearchMolecularFormulaWorker(
             find_isotopologues=self.find_isotopologues
@@ -295,7 +306,8 @@ class SearchMolecularFormulas:
 
         # check database for all possible molecular formula combinations based on the setting passed to self.mass_spectrum_obj.molecular_search_settings
         classes = MolecularCombinations(self.sql_db).runworker(
-            self.mass_spectrum_obj.molecular_search_settings
+            self.mass_spectrum_obj.molecular_search_settings,
+            print_time=self.mass_spectrum_obj.molecular_search_settings.verbose_processing
         )
 
         # split the database load to not blowout the memory
@@ -315,9 +327,7 @@ class SearchMolecularFormulas:
                     self.mass_spectrum_obj.molecular_search_settings,
                     ion_charge,
                 )
-
-                pbar = tqdm.tqdm(classe_chunk)
-
+                pbar = tqdm.tqdm(classe_chunk, disable = not verbose)
                 for classe_tuple in pbar:
                     # class string is a json serialized dict
                     classe_str = classe_tuple[0]
@@ -325,12 +335,12 @@ class SearchMolecularFormulas:
 
                     if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
                         ion_type = Labels.protonated_de_ion
-
-                        pbar.set_description_str(
-                            desc="Started molecular formula search for class %s, (de)protonated "
-                            % classe_str,
-                            refresh=True,
-                        )
+                        if verbose:
+                            pbar.set_description_str(
+                                desc="Started molecular formula search for class %s, (de)protonated "
+                                % classe_str,
+                                refresh=True,
+                            )
 
                         candidate_formulas = dict_res.get(ion_type).get(classe_str)
 
@@ -344,11 +354,12 @@ class SearchMolecularFormulas:
                             )
 
                     if self.mass_spectrum_obj.molecular_search_settings.isRadical:
-                        pbar.set_description_str(
-                            desc="Started molecular formula search for class %s, radical "
-                            % classe_str,
-                            refresh=True,
-                        )
+                        if verbose:
+                            pbar.set_description_str(
+                                desc="Started molecular formula search for class %s, radical "
+                                % classe_str,
+                                refresh=True,
+                            )
 
                         ion_type = Labels.radical_ion
 
@@ -365,11 +376,12 @@ class SearchMolecularFormulas:
                     # looks for adduct, used_atom_valences should be 0
                     # this code does not support H exchance by halogen atoms
                     if self.mass_spectrum_obj.molecular_search_settings.isAdduct:
-                        pbar.set_description_str(
-                            desc="Started molecular formula search for class %s, adduct "
-                            % classe_str,
-                            refresh=True,
-                        )
+                        if verbose:
+                            pbar.set_description_str(
+                                desc="Started molecular formula search for class %s, adduct "
+                                % classe_str,
+                                refresh=True,
+                            )
 
                         ion_type = Labels.adduct_ion
                         dict_atoms_formulas = dict_res.get(ion_type)
@@ -904,18 +916,24 @@ class SearchMolecularFormulasLC(SearchMolecularFormulas):
         # do molecular formula based on the parameters set for ms1 search
         for peak in self.lcms_obj:
             self.mass_spectrum_obj = peak.mass_spectrum
-            self.run_molecular_formula(peak.mass_spectrum.sort_by_abundance())
+            self.run_molecular_formula(
+                peak.mass_spectrum.sort_by_abundance(),
+                print_time=self.lcms_obj.parameters.lc_ms.verbose_processing
+                )
 
     def run_target_worker_ms1(self):
         """Run targeted molecular formula search on the ms1 mass spectrum."""
         # do molecular formula based on the external molecular reference list
-        pbar = tqdm.tqdm(self.lcms_obj)
+        verbose = self.lcms_obj.parameters.lc_ms.verbose_processing
+        if verbose:
+            pbar = tqdm.tqdm(self.lcms_obj)
 
         for peak in self.lcms_obj:
-            pbar.set_description_str(
-                desc=f"Started molecular formulae search for mass spectrum at RT {peak.retention_time} s",
-                refresh=True,
-            )
+            if verbose:
+                pbar.set_description_str(
+                    desc=f"Started molecular formulae search for mass spectrum at RT {peak.retention_time} s",
+                    refresh=True,
+                )
 
             self.mass_spectrum_obj = peak.mass_spectrum
 
@@ -924,7 +942,7 @@ class SearchMolecularFormulasLC(SearchMolecularFormulas):
             candidate_formulas = peak.targeted_molecular_formulas
 
             for i in candidate_formulas:
-                if self.lcms_obj.parameters.lc_ms.verbose_processing:
+                if verbose:
                     print(i)
             if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
                 ion_type = Labels.protonated_de_ion
