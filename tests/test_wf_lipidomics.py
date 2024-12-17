@@ -82,7 +82,7 @@ def test_lipidomics_workflow():
     ms1_params.mass_spectrum.noise_min_mz, ms1_params.mass_spectrum.min_picking_mz = 0, 0
     ms1_params.mass_spectrum.noise_max_mz, ms1_params.mass_spectrum.max_picking_mz = np.inf, np.inf
     ms1_params.ms_peak.legacy_resolving_power = False
-    ms1_params.molecular_search.url_database = ""
+    ms1_params.molecular_search.url_database = "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"
     ms1_params.molecular_search.usedAtoms = {
         'C': (10, 30),
         'H': (18, 200),
@@ -238,7 +238,7 @@ def test_lipidomics_workflow():
     assert df2.shape == (130, 16)
     myLCMSobj2.mass_features[0].mass_spectrum.to_dataframe()
     assert myLCMSobj2.mass_features[0].ms1_peak[0].string == "C20 H30 O2"
-    assert myLCMSobj2.mass_features_ms1_annot_to_df().shape[0] == 130
+    assert myLCMSobj2.mass_features_ms1_annot_to_df().shape[0] == 257
     myLCMSobj2.mass_features[0].plot(return_fig=False)
 
     # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
