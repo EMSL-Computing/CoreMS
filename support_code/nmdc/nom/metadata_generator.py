@@ -1,4 +1,4 @@
-from api_info_retriever import ApiInfoRetriever
+from api_info_retriever import NmdcApiInfoRetriever
 from pathlib import Path
 from dataclasses import asdict
 from datetime import datetime
@@ -7,7 +7,6 @@ from nom_workflow import run_nmdc_workflow
 from linkml_runtime.dumpers import json_dumper
 from tqdm import tqdm
 
-import logging
 import shutil
 import nmdc_schema.nmdc as nmdc
 import numpy as np
@@ -19,7 +18,8 @@ import oauthlib
 import requests_oauthlib
 
 # TODO: Update script to for Sample Processing - has_input for MassSpectrometry will have to be changed to be a processed sample id - not biosample id
-# TODO: og_url in ApiInfoGetter in metadata_gen_supplement.py to be regular url once Berkeley is integrated
+# TODO: uncomment and comment testing lines (modules), ms, issue, etc. see below in run
+
 
 class MetadataGenerator:
    
@@ -46,15 +46,15 @@ class MetadataGenerator:
         The field strength for the analysis.
     workflow_version : str
         The version of the workflow.
-    minting_client_config_path : str
-        The path to the minting client configuration file.
+    config_path : str
+        The path to the minting client and BioPortal api_key configuration file.
     """
 
     def __init__(self, metadata_file: str, data_dir: str, ref_calibration_path: str,
                  raw_data_object_type: str, processed_data_object_type: str,
                  database_dump_json_path: str, execution_resource: str,
                  field_strength: int, workflow_version: str,
-                 minting_client_config_path: str):
+                 config_path: str):
         self.metadata_file = metadata_file
         self.data_dir = data_dir
         self.ref_calibration_path = ref_calibration_path
@@ -64,7 +64,7 @@ class MetadataGenerator:
         self.execution_resource = execution_resource
         self.field_strength = field_strength
         self.workflow_version = workflow_version
-        self.minting_client_config_path = minting_client_config_path
+        self.config_path = config_path
         self.analyte_category = "nom"
         self.processing_institution = "EMSL"
         self.raw_data_category = "instrument_data"
@@ -74,6 +74,8 @@ class MetadataGenerator:
                                       "spectrometry data.")
         self.workflow_git_url = "https://github.com/microbiomedata/enviroMS"
         self.processed_data_category = "processed_data"
+        self.workflow_param_data_category = "workflow_parameter_data"
+        self.workflow_param_data_object_type = "Configuration toml"
 
     def run(self):
         """
@@ -82,7 +84,95 @@ class MetadataGenerator:
         This method processes the metadata file, generates biosamples (if needed) 
         and metadata, and manages the workflow for generating NOM analysis data.
         """
+
         file_ext = '.d'
+        raw_dir_zip, results_dir, registration_dir = self.setup_directories()
+        registration_file = registration_dir / self.database_dump_json_path
+
+        # Dictionary to track failures
+        failed_metadata = {
+            'validation_errors': [],
+            'processing_errors': []
+        }
+
+        nmdc_database = self.start_nmdc_database()
+
+        # Initialize parser
+        parser = MetadataParser(metadata_file=self.metadata_file, config_path=self.config_path)
+
+        # Load metadata spreadsheet with Biosample metadata into dataframe
+        metadata_df = parser.load_metadata_file()
+
+        tqdm.write("\033[92mStarting metadata processing...\033[0m")
+
+        # Iterate through each row in df to generate metadata
+        for index, row in tqdm(metadata_df.iterrows(), total=metadata_df.shape[0], desc="\033[95mProcessing rows\033[0m"):
+            # Do not generate biosamples if biosample_id exists in spreadsheet
+            try:
+                
+                # Check if biosample_id is in metadata_csv. If no biosample_id, then will generate biosamples,
+                # if biosample_id exists, will return None for biosample.
+                emsl_metadata, biosample_id, biosample = self.handle_biosample(parser, row)
+
+                # Create raw_file_path
+                raw_file_path = self.data_dir / emsl_metadata.data_path.with_suffix(file_ext)
+
+                # Run nmdc workflow
+                issue, ms = run_nmdc_workflow((raw_file_path, self.ref_calibration_path, self.field_strength))
+
+                if ms:
+
+                    # Process data files
+                    raw_file_to_upload_path, output_file_path, toml_file_path = self.process_data_files(
+                        ms, raw_file_path, raw_dir_zip, results_dir
+                    )
+
+                    # Generate NMDC metadata
+                    self.create_nmdc_metadata(raw_data_path=raw_file_to_upload_path.with_suffix('.zip'),
+                                            data_product_path=output_file_path,
+                                            emsl_metadata=emsl_metadata,
+                                            biosample_id=biosample_id,
+                                            toml_workflow_param_path=toml_file_path,
+                                            nom_metadata_db=nmdc_database)
+                    
+                    # Add biosample to database if it was newly generated
+                    if biosample:
+                        nmdc_database.biosample_set.append(biosample)
+                
+                else:
+                    self.record_processing_error(failed_metadata, index, raw_file_path, f"Workflow issue: {issue}")
+
+            except Exception as e:
+                # Record the failed row with its error
+                self.record_processing_error(
+                    failed_metadata, 
+                    index,
+                    row.get('LC-MS filename', 'Unknown'),
+                    str(e)
+                )
+                continue
+
+        # At the end of processing, save the failed metadata if there are any errors
+        self.save_error_log(failed_metadata, results_dir)
+
+        self.dump_nmdc_database(nmdc_database, registration_file)
+
+        tqdm.write("\033[92mMetadata processing completed.\033[0m")
+
+    def setup_directories(self) -> tuple[Path, Path, Path]:
+        """
+        Create directory structure for storing raw, processed and registration data.
+
+        Creates three directories:
+        - raw_zip: For storing zipped raw data files
+        - results: For storing processed output files
+        - registration: For storing registration/metadata files
+
+        Returns
+        -------
+        tuple[Path, Path, Path]
+            A tuple containing (raw_dir_zip, results_dir, registration_dir) Paths
+        """
 
         raw_dir_zip = self.data_dir / Path("raw_zip/")
         raw_dir_zip.mkdir(parents=True, exist_ok=True)
@@ -90,88 +180,179 @@ class MetadataGenerator:
         results_dir = self.data_dir / Path("results/")
         results_dir.mkdir(parents=True, exist_ok=True)
 
-        failed_files = results_dir / "nom_failed_files.json"
-
         registration_dir = self.data_dir / 'registration'
         registration_dir.mkdir(parents=True, exist_ok=True)
-        registration_file = registration_dir / self.database_dump_json_path
 
-        failed_list = []
+        return raw_dir_zip, results_dir, registration_dir
+    
+    def handle_biosample(self, parser: MetadataParser, row: pd.Series) -> tuple:
+        """
+        Process biosample information from metadata row.
 
-        nmdc_database = self.start_nmdc_database()
+        Checks if a biosample ID exists in the row. If it does, returns the existing 
+        biosample information. If not, generates a new biosample.
 
-        # Initialize parser
-        parser = MetadataParser(metadata_file=self.metadata_file)
+        Parameters
+        ----------
+        parser : MetadataParser
+            Parser instance for processing metadata
+        row : pd.Series
+            A row from the metadata DataFrame containing biosample information
 
-        # Load metadata spreadsheet with Biosample metadata into dataframe
-        metadata_df = parser.load_metadata_file()
+        Returns
+        -------
+        tuple
+            A tuple containing:
+            - emsl_metadata : BiosampleIncludedMetadata or NoBiosampleIncludedMetadata
+                The parsed metadata from the row
+            - biosample_id : str
+                The ID of the biosample (existing or newly generated)
+            - biosample : Biosample or None
+                The generated biosample object if new, None if existing
+        """
 
-        # Set up logging
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(message)s',
-        )
+        if parser.check_for_biosamples(row):
+            emsl_metadata = parser.parse_no_biosample_metadata(row)
+            biosample_id = emsl_metadata.biosample_id
+            tqdm.write(f"Biosample already exists for {emsl_metadata.data_path}, will not generate Biosample...")
+            return emsl_metadata, biosample_id, None
+        else:
+            # Generate biosamples if no biosample_id in spreadsheet
+            emsl_metadata = parser.parse_biosample_metadata(row)
+            biosample = self.generate_biosample(biosamp_metadata=emsl_metadata)
+            biosample_id = biosample.id
+            tqdm.write(f"Generating Biosamples for {emsl_metadata.data_path}")
+            return emsl_metadata, biosample_id, biosample
 
-        logging.info("Starting metadata processing...")
+    def process_data_files(self, ms, raw_file_path: Path, raw_dir_zip: Path, results_dir: Path) -> tuple[Path, Path, Path]:
+        """
+        Process raw data files and generate output files.
 
-        # Iterate through each row in df to generate metadata
-        for index, row in tqdm(metadata_df.iterrows(), total=metadata_df.shape[0], desc="Processing rows"):
-            # Do not generate biosamples if biosample_id exists in spreadsheet
-            if parser.check_for_biosamples(row):
-                emsl_metadata = parser.parse_no_biosample_metadata(row)
-                biosample_id = emsl_metadata.biosample_id
-                logging.info(f"Biosample already exists for {emsl_metadata.data_path}, will not generate Biosample...")
-            else:
-                # Generate biosamples if no biosample_id in spreadsheet
-                emsl_metadata = parser.parse_biosample_metadata(row)
-                biosample = self.generate_biosample(biosamp_metadata=emsl_metadata)
+        Takes a raw data file, zips it if needed (.d extension), generates CSV output,
+        and creates associated TOML metadata file.
 
-                # Append biosample instance to nmdc_database
-                nmdc_database.biosample_set.append(biosample)
-                biosample_id = biosample.id
-                logging.info(f"Generating Biosamples for {emsl_metadata.data_path}")
+        Parameters
+        ----------
+        ms : object
+            Mass spectrometry object with to_csv method
+        raw_file_path : Path
+            Path to the raw data file to be processed
+        raw_dir_zip : Path  
+            Directory path for storing zipped raw files
+        results_dir : Path
+            Directory path for storing output files
 
-            # Create raw_file_path
-            raw_file_path = self.data_dir / emsl_metadata.data_path.with_suffix(file_ext)
+        Returns
+        -------
+        tuple[Path, Path, Path]
+            A tuple containing:
+            - raw_file_to_upload_path : Path
+                Path to the processed raw file (zipped if .d extension)
+            - output_file_path : Path
+                Path to the generated CSV output file
+            - toml_file_path : Path
+                Path to the generated TOML metadata file
 
-            # Run nmdc workflow
-            issue, ms = run_nmdc_workflow((raw_file_path, self.ref_calibration_path, self.field_strength))
+        Notes
+        -----
+        The ms.to_csv() call with write_metadata=True generates two files:
+        1. A CSV file with the processed data
+        2. A TOML file containing metadata configuration
+        """
 
-            try:
-                if ms:
-                    if raw_file_path.suffix == '.d':
-                        raw_file_to_upload_path = Path(raw_dir_zip / raw_file_path.stem)
-                        # Create a zip file
-                        shutil.make_archive(raw_file_to_upload_path, 'zip', raw_file_path)
-                    else:
-                        raw_file_to_upload_path = raw_file_path
+        if raw_file_path.suffix == '.d':
+            raw_file_to_upload_path = Path(raw_dir_zip / raw_file_path.stem)
+            # Create a zip file
+            shutil.make_archive(raw_file_to_upload_path, 'zip', raw_file_path)
+        else:
+            raw_file_to_upload_path = raw_file_path
 
-                    result_file_name = Path(raw_file_path.name)
-                    output_file_path = results_dir / result_file_name.with_suffix('.csv')
-                    ms.to_csv(output_file_path, write_metadata=False)
+        result_file_name = Path(raw_file_path.name)
+        output_file_path = results_dir / result_file_name.with_suffix('.csv')
+        # to_csv with write_metadata=True will save two files: a csv and a toml file.
+        ms.to_csv(output_file_path, write_metadata=True)
 
-                    self.create_nmdc_metadata(raw_data_path=raw_file_to_upload_path.with_suffix('.zip'),
-                                               data_product_path=output_file_path,
-                                               emsl_metadata=emsl_metadata,
-                                               biosample_id=biosample_id,
-                                               nom_metadata_db=nmdc_database)
-                else:
-                    logging.warning(f"Workflow issue for {raw_file_path}: {issue}")
-                    failed_list.append(str(raw_file_path))
+        # Get workflow parameter toml path
+        toml_file_path = output_file_path.with_suffix('.toml')
 
-            except Exception as inst:
-                logging.error(f"Error processing {raw_file_path}: {str(inst)}")
-                failed_list.append(str(raw_file_path))
+        return raw_file_to_upload_path, output_file_path, toml_file_path
+    
+    def record_processing_error(self, failed_metadata: dict, index: int, filename: str, error: str) -> None:
+        """
+        Record processing errors in tracking dictionary and display status message.
 
-        self.dump_nmdc_database(nmdc_database, registration_file)
+        Records details about processing errors that occur during metadata generation,
+        including row index, filename, and error message. Also displays the error to
+        the console using tqdm.write.
 
-        with failed_files.open('w+') as json_file:
-            json_file.write(json.dumps(failed_list, indent=1))
+        Parameters
+        ----------
+        failed_metadata : dict
+            Dictionary tracking all processing errors that occur during execution
+        index : int
+            Zero-based row index from the metadata DataFrame
+        filename : str
+            Name of the file that encountered the error
+        error : str
+            Description or message explaining the error that occurred
 
-        logging.info("Metadata processing completed.")
-  
+        Returns
+        -------
+        None
+            Updates failed_metadata dictionary in place and prints error message
+
+        Notes
+        -----
+        Row indices are incremented by 2 in the output to account for:
+        1. Zero-based DataFrame indexing
+        2. Header row in original spreadsheet
+        """
+        failed_metadata['processing_errors'].append({
+            'row_index': index + 2,
+            'filename': str(filename),
+            'error': str(error)
+        })
+        tqdm.write(f"Error processing row {index + 2}: {str(error)}")
+
+    def save_error_log(self, failed_metadata: dict, results_dir: Path) -> None:
+        """
+        Save processing errors to JSON file and display notification.
+
+        If any errors occurred during metadata processing, saves them to a JSON file
+        in the results directory and displays a colored notification message.
+
+        Parameters
+        ----------
+        failed_metadata : dict
+            Dictionary containing lists of validation and processing errors. Expected 
+            structure is {'validation_errors': [], 'processing_errors': []}
+        results_dir : Path
+            Directory path where the error log file should be saved
+
+        Returns
+        -------
+        None
+            Writes error log file if errors exist and displays status message
+
+        Notes
+        -----
+        - Error log is saved as 'failed_metadata_rows.json' in the results directory
+        - Output JSON is formatted with indentation level of 2 for readability
+        - Uses ANSI color code 91 (bright red) for the console notification message
+
+        See Also
+        --------
+        record_processing_error : Method for recording individual processing errors
+        """
+        if any(failed_metadata.values()):
+            error_file = results_dir / 'failed_metadata_rows.json'
+            with open(error_file, 'w') as f:
+                json.dump(failed_metadata, f, indent=2)
+            tqdm.write(f"\n\033[91mSome rows failed processing. See {error_file} for details.\033[0m")
+
     def create_nmdc_metadata(self, raw_data_path: Path, data_product_path: Path,
                               emsl_metadata: object, biosample_id: str,
+                              toml_workflow_param_path: Path,
                               nom_metadata_db: nmdc.Database):
         """
         Create NMDC metadata entries.
@@ -186,6 +367,8 @@ class MetadataGenerator:
             The EMSL metadata object containing information about the sample.
         biosample_id : str
             The ID of the biosample.
+        toml_workflow_param_path: Path
+            The path to the workflow parameter metadata toml file.
         nom_metadata_db : nmdc.Database
             The database instance to store the generated metadata.
         """
@@ -218,18 +401,29 @@ class MetadataGenerator:
                                                           data_object_type=self.processed_data_object_type,
                                                           description=processed_data_object_desc,
                                                           was_generated_by=nom_analysis.id)
+        
+        # Generate workflow parameter data object
+        workflow_param_data_object_desc = (f"CoreMS processing parameters for natural organic matter analysis "
+                                           "used to generate {processed_data_object.id}")
+        parameter_data_object = self.generate_data_object(file_path=toml_workflow_param_path,
+                                                          data_category=self.workflow_param_data_category,
+                                                          data_object_type=self.workflow_param_data_object_type,
+                                                          description=workflow_param_data_object_desc)
+
 
         # Update the outputs for mass_spectrometry and nom_analysis
         self.update_outputs(mass_spec_obj=mass_spectrometry,
                             analysis_obj=nom_analysis,
                             raw_data_obj=raw_data_object,
-                            processed_data_obj=processed_data_object)
+                            processed_data_obj=processed_data_object,
+                            workflow_param_obj=parameter_data_object)
 
         # Add instances to database
         nom_metadata_db.data_object_set.append(raw_data_object)
         nom_metadata_db.workflow_execution_set.append(nom_analysis)
         nom_metadata_db.data_generation_set.append(mass_spectrometry)
         nom_metadata_db.data_object_set.append(processed_data_object)
+        nom_metadata_db.data_object_set.append(parameter_data_object)
 
     def mint_nmdc_id(self, nmdc_type: str) -> list[str]:
         """
@@ -247,12 +441,12 @@ class MetadataGenerator:
         """
         # TODO: Update api_base_url to regular url once Berkeley is integrated
 
-        config = yaml.safe_load(open(self.minting_client_config_path))
+        config = yaml.safe_load(open(self.config_path))
         client = oauthlib.oauth2.BackendApplicationClient(
             client_id=config['client_id'])
         oauth = requests_oauthlib.OAuth2Session(client=client)
 
-        api_base_url = 'https://api-berkeley.microbiomedata.org'
+        api_base_url = 'https://api.microbiomedata.org'
 
         token = oauth.fetch_token(token_url=f'{api_base_url}/token',
                                   client_id=config['client_id'],
@@ -334,12 +528,12 @@ class MetadataGenerator:
         nmdc_id = self.mint_nmdc_id(nmdc_type=NmdcTypes.MassSpectrometry)[0]
 
         # Look up instrument id by name slot using API
-        api_instrument_getter = ApiInfoRetriever(
+        api_instrument_getter = NmdcApiInfoRetriever(
             collection_name="instrument_set")
         instrument_id = api_instrument_getter.get_id_by_slot_from_collection(slot_name="name", slot_field_value=metadata_obj.instrument_used)
 
         # Instantiate configuration_set info retriever
-        api_config_getter = ApiInfoRetriever(
+        api_config_getter = NmdcApiInfoRetriever(
             collection_name="configuration_set")
     
         # Get the mass spec configuration id based on the mass_spec_config_name
@@ -439,12 +633,12 @@ class MetadataGenerator:
         
         # Lookup calibration id by md5 checksum of ref_calibration_path file
         calib_md5 = hashlib.md5(self.ref_calibration_path.open('rb').read()).hexdigest()
-        api_calib_do_getter = ApiInfoRetriever(
+        api_calib_do_getter = NmdcApiInfoRetriever(
             collection_name="data_object_set")
         
         try:
             calib_do_id = api_calib_do_getter.get_id_by_slot_from_collection(slot_name="md5_checksum", slot_field_value=calib_md5)
-            api_calibration_getter = ApiInfoRetriever(collection_name="calibration_set")
+            api_calibration_getter = NmdcApiInfoRetriever(collection_name="calibration_set")
             calibration_id = api_calibration_getter.get_id_by_slot_from_collection(slot_name="calibration_object", slot_field_value=calib_do_id)
 
         except ValueError as e:
@@ -454,10 +648,10 @@ class MetadataGenerator:
             print(f"An error occurred: {e}")
 
         data_dict = {
-            'id': nmdc_id,
+            'id': f"{nmdc_id}.1",
             'name': f'{self.workflow_analysis_name} for {file_path.name}',
             'description': self.workflow_description,
-            'has_calibration': calibration_id,
+            'uses_calibration': calibration_id,
             'processing_institution': self.processing_institution,
             'execution_resource': self.execution_resource,
             'git_url': self.workflow_git_url,
@@ -475,7 +669,7 @@ class MetadataGenerator:
         return nomAnalysis
 
     def update_outputs(self, mass_spec_obj: object, analysis_obj: object, raw_data_obj: object,
-                       processed_data_obj):
+                       processed_data_obj: object, workflow_param_obj: object):
         """
         Update the output references for mass spectrometry and analysis objects.
 
@@ -494,6 +688,7 @@ class MetadataGenerator:
 
         mass_spec_obj.has_output = [raw_data_obj.id]
         analysis_obj.has_output = [processed_data_obj.id]
+        analysis_obj.has_input.append(workflow_param_obj.id)
 
     def start_nmdc_database(self) -> nmdc.Database:
        
@@ -514,3 +709,4 @@ class MetadataGenerator:
         json_dumper.dump(nmdc_database, output_file_path)
         print(
             f"Database successfully dumped in {output_file_path}")
+        

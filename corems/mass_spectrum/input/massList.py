@@ -175,7 +175,7 @@ class ReadCoremsMasslist(MassListBaseClass):
                     # Next, generate isotopologues from the parent
                     isos = list(
                         mono_mfobj.isotopologues(
-                            min_abundance=mass_spec_obj[df_index].abundance * 0.001,
+                            min_abundance=mass_spec_obj.abundance.min()*0.01,
                             current_mono_abundance=mass_spec_obj[mono_index].abundance,
                             dynamic_range=mass_spec_obj.dynamic_range,
                         )

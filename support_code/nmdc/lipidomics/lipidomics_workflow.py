@@ -388,7 +388,7 @@ def run_lipid_sp_ms1(
     scan_translator=None,
     verbose=True,
     return_mzs=True,
-    ms1_molecular_search=False,
+    ms1_molecular_search=True,
 ):
     """Run signal processing, get associated ms1, add associated ms2, do ms1 molecular search, and export intermediate results
 
@@ -416,6 +416,7 @@ def run_lipid_sp_ms1(
     check_scan_translator(myLCMSobj, scan_translator)
     add_mass_features(myLCMSobj, scan_translator)
     myLCMSobj.remove_unprocessed_data()
+    #myLCMSobj.parameters.mass_spectrum['ms1'].molecular_search.verbose_processing = False
     #if ms1_molecular_search:
     #    molecular_formula_search(myLCMSobj)
     export_results(myLCMSobj, out_path=out_path, final=False)

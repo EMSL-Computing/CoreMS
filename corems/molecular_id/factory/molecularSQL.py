@@ -473,6 +473,7 @@ class MolForm_SQL:
         if the number of classes and nominal_m/zs are higher than 999 the query will fail
         Solution: use postgres or split query
         """
+        verbose = molecular_search_settings.verbose_processing
 
         def query_normal(class_list, len_adduct):
             """query for normal database
@@ -565,10 +566,7 @@ class MolForm_SQL:
 
                 elif ion_type == Labels.adduct_ion and adduct_atom:
                     return int(formula_obj._adduct_mz(ion_charge, adduct_atom))
-
-            for formula_obj, ch_obj, classe_obj in tqdm.tqdm(
-                formulas, desc="Loading molecular formula database"
-            ):
+            for formula_obj, ch_obj, classe_obj in tqdm.tqdm(formulas, desc="Loading molecular formula database", disable = not verbose):
                 nominal_mz = nominal_mass_by_ion_type(formula_obj)
 
                 if self.type != "normal":

@@ -2,6 +2,7 @@ from metadata_generator import MetadataGenerator
 import toml
 from pathlib import Path
 
+
 def main():
     """
     Runs the MetadataGenerator using the configuration provided in a TOML file.
@@ -38,8 +39,10 @@ def main():
         - 12
         - 15
         - 21
-    - minting_client_config_path: str
-        The path to the NMDC minting client configuration file. Defaults to 'enviroMS/nmdc_metadata_generation/config.yaml'.
+    - config_path: str
+        The path to the NMDC minting client and Bioportal API key configuration yaml file. Defaults to 'enviroMS/nmdc_metadata_generation/config.yaml'.
+        Should have client_id and client_secret for the NMDC minting client. And api_key for BioPortal API access. To get a BioPortal api_key register here:
+        https://bioportal.bioontology.org/accounts/new and go to settings
 
     Notes
     -----
@@ -53,7 +56,7 @@ def main():
 
 
     # Load arguments from TOML file
-    config_data = toml.load('enviroMS/nmdc_metadata_generation/config.toml')
+    config_data = toml.load('support_code/nmdc/nom/config.toml')
 
     generator = MetadataGenerator(
         metadata_file=config_data['metadata_file'],
@@ -65,7 +68,7 @@ def main():
         execution_resource=config_data['execution_resource'],
         field_strength=config_data['field_strength'],
         workflow_version=config_data['workflow_version'],
-        minting_client_config_path=config_data['minting_client_config_path']
+        config_path=config_data['config_path']
     )
     
     generator.run()
