@@ -970,10 +970,10 @@ class SearchMolecularFormulasLC:
         nominal_mzs = list(set([item for sublist in nominal_mzs for item in sublist]))
         verbose = self.lcms_obj.parameters.mass_spectrum[mass_spectrum_setting_key].molecular_search.verbose_processing 
 
-        # reset average error, only relevant is average mass error method is being used
+        # reset average error, only relevant if average mass error method is being used
         SearchMolecularFormulaWorker(
             find_isotopologues=self.find_isotopologues
-        ).reset_error()
+        ).reset_error(mass_spectrum_list[0])
 
         # check database for all possible molecular formula combinations based on the setting passed to self.mass_spectrum_obj.molecular_search_settings
         classes = MolecularCombinations(self.sql_db).runworker(
