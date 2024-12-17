@@ -13,7 +13,7 @@ from corems.mass_spectra.input.mzml import MZMLSpectraParser
 from corems.mass_spectra.output.export import LipidomicsExport
 from corems.molecular_id.search.database_interfaces import MetabRefLCInterface
 from corems.molecular_id.factory.lipid_molecular_metadata import LipidMetadata
-from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
+from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulasLC
 from corems.encapsulation.factory.parameters import LCMSParameters, reset_lcms_parameters, reset_ms_parameters
 
 
@@ -82,7 +82,7 @@ def test_lipidomics_workflow():
     ms1_params.mass_spectrum.noise_min_mz, ms1_params.mass_spectrum.min_picking_mz = 0, 0
     ms1_params.mass_spectrum.noise_max_mz, ms1_params.mass_spectrum.max_picking_mz = np.inf, np.inf
     ms1_params.ms_peak.legacy_resolving_power = False
-    ms1_params.molecular_search.url_database = "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"
+    ms1_params.molecular_search.url_database = ""
     ms1_params.molecular_search.usedAtoms = {
         'C': (10, 30),
         'H': (18, 200),
@@ -129,28 +129,12 @@ def test_lipidomics_workflow():
     assert len(myLCMSobj.mass_features) == 130
 
     # Perform a molecular search on a few of the mass features
-    mf_df = myLCMSobj.mass_features_to_df() 
-    unique_scans = mf_df.apex_scan.unique()
-    i = 0
-    for scan in unique_scans:
-        if i > 1:  # only search first 3 scans for testing
-            break
-        print("searching mz for scan: ", str(i), " of ", str(len(unique_scans)))
-        # gather mass features for this scan
-        mf_df_scan = mf_df[mf_df.apex_scan == scan]
-        peaks_to_search = [
-            myLCMSobj.mass_features[x].ms1_peak for x in mf_df_scan.index.tolist()
-        ]
-        SearchMolecularFormulas(
-            myLCMSobj._ms[scan],
-            first_hit=False,
-            find_isotopologues=True,
-        ).run_worker_ms_peaks(peaks_to_search)
-        i += 1
+    mol_form_search = SearchMolecularFormulasLC(myLCMSobj)
+    mol_form_search.run_mass_feature_search()
 
     # Check results of molecular search
     assert myLCMSobj.mass_features[0].ms1_peak[0].string == "C20 H30 O2"
-    assert myLCMSobj.mass_features_ms1_annot_to_df().shape[0] == 130
+    assert myLCMSobj.mass_features_ms1_annot_to_df().shape[0] == 257
     myLCMSobj.mass_features[0].mass_spectrum.to_dataframe()
 
     # Add hcd ms2 data to lcms object, using the ms2 mass spectrum parameters
