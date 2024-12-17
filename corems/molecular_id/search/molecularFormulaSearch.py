@@ -276,6 +276,10 @@ class SearchMolecularFormulas:
         ----------
         ms_peaks : list of MSPeak
             The list of mass spectrum peaks.
+        **kwargs
+            Additional keyword arguments. 
+            Most notably, print_time, which is a boolean flag to indicate whether to print the time 
+            and passed to the timeit decorator.
         """
         ion_charge = self.mass_spectrum_obj.polarity
         min_abundance = self.mass_spectrum_obj.min_abundance
@@ -285,7 +289,7 @@ class SearchMolecularFormulas:
         # reset average error, only relevant is average mass error method is being used
         SearchMolecularFormulaWorker(
             find_isotopologues=self.find_isotopologues
-        ).reset_error()
+        ).reset_error(self.mass_spectrum_obj)
 
         # check database for all possible molecular formula combinations based on the setting passed to self.mass_spectrum_obj.molecular_search_settings
         classes = MolecularCombinations(self.sql_db).runworker(
@@ -519,12 +523,20 @@ class SearchMolecularFormulaWorker:
         """
         return self.find_formulas(*args)  # ,args[1]
 
-    def reset_error(self):
-        """Reset the error variables"""
+    def reset_error(self, mass_spectrum_obj):
+        """Reset the error variables.
+
+        Parameters
+        ----------
+        mass_spectrum_obj : MassSpectrum
+            The mass spectrum object.
+
+        Notes
+        -----
+        This function resets the error variables for the given mass spectrum object.
+        """
         global last_error, last_dif, closest_error, error_average, nbValues
         last_error, last_dif, closest_error, nbValues = 0.0, 0.0, 0.0, 0.0
-
-        error_average = 0
 
     def set_last_error(self, error, mass_spectrum_obj):
         """Set the last error.
@@ -846,13 +858,13 @@ class SearchMolecularFormulaWorker:
         return mspeak_assigned_index
 
 
-class SearchMolecularFormulasLC():
+class SearchMolecularFormulasLC:
     """Class for searching molecular formulas in a LC object.
 
     Parameters
     ----------
-    lcms_obj : LC
-        The LC object.
+    lcms_obj : LCMSBase
+        The LCMSBase object.
     sql_db : MolForm_SQL, optional
         The SQL database object, by default None.
     first_hit : bool, optional
@@ -863,11 +875,20 @@ class SearchMolecularFormulasLC():
     Methods
     -------
 
+    * search_spectra_against_candidates().
+        Search a list of mass spectra against a list of candidate formulas with a given ion type and charge.
+    * bulk_run_molecular_formula_search().
+        Run the molecular formula search on the given list of mass spectra.
+        Pulls the settings from the LCMSBase object to set ion type and charge to search for. 
+    * run_mass_feature_search().
+        Run the molecular formula search on mass features.
+        Calls bulk_run_molecular_formula_search() with specified mass spectra and mass peaks.
     * run_untargeted_worker_ms1().
         Run untargeted molecular formula search on the ms1 mass spectrum.
+        DEPRECATED: use run_mass_feature_search() or bulk_run_molecular_formula_search() instead.
     * run_target_worker_ms1().
         Run targeted molecular formula search on the ms1 mass spectrum.
-
+        DEPRECATED: use run_mass_feature_search() or bulk_run_molecular_formula_search() instead.
     """
 
     def __init__(self, lcms_obj, sql_db=None, first_hit=False, find_isotopologues=True):
@@ -947,6 +968,7 @@ class SearchMolecularFormulasLC():
         
         nominal_mzs = [x.nominal_mz for x in mass_spectrum_list]
         nominal_mzs = list(set([item for sublist in nominal_mzs for item in sublist]))
+        verbose = self.lcms_obj.parameters.mass_spectrum[mass_spectrum_setting_key].molecular_search.verbose_processing 
 
         # reset average error, only relevant is average mass error method is being used
         SearchMolecularFormulaWorker(
@@ -973,7 +995,7 @@ class SearchMolecularFormulasLC():
                 ion_charge,
             )
 
-            pbar = tqdm.tqdm(classe_chunk)
+            pbar = tqdm.tqdm(classe_chunk, disable = not verbose)
             for classe_tuple in pbar:
                 # class string is a json serialized dict
                 classe_str = classe_tuple[0]
@@ -1048,10 +1070,13 @@ class SearchMolecularFormulasLC():
         self.sql_db.close()
         
     def run_mass_feature_search(self):
-        """Run the molecular formula search on the mass features."""
+        """Run the molecular formula search on the mass features.
+        
+        Calls bulk_run_molecular_formula_search() with specified mass spectra and mass peaks.
+        """
         mass_features_df = self.lcms_obj.mass_features_to_df()
 
-        # Get the list of mass spectrum to search and peaks to search with each mass spectrum
+        # Get the list of mass spectrum (and peaks to search with each mass spectrum) for all mass features
         scan_list = mass_features_df.apex_scan.unique()
         mass_spectrum_list = [self.lcms_obj._ms[x] for x in scan_list]
         ms_peaks = []
@@ -1061,71 +1086,14 @@ class SearchMolecularFormulasLC():
                 self.lcms_obj.mass_features[x].ms1_peak for x in mf_df_scan.index.tolist()
             ]
             ms_peaks.append(peaks_to_search)
+        
+        # Run the molecular formula search
         self.bulk_run_molecular_formula_search(mass_spectrum_list, ms_peaks)
     
     def run_untargeted_worker_ms1(self):
         """Run untargeted molecular formula search on the ms1 mass spectrum."""
-        # do molecular formula based on the parameters set for ms1 search
-        for peak in self.lcms_obj:
-            self.mass_spectrum_obj = peak.mass_spectrum
-            self.run_molecular_formula(
-                peak.mass_spectrum.sort_by_abundance(),
-                print_time=self.lcms_obj.parameters.lc_ms.verbose_processing
-                )
+        raise NotImplementedError("run_untargeted_worker_ms1 search is not implemented in CoreMS 3.0 and greater")
 
     def run_target_worker_ms1(self):
         """Run targeted molecular formula search on the ms1 mass spectrum."""
-        # do molecular formula based on the external molecular reference list
-        verbose = self.lcms_obj.parameters.lc_ms.verbose_processing
-        if verbose:
-            pbar = tqdm.tqdm(self.lcms_obj)
-
-        for peak in self.lcms_obj:
-            if verbose:
-                pbar.set_description_str(
-                    desc=f"Started molecular formulae search for mass spectrum at RT {peak.retention_time} s",
-                    refresh=True,
-                )
-
-            self.mass_spectrum_obj = peak.mass_spectrum
-
-            ion_charge = self.mass_spectrum_obj.polarity
-
-            candidate_formulas = peak.targeted_molecular_formulas
-
-            for i in candidate_formulas:
-                if verbose:
-                    print(i)
-            if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
-                ion_type = Labels.protonated_de_ion
-
-                # ms_peaks_assigned = self.search_mol_formulas(peak.targeted_molecular_formulas, ion_type, find_isotopologues=True)
-
-                self.search_mol_formulas(
-                    candidate_formulas, ion_type, find_isotopologues=True
-                )
-
-            if self.mass_spectrum_obj.molecular_search_settings.isRadical:
-                ion_type = Labels.radical_ion
-
-                # ms_peaks_assigned = self.search_mol_formulas(peak.targeted_molecular_formulas, ion_type, find_isotopologues=True)
-                self.search_mol_formulas(
-                    candidate_formulas, ion_type, find_isotopologues=True
-                )
-
-            if self.mass_spectrum_obj.molecular_search_settings.isAdduct:
-                ion_type = Labels.adduct_ion
-
-                adduct_list = (
-                    self.mass_spectrum_obj.molecular_search_settings.adduct_atoms_neg
-                    if ion_charge < 0
-                    else self.mass_spectrum_obj.molecular_search_settings.adduct_atoms_pos
-                )
-
-                for adduct_atom in adduct_list:
-                    self.search_mol_formulas(
-                        candidate_formulas,
-                        ion_type,
-                        find_isotopologues=True,
-                        adduct_atom=adduct_atom,
-                    )
+        raise NotImplementedError("run_target_worker_ms1 formula search is not yet implemented in CoreMS 3.0 and greater")
