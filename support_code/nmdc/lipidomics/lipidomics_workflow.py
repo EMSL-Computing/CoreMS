@@ -20,7 +20,7 @@ from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 from corems.mass_spectra.input.mzml import MZMLSpectraParser
 from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
 from corems.mass_spectra.output.export import LipidomicsExport
-from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
+from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas, SearchMolecularFormulasLC
 from corems.molecular_id.search.database_interfaces import MetabRefLCInterface
 from corems.encapsulation.input.parameter_from_json import (
     load_and_set_toml_parameters_lcms,
@@ -193,35 +193,8 @@ def molecular_formula_search(myLCMSobj):
     -------
     None, processes the LCMS object
     """
-    i = 1
-    # get df of mass features
-    mf_df = myLCMSobj.mass_features_to_df()
-
-    # search molecular formulas for each mass feature
-    total_decon_parent = sum(mf_df.mass_spectrum_deconvoluted_parent)
-    for mf_id in mf_df.index:
-        if myLCMSobj.mass_features[mf_id].mass_spectrum_deconvoluted_parent:
-            if i > 10:  # TODO KRH: remove this when ready
-                break
-            print("searching mf: ", str(i), " of ", str(total_decon_parent))
-
-            scan = myLCMSobj.mass_features[mf_id].apex_scan
-            # Search single spectrum for all peaks that correspond to the same scan
-            mf_df_scan = mf_df[mf_df.apex_scan == scan]
-            peaks_to_search = [
-                myLCMSobj.mass_features[x].ms1_peak for x in mf_df_scan.index.tolist()
-            ]
-            time_start = time.time()
-            SearchMolecularFormulas(
-                myLCMSobj._ms[scan],
-                first_hit=False,
-                find_isotopologues=True,
-            ).run_worker_ms_peaks(peaks_to_search)
-            print(
-                "time to search whole spectrum for all peaks in scan: ",
-                time.time() - time_start,
-            )
-            i += 1
+    mol_search = SearchMolecularFormulasLC(myLCMSobj)
+    mol_search.run_mass_feature_search()
     print("Finished molecular search")
 
 
@@ -473,7 +446,6 @@ def prep_metadata(mz_dicts, out_dir, token_path):
             mz_list=metadata["mzs"]["positive"],
             polarity="positive",
             mz_tol_ppm=5,
-            mz_tol_da_api=0.01,
             format="flashentropy",
             normalize=True,
             fe_kwargs={
@@ -635,16 +607,15 @@ def run_lipid_workflow(
         mz_dicts = pool.starmap(run_lipid_ms2, args)
         pool.close()
         pool.join()
-
     print("Finished processing, data are written in " + str(out_dir))
 
 
 if __name__ == "__main__":
     # Set input variables to run
     cores = 1
-    file_dir = Path("tmp_data/thermo_raw_mini")
-    out_dir = Path("tmp_data/NMDC_processed_241113")
-    params_toml = Path("tmp_data/EMSL_lipidomics_params.toml")
+    file_dir = Path("/Users/heal742/Library/CloudStorage/OneDrive-PNNL/Documents/_DMS_data/_NMDC/_blanchard_lipidomics")
+    out_dir = Path("tmp_data/_test_241218")
+    params_toml = Path("/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/configurations/emsl_lipidomics_corems_params.toml")
     metab_ref_token = Path("tmp_data/thermo_raw_collection/metabref.token")
     verbose = True
     scan_translator = Path("tmp_data/thermo_raw_collection/scan_translator.toml")

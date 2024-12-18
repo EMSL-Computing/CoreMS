@@ -5,6 +5,7 @@ Thank you for considering contributing to CoreMS! We appreciate your interest in
 ## Table of Contents
 
 - [Getting Started](#getting-started)
+- [Versioning](#versioning)
 - [Merge Request Checklist](#merge-request-checklist)
 - [Code Style](#code-style)
 - [Issue Reporting](#issue-reporting)
@@ -19,9 +20,12 @@ To get started with contributing to CoreMS, please follow these steps:
 3. Install the necessary dependencies. Refer to the [README](./README.md) for detailed installation instructions.
 4. Make your changes or additions.
 5. Test your changes thoroughly.
-6. Re-render documenation using the following `pdoc --o docs --d numpy corems`. Note that pdoc versioning is part of the requirements-dev.txt.
-7. Commit your changes and push them to your forked repository. Reference your original issue in your commits (i.e. closes #23)
-8. Submit a merge request to the main CoreMS repository and select an appropriate reviewer for the changes. Note the merge request checklist below that will be checked before each merge into the master branch. See the merge request checkliist
+6. Commit your changes and push them to your forked repository. Reference your original issue in your commits (i.e. closes #23)
+7. Submit a merge request to the main CoreMS repository and select an appropriate reviewer for the changes. Note the merge request checklist below that will be checked before each merge into the master branch. See the merge request checklist
+
+## Versioning
+
+We strive to use semantic versioning. To bump a new version and regenerate documentation, use one of the following make commands (according to version number)  `make major`, `make minor`, or `make patch`.  This should accompany each PiPy release.
 
 ## Merge Request Checklist
 
