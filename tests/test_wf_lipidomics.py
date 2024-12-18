@@ -128,7 +128,7 @@ def test_lipidomics_workflow():
     myLCMSobj.find_c13_mass_features()
     assert len(myLCMSobj.mass_features) == 130
 
-    # Perform a molecular search on a few of the mass features
+    # Perform a molecular search on all of the mass features' ms1 peaks
     mol_form_search = SearchMolecularFormulasLC(myLCMSobj)
     mol_form_search.run_mass_feature_search()
 
