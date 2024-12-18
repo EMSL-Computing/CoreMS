@@ -906,6 +906,10 @@ class SearchMolecularFormulasLC:
         else:
             self.sql_db = sql_db
 
+    def delete_db(self):
+        """Delete the database."""
+        self.sql_db.purge()
+
     def search_spectra_against_candidates(self, mass_spectrum_list, ms_peaks_list, candidate_formulas, ion_type, ion_charge):
         """Search a list of mass spectra against a list of candidate formulas with a given ion type and charge.
 
@@ -977,7 +981,8 @@ class SearchMolecularFormulasLC:
 
         # check database for all possible molecular formula combinations based on the setting passed to self.mass_spectrum_obj.molecular_search_settings
         classes = MolecularCombinations(self.sql_db).runworker(
-            self.lcms_obj.parameters.mass_spectrum[mass_spectrum_setting_key].molecular_search
+            self.lcms_obj.parameters.mass_spectrum[mass_spectrum_setting_key].molecular_search,
+            print_time=self.lcms_obj.parameters.mass_spectrum[mass_spectrum_setting_key].molecular_search.verbose_processing
         )
         
         # split the database load to not blowout the memory

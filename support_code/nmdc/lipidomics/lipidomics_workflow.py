@@ -390,8 +390,8 @@ def run_lipid_sp_ms1(
     add_mass_features(myLCMSobj, scan_translator)
     myLCMSobj.remove_unprocessed_data()
     #myLCMSobj.parameters.mass_spectrum['ms1'].molecular_search.verbose_processing = False
-    #if ms1_molecular_search:
-    #    molecular_formula_search(myLCMSobj)
+    if ms1_molecular_search:
+        molecular_formula_search(myLCMSobj)
     export_results(myLCMSobj, out_path=out_path, final=False)
     save_times(myLCMSobj, time_start, out_path)
     if return_mzs:
@@ -613,9 +613,9 @@ def run_lipid_workflow(
 if __name__ == "__main__":
     # Set input variables to run
     cores = 1
-    file_dir = Path("tmp_data/thermo_raw_mini")
-    out_dir = Path("tmp_data/_test_241216")
-    params_toml = Path("tmp_data/EMSL_lipidomics_params.toml")
+    file_dir = Path("/Users/heal742/Library/CloudStorage/OneDrive-PNNL/Documents/_DMS_data/_NMDC/_blanchard_lipidomics")
+    out_dir = Path("tmp_data/_test_241218")
+    params_toml = Path("/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/configurations/emsl_lipidomics_corems_params.toml")
     metab_ref_token = Path("tmp_data/thermo_raw_collection/metabref.token")
     verbose = True
     scan_translator = Path("tmp_data/thermo_raw_collection/scan_translator.toml")
