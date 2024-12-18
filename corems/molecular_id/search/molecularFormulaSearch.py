@@ -906,10 +906,6 @@ class SearchMolecularFormulasLC:
         else:
             self.sql_db = sql_db
 
-    def delete_db(self):
-        """Delete the database."""
-        self.sql_db.purge()
-
     def search_spectra_against_candidates(self, mass_spectrum_list, ms_peaks_list, candidate_formulas, ion_type, ion_charge):
         """Search a list of mass spectra against a list of candidate formulas with a given ion type and charge.
 

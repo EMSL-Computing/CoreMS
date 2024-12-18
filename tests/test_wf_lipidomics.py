@@ -131,7 +131,6 @@ def test_lipidomics_workflow():
     # Perform a molecular search on a few of the mass features
     mol_form_search = SearchMolecularFormulasLC(myLCMSobj)
     mol_form_search.run_mass_feature_search()
-    mol_form_search.delete_db()
 
     # Check results of molecular search
     assert myLCMSobj.mass_features[0].ms1_peak[0].string == "C20 H30 O2"
