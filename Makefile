@@ -14,14 +14,17 @@ mem:
 major:
 	
 	@bumpversion major --allow-dirty
+	@$(MAKE) docu
 
 minor:
 	
 	@bumpversion minor --allow-dirty
+	@$(MAKE) docu
 
 patch:
 	
 	@bumpversion patch --allow-dirty
+	@$(MAKE) docu
 
 pypi_test:
 	@rm -rf build dist *.egg-info
