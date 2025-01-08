@@ -75,6 +75,7 @@ class NmdcTypes:
     TimeStampValue: str = "nmdc:TimestampValue"
     QuantityValue: str = "nmdc:QuantityValue"
     CalibrationInformation: str = "nmdc:CalibrationInformation"
+    MetaboliteIdentification: str = "nmdc:MetaboliteIdentification"
 
 class MetadataParser:
     """Parsers metadata from input metadata spreadsheet."""

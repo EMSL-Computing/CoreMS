@@ -1,4 +1,4 @@
-from nom_metadata_generator import NOMMetadataGenerator
+from metab_metadata_generator import MetabolomicsMetadataGenerator
 import toml
 from pathlib import Path
 
@@ -58,7 +58,7 @@ def main():
     # Load arguments from TOML file
     config_data = toml.load('support_code/nmdc/nom/config.toml')
 
-    generator = NOMMetadataGenerator(
+    generator = MetabolomicsMetadataGenerator(
         metadata_file=config_data['metadata_file'],
         data_dir=Path(config_data['data_dir']),
         ref_calibration_path=Path(config_data['ref_calibration_path']),
