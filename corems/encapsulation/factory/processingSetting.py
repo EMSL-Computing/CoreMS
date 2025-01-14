@@ -927,9 +927,10 @@ class MolecularFormulaSearchSettings:
     used_atom_valences: dict = dataclasses.field(default_factory=dict)
 
     def __post_init__(self):
-        self.url_database = os.getenv(
+        if not self.url_database or self.url_database == "":
+            self.url_database = os.getenv(
             "COREMS_DATABASE_URL", "sqlite:///db/molformula.db"
-        )
+            )
         # enforce datatype
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
