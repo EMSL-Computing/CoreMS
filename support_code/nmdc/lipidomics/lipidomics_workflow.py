@@ -408,7 +408,7 @@ def run_lipid_sp_ms1(
         return mz_dict
 
 
-def prep_metadata(mz_dicts, out_dir, token_path):
+def prep_metadata(mz_dicts, out_dir):
     """Prepare metadata for ms2 spectral search
 
     Parameters
@@ -436,9 +436,6 @@ def prep_metadata(mz_dicts, out_dir, token_path):
         metadata["mzs"].update(d)
 
     metabref = MetabRefLCInterface()
-    if token_path is not None:
-        metabref.set_token(token_path)
-    metabref.set_token("tmp_data/thermo_raw_collection/metabref.token")
 
     print("Preparing positive lipid library")
     if metadata["mzs"]["positive"] is not None:
@@ -530,7 +527,6 @@ def run_lipid_workflow(
     file_dir,
     out_dir,
     params_toml,
-    token_path,
     scan_translator=None,
     verbose=True,
     ms1_molecular_search=True,
@@ -546,9 +542,6 @@ def run_lipid_workflow(
         Path to output directory
     params_toml : str or Path
         Path to toml file with parameters
-
-    token_path : str or Path
-        Path to token file for MetabRefLCInterface
     verbose : bool
         Whether to print verbose output
     cores : int
@@ -593,7 +586,7 @@ def run_lipid_workflow(
         pool.close()
         pool.join()
     # Prepare ms2 spectral search space
-    metadata = prep_metadata(mz_dicts, out_dir, token_path)
+    metadata = prep_metadata(mz_dicts, out_dir)
 
     # Run ms2 spectral search and export final results
     if cores == 1 or len(files_list) == 1:
@@ -613,10 +606,9 @@ def run_lipid_workflow(
 if __name__ == "__main__":
     # Set input variables to run
     cores = 1
-    file_dir = Path("/Users/heal742/Library/CloudStorage/OneDrive-PNNL/Documents/_DMS_data/_NMDC/_blanchard_lipidomics")
-    out_dir = Path("tmp_data/_test_241218")
+    file_dir = Path("/Users/heal742/LOCAL/corems_dev/corems/tmp_data/thermo_raw_mini")
+    out_dir = Path("tmp_data/_test_250115")
     params_toml = Path("/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/configurations/emsl_lipidomics_corems_params.toml")
-    metab_ref_token = Path("tmp_data/thermo_raw_collection/metabref.token")
     verbose = True
     scan_translator = Path("tmp_data/thermo_raw_collection/scan_translator.toml")
 
@@ -631,7 +623,6 @@ if __name__ == "__main__":
         file_dir=file_dir,
         out_dir=out_dir,
         params_toml=params_toml,
-        token_path=metab_ref_token,
         scan_translator=scan_translator,
         verbose=verbose,
         cores=cores,
