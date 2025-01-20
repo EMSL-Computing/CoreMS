@@ -758,7 +758,6 @@ class LCCalculations:
 
             # Subset the correlation matrix to only include the masses of the mass feature and those with a correlation > 0.8
             decon_corr_min = self.parameters.lc_ms.ms1_deconvolution_corr_min
-            decon_corr_min = 0.9
             corr_subset = corr.loc[mass_feature.mz,]
             corr_subset = corr_subset[corr_subset > decon_corr_min]
 
