@@ -4,6 +4,7 @@ warnings.filterwarnings("ignore")
 
 import os
 import sys
+from pathlib import Path
 from multiprocessing import Pool
 
 from corems.mass_spectra.calc.GC_RI_Calibration import get_rt_ri_pairs
@@ -39,14 +40,12 @@ def get_gcms(filepath):
     gcms = reader_gcms.get_gcms_obj()
 
     # # Process chromatogram
-    # gcms.process_chromatogram()
+    gcms.process_chromatogram()
 
     return gcms
 
 
-def run(args):
-    # Unpack arguments
-    filepath, ref_dict, cal_filepath = args
+def run(filepath, ref_dict, cal_filepath):
 
     # Parse supplied file
     gcms = get_gcms(filepath)
@@ -57,7 +56,7 @@ def run(args):
     # Calibrate retention index
     gcms.calibrate_ri(ref_dict, cal_filepath)
 
-    # Initialize GCMS refeerence database from MetabRef
+    # Initialize GCMS reference database from MetabRef
     sql_obj = start_gcms_metabref_sql()
 
     # Initialize spectral match
@@ -71,22 +70,31 @@ def run(args):
 
 def test_gcms_workflow():
     # # Define paths
-    # filepath = None
-    # calibration_filepath = None
-
-    # # Set token
-    # TOKEN_PATH = "metabref.token"
-    # MetabRefGCInterface().set_token(TOKEN_PATH)
+    filepath = (
+        Path.cwd()
+        / "tests/tests_data/gcms/"
+        / "GCMS_FAMES_01_GCMS-01_20191023.cdf"
+    )
+    calibration_filepath = (
+        Path.cwd()
+        / "tests/tests_data/gcms/"
+        / "GCMS_FAMES_01_GCMS-01_20191023.cdf"
+    )
 
     # # Parse supplied calibration data
-    # gcms_ref_obj = get_gcms(calibration_filepath)
+    gcms_ref_obj = get_gcms(calibration_filepath)
 
     # # Build calibration SQLite database from MetabRef
-    # fames_sql_obj = start_fames_metabref_sql()
+    fames_sql_obj = start_fames_metabref_sql()
 
     # # Determine calibration pairs
-    # rt_ri_pairs = get_rt_ri_pairs(gcms_ref_obj, sql_obj=fames_sql_obj)
+    rt_ri_pairs = get_rt_ri_pairs(gcms_ref_obj, sql_obj=fames_sql_obj)
 
-    # # Execute
-    # run((filepath, rt_ri_pairs, calibration_filepath))
-    pass
+    # Execute
+    output = run(filepath, rt_ri_pairs, calibration_filepath)
+
+    # Export results
+    df = output.to_dataframe()
+
+    # Check results
+    assert df['Compound Name'][0] == "N,N-dimethylglycine"

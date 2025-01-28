@@ -92,7 +92,7 @@ class SpectralDatabaseInterface(ABC):
 
         return header
 
-    def get_query(self, url):
+    def get_query(self, url, use_header=True):
         """
         Request payload from URL according to `get` protocol.
 
@@ -100,6 +100,8 @@ class SpectralDatabaseInterface(ABC):
         ----------
         url : str
             URL for request.
+        use_header: bool
+            Whether or not the query should include the header
 
         Returns
         -------
@@ -109,7 +111,10 @@ class SpectralDatabaseInterface(ABC):
         """
 
         # Query URL via `get`
-        response = requests.get(url, headers=self.get_header())
+        if use_header:
+            response = requests.get(url, headers=self.get_header())
+        else:
+            response = requests.get(url)
 
         # Check response
         response.raise_for_status()
@@ -352,6 +357,16 @@ class MetabRefInterface(SpectralDatabaseInterface):
             if key not in input_dict.keys():
                 input_dict[key] = None
         return data_class(**input_dict)
+    
+    def get_query(self, url, use_header=False):
+        """Overwrites the get_query method on the parent class to default to not use a header
+        
+        Notes
+        -----
+        As of January 2025, the metabref database no longer requires a token and therefore no header is needed
+
+        """
+        return super().get_query(url, use_header)
 
 
 class MetabRefGCInterface(MetabRefInterface):
