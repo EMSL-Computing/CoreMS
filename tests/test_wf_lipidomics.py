@@ -82,7 +82,7 @@ def test_lipidomics_workflow():
     ms1_params.mass_spectrum.noise_min_mz, ms1_params.mass_spectrum.min_picking_mz = 0, 0
     ms1_params.mass_spectrum.noise_max_mz, ms1_params.mass_spectrum.max_picking_mz = np.inf, np.inf
     ms1_params.ms_peak.legacy_resolving_power = False
-    ms1_params.molecular_search.url_database = ""
+    ms1_params.molecular_search.url_database = "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"
     ms1_params.molecular_search.usedAtoms = {
         'C': (10, 30),
         'H': (18, 200),
