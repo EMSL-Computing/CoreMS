@@ -82,7 +82,7 @@ def test_lipidomics_workflow():
     ms1_params.mass_spectrum.noise_min_mz, ms1_params.mass_spectrum.min_picking_mz = 0, 0
     ms1_params.mass_spectrum.noise_max_mz, ms1_params.mass_spectrum.max_picking_mz = np.inf, np.inf
     ms1_params.ms_peak.legacy_resolving_power = False
-    ms1_params.molecular_search.url_database = "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"
+    ms1_params.molecular_search.url_database = ""
     ms1_params.molecular_search.usedAtoms = {
         'C': (10, 30),
         'H': (18, 200),
@@ -146,6 +146,8 @@ def test_lipidomics_workflow():
     og_ms_len = len(myLCMSobj._ms)
     myLCMSobj.add_associated_ms2_dda(spectrum_mode="centroid", ms_params_key="ms2_cid", scan_filter="cid")
     assert len(myLCMSobj._ms) > og_ms_len
+
+    myLCMSobj.plot_composite_mass_features()
 
     # Export the mass features to a pandas dataframe
     df = myLCMSobj.mass_features_to_df()

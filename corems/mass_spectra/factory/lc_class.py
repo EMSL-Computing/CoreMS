@@ -3,11 +3,13 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import warnings
+import matplotlib.pyplot as plt
 
 from corems.encapsulation.factory.parameters import LCMSParameters
 from corems.mass_spectra.calc.lc_calc import LCCalculations, PHCalculations
 from corems.molecular_id.search.lcms_spectral_search import LCMSSpectralSearch
 from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
+from corems.mass_spectra.calc.lc_calc import find_closest
 
 
 class MassSpectraBase:
@@ -910,6 +912,131 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             )
 
         return annot_ms2_df_full
+
+    def plot_composite_mass_features(self, binsize = 1e-4, mf_plot = True, ms2_plot = True, return_fig = False):
+        """Returns a figure displaying 
+            (1) thresholded, unprocessed data
+            (2) the mass features
+            (3) which mass features are associated with MS2 spectra
+
+        Parameters
+        -----------
+        binsize :  float
+            Desired binsize for the m/z axis of the composite feature map.  Defaults to 1e-4.
+        mf_plot : boolean
+            Indicates whether to plot the mass features. Defaults to True.
+        ms2_plot : boolean
+            Indicates whether to identify mass features with associated MS2 spectra. Defaults to True.
+        return_fig : boolean
+            Indicates whether to plot composite feature map (False) or return figure object (True). Defaults to False.
+
+        Returns
+        --------
+        matplotlib.pyplot.Figure
+            A figure with the thresholded, unprocessed data on an axis of m/z value with respect to 
+            scan time. Unprocessed data is displayed in gray scale with darker colors indicating 
+            higher intensities. If mass features are plotted, they are displayed in cyan. If mass
+            features with associated with MS2 spectra are plotted, they are displayed in red.
+
+        Raises
+        ------
+        Warning
+            If mass features are set to be plot but aren't in the dataset.
+            If mass features with associated MS2 data are set to be plot but no MS2 annotations 
+            were found for the mass features in the dataset.
+        """
+        if mf_plot:
+            # Check if mass_features is set, raise error if not
+            if self.mass_features is None:
+                raise ValueError(
+                    "mass_features not set, must run find_mass_features() first"
+                )
+            ## call mass feature data
+            mf_df = self.mass_features_to_df()
+
+        if ms2_plot:
+            if not mf_plot:
+                # Check if mass_features is set, raise error if not
+                if self.mass_features is None:
+                    raise ValueError(
+                        "mass_features not set, must run find_mass_features() first"
+                    )
+
+            ## call mass feature data
+            mf_df = self.mass_features_to_df()
+
+            # Check if ms2_spectrum is set, raise error if not
+            if 'ms2_spectrum' not in mf_df.columns:
+                raise ValueError(                
+                    "ms2_spectrum not set, must run add_associated_ms2_dda() first"            
+                )
+    
+        ## threshold and grid unprocessed data
+        df = self._ms_unprocessed[1].copy()
+        df = df.dropna(subset=['intensity']).reset_index(drop = True)
+        threshold = self.parameters.lc_ms.ph_inten_min_rel * df.intensity.max()
+        df_thres = df[df["intensity"] > threshold].reset_index(drop=True).copy()
+        df = self.grid_data(df_thres)
+    
+        ## format unprocessed data for plotting
+        df = df.merge(self.scan_df[['scan', 'scan_time']], on = 'scan')
+        mz_grid = np.arange(0, np.max(df.mz), binsize)
+        mz_data = np.array(df.mz)
+        df['mz_bin'] = find_closest(mz_grid, mz_data)
+        df['ab_bin'] = df.groupby(['mz_bin', 'scan_time']).intensity.transform(sum)
+        unproc_df = df[['scan_time', 'mz_bin', 'ab_bin']].drop_duplicates(ignore_index = True)
+
+        ## generate figure
+        fig = plt.figure()
+        plt.scatter(
+            unproc_df.scan_time,
+            unproc_df.mz_bin*binsize,
+            c = unproc_df.ab_bin/np.max(unproc_df.ab_bin),
+            alpha = unproc_df.ab_bin/np.max(unproc_df.ab_bin), 
+            cmap = 'Greys_r',
+            s = 1
+        )
+
+        if mf_plot:
+            if ms2_plot:
+                plt.scatter(
+                    mf_df[mf_df.ms2_spectrum.isna()].scan_time,
+                    mf_df[mf_df.ms2_spectrum.isna()].mz,
+                    c = 'c',
+                    s = 4,
+                    label = 'Mass features without MS2'
+                )
+            else:
+                plt.scatter(
+                    mf_df.scan_time,
+                    mf_df.mz,
+                    c = 'c',
+                    s = 4,
+                    label = 'Mass features'
+                )
+
+        if ms2_plot: 
+            plt.scatter(
+                mf_df[~mf_df.ms2_spectrum.isna()].scan_time,
+                mf_df[~mf_df.ms2_spectrum.isna()].mz,
+                c = 'r',
+                s = 2,
+                label = 'Mass features with MS2'
+            )
+
+        plt.legend(loc = 'lower center', bbox_to_anchor = (0.5, -0.25), ncol = 2)
+        plt.xlabel('Scan time')
+        plt.ylabel('m/z')
+        plt.ylim(0, np.ceil(np.max(df.mz)))
+        plt.xlim(0, np.ceil(np.max(df.scan_time)))
+        plt.title('Composite Feature Map')
+
+        if return_fig:
+            plt.close(fig)
+            return fig
+
+        else:
+            plt.show()
 
     def __len__(self):
         """
