@@ -913,20 +913,20 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
 
         return annot_ms2_df_full
 
-    def plot_composite_mass_features(self, binsize = 1e-4, mf_plot = True, ms2_plot = True, return_fig = False):
+    def plot_composite_features(self, binsize = 1e-4, mf_plot = True, ms2_plot = True, return_fig = False):
         """Returns a figure displaying 
             (1) thresholded, unprocessed data
-            (2) the mass features
-            (3) which mass features are associated with MS2 spectra
+            (2) the m/z features
+            (3) which m/z features are associated with MS2 spectra
 
         Parameters
         -----------
         binsize :  float
             Desired binsize for the m/z axis of the composite feature map.  Defaults to 1e-4.
         mf_plot : boolean
-            Indicates whether to plot the mass features. Defaults to True.
+            Indicates whether to plot the m/z features. Defaults to True.
         ms2_plot : boolean
-            Indicates whether to identify mass features with associated MS2 spectra. Defaults to True.
+            Indicates whether to identify m/z features with associated MS2 spectra. Defaults to True.
         return_fig : boolean
             Indicates whether to plot composite feature map (False) or return figure object (True). Defaults to False.
 
@@ -935,15 +935,15 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         matplotlib.pyplot.Figure
             A figure with the thresholded, unprocessed data on an axis of m/z value with respect to 
             scan time. Unprocessed data is displayed in gray scale with darker colors indicating 
-            higher intensities. If mass features are plotted, they are displayed in cyan. If mass
+            higher intensities. If m/z features are plotted, they are displayed in cyan. If m/z
             features with associated with MS2 spectra are plotted, they are displayed in red.
 
         Raises
         ------
         Warning
-            If mass features are set to be plot but aren't in the dataset.
-            If mass features with associated MS2 data are set to be plot but no MS2 annotations 
-            were found for the mass features in the dataset.
+            If m/z features are set to be plot but aren't in the dataset.
+            If m/z features with associated MS2 data are set to be plot but no MS2 annotations 
+            were found for the m/z features in the dataset.
         """
         if mf_plot:
             # Check if mass_features is set, raise error if not
@@ -962,7 +962,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                         "mass_features not set, must run find_mass_features() first"
                     )
 
-            ## call mass feature data
+            ## call m/z feature data
             mf_df = self.mass_features_to_df()
 
             # Check if ms2_spectrum is set, raise error if not
@@ -975,7 +975,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         df = self._ms_unprocessed[1].copy()
         df = df.dropna(subset=['intensity']).reset_index(drop = True)
         threshold = self.parameters.lc_ms.ph_inten_min_rel * df.intensity.max()
-        df_thres = df[df["intensity"] > threshold].reset_index(drop=True).copy()
+        df_thres = df[df["intensity"] > threshold].reset_index(drop = True).copy()
         df = self.grid_data(df_thres)
     
         ## format unprocessed data for plotting
@@ -1004,7 +1004,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                     mf_df[mf_df.ms2_spectrum.isna()].mz,
                     c = 'c',
                     s = 4,
-                    label = 'Mass features without MS2'
+                    label = 'M/Z features without MS2'
                 )
             else:
                 plt.scatter(
@@ -1012,7 +1012,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                     mf_df.mz,
                     c = 'c',
                     s = 4,
-                    label = 'Mass features'
+                    label = 'M/Z features'
                 )
 
         if ms2_plot: 
@@ -1021,7 +1021,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 mf_df[~mf_df.ms2_spectrum.isna()].mz,
                 c = 'r',
                 s = 2,
-                label = 'Mass features with MS2'
+                label = 'M/Z features with MS2'
             )
 
         plt.legend(loc = 'lower center', bbox_to_anchor = (0.5, -0.25), ncol = 2)
