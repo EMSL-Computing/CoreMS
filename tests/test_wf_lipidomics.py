@@ -147,6 +147,8 @@ def test_lipidomics_workflow():
     myLCMSobj.add_associated_ms2_dda(spectrum_mode="centroid", ms_params_key="ms2_cid", scan_filter="cid")
     assert len(myLCMSobj._ms) > og_ms_len
 
+    myLCMSobj.plot_composite_mz_features()
+
     # Export the mass features to a pandas dataframe
     df = myLCMSobj.mass_features_to_df()
     assert df.shape == (130, 16)
