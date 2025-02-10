@@ -913,7 +913,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
 
         return annot_ms2_df_full
 
-    def plot_composite_features(self, binsize = 1e-4, mf_plot = True, ms2_plot = True, return_fig = False):
+    def plot_composite_mz_features(self, binsize = 1e-4, mf_plot = True, ms2_plot = True, return_fig = False):
         """Returns a figure displaying 
             (1) thresholded, unprocessed data
             (2) the m/z features
