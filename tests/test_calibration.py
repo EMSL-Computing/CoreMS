@@ -2,8 +2,6 @@ import sys
 from pathlib import Path
 import pytest
 
-sys.path.append(".")
-
 from corems.mass_spectrum.calc.AutoRecalibration import HighResRecalibration
 from corems.mass_spectrum.calc.Calibration import MzDomainCalibration
 from corems.mass_spectrum.calc.CalibrationCalc import FreqDomain_Calibration

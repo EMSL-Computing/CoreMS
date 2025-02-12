@@ -106,6 +106,7 @@ class ReadCoremsMasslist(MassListBaseClass):
         mass_spec_mz_exp_list = mass_spec_obj.mz_exp
 
         for df_index, mz_exp in enumerate(mz_exp_df):
+            bad_mf = False
             counts = 0
 
             ms_peak_index = list(mass_spec_mz_exp_list).index(float(mz_exp))
@@ -175,7 +176,7 @@ class ReadCoremsMasslist(MassListBaseClass):
                     # Next, generate isotopologues from the parent
                     isos = list(
                         mono_mfobj.isotopologues(
-                            min_abundance=mass_spec_obj[df_index].abundance * 0.001,
+                            min_abundance=mass_spec_obj.abundance.min()*0.01,
                             current_mono_abundance=mass_spec_obj[mono_index].abundance,
                             dynamic_range=mass_spec_obj.dynamic_range,
                         )
@@ -200,28 +201,32 @@ class ReadCoremsMasslist(MassListBaseClass):
                                     matched_isos.append(iso)
 
                     if len(matched_isos) == 0:
-                        raise ValueError("No isotopologue matched the formula_dict")
-                    mfobj = matched_isos[0]
+                        #FIXME: This should not occur see https://code.emsl.pnl.gov/mass-spectrometry/corems/-/issues/190
+                        warnings.warn(f"No isotopologue matched the formula_dict: {formula_dict}")
+                        bad_mf = True
+                    else:
+                        bad_mf = False                   
+                        mfobj = matched_isos[0]
 
-                    # Add the mono isotopic index, confidence score and isotopologue similarity
-                    mfobj.mspeak_index_mono_isotopic = int(
-                        dataframe.iloc[df_index]["Mono Isotopic Index"]
-                    )
-
-                # Add the confidence score and isotopologue similarity and average MZ error score
-                if "m/z Error Score" in dataframe:
-                    mfobj._mass_error_average_score = float(
-                        dataframe.iloc[df_index]["m/z Error Score"]
-                    )
-                if "Confidence Score" in dataframe:
-                    mfobj._confidence_score = float(
-                        dataframe.iloc[df_index]["Confidence Score"]
-                    )
-                if "Isotopologue Similarity" in dataframe:
-                    mfobj._isotopologue_similarity = float(
-                        dataframe.iloc[df_index]["Isotopologue Similarity"]
-                    )
-                mass_spec_obj[ms_peak_index].add_molecular_formula(mfobj)
+                        # Add the mono isotopic index, confidence score and isotopologue similarity
+                        mfobj.mspeak_index_mono_isotopic = int(
+                            dataframe.iloc[df_index]["Mono Isotopic Index"]
+                        )
+                if not bad_mf:
+                    # Add the confidence score and isotopologue similarity and average MZ error score
+                    if "m/z Error Score" in dataframe:
+                        mfobj._mass_error_average_score = float(
+                            dataframe.iloc[df_index]["m/z Error Score"]
+                        )
+                    if "Confidence Score" in dataframe:
+                        mfobj._confidence_score = float(
+                            dataframe.iloc[df_index]["Confidence Score"]
+                        )
+                    if "Isotopologue Similarity" in dataframe:
+                        mfobj._isotopologue_similarity = float(
+                            dataframe.iloc[df_index]["Isotopologue Similarity"]
+                        )
+                    mass_spec_obj[ms_peak_index].add_molecular_formula(mfobj)
 
 
 class ReadMassList(MassListBaseClass):

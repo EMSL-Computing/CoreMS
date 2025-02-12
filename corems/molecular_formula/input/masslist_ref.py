@@ -9,8 +9,6 @@ from typing import Dict, List
 
 import pandas as pd
 
-sys.path.append(".")
-
 from corems.encapsulation.constant import Atoms, Labels
 from corems.molecular_formula.factory.MolecularFormulaFactory import (
     LCMSLibRefMolecularFormula,

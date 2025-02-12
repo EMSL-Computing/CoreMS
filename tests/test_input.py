@@ -4,7 +4,6 @@ __date__ = "Jul 02, 2019"
 
 import sys
 
-sys.path.append(".")
 from pathlib import Path
 
 from corems.encapsulation.constant import Labels

@@ -364,14 +364,17 @@ class MolecularCombinations:
                     self.sql_db.session.execute(insert_query)
                 self.sql_db.session.commit()
 
-    @timeit
-    def runworker(self, molecular_search_settings):
+    @timeit(print_time=True)
+    def runworker(self, molecular_search_settings, **kwargs):
         """Run the molecular formula lookup table worker.
 
         Parameters
         ----------
         molecular_search_settings : object
             An object containing user-defined settings.
+        kwargs : dict
+            A dictionary of keyword arguments.
+            Most notably, the print_time argument which is passed to the timeit decorator.
 
         Returns
         -------
@@ -380,6 +383,7 @@ class MolecularCombinations:
 
 
         """
+        verbose = molecular_search_settings.verbose_processing
 
         classes_list, class_to_create, existing_classes_objs = (
             self.check_database_get_class_list(molecular_search_settings)
@@ -412,7 +416,7 @@ class MolecularCombinations:
             self.even_ch_dbe = [obj.dbe for obj in even_ch_obj]
 
             all_results = list()
-            for class_tuple in tqdm(class_to_create):
+            for class_tuple in tqdm(class_to_create, disable = not verbose):
                 results = self.populate_combinations(class_tuple, settings)
                 all_results.extend(results)
                 if settings.db_jobs == 1:
@@ -438,8 +442,8 @@ class MolecularCombinations:
                 ]
                 p = multiprocessing.Pool(settings.db_jobs)
                 for class_list in tqdm(
-                    p.imap_unordered(insert_database_worker, worker_args)
-                ):
+                        p.imap_unordered(insert_database_worker, worker_args), disable= not verbose
+                        ):
                     pass
                 p.close()
                 p.join()

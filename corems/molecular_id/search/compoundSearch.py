@@ -127,7 +127,6 @@ class LowResMassSpectralMatch(Thread):
 
         return spectral_similarity_scores, ri_score, similarity_score
 
-    # @timeit
     def run(self):
         """Runs the low-resolution mass spectral match."""
         # TODO select the best gcms peak
@@ -148,8 +147,8 @@ class LowResMassSpectralMatch(Thread):
         self.gcms_obj.chromatogram_settings.use_deconvolution = (
             original_use_deconvolution
         )
-
-        for gc_peak in tqdm.tqdm(self.gcms_obj):
+        verbose = self.gcms_obj.chromatogram_settings.verbose_processing
+        for gc_peak in tqdm.tqdm(self.gcms_obj, disable = not verbose):
             if not self.calibration:
                 window = self.gcms_obj.molecular_search_settings.ri_search_range
 

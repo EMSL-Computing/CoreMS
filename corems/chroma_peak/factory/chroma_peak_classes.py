@@ -240,7 +240,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         if abs(mz_diff) < 0.01:
             self._mz_exp = new_mz
 
-    def plot(self, to_plot=["EIC", "MS1", "MS2"], return_fig=True):
+    def plot(self, to_plot=["EIC", "MS1", "MS2"], return_fig=True, plot_smoothed_eic = False, plot_eic_datapoints = False):
         """Plot the mass feature.
 
         Parameters
@@ -251,6 +251,10 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             Default is ["EIC", "MS1", "MS2"].
         return_fig : bool, optional
             If True, the figure is returned. Default is True.
+        plot_smoothed_eic : bool, optional
+            If True, the smoothed EIC is plotted. Default is False.
+        plot_eic_datapoints : bool, optional
+            If True, the EIC data points are plotted. Default is False.
 
         Returns
         -------
@@ -295,7 +299,11 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
                     "EIC data is not available, cannot plot the mass feature's EIC"
                 )
             axs[i][0].set_title("EIC", loc="left")
-            axs[i][0].plot(self._eic_data.time, self._eic_data.eic)
+            axs[i][0].plot(self._eic_data.time, self._eic_data.eic, c="tab:blue", label="EIC")
+            if plot_eic_datapoints:
+                axs[i][0].scatter(self._eic_data.time, self._eic_data.eic, c="tab:blue", label="EIC Data Points")
+            if plot_smoothed_eic:
+                axs[i][0].plot(self._eic_data.time, self._eic_data.eic_smoothed, c="tab:red", label="Smoothed EIC")
             if self.start_scan is not None:
                 axs[i][0].fill_between(
                     self.eic_rt_list, self.eic_list, color="b", alpha=0.2

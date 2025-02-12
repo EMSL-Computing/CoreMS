@@ -65,7 +65,7 @@ class MzDomainCalibration:
 
         # define reference mass list - bruker .ref format
         self.ref_mass_list_path = ref_masslist
-        if self.mass_spectrum.percentile_assigned()[0] != 0:
+        if self.mass_spectrum.percentile_assigned(mute_output=True)[0] != 0:
             warnings.warn(
                 "Warning: calibrating spectra which have already been assigned may yield erroneous results"
             )
@@ -73,10 +73,6 @@ class MzDomainCalibration:
         self.mass_spectrum.mz_cal_profile = self.mass_spectrum._mz_exp
 
         if self.mass_spectrum.parameters.mass_spectrum.verbose_processing:
-            print(
-                "MS Obj loaded - " + str(len(mass_spectrum.mspeaks)) + " peaks found."
-            )
-
             print(
                 "MS Obj loaded - " + str(len(mass_spectrum.mspeaks)) + " peaks found."
             )
@@ -228,7 +224,7 @@ class MzDomainCalibration:
             cal_peaks_mz = list(tmpdf.values)
             cal_refs_mz = list(tmpdf.index)
         elif calibration_ref_match_method == "merged":
-            warnings.warn("Using experimental new reference mass list merging")
+            #warnings.warn("Using experimental new reference mass list merging")
             # This is a new approach (August 2024) which uses Pandas 'merged_asof' to find the peaks closest in m/z between
             # reference and measured masses. This is a quicker way to match, and seems to get more matches.
             # It may not work as well when the data are far from correc initial mass

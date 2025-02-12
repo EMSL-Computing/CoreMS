@@ -38,13 +38,16 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc):
         Calculate the weight average molecular weight
     """
 
-    def percentile_assigned(self, report_error: bool = False):
+    def percentile_assigned(self, report_error: bool = False, mute_output: bool = False):
         """Percentage of peaks which are assigned
 
         Parameters
         -----------
         report_error: bool, optional
             Report the error of the assigned peaks. Default is False.
+        mute_output: bool, optional
+            Override the verbose setting. Default is False.
+            If True, the function will silence results
         """
         verbose = self.parameters.mass_spectrum.verbose_processing
         assign_abun = 0
@@ -68,7 +71,7 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc):
         total_relative_abundance = (assign_abun / (not_assign_abun + assign_abun)) * 100
         if report_error:
             rms_error = sqrt(mean(array(error) ** 2))
-            if verbose:
+            if verbose and not mute_output:
                 print(
                     "%i assigned peaks and %i unassigned peaks, total  = %.2f %%, relative abundance = %.2f %%, RMS error (best candidate) (ppm) = %.3f"
                     % (i, j, total_percent, total_relative_abundance, rms_error)
@@ -76,7 +79,7 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc):
             return i, j, total_percent, total_relative_abundance, rms_error
 
         else:
-            if verbose:
+            if verbose and not mute_output:
                 print(
                     "%i assigned peaks and %i unassigned peaks , total  = %.2f %%, relative abundance = %.2f %%"
                     % (

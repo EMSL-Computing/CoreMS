@@ -3,8 +3,6 @@ __date__ = "Jul 22, 2019"
 
 import sys
 
-sys.path.append(".")
-
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 from corems.encapsulation.constant import Labels
 

@@ -7,4 +7,4 @@ registration_file = "path/to/where/database/dump/lives.json"
 execution_resource = "EMSL-RZR"
 field_strength = 7
 workflow_version = "2.2.3"
-minting_client_config_path = "enviroMS/nmdc_metadata_generation/config.yaml"
+config_path = "enviroMS/nmdc_metadata_generation/config.yaml"

@@ -1,5 +1,5 @@
 pyyaml
-nmdc-schema==11.0.0rc17
+nmdc-schema
 requests
 requests-oauthlib
 pandas

@@ -20,7 +20,7 @@ from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 from corems.mass_spectra.input.mzml import MZMLSpectraParser
 from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
 from corems.mass_spectra.output.export import LipidomicsExport
-from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
+from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas, SearchMolecularFormulasLC
 from corems.molecular_id.search.database_interfaces import MetabRefLCInterface
 from corems.encapsulation.input.parameter_from_json import (
     load_and_set_toml_parameters_lcms,
@@ -193,35 +193,8 @@ def molecular_formula_search(myLCMSobj):
     -------
     None, processes the LCMS object
     """
-    i = 1
-    # get df of mass features
-    mf_df = myLCMSobj.mass_features_to_df()
-
-    # search molecular formulas for each mass feature
-    total_decon_parent = sum(mf_df.mass_spectrum_deconvoluted_parent)
-    for mf_id in mf_df.index:
-        if myLCMSobj.mass_features[mf_id].mass_spectrum_deconvoluted_parent:
-            if i > 10:  # TODO KRH: remove this when ready
-                break
-            print("searching mf: ", str(i), " of ", str(total_decon_parent))
-
-            scan = myLCMSobj.mass_features[mf_id].apex_scan
-            # Search single spectrum for all peaks that correspond to the same scan
-            mf_df_scan = mf_df[mf_df.apex_scan == scan]
-            peaks_to_search = [
-                myLCMSobj.mass_features[x].ms1_peak for x in mf_df_scan.index.tolist()
-            ]
-            time_start = time.time()
-            SearchMolecularFormulas(
-                myLCMSobj._ms[scan],
-                first_hit=False,
-                find_isotopologues=True,
-            ).run_worker_ms_peaks(peaks_to_search)
-            print(
-                "time to search whole spectrum for all peaks in scan: ",
-                time.time() - time_start,
-            )
-            i += 1
+    mol_search = SearchMolecularFormulasLC(myLCMSobj)
+    mol_search.run_mass_feature_search()
     print("Finished molecular search")
 
 
@@ -388,7 +361,7 @@ def run_lipid_sp_ms1(
     scan_translator=None,
     verbose=True,
     return_mzs=True,
-    ms1_molecular_search=False,
+    ms1_molecular_search=True,
 ):
     """Run signal processing, get associated ms1, add associated ms2, do ms1 molecular search, and export intermediate results
 
@@ -416,6 +389,7 @@ def run_lipid_sp_ms1(
     check_scan_translator(myLCMSobj, scan_translator)
     add_mass_features(myLCMSobj, scan_translator)
     myLCMSobj.remove_unprocessed_data()
+    #myLCMSobj.parameters.mass_spectrum['ms1'].molecular_search.verbose_processing = False
     if ms1_molecular_search:
         molecular_formula_search(myLCMSobj)
     export_results(myLCMSobj, out_path=out_path, final=False)
@@ -434,7 +408,7 @@ def run_lipid_sp_ms1(
         return mz_dict
 
 
-def prep_metadata(mz_dicts, out_dir, token_path):
+def prep_metadata(mz_dicts, out_dir):
     """Prepare metadata for ms2 spectral search
 
     Parameters
@@ -462,9 +436,6 @@ def prep_metadata(mz_dicts, out_dir, token_path):
         metadata["mzs"].update(d)
 
     metabref = MetabRefLCInterface()
-    if token_path is not None:
-        metabref.set_token(token_path)
-    metabref.set_token("tmp_data/thermo_raw_collection/metabref.token")
 
     print("Preparing positive lipid library")
     if metadata["mzs"]["positive"] is not None:
@@ -472,7 +443,6 @@ def prep_metadata(mz_dicts, out_dir, token_path):
             mz_list=metadata["mzs"]["positive"],
             polarity="positive",
             mz_tol_ppm=5,
-            mz_tol_da_api=0.01,
             format="flashentropy",
             normalize=True,
             fe_kwargs={
@@ -557,7 +527,6 @@ def run_lipid_workflow(
     file_dir,
     out_dir,
     params_toml,
-    token_path,
     scan_translator=None,
     verbose=True,
     ms1_molecular_search=True,
@@ -573,9 +542,6 @@ def run_lipid_workflow(
         Path to output directory
     params_toml : str or Path
         Path to toml file with parameters
-
-    token_path : str or Path
-        Path to token file for MetabRefLCInterface
     verbose : bool
         Whether to print verbose output
     cores : int
@@ -625,9 +591,9 @@ def run_lipid_workflow(
         mz_dicts = pool.starmap(run_lipid_sp_ms1, args)
         pool.close()
         pool.join()
-    """
+    
     # Prepare ms2 spectral search space
-    metadata = prep_metadata(mz_dicts, out_dir, token_path)
+    metadata = prep_metadata(mz_dicts, out_dir)
 
     # Run ms2 spectral search and export final results
     if cores == 1 or len(files_list) == 1:
@@ -641,17 +607,15 @@ def run_lipid_workflow(
         mz_dicts = pool.starmap(run_lipid_ms2, args)
         pool.close()
         pool.join()
-    """
     print("Finished processing, data are written in " + str(out_dir))
 
 
 if __name__ == "__main__":
     # Set input variables to run
     cores = 1
-    file_dir = Path("tmp_data/thermo_raw_mini")
-    out_dir = Path("tmp_data/NMDC_processed_241113")
-    params_toml = Path("tmp_data/EMSL_lipidomics_params.toml")
-    metab_ref_token = Path("tmp_data/thermo_raw_collection/metabref.token")
+    file_dir = Path("/Users/heal742/LOCAL/corems_dev/corems/tmp_data/thermo_raw_mini")
+    out_dir = Path("tmp_data/_test_250115")
+    params_toml = Path("/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/configurations/emsl_lipidomics_corems_params.toml")
     verbose = True
     scan_translator = Path("tmp_data/thermo_raw_collection/scan_translator.toml")
 
@@ -666,7 +630,6 @@ if __name__ == "__main__":
         file_dir=file_dir,
         out_dir=out_dir,
         params_toml=params_toml,
-        token_path=metab_ref_token,
         scan_translator=scan_translator,
         verbose=verbose,
         cores=cores,

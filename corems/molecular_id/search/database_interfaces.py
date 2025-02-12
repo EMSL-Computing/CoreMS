@@ -92,7 +92,7 @@ class SpectralDatabaseInterface(ABC):
 
         return header
 
-    def get_query(self, url):
+    def get_query(self, url, use_header=True):
         """
         Request payload from URL according to `get` protocol.
 
@@ -100,6 +100,8 @@ class SpectralDatabaseInterface(ABC):
         ----------
         url : str
             URL for request.
+        use_header: bool
+            Whether or not the query should include the header
 
         Returns
         -------
@@ -109,7 +111,10 @@ class SpectralDatabaseInterface(ABC):
         """
 
         # Query URL via `get`
-        response = requests.get(url, headers=self.get_header())
+        if use_header:
+            response = requests.get(url, headers=self.get_header())
+        else:
+            response = requests.get(url)
 
         # Check response
         response.raise_for_status()
@@ -352,6 +357,16 @@ class MetabRefInterface(SpectralDatabaseInterface):
             if key not in input_dict.keys():
                 input_dict[key] = None
         return data_class(**input_dict)
+    
+    def get_query(self, url, use_header=False):
+        """Overwrites the get_query method on the parent class to default to not use a header
+        
+        Notes
+        -----
+        As of January 2025, the metabref database no longer requires a token and therefore no header is needed
+
+        """
+        return super().get_query(url, use_header)
 
 
 class MetabRefGCInterface(MetabRefInterface):
@@ -646,12 +661,14 @@ class MetabRefLCInterface(MetabRefInterface):
         super().__init__()
 
         # API endpoint for precursor m/z search
+        # inputs = mz, tolerance (in Da), polarity, page_no, per_page
         self.PRECURSOR_MZ_URL = (
-            "https://metabref.emsl.pnnl.gov/api/precursors/m/{}/t/{}/{}"
+            "https://metabref.emsl.pnnl.gov/api/precursors/m/{}/t/{}/{}?page={}&per_page={}"
         )
 
         # API endpoint for returning full list of precursor m/z values in database
-        self.PRECURSOR_MZ_ALL_URL = "https://metabref.emsl.pnnl.gov/api/precursors/{}"
+        # inputs = polarity, page_no, per_page
+        self.PRECURSOR_MZ_ALL_URL = "https://metabref.emsl.pnnl.gov/api/precursors/{}?page={}&per_page={}"
 
         self.__init_format_map__()
 
@@ -674,7 +691,7 @@ class MetabRefLCInterface(MetabRefInterface):
         self.format_map["fe"] = self.format_map["flashentropy"]
         self.format_map["flash-entropy"] = self.format_map["flashentropy"]
 
-    def query_by_precursor(self, mz_list, polarity, mz_tol_ppm, mz_tol_da_api=0.2):
+    def query_by_precursor(self, mz_list, polarity, mz_tol_ppm, mz_tol_da_api=0.2, max_per_page=50):
         """
         Query MetabRef by precursor m/z values.
 
@@ -690,6 +707,8 @@ class MetabRefLCInterface(MetabRefInterface):
         mz_tol_da_api : float, optional
             Maximum tolerance between precursor m/z values for API search, in daltons.
             Used to group similar mzs into a single API query for speed. Default is 0.2.
+        max_per_page : int, optional
+            Maximum records to return from MetabRef API query at a time.  Default is 50.
 
         Returns
         -------
@@ -705,7 +724,7 @@ class MetabRefLCInterface(MetabRefInterface):
         mz_list.sort()
         mz_groups = [[mz_list[0]]]
         for x in mz_list[1:]:
-            if abs(x - mz_groups[-1][-1]) <= mz_tol_da_api:
+            if abs(x - mz_groups[-1][0]) <= mz_tol_da_api:
                 mz_groups[-1].append(x)
             else:
                 mz_groups.append([x])
@@ -722,32 +741,59 @@ class MetabRefLCInterface(MetabRefInterface):
                 tol = (max(mz_group) - min(mz_group)) / 2 + mz_tol_ppm**-6 * max(
                     mz_group
                 )
-            lib = lib + self.get_query(
-                self.PRECURSOR_MZ_URL.format(str(mz), str(tol), polarity)
+            
+            # Get first page of results
+            response = self.get_query(
+                self.PRECURSOR_MZ_URL.format(str(mz), str(tol), polarity, 1, max_per_page)
             )
+            lib = lib + response['results']
+
+            # If there are more pages of results, get them
+            if response['total_pages'] > 1: 
+                for i in np.arange(2, response['total_pages']+1):
+                    lib = lib + self.get_query(
+                        self.PRECURSOR_MZ_URL.format(str(mz), str(tol), polarity, i, max_per_page)
+                        )['results']
 
         return lib
 
-    def request_all_precursors(self, polarity):
+    def request_all_precursors(self, polarity, per_page = 50000):
         """
-        Request all precursor m/z values from MetabRef.
+        Request all precursor m/z values for MS2 spectra from MetabRef.
 
         Parameters
         ----------
         polarity : str
             Ionization polarity, either "positive" or "negative".
+        per_page : int, optional
+            Number of records to fetch per call. Default is 50000
 
         Returns
         -------
         list
-            List of all precursor m/z values.
+            List of all precursor m/z values, sorted.
         """
         # If polarity is anything other than positive or negative, raise error
         if polarity not in ["positive", "negative"]:
             raise ValueError("Polarity must be 'positive' or 'negative'")
 
-        # Query MetabRef for all precursor m/z values
-        return self.get_query(self.PRECURSOR_MZ_ALL_URL.format(polarity))
+        precursors = []    
+
+        # Get first page of results and total number of pages of results
+        response = self.get_query(self.PRECURSOR_MZ_ALL_URL.format(polarity, str(1), str(per_page)))
+        total_pages = response['total_pages']
+        precursors.extend([x['precursor_ion'] for x in response['results']])
+
+        # Go through remaining pages of results
+        for i in np.arange(2, total_pages + 1):
+            response = self.get_query(self.PRECURSOR_MZ_ALL_URL.format(polarity, str(i), str(per_page)))
+            precursors.extend([x['precursor_ion'] for x in response['results']])
+        
+        # Sort precursors from smallest to largest and remove duplicates
+        precursors = list(set(precursors))
+        precursors.sort()
+
+        return precursors
 
     def get_lipid_library(
         self,
@@ -789,14 +835,25 @@ class MetabRefLCInterface(MetabRefInterface):
 
         """
         mz_list.sort()
+        mz_list = np.array(mz_list)
 
         # Get all precursors in the library matching the polarity
         precusors_in_lib = self.request_all_precursors(polarity=polarity)
-        precusors_in_lib.sort()
         precusors_in_lib = np.array(precusors_in_lib)
 
         # Compare the mz_list with the precursors in the library, keep any mzs that are within mz_tol of any precursor in the library
-        mz_list = np.array(mz_list)
+        lib_mz_df = pd.DataFrame(precusors_in_lib, columns=["lib_mz"])
+        lib_mz_df["closest_obs_mz"] = mz_list[
+            find_closest(mz_list, lib_mz_df.lib_mz.values)
+        ]
+        lib_mz_df["mz_diff_ppm"] = np.abs(
+            (lib_mz_df["lib_mz"] - lib_mz_df["closest_obs_mz"])
+            / lib_mz_df["lib_mz"]
+            * 1e6
+        )
+        lib_mz_sub = lib_mz_df[lib_mz_df["mz_diff_ppm"] <= mz_tol_ppm]
+
+        # Do the same in the opposite direction
         mz_df = pd.DataFrame(mz_list, columns=["mass_feature_mz"])
         mz_df["closest_lib_pre_mz"] = precusors_in_lib[
             find_closest(precusors_in_lib, mz_df.mass_feature_mz.values)
@@ -808,9 +865,15 @@ class MetabRefLCInterface(MetabRefInterface):
         )
         mz_df_sub = mz_df[mz_df["mz_diff_ppm"] <= mz_tol_ppm]
 
+        # Evaluate which is fewer mzs - lib_mz_sub or mz_df_sub and use that as the input for next step
+        if len(lib_mz_sub) < len(mz_df_sub):
+            mzs_to_query = lib_mz_sub.lib_mz.values
+        else:
+            mzs_to_query = mz_df_sub.mass_feature_mz.values
+
         # Query the library for the precursors in the mz_list that are in the library to retrieve the spectra and metadata
         lib = self.query_by_precursor(
-            mz_list=mz_df_sub.mass_feature_mz.values,
+            mz_list=mzs_to_query,
             polarity=polarity,
             mz_tol_ppm=mz_tol_ppm,
             mz_tol_da_api=mz_tol_da_api,
@@ -830,6 +893,12 @@ class MetabRefLCInterface(MetabRefInterface):
             {k: v for k, v in x.items() if k not in ["Molecular Data", "Lipid Tree"]}
             for x in lib
         ]
+        # Unpack the 'Lipid Fragments' key and the 'MSO Data" key from each entry
+        for x in lib:
+            if "Lipid Fragments" in x.keys():
+                x.update(x.pop("Lipid Fragments"))
+            if "MSO Data" in x.keys():
+                x.update(x.pop("MSO Data"))
 
         # Format the spectral library
         format_func = self._get_format_func(format)
