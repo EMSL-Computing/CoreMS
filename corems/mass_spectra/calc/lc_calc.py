@@ -1729,8 +1729,6 @@ class LCMSCollectionCalculations:
         starting with the LCMS object immediately following the center LCMS object. The retention times of the LCMS objects
         are then fit to the center LCMS object using the matched mass features.
 
-        Currently, this function only aligns LCMS objects within each batch, but not between batches.
-
         Returns
         -------
         None, but aligns the LCMS objects in the collection and sets the scan_time_aligned column in the scan_df attribute of each LCMS object.

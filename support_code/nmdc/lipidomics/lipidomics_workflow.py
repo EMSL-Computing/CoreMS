@@ -592,6 +592,8 @@ def run_lipid_workflow(
         pool.close()
         pool.join()
     
+    # Skip ms2 spectral search for now, will add back once we have an improved MetabRefLCInterface method
+    """
     # Prepare ms2 spectral search space
     metadata = prep_metadata(mz_dicts, out_dir)
 
@@ -607,6 +609,7 @@ def run_lipid_workflow(
         mz_dicts = pool.starmap(run_lipid_ms2, args)
         pool.close()
         pool.join()
+    """
     print("Finished processing, data are written in " + str(out_dir))
 
 
