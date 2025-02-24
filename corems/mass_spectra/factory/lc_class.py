@@ -374,6 +374,8 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         Sets the retention time list from the data in the _ms dictionary.
     * set_scans_number_from_data(overwrite=False)
         Sets the scan number list from the data in the _ms dictionary.
+    * plot_composite_mz_features(binsize = 1e-4, mf_plot = True, ms2_plot = True, return_fig = False)
+        Generates plot of M/Z features comparing scan time vs M/Z value
     """
 
     def __init__(
@@ -1024,7 +1026,8 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 label = 'M/Z features with MS2'
             )
 
-        plt.legend(loc = 'lower center', bbox_to_anchor = (0.5, -0.25), ncol = 2)
+        if mf_plot == True or ms2_plot == True:
+            plt.legend(loc = 'lower center', bbox_to_anchor = (0.5, -0.25), ncol = 2)
         plt.xlabel('Scan time')
         plt.ylabel('m/z')
         plt.ylim(0, np.ceil(np.max(df.mz)))
