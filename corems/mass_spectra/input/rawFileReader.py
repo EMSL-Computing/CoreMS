@@ -970,6 +970,30 @@ class ThermoBaseClass:
                 else:
                     header_dic[label] = value
         return header_dic
+    
+    def get_error_logs(self):
+        """
+        This code will extract the error logs from the raw file
+
+        Returns:
+        --------
+        Dict[float, str]
+            A dictionary containing the error log information with the retention time as the key
+        """
+
+        error_log_count = self.iRawDataPlus.RunHeaderEx.ErrorLogCount
+        if error_log_count == 0:
+            raise ValueError("No error logs found in the raw data file")
+            return None
+        
+        error_logs = {}
+        
+        for i in range(error_log_count):
+            error_log_item = self.iRawDataPlus.GetErrorLogItem(i)
+            rt = error_log_item.RetentionTime
+            message = error_log_item.Message
+            error_logs[rt] = message
+        return error_logs
 
     def get_centroid_msms_data(self, scan):
         """
