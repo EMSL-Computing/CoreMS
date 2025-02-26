@@ -258,6 +258,12 @@ class ThermoBaseClass:
 
         self.file_path.unlink()
 
+    def close_file(self) -> None:
+        """
+        Close the Thermo Raw file.
+        """
+        self.iRawDataPlus.Dispose()
+
     def get_polarity_mode(self, scan_number: int) -> int:
         """
         Get the polarity mode for the given scan number.
@@ -788,7 +794,7 @@ class ThermoBaseClass:
 
         return d_params
     
-    def get_instrument_methods(self):
+    def get_instrument_methods(self, parse_strings:bool = True):
         """
         This function will extract the instrument methods embedded in the raw file
         
@@ -799,6 +805,11 @@ class ThermoBaseClass:
 
         This has been tested on data from an Orbitrap ID-X with embedded MS and LC methods, but other instrument types may fail.
         
+        Parameters:
+        -----------
+        parse_strings: bool
+            If True, will attempt to parse the instrument methods into a dictionary. If False, will return the raw string.
+
         Returns:
         --------
         List[Dict[str, Any]] or List
@@ -857,12 +868,16 @@ class ThermoBaseClass:
                 return method
             
             count_instrument_methods = self.iRawDataPlus.InstrumentMethodsCount
+            # TODO make this code better... 
             instrument_methods = []
             for i in range(count_instrument_methods):
                 instrument_method_string = self.iRawDataPlus.GetInstrumentMethod(i)
-                try:
-                    instrument_method_dict = parse_instrument_method(instrument_method_string)
-                except: #if it fails for any reason
+                if parse_strings:
+                    try:
+                        instrument_method_dict = parse_instrument_method(instrument_method_string)
+                    except: #if it fails for any reason
+                        instrument_method_dict = instrument_method_string
+                else:
                     instrument_method_dict = instrument_method_string
                 instrument_methods.append(instrument_method_dict)
             return instrument_methods
@@ -889,6 +904,52 @@ class ThermoBaseClass:
             warnings.warn("Multiple tune methods found in the raw data file, returning the 1st")
 
         header = self.iRawDataPlus.GetTuneData(0)
+
+        header_dic = {}
+        current_section = None
+        
+        for i in range(header.Length):
+            label = header.Labels[i]
+            value = header.Values[i]
+            
+            # Check for section headers
+            if '===' in label or ((value == '' or value is None) and not label.endswith(':')):
+                # This is a section header
+                section_name = label.replace('=', '').replace(':','').strip()  # Clean the label if it contains '='
+                header_dic[section_name] = {}
+                current_section = section_name
+            else:
+                if current_section:
+                    header_dic[current_section][label] = value
+                else:
+                    header_dic[label] = value
+        return header_dic
+    
+    def get_status_log(self, retention_time:float = 0):
+        """
+        This code will extract the status logs from the raw file
+        It has been tested on data from a Thermo Orbitrap ID-X, Astral and Q-Exactive, but may fail on other instrument types.
+        It attempts to parse out section headers and sub-sections, but may not work for all instrument types.
+        It will also not return Labels (keys) where the value is blank
+
+        Parameters:
+        -----------
+        retention_time: float
+            The retention time in minutes to extract the status log data from. 
+            Will use the closest retention time found. Default 0.
+
+        Returns:
+        --------
+        Dict[str, Any]
+            A dictionary containing the status log information
+
+        """
+        tunemethodcount =  self.iRawDataPlus.GetStatusLogEntriesCount()
+        if tunemethodcount == 0:
+            raise ValueError("No status logs found in the raw data file")
+            return None
+    
+        header = self.iRawDataPlus.GetStatusLogForRetentionTime(retention_time)
 
         header_dic = {}
         current_section = None
