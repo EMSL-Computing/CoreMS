@@ -8,7 +8,7 @@ Created on Wed May 13 02:16:09 2020
 # import modules
 import csv
 import warnings
-from io import BytesIO
+from io import BytesIO, StringIO
 from pathlib import Path
 
 import numpy as np
@@ -76,14 +76,15 @@ class MzDomainCalibration:
             print(
                 "MS Obj loaded - " + str(len(mass_spectrum.mspeaks)) + " peaks found."
             )
-
+   
     def load_ref_mass_list(self):
         """Load reference mass list (Bruker format)
 
         Loads in a reference mass list from a .ref file
         Note that some versions of Bruker's software produce .ref files with a different format.
         As such, users may need to manually edit the .ref file in a text editor to ensure it is in the correct format.
-        CoreMS includes an example .ref file with the correct format for reference.
+        This has been tested on a few different formats, and will attempt to read it correctly. 
+        However, if you have issues please check the format of the .ref file included in the CoreMS repo. 
 
         Returns
         -------
@@ -101,21 +102,26 @@ class MzDomainCalibration:
             raise FileExistsError("File does not exist: %s" % refmasslist)
 
         with refmasslist.open("r") as csvfile:
-            dialect = csv.Sniffer().sniff(csvfile.read(1024))
-            delimiter = dialect.delimiter
+            lines = csvfile.readlines()
+
+        # Extract potential delimiter based on lines excluding the first three
+        dialect = csv.Sniffer().sniff("".join(lines[3:5]))
+        delimiter = dialect.delimiter
+
+        # Skipping header lines which start with #
+        actual_data_lines_idx = 0
+        for idx, line in enumerate(lines):
+            if not line.startswith('#') and line.strip():  # Skip empty lines after headers
+                actual_data_lines_idx = idx
+                break
+        lines = lines[actual_data_lines_idx:]
 
         if isinstance(refmasslist, S3Path):
-            # data = self.file_location.open('rb').read()
-            data = BytesIO(refmasslist.open("rb").read())
-
+            data = BytesIO("\n".join(lines).encode())
         else:
-            data = refmasslist
+            data = StringIO("\n".join(lines))
 
-        df_ref = pd.read_csv(data, sep=delimiter, header=None, skiprows=1)
-
-        df_ref = df_ref.rename(
-            {0: "Formula", 1: "m/z", 2: "Charge", 3: "Form2"}, axis=1
-        )
+        df_ref = pd.read_csv(data, sep=delimiter, header=None, usecols=[0, 1], names=["Formula", "m/z"])
 
         df_ref.sort_values(by="m/z", ascending=True, inplace=True)
         if self.mass_spectrum.parameters.mass_spectrum.verbose_processing:
