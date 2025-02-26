@@ -177,7 +177,8 @@ class TransientCalculations(object):
             Full-Sine,
             Half-Sine,
             Kaiser,
-            Half-Kaiser.
+            Half-Kaiser,
+            Rectangular/None
 
         For Kaiser and Half-Kaiser, an additional parameter 'beta' is required, set by the transient parameter kaiser_beta.
 
@@ -202,6 +203,8 @@ class TransientCalculations(object):
             H_function = kaiser(length, beta)
         elif apodi_method == "Half-Kaiser":
             H_function = kaiser(length * 2, beta)[length:]
+        elif apodi_method == 'Rectangular' or apodi_method is None:
+            H_function = 1
 
         S_x = transient * H_function
 
