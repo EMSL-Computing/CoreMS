@@ -866,7 +866,49 @@ class ThermoBaseClass:
                     instrument_method_dict = instrument_method_string
                 instrument_methods.append(instrument_method_dict)
             return instrument_methods
-    
+        
+
+    def get_tune_method(self):
+        """
+        This code will extract the tune method from the raw file
+        It has been tested on data from a Thermo Orbitrap ID-X, Astral and Q-Exactive, but may fail on other instrument types.
+        It attempts to parse out section headers and sub-sections, but may not work for all instrument types.
+        It will also not return Labels (keys) where the value is blank
+
+        Returns:
+        --------
+        Dict[str, Any]
+            A dictionary containing the tune method information
+
+        """
+        tunemethodcount = self.iRawDataPlus.GetTuneDataCount()
+        if tunemethodcount == 0:
+            raise ValueError("No tune methods found in the raw data file")
+            return None
+        elif tunemethodcount > 1:
+            warnings.warn("Multiple tune methods found in the raw data file, returning the 1st")
+
+        header = self.iRawDataPlus.GetTuneData(0)
+
+        header_dic = {}
+        current_section = None
+        
+        for i in range(header.Length):
+            label = header.Labels[i]
+            value = header.Values[i]
+            
+            # Check for section headers
+            if '===' in label or ((value == '' or value is None) and not label.endswith(':')):
+                # This is a section header
+                section_name = label.replace('=', '').replace(':','').strip()  # Clean the label if it contains '='
+                header_dic[section_name] = {}
+                current_section = section_name
+            else:
+                if current_section:
+                    header_dic[current_section][label] = value
+                else:
+                    header_dic[label] = value
+        return header_dic
 
     def get_centroid_msms_data(self, scan):
         """
