@@ -787,6 +787,86 @@ class ThermoBaseClass:
         d_params["instrument_label"] = self.iRawDataPlus.GetInstrumentData().Name
 
         return d_params
+    
+    def get_instrument_methods(self):
+        """
+        This function will extract the instrument methods embedded in the raw file
+        
+        First it will check if there are any instrument methods, if not returning None
+        Then it will get the total number of instrument methods.
+        For each method, it will extract the plaintext string of the method and attempt to parse it into a dictionary
+        If this fails, it will return just the string object. 
+
+        This has been tested on data from an Orbitrap ID-X with embedded MS and LC methods, but other instrument types may fail.
+        
+        Returns:
+        --------
+        List[Dict[str, Any]] or List
+            A list of dictionaries containing the instrument methods, or a list of strings if parsing fails.
+        """
+        
+        
+        if not self.iRawDataPlus.HasInstrumentMethod:
+            raise ValueError("Raw Data file does not have any instrument methods attached")
+            return None
+        else:
+            
+            def parse_instrument_method(data):
+                lines = data.split('\r\n')
+                method = {}
+                current_section = None
+                sub_section = None
+
+                for line in lines:
+                    if not line.strip():  # Skip empty lines
+                        continue
+                    if line.startswith('----') or line.endswith('Settings') or line.endswith('Summary') or line.startswith('Experiment') or line.startswith('Scan Event'):
+                        current_section = line.replace('-', '').strip()
+                        method[current_section] = {}
+                        sub_section = None
+                    elif line.startswith('\t'):
+                        if '\t\t' in line:
+                            indent_level = line.count('\t')
+                            key_value = line.strip()
+                            
+                            if indent_level == 2:
+                                if sub_section:
+                                    key, value = key_value.split('=', 1) if '=' in key_value else (key_value, None)
+                                    method[current_section][sub_section][key.strip()] = value.strip() if value else None
+                            elif indent_level == 3:
+                                scan_type, key_value = key_value.split(' ', 1) if ' ' in key_value else (key_value, None)
+                                method.setdefault(current_section, {}).setdefault(sub_section, {}).setdefault(scan_type, {})
+                                
+                                if key_value:
+                                    key, value = key_value.split('=', 1) if '=' in key_value else (key_value, None)
+                                    method[current_section][sub_section][scan_type][key.strip()] = value.strip() if value else None
+                        else:
+                            key_value = line.strip()
+                            if '=' in key_value:
+                                key, value = key_value.split('=', 1)
+                                method.setdefault(current_section, {})[key.strip()] = value.strip()
+                            else:
+                                sub_section = key_value
+                    else:
+                        if ':' in line:
+                            key, value = line.split(':', 1)
+                            method[current_section][key.strip()] = value.strip()
+                        else:
+                            method[current_section][line] = {}
+
+                return method
+            
+            count_instrument_methods = self.iRawDataPlus.InstrumentMethodsCount
+            instrument_methods = []
+            for i in range(count_instrument_methods):
+                instrument_method_string = self.iRawDataPlus.GetInstrumentMethod(i)
+                try:
+                    instrument_method_dict = parse_instrument_method(instrument_method_string)
+                except: #if it fails for any reason
+                    instrument_method_dict = instrument_method_string
+                instrument_methods.append(instrument_method_dict)
+            return instrument_methods
+    
 
     def get_centroid_msms_data(self, scan):
         """
