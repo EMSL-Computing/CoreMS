@@ -4,14 +4,13 @@ from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectraCollec
 
 
 if __name__ == "__main__":
+    # Set the path to the collection of LCMS runs (previously processed)
     collection_path = Path("/Users/heal742/LOCAL/10_lcms_collection_testing/UDN_neg/processed_data")
-    # Will need a bunch of already processed data for this to work (KRH to raw data, process using the lipidomics_workflow script, no need to do MS2 matching)
+    # Path to manifest file
     manifest_file = collection_path / "manifest_very_small.csv"
-    # This file will need to be created by the user or helper script?  For now, we have a small and large manifest file for testing (KRH to provide an example)
+    # This file will need to be created by the user or helper script?
     chromatography_file = collection_path / "long_lipid_gradient_chroma.csv"
-    # This file will need to be created by the user or helper script?  
-    # For now, setting to None should also work, it isn't used at the moment (or KRH to provide an example if setting to None doesn't work)
-
+    
     # Set the number of cores to use for loading the data (the parser is parallelized)
     ncores = 10
 
@@ -22,7 +21,6 @@ if __name__ == "__main__":
             chromatography_file=chromatography_file,
             cores = ncores
             )
-    
     print("Loading LCMS collection with", len(parser.manifest), "samples using", ncores, " cores")
 
     # Load the LCMS collection (minimally load the data)
@@ -45,7 +43,7 @@ if __name__ == "__main__":
     # Make some plots 
     lcms_collection.plot_tics(type="both")
     lcms_collection.plot_alignments()
-    # TODO: Think about other plots that would be useful to have here
+    # TODO: Think about other plots that would be useful to have here for assessing the quality of the data and alignment
 
     # Consolidate the mass features from the LCMS runs into a single dataframe
     mass_feature_df = lcms_collection.mass_features_to_df()
@@ -56,6 +54,6 @@ if __name__ == "__main__":
     # THIS FUNCTION NEEDS WORK AND NEEDS MECHANISM TO EVALUATE THE RESULTS (plots? reports?)
     print("Time to roll up consensus mass features: ", time.time() - start_time, "seconds -", len(lcms_collection.mass_features_dataframe), " total mass features", ncores, " cores")   
     
-    #TODO KRH: Add code to load and save information about chromatographic settings
-    #TODO KRH: Add code to save and load collection to HDF5 file
-    #TODO KRH: Add code to plot a consensus mass feature
+    #TODO: Add code to load and save information about chromatographic settings
+    #TODO: Add code to save and load collection to HDF5 file
+    #TODO: Add code to plot a consensus mass feature
