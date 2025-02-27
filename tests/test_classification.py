@@ -4,8 +4,8 @@ from corems.molecular_id.factory.classification import  HeteroatomsClassificatio
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 
 
-def test_heteroatoms_classification(mass_spectrum_ftms):
-    mass_spectrum_ftms.molecular_search_settings.url_database = "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"
+def test_heteroatoms_classification(mass_spectrum_ftms, postgres_database):
+    mass_spectrum_ftms.molecular_search_settings.url_database = postgres_database
     mass_spectrum_ftms.molecular_search_settings.error_method = 'None'
     mass_spectrum_ftms.molecular_search_settings.min_ppm_error  = -10
     mass_spectrum_ftms.molecular_search_settings.max_ppm_error = 10

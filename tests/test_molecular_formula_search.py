@@ -8,7 +8,7 @@ from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFor
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 
 
-def test_run_molecular_formula_search():
+def test_run_molecular_formula_search(postgres_database):
     """Test for generating accurate molecular formula from mass and isotope using the local sql database"""
     # Generate a mass spectrum object from a list of mz and abundance
     mz = [760.58156938877, 761.58548]
@@ -21,7 +21,7 @@ def test_run_molecular_formula_search():
     mass_spectrum_obj.settings.noise_threshold_absolute_abundance = 0
 
     # Set the settings for the molecular search on the mass spectrum object
-    mass_spectrum_obj.molecular_search_settings.url_database = "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"
+    mass_spectrum_obj.molecular_search_settings.url_database = postgres_database
     mass_spectrum_obj.molecular_search_settings.error_method = "None"
     mass_spectrum_obj.molecular_search_settings.min_ppm_error = -5
     mass_spectrum_obj.molecular_search_settings.max_ppm_error = 5
@@ -47,7 +47,7 @@ def test_run_molecular_formula_search():
     assert mass_spectrum_obj[1][0].string == "C55 H73 N1 13C1"
 
 
-def test_run_molecular_formula_search_adduct():
+def test_run_molecular_formula_search_adduct(postgres_database):
     """Test for generating accurate molecular formula from mass and isotope, for an adduct, using the local sql database"""
     # Generate a mass spectrum object from a list of mz and abundance
     mz = [782.563522, 783.566877]  # Na+ adduct of C56H73N1 and its M+1
@@ -60,7 +60,7 @@ def test_run_molecular_formula_search_adduct():
     mass_spectrum_obj.settings.noise_threshold_absolute_abundance = 0
 
     # Set the settings for the molecular search on the mass spectrum object
-    mass_spectrum_obj.molecular_search_settings.url_database = "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"
+    mass_spectrum_obj.molecular_search_settings.url_database = postgres_database
     mass_spectrum_obj.molecular_search_settings.error_method = "None"
     mass_spectrum_obj.molecular_search_settings.min_ppm_error = -5
     mass_spectrum_obj.molecular_search_settings.max_ppm_error = 5
@@ -90,8 +90,8 @@ def test_run_molecular_formula_search_adduct():
     assert mass_spectrum_obj[1][0].H_C == 73 / 56
 
 
-def test_mspeak_search(mass_spectrum_ftms):
-    mass_spectrum_ftms.molecular_search_settings.url_database = "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"
+def test_mspeak_search(mass_spectrum_ftms, postgres_database):
+    mass_spectrum_ftms.molecular_search_settings.url_database = postgres_database
     mass_spectrum_ftms.molecular_search_settings.usedAtoms = {
         "C": (1, 100),
         "H": (4, 200),
@@ -116,8 +116,8 @@ def test_mspeak_search(mass_spectrum_ftms):
     mspeak_obj[0].mz_error
 
 
-def test_molecular_formula_search_db(mass_spectrum_ftms):
-    mass_spectrum_ftms.molecular_search_settings.url_database = "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"
+def test_molecular_formula_search_db(mass_spectrum_ftms, postgres_database):
+    mass_spectrum_ftms.molecular_search_settings.url_database = postgres_database
     mass_spectrum_ftms.molecular_search_settings.usedAtoms = {
         "C": (1, 100),
         "H": (4, 200),
@@ -148,8 +148,8 @@ def test_molecular_formula_search_db(mass_spectrum_ftms):
     assert fraction_assigned > 0.7
 
 
-def test_priorityAssignment(mass_spectrum_ftms):
-    mass_spectrum_ftms.molecular_search_settings.url_database = "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"
+def test_priorityAssignment(mass_spectrum_ftms, postgres_database):
+    mass_spectrum_ftms.molecular_search_settings.url_database = postgres_database
     mass_spectrum_ftms.molecular_search_settings.error_method = "None"
     mass_spectrum_ftms.molecular_search_settings.min_ppm_error = -3
     mass_spectrum_ftms.molecular_search_settings.max_ppm_error = 5
