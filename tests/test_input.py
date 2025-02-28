@@ -367,7 +367,8 @@ def test_import_thermo_parse_metadata():
 
     # Read the error logs
     error_logs = parser.get_error_logs()
-    assert error_logs[0]['message'] == 'm/z: 202.00000'
+    #assert error_logs[0]['message'] == 'm/z: 202.00000' # This fails as the dictionary is populated in a different order locally or on GIT CI/CD
+    assert any(entry['message'] == 'm/z: 202.00000' for entry in error_logs.values())
 
     # Read the sample information
     sampleinfo = parser.get_sample_information()
