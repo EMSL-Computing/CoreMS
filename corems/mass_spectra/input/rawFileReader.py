@@ -358,8 +358,8 @@ class ThermoBaseClass:
         target_mzs: List[float],
         tic_data: Dict[str, Any],
         ms_type="MS !d",
-        peak_detection=False,  # This wont work right now
-        smooth=False,  # This wont work right now
+        peak_detection=False,
+        smooth=False,
         plot=False,
         ax: Optional[axes.Axes] = None,
         legend=False,
@@ -382,6 +382,9 @@ class ThermoBaseClass:
                                         )
 
         """
+        # If peak_detection or smooth is True, raise exception
+        if peak_detection or smooth:
+            raise Exception("Peak detection and smoothing are no longer implemented in this function")
 
         options = MassOptions()
         options.ToleranceUnits = ToleranceUnits.ppm
@@ -923,6 +926,11 @@ class ThermoBaseClass:
         Dict[str, Any]
             A dictionary containing the tune method information
 
+        Raises:
+        -------
+        ValueError
+            If no tune methods are found in the raw file
+
         """
         tunemethodcount = self.iRawDataPlus.GetTuneDataCount()
         if tunemethodcount == 0:
@@ -977,6 +985,11 @@ class ThermoBaseClass:
         Dict[str, Any]
             A dictionary containing the status log information
 
+        Raises:
+        -------
+        ValueError
+            If no status logs are found in the raw file
+
         """
         tunemethodcount = self.iRawDataPlus.GetStatusLogEntriesCount()
         if tunemethodcount == 0:
@@ -1017,6 +1030,11 @@ class ThermoBaseClass:
         --------
         Dict[float, str]
             A dictionary containing the error log information with the retention time as the key
+
+        Raises:
+        -------
+        ValueError
+            If no error logs are found in the raw file
         """
 
         error_log_count = self.iRawDataPlus.RunHeaderEx.ErrorLogCount
