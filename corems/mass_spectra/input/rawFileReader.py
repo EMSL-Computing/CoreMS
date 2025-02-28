@@ -1029,6 +1029,29 @@ class ThermoBaseClass:
         smdict['SampleWeight'] = sminfo.SampleWeight
         smdict['UserText'] = {'UserText':[x for x in sminfo.UserText]}#[0] #This may not work - needs debugging with 
         return smdict
+    
+    def get_instrument_data(self):
+        """
+        This code will extract the instrument data from the raw file
+
+        Returns:
+        --------
+        Dict[str, Any]
+            A dictionary containing the instrument data
+        """
+        instrument_data = self.iRawDataPlus.GetInstrumentData()
+        id_dict = {}
+        id_dict['Name'] = instrument_data.Name
+        id_dict['Model'] = instrument_data.Model
+        id_dict['SerialNumber'] = instrument_data.SerialNumber
+        id_dict['SoftwareVersion'] = instrument_data.SoftwareVersion
+        id_dict['HardwareVersion'] = instrument_data.HardwareVersion
+        id_dict['ChannelLabels'] = {'ChannelLabels':[x for x in instrument_data.ChannelLabels]}
+        id_dict['Flags'] = instrument_data.Flags
+        id_dict['AxisLabelY'] = instrument_data.AxisLabelY
+        id_dict['AxisLabelX'] = instrument_data.AxisLabelX
+        return id_dict
+
 
     def get_centroid_msms_data(self, scan):
         """

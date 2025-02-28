@@ -337,6 +337,10 @@ def test_import_thermo_parse_metadata():
     # creates the parser obj
     parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
 
+    # Get instrument data
+    instrument_data = parser.get_instrument_data()
+    assert instrument_data['Model'] == 'Orbitrap Velos Pro'
+
     # Get the scan header
     scan_header = parser.get_scan_header(1)
     assert scan_header['AGC:'] == 'On'
