@@ -358,8 +358,8 @@ class ThermoBaseClass:
         target_mzs: List[float],
         tic_data: Dict[str, Any],
         ms_type="MS !d",
-        peak_detection=True,
-        smooth=True,
+        peak_detection=False, #This wont work right now
+        smooth=False, # This wont work right now
         plot=False,
         ax: Optional[axes.Axes] = None,
         legend=False,
@@ -510,8 +510,8 @@ class ThermoBaseClass:
     def get_tic(
         self,
         ms_type="MS !d",
-        peak_detection=True,
-        smooth=True,
+        peak_detection=False, # This wont work right now
+        smooth=False, # This wont work right now
         plot=False,
         ax=None,
         trace_type="TIC",
