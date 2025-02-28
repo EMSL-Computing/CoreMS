@@ -363,7 +363,7 @@ def test_import_thermo_parse_metadata():
 
     # Read the error logs
     error_logs = parser.get_error_logs()
-    assert error_logs[0.0] == 'Activation type: ETD'
+    assert error_logs[0]['message'] == 'm/z: 202.00000'
 
     # Read the sample information
     sampleinfo = parser.get_sample_information()
@@ -372,4 +372,4 @@ def test_import_thermo_parse_metadata():
     # Close the file
     parser.close_file()
     assert parser.iRawDataPlus.get_IsOpen() == False
-    
+

@@ -992,7 +992,8 @@ class ThermoBaseClass:
             error_log_item = self.iRawDataPlus.GetErrorLogItem(i)
             rt = error_log_item.RetentionTime
             message = error_log_item.Message
-            error_logs[rt] = message
+            # Use the index `i` as the unique ID key
+            error_logs[i] = {'rt': rt, 'message': message}
         return error_logs
     
     
