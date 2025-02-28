@@ -994,6 +994,40 @@ class ThermoBaseClass:
             message = error_log_item.Message
             error_logs[rt] = message
         return error_logs
+    
+    
+    def get_sample_information(self):
+        """
+        This code will extract the sample information from the raw file
+
+        Returns:
+        --------
+        Dict[str, Any]
+            A dictionary containing the sample information
+            Note that UserText field may not be handled properly and may need further processing
+        """
+        sminfo = self.iRawDataPlus.SampleInformation
+        smdict = {}
+        smdict['Comment'] = sminfo.Comment
+        smdict['SampleId'] = sminfo.SampleId
+        smdict['SampleName'] = sminfo.SampleName
+        smdict['Vial'] = sminfo.Vial
+        smdict['InjectionVolume'] = sminfo.InjectionVolume
+        smdict['Barcode'] = sminfo.Barcode
+        smdict['BarcodeStatus'] = str(sminfo.BarcodeStatus)
+        smdict['CalibrationLevel'] = sminfo.CalibrationLevel
+        smdict['DilutionFactor'] = sminfo.DilutionFactor
+        smdict['InstrumentMethodFile'] = sminfo.InstrumentMethodFile
+        smdict['RawFileName'] = sminfo.RawFileName
+        smdict['CalibrationFile'] = sminfo.CalibrationFile
+        smdict['IstdAmount'] = sminfo.IstdAmount
+        smdict['RowNumber'] = sminfo.RowNumber
+        smdict['Path'] = sminfo.Path
+        smdict['ProcessingMethodFile'] = sminfo.ProcessingMethodFile
+        smdict['SampleType'] = str(sminfo.SampleType)
+        smdict['SampleWeight'] = sminfo.SampleWeight
+        smdict['UserText'] = {'UserText':[x for x in sminfo.UserText]}#[0] #This may not work - needs debugging with 
+        return smdict
 
     def get_centroid_msms_data(self, scan):
         """
