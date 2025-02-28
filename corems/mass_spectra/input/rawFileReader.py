@@ -1510,8 +1510,6 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
 
         Parameters
         ----------
-        verbose : bool, optional
-            If True, print progress messages. Default is True.
         spectra : str, optional
             Which mass spectra data to include in the output. Default is "all".  Other options: "none", "ms1", "ms2".
 
