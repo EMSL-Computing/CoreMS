@@ -358,8 +358,8 @@ class ThermoBaseClass:
         target_mzs: List[float],
         tic_data: Dict[str, Any],
         ms_type="MS !d",
-        peak_detection=False, #This wont work right now
-        smooth=False, # This wont work right now
+        peak_detection=False,  # This wont work right now
+        smooth=False,  # This wont work right now
         plot=False,
         ax: Optional[axes.Axes] = None,
         legend=False,
@@ -510,8 +510,8 @@ class ThermoBaseClass:
     def get_tic(
         self,
         ms_type="MS !d",
-        peak_detection=False, # This wont work right now
-        smooth=False, # This wont work right now
+        peak_detection=False,  # This wont work right now
+        smooth=False,  # This wont work right now
         plot=False,
         ax=None,
         trace_type="TIC",
@@ -793,18 +793,18 @@ class ThermoBaseClass:
         d_params["instrument_label"] = self.iRawDataPlus.GetInstrumentData().Name
 
         return d_params
-    
-    def get_instrument_methods(self, parse_strings:bool = True):
+
+    def get_instrument_methods(self, parse_strings: bool = True):
         """
         This function will extract the instrument methods embedded in the raw file
-        
+
         First it will check if there are any instrument methods, if not returning None
         Then it will get the total number of instrument methods.
         For each method, it will extract the plaintext string of the method and attempt to parse it into a dictionary
-        If this fails, it will return just the string object. 
+        If this fails, it will return just the string object.
 
         This has been tested on data from an Orbitrap ID-X with embedded MS and LC methods, but other instrument types may fail.
-        
+
         Parameters:
         -----------
         parse_strings: bool
@@ -815,15 +815,16 @@ class ThermoBaseClass:
         List[Dict[str, Any]] or List
             A list of dictionaries containing the instrument methods, or a list of strings if parsing fails.
         """
-        
-        
+
         if not self.iRawDataPlus.HasInstrumentMethod:
-            raise ValueError("Raw Data file does not have any instrument methods attached")
+            raise ValueError(
+                "Raw Data file does not have any instrument methods attached"
+            )
             return None
         else:
-            
+
             def parse_instrument_method(data):
-                lines = data.split('\r\n')
+                lines = data.split("\r\n")
                 method = {}
                 current_section = None
                 sub_section = None
@@ -831,57 +832,84 @@ class ThermoBaseClass:
                 for line in lines:
                     if not line.strip():  # Skip empty lines
                         continue
-                    if line.startswith('----') or line.endswith('Settings') or line.endswith('Summary') or line.startswith('Experiment') or line.startswith('Scan Event'):
-                        current_section = line.replace('-', '').strip()
+                    if (
+                        line.startswith("----")
+                        or line.endswith("Settings")
+                        or line.endswith("Summary")
+                        or line.startswith("Experiment")
+                        or line.startswith("Scan Event")
+                    ):
+                        current_section = line.replace("-", "").strip()
                         method[current_section] = {}
                         sub_section = None
-                    elif line.startswith('\t'):
-                        if '\t\t' in line:
-                            indent_level = line.count('\t')
+                    elif line.startswith("\t"):
+                        if "\t\t" in line:
+                            indent_level = line.count("\t")
                             key_value = line.strip()
-                            
+
                             if indent_level == 2:
                                 if sub_section:
-                                    key, value = key_value.split('=', 1) if '=' in key_value else (key_value, None)
-                                    method[current_section][sub_section][key.strip()] = value.strip() if value else None
+                                    key, value = (
+                                        key_value.split("=", 1)
+                                        if "=" in key_value
+                                        else (key_value, None)
+                                    )
+                                    method[current_section][sub_section][
+                                        key.strip()
+                                    ] = value.strip() if value else None
                             elif indent_level == 3:
-                                scan_type, key_value = key_value.split(' ', 1) if ' ' in key_value else (key_value, None)
-                                method.setdefault(current_section, {}).setdefault(sub_section, {}).setdefault(scan_type, {})
-                                
+                                scan_type, key_value = (
+                                    key_value.split(" ", 1)
+                                    if " " in key_value
+                                    else (key_value, None)
+                                )
+                                method.setdefault(current_section, {}).setdefault(
+                                    sub_section, {}
+                                ).setdefault(scan_type, {})
+
                                 if key_value:
-                                    key, value = key_value.split('=', 1) if '=' in key_value else (key_value, None)
-                                    method[current_section][sub_section][scan_type][key.strip()] = value.strip() if value else None
+                                    key, value = (
+                                        key_value.split("=", 1)
+                                        if "=" in key_value
+                                        else (key_value, None)
+                                    )
+                                    method[current_section][sub_section][scan_type][
+                                        key.strip()
+                                    ] = value.strip() if value else None
                         else:
                             key_value = line.strip()
-                            if '=' in key_value:
-                                key, value = key_value.split('=', 1)
-                                method.setdefault(current_section, {})[key.strip()] = value.strip()
+                            if "=" in key_value:
+                                key, value = key_value.split("=", 1)
+                                method.setdefault(current_section, {})[key.strip()] = (
+                                    value.strip()
+                                )
                             else:
                                 sub_section = key_value
                     else:
-                        if ':' in line:
-                            key, value = line.split(':', 1)
+                        if ":" in line:
+                            key, value = line.split(":", 1)
                             method[current_section][key.strip()] = value.strip()
                         else:
                             method[current_section][line] = {}
 
                 return method
-            
+
             count_instrument_methods = self.iRawDataPlus.InstrumentMethodsCount
-            # TODO make this code better... 
+            # TODO make this code better...
             instrument_methods = []
             for i in range(count_instrument_methods):
                 instrument_method_string = self.iRawDataPlus.GetInstrumentMethod(i)
                 if parse_strings:
                     try:
-                        instrument_method_dict = parse_instrument_method(instrument_method_string)
-                    except: #if it fails for any reason
+                        instrument_method_dict = parse_instrument_method(
+                            instrument_method_string
+                        )
+                    except:  # if it fails for any reason
                         instrument_method_dict = instrument_method_string
                 else:
                     instrument_method_dict = instrument_method_string
                 instrument_methods.append(instrument_method_dict)
             return instrument_methods
-        
 
     def get_tune_method(self):
         """
@@ -901,21 +929,27 @@ class ThermoBaseClass:
             raise ValueError("No tune methods found in the raw data file")
             return None
         elif tunemethodcount > 1:
-            warnings.warn("Multiple tune methods found in the raw data file, returning the 1st")
+            warnings.warn(
+                "Multiple tune methods found in the raw data file, returning the 1st"
+            )
 
         header = self.iRawDataPlus.GetTuneData(0)
 
         header_dic = {}
         current_section = None
-        
+
         for i in range(header.Length):
             label = header.Labels[i]
             value = header.Values[i]
-            
+
             # Check for section headers
-            if '===' in label or ((value == '' or value is None) and not label.endswith(':')):
+            if "===" in label or (
+                (value == "" or value is None) and not label.endswith(":")
+            ):
                 # This is a section header
-                section_name = label.replace('=', '').replace(':','').strip()  # Clean the label if it contains '='
+                section_name = (
+                    label.replace("=", "").replace(":", "").strip()
+                )  # Clean the label if it contains '='
                 header_dic[section_name] = {}
                 current_section = section_name
             else:
@@ -924,8 +958,8 @@ class ThermoBaseClass:
                 else:
                     header_dic[label] = value
         return header_dic
-    
-    def get_status_log(self, retention_time:float = 0):
+
+    def get_status_log(self, retention_time: float = 0):
         """
         This code will extract the status logs from the raw file
         It has been tested on data from a Thermo Orbitrap ID-X, Astral and Q-Exactive, but may fail on other instrument types.
@@ -935,7 +969,7 @@ class ThermoBaseClass:
         Parameters:
         -----------
         retention_time: float
-            The retention time in minutes to extract the status log data from. 
+            The retention time in minutes to extract the status log data from.
             Will use the closest retention time found. Default 0.
 
         Returns:
@@ -944,24 +978,28 @@ class ThermoBaseClass:
             A dictionary containing the status log information
 
         """
-        tunemethodcount =  self.iRawDataPlus.GetStatusLogEntriesCount()
+        tunemethodcount = self.iRawDataPlus.GetStatusLogEntriesCount()
         if tunemethodcount == 0:
             raise ValueError("No status logs found in the raw data file")
             return None
-    
+
         header = self.iRawDataPlus.GetStatusLogForRetentionTime(retention_time)
 
         header_dic = {}
         current_section = None
-        
+
         for i in range(header.Length):
             label = header.Labels[i]
             value = header.Values[i]
-            
+
             # Check for section headers
-            if '===' in label or ((value == '' or value is None) and not label.endswith(':')):
+            if "===" in label or (
+                (value == "" or value is None) and not label.endswith(":")
+            ):
                 # This is a section header
-                section_name = label.replace('=', '').replace(':','').strip()  # Clean the label if it contains '='
+                section_name = (
+                    label.replace("=", "").replace(":", "").strip()
+                )  # Clean the label if it contains '='
                 header_dic[section_name] = {}
                 current_section = section_name
             else:
@@ -970,7 +1008,7 @@ class ThermoBaseClass:
                 else:
                     header_dic[label] = value
         return header_dic
-    
+
     def get_error_logs(self):
         """
         This code will extract the error logs from the raw file
@@ -985,18 +1023,17 @@ class ThermoBaseClass:
         if error_log_count == 0:
             raise ValueError("No error logs found in the raw data file")
             return None
-        
+
         error_logs = {}
-        
+
         for i in range(error_log_count):
             error_log_item = self.iRawDataPlus.GetErrorLogItem(i)
             rt = error_log_item.RetentionTime
             message = error_log_item.Message
             # Use the index `i` as the unique ID key
-            error_logs[i] = {'rt': rt, 'message': message}
+            error_logs[i] = {"rt": rt, "message": message}
         return error_logs
-    
-    
+
     def get_sample_information(self):
         """
         This code will extract the sample information from the raw file
@@ -1009,27 +1046,29 @@ class ThermoBaseClass:
         """
         sminfo = self.iRawDataPlus.SampleInformation
         smdict = {}
-        smdict['Comment'] = sminfo.Comment
-        smdict['SampleId'] = sminfo.SampleId
-        smdict['SampleName'] = sminfo.SampleName
-        smdict['Vial'] = sminfo.Vial
-        smdict['InjectionVolume'] = sminfo.InjectionVolume
-        smdict['Barcode'] = sminfo.Barcode
-        smdict['BarcodeStatus'] = str(sminfo.BarcodeStatus)
-        smdict['CalibrationLevel'] = sminfo.CalibrationLevel
-        smdict['DilutionFactor'] = sminfo.DilutionFactor
-        smdict['InstrumentMethodFile'] = sminfo.InstrumentMethodFile
-        smdict['RawFileName'] = sminfo.RawFileName
-        smdict['CalibrationFile'] = sminfo.CalibrationFile
-        smdict['IstdAmount'] = sminfo.IstdAmount
-        smdict['RowNumber'] = sminfo.RowNumber
-        smdict['Path'] = sminfo.Path
-        smdict['ProcessingMethodFile'] = sminfo.ProcessingMethodFile
-        smdict['SampleType'] = str(sminfo.SampleType)
-        smdict['SampleWeight'] = sminfo.SampleWeight
-        smdict['UserText'] = {'UserText':[x for x in sminfo.UserText]}#[0] #This may not work - needs debugging with 
+        smdict["Comment"] = sminfo.Comment
+        smdict["SampleId"] = sminfo.SampleId
+        smdict["SampleName"] = sminfo.SampleName
+        smdict["Vial"] = sminfo.Vial
+        smdict["InjectionVolume"] = sminfo.InjectionVolume
+        smdict["Barcode"] = sminfo.Barcode
+        smdict["BarcodeStatus"] = str(sminfo.BarcodeStatus)
+        smdict["CalibrationLevel"] = sminfo.CalibrationLevel
+        smdict["DilutionFactor"] = sminfo.DilutionFactor
+        smdict["InstrumentMethodFile"] = sminfo.InstrumentMethodFile
+        smdict["RawFileName"] = sminfo.RawFileName
+        smdict["CalibrationFile"] = sminfo.CalibrationFile
+        smdict["IstdAmount"] = sminfo.IstdAmount
+        smdict["RowNumber"] = sminfo.RowNumber
+        smdict["Path"] = sminfo.Path
+        smdict["ProcessingMethodFile"] = sminfo.ProcessingMethodFile
+        smdict["SampleType"] = str(sminfo.SampleType)
+        smdict["SampleWeight"] = sminfo.SampleWeight
+        smdict["UserText"] = {
+            "UserText": [x for x in sminfo.UserText]
+        }  # [0] #This may not work - needs debugging with
         return smdict
-    
+
     def get_instrument_data(self):
         """
         This code will extract the instrument data from the raw file
@@ -1041,17 +1080,18 @@ class ThermoBaseClass:
         """
         instrument_data = self.iRawDataPlus.GetInstrumentData()
         id_dict = {}
-        id_dict['Name'] = instrument_data.Name
-        id_dict['Model'] = instrument_data.Model
-        id_dict['SerialNumber'] = instrument_data.SerialNumber
-        id_dict['SoftwareVersion'] = instrument_data.SoftwareVersion
-        id_dict['HardwareVersion'] = instrument_data.HardwareVersion
-        id_dict['ChannelLabels'] = {'ChannelLabels':[x for x in instrument_data.ChannelLabels]}
-        id_dict['Flags'] = instrument_data.Flags
-        id_dict['AxisLabelY'] = instrument_data.AxisLabelY
-        id_dict['AxisLabelX'] = instrument_data.AxisLabelX
+        id_dict["Name"] = instrument_data.Name
+        id_dict["Model"] = instrument_data.Model
+        id_dict["SerialNumber"] = instrument_data.SerialNumber
+        id_dict["SoftwareVersion"] = instrument_data.SoftwareVersion
+        id_dict["HardwareVersion"] = instrument_data.HardwareVersion
+        id_dict["ChannelLabels"] = {
+            "ChannelLabels": [x for x in instrument_data.ChannelLabels]
+        }
+        id_dict["Flags"] = instrument_data.Flags
+        id_dict["AxisLabelY"] = instrument_data.AxisLabelY
+        id_dict["AxisLabelX"] = instrument_data.AxisLabelX
         return id_dict
-
 
     def get_centroid_msms_data(self, scan):
         """
