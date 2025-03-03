@@ -382,7 +382,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         Sets the retention time list from the data in the _ms dictionary.
     * set_scans_number_from_data(overwrite=False)
         Sets the scan number list from the data in the _ms dictionary.
-    * plot_composite_mz_features(binsize = 1e-4, mf_plot = True, ms2_plot = True, return_fig = False)
+    * plot_composite_mz_features(binsize = 1e-4, ph_int_min_thresh = 0.001, mf_plot = True, ms2_plot = True, return_fig = False)
         Generates plot of M/Z features comparing scan time vs M/Z value
     """
 
