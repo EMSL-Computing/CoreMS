@@ -276,7 +276,7 @@ class MassSpectraBase:
             The scan number of the desired scan time.
 
         Returns
-        --------_
+        --------
         float
             The scan time for the specified scan number (in minutes).
 
