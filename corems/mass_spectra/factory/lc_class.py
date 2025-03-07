@@ -298,7 +298,15 @@ class MassSpectraBase:
         """
         scan_df = pd.DataFrame.from_dict(self._scan_info)
         return scan_df
+        
+    @property
+    def ms(self):
+        """
+        dictionary : contains the key associated with mass spectra and values are the associated MassSpecProfiles
+        """
+        return self._ms
 
+    
     @scan_df.setter
     def scan_df(self, df):
         """
@@ -374,6 +382,8 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         Sets the retention time list from the data in the _ms dictionary.
     * set_scans_number_from_data(overwrite=False)
         Sets the scan number list from the data in the _ms dictionary.
+    * plot_composite_mz_features(binsize = 1e-4, ph_int_min_thresh = 0.001, mf_plot = True, ms2_plot = True, return_fig = False)
+        Generates plot of M/Z features comparing scan time vs M/Z value
     """
 
     def __init__(
@@ -913,7 +923,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
 
         return annot_ms2_df_full
 
-    def plot_composite_mz_features(self, binsize = 1e-4, mf_plot = True, ms2_plot = True, return_fig = False):
+    def plot_composite_mz_features(self, binsize = 1e-4, ph_int_min_thresh = 0.001, mf_plot = True, ms2_plot = True, return_fig = False):
         """Returns a figure displaying 
             (1) thresholded, unprocessed data
             (2) the m/z features
@@ -974,7 +984,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         ## threshold and grid unprocessed data
         df = self._ms_unprocessed[1].copy()
         df = df.dropna(subset=['intensity']).reset_index(drop = True)
-        threshold = self.parameters.lc_ms.ph_inten_min_rel * df.intensity.max()
+        threshold = ph_int_min_thresh * df.intensity.max()
         df_thres = df[df["intensity"] > threshold].reset_index(drop = True).copy()
         df = self.grid_data(df_thres)
     
@@ -1024,7 +1034,8 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 label = 'M/Z features with MS2'
             )
 
-        plt.legend(loc = 'lower center', bbox_to_anchor = (0.5, -0.25), ncol = 2)
+        if mf_plot == True or ms2_plot == True:
+            plt.legend(loc = 'lower center', bbox_to_anchor = (0.5, -0.25), ncol = 2)
         plt.xlabel('Scan time')
         plt.ylabel('m/z')
         plt.ylim(0, np.ceil(np.max(df.mz)))
