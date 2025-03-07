@@ -76,61 +76,83 @@ class MzDomainCalibration:
             print(
                 "MS Obj loaded - " + str(len(mass_spectrum.mspeaks)) + " peaks found."
             )
-   
+     
     def load_ref_mass_list(self):
-        """Load reference mass list (Bruker format)
+        """
+        Load reference mass list (Bruker format).
 
-        Loads in a reference mass list from a .ref file
-        Note that some versions of Bruker's software produce .ref files with a different format.
-        As such, users may need to manually edit the .ref file in a text editor to ensure it is in the correct format.
-        This has been tested on a few different formats, and will attempt to read it correctly. 
-        However, if you have issues please check the format of the .ref file included in the CoreMS repo. 
-
+        Loads in a reference mass list from a .ref file. Some versions of
+        Bruker's software produce .ref files with a different format where
+        the header lines (starting with '#' or '##') and delimiters may vary.
+        The file may be located locally or on S3 and will be handled accordingly.
+        
         Returns
         -------
         df_ref : Pandas DataFrame
-            reference mass list object.
-
+            Reference mass list object.
         """
-        refmasslist = (
-            Path(self.ref_mass_list_path)
-            if isinstance(self.ref_mass_list_path, str)
-            else self.ref_mass_list_path
-        )
-
+        # Get a Path-like object from the input path string or S3Path
+        refmasslist = (Path(self.ref_mass_list_path)
+                    if isinstance(self.ref_mass_list_path, str)
+                    else self.ref_mass_list_path)
+        
+        # Make sure the file exists
         if not refmasslist.exists():
             raise FileExistsError("File does not exist: %s" % refmasslist)
-
-        with refmasslist.open("r") as csvfile:
-            lines = csvfile.readlines()
-
-        # Extract potential delimiter based on lines excluding the first three
-        dialect = csv.Sniffer().sniff("".join(lines[3:5]))
-        delimiter = dialect.delimiter
-
-        # Skipping header lines which start with #
-        actual_data_lines_idx = 0
-        for idx, line in enumerate(lines):
-            if not line.startswith('#') and line.strip():  # Skip empty lines after headers
-                actual_data_lines_idx = idx
-                break
-        lines = lines[actual_data_lines_idx:]
-
+        
+        # Read all lines from the file (handling S3 vs local differently)
         if isinstance(refmasslist, S3Path):
-            data = BytesIO("\n".join(lines).encode())
+            # For S3, read the file in binary, then decode to string and split into lines.
+            content = refmasslist.open("rb").read()
+            all_lines = content.decode("utf-8").splitlines(keepends=True)
         else:
-            data = StringIO("\n".join(lines))
-
-        df_ref = pd.read_csv(data, sep=delimiter, header=None, usecols=[0, 1], names=["Formula", "m/z"])
-
+            # For a local file, open in text mode and read lines.
+            with refmasslist.open("r") as f:
+                all_lines = f.readlines()
+        
+        # Identify the index of the first line of the actual data.
+        # We assume header lines start with '#' (or '##') and ignore blank lines.
+        data_start_idx = 0
+        for idx, line in enumerate(all_lines):
+            if line.strip() and not line.lstrip().startswith("#"):
+                data_start_idx = idx
+                break
+        
+        # If there are not enough lines to guess the dialect, throw an error
+        if data_start_idx >= len(all_lines):
+            raise ValueError("The file does not appear to contain any data lines.")
+        
+        # Use a couple of the data lines to let csv.Sniffer detect the delimiter
+        sample_lines = "".join(all_lines[data_start_idx:data_start_idx+2])
+        try:
+            dialect = csv.Sniffer().sniff(sample_lines)
+            delimiter = dialect.delimiter
+        except csv.Error:
+            # If csv.Sniffer fails, default to a common delimiter (e.g., comma)
+            delimiter = ","
+        
+        # Join the lines from the beginning of data (this might include a blank line) 
+        joined_data = "".join(all_lines[data_start_idx:])
+        
+        # Depending on whether the file is S3 or local, wrap the data as needed for pandas
+        if isinstance(refmasslist, S3Path):
+            data_buffer = BytesIO(joined_data.encode("utf-8"))
+        else:
+            data_buffer = StringIO(joined_data)
+        
+        # Read data into a DataFrame.
+        # Adjust columns and names as needed – here we assume at least 2 columns:
+        df_ref = pd.read_csv(data_buffer,
+                            sep=delimiter,
+                            header=None,
+                            usecols=[0, 1],   # Modify if more columns are required.
+                            names=["Formula", "m/z"])
+        
         df_ref.sort_values(by="m/z", ascending=True, inplace=True)
+        
         if self.mass_spectrum.parameters.mass_spectrum.verbose_processing:
-            print(
-                "Reference mass list loaded - "
-                + str(len(df_ref))
-                + " calibration masses loaded."
-            )
-
+            print("Reference mass list loaded - {} calibration masses loaded.".format(len(df_ref)))
+        
         return df_ref
 
     def gen_ref_mass_list_from_assigned(self, min_conf: float = 0.7):
