@@ -14,6 +14,7 @@ from corems.mass_spectra.calc import SignalProcessing as sp
 from corems.mass_spectra.factory.chromat_data import EIC_Data
 from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
 
+warnings.filterwarnings("ignore", category=RuntimeWarning) 
 
 def find_closest(A, target):
     """Find the index of closest value in A to each value in target.
@@ -1948,6 +1949,8 @@ class LCMSCollectionCalculations:
             eval_dict = self.evaluate_clusters_for_repeats(mfs_with_clusters)
 
         # TODO KRH: Deal with isomers better? Pool them together and then split them out using samples with 2 as the template?
+        
+        mfs_with_clusters.set_index('coll_mf_id', inplace = True)
 
         self.mass_features_dataframe = mfs_with_clusters
 

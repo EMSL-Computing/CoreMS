@@ -29,7 +29,7 @@ if __name__ == "__main__":
     print("Time to load LCMS collection ", time.time() - start_time, "seconds -", len(lcms_collection), " LCMS runs and ", ncores, " cores") 
     #10s for 7 samples, 10 cores; 162s for 70 samples, 10 cores
 
-    # Honestly, I can't quite remember what this does - I think it is to remove isotopologues from the mass features for future steps
+    # Set flag to call _drop_isotopologue() when running _check_mass_features_df()
     lcms_collection.parameters.lcms_collection.drop_isotopologues = True
     print("Number of total mass features: ", len(lcms_collection.mass_features_dataframe))
 
@@ -44,9 +44,6 @@ if __name__ == "__main__":
     lcms_collection.plot_tics(type="both")
     lcms_collection.plot_alignments()
     # TODO: Think about other plots that would be useful to have here for assessing the quality of the data and alignment
-
-    # Consolidate the mass features from the LCMS runs into a single dataframe
-    mass_feature_df = lcms_collection.mass_features_to_df()
 
     # Make consensus mass features from the consolidated mass features
     start_time = time.time()    

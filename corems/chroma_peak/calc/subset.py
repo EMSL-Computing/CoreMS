@@ -4,7 +4,6 @@
 import multiprocessing as mp
 from functools import partial
 
-import dask.dataframe as dd
 import numpy as np
 import pandas as pd
 
@@ -15,7 +14,7 @@ class MultiSamplePartitions:
 
     Attributes
     ----------
-    features : :obj:`~pandas.DataFrame` or :obj:`~dask.dataframe.DataFrame`
+    features : :obj:`~pandas.DataFrame`
         Input feature coordinates and intensities.
     split_on : str
         Dimension to partition the data.
@@ -39,7 +38,7 @@ class MultiSamplePartitions:
 
         Parameters
         ----------
-        features : :obj:`~pandas.DataFrame` or :obj:`~dask.dataframe.DataFrame`
+        features : :obj:`~pandas.DataFrame`
             Input feature coordinates and intensities.
         split_on : str
             Dimension to partition the data.
@@ -64,11 +63,6 @@ class MultiSamplePartitions:
         self.tol = tol
         self.relative = relative
 
-        if isinstance(features, dd.DataFrame):
-            self.dask = True
-        else:
-            self.dask = False
-
         self._compute_splits()
 
     def _compute_splits(self):
@@ -79,11 +73,7 @@ class MultiSamplePartitions:
 
         self.counter = 0
 
-        if self.dask:
-            idx = self.features.groupby(
-                by=self.split_on).size().compute().sort_index()
-        else:
-            idx = self.features.groupby(by=self.split_on).size().sort_index()
+        idx = self.features.groupby(by=self.split_on).size().sort_index()
 
         counts = idx.values
         idx = idx.index
@@ -130,10 +120,7 @@ class MultiSamplePartitions:
                                                  self.split_on,
                                                  self.bounds[self.counter][1])
 
-            if self.dask:
-                subset = self.features.query(q).compute()
-            else:
-                subset = self.features.query(q)
+            subset = self.features.query(q)
 
             self.counter += 1
             if len(subset.index) > 1:
@@ -188,7 +175,7 @@ def multi_sample_partition(features, split_on='mz', size=500, tol=25E-6, relativ
 
     Parameters
     ----------
-    features : :obj:`~pandas.DataFrame` or :obj:`~dask.dataframe.DataFrame`
+    features : :obj:`~pandas.DataFrame`
         Input feature coordinates and intensities.
     split_on : str
         Dimension to partition the data.
