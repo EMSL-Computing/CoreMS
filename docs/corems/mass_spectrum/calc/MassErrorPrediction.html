@@ -105,13 +105,13 @@
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Yuri E. Corilo&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="n">__date__</span> <span class="o">=</span> <span class="s2">&quot;03/31/2020&quot;</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">DataFrame</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">hstack</span><span class="p">,</span> <span class="n">inf</span><span class="p">,</span> <span class="n">isnan</span><span class="p">,</span> <span class="n">where</span><span class="p">,</span> <span class="n">array</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">threading</span><span class="w"> </span><span class="kn">import</span> <span class="n">Thread</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataFrame</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">hstack</span><span class="p">,</span> <span class="n">inf</span><span class="p">,</span> <span class="n">isnan</span><span class="p">,</span> <span class="n">where</span><span class="p">,</span> <span class="n">array</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="k">class</span> <span class="nc">MassErrorPrediction</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MassErrorPrediction</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
 </span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for mass error prediction.</span>
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="sd">    Parameters</span>
@@ -155,7 +155,7 @@
 </span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>
 </span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>
-</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>        <span class="n">mass_spectrum</span><span class="p">,</span>
 </span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>        <span class="n">mz_overlay</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
@@ -180,11 +180,11 @@
 </span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>
 </span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span> <span class="o">=</span> <span class="n">interpolation</span>
 </span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>
-</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs the mass error prediction calculation.&quot;&quot;&quot;</span>
 </span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_error_dist</span><span class="p">()</span>
 </span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>
-</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>    <span class="k">def</span> <span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the calculated error distribution dataframe.&quot;&quot;&quot;</span>
 </span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>
 </span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">:</span>
@@ -192,7 +192,7 @@
 </span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>
 </span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span>
 </span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>
-</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>    <span class="k">def</span> <span class="nf">calc_error_dist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_error_dist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the error distribution.&quot;&quot;&quot;</span>
 </span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>        <span class="n">verbose</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum_obj</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="o">.</span><span class="n">verbose_processing</span>
 </span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>        <span class="n">results_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -426,7 +426,7 @@
 </span><span id="L-322"><a href="#L-322"><span class="linenos">322</span></a>
 </span><span id="L-323"><a href="#L-323"><span class="linenos">323</span></a>        <span class="k">return</span> <span class="n">df</span>
 </span><span id="L-324"><a href="#L-324"><span class="linenos">324</span></a>
-</span><span id="L-325"><a href="#L-325"><span class="linenos">325</span></a>    <span class="k">def</span> <span class="nf">sum_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tuple_mz_abun_list</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">):</span>
+</span><span id="L-325"><a href="#L-325"><span class="linenos">325</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sum_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tuple_mz_abun_list</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">):</span>
 </span><span id="L-326"><a href="#L-326"><span class="linenos">326</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sum the abundances of the simulated peaks.</span>
 </span><span id="L-327"><a href="#L-327"><span class="linenos">327</span></a>
 </span><span id="L-328"><a href="#L-328"><span class="linenos">328</span></a><span class="sd">        Parameters</span>
@@ -460,7 +460,7 @@
 </span><span id="L-356"><a href="#L-356"><span class="linenos">356</span></a>
 </span><span id="L-357"><a href="#L-357"><span class="linenos">357</span></a>        <span class="k">return</span> <span class="n">array</span><span class="p">(</span><span class="n">mz_all</span><span class="p">),</span> <span class="n">array</span><span class="p">(</span><span class="n">abun_all</span><span class="p">)</span>
 </span><span id="L-358"><a href="#L-358"><span class="linenos">358</span></a>
-</span><span id="L-359"><a href="#L-359"><span class="linenos">359</span></a>    <span class="k">def</span> <span class="nf">calc_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_ref</span><span class="p">,</span> <span class="n">mass_sim</span><span class="p">,</span> <span class="n">factor</span><span class="p">):</span>
+</span><span id="L-359"><a href="#L-359"><span class="linenos">359</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_ref</span><span class="p">,</span> <span class="n">mass_sim</span><span class="p">,</span> <span class="n">factor</span><span class="p">):</span>
 </span><span id="L-360"><a href="#L-360"><span class="linenos">360</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the error between two values.</span>
 </span><span id="L-361"><a href="#L-361"><span class="linenos">361</span></a>
 </span><span id="L-362"><a href="#L-362"><span class="linenos">362</span></a><span class="sd">        Parameters</span>
@@ -481,7 +481,7 @@
 </span><span id="L-377"><a href="#L-377"><span class="linenos">377</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-378"><a href="#L-378"><span class="linenos">378</span></a>        <span class="k">return</span> <span class="p">(</span><span class="n">mass_sim</span> <span class="o">-</span> <span class="n">mass_ref</span> <span class="o">/</span> <span class="n">mass_ref</span><span class="p">)</span> <span class="o">*</span> <span class="n">factor</span>
 </span><span id="L-379"><a href="#L-379"><span class="linenos">379</span></a>
-</span><span id="L-380"><a href="#L-380"><span class="linenos">380</span></a>    <span class="k">def</span> <span class="nf">find_peak_apex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">abund</span><span class="p">):</span>
+</span><span id="L-380"><a href="#L-380"><span class="linenos">380</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_peak_apex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">abund</span><span class="p">):</span>
 </span><span id="L-381"><a href="#L-381"><span class="linenos">381</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Find the peak apex.</span>
 </span><span id="L-382"><a href="#L-382"><span class="linenos">382</span></a>
 </span><span id="L-383"><a href="#L-383"><span class="linenos">383</span></a><span class="sd">        Parameters</span>
@@ -511,7 +511,7 @@
 </span><span id="L-407"><a href="#L-407"><span class="linenos">407</span></a>        <span class="k">if</span> <span class="n">indexes</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
 </span><span id="L-408"><a href="#L-408"><span class="linenos">408</span></a>            <span class="k">return</span> <span class="n">mz</span><span class="p">[</span><span class="n">indexes</span><span class="p">],</span> <span class="n">abund</span><span class="p">[</span><span class="n">indexes</span><span class="p">]</span>
 </span><span id="L-409"><a href="#L-409"><span class="linenos">409</span></a>
-</span><span id="L-410"><a href="#L-410"><span class="linenos">410</span></a>    <span class="k">def</span> <span class="nf">find_peak_valley</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">abund</span><span class="p">):</span>
+</span><span id="L-410"><a href="#L-410"><span class="linenos">410</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_peak_valley</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">abund</span><span class="p">):</span>
 </span><span id="L-411"><a href="#L-411"><span class="linenos">411</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Find the peak valley.</span>
 </span><span id="L-412"><a href="#L-412"><span class="linenos">412</span></a>
 </span><span id="L-413"><a href="#L-413"><span class="linenos">413</span></a><span class="sd">        Parameters</span>
@@ -553,7 +553,7 @@
 
     </div>
     <a class="headerlink" href="#MassErrorPrediction"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MassErrorPrediction-11"><a href="#MassErrorPrediction-11"><span class="linenos"> 11</span></a><span class="k">class</span> <span class="nc">MassErrorPrediction</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MassErrorPrediction-11"><a href="#MassErrorPrediction-11"><span class="linenos"> 11</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MassErrorPrediction</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
 </span><span id="MassErrorPrediction-12"><a href="#MassErrorPrediction-12"><span class="linenos"> 12</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for mass error prediction.</span>
 </span><span id="MassErrorPrediction-13"><a href="#MassErrorPrediction-13"><span class="linenos"> 13</span></a>
 </span><span id="MassErrorPrediction-14"><a href="#MassErrorPrediction-14"><span class="linenos"> 14</span></a><span class="sd">    Parameters</span>
@@ -597,7 +597,7 @@
 </span><span id="MassErrorPrediction-52"><a href="#MassErrorPrediction-52"><span class="linenos"> 52</span></a>
 </span><span id="MassErrorPrediction-53"><a href="#MassErrorPrediction-53"><span class="linenos"> 53</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="MassErrorPrediction-54"><a href="#MassErrorPrediction-54"><span class="linenos"> 54</span></a>
-</span><span id="MassErrorPrediction-55"><a href="#MassErrorPrediction-55"><span class="linenos"> 55</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+</span><span id="MassErrorPrediction-55"><a href="#MassErrorPrediction-55"><span class="linenos"> 55</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="MassErrorPrediction-56"><a href="#MassErrorPrediction-56"><span class="linenos"> 56</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="MassErrorPrediction-57"><a href="#MassErrorPrediction-57"><span class="linenos"> 57</span></a>        <span class="n">mass_spectrum</span><span class="p">,</span>
 </span><span id="MassErrorPrediction-58"><a href="#MassErrorPrediction-58"><span class="linenos"> 58</span></a>        <span class="n">mz_overlay</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
@@ -622,11 +622,11 @@
 </span><span id="MassErrorPrediction-77"><a href="#MassErrorPrediction-77"><span class="linenos"> 77</span></a>
 </span><span id="MassErrorPrediction-78"><a href="#MassErrorPrediction-78"><span class="linenos"> 78</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span> <span class="o">=</span> <span class="n">interpolation</span>
 </span><span id="MassErrorPrediction-79"><a href="#MassErrorPrediction-79"><span class="linenos"> 79</span></a>
-</span><span id="MassErrorPrediction-80"><a href="#MassErrorPrediction-80"><span class="linenos"> 80</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MassErrorPrediction-80"><a href="#MassErrorPrediction-80"><span class="linenos"> 80</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MassErrorPrediction-81"><a href="#MassErrorPrediction-81"><span class="linenos"> 81</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs the mass error prediction calculation.&quot;&quot;&quot;</span>
 </span><span id="MassErrorPrediction-82"><a href="#MassErrorPrediction-82"><span class="linenos"> 82</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_error_dist</span><span class="p">()</span>
 </span><span id="MassErrorPrediction-83"><a href="#MassErrorPrediction-83"><span class="linenos"> 83</span></a>
-</span><span id="MassErrorPrediction-84"><a href="#MassErrorPrediction-84"><span class="linenos"> 84</span></a>    <span class="k">def</span> <span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MassErrorPrediction-84"><a href="#MassErrorPrediction-84"><span class="linenos"> 84</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MassErrorPrediction-85"><a href="#MassErrorPrediction-85"><span class="linenos"> 85</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the calculated error distribution dataframe.&quot;&quot;&quot;</span>
 </span><span id="MassErrorPrediction-86"><a href="#MassErrorPrediction-86"><span class="linenos"> 86</span></a>
 </span><span id="MassErrorPrediction-87"><a href="#MassErrorPrediction-87"><span class="linenos"> 87</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">:</span>
@@ -634,7 +634,7 @@
 </span><span id="MassErrorPrediction-89"><a href="#MassErrorPrediction-89"><span class="linenos"> 89</span></a>
 </span><span id="MassErrorPrediction-90"><a href="#MassErrorPrediction-90"><span class="linenos"> 90</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span>
 </span><span id="MassErrorPrediction-91"><a href="#MassErrorPrediction-91"><span class="linenos"> 91</span></a>
-</span><span id="MassErrorPrediction-92"><a href="#MassErrorPrediction-92"><span class="linenos"> 92</span></a>    <span class="k">def</span> <span class="nf">calc_error_dist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MassErrorPrediction-92"><a href="#MassErrorPrediction-92"><span class="linenos"> 92</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_error_dist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MassErrorPrediction-93"><a href="#MassErrorPrediction-93"><span class="linenos"> 93</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the error distribution.&quot;&quot;&quot;</span>
 </span><span id="MassErrorPrediction-94"><a href="#MassErrorPrediction-94"><span class="linenos"> 94</span></a>        <span class="n">verbose</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum_obj</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="o">.</span><span class="n">verbose_processing</span>
 </span><span id="MassErrorPrediction-95"><a href="#MassErrorPrediction-95"><span class="linenos"> 95</span></a>        <span class="n">results_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -868,7 +868,7 @@
 </span><span id="MassErrorPrediction-323"><a href="#MassErrorPrediction-323"><span class="linenos">323</span></a>
 </span><span id="MassErrorPrediction-324"><a href="#MassErrorPrediction-324"><span class="linenos">324</span></a>        <span class="k">return</span> <span class="n">df</span>
 </span><span id="MassErrorPrediction-325"><a href="#MassErrorPrediction-325"><span class="linenos">325</span></a>
-</span><span id="MassErrorPrediction-326"><a href="#MassErrorPrediction-326"><span class="linenos">326</span></a>    <span class="k">def</span> <span class="nf">sum_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tuple_mz_abun_list</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">):</span>
+</span><span id="MassErrorPrediction-326"><a href="#MassErrorPrediction-326"><span class="linenos">326</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sum_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tuple_mz_abun_list</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">):</span>
 </span><span id="MassErrorPrediction-327"><a href="#MassErrorPrediction-327"><span class="linenos">327</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sum the abundances of the simulated peaks.</span>
 </span><span id="MassErrorPrediction-328"><a href="#MassErrorPrediction-328"><span class="linenos">328</span></a>
 </span><span id="MassErrorPrediction-329"><a href="#MassErrorPrediction-329"><span class="linenos">329</span></a><span class="sd">        Parameters</span>
@@ -902,7 +902,7 @@
 </span><span id="MassErrorPrediction-357"><a href="#MassErrorPrediction-357"><span class="linenos">357</span></a>
 </span><span id="MassErrorPrediction-358"><a href="#MassErrorPrediction-358"><span class="linenos">358</span></a>        <span class="k">return</span> <span class="n">array</span><span class="p">(</span><span class="n">mz_all</span><span class="p">),</span> <span class="n">array</span><span class="p">(</span><span class="n">abun_all</span><span class="p">)</span>
 </span><span id="MassErrorPrediction-359"><a href="#MassErrorPrediction-359"><span class="linenos">359</span></a>
-</span><span id="MassErrorPrediction-360"><a href="#MassErrorPrediction-360"><span class="linenos">360</span></a>    <span class="k">def</span> <span class="nf">calc_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_ref</span><span class="p">,</span> <span class="n">mass_sim</span><span class="p">,</span> <span class="n">factor</span><span class="p">):</span>
+</span><span id="MassErrorPrediction-360"><a href="#MassErrorPrediction-360"><span class="linenos">360</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_ref</span><span class="p">,</span> <span class="n">mass_sim</span><span class="p">,</span> <span class="n">factor</span><span class="p">):</span>
 </span><span id="MassErrorPrediction-361"><a href="#MassErrorPrediction-361"><span class="linenos">361</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the error between two values.</span>
 </span><span id="MassErrorPrediction-362"><a href="#MassErrorPrediction-362"><span class="linenos">362</span></a>
 </span><span id="MassErrorPrediction-363"><a href="#MassErrorPrediction-363"><span class="linenos">363</span></a><span class="sd">        Parameters</span>
@@ -923,7 +923,7 @@
 </span><span id="MassErrorPrediction-378"><a href="#MassErrorPrediction-378"><span class="linenos">378</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="MassErrorPrediction-379"><a href="#MassErrorPrediction-379"><span class="linenos">379</span></a>        <span class="k">return</span> <span class="p">(</span><span class="n">mass_sim</span> <span class="o">-</span> <span class="n">mass_ref</span> <span class="o">/</span> <span class="n">mass_ref</span><span class="p">)</span> <span class="o">*</span> <span class="n">factor</span>
 </span><span id="MassErrorPrediction-380"><a href="#MassErrorPrediction-380"><span class="linenos">380</span></a>
-</span><span id="MassErrorPrediction-381"><a href="#MassErrorPrediction-381"><span class="linenos">381</span></a>    <span class="k">def</span> <span class="nf">find_peak_apex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">abund</span><span class="p">):</span>
+</span><span id="MassErrorPrediction-381"><a href="#MassErrorPrediction-381"><span class="linenos">381</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_peak_apex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">abund</span><span class="p">):</span>
 </span><span id="MassErrorPrediction-382"><a href="#MassErrorPrediction-382"><span class="linenos">382</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Find the peak apex.</span>
 </span><span id="MassErrorPrediction-383"><a href="#MassErrorPrediction-383"><span class="linenos">383</span></a>
 </span><span id="MassErrorPrediction-384"><a href="#MassErrorPrediction-384"><span class="linenos">384</span></a><span class="sd">        Parameters</span>
@@ -953,7 +953,7 @@
 </span><span id="MassErrorPrediction-408"><a href="#MassErrorPrediction-408"><span class="linenos">408</span></a>        <span class="k">if</span> <span class="n">indexes</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
 </span><span id="MassErrorPrediction-409"><a href="#MassErrorPrediction-409"><span class="linenos">409</span></a>            <span class="k">return</span> <span class="n">mz</span><span class="p">[</span><span class="n">indexes</span><span class="p">],</span> <span class="n">abund</span><span class="p">[</span><span class="n">indexes</span><span class="p">]</span>
 </span><span id="MassErrorPrediction-410"><a href="#MassErrorPrediction-410"><span class="linenos">410</span></a>
-</span><span id="MassErrorPrediction-411"><a href="#MassErrorPrediction-411"><span class="linenos">411</span></a>    <span class="k">def</span> <span class="nf">find_peak_valley</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">abund</span><span class="p">):</span>
+</span><span id="MassErrorPrediction-411"><a href="#MassErrorPrediction-411"><span class="linenos">411</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_peak_valley</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">abund</span><span class="p">):</span>
 </span><span id="MassErrorPrediction-412"><a href="#MassErrorPrediction-412"><span class="linenos">412</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Find the peak valley.</span>
 </span><span id="MassErrorPrediction-413"><a href="#MassErrorPrediction-413"><span class="linenos">413</span></a>
 </span><span id="MassErrorPrediction-414"><a href="#MassErrorPrediction-414"><span class="linenos">414</span></a><span class="sd">        Parameters</span>
@@ -1042,7 +1042,7 @@ Returns the calculated error distribution dataframe.</li>
 
     </div>
     <a class="headerlink" href="#MassErrorPrediction.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MassErrorPrediction.__init__-55"><a href="#MassErrorPrediction.__init__-55"><span class="linenos">55</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MassErrorPrediction.__init__-55"><a href="#MassErrorPrediction.__init__-55"><span class="linenos">55</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="MassErrorPrediction.__init__-56"><a href="#MassErrorPrediction.__init__-56"><span class="linenos">56</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="MassErrorPrediction.__init__-57"><a href="#MassErrorPrediction.__init__-57"><span class="linenos">57</span></a>        <span class="n">mass_spectrum</span><span class="p">,</span>
 </span><span id="MassErrorPrediction.__init__-58"><a href="#MassErrorPrediction.__init__-58"><span class="linenos">58</span></a>        <span class="n">mz_overlay</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
@@ -1180,7 +1180,7 @@ else to the thread.</p>
 
     </div>
     <a class="headerlink" href="#MassErrorPrediction.run"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MassErrorPrediction.run-80"><a href="#MassErrorPrediction.run-80"><span class="linenos">80</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MassErrorPrediction.run-80"><a href="#MassErrorPrediction.run-80"><span class="linenos">80</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MassErrorPrediction.run-81"><a href="#MassErrorPrediction.run-81"><span class="linenos">81</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs the mass error prediction calculation.&quot;&quot;&quot;</span>
 </span><span id="MassErrorPrediction.run-82"><a href="#MassErrorPrediction.run-82"><span class="linenos">82</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_error_dist</span><span class="p">()</span>
 </span></pre></div>
@@ -1202,7 +1202,7 @@ else to the thread.</p>
 
     </div>
     <a class="headerlink" href="#MassErrorPrediction.get_results"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MassErrorPrediction.get_results-84"><a href="#MassErrorPrediction.get_results-84"><span class="linenos">84</span></a>    <span class="k">def</span> <span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MassErrorPrediction.get_results-84"><a href="#MassErrorPrediction.get_results-84"><span class="linenos">84</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MassErrorPrediction.get_results-85"><a href="#MassErrorPrediction.get_results-85"><span class="linenos">85</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the calculated error distribution dataframe.&quot;&quot;&quot;</span>
 </span><span id="MassErrorPrediction.get_results-86"><a href="#MassErrorPrediction.get_results-86"><span class="linenos">86</span></a>
 </span><span id="MassErrorPrediction.get_results-87"><a href="#MassErrorPrediction.get_results-87"><span class="linenos">87</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">:</span>
@@ -1228,7 +1228,7 @@ else to the thread.</p>
 
     </div>
     <a class="headerlink" href="#MassErrorPrediction.calc_error_dist"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MassErrorPrediction.calc_error_dist-92"><a href="#MassErrorPrediction.calc_error_dist-92"><span class="linenos"> 92</span></a>    <span class="k">def</span> <span class="nf">calc_error_dist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MassErrorPrediction.calc_error_dist-92"><a href="#MassErrorPrediction.calc_error_dist-92"><span class="linenos"> 92</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_error_dist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MassErrorPrediction.calc_error_dist-93"><a href="#MassErrorPrediction.calc_error_dist-93"><span class="linenos"> 93</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the error distribution.&quot;&quot;&quot;</span>
 </span><span id="MassErrorPrediction.calc_error_dist-94"><a href="#MassErrorPrediction.calc_error_dist-94"><span class="linenos"> 94</span></a>        <span class="n">verbose</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum_obj</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="o">.</span><span class="n">verbose_processing</span>
 </span><span id="MassErrorPrediction.calc_error_dist-95"><a href="#MassErrorPrediction.calc_error_dist-95"><span class="linenos"> 95</span></a>        <span class="n">results_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1480,7 +1480,7 @@ else to the thread.</p>
 
     </div>
     <a class="headerlink" href="#MassErrorPrediction.sum_data"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MassErrorPrediction.sum_data-326"><a href="#MassErrorPrediction.sum_data-326"><span class="linenos">326</span></a>    <span class="k">def</span> <span class="nf">sum_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tuple_mz_abun_list</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MassErrorPrediction.sum_data-326"><a href="#MassErrorPrediction.sum_data-326"><span class="linenos">326</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sum_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tuple_mz_abun_list</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">):</span>
 </span><span id="MassErrorPrediction.sum_data-327"><a href="#MassErrorPrediction.sum_data-327"><span class="linenos">327</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sum the abundances of the simulated peaks.</span>
 </span><span id="MassErrorPrediction.sum_data-328"><a href="#MassErrorPrediction.sum_data-328"><span class="linenos">328</span></a>
 </span><span id="MassErrorPrediction.sum_data-329"><a href="#MassErrorPrediction.sum_data-329"><span class="linenos">329</span></a><span class="sd">        Parameters</span>
@@ -1545,7 +1545,7 @@ A tuple containing the mz and abundance lists.</li>
 
     </div>
     <a class="headerlink" href="#MassErrorPrediction.calc_error"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MassErrorPrediction.calc_error-360"><a href="#MassErrorPrediction.calc_error-360"><span class="linenos">360</span></a>    <span class="k">def</span> <span class="nf">calc_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_ref</span><span class="p">,</span> <span class="n">mass_sim</span><span class="p">,</span> <span class="n">factor</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MassErrorPrediction.calc_error-360"><a href="#MassErrorPrediction.calc_error-360"><span class="linenos">360</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_ref</span><span class="p">,</span> <span class="n">mass_sim</span><span class="p">,</span> <span class="n">factor</span><span class="p">):</span>
 </span><span id="MassErrorPrediction.calc_error-361"><a href="#MassErrorPrediction.calc_error-361"><span class="linenos">361</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the error between two values.</span>
 </span><span id="MassErrorPrediction.calc_error-362"><a href="#MassErrorPrediction.calc_error-362"><span class="linenos">362</span></a>
 </span><span id="MassErrorPrediction.calc_error-363"><a href="#MassErrorPrediction.calc_error-363"><span class="linenos">363</span></a><span class="sd">        Parameters</span>
@@ -1601,7 +1601,7 @@ The factor to multiply the error by.</li>
 
     </div>
     <a class="headerlink" href="#MassErrorPrediction.find_peak_apex"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MassErrorPrediction.find_peak_apex-381"><a href="#MassErrorPrediction.find_peak_apex-381"><span class="linenos">381</span></a>    <span class="k">def</span> <span class="nf">find_peak_apex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">abund</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MassErrorPrediction.find_peak_apex-381"><a href="#MassErrorPrediction.find_peak_apex-381"><span class="linenos">381</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_peak_apex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">abund</span><span class="p">):</span>
 </span><span id="MassErrorPrediction.find_peak_apex-382"><a href="#MassErrorPrediction.find_peak_apex-382"><span class="linenos">382</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Find the peak apex.</span>
 </span><span id="MassErrorPrediction.find_peak_apex-383"><a href="#MassErrorPrediction.find_peak_apex-383"><span class="linenos">383</span></a>
 </span><span id="MassErrorPrediction.find_peak_apex-384"><a href="#MassErrorPrediction.find_peak_apex-384"><span class="linenos">384</span></a><span class="sd">        Parameters</span>
@@ -1664,7 +1664,7 @@ The abundance array.</li>
 
     </div>
     <a class="headerlink" href="#MassErrorPrediction.find_peak_valley"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MassErrorPrediction.find_peak_valley-411"><a href="#MassErrorPrediction.find_peak_valley-411"><span class="linenos">411</span></a>    <span class="k">def</span> <span class="nf">find_peak_valley</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">abund</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MassErrorPrediction.find_peak_valley-411"><a href="#MassErrorPrediction.find_peak_valley-411"><span class="linenos">411</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_peak_valley</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">abund</span><span class="p">):</span>
 </span><span id="MassErrorPrediction.find_peak_valley-412"><a href="#MassErrorPrediction.find_peak_valley-412"><span class="linenos">412</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Find the peak valley.</span>
 </span><span id="MassErrorPrediction.find_peak_valley-413"><a href="#MassErrorPrediction.find_peak_valley-413"><span class="linenos">413</span></a>
 </span><span id="MassErrorPrediction.find_peak_valley-414"><a href="#MassErrorPrediction.find_peak_valley-414"><span class="linenos">414</span></a><span class="sd">        Parameters</span>

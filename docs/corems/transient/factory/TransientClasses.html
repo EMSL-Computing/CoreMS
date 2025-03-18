@@ -117,17 +117,17 @@
 
                         <label class="view-source-button" for="mod-TransientClasses-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">normpath</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">os.path</span><span class="w"> </span><span class="kn">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">normpath</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a>
-</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">rcParamsDefault</span><span class="p">,</span> <span class="n">rcParams</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">linspace</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">rcParamsDefault</span><span class="p">,</span> <span class="n">rcParams</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">linspace</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.factory.parameters</span> <span class="kn">import</span> <span class="n">MSParameters</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span> <span class="nn">corems.mass_spectrum.factory.MassSpectrumClasses</span> <span class="kn">import</span> <span class="n">MassSpecfromFreq</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span> <span class="nn">corems.transient.calc.TransientCalc</span> <span class="kn">import</span> <span class="n">TransientCalculations</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.input.parameter_from_json</span> <span class="kn">import</span> <span class="p">(</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.encapsulation.factory.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">MSParameters</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.mass_spectrum.factory.MassSpectrumClasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">MassSpecfromFreq</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.transient.calc.TransientCalc</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransientCalculations</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.encapsulation.input.parameter_from_json</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>    <span class="n">load_and_set_parameters_class</span><span class="p">,</span>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>    <span class="n">load_and_set_toml_parameters_class</span><span class="p">,</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="p">)</span>
@@ -137,7 +137,7 @@
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="n">__date__</span> <span class="o">=</span> <span class="s2">&quot;Jun 19, 2019&quot;</span>
 </span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>
 </span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a>
-</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="k">class</span> <span class="nc">Transient</span><span class="p">(</span><span class="n">TransientCalculations</span><span class="p">):</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Transient</span><span class="p">(</span><span class="n">TransientCalculations</span><span class="p">):</span>
 </span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The Transient object contains the transient data and the parameters used to process it</span>
 </span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a>
 </span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="sd">    Parameters</span>
@@ -204,7 +204,7 @@
 </span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>
 </span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>
-</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">d_params</span><span class="p">):</span>
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">d_params</span><span class="p">):</span>
 </span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_transient_data</span> <span class="o">=</span> <span class="n">data</span>
 </span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>
 </span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">d_params</span> <span class="o">=</span> <span class="n">d_params</span>
@@ -217,7 +217,7 @@
 </span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>
 </span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">__set__transient__time</span><span class="p">()</span>
 </span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>
-</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>    <span class="k">def</span> <span class="nf">__set__parameters__objects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_params</span><span class="p">):</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__set__parameters__objects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_params</span><span class="p">):</span>
 </span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the parameters objects from the dictionary d_params</span>
 </span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>
 </span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a><span class="sd">        Parameters</span>
@@ -255,7 +255,7 @@
 </span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>
 </span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">MSParameters</span><span class="o">.</span><span class="n">transient</span><span class="p">)</span>
 </span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>
-</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>    <span class="k">def</span> <span class="nf">scale_plot_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="mf">1.5</span><span class="p">):</span>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">scale_plot_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="mf">1.5</span><span class="p">):</span>
 </span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Scale the plot size by a factor</span>
 </span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>
 </span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a><span class="sd">        Parameters</span>
@@ -267,11 +267,11 @@
 </span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>        <span class="n">default_dpi</span> <span class="o">=</span> <span class="n">rcParamsDefault</span><span class="p">[</span><span class="s2">&quot;figure.dpi&quot;</span><span class="p">]</span>
 </span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>        <span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;figure.dpi&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">default_dpi</span> <span class="o">*</span> <span class="n">factor</span>
 </span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>
-</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>    <span class="k">def</span> <span class="nf">__set__transient__time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__set__transient__time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the transient time variable with the calculated length.&quot;&quot;&quot;</span>
 </span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">transient_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cal_transient_time</span><span class="p">()</span>
 </span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>
-</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>    <span class="k">def</span> <span class="nf">set_processing_parameter</span><span class="p">(</span>
+</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_processing_parameter</span><span class="p">(</span>
 </span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a>        <span class="n">apodization_method</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 </span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>        <span class="n">number_of_truncations</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -296,27 +296,27 @@
 </span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">number_of_zero_fills</span> <span class="o">=</span> <span class="n">number_of_zero_fills</span>
 </span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a>
 </span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a>    <span class="nd">@property</span>
-</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a>    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The transient parameters&quot;&quot;&quot;</span>
 </span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span>
 </span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a>
 </span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a>    <span class="nd">@parameters</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="L-185"><a href="#L-185"><span class="linenos">185</span></a>    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance_TransientParameters</span><span class="p">):</span>
+</span><span id="L-185"><a href="#L-185"><span class="linenos">185</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance_TransientParameters</span><span class="p">):</span>
 </span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">instance_TransientParameters</span>
 </span><span id="L-187"><a href="#L-187"><span class="linenos">187</span></a>
-</span><span id="L-188"><a href="#L-188"><span class="linenos">188</span></a>    <span class="k">def</span> <span class="nf">set_parameter_from_toml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters_path</span><span class="p">):</span>
+</span><span id="L-188"><a href="#L-188"><span class="linenos">188</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_parameter_from_toml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters_path</span><span class="p">):</span>
 </span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the processing parameters from a toml file&quot;&quot;&quot;</span>
 </span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">load_and_set_toml_parameters_class</span><span class="p">(</span>
 </span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a>            <span class="s2">&quot;Transient&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">,</span> <span class="n">parameters_path</span><span class="o">=</span><span class="n">parameters_path</span>
 </span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a>        <span class="p">)</span>
 </span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a>
-</span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a>    <span class="k">def</span> <span class="nf">set_parameter_from_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters_path</span><span class="p">):</span>
+</span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_parameter_from_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters_path</span><span class="p">):</span>
 </span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the processing parameters from a json file&quot;&quot;&quot;</span>
 </span><span id="L-196"><a href="#L-196"><span class="linenos">196</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">load_and_set_parameters_class</span><span class="p">(</span>
 </span><span id="L-197"><a href="#L-197"><span class="linenos">197</span></a>            <span class="s2">&quot;Transient&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">,</span> <span class="n">parameters_path</span><span class="o">=</span><span class="n">parameters_path</span>
 </span><span id="L-198"><a href="#L-198"><span class="linenos">198</span></a>        <span class="p">)</span>
 </span><span id="L-199"><a href="#L-199"><span class="linenos">199</span></a>
-</span><span id="L-200"><a href="#L-200"><span class="linenos">200</span></a>    <span class="k">def</span> <span class="nf">get_frequency_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot_result</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="L-200"><a href="#L-200"><span class="linenos">200</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_frequency_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot_result</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="L-201"><a href="#L-201"><span class="linenos">201</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the frequency domain and magnitude from the transient data</span>
 </span><span id="L-202"><a href="#L-202"><span class="linenos">202</span></a>
 </span><span id="L-203"><a href="#L-203"><span class="linenos">203</span></a><span class="sd">        Parameters</span>
@@ -358,7 +358,7 @@
 </span><span id="L-239"><a href="#L-239"><span class="linenos">239</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">perform_magniture_mode_ft</span><span class="p">(</span><span class="n">time_domain_y_zero_filled</span><span class="p">)</span>
 </span><span id="L-240"><a href="#L-240"><span class="linenos">240</span></a>        <span class="c1"># return frequency_domain, magnitude</span>
 </span><span id="L-241"><a href="#L-241"><span class="linenos">241</span></a>
-</span><span id="L-242"><a href="#L-242"><span class="linenos">242</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span>
+</span><span id="L-242"><a href="#L-242"><span class="linenos">242</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span>
 </span><span id="L-243"><a href="#L-243"><span class="linenos">243</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-244"><a href="#L-244"><span class="linenos">244</span></a>        <span class="n">auto_process</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 </span><span id="L-245"><a href="#L-245"><span class="linenos">245</span></a>        <span class="n">plot_result</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -398,29 +398,29 @@
 </span><span id="L-279"><a href="#L-279"><span class="linenos">279</span></a>        <span class="p">)</span>
 </span><span id="L-280"><a href="#L-280"><span class="linenos">280</span></a>
 </span><span id="L-281"><a href="#L-281"><span class="linenos">281</span></a>    <span class="nd">@property</span>
-</span><span id="L-282"><a href="#L-282"><span class="linenos">282</span></a>    <span class="k">def</span> <span class="nf">filename</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-282"><a href="#L-282"><span class="linenos">282</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">filename</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-283"><a href="#L-283"><span class="linenos">283</span></a>        <span class="c1"># return dirname(self._full_filename_path)</span>
 </span><span id="L-284"><a href="#L-284"><span class="linenos">284</span></a>        <span class="k">return</span> <span class="n">basename</span><span class="p">(</span><span class="n">normpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_full_filename_path</span><span class="p">))</span>
 </span><span id="L-285"><a href="#L-285"><span class="linenos">285</span></a>
 </span><span id="L-286"><a href="#L-286"><span class="linenos">286</span></a>    <span class="nd">@property</span>
-</span><span id="L-287"><a href="#L-287"><span class="linenos">287</span></a>    <span class="k">def</span> <span class="nf">dir_location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-287"><a href="#L-287"><span class="linenos">287</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">dir_location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-288"><a href="#L-288"><span class="linenos">288</span></a>        <span class="k">return</span> <span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_full_filename_path</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span>
 </span><span id="L-289"><a href="#L-289"><span class="linenos">289</span></a>            <span class="n">basename</span><span class="p">(</span><span class="n">normpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_full_filename_path</span><span class="p">))</span>
 </span><span id="L-290"><a href="#L-290"><span class="linenos">290</span></a>        <span class="p">)</span>
 </span><span id="L-291"><a href="#L-291"><span class="linenos">291</span></a>
 </span><span id="L-292"><a href="#L-292"><span class="linenos">292</span></a>    <span class="nd">@property</span>
-</span><span id="L-293"><a href="#L-293"><span class="linenos">293</span></a>    <span class="k">def</span> <span class="nf">A_therm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-293"><a href="#L-293"><span class="linenos">293</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">A_therm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-294"><a href="#L-294"><span class="linenos">294</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">calibration_terms</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </span><span id="L-295"><a href="#L-295"><span class="linenos">295</span></a>
 </span><span id="L-296"><a href="#L-296"><span class="linenos">296</span></a>    <span class="nd">@property</span>
-</span><span id="L-297"><a href="#L-297"><span class="linenos">297</span></a>    <span class="k">def</span> <span class="nf">B_therm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-297"><a href="#L-297"><span class="linenos">297</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">B_therm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-298"><a href="#L-298"><span class="linenos">298</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">calibration_terms</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 </span><span id="L-299"><a href="#L-299"><span class="linenos">299</span></a>
 </span><span id="L-300"><a href="#L-300"><span class="linenos">300</span></a>    <span class="nd">@property</span>
-</span><span id="L-301"><a href="#L-301"><span class="linenos">301</span></a>    <span class="k">def</span> <span class="nf">C_therm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-301"><a href="#L-301"><span class="linenos">301</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">C_therm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-302"><a href="#L-302"><span class="linenos">302</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">calibration_terms</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
 </span><span id="L-303"><a href="#L-303"><span class="linenos">303</span></a>
-</span><span id="L-304"><a href="#L-304"><span class="linenos">304</span></a>    <span class="k">def</span> <span class="nf">_plot_frequency_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequency_domain</span><span class="p">,</span> <span class="n">magnitude</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+</span><span id="L-304"><a href="#L-304"><span class="linenos">304</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_plot_frequency_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequency_domain</span><span class="p">,</span> <span class="n">magnitude</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="L-305"><a href="#L-305"><span class="linenos">305</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the frequency domain and magnitude</span>
 </span><span id="L-306"><a href="#L-306"><span class="linenos">306</span></a>
 </span><span id="L-307"><a href="#L-307"><span class="linenos">307</span></a><span class="sd">        Parameters</span>
@@ -440,7 +440,7 @@
 </span><span id="L-321"><a href="#L-321"><span class="linenos">321</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="mi">220</span>
 </span><span id="L-322"><a href="#L-322"><span class="linenos">322</span></a>        <span class="c1"># plt.show()</span>
 </span><span id="L-323"><a href="#L-323"><span class="linenos">323</span></a>
-</span><span id="L-324"><a href="#L-324"><span class="linenos">324</span></a>    <span class="k">def</span> <span class="nf">_plot_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transient_data</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+</span><span id="L-324"><a href="#L-324"><span class="linenos">324</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_plot_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transient_data</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="L-325"><a href="#L-325"><span class="linenos">325</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the transient data</span>
 </span><span id="L-326"><a href="#L-326"><span class="linenos">326</span></a>
 </span><span id="L-327"><a href="#L-327"><span class="linenos">327</span></a><span class="sd">        Parameters</span>
@@ -459,7 +459,7 @@
 </span><span id="L-340"><a href="#L-340"><span class="linenos">340</span></a>        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Magnitude&quot;</span><span class="p">)</span>
 </span><span id="L-341"><a href="#L-341"><span class="linenos">341</span></a>        <span class="c1"># plt.show()</span>
 </span><span id="L-342"><a href="#L-342"><span class="linenos">342</span></a>
-</span><span id="L-343"><a href="#L-343"><span class="linenos">343</span></a>    <span class="k">def</span> <span class="nf">plot_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+</span><span id="L-343"><a href="#L-343"><span class="linenos">343</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">plot_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="L-344"><a href="#L-344"><span class="linenos">344</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the transient data</span>
 </span><span id="L-345"><a href="#L-345"><span class="linenos">345</span></a>
 </span><span id="L-346"><a href="#L-346"><span class="linenos">346</span></a><span class="sd">        Parameters</span>
@@ -488,7 +488,7 @@
 </span><span id="L-369"><a href="#L-369"><span class="linenos">369</span></a>        <span class="c1"># plt.show()</span>
 </span><span id="L-370"><a href="#L-370"><span class="linenos">370</span></a>        <span class="k">return</span> <span class="n">ax</span>
 </span><span id="L-371"><a href="#L-371"><span class="linenos">371</span></a>
-</span><span id="L-372"><a href="#L-372"><span class="linenos">372</span></a>    <span class="k">def</span> <span class="nf">plot_zerofilled_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+</span><span id="L-372"><a href="#L-372"><span class="linenos">372</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">plot_zerofilled_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="L-373"><a href="#L-373"><span class="linenos">373</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the transient data with zero fill</span>
 </span><span id="L-374"><a href="#L-374"><span class="linenos">374</span></a>
 </span><span id="L-375"><a href="#L-375"><span class="linenos">375</span></a><span class="sd">        Parameters</span>
@@ -519,7 +519,7 @@
 </span><span id="L-400"><a href="#L-400"><span class="linenos">400</span></a>        <span class="c1"># plt.show()</span>
 </span><span id="L-401"><a href="#L-401"><span class="linenos">401</span></a>        <span class="k">return</span> <span class="n">ax</span>
 </span><span id="L-402"><a href="#L-402"><span class="linenos">402</span></a>
-</span><span id="L-403"><a href="#L-403"><span class="linenos">403</span></a>    <span class="k">def</span> <span class="nf">plot_apodized_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+</span><span id="L-403"><a href="#L-403"><span class="linenos">403</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">plot_apodized_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="L-404"><a href="#L-404"><span class="linenos">404</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the transient data with apodization</span>
 </span><span id="L-405"><a href="#L-405"><span class="linenos">405</span></a>
 </span><span id="L-406"><a href="#L-406"><span class="linenos">406</span></a><span class="sd">        Parameters</span>
@@ -548,7 +548,7 @@
 </span><span id="L-429"><a href="#L-429"><span class="linenos">429</span></a>        <span class="c1"># plt.show()</span>
 </span><span id="L-430"><a href="#L-430"><span class="linenos">430</span></a>        <span class="k">return</span> <span class="n">ax</span>
 </span><span id="L-431"><a href="#L-431"><span class="linenos">431</span></a>
-</span><span id="L-432"><a href="#L-432"><span class="linenos">432</span></a>    <span class="k">def</span> <span class="nf">plot_frequency_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+</span><span id="L-432"><a href="#L-432"><span class="linenos">432</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">plot_frequency_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="L-433"><a href="#L-433"><span class="linenos">433</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the frequency domain and magnitude</span>
 </span><span id="L-434"><a href="#L-434"><span class="linenos">434</span></a>
 </span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a><span class="sd">        Parameters</span>
@@ -589,7 +589,7 @@
 
     </div>
     <a class="headerlink" href="#Transient"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient-22"><a href="#Transient-22"><span class="linenos"> 22</span></a><span class="k">class</span> <span class="nc">Transient</span><span class="p">(</span><span class="n">TransientCalculations</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient-22"><a href="#Transient-22"><span class="linenos"> 22</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Transient</span><span class="p">(</span><span class="n">TransientCalculations</span><span class="p">):</span>
 </span><span id="Transient-23"><a href="#Transient-23"><span class="linenos"> 23</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The Transient object contains the transient data and the parameters used to process it</span>
 </span><span id="Transient-24"><a href="#Transient-24"><span class="linenos"> 24</span></a>
 </span><span id="Transient-25"><a href="#Transient-25"><span class="linenos"> 25</span></a><span class="sd">    Parameters</span>
@@ -656,7 +656,7 @@
 </span><span id="Transient-86"><a href="#Transient-86"><span class="linenos"> 86</span></a>
 </span><span id="Transient-87"><a href="#Transient-87"><span class="linenos"> 87</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="Transient-88"><a href="#Transient-88"><span class="linenos"> 88</span></a>
-</span><span id="Transient-89"><a href="#Transient-89"><span class="linenos"> 89</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">d_params</span><span class="p">):</span>
+</span><span id="Transient-89"><a href="#Transient-89"><span class="linenos"> 89</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">d_params</span><span class="p">):</span>
 </span><span id="Transient-90"><a href="#Transient-90"><span class="linenos"> 90</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_transient_data</span> <span class="o">=</span> <span class="n">data</span>
 </span><span id="Transient-91"><a href="#Transient-91"><span class="linenos"> 91</span></a>
 </span><span id="Transient-92"><a href="#Transient-92"><span class="linenos"> 92</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">d_params</span> <span class="o">=</span> <span class="n">d_params</span>
@@ -669,7 +669,7 @@
 </span><span id="Transient-99"><a href="#Transient-99"><span class="linenos"> 99</span></a>
 </span><span id="Transient-100"><a href="#Transient-100"><span class="linenos">100</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">__set__transient__time</span><span class="p">()</span>
 </span><span id="Transient-101"><a href="#Transient-101"><span class="linenos">101</span></a>
-</span><span id="Transient-102"><a href="#Transient-102"><span class="linenos">102</span></a>    <span class="k">def</span> <span class="nf">__set__parameters__objects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_params</span><span class="p">):</span>
+</span><span id="Transient-102"><a href="#Transient-102"><span class="linenos">102</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__set__parameters__objects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_params</span><span class="p">):</span>
 </span><span id="Transient-103"><a href="#Transient-103"><span class="linenos">103</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the parameters objects from the dictionary d_params</span>
 </span><span id="Transient-104"><a href="#Transient-104"><span class="linenos">104</span></a>
 </span><span id="Transient-105"><a href="#Transient-105"><span class="linenos">105</span></a><span class="sd">        Parameters</span>
@@ -707,7 +707,7 @@
 </span><span id="Transient-137"><a href="#Transient-137"><span class="linenos">137</span></a>
 </span><span id="Transient-138"><a href="#Transient-138"><span class="linenos">138</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">MSParameters</span><span class="o">.</span><span class="n">transient</span><span class="p">)</span>
 </span><span id="Transient-139"><a href="#Transient-139"><span class="linenos">139</span></a>
-</span><span id="Transient-140"><a href="#Transient-140"><span class="linenos">140</span></a>    <span class="k">def</span> <span class="nf">scale_plot_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="mf">1.5</span><span class="p">):</span>
+</span><span id="Transient-140"><a href="#Transient-140"><span class="linenos">140</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">scale_plot_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="mf">1.5</span><span class="p">):</span>
 </span><span id="Transient-141"><a href="#Transient-141"><span class="linenos">141</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Scale the plot size by a factor</span>
 </span><span id="Transient-142"><a href="#Transient-142"><span class="linenos">142</span></a>
 </span><span id="Transient-143"><a href="#Transient-143"><span class="linenos">143</span></a><span class="sd">        Parameters</span>
@@ -719,11 +719,11 @@
 </span><span id="Transient-149"><a href="#Transient-149"><span class="linenos">149</span></a>        <span class="n">default_dpi</span> <span class="o">=</span> <span class="n">rcParamsDefault</span><span class="p">[</span><span class="s2">&quot;figure.dpi&quot;</span><span class="p">]</span>
 </span><span id="Transient-150"><a href="#Transient-150"><span class="linenos">150</span></a>        <span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;figure.dpi&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">default_dpi</span> <span class="o">*</span> <span class="n">factor</span>
 </span><span id="Transient-151"><a href="#Transient-151"><span class="linenos">151</span></a>
-</span><span id="Transient-152"><a href="#Transient-152"><span class="linenos">152</span></a>    <span class="k">def</span> <span class="nf">__set__transient__time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Transient-152"><a href="#Transient-152"><span class="linenos">152</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__set__transient__time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="Transient-153"><a href="#Transient-153"><span class="linenos">153</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the transient time variable with the calculated length.&quot;&quot;&quot;</span>
 </span><span id="Transient-154"><a href="#Transient-154"><span class="linenos">154</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">transient_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cal_transient_time</span><span class="p">()</span>
 </span><span id="Transient-155"><a href="#Transient-155"><span class="linenos">155</span></a>
-</span><span id="Transient-156"><a href="#Transient-156"><span class="linenos">156</span></a>    <span class="k">def</span> <span class="nf">set_processing_parameter</span><span class="p">(</span>
+</span><span id="Transient-156"><a href="#Transient-156"><span class="linenos">156</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_processing_parameter</span><span class="p">(</span>
 </span><span id="Transient-157"><a href="#Transient-157"><span class="linenos">157</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="Transient-158"><a href="#Transient-158"><span class="linenos">158</span></a>        <span class="n">apodization_method</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 </span><span id="Transient-159"><a href="#Transient-159"><span class="linenos">159</span></a>        <span class="n">number_of_truncations</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -748,27 +748,27 @@
 </span><span id="Transient-178"><a href="#Transient-178"><span class="linenos">178</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">number_of_zero_fills</span> <span class="o">=</span> <span class="n">number_of_zero_fills</span>
 </span><span id="Transient-179"><a href="#Transient-179"><span class="linenos">179</span></a>
 </span><span id="Transient-180"><a href="#Transient-180"><span class="linenos">180</span></a>    <span class="nd">@property</span>
-</span><span id="Transient-181"><a href="#Transient-181"><span class="linenos">181</span></a>    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Transient-181"><a href="#Transient-181"><span class="linenos">181</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="Transient-182"><a href="#Transient-182"><span class="linenos">182</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The transient parameters&quot;&quot;&quot;</span>
 </span><span id="Transient-183"><a href="#Transient-183"><span class="linenos">183</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span>
 </span><span id="Transient-184"><a href="#Transient-184"><span class="linenos">184</span></a>
 </span><span id="Transient-185"><a href="#Transient-185"><span class="linenos">185</span></a>    <span class="nd">@parameters</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="Transient-186"><a href="#Transient-186"><span class="linenos">186</span></a>    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance_TransientParameters</span><span class="p">):</span>
+</span><span id="Transient-186"><a href="#Transient-186"><span class="linenos">186</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance_TransientParameters</span><span class="p">):</span>
 </span><span id="Transient-187"><a href="#Transient-187"><span class="linenos">187</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">instance_TransientParameters</span>
 </span><span id="Transient-188"><a href="#Transient-188"><span class="linenos">188</span></a>
-</span><span id="Transient-189"><a href="#Transient-189"><span class="linenos">189</span></a>    <span class="k">def</span> <span class="nf">set_parameter_from_toml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters_path</span><span class="p">):</span>
+</span><span id="Transient-189"><a href="#Transient-189"><span class="linenos">189</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_parameter_from_toml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters_path</span><span class="p">):</span>
 </span><span id="Transient-190"><a href="#Transient-190"><span class="linenos">190</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the processing parameters from a toml file&quot;&quot;&quot;</span>
 </span><span id="Transient-191"><a href="#Transient-191"><span class="linenos">191</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">load_and_set_toml_parameters_class</span><span class="p">(</span>
 </span><span id="Transient-192"><a href="#Transient-192"><span class="linenos">192</span></a>            <span class="s2">&quot;Transient&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">,</span> <span class="n">parameters_path</span><span class="o">=</span><span class="n">parameters_path</span>
 </span><span id="Transient-193"><a href="#Transient-193"><span class="linenos">193</span></a>        <span class="p">)</span>
 </span><span id="Transient-194"><a href="#Transient-194"><span class="linenos">194</span></a>
-</span><span id="Transient-195"><a href="#Transient-195"><span class="linenos">195</span></a>    <span class="k">def</span> <span class="nf">set_parameter_from_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters_path</span><span class="p">):</span>
+</span><span id="Transient-195"><a href="#Transient-195"><span class="linenos">195</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_parameter_from_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters_path</span><span class="p">):</span>
 </span><span id="Transient-196"><a href="#Transient-196"><span class="linenos">196</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the processing parameters from a json file&quot;&quot;&quot;</span>
 </span><span id="Transient-197"><a href="#Transient-197"><span class="linenos">197</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">load_and_set_parameters_class</span><span class="p">(</span>
 </span><span id="Transient-198"><a href="#Transient-198"><span class="linenos">198</span></a>            <span class="s2">&quot;Transient&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">,</span> <span class="n">parameters_path</span><span class="o">=</span><span class="n">parameters_path</span>
 </span><span id="Transient-199"><a href="#Transient-199"><span class="linenos">199</span></a>        <span class="p">)</span>
 </span><span id="Transient-200"><a href="#Transient-200"><span class="linenos">200</span></a>
-</span><span id="Transient-201"><a href="#Transient-201"><span class="linenos">201</span></a>    <span class="k">def</span> <span class="nf">get_frequency_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot_result</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="Transient-201"><a href="#Transient-201"><span class="linenos">201</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_frequency_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot_result</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="Transient-202"><a href="#Transient-202"><span class="linenos">202</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the frequency domain and magnitude from the transient data</span>
 </span><span id="Transient-203"><a href="#Transient-203"><span class="linenos">203</span></a>
 </span><span id="Transient-204"><a href="#Transient-204"><span class="linenos">204</span></a><span class="sd">        Parameters</span>
@@ -810,7 +810,7 @@
 </span><span id="Transient-240"><a href="#Transient-240"><span class="linenos">240</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">perform_magniture_mode_ft</span><span class="p">(</span><span class="n">time_domain_y_zero_filled</span><span class="p">)</span>
 </span><span id="Transient-241"><a href="#Transient-241"><span class="linenos">241</span></a>        <span class="c1"># return frequency_domain, magnitude</span>
 </span><span id="Transient-242"><a href="#Transient-242"><span class="linenos">242</span></a>
-</span><span id="Transient-243"><a href="#Transient-243"><span class="linenos">243</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span>
+</span><span id="Transient-243"><a href="#Transient-243"><span class="linenos">243</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span>
 </span><span id="Transient-244"><a href="#Transient-244"><span class="linenos">244</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="Transient-245"><a href="#Transient-245"><span class="linenos">245</span></a>        <span class="n">auto_process</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 </span><span id="Transient-246"><a href="#Transient-246"><span class="linenos">246</span></a>        <span class="n">plot_result</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -850,29 +850,29 @@
 </span><span id="Transient-280"><a href="#Transient-280"><span class="linenos">280</span></a>        <span class="p">)</span>
 </span><span id="Transient-281"><a href="#Transient-281"><span class="linenos">281</span></a>
 </span><span id="Transient-282"><a href="#Transient-282"><span class="linenos">282</span></a>    <span class="nd">@property</span>
-</span><span id="Transient-283"><a href="#Transient-283"><span class="linenos">283</span></a>    <span class="k">def</span> <span class="nf">filename</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Transient-283"><a href="#Transient-283"><span class="linenos">283</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">filename</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="Transient-284"><a href="#Transient-284"><span class="linenos">284</span></a>        <span class="c1"># return dirname(self._full_filename_path)</span>
 </span><span id="Transient-285"><a href="#Transient-285"><span class="linenos">285</span></a>        <span class="k">return</span> <span class="n">basename</span><span class="p">(</span><span class="n">normpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_full_filename_path</span><span class="p">))</span>
 </span><span id="Transient-286"><a href="#Transient-286"><span class="linenos">286</span></a>
 </span><span id="Transient-287"><a href="#Transient-287"><span class="linenos">287</span></a>    <span class="nd">@property</span>
-</span><span id="Transient-288"><a href="#Transient-288"><span class="linenos">288</span></a>    <span class="k">def</span> <span class="nf">dir_location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Transient-288"><a href="#Transient-288"><span class="linenos">288</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">dir_location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="Transient-289"><a href="#Transient-289"><span class="linenos">289</span></a>        <span class="k">return</span> <span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_full_filename_path</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span>
 </span><span id="Transient-290"><a href="#Transient-290"><span class="linenos">290</span></a>            <span class="n">basename</span><span class="p">(</span><span class="n">normpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_full_filename_path</span><span class="p">))</span>
 </span><span id="Transient-291"><a href="#Transient-291"><span class="linenos">291</span></a>        <span class="p">)</span>
 </span><span id="Transient-292"><a href="#Transient-292"><span class="linenos">292</span></a>
 </span><span id="Transient-293"><a href="#Transient-293"><span class="linenos">293</span></a>    <span class="nd">@property</span>
-</span><span id="Transient-294"><a href="#Transient-294"><span class="linenos">294</span></a>    <span class="k">def</span> <span class="nf">A_therm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Transient-294"><a href="#Transient-294"><span class="linenos">294</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">A_therm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="Transient-295"><a href="#Transient-295"><span class="linenos">295</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">calibration_terms</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </span><span id="Transient-296"><a href="#Transient-296"><span class="linenos">296</span></a>
 </span><span id="Transient-297"><a href="#Transient-297"><span class="linenos">297</span></a>    <span class="nd">@property</span>
-</span><span id="Transient-298"><a href="#Transient-298"><span class="linenos">298</span></a>    <span class="k">def</span> <span class="nf">B_therm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Transient-298"><a href="#Transient-298"><span class="linenos">298</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">B_therm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="Transient-299"><a href="#Transient-299"><span class="linenos">299</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">calibration_terms</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 </span><span id="Transient-300"><a href="#Transient-300"><span class="linenos">300</span></a>
 </span><span id="Transient-301"><a href="#Transient-301"><span class="linenos">301</span></a>    <span class="nd">@property</span>
-</span><span id="Transient-302"><a href="#Transient-302"><span class="linenos">302</span></a>    <span class="k">def</span> <span class="nf">C_therm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Transient-302"><a href="#Transient-302"><span class="linenos">302</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">C_therm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="Transient-303"><a href="#Transient-303"><span class="linenos">303</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">calibration_terms</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
 </span><span id="Transient-304"><a href="#Transient-304"><span class="linenos">304</span></a>
-</span><span id="Transient-305"><a href="#Transient-305"><span class="linenos">305</span></a>    <span class="k">def</span> <span class="nf">_plot_frequency_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequency_domain</span><span class="p">,</span> <span class="n">magnitude</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+</span><span id="Transient-305"><a href="#Transient-305"><span class="linenos">305</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_plot_frequency_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequency_domain</span><span class="p">,</span> <span class="n">magnitude</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="Transient-306"><a href="#Transient-306"><span class="linenos">306</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the frequency domain and magnitude</span>
 </span><span id="Transient-307"><a href="#Transient-307"><span class="linenos">307</span></a>
 </span><span id="Transient-308"><a href="#Transient-308"><span class="linenos">308</span></a><span class="sd">        Parameters</span>
@@ -892,7 +892,7 @@
 </span><span id="Transient-322"><a href="#Transient-322"><span class="linenos">322</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="mi">220</span>
 </span><span id="Transient-323"><a href="#Transient-323"><span class="linenos">323</span></a>        <span class="c1"># plt.show()</span>
 </span><span id="Transient-324"><a href="#Transient-324"><span class="linenos">324</span></a>
-</span><span id="Transient-325"><a href="#Transient-325"><span class="linenos">325</span></a>    <span class="k">def</span> <span class="nf">_plot_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transient_data</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+</span><span id="Transient-325"><a href="#Transient-325"><span class="linenos">325</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_plot_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transient_data</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="Transient-326"><a href="#Transient-326"><span class="linenos">326</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the transient data</span>
 </span><span id="Transient-327"><a href="#Transient-327"><span class="linenos">327</span></a>
 </span><span id="Transient-328"><a href="#Transient-328"><span class="linenos">328</span></a><span class="sd">        Parameters</span>
@@ -911,7 +911,7 @@
 </span><span id="Transient-341"><a href="#Transient-341"><span class="linenos">341</span></a>        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Magnitude&quot;</span><span class="p">)</span>
 </span><span id="Transient-342"><a href="#Transient-342"><span class="linenos">342</span></a>        <span class="c1"># plt.show()</span>
 </span><span id="Transient-343"><a href="#Transient-343"><span class="linenos">343</span></a>
-</span><span id="Transient-344"><a href="#Transient-344"><span class="linenos">344</span></a>    <span class="k">def</span> <span class="nf">plot_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+</span><span id="Transient-344"><a href="#Transient-344"><span class="linenos">344</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">plot_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="Transient-345"><a href="#Transient-345"><span class="linenos">345</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the transient data</span>
 </span><span id="Transient-346"><a href="#Transient-346"><span class="linenos">346</span></a>
 </span><span id="Transient-347"><a href="#Transient-347"><span class="linenos">347</span></a><span class="sd">        Parameters</span>
@@ -940,7 +940,7 @@
 </span><span id="Transient-370"><a href="#Transient-370"><span class="linenos">370</span></a>        <span class="c1"># plt.show()</span>
 </span><span id="Transient-371"><a href="#Transient-371"><span class="linenos">371</span></a>        <span class="k">return</span> <span class="n">ax</span>
 </span><span id="Transient-372"><a href="#Transient-372"><span class="linenos">372</span></a>
-</span><span id="Transient-373"><a href="#Transient-373"><span class="linenos">373</span></a>    <span class="k">def</span> <span class="nf">plot_zerofilled_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+</span><span id="Transient-373"><a href="#Transient-373"><span class="linenos">373</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">plot_zerofilled_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="Transient-374"><a href="#Transient-374"><span class="linenos">374</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the transient data with zero fill</span>
 </span><span id="Transient-375"><a href="#Transient-375"><span class="linenos">375</span></a>
 </span><span id="Transient-376"><a href="#Transient-376"><span class="linenos">376</span></a><span class="sd">        Parameters</span>
@@ -971,7 +971,7 @@
 </span><span id="Transient-401"><a href="#Transient-401"><span class="linenos">401</span></a>        <span class="c1"># plt.show()</span>
 </span><span id="Transient-402"><a href="#Transient-402"><span class="linenos">402</span></a>        <span class="k">return</span> <span class="n">ax</span>
 </span><span id="Transient-403"><a href="#Transient-403"><span class="linenos">403</span></a>
-</span><span id="Transient-404"><a href="#Transient-404"><span class="linenos">404</span></a>    <span class="k">def</span> <span class="nf">plot_apodized_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+</span><span id="Transient-404"><a href="#Transient-404"><span class="linenos">404</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">plot_apodized_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="Transient-405"><a href="#Transient-405"><span class="linenos">405</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the transient data with apodization</span>
 </span><span id="Transient-406"><a href="#Transient-406"><span class="linenos">406</span></a>
 </span><span id="Transient-407"><a href="#Transient-407"><span class="linenos">407</span></a><span class="sd">        Parameters</span>
@@ -1000,7 +1000,7 @@
 </span><span id="Transient-430"><a href="#Transient-430"><span class="linenos">430</span></a>        <span class="c1"># plt.show()</span>
 </span><span id="Transient-431"><a href="#Transient-431"><span class="linenos">431</span></a>        <span class="k">return</span> <span class="n">ax</span>
 </span><span id="Transient-432"><a href="#Transient-432"><span class="linenos">432</span></a>
-</span><span id="Transient-433"><a href="#Transient-433"><span class="linenos">433</span></a>    <span class="k">def</span> <span class="nf">plot_frequency_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+</span><span id="Transient-433"><a href="#Transient-433"><span class="linenos">433</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">plot_frequency_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="Transient-434"><a href="#Transient-434"><span class="linenos">434</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the frequency domain and magnitude</span>
 </span><span id="Transient-435"><a href="#Transient-435"><span class="linenos">435</span></a>
 </span><span id="Transient-436"><a href="#Transient-436"><span class="linenos">436</span></a><span class="sd">        Parameters</span>
@@ -1108,7 +1108,7 @@ Set the processing parameters from a json file</li>
 
     </div>
     <a class="headerlink" href="#Transient.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient.__init__-89"><a href="#Transient.__init__-89"><span class="linenos"> 89</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">d_params</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient.__init__-89"><a href="#Transient.__init__-89"><span class="linenos"> 89</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">d_params</span><span class="p">):</span>
 </span><span id="Transient.__init__-90"><a href="#Transient.__init__-90"><span class="linenos"> 90</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_transient_data</span> <span class="o">=</span> <span class="n">data</span>
 </span><span id="Transient.__init__-91"><a href="#Transient.__init__-91"><span class="linenos"> 91</span></a>
 </span><span id="Transient.__init__-92"><a href="#Transient.__init__-92"><span class="linenos"> 92</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">d_params</span> <span class="o">=</span> <span class="n">d_params</span>
@@ -1170,7 +1170,7 @@ Set the processing parameters from a json file</li>
 
     </div>
     <a class="headerlink" href="#Transient.scale_plot_size"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient.scale_plot_size-140"><a href="#Transient.scale_plot_size-140"><span class="linenos">140</span></a>    <span class="k">def</span> <span class="nf">scale_plot_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="mf">1.5</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient.scale_plot_size-140"><a href="#Transient.scale_plot_size-140"><span class="linenos">140</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">scale_plot_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="mf">1.5</span><span class="p">):</span>
 </span><span id="Transient.scale_plot_size-141"><a href="#Transient.scale_plot_size-141"><span class="linenos">141</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Scale the plot size by a factor</span>
 </span><span id="Transient.scale_plot_size-142"><a href="#Transient.scale_plot_size-142"><span class="linenos">142</span></a>
 </span><span id="Transient.scale_plot_size-143"><a href="#Transient.scale_plot_size-143"><span class="linenos">143</span></a><span class="sd">        Parameters</span>
@@ -1207,7 +1207,7 @@ The factor to scale the plot size, by default 1.5</li>
 
     </div>
     <a class="headerlink" href="#Transient.set_processing_parameter"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient.set_processing_parameter-156"><a href="#Transient.set_processing_parameter-156"><span class="linenos">156</span></a>    <span class="k">def</span> <span class="nf">set_processing_parameter</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient.set_processing_parameter-156"><a href="#Transient.set_processing_parameter-156"><span class="linenos">156</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_processing_parameter</span><span class="p">(</span>
 </span><span id="Transient.set_processing_parameter-157"><a href="#Transient.set_processing_parameter-157"><span class="linenos">157</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="Transient.set_processing_parameter-158"><a href="#Transient.set_processing_parameter-158"><span class="linenos">158</span></a>        <span class="n">apodization_method</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 </span><span id="Transient.set_processing_parameter-159"><a href="#Transient.set_processing_parameter-159"><span class="linenos">159</span></a>        <span class="n">number_of_truncations</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -1273,7 +1273,7 @@ Number of zero fills to be used</li>
 
     </div>
     <a class="headerlink" href="#Transient.set_parameter_from_toml"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient.set_parameter_from_toml-189"><a href="#Transient.set_parameter_from_toml-189"><span class="linenos">189</span></a>    <span class="k">def</span> <span class="nf">set_parameter_from_toml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters_path</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient.set_parameter_from_toml-189"><a href="#Transient.set_parameter_from_toml-189"><span class="linenos">189</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_parameter_from_toml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters_path</span><span class="p">):</span>
 </span><span id="Transient.set_parameter_from_toml-190"><a href="#Transient.set_parameter_from_toml-190"><span class="linenos">190</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the processing parameters from a toml file&quot;&quot;&quot;</span>
 </span><span id="Transient.set_parameter_from_toml-191"><a href="#Transient.set_parameter_from_toml-191"><span class="linenos">191</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">load_and_set_toml_parameters_class</span><span class="p">(</span>
 </span><span id="Transient.set_parameter_from_toml-192"><a href="#Transient.set_parameter_from_toml-192"><span class="linenos">192</span></a>            <span class="s2">&quot;Transient&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">,</span> <span class="n">parameters_path</span><span class="o">=</span><span class="n">parameters_path</span>
@@ -1297,7 +1297,7 @@ Number of zero fills to be used</li>
 
     </div>
     <a class="headerlink" href="#Transient.set_parameter_from_json"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient.set_parameter_from_json-195"><a href="#Transient.set_parameter_from_json-195"><span class="linenos">195</span></a>    <span class="k">def</span> <span class="nf">set_parameter_from_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters_path</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient.set_parameter_from_json-195"><a href="#Transient.set_parameter_from_json-195"><span class="linenos">195</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_parameter_from_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters_path</span><span class="p">):</span>
 </span><span id="Transient.set_parameter_from_json-196"><a href="#Transient.set_parameter_from_json-196"><span class="linenos">196</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the processing parameters from a json file&quot;&quot;&quot;</span>
 </span><span id="Transient.set_parameter_from_json-197"><a href="#Transient.set_parameter_from_json-197"><span class="linenos">197</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">load_and_set_parameters_class</span><span class="p">(</span>
 </span><span id="Transient.set_parameter_from_json-198"><a href="#Transient.set_parameter_from_json-198"><span class="linenos">198</span></a>            <span class="s2">&quot;Transient&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">,</span> <span class="n">parameters_path</span><span class="o">=</span><span class="n">parameters_path</span>
@@ -1321,7 +1321,7 @@ Number of zero fills to be used</li>
 
     </div>
     <a class="headerlink" href="#Transient.get_frequency_domain"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient.get_frequency_domain-201"><a href="#Transient.get_frequency_domain-201"><span class="linenos">201</span></a>    <span class="k">def</span> <span class="nf">get_frequency_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot_result</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient.get_frequency_domain-201"><a href="#Transient.get_frequency_domain-201"><span class="linenos">201</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_frequency_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot_result</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="Transient.get_frequency_domain-202"><a href="#Transient.get_frequency_domain-202"><span class="linenos">202</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the frequency domain and magnitude from the transient data</span>
 </span><span id="Transient.get_frequency_domain-203"><a href="#Transient.get_frequency_domain-203"><span class="linenos">203</span></a>
 </span><span id="Transient.get_frequency_domain-204"><a href="#Transient.get_frequency_domain-204"><span class="linenos">204</span></a><span class="sd">        Parameters</span>
@@ -1397,7 +1397,7 @@ Array with the magnitude</li>
 
     </div>
     <a class="headerlink" href="#Transient.get_mass_spectrum"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient.get_mass_spectrum-243"><a href="#Transient.get_mass_spectrum-243"><span class="linenos">243</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient.get_mass_spectrum-243"><a href="#Transient.get_mass_spectrum-243"><span class="linenos">243</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span>
 </span><span id="Transient.get_mass_spectrum-244"><a href="#Transient.get_mass_spectrum-244"><span class="linenos">244</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="Transient.get_mass_spectrum-245"><a href="#Transient.get_mass_spectrum-245"><span class="linenos">245</span></a>        <span class="n">auto_process</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 </span><span id="Transient.get_mass_spectrum-246"><a href="#Transient.get_mass_spectrum-246"><span class="linenos">246</span></a>        <span class="n">plot_result</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -1526,7 +1526,7 @@ Keep the profile data, by default True</li>
 
     </div>
     <a class="headerlink" href="#Transient.plot_transient"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient.plot_transient-344"><a href="#Transient.plot_transient-344"><span class="linenos">344</span></a>    <span class="k">def</span> <span class="nf">plot_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient.plot_transient-344"><a href="#Transient.plot_transient-344"><span class="linenos">344</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">plot_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="Transient.plot_transient-345"><a href="#Transient.plot_transient-345"><span class="linenos">345</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the transient data</span>
 </span><span id="Transient.plot_transient-346"><a href="#Transient.plot_transient-346"><span class="linenos">346</span></a>
 </span><span id="Transient.plot_transient-347"><a href="#Transient.plot_transient-347"><span class="linenos">347</span></a><span class="sd">        Parameters</span>
@@ -1588,7 +1588,7 @@ Color, by default 'k'</li>
 
     </div>
     <a class="headerlink" href="#Transient.plot_zerofilled_transient"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient.plot_zerofilled_transient-373"><a href="#Transient.plot_zerofilled_transient-373"><span class="linenos">373</span></a>    <span class="k">def</span> <span class="nf">plot_zerofilled_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient.plot_zerofilled_transient-373"><a href="#Transient.plot_zerofilled_transient-373"><span class="linenos">373</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">plot_zerofilled_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="Transient.plot_zerofilled_transient-374"><a href="#Transient.plot_zerofilled_transient-374"><span class="linenos">374</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the transient data with zero fill</span>
 </span><span id="Transient.plot_zerofilled_transient-375"><a href="#Transient.plot_zerofilled_transient-375"><span class="linenos">375</span></a>
 </span><span id="Transient.plot_zerofilled_transient-376"><a href="#Transient.plot_zerofilled_transient-376"><span class="linenos">376</span></a><span class="sd">        Parameters</span>
@@ -1652,7 +1652,7 @@ Color, by default 'k'</li>
 
     </div>
     <a class="headerlink" href="#Transient.plot_apodized_transient"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient.plot_apodized_transient-404"><a href="#Transient.plot_apodized_transient-404"><span class="linenos">404</span></a>    <span class="k">def</span> <span class="nf">plot_apodized_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient.plot_apodized_transient-404"><a href="#Transient.plot_apodized_transient-404"><span class="linenos">404</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">plot_apodized_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="Transient.plot_apodized_transient-405"><a href="#Transient.plot_apodized_transient-405"><span class="linenos">405</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the transient data with apodization</span>
 </span><span id="Transient.plot_apodized_transient-406"><a href="#Transient.plot_apodized_transient-406"><span class="linenos">406</span></a>
 </span><span id="Transient.plot_apodized_transient-407"><a href="#Transient.plot_apodized_transient-407"><span class="linenos">407</span></a><span class="sd">        Parameters</span>
@@ -1714,7 +1714,7 @@ Color, by default 'k'</li>
 
     </div>
     <a class="headerlink" href="#Transient.plot_frequency_domain"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient.plot_frequency_domain-433"><a href="#Transient.plot_frequency_domain-433"><span class="linenos">433</span></a>    <span class="k">def</span> <span class="nf">plot_frequency_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Transient.plot_frequency_domain-433"><a href="#Transient.plot_frequency_domain-433"><span class="linenos">433</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">plot_frequency_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="Transient.plot_frequency_domain-434"><a href="#Transient.plot_frequency_domain-434"><span class="linenos">434</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the frequency domain and magnitude</span>
 </span><span id="Transient.plot_frequency_domain-435"><a href="#Transient.plot_frequency_domain-435"><span class="linenos">435</span></a>
 </span><span id="Transient.plot_frequency_domain-436"><a href="#Transient.plot_frequency_domain-436"><span class="linenos">436</span></a><span class="sd">        Parameters</span>

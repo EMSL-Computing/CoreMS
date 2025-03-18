@@ -120,21 +120,21 @@
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Yuri E. Corilo&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="n">__date__</span> <span class="o">=</span> <span class="s2">&quot;Jun 09, 2021&quot;</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">threading</span><span class="w"> </span><span class="kn">import</span> <span class="n">Thread</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="nd">@dataclass</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="k">class</span> <span class="nc">SearchResults</span><span class="p">:</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="k">class</span><span class="w"> </span><span class="nc">SearchResults</span><span class="p">:</span>
 </span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>    <span class="n">calculated_mz</span><span class="p">:</span> <span class="nb">float</span>
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>    <span class="n">exp_mz</span><span class="p">:</span> <span class="nb">float</span>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>    <span class="n">error</span><span class="p">:</span> <span class="nb">float</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>    <span class="n">tolerance</span><span class="p">:</span> <span class="nb">float</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="k">class</span> <span class="nc">MZSearch</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MZSearch</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a>        <span class="n">exp_mzs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
 </span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>        <span class="n">calculated_mzs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
@@ -171,21 +171,21 @@
 </span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">colapse_calculated</span><span class="p">()</span>
 </span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>
 </span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>    <span class="nd">@property</span>
-</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>    <span class="k">def</span> <span class="nf">results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;{calculated_mz: [SearchResults]}</span>
 </span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="sd">        contains the results of the search</span>
 </span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_matched_mz</span>
 </span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>
 </span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>    <span class="nd">@property</span>
-</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>    <span class="k">def</span> <span class="nf">averaged_target_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">averaged_target_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;[float]</span>
 </span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a><span class="sd">        contains the average target m/z to be searched against</span>
 </span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_averaged_target_mz</span>
 </span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>
 </span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>    <span class="nd">@property</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>    <span class="k">def</span> <span class="nf">calculated_mzs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calculated_mzs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;[float]</span>
 </span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a><span class="sd">        contains the mz target to be searched against</span>
 </span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -195,18 +195,18 @@
 </span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>            <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_calculated_mzs</span><span class="p">))</span>
 </span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>
 </span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>    <span class="nd">@property</span>
-</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>    <span class="k">def</span> <span class="nf">exp_mzs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">exp_mzs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;[float]</span>
 </span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="sd">        contains the exp mz to be searched against</span>
 </span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exp_mzs</span>
 </span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>
 </span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>    <span class="nd">@property</span>
-</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>    <span class="k">def</span> <span class="nf">method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_method</span>
 </span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>
 </span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>    <span class="nd">@method</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>    <span class="k">def</span> <span class="nf">method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
 </span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a><span class="sd">        method: string,</span>
 </span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a><span class="sd">           ppm or ppb</span>
@@ -216,11 +216,11 @@
 </span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_method</span> <span class="o">=</span> <span class="n">method</span>
 </span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>
 </span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>    <span class="nd">@property</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>    <span class="k">def</span> <span class="nf">tolerance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">tolerance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tolerance</span>
 </span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>
 </span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>    <span class="nd">@tolerance</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>    <span class="k">def</span> <span class="nf">tolerance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">):</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">tolerance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">):</span>
 </span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a><span class="sd">        method: string,</span>
 </span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="sd">           ppm or ppb</span>
@@ -229,7 +229,7 @@
 </span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Tolerance needs to be a positive number&quot;</span><span class="p">)</span>
 </span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_tolerance</span> <span class="o">=</span> <span class="n">tolerance</span>
 </span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>
-</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>    <span class="k">def</span> <span class="nf">colapse_calculated</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">colapse_calculated</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">calculated_mzs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
 </span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>            <span class="n">all_mz</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>            <span class="n">subset</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
@@ -289,7 +289,7 @@
 </span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a>            <span class="c1"># print(results)</span>
 </span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_averaged_target_mz</span> <span class="o">=</span> <span class="n">results</span>
 </span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a>
-</span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a>        <span class="n">dict_nominal_exp_mz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nominal_exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exp_mzs</span><span class="p">)</span>
 </span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a>
 </span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a>        <span class="k">for</span> <span class="n">calculated_mz</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculated_mzs</span><span class="p">:</span>
@@ -308,7 +308,7 @@
 </span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a>                <span class="k">continue</span>
 </span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a>
 </span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a>    <span class="k">def</span> <span class="nf">calc_mz_error</span><span class="p">(</span><span class="n">calculated_mz</span><span class="p">,</span> <span class="n">exp_mz</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;ppm&quot;</span><span class="p">):</span>
+</span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_mz_error</span><span class="p">(</span><span class="n">calculated_mz</span><span class="p">,</span> <span class="n">exp_mz</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;ppm&quot;</span><span class="p">):</span>
 </span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a><span class="sd">        Parameters</span>
 </span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a><span class="sd">        ----------</span>
@@ -333,10 +333,10 @@
 </span><span id="L-214"><a href="#L-214"><span class="linenos">214</span></a>        <span class="k">return</span> <span class="p">((</span><span class="n">exp_mz</span> <span class="o">-</span> <span class="n">calculated_mz</span><span class="p">)</span> <span class="o">/</span> <span class="n">calculated_mz</span><span class="p">)</span> <span class="o">*</span> <span class="n">multi_factor</span>
 </span><span id="L-215"><a href="#L-215"><span class="linenos">215</span></a>
 </span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-217"><a href="#L-217"><span class="linenos">217</span></a>    <span class="k">def</span> <span class="nf">check_ppm_error</span><span class="p">(</span><span class="n">tolerance</span><span class="p">,</span> <span class="n">error</span><span class="p">):</span>
+</span><span id="L-217"><a href="#L-217"><span class="linenos">217</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">check_ppm_error</span><span class="p">(</span><span class="n">tolerance</span><span class="p">,</span> <span class="n">error</span><span class="p">):</span>
 </span><span id="L-218"><a href="#L-218"><span class="linenos">218</span></a>        <span class="k">return</span> <span class="kc">True</span> <span class="k">if</span> <span class="o">-</span><span class="n">tolerance</span> <span class="o">&lt;=</span> <span class="n">error</span> <span class="o">&lt;=</span> <span class="n">tolerance</span> <span class="k">else</span> <span class="kc">False</span>
 </span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a>
-</span><span id="L-220"><a href="#L-220"><span class="linenos">220</span></a>    <span class="k">def</span> <span class="nf">get_nominal_exp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp_mzs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span id="L-220"><a href="#L-220"><span class="linenos">220</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_nominal_exp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp_mzs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 </span><span id="L-221"><a href="#L-221"><span class="linenos">221</span></a>        <span class="n">dict_nominal_exp_mz</span> <span class="o">=</span> <span class="p">{}</span>
 </span><span id="L-222"><a href="#L-222"><span class="linenos">222</span></a>
 </span><span id="L-223"><a href="#L-223"><span class="linenos">223</span></a>        <span class="k">for</span> <span class="n">exp_mz</span> <span class="ow">in</span> <span class="n">exp_mzs</span><span class="p">:</span>
@@ -349,7 +349,7 @@
 </span><span id="L-230"><a href="#L-230"><span class="linenos">230</span></a>
 </span><span id="L-231"><a href="#L-231"><span class="linenos">231</span></a>        <span class="k">return</span> <span class="n">dict_nominal_exp_mz</span>
 </span><span id="L-232"><a href="#L-232"><span class="linenos">232</span></a>
-</span><span id="L-233"><a href="#L-233"><span class="linenos">233</span></a>    <span class="k">def</span> <span class="nf">search_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">dict_nominal_exp_mz</span><span class="p">,</span> <span class="n">calculated_mz</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-233"><a href="#L-233"><span class="linenos">233</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">search_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">dict_nominal_exp_mz</span><span class="p">,</span> <span class="n">calculated_mz</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="L-234"><a href="#L-234"><span class="linenos">234</span></a>        <span class="n">nominal_calculated_mz</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">calculated_mz</span><span class="p">)</span> <span class="o">+</span> <span class="n">offset</span>
 </span><span id="L-235"><a href="#L-235"><span class="linenos">235</span></a>        <span class="n">matched_n_precursors</span> <span class="o">=</span> <span class="n">dict_nominal_exp_mz</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">nominal_calculated_mz</span><span class="p">)</span>
 </span><span id="L-236"><a href="#L-236"><span class="linenos">236</span></a>
@@ -383,7 +383,7 @@
     </div>
     <a class="headerlink" href="#SearchResults"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="SearchResults-10"><a href="#SearchResults-10"><span class="linenos">10</span></a><span class="nd">@dataclass</span>
-</span><span id="SearchResults-11"><a href="#SearchResults-11"><span class="linenos">11</span></a><span class="k">class</span> <span class="nc">SearchResults</span><span class="p">:</span>
+</span><span id="SearchResults-11"><a href="#SearchResults-11"><span class="linenos">11</span></a><span class="k">class</span><span class="w"> </span><span class="nc">SearchResults</span><span class="p">:</span>
 </span><span id="SearchResults-12"><a href="#SearchResults-12"><span class="linenos">12</span></a>    <span class="n">calculated_mz</span><span class="p">:</span> <span class="nb">float</span>
 </span><span id="SearchResults-13"><a href="#SearchResults-13"><span class="linenos">13</span></a>    <span class="n">exp_mz</span><span class="p">:</span> <span class="nb">float</span>
 </span><span id="SearchResults-14"><a href="#SearchResults-14"><span class="linenos">14</span></a>    <span class="n">error</span><span class="p">:</span> <span class="nb">float</span>
@@ -461,8 +461,8 @@
 
     </div>
     <a class="headerlink" href="#MZSearch"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MZSearch-18"><a href="#MZSearch-18"><span class="linenos"> 18</span></a><span class="k">class</span> <span class="nc">MZSearch</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
-</span><span id="MZSearch-19"><a href="#MZSearch-19"><span class="linenos"> 19</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MZSearch-18"><a href="#MZSearch-18"><span class="linenos"> 18</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MZSearch</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
+</span><span id="MZSearch-19"><a href="#MZSearch-19"><span class="linenos"> 19</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="MZSearch-20"><a href="#MZSearch-20"><span class="linenos"> 20</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="MZSearch-21"><a href="#MZSearch-21"><span class="linenos"> 21</span></a>        <span class="n">exp_mzs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
 </span><span id="MZSearch-22"><a href="#MZSearch-22"><span class="linenos"> 22</span></a>        <span class="n">calculated_mzs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
@@ -499,21 +499,21 @@
 </span><span id="MZSearch-53"><a href="#MZSearch-53"><span class="linenos"> 53</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">colapse_calculated</span><span class="p">()</span>
 </span><span id="MZSearch-54"><a href="#MZSearch-54"><span class="linenos"> 54</span></a>
 </span><span id="MZSearch-55"><a href="#MZSearch-55"><span class="linenos"> 55</span></a>    <span class="nd">@property</span>
-</span><span id="MZSearch-56"><a href="#MZSearch-56"><span class="linenos"> 56</span></a>    <span class="k">def</span> <span class="nf">results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MZSearch-56"><a href="#MZSearch-56"><span class="linenos"> 56</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MZSearch-57"><a href="#MZSearch-57"><span class="linenos"> 57</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;{calculated_mz: [SearchResults]}</span>
 </span><span id="MZSearch-58"><a href="#MZSearch-58"><span class="linenos"> 58</span></a><span class="sd">        contains the results of the search</span>
 </span><span id="MZSearch-59"><a href="#MZSearch-59"><span class="linenos"> 59</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="MZSearch-60"><a href="#MZSearch-60"><span class="linenos"> 60</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_matched_mz</span>
 </span><span id="MZSearch-61"><a href="#MZSearch-61"><span class="linenos"> 61</span></a>
 </span><span id="MZSearch-62"><a href="#MZSearch-62"><span class="linenos"> 62</span></a>    <span class="nd">@property</span>
-</span><span id="MZSearch-63"><a href="#MZSearch-63"><span class="linenos"> 63</span></a>    <span class="k">def</span> <span class="nf">averaged_target_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MZSearch-63"><a href="#MZSearch-63"><span class="linenos"> 63</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">averaged_target_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MZSearch-64"><a href="#MZSearch-64"><span class="linenos"> 64</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;[float]</span>
 </span><span id="MZSearch-65"><a href="#MZSearch-65"><span class="linenos"> 65</span></a><span class="sd">        contains the average target m/z to be searched against</span>
 </span><span id="MZSearch-66"><a href="#MZSearch-66"><span class="linenos"> 66</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="MZSearch-67"><a href="#MZSearch-67"><span class="linenos"> 67</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_averaged_target_mz</span>
 </span><span id="MZSearch-68"><a href="#MZSearch-68"><span class="linenos"> 68</span></a>
 </span><span id="MZSearch-69"><a href="#MZSearch-69"><span class="linenos"> 69</span></a>    <span class="nd">@property</span>
-</span><span id="MZSearch-70"><a href="#MZSearch-70"><span class="linenos"> 70</span></a>    <span class="k">def</span> <span class="nf">calculated_mzs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MZSearch-70"><a href="#MZSearch-70"><span class="linenos"> 70</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calculated_mzs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MZSearch-71"><a href="#MZSearch-71"><span class="linenos"> 71</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;[float]</span>
 </span><span id="MZSearch-72"><a href="#MZSearch-72"><span class="linenos"> 72</span></a><span class="sd">        contains the mz target to be searched against</span>
 </span><span id="MZSearch-73"><a href="#MZSearch-73"><span class="linenos"> 73</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -523,18 +523,18 @@
 </span><span id="MZSearch-77"><a href="#MZSearch-77"><span class="linenos"> 77</span></a>            <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_calculated_mzs</span><span class="p">))</span>
 </span><span id="MZSearch-78"><a href="#MZSearch-78"><span class="linenos"> 78</span></a>
 </span><span id="MZSearch-79"><a href="#MZSearch-79"><span class="linenos"> 79</span></a>    <span class="nd">@property</span>
-</span><span id="MZSearch-80"><a href="#MZSearch-80"><span class="linenos"> 80</span></a>    <span class="k">def</span> <span class="nf">exp_mzs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MZSearch-80"><a href="#MZSearch-80"><span class="linenos"> 80</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">exp_mzs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MZSearch-81"><a href="#MZSearch-81"><span class="linenos"> 81</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;[float]</span>
 </span><span id="MZSearch-82"><a href="#MZSearch-82"><span class="linenos"> 82</span></a><span class="sd">        contains the exp mz to be searched against</span>
 </span><span id="MZSearch-83"><a href="#MZSearch-83"><span class="linenos"> 83</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="MZSearch-84"><a href="#MZSearch-84"><span class="linenos"> 84</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exp_mzs</span>
 </span><span id="MZSearch-85"><a href="#MZSearch-85"><span class="linenos"> 85</span></a>
 </span><span id="MZSearch-86"><a href="#MZSearch-86"><span class="linenos"> 86</span></a>    <span class="nd">@property</span>
-</span><span id="MZSearch-87"><a href="#MZSearch-87"><span class="linenos"> 87</span></a>    <span class="k">def</span> <span class="nf">method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MZSearch-87"><a href="#MZSearch-87"><span class="linenos"> 87</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MZSearch-88"><a href="#MZSearch-88"><span class="linenos"> 88</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_method</span>
 </span><span id="MZSearch-89"><a href="#MZSearch-89"><span class="linenos"> 89</span></a>
 </span><span id="MZSearch-90"><a href="#MZSearch-90"><span class="linenos"> 90</span></a>    <span class="nd">@method</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="MZSearch-91"><a href="#MZSearch-91"><span class="linenos"> 91</span></a>    <span class="k">def</span> <span class="nf">method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
+</span><span id="MZSearch-91"><a href="#MZSearch-91"><span class="linenos"> 91</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
 </span><span id="MZSearch-92"><a href="#MZSearch-92"><span class="linenos"> 92</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="MZSearch-93"><a href="#MZSearch-93"><span class="linenos"> 93</span></a><span class="sd">        method: string,</span>
 </span><span id="MZSearch-94"><a href="#MZSearch-94"><span class="linenos"> 94</span></a><span class="sd">           ppm or ppb</span>
@@ -544,11 +544,11 @@
 </span><span id="MZSearch-98"><a href="#MZSearch-98"><span class="linenos"> 98</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_method</span> <span class="o">=</span> <span class="n">method</span>
 </span><span id="MZSearch-99"><a href="#MZSearch-99"><span class="linenos"> 99</span></a>
 </span><span id="MZSearch-100"><a href="#MZSearch-100"><span class="linenos">100</span></a>    <span class="nd">@property</span>
-</span><span id="MZSearch-101"><a href="#MZSearch-101"><span class="linenos">101</span></a>    <span class="k">def</span> <span class="nf">tolerance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MZSearch-101"><a href="#MZSearch-101"><span class="linenos">101</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">tolerance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MZSearch-102"><a href="#MZSearch-102"><span class="linenos">102</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tolerance</span>
 </span><span id="MZSearch-103"><a href="#MZSearch-103"><span class="linenos">103</span></a>
 </span><span id="MZSearch-104"><a href="#MZSearch-104"><span class="linenos">104</span></a>    <span class="nd">@tolerance</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="MZSearch-105"><a href="#MZSearch-105"><span class="linenos">105</span></a>    <span class="k">def</span> <span class="nf">tolerance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">):</span>
+</span><span id="MZSearch-105"><a href="#MZSearch-105"><span class="linenos">105</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">tolerance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">):</span>
 </span><span id="MZSearch-106"><a href="#MZSearch-106"><span class="linenos">106</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="MZSearch-107"><a href="#MZSearch-107"><span class="linenos">107</span></a><span class="sd">        method: string,</span>
 </span><span id="MZSearch-108"><a href="#MZSearch-108"><span class="linenos">108</span></a><span class="sd">           ppm or ppb</span>
@@ -557,7 +557,7 @@
 </span><span id="MZSearch-111"><a href="#MZSearch-111"><span class="linenos">111</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Tolerance needs to be a positive number&quot;</span><span class="p">)</span>
 </span><span id="MZSearch-112"><a href="#MZSearch-112"><span class="linenos">112</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_tolerance</span> <span class="o">=</span> <span class="n">tolerance</span>
 </span><span id="MZSearch-113"><a href="#MZSearch-113"><span class="linenos">113</span></a>
-</span><span id="MZSearch-114"><a href="#MZSearch-114"><span class="linenos">114</span></a>    <span class="k">def</span> <span class="nf">colapse_calculated</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MZSearch-114"><a href="#MZSearch-114"><span class="linenos">114</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">colapse_calculated</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MZSearch-115"><a href="#MZSearch-115"><span class="linenos">115</span></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">calculated_mzs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
 </span><span id="MZSearch-116"><a href="#MZSearch-116"><span class="linenos">116</span></a>            <span class="n">all_mz</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="MZSearch-117"><a href="#MZSearch-117"><span class="linenos">117</span></a>            <span class="n">subset</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
@@ -617,7 +617,7 @@
 </span><span id="MZSearch-171"><a href="#MZSearch-171"><span class="linenos">171</span></a>            <span class="c1"># print(results)</span>
 </span><span id="MZSearch-172"><a href="#MZSearch-172"><span class="linenos">172</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_averaged_target_mz</span> <span class="o">=</span> <span class="n">results</span>
 </span><span id="MZSearch-173"><a href="#MZSearch-173"><span class="linenos">173</span></a>
-</span><span id="MZSearch-174"><a href="#MZSearch-174"><span class="linenos">174</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MZSearch-174"><a href="#MZSearch-174"><span class="linenos">174</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MZSearch-175"><a href="#MZSearch-175"><span class="linenos">175</span></a>        <span class="n">dict_nominal_exp_mz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nominal_exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exp_mzs</span><span class="p">)</span>
 </span><span id="MZSearch-176"><a href="#MZSearch-176"><span class="linenos">176</span></a>
 </span><span id="MZSearch-177"><a href="#MZSearch-177"><span class="linenos">177</span></a>        <span class="k">for</span> <span class="n">calculated_mz</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculated_mzs</span><span class="p">:</span>
@@ -636,7 +636,7 @@
 </span><span id="MZSearch-190"><a href="#MZSearch-190"><span class="linenos">190</span></a>                <span class="k">continue</span>
 </span><span id="MZSearch-191"><a href="#MZSearch-191"><span class="linenos">191</span></a>
 </span><span id="MZSearch-192"><a href="#MZSearch-192"><span class="linenos">192</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="MZSearch-193"><a href="#MZSearch-193"><span class="linenos">193</span></a>    <span class="k">def</span> <span class="nf">calc_mz_error</span><span class="p">(</span><span class="n">calculated_mz</span><span class="p">,</span> <span class="n">exp_mz</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;ppm&quot;</span><span class="p">):</span>
+</span><span id="MZSearch-193"><a href="#MZSearch-193"><span class="linenos">193</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_mz_error</span><span class="p">(</span><span class="n">calculated_mz</span><span class="p">,</span> <span class="n">exp_mz</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;ppm&quot;</span><span class="p">):</span>
 </span><span id="MZSearch-194"><a href="#MZSearch-194"><span class="linenos">194</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="MZSearch-195"><a href="#MZSearch-195"><span class="linenos">195</span></a><span class="sd">        Parameters</span>
 </span><span id="MZSearch-196"><a href="#MZSearch-196"><span class="linenos">196</span></a><span class="sd">        ----------</span>
@@ -661,10 +661,10 @@
 </span><span id="MZSearch-215"><a href="#MZSearch-215"><span class="linenos">215</span></a>        <span class="k">return</span> <span class="p">((</span><span class="n">exp_mz</span> <span class="o">-</span> <span class="n">calculated_mz</span><span class="p">)</span> <span class="o">/</span> <span class="n">calculated_mz</span><span class="p">)</span> <span class="o">*</span> <span class="n">multi_factor</span>
 </span><span id="MZSearch-216"><a href="#MZSearch-216"><span class="linenos">216</span></a>
 </span><span id="MZSearch-217"><a href="#MZSearch-217"><span class="linenos">217</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="MZSearch-218"><a href="#MZSearch-218"><span class="linenos">218</span></a>    <span class="k">def</span> <span class="nf">check_ppm_error</span><span class="p">(</span><span class="n">tolerance</span><span class="p">,</span> <span class="n">error</span><span class="p">):</span>
+</span><span id="MZSearch-218"><a href="#MZSearch-218"><span class="linenos">218</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">check_ppm_error</span><span class="p">(</span><span class="n">tolerance</span><span class="p">,</span> <span class="n">error</span><span class="p">):</span>
 </span><span id="MZSearch-219"><a href="#MZSearch-219"><span class="linenos">219</span></a>        <span class="k">return</span> <span class="kc">True</span> <span class="k">if</span> <span class="o">-</span><span class="n">tolerance</span> <span class="o">&lt;=</span> <span class="n">error</span> <span class="o">&lt;=</span> <span class="n">tolerance</span> <span class="k">else</span> <span class="kc">False</span>
 </span><span id="MZSearch-220"><a href="#MZSearch-220"><span class="linenos">220</span></a>
-</span><span id="MZSearch-221"><a href="#MZSearch-221"><span class="linenos">221</span></a>    <span class="k">def</span> <span class="nf">get_nominal_exp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp_mzs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span id="MZSearch-221"><a href="#MZSearch-221"><span class="linenos">221</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_nominal_exp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp_mzs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 </span><span id="MZSearch-222"><a href="#MZSearch-222"><span class="linenos">222</span></a>        <span class="n">dict_nominal_exp_mz</span> <span class="o">=</span> <span class="p">{}</span>
 </span><span id="MZSearch-223"><a href="#MZSearch-223"><span class="linenos">223</span></a>
 </span><span id="MZSearch-224"><a href="#MZSearch-224"><span class="linenos">224</span></a>        <span class="k">for</span> <span class="n">exp_mz</span> <span class="ow">in</span> <span class="n">exp_mzs</span><span class="p">:</span>
@@ -677,7 +677,7 @@
 </span><span id="MZSearch-231"><a href="#MZSearch-231"><span class="linenos">231</span></a>
 </span><span id="MZSearch-232"><a href="#MZSearch-232"><span class="linenos">232</span></a>        <span class="k">return</span> <span class="n">dict_nominal_exp_mz</span>
 </span><span id="MZSearch-233"><a href="#MZSearch-233"><span class="linenos">233</span></a>
-</span><span id="MZSearch-234"><a href="#MZSearch-234"><span class="linenos">234</span></a>    <span class="k">def</span> <span class="nf">search_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">dict_nominal_exp_mz</span><span class="p">,</span> <span class="n">calculated_mz</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="MZSearch-234"><a href="#MZSearch-234"><span class="linenos">234</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">search_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">dict_nominal_exp_mz</span><span class="p">,</span> <span class="n">calculated_mz</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="MZSearch-235"><a href="#MZSearch-235"><span class="linenos">235</span></a>        <span class="n">nominal_calculated_mz</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">calculated_mz</span><span class="p">)</span> <span class="o">+</span> <span class="n">offset</span>
 </span><span id="MZSearch-236"><a href="#MZSearch-236"><span class="linenos">236</span></a>        <span class="n">matched_n_precursors</span> <span class="o">=</span> <span class="n">dict_nominal_exp_mz</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">nominal_calculated_mz</span><span class="p">)</span>
 </span><span id="MZSearch-237"><a href="#MZSearch-237"><span class="linenos">237</span></a>
@@ -715,7 +715,7 @@ by overriding the run() method in a subclass.</p>
 
     </div>
     <a class="headerlink" href="#MZSearch.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MZSearch.__init__-19"><a href="#MZSearch.__init__-19"><span class="linenos">19</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MZSearch.__init__-19"><a href="#MZSearch.__init__-19"><span class="linenos">19</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="MZSearch.__init__-20"><a href="#MZSearch.__init__-20"><span class="linenos">20</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="MZSearch.__init__-21"><a href="#MZSearch.__init__-21"><span class="linenos">21</span></a>        <span class="n">exp_mzs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
 </span><span id="MZSearch.__init__-22"><a href="#MZSearch.__init__-22"><span class="linenos">22</span></a>        <span class="n">calculated_mzs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
@@ -862,7 +862,7 @@ contains the exp mz to be searched against</p>
 
     </div>
     <a class="headerlink" href="#MZSearch.colapse_calculated"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MZSearch.colapse_calculated-114"><a href="#MZSearch.colapse_calculated-114"><span class="linenos">114</span></a>    <span class="k">def</span> <span class="nf">colapse_calculated</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MZSearch.colapse_calculated-114"><a href="#MZSearch.colapse_calculated-114"><span class="linenos">114</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">colapse_calculated</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MZSearch.colapse_calculated-115"><a href="#MZSearch.colapse_calculated-115"><span class="linenos">115</span></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">calculated_mzs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
 </span><span id="MZSearch.colapse_calculated-116"><a href="#MZSearch.colapse_calculated-116"><span class="linenos">116</span></a>            <span class="n">all_mz</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="MZSearch.colapse_calculated-117"><a href="#MZSearch.colapse_calculated-117"><span class="linenos">117</span></a>            <span class="n">subset</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
@@ -938,7 +938,7 @@ contains the exp mz to be searched against</p>
 
     </div>
     <a class="headerlink" href="#MZSearch.run"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MZSearch.run-174"><a href="#MZSearch.run-174"><span class="linenos">174</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MZSearch.run-174"><a href="#MZSearch.run-174"><span class="linenos">174</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MZSearch.run-175"><a href="#MZSearch.run-175"><span class="linenos">175</span></a>        <span class="n">dict_nominal_exp_mz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nominal_exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exp_mzs</span><span class="p">)</span>
 </span><span id="MZSearch.run-176"><a href="#MZSearch.run-176"><span class="linenos">176</span></a>
 </span><span id="MZSearch.run-177"><a href="#MZSearch.run-177"><span class="linenos">177</span></a>        <span class="k">for</span> <span class="n">calculated_mz</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculated_mzs</span><span class="p">:</span>
@@ -981,7 +981,7 @@ from the args and kwargs arguments, respectively.</p>
     </div>
     <a class="headerlink" href="#MZSearch.calc_mz_error"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="MZSearch.calc_mz_error-192"><a href="#MZSearch.calc_mz_error-192"><span class="linenos">192</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="MZSearch.calc_mz_error-193"><a href="#MZSearch.calc_mz_error-193"><span class="linenos">193</span></a>    <span class="k">def</span> <span class="nf">calc_mz_error</span><span class="p">(</span><span class="n">calculated_mz</span><span class="p">,</span> <span class="n">exp_mz</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;ppm&quot;</span><span class="p">):</span>
+</span><span id="MZSearch.calc_mz_error-193"><a href="#MZSearch.calc_mz_error-193"><span class="linenos">193</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_mz_error</span><span class="p">(</span><span class="n">calculated_mz</span><span class="p">,</span> <span class="n">exp_mz</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;ppm&quot;</span><span class="p">):</span>
 </span><span id="MZSearch.calc_mz_error-194"><a href="#MZSearch.calc_mz_error-194"><span class="linenos">194</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="MZSearch.calc_mz_error-195"><a href="#MZSearch.calc_mz_error-195"><span class="linenos">195</span></a><span class="sd">        Parameters</span>
 </span><span id="MZSearch.calc_mz_error-196"><a href="#MZSearch.calc_mz_error-196"><span class="linenos">196</span></a><span class="sd">        ----------</span>
@@ -1032,7 +1032,7 @@ ppm or ppb</p></li>
     </div>
     <a class="headerlink" href="#MZSearch.check_ppm_error"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="MZSearch.check_ppm_error-217"><a href="#MZSearch.check_ppm_error-217"><span class="linenos">217</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="MZSearch.check_ppm_error-218"><a href="#MZSearch.check_ppm_error-218"><span class="linenos">218</span></a>    <span class="k">def</span> <span class="nf">check_ppm_error</span><span class="p">(</span><span class="n">tolerance</span><span class="p">,</span> <span class="n">error</span><span class="p">):</span>
+</span><span id="MZSearch.check_ppm_error-218"><a href="#MZSearch.check_ppm_error-218"><span class="linenos">218</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">check_ppm_error</span><span class="p">(</span><span class="n">tolerance</span><span class="p">,</span> <span class="n">error</span><span class="p">):</span>
 </span><span id="MZSearch.check_ppm_error-219"><a href="#MZSearch.check_ppm_error-219"><span class="linenos">219</span></a>        <span class="k">return</span> <span class="kc">True</span> <span class="k">if</span> <span class="o">-</span><span class="n">tolerance</span> <span class="o">&lt;=</span> <span class="n">error</span> <span class="o">&lt;=</span> <span class="n">tolerance</span> <span class="k">else</span> <span class="kc">False</span>
 </span></pre></div>
 
@@ -1051,7 +1051,7 @@ ppm or ppb</p></li>
 
     </div>
     <a class="headerlink" href="#MZSearch.get_nominal_exp"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MZSearch.get_nominal_exp-221"><a href="#MZSearch.get_nominal_exp-221"><span class="linenos">221</span></a>    <span class="k">def</span> <span class="nf">get_nominal_exp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp_mzs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MZSearch.get_nominal_exp-221"><a href="#MZSearch.get_nominal_exp-221"><span class="linenos">221</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_nominal_exp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp_mzs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 </span><span id="MZSearch.get_nominal_exp-222"><a href="#MZSearch.get_nominal_exp-222"><span class="linenos">222</span></a>        <span class="n">dict_nominal_exp_mz</span> <span class="o">=</span> <span class="p">{}</span>
 </span><span id="MZSearch.get_nominal_exp-223"><a href="#MZSearch.get_nominal_exp-223"><span class="linenos">223</span></a>
 </span><span id="MZSearch.get_nominal_exp-224"><a href="#MZSearch.get_nominal_exp-224"><span class="linenos">224</span></a>        <span class="k">for</span> <span class="n">exp_mz</span> <span class="ow">in</span> <span class="n">exp_mzs</span><span class="p">:</span>
@@ -1080,7 +1080,7 @@ ppm or ppb</p></li>
 
     </div>
     <a class="headerlink" href="#MZSearch.search_mz"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MZSearch.search_mz-234"><a href="#MZSearch.search_mz-234"><span class="linenos">234</span></a>    <span class="k">def</span> <span class="nf">search_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">dict_nominal_exp_mz</span><span class="p">,</span> <span class="n">calculated_mz</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MZSearch.search_mz-234"><a href="#MZSearch.search_mz-234"><span class="linenos">234</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">search_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">dict_nominal_exp_mz</span><span class="p">,</span> <span class="n">calculated_mz</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="MZSearch.search_mz-235"><a href="#MZSearch.search_mz-235"><span class="linenos">235</span></a>        <span class="n">nominal_calculated_mz</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">calculated_mz</span><span class="p">)</span> <span class="o">+</span> <span class="n">offset</span>
 </span><span id="MZSearch.search_mz-236"><a href="#MZSearch.search_mz-236"><span class="linenos">236</span></a>        <span class="n">matched_n_precursors</span> <span class="o">=</span> <span class="n">dict_nominal_exp_mz</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">nominal_calculated_mz</span><span class="p">)</span>
 </span><span id="MZSearch.search_mz-237"><a href="#MZSearch.search_mz-237"><span class="linenos">237</span></a>

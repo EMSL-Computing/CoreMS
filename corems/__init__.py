@@ -1,5 +1,5 @@
 __author__ = "Yuri E. Corilo"
-__version__ = "3.3.0"
+__version__ = "3.7.0"
 import time
 import os
 import sys

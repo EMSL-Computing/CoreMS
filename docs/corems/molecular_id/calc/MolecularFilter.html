@@ -66,10 +66,10 @@
 
                         <label class="view-source-button" for="mod-MolecularFilter-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">from</span> <span class="nn">corems.molecular_id.calc.ClusterFilter</span> <span class="kn">import</span> <span class="n">ClusteringFilter</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.molecular_id.calc.ClusterFilter</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClusteringFilter</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="k">class</span> <span class="nc">MolecularFormulaSearchFilters</span><span class="p">:</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MolecularFormulaSearchFilters</span><span class="p">:</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class containing static methods for filtering molecular formulas in a mass spectrum.</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="sd">    Methods</span>
@@ -84,7 +84,7 @@
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>    <span class="k">def</span> <span class="nf">filter_kendrick</span><span class="p">(</span><span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">):</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">filter_kendrick</span><span class="p">(</span><span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">):</span>
 </span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply Kendrick filter to the mass spectrum.</span>
 </span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>
 </span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="sd">        Parameters</span>
@@ -123,7 +123,7 @@
 </span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>        <span class="k">return</span> <span class="n">ms_peak_indexes</span>
 </span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>
 </span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>    <span class="k">def</span> <span class="nf">check_min_peaks</span><span class="p">(</span><span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">check_min_peaks</span><span class="p">(</span><span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if the number of peaks per class meets the minimum requirement.</span>
 </span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>
 </span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="sd">        Parameters</span>
@@ -143,7 +143,7 @@
 </span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>                    <span class="n">mass_spectrum</span><span class="p">[</span><span class="n">peak_index</span><span class="p">]</span><span class="o">.</span><span class="n">remove_molecular_formula</span><span class="p">(</span><span class="n">mf_obj</span><span class="p">)</span>
 </span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>
 </span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>    <span class="k">def</span> <span class="nf">filter_isotopologue</span><span class="p">(</span><span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">filter_isotopologue</span><span class="p">(</span><span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply isotopologue filter to the mass spectrum.</span>
 </span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>
 </span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="sd">        Parameters</span>
@@ -203,7 +203,7 @@
 
     </div>
     <a class="headerlink" href="#MolecularFormulaSearchFilters"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularFormulaSearchFilters-5"><a href="#MolecularFormulaSearchFilters-5"><span class="linenos">  5</span></a><span class="k">class</span> <span class="nc">MolecularFormulaSearchFilters</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularFormulaSearchFilters-5"><a href="#MolecularFormulaSearchFilters-5"><span class="linenos">  5</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MolecularFormulaSearchFilters</span><span class="p">:</span>
 </span><span id="MolecularFormulaSearchFilters-6"><a href="#MolecularFormulaSearchFilters-6"><span class="linenos">  6</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class containing static methods for filtering molecular formulas in a mass spectrum.</span>
 </span><span id="MolecularFormulaSearchFilters-7"><a href="#MolecularFormulaSearchFilters-7"><span class="linenos">  7</span></a>
 </span><span id="MolecularFormulaSearchFilters-8"><a href="#MolecularFormulaSearchFilters-8"><span class="linenos">  8</span></a><span class="sd">    Methods</span>
@@ -218,7 +218,7 @@
 </span><span id="MolecularFormulaSearchFilters-17"><a href="#MolecularFormulaSearchFilters-17"><span class="linenos"> 17</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="MolecularFormulaSearchFilters-18"><a href="#MolecularFormulaSearchFilters-18"><span class="linenos"> 18</span></a>
 </span><span id="MolecularFormulaSearchFilters-19"><a href="#MolecularFormulaSearchFilters-19"><span class="linenos"> 19</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="MolecularFormulaSearchFilters-20"><a href="#MolecularFormulaSearchFilters-20"><span class="linenos"> 20</span></a>    <span class="k">def</span> <span class="nf">filter_kendrick</span><span class="p">(</span><span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">):</span>
+</span><span id="MolecularFormulaSearchFilters-20"><a href="#MolecularFormulaSearchFilters-20"><span class="linenos"> 20</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">filter_kendrick</span><span class="p">(</span><span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">):</span>
 </span><span id="MolecularFormulaSearchFilters-21"><a href="#MolecularFormulaSearchFilters-21"><span class="linenos"> 21</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply Kendrick filter to the mass spectrum.</span>
 </span><span id="MolecularFormulaSearchFilters-22"><a href="#MolecularFormulaSearchFilters-22"><span class="linenos"> 22</span></a>
 </span><span id="MolecularFormulaSearchFilters-23"><a href="#MolecularFormulaSearchFilters-23"><span class="linenos"> 23</span></a><span class="sd">        Parameters</span>
@@ -257,7 +257,7 @@
 </span><span id="MolecularFormulaSearchFilters-56"><a href="#MolecularFormulaSearchFilters-56"><span class="linenos"> 56</span></a>        <span class="k">return</span> <span class="n">ms_peak_indexes</span>
 </span><span id="MolecularFormulaSearchFilters-57"><a href="#MolecularFormulaSearchFilters-57"><span class="linenos"> 57</span></a>
 </span><span id="MolecularFormulaSearchFilters-58"><a href="#MolecularFormulaSearchFilters-58"><span class="linenos"> 58</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="MolecularFormulaSearchFilters-59"><a href="#MolecularFormulaSearchFilters-59"><span class="linenos"> 59</span></a>    <span class="k">def</span> <span class="nf">check_min_peaks</span><span class="p">(</span><span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+</span><span id="MolecularFormulaSearchFilters-59"><a href="#MolecularFormulaSearchFilters-59"><span class="linenos"> 59</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">check_min_peaks</span><span class="p">(</span><span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="MolecularFormulaSearchFilters-60"><a href="#MolecularFormulaSearchFilters-60"><span class="linenos"> 60</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if the number of peaks per class meets the minimum requirement.</span>
 </span><span id="MolecularFormulaSearchFilters-61"><a href="#MolecularFormulaSearchFilters-61"><span class="linenos"> 61</span></a>
 </span><span id="MolecularFormulaSearchFilters-62"><a href="#MolecularFormulaSearchFilters-62"><span class="linenos"> 62</span></a><span class="sd">        Parameters</span>
@@ -277,7 +277,7 @@
 </span><span id="MolecularFormulaSearchFilters-76"><a href="#MolecularFormulaSearchFilters-76"><span class="linenos"> 76</span></a>                    <span class="n">mass_spectrum</span><span class="p">[</span><span class="n">peak_index</span><span class="p">]</span><span class="o">.</span><span class="n">remove_molecular_formula</span><span class="p">(</span><span class="n">mf_obj</span><span class="p">)</span>
 </span><span id="MolecularFormulaSearchFilters-77"><a href="#MolecularFormulaSearchFilters-77"><span class="linenos"> 77</span></a>
 </span><span id="MolecularFormulaSearchFilters-78"><a href="#MolecularFormulaSearchFilters-78"><span class="linenos"> 78</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="MolecularFormulaSearchFilters-79"><a href="#MolecularFormulaSearchFilters-79"><span class="linenos"> 79</span></a>    <span class="k">def</span> <span class="nf">filter_isotopologue</span><span class="p">(</span><span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+</span><span id="MolecularFormulaSearchFilters-79"><a href="#MolecularFormulaSearchFilters-79"><span class="linenos"> 79</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">filter_isotopologue</span><span class="p">(</span><span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="MolecularFormulaSearchFilters-80"><a href="#MolecularFormulaSearchFilters-80"><span class="linenos"> 80</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply isotopologue filter to the mass spectrum.</span>
 </span><span id="MolecularFormulaSearchFilters-81"><a href="#MolecularFormulaSearchFilters-81"><span class="linenos"> 81</span></a>
 </span><span id="MolecularFormulaSearchFilters-82"><a href="#MolecularFormulaSearchFilters-82"><span class="linenos"> 82</span></a><span class="sd">        Parameters</span>
@@ -353,7 +353,7 @@ Apply isotopologue filter to the mass spectrum.</li>
     </div>
     <a class="headerlink" href="#MolecularFormulaSearchFilters.filter_kendrick"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularFormulaSearchFilters.filter_kendrick-19"><a href="#MolecularFormulaSearchFilters.filter_kendrick-19"><span class="linenos">19</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="MolecularFormulaSearchFilters.filter_kendrick-20"><a href="#MolecularFormulaSearchFilters.filter_kendrick-20"><span class="linenos">20</span></a>    <span class="k">def</span> <span class="nf">filter_kendrick</span><span class="p">(</span><span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">):</span>
+</span><span id="MolecularFormulaSearchFilters.filter_kendrick-20"><a href="#MolecularFormulaSearchFilters.filter_kendrick-20"><span class="linenos">20</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">filter_kendrick</span><span class="p">(</span><span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">):</span>
 </span><span id="MolecularFormulaSearchFilters.filter_kendrick-21"><a href="#MolecularFormulaSearchFilters.filter_kendrick-21"><span class="linenos">21</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply Kendrick filter to the mass spectrum.</span>
 </span><span id="MolecularFormulaSearchFilters.filter_kendrick-22"><a href="#MolecularFormulaSearchFilters.filter_kendrick-22"><span class="linenos">22</span></a>
 </span><span id="MolecularFormulaSearchFilters.filter_kendrick-23"><a href="#MolecularFormulaSearchFilters.filter_kendrick-23"><span class="linenos">23</span></a><span class="sd">        Parameters</span>
@@ -427,7 +427,7 @@ List of peak indexes and their associated molecular formula objects after applyi
     </div>
     <a class="headerlink" href="#MolecularFormulaSearchFilters.check_min_peaks"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularFormulaSearchFilters.check_min_peaks-58"><a href="#MolecularFormulaSearchFilters.check_min_peaks-58"><span class="linenos">58</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="MolecularFormulaSearchFilters.check_min_peaks-59"><a href="#MolecularFormulaSearchFilters.check_min_peaks-59"><span class="linenos">59</span></a>    <span class="k">def</span> <span class="nf">check_min_peaks</span><span class="p">(</span><span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+</span><span id="MolecularFormulaSearchFilters.check_min_peaks-59"><a href="#MolecularFormulaSearchFilters.check_min_peaks-59"><span class="linenos">59</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">check_min_peaks</span><span class="p">(</span><span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="MolecularFormulaSearchFilters.check_min_peaks-60"><a href="#MolecularFormulaSearchFilters.check_min_peaks-60"><span class="linenos">60</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if the number of peaks per class meets the minimum requirement.</span>
 </span><span id="MolecularFormulaSearchFilters.check_min_peaks-61"><a href="#MolecularFormulaSearchFilters.check_min_peaks-61"><span class="linenos">61</span></a>
 </span><span id="MolecularFormulaSearchFilters.check_min_peaks-62"><a href="#MolecularFormulaSearchFilters.check_min_peaks-62"><span class="linenos">62</span></a><span class="sd">        Parameters</span>
@@ -475,7 +475,7 @@ The mass spectrum object.</li>
     </div>
     <a class="headerlink" href="#MolecularFormulaSearchFilters.filter_isotopologue"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularFormulaSearchFilters.filter_isotopologue-78"><a href="#MolecularFormulaSearchFilters.filter_isotopologue-78"><span class="linenos"> 78</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="MolecularFormulaSearchFilters.filter_isotopologue-79"><a href="#MolecularFormulaSearchFilters.filter_isotopologue-79"><span class="linenos"> 79</span></a>    <span class="k">def</span> <span class="nf">filter_isotopologue</span><span class="p">(</span><span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+</span><span id="MolecularFormulaSearchFilters.filter_isotopologue-79"><a href="#MolecularFormulaSearchFilters.filter_isotopologue-79"><span class="linenos"> 79</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">filter_isotopologue</span><span class="p">(</span><span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="MolecularFormulaSearchFilters.filter_isotopologue-80"><a href="#MolecularFormulaSearchFilters.filter_isotopologue-80"><span class="linenos"> 80</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply isotopologue filter to the mass spectrum.</span>
 </span><span id="MolecularFormulaSearchFilters.filter_isotopologue-81"><a href="#MolecularFormulaSearchFilters.filter_isotopologue-81"><span class="linenos"> 81</span></a>
 </span><span id="MolecularFormulaSearchFilters.filter_isotopologue-82"><a href="#MolecularFormulaSearchFilters.filter_isotopologue-82"><span class="linenos"> 82</span></a><span class="sd">        Parameters</span>

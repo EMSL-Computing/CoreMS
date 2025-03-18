@@ -75,7 +75,7 @@
 
                         <label class="view-source-button" for="mod-KendrickGroup-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="k">class</span> <span class="nc">KendrickGrouping</span><span class="p">:</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="k">class</span><span class="w"> </span><span class="nc">KendrickGrouping</span><span class="p">:</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for Kendrick grouping of mass spectra.</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
 </span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="sd">    Methods</span>
@@ -95,7 +95,7 @@
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>
 </span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a>
-</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>    <span class="k">def</span> <span class="nf">mz_odd_even_index_lists</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mz_odd_even_index_lists</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get odd and even indexes lists.</span>
 </span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a>
 </span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="sd">        Returns</span>
@@ -115,7 +115,7 @@
 </span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a>
 </span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>        <span class="k">return</span> <span class="n">even_idx</span><span class="p">,</span> <span class="n">odd_idx</span>
 </span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>
-</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>    <span class="k">def</span> <span class="nf">calc_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
 </span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the error between two values.</span>
 </span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>
 </span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a><span class="sd">        Parameters</span>
@@ -133,7 +133,7 @@
 </span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>        <span class="k">return</span> <span class="p">((</span><span class="n">test</span> <span class="o">-</span> <span class="n">current</span><span class="p">)</span> <span class="o">/</span> <span class="n">current</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e6</span>
 </span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>
-</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>    <span class="k">def</span> <span class="nf">populate_kendrick_index_dict_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">list_indexes</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">sort</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">populate_kendrick_index_dict_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">list_indexes</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">sort</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 </span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Populate the Kendrick index dictionary based on error.</span>
 </span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>
 </span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a><span class="sd">        Parameters</span>
@@ -150,7 +150,7 @@
 </span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>
 </span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>
-</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>        <span class="k">def</span> <span class="nf">error</span><span class="p">():</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">error</span><span class="p">():</span>
 </span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>            <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">current_kmd_reference</span> <span class="o">-</span> <span class="n">next_mspeak</span><span class="o">.</span><span class="n">kmd</span><span class="p">)</span>
 </span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>
 </span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>        <span class="n">already_found</span> <span class="o">=</span> <span class="p">[]</span>
@@ -201,7 +201,7 @@
 </span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>            <span class="k">return</span> <span class="n">kendrick_group_index</span>
 </span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>
-</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>    <span class="k">def</span> <span class="nf">populate_kendrick_index_dict_rounding</span><span class="p">(</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">populate_kendrick_index_dict_rounding</span><span class="p">(</span>
 </span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">list_indexes</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">sort</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>    <span class="p">):</span>
 </span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Populate the Kendrick index dictionary based on rounding.</span>
@@ -251,7 +251,7 @@
 </span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a>            <span class="k">return</span> <span class="n">kendrick_group_index</span>
 </span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a>
-</span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a>    <span class="k">def</span> <span class="nf">sort_abundance_kendrick_dict</span><span class="p">(</span>
+</span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sort_abundance_kendrick_dict</span><span class="p">(</span>
 </span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">even_kendrick_group_index</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">odd_kendrick_group_index</span><span class="p">:</span> <span class="nb">dict</span>
 </span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a>    <span class="p">):</span>
 </span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sort the Kendrick index dictionary based on abundance.</span>
@@ -287,7 +287,7 @@
 </span><span id="L-210"><a href="#L-210"><span class="linenos">210</span></a>
 </span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a>            <span class="k">return</span> <span class="n">odd_kendrick_group_index</span>
 </span><span id="L-212"><a href="#L-212"><span class="linenos">212</span></a>
-</span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a>    <span class="k">def</span> <span class="nf">kendrick_groups_indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sort</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+</span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">kendrick_groups_indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sort</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 </span><span id="L-214"><a href="#L-214"><span class="linenos">214</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the Kendrick groups indexes dictionary.</span>
 </span><span id="L-215"><a href="#L-215"><span class="linenos">215</span></a>
 </span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a><span class="sd">        Parameters</span>
@@ -329,7 +329,7 @@
 
     </div>
     <a class="headerlink" href="#KendrickGrouping"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="KendrickGrouping-2"><a href="#KendrickGrouping-2"><span class="linenos">  2</span></a><span class="k">class</span> <span class="nc">KendrickGrouping</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="KendrickGrouping-2"><a href="#KendrickGrouping-2"><span class="linenos">  2</span></a><span class="k">class</span><span class="w"> </span><span class="nc">KendrickGrouping</span><span class="p">:</span>
 </span><span id="KendrickGrouping-3"><a href="#KendrickGrouping-3"><span class="linenos">  3</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for Kendrick grouping of mass spectra.</span>
 </span><span id="KendrickGrouping-4"><a href="#KendrickGrouping-4"><span class="linenos">  4</span></a>
 </span><span id="KendrickGrouping-5"><a href="#KendrickGrouping-5"><span class="linenos">  5</span></a><span class="sd">    Methods</span>
@@ -349,7 +349,7 @@
 </span><span id="KendrickGrouping-19"><a href="#KendrickGrouping-19"><span class="linenos"> 19</span></a>
 </span><span id="KendrickGrouping-20"><a href="#KendrickGrouping-20"><span class="linenos"> 20</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="KendrickGrouping-21"><a href="#KendrickGrouping-21"><span class="linenos"> 21</span></a>
-</span><span id="KendrickGrouping-22"><a href="#KendrickGrouping-22"><span class="linenos"> 22</span></a>    <span class="k">def</span> <span class="nf">mz_odd_even_index_lists</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="KendrickGrouping-22"><a href="#KendrickGrouping-22"><span class="linenos"> 22</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mz_odd_even_index_lists</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="KendrickGrouping-23"><a href="#KendrickGrouping-23"><span class="linenos"> 23</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get odd and even indexes lists.</span>
 </span><span id="KendrickGrouping-24"><a href="#KendrickGrouping-24"><span class="linenos"> 24</span></a>
 </span><span id="KendrickGrouping-25"><a href="#KendrickGrouping-25"><span class="linenos"> 25</span></a><span class="sd">        Returns</span>
@@ -369,7 +369,7 @@
 </span><span id="KendrickGrouping-39"><a href="#KendrickGrouping-39"><span class="linenos"> 39</span></a>
 </span><span id="KendrickGrouping-40"><a href="#KendrickGrouping-40"><span class="linenos"> 40</span></a>        <span class="k">return</span> <span class="n">even_idx</span><span class="p">,</span> <span class="n">odd_idx</span>
 </span><span id="KendrickGrouping-41"><a href="#KendrickGrouping-41"><span class="linenos"> 41</span></a>
-</span><span id="KendrickGrouping-42"><a href="#KendrickGrouping-42"><span class="linenos"> 42</span></a>    <span class="k">def</span> <span class="nf">calc_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+</span><span id="KendrickGrouping-42"><a href="#KendrickGrouping-42"><span class="linenos"> 42</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
 </span><span id="KendrickGrouping-43"><a href="#KendrickGrouping-43"><span class="linenos"> 43</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the error between two values.</span>
 </span><span id="KendrickGrouping-44"><a href="#KendrickGrouping-44"><span class="linenos"> 44</span></a>
 </span><span id="KendrickGrouping-45"><a href="#KendrickGrouping-45"><span class="linenos"> 45</span></a><span class="sd">        Parameters</span>
@@ -387,7 +387,7 @@
 </span><span id="KendrickGrouping-57"><a href="#KendrickGrouping-57"><span class="linenos"> 57</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="KendrickGrouping-58"><a href="#KendrickGrouping-58"><span class="linenos"> 58</span></a>        <span class="k">return</span> <span class="p">((</span><span class="n">test</span> <span class="o">-</span> <span class="n">current</span><span class="p">)</span> <span class="o">/</span> <span class="n">current</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e6</span>
 </span><span id="KendrickGrouping-59"><a href="#KendrickGrouping-59"><span class="linenos"> 59</span></a>
-</span><span id="KendrickGrouping-60"><a href="#KendrickGrouping-60"><span class="linenos"> 60</span></a>    <span class="k">def</span> <span class="nf">populate_kendrick_index_dict_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">list_indexes</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">sort</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+</span><span id="KendrickGrouping-60"><a href="#KendrickGrouping-60"><span class="linenos"> 60</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">populate_kendrick_index_dict_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">list_indexes</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">sort</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 </span><span id="KendrickGrouping-61"><a href="#KendrickGrouping-61"><span class="linenos"> 61</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Populate the Kendrick index dictionary based on error.</span>
 </span><span id="KendrickGrouping-62"><a href="#KendrickGrouping-62"><span class="linenos"> 62</span></a>
 </span><span id="KendrickGrouping-63"><a href="#KendrickGrouping-63"><span class="linenos"> 63</span></a><span class="sd">        Parameters</span>
@@ -404,7 +404,7 @@
 </span><span id="KendrickGrouping-74"><a href="#KendrickGrouping-74"><span class="linenos"> 74</span></a>
 </span><span id="KendrickGrouping-75"><a href="#KendrickGrouping-75"><span class="linenos"> 75</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="KendrickGrouping-76"><a href="#KendrickGrouping-76"><span class="linenos"> 76</span></a>
-</span><span id="KendrickGrouping-77"><a href="#KendrickGrouping-77"><span class="linenos"> 77</span></a>        <span class="k">def</span> <span class="nf">error</span><span class="p">():</span>
+</span><span id="KendrickGrouping-77"><a href="#KendrickGrouping-77"><span class="linenos"> 77</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">error</span><span class="p">():</span>
 </span><span id="KendrickGrouping-78"><a href="#KendrickGrouping-78"><span class="linenos"> 78</span></a>            <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">current_kmd_reference</span> <span class="o">-</span> <span class="n">next_mspeak</span><span class="o">.</span><span class="n">kmd</span><span class="p">)</span>
 </span><span id="KendrickGrouping-79"><a href="#KendrickGrouping-79"><span class="linenos"> 79</span></a>
 </span><span id="KendrickGrouping-80"><a href="#KendrickGrouping-80"><span class="linenos"> 80</span></a>        <span class="n">already_found</span> <span class="o">=</span> <span class="p">[]</span>
@@ -455,7 +455,7 @@
 </span><span id="KendrickGrouping-125"><a href="#KendrickGrouping-125"><span class="linenos">125</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="KendrickGrouping-126"><a href="#KendrickGrouping-126"><span class="linenos">126</span></a>            <span class="k">return</span> <span class="n">kendrick_group_index</span>
 </span><span id="KendrickGrouping-127"><a href="#KendrickGrouping-127"><span class="linenos">127</span></a>
-</span><span id="KendrickGrouping-128"><a href="#KendrickGrouping-128"><span class="linenos">128</span></a>    <span class="k">def</span> <span class="nf">populate_kendrick_index_dict_rounding</span><span class="p">(</span>
+</span><span id="KendrickGrouping-128"><a href="#KendrickGrouping-128"><span class="linenos">128</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">populate_kendrick_index_dict_rounding</span><span class="p">(</span>
 </span><span id="KendrickGrouping-129"><a href="#KendrickGrouping-129"><span class="linenos">129</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">list_indexes</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">sort</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="KendrickGrouping-130"><a href="#KendrickGrouping-130"><span class="linenos">130</span></a>    <span class="p">):</span>
 </span><span id="KendrickGrouping-131"><a href="#KendrickGrouping-131"><span class="linenos">131</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Populate the Kendrick index dictionary based on rounding.</span>
@@ -505,7 +505,7 @@
 </span><span id="KendrickGrouping-175"><a href="#KendrickGrouping-175"><span class="linenos">175</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="KendrickGrouping-176"><a href="#KendrickGrouping-176"><span class="linenos">176</span></a>            <span class="k">return</span> <span class="n">kendrick_group_index</span>
 </span><span id="KendrickGrouping-177"><a href="#KendrickGrouping-177"><span class="linenos">177</span></a>
-</span><span id="KendrickGrouping-178"><a href="#KendrickGrouping-178"><span class="linenos">178</span></a>    <span class="k">def</span> <span class="nf">sort_abundance_kendrick_dict</span><span class="p">(</span>
+</span><span id="KendrickGrouping-178"><a href="#KendrickGrouping-178"><span class="linenos">178</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sort_abundance_kendrick_dict</span><span class="p">(</span>
 </span><span id="KendrickGrouping-179"><a href="#KendrickGrouping-179"><span class="linenos">179</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">even_kendrick_group_index</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">odd_kendrick_group_index</span><span class="p">:</span> <span class="nb">dict</span>
 </span><span id="KendrickGrouping-180"><a href="#KendrickGrouping-180"><span class="linenos">180</span></a>    <span class="p">):</span>
 </span><span id="KendrickGrouping-181"><a href="#KendrickGrouping-181"><span class="linenos">181</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sort the Kendrick index dictionary based on abundance.</span>
@@ -541,7 +541,7 @@
 </span><span id="KendrickGrouping-211"><a href="#KendrickGrouping-211"><span class="linenos">211</span></a>
 </span><span id="KendrickGrouping-212"><a href="#KendrickGrouping-212"><span class="linenos">212</span></a>            <span class="k">return</span> <span class="n">odd_kendrick_group_index</span>
 </span><span id="KendrickGrouping-213"><a href="#KendrickGrouping-213"><span class="linenos">213</span></a>
-</span><span id="KendrickGrouping-214"><a href="#KendrickGrouping-214"><span class="linenos">214</span></a>    <span class="k">def</span> <span class="nf">kendrick_groups_indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sort</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+</span><span id="KendrickGrouping-214"><a href="#KendrickGrouping-214"><span class="linenos">214</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">kendrick_groups_indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sort</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 </span><span id="KendrickGrouping-215"><a href="#KendrickGrouping-215"><span class="linenos">215</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the Kendrick groups indexes dictionary.</span>
 </span><span id="KendrickGrouping-216"><a href="#KendrickGrouping-216"><span class="linenos">216</span></a>
 </span><span id="KendrickGrouping-217"><a href="#KendrickGrouping-217"><span class="linenos">217</span></a><span class="sd">        Parameters</span>
@@ -603,7 +603,7 @@ Get the Kendrick groups indexes dictionary.</li>
 
     </div>
     <a class="headerlink" href="#KendrickGrouping.mz_odd_even_index_lists"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="KendrickGrouping.mz_odd_even_index_lists-22"><a href="#KendrickGrouping.mz_odd_even_index_lists-22"><span class="linenos">22</span></a>    <span class="k">def</span> <span class="nf">mz_odd_even_index_lists</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="KendrickGrouping.mz_odd_even_index_lists-22"><a href="#KendrickGrouping.mz_odd_even_index_lists-22"><span class="linenos">22</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mz_odd_even_index_lists</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="KendrickGrouping.mz_odd_even_index_lists-23"><a href="#KendrickGrouping.mz_odd_even_index_lists-23"><span class="linenos">23</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get odd and even indexes lists.</span>
 </span><span id="KendrickGrouping.mz_odd_even_index_lists-24"><a href="#KendrickGrouping.mz_odd_even_index_lists-24"><span class="linenos">24</span></a>
 </span><span id="KendrickGrouping.mz_odd_even_index_lists-25"><a href="#KendrickGrouping.mz_odd_even_index_lists-25"><span class="linenos">25</span></a><span class="sd">        Returns</span>
@@ -647,7 +647,7 @@ Get the Kendrick groups indexes dictionary.</li>
 
     </div>
     <a class="headerlink" href="#KendrickGrouping.calc_error"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="KendrickGrouping.calc_error-42"><a href="#KendrickGrouping.calc_error-42"><span class="linenos">42</span></a>    <span class="k">def</span> <span class="nf">calc_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="KendrickGrouping.calc_error-42"><a href="#KendrickGrouping.calc_error-42"><span class="linenos">42</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
 </span><span id="KendrickGrouping.calc_error-43"><a href="#KendrickGrouping.calc_error-43"><span class="linenos">43</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the error between two values.</span>
 </span><span id="KendrickGrouping.calc_error-44"><a href="#KendrickGrouping.calc_error-44"><span class="linenos">44</span></a>
 </span><span id="KendrickGrouping.calc_error-45"><a href="#KendrickGrouping.calc_error-45"><span class="linenos">45</span></a><span class="sd">        Parameters</span>
@@ -698,7 +698,7 @@ The test value.</li>
 
     </div>
     <a class="headerlink" href="#KendrickGrouping.populate_kendrick_index_dict_error"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="KendrickGrouping.populate_kendrick_index_dict_error-60"><a href="#KendrickGrouping.populate_kendrick_index_dict_error-60"><span class="linenos"> 60</span></a>    <span class="k">def</span> <span class="nf">populate_kendrick_index_dict_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">list_indexes</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">sort</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="KendrickGrouping.populate_kendrick_index_dict_error-60"><a href="#KendrickGrouping.populate_kendrick_index_dict_error-60"><span class="linenos"> 60</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">populate_kendrick_index_dict_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">list_indexes</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">sort</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 </span><span id="KendrickGrouping.populate_kendrick_index_dict_error-61"><a href="#KendrickGrouping.populate_kendrick_index_dict_error-61"><span class="linenos"> 61</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Populate the Kendrick index dictionary based on error.</span>
 </span><span id="KendrickGrouping.populate_kendrick_index_dict_error-62"><a href="#KendrickGrouping.populate_kendrick_index_dict_error-62"><span class="linenos"> 62</span></a>
 </span><span id="KendrickGrouping.populate_kendrick_index_dict_error-63"><a href="#KendrickGrouping.populate_kendrick_index_dict_error-63"><span class="linenos"> 63</span></a><span class="sd">        Parameters</span>
@@ -715,7 +715,7 @@ The test value.</li>
 </span><span id="KendrickGrouping.populate_kendrick_index_dict_error-74"><a href="#KendrickGrouping.populate_kendrick_index_dict_error-74"><span class="linenos"> 74</span></a>
 </span><span id="KendrickGrouping.populate_kendrick_index_dict_error-75"><a href="#KendrickGrouping.populate_kendrick_index_dict_error-75"><span class="linenos"> 75</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="KendrickGrouping.populate_kendrick_index_dict_error-76"><a href="#KendrickGrouping.populate_kendrick_index_dict_error-76"><span class="linenos"> 76</span></a>
-</span><span id="KendrickGrouping.populate_kendrick_index_dict_error-77"><a href="#KendrickGrouping.populate_kendrick_index_dict_error-77"><span class="linenos"> 77</span></a>        <span class="k">def</span> <span class="nf">error</span><span class="p">():</span>
+</span><span id="KendrickGrouping.populate_kendrick_index_dict_error-77"><a href="#KendrickGrouping.populate_kendrick_index_dict_error-77"><span class="linenos"> 77</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">error</span><span class="p">():</span>
 </span><span id="KendrickGrouping.populate_kendrick_index_dict_error-78"><a href="#KendrickGrouping.populate_kendrick_index_dict_error-78"><span class="linenos"> 78</span></a>            <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">current_kmd_reference</span> <span class="o">-</span> <span class="n">next_mspeak</span><span class="o">.</span><span class="n">kmd</span><span class="p">)</span>
 </span><span id="KendrickGrouping.populate_kendrick_index_dict_error-79"><a href="#KendrickGrouping.populate_kendrick_index_dict_error-79"><span class="linenos"> 79</span></a>
 </span><span id="KendrickGrouping.populate_kendrick_index_dict_error-80"><a href="#KendrickGrouping.populate_kendrick_index_dict_error-80"><span class="linenos"> 80</span></a>        <span class="n">already_found</span> <span class="o">=</span> <span class="p">[]</span>
@@ -799,7 +799,7 @@ Whether to sort the dictionary by abundance (default is True).</li>
 
     </div>
     <a class="headerlink" href="#KendrickGrouping.populate_kendrick_index_dict_rounding"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="KendrickGrouping.populate_kendrick_index_dict_rounding-128"><a href="#KendrickGrouping.populate_kendrick_index_dict_rounding-128"><span class="linenos">128</span></a>    <span class="k">def</span> <span class="nf">populate_kendrick_index_dict_rounding</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="KendrickGrouping.populate_kendrick_index_dict_rounding-128"><a href="#KendrickGrouping.populate_kendrick_index_dict_rounding-128"><span class="linenos">128</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">populate_kendrick_index_dict_rounding</span><span class="p">(</span>
 </span><span id="KendrickGrouping.populate_kendrick_index_dict_rounding-129"><a href="#KendrickGrouping.populate_kendrick_index_dict_rounding-129"><span class="linenos">129</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">list_indexes</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">sort</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="KendrickGrouping.populate_kendrick_index_dict_rounding-130"><a href="#KendrickGrouping.populate_kendrick_index_dict_rounding-130"><span class="linenos">130</span></a>    <span class="p">):</span>
 </span><span id="KendrickGrouping.populate_kendrick_index_dict_rounding-131"><a href="#KendrickGrouping.populate_kendrick_index_dict_rounding-131"><span class="linenos">131</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Populate the Kendrick index dictionary based on rounding.</span>
@@ -882,7 +882,7 @@ Whether to sort the dictionary by abundance (default is True).</li>
 
     </div>
     <a class="headerlink" href="#KendrickGrouping.sort_abundance_kendrick_dict"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="KendrickGrouping.sort_abundance_kendrick_dict-178"><a href="#KendrickGrouping.sort_abundance_kendrick_dict-178"><span class="linenos">178</span></a>    <span class="k">def</span> <span class="nf">sort_abundance_kendrick_dict</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="KendrickGrouping.sort_abundance_kendrick_dict-178"><a href="#KendrickGrouping.sort_abundance_kendrick_dict-178"><span class="linenos">178</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sort_abundance_kendrick_dict</span><span class="p">(</span>
 </span><span id="KendrickGrouping.sort_abundance_kendrick_dict-179"><a href="#KendrickGrouping.sort_abundance_kendrick_dict-179"><span class="linenos">179</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">even_kendrick_group_index</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">odd_kendrick_group_index</span><span class="p">:</span> <span class="nb">dict</span>
 </span><span id="KendrickGrouping.sort_abundance_kendrick_dict-180"><a href="#KendrickGrouping.sort_abundance_kendrick_dict-180"><span class="linenos">180</span></a>    <span class="p">):</span>
 </span><span id="KendrickGrouping.sort_abundance_kendrick_dict-181"><a href="#KendrickGrouping.sort_abundance_kendrick_dict-181"><span class="linenos">181</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sort the Kendrick index dictionary based on abundance.</span>
@@ -951,7 +951,7 @@ The Kendrick index dictionary for odd indexes.</li>
 
     </div>
     <a class="headerlink" href="#KendrickGrouping.kendrick_groups_indexes"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="KendrickGrouping.kendrick_groups_indexes-214"><a href="#KendrickGrouping.kendrick_groups_indexes-214"><span class="linenos">214</span></a>    <span class="k">def</span> <span class="nf">kendrick_groups_indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sort</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="KendrickGrouping.kendrick_groups_indexes-214"><a href="#KendrickGrouping.kendrick_groups_indexes-214"><span class="linenos">214</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">kendrick_groups_indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sort</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 </span><span id="KendrickGrouping.kendrick_groups_indexes-215"><a href="#KendrickGrouping.kendrick_groups_indexes-215"><span class="linenos">215</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the Kendrick groups indexes dictionary.</span>
 </span><span id="KendrickGrouping.kendrick_groups_indexes-216"><a href="#KendrickGrouping.kendrick_groups_indexes-216"><span class="linenos">216</span></a>
 </span><span id="KendrickGrouping.kendrick_groups_indexes-217"><a href="#KendrickGrouping.kendrick_groups_indexes-217"><span class="linenos">217</span></a><span class="sd">        Parameters</span>

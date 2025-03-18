@@ -339,11 +339,11 @@
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Yuri E. Corilo&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="n">__date__</span> <span class="o">=</span> <span class="s2">&quot;Feb 12, 2020&quot;</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span> <span class="nn">os</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">array</span><span class="p">,</span> <span class="n">frombuffer</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="p">(</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">array</span><span class="p">,</span> <span class="n">frombuffer</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>    <span class="n">Column</span><span class="p">,</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>    <span class="n">Float</span><span class="p">,</span>
 </span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>    <span class="n">ForeignKey</span><span class="p">,</span>
@@ -352,15 +352,15 @@
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>    <span class="n">String</span><span class="p">,</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>    <span class="n">create_engine</span><span class="p">,</span>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="p">)</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="kn">from</span> <span class="nn">sqlalchemy.exc</span> <span class="kn">import</span> <span class="n">SQLAlchemyError</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">relationship</span><span class="p">,</span> <span class="n">sessionmaker</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="kn">from</span> <span class="nn">sqlalchemy.pool</span> <span class="kn">import</span> <span class="n">QueuePool</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.exc</span><span class="w"> </span><span class="kn">import</span> <span class="n">SQLAlchemyError</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.ext.declarative</span><span class="w"> </span><span class="kn">import</span> <span class="n">declarative_base</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.orm</span><span class="w"> </span><span class="kn">import</span> <span class="n">relationship</span><span class="p">,</span> <span class="n">sessionmaker</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.pool</span><span class="w"> </span><span class="kn">import</span> <span class="n">QueuePool</span>
 </span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>
 </span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
 </span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a>
 </span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>
-</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="k">class</span> <span class="nc">Metadatar</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Metadatar</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
 </span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;This class is used to store the metadata of the compounds in the database</span>
 </span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a>
 </span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="sd">    Attributes</span>
@@ -408,7 +408,7 @@
 </span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>    <span class="n">data</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s2">&quot;LowResolutionEICompound&quot;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s2">&quot;metadatar&quot;</span><span class="p">)</span>
 </span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>
 </span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>
-</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a><span class="k">class</span> <span class="nc">LowResolutionEICompound</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a><span class="k">class</span><span class="w"> </span><span class="nc">LowResolutionEICompound</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
 </span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;This class is used to store the molecular and spectral data of the compounds in the low res EI database</span>
 </span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>
 </span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a><span class="sd">    Attributes</span>
@@ -474,7 +474,7 @@
 </span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>
 </span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>    <span class="c1"># metadatar = relationship(&#39;Metadatar&#39;, backref=&#39;smile&#39;, lazy=&#39;dynamic&#39;)</span>
 </span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>
-</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">dict_data</span><span class="p">):</span>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">dict_data</span><span class="p">):</span>
 </span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">dict_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
 </span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>
 </span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">dict_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;NAME&quot;</span><span class="p">)</span>
@@ -500,7 +500,7 @@
 </span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a>
 </span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">metadatar</span> <span class="o">=</span> <span class="n">dict_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;metadatar&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 </span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a>
-</span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a>    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a>        <span class="k">return</span> <span class="p">(</span>
 </span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a>            <span class="s2">&quot;&lt;LowResolutionEICompound(name= </span><span class="si">%s</span><span class="s2"> , cas number = </span><span class="si">%s</span><span class="s2">, formula = </span><span class="si">%s</span><span class="s2">, Retention index= </span><span class="si">%.1f</span><span class="s2">, Retention time= </span><span class="si">%.1f</span><span class="s2"> comment=&#39;</span><span class="si">%s</span><span class="s2">&#39;)&gt;&quot;</span>
 </span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a>            <span class="o">%</span> <span class="p">(</span>
@@ -515,7 +515,7 @@
 </span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a>
 </span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a>
 </span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a><span class="nd">@dataclass</span>
-</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a><span class="k">class</span> <span class="nc">MetaboliteMetadata</span><span class="p">:</span>
+</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MetaboliteMetadata</span><span class="p">:</span>
 </span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Dataclass for the Metabolite Metadata</span>
 </span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a>
 </span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a><span class="sd">    Attributes</span>
@@ -559,7 +559,7 @@
 </span><span id="L-221"><a href="#L-221"><span class="linenos">221</span></a>
 </span><span id="L-222"><a href="#L-222"><span class="linenos">222</span></a>
 </span><span id="L-223"><a href="#L-223"><span class="linenos">223</span></a><span class="nd">@dataclass</span>
-</span><span id="L-224"><a href="#L-224"><span class="linenos">224</span></a><span class="k">class</span> <span class="nc">LowResCompoundRef</span><span class="p">:</span>
+</span><span id="L-224"><a href="#L-224"><span class="linenos">224</span></a><span class="k">class</span><span class="w"> </span><span class="nc">LowResCompoundRef</span><span class="p">:</span>
 </span><span id="L-225"><a href="#L-225"><span class="linenos">225</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Dataclass for the Low Resolution Compound Reference</span>
 </span><span id="L-226"><a href="#L-226"><span class="linenos">226</span></a>
 </span><span id="L-227"><a href="#L-227"><span class="linenos">227</span></a><span class="sd">    This class is used to store the molecular and spectral data of the compounds in the low res EI database</span>
@@ -619,7 +619,7 @@
 </span><span id="L-281"><a href="#L-281"><span class="linenos">281</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-282"><a href="#L-282"><span class="linenos">282</span></a>
 </span><span id="L-283"><a href="#L-283"><span class="linenos">283</span></a>    <span class="c1"># this class is use to store the results inside the GCPeak class</span>
-</span><span id="L-284"><a href="#L-284"><span class="linenos">284</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compounds_dict</span><span class="p">):</span>
+</span><span id="L-284"><a href="#L-284"><span class="linenos">284</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compounds_dict</span><span class="p">):</span>
 </span><span id="L-285"><a href="#L-285"><span class="linenos">285</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">compounds_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
 </span><span id="L-286"><a href="#L-286"><span class="linenos">286</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">compounds_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
 </span><span id="L-287"><a href="#L-287"><span class="linenos">287</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">ri</span> <span class="o">=</span> <span class="n">compounds_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ri&quot;</span><span class="p">)</span>
@@ -654,7 +654,7 @@
 </span><span id="L-316"><a href="#L-316"><span class="linenos">316</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">spectral_similarity_scores</span> <span class="o">=</span> <span class="p">{}</span>
 </span><span id="L-317"><a href="#L-317"><span class="linenos">317</span></a>
 </span><span id="L-318"><a href="#L-318"><span class="linenos">318</span></a>
-</span><span id="L-319"><a href="#L-319"><span class="linenos">319</span></a><span class="k">class</span> <span class="nc">EI_LowRes_SQLite</span><span class="p">:</span>
+</span><span id="L-319"><a href="#L-319"><span class="linenos">319</span></a><span class="k">class</span><span class="w"> </span><span class="nc">EI_LowRes_SQLite</span><span class="p">:</span>
 </span><span id="L-320"><a href="#L-320"><span class="linenos">320</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-321"><a href="#L-321"><span class="linenos">321</span></a><span class="sd">    A class for interacting with a SQLite database for low-resolution EI compounds.</span>
 </span><span id="L-322"><a href="#L-322"><span class="linenos">322</span></a>
@@ -706,7 +706,7 @@
 </span><span id="L-368"><a href="#L-368"><span class="linenos">368</span></a><span class="sd">        Clears all tables in the database.</span>
 </span><span id="L-369"><a href="#L-369"><span class="linenos">369</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-370"><a href="#L-370"><span class="linenos">370</span></a>
-</span><span id="L-371"><a href="#L-371"><span class="linenos">371</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;sqlite://&quot;</span><span class="p">):</span>
+</span><span id="L-371"><a href="#L-371"><span class="linenos">371</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;sqlite://&quot;</span><span class="p">):</span>
 </span><span id="L-372"><a href="#L-372"><span class="linenos">372</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_engine</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
 </span><span id="L-373"><a href="#L-373"><span class="linenos">373</span></a>
 </span><span id="L-374"><a href="#L-374"><span class="linenos">374</span></a>        <span class="n">Base</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
@@ -715,13 +715,13 @@
 </span><span id="L-377"><a href="#L-377"><span class="linenos">377</span></a>
 </span><span id="L-378"><a href="#L-378"><span class="linenos">378</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
 </span><span id="L-379"><a href="#L-379"><span class="linenos">379</span></a>
-</span><span id="L-380"><a href="#L-380"><span class="linenos">380</span></a>    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+</span><span id="L-380"><a href="#L-380"><span class="linenos">380</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
 </span><span id="L-381"><a href="#L-381"><span class="linenos">381</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Closes the database connection.&quot;&quot;&quot;</span>
 </span><span id="L-382"><a href="#L-382"><span class="linenos">382</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 </span><span id="L-383"><a href="#L-383"><span class="linenos">383</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span><span id="L-384"><a href="#L-384"><span class="linenos">384</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">dispose</span><span class="p">()</span>
 </span><span id="L-385"><a href="#L-385"><span class="linenos">385</span></a>
-</span><span id="L-386"><a href="#L-386"><span class="linenos">386</span></a>    <span class="k">def</span> <span class="nf">init_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+</span><span id="L-386"><a href="#L-386"><span class="linenos">386</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">init_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
 </span><span id="L-387"><a href="#L-387"><span class="linenos">387</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes the SQLAlchemy engine.</span>
 </span><span id="L-388"><a href="#L-388"><span class="linenos">388</span></a>
 </span><span id="L-389"><a href="#L-389"><span class="linenos">389</span></a><span class="sd">        Parameters</span>
@@ -743,11 +743,11 @@
 </span><span id="L-405"><a href="#L-405"><span class="linenos">405</span></a>            <span class="p">)</span>
 </span><span id="L-406"><a href="#L-406"><span class="linenos">406</span></a>        <span class="k">return</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">poolclass</span><span class="o">=</span><span class="n">QueuePool</span><span class="p">)</span>
 </span><span id="L-407"><a href="#L-407"><span class="linenos">407</span></a>
-</span><span id="L-408"><a href="#L-408"><span class="linenos">408</span></a>    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-408"><a href="#L-408"><span class="linenos">408</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-409"><a href="#L-409"><span class="linenos">409</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the EI_LowRes_SQLite object.&quot;&quot;&quot;</span>
 </span><span id="L-410"><a href="#L-410"><span class="linenos">410</span></a>        <span class="k">return</span> <span class="bp">self</span>
 </span><span id="L-411"><a href="#L-411"><span class="linenos">411</span></a>
-</span><span id="L-412"><a href="#L-412"><span class="linenos">412</span></a>    <span class="k">def</span> <span class="nf">add_compound_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dict_list</span><span class="p">):</span>
+</span><span id="L-412"><a href="#L-412"><span class="linenos">412</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_compound_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dict_list</span><span class="p">):</span>
 </span><span id="L-413"><a href="#L-413"><span class="linenos">413</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds a list of compounds to the database.</span>
 </span><span id="L-414"><a href="#L-414"><span class="linenos">414</span></a>
 </span><span id="L-415"><a href="#L-415"><span class="linenos">415</span></a><span class="sd">        Parameters</span>
@@ -766,7 +766,7 @@
 </span><span id="L-428"><a href="#L-428"><span class="linenos">428</span></a>            <span class="p">[</span><span class="n">LowResolutionEICompound</span><span class="p">(</span><span class="o">**</span><span class="n">data_dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">data_dict</span> <span class="ow">in</span> <span class="n">data_dict_list</span><span class="p">]</span>
 </span><span id="L-429"><a href="#L-429"><span class="linenos">429</span></a>        <span class="p">)</span>
 </span><span id="L-430"><a href="#L-430"><span class="linenos">430</span></a>
-</span><span id="L-431"><a href="#L-431"><span class="linenos">431</span></a>    <span class="k">def</span> <span class="nf">add_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">):</span>
+</span><span id="L-431"><a href="#L-431"><span class="linenos">431</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">):</span>
 </span><span id="L-432"><a href="#L-432"><span class="linenos">432</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds a single compound to the database.</span>
 </span><span id="L-433"><a href="#L-433"><span class="linenos">433</span></a>
 </span><span id="L-434"><a href="#L-434"><span class="linenos">434</span></a><span class="sd">        Parameters</span>
@@ -779,7 +779,7 @@
 </span><span id="L-441"><a href="#L-441"><span class="linenos">441</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">one_compound</span><span class="p">)</span>
 </span><span id="L-442"><a href="#L-442"><span class="linenos">442</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 </span><span id="L-443"><a href="#L-443"><span class="linenos">443</span></a>
-</span><span id="L-444"><a href="#L-444"><span class="linenos">444</span></a>    <span class="k">def</span> <span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-444"><a href="#L-444"><span class="linenos">444</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-445"><a href="#L-445"><span class="linenos">445</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Commits the changes to the database.&quot;&quot;&quot;</span>
 </span><span id="L-446"><a href="#L-446"><span class="linenos">446</span></a>        <span class="k">try</span><span class="p">:</span>
 </span><span id="L-447"><a href="#L-447"><span class="linenos">447</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
@@ -787,7 +787,7 @@
 </span><span id="L-449"><a href="#L-449"><span class="linenos">449</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
 </span><span id="L-450"><a href="#L-450"><span class="linenos">450</span></a>            <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
 </span><span id="L-451"><a href="#L-451"><span class="linenos">451</span></a>
-</span><span id="L-452"><a href="#L-452"><span class="linenos">452</span></a>    <span class="k">def</span> <span class="nf">row_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+</span><span id="L-452"><a href="#L-452"><span class="linenos">452</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">row_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
 </span><span id="L-453"><a href="#L-453"><span class="linenos">453</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts a database row to a dictionary.</span>
 </span><span id="L-454"><a href="#L-454"><span class="linenos">454</span></a>
 </span><span id="L-455"><a href="#L-455"><span class="linenos">455</span></a><span class="sd">        Parameters</span>
@@ -816,7 +816,7 @@
 </span><span id="L-478"><a href="#L-478"><span class="linenos">478</span></a>
 </span><span id="L-479"><a href="#L-479"><span class="linenos">479</span></a>        <span class="k">return</span> <span class="n">data_dict</span>
 </span><span id="L-480"><a href="#L-480"><span class="linenos">480</span></a>
-</span><span id="L-481"><a href="#L-481"><span class="linenos">481</span></a>    <span class="k">def</span> <span class="nf">get_all</span><span class="p">(</span>
+</span><span id="L-481"><a href="#L-481"><span class="linenos">481</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_all</span><span class="p">(</span>
 </span><span id="L-482"><a href="#L-482"><span class="linenos">482</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-483"><a href="#L-483"><span class="linenos">483</span></a>    <span class="p">):</span>
 </span><span id="L-484"><a href="#L-484"><span class="linenos">484</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves all compounds from the database.</span>
@@ -830,7 +830,7 @@
 </span><span id="L-492"><a href="#L-492"><span class="linenos">492</span></a>
 </span><span id="L-493"><a href="#L-493"><span class="linenos">493</span></a>        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">row_to_dict</span><span class="p">(</span><span class="n">compound</span><span class="p">)</span> <span class="k">for</span> <span class="n">compound</span> <span class="ow">in</span> <span class="n">compounds</span><span class="p">]</span>
 </span><span id="L-494"><a href="#L-494"><span class="linenos">494</span></a>
-</span><span id="L-495"><a href="#L-495"><span class="linenos">495</span></a>    <span class="k">def</span> <span class="nf">query_min_max_rt</span><span class="p">(</span>
+</span><span id="L-495"><a href="#L-495"><span class="linenos">495</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">query_min_max_rt</span><span class="p">(</span>
 </span><span id="L-496"><a href="#L-496"><span class="linenos">496</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-497"><a href="#L-497"><span class="linenos">497</span></a>        <span class="n">min_max_rt</span><span class="p">,</span>
 </span><span id="L-498"><a href="#L-498"><span class="linenos">498</span></a>    <span class="p">):</span>
@@ -854,7 +854,7 @@
 </span><span id="L-516"><a href="#L-516"><span class="linenos">516</span></a>
 </span><span id="L-517"><a href="#L-517"><span class="linenos">517</span></a>        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">row_to_dict</span><span class="p">(</span><span class="n">compound</span><span class="p">)</span> <span class="k">for</span> <span class="n">compound</span> <span class="ow">in</span> <span class="n">compounds</span><span class="p">]</span>
 </span><span id="L-518"><a href="#L-518"><span class="linenos">518</span></a>
-</span><span id="L-519"><a href="#L-519"><span class="linenos">519</span></a>    <span class="k">def</span> <span class="nf">query_min_max_ri</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_max_ri</span><span class="p">):</span>
+</span><span id="L-519"><a href="#L-519"><span class="linenos">519</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">query_min_max_ri</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_max_ri</span><span class="p">):</span>
 </span><span id="L-520"><a href="#L-520"><span class="linenos">520</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Queries compounds based on RI range.</span>
 </span><span id="L-521"><a href="#L-521"><span class="linenos">521</span></a>
 </span><span id="L-522"><a href="#L-522"><span class="linenos">522</span></a><span class="sd">        Parameters</span>
@@ -872,7 +872,7 @@
 </span><span id="L-534"><a href="#L-534"><span class="linenos">534</span></a>
 </span><span id="L-535"><a href="#L-535"><span class="linenos">535</span></a>        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">row_to_dict</span><span class="p">(</span><span class="n">compound</span><span class="p">)</span> <span class="k">for</span> <span class="n">compound</span> <span class="ow">in</span> <span class="n">compounds</span><span class="p">]</span>
 </span><span id="L-536"><a href="#L-536"><span class="linenos">536</span></a>
-</span><span id="L-537"><a href="#L-537"><span class="linenos">537</span></a>    <span class="k">def</span> <span class="nf">query_names_and_rt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_max_rt</span><span class="p">,</span> <span class="n">compound_names</span><span class="p">):</span>
+</span><span id="L-537"><a href="#L-537"><span class="linenos">537</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">query_names_and_rt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_max_rt</span><span class="p">,</span> <span class="n">compound_names</span><span class="p">):</span>
 </span><span id="L-538"><a href="#L-538"><span class="linenos">538</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Queries compounds based on compound names and retention time range.</span>
 </span><span id="L-539"><a href="#L-539"><span class="linenos">539</span></a>
 </span><span id="L-540"><a href="#L-540"><span class="linenos">540</span></a><span class="sd">        Parameters</span>
@@ -904,7 +904,7 @@
 </span><span id="L-566"><a href="#L-566"><span class="linenos">566</span></a>
 </span><span id="L-567"><a href="#L-567"><span class="linenos">567</span></a>        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">row_to_dict</span><span class="p">(</span><span class="n">compound</span><span class="p">)</span> <span class="k">for</span> <span class="n">compound</span> <span class="ow">in</span> <span class="n">compounds</span><span class="p">]</span>
 </span><span id="L-568"><a href="#L-568"><span class="linenos">568</span></a>
-</span><span id="L-569"><a href="#L-569"><span class="linenos">569</span></a>    <span class="k">def</span> <span class="nf">query_min_max_ri_and_rt</span><span class="p">(</span>
+</span><span id="L-569"><a href="#L-569"><span class="linenos">569</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">query_min_max_ri_and_rt</span><span class="p">(</span>
 </span><span id="L-570"><a href="#L-570"><span class="linenos">570</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-571"><a href="#L-571"><span class="linenos">571</span></a>        <span class="n">min_max_ri</span><span class="p">,</span>
 </span><span id="L-572"><a href="#L-572"><span class="linenos">572</span></a>        <span class="n">min_max_rt</span><span class="p">,</span>
@@ -939,7 +939,7 @@
 </span><span id="L-601"><a href="#L-601"><span class="linenos">601</span></a>
 </span><span id="L-602"><a href="#L-602"><span class="linenos">602</span></a>        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">row_to_dict</span><span class="p">(</span><span class="n">compound</span><span class="p">)</span> <span class="k">for</span> <span class="n">compound</span> <span class="ow">in</span> <span class="n">compounds</span><span class="p">]</span>
 </span><span id="L-603"><a href="#L-603"><span class="linenos">603</span></a>
-</span><span id="L-604"><a href="#L-604"><span class="linenos">604</span></a>    <span class="k">def</span> <span class="nf">delete_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compound</span><span class="p">):</span>
+</span><span id="L-604"><a href="#L-604"><span class="linenos">604</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">delete_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compound</span><span class="p">):</span>
 </span><span id="L-605"><a href="#L-605"><span class="linenos">605</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes a compound from the database.</span>
 </span><span id="L-606"><a href="#L-606"><span class="linenos">606</span></a>
 </span><span id="L-607"><a href="#L-607"><span class="linenos">607</span></a><span class="sd">        Parameters</span>
@@ -956,7 +956,7 @@
 </span><span id="L-618"><a href="#L-618"><span class="linenos">618</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
 </span><span id="L-619"><a href="#L-619"><span class="linenos">619</span></a>            <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
 </span><span id="L-620"><a href="#L-620"><span class="linenos">620</span></a>
-</span><span id="L-621"><a href="#L-621"><span class="linenos">621</span></a>    <span class="k">def</span> <span class="nf">purge</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-621"><a href="#L-621"><span class="linenos">621</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">purge</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-622"><a href="#L-622"><span class="linenos">622</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes all compounds from the database table.</span>
 </span><span id="L-623"><a href="#L-623"><span class="linenos">623</span></a>
 </span><span id="L-624"><a href="#L-624"><span class="linenos">624</span></a><span class="sd">        Notes</span>
@@ -966,7 +966,7 @@
 </span><span id="L-628"><a href="#L-628"><span class="linenos">628</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">LowResolutionEICompound</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
 </span><span id="L-629"><a href="#L-629"><span class="linenos">629</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 </span><span id="L-630"><a href="#L-630"><span class="linenos">630</span></a>
-</span><span id="L-631"><a href="#L-631"><span class="linenos">631</span></a>    <span class="k">def</span> <span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-631"><a href="#L-631"><span class="linenos">631</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-632"><a href="#L-632"><span class="linenos">632</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears all tables in the database.&quot;&quot;&quot;</span>
 </span><span id="L-633"><a href="#L-633"><span class="linenos">633</span></a>        <span class="n">meta</span> <span class="o">=</span> <span class="n">Base</span><span class="o">.</span><span class="n">metadata</span>
 </span><span id="L-634"><a href="#L-634"><span class="linenos">634</span></a>        <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">sorted_tables</span><span class="p">):</span>
@@ -1004,7 +1004,7 @@ instance that has no instance attributes and cannot be given any.</p>
 
     </div>
     <a class="headerlink" href="#Base.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Base.__init__-1185"><a href="#Base.__init__-1185"><span class="linenos">1185</span></a><span class="k">def</span> <span class="nf">_declarative_constructor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Base.__init__-1185"><a href="#Base.__init__-1185"><span class="linenos">1185</span></a><span class="k">def</span><span class="w"> </span><span class="nf">_declarative_constructor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 </span><span id="Base.__init__-1186"><a href="#Base.__init__-1186"><span class="linenos">1186</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A simple constructor that allows initialization from kwargs.</span>
 </span><span id="Base.__init__-1187"><a href="#Base.__init__-1187"><span class="linenos">1187</span></a>
 </span><span id="Base.__init__-1188"><a href="#Base.__init__-1188"><span class="linenos">1188</span></a><span class="sd">    Sets attributes on the constructed instance using the names and</span>
@@ -1072,7 +1072,7 @@ for example, any mapped columns or relationships.</p>
 
     </div>
     <a class="headerlink" href="#Metadatar"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Metadatar-26"><a href="#Metadatar-26"><span class="linenos">26</span></a><span class="k">class</span> <span class="nc">Metadatar</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Metadatar-26"><a href="#Metadatar-26"><span class="linenos">26</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Metadatar</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
 </span><span id="Metadatar-27"><a href="#Metadatar-27"><span class="linenos">27</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;This class is used to store the metadata of the compounds in the database</span>
 </span><span id="Metadatar-28"><a href="#Metadatar-28"><span class="linenos">28</span></a>
 </span><span id="Metadatar-29"><a href="#Metadatar-29"><span class="linenos">29</span></a><span class="sd">    Attributes</span>
@@ -1329,7 +1329,7 @@ for example, any mapped columns or relationships.</p>
 
     </div>
     <a class="headerlink" href="#LowResolutionEICompound"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LowResolutionEICompound-74"><a href="#LowResolutionEICompound-74"><span class="linenos"> 74</span></a><span class="k">class</span> <span class="nc">LowResolutionEICompound</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LowResolutionEICompound-74"><a href="#LowResolutionEICompound-74"><span class="linenos"> 74</span></a><span class="k">class</span><span class="w"> </span><span class="nc">LowResolutionEICompound</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
 </span><span id="LowResolutionEICompound-75"><a href="#LowResolutionEICompound-75"><span class="linenos"> 75</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;This class is used to store the molecular and spectral data of the compounds in the low res EI database</span>
 </span><span id="LowResolutionEICompound-76"><a href="#LowResolutionEICompound-76"><span class="linenos"> 76</span></a>
 </span><span id="LowResolutionEICompound-77"><a href="#LowResolutionEICompound-77"><span class="linenos"> 77</span></a><span class="sd">    Attributes</span>
@@ -1395,7 +1395,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="LowResolutionEICompound-137"><a href="#LowResolutionEICompound-137"><span class="linenos">137</span></a>
 </span><span id="LowResolutionEICompound-138"><a href="#LowResolutionEICompound-138"><span class="linenos">138</span></a>    <span class="c1"># metadatar = relationship(&#39;Metadatar&#39;, backref=&#39;smile&#39;, lazy=&#39;dynamic&#39;)</span>
 </span><span id="LowResolutionEICompound-139"><a href="#LowResolutionEICompound-139"><span class="linenos">139</span></a>
-</span><span id="LowResolutionEICompound-140"><a href="#LowResolutionEICompound-140"><span class="linenos">140</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">dict_data</span><span class="p">):</span>
+</span><span id="LowResolutionEICompound-140"><a href="#LowResolutionEICompound-140"><span class="linenos">140</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">dict_data</span><span class="p">):</span>
 </span><span id="LowResolutionEICompound-141"><a href="#LowResolutionEICompound-141"><span class="linenos">141</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">dict_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
 </span><span id="LowResolutionEICompound-142"><a href="#LowResolutionEICompound-142"><span class="linenos">142</span></a>
 </span><span id="LowResolutionEICompound-143"><a href="#LowResolutionEICompound-143"><span class="linenos">143</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">dict_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;NAME&quot;</span><span class="p">)</span>
@@ -1421,7 +1421,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="LowResolutionEICompound-163"><a href="#LowResolutionEICompound-163"><span class="linenos">163</span></a>
 </span><span id="LowResolutionEICompound-164"><a href="#LowResolutionEICompound-164"><span class="linenos">164</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">metadatar</span> <span class="o">=</span> <span class="n">dict_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;metadatar&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 </span><span id="LowResolutionEICompound-165"><a href="#LowResolutionEICompound-165"><span class="linenos">165</span></a>
-</span><span id="LowResolutionEICompound-166"><a href="#LowResolutionEICompound-166"><span class="linenos">166</span></a>    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LowResolutionEICompound-166"><a href="#LowResolutionEICompound-166"><span class="linenos">166</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LowResolutionEICompound-167"><a href="#LowResolutionEICompound-167"><span class="linenos">167</span></a>        <span class="k">return</span> <span class="p">(</span>
 </span><span id="LowResolutionEICompound-168"><a href="#LowResolutionEICompound-168"><span class="linenos">168</span></a>            <span class="s2">&quot;&lt;LowResolutionEICompound(name= </span><span class="si">%s</span><span class="s2"> , cas number = </span><span class="si">%s</span><span class="s2">, formula = </span><span class="si">%s</span><span class="s2">, Retention index= </span><span class="si">%.1f</span><span class="s2">, Retention time= </span><span class="si">%.1f</span><span class="s2"> comment=&#39;</span><span class="si">%s</span><span class="s2">&#39;)&gt;&quot;</span>
 </span><span id="LowResolutionEICompound-169"><a href="#LowResolutionEICompound-169"><span class="linenos">169</span></a>            <span class="o">%</span> <span class="p">(</span>
@@ -1698,7 +1698,7 @@ The metadata object.</li>
     </div>
     <a class="headerlink" href="#MetaboliteMetadata"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="MetaboliteMetadata-180"><a href="#MetaboliteMetadata-180"><span class="linenos">180</span></a><span class="nd">@dataclass</span>
-</span><span id="MetaboliteMetadata-181"><a href="#MetaboliteMetadata-181"><span class="linenos">181</span></a><span class="k">class</span> <span class="nc">MetaboliteMetadata</span><span class="p">:</span>
+</span><span id="MetaboliteMetadata-181"><a href="#MetaboliteMetadata-181"><span class="linenos">181</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MetaboliteMetadata</span><span class="p">:</span>
 </span><span id="MetaboliteMetadata-182"><a href="#MetaboliteMetadata-182"><span class="linenos">182</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Dataclass for the Metabolite Metadata</span>
 </span><span id="MetaboliteMetadata-183"><a href="#MetaboliteMetadata-183"><span class="linenos">183</span></a>
 </span><span id="MetaboliteMetadata-184"><a href="#MetaboliteMetadata-184"><span class="linenos">184</span></a><span class="sd">    Attributes</span>
@@ -1920,7 +1920,7 @@ The id of the compound in the molecularData table.</li>
     </div>
     <a class="headerlink" href="#LowResCompoundRef"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="LowResCompoundRef-224"><a href="#LowResCompoundRef-224"><span class="linenos">224</span></a><span class="nd">@dataclass</span>
-</span><span id="LowResCompoundRef-225"><a href="#LowResCompoundRef-225"><span class="linenos">225</span></a><span class="k">class</span> <span class="nc">LowResCompoundRef</span><span class="p">:</span>
+</span><span id="LowResCompoundRef-225"><a href="#LowResCompoundRef-225"><span class="linenos">225</span></a><span class="k">class</span><span class="w"> </span><span class="nc">LowResCompoundRef</span><span class="p">:</span>
 </span><span id="LowResCompoundRef-226"><a href="#LowResCompoundRef-226"><span class="linenos">226</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Dataclass for the Low Resolution Compound Reference</span>
 </span><span id="LowResCompoundRef-227"><a href="#LowResCompoundRef-227"><span class="linenos">227</span></a>
 </span><span id="LowResCompoundRef-228"><a href="#LowResCompoundRef-228"><span class="linenos">228</span></a><span class="sd">    This class is used to store the molecular and spectral data of the compounds in the low res EI database</span>
@@ -1980,7 +1980,7 @@ The id of the compound in the molecularData table.</li>
 </span><span id="LowResCompoundRef-282"><a href="#LowResCompoundRef-282"><span class="linenos">282</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="LowResCompoundRef-283"><a href="#LowResCompoundRef-283"><span class="linenos">283</span></a>
 </span><span id="LowResCompoundRef-284"><a href="#LowResCompoundRef-284"><span class="linenos">284</span></a>    <span class="c1"># this class is use to store the results inside the GCPeak class</span>
-</span><span id="LowResCompoundRef-285"><a href="#LowResCompoundRef-285"><span class="linenos">285</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compounds_dict</span><span class="p">):</span>
+</span><span id="LowResCompoundRef-285"><a href="#LowResCompoundRef-285"><span class="linenos">285</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compounds_dict</span><span class="p">):</span>
 </span><span id="LowResCompoundRef-286"><a href="#LowResCompoundRef-286"><span class="linenos">286</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">compounds_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
 </span><span id="LowResCompoundRef-287"><a href="#LowResCompoundRef-287"><span class="linenos">287</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">compounds_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
 </span><span id="LowResCompoundRef-288"><a href="#LowResCompoundRef-288"><span class="linenos">288</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">ri</span> <span class="o">=</span> <span class="n">compounds_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ri&quot;</span><span class="p">)</span>
@@ -2088,7 +2088,7 @@ The spectral similarity scores of the compound.</li>
 
     </div>
     <a class="headerlink" href="#LowResCompoundRef.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LowResCompoundRef.__init__-285"><a href="#LowResCompoundRef.__init__-285"><span class="linenos">285</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compounds_dict</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LowResCompoundRef.__init__-285"><a href="#LowResCompoundRef.__init__-285"><span class="linenos">285</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compounds_dict</span><span class="p">):</span>
 </span><span id="LowResCompoundRef.__init__-286"><a href="#LowResCompoundRef.__init__-286"><span class="linenos">286</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">compounds_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
 </span><span id="LowResCompoundRef.__init__-287"><a href="#LowResCompoundRef.__init__-287"><span class="linenos">287</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">compounds_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
 </span><span id="LowResCompoundRef.__init__-288"><a href="#LowResCompoundRef.__init__-288"><span class="linenos">288</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">ri</span> <span class="o">=</span> <span class="n">compounds_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ri&quot;</span><span class="p">)</span>
@@ -2359,7 +2359,7 @@ The spectral similarity scores of the compound.</li>
 
     </div>
     <a class="headerlink" href="#EI_LowRes_SQLite"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite-320"><a href="#EI_LowRes_SQLite-320"><span class="linenos">320</span></a><span class="k">class</span> <span class="nc">EI_LowRes_SQLite</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite-320"><a href="#EI_LowRes_SQLite-320"><span class="linenos">320</span></a><span class="k">class</span><span class="w"> </span><span class="nc">EI_LowRes_SQLite</span><span class="p">:</span>
 </span><span id="EI_LowRes_SQLite-321"><a href="#EI_LowRes_SQLite-321"><span class="linenos">321</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="EI_LowRes_SQLite-322"><a href="#EI_LowRes_SQLite-322"><span class="linenos">322</span></a><span class="sd">    A class for interacting with a SQLite database for low-resolution EI compounds.</span>
 </span><span id="EI_LowRes_SQLite-323"><a href="#EI_LowRes_SQLite-323"><span class="linenos">323</span></a>
@@ -2411,7 +2411,7 @@ The spectral similarity scores of the compound.</li>
 </span><span id="EI_LowRes_SQLite-369"><a href="#EI_LowRes_SQLite-369"><span class="linenos">369</span></a><span class="sd">        Clears all tables in the database.</span>
 </span><span id="EI_LowRes_SQLite-370"><a href="#EI_LowRes_SQLite-370"><span class="linenos">370</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="EI_LowRes_SQLite-371"><a href="#EI_LowRes_SQLite-371"><span class="linenos">371</span></a>
-</span><span id="EI_LowRes_SQLite-372"><a href="#EI_LowRes_SQLite-372"><span class="linenos">372</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;sqlite://&quot;</span><span class="p">):</span>
+</span><span id="EI_LowRes_SQLite-372"><a href="#EI_LowRes_SQLite-372"><span class="linenos">372</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;sqlite://&quot;</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite-373"><a href="#EI_LowRes_SQLite-373"><span class="linenos">373</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_engine</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
 </span><span id="EI_LowRes_SQLite-374"><a href="#EI_LowRes_SQLite-374"><span class="linenos">374</span></a>
 </span><span id="EI_LowRes_SQLite-375"><a href="#EI_LowRes_SQLite-375"><span class="linenos">375</span></a>        <span class="n">Base</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
@@ -2420,13 +2420,13 @@ The spectral similarity scores of the compound.</li>
 </span><span id="EI_LowRes_SQLite-378"><a href="#EI_LowRes_SQLite-378"><span class="linenos">378</span></a>
 </span><span id="EI_LowRes_SQLite-379"><a href="#EI_LowRes_SQLite-379"><span class="linenos">379</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
 </span><span id="EI_LowRes_SQLite-380"><a href="#EI_LowRes_SQLite-380"><span class="linenos">380</span></a>
-</span><span id="EI_LowRes_SQLite-381"><a href="#EI_LowRes_SQLite-381"><span class="linenos">381</span></a>    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+</span><span id="EI_LowRes_SQLite-381"><a href="#EI_LowRes_SQLite-381"><span class="linenos">381</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite-382"><a href="#EI_LowRes_SQLite-382"><span class="linenos">382</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Closes the database connection.&quot;&quot;&quot;</span>
 </span><span id="EI_LowRes_SQLite-383"><a href="#EI_LowRes_SQLite-383"><span class="linenos">383</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 </span><span id="EI_LowRes_SQLite-384"><a href="#EI_LowRes_SQLite-384"><span class="linenos">384</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span><span id="EI_LowRes_SQLite-385"><a href="#EI_LowRes_SQLite-385"><span class="linenos">385</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">dispose</span><span class="p">()</span>
 </span><span id="EI_LowRes_SQLite-386"><a href="#EI_LowRes_SQLite-386"><span class="linenos">386</span></a>
-</span><span id="EI_LowRes_SQLite-387"><a href="#EI_LowRes_SQLite-387"><span class="linenos">387</span></a>    <span class="k">def</span> <span class="nf">init_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+</span><span id="EI_LowRes_SQLite-387"><a href="#EI_LowRes_SQLite-387"><span class="linenos">387</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">init_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite-388"><a href="#EI_LowRes_SQLite-388"><span class="linenos">388</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes the SQLAlchemy engine.</span>
 </span><span id="EI_LowRes_SQLite-389"><a href="#EI_LowRes_SQLite-389"><span class="linenos">389</span></a>
 </span><span id="EI_LowRes_SQLite-390"><a href="#EI_LowRes_SQLite-390"><span class="linenos">390</span></a><span class="sd">        Parameters</span>
@@ -2448,11 +2448,11 @@ The spectral similarity scores of the compound.</li>
 </span><span id="EI_LowRes_SQLite-406"><a href="#EI_LowRes_SQLite-406"><span class="linenos">406</span></a>            <span class="p">)</span>
 </span><span id="EI_LowRes_SQLite-407"><a href="#EI_LowRes_SQLite-407"><span class="linenos">407</span></a>        <span class="k">return</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">poolclass</span><span class="o">=</span><span class="n">QueuePool</span><span class="p">)</span>
 </span><span id="EI_LowRes_SQLite-408"><a href="#EI_LowRes_SQLite-408"><span class="linenos">408</span></a>
-</span><span id="EI_LowRes_SQLite-409"><a href="#EI_LowRes_SQLite-409"><span class="linenos">409</span></a>    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="EI_LowRes_SQLite-409"><a href="#EI_LowRes_SQLite-409"><span class="linenos">409</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite-410"><a href="#EI_LowRes_SQLite-410"><span class="linenos">410</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the EI_LowRes_SQLite object.&quot;&quot;&quot;</span>
 </span><span id="EI_LowRes_SQLite-411"><a href="#EI_LowRes_SQLite-411"><span class="linenos">411</span></a>        <span class="k">return</span> <span class="bp">self</span>
 </span><span id="EI_LowRes_SQLite-412"><a href="#EI_LowRes_SQLite-412"><span class="linenos">412</span></a>
-</span><span id="EI_LowRes_SQLite-413"><a href="#EI_LowRes_SQLite-413"><span class="linenos">413</span></a>    <span class="k">def</span> <span class="nf">add_compound_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dict_list</span><span class="p">):</span>
+</span><span id="EI_LowRes_SQLite-413"><a href="#EI_LowRes_SQLite-413"><span class="linenos">413</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_compound_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dict_list</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite-414"><a href="#EI_LowRes_SQLite-414"><span class="linenos">414</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds a list of compounds to the database.</span>
 </span><span id="EI_LowRes_SQLite-415"><a href="#EI_LowRes_SQLite-415"><span class="linenos">415</span></a>
 </span><span id="EI_LowRes_SQLite-416"><a href="#EI_LowRes_SQLite-416"><span class="linenos">416</span></a><span class="sd">        Parameters</span>
@@ -2471,7 +2471,7 @@ The spectral similarity scores of the compound.</li>
 </span><span id="EI_LowRes_SQLite-429"><a href="#EI_LowRes_SQLite-429"><span class="linenos">429</span></a>            <span class="p">[</span><span class="n">LowResolutionEICompound</span><span class="p">(</span><span class="o">**</span><span class="n">data_dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">data_dict</span> <span class="ow">in</span> <span class="n">data_dict_list</span><span class="p">]</span>
 </span><span id="EI_LowRes_SQLite-430"><a href="#EI_LowRes_SQLite-430"><span class="linenos">430</span></a>        <span class="p">)</span>
 </span><span id="EI_LowRes_SQLite-431"><a href="#EI_LowRes_SQLite-431"><span class="linenos">431</span></a>
-</span><span id="EI_LowRes_SQLite-432"><a href="#EI_LowRes_SQLite-432"><span class="linenos">432</span></a>    <span class="k">def</span> <span class="nf">add_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">):</span>
+</span><span id="EI_LowRes_SQLite-432"><a href="#EI_LowRes_SQLite-432"><span class="linenos">432</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite-433"><a href="#EI_LowRes_SQLite-433"><span class="linenos">433</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds a single compound to the database.</span>
 </span><span id="EI_LowRes_SQLite-434"><a href="#EI_LowRes_SQLite-434"><span class="linenos">434</span></a>
 </span><span id="EI_LowRes_SQLite-435"><a href="#EI_LowRes_SQLite-435"><span class="linenos">435</span></a><span class="sd">        Parameters</span>
@@ -2484,7 +2484,7 @@ The spectral similarity scores of the compound.</li>
 </span><span id="EI_LowRes_SQLite-442"><a href="#EI_LowRes_SQLite-442"><span class="linenos">442</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">one_compound</span><span class="p">)</span>
 </span><span id="EI_LowRes_SQLite-443"><a href="#EI_LowRes_SQLite-443"><span class="linenos">443</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 </span><span id="EI_LowRes_SQLite-444"><a href="#EI_LowRes_SQLite-444"><span class="linenos">444</span></a>
-</span><span id="EI_LowRes_SQLite-445"><a href="#EI_LowRes_SQLite-445"><span class="linenos">445</span></a>    <span class="k">def</span> <span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="EI_LowRes_SQLite-445"><a href="#EI_LowRes_SQLite-445"><span class="linenos">445</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite-446"><a href="#EI_LowRes_SQLite-446"><span class="linenos">446</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Commits the changes to the database.&quot;&quot;&quot;</span>
 </span><span id="EI_LowRes_SQLite-447"><a href="#EI_LowRes_SQLite-447"><span class="linenos">447</span></a>        <span class="k">try</span><span class="p">:</span>
 </span><span id="EI_LowRes_SQLite-448"><a href="#EI_LowRes_SQLite-448"><span class="linenos">448</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
@@ -2492,7 +2492,7 @@ The spectral similarity scores of the compound.</li>
 </span><span id="EI_LowRes_SQLite-450"><a href="#EI_LowRes_SQLite-450"><span class="linenos">450</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
 </span><span id="EI_LowRes_SQLite-451"><a href="#EI_LowRes_SQLite-451"><span class="linenos">451</span></a>            <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
 </span><span id="EI_LowRes_SQLite-452"><a href="#EI_LowRes_SQLite-452"><span class="linenos">452</span></a>
-</span><span id="EI_LowRes_SQLite-453"><a href="#EI_LowRes_SQLite-453"><span class="linenos">453</span></a>    <span class="k">def</span> <span class="nf">row_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+</span><span id="EI_LowRes_SQLite-453"><a href="#EI_LowRes_SQLite-453"><span class="linenos">453</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">row_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite-454"><a href="#EI_LowRes_SQLite-454"><span class="linenos">454</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts a database row to a dictionary.</span>
 </span><span id="EI_LowRes_SQLite-455"><a href="#EI_LowRes_SQLite-455"><span class="linenos">455</span></a>
 </span><span id="EI_LowRes_SQLite-456"><a href="#EI_LowRes_SQLite-456"><span class="linenos">456</span></a><span class="sd">        Parameters</span>
@@ -2521,7 +2521,7 @@ The spectral similarity scores of the compound.</li>
 </span><span id="EI_LowRes_SQLite-479"><a href="#EI_LowRes_SQLite-479"><span class="linenos">479</span></a>
 </span><span id="EI_LowRes_SQLite-480"><a href="#EI_LowRes_SQLite-480"><span class="linenos">480</span></a>        <span class="k">return</span> <span class="n">data_dict</span>
 </span><span id="EI_LowRes_SQLite-481"><a href="#EI_LowRes_SQLite-481"><span class="linenos">481</span></a>
-</span><span id="EI_LowRes_SQLite-482"><a href="#EI_LowRes_SQLite-482"><span class="linenos">482</span></a>    <span class="k">def</span> <span class="nf">get_all</span><span class="p">(</span>
+</span><span id="EI_LowRes_SQLite-482"><a href="#EI_LowRes_SQLite-482"><span class="linenos">482</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_all</span><span class="p">(</span>
 </span><span id="EI_LowRes_SQLite-483"><a href="#EI_LowRes_SQLite-483"><span class="linenos">483</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="EI_LowRes_SQLite-484"><a href="#EI_LowRes_SQLite-484"><span class="linenos">484</span></a>    <span class="p">):</span>
 </span><span id="EI_LowRes_SQLite-485"><a href="#EI_LowRes_SQLite-485"><span class="linenos">485</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves all compounds from the database.</span>
@@ -2535,7 +2535,7 @@ The spectral similarity scores of the compound.</li>
 </span><span id="EI_LowRes_SQLite-493"><a href="#EI_LowRes_SQLite-493"><span class="linenos">493</span></a>
 </span><span id="EI_LowRes_SQLite-494"><a href="#EI_LowRes_SQLite-494"><span class="linenos">494</span></a>        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">row_to_dict</span><span class="p">(</span><span class="n">compound</span><span class="p">)</span> <span class="k">for</span> <span class="n">compound</span> <span class="ow">in</span> <span class="n">compounds</span><span class="p">]</span>
 </span><span id="EI_LowRes_SQLite-495"><a href="#EI_LowRes_SQLite-495"><span class="linenos">495</span></a>
-</span><span id="EI_LowRes_SQLite-496"><a href="#EI_LowRes_SQLite-496"><span class="linenos">496</span></a>    <span class="k">def</span> <span class="nf">query_min_max_rt</span><span class="p">(</span>
+</span><span id="EI_LowRes_SQLite-496"><a href="#EI_LowRes_SQLite-496"><span class="linenos">496</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">query_min_max_rt</span><span class="p">(</span>
 </span><span id="EI_LowRes_SQLite-497"><a href="#EI_LowRes_SQLite-497"><span class="linenos">497</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="EI_LowRes_SQLite-498"><a href="#EI_LowRes_SQLite-498"><span class="linenos">498</span></a>        <span class="n">min_max_rt</span><span class="p">,</span>
 </span><span id="EI_LowRes_SQLite-499"><a href="#EI_LowRes_SQLite-499"><span class="linenos">499</span></a>    <span class="p">):</span>
@@ -2559,7 +2559,7 @@ The spectral similarity scores of the compound.</li>
 </span><span id="EI_LowRes_SQLite-517"><a href="#EI_LowRes_SQLite-517"><span class="linenos">517</span></a>
 </span><span id="EI_LowRes_SQLite-518"><a href="#EI_LowRes_SQLite-518"><span class="linenos">518</span></a>        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">row_to_dict</span><span class="p">(</span><span class="n">compound</span><span class="p">)</span> <span class="k">for</span> <span class="n">compound</span> <span class="ow">in</span> <span class="n">compounds</span><span class="p">]</span>
 </span><span id="EI_LowRes_SQLite-519"><a href="#EI_LowRes_SQLite-519"><span class="linenos">519</span></a>
-</span><span id="EI_LowRes_SQLite-520"><a href="#EI_LowRes_SQLite-520"><span class="linenos">520</span></a>    <span class="k">def</span> <span class="nf">query_min_max_ri</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_max_ri</span><span class="p">):</span>
+</span><span id="EI_LowRes_SQLite-520"><a href="#EI_LowRes_SQLite-520"><span class="linenos">520</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">query_min_max_ri</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_max_ri</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite-521"><a href="#EI_LowRes_SQLite-521"><span class="linenos">521</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Queries compounds based on RI range.</span>
 </span><span id="EI_LowRes_SQLite-522"><a href="#EI_LowRes_SQLite-522"><span class="linenos">522</span></a>
 </span><span id="EI_LowRes_SQLite-523"><a href="#EI_LowRes_SQLite-523"><span class="linenos">523</span></a><span class="sd">        Parameters</span>
@@ -2577,7 +2577,7 @@ The spectral similarity scores of the compound.</li>
 </span><span id="EI_LowRes_SQLite-535"><a href="#EI_LowRes_SQLite-535"><span class="linenos">535</span></a>
 </span><span id="EI_LowRes_SQLite-536"><a href="#EI_LowRes_SQLite-536"><span class="linenos">536</span></a>        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">row_to_dict</span><span class="p">(</span><span class="n">compound</span><span class="p">)</span> <span class="k">for</span> <span class="n">compound</span> <span class="ow">in</span> <span class="n">compounds</span><span class="p">]</span>
 </span><span id="EI_LowRes_SQLite-537"><a href="#EI_LowRes_SQLite-537"><span class="linenos">537</span></a>
-</span><span id="EI_LowRes_SQLite-538"><a href="#EI_LowRes_SQLite-538"><span class="linenos">538</span></a>    <span class="k">def</span> <span class="nf">query_names_and_rt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_max_rt</span><span class="p">,</span> <span class="n">compound_names</span><span class="p">):</span>
+</span><span id="EI_LowRes_SQLite-538"><a href="#EI_LowRes_SQLite-538"><span class="linenos">538</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">query_names_and_rt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_max_rt</span><span class="p">,</span> <span class="n">compound_names</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite-539"><a href="#EI_LowRes_SQLite-539"><span class="linenos">539</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Queries compounds based on compound names and retention time range.</span>
 </span><span id="EI_LowRes_SQLite-540"><a href="#EI_LowRes_SQLite-540"><span class="linenos">540</span></a>
 </span><span id="EI_LowRes_SQLite-541"><a href="#EI_LowRes_SQLite-541"><span class="linenos">541</span></a><span class="sd">        Parameters</span>
@@ -2609,7 +2609,7 @@ The spectral similarity scores of the compound.</li>
 </span><span id="EI_LowRes_SQLite-567"><a href="#EI_LowRes_SQLite-567"><span class="linenos">567</span></a>
 </span><span id="EI_LowRes_SQLite-568"><a href="#EI_LowRes_SQLite-568"><span class="linenos">568</span></a>        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">row_to_dict</span><span class="p">(</span><span class="n">compound</span><span class="p">)</span> <span class="k">for</span> <span class="n">compound</span> <span class="ow">in</span> <span class="n">compounds</span><span class="p">]</span>
 </span><span id="EI_LowRes_SQLite-569"><a href="#EI_LowRes_SQLite-569"><span class="linenos">569</span></a>
-</span><span id="EI_LowRes_SQLite-570"><a href="#EI_LowRes_SQLite-570"><span class="linenos">570</span></a>    <span class="k">def</span> <span class="nf">query_min_max_ri_and_rt</span><span class="p">(</span>
+</span><span id="EI_LowRes_SQLite-570"><a href="#EI_LowRes_SQLite-570"><span class="linenos">570</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">query_min_max_ri_and_rt</span><span class="p">(</span>
 </span><span id="EI_LowRes_SQLite-571"><a href="#EI_LowRes_SQLite-571"><span class="linenos">571</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="EI_LowRes_SQLite-572"><a href="#EI_LowRes_SQLite-572"><span class="linenos">572</span></a>        <span class="n">min_max_ri</span><span class="p">,</span>
 </span><span id="EI_LowRes_SQLite-573"><a href="#EI_LowRes_SQLite-573"><span class="linenos">573</span></a>        <span class="n">min_max_rt</span><span class="p">,</span>
@@ -2644,7 +2644,7 @@ The spectral similarity scores of the compound.</li>
 </span><span id="EI_LowRes_SQLite-602"><a href="#EI_LowRes_SQLite-602"><span class="linenos">602</span></a>
 </span><span id="EI_LowRes_SQLite-603"><a href="#EI_LowRes_SQLite-603"><span class="linenos">603</span></a>        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">row_to_dict</span><span class="p">(</span><span class="n">compound</span><span class="p">)</span> <span class="k">for</span> <span class="n">compound</span> <span class="ow">in</span> <span class="n">compounds</span><span class="p">]</span>
 </span><span id="EI_LowRes_SQLite-604"><a href="#EI_LowRes_SQLite-604"><span class="linenos">604</span></a>
-</span><span id="EI_LowRes_SQLite-605"><a href="#EI_LowRes_SQLite-605"><span class="linenos">605</span></a>    <span class="k">def</span> <span class="nf">delete_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compound</span><span class="p">):</span>
+</span><span id="EI_LowRes_SQLite-605"><a href="#EI_LowRes_SQLite-605"><span class="linenos">605</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">delete_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compound</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite-606"><a href="#EI_LowRes_SQLite-606"><span class="linenos">606</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes a compound from the database.</span>
 </span><span id="EI_LowRes_SQLite-607"><a href="#EI_LowRes_SQLite-607"><span class="linenos">607</span></a>
 </span><span id="EI_LowRes_SQLite-608"><a href="#EI_LowRes_SQLite-608"><span class="linenos">608</span></a><span class="sd">        Parameters</span>
@@ -2661,7 +2661,7 @@ The spectral similarity scores of the compound.</li>
 </span><span id="EI_LowRes_SQLite-619"><a href="#EI_LowRes_SQLite-619"><span class="linenos">619</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
 </span><span id="EI_LowRes_SQLite-620"><a href="#EI_LowRes_SQLite-620"><span class="linenos">620</span></a>            <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
 </span><span id="EI_LowRes_SQLite-621"><a href="#EI_LowRes_SQLite-621"><span class="linenos">621</span></a>
-</span><span id="EI_LowRes_SQLite-622"><a href="#EI_LowRes_SQLite-622"><span class="linenos">622</span></a>    <span class="k">def</span> <span class="nf">purge</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="EI_LowRes_SQLite-622"><a href="#EI_LowRes_SQLite-622"><span class="linenos">622</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">purge</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite-623"><a href="#EI_LowRes_SQLite-623"><span class="linenos">623</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes all compounds from the database table.</span>
 </span><span id="EI_LowRes_SQLite-624"><a href="#EI_LowRes_SQLite-624"><span class="linenos">624</span></a>
 </span><span id="EI_LowRes_SQLite-625"><a href="#EI_LowRes_SQLite-625"><span class="linenos">625</span></a><span class="sd">        Notes</span>
@@ -2671,7 +2671,7 @@ The spectral similarity scores of the compound.</li>
 </span><span id="EI_LowRes_SQLite-629"><a href="#EI_LowRes_SQLite-629"><span class="linenos">629</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">LowResolutionEICompound</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
 </span><span id="EI_LowRes_SQLite-630"><a href="#EI_LowRes_SQLite-630"><span class="linenos">630</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 </span><span id="EI_LowRes_SQLite-631"><a href="#EI_LowRes_SQLite-631"><span class="linenos">631</span></a>
-</span><span id="EI_LowRes_SQLite-632"><a href="#EI_LowRes_SQLite-632"><span class="linenos">632</span></a>    <span class="k">def</span> <span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="EI_LowRes_SQLite-632"><a href="#EI_LowRes_SQLite-632"><span class="linenos">632</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite-633"><a href="#EI_LowRes_SQLite-633"><span class="linenos">633</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears all tables in the database.&quot;&quot;&quot;</span>
 </span><span id="EI_LowRes_SQLite-634"><a href="#EI_LowRes_SQLite-634"><span class="linenos">634</span></a>        <span class="n">meta</span> <span class="o">=</span> <span class="n">Base</span><span class="o">.</span><span class="n">metadata</span>
 </span><span id="EI_LowRes_SQLite-635"><a href="#EI_LowRes_SQLite-635"><span class="linenos">635</span></a>        <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">sorted_tables</span><span class="p">):</span>
@@ -2748,7 +2748,7 @@ Clears all tables in the database.</li>
 
     </div>
     <a class="headerlink" href="#EI_LowRes_SQLite.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.__init__-372"><a href="#EI_LowRes_SQLite.__init__-372"><span class="linenos">372</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;sqlite://&quot;</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.__init__-372"><a href="#EI_LowRes_SQLite.__init__-372"><span class="linenos">372</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;sqlite://&quot;</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite.__init__-373"><a href="#EI_LowRes_SQLite.__init__-373"><span class="linenos">373</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_engine</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
 </span><span id="EI_LowRes_SQLite.__init__-374"><a href="#EI_LowRes_SQLite.__init__-374"><span class="linenos">374</span></a>
 </span><span id="EI_LowRes_SQLite.__init__-375"><a href="#EI_LowRes_SQLite.__init__-375"><span class="linenos">375</span></a>        <span class="n">Base</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
@@ -2795,7 +2795,7 @@ Clears all tables in the database.</li>
 
     </div>
     <a class="headerlink" href="#EI_LowRes_SQLite.init_engine"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.init_engine-387"><a href="#EI_LowRes_SQLite.init_engine-387"><span class="linenos">387</span></a>    <span class="k">def</span> <span class="nf">init_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.init_engine-387"><a href="#EI_LowRes_SQLite.init_engine-387"><span class="linenos">387</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">init_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite.init_engine-388"><a href="#EI_LowRes_SQLite.init_engine-388"><span class="linenos">388</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes the SQLAlchemy engine.</span>
 </span><span id="EI_LowRes_SQLite.init_engine-389"><a href="#EI_LowRes_SQLite.init_engine-389"><span class="linenos">389</span></a>
 </span><span id="EI_LowRes_SQLite.init_engine-390"><a href="#EI_LowRes_SQLite.init_engine-390"><span class="linenos">390</span></a><span class="sd">        Parameters</span>
@@ -2848,7 +2848,7 @@ The URL of the SQLite database.</li>
 
     </div>
     <a class="headerlink" href="#EI_LowRes_SQLite.add_compound_list"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.add_compound_list-413"><a href="#EI_LowRes_SQLite.add_compound_list-413"><span class="linenos">413</span></a>    <span class="k">def</span> <span class="nf">add_compound_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dict_list</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.add_compound_list-413"><a href="#EI_LowRes_SQLite.add_compound_list-413"><span class="linenos">413</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_compound_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dict_list</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite.add_compound_list-414"><a href="#EI_LowRes_SQLite.add_compound_list-414"><span class="linenos">414</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds a list of compounds to the database.</span>
 </span><span id="EI_LowRes_SQLite.add_compound_list-415"><a href="#EI_LowRes_SQLite.add_compound_list-415"><span class="linenos">415</span></a>
 </span><span id="EI_LowRes_SQLite.add_compound_list-416"><a href="#EI_LowRes_SQLite.add_compound_list-416"><span class="linenos">416</span></a><span class="sd">        Parameters</span>
@@ -2892,7 +2892,7 @@ A list of dictionaries representing the compounds.</li>
 
     </div>
     <a class="headerlink" href="#EI_LowRes_SQLite.add_compound"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.add_compound-432"><a href="#EI_LowRes_SQLite.add_compound-432"><span class="linenos">432</span></a>    <span class="k">def</span> <span class="nf">add_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.add_compound-432"><a href="#EI_LowRes_SQLite.add_compound-432"><span class="linenos">432</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite.add_compound-433"><a href="#EI_LowRes_SQLite.add_compound-433"><span class="linenos">433</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds a single compound to the database.</span>
 </span><span id="EI_LowRes_SQLite.add_compound-434"><a href="#EI_LowRes_SQLite.add_compound-434"><span class="linenos">434</span></a>
 </span><span id="EI_LowRes_SQLite.add_compound-435"><a href="#EI_LowRes_SQLite.add_compound-435"><span class="linenos">435</span></a><span class="sd">        Parameters</span>
@@ -2930,7 +2930,7 @@ A dictionary representing the compound.</li>
 
     </div>
     <a class="headerlink" href="#EI_LowRes_SQLite.commit"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.commit-445"><a href="#EI_LowRes_SQLite.commit-445"><span class="linenos">445</span></a>    <span class="k">def</span> <span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.commit-445"><a href="#EI_LowRes_SQLite.commit-445"><span class="linenos">445</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite.commit-446"><a href="#EI_LowRes_SQLite.commit-446"><span class="linenos">446</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Commits the changes to the database.&quot;&quot;&quot;</span>
 </span><span id="EI_LowRes_SQLite.commit-447"><a href="#EI_LowRes_SQLite.commit-447"><span class="linenos">447</span></a>        <span class="k">try</span><span class="p">:</span>
 </span><span id="EI_LowRes_SQLite.commit-448"><a href="#EI_LowRes_SQLite.commit-448"><span class="linenos">448</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
@@ -2956,7 +2956,7 @@ A dictionary representing the compound.</li>
 
     </div>
     <a class="headerlink" href="#EI_LowRes_SQLite.row_to_dict"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.row_to_dict-453"><a href="#EI_LowRes_SQLite.row_to_dict-453"><span class="linenos">453</span></a>    <span class="k">def</span> <span class="nf">row_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.row_to_dict-453"><a href="#EI_LowRes_SQLite.row_to_dict-453"><span class="linenos">453</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">row_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite.row_to_dict-454"><a href="#EI_LowRes_SQLite.row_to_dict-454"><span class="linenos">454</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts a database row to a dictionary.</span>
 </span><span id="EI_LowRes_SQLite.row_to_dict-455"><a href="#EI_LowRes_SQLite.row_to_dict-455"><span class="linenos">455</span></a>
 </span><span id="EI_LowRes_SQLite.row_to_dict-456"><a href="#EI_LowRes_SQLite.row_to_dict-456"><span class="linenos">456</span></a><span class="sd">        Parameters</span>
@@ -3016,7 +3016,7 @@ A row from the database.</li>
 
     </div>
     <a class="headerlink" href="#EI_LowRes_SQLite.get_all"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.get_all-482"><a href="#EI_LowRes_SQLite.get_all-482"><span class="linenos">482</span></a>    <span class="k">def</span> <span class="nf">get_all</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.get_all-482"><a href="#EI_LowRes_SQLite.get_all-482"><span class="linenos">482</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_all</span><span class="p">(</span>
 </span><span id="EI_LowRes_SQLite.get_all-483"><a href="#EI_LowRes_SQLite.get_all-483"><span class="linenos">483</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="EI_LowRes_SQLite.get_all-484"><a href="#EI_LowRes_SQLite.get_all-484"><span class="linenos">484</span></a>    <span class="p">):</span>
 </span><span id="EI_LowRes_SQLite.get_all-485"><a href="#EI_LowRes_SQLite.get_all-485"><span class="linenos">485</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves all compounds from the database.</span>
@@ -3054,7 +3054,7 @@ A row from the database.</li>
 
     </div>
     <a class="headerlink" href="#EI_LowRes_SQLite.query_min_max_rt"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.query_min_max_rt-496"><a href="#EI_LowRes_SQLite.query_min_max_rt-496"><span class="linenos">496</span></a>    <span class="k">def</span> <span class="nf">query_min_max_rt</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.query_min_max_rt-496"><a href="#EI_LowRes_SQLite.query_min_max_rt-496"><span class="linenos">496</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">query_min_max_rt</span><span class="p">(</span>
 </span><span id="EI_LowRes_SQLite.query_min_max_rt-497"><a href="#EI_LowRes_SQLite.query_min_max_rt-497"><span class="linenos">497</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="EI_LowRes_SQLite.query_min_max_rt-498"><a href="#EI_LowRes_SQLite.query_min_max_rt-498"><span class="linenos">498</span></a>        <span class="n">min_max_rt</span><span class="p">,</span>
 </span><span id="EI_LowRes_SQLite.query_min_max_rt-499"><a href="#EI_LowRes_SQLite.query_min_max_rt-499"><span class="linenos">499</span></a>    <span class="p">):</span>
@@ -3109,7 +3109,7 @@ A tuple containing the minimum and maximum retention time values.</li>
 
     </div>
     <a class="headerlink" href="#EI_LowRes_SQLite.query_min_max_ri"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.query_min_max_ri-520"><a href="#EI_LowRes_SQLite.query_min_max_ri-520"><span class="linenos">520</span></a>    <span class="k">def</span> <span class="nf">query_min_max_ri</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_max_ri</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.query_min_max_ri-520"><a href="#EI_LowRes_SQLite.query_min_max_ri-520"><span class="linenos">520</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">query_min_max_ri</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_max_ri</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite.query_min_max_ri-521"><a href="#EI_LowRes_SQLite.query_min_max_ri-521"><span class="linenos">521</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Queries compounds based on RI range.</span>
 </span><span id="EI_LowRes_SQLite.query_min_max_ri-522"><a href="#EI_LowRes_SQLite.query_min_max_ri-522"><span class="linenos">522</span></a>
 </span><span id="EI_LowRes_SQLite.query_min_max_ri-523"><a href="#EI_LowRes_SQLite.query_min_max_ri-523"><span class="linenos">523</span></a><span class="sd">        Parameters</span>
@@ -3152,7 +3152,7 @@ A tuple containing the minimum and maximum RI values.</li>
 
     </div>
     <a class="headerlink" href="#EI_LowRes_SQLite.query_names_and_rt"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.query_names_and_rt-538"><a href="#EI_LowRes_SQLite.query_names_and_rt-538"><span class="linenos">538</span></a>    <span class="k">def</span> <span class="nf">query_names_and_rt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_max_rt</span><span class="p">,</span> <span class="n">compound_names</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.query_names_and_rt-538"><a href="#EI_LowRes_SQLite.query_names_and_rt-538"><span class="linenos">538</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">query_names_and_rt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_max_rt</span><span class="p">,</span> <span class="n">compound_names</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite.query_names_and_rt-539"><a href="#EI_LowRes_SQLite.query_names_and_rt-539"><span class="linenos">539</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Queries compounds based on compound names and retention time range.</span>
 </span><span id="EI_LowRes_SQLite.query_names_and_rt-540"><a href="#EI_LowRes_SQLite.query_names_and_rt-540"><span class="linenos">540</span></a>
 </span><span id="EI_LowRes_SQLite.query_names_and_rt-541"><a href="#EI_LowRes_SQLite.query_names_and_rt-541"><span class="linenos">541</span></a><span class="sd">        Parameters</span>
@@ -3217,7 +3217,7 @@ A list of compound names.</li>
 
     </div>
     <a class="headerlink" href="#EI_LowRes_SQLite.query_min_max_ri_and_rt"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.query_min_max_ri_and_rt-570"><a href="#EI_LowRes_SQLite.query_min_max_ri_and_rt-570"><span class="linenos">570</span></a>    <span class="k">def</span> <span class="nf">query_min_max_ri_and_rt</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.query_min_max_ri_and_rt-570"><a href="#EI_LowRes_SQLite.query_min_max_ri_and_rt-570"><span class="linenos">570</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">query_min_max_ri_and_rt</span><span class="p">(</span>
 </span><span id="EI_LowRes_SQLite.query_min_max_ri_and_rt-571"><a href="#EI_LowRes_SQLite.query_min_max_ri_and_rt-571"><span class="linenos">571</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="EI_LowRes_SQLite.query_min_max_ri_and_rt-572"><a href="#EI_LowRes_SQLite.query_min_max_ri_and_rt-572"><span class="linenos">572</span></a>        <span class="n">min_max_ri</span><span class="p">,</span>
 </span><span id="EI_LowRes_SQLite.query_min_max_ri_and_rt-573"><a href="#EI_LowRes_SQLite.query_min_max_ri_and_rt-573"><span class="linenos">573</span></a>        <span class="n">min_max_rt</span><span class="p">,</span>
@@ -3285,7 +3285,7 @@ A tuple containing the minimum and maximum retention time values.</li>
 
     </div>
     <a class="headerlink" href="#EI_LowRes_SQLite.delete_compound"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.delete_compound-605"><a href="#EI_LowRes_SQLite.delete_compound-605"><span class="linenos">605</span></a>    <span class="k">def</span> <span class="nf">delete_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compound</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.delete_compound-605"><a href="#EI_LowRes_SQLite.delete_compound-605"><span class="linenos">605</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">delete_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compound</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite.delete_compound-606"><a href="#EI_LowRes_SQLite.delete_compound-606"><span class="linenos">606</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes a compound from the database.</span>
 </span><span id="EI_LowRes_SQLite.delete_compound-607"><a href="#EI_LowRes_SQLite.delete_compound-607"><span class="linenos">607</span></a>
 </span><span id="EI_LowRes_SQLite.delete_compound-608"><a href="#EI_LowRes_SQLite.delete_compound-608"><span class="linenos">608</span></a><span class="sd">        Parameters</span>
@@ -3327,7 +3327,7 @@ A compound object.</li>
 
     </div>
     <a class="headerlink" href="#EI_LowRes_SQLite.purge"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.purge-622"><a href="#EI_LowRes_SQLite.purge-622"><span class="linenos">622</span></a>    <span class="k">def</span> <span class="nf">purge</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.purge-622"><a href="#EI_LowRes_SQLite.purge-622"><span class="linenos">622</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">purge</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite.purge-623"><a href="#EI_LowRes_SQLite.purge-623"><span class="linenos">623</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes all compounds from the database table.</span>
 </span><span id="EI_LowRes_SQLite.purge-624"><a href="#EI_LowRes_SQLite.purge-624"><span class="linenos">624</span></a>
 </span><span id="EI_LowRes_SQLite.purge-625"><a href="#EI_LowRes_SQLite.purge-625"><span class="linenos">625</span></a><span class="sd">        Notes</span>
@@ -3359,7 +3359,7 @@ A compound object.</li>
 
     </div>
     <a class="headerlink" href="#EI_LowRes_SQLite.clear_data"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.clear_data-632"><a href="#EI_LowRes_SQLite.clear_data-632"><span class="linenos">632</span></a>    <span class="k">def</span> <span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="EI_LowRes_SQLite.clear_data-632"><a href="#EI_LowRes_SQLite.clear_data-632"><span class="linenos">632</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="EI_LowRes_SQLite.clear_data-633"><a href="#EI_LowRes_SQLite.clear_data-633"><span class="linenos">633</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears all tables in the database.&quot;&quot;&quot;</span>
 </span><span id="EI_LowRes_SQLite.clear_data-634"><a href="#EI_LowRes_SQLite.clear_data-634"><span class="linenos">634</span></a>        <span class="n">meta</span> <span class="o">=</span> <span class="n">Base</span><span class="o">.</span><span class="n">metadata</span>
 </span><span id="EI_LowRes_SQLite.clear_data-635"><a href="#EI_LowRes_SQLite.clear_data-635"><span class="linenos">635</span></a>        <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">sorted_tables</span><span class="p">):</span>

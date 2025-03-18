@@ -72,14 +72,14 @@
 
                         <label class="view-source-button" for="mod-ClusterFilter-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="kn">from</span> <span class="nn">sklearn.cluster</span> <span class="kn">import</span> <span class="n">DBSCAN</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">StandardScaler</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.cluster</span><span class="w"> </span><span class="kn">import</span> <span class="n">DBSCAN</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.preprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">StandardScaler</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a>
 </span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="c1"># import matplotlib.pyplot as plt</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="k">class</span> <span class="nc">ClusteringFilter</span><span class="p">:</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ClusteringFilter</span><span class="p">:</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for filtering and clustering mass spectra data using various algorithms.</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>
 </span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="sd">    Attributes</span>
@@ -121,7 +121,7 @@
 </span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>
 </span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a>
-</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>    <span class="k">def</span> <span class="nf">get_mass_error_matrix_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_peaks</span><span class="p">):</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_error_matrix_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_peaks</span><span class="p">):</span>
 </span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the mass error matrix data from a list of mass peaks.</span>
 </span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a>
 </span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a><span class="sd">        Parameters</span>
@@ -153,7 +153,7 @@
 </span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>        <span class="n">matrix_data</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float32&quot;</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>        <span class="k">return</span> <span class="n">matrix_data</span><span class="p">,</span> <span class="n">list_indexes_mass_spec</span>
 </span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>
-</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>    <span class="k">def</span> <span class="nf">get_kendrick_matrix_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_kendrick_matrix_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the Kendrick matrix data from a mass spectrum.</span>
 </span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>
 </span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="sd">        Parameters</span>
@@ -173,7 +173,7 @@
 </span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>        <span class="n">matrix_data</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float32&quot;</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>        <span class="k">return</span> <span class="n">matrix_data</span>
 </span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>
-</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>    <span class="k">def</span> <span class="nf">filter_kendrick</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">filter_kendrick</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Filter the mass spectrum data using the Kendrick algorithm.</span>
 </span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>
 </span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a><span class="sd">        Parameters</span>
@@ -210,7 +210,7 @@
 </span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>        <span class="c1"># plt.show()</span>
 </span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>        <span class="c1"># plt.close()</span>
 </span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>
-</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>    <span class="k">def</span> <span class="nf">filter_kendrick_by_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">):</span>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">filter_kendrick_by_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">):</span>
 </span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Filter the mass spectrum data using the Kendrick algorithm based on a list of peak indexes.</span>
 </span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>
 </span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a><span class="sd">        Parameters</span>
@@ -283,7 +283,7 @@
 </span><span id="L-209"><a href="#L-209"><span class="linenos">209</span></a>
 </span><span id="L-210"><a href="#L-210"><span class="linenos">210</span></a>        <span class="k">return</span> <span class="n">noise_idx</span>
 </span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a>
-</span><span id="L-212"><a href="#L-212"><span class="linenos">212</span></a>    <span class="k">def</span> <span class="nf">remove_assignment_by_mass_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+</span><span id="L-212"><a href="#L-212"><span class="linenos">212</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">remove_assignment_by_mass_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove assignments from the mass spectrum based on mass error.</span>
 </span><span id="L-214"><a href="#L-214"><span class="linenos">214</span></a>
 </span><span id="L-215"><a href="#L-215"><span class="linenos">215</span></a><span class="sd">        Parameters</span>
@@ -338,7 +338,7 @@
 
     </div>
     <a class="headerlink" href="#ClusteringFilter"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ClusteringFilter-9"><a href="#ClusteringFilter-9"><span class="linenos">  9</span></a><span class="k">class</span> <span class="nc">ClusteringFilter</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ClusteringFilter-9"><a href="#ClusteringFilter-9"><span class="linenos">  9</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ClusteringFilter</span><span class="p">:</span>
 </span><span id="ClusteringFilter-10"><a href="#ClusteringFilter-10"><span class="linenos"> 10</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for filtering and clustering mass spectra data using various algorithms.</span>
 </span><span id="ClusteringFilter-11"><a href="#ClusteringFilter-11"><span class="linenos"> 11</span></a>
 </span><span id="ClusteringFilter-12"><a href="#ClusteringFilter-12"><span class="linenos"> 12</span></a><span class="sd">    Attributes</span>
@@ -380,7 +380,7 @@
 </span><span id="ClusteringFilter-48"><a href="#ClusteringFilter-48"><span class="linenos"> 48</span></a>
 </span><span id="ClusteringFilter-49"><a href="#ClusteringFilter-49"><span class="linenos"> 49</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="ClusteringFilter-50"><a href="#ClusteringFilter-50"><span class="linenos"> 50</span></a>
-</span><span id="ClusteringFilter-51"><a href="#ClusteringFilter-51"><span class="linenos"> 51</span></a>    <span class="k">def</span> <span class="nf">get_mass_error_matrix_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_peaks</span><span class="p">):</span>
+</span><span id="ClusteringFilter-51"><a href="#ClusteringFilter-51"><span class="linenos"> 51</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_error_matrix_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_peaks</span><span class="p">):</span>
 </span><span id="ClusteringFilter-52"><a href="#ClusteringFilter-52"><span class="linenos"> 52</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the mass error matrix data from a list of mass peaks.</span>
 </span><span id="ClusteringFilter-53"><a href="#ClusteringFilter-53"><span class="linenos"> 53</span></a>
 </span><span id="ClusteringFilter-54"><a href="#ClusteringFilter-54"><span class="linenos"> 54</span></a><span class="sd">        Parameters</span>
@@ -412,7 +412,7 @@
 </span><span id="ClusteringFilter-80"><a href="#ClusteringFilter-80"><span class="linenos"> 80</span></a>        <span class="n">matrix_data</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float32&quot;</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </span><span id="ClusteringFilter-81"><a href="#ClusteringFilter-81"><span class="linenos"> 81</span></a>        <span class="k">return</span> <span class="n">matrix_data</span><span class="p">,</span> <span class="n">list_indexes_mass_spec</span>
 </span><span id="ClusteringFilter-82"><a href="#ClusteringFilter-82"><span class="linenos"> 82</span></a>
-</span><span id="ClusteringFilter-83"><a href="#ClusteringFilter-83"><span class="linenos"> 83</span></a>    <span class="k">def</span> <span class="nf">get_kendrick_matrix_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+</span><span id="ClusteringFilter-83"><a href="#ClusteringFilter-83"><span class="linenos"> 83</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_kendrick_matrix_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="ClusteringFilter-84"><a href="#ClusteringFilter-84"><span class="linenos"> 84</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the Kendrick matrix data from a mass spectrum.</span>
 </span><span id="ClusteringFilter-85"><a href="#ClusteringFilter-85"><span class="linenos"> 85</span></a>
 </span><span id="ClusteringFilter-86"><a href="#ClusteringFilter-86"><span class="linenos"> 86</span></a><span class="sd">        Parameters</span>
@@ -432,7 +432,7 @@
 </span><span id="ClusteringFilter-100"><a href="#ClusteringFilter-100"><span class="linenos">100</span></a>        <span class="n">matrix_data</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float32&quot;</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </span><span id="ClusteringFilter-101"><a href="#ClusteringFilter-101"><span class="linenos">101</span></a>        <span class="k">return</span> <span class="n">matrix_data</span>
 </span><span id="ClusteringFilter-102"><a href="#ClusteringFilter-102"><span class="linenos">102</span></a>
-</span><span id="ClusteringFilter-103"><a href="#ClusteringFilter-103"><span class="linenos">103</span></a>    <span class="k">def</span> <span class="nf">filter_kendrick</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+</span><span id="ClusteringFilter-103"><a href="#ClusteringFilter-103"><span class="linenos">103</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">filter_kendrick</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="ClusteringFilter-104"><a href="#ClusteringFilter-104"><span class="linenos">104</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Filter the mass spectrum data using the Kendrick algorithm.</span>
 </span><span id="ClusteringFilter-105"><a href="#ClusteringFilter-105"><span class="linenos">105</span></a>
 </span><span id="ClusteringFilter-106"><a href="#ClusteringFilter-106"><span class="linenos">106</span></a><span class="sd">        Parameters</span>
@@ -469,7 +469,7 @@
 </span><span id="ClusteringFilter-137"><a href="#ClusteringFilter-137"><span class="linenos">137</span></a>        <span class="c1"># plt.show()</span>
 </span><span id="ClusteringFilter-138"><a href="#ClusteringFilter-138"><span class="linenos">138</span></a>        <span class="c1"># plt.close()</span>
 </span><span id="ClusteringFilter-139"><a href="#ClusteringFilter-139"><span class="linenos">139</span></a>
-</span><span id="ClusteringFilter-140"><a href="#ClusteringFilter-140"><span class="linenos">140</span></a>    <span class="k">def</span> <span class="nf">filter_kendrick_by_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">):</span>
+</span><span id="ClusteringFilter-140"><a href="#ClusteringFilter-140"><span class="linenos">140</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">filter_kendrick_by_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">):</span>
 </span><span id="ClusteringFilter-141"><a href="#ClusteringFilter-141"><span class="linenos">141</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Filter the mass spectrum data using the Kendrick algorithm based on a list of peak indexes.</span>
 </span><span id="ClusteringFilter-142"><a href="#ClusteringFilter-142"><span class="linenos">142</span></a>
 </span><span id="ClusteringFilter-143"><a href="#ClusteringFilter-143"><span class="linenos">143</span></a><span class="sd">        Parameters</span>
@@ -542,7 +542,7 @@
 </span><span id="ClusteringFilter-210"><a href="#ClusteringFilter-210"><span class="linenos">210</span></a>
 </span><span id="ClusteringFilter-211"><a href="#ClusteringFilter-211"><span class="linenos">211</span></a>        <span class="k">return</span> <span class="n">noise_idx</span>
 </span><span id="ClusteringFilter-212"><a href="#ClusteringFilter-212"><span class="linenos">212</span></a>
-</span><span id="ClusteringFilter-213"><a href="#ClusteringFilter-213"><span class="linenos">213</span></a>    <span class="k">def</span> <span class="nf">remove_assignment_by_mass_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+</span><span id="ClusteringFilter-213"><a href="#ClusteringFilter-213"><span class="linenos">213</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">remove_assignment_by_mass_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="ClusteringFilter-214"><a href="#ClusteringFilter-214"><span class="linenos">214</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove assignments from the mass spectrum based on mass error.</span>
 </span><span id="ClusteringFilter-215"><a href="#ClusteringFilter-215"><span class="linenos">215</span></a>
 </span><span id="ClusteringFilter-216"><a href="#ClusteringFilter-216"><span class="linenos">216</span></a><span class="sd">        Parameters</span>
@@ -640,7 +640,7 @@ Remove assignments from the mass spectrum based on mass error.</li>
 
     </div>
     <a class="headerlink" href="#ClusteringFilter.get_mass_error_matrix_data"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ClusteringFilter.get_mass_error_matrix_data-51"><a href="#ClusteringFilter.get_mass_error_matrix_data-51"><span class="linenos">51</span></a>    <span class="k">def</span> <span class="nf">get_mass_error_matrix_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_peaks</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ClusteringFilter.get_mass_error_matrix_data-51"><a href="#ClusteringFilter.get_mass_error_matrix_data-51"><span class="linenos">51</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_error_matrix_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_peaks</span><span class="p">):</span>
 </span><span id="ClusteringFilter.get_mass_error_matrix_data-52"><a href="#ClusteringFilter.get_mass_error_matrix_data-52"><span class="linenos">52</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the mass error matrix data from a list of mass peaks.</span>
 </span><span id="ClusteringFilter.get_mass_error_matrix_data-53"><a href="#ClusteringFilter.get_mass_error_matrix_data-53"><span class="linenos">53</span></a>
 </span><span id="ClusteringFilter.get_mass_error_matrix_data-54"><a href="#ClusteringFilter.get_mass_error_matrix_data-54"><span class="linenos">54</span></a><span class="sd">        Parameters</span>
@@ -706,7 +706,7 @@ List of indexes of mass peaks in the original mass spectrum.</li>
 
     </div>
     <a class="headerlink" href="#ClusteringFilter.get_kendrick_matrix_data"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ClusteringFilter.get_kendrick_matrix_data-83"><a href="#ClusteringFilter.get_kendrick_matrix_data-83"><span class="linenos"> 83</span></a>    <span class="k">def</span> <span class="nf">get_kendrick_matrix_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ClusteringFilter.get_kendrick_matrix_data-83"><a href="#ClusteringFilter.get_kendrick_matrix_data-83"><span class="linenos"> 83</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_kendrick_matrix_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="ClusteringFilter.get_kendrick_matrix_data-84"><a href="#ClusteringFilter.get_kendrick_matrix_data-84"><span class="linenos"> 84</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the Kendrick matrix data from a mass spectrum.</span>
 </span><span id="ClusteringFilter.get_kendrick_matrix_data-85"><a href="#ClusteringFilter.get_kendrick_matrix_data-85"><span class="linenos"> 85</span></a>
 </span><span id="ClusteringFilter.get_kendrick_matrix_data-86"><a href="#ClusteringFilter.get_kendrick_matrix_data-86"><span class="linenos"> 86</span></a><span class="sd">        Parameters</span>
@@ -758,7 +758,7 @@ Matrix data containing Kendrick mass and Kendrick mass defect values.</li>
 
     </div>
     <a class="headerlink" href="#ClusteringFilter.filter_kendrick"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ClusteringFilter.filter_kendrick-103"><a href="#ClusteringFilter.filter_kendrick-103"><span class="linenos">103</span></a>    <span class="k">def</span> <span class="nf">filter_kendrick</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ClusteringFilter.filter_kendrick-103"><a href="#ClusteringFilter.filter_kendrick-103"><span class="linenos">103</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">filter_kendrick</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="ClusteringFilter.filter_kendrick-104"><a href="#ClusteringFilter.filter_kendrick-104"><span class="linenos">104</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Filter the mass spectrum data using the Kendrick algorithm.</span>
 </span><span id="ClusteringFilter.filter_kendrick-105"><a href="#ClusteringFilter.filter_kendrick-105"><span class="linenos">105</span></a>
 </span><span id="ClusteringFilter.filter_kendrick-106"><a href="#ClusteringFilter.filter_kendrick-106"><span class="linenos">106</span></a><span class="sd">        Parameters</span>
@@ -820,7 +820,7 @@ Mass spectrum object.</li>
 
     </div>
     <a class="headerlink" href="#ClusteringFilter.filter_kendrick_by_index"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ClusteringFilter.filter_kendrick_by_index-140"><a href="#ClusteringFilter.filter_kendrick_by_index-140"><span class="linenos">140</span></a>    <span class="k">def</span> <span class="nf">filter_kendrick_by_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ClusteringFilter.filter_kendrick_by_index-140"><a href="#ClusteringFilter.filter_kendrick_by_index-140"><span class="linenos">140</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">filter_kendrick_by_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_peak_indexes</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">):</span>
 </span><span id="ClusteringFilter.filter_kendrick_by_index-141"><a href="#ClusteringFilter.filter_kendrick_by_index-141"><span class="linenos">141</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Filter the mass spectrum data using the Kendrick algorithm based on a list of peak indexes.</span>
 </span><span id="ClusteringFilter.filter_kendrick_by_index-142"><a href="#ClusteringFilter.filter_kendrick_by_index-142"><span class="linenos">142</span></a>
 </span><span id="ClusteringFilter.filter_kendrick_by_index-143"><a href="#ClusteringFilter.filter_kendrick_by_index-143"><span class="linenos">143</span></a><span class="sd">        Parameters</span>
@@ -927,7 +927,7 @@ List of indexes of noise points in the mass spectrum.</li>
 
     </div>
     <a class="headerlink" href="#ClusteringFilter.remove_assignment_by_mass_error"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ClusteringFilter.remove_assignment_by_mass_error-213"><a href="#ClusteringFilter.remove_assignment_by_mass_error-213"><span class="linenos">213</span></a>    <span class="k">def</span> <span class="nf">remove_assignment_by_mass_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ClusteringFilter.remove_assignment_by_mass_error-213"><a href="#ClusteringFilter.remove_assignment_by_mass_error-213"><span class="linenos">213</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">remove_assignment_by_mass_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="ClusteringFilter.remove_assignment_by_mass_error-214"><a href="#ClusteringFilter.remove_assignment_by_mass_error-214"><span class="linenos">214</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove assignments from the mass spectrum based on mass error.</span>
 </span><span id="ClusteringFilter.remove_assignment_by_mass_error-215"><a href="#ClusteringFilter.remove_assignment_by_mass_error-215"><span class="linenos">215</span></a>
 </span><span id="ClusteringFilter.remove_assignment_by_mass_error-216"><a href="#ClusteringFilter.remove_assignment_by_mass_error-216"><span class="linenos">216</span></a><span class="sd">        Parameters</span>
