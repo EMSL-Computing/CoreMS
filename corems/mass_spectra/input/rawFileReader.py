@@ -307,6 +307,40 @@ class ThermoBaseClass:
 
         return str(scan_label).split()
 
+    def get_ms_level_for_scan_num(self, scan_number: int) -> str:
+        """
+        Get the MS order for the given scan number.
+
+        Parameters:
+        -----------
+        scan_number : int
+            The scan number
+
+        Returns:
+        --------
+        int
+            The MS order type (1 for MS, 2 for MS2, etc.)
+        """
+        scan_filter = self.iRawDataPlus.GetFilterForScanNumber(scan_number)
+
+        msordertype = {
+            MSOrderType.Ms: 1,
+            MSOrderType.Ms2: 2,
+            MSOrderType.Ms3: 3,
+            MSOrderType.Ms4: 4,
+            MSOrderType.Ms5: 5,
+            MSOrderType.Ms6: 6,
+            MSOrderType.Ms7: 7,
+            MSOrderType.Ms8: 8,
+            MSOrderType.Ms9: 9,
+            MSOrderType.Ms10: 10,
+        }
+
+        if scan_filter.MSOrder in msordertype:
+            return msordertype[scan_filter.MSOrder]
+        else:
+            raise Exception("MS Order Type not found")
+    
     def check_full_scan(self, scan_number: int) -> bool:
         # scan_filter.ScanMode 0 = FULL
         scan_filter = self.iRawDataPlus.GetFilterForScanNumber(scan_number)
@@ -1286,31 +1320,16 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
         # This automatically brings in all the data
         self.chromatogram_settings.scans = (-1, -1)
 
-        # Get scan df info; starting with bulk ms1 and ms2 scans
-        ms1_tic_data, _ = self.get_tic(ms_type="MS", peak_detection=False, smooth=False)
-        ms1_scan_dict = {
-            "scan": ms1_tic_data.scans,
-            "scan_time": ms1_tic_data.time,
-            "tic": ms1_tic_data.tic,
+        # Get scan df info; starting with TIC data
+        tic_data, _ = self.get_tic(ms_type="all", peak_detection=False, smooth=False)
+        tic_data = {
+            "scan": tic_data.scans,
+            "scan_time": tic_data.time,
+            "tic": tic_data.tic,
         }
-        ms1_tic_df = pd.DataFrame.from_dict(ms1_scan_dict)
-        ms1_tic_df["ms_level"] = "ms1"
-
-        ms2_tic_data, _ = self.get_tic(
-            ms_type="MS2", peak_detection=False, smooth=False
-        )
-        ms2_scan_dict = {
-            "scan": ms2_tic_data.scans,
-            "scan_time": ms2_tic_data.time,
-            "tic": ms2_tic_data.tic,
-        }
-        ms2_tic_df = pd.DataFrame.from_dict(ms2_scan_dict)
-        ms2_tic_df["ms_level"] = "ms2"
-
-        scan_df = (
-            pd.concat([ms1_tic_df, ms2_tic_df], axis=0).sort_values(by="scan").reindex()
-        )
-
+        scan_df = pd.DataFrame.from_dict(tic_data)
+        scan_df["ms_level"] = None
+        
         # get scan text
         scan_filter_df = pd.DataFrame.from_dict(
             self.get_all_filters()[0], orient="index"
@@ -1330,11 +1349,11 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
         )
         scan_df["precursor_mz"] = scan_df.scan_text.str.extract(r"(\d+\.\d+)@")
         scan_df["precursor_mz"] = scan_df["precursor_mz"].astype(float)
-        scan_df["ms_level"] = scan_df["ms_level"].str.replace("ms", "").astype(int)
 
-        # Assign each scan as centroid or profile
+        # Assign each scan as centroid or profile and add ms_level
         scan_df["ms_format"] = None
         for i in scan_df.scan.to_list():
+            scan_df.loc[scan_df.scan == i, "ms_level"] = self.get_ms_level_for_scan_num(i)
             if self.iRawDataPlus.IsCentroidScanFromScanNumber(i):
                 scan_df.loc[scan_df.scan == i, "ms_format"] = "centroid"
             else:
