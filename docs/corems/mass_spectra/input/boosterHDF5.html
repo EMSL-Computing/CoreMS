@@ -108,20 +108,20 @@
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Yuri E. Corilo&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="n">__date__</span> <span class="o">=</span> <span class="s2">&quot;Oct 29, 2019&quot;</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">threading</span><span class="w"> </span><span class="kn">import</span> <span class="n">Thread</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">BytesIO</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">import</span> <span class="nn">h5py</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span> <span class="nn">s3path</span> <span class="kn">import</span> <span class="n">S3Path</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">s3path</span><span class="w"> </span><span class="kn">import</span> <span class="n">S3Path</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.constant</span> <span class="kn">import</span> <span class="n">Labels</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span> <span class="nn">corems.mass_spectrum.factory.MassSpectrumClasses</span> <span class="kn">import</span> <span class="n">MassSpecProfile</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="kn">from</span> <span class="nn">corems.mass_spectra.factory.lc_class</span> <span class="kn">import</span> <span class="n">LCMSBase</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.factory.parameters</span> <span class="kn">import</span> <span class="n">default_parameters</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.encapsulation.constant</span><span class="w"> </span><span class="kn">import</span> <span class="n">Labels</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.mass_spectrum.factory.MassSpectrumClasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">MassSpecProfile</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.mass_spectra.factory.lc_class</span><span class="w"> </span><span class="kn">import</span> <span class="n">LCMSBase</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.encapsulation.factory.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_parameters</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="k">class</span> <span class="nc">ReadHDF_BoosterMassSpectra</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ReadHDF_BoosterMassSpectra</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="sd">    Class for reading HDF5 files containing booster mass spectra.</span>
 </span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a>
@@ -137,7 +137,7 @@
 </span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a><span class="sd">        Whether to automatically process the mass spectra. Defaults to True.</span>
 </span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a>
-</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a>        <span class="n">file_location</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">S3Path</span><span class="p">,</span>
 </span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a>        <span class="n">analyzer</span><span class="o">=</span><span class="s2">&quot;ICR&quot;</span><span class="p">,</span>
@@ -189,7 +189,7 @@
 </span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>
 </span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">instrument_label</span> <span class="o">=</span> <span class="n">instrument_label</span>
 </span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>
-</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>    <span class="k">def</span> <span class="nf">get_polarity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_location</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">S3Path</span><span class="p">,</span> <span class="n">scan</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_polarity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_location</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">S3Path</span><span class="p">,</span> <span class="n">scan</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 </span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a><span class="sd">        Get the polarity of a scan.</span>
 </span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>
@@ -217,7 +217,7 @@
 </span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>            <span class="k">return</span> <span class="o">+</span><span class="mi">1</span>
 </span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>
-</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>    <span class="k">def</span> <span class="nf">get_attr_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan</span><span class="p">,</span> <span class="n">attr_srt</span><span class="p">):</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_attr_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan</span><span class="p">,</span> <span class="n">attr_srt</span><span class="p">):</span>
 </span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="sd">        Get the attribute data of a scan.</span>
 </span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>
@@ -231,7 +231,7 @@
 </span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hdf_obj</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">scan</span><span class="p">)]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">attr_srt</span><span class="p">]</span>
 </span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>
-</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>    <span class="k">def</span> <span class="nf">import_mass_spectra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">import_mass_spectra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
 </span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a><span class="sd">        Import the mass spectra from the HDF5 file.</span>
 </span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>
@@ -273,7 +273,7 @@
 </span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">lcms</span><span class="o">.</span><span class="n">tic</span> <span class="o">=</span> <span class="n">list_tic</span>
 </span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">lcms</span><span class="o">.</span><span class="n">scans_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_scans</span>
 </span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a>
-</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
 </span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a><span class="sd">        Get the mass spectrum for a scan.</span>
 </span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a>
@@ -305,14 +305,14 @@
 </span><span id="L-198"><a href="#L-198"><span class="linenos">198</span></a>
 </span><span id="L-199"><a href="#L-199"><span class="linenos">199</span></a>        <span class="k">return</span> <span class="n">mass_spec</span>
 </span><span id="L-200"><a href="#L-200"><span class="linenos">200</span></a>
-</span><span id="L-201"><a href="#L-201"><span class="linenos">201</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-201"><a href="#L-201"><span class="linenos">201</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-202"><a href="#L-202"><span class="linenos">202</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-203"><a href="#L-203"><span class="linenos">203</span></a><span class="sd">        Run the thread to create the LCMS object.</span>
 </span><span id="L-204"><a href="#L-204"><span class="linenos">204</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-205"><a href="#L-205"><span class="linenos">205</span></a>        <span class="n">d_parameters</span> <span class="o">=</span> <span class="n">default_parameters</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_location</span><span class="p">)</span>
 </span><span id="L-206"><a href="#L-206"><span class="linenos">206</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">import_mass_spectra</span><span class="p">(</span><span class="n">d_parameters</span><span class="p">)</span>
 </span><span id="L-207"><a href="#L-207"><span class="linenos">207</span></a>
-</span><span id="L-208"><a href="#L-208"><span class="linenos">208</span></a>    <span class="k">def</span> <span class="nf">get_lcms_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-208"><a href="#L-208"><span class="linenos">208</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_lcms_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-209"><a href="#L-209"><span class="linenos">209</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-210"><a href="#L-210"><span class="linenos">210</span></a><span class="sd">        Get the LCMS object.</span>
 </span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a>
@@ -336,7 +336,7 @@
 
     </div>
     <a class="headerlink" href="#ReadHDF_BoosterMassSpectra"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadHDF_BoosterMassSpectra-18"><a href="#ReadHDF_BoosterMassSpectra-18"><span class="linenos"> 18</span></a><span class="k">class</span> <span class="nc">ReadHDF_BoosterMassSpectra</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadHDF_BoosterMassSpectra-18"><a href="#ReadHDF_BoosterMassSpectra-18"><span class="linenos"> 18</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ReadHDF_BoosterMassSpectra</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
 </span><span id="ReadHDF_BoosterMassSpectra-19"><a href="#ReadHDF_BoosterMassSpectra-19"><span class="linenos"> 19</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadHDF_BoosterMassSpectra-20"><a href="#ReadHDF_BoosterMassSpectra-20"><span class="linenos"> 20</span></a><span class="sd">    Class for reading HDF5 files containing booster mass spectra.</span>
 </span><span id="ReadHDF_BoosterMassSpectra-21"><a href="#ReadHDF_BoosterMassSpectra-21"><span class="linenos"> 21</span></a>
@@ -352,7 +352,7 @@
 </span><span id="ReadHDF_BoosterMassSpectra-31"><a href="#ReadHDF_BoosterMassSpectra-31"><span class="linenos"> 31</span></a><span class="sd">        Whether to automatically process the mass spectra. Defaults to True.</span>
 </span><span id="ReadHDF_BoosterMassSpectra-32"><a href="#ReadHDF_BoosterMassSpectra-32"><span class="linenos"> 32</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="ReadHDF_BoosterMassSpectra-33"><a href="#ReadHDF_BoosterMassSpectra-33"><span class="linenos"> 33</span></a>
-</span><span id="ReadHDF_BoosterMassSpectra-34"><a href="#ReadHDF_BoosterMassSpectra-34"><span class="linenos"> 34</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+</span><span id="ReadHDF_BoosterMassSpectra-34"><a href="#ReadHDF_BoosterMassSpectra-34"><span class="linenos"> 34</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="ReadHDF_BoosterMassSpectra-35"><a href="#ReadHDF_BoosterMassSpectra-35"><span class="linenos"> 35</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="ReadHDF_BoosterMassSpectra-36"><a href="#ReadHDF_BoosterMassSpectra-36"><span class="linenos"> 36</span></a>        <span class="n">file_location</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">S3Path</span><span class="p">,</span>
 </span><span id="ReadHDF_BoosterMassSpectra-37"><a href="#ReadHDF_BoosterMassSpectra-37"><span class="linenos"> 37</span></a>        <span class="n">analyzer</span><span class="o">=</span><span class="s2">&quot;ICR&quot;</span><span class="p">,</span>
@@ -404,7 +404,7 @@
 </span><span id="ReadHDF_BoosterMassSpectra-83"><a href="#ReadHDF_BoosterMassSpectra-83"><span class="linenos"> 83</span></a>
 </span><span id="ReadHDF_BoosterMassSpectra-84"><a href="#ReadHDF_BoosterMassSpectra-84"><span class="linenos"> 84</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">instrument_label</span> <span class="o">=</span> <span class="n">instrument_label</span>
 </span><span id="ReadHDF_BoosterMassSpectra-85"><a href="#ReadHDF_BoosterMassSpectra-85"><span class="linenos"> 85</span></a>
-</span><span id="ReadHDF_BoosterMassSpectra-86"><a href="#ReadHDF_BoosterMassSpectra-86"><span class="linenos"> 86</span></a>    <span class="k">def</span> <span class="nf">get_polarity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_location</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">S3Path</span><span class="p">,</span> <span class="n">scan</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+</span><span id="ReadHDF_BoosterMassSpectra-86"><a href="#ReadHDF_BoosterMassSpectra-86"><span class="linenos"> 86</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_polarity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_location</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">S3Path</span><span class="p">,</span> <span class="n">scan</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 </span><span id="ReadHDF_BoosterMassSpectra-87"><a href="#ReadHDF_BoosterMassSpectra-87"><span class="linenos"> 87</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadHDF_BoosterMassSpectra-88"><a href="#ReadHDF_BoosterMassSpectra-88"><span class="linenos"> 88</span></a><span class="sd">        Get the polarity of a scan.</span>
 </span><span id="ReadHDF_BoosterMassSpectra-89"><a href="#ReadHDF_BoosterMassSpectra-89"><span class="linenos"> 89</span></a>
@@ -432,7 +432,7 @@
 </span><span id="ReadHDF_BoosterMassSpectra-111"><a href="#ReadHDF_BoosterMassSpectra-111"><span class="linenos">111</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="ReadHDF_BoosterMassSpectra-112"><a href="#ReadHDF_BoosterMassSpectra-112"><span class="linenos">112</span></a>            <span class="k">return</span> <span class="o">+</span><span class="mi">1</span>
 </span><span id="ReadHDF_BoosterMassSpectra-113"><a href="#ReadHDF_BoosterMassSpectra-113"><span class="linenos">113</span></a>
-</span><span id="ReadHDF_BoosterMassSpectra-114"><a href="#ReadHDF_BoosterMassSpectra-114"><span class="linenos">114</span></a>    <span class="k">def</span> <span class="nf">get_attr_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan</span><span class="p">,</span> <span class="n">attr_srt</span><span class="p">):</span>
+</span><span id="ReadHDF_BoosterMassSpectra-114"><a href="#ReadHDF_BoosterMassSpectra-114"><span class="linenos">114</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_attr_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan</span><span class="p">,</span> <span class="n">attr_srt</span><span class="p">):</span>
 </span><span id="ReadHDF_BoosterMassSpectra-115"><a href="#ReadHDF_BoosterMassSpectra-115"><span class="linenos">115</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadHDF_BoosterMassSpectra-116"><a href="#ReadHDF_BoosterMassSpectra-116"><span class="linenos">116</span></a><span class="sd">        Get the attribute data of a scan.</span>
 </span><span id="ReadHDF_BoosterMassSpectra-117"><a href="#ReadHDF_BoosterMassSpectra-117"><span class="linenos">117</span></a>
@@ -446,7 +446,7 @@
 </span><span id="ReadHDF_BoosterMassSpectra-125"><a href="#ReadHDF_BoosterMassSpectra-125"><span class="linenos">125</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="ReadHDF_BoosterMassSpectra-126"><a href="#ReadHDF_BoosterMassSpectra-126"><span class="linenos">126</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hdf_obj</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">scan</span><span class="p">)]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">attr_srt</span><span class="p">]</span>
 </span><span id="ReadHDF_BoosterMassSpectra-127"><a href="#ReadHDF_BoosterMassSpectra-127"><span class="linenos">127</span></a>
-</span><span id="ReadHDF_BoosterMassSpectra-128"><a href="#ReadHDF_BoosterMassSpectra-128"><span class="linenos">128</span></a>    <span class="k">def</span> <span class="nf">import_mass_spectra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+</span><span id="ReadHDF_BoosterMassSpectra-128"><a href="#ReadHDF_BoosterMassSpectra-128"><span class="linenos">128</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">import_mass_spectra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
 </span><span id="ReadHDF_BoosterMassSpectra-129"><a href="#ReadHDF_BoosterMassSpectra-129"><span class="linenos">129</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadHDF_BoosterMassSpectra-130"><a href="#ReadHDF_BoosterMassSpectra-130"><span class="linenos">130</span></a><span class="sd">        Import the mass spectra from the HDF5 file.</span>
 </span><span id="ReadHDF_BoosterMassSpectra-131"><a href="#ReadHDF_BoosterMassSpectra-131"><span class="linenos">131</span></a>
@@ -488,7 +488,7 @@
 </span><span id="ReadHDF_BoosterMassSpectra-167"><a href="#ReadHDF_BoosterMassSpectra-167"><span class="linenos">167</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">lcms</span><span class="o">.</span><span class="n">tic</span> <span class="o">=</span> <span class="n">list_tic</span>
 </span><span id="ReadHDF_BoosterMassSpectra-168"><a href="#ReadHDF_BoosterMassSpectra-168"><span class="linenos">168</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">lcms</span><span class="o">.</span><span class="n">scans_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_scans</span>
 </span><span id="ReadHDF_BoosterMassSpectra-169"><a href="#ReadHDF_BoosterMassSpectra-169"><span class="linenos">169</span></a>
-</span><span id="ReadHDF_BoosterMassSpectra-170"><a href="#ReadHDF_BoosterMassSpectra-170"><span class="linenos">170</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+</span><span id="ReadHDF_BoosterMassSpectra-170"><a href="#ReadHDF_BoosterMassSpectra-170"><span class="linenos">170</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
 </span><span id="ReadHDF_BoosterMassSpectra-171"><a href="#ReadHDF_BoosterMassSpectra-171"><span class="linenos">171</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadHDF_BoosterMassSpectra-172"><a href="#ReadHDF_BoosterMassSpectra-172"><span class="linenos">172</span></a><span class="sd">        Get the mass spectrum for a scan.</span>
 </span><span id="ReadHDF_BoosterMassSpectra-173"><a href="#ReadHDF_BoosterMassSpectra-173"><span class="linenos">173</span></a>
@@ -520,14 +520,14 @@
 </span><span id="ReadHDF_BoosterMassSpectra-199"><a href="#ReadHDF_BoosterMassSpectra-199"><span class="linenos">199</span></a>
 </span><span id="ReadHDF_BoosterMassSpectra-200"><a href="#ReadHDF_BoosterMassSpectra-200"><span class="linenos">200</span></a>        <span class="k">return</span> <span class="n">mass_spec</span>
 </span><span id="ReadHDF_BoosterMassSpectra-201"><a href="#ReadHDF_BoosterMassSpectra-201"><span class="linenos">201</span></a>
-</span><span id="ReadHDF_BoosterMassSpectra-202"><a href="#ReadHDF_BoosterMassSpectra-202"><span class="linenos">202</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="ReadHDF_BoosterMassSpectra-202"><a href="#ReadHDF_BoosterMassSpectra-202"><span class="linenos">202</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="ReadHDF_BoosterMassSpectra-203"><a href="#ReadHDF_BoosterMassSpectra-203"><span class="linenos">203</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadHDF_BoosterMassSpectra-204"><a href="#ReadHDF_BoosterMassSpectra-204"><span class="linenos">204</span></a><span class="sd">        Run the thread to create the LCMS object.</span>
 </span><span id="ReadHDF_BoosterMassSpectra-205"><a href="#ReadHDF_BoosterMassSpectra-205"><span class="linenos">205</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="ReadHDF_BoosterMassSpectra-206"><a href="#ReadHDF_BoosterMassSpectra-206"><span class="linenos">206</span></a>        <span class="n">d_parameters</span> <span class="o">=</span> <span class="n">default_parameters</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_location</span><span class="p">)</span>
 </span><span id="ReadHDF_BoosterMassSpectra-207"><a href="#ReadHDF_BoosterMassSpectra-207"><span class="linenos">207</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">import_mass_spectra</span><span class="p">(</span><span class="n">d_parameters</span><span class="p">)</span>
 </span><span id="ReadHDF_BoosterMassSpectra-208"><a href="#ReadHDF_BoosterMassSpectra-208"><span class="linenos">208</span></a>
-</span><span id="ReadHDF_BoosterMassSpectra-209"><a href="#ReadHDF_BoosterMassSpectra-209"><span class="linenos">209</span></a>    <span class="k">def</span> <span class="nf">get_lcms_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="ReadHDF_BoosterMassSpectra-209"><a href="#ReadHDF_BoosterMassSpectra-209"><span class="linenos">209</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_lcms_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="ReadHDF_BoosterMassSpectra-210"><a href="#ReadHDF_BoosterMassSpectra-210"><span class="linenos">210</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadHDF_BoosterMassSpectra-211"><a href="#ReadHDF_BoosterMassSpectra-211"><span class="linenos">211</span></a><span class="sd">        Get the LCMS object.</span>
 </span><span id="ReadHDF_BoosterMassSpectra-212"><a href="#ReadHDF_BoosterMassSpectra-212"><span class="linenos">212</span></a>
@@ -566,7 +566,7 @@ Whether to automatically process the mass spectra. Defaults to True.</li>
 
     </div>
     <a class="headerlink" href="#ReadHDF_BoosterMassSpectra.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadHDF_BoosterMassSpectra.__init__-34"><a href="#ReadHDF_BoosterMassSpectra.__init__-34"><span class="linenos">34</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadHDF_BoosterMassSpectra.__init__-34"><a href="#ReadHDF_BoosterMassSpectra.__init__-34"><span class="linenos">34</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="ReadHDF_BoosterMassSpectra.__init__-35"><a href="#ReadHDF_BoosterMassSpectra.__init__-35"><span class="linenos">35</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="ReadHDF_BoosterMassSpectra.__init__-36"><a href="#ReadHDF_BoosterMassSpectra.__init__-36"><span class="linenos">36</span></a>        <span class="n">file_location</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">S3Path</span><span class="p">,</span>
 </span><span id="ReadHDF_BoosterMassSpectra.__init__-37"><a href="#ReadHDF_BoosterMassSpectra.__init__-37"><span class="linenos">37</span></a>        <span class="n">analyzer</span><span class="o">=</span><span class="s2">&quot;ICR&quot;</span><span class="p">,</span>
@@ -748,7 +748,7 @@ Whether to automatically process the mass spectra. Defaults to True.</li>
 
     </div>
     <a class="headerlink" href="#ReadHDF_BoosterMassSpectra.get_polarity"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadHDF_BoosterMassSpectra.get_polarity-86"><a href="#ReadHDF_BoosterMassSpectra.get_polarity-86"><span class="linenos"> 86</span></a>    <span class="k">def</span> <span class="nf">get_polarity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_location</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">S3Path</span><span class="p">,</span> <span class="n">scan</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadHDF_BoosterMassSpectra.get_polarity-86"><a href="#ReadHDF_BoosterMassSpectra.get_polarity-86"><span class="linenos"> 86</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_polarity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_location</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">S3Path</span><span class="p">,</span> <span class="n">scan</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 </span><span id="ReadHDF_BoosterMassSpectra.get_polarity-87"><a href="#ReadHDF_BoosterMassSpectra.get_polarity-87"><span class="linenos"> 87</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadHDF_BoosterMassSpectra.get_polarity-88"><a href="#ReadHDF_BoosterMassSpectra.get_polarity-88"><span class="linenos"> 88</span></a><span class="sd">        Get the polarity of a scan.</span>
 </span><span id="ReadHDF_BoosterMassSpectra.get_polarity-89"><a href="#ReadHDF_BoosterMassSpectra.get_polarity-89"><span class="linenos"> 89</span></a>
@@ -803,7 +803,7 @@ The scan number.</li>
 
     </div>
     <a class="headerlink" href="#ReadHDF_BoosterMassSpectra.get_attr_data"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadHDF_BoosterMassSpectra.get_attr_data-114"><a href="#ReadHDF_BoosterMassSpectra.get_attr_data-114"><span class="linenos">114</span></a>    <span class="k">def</span> <span class="nf">get_attr_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan</span><span class="p">,</span> <span class="n">attr_srt</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadHDF_BoosterMassSpectra.get_attr_data-114"><a href="#ReadHDF_BoosterMassSpectra.get_attr_data-114"><span class="linenos">114</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_attr_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan</span><span class="p">,</span> <span class="n">attr_srt</span><span class="p">):</span>
 </span><span id="ReadHDF_BoosterMassSpectra.get_attr_data-115"><a href="#ReadHDF_BoosterMassSpectra.get_attr_data-115"><span class="linenos">115</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadHDF_BoosterMassSpectra.get_attr_data-116"><a href="#ReadHDF_BoosterMassSpectra.get_attr_data-116"><span class="linenos">116</span></a><span class="sd">        Get the attribute data of a scan.</span>
 </span><span id="ReadHDF_BoosterMassSpectra.get_attr_data-117"><a href="#ReadHDF_BoosterMassSpectra.get_attr_data-117"><span class="linenos">117</span></a>
@@ -844,7 +844,7 @@ The attribute name.</li>
 
     </div>
     <a class="headerlink" href="#ReadHDF_BoosterMassSpectra.import_mass_spectra"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadHDF_BoosterMassSpectra.import_mass_spectra-128"><a href="#ReadHDF_BoosterMassSpectra.import_mass_spectra-128"><span class="linenos">128</span></a>    <span class="k">def</span> <span class="nf">import_mass_spectra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadHDF_BoosterMassSpectra.import_mass_spectra-128"><a href="#ReadHDF_BoosterMassSpectra.import_mass_spectra-128"><span class="linenos">128</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">import_mass_spectra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
 </span><span id="ReadHDF_BoosterMassSpectra.import_mass_spectra-129"><a href="#ReadHDF_BoosterMassSpectra.import_mass_spectra-129"><span class="linenos">129</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadHDF_BoosterMassSpectra.import_mass_spectra-130"><a href="#ReadHDF_BoosterMassSpectra.import_mass_spectra-130"><span class="linenos">130</span></a><span class="sd">        Import the mass spectra from the HDF5 file.</span>
 </span><span id="ReadHDF_BoosterMassSpectra.import_mass_spectra-131"><a href="#ReadHDF_BoosterMassSpectra.import_mass_spectra-131"><span class="linenos">131</span></a>
@@ -911,7 +911,7 @@ The parameters for importing the mass spectra.</li>
 
     </div>
     <a class="headerlink" href="#ReadHDF_BoosterMassSpectra.get_mass_spectrum"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadHDF_BoosterMassSpectra.get_mass_spectrum-170"><a href="#ReadHDF_BoosterMassSpectra.get_mass_spectrum-170"><span class="linenos">170</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadHDF_BoosterMassSpectra.get_mass_spectrum-170"><a href="#ReadHDF_BoosterMassSpectra.get_mass_spectrum-170"><span class="linenos">170</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
 </span><span id="ReadHDF_BoosterMassSpectra.get_mass_spectrum-171"><a href="#ReadHDF_BoosterMassSpectra.get_mass_spectrum-171"><span class="linenos">171</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadHDF_BoosterMassSpectra.get_mass_spectrum-172"><a href="#ReadHDF_BoosterMassSpectra.get_mass_spectrum-172"><span class="linenos">172</span></a><span class="sd">        Get the mass spectrum for a scan.</span>
 </span><span id="ReadHDF_BoosterMassSpectra.get_mass_spectrum-173"><a href="#ReadHDF_BoosterMassSpectra.get_mass_spectrum-173"><span class="linenos">173</span></a>
@@ -970,7 +970,7 @@ The parameters for creating the mass spectrum.</li>
 
     </div>
     <a class="headerlink" href="#ReadHDF_BoosterMassSpectra.run"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadHDF_BoosterMassSpectra.run-202"><a href="#ReadHDF_BoosterMassSpectra.run-202"><span class="linenos">202</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadHDF_BoosterMassSpectra.run-202"><a href="#ReadHDF_BoosterMassSpectra.run-202"><span class="linenos">202</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="ReadHDF_BoosterMassSpectra.run-203"><a href="#ReadHDF_BoosterMassSpectra.run-203"><span class="linenos">203</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadHDF_BoosterMassSpectra.run-204"><a href="#ReadHDF_BoosterMassSpectra.run-204"><span class="linenos">204</span></a><span class="sd">        Run the thread to create the LCMS object.</span>
 </span><span id="ReadHDF_BoosterMassSpectra.run-205"><a href="#ReadHDF_BoosterMassSpectra.run-205"><span class="linenos">205</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -995,7 +995,7 @@ The parameters for creating the mass spectrum.</li>
 
     </div>
     <a class="headerlink" href="#ReadHDF_BoosterMassSpectra.get_lcms_obj"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadHDF_BoosterMassSpectra.get_lcms_obj-209"><a href="#ReadHDF_BoosterMassSpectra.get_lcms_obj-209"><span class="linenos">209</span></a>    <span class="k">def</span> <span class="nf">get_lcms_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadHDF_BoosterMassSpectra.get_lcms_obj-209"><a href="#ReadHDF_BoosterMassSpectra.get_lcms_obj-209"><span class="linenos">209</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_lcms_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="ReadHDF_BoosterMassSpectra.get_lcms_obj-210"><a href="#ReadHDF_BoosterMassSpectra.get_lcms_obj-210"><span class="linenos">210</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadHDF_BoosterMassSpectra.get_lcms_obj-211"><a href="#ReadHDF_BoosterMassSpectra.get_lcms_obj-211"><span class="linenos">211</span></a><span class="sd">        Get the LCMS object.</span>
 </span><span id="ReadHDF_BoosterMassSpectra.get_lcms_obj-212"><a href="#ReadHDF_BoosterMassSpectra.get_lcms_obj-212"><span class="linenos">212</span></a>

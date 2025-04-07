@@ -73,18 +73,18 @@
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="n">__date__</span> <span class="o">=</span> <span class="s2">&quot;Jun 24, 2019&quot;</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
 </span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">import</span> <span class="nn">warnings</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">import</span> <span class="nn">IsoSpecPy</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">array</span><span class="p">,</span> <span class="n">exp</span><span class="p">,</span> <span class="n">isnan</span><span class="p">,</span> <span class="n">nextafter</span><span class="p">,</span> <span class="n">power</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">IsoSpecPy</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">array</span><span class="p">,</span> <span class="n">exp</span><span class="p">,</span> <span class="n">isnan</span><span class="p">,</span> <span class="n">nextafter</span><span class="p">,</span> <span class="n">power</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="c1"># this is to handle both versions of IsoSpecPy, 2.0.2 and 2.2.2</span>
 </span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="c1"># TODO in a future release remove support for legacy isospecpy</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span> <span class="nn">packaging</span> <span class="kn">import</span> <span class="n">version</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">packaging</span><span class="w"> </span><span class="kn">import</span> <span class="n">version</span>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>
-</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.constant</span> <span class="kn">import</span> <span class="n">Atoms</span><span class="p">,</span> <span class="n">Labels</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.factory.parameters</span> <span class="kn">import</span> <span class="n">MSParameters</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="kn">from</span> <span class="nn">corems.molecular_id.calc.SpectralSimilarity</span> <span class="kn">import</span> <span class="n">SpectralSimilarity</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.encapsulation.constant</span><span class="w"> </span><span class="kn">import</span> <span class="n">Atoms</span><span class="p">,</span> <span class="n">Labels</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.encapsulation.factory.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">MSParameters</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.molecular_id.calc.SpectralSimilarity</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpectralSimilarity</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="n">isospec_version</span> <span class="o">=</span> <span class="n">IsoSpecPy</span><span class="o">.</span><span class="n">__version__</span>
 </span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="k">if</span> <span class="n">version</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">isospec_version</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">version</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;2.0.2&quot;</span><span class="p">):</span>
@@ -92,7 +92,7 @@
 </span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="k">else</span><span class="p">:</span>
 </span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>    <span class="n">legacy_isospec</span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="k">if</span> <span class="n">legacy_isospec</span><span class="p">:</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>    <span class="kn">from</span> <span class="nn">IsoSpecPy</span> <span class="kn">import</span> <span class="n">IsoSpecPy</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">IsoSpecPy</span><span class="w"> </span><span class="kn">import</span> <span class="n">IsoSpecPy</span>
 </span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>
 </span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a>    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
 </span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a>        <span class="sa">f</span><span class="s2">&quot;IsoSpecPy version </span><span class="si">{</span><span class="n">isospec_version</span><span class="si">}</span><span class="s2"> is installed, and support is deprecated. Please update to 2.2.2&quot;</span><span class="p">,</span>
@@ -100,7 +100,7 @@
 </span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a>    <span class="p">)</span>
 </span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a>
 </span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a>
-</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="k">class</span> <span class="nc">MolecularFormulaCalc</span><span class="p">:</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MolecularFormulaCalc</span><span class="p">:</span>
 </span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class of calculations related to molecular formula</span>
 </span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>
 </span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="sd">    This class is not intended to be used directly, but rather to be inherited by other classes in the molecular_formula/factory module like MolecularFormula, MolecularFormulaIsotopologue, and LCMSLibRefMolecularFormula</span>
@@ -152,7 +152,7 @@
 </span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="sd">        Calculate the average m/z error score of the molecular formula identification, including the isotopologues.</span>
 </span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>
-</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>    <span class="k">def</span> <span class="nf">_calc_resolving_power_low_pressure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_resolving_power_low_pressure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
 </span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a><span class="sd">        Calculate the resolving power at low pressure.</span>
 </span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>
@@ -166,7 +166,7 @@
 </span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>        <span class="k">return</span> <span class="p">(</span><span class="mf">1.274</span> <span class="o">*</span> <span class="mi">10000000</span> <span class="o">*</span> <span class="n">B</span> <span class="o">*</span> <span class="n">T</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">mz_calc</span><span class="p">)</span>
 </span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>    <span class="k">def</span> <span class="nf">_calc_resolving_power_high_pressure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_resolving_power_high_pressure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
 </span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a><span class="sd">        Calculate the resolving power at high pressure.</span>
 </span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>
@@ -180,7 +180,7 @@
 </span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>        <span class="k">return</span> <span class="p">(</span><span class="mf">2.758</span> <span class="o">*</span> <span class="mi">10000000</span> <span class="o">*</span> <span class="n">B</span> <span class="o">*</span> <span class="n">T</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">mz_calc</span><span class="p">)</span>
 </span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>
-</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>    <span class="k">def</span> <span class="nf">_adduct_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adduct_atom</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">):</span>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_adduct_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adduct_atom</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">):</span>
 </span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the m/z value of an adducted ion version of the molecular formula.</span>
 </span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>
 </span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="sd">        Parameters</span>
@@ -197,7 +197,7 @@
 </span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>            <span class="o">+</span> <span class="p">(</span><span class="n">ion_charge</span> <span class="o">*</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">Atoms</span><span class="o">.</span><span class="n">electron_mass</span><span class="p">)</span>
 </span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>        <span class="p">)</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ion_charge</span><span class="p">)</span>
 </span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>
-</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>    <span class="k">def</span> <span class="nf">_protonated_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">):</span>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_protonated_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">):</span>
 </span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the m/z value of a protonated or deprotonated ion version of the molecular formula.</span>
 </span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>
 </span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a><span class="sd">        Parameters</span>
@@ -211,7 +211,7 @@
 </span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>            <span class="o">+</span> <span class="p">(</span><span class="n">ion_charge</span> <span class="o">*</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">Atoms</span><span class="o">.</span><span class="n">electron_mass</span><span class="p">)</span>
 </span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>        <span class="p">)</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ion_charge</span><span class="p">)</span>
 </span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>
-</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>    <span class="k">def</span> <span class="nf">_radical_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">):</span>
+</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_radical_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">):</span>
 </span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the m/z value of a radical ion version of the molecular formula.</span>
 </span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>
 </span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a><span class="sd">        Parameters</span>
@@ -223,7 +223,7 @@
 </span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>            <span class="n">ion_charge</span>
 </span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a>        <span class="p">)</span>
 </span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>
-</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>    <span class="k">def</span> <span class="nf">_neutral_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_neutral_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the neutral mass of the molecular formula.&quot;&quot;&quot;</span>
 </span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a>
 </span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>        <span class="n">mass</span> <span class="o">=</span> <span class="mi">0</span>
@@ -240,7 +240,7 @@
 </span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a>
 </span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a>        <span class="k">return</span> <span class="n">mass</span>
 </span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a>
-</span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a>    <span class="k">def</span> <span class="nf">_calc_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the m/z value of the molecular formula, based on the ion charge and ion type.&quot;&quot;&quot;</span>
 </span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a>
 </span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ion_charge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -269,7 +269,7 @@
 </span><span id="L-198"><a href="#L-198"><span class="linenos">198</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="L-199"><a href="#L-199"><span class="linenos">199</span></a>            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Please set ion charge first&quot;</span><span class="p">)</span>
 </span><span id="L-200"><a href="#L-200"><span class="linenos">200</span></a>
-</span><span id="L-201"><a href="#L-201"><span class="linenos">201</span></a>    <span class="k">def</span> <span class="nf">_calc_assignment_mass_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;ppm&quot;</span><span class="p">):</span>
+</span><span id="L-201"><a href="#L-201"><span class="linenos">201</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_assignment_mass_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;ppm&quot;</span><span class="p">):</span>
 </span><span id="L-202"><a href="#L-202"><span class="linenos">202</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the mass error of the molecular formula, based on the experimental m/z and the calculated m/z.</span>
 </span><span id="L-203"><a href="#L-203"><span class="linenos">203</span></a>
 </span><span id="L-204"><a href="#L-204"><span class="linenos">204</span></a><span class="sd">        Parameters</span>
@@ -310,7 +310,7 @@
 </span><span id="L-239"><a href="#L-239"><span class="linenos">239</span></a>                <span class="s2">&quot;No ms peak associated with the molecular formula instance </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span>
 </span><span id="L-240"><a href="#L-240"><span class="linenos">240</span></a>            <span class="p">)</span>
 </span><span id="L-241"><a href="#L-241"><span class="linenos">241</span></a>
-</span><span id="L-242"><a href="#L-242"><span class="linenos">242</span></a>    <span class="k">def</span> <span class="nf">_calc_mz_confidence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+</span><span id="L-242"><a href="#L-242"><span class="linenos">242</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_mz_confidence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 </span><span id="L-243"><a href="#L-243"><span class="linenos">243</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the m/z confidence of the molecular formula, based on the experimental m/z and the calculated m/z.</span>
 </span><span id="L-244"><a href="#L-244"><span class="linenos">244</span></a>
 </span><span id="L-245"><a href="#L-245"><span class="linenos">245</span></a><span class="sd">        Parameters</span>
@@ -334,7 +334,7 @@
 </span><span id="L-263"><a href="#L-263"><span class="linenos">263</span></a>            <span class="p">)</span>
 </span><span id="L-264"><a href="#L-264"><span class="linenos">264</span></a>        <span class="p">)</span>
 </span><span id="L-265"><a href="#L-265"><span class="linenos">265</span></a>
-</span><span id="L-266"><a href="#L-266"><span class="linenos">266</span></a>    <span class="k">def</span> <span class="nf">_calc_isotopologue_confidence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-266"><a href="#L-266"><span class="linenos">266</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_isotopologue_confidence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-267"><a href="#L-267"><span class="linenos">267</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the isotopologue confidence of the molecular formula, based on the isotopologue similarity.</span>
 </span><span id="L-268"><a href="#L-268"><span class="linenos">268</span></a>
 </span><span id="L-269"><a href="#L-269"><span class="linenos">269</span></a><span class="sd">        Returns</span>
@@ -404,7 +404,7 @@
 </span><span id="L-333"><a href="#L-333"><span class="linenos">333</span></a>
 </span><span id="L-334"><a href="#L-334"><span class="linenos">334</span></a>        <span class="k">return</span> <span class="n">correlation</span>
 </span><span id="L-335"><a href="#L-335"><span class="linenos">335</span></a>
-</span><span id="L-336"><a href="#L-336"><span class="linenos">336</span></a>    <span class="k">def</span> <span class="nf">normalize_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">dist_range</span><span class="p">):</span>
+</span><span id="L-336"><a href="#L-336"><span class="linenos">336</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">normalize_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">dist_range</span><span class="p">):</span>
 </span><span id="L-337"><a href="#L-337"><span class="linenos">337</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-338"><a href="#L-338"><span class="linenos">338</span></a><span class="sd">        Normalize the distance value.</span>
 </span><span id="L-339"><a href="#L-339"><span class="linenos">339</span></a>
@@ -425,7 +425,7 @@
 </span><span id="L-354"><a href="#L-354"><span class="linenos">354</span></a>
 </span><span id="L-355"><a href="#L-355"><span class="linenos">355</span></a>        <span class="k">return</span> <span class="n">result</span>
 </span><span id="L-356"><a href="#L-356"><span class="linenos">356</span></a>
-</span><span id="L-357"><a href="#L-357"><span class="linenos">357</span></a>    <span class="k">def</span> <span class="nf">subtract_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">formula_obj</span><span class="p">,</span> <span class="n">formated</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="L-357"><a href="#L-357"><span class="linenos">357</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">subtract_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">formula_obj</span><span class="p">,</span> <span class="n">formated</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="L-358"><a href="#L-358"><span class="linenos">358</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Subtract a formula from the current formula object</span>
 </span><span id="L-359"><a href="#L-359"><span class="linenos">359</span></a>
 </span><span id="L-360"><a href="#L-360"><span class="linenos">360</span></a><span class="sd">        Parameters</span>
@@ -460,7 +460,7 @@
 </span><span id="L-389"><a href="#L-389"><span class="linenos">389</span></a>
 </span><span id="L-390"><a href="#L-390"><span class="linenos">390</span></a>        <span class="k">return</span> <span class="n">formula_srt</span>
 </span><span id="L-391"><a href="#L-391"><span class="linenos">391</span></a>
-</span><span id="L-392"><a href="#L-392"><span class="linenos">392</span></a>    <span class="k">def</span> <span class="nf">_calc_average_mz_score</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-392"><a href="#L-392"><span class="linenos">392</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_average_mz_score</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-393"><a href="#L-393"><span class="linenos">393</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the average m/z error score of the molecular formula identification, including the isotopologues.&quot;&quot;&quot;</span>
 </span><span id="L-394"><a href="#L-394"><span class="linenos">394</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_isotopologue</span><span class="p">:</span>
 </span><span id="L-395"><a href="#L-395"><span class="linenos">395</span></a>            <span class="c1"># confidence of isotopologue is pure mz error</span>
@@ -496,7 +496,7 @@
 </span><span id="L-425"><a href="#L-425"><span class="linenos">425</span></a>
 </span><span id="L-426"><a href="#L-426"><span class="linenos">426</span></a>        <span class="k">return</span> <span class="n">average_mz_score</span>
 </span><span id="L-427"><a href="#L-427"><span class="linenos">427</span></a>
-</span><span id="L-428"><a href="#L-428"><span class="linenos">428</span></a>    <span class="k">def</span> <span class="nf">_calc_confidence_score</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-428"><a href="#L-428"><span class="linenos">428</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_confidence_score</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-429"><a href="#L-429"><span class="linenos">429</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the confidence score of the molecular formula identification, including the isotopologues.&quot;&quot;&quot;</span>
 </span><span id="L-430"><a href="#L-430"><span class="linenos">430</span></a>
 </span><span id="L-431"><a href="#L-431"><span class="linenos">431</span></a>        <span class="c1">### Assumes random mass error, i.e, spectrum has to be calibrated and with zero mean</span>
@@ -525,7 +525,7 @@
 </span><span id="L-454"><a href="#L-454"><span class="linenos">454</span></a>
 </span><span id="L-455"><a href="#L-455"><span class="linenos">455</span></a>        <span class="k">return</span> <span class="n">score</span>
 </span><span id="L-456"><a href="#L-456"><span class="linenos">456</span></a>
-</span><span id="L-457"><a href="#L-457"><span class="linenos">457</span></a>    <span class="k">def</span> <span class="nf">_calc_abundance_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;percentile&quot;</span><span class="p">):</span>
+</span><span id="L-457"><a href="#L-457"><span class="linenos">457</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_abundance_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;percentile&quot;</span><span class="p">):</span>
 </span><span id="L-458"><a href="#L-458"><span class="linenos">458</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the abundance error of the molecular formula, based on the experimental abundance and the calculated abundance.</span>
 </span><span id="L-459"><a href="#L-459"><span class="linenos">459</span></a>
 </span><span id="L-460"><a href="#L-460"><span class="linenos">460</span></a><span class="sd">        Parameters</span>
@@ -559,7 +559,7 @@
 </span><span id="L-488"><a href="#L-488"><span class="linenos">488</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="L-489"><a href="#L-489"><span class="linenos">489</span></a>            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Please calc_isotopologues&quot;</span><span class="p">)</span>
 </span><span id="L-490"><a href="#L-490"><span class="linenos">490</span></a>
-</span><span id="L-491"><a href="#L-491"><span class="linenos">491</span></a>    <span class="k">def</span> <span class="nf">_calc_area_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;percentile&quot;</span><span class="p">):</span>
+</span><span id="L-491"><a href="#L-491"><span class="linenos">491</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_area_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;percentile&quot;</span><span class="p">):</span>
 </span><span id="L-492"><a href="#L-492"><span class="linenos">492</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the area error of the molecular formula, based on the experimental area and the calculated area.</span>
 </span><span id="L-493"><a href="#L-493"><span class="linenos">493</span></a>
 </span><span id="L-494"><a href="#L-494"><span class="linenos">494</span></a><span class="sd">        Parameters</span>
@@ -599,7 +599,7 @@
 </span><span id="L-528"><a href="#L-528"><span class="linenos">528</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="L-529"><a href="#L-529"><span class="linenos">529</span></a>            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Please calc_isotopologues&quot;</span><span class="p">)</span>
 </span><span id="L-530"><a href="#L-530"><span class="linenos">530</span></a>
-</span><span id="L-531"><a href="#L-531"><span class="linenos">531</span></a>    <span class="k">def</span> <span class="nf">_calc_aromaticity_index_mod</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-531"><a href="#L-531"><span class="linenos">531</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_aromaticity_index_mod</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-532"><a href="#L-532"><span class="linenos">532</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the modified aromaticity index of the molecular formula.</span>
 </span><span id="L-533"><a href="#L-533"><span class="linenos">533</span></a>
 </span><span id="L-534"><a href="#L-534"><span class="linenos">534</span></a><span class="sd">        Returns</span>
@@ -640,7 +640,7 @@
 </span><span id="L-569"><a href="#L-569"><span class="linenos">569</span></a>
 </span><span id="L-570"><a href="#L-570"><span class="linenos">570</span></a>        <span class="k">return</span> <span class="n">ai</span>
 </span><span id="L-571"><a href="#L-571"><span class="linenos">571</span></a>
-</span><span id="L-572"><a href="#L-572"><span class="linenos">572</span></a>    <span class="k">def</span> <span class="nf">_calc_aromaticity_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-572"><a href="#L-572"><span class="linenos">572</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_aromaticity_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-573"><a href="#L-573"><span class="linenos">573</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the aromaticity index of the molecular formula.</span>
 </span><span id="L-574"><a href="#L-574"><span class="linenos">574</span></a>
 </span><span id="L-575"><a href="#L-575"><span class="linenos">575</span></a><span class="sd">        Returns</span>
@@ -681,7 +681,7 @@
 </span><span id="L-610"><a href="#L-610"><span class="linenos">610</span></a>
 </span><span id="L-611"><a href="#L-611"><span class="linenos">611</span></a>        <span class="k">return</span> <span class="n">ai</span>
 </span><span id="L-612"><a href="#L-612"><span class="linenos">612</span></a>
-</span><span id="L-613"><a href="#L-613"><span class="linenos">613</span></a>    <span class="k">def</span> <span class="nf">_calc_nosc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-613"><a href="#L-613"><span class="linenos">613</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_nosc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-614"><a href="#L-614"><span class="linenos">614</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the average nominal oxidation state of carbon</span>
 </span><span id="L-615"><a href="#L-615"><span class="linenos">615</span></a>
 </span><span id="L-616"><a href="#L-616"><span class="linenos">616</span></a><span class="sd">        Returns</span>
@@ -725,7 +725,7 @@
 </span><span id="L-654"><a href="#L-654"><span class="linenos">654</span></a>        <span class="k">return</span> <span class="n">nosc</span>
 </span><span id="L-655"><a href="#L-655"><span class="linenos">655</span></a>
 </span><span id="L-656"><a href="#L-656"><span class="linenos">656</span></a>    <span class="nd">@property</span>
-</span><span id="L-657"><a href="#L-657"><span class="linenos">657</span></a>    <span class="k">def</span> <span class="nf">dbe_ai</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-657"><a href="#L-657"><span class="linenos">657</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">dbe_ai</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-658"><a href="#L-658"><span class="linenos">658</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the double bond equivalent (DBE) of the molecular formula, based on the number of carbons, hydrogens, and oxygens.&quot;&quot;&quot;</span>
 </span><span id="L-659"><a href="#L-659"><span class="linenos">659</span></a>
 </span><span id="L-660"><a href="#L-660"><span class="linenos">660</span></a>        <span class="n">carbons</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d_molecular_formula</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
@@ -733,7 +733,7 @@
 </span><span id="L-662"><a href="#L-662"><span class="linenos">662</span></a>        <span class="n">oxygens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d_molecular_formula</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;O&quot;</span><span class="p">)</span>
 </span><span id="L-663"><a href="#L-663"><span class="linenos">663</span></a>        <span class="k">return</span> <span class="mi">1</span> <span class="o">+</span> <span class="p">(((</span><span class="mi">2</span> <span class="o">*</span> <span class="n">carbons</span><span class="p">)</span> <span class="o">-</span> <span class="n">hydrogens</span> <span class="o">-</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">oxygens</span><span class="p">))</span> <span class="o">*</span> <span class="mf">0.5</span><span class="p">)</span>
 </span><span id="L-664"><a href="#L-664"><span class="linenos">664</span></a>
-</span><span id="L-665"><a href="#L-665"><span class="linenos">665</span></a>    <span class="k">def</span> <span class="nf">_calc_dbe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-665"><a href="#L-665"><span class="linenos">665</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_dbe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-666"><a href="#L-666"><span class="linenos">666</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the double bond equivalent (DBE) of the molecular formula&quot;&quot;&quot;</span>
 </span><span id="L-667"><a href="#L-667"><span class="linenos">667</span></a>
 </span><span id="L-668"><a href="#L-668"><span class="linenos">668</span></a>        <span class="n">individual_dbe</span> <span class="o">=</span> <span class="mi">0</span>
@@ -769,7 +769,7 @@
 </span><span id="L-698"><a href="#L-698"><span class="linenos">698</span></a>
 </span><span id="L-699"><a href="#L-699"><span class="linenos">699</span></a>        <span class="k">return</span> <span class="n">dbe</span>
 </span><span id="L-700"><a href="#L-700"><span class="linenos">700</span></a>
-</span><span id="L-701"><a href="#L-701"><span class="linenos">701</span></a>    <span class="k">def</span> <span class="nf">_calc_kmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_base</span><span class="p">):</span>
+</span><span id="L-701"><a href="#L-701"><span class="linenos">701</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_kmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_base</span><span class="p">):</span>
 </span><span id="L-702"><a href="#L-702"><span class="linenos">702</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the Kendrick mass defect (KMD) of the molecular formula, based on the monoisotopic mass and the Kendrick mass.</span>
 </span><span id="L-703"><a href="#L-703"><span class="linenos">703</span></a>
 </span><span id="L-704"><a href="#L-704"><span class="linenos">704</span></a><span class="sd">        Parameters</span>
@@ -797,7 +797,7 @@
 </span><span id="L-726"><a href="#L-726"><span class="linenos">726</span></a>
 </span><span id="L-727"><a href="#L-727"><span class="linenos">727</span></a>        <span class="k">return</span> <span class="n">kmd</span><span class="p">,</span> <span class="n">kendrick_mass</span><span class="p">,</span> <span class="n">nominal_km</span>
 </span><span id="L-728"><a href="#L-728"><span class="linenos">728</span></a>
-</span><span id="L-729"><a href="#L-729"><span class="linenos">729</span></a>    <span class="k">def</span> <span class="nf">_cal_isotopologues</span><span class="p">(</span>
+</span><span id="L-729"><a href="#L-729"><span class="linenos">729</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_cal_isotopologues</span><span class="p">(</span>
 </span><span id="L-730"><a href="#L-730"><span class="linenos">730</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">formula_dict</span><span class="p">,</span> <span class="n">min_abundance</span><span class="p">,</span> <span class="n">current_abundance</span><span class="p">,</span> <span class="n">ms_dynamic_range</span>
 </span><span id="L-731"><a href="#L-731"><span class="linenos">731</span></a>    <span class="p">):</span>
 </span><span id="L-732"><a href="#L-732"><span class="linenos">732</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the isotopologues for a given molecular formula.</span>
@@ -961,7 +961,7 @@
                 <section id="isospec_version">
                     <div class="attr variable">
             <span class="name">isospec_version</span>        =
-<span class="default_value">&#39;2.2.2&#39;</span>
+<span class="default_value">&#39;2.2.3&#39;</span>
 
         
     </div>
@@ -981,7 +981,7 @@
 
     </div>
     <a class="headerlink" href="#MolecularFormulaCalc"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularFormulaCalc-33"><a href="#MolecularFormulaCalc-33"><span class="linenos"> 33</span></a><span class="k">class</span> <span class="nc">MolecularFormulaCalc</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularFormulaCalc-33"><a href="#MolecularFormulaCalc-33"><span class="linenos"> 33</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MolecularFormulaCalc</span><span class="p">:</span>
 </span><span id="MolecularFormulaCalc-34"><a href="#MolecularFormulaCalc-34"><span class="linenos"> 34</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class of calculations related to molecular formula</span>
 </span><span id="MolecularFormulaCalc-35"><a href="#MolecularFormulaCalc-35"><span class="linenos"> 35</span></a>
 </span><span id="MolecularFormulaCalc-36"><a href="#MolecularFormulaCalc-36"><span class="linenos"> 36</span></a><span class="sd">    This class is not intended to be used directly, but rather to be inherited by other classes in the molecular_formula/factory module like MolecularFormula, MolecularFormulaIsotopologue, and LCMSLibRefMolecularFormula</span>
@@ -1033,7 +1033,7 @@
 </span><span id="MolecularFormulaCalc-82"><a href="#MolecularFormulaCalc-82"><span class="linenos"> 82</span></a><span class="sd">        Calculate the average m/z error score of the molecular formula identification, including the isotopologues.</span>
 </span><span id="MolecularFormulaCalc-83"><a href="#MolecularFormulaCalc-83"><span class="linenos"> 83</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="MolecularFormulaCalc-84"><a href="#MolecularFormulaCalc-84"><span class="linenos"> 84</span></a>
-</span><span id="MolecularFormulaCalc-85"><a href="#MolecularFormulaCalc-85"><span class="linenos"> 85</span></a>    <span class="k">def</span> <span class="nf">_calc_resolving_power_low_pressure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+</span><span id="MolecularFormulaCalc-85"><a href="#MolecularFormulaCalc-85"><span class="linenos"> 85</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_resolving_power_low_pressure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc-86"><a href="#MolecularFormulaCalc-86"><span class="linenos"> 86</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="MolecularFormulaCalc-87"><a href="#MolecularFormulaCalc-87"><span class="linenos"> 87</span></a><span class="sd">        Calculate the resolving power at low pressure.</span>
 </span><span id="MolecularFormulaCalc-88"><a href="#MolecularFormulaCalc-88"><span class="linenos"> 88</span></a>
@@ -1047,7 +1047,7 @@
 </span><span id="MolecularFormulaCalc-96"><a href="#MolecularFormulaCalc-96"><span class="linenos"> 96</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="MolecularFormulaCalc-97"><a href="#MolecularFormulaCalc-97"><span class="linenos"> 97</span></a>        <span class="k">return</span> <span class="p">(</span><span class="mf">1.274</span> <span class="o">*</span> <span class="mi">10000000</span> <span class="o">*</span> <span class="n">B</span> <span class="o">*</span> <span class="n">T</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">mz_calc</span><span class="p">)</span>
 </span><span id="MolecularFormulaCalc-98"><a href="#MolecularFormulaCalc-98"><span class="linenos"> 98</span></a>
-</span><span id="MolecularFormulaCalc-99"><a href="#MolecularFormulaCalc-99"><span class="linenos"> 99</span></a>    <span class="k">def</span> <span class="nf">_calc_resolving_power_high_pressure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+</span><span id="MolecularFormulaCalc-99"><a href="#MolecularFormulaCalc-99"><span class="linenos"> 99</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_resolving_power_high_pressure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc-100"><a href="#MolecularFormulaCalc-100"><span class="linenos">100</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="MolecularFormulaCalc-101"><a href="#MolecularFormulaCalc-101"><span class="linenos">101</span></a><span class="sd">        Calculate the resolving power at high pressure.</span>
 </span><span id="MolecularFormulaCalc-102"><a href="#MolecularFormulaCalc-102"><span class="linenos">102</span></a>
@@ -1061,7 +1061,7 @@
 </span><span id="MolecularFormulaCalc-110"><a href="#MolecularFormulaCalc-110"><span class="linenos">110</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="MolecularFormulaCalc-111"><a href="#MolecularFormulaCalc-111"><span class="linenos">111</span></a>        <span class="k">return</span> <span class="p">(</span><span class="mf">2.758</span> <span class="o">*</span> <span class="mi">10000000</span> <span class="o">*</span> <span class="n">B</span> <span class="o">*</span> <span class="n">T</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">mz_calc</span><span class="p">)</span>
 </span><span id="MolecularFormulaCalc-112"><a href="#MolecularFormulaCalc-112"><span class="linenos">112</span></a>
-</span><span id="MolecularFormulaCalc-113"><a href="#MolecularFormulaCalc-113"><span class="linenos">113</span></a>    <span class="k">def</span> <span class="nf">_adduct_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adduct_atom</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">):</span>
+</span><span id="MolecularFormulaCalc-113"><a href="#MolecularFormulaCalc-113"><span class="linenos">113</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_adduct_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adduct_atom</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc-114"><a href="#MolecularFormulaCalc-114"><span class="linenos">114</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the m/z value of an adducted ion version of the molecular formula.</span>
 </span><span id="MolecularFormulaCalc-115"><a href="#MolecularFormulaCalc-115"><span class="linenos">115</span></a>
 </span><span id="MolecularFormulaCalc-116"><a href="#MolecularFormulaCalc-116"><span class="linenos">116</span></a><span class="sd">        Parameters</span>
@@ -1078,7 +1078,7 @@
 </span><span id="MolecularFormulaCalc-127"><a href="#MolecularFormulaCalc-127"><span class="linenos">127</span></a>            <span class="o">+</span> <span class="p">(</span><span class="n">ion_charge</span> <span class="o">*</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">Atoms</span><span class="o">.</span><span class="n">electron_mass</span><span class="p">)</span>
 </span><span id="MolecularFormulaCalc-128"><a href="#MolecularFormulaCalc-128"><span class="linenos">128</span></a>        <span class="p">)</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ion_charge</span><span class="p">)</span>
 </span><span id="MolecularFormulaCalc-129"><a href="#MolecularFormulaCalc-129"><span class="linenos">129</span></a>
-</span><span id="MolecularFormulaCalc-130"><a href="#MolecularFormulaCalc-130"><span class="linenos">130</span></a>    <span class="k">def</span> <span class="nf">_protonated_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">):</span>
+</span><span id="MolecularFormulaCalc-130"><a href="#MolecularFormulaCalc-130"><span class="linenos">130</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_protonated_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc-131"><a href="#MolecularFormulaCalc-131"><span class="linenos">131</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the m/z value of a protonated or deprotonated ion version of the molecular formula.</span>
 </span><span id="MolecularFormulaCalc-132"><a href="#MolecularFormulaCalc-132"><span class="linenos">132</span></a>
 </span><span id="MolecularFormulaCalc-133"><a href="#MolecularFormulaCalc-133"><span class="linenos">133</span></a><span class="sd">        Parameters</span>
@@ -1092,7 +1092,7 @@
 </span><span id="MolecularFormulaCalc-141"><a href="#MolecularFormulaCalc-141"><span class="linenos">141</span></a>            <span class="o">+</span> <span class="p">(</span><span class="n">ion_charge</span> <span class="o">*</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">Atoms</span><span class="o">.</span><span class="n">electron_mass</span><span class="p">)</span>
 </span><span id="MolecularFormulaCalc-142"><a href="#MolecularFormulaCalc-142"><span class="linenos">142</span></a>        <span class="p">)</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ion_charge</span><span class="p">)</span>
 </span><span id="MolecularFormulaCalc-143"><a href="#MolecularFormulaCalc-143"><span class="linenos">143</span></a>
-</span><span id="MolecularFormulaCalc-144"><a href="#MolecularFormulaCalc-144"><span class="linenos">144</span></a>    <span class="k">def</span> <span class="nf">_radical_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">):</span>
+</span><span id="MolecularFormulaCalc-144"><a href="#MolecularFormulaCalc-144"><span class="linenos">144</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_radical_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc-145"><a href="#MolecularFormulaCalc-145"><span class="linenos">145</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the m/z value of a radical ion version of the molecular formula.</span>
 </span><span id="MolecularFormulaCalc-146"><a href="#MolecularFormulaCalc-146"><span class="linenos">146</span></a>
 </span><span id="MolecularFormulaCalc-147"><a href="#MolecularFormulaCalc-147"><span class="linenos">147</span></a><span class="sd">        Parameters</span>
@@ -1104,7 +1104,7 @@
 </span><span id="MolecularFormulaCalc-153"><a href="#MolecularFormulaCalc-153"><span class="linenos">153</span></a>            <span class="n">ion_charge</span>
 </span><span id="MolecularFormulaCalc-154"><a href="#MolecularFormulaCalc-154"><span class="linenos">154</span></a>        <span class="p">)</span>
 </span><span id="MolecularFormulaCalc-155"><a href="#MolecularFormulaCalc-155"><span class="linenos">155</span></a>
-</span><span id="MolecularFormulaCalc-156"><a href="#MolecularFormulaCalc-156"><span class="linenos">156</span></a>    <span class="k">def</span> <span class="nf">_neutral_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MolecularFormulaCalc-156"><a href="#MolecularFormulaCalc-156"><span class="linenos">156</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_neutral_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc-157"><a href="#MolecularFormulaCalc-157"><span class="linenos">157</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the neutral mass of the molecular formula.&quot;&quot;&quot;</span>
 </span><span id="MolecularFormulaCalc-158"><a href="#MolecularFormulaCalc-158"><span class="linenos">158</span></a>
 </span><span id="MolecularFormulaCalc-159"><a href="#MolecularFormulaCalc-159"><span class="linenos">159</span></a>        <span class="n">mass</span> <span class="o">=</span> <span class="mi">0</span>
@@ -1121,7 +1121,7 @@
 </span><span id="MolecularFormulaCalc-170"><a href="#MolecularFormulaCalc-170"><span class="linenos">170</span></a>
 </span><span id="MolecularFormulaCalc-171"><a href="#MolecularFormulaCalc-171"><span class="linenos">171</span></a>        <span class="k">return</span> <span class="n">mass</span>
 </span><span id="MolecularFormulaCalc-172"><a href="#MolecularFormulaCalc-172"><span class="linenos">172</span></a>
-</span><span id="MolecularFormulaCalc-173"><a href="#MolecularFormulaCalc-173"><span class="linenos">173</span></a>    <span class="k">def</span> <span class="nf">_calc_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MolecularFormulaCalc-173"><a href="#MolecularFormulaCalc-173"><span class="linenos">173</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc-174"><a href="#MolecularFormulaCalc-174"><span class="linenos">174</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the m/z value of the molecular formula, based on the ion charge and ion type.&quot;&quot;&quot;</span>
 </span><span id="MolecularFormulaCalc-175"><a href="#MolecularFormulaCalc-175"><span class="linenos">175</span></a>
 </span><span id="MolecularFormulaCalc-176"><a href="#MolecularFormulaCalc-176"><span class="linenos">176</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ion_charge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1150,7 +1150,7 @@
 </span><span id="MolecularFormulaCalc-199"><a href="#MolecularFormulaCalc-199"><span class="linenos">199</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="MolecularFormulaCalc-200"><a href="#MolecularFormulaCalc-200"><span class="linenos">200</span></a>            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Please set ion charge first&quot;</span><span class="p">)</span>
 </span><span id="MolecularFormulaCalc-201"><a href="#MolecularFormulaCalc-201"><span class="linenos">201</span></a>
-</span><span id="MolecularFormulaCalc-202"><a href="#MolecularFormulaCalc-202"><span class="linenos">202</span></a>    <span class="k">def</span> <span class="nf">_calc_assignment_mass_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;ppm&quot;</span><span class="p">):</span>
+</span><span id="MolecularFormulaCalc-202"><a href="#MolecularFormulaCalc-202"><span class="linenos">202</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_assignment_mass_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;ppm&quot;</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc-203"><a href="#MolecularFormulaCalc-203"><span class="linenos">203</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the mass error of the molecular formula, based on the experimental m/z and the calculated m/z.</span>
 </span><span id="MolecularFormulaCalc-204"><a href="#MolecularFormulaCalc-204"><span class="linenos">204</span></a>
 </span><span id="MolecularFormulaCalc-205"><a href="#MolecularFormulaCalc-205"><span class="linenos">205</span></a><span class="sd">        Parameters</span>
@@ -1191,7 +1191,7 @@
 </span><span id="MolecularFormulaCalc-240"><a href="#MolecularFormulaCalc-240"><span class="linenos">240</span></a>                <span class="s2">&quot;No ms peak associated with the molecular formula instance </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span>
 </span><span id="MolecularFormulaCalc-241"><a href="#MolecularFormulaCalc-241"><span class="linenos">241</span></a>            <span class="p">)</span>
 </span><span id="MolecularFormulaCalc-242"><a href="#MolecularFormulaCalc-242"><span class="linenos">242</span></a>
-</span><span id="MolecularFormulaCalc-243"><a href="#MolecularFormulaCalc-243"><span class="linenos">243</span></a>    <span class="k">def</span> <span class="nf">_calc_mz_confidence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+</span><span id="MolecularFormulaCalc-243"><a href="#MolecularFormulaCalc-243"><span class="linenos">243</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_mz_confidence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc-244"><a href="#MolecularFormulaCalc-244"><span class="linenos">244</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the m/z confidence of the molecular formula, based on the experimental m/z and the calculated m/z.</span>
 </span><span id="MolecularFormulaCalc-245"><a href="#MolecularFormulaCalc-245"><span class="linenos">245</span></a>
 </span><span id="MolecularFormulaCalc-246"><a href="#MolecularFormulaCalc-246"><span class="linenos">246</span></a><span class="sd">        Parameters</span>
@@ -1215,7 +1215,7 @@
 </span><span id="MolecularFormulaCalc-264"><a href="#MolecularFormulaCalc-264"><span class="linenos">264</span></a>            <span class="p">)</span>
 </span><span id="MolecularFormulaCalc-265"><a href="#MolecularFormulaCalc-265"><span class="linenos">265</span></a>        <span class="p">)</span>
 </span><span id="MolecularFormulaCalc-266"><a href="#MolecularFormulaCalc-266"><span class="linenos">266</span></a>
-</span><span id="MolecularFormulaCalc-267"><a href="#MolecularFormulaCalc-267"><span class="linenos">267</span></a>    <span class="k">def</span> <span class="nf">_calc_isotopologue_confidence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MolecularFormulaCalc-267"><a href="#MolecularFormulaCalc-267"><span class="linenos">267</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_isotopologue_confidence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc-268"><a href="#MolecularFormulaCalc-268"><span class="linenos">268</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the isotopologue confidence of the molecular formula, based on the isotopologue similarity.</span>
 </span><span id="MolecularFormulaCalc-269"><a href="#MolecularFormulaCalc-269"><span class="linenos">269</span></a>
 </span><span id="MolecularFormulaCalc-270"><a href="#MolecularFormulaCalc-270"><span class="linenos">270</span></a><span class="sd">        Returns</span>
@@ -1285,7 +1285,7 @@
 </span><span id="MolecularFormulaCalc-334"><a href="#MolecularFormulaCalc-334"><span class="linenos">334</span></a>
 </span><span id="MolecularFormulaCalc-335"><a href="#MolecularFormulaCalc-335"><span class="linenos">335</span></a>        <span class="k">return</span> <span class="n">correlation</span>
 </span><span id="MolecularFormulaCalc-336"><a href="#MolecularFormulaCalc-336"><span class="linenos">336</span></a>
-</span><span id="MolecularFormulaCalc-337"><a href="#MolecularFormulaCalc-337"><span class="linenos">337</span></a>    <span class="k">def</span> <span class="nf">normalize_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">dist_range</span><span class="p">):</span>
+</span><span id="MolecularFormulaCalc-337"><a href="#MolecularFormulaCalc-337"><span class="linenos">337</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">normalize_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">dist_range</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc-338"><a href="#MolecularFormulaCalc-338"><span class="linenos">338</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="MolecularFormulaCalc-339"><a href="#MolecularFormulaCalc-339"><span class="linenos">339</span></a><span class="sd">        Normalize the distance value.</span>
 </span><span id="MolecularFormulaCalc-340"><a href="#MolecularFormulaCalc-340"><span class="linenos">340</span></a>
@@ -1306,7 +1306,7 @@
 </span><span id="MolecularFormulaCalc-355"><a href="#MolecularFormulaCalc-355"><span class="linenos">355</span></a>
 </span><span id="MolecularFormulaCalc-356"><a href="#MolecularFormulaCalc-356"><span class="linenos">356</span></a>        <span class="k">return</span> <span class="n">result</span>
 </span><span id="MolecularFormulaCalc-357"><a href="#MolecularFormulaCalc-357"><span class="linenos">357</span></a>
-</span><span id="MolecularFormulaCalc-358"><a href="#MolecularFormulaCalc-358"><span class="linenos">358</span></a>    <span class="k">def</span> <span class="nf">subtract_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">formula_obj</span><span class="p">,</span> <span class="n">formated</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="MolecularFormulaCalc-358"><a href="#MolecularFormulaCalc-358"><span class="linenos">358</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">subtract_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">formula_obj</span><span class="p">,</span> <span class="n">formated</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc-359"><a href="#MolecularFormulaCalc-359"><span class="linenos">359</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Subtract a formula from the current formula object</span>
 </span><span id="MolecularFormulaCalc-360"><a href="#MolecularFormulaCalc-360"><span class="linenos">360</span></a>
 </span><span id="MolecularFormulaCalc-361"><a href="#MolecularFormulaCalc-361"><span class="linenos">361</span></a><span class="sd">        Parameters</span>
@@ -1341,7 +1341,7 @@
 </span><span id="MolecularFormulaCalc-390"><a href="#MolecularFormulaCalc-390"><span class="linenos">390</span></a>
 </span><span id="MolecularFormulaCalc-391"><a href="#MolecularFormulaCalc-391"><span class="linenos">391</span></a>        <span class="k">return</span> <span class="n">formula_srt</span>
 </span><span id="MolecularFormulaCalc-392"><a href="#MolecularFormulaCalc-392"><span class="linenos">392</span></a>
-</span><span id="MolecularFormulaCalc-393"><a href="#MolecularFormulaCalc-393"><span class="linenos">393</span></a>    <span class="k">def</span> <span class="nf">_calc_average_mz_score</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MolecularFormulaCalc-393"><a href="#MolecularFormulaCalc-393"><span class="linenos">393</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_average_mz_score</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc-394"><a href="#MolecularFormulaCalc-394"><span class="linenos">394</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the average m/z error score of the molecular formula identification, including the isotopologues.&quot;&quot;&quot;</span>
 </span><span id="MolecularFormulaCalc-395"><a href="#MolecularFormulaCalc-395"><span class="linenos">395</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_isotopologue</span><span class="p">:</span>
 </span><span id="MolecularFormulaCalc-396"><a href="#MolecularFormulaCalc-396"><span class="linenos">396</span></a>            <span class="c1"># confidence of isotopologue is pure mz error</span>
@@ -1377,7 +1377,7 @@
 </span><span id="MolecularFormulaCalc-426"><a href="#MolecularFormulaCalc-426"><span class="linenos">426</span></a>
 </span><span id="MolecularFormulaCalc-427"><a href="#MolecularFormulaCalc-427"><span class="linenos">427</span></a>        <span class="k">return</span> <span class="n">average_mz_score</span>
 </span><span id="MolecularFormulaCalc-428"><a href="#MolecularFormulaCalc-428"><span class="linenos">428</span></a>
-</span><span id="MolecularFormulaCalc-429"><a href="#MolecularFormulaCalc-429"><span class="linenos">429</span></a>    <span class="k">def</span> <span class="nf">_calc_confidence_score</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MolecularFormulaCalc-429"><a href="#MolecularFormulaCalc-429"><span class="linenos">429</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_confidence_score</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc-430"><a href="#MolecularFormulaCalc-430"><span class="linenos">430</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the confidence score of the molecular formula identification, including the isotopologues.&quot;&quot;&quot;</span>
 </span><span id="MolecularFormulaCalc-431"><a href="#MolecularFormulaCalc-431"><span class="linenos">431</span></a>
 </span><span id="MolecularFormulaCalc-432"><a href="#MolecularFormulaCalc-432"><span class="linenos">432</span></a>        <span class="c1">### Assumes random mass error, i.e, spectrum has to be calibrated and with zero mean</span>
@@ -1406,7 +1406,7 @@
 </span><span id="MolecularFormulaCalc-455"><a href="#MolecularFormulaCalc-455"><span class="linenos">455</span></a>
 </span><span id="MolecularFormulaCalc-456"><a href="#MolecularFormulaCalc-456"><span class="linenos">456</span></a>        <span class="k">return</span> <span class="n">score</span>
 </span><span id="MolecularFormulaCalc-457"><a href="#MolecularFormulaCalc-457"><span class="linenos">457</span></a>
-</span><span id="MolecularFormulaCalc-458"><a href="#MolecularFormulaCalc-458"><span class="linenos">458</span></a>    <span class="k">def</span> <span class="nf">_calc_abundance_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;percentile&quot;</span><span class="p">):</span>
+</span><span id="MolecularFormulaCalc-458"><a href="#MolecularFormulaCalc-458"><span class="linenos">458</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_abundance_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;percentile&quot;</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc-459"><a href="#MolecularFormulaCalc-459"><span class="linenos">459</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the abundance error of the molecular formula, based on the experimental abundance and the calculated abundance.</span>
 </span><span id="MolecularFormulaCalc-460"><a href="#MolecularFormulaCalc-460"><span class="linenos">460</span></a>
 </span><span id="MolecularFormulaCalc-461"><a href="#MolecularFormulaCalc-461"><span class="linenos">461</span></a><span class="sd">        Parameters</span>
@@ -1440,7 +1440,7 @@
 </span><span id="MolecularFormulaCalc-489"><a href="#MolecularFormulaCalc-489"><span class="linenos">489</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="MolecularFormulaCalc-490"><a href="#MolecularFormulaCalc-490"><span class="linenos">490</span></a>            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Please calc_isotopologues&quot;</span><span class="p">)</span>
 </span><span id="MolecularFormulaCalc-491"><a href="#MolecularFormulaCalc-491"><span class="linenos">491</span></a>
-</span><span id="MolecularFormulaCalc-492"><a href="#MolecularFormulaCalc-492"><span class="linenos">492</span></a>    <span class="k">def</span> <span class="nf">_calc_area_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;percentile&quot;</span><span class="p">):</span>
+</span><span id="MolecularFormulaCalc-492"><a href="#MolecularFormulaCalc-492"><span class="linenos">492</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_area_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;percentile&quot;</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc-493"><a href="#MolecularFormulaCalc-493"><span class="linenos">493</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the area error of the molecular formula, based on the experimental area and the calculated area.</span>
 </span><span id="MolecularFormulaCalc-494"><a href="#MolecularFormulaCalc-494"><span class="linenos">494</span></a>
 </span><span id="MolecularFormulaCalc-495"><a href="#MolecularFormulaCalc-495"><span class="linenos">495</span></a><span class="sd">        Parameters</span>
@@ -1480,7 +1480,7 @@
 </span><span id="MolecularFormulaCalc-529"><a href="#MolecularFormulaCalc-529"><span class="linenos">529</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="MolecularFormulaCalc-530"><a href="#MolecularFormulaCalc-530"><span class="linenos">530</span></a>            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Please calc_isotopologues&quot;</span><span class="p">)</span>
 </span><span id="MolecularFormulaCalc-531"><a href="#MolecularFormulaCalc-531"><span class="linenos">531</span></a>
-</span><span id="MolecularFormulaCalc-532"><a href="#MolecularFormulaCalc-532"><span class="linenos">532</span></a>    <span class="k">def</span> <span class="nf">_calc_aromaticity_index_mod</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MolecularFormulaCalc-532"><a href="#MolecularFormulaCalc-532"><span class="linenos">532</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_aromaticity_index_mod</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc-533"><a href="#MolecularFormulaCalc-533"><span class="linenos">533</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the modified aromaticity index of the molecular formula.</span>
 </span><span id="MolecularFormulaCalc-534"><a href="#MolecularFormulaCalc-534"><span class="linenos">534</span></a>
 </span><span id="MolecularFormulaCalc-535"><a href="#MolecularFormulaCalc-535"><span class="linenos">535</span></a><span class="sd">        Returns</span>
@@ -1521,7 +1521,7 @@
 </span><span id="MolecularFormulaCalc-570"><a href="#MolecularFormulaCalc-570"><span class="linenos">570</span></a>
 </span><span id="MolecularFormulaCalc-571"><a href="#MolecularFormulaCalc-571"><span class="linenos">571</span></a>        <span class="k">return</span> <span class="n">ai</span>
 </span><span id="MolecularFormulaCalc-572"><a href="#MolecularFormulaCalc-572"><span class="linenos">572</span></a>
-</span><span id="MolecularFormulaCalc-573"><a href="#MolecularFormulaCalc-573"><span class="linenos">573</span></a>    <span class="k">def</span> <span class="nf">_calc_aromaticity_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MolecularFormulaCalc-573"><a href="#MolecularFormulaCalc-573"><span class="linenos">573</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_aromaticity_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc-574"><a href="#MolecularFormulaCalc-574"><span class="linenos">574</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the aromaticity index of the molecular formula.</span>
 </span><span id="MolecularFormulaCalc-575"><a href="#MolecularFormulaCalc-575"><span class="linenos">575</span></a>
 </span><span id="MolecularFormulaCalc-576"><a href="#MolecularFormulaCalc-576"><span class="linenos">576</span></a><span class="sd">        Returns</span>
@@ -1562,7 +1562,7 @@
 </span><span id="MolecularFormulaCalc-611"><a href="#MolecularFormulaCalc-611"><span class="linenos">611</span></a>
 </span><span id="MolecularFormulaCalc-612"><a href="#MolecularFormulaCalc-612"><span class="linenos">612</span></a>        <span class="k">return</span> <span class="n">ai</span>
 </span><span id="MolecularFormulaCalc-613"><a href="#MolecularFormulaCalc-613"><span class="linenos">613</span></a>
-</span><span id="MolecularFormulaCalc-614"><a href="#MolecularFormulaCalc-614"><span class="linenos">614</span></a>    <span class="k">def</span> <span class="nf">_calc_nosc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MolecularFormulaCalc-614"><a href="#MolecularFormulaCalc-614"><span class="linenos">614</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_nosc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc-615"><a href="#MolecularFormulaCalc-615"><span class="linenos">615</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the average nominal oxidation state of carbon</span>
 </span><span id="MolecularFormulaCalc-616"><a href="#MolecularFormulaCalc-616"><span class="linenos">616</span></a>
 </span><span id="MolecularFormulaCalc-617"><a href="#MolecularFormulaCalc-617"><span class="linenos">617</span></a><span class="sd">        Returns</span>
@@ -1606,7 +1606,7 @@
 </span><span id="MolecularFormulaCalc-655"><a href="#MolecularFormulaCalc-655"><span class="linenos">655</span></a>        <span class="k">return</span> <span class="n">nosc</span>
 </span><span id="MolecularFormulaCalc-656"><a href="#MolecularFormulaCalc-656"><span class="linenos">656</span></a>
 </span><span id="MolecularFormulaCalc-657"><a href="#MolecularFormulaCalc-657"><span class="linenos">657</span></a>    <span class="nd">@property</span>
-</span><span id="MolecularFormulaCalc-658"><a href="#MolecularFormulaCalc-658"><span class="linenos">658</span></a>    <span class="k">def</span> <span class="nf">dbe_ai</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MolecularFormulaCalc-658"><a href="#MolecularFormulaCalc-658"><span class="linenos">658</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">dbe_ai</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc-659"><a href="#MolecularFormulaCalc-659"><span class="linenos">659</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the double bond equivalent (DBE) of the molecular formula, based on the number of carbons, hydrogens, and oxygens.&quot;&quot;&quot;</span>
 </span><span id="MolecularFormulaCalc-660"><a href="#MolecularFormulaCalc-660"><span class="linenos">660</span></a>
 </span><span id="MolecularFormulaCalc-661"><a href="#MolecularFormulaCalc-661"><span class="linenos">661</span></a>        <span class="n">carbons</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d_molecular_formula</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
@@ -1614,7 +1614,7 @@
 </span><span id="MolecularFormulaCalc-663"><a href="#MolecularFormulaCalc-663"><span class="linenos">663</span></a>        <span class="n">oxygens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d_molecular_formula</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;O&quot;</span><span class="p">)</span>
 </span><span id="MolecularFormulaCalc-664"><a href="#MolecularFormulaCalc-664"><span class="linenos">664</span></a>        <span class="k">return</span> <span class="mi">1</span> <span class="o">+</span> <span class="p">(((</span><span class="mi">2</span> <span class="o">*</span> <span class="n">carbons</span><span class="p">)</span> <span class="o">-</span> <span class="n">hydrogens</span> <span class="o">-</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">oxygens</span><span class="p">))</span> <span class="o">*</span> <span class="mf">0.5</span><span class="p">)</span>
 </span><span id="MolecularFormulaCalc-665"><a href="#MolecularFormulaCalc-665"><span class="linenos">665</span></a>
-</span><span id="MolecularFormulaCalc-666"><a href="#MolecularFormulaCalc-666"><span class="linenos">666</span></a>    <span class="k">def</span> <span class="nf">_calc_dbe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MolecularFormulaCalc-666"><a href="#MolecularFormulaCalc-666"><span class="linenos">666</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_dbe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc-667"><a href="#MolecularFormulaCalc-667"><span class="linenos">667</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the double bond equivalent (DBE) of the molecular formula&quot;&quot;&quot;</span>
 </span><span id="MolecularFormulaCalc-668"><a href="#MolecularFormulaCalc-668"><span class="linenos">668</span></a>
 </span><span id="MolecularFormulaCalc-669"><a href="#MolecularFormulaCalc-669"><span class="linenos">669</span></a>        <span class="n">individual_dbe</span> <span class="o">=</span> <span class="mi">0</span>
@@ -1650,7 +1650,7 @@
 </span><span id="MolecularFormulaCalc-699"><a href="#MolecularFormulaCalc-699"><span class="linenos">699</span></a>
 </span><span id="MolecularFormulaCalc-700"><a href="#MolecularFormulaCalc-700"><span class="linenos">700</span></a>        <span class="k">return</span> <span class="n">dbe</span>
 </span><span id="MolecularFormulaCalc-701"><a href="#MolecularFormulaCalc-701"><span class="linenos">701</span></a>
-</span><span id="MolecularFormulaCalc-702"><a href="#MolecularFormulaCalc-702"><span class="linenos">702</span></a>    <span class="k">def</span> <span class="nf">_calc_kmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_base</span><span class="p">):</span>
+</span><span id="MolecularFormulaCalc-702"><a href="#MolecularFormulaCalc-702"><span class="linenos">702</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_kmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_base</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc-703"><a href="#MolecularFormulaCalc-703"><span class="linenos">703</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the Kendrick mass defect (KMD) of the molecular formula, based on the monoisotopic mass and the Kendrick mass.</span>
 </span><span id="MolecularFormulaCalc-704"><a href="#MolecularFormulaCalc-704"><span class="linenos">704</span></a>
 </span><span id="MolecularFormulaCalc-705"><a href="#MolecularFormulaCalc-705"><span class="linenos">705</span></a><span class="sd">        Parameters</span>
@@ -1678,7 +1678,7 @@
 </span><span id="MolecularFormulaCalc-727"><a href="#MolecularFormulaCalc-727"><span class="linenos">727</span></a>
 </span><span id="MolecularFormulaCalc-728"><a href="#MolecularFormulaCalc-728"><span class="linenos">728</span></a>        <span class="k">return</span> <span class="n">kmd</span><span class="p">,</span> <span class="n">kendrick_mass</span><span class="p">,</span> <span class="n">nominal_km</span>
 </span><span id="MolecularFormulaCalc-729"><a href="#MolecularFormulaCalc-729"><span class="linenos">729</span></a>
-</span><span id="MolecularFormulaCalc-730"><a href="#MolecularFormulaCalc-730"><span class="linenos">730</span></a>    <span class="k">def</span> <span class="nf">_cal_isotopologues</span><span class="p">(</span>
+</span><span id="MolecularFormulaCalc-730"><a href="#MolecularFormulaCalc-730"><span class="linenos">730</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_cal_isotopologues</span><span class="p">(</span>
 </span><span id="MolecularFormulaCalc-731"><a href="#MolecularFormulaCalc-731"><span class="linenos">731</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">formula_dict</span><span class="p">,</span> <span class="n">min_abundance</span><span class="p">,</span> <span class="n">current_abundance</span><span class="p">,</span> <span class="n">ms_dynamic_range</span>
 </span><span id="MolecularFormulaCalc-732"><a href="#MolecularFormulaCalc-732"><span class="linenos">732</span></a>    <span class="p">):</span>
 </span><span id="MolecularFormulaCalc-733"><a href="#MolecularFormulaCalc-733"><span class="linenos">733</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the isotopologues for a given molecular formula.</span>
@@ -1905,7 +1905,7 @@ Calculate the average m/z error score of the molecular formula identification, i
 
     </div>
     <a class="headerlink" href="#MolecularFormulaCalc.normalize_distance"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularFormulaCalc.normalize_distance-337"><a href="#MolecularFormulaCalc.normalize_distance-337"><span class="linenos">337</span></a>    <span class="k">def</span> <span class="nf">normalize_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">dist_range</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularFormulaCalc.normalize_distance-337"><a href="#MolecularFormulaCalc.normalize_distance-337"><span class="linenos">337</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">normalize_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">dist_range</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc.normalize_distance-338"><a href="#MolecularFormulaCalc.normalize_distance-338"><span class="linenos">338</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="MolecularFormulaCalc.normalize_distance-339"><a href="#MolecularFormulaCalc.normalize_distance-339"><span class="linenos">339</span></a><span class="sd">        Normalize the distance value.</span>
 </span><span id="MolecularFormulaCalc.normalize_distance-340"><a href="#MolecularFormulaCalc.normalize_distance-340"><span class="linenos">340</span></a>
@@ -1953,7 +1953,7 @@ The range of the distance value.</li>
 
     </div>
     <a class="headerlink" href="#MolecularFormulaCalc.subtract_formula"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularFormulaCalc.subtract_formula-358"><a href="#MolecularFormulaCalc.subtract_formula-358"><span class="linenos">358</span></a>    <span class="k">def</span> <span class="nf">subtract_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">formula_obj</span><span class="p">,</span> <span class="n">formated</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularFormulaCalc.subtract_formula-358"><a href="#MolecularFormulaCalc.subtract_formula-358"><span class="linenos">358</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">subtract_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">formula_obj</span><span class="p">,</span> <span class="n">formated</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="MolecularFormulaCalc.subtract_formula-359"><a href="#MolecularFormulaCalc.subtract_formula-359"><span class="linenos">359</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Subtract a formula from the current formula object</span>
 </span><span id="MolecularFormulaCalc.subtract_formula-360"><a href="#MolecularFormulaCalc.subtract_formula-360"><span class="linenos">360</span></a>
 </span><span id="MolecularFormulaCalc.subtract_formula-361"><a href="#MolecularFormulaCalc.subtract_formula-361"><span class="linenos">361</span></a><span class="sd">        Parameters</span>

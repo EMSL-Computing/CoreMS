@@ -123,22 +123,22 @@
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Yuri E. Corilo&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="n">__date__</span> <span class="o">=</span> <span class="s2">&quot;Nov 11, 2019&quot;</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span> <span class="nn">json</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">threading</span><span class="w"> </span><span class="kn">import</span> <span class="n">Thread</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">import</span> <span class="nn">h5py</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">import</span> <span class="nn">toml</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">NaN</span><span class="p">,</span> <span class="n">empty</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">DataFrame</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">toml</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">NaN</span><span class="p">,</span> <span class="n">empty</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataFrame</span>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>
-</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.constant</span> <span class="kn">import</span> <span class="n">Atoms</span><span class="p">,</span> <span class="n">Labels</span> <span class="c1">#Labels is accessed in the eval() function</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.output</span> <span class="kn">import</span> <span class="n">parameter_to_dict</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="kn">from</span> <span class="nn">corems.mass_spectrum.factory.MassSpectrumClasses</span> <span class="kn">import</span> <span class="n">MassSpecfromFreq</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.encapsulation.constant</span><span class="w"> </span><span class="kn">import</span> <span class="n">Atoms</span><span class="p">,</span> <span class="n">Labels</span> <span class="c1">#Labels is accessed in the eval() function</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.encapsulation.output</span><span class="w"> </span><span class="kn">import</span> <span class="n">parameter_to_dict</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.mass_spectrum.factory.MassSpectrumClasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">MassSpecfromFreq</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="k">class</span> <span class="nc">HighResMassSpecExport</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="k">class</span><span class="w"> </span><span class="nc">HighResMassSpecExport</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
 </span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A class for exporting high-resolution mass spectra.</span>
 </span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>
 </span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="sd">    Parameters</span>
@@ -198,7 +198,7 @@
 </span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>
 </span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>
-</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_file_path</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">output_type</span><span class="o">=</span><span class="s2">&quot;excel&quot;</span><span class="p">):</span>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_file_path</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">output_type</span><span class="o">=</span><span class="s2">&quot;excel&quot;</span><span class="p">):</span>
 </span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>        <span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 </span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>
 </span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">output_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">out_file_path</span><span class="p">)</span>
@@ -213,7 +213,7 @@
 </span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>
 </span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_init_columns</span><span class="p">()</span>
 </span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>
-</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>    <span class="k">def</span> <span class="nf">_init_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_init_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the columns for the mass spectrum output.&quot;&quot;&quot;</span>
 </span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>        <span class="c1"># column labels in order</span>
 </span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">columns_label</span> <span class="o">=</span> <span class="p">[</span>
@@ -242,12 +242,12 @@
 </span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>        <span class="p">]</span>
 </span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>
 </span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>    <span class="nd">@property</span>
-</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>    <span class="k">def</span> <span class="nf">output_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">output_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the output type of the mass spectrum.&quot;&quot;&quot;</span>
 </span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_type</span>
 </span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>
 </span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>    <span class="nd">@output_type</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>    <span class="k">def</span> <span class="nf">output_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_type</span><span class="p">):</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">output_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_type</span><span class="p">):</span>
 </span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>        <span class="n">output_types</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;excel&quot;</span><span class="p">,</span> <span class="s2">&quot;csv&quot;</span><span class="p">,</span> <span class="s2">&quot;pandas&quot;</span><span class="p">,</span> <span class="s2">&quot;hdf5&quot;</span><span class="p">]</span>
 </span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>        <span class="k">if</span> <span class="n">output_type</span> <span class="ow">in</span> <span class="n">output_types</span><span class="p">:</span>
 </span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_output_type</span> <span class="o">=</span> <span class="n">output_type</span>
@@ -257,7 +257,7 @@
 </span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>                <span class="o">%</span> <span class="n">output_type</span>
 </span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>            <span class="p">)</span>
 </span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>
-</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Save the mass spectrum data to the output file.</span>
 </span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>
 </span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a><span class="sd">        Raises</span>
@@ -280,14 +280,14 @@
 </span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>                <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_type</span>
 </span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>            <span class="p">)</span>
 </span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a>
-</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the export process.</span>
 </span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a>
 </span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a><span class="sd">        This method is called when the thread starts.</span>
 </span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a><span class="sd">        It calls the save method to perform the export.&quot;&quot;&quot;</span>
 </span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 </span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a>
-</span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a>    <span class="k">def</span> <span class="nf">get_pandas_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">additional_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_pandas_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">additional_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the mass spectrum data as a pandas DataFrame.</span>
 </span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a>
 </span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a><span class="sd">        Parameters</span>
@@ -327,7 +327,7 @@
 </span><span id="L-205"><a href="#L-205"><span class="linenos">205</span></a>        <span class="n">df</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_file</span>
 </span><span id="L-206"><a href="#L-206"><span class="linenos">206</span></a>        <span class="k">return</span> <span class="n">df</span>
 </span><span id="L-207"><a href="#L-207"><span class="linenos">207</span></a>
-</span><span id="L-208"><a href="#L-208"><span class="linenos">208</span></a>    <span class="k">def</span> <span class="nf">write_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+</span><span id="L-208"><a href="#L-208"><span class="linenos">208</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">write_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="L-209"><a href="#L-209"><span class="linenos">209</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Writes the settings of the mass spectrum to a JSON file.</span>
 </span><span id="L-210"><a href="#L-210"><span class="linenos">210</span></a>
 </span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a><span class="sd">        Parameters</span>
@@ -338,7 +338,7 @@
 </span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a><span class="sd">            The mass spectrum to export.</span>
 </span><span id="L-217"><a href="#L-217"><span class="linenos">217</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-218"><a href="#L-218"><span class="linenos">218</span></a>
-</span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a>        <span class="kn">import</span> <span class="nn">json</span>
+</span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 </span><span id="L-220"><a href="#L-220"><span class="linenos">220</span></a>
 </span><span id="L-221"><a href="#L-221"><span class="linenos">221</span></a>        <span class="n">dict_setting</span> <span class="o">=</span> <span class="n">parameter_to_dict</span><span class="o">.</span><span class="n">get_dict_data_ms</span><span class="p">(</span><span class="n">mass_spectrum</span><span class="p">)</span>
 </span><span id="L-222"><a href="#L-222"><span class="linenos">222</span></a>
@@ -357,7 +357,7 @@
 </span><span id="L-235"><a href="#L-235"><span class="linenos">235</span></a>            <span class="p">)</span>
 </span><span id="L-236"><a href="#L-236"><span class="linenos">236</span></a>            <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
 </span><span id="L-237"><a href="#L-237"><span class="linenos">237</span></a>
-</span><span id="L-238"><a href="#L-238"><span class="linenos">238</span></a>    <span class="k">def</span> <span class="nf">to_pandas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">write_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="L-238"><a href="#L-238"><span class="linenos">238</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_pandas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">write_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="L-239"><a href="#L-239"><span class="linenos">239</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Exports the mass spectrum data to a pandas DataFrame and saves it as a pickle file.</span>
 </span><span id="L-240"><a href="#L-240"><span class="linenos">240</span></a>
 </span><span id="L-241"><a href="#L-241"><span class="linenos">241</span></a><span class="sd">        Parameters</span>
@@ -379,7 +379,7 @@
 </span><span id="L-257"><a href="#L-257"><span class="linenos">257</span></a>        <span class="k">if</span> <span class="n">write_metadata</span><span class="p">:</span>
 </span><span id="L-258"><a href="#L-258"><span class="linenos">258</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">write_settings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_file</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="p">)</span>
 </span><span id="L-259"><a href="#L-259"><span class="linenos">259</span></a>
-</span><span id="L-260"><a href="#L-260"><span class="linenos">260</span></a>    <span class="k">def</span> <span class="nf">to_excel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">write_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="L-260"><a href="#L-260"><span class="linenos">260</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_excel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">write_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="L-261"><a href="#L-261"><span class="linenos">261</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Exports the mass spectrum data to an Excel file.</span>
 </span><span id="L-262"><a href="#L-262"><span class="linenos">262</span></a>
 </span><span id="L-263"><a href="#L-263"><span class="linenos">263</span></a><span class="sd">        Parameters</span>
@@ -401,7 +401,7 @@
 </span><span id="L-279"><a href="#L-279"><span class="linenos">279</span></a>        <span class="k">if</span> <span class="n">write_metadata</span><span class="p">:</span>
 </span><span id="L-280"><a href="#L-280"><span class="linenos">280</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">write_settings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_file</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="p">)</span>
 </span><span id="L-281"><a href="#L-281"><span class="linenos">281</span></a>
-</span><span id="L-282"><a href="#L-282"><span class="linenos">282</span></a>    <span class="k">def</span> <span class="nf">to_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">write_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="L-282"><a href="#L-282"><span class="linenos">282</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">write_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="L-283"><a href="#L-283"><span class="linenos">283</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Exports the mass spectrum data to a CSV file.</span>
 </span><span id="L-284"><a href="#L-284"><span class="linenos">284</span></a>
 </span><span id="L-285"><a href="#L-285"><span class="linenos">285</span></a><span class="sd">        Parameters</span>
@@ -416,7 +416,7 @@
 </span><span id="L-294"><a href="#L-294"><span class="linenos">294</span></a>
 </span><span id="L-295"><a href="#L-295"><span class="linenos">295</span></a>        <span class="n">dict_data_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_list_dict_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="p">)</span>
 </span><span id="L-296"><a href="#L-296"><span class="linenos">296</span></a>
-</span><span id="L-297"><a href="#L-297"><span class="linenos">297</span></a>        <span class="kn">import</span> <span class="nn">csv</span>
+</span><span id="L-297"><a href="#L-297"><span class="linenos">297</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
 </span><span id="L-298"><a href="#L-298"><span class="linenos">298</span></a>
 </span><span id="L-299"><a href="#L-299"><span class="linenos">299</span></a>        <span class="k">try</span><span class="p">:</span>
 </span><span id="L-300"><a href="#L-300"><span class="linenos">300</span></a>            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_file</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.csv&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
@@ -430,7 +430,7 @@
 </span><span id="L-308"><a href="#L-308"><span class="linenos">308</span></a>        <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ioerror</span><span class="p">:</span>
 </span><span id="L-309"><a href="#L-309"><span class="linenos">309</span></a>            <span class="nb">print</span><span class="p">(</span><span class="n">ioerror</span><span class="p">)</span>
 </span><span id="L-310"><a href="#L-310"><span class="linenos">310</span></a>
-</span><span id="L-311"><a href="#L-311"><span class="linenos">311</span></a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-311"><a href="#L-311"><span class="linenos">311</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-312"><a href="#L-312"><span class="linenos">312</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Exports the mass spectrum data to a JSON string.&quot;&quot;&quot;</span>
 </span><span id="L-313"><a href="#L-313"><span class="linenos">313</span></a>
 </span><span id="L-314"><a href="#L-314"><span class="linenos">314</span></a>        <span class="n">columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns_label</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_all_used_atoms_in_order</span><span class="p">(</span>
@@ -447,7 +447,7 @@
 </span><span id="L-325"><a href="#L-325"><span class="linenos">325</span></a>        <span class="c1"># output = json.dumps(dict_data, sort_keys=True, indent=4, separators=(&#39;,&#39;, &#39;: &#39;))</span>
 </span><span id="L-326"><a href="#L-326"><span class="linenos">326</span></a>        <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s2">&quot;records&quot;</span><span class="p">)</span>
 </span><span id="L-327"><a href="#L-327"><span class="linenos">327</span></a>
-</span><span id="L-328"><a href="#L-328"><span class="linenos">328</span></a>    <span class="k">def</span> <span class="nf">add_mass_spectrum_to_hdf5</span><span class="p">(</span>
+</span><span id="L-328"><a href="#L-328"><span class="linenos">328</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_mass_spectrum_to_hdf5</span><span class="p">(</span>
 </span><span id="L-329"><a href="#L-329"><span class="linenos">329</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-330"><a href="#L-330"><span class="linenos">330</span></a>        <span class="n">hdf_handle</span><span class="p">,</span>
 </span><span id="L-331"><a href="#L-331"><span class="linenos">331</span></a>        <span class="n">mass_spectrum</span><span class="p">,</span>
@@ -568,7 +568,7 @@
 </span><span id="L-446"><a href="#L-446"><span class="linenos">446</span></a>            <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;: &quot;</span><span class="p">),</span>
 </span><span id="L-447"><a href="#L-447"><span class="linenos">447</span></a>        <span class="p">)</span>
 </span><span id="L-448"><a href="#L-448"><span class="linenos">448</span></a>
-</span><span id="L-449"><a href="#L-449"><span class="linenos">449</span></a>    <span class="k">def</span> <span class="nf">to_hdf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-449"><a href="#L-449"><span class="linenos">449</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_hdf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-450"><a href="#L-450"><span class="linenos">450</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Exports the mass spectrum data to an HDF5 file.&quot;&quot;&quot;</span>
 </span><span id="L-451"><a href="#L-451"><span class="linenos">451</span></a>
 </span><span id="L-452"><a href="#L-452"><span class="linenos">452</span></a>        <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_file</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.hdf5&quot;</span><span class="p">),</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">hdf_handle</span><span class="p">:</span>
@@ -576,7 +576,7 @@
 </span><span id="L-454"><a href="#L-454"><span class="linenos">454</span></a>                <span class="n">hdf_handle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="o">.</span><span class="n">scan_number</span><span class="p">)</span>
 </span><span id="L-455"><a href="#L-455"><span class="linenos">455</span></a>            <span class="p">)</span>
 </span><span id="L-456"><a href="#L-456"><span class="linenos">456</span></a>
-</span><span id="L-457"><a href="#L-457"><span class="linenos">457</span></a>    <span class="k">def</span> <span class="nf">parameters_to_toml</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-457"><a href="#L-457"><span class="linenos">457</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parameters_to_toml</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-458"><a href="#L-458"><span class="linenos">458</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts the mass spectrum parameters to a TOML string.</span>
 </span><span id="L-459"><a href="#L-459"><span class="linenos">459</span></a>
 </span><span id="L-460"><a href="#L-460"><span class="linenos">460</span></a><span class="sd">        Returns</span>
@@ -596,7 +596,7 @@
 </span><span id="L-474"><a href="#L-474"><span class="linenos">474</span></a>
 </span><span id="L-475"><a href="#L-475"><span class="linenos">475</span></a>        <span class="k">return</span> <span class="n">output</span>
 </span><span id="L-476"><a href="#L-476"><span class="linenos">476</span></a>
-</span><span id="L-477"><a href="#L-477"><span class="linenos">477</span></a>    <span class="k">def</span> <span class="nf">parameters_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-477"><a href="#L-477"><span class="linenos">477</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parameters_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-478"><a href="#L-478"><span class="linenos">478</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts the mass spectrum parameters to a JSON string.</span>
 </span><span id="L-479"><a href="#L-479"><span class="linenos">479</span></a>
 </span><span id="L-480"><a href="#L-480"><span class="linenos">480</span></a><span class="sd">        Returns</span>
@@ -616,7 +616,7 @@
 </span><span id="L-494"><a href="#L-494"><span class="linenos">494</span></a>
 </span><span id="L-495"><a href="#L-495"><span class="linenos">495</span></a>        <span class="k">return</span> <span class="n">output</span>
 </span><span id="L-496"><a href="#L-496"><span class="linenos">496</span></a>
-</span><span id="L-497"><a href="#L-497"><span class="linenos">497</span></a>    <span class="k">def</span> <span class="nf">get_mass_spec_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+</span><span id="L-497"><a href="#L-497"><span class="linenos">497</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spec_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="L-498"><a href="#L-498"><span class="linenos">498</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the mass spectrum attributes as a dictionary.</span>
 </span><span id="L-499"><a href="#L-499"><span class="linenos">499</span></a>
 </span><span id="L-500"><a href="#L-500"><span class="linenos">500</span></a><span class="sd">        Parameters</span>
@@ -644,7 +644,7 @@
 </span><span id="L-522"><a href="#L-522"><span class="linenos">522</span></a>
 </span><span id="L-523"><a href="#L-523"><span class="linenos">523</span></a>        <span class="k">return</span> <span class="n">dict_ms_attrs</span>
 </span><span id="L-524"><a href="#L-524"><span class="linenos">524</span></a>
-</span><span id="L-525"><a href="#L-525"><span class="linenos">525</span></a>    <span class="k">def</span> <span class="nf">get_all_used_atoms_in_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+</span><span id="L-525"><a href="#L-525"><span class="linenos">525</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_used_atoms_in_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="L-526"><a href="#L-526"><span class="linenos">526</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the list of assigned atoms in the order specified by Atoms.atoms_order list.</span>
 </span><span id="L-527"><a href="#L-527"><span class="linenos">527</span></a>
 </span><span id="L-528"><a href="#L-528"><span class="linenos">528</span></a><span class="sd">        Parameters</span>
@@ -667,12 +667,12 @@
 </span><span id="L-545"><a href="#L-545"><span class="linenos">545</span></a>                        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">m_formula</span><span class="o">.</span><span class="n">atoms</span><span class="p">:</span>
 </span><span id="L-546"><a href="#L-546"><span class="linenos">546</span></a>                            <span class="n">all_used_atoms</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">atom</span><span class="p">)</span>
 </span><span id="L-547"><a href="#L-547"><span class="linenos">547</span></a>
-</span><span id="L-548"><a href="#L-548"><span class="linenos">548</span></a>        <span class="k">def</span> <span class="nf">sort_method</span><span class="p">(</span><span class="n">atom</span><span class="p">):</span>
+</span><span id="L-548"><a href="#L-548"><span class="linenos">548</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">sort_method</span><span class="p">(</span><span class="n">atom</span><span class="p">):</span>
 </span><span id="L-549"><a href="#L-549"><span class="linenos">549</span></a>            <span class="k">return</span> <span class="p">[</span><span class="n">atoms_in_order</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">atom</span><span class="p">)]</span>
 </span><span id="L-550"><a href="#L-550"><span class="linenos">550</span></a>
 </span><span id="L-551"><a href="#L-551"><span class="linenos">551</span></a>        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">all_used_atoms</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">sort_method</span><span class="p">)</span>
 </span><span id="L-552"><a href="#L-552"><span class="linenos">552</span></a>
-</span><span id="L-553"><a href="#L-553"><span class="linenos">553</span></a>    <span class="k">def</span> <span class="nf">list_dict_to_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">is_hdf5</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="L-553"><a href="#L-553"><span class="linenos">553</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">list_dict_to_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">is_hdf5</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="L-554"><a href="#L-554"><span class="linenos">554</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the mass spectrum data as a list of dictionaries.</span>
 </span><span id="L-555"><a href="#L-555"><span class="linenos">555</span></a>
 </span><span id="L-556"><a href="#L-556"><span class="linenos">556</span></a><span class="sd">        Parameters</span>
@@ -706,7 +706,7 @@
 </span><span id="L-584"><a href="#L-584"><span class="linenos">584</span></a>
 </span><span id="L-585"><a href="#L-585"><span class="linenos">585</span></a>        <span class="k">return</span> <span class="n">all_lines</span>
 </span><span id="L-586"><a href="#L-586"><span class="linenos">586</span></a>
-</span><span id="L-587"><a href="#L-587"><span class="linenos">587</span></a>    <span class="k">def</span> <span class="nf">get_list_dict_data</span><span class="p">(</span>
+</span><span id="L-587"><a href="#L-587"><span class="linenos">587</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_list_dict_data</span><span class="p">(</span>
 </span><span id="L-588"><a href="#L-588"><span class="linenos">588</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-589"><a href="#L-589"><span class="linenos">589</span></a>        <span class="n">mass_spectrum</span><span class="p">,</span>
 </span><span id="L-590"><a href="#L-590"><span class="linenos">590</span></a>        <span class="n">include_no_match</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -746,7 +746,7 @@
 </span><span id="L-624"><a href="#L-624"><span class="linenos">624</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="L-625"><a href="#L-625"><span class="linenos">625</span></a>            <span class="n">encode</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 </span><span id="L-626"><a href="#L-626"><span class="linenos">626</span></a>
-</span><span id="L-627"><a href="#L-627"><span class="linenos">627</span></a>        <span class="k">def</span> <span class="nf">add_no_match_dict_data</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">ms_peak</span><span class="p">):</span>
+</span><span id="L-627"><a href="#L-627"><span class="linenos">627</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">add_no_match_dict_data</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">ms_peak</span><span class="p">):</span>
 </span><span id="L-628"><a href="#L-628"><span class="linenos">628</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-629"><a href="#L-629"><span class="linenos">629</span></a><span class="sd">            Export dictionary of mspeak info for unassigned (no match) data</span>
 </span><span id="L-630"><a href="#L-630"><span class="linenos">630</span></a><span class="sd">            &quot;&quot;&quot;</span>
@@ -764,7 +764,7 @@
 </span><span id="L-642"><a href="#L-642"><span class="linenos">642</span></a>
 </span><span id="L-643"><a href="#L-643"><span class="linenos">643</span></a>            <span class="n">dict_data_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dict_result</span><span class="p">)</span>
 </span><span id="L-644"><a href="#L-644"><span class="linenos">644</span></a>
-</span><span id="L-645"><a href="#L-645"><span class="linenos">645</span></a>        <span class="k">def</span> <span class="nf">add_match_dict_data</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">ms_peak</span><span class="p">,</span> <span class="n">mformula</span><span class="p">,</span> <span class="n">additional_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="L-645"><a href="#L-645"><span class="linenos">645</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">add_match_dict_data</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">ms_peak</span><span class="p">,</span> <span class="n">mformula</span><span class="p">,</span> <span class="n">additional_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-646"><a href="#L-646"><span class="linenos">646</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-647"><a href="#L-647"><span class="linenos">647</span></a><span class="sd">            Export dictionary of mspeak info for assigned (match) data</span>
 </span><span id="L-648"><a href="#L-648"><span class="linenos">648</span></a><span class="sd">            &quot;&quot;&quot;</span>
@@ -958,7 +958,7 @@
 
     </div>
     <a class="headerlink" href="#HighResMassSpecExport"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport-20"><a href="#HighResMassSpecExport-20"><span class="linenos"> 20</span></a><span class="k">class</span> <span class="nc">HighResMassSpecExport</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport-20"><a href="#HighResMassSpecExport-20"><span class="linenos"> 20</span></a><span class="k">class</span><span class="w"> </span><span class="nc">HighResMassSpecExport</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport-21"><a href="#HighResMassSpecExport-21"><span class="linenos"> 21</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A class for exporting high-resolution mass spectra.</span>
 </span><span id="HighResMassSpecExport-22"><a href="#HighResMassSpecExport-22"><span class="linenos"> 22</span></a>
 </span><span id="HighResMassSpecExport-23"><a href="#HighResMassSpecExport-23"><span class="linenos"> 23</span></a><span class="sd">    Parameters</span>
@@ -1018,7 +1018,7 @@
 </span><span id="HighResMassSpecExport-77"><a href="#HighResMassSpecExport-77"><span class="linenos"> 77</span></a>
 </span><span id="HighResMassSpecExport-78"><a href="#HighResMassSpecExport-78"><span class="linenos"> 78</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="HighResMassSpecExport-79"><a href="#HighResMassSpecExport-79"><span class="linenos"> 79</span></a>
-</span><span id="HighResMassSpecExport-80"><a href="#HighResMassSpecExport-80"><span class="linenos"> 80</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_file_path</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">output_type</span><span class="o">=</span><span class="s2">&quot;excel&quot;</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport-80"><a href="#HighResMassSpecExport-80"><span class="linenos"> 80</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_file_path</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">output_type</span><span class="o">=</span><span class="s2">&quot;excel&quot;</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport-81"><a href="#HighResMassSpecExport-81"><span class="linenos"> 81</span></a>        <span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 </span><span id="HighResMassSpecExport-82"><a href="#HighResMassSpecExport-82"><span class="linenos"> 82</span></a>
 </span><span id="HighResMassSpecExport-83"><a href="#HighResMassSpecExport-83"><span class="linenos"> 83</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">output_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">out_file_path</span><span class="p">)</span>
@@ -1033,7 +1033,7 @@
 </span><span id="HighResMassSpecExport-92"><a href="#HighResMassSpecExport-92"><span class="linenos"> 92</span></a>
 </span><span id="HighResMassSpecExport-93"><a href="#HighResMassSpecExport-93"><span class="linenos"> 93</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_init_columns</span><span class="p">()</span>
 </span><span id="HighResMassSpecExport-94"><a href="#HighResMassSpecExport-94"><span class="linenos"> 94</span></a>
-</span><span id="HighResMassSpecExport-95"><a href="#HighResMassSpecExport-95"><span class="linenos"> 95</span></a>    <span class="k">def</span> <span class="nf">_init_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport-95"><a href="#HighResMassSpecExport-95"><span class="linenos"> 95</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_init_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport-96"><a href="#HighResMassSpecExport-96"><span class="linenos"> 96</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the columns for the mass spectrum output.&quot;&quot;&quot;</span>
 </span><span id="HighResMassSpecExport-97"><a href="#HighResMassSpecExport-97"><span class="linenos"> 97</span></a>        <span class="c1"># column labels in order</span>
 </span><span id="HighResMassSpecExport-98"><a href="#HighResMassSpecExport-98"><span class="linenos"> 98</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">columns_label</span> <span class="o">=</span> <span class="p">[</span>
@@ -1062,12 +1062,12 @@
 </span><span id="HighResMassSpecExport-121"><a href="#HighResMassSpecExport-121"><span class="linenos">121</span></a>        <span class="p">]</span>
 </span><span id="HighResMassSpecExport-122"><a href="#HighResMassSpecExport-122"><span class="linenos">122</span></a>
 </span><span id="HighResMassSpecExport-123"><a href="#HighResMassSpecExport-123"><span class="linenos">123</span></a>    <span class="nd">@property</span>
-</span><span id="HighResMassSpecExport-124"><a href="#HighResMassSpecExport-124"><span class="linenos">124</span></a>    <span class="k">def</span> <span class="nf">output_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport-124"><a href="#HighResMassSpecExport-124"><span class="linenos">124</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">output_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport-125"><a href="#HighResMassSpecExport-125"><span class="linenos">125</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the output type of the mass spectrum.&quot;&quot;&quot;</span>
 </span><span id="HighResMassSpecExport-126"><a href="#HighResMassSpecExport-126"><span class="linenos">126</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_type</span>
 </span><span id="HighResMassSpecExport-127"><a href="#HighResMassSpecExport-127"><span class="linenos">127</span></a>
 </span><span id="HighResMassSpecExport-128"><a href="#HighResMassSpecExport-128"><span class="linenos">128</span></a>    <span class="nd">@output_type</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="HighResMassSpecExport-129"><a href="#HighResMassSpecExport-129"><span class="linenos">129</span></a>    <span class="k">def</span> <span class="nf">output_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_type</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport-129"><a href="#HighResMassSpecExport-129"><span class="linenos">129</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">output_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_type</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport-130"><a href="#HighResMassSpecExport-130"><span class="linenos">130</span></a>        <span class="n">output_types</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;excel&quot;</span><span class="p">,</span> <span class="s2">&quot;csv&quot;</span><span class="p">,</span> <span class="s2">&quot;pandas&quot;</span><span class="p">,</span> <span class="s2">&quot;hdf5&quot;</span><span class="p">]</span>
 </span><span id="HighResMassSpecExport-131"><a href="#HighResMassSpecExport-131"><span class="linenos">131</span></a>        <span class="k">if</span> <span class="n">output_type</span> <span class="ow">in</span> <span class="n">output_types</span><span class="p">:</span>
 </span><span id="HighResMassSpecExport-132"><a href="#HighResMassSpecExport-132"><span class="linenos">132</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_output_type</span> <span class="o">=</span> <span class="n">output_type</span>
@@ -1077,7 +1077,7 @@
 </span><span id="HighResMassSpecExport-136"><a href="#HighResMassSpecExport-136"><span class="linenos">136</span></a>                <span class="o">%</span> <span class="n">output_type</span>
 </span><span id="HighResMassSpecExport-137"><a href="#HighResMassSpecExport-137"><span class="linenos">137</span></a>            <span class="p">)</span>
 </span><span id="HighResMassSpecExport-138"><a href="#HighResMassSpecExport-138"><span class="linenos">138</span></a>
-</span><span id="HighResMassSpecExport-139"><a href="#HighResMassSpecExport-139"><span class="linenos">139</span></a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport-139"><a href="#HighResMassSpecExport-139"><span class="linenos">139</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport-140"><a href="#HighResMassSpecExport-140"><span class="linenos">140</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Save the mass spectrum data to the output file.</span>
 </span><span id="HighResMassSpecExport-141"><a href="#HighResMassSpecExport-141"><span class="linenos">141</span></a>
 </span><span id="HighResMassSpecExport-142"><a href="#HighResMassSpecExport-142"><span class="linenos">142</span></a><span class="sd">        Raises</span>
@@ -1100,14 +1100,14 @@
 </span><span id="HighResMassSpecExport-159"><a href="#HighResMassSpecExport-159"><span class="linenos">159</span></a>                <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_type</span>
 </span><span id="HighResMassSpecExport-160"><a href="#HighResMassSpecExport-160"><span class="linenos">160</span></a>            <span class="p">)</span>
 </span><span id="HighResMassSpecExport-161"><a href="#HighResMassSpecExport-161"><span class="linenos">161</span></a>
-</span><span id="HighResMassSpecExport-162"><a href="#HighResMassSpecExport-162"><span class="linenos">162</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport-162"><a href="#HighResMassSpecExport-162"><span class="linenos">162</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport-163"><a href="#HighResMassSpecExport-163"><span class="linenos">163</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the export process.</span>
 </span><span id="HighResMassSpecExport-164"><a href="#HighResMassSpecExport-164"><span class="linenos">164</span></a>
 </span><span id="HighResMassSpecExport-165"><a href="#HighResMassSpecExport-165"><span class="linenos">165</span></a><span class="sd">        This method is called when the thread starts.</span>
 </span><span id="HighResMassSpecExport-166"><a href="#HighResMassSpecExport-166"><span class="linenos">166</span></a><span class="sd">        It calls the save method to perform the export.&quot;&quot;&quot;</span>
 </span><span id="HighResMassSpecExport-167"><a href="#HighResMassSpecExport-167"><span class="linenos">167</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 </span><span id="HighResMassSpecExport-168"><a href="#HighResMassSpecExport-168"><span class="linenos">168</span></a>
-</span><span id="HighResMassSpecExport-169"><a href="#HighResMassSpecExport-169"><span class="linenos">169</span></a>    <span class="k">def</span> <span class="nf">get_pandas_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">additional_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport-169"><a href="#HighResMassSpecExport-169"><span class="linenos">169</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_pandas_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">additional_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport-170"><a href="#HighResMassSpecExport-170"><span class="linenos">170</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the mass spectrum data as a pandas DataFrame.</span>
 </span><span id="HighResMassSpecExport-171"><a href="#HighResMassSpecExport-171"><span class="linenos">171</span></a>
 </span><span id="HighResMassSpecExport-172"><a href="#HighResMassSpecExport-172"><span class="linenos">172</span></a><span class="sd">        Parameters</span>
@@ -1147,7 +1147,7 @@
 </span><span id="HighResMassSpecExport-206"><a href="#HighResMassSpecExport-206"><span class="linenos">206</span></a>        <span class="n">df</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_file</span>
 </span><span id="HighResMassSpecExport-207"><a href="#HighResMassSpecExport-207"><span class="linenos">207</span></a>        <span class="k">return</span> <span class="n">df</span>
 </span><span id="HighResMassSpecExport-208"><a href="#HighResMassSpecExport-208"><span class="linenos">208</span></a>
-</span><span id="HighResMassSpecExport-209"><a href="#HighResMassSpecExport-209"><span class="linenos">209</span></a>    <span class="k">def</span> <span class="nf">write_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport-209"><a href="#HighResMassSpecExport-209"><span class="linenos">209</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">write_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport-210"><a href="#HighResMassSpecExport-210"><span class="linenos">210</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Writes the settings of the mass spectrum to a JSON file.</span>
 </span><span id="HighResMassSpecExport-211"><a href="#HighResMassSpecExport-211"><span class="linenos">211</span></a>
 </span><span id="HighResMassSpecExport-212"><a href="#HighResMassSpecExport-212"><span class="linenos">212</span></a><span class="sd">        Parameters</span>
@@ -1158,7 +1158,7 @@
 </span><span id="HighResMassSpecExport-217"><a href="#HighResMassSpecExport-217"><span class="linenos">217</span></a><span class="sd">            The mass spectrum to export.</span>
 </span><span id="HighResMassSpecExport-218"><a href="#HighResMassSpecExport-218"><span class="linenos">218</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="HighResMassSpecExport-219"><a href="#HighResMassSpecExport-219"><span class="linenos">219</span></a>
-</span><span id="HighResMassSpecExport-220"><a href="#HighResMassSpecExport-220"><span class="linenos">220</span></a>        <span class="kn">import</span> <span class="nn">json</span>
+</span><span id="HighResMassSpecExport-220"><a href="#HighResMassSpecExport-220"><span class="linenos">220</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 </span><span id="HighResMassSpecExport-221"><a href="#HighResMassSpecExport-221"><span class="linenos">221</span></a>
 </span><span id="HighResMassSpecExport-222"><a href="#HighResMassSpecExport-222"><span class="linenos">222</span></a>        <span class="n">dict_setting</span> <span class="o">=</span> <span class="n">parameter_to_dict</span><span class="o">.</span><span class="n">get_dict_data_ms</span><span class="p">(</span><span class="n">mass_spectrum</span><span class="p">)</span>
 </span><span id="HighResMassSpecExport-223"><a href="#HighResMassSpecExport-223"><span class="linenos">223</span></a>
@@ -1177,7 +1177,7 @@
 </span><span id="HighResMassSpecExport-236"><a href="#HighResMassSpecExport-236"><span class="linenos">236</span></a>            <span class="p">)</span>
 </span><span id="HighResMassSpecExport-237"><a href="#HighResMassSpecExport-237"><span class="linenos">237</span></a>            <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
 </span><span id="HighResMassSpecExport-238"><a href="#HighResMassSpecExport-238"><span class="linenos">238</span></a>
-</span><span id="HighResMassSpecExport-239"><a href="#HighResMassSpecExport-239"><span class="linenos">239</span></a>    <span class="k">def</span> <span class="nf">to_pandas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">write_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport-239"><a href="#HighResMassSpecExport-239"><span class="linenos">239</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_pandas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">write_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport-240"><a href="#HighResMassSpecExport-240"><span class="linenos">240</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Exports the mass spectrum data to a pandas DataFrame and saves it as a pickle file.</span>
 </span><span id="HighResMassSpecExport-241"><a href="#HighResMassSpecExport-241"><span class="linenos">241</span></a>
 </span><span id="HighResMassSpecExport-242"><a href="#HighResMassSpecExport-242"><span class="linenos">242</span></a><span class="sd">        Parameters</span>
@@ -1199,7 +1199,7 @@
 </span><span id="HighResMassSpecExport-258"><a href="#HighResMassSpecExport-258"><span class="linenos">258</span></a>        <span class="k">if</span> <span class="n">write_metadata</span><span class="p">:</span>
 </span><span id="HighResMassSpecExport-259"><a href="#HighResMassSpecExport-259"><span class="linenos">259</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">write_settings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_file</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="p">)</span>
 </span><span id="HighResMassSpecExport-260"><a href="#HighResMassSpecExport-260"><span class="linenos">260</span></a>
-</span><span id="HighResMassSpecExport-261"><a href="#HighResMassSpecExport-261"><span class="linenos">261</span></a>    <span class="k">def</span> <span class="nf">to_excel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">write_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport-261"><a href="#HighResMassSpecExport-261"><span class="linenos">261</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_excel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">write_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport-262"><a href="#HighResMassSpecExport-262"><span class="linenos">262</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Exports the mass spectrum data to an Excel file.</span>
 </span><span id="HighResMassSpecExport-263"><a href="#HighResMassSpecExport-263"><span class="linenos">263</span></a>
 </span><span id="HighResMassSpecExport-264"><a href="#HighResMassSpecExport-264"><span class="linenos">264</span></a><span class="sd">        Parameters</span>
@@ -1221,7 +1221,7 @@
 </span><span id="HighResMassSpecExport-280"><a href="#HighResMassSpecExport-280"><span class="linenos">280</span></a>        <span class="k">if</span> <span class="n">write_metadata</span><span class="p">:</span>
 </span><span id="HighResMassSpecExport-281"><a href="#HighResMassSpecExport-281"><span class="linenos">281</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">write_settings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_file</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="p">)</span>
 </span><span id="HighResMassSpecExport-282"><a href="#HighResMassSpecExport-282"><span class="linenos">282</span></a>
-</span><span id="HighResMassSpecExport-283"><a href="#HighResMassSpecExport-283"><span class="linenos">283</span></a>    <span class="k">def</span> <span class="nf">to_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">write_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport-283"><a href="#HighResMassSpecExport-283"><span class="linenos">283</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">write_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport-284"><a href="#HighResMassSpecExport-284"><span class="linenos">284</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Exports the mass spectrum data to a CSV file.</span>
 </span><span id="HighResMassSpecExport-285"><a href="#HighResMassSpecExport-285"><span class="linenos">285</span></a>
 </span><span id="HighResMassSpecExport-286"><a href="#HighResMassSpecExport-286"><span class="linenos">286</span></a><span class="sd">        Parameters</span>
@@ -1236,7 +1236,7 @@
 </span><span id="HighResMassSpecExport-295"><a href="#HighResMassSpecExport-295"><span class="linenos">295</span></a>
 </span><span id="HighResMassSpecExport-296"><a href="#HighResMassSpecExport-296"><span class="linenos">296</span></a>        <span class="n">dict_data_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_list_dict_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="p">)</span>
 </span><span id="HighResMassSpecExport-297"><a href="#HighResMassSpecExport-297"><span class="linenos">297</span></a>
-</span><span id="HighResMassSpecExport-298"><a href="#HighResMassSpecExport-298"><span class="linenos">298</span></a>        <span class="kn">import</span> <span class="nn">csv</span>
+</span><span id="HighResMassSpecExport-298"><a href="#HighResMassSpecExport-298"><span class="linenos">298</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
 </span><span id="HighResMassSpecExport-299"><a href="#HighResMassSpecExport-299"><span class="linenos">299</span></a>
 </span><span id="HighResMassSpecExport-300"><a href="#HighResMassSpecExport-300"><span class="linenos">300</span></a>        <span class="k">try</span><span class="p">:</span>
 </span><span id="HighResMassSpecExport-301"><a href="#HighResMassSpecExport-301"><span class="linenos">301</span></a>            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_file</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.csv&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
@@ -1250,7 +1250,7 @@
 </span><span id="HighResMassSpecExport-309"><a href="#HighResMassSpecExport-309"><span class="linenos">309</span></a>        <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ioerror</span><span class="p">:</span>
 </span><span id="HighResMassSpecExport-310"><a href="#HighResMassSpecExport-310"><span class="linenos">310</span></a>            <span class="nb">print</span><span class="p">(</span><span class="n">ioerror</span><span class="p">)</span>
 </span><span id="HighResMassSpecExport-311"><a href="#HighResMassSpecExport-311"><span class="linenos">311</span></a>
-</span><span id="HighResMassSpecExport-312"><a href="#HighResMassSpecExport-312"><span class="linenos">312</span></a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport-312"><a href="#HighResMassSpecExport-312"><span class="linenos">312</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport-313"><a href="#HighResMassSpecExport-313"><span class="linenos">313</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Exports the mass spectrum data to a JSON string.&quot;&quot;&quot;</span>
 </span><span id="HighResMassSpecExport-314"><a href="#HighResMassSpecExport-314"><span class="linenos">314</span></a>
 </span><span id="HighResMassSpecExport-315"><a href="#HighResMassSpecExport-315"><span class="linenos">315</span></a>        <span class="n">columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns_label</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_all_used_atoms_in_order</span><span class="p">(</span>
@@ -1267,7 +1267,7 @@
 </span><span id="HighResMassSpecExport-326"><a href="#HighResMassSpecExport-326"><span class="linenos">326</span></a>        <span class="c1"># output = json.dumps(dict_data, sort_keys=True, indent=4, separators=(&#39;,&#39;, &#39;: &#39;))</span>
 </span><span id="HighResMassSpecExport-327"><a href="#HighResMassSpecExport-327"><span class="linenos">327</span></a>        <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s2">&quot;records&quot;</span><span class="p">)</span>
 </span><span id="HighResMassSpecExport-328"><a href="#HighResMassSpecExport-328"><span class="linenos">328</span></a>
-</span><span id="HighResMassSpecExport-329"><a href="#HighResMassSpecExport-329"><span class="linenos">329</span></a>    <span class="k">def</span> <span class="nf">add_mass_spectrum_to_hdf5</span><span class="p">(</span>
+</span><span id="HighResMassSpecExport-329"><a href="#HighResMassSpecExport-329"><span class="linenos">329</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_mass_spectrum_to_hdf5</span><span class="p">(</span>
 </span><span id="HighResMassSpecExport-330"><a href="#HighResMassSpecExport-330"><span class="linenos">330</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="HighResMassSpecExport-331"><a href="#HighResMassSpecExport-331"><span class="linenos">331</span></a>        <span class="n">hdf_handle</span><span class="p">,</span>
 </span><span id="HighResMassSpecExport-332"><a href="#HighResMassSpecExport-332"><span class="linenos">332</span></a>        <span class="n">mass_spectrum</span><span class="p">,</span>
@@ -1388,7 +1388,7 @@
 </span><span id="HighResMassSpecExport-447"><a href="#HighResMassSpecExport-447"><span class="linenos">447</span></a>            <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;: &quot;</span><span class="p">),</span>
 </span><span id="HighResMassSpecExport-448"><a href="#HighResMassSpecExport-448"><span class="linenos">448</span></a>        <span class="p">)</span>
 </span><span id="HighResMassSpecExport-449"><a href="#HighResMassSpecExport-449"><span class="linenos">449</span></a>
-</span><span id="HighResMassSpecExport-450"><a href="#HighResMassSpecExport-450"><span class="linenos">450</span></a>    <span class="k">def</span> <span class="nf">to_hdf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport-450"><a href="#HighResMassSpecExport-450"><span class="linenos">450</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_hdf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport-451"><a href="#HighResMassSpecExport-451"><span class="linenos">451</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Exports the mass spectrum data to an HDF5 file.&quot;&quot;&quot;</span>
 </span><span id="HighResMassSpecExport-452"><a href="#HighResMassSpecExport-452"><span class="linenos">452</span></a>
 </span><span id="HighResMassSpecExport-453"><a href="#HighResMassSpecExport-453"><span class="linenos">453</span></a>        <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_file</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.hdf5&quot;</span><span class="p">),</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">hdf_handle</span><span class="p">:</span>
@@ -1396,7 +1396,7 @@
 </span><span id="HighResMassSpecExport-455"><a href="#HighResMassSpecExport-455"><span class="linenos">455</span></a>                <span class="n">hdf_handle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="o">.</span><span class="n">scan_number</span><span class="p">)</span>
 </span><span id="HighResMassSpecExport-456"><a href="#HighResMassSpecExport-456"><span class="linenos">456</span></a>            <span class="p">)</span>
 </span><span id="HighResMassSpecExport-457"><a href="#HighResMassSpecExport-457"><span class="linenos">457</span></a>
-</span><span id="HighResMassSpecExport-458"><a href="#HighResMassSpecExport-458"><span class="linenos">458</span></a>    <span class="k">def</span> <span class="nf">parameters_to_toml</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport-458"><a href="#HighResMassSpecExport-458"><span class="linenos">458</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parameters_to_toml</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport-459"><a href="#HighResMassSpecExport-459"><span class="linenos">459</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts the mass spectrum parameters to a TOML string.</span>
 </span><span id="HighResMassSpecExport-460"><a href="#HighResMassSpecExport-460"><span class="linenos">460</span></a>
 </span><span id="HighResMassSpecExport-461"><a href="#HighResMassSpecExport-461"><span class="linenos">461</span></a><span class="sd">        Returns</span>
@@ -1416,7 +1416,7 @@
 </span><span id="HighResMassSpecExport-475"><a href="#HighResMassSpecExport-475"><span class="linenos">475</span></a>
 </span><span id="HighResMassSpecExport-476"><a href="#HighResMassSpecExport-476"><span class="linenos">476</span></a>        <span class="k">return</span> <span class="n">output</span>
 </span><span id="HighResMassSpecExport-477"><a href="#HighResMassSpecExport-477"><span class="linenos">477</span></a>
-</span><span id="HighResMassSpecExport-478"><a href="#HighResMassSpecExport-478"><span class="linenos">478</span></a>    <span class="k">def</span> <span class="nf">parameters_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport-478"><a href="#HighResMassSpecExport-478"><span class="linenos">478</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parameters_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport-479"><a href="#HighResMassSpecExport-479"><span class="linenos">479</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts the mass spectrum parameters to a JSON string.</span>
 </span><span id="HighResMassSpecExport-480"><a href="#HighResMassSpecExport-480"><span class="linenos">480</span></a>
 </span><span id="HighResMassSpecExport-481"><a href="#HighResMassSpecExport-481"><span class="linenos">481</span></a><span class="sd">        Returns</span>
@@ -1436,7 +1436,7 @@
 </span><span id="HighResMassSpecExport-495"><a href="#HighResMassSpecExport-495"><span class="linenos">495</span></a>
 </span><span id="HighResMassSpecExport-496"><a href="#HighResMassSpecExport-496"><span class="linenos">496</span></a>        <span class="k">return</span> <span class="n">output</span>
 </span><span id="HighResMassSpecExport-497"><a href="#HighResMassSpecExport-497"><span class="linenos">497</span></a>
-</span><span id="HighResMassSpecExport-498"><a href="#HighResMassSpecExport-498"><span class="linenos">498</span></a>    <span class="k">def</span> <span class="nf">get_mass_spec_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport-498"><a href="#HighResMassSpecExport-498"><span class="linenos">498</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spec_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport-499"><a href="#HighResMassSpecExport-499"><span class="linenos">499</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the mass spectrum attributes as a dictionary.</span>
 </span><span id="HighResMassSpecExport-500"><a href="#HighResMassSpecExport-500"><span class="linenos">500</span></a>
 </span><span id="HighResMassSpecExport-501"><a href="#HighResMassSpecExport-501"><span class="linenos">501</span></a><span class="sd">        Parameters</span>
@@ -1464,7 +1464,7 @@
 </span><span id="HighResMassSpecExport-523"><a href="#HighResMassSpecExport-523"><span class="linenos">523</span></a>
 </span><span id="HighResMassSpecExport-524"><a href="#HighResMassSpecExport-524"><span class="linenos">524</span></a>        <span class="k">return</span> <span class="n">dict_ms_attrs</span>
 </span><span id="HighResMassSpecExport-525"><a href="#HighResMassSpecExport-525"><span class="linenos">525</span></a>
-</span><span id="HighResMassSpecExport-526"><a href="#HighResMassSpecExport-526"><span class="linenos">526</span></a>    <span class="k">def</span> <span class="nf">get_all_used_atoms_in_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport-526"><a href="#HighResMassSpecExport-526"><span class="linenos">526</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_used_atoms_in_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport-527"><a href="#HighResMassSpecExport-527"><span class="linenos">527</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the list of assigned atoms in the order specified by Atoms.atoms_order list.</span>
 </span><span id="HighResMassSpecExport-528"><a href="#HighResMassSpecExport-528"><span class="linenos">528</span></a>
 </span><span id="HighResMassSpecExport-529"><a href="#HighResMassSpecExport-529"><span class="linenos">529</span></a><span class="sd">        Parameters</span>
@@ -1487,12 +1487,12 @@
 </span><span id="HighResMassSpecExport-546"><a href="#HighResMassSpecExport-546"><span class="linenos">546</span></a>                        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">m_formula</span><span class="o">.</span><span class="n">atoms</span><span class="p">:</span>
 </span><span id="HighResMassSpecExport-547"><a href="#HighResMassSpecExport-547"><span class="linenos">547</span></a>                            <span class="n">all_used_atoms</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">atom</span><span class="p">)</span>
 </span><span id="HighResMassSpecExport-548"><a href="#HighResMassSpecExport-548"><span class="linenos">548</span></a>
-</span><span id="HighResMassSpecExport-549"><a href="#HighResMassSpecExport-549"><span class="linenos">549</span></a>        <span class="k">def</span> <span class="nf">sort_method</span><span class="p">(</span><span class="n">atom</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport-549"><a href="#HighResMassSpecExport-549"><span class="linenos">549</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">sort_method</span><span class="p">(</span><span class="n">atom</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport-550"><a href="#HighResMassSpecExport-550"><span class="linenos">550</span></a>            <span class="k">return</span> <span class="p">[</span><span class="n">atoms_in_order</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">atom</span><span class="p">)]</span>
 </span><span id="HighResMassSpecExport-551"><a href="#HighResMassSpecExport-551"><span class="linenos">551</span></a>
 </span><span id="HighResMassSpecExport-552"><a href="#HighResMassSpecExport-552"><span class="linenos">552</span></a>        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">all_used_atoms</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">sort_method</span><span class="p">)</span>
 </span><span id="HighResMassSpecExport-553"><a href="#HighResMassSpecExport-553"><span class="linenos">553</span></a>
-</span><span id="HighResMassSpecExport-554"><a href="#HighResMassSpecExport-554"><span class="linenos">554</span></a>    <span class="k">def</span> <span class="nf">list_dict_to_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">is_hdf5</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport-554"><a href="#HighResMassSpecExport-554"><span class="linenos">554</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">list_dict_to_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">is_hdf5</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport-555"><a href="#HighResMassSpecExport-555"><span class="linenos">555</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the mass spectrum data as a list of dictionaries.</span>
 </span><span id="HighResMassSpecExport-556"><a href="#HighResMassSpecExport-556"><span class="linenos">556</span></a>
 </span><span id="HighResMassSpecExport-557"><a href="#HighResMassSpecExport-557"><span class="linenos">557</span></a><span class="sd">        Parameters</span>
@@ -1526,7 +1526,7 @@
 </span><span id="HighResMassSpecExport-585"><a href="#HighResMassSpecExport-585"><span class="linenos">585</span></a>
 </span><span id="HighResMassSpecExport-586"><a href="#HighResMassSpecExport-586"><span class="linenos">586</span></a>        <span class="k">return</span> <span class="n">all_lines</span>
 </span><span id="HighResMassSpecExport-587"><a href="#HighResMassSpecExport-587"><span class="linenos">587</span></a>
-</span><span id="HighResMassSpecExport-588"><a href="#HighResMassSpecExport-588"><span class="linenos">588</span></a>    <span class="k">def</span> <span class="nf">get_list_dict_data</span><span class="p">(</span>
+</span><span id="HighResMassSpecExport-588"><a href="#HighResMassSpecExport-588"><span class="linenos">588</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_list_dict_data</span><span class="p">(</span>
 </span><span id="HighResMassSpecExport-589"><a href="#HighResMassSpecExport-589"><span class="linenos">589</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="HighResMassSpecExport-590"><a href="#HighResMassSpecExport-590"><span class="linenos">590</span></a>        <span class="n">mass_spectrum</span><span class="p">,</span>
 </span><span id="HighResMassSpecExport-591"><a href="#HighResMassSpecExport-591"><span class="linenos">591</span></a>        <span class="n">include_no_match</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -1566,7 +1566,7 @@
 </span><span id="HighResMassSpecExport-625"><a href="#HighResMassSpecExport-625"><span class="linenos">625</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="HighResMassSpecExport-626"><a href="#HighResMassSpecExport-626"><span class="linenos">626</span></a>            <span class="n">encode</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 </span><span id="HighResMassSpecExport-627"><a href="#HighResMassSpecExport-627"><span class="linenos">627</span></a>
-</span><span id="HighResMassSpecExport-628"><a href="#HighResMassSpecExport-628"><span class="linenos">628</span></a>        <span class="k">def</span> <span class="nf">add_no_match_dict_data</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">ms_peak</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport-628"><a href="#HighResMassSpecExport-628"><span class="linenos">628</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">add_no_match_dict_data</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">ms_peak</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport-629"><a href="#HighResMassSpecExport-629"><span class="linenos">629</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="HighResMassSpecExport-630"><a href="#HighResMassSpecExport-630"><span class="linenos">630</span></a><span class="sd">            Export dictionary of mspeak info for unassigned (no match) data</span>
 </span><span id="HighResMassSpecExport-631"><a href="#HighResMassSpecExport-631"><span class="linenos">631</span></a><span class="sd">            &quot;&quot;&quot;</span>
@@ -1584,7 +1584,7 @@
 </span><span id="HighResMassSpecExport-643"><a href="#HighResMassSpecExport-643"><span class="linenos">643</span></a>
 </span><span id="HighResMassSpecExport-644"><a href="#HighResMassSpecExport-644"><span class="linenos">644</span></a>            <span class="n">dict_data_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dict_result</span><span class="p">)</span>
 </span><span id="HighResMassSpecExport-645"><a href="#HighResMassSpecExport-645"><span class="linenos">645</span></a>
-</span><span id="HighResMassSpecExport-646"><a href="#HighResMassSpecExport-646"><span class="linenos">646</span></a>        <span class="k">def</span> <span class="nf">add_match_dict_data</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">ms_peak</span><span class="p">,</span> <span class="n">mformula</span><span class="p">,</span> <span class="n">additional_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport-646"><a href="#HighResMassSpecExport-646"><span class="linenos">646</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">add_match_dict_data</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">ms_peak</span><span class="p">,</span> <span class="n">mformula</span><span class="p">,</span> <span class="n">additional_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport-647"><a href="#HighResMassSpecExport-647"><span class="linenos">647</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="HighResMassSpecExport-648"><a href="#HighResMassSpecExport-648"><span class="linenos">648</span></a><span class="sd">            Export dictionary of mspeak info for assigned (match) data</span>
 </span><span id="HighResMassSpecExport-649"><a href="#HighResMassSpecExport-649"><span class="linenos">649</span></a><span class="sd">            &quot;&quot;&quot;</span>
@@ -1841,7 +1841,7 @@ Returns the mass spectrum data as a list of dictionaries.</li>
 
     </div>
     <a class="headerlink" href="#HighResMassSpecExport.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.__init__-80"><a href="#HighResMassSpecExport.__init__-80"><span class="linenos">80</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_file_path</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">output_type</span><span class="o">=</span><span class="s2">&quot;excel&quot;</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.__init__-80"><a href="#HighResMassSpecExport.__init__-80"><span class="linenos">80</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_file_path</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">output_type</span><span class="o">=</span><span class="s2">&quot;excel&quot;</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport.__init__-81"><a href="#HighResMassSpecExport.__init__-81"><span class="linenos">81</span></a>        <span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 </span><span id="HighResMassSpecExport.__init__-82"><a href="#HighResMassSpecExport.__init__-82"><span class="linenos">82</span></a>
 </span><span id="HighResMassSpecExport.__init__-83"><a href="#HighResMassSpecExport.__init__-83"><span class="linenos">83</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">output_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">out_file_path</span><span class="p">)</span>
@@ -1938,7 +1938,7 @@ else to the thread.</p>
 
     </div>
     <a class="headerlink" href="#HighResMassSpecExport.save"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.save-139"><a href="#HighResMassSpecExport.save-139"><span class="linenos">139</span></a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.save-139"><a href="#HighResMassSpecExport.save-139"><span class="linenos">139</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport.save-140"><a href="#HighResMassSpecExport.save-140"><span class="linenos">140</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Save the mass spectrum data to the output file.</span>
 </span><span id="HighResMassSpecExport.save-141"><a href="#HighResMassSpecExport.save-141"><span class="linenos">141</span></a>
 </span><span id="HighResMassSpecExport.save-142"><a href="#HighResMassSpecExport.save-142"><span class="linenos">142</span></a><span class="sd">        Raises</span>
@@ -1985,7 +1985,7 @@ else to the thread.</p>
 
     </div>
     <a class="headerlink" href="#HighResMassSpecExport.run"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.run-162"><a href="#HighResMassSpecExport.run-162"><span class="linenos">162</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.run-162"><a href="#HighResMassSpecExport.run-162"><span class="linenos">162</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport.run-163"><a href="#HighResMassSpecExport.run-163"><span class="linenos">163</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the export process.</span>
 </span><span id="HighResMassSpecExport.run-164"><a href="#HighResMassSpecExport.run-164"><span class="linenos">164</span></a>
 </span><span id="HighResMassSpecExport.run-165"><a href="#HighResMassSpecExport.run-165"><span class="linenos">165</span></a><span class="sd">        This method is called when the thread starts.</span>
@@ -2013,7 +2013,7 @@ It calls the save method to perform the export.</p>
 
     </div>
     <a class="headerlink" href="#HighResMassSpecExport.get_pandas_df"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.get_pandas_df-169"><a href="#HighResMassSpecExport.get_pandas_df-169"><span class="linenos">169</span></a>    <span class="k">def</span> <span class="nf">get_pandas_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">additional_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.get_pandas_df-169"><a href="#HighResMassSpecExport.get_pandas_df-169"><span class="linenos">169</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_pandas_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">additional_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport.get_pandas_df-170"><a href="#HighResMassSpecExport.get_pandas_df-170"><span class="linenos">170</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the mass spectrum data as a pandas DataFrame.</span>
 </span><span id="HighResMassSpecExport.get_pandas_df-171"><a href="#HighResMassSpecExport.get_pandas_df-171"><span class="linenos">171</span></a>
 </span><span id="HighResMassSpecExport.get_pandas_df-172"><a href="#HighResMassSpecExport.get_pandas_df-172"><span class="linenos">172</span></a><span class="sd">        Parameters</span>
@@ -2085,7 +2085,7 @@ Suitable additional columns are: 'Aromaticity Index', 'NOSC', 'Aromaticity Index
 
     </div>
     <a class="headerlink" href="#HighResMassSpecExport.write_settings"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.write_settings-209"><a href="#HighResMassSpecExport.write_settings-209"><span class="linenos">209</span></a>    <span class="k">def</span> <span class="nf">write_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.write_settings-209"><a href="#HighResMassSpecExport.write_settings-209"><span class="linenos">209</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">write_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport.write_settings-210"><a href="#HighResMassSpecExport.write_settings-210"><span class="linenos">210</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Writes the settings of the mass spectrum to a JSON file.</span>
 </span><span id="HighResMassSpecExport.write_settings-211"><a href="#HighResMassSpecExport.write_settings-211"><span class="linenos">211</span></a>
 </span><span id="HighResMassSpecExport.write_settings-212"><a href="#HighResMassSpecExport.write_settings-212"><span class="linenos">212</span></a><span class="sd">        Parameters</span>
@@ -2096,7 +2096,7 @@ Suitable additional columns are: 'Aromaticity Index', 'NOSC', 'Aromaticity Index
 </span><span id="HighResMassSpecExport.write_settings-217"><a href="#HighResMassSpecExport.write_settings-217"><span class="linenos">217</span></a><span class="sd">            The mass spectrum to export.</span>
 </span><span id="HighResMassSpecExport.write_settings-218"><a href="#HighResMassSpecExport.write_settings-218"><span class="linenos">218</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="HighResMassSpecExport.write_settings-219"><a href="#HighResMassSpecExport.write_settings-219"><span class="linenos">219</span></a>
-</span><span id="HighResMassSpecExport.write_settings-220"><a href="#HighResMassSpecExport.write_settings-220"><span class="linenos">220</span></a>        <span class="kn">import</span> <span class="nn">json</span>
+</span><span id="HighResMassSpecExport.write_settings-220"><a href="#HighResMassSpecExport.write_settings-220"><span class="linenos">220</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 </span><span id="HighResMassSpecExport.write_settings-221"><a href="#HighResMassSpecExport.write_settings-221"><span class="linenos">221</span></a>
 </span><span id="HighResMassSpecExport.write_settings-222"><a href="#HighResMassSpecExport.write_settings-222"><span class="linenos">222</span></a>        <span class="n">dict_setting</span> <span class="o">=</span> <span class="n">parameter_to_dict</span><span class="o">.</span><span class="n">get_dict_data_ms</span><span class="p">(</span><span class="n">mass_spectrum</span><span class="p">)</span>
 </span><span id="HighResMassSpecExport.write_settings-223"><a href="#HighResMassSpecExport.write_settings-223"><span class="linenos">223</span></a>
@@ -2142,7 +2142,7 @@ The mass spectrum to export.</li>
 
     </div>
     <a class="headerlink" href="#HighResMassSpecExport.to_pandas"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.to_pandas-239"><a href="#HighResMassSpecExport.to_pandas-239"><span class="linenos">239</span></a>    <span class="k">def</span> <span class="nf">to_pandas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">write_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.to_pandas-239"><a href="#HighResMassSpecExport.to_pandas-239"><span class="linenos">239</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_pandas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">write_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport.to_pandas-240"><a href="#HighResMassSpecExport.to_pandas-240"><span class="linenos">240</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Exports the mass spectrum data to a pandas DataFrame and saves it as a pickle file.</span>
 </span><span id="HighResMassSpecExport.to_pandas-241"><a href="#HighResMassSpecExport.to_pandas-241"><span class="linenos">241</span></a>
 </span><span id="HighResMassSpecExport.to_pandas-242"><a href="#HighResMassSpecExport.to_pandas-242"><span class="linenos">242</span></a><span class="sd">        Parameters</span>
@@ -2189,7 +2189,7 @@ Whether to write the metadata to a JSON file. Defaults to True.</li>
 
     </div>
     <a class="headerlink" href="#HighResMassSpecExport.to_excel"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.to_excel-261"><a href="#HighResMassSpecExport.to_excel-261"><span class="linenos">261</span></a>    <span class="k">def</span> <span class="nf">to_excel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">write_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.to_excel-261"><a href="#HighResMassSpecExport.to_excel-261"><span class="linenos">261</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_excel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">write_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport.to_excel-262"><a href="#HighResMassSpecExport.to_excel-262"><span class="linenos">262</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Exports the mass spectrum data to an Excel file.</span>
 </span><span id="HighResMassSpecExport.to_excel-263"><a href="#HighResMassSpecExport.to_excel-263"><span class="linenos">263</span></a>
 </span><span id="HighResMassSpecExport.to_excel-264"><a href="#HighResMassSpecExport.to_excel-264"><span class="linenos">264</span></a><span class="sd">        Parameters</span>
@@ -2236,7 +2236,7 @@ Whether to write the metadata to a JSON file. Defaults to True.</li>
 
     </div>
     <a class="headerlink" href="#HighResMassSpecExport.to_csv"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.to_csv-283"><a href="#HighResMassSpecExport.to_csv-283"><span class="linenos">283</span></a>    <span class="k">def</span> <span class="nf">to_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">write_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.to_csv-283"><a href="#HighResMassSpecExport.to_csv-283"><span class="linenos">283</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">write_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport.to_csv-284"><a href="#HighResMassSpecExport.to_csv-284"><span class="linenos">284</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Exports the mass spectrum data to a CSV file.</span>
 </span><span id="HighResMassSpecExport.to_csv-285"><a href="#HighResMassSpecExport.to_csv-285"><span class="linenos">285</span></a>
 </span><span id="HighResMassSpecExport.to_csv-286"><a href="#HighResMassSpecExport.to_csv-286"><span class="linenos">286</span></a><span class="sd">        Parameters</span>
@@ -2251,7 +2251,7 @@ Whether to write the metadata to a JSON file. Defaults to True.</li>
 </span><span id="HighResMassSpecExport.to_csv-295"><a href="#HighResMassSpecExport.to_csv-295"><span class="linenos">295</span></a>
 </span><span id="HighResMassSpecExport.to_csv-296"><a href="#HighResMassSpecExport.to_csv-296"><span class="linenos">296</span></a>        <span class="n">dict_data_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_list_dict_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="p">)</span>
 </span><span id="HighResMassSpecExport.to_csv-297"><a href="#HighResMassSpecExport.to_csv-297"><span class="linenos">297</span></a>
-</span><span id="HighResMassSpecExport.to_csv-298"><a href="#HighResMassSpecExport.to_csv-298"><span class="linenos">298</span></a>        <span class="kn">import</span> <span class="nn">csv</span>
+</span><span id="HighResMassSpecExport.to_csv-298"><a href="#HighResMassSpecExport.to_csv-298"><span class="linenos">298</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
 </span><span id="HighResMassSpecExport.to_csv-299"><a href="#HighResMassSpecExport.to_csv-299"><span class="linenos">299</span></a>
 </span><span id="HighResMassSpecExport.to_csv-300"><a href="#HighResMassSpecExport.to_csv-300"><span class="linenos">300</span></a>        <span class="k">try</span><span class="p">:</span>
 </span><span id="HighResMassSpecExport.to_csv-301"><a href="#HighResMassSpecExport.to_csv-301"><span class="linenos">301</span></a>            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_file</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.csv&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
@@ -2290,7 +2290,7 @@ Whether to write the metadata to a JSON file. Defaults to True.</li>
 
     </div>
     <a class="headerlink" href="#HighResMassSpecExport.to_json"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.to_json-312"><a href="#HighResMassSpecExport.to_json-312"><span class="linenos">312</span></a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.to_json-312"><a href="#HighResMassSpecExport.to_json-312"><span class="linenos">312</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport.to_json-313"><a href="#HighResMassSpecExport.to_json-313"><span class="linenos">313</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Exports the mass spectrum data to a JSON string.&quot;&quot;&quot;</span>
 </span><span id="HighResMassSpecExport.to_json-314"><a href="#HighResMassSpecExport.to_json-314"><span class="linenos">314</span></a>
 </span><span id="HighResMassSpecExport.to_json-315"><a href="#HighResMassSpecExport.to_json-315"><span class="linenos">315</span></a>        <span class="n">columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns_label</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_all_used_atoms_in_order</span><span class="p">(</span>
@@ -2325,7 +2325,7 @@ Whether to write the metadata to a JSON file. Defaults to True.</li>
 
     </div>
     <a class="headerlink" href="#HighResMassSpecExport.add_mass_spectrum_to_hdf5"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.add_mass_spectrum_to_hdf5-329"><a href="#HighResMassSpecExport.add_mass_spectrum_to_hdf5-329"><span class="linenos">329</span></a>    <span class="k">def</span> <span class="nf">add_mass_spectrum_to_hdf5</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.add_mass_spectrum_to_hdf5-329"><a href="#HighResMassSpecExport.add_mass_spectrum_to_hdf5-329"><span class="linenos">329</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_mass_spectrum_to_hdf5</span><span class="p">(</span>
 </span><span id="HighResMassSpecExport.add_mass_spectrum_to_hdf5-330"><a href="#HighResMassSpecExport.add_mass_spectrum_to_hdf5-330"><span class="linenos">330</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="HighResMassSpecExport.add_mass_spectrum_to_hdf5-331"><a href="#HighResMassSpecExport.add_mass_spectrum_to_hdf5-331"><span class="linenos">331</span></a>        <span class="n">hdf_handle</span><span class="p">,</span>
 </span><span id="HighResMassSpecExport.add_mass_spectrum_to_hdf5-332"><a href="#HighResMassSpecExport.add_mass_spectrum_to_hdf5-332"><span class="linenos">332</span></a>        <span class="n">mass_spectrum</span><span class="p">,</span>
@@ -2480,7 +2480,7 @@ If False, only the processed data (peaks) is exported (essentially centroided da
 
     </div>
     <a class="headerlink" href="#HighResMassSpecExport.to_hdf"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.to_hdf-450"><a href="#HighResMassSpecExport.to_hdf-450"><span class="linenos">450</span></a>    <span class="k">def</span> <span class="nf">to_hdf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.to_hdf-450"><a href="#HighResMassSpecExport.to_hdf-450"><span class="linenos">450</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_hdf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport.to_hdf-451"><a href="#HighResMassSpecExport.to_hdf-451"><span class="linenos">451</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Exports the mass spectrum data to an HDF5 file.&quot;&quot;&quot;</span>
 </span><span id="HighResMassSpecExport.to_hdf-452"><a href="#HighResMassSpecExport.to_hdf-452"><span class="linenos">452</span></a>
 </span><span id="HighResMassSpecExport.to_hdf-453"><a href="#HighResMassSpecExport.to_hdf-453"><span class="linenos">453</span></a>        <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_file</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.hdf5&quot;</span><span class="p">),</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">hdf_handle</span><span class="p">:</span>
@@ -2506,7 +2506,7 @@ If False, only the processed data (peaks) is exported (essentially centroided da
 
     </div>
     <a class="headerlink" href="#HighResMassSpecExport.parameters_to_toml"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.parameters_to_toml-458"><a href="#HighResMassSpecExport.parameters_to_toml-458"><span class="linenos">458</span></a>    <span class="k">def</span> <span class="nf">parameters_to_toml</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.parameters_to_toml-458"><a href="#HighResMassSpecExport.parameters_to_toml-458"><span class="linenos">458</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parameters_to_toml</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport.parameters_to_toml-459"><a href="#HighResMassSpecExport.parameters_to_toml-459"><span class="linenos">459</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts the mass spectrum parameters to a TOML string.</span>
 </span><span id="HighResMassSpecExport.parameters_to_toml-460"><a href="#HighResMassSpecExport.parameters_to_toml-460"><span class="linenos">460</span></a>
 </span><span id="HighResMassSpecExport.parameters_to_toml-461"><a href="#HighResMassSpecExport.parameters_to_toml-461"><span class="linenos">461</span></a><span class="sd">        Returns</span>
@@ -2550,7 +2550,7 @@ If False, only the processed data (peaks) is exported (essentially centroided da
 
     </div>
     <a class="headerlink" href="#HighResMassSpecExport.parameters_to_json"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.parameters_to_json-478"><a href="#HighResMassSpecExport.parameters_to_json-478"><span class="linenos">478</span></a>    <span class="k">def</span> <span class="nf">parameters_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.parameters_to_json-478"><a href="#HighResMassSpecExport.parameters_to_json-478"><span class="linenos">478</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parameters_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport.parameters_to_json-479"><a href="#HighResMassSpecExport.parameters_to_json-479"><span class="linenos">479</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts the mass spectrum parameters to a JSON string.</span>
 </span><span id="HighResMassSpecExport.parameters_to_json-480"><a href="#HighResMassSpecExport.parameters_to_json-480"><span class="linenos">480</span></a>
 </span><span id="HighResMassSpecExport.parameters_to_json-481"><a href="#HighResMassSpecExport.parameters_to_json-481"><span class="linenos">481</span></a><span class="sd">        Returns</span>
@@ -2594,7 +2594,7 @@ If False, only the processed data (peaks) is exported (essentially centroided da
 
     </div>
     <a class="headerlink" href="#HighResMassSpecExport.get_mass_spec_attrs"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.get_mass_spec_attrs-498"><a href="#HighResMassSpecExport.get_mass_spec_attrs-498"><span class="linenos">498</span></a>    <span class="k">def</span> <span class="nf">get_mass_spec_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.get_mass_spec_attrs-498"><a href="#HighResMassSpecExport.get_mass_spec_attrs-498"><span class="linenos">498</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spec_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport.get_mass_spec_attrs-499"><a href="#HighResMassSpecExport.get_mass_spec_attrs-499"><span class="linenos">499</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the mass spectrum attributes as a dictionary.</span>
 </span><span id="HighResMassSpecExport.get_mass_spec_attrs-500"><a href="#HighResMassSpecExport.get_mass_spec_attrs-500"><span class="linenos">500</span></a>
 </span><span id="HighResMassSpecExport.get_mass_spec_attrs-501"><a href="#HighResMassSpecExport.get_mass_spec_attrs-501"><span class="linenos">501</span></a><span class="sd">        Parameters</span>
@@ -2653,7 +2653,7 @@ The mass spectrum to export.</li>
 
     </div>
     <a class="headerlink" href="#HighResMassSpecExport.get_all_used_atoms_in_order"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.get_all_used_atoms_in_order-526"><a href="#HighResMassSpecExport.get_all_used_atoms_in_order-526"><span class="linenos">526</span></a>    <span class="k">def</span> <span class="nf">get_all_used_atoms_in_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.get_all_used_atoms_in_order-526"><a href="#HighResMassSpecExport.get_all_used_atoms_in_order-526"><span class="linenos">526</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_used_atoms_in_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport.get_all_used_atoms_in_order-527"><a href="#HighResMassSpecExport.get_all_used_atoms_in_order-527"><span class="linenos">527</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the list of assigned atoms in the order specified by Atoms.atoms_order list.</span>
 </span><span id="HighResMassSpecExport.get_all_used_atoms_in_order-528"><a href="#HighResMassSpecExport.get_all_used_atoms_in_order-528"><span class="linenos">528</span></a>
 </span><span id="HighResMassSpecExport.get_all_used_atoms_in_order-529"><a href="#HighResMassSpecExport.get_all_used_atoms_in_order-529"><span class="linenos">529</span></a><span class="sd">        Parameters</span>
@@ -2676,7 +2676,7 @@ The mass spectrum to export.</li>
 </span><span id="HighResMassSpecExport.get_all_used_atoms_in_order-546"><a href="#HighResMassSpecExport.get_all_used_atoms_in_order-546"><span class="linenos">546</span></a>                        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">m_formula</span><span class="o">.</span><span class="n">atoms</span><span class="p">:</span>
 </span><span id="HighResMassSpecExport.get_all_used_atoms_in_order-547"><a href="#HighResMassSpecExport.get_all_used_atoms_in_order-547"><span class="linenos">547</span></a>                            <span class="n">all_used_atoms</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">atom</span><span class="p">)</span>
 </span><span id="HighResMassSpecExport.get_all_used_atoms_in_order-548"><a href="#HighResMassSpecExport.get_all_used_atoms_in_order-548"><span class="linenos">548</span></a>
-</span><span id="HighResMassSpecExport.get_all_used_atoms_in_order-549"><a href="#HighResMassSpecExport.get_all_used_atoms_in_order-549"><span class="linenos">549</span></a>        <span class="k">def</span> <span class="nf">sort_method</span><span class="p">(</span><span class="n">atom</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport.get_all_used_atoms_in_order-549"><a href="#HighResMassSpecExport.get_all_used_atoms_in_order-549"><span class="linenos">549</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">sort_method</span><span class="p">(</span><span class="n">atom</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport.get_all_used_atoms_in_order-550"><a href="#HighResMassSpecExport.get_all_used_atoms_in_order-550"><span class="linenos">550</span></a>            <span class="k">return</span> <span class="p">[</span><span class="n">atoms_in_order</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">atom</span><span class="p">)]</span>
 </span><span id="HighResMassSpecExport.get_all_used_atoms_in_order-551"><a href="#HighResMassSpecExport.get_all_used_atoms_in_order-551"><span class="linenos">551</span></a>
 </span><span id="HighResMassSpecExport.get_all_used_atoms_in_order-552"><a href="#HighResMassSpecExport.get_all_used_atoms_in_order-552"><span class="linenos">552</span></a>        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">all_used_atoms</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">sort_method</span><span class="p">)</span>
@@ -2712,7 +2712,7 @@ The mass spectrum to export.</li>
 
     </div>
     <a class="headerlink" href="#HighResMassSpecExport.list_dict_to_list"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.list_dict_to_list-554"><a href="#HighResMassSpecExport.list_dict_to_list-554"><span class="linenos">554</span></a>    <span class="k">def</span> <span class="nf">list_dict_to_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">is_hdf5</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.list_dict_to_list-554"><a href="#HighResMassSpecExport.list_dict_to_list-554"><span class="linenos">554</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">list_dict_to_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">is_hdf5</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport.list_dict_to_list-555"><a href="#HighResMassSpecExport.list_dict_to_list-555"><span class="linenos">555</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the mass spectrum data as a list of dictionaries.</span>
 </span><span id="HighResMassSpecExport.list_dict_to_list-556"><a href="#HighResMassSpecExport.list_dict_to_list-556"><span class="linenos">556</span></a>
 </span><span id="HighResMassSpecExport.list_dict_to_list-557"><a href="#HighResMassSpecExport.list_dict_to_list-557"><span class="linenos">557</span></a><span class="sd">        Parameters</span>
@@ -2779,7 +2779,7 @@ Whether the mass spectrum is being exported to an HDF5 file. Defaults to False.<
 
     </div>
     <a class="headerlink" href="#HighResMassSpecExport.get_list_dict_data"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.get_list_dict_data-588"><a href="#HighResMassSpecExport.get_list_dict_data-588"><span class="linenos">588</span></a>    <span class="k">def</span> <span class="nf">get_list_dict_data</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="HighResMassSpecExport.get_list_dict_data-588"><a href="#HighResMassSpecExport.get_list_dict_data-588"><span class="linenos">588</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_list_dict_data</span><span class="p">(</span>
 </span><span id="HighResMassSpecExport.get_list_dict_data-589"><a href="#HighResMassSpecExport.get_list_dict_data-589"><span class="linenos">589</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="HighResMassSpecExport.get_list_dict_data-590"><a href="#HighResMassSpecExport.get_list_dict_data-590"><span class="linenos">590</span></a>        <span class="n">mass_spectrum</span><span class="p">,</span>
 </span><span id="HighResMassSpecExport.get_list_dict_data-591"><a href="#HighResMassSpecExport.get_list_dict_data-591"><span class="linenos">591</span></a>        <span class="n">include_no_match</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -2819,7 +2819,7 @@ Whether the mass spectrum is being exported to an HDF5 file. Defaults to False.<
 </span><span id="HighResMassSpecExport.get_list_dict_data-625"><a href="#HighResMassSpecExport.get_list_dict_data-625"><span class="linenos">625</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="HighResMassSpecExport.get_list_dict_data-626"><a href="#HighResMassSpecExport.get_list_dict_data-626"><span class="linenos">626</span></a>            <span class="n">encode</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 </span><span id="HighResMassSpecExport.get_list_dict_data-627"><a href="#HighResMassSpecExport.get_list_dict_data-627"><span class="linenos">627</span></a>
-</span><span id="HighResMassSpecExport.get_list_dict_data-628"><a href="#HighResMassSpecExport.get_list_dict_data-628"><span class="linenos">628</span></a>        <span class="k">def</span> <span class="nf">add_no_match_dict_data</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">ms_peak</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport.get_list_dict_data-628"><a href="#HighResMassSpecExport.get_list_dict_data-628"><span class="linenos">628</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">add_no_match_dict_data</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">ms_peak</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport.get_list_dict_data-629"><a href="#HighResMassSpecExport.get_list_dict_data-629"><span class="linenos">629</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="HighResMassSpecExport.get_list_dict_data-630"><a href="#HighResMassSpecExport.get_list_dict_data-630"><span class="linenos">630</span></a><span class="sd">            Export dictionary of mspeak info for unassigned (no match) data</span>
 </span><span id="HighResMassSpecExport.get_list_dict_data-631"><a href="#HighResMassSpecExport.get_list_dict_data-631"><span class="linenos">631</span></a><span class="sd">            &quot;&quot;&quot;</span>
@@ -2837,7 +2837,7 @@ Whether the mass spectrum is being exported to an HDF5 file. Defaults to False.<
 </span><span id="HighResMassSpecExport.get_list_dict_data-643"><a href="#HighResMassSpecExport.get_list_dict_data-643"><span class="linenos">643</span></a>
 </span><span id="HighResMassSpecExport.get_list_dict_data-644"><a href="#HighResMassSpecExport.get_list_dict_data-644"><span class="linenos">644</span></a>            <span class="n">dict_data_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dict_result</span><span class="p">)</span>
 </span><span id="HighResMassSpecExport.get_list_dict_data-645"><a href="#HighResMassSpecExport.get_list_dict_data-645"><span class="linenos">645</span></a>
-</span><span id="HighResMassSpecExport.get_list_dict_data-646"><a href="#HighResMassSpecExport.get_list_dict_data-646"><span class="linenos">646</span></a>        <span class="k">def</span> <span class="nf">add_match_dict_data</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">ms_peak</span><span class="p">,</span> <span class="n">mformula</span><span class="p">,</span> <span class="n">additional_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="HighResMassSpecExport.get_list_dict_data-646"><a href="#HighResMassSpecExport.get_list_dict_data-646"><span class="linenos">646</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">add_match_dict_data</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">ms_peak</span><span class="p">,</span> <span class="n">mformula</span><span class="p">,</span> <span class="n">additional_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="HighResMassSpecExport.get_list_dict_data-647"><a href="#HighResMassSpecExport.get_list_dict_data-647"><span class="linenos">647</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="HighResMassSpecExport.get_list_dict_data-648"><a href="#HighResMassSpecExport.get_list_dict_data-648"><span class="linenos">648</span></a><span class="sd">            Export dictionary of mspeak info for assigned (match) data</span>
 </span><span id="HighResMassSpecExport.get_list_dict_data-649"><a href="#HighResMassSpecExport.get_list_dict_data-649"><span class="linenos">649</span></a><span class="sd">            &quot;&quot;&quot;</span>

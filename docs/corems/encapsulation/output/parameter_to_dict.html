@@ -72,14 +72,14 @@
 
                         <label class="view-source-button" for="mod-parameter_to_dict-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.factory.parameters</span> <span class="kn">import</span> <span class="p">(</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.encapsulation.factory.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a>    <span class="n">MSParameters</span><span class="p">,</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>    <span class="n">GCMSParameters</span><span class="p">,</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a>    <span class="n">LCMSParameters</span><span class="p">,</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="p">)</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="k">def</span> <span class="nf">get_dict_all_default_data</span><span class="p">():</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_dict_all_default_data</span><span class="p">():</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a dictionary with all default parameters for MS and GCMS&quot;&quot;&quot;</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>    <span class="n">ms_params</span> <span class="o">=</span> <span class="n">MSParameters</span><span class="p">(</span><span class="n">use_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>    <span class="n">gcms_params</span> <span class="o">=</span> <span class="n">GCMSParameters</span><span class="p">(</span><span class="n">use_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -95,7 +95,7 @@
 </span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>    <span class="p">}</span>
 </span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>
 </span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a>
-</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="k">def</span> <span class="nf">get_dict_data_lcms</span><span class="p">(</span><span class="n">lcms_obj</span><span class="p">):</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_dict_data_lcms</span><span class="p">(</span><span class="n">lcms_obj</span><span class="p">):</span>
 </span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a dictionary with all parameters for LCMSBase object</span>
 </span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a>
 </span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="sd">    Parameters</span>
@@ -118,7 +118,7 @@
 </span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>    <span class="k">return</span> <span class="n">output_dict</span>
 </span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>
 </span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a>
-</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a><span class="k">def</span> <span class="nf">get_dict_lcms_default_data</span><span class="p">():</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_dict_lcms_default_data</span><span class="p">():</span>
 </span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a dictionary with all default parameters for LCMS&quot;&quot;&quot;</span>
 </span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a>    <span class="n">default_params</span> <span class="o">=</span> <span class="n">LCMSParameters</span><span class="p">(</span><span class="n">use_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>
@@ -132,7 +132,7 @@
 </span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>    <span class="k">return</span> <span class="n">output_dict</span>
 </span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>
 </span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>
-</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="k">def</span> <span class="nf">get_dict_data_ms</span><span class="p">(</span><span class="n">mass_spec</span><span class="p">):</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_dict_data_ms</span><span class="p">(</span><span class="n">mass_spec</span><span class="p">):</span>
 </span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a dictionary with all parameters for MassSpectrum object</span>
 </span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>
 </span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a><span class="sd">    Parameters</span>
@@ -155,7 +155,7 @@
 </span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>    <span class="p">}</span>
 </span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>
 </span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>
-</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="k">def</span> <span class="nf">get_dict_ms_default_data</span><span class="p">():</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_dict_ms_default_data</span><span class="p">():</span>
 </span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a dictionary with all default parameters for MS including data input&quot;&quot;&quot;</span>
 </span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>    <span class="n">ms_params</span> <span class="o">=</span> <span class="n">MSParameters</span><span class="p">(</span><span class="n">use_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>
@@ -168,7 +168,7 @@
 </span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>    <span class="p">}</span>
 </span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>
 </span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>
-</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a><span class="k">def</span> <span class="nf">get_dict_gcms_default_data</span><span class="p">():</span>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_dict_gcms_default_data</span><span class="p">():</span>
 </span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a dictionary with all default parameters for GCMS&quot;&quot;&quot;</span>
 </span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>    <span class="n">default_gcms_params</span> <span class="o">=</span> <span class="n">GCMSParameters</span><span class="p">(</span><span class="n">use_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>
@@ -178,7 +178,7 @@
 </span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>    <span class="p">}</span>
 </span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>
 </span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>
-</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="k">def</span> <span class="nf">get_dict_data_gcms</span><span class="p">(</span><span class="n">gcms</span><span class="p">):</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_dict_data_gcms</span><span class="p">(</span><span class="n">gcms</span><span class="p">):</span>
 </span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a dictionary with all parameters for GCMS&quot;&quot;&quot;</span>
 </span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>
 </span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>    <span class="k">return</span> <span class="p">{</span>
@@ -200,7 +200,7 @@
 
     </div>
     <a class="headerlink" href="#get_dict_all_default_data"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_dict_all_default_data-9"><a href="#get_dict_all_default_data-9"><span class="linenos"> 9</span></a><span class="k">def</span> <span class="nf">get_dict_all_default_data</span><span class="p">():</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_dict_all_default_data-9"><a href="#get_dict_all_default_data-9"><span class="linenos"> 9</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_dict_all_default_data</span><span class="p">():</span>
 </span><span id="get_dict_all_default_data-10"><a href="#get_dict_all_default_data-10"><span class="linenos">10</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a dictionary with all default parameters for MS and GCMS&quot;&quot;&quot;</span>
 </span><span id="get_dict_all_default_data-11"><a href="#get_dict_all_default_data-11"><span class="linenos">11</span></a>    <span class="n">ms_params</span> <span class="o">=</span> <span class="n">MSParameters</span><span class="p">(</span><span class="n">use_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="get_dict_all_default_data-12"><a href="#get_dict_all_default_data-12"><span class="linenos">12</span></a>    <span class="n">gcms_params</span> <span class="o">=</span> <span class="n">GCMSParameters</span><span class="p">(</span><span class="n">use_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -233,7 +233,7 @@
 
     </div>
     <a class="headerlink" href="#get_dict_data_lcms"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_dict_data_lcms-25"><a href="#get_dict_data_lcms-25"><span class="linenos">25</span></a><span class="k">def</span> <span class="nf">get_dict_data_lcms</span><span class="p">(</span><span class="n">lcms_obj</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_dict_data_lcms-25"><a href="#get_dict_data_lcms-25"><span class="linenos">25</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_dict_data_lcms</span><span class="p">(</span><span class="n">lcms_obj</span><span class="p">):</span>
 </span><span id="get_dict_data_lcms-26"><a href="#get_dict_data_lcms-26"><span class="linenos">26</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a dictionary with all parameters for LCMSBase object</span>
 </span><span id="get_dict_data_lcms-27"><a href="#get_dict_data_lcms-27"><span class="linenos">27</span></a>
 </span><span id="get_dict_data_lcms-28"><a href="#get_dict_data_lcms-28"><span class="linenos">28</span></a><span class="sd">    Parameters</span>
@@ -286,7 +286,7 @@ LCMSBase object</li>
 
     </div>
     <a class="headerlink" href="#get_dict_lcms_default_data"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_dict_lcms_default_data-48"><a href="#get_dict_lcms_default_data-48"><span class="linenos">48</span></a><span class="k">def</span> <span class="nf">get_dict_lcms_default_data</span><span class="p">():</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_dict_lcms_default_data-48"><a href="#get_dict_lcms_default_data-48"><span class="linenos">48</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_dict_lcms_default_data</span><span class="p">():</span>
 </span><span id="get_dict_lcms_default_data-49"><a href="#get_dict_lcms_default_data-49"><span class="linenos">49</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a dictionary with all default parameters for LCMS&quot;&quot;&quot;</span>
 </span><span id="get_dict_lcms_default_data-50"><a href="#get_dict_lcms_default_data-50"><span class="linenos">50</span></a>    <span class="n">default_params</span> <span class="o">=</span> <span class="n">LCMSParameters</span><span class="p">(</span><span class="n">use_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="get_dict_lcms_default_data-51"><a href="#get_dict_lcms_default_data-51"><span class="linenos">51</span></a>
@@ -317,7 +317,7 @@ LCMSBase object</li>
 
     </div>
     <a class="headerlink" href="#get_dict_data_ms"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_dict_data_ms-62"><a href="#get_dict_data_ms-62"><span class="linenos">62</span></a><span class="k">def</span> <span class="nf">get_dict_data_ms</span><span class="p">(</span><span class="n">mass_spec</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_dict_data_ms-62"><a href="#get_dict_data_ms-62"><span class="linenos">62</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_dict_data_ms</span><span class="p">(</span><span class="n">mass_spec</span><span class="p">):</span>
 </span><span id="get_dict_data_ms-63"><a href="#get_dict_data_ms-63"><span class="linenos">63</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a dictionary with all parameters for MassSpectrum object</span>
 </span><span id="get_dict_data_ms-64"><a href="#get_dict_data_ms-64"><span class="linenos">64</span></a>
 </span><span id="get_dict_data_ms-65"><a href="#get_dict_data_ms-65"><span class="linenos">65</span></a><span class="sd">    Parameters</span>
@@ -370,7 +370,7 @@ MassSpectrum object</li>
 
     </div>
     <a class="headerlink" href="#get_dict_ms_default_data"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_dict_ms_default_data-85"><a href="#get_dict_ms_default_data-85"><span class="linenos">85</span></a><span class="k">def</span> <span class="nf">get_dict_ms_default_data</span><span class="p">():</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_dict_ms_default_data-85"><a href="#get_dict_ms_default_data-85"><span class="linenos">85</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_dict_ms_default_data</span><span class="p">():</span>
 </span><span id="get_dict_ms_default_data-86"><a href="#get_dict_ms_default_data-86"><span class="linenos">86</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a dictionary with all default parameters for MS including data input&quot;&quot;&quot;</span>
 </span><span id="get_dict_ms_default_data-87"><a href="#get_dict_ms_default_data-87"><span class="linenos">87</span></a>    <span class="n">ms_params</span> <span class="o">=</span> <span class="n">MSParameters</span><span class="p">(</span><span class="n">use_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="get_dict_ms_default_data-88"><a href="#get_dict_ms_default_data-88"><span class="linenos">88</span></a>
@@ -400,7 +400,7 @@ MassSpectrum object</li>
 
     </div>
     <a class="headerlink" href="#get_dict_gcms_default_data"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_dict_gcms_default_data-98"><a href="#get_dict_gcms_default_data-98"><span class="linenos"> 98</span></a><span class="k">def</span> <span class="nf">get_dict_gcms_default_data</span><span class="p">():</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_dict_gcms_default_data-98"><a href="#get_dict_gcms_default_data-98"><span class="linenos"> 98</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_dict_gcms_default_data</span><span class="p">():</span>
 </span><span id="get_dict_gcms_default_data-99"><a href="#get_dict_gcms_default_data-99"><span class="linenos"> 99</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a dictionary with all default parameters for GCMS&quot;&quot;&quot;</span>
 </span><span id="get_dict_gcms_default_data-100"><a href="#get_dict_gcms_default_data-100"><span class="linenos">100</span></a>    <span class="n">default_gcms_params</span> <span class="o">=</span> <span class="n">GCMSParameters</span><span class="p">(</span><span class="n">use_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="get_dict_gcms_default_data-101"><a href="#get_dict_gcms_default_data-101"><span class="linenos">101</span></a>
@@ -427,7 +427,7 @@ MassSpectrum object</li>
 
     </div>
     <a class="headerlink" href="#get_dict_data_gcms"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_dict_data_gcms-108"><a href="#get_dict_data_gcms-108"><span class="linenos">108</span></a><span class="k">def</span> <span class="nf">get_dict_data_gcms</span><span class="p">(</span><span class="n">gcms</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_dict_data_gcms-108"><a href="#get_dict_data_gcms-108"><span class="linenos">108</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_dict_data_gcms</span><span class="p">(</span><span class="n">gcms</span><span class="p">):</span>
 </span><span id="get_dict_data_gcms-109"><a href="#get_dict_data_gcms-109"><span class="linenos">109</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a dictionary with all parameters for GCMS&quot;&quot;&quot;</span>
 </span><span id="get_dict_data_gcms-110"><a href="#get_dict_data_gcms-110"><span class="linenos">110</span></a>
 </span><span id="get_dict_data_gcms-111"><a href="#get_dict_data_gcms-111"><span class="linenos">111</span></a>    <span class="k">return</span> <span class="p">{</span>

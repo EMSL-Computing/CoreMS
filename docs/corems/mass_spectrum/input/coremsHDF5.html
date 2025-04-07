@@ -93,20 +93,20 @@
 
                         <label class="view-source-button" for="mod-coremsHDF5-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">import</span> <span class="nn">json</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a>
-</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">DataFrame</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span> <span class="nn">h5py</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span> <span class="nn">s3path</span> <span class="kn">import</span> <span class="n">S3Path</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataFrame</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">BytesIO</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">s3path</span><span class="w"> </span><span class="kn">import</span> <span class="n">S3Path</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.input.parameter_from_json</span> <span class="kn">import</span> <span class="n">_set_dict_data_ms</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span> <span class="nn">corems.mass_spectrum.input.massList</span> <span class="kn">import</span> <span class="n">ReadCoremsMasslist</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">from</span> <span class="nn">corems.mass_spectrum.factory.MassSpectrumClasses</span> <span class="kn">import</span> <span class="n">MassSpecCentroid</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.factory.parameters</span> <span class="kn">import</span> <span class="n">default_parameters</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.encapsulation.input.parameter_from_json</span><span class="w"> </span><span class="kn">import</span> <span class="n">_set_dict_data_ms</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.mass_spectrum.input.massList</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReadCoremsMasslist</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.mass_spectrum.factory.MassSpectrumClasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">MassSpecCentroid</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.encapsulation.factory.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_parameters</span>
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>
-</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="k">class</span> <span class="nc">ReadCoreMSHDF_MassSpectrum</span><span class="p">(</span><span class="n">ReadCoremsMasslist</span><span class="p">):</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ReadCoreMSHDF_MassSpectrum</span><span class="p">(</span><span class="n">ReadCoremsMasslist</span><span class="p">):</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for reading mass spectrum data from a CoreMS HDF5 file.</span>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="sd">    Attributes</span>
@@ -134,7 +134,7 @@
 </span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a><span class="sd">    * get_output_parameters(polarity, scan_index=0). Get the output parameters for the mass spectrum.</span>
 </span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>
-</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_location</span><span class="p">):</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_location</span><span class="p">):</span>
 </span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
 </span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>
 </span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_location</span><span class="p">,</span> <span class="n">S3Path</span><span class="p">):</span>
@@ -146,7 +146,7 @@
 </span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>
 </span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">scans</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">h5pydata</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 </span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>
-</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>    <span class="k">def</span> <span class="nf">load_raw_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">load_raw_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 </span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="sd">        Load raw data into the mass spectrum object.</span>
 </span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>
@@ -170,7 +170,7 @@
 </span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>
 </span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>            <span class="n">mass_spectrum</span><span class="o">.</span><span class="n">abundance_profile</span> <span class="o">=</span> <span class="n">abundance_profile</span>
 </span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>
-</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span>
 </span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>        <span class="n">scan_number</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
 </span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>        <span class="n">time_index</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
@@ -273,7 +273,7 @@
 </span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a>
 </span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a>        <span class="k">return</span> <span class="n">mass_spec_obj</span>
 </span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a>
-</span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a>    <span class="k">def</span> <span class="nf">load_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">time_index</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+</span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">load_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">time_index</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
 </span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a><span class="sd">        Load settings into the mass spectrum object.</span>
 </span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a>
@@ -303,7 +303,7 @@
 </span><span id="L-208"><a href="#L-208"><span class="linenos">208</span></a>
 </span><span id="L-209"><a href="#L-209"><span class="linenos">209</span></a>        <span class="n">_set_dict_data_ms</span><span class="p">(</span><span class="n">loaded_settings</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">)</span>
 </span><span id="L-210"><a href="#L-210"><span class="linenos">210</span></a>
-</span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a>    <span class="k">def</span> <span class="nf">get_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">time_index</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+</span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">time_index</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
 </span><span id="L-212"><a href="#L-212"><span class="linenos">212</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a><span class="sd">        Get a pandas DataFrame representing the mass spectrum.</span>
 </span><span id="L-214"><a href="#L-214"><span class="linenos">214</span></a>
@@ -354,7 +354,7 @@
 </span><span id="L-259"><a href="#L-259"><span class="linenos">259</span></a>
 </span><span id="L-260"><a href="#L-260"><span class="linenos">260</span></a>        <span class="k">return</span> <span class="n">df</span>
 </span><span id="L-261"><a href="#L-261"><span class="linenos">261</span></a>
-</span><span id="L-262"><a href="#L-262"><span class="linenos">262</span></a>    <span class="k">def</span> <span class="nf">get_time_index_to_pull</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_label</span><span class="p">,</span> <span class="n">time_index</span><span class="p">):</span>
+</span><span id="L-262"><a href="#L-262"><span class="linenos">262</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_time_index_to_pull</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_label</span><span class="p">,</span> <span class="n">time_index</span><span class="p">):</span>
 </span><span id="L-263"><a href="#L-263"><span class="linenos">263</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-264"><a href="#L-264"><span class="linenos">264</span></a><span class="sd">        Get the time index to pull from the HDF5 file.</span>
 </span><span id="L-265"><a href="#L-265"><span class="linenos">265</span></a>
@@ -380,7 +380,7 @@
 </span><span id="L-285"><a href="#L-285"><span class="linenos">285</span></a>
 </span><span id="L-286"><a href="#L-286"><span class="linenos">286</span></a>        <span class="k">return</span> <span class="n">index_to_pull</span>
 </span><span id="L-287"><a href="#L-287"><span class="linenos">287</span></a>
-</span><span id="L-288"><a href="#L-288"><span class="linenos">288</span></a>    <span class="k">def</span> <span class="nf">get_high_level_attr_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr_str</span><span class="p">):</span>
+</span><span id="L-288"><a href="#L-288"><span class="linenos">288</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_high_level_attr_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr_str</span><span class="p">):</span>
 </span><span id="L-289"><a href="#L-289"><span class="linenos">289</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-290"><a href="#L-290"><span class="linenos">290</span></a><span class="sd">        Get high-level attribute data from the HDF5 file.</span>
 </span><span id="L-291"><a href="#L-291"><span class="linenos">291</span></a>
@@ -402,7 +402,7 @@
 </span><span id="L-307"><a href="#L-307"><span class="linenos">307</span></a>
 </span><span id="L-308"><a href="#L-308"><span class="linenos">308</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">h5pydata</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">attr_str</span><span class="p">]</span>
 </span><span id="L-309"><a href="#L-309"><span class="linenos">309</span></a>
-</span><span id="L-310"><a href="#L-310"><span class="linenos">310</span></a>    <span class="k">def</span> <span class="nf">get_scan_group_attr_data</span><span class="p">(</span>
+</span><span id="L-310"><a href="#L-310"><span class="linenos">310</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_scan_group_attr_data</span><span class="p">(</span>
 </span><span id="L-311"><a href="#L-311"><span class="linenos">311</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">scan_index</span><span class="p">,</span> <span class="n">time_index</span><span class="p">,</span> <span class="n">attr_group</span><span class="p">,</span> <span class="n">attr_srt</span><span class="o">=</span><span class="kc">None</span>
 </span><span id="L-312"><a href="#L-312"><span class="linenos">312</span></a>    <span class="p">):</span>
 </span><span id="L-313"><a href="#L-313"><span class="linenos">313</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -448,7 +448,7 @@
 </span><span id="L-353"><a href="#L-353"><span class="linenos">353</span></a>            <span class="k">else</span><span class="p">:</span>
 </span><span id="L-354"><a href="#L-354"><span class="linenos">354</span></a>                <span class="k">return</span> <span class="p">{}</span>
 </span><span id="L-355"><a href="#L-355"><span class="linenos">355</span></a>
-</span><span id="L-356"><a href="#L-356"><span class="linenos">356</span></a>    <span class="k">def</span> <span class="nf">get_raw_data_attr_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_index</span><span class="p">,</span> <span class="n">attr_group</span><span class="p">,</span> <span class="n">attr_str</span><span class="p">):</span>
+</span><span id="L-356"><a href="#L-356"><span class="linenos">356</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_raw_data_attr_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_index</span><span class="p">,</span> <span class="n">attr_group</span><span class="p">,</span> <span class="n">attr_str</span><span class="p">):</span>
 </span><span id="L-357"><a href="#L-357"><span class="linenos">357</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-358"><a href="#L-358"><span class="linenos">358</span></a><span class="sd">        Get raw data attribute data from the HDF5 file.</span>
 </span><span id="L-359"><a href="#L-359"><span class="linenos">359</span></a>
@@ -490,7 +490,7 @@
 </span><span id="L-395"><a href="#L-395"><span class="linenos">395</span></a>            <span class="n">attr_str</span>
 </span><span id="L-396"><a href="#L-396"><span class="linenos">396</span></a>        <span class="p">]</span>
 </span><span id="L-397"><a href="#L-397"><span class="linenos">397</span></a>
-</span><span id="L-398"><a href="#L-398"><span class="linenos">398</span></a>    <span class="k">def</span> <span class="nf">get_output_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">polarity</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+</span><span id="L-398"><a href="#L-398"><span class="linenos">398</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_output_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">polarity</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 </span><span id="L-399"><a href="#L-399"><span class="linenos">399</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-400"><a href="#L-400"><span class="linenos">400</span></a><span class="sd">        Get the output parameters for the mass spectrum.</span>
 </span><span id="L-401"><a href="#L-401"><span class="linenos">401</span></a>
@@ -560,7 +560,7 @@
 
     </div>
     <a class="headerlink" href="#ReadCoreMSHDF_MassSpectrum"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoreMSHDF_MassSpectrum-15"><a href="#ReadCoreMSHDF_MassSpectrum-15"><span class="linenos"> 15</span></a><span class="k">class</span> <span class="nc">ReadCoreMSHDF_MassSpectrum</span><span class="p">(</span><span class="n">ReadCoremsMasslist</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoreMSHDF_MassSpectrum-15"><a href="#ReadCoreMSHDF_MassSpectrum-15"><span class="linenos"> 15</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ReadCoreMSHDF_MassSpectrum</span><span class="p">(</span><span class="n">ReadCoremsMasslist</span><span class="p">):</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-16"><a href="#ReadCoreMSHDF_MassSpectrum-16"><span class="linenos"> 16</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for reading mass spectrum data from a CoreMS HDF5 file.</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-17"><a href="#ReadCoreMSHDF_MassSpectrum-17"><span class="linenos"> 17</span></a>
 </span><span id="ReadCoreMSHDF_MassSpectrum-18"><a href="#ReadCoreMSHDF_MassSpectrum-18"><span class="linenos"> 18</span></a><span class="sd">    Attributes</span>
@@ -588,7 +588,7 @@
 </span><span id="ReadCoreMSHDF_MassSpectrum-40"><a href="#ReadCoreMSHDF_MassSpectrum-40"><span class="linenos"> 40</span></a><span class="sd">    * get_output_parameters(polarity, scan_index=0). Get the output parameters for the mass spectrum.</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-41"><a href="#ReadCoreMSHDF_MassSpectrum-41"><span class="linenos"> 41</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-42"><a href="#ReadCoreMSHDF_MassSpectrum-42"><span class="linenos"> 42</span></a>
-</span><span id="ReadCoreMSHDF_MassSpectrum-43"><a href="#ReadCoreMSHDF_MassSpectrum-43"><span class="linenos"> 43</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_location</span><span class="p">):</span>
+</span><span id="ReadCoreMSHDF_MassSpectrum-43"><a href="#ReadCoreMSHDF_MassSpectrum-43"><span class="linenos"> 43</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_location</span><span class="p">):</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-44"><a href="#ReadCoreMSHDF_MassSpectrum-44"><span class="linenos"> 44</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-45"><a href="#ReadCoreMSHDF_MassSpectrum-45"><span class="linenos"> 45</span></a>
 </span><span id="ReadCoreMSHDF_MassSpectrum-46"><a href="#ReadCoreMSHDF_MassSpectrum-46"><span class="linenos"> 46</span></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_location</span><span class="p">,</span> <span class="n">S3Path</span><span class="p">):</span>
@@ -600,7 +600,7 @@
 </span><span id="ReadCoreMSHDF_MassSpectrum-52"><a href="#ReadCoreMSHDF_MassSpectrum-52"><span class="linenos"> 52</span></a>
 </span><span id="ReadCoreMSHDF_MassSpectrum-53"><a href="#ReadCoreMSHDF_MassSpectrum-53"><span class="linenos"> 53</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">scans</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">h5pydata</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-54"><a href="#ReadCoreMSHDF_MassSpectrum-54"><span class="linenos"> 54</span></a>
-</span><span id="ReadCoreMSHDF_MassSpectrum-55"><a href="#ReadCoreMSHDF_MassSpectrum-55"><span class="linenos"> 55</span></a>    <span class="k">def</span> <span class="nf">load_raw_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+</span><span id="ReadCoreMSHDF_MassSpectrum-55"><a href="#ReadCoreMSHDF_MassSpectrum-55"><span class="linenos"> 55</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">load_raw_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-56"><a href="#ReadCoreMSHDF_MassSpectrum-56"><span class="linenos"> 56</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-57"><a href="#ReadCoreMSHDF_MassSpectrum-57"><span class="linenos"> 57</span></a><span class="sd">        Load raw data into the mass spectrum object.</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-58"><a href="#ReadCoreMSHDF_MassSpectrum-58"><span class="linenos"> 58</span></a>
@@ -624,7 +624,7 @@
 </span><span id="ReadCoreMSHDF_MassSpectrum-76"><a href="#ReadCoreMSHDF_MassSpectrum-76"><span class="linenos"> 76</span></a>
 </span><span id="ReadCoreMSHDF_MassSpectrum-77"><a href="#ReadCoreMSHDF_MassSpectrum-77"><span class="linenos"> 77</span></a>            <span class="n">mass_spectrum</span><span class="o">.</span><span class="n">abundance_profile</span> <span class="o">=</span> <span class="n">abundance_profile</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-78"><a href="#ReadCoreMSHDF_MassSpectrum-78"><span class="linenos"> 78</span></a>
-</span><span id="ReadCoreMSHDF_MassSpectrum-79"><a href="#ReadCoreMSHDF_MassSpectrum-79"><span class="linenos"> 79</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span>
+</span><span id="ReadCoreMSHDF_MassSpectrum-79"><a href="#ReadCoreMSHDF_MassSpectrum-79"><span class="linenos"> 79</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-80"><a href="#ReadCoreMSHDF_MassSpectrum-80"><span class="linenos"> 80</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-81"><a href="#ReadCoreMSHDF_MassSpectrum-81"><span class="linenos"> 81</span></a>        <span class="n">scan_number</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-82"><a href="#ReadCoreMSHDF_MassSpectrum-82"><span class="linenos"> 82</span></a>        <span class="n">time_index</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
@@ -727,7 +727,7 @@
 </span><span id="ReadCoreMSHDF_MassSpectrum-179"><a href="#ReadCoreMSHDF_MassSpectrum-179"><span class="linenos">179</span></a>
 </span><span id="ReadCoreMSHDF_MassSpectrum-180"><a href="#ReadCoreMSHDF_MassSpectrum-180"><span class="linenos">180</span></a>        <span class="k">return</span> <span class="n">mass_spec_obj</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-181"><a href="#ReadCoreMSHDF_MassSpectrum-181"><span class="linenos">181</span></a>
-</span><span id="ReadCoreMSHDF_MassSpectrum-182"><a href="#ReadCoreMSHDF_MassSpectrum-182"><span class="linenos">182</span></a>    <span class="k">def</span> <span class="nf">load_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">time_index</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+</span><span id="ReadCoreMSHDF_MassSpectrum-182"><a href="#ReadCoreMSHDF_MassSpectrum-182"><span class="linenos">182</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">load_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">time_index</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-183"><a href="#ReadCoreMSHDF_MassSpectrum-183"><span class="linenos">183</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-184"><a href="#ReadCoreMSHDF_MassSpectrum-184"><span class="linenos">184</span></a><span class="sd">        Load settings into the mass spectrum object.</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-185"><a href="#ReadCoreMSHDF_MassSpectrum-185"><span class="linenos">185</span></a>
@@ -757,7 +757,7 @@
 </span><span id="ReadCoreMSHDF_MassSpectrum-209"><a href="#ReadCoreMSHDF_MassSpectrum-209"><span class="linenos">209</span></a>
 </span><span id="ReadCoreMSHDF_MassSpectrum-210"><a href="#ReadCoreMSHDF_MassSpectrum-210"><span class="linenos">210</span></a>        <span class="n">_set_dict_data_ms</span><span class="p">(</span><span class="n">loaded_settings</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">)</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-211"><a href="#ReadCoreMSHDF_MassSpectrum-211"><span class="linenos">211</span></a>
-</span><span id="ReadCoreMSHDF_MassSpectrum-212"><a href="#ReadCoreMSHDF_MassSpectrum-212"><span class="linenos">212</span></a>    <span class="k">def</span> <span class="nf">get_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">time_index</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+</span><span id="ReadCoreMSHDF_MassSpectrum-212"><a href="#ReadCoreMSHDF_MassSpectrum-212"><span class="linenos">212</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">time_index</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-213"><a href="#ReadCoreMSHDF_MassSpectrum-213"><span class="linenos">213</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-214"><a href="#ReadCoreMSHDF_MassSpectrum-214"><span class="linenos">214</span></a><span class="sd">        Get a pandas DataFrame representing the mass spectrum.</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-215"><a href="#ReadCoreMSHDF_MassSpectrum-215"><span class="linenos">215</span></a>
@@ -808,7 +808,7 @@
 </span><span id="ReadCoreMSHDF_MassSpectrum-260"><a href="#ReadCoreMSHDF_MassSpectrum-260"><span class="linenos">260</span></a>
 </span><span id="ReadCoreMSHDF_MassSpectrum-261"><a href="#ReadCoreMSHDF_MassSpectrum-261"><span class="linenos">261</span></a>        <span class="k">return</span> <span class="n">df</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-262"><a href="#ReadCoreMSHDF_MassSpectrum-262"><span class="linenos">262</span></a>
-</span><span id="ReadCoreMSHDF_MassSpectrum-263"><a href="#ReadCoreMSHDF_MassSpectrum-263"><span class="linenos">263</span></a>    <span class="k">def</span> <span class="nf">get_time_index_to_pull</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_label</span><span class="p">,</span> <span class="n">time_index</span><span class="p">):</span>
+</span><span id="ReadCoreMSHDF_MassSpectrum-263"><a href="#ReadCoreMSHDF_MassSpectrum-263"><span class="linenos">263</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_time_index_to_pull</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_label</span><span class="p">,</span> <span class="n">time_index</span><span class="p">):</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-264"><a href="#ReadCoreMSHDF_MassSpectrum-264"><span class="linenos">264</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-265"><a href="#ReadCoreMSHDF_MassSpectrum-265"><span class="linenos">265</span></a><span class="sd">        Get the time index to pull from the HDF5 file.</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-266"><a href="#ReadCoreMSHDF_MassSpectrum-266"><span class="linenos">266</span></a>
@@ -834,7 +834,7 @@
 </span><span id="ReadCoreMSHDF_MassSpectrum-286"><a href="#ReadCoreMSHDF_MassSpectrum-286"><span class="linenos">286</span></a>
 </span><span id="ReadCoreMSHDF_MassSpectrum-287"><a href="#ReadCoreMSHDF_MassSpectrum-287"><span class="linenos">287</span></a>        <span class="k">return</span> <span class="n">index_to_pull</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-288"><a href="#ReadCoreMSHDF_MassSpectrum-288"><span class="linenos">288</span></a>
-</span><span id="ReadCoreMSHDF_MassSpectrum-289"><a href="#ReadCoreMSHDF_MassSpectrum-289"><span class="linenos">289</span></a>    <span class="k">def</span> <span class="nf">get_high_level_attr_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr_str</span><span class="p">):</span>
+</span><span id="ReadCoreMSHDF_MassSpectrum-289"><a href="#ReadCoreMSHDF_MassSpectrum-289"><span class="linenos">289</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_high_level_attr_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr_str</span><span class="p">):</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-290"><a href="#ReadCoreMSHDF_MassSpectrum-290"><span class="linenos">290</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-291"><a href="#ReadCoreMSHDF_MassSpectrum-291"><span class="linenos">291</span></a><span class="sd">        Get high-level attribute data from the HDF5 file.</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-292"><a href="#ReadCoreMSHDF_MassSpectrum-292"><span class="linenos">292</span></a>
@@ -856,7 +856,7 @@
 </span><span id="ReadCoreMSHDF_MassSpectrum-308"><a href="#ReadCoreMSHDF_MassSpectrum-308"><span class="linenos">308</span></a>
 </span><span id="ReadCoreMSHDF_MassSpectrum-309"><a href="#ReadCoreMSHDF_MassSpectrum-309"><span class="linenos">309</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">h5pydata</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">attr_str</span><span class="p">]</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-310"><a href="#ReadCoreMSHDF_MassSpectrum-310"><span class="linenos">310</span></a>
-</span><span id="ReadCoreMSHDF_MassSpectrum-311"><a href="#ReadCoreMSHDF_MassSpectrum-311"><span class="linenos">311</span></a>    <span class="k">def</span> <span class="nf">get_scan_group_attr_data</span><span class="p">(</span>
+</span><span id="ReadCoreMSHDF_MassSpectrum-311"><a href="#ReadCoreMSHDF_MassSpectrum-311"><span class="linenos">311</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_scan_group_attr_data</span><span class="p">(</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-312"><a href="#ReadCoreMSHDF_MassSpectrum-312"><span class="linenos">312</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">scan_index</span><span class="p">,</span> <span class="n">time_index</span><span class="p">,</span> <span class="n">attr_group</span><span class="p">,</span> <span class="n">attr_srt</span><span class="o">=</span><span class="kc">None</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-313"><a href="#ReadCoreMSHDF_MassSpectrum-313"><span class="linenos">313</span></a>    <span class="p">):</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-314"><a href="#ReadCoreMSHDF_MassSpectrum-314"><span class="linenos">314</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -902,7 +902,7 @@
 </span><span id="ReadCoreMSHDF_MassSpectrum-354"><a href="#ReadCoreMSHDF_MassSpectrum-354"><span class="linenos">354</span></a>            <span class="k">else</span><span class="p">:</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-355"><a href="#ReadCoreMSHDF_MassSpectrum-355"><span class="linenos">355</span></a>                <span class="k">return</span> <span class="p">{}</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-356"><a href="#ReadCoreMSHDF_MassSpectrum-356"><span class="linenos">356</span></a>
-</span><span id="ReadCoreMSHDF_MassSpectrum-357"><a href="#ReadCoreMSHDF_MassSpectrum-357"><span class="linenos">357</span></a>    <span class="k">def</span> <span class="nf">get_raw_data_attr_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_index</span><span class="p">,</span> <span class="n">attr_group</span><span class="p">,</span> <span class="n">attr_str</span><span class="p">):</span>
+</span><span id="ReadCoreMSHDF_MassSpectrum-357"><a href="#ReadCoreMSHDF_MassSpectrum-357"><span class="linenos">357</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_raw_data_attr_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_index</span><span class="p">,</span> <span class="n">attr_group</span><span class="p">,</span> <span class="n">attr_str</span><span class="p">):</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-358"><a href="#ReadCoreMSHDF_MassSpectrum-358"><span class="linenos">358</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-359"><a href="#ReadCoreMSHDF_MassSpectrum-359"><span class="linenos">359</span></a><span class="sd">        Get raw data attribute data from the HDF5 file.</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-360"><a href="#ReadCoreMSHDF_MassSpectrum-360"><span class="linenos">360</span></a>
@@ -944,7 +944,7 @@
 </span><span id="ReadCoreMSHDF_MassSpectrum-396"><a href="#ReadCoreMSHDF_MassSpectrum-396"><span class="linenos">396</span></a>            <span class="n">attr_str</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-397"><a href="#ReadCoreMSHDF_MassSpectrum-397"><span class="linenos">397</span></a>        <span class="p">]</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-398"><a href="#ReadCoreMSHDF_MassSpectrum-398"><span class="linenos">398</span></a>
-</span><span id="ReadCoreMSHDF_MassSpectrum-399"><a href="#ReadCoreMSHDF_MassSpectrum-399"><span class="linenos">399</span></a>    <span class="k">def</span> <span class="nf">get_output_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">polarity</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+</span><span id="ReadCoreMSHDF_MassSpectrum-399"><a href="#ReadCoreMSHDF_MassSpectrum-399"><span class="linenos">399</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_output_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">polarity</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-400"><a href="#ReadCoreMSHDF_MassSpectrum-400"><span class="linenos">400</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-401"><a href="#ReadCoreMSHDF_MassSpectrum-401"><span class="linenos">401</span></a><span class="sd">        Get the output parameters for the mass spectrum.</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum-402"><a href="#ReadCoreMSHDF_MassSpectrum-402"><span class="linenos">402</span></a>
@@ -1046,7 +1046,7 @@ The path to the CoreMS HDF5 file.</li>
 
     </div>
     <a class="headerlink" href="#ReadCoreMSHDF_MassSpectrum.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoreMSHDF_MassSpectrum.__init__-43"><a href="#ReadCoreMSHDF_MassSpectrum.__init__-43"><span class="linenos">43</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_location</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoreMSHDF_MassSpectrum.__init__-43"><a href="#ReadCoreMSHDF_MassSpectrum.__init__-43"><span class="linenos">43</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_location</span><span class="p">):</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.__init__-44"><a href="#ReadCoreMSHDF_MassSpectrum.__init__-44"><span class="linenos">44</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">file_location</span><span class="p">)</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.__init__-45"><a href="#ReadCoreMSHDF_MassSpectrum.__init__-45"><span class="linenos">45</span></a>
 </span><span id="ReadCoreMSHDF_MassSpectrum.__init__-46"><a href="#ReadCoreMSHDF_MassSpectrum.__init__-46"><span class="linenos">46</span></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_location</span><span class="p">,</span> <span class="n">S3Path</span><span class="p">):</span>
@@ -1096,7 +1096,7 @@ The path to the CoreMS HDF5 file.</li>
 
     </div>
     <a class="headerlink" href="#ReadCoreMSHDF_MassSpectrum.load_raw_data"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoreMSHDF_MassSpectrum.load_raw_data-55"><a href="#ReadCoreMSHDF_MassSpectrum.load_raw_data-55"><span class="linenos">55</span></a>    <span class="k">def</span> <span class="nf">load_raw_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoreMSHDF_MassSpectrum.load_raw_data-55"><a href="#ReadCoreMSHDF_MassSpectrum.load_raw_data-55"><span class="linenos">55</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">load_raw_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.load_raw_data-56"><a href="#ReadCoreMSHDF_MassSpectrum.load_raw_data-56"><span class="linenos">56</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.load_raw_data-57"><a href="#ReadCoreMSHDF_MassSpectrum.load_raw_data-57"><span class="linenos">57</span></a><span class="sd">        Load raw data into the mass spectrum object.</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.load_raw_data-58"><a href="#ReadCoreMSHDF_MassSpectrum.load_raw_data-58"><span class="linenos">58</span></a>
@@ -1147,7 +1147,7 @@ The index of the scan to load the raw data from. Default is 0.</li>
 
     </div>
     <a class="headerlink" href="#ReadCoreMSHDF_MassSpectrum.get_mass_spectrum"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoreMSHDF_MassSpectrum.get_mass_spectrum-79"><a href="#ReadCoreMSHDF_MassSpectrum.get_mass_spectrum-79"><span class="linenos"> 79</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoreMSHDF_MassSpectrum.get_mass_spectrum-79"><a href="#ReadCoreMSHDF_MassSpectrum.get_mass_spectrum-79"><span class="linenos"> 79</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.get_mass_spectrum-80"><a href="#ReadCoreMSHDF_MassSpectrum.get_mass_spectrum-80"><span class="linenos"> 80</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.get_mass_spectrum-81"><a href="#ReadCoreMSHDF_MassSpectrum.get_mass_spectrum-81"><span class="linenos"> 81</span></a>        <span class="n">scan_number</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.get_mass_spectrum-82"><a href="#ReadCoreMSHDF_MassSpectrum.get_mass_spectrum-82"><span class="linenos"> 82</span></a>        <span class="n">time_index</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
@@ -1301,7 +1301,7 @@ If the mass spectrum has not been processed and load_molecular_formula is True.<
 
     </div>
     <a class="headerlink" href="#ReadCoreMSHDF_MassSpectrum.load_settings"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoreMSHDF_MassSpectrum.load_settings-182"><a href="#ReadCoreMSHDF_MassSpectrum.load_settings-182"><span class="linenos">182</span></a>    <span class="k">def</span> <span class="nf">load_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">time_index</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoreMSHDF_MassSpectrum.load_settings-182"><a href="#ReadCoreMSHDF_MassSpectrum.load_settings-182"><span class="linenos">182</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">load_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">time_index</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.load_settings-183"><a href="#ReadCoreMSHDF_MassSpectrum.load_settings-183"><span class="linenos">183</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.load_settings-184"><a href="#ReadCoreMSHDF_MassSpectrum.load_settings-184"><span class="linenos">184</span></a><span class="sd">        Load settings into the mass spectrum object.</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.load_settings-185"><a href="#ReadCoreMSHDF_MassSpectrum.load_settings-185"><span class="linenos">185</span></a>
@@ -1360,7 +1360,7 @@ The index of the time point to load the settings from. Default is -1.</li>
 
     </div>
     <a class="headerlink" href="#ReadCoreMSHDF_MassSpectrum.get_dataframe"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoreMSHDF_MassSpectrum.get_dataframe-212"><a href="#ReadCoreMSHDF_MassSpectrum.get_dataframe-212"><span class="linenos">212</span></a>    <span class="k">def</span> <span class="nf">get_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">time_index</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoreMSHDF_MassSpectrum.get_dataframe-212"><a href="#ReadCoreMSHDF_MassSpectrum.get_dataframe-212"><span class="linenos">212</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">time_index</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.get_dataframe-213"><a href="#ReadCoreMSHDF_MassSpectrum.get_dataframe-213"><span class="linenos">213</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.get_dataframe-214"><a href="#ReadCoreMSHDF_MassSpectrum.get_dataframe-214"><span class="linenos">214</span></a><span class="sd">        Get a pandas DataFrame representing the mass spectrum.</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.get_dataframe-215"><a href="#ReadCoreMSHDF_MassSpectrum.get_dataframe-215"><span class="linenos">215</span></a>
@@ -1444,7 +1444,7 @@ The index of the time point to retrieve the DataFrame from. Default is -1.</li>
 
     </div>
     <a class="headerlink" href="#ReadCoreMSHDF_MassSpectrum.get_time_index_to_pull"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoreMSHDF_MassSpectrum.get_time_index_to_pull-263"><a href="#ReadCoreMSHDF_MassSpectrum.get_time_index_to_pull-263"><span class="linenos">263</span></a>    <span class="k">def</span> <span class="nf">get_time_index_to_pull</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_label</span><span class="p">,</span> <span class="n">time_index</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoreMSHDF_MassSpectrum.get_time_index_to_pull-263"><a href="#ReadCoreMSHDF_MassSpectrum.get_time_index_to_pull-263"><span class="linenos">263</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_time_index_to_pull</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_label</span><span class="p">,</span> <span class="n">time_index</span><span class="p">):</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.get_time_index_to_pull-264"><a href="#ReadCoreMSHDF_MassSpectrum.get_time_index_to_pull-264"><span class="linenos">264</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.get_time_index_to_pull-265"><a href="#ReadCoreMSHDF_MassSpectrum.get_time_index_to_pull-265"><span class="linenos">265</span></a><span class="sd">        Get the time index to pull from the HDF5 file.</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.get_time_index_to_pull-266"><a href="#ReadCoreMSHDF_MassSpectrum.get_time_index_to_pull-266"><span class="linenos">266</span></a>
@@ -1503,7 +1503,7 @@ The index of the time point.</li>
 
     </div>
     <a class="headerlink" href="#ReadCoreMSHDF_MassSpectrum.get_high_level_attr_data"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoreMSHDF_MassSpectrum.get_high_level_attr_data-289"><a href="#ReadCoreMSHDF_MassSpectrum.get_high_level_attr_data-289"><span class="linenos">289</span></a>    <span class="k">def</span> <span class="nf">get_high_level_attr_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr_str</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoreMSHDF_MassSpectrum.get_high_level_attr_data-289"><a href="#ReadCoreMSHDF_MassSpectrum.get_high_level_attr_data-289"><span class="linenos">289</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_high_level_attr_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr_str</span><span class="p">):</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.get_high_level_attr_data-290"><a href="#ReadCoreMSHDF_MassSpectrum.get_high_level_attr_data-290"><span class="linenos">290</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.get_high_level_attr_data-291"><a href="#ReadCoreMSHDF_MassSpectrum.get_high_level_attr_data-291"><span class="linenos">291</span></a><span class="sd">        Get high-level attribute data from the HDF5 file.</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.get_high_level_attr_data-292"><a href="#ReadCoreMSHDF_MassSpectrum.get_high_level_attr_data-292"><span class="linenos">292</span></a>
@@ -1562,7 +1562,7 @@ The attribute string.</li>
 
     </div>
     <a class="headerlink" href="#ReadCoreMSHDF_MassSpectrum.get_scan_group_attr_data"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoreMSHDF_MassSpectrum.get_scan_group_attr_data-311"><a href="#ReadCoreMSHDF_MassSpectrum.get_scan_group_attr_data-311"><span class="linenos">311</span></a>    <span class="k">def</span> <span class="nf">get_scan_group_attr_data</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoreMSHDF_MassSpectrum.get_scan_group_attr_data-311"><a href="#ReadCoreMSHDF_MassSpectrum.get_scan_group_attr_data-311"><span class="linenos">311</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_scan_group_attr_data</span><span class="p">(</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.get_scan_group_attr_data-312"><a href="#ReadCoreMSHDF_MassSpectrum.get_scan_group_attr_data-312"><span class="linenos">312</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">scan_index</span><span class="p">,</span> <span class="n">time_index</span><span class="p">,</span> <span class="n">attr_group</span><span class="p">,</span> <span class="n">attr_srt</span><span class="o">=</span><span class="kc">None</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.get_scan_group_attr_data-313"><a href="#ReadCoreMSHDF_MassSpectrum.get_scan_group_attr_data-313"><span class="linenos">313</span></a>    <span class="p">):</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.get_scan_group_attr_data-314"><a href="#ReadCoreMSHDF_MassSpectrum.get_scan_group_attr_data-314"><span class="linenos">314</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -1652,7 +1652,7 @@ If no attribute string is provided, all attribute data in the group is returned 
 
     </div>
     <a class="headerlink" href="#ReadCoreMSHDF_MassSpectrum.get_raw_data_attr_data"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoreMSHDF_MassSpectrum.get_raw_data_attr_data-357"><a href="#ReadCoreMSHDF_MassSpectrum.get_raw_data_attr_data-357"><span class="linenos">357</span></a>    <span class="k">def</span> <span class="nf">get_raw_data_attr_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_index</span><span class="p">,</span> <span class="n">attr_group</span><span class="p">,</span> <span class="n">attr_str</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoreMSHDF_MassSpectrum.get_raw_data_attr_data-357"><a href="#ReadCoreMSHDF_MassSpectrum.get_raw_data_attr_data-357"><span class="linenos">357</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_raw_data_attr_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_index</span><span class="p">,</span> <span class="n">attr_group</span><span class="p">,</span> <span class="n">attr_str</span><span class="p">):</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.get_raw_data_attr_data-358"><a href="#ReadCoreMSHDF_MassSpectrum.get_raw_data_attr_data-358"><span class="linenos">358</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.get_raw_data_attr_data-359"><a href="#ReadCoreMSHDF_MassSpectrum.get_raw_data_attr_data-359"><span class="linenos">359</span></a><span class="sd">        Get raw data attribute data from the HDF5 file.</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.get_raw_data_attr_data-360"><a href="#ReadCoreMSHDF_MassSpectrum.get_raw_data_attr_data-360"><span class="linenos">360</span></a>
@@ -1749,7 +1749,7 @@ from the HDF5 file. It returns the attribute data as a dictionary.</p>
 
     </div>
     <a class="headerlink" href="#ReadCoreMSHDF_MassSpectrum.get_output_parameters"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoreMSHDF_MassSpectrum.get_output_parameters-399"><a href="#ReadCoreMSHDF_MassSpectrum.get_output_parameters-399"><span class="linenos">399</span></a>    <span class="k">def</span> <span class="nf">get_output_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">polarity</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoreMSHDF_MassSpectrum.get_output_parameters-399"><a href="#ReadCoreMSHDF_MassSpectrum.get_output_parameters-399"><span class="linenos">399</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_output_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">polarity</span><span class="p">,</span> <span class="n">scan_index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.get_output_parameters-400"><a href="#ReadCoreMSHDF_MassSpectrum.get_output_parameters-400"><span class="linenos">400</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.get_output_parameters-401"><a href="#ReadCoreMSHDF_MassSpectrum.get_output_parameters-401"><span class="linenos">401</span></a><span class="sd">        Get the output parameters for the mass spectrum.</span>
 </span><span id="ReadCoreMSHDF_MassSpectrum.get_output_parameters-402"><a href="#ReadCoreMSHDF_MassSpectrum.get_output_parameters-402"><span class="linenos">402</span></a>

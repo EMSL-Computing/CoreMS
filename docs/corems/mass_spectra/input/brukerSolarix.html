@@ -90,20 +90,20 @@
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Yuri E. Corilo&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="n">__date__</span> <span class="o">=</span> <span class="s2">&quot;Oct 29, 2019&quot;</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span> <span class="nn">s3path</span> <span class="kn">import</span> <span class="n">S3Path</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">threading</span><span class="w"> </span><span class="kn">import</span> <span class="n">Thread</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">s3path</span><span class="w"> </span><span class="kn">import</span> <span class="n">S3Path</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="c1"># import h5py</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="c1"># from corems.encapsulation.constant import Labels</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span> <span class="nn">corems.mass_spectra.factory.lc_class</span> <span class="kn">import</span> <span class="n">LCMSBase</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.mass_spectra.factory.lc_class</span><span class="w"> </span><span class="kn">import</span> <span class="n">LCMSBase</span>
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="c1"># from corems.encapsulation.factory.parameters import default_parameters</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="kn">from</span> <span class="nn">corems.transient.input.brukerSolarix</span> <span class="kn">import</span> <span class="n">ReadBrukerSolarix</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.transient.input.brukerSolarix</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReadBrukerSolarix</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="k">class</span> <span class="nc">ReadBruker_SolarixTransientMassSpectra</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ReadBruker_SolarixTransientMassSpectra</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="sd">    Class for reading Bruker Solarix Transient Mass Spectra.</span>
 </span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a>
@@ -121,7 +121,7 @@
 </span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="sd">        Flag indicating whether to keep the profile data in the mass spectra. Defaults to False.</span>
 </span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>
-</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a>        <span class="n">d_directory_location</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">S3Path</span><span class="p">,</span>
 </span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a>        <span class="n">analyzer</span><span class="o">=</span><span class="s2">&quot;ICR&quot;</span><span class="p">,</span>
@@ -153,7 +153,7 @@
 </span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">auto_process</span> <span class="o">=</span> <span class="n">auto_process</span>
 </span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">keep_profile</span> <span class="o">=</span> <span class="n">keep_profile</span>
 </span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>
-</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>    <span class="k">def</span> <span class="nf">get_scan_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_scan_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 </span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a><span class="sd">        Get the scan attributes from the scan.xml file.</span>
 </span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>
@@ -162,7 +162,7 @@
 </span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a><span class="sd">        dict</span>
 </span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a><span class="sd">            Dictionary containing the scan number as key and a tuple of retention time and TIC as value.</span>
 </span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>        <span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">bs4</span><span class="w"> </span><span class="kn">import</span> <span class="n">BeautifulSoup</span>
 </span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>
 </span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_attr</span><span class="o">.</span><span class="n">open</span><span class="p">(),</span> <span class="s2">&quot;xml&quot;</span><span class="p">)</span>
 </span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>
@@ -174,7 +174,7 @@
 </span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>
 </span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>        <span class="k">return</span> <span class="n">dict_scan_rt_tic</span>
 </span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>
-</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>    <span class="k">def</span> <span class="nf">import_mass_spectra</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">import_mass_spectra</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a><span class="sd">        Import the mass spectra from the scan.xml file.</span>
 </span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -200,7 +200,7 @@
 </span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">lcms</span><span class="o">.</span><span class="n">tic</span> <span class="o">=</span> <span class="n">list_tic</span>
 </span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">lcms</span><span class="o">.</span><span class="n">scans_number</span> <span class="o">=</span> <span class="n">list_scans</span>
 </span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>
-</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 </span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="sd">        Get the mass spectrum for a given scan number.</span>
 </span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>
@@ -222,13 +222,13 @@
 </span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>
 </span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>        <span class="k">return</span> <span class="n">mass_spec</span>
 </span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>
-</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a><span class="sd">        Run the import_mass_spectra method.</span>
 </span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">import_mass_spectra</span><span class="p">()</span>
 </span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>
-</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>    <span class="k">def</span> <span class="nf">get_lcms_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_lcms_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a><span class="sd">        Get the LCMSBase object.</span>
 </span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>
@@ -256,7 +256,7 @@
 
     </div>
     <a class="headerlink" href="#ReadBruker_SolarixTransientMassSpectra"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBruker_SolarixTransientMassSpectra-18"><a href="#ReadBruker_SolarixTransientMassSpectra-18"><span class="linenos"> 18</span></a><span class="k">class</span> <span class="nc">ReadBruker_SolarixTransientMassSpectra</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBruker_SolarixTransientMassSpectra-18"><a href="#ReadBruker_SolarixTransientMassSpectra-18"><span class="linenos"> 18</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ReadBruker_SolarixTransientMassSpectra</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-19"><a href="#ReadBruker_SolarixTransientMassSpectra-19"><span class="linenos"> 19</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-20"><a href="#ReadBruker_SolarixTransientMassSpectra-20"><span class="linenos"> 20</span></a><span class="sd">    Class for reading Bruker Solarix Transient Mass Spectra.</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-21"><a href="#ReadBruker_SolarixTransientMassSpectra-21"><span class="linenos"> 21</span></a>
@@ -274,7 +274,7 @@
 </span><span id="ReadBruker_SolarixTransientMassSpectra-33"><a href="#ReadBruker_SolarixTransientMassSpectra-33"><span class="linenos"> 33</span></a><span class="sd">        Flag indicating whether to keep the profile data in the mass spectra. Defaults to False.</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-34"><a href="#ReadBruker_SolarixTransientMassSpectra-34"><span class="linenos"> 34</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-35"><a href="#ReadBruker_SolarixTransientMassSpectra-35"><span class="linenos"> 35</span></a>
-</span><span id="ReadBruker_SolarixTransientMassSpectra-36"><a href="#ReadBruker_SolarixTransientMassSpectra-36"><span class="linenos"> 36</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+</span><span id="ReadBruker_SolarixTransientMassSpectra-36"><a href="#ReadBruker_SolarixTransientMassSpectra-36"><span class="linenos"> 36</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-37"><a href="#ReadBruker_SolarixTransientMassSpectra-37"><span class="linenos"> 37</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-38"><a href="#ReadBruker_SolarixTransientMassSpectra-38"><span class="linenos"> 38</span></a>        <span class="n">d_directory_location</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">S3Path</span><span class="p">,</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-39"><a href="#ReadBruker_SolarixTransientMassSpectra-39"><span class="linenos"> 39</span></a>        <span class="n">analyzer</span><span class="o">=</span><span class="s2">&quot;ICR&quot;</span><span class="p">,</span>
@@ -306,7 +306,7 @@
 </span><span id="ReadBruker_SolarixTransientMassSpectra-65"><a href="#ReadBruker_SolarixTransientMassSpectra-65"><span class="linenos"> 65</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">auto_process</span> <span class="o">=</span> <span class="n">auto_process</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-66"><a href="#ReadBruker_SolarixTransientMassSpectra-66"><span class="linenos"> 66</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">keep_profile</span> <span class="o">=</span> <span class="n">keep_profile</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-67"><a href="#ReadBruker_SolarixTransientMassSpectra-67"><span class="linenos"> 67</span></a>
-</span><span id="ReadBruker_SolarixTransientMassSpectra-68"><a href="#ReadBruker_SolarixTransientMassSpectra-68"><span class="linenos"> 68</span></a>    <span class="k">def</span> <span class="nf">get_scan_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span id="ReadBruker_SolarixTransientMassSpectra-68"><a href="#ReadBruker_SolarixTransientMassSpectra-68"><span class="linenos"> 68</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_scan_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-69"><a href="#ReadBruker_SolarixTransientMassSpectra-69"><span class="linenos"> 69</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-70"><a href="#ReadBruker_SolarixTransientMassSpectra-70"><span class="linenos"> 70</span></a><span class="sd">        Get the scan attributes from the scan.xml file.</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-71"><a href="#ReadBruker_SolarixTransientMassSpectra-71"><span class="linenos"> 71</span></a>
@@ -315,7 +315,7 @@
 </span><span id="ReadBruker_SolarixTransientMassSpectra-74"><a href="#ReadBruker_SolarixTransientMassSpectra-74"><span class="linenos"> 74</span></a><span class="sd">        dict</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-75"><a href="#ReadBruker_SolarixTransientMassSpectra-75"><span class="linenos"> 75</span></a><span class="sd">            Dictionary containing the scan number as key and a tuple of retention time and TIC as value.</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-76"><a href="#ReadBruker_SolarixTransientMassSpectra-76"><span class="linenos"> 76</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="ReadBruker_SolarixTransientMassSpectra-77"><a href="#ReadBruker_SolarixTransientMassSpectra-77"><span class="linenos"> 77</span></a>        <span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
+</span><span id="ReadBruker_SolarixTransientMassSpectra-77"><a href="#ReadBruker_SolarixTransientMassSpectra-77"><span class="linenos"> 77</span></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">bs4</span><span class="w"> </span><span class="kn">import</span> <span class="n">BeautifulSoup</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-78"><a href="#ReadBruker_SolarixTransientMassSpectra-78"><span class="linenos"> 78</span></a>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-79"><a href="#ReadBruker_SolarixTransientMassSpectra-79"><span class="linenos"> 79</span></a>        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_attr</span><span class="o">.</span><span class="n">open</span><span class="p">(),</span> <span class="s2">&quot;xml&quot;</span><span class="p">)</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-80"><a href="#ReadBruker_SolarixTransientMassSpectra-80"><span class="linenos"> 80</span></a>
@@ -327,7 +327,7 @@
 </span><span id="ReadBruker_SolarixTransientMassSpectra-86"><a href="#ReadBruker_SolarixTransientMassSpectra-86"><span class="linenos"> 86</span></a>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-87"><a href="#ReadBruker_SolarixTransientMassSpectra-87"><span class="linenos"> 87</span></a>        <span class="k">return</span> <span class="n">dict_scan_rt_tic</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-88"><a href="#ReadBruker_SolarixTransientMassSpectra-88"><span class="linenos"> 88</span></a>
-</span><span id="ReadBruker_SolarixTransientMassSpectra-89"><a href="#ReadBruker_SolarixTransientMassSpectra-89"><span class="linenos"> 89</span></a>    <span class="k">def</span> <span class="nf">import_mass_spectra</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="ReadBruker_SolarixTransientMassSpectra-89"><a href="#ReadBruker_SolarixTransientMassSpectra-89"><span class="linenos"> 89</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">import_mass_spectra</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-90"><a href="#ReadBruker_SolarixTransientMassSpectra-90"><span class="linenos"> 90</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-91"><a href="#ReadBruker_SolarixTransientMassSpectra-91"><span class="linenos"> 91</span></a><span class="sd">        Import the mass spectra from the scan.xml file.</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-92"><a href="#ReadBruker_SolarixTransientMassSpectra-92"><span class="linenos"> 92</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -353,7 +353,7 @@
 </span><span id="ReadBruker_SolarixTransientMassSpectra-112"><a href="#ReadBruker_SolarixTransientMassSpectra-112"><span class="linenos">112</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">lcms</span><span class="o">.</span><span class="n">tic</span> <span class="o">=</span> <span class="n">list_tic</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-113"><a href="#ReadBruker_SolarixTransientMassSpectra-113"><span class="linenos">113</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">lcms</span><span class="o">.</span><span class="n">scans_number</span> <span class="o">=</span> <span class="n">list_scans</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-114"><a href="#ReadBruker_SolarixTransientMassSpectra-114"><span class="linenos">114</span></a>
-</span><span id="ReadBruker_SolarixTransientMassSpectra-115"><a href="#ReadBruker_SolarixTransientMassSpectra-115"><span class="linenos">115</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+</span><span id="ReadBruker_SolarixTransientMassSpectra-115"><a href="#ReadBruker_SolarixTransientMassSpectra-115"><span class="linenos">115</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-116"><a href="#ReadBruker_SolarixTransientMassSpectra-116"><span class="linenos">116</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-117"><a href="#ReadBruker_SolarixTransientMassSpectra-117"><span class="linenos">117</span></a><span class="sd">        Get the mass spectrum for a given scan number.</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-118"><a href="#ReadBruker_SolarixTransientMassSpectra-118"><span class="linenos">118</span></a>
@@ -375,13 +375,13 @@
 </span><span id="ReadBruker_SolarixTransientMassSpectra-134"><a href="#ReadBruker_SolarixTransientMassSpectra-134"><span class="linenos">134</span></a>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-135"><a href="#ReadBruker_SolarixTransientMassSpectra-135"><span class="linenos">135</span></a>        <span class="k">return</span> <span class="n">mass_spec</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-136"><a href="#ReadBruker_SolarixTransientMassSpectra-136"><span class="linenos">136</span></a>
-</span><span id="ReadBruker_SolarixTransientMassSpectra-137"><a href="#ReadBruker_SolarixTransientMassSpectra-137"><span class="linenos">137</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="ReadBruker_SolarixTransientMassSpectra-137"><a href="#ReadBruker_SolarixTransientMassSpectra-137"><span class="linenos">137</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-138"><a href="#ReadBruker_SolarixTransientMassSpectra-138"><span class="linenos">138</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-139"><a href="#ReadBruker_SolarixTransientMassSpectra-139"><span class="linenos">139</span></a><span class="sd">        Run the import_mass_spectra method.</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-140"><a href="#ReadBruker_SolarixTransientMassSpectra-140"><span class="linenos">140</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-141"><a href="#ReadBruker_SolarixTransientMassSpectra-141"><span class="linenos">141</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">import_mass_spectra</span><span class="p">()</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-142"><a href="#ReadBruker_SolarixTransientMassSpectra-142"><span class="linenos">142</span></a>
-</span><span id="ReadBruker_SolarixTransientMassSpectra-143"><a href="#ReadBruker_SolarixTransientMassSpectra-143"><span class="linenos">143</span></a>    <span class="k">def</span> <span class="nf">get_lcms_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="ReadBruker_SolarixTransientMassSpectra-143"><a href="#ReadBruker_SolarixTransientMassSpectra-143"><span class="linenos">143</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_lcms_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-144"><a href="#ReadBruker_SolarixTransientMassSpectra-144"><span class="linenos">144</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-145"><a href="#ReadBruker_SolarixTransientMassSpectra-145"><span class="linenos">145</span></a><span class="sd">        Get the LCMSBase object.</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra-146"><a href="#ReadBruker_SolarixTransientMassSpectra-146"><span class="linenos">146</span></a>
@@ -426,7 +426,7 @@ Flag indicating whether to keep the profile data in the mass spectra. Defaults t
 
     </div>
     <a class="headerlink" href="#ReadBruker_SolarixTransientMassSpectra.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBruker_SolarixTransientMassSpectra.__init__-36"><a href="#ReadBruker_SolarixTransientMassSpectra.__init__-36"><span class="linenos">36</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBruker_SolarixTransientMassSpectra.__init__-36"><a href="#ReadBruker_SolarixTransientMassSpectra.__init__-36"><span class="linenos">36</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.__init__-37"><a href="#ReadBruker_SolarixTransientMassSpectra.__init__-37"><span class="linenos">37</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.__init__-38"><a href="#ReadBruker_SolarixTransientMassSpectra.__init__-38"><span class="linenos">38</span></a>        <span class="n">d_directory_location</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">S3Path</span><span class="p">,</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.__init__-39"><a href="#ReadBruker_SolarixTransientMassSpectra.__init__-39"><span class="linenos">39</span></a>        <span class="n">analyzer</span><span class="o">=</span><span class="s2">&quot;ICR&quot;</span><span class="p">,</span>
@@ -538,7 +538,7 @@ else to the thread.</p>
 
     </div>
     <a class="headerlink" href="#ReadBruker_SolarixTransientMassSpectra.get_scan_attr"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBruker_SolarixTransientMassSpectra.get_scan_attr-68"><a href="#ReadBruker_SolarixTransientMassSpectra.get_scan_attr-68"><span class="linenos">68</span></a>    <span class="k">def</span> <span class="nf">get_scan_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBruker_SolarixTransientMassSpectra.get_scan_attr-68"><a href="#ReadBruker_SolarixTransientMassSpectra.get_scan_attr-68"><span class="linenos">68</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_scan_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.get_scan_attr-69"><a href="#ReadBruker_SolarixTransientMassSpectra.get_scan_attr-69"><span class="linenos">69</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.get_scan_attr-70"><a href="#ReadBruker_SolarixTransientMassSpectra.get_scan_attr-70"><span class="linenos">70</span></a><span class="sd">        Get the scan attributes from the scan.xml file.</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.get_scan_attr-71"><a href="#ReadBruker_SolarixTransientMassSpectra.get_scan_attr-71"><span class="linenos">71</span></a>
@@ -547,7 +547,7 @@ else to the thread.</p>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.get_scan_attr-74"><a href="#ReadBruker_SolarixTransientMassSpectra.get_scan_attr-74"><span class="linenos">74</span></a><span class="sd">        dict</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.get_scan_attr-75"><a href="#ReadBruker_SolarixTransientMassSpectra.get_scan_attr-75"><span class="linenos">75</span></a><span class="sd">            Dictionary containing the scan number as key and a tuple of retention time and TIC as value.</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.get_scan_attr-76"><a href="#ReadBruker_SolarixTransientMassSpectra.get_scan_attr-76"><span class="linenos">76</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="ReadBruker_SolarixTransientMassSpectra.get_scan_attr-77"><a href="#ReadBruker_SolarixTransientMassSpectra.get_scan_attr-77"><span class="linenos">77</span></a>        <span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
+</span><span id="ReadBruker_SolarixTransientMassSpectra.get_scan_attr-77"><a href="#ReadBruker_SolarixTransientMassSpectra.get_scan_attr-77"><span class="linenos">77</span></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">bs4</span><span class="w"> </span><span class="kn">import</span> <span class="n">BeautifulSoup</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.get_scan_attr-78"><a href="#ReadBruker_SolarixTransientMassSpectra.get_scan_attr-78"><span class="linenos">78</span></a>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.get_scan_attr-79"><a href="#ReadBruker_SolarixTransientMassSpectra.get_scan_attr-79"><span class="linenos">79</span></a>        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_attr</span><span class="o">.</span><span class="n">open</span><span class="p">(),</span> <span class="s2">&quot;xml&quot;</span><span class="p">)</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.get_scan_attr-80"><a href="#ReadBruker_SolarixTransientMassSpectra.get_scan_attr-80"><span class="linenos">80</span></a>
@@ -583,7 +583,7 @@ else to the thread.</p>
 
     </div>
     <a class="headerlink" href="#ReadBruker_SolarixTransientMassSpectra.import_mass_spectra"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBruker_SolarixTransientMassSpectra.import_mass_spectra-89"><a href="#ReadBruker_SolarixTransientMassSpectra.import_mass_spectra-89"><span class="linenos"> 89</span></a>    <span class="k">def</span> <span class="nf">import_mass_spectra</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBruker_SolarixTransientMassSpectra.import_mass_spectra-89"><a href="#ReadBruker_SolarixTransientMassSpectra.import_mass_spectra-89"><span class="linenos"> 89</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">import_mass_spectra</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.import_mass_spectra-90"><a href="#ReadBruker_SolarixTransientMassSpectra.import_mass_spectra-90"><span class="linenos"> 90</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.import_mass_spectra-91"><a href="#ReadBruker_SolarixTransientMassSpectra.import_mass_spectra-91"><span class="linenos"> 91</span></a><span class="sd">        Import the mass spectra from the scan.xml file.</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.import_mass_spectra-92"><a href="#ReadBruker_SolarixTransientMassSpectra.import_mass_spectra-92"><span class="linenos"> 92</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -627,7 +627,7 @@ else to the thread.</p>
 
     </div>
     <a class="headerlink" href="#ReadBruker_SolarixTransientMassSpectra.get_mass_spectrum"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBruker_SolarixTransientMassSpectra.get_mass_spectrum-115"><a href="#ReadBruker_SolarixTransientMassSpectra.get_mass_spectrum-115"><span class="linenos">115</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBruker_SolarixTransientMassSpectra.get_mass_spectrum-115"><a href="#ReadBruker_SolarixTransientMassSpectra.get_mass_spectrum-115"><span class="linenos">115</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.get_mass_spectrum-116"><a href="#ReadBruker_SolarixTransientMassSpectra.get_mass_spectrum-116"><span class="linenos">116</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.get_mass_spectrum-117"><a href="#ReadBruker_SolarixTransientMassSpectra.get_mass_spectrum-117"><span class="linenos">117</span></a><span class="sd">        Get the mass spectrum for a given scan number.</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.get_mass_spectrum-118"><a href="#ReadBruker_SolarixTransientMassSpectra.get_mass_spectrum-118"><span class="linenos">118</span></a>
@@ -674,7 +674,7 @@ Scan number.</li>
 
     </div>
     <a class="headerlink" href="#ReadBruker_SolarixTransientMassSpectra.run"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBruker_SolarixTransientMassSpectra.run-137"><a href="#ReadBruker_SolarixTransientMassSpectra.run-137"><span class="linenos">137</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBruker_SolarixTransientMassSpectra.run-137"><a href="#ReadBruker_SolarixTransientMassSpectra.run-137"><span class="linenos">137</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.run-138"><a href="#ReadBruker_SolarixTransientMassSpectra.run-138"><span class="linenos">138</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.run-139"><a href="#ReadBruker_SolarixTransientMassSpectra.run-139"><span class="linenos">139</span></a><span class="sd">        Run the import_mass_spectra method.</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.run-140"><a href="#ReadBruker_SolarixTransientMassSpectra.run-140"><span class="linenos">140</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -698,7 +698,7 @@ Scan number.</li>
 
     </div>
     <a class="headerlink" href="#ReadBruker_SolarixTransientMassSpectra.get_lcms_obj"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBruker_SolarixTransientMassSpectra.get_lcms_obj-143"><a href="#ReadBruker_SolarixTransientMassSpectra.get_lcms_obj-143"><span class="linenos">143</span></a>    <span class="k">def</span> <span class="nf">get_lcms_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBruker_SolarixTransientMassSpectra.get_lcms_obj-143"><a href="#ReadBruker_SolarixTransientMassSpectra.get_lcms_obj-143"><span class="linenos">143</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_lcms_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.get_lcms_obj-144"><a href="#ReadBruker_SolarixTransientMassSpectra.get_lcms_obj-144"><span class="linenos">144</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.get_lcms_obj-145"><a href="#ReadBruker_SolarixTransientMassSpectra.get_lcms_obj-145"><span class="linenos">145</span></a><span class="sd">        Get the LCMSBase object.</span>
 </span><span id="ReadBruker_SolarixTransientMassSpectra.get_lcms_obj-146"><a href="#ReadBruker_SolarixTransientMassSpectra.get_lcms_obj-146"><span class="linenos">146</span></a>
