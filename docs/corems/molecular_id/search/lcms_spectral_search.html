@@ -63,14 +63,14 @@
 
                         <label class="view-source-button" for="mod-lcms_spectral_search-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">import</span> <span class="nn">re</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a>
-</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.molecular_id.factory.spectrum_search_results</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpectrumSearchResults</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span> <span class="nn">corems.molecular_id.factory.spectrum_search_results</span> <span class="kn">import</span> <span class="n">SpectrumSearchResults</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="k">class</span><span class="w"> </span><span class="nc">LCMSSpectralSearch</span><span class="p">:</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="k">class</span> <span class="nc">LCMSSpectralSearch</span><span class="p">:</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="sd">    Methods for searching LCMS spectra.</span>
 </span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>
@@ -79,7 +79,7 @@
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_more_match_quals</span><span class="p">(</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>    <span class="k">def</span> <span class="nf">get_more_match_quals</span><span class="p">(</span>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>        <span class="n">query_mz_arr</span><span class="p">,</span> <span class="n">lib_entry</span><span class="p">,</span> <span class="n">mz_tol_da</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">include_fragment_types</span><span class="o">=</span><span class="kc">False</span>
 </span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>    <span class="p">):</span>
 </span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -181,7 +181,7 @@
 </span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>            <span class="n">lib_frags</span><span class="p">,</span>
 </span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>        <span class="p">)</span>
 </span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>
-</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">fe_search</span><span class="p">(</span>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>    <span class="k">def</span> <span class="nf">fe_search</span><span class="p">(</span>
 </span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>        <span class="n">scan_list</span><span class="p">,</span>
 </span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>        <span class="n">fe_lib</span><span class="p">,</span>
@@ -388,7 +388,7 @@
 
     </div>
     <a class="headerlink" href="#LCMSSpectralSearch"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSSpectralSearch-9"><a href="#LCMSSpectralSearch-9"><span class="linenos">  9</span></a><span class="k">class</span><span class="w"> </span><span class="nc">LCMSSpectralSearch</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSSpectralSearch-9"><a href="#LCMSSpectralSearch-9"><span class="linenos">  9</span></a><span class="k">class</span> <span class="nc">LCMSSpectralSearch</span><span class="p">:</span>
 </span><span id="LCMSSpectralSearch-10"><a href="#LCMSSpectralSearch-10"><span class="linenos"> 10</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="LCMSSpectralSearch-11"><a href="#LCMSSpectralSearch-11"><span class="linenos"> 11</span></a><span class="sd">    Methods for searching LCMS spectra.</span>
 </span><span id="LCMSSpectralSearch-12"><a href="#LCMSSpectralSearch-12"><span class="linenos"> 12</span></a>
@@ -397,7 +397,7 @@
 </span><span id="LCMSSpectralSearch-15"><a href="#LCMSSpectralSearch-15"><span class="linenos"> 15</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="LCMSSpectralSearch-16"><a href="#LCMSSpectralSearch-16"><span class="linenos"> 16</span></a>
 </span><span id="LCMSSpectralSearch-17"><a href="#LCMSSpectralSearch-17"><span class="linenos"> 17</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="LCMSSpectralSearch-18"><a href="#LCMSSpectralSearch-18"><span class="linenos"> 18</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_more_match_quals</span><span class="p">(</span>
+</span><span id="LCMSSpectralSearch-18"><a href="#LCMSSpectralSearch-18"><span class="linenos"> 18</span></a>    <span class="k">def</span> <span class="nf">get_more_match_quals</span><span class="p">(</span>
 </span><span id="LCMSSpectralSearch-19"><a href="#LCMSSpectralSearch-19"><span class="linenos"> 19</span></a>        <span class="n">query_mz_arr</span><span class="p">,</span> <span class="n">lib_entry</span><span class="p">,</span> <span class="n">mz_tol_da</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">include_fragment_types</span><span class="o">=</span><span class="kc">False</span>
 </span><span id="LCMSSpectralSearch-20"><a href="#LCMSSpectralSearch-20"><span class="linenos"> 20</span></a>    <span class="p">):</span>
 </span><span id="LCMSSpectralSearch-21"><a href="#LCMSSpectralSearch-21"><span class="linenos"> 21</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -499,7 +499,7 @@
 </span><span id="LCMSSpectralSearch-117"><a href="#LCMSSpectralSearch-117"><span class="linenos">117</span></a>            <span class="n">lib_frags</span><span class="p">,</span>
 </span><span id="LCMSSpectralSearch-118"><a href="#LCMSSpectralSearch-118"><span class="linenos">118</span></a>        <span class="p">)</span>
 </span><span id="LCMSSpectralSearch-119"><a href="#LCMSSpectralSearch-119"><span class="linenos">119</span></a>
-</span><span id="LCMSSpectralSearch-120"><a href="#LCMSSpectralSearch-120"><span class="linenos">120</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">fe_search</span><span class="p">(</span>
+</span><span id="LCMSSpectralSearch-120"><a href="#LCMSSpectralSearch-120"><span class="linenos">120</span></a>    <span class="k">def</span> <span class="nf">fe_search</span><span class="p">(</span>
 </span><span id="LCMSSpectralSearch-121"><a href="#LCMSSpectralSearch-121"><span class="linenos">121</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="LCMSSpectralSearch-122"><a href="#LCMSSpectralSearch-122"><span class="linenos">122</span></a>        <span class="n">scan_list</span><span class="p">,</span>
 </span><span id="LCMSSpectralSearch-123"><a href="#LCMSSpectralSearch-123"><span class="linenos">123</span></a>        <span class="n">fe_lib</span><span class="p">,</span>
@@ -713,7 +713,7 @@
     </div>
     <a class="headerlink" href="#LCMSSpectralSearch.get_more_match_quals"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSSpectralSearch.get_more_match_quals-17"><a href="#LCMSSpectralSearch.get_more_match_quals-17"><span class="linenos"> 17</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="LCMSSpectralSearch.get_more_match_quals-18"><a href="#LCMSSpectralSearch.get_more_match_quals-18"><span class="linenos"> 18</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_more_match_quals</span><span class="p">(</span>
+</span><span id="LCMSSpectralSearch.get_more_match_quals-18"><a href="#LCMSSpectralSearch.get_more_match_quals-18"><span class="linenos"> 18</span></a>    <span class="k">def</span> <span class="nf">get_more_match_quals</span><span class="p">(</span>
 </span><span id="LCMSSpectralSearch.get_more_match_quals-19"><a href="#LCMSSpectralSearch.get_more_match_quals-19"><span class="linenos"> 19</span></a>        <span class="n">query_mz_arr</span><span class="p">,</span> <span class="n">lib_entry</span><span class="p">,</span> <span class="n">mz_tol_da</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">include_fragment_types</span><span class="o">=</span><span class="kc">False</span>
 </span><span id="LCMSSpectralSearch.get_more_match_quals-20"><a href="#LCMSSpectralSearch.get_more_match_quals-20"><span class="linenos"> 20</span></a>    <span class="p">):</span>
 </span><span id="LCMSSpectralSearch.get_more_match_quals-21"><a href="#LCMSSpectralSearch.get_more_match_quals-21"><span class="linenos"> 21</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -876,7 +876,7 @@ lib_frags : list
 
     </div>
     <a class="headerlink" href="#LCMSSpectralSearch.fe_search"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSSpectralSearch.fe_search-120"><a href="#LCMSSpectralSearch.fe_search-120"><span class="linenos">120</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">fe_search</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSSpectralSearch.fe_search-120"><a href="#LCMSSpectralSearch.fe_search-120"><span class="linenos">120</span></a>    <span class="k">def</span> <span class="nf">fe_search</span><span class="p">(</span>
 </span><span id="LCMSSpectralSearch.fe_search-121"><a href="#LCMSSpectralSearch.fe_search-121"><span class="linenos">121</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="LCMSSpectralSearch.fe_search-122"><a href="#LCMSSpectralSearch.fe_search-122"><span class="linenos">122</span></a>        <span class="n">scan_list</span><span class="p">,</span>
 </span><span id="LCMSSpectralSearch.fe_search-123"><a href="#LCMSSpectralSearch.fe_search-123"><span class="linenos">123</span></a>        <span class="n">fe_lib</span><span class="p">,</span>

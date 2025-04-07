@@ -69,7 +69,7 @@
 
                         <label class="view-source-button" for="mod-spectrum_search_results-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="k">class</span><span class="w"> </span><span class="nc">SpectrumSearchResults</span><span class="p">:</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="k">class</span> <span class="nc">SpectrumSearchResults</span><span class="p">:</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for storing Search Results for a single Spectrum Query</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
 </span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="sd">    Parameters</span>
@@ -128,7 +128,7 @@
 </span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>
 </span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>
-</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
 </span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">query_spectrum</span><span class="p">,</span> <span class="n">precursor_mz</span><span class="p">,</span> <span class="n">spectral_similarity_search_results</span>
 </span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>    <span class="p">):</span>
 </span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">query_spectrum</span> <span class="o">=</span> <span class="n">query_spectrum</span>
@@ -154,7 +154,7 @@
 </span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">attribute_keys</span><span class="p">:</span>
 </span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">spectral_similarity_search_results</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
 </span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>
-</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols_to_drop</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>    <span class="k">def</span> <span class="nf">to_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols_to_drop</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert the SpectrumSearchResults to a pandas DataFrame</span>
 </span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>
 </span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a><span class="sd">        Parameters</span>
@@ -168,7 +168,7 @@
 </span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a><span class="sd">            A DataFrame with the SpectrumSearchResults attributes as columns</span>
 </span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>
 </span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>        <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 </span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>
 </span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>        <span class="c1"># get initial dict</span>
 </span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -200,7 +200,7 @@
 
     </div>
     <a class="headerlink" href="#SpectrumSearchResults"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="SpectrumSearchResults-2"><a href="#SpectrumSearchResults-2"><span class="linenos">  2</span></a><span class="k">class</span><span class="w"> </span><span class="nc">SpectrumSearchResults</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="SpectrumSearchResults-2"><a href="#SpectrumSearchResults-2"><span class="linenos">  2</span></a><span class="k">class</span> <span class="nc">SpectrumSearchResults</span><span class="p">:</span>
 </span><span id="SpectrumSearchResults-3"><a href="#SpectrumSearchResults-3"><span class="linenos">  3</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for storing Search Results for a single Spectrum Query</span>
 </span><span id="SpectrumSearchResults-4"><a href="#SpectrumSearchResults-4"><span class="linenos">  4</span></a>
 </span><span id="SpectrumSearchResults-5"><a href="#SpectrumSearchResults-5"><span class="linenos">  5</span></a><span class="sd">    Parameters</span>
@@ -259,7 +259,7 @@
 </span><span id="SpectrumSearchResults-58"><a href="#SpectrumSearchResults-58"><span class="linenos"> 58</span></a>
 </span><span id="SpectrumSearchResults-59"><a href="#SpectrumSearchResults-59"><span class="linenos"> 59</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="SpectrumSearchResults-60"><a href="#SpectrumSearchResults-60"><span class="linenos"> 60</span></a>
-</span><span id="SpectrumSearchResults-61"><a href="#SpectrumSearchResults-61"><span class="linenos"> 61</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+</span><span id="SpectrumSearchResults-61"><a href="#SpectrumSearchResults-61"><span class="linenos"> 61</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
 </span><span id="SpectrumSearchResults-62"><a href="#SpectrumSearchResults-62"><span class="linenos"> 62</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">query_spectrum</span><span class="p">,</span> <span class="n">precursor_mz</span><span class="p">,</span> <span class="n">spectral_similarity_search_results</span>
 </span><span id="SpectrumSearchResults-63"><a href="#SpectrumSearchResults-63"><span class="linenos"> 63</span></a>    <span class="p">):</span>
 </span><span id="SpectrumSearchResults-64"><a href="#SpectrumSearchResults-64"><span class="linenos"> 64</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">query_spectrum</span> <span class="o">=</span> <span class="n">query_spectrum</span>
@@ -285,7 +285,7 @@
 </span><span id="SpectrumSearchResults-84"><a href="#SpectrumSearchResults-84"><span class="linenos"> 84</span></a>            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">attribute_keys</span><span class="p">:</span>
 </span><span id="SpectrumSearchResults-85"><a href="#SpectrumSearchResults-85"><span class="linenos"> 85</span></a>                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">spectral_similarity_search_results</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
 </span><span id="SpectrumSearchResults-86"><a href="#SpectrumSearchResults-86"><span class="linenos"> 86</span></a>
-</span><span id="SpectrumSearchResults-87"><a href="#SpectrumSearchResults-87"><span class="linenos"> 87</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols_to_drop</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="SpectrumSearchResults-87"><a href="#SpectrumSearchResults-87"><span class="linenos"> 87</span></a>    <span class="k">def</span> <span class="nf">to_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols_to_drop</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="SpectrumSearchResults-88"><a href="#SpectrumSearchResults-88"><span class="linenos"> 88</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert the SpectrumSearchResults to a pandas DataFrame</span>
 </span><span id="SpectrumSearchResults-89"><a href="#SpectrumSearchResults-89"><span class="linenos"> 89</span></a>
 </span><span id="SpectrumSearchResults-90"><a href="#SpectrumSearchResults-90"><span class="linenos"> 90</span></a><span class="sd">        Parameters</span>
@@ -299,7 +299,7 @@
 </span><span id="SpectrumSearchResults-98"><a href="#SpectrumSearchResults-98"><span class="linenos"> 98</span></a><span class="sd">            A DataFrame with the SpectrumSearchResults attributes as columns</span>
 </span><span id="SpectrumSearchResults-99"><a href="#SpectrumSearchResults-99"><span class="linenos"> 99</span></a>
 </span><span id="SpectrumSearchResults-100"><a href="#SpectrumSearchResults-100"><span class="linenos">100</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="SpectrumSearchResults-101"><a href="#SpectrumSearchResults-101"><span class="linenos">101</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+</span><span id="SpectrumSearchResults-101"><a href="#SpectrumSearchResults-101"><span class="linenos">101</span></a>        <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 </span><span id="SpectrumSearchResults-102"><a href="#SpectrumSearchResults-102"><span class="linenos">102</span></a>
 </span><span id="SpectrumSearchResults-103"><a href="#SpectrumSearchResults-103"><span class="linenos">103</span></a>        <span class="c1"># get initial dict</span>
 </span><span id="SpectrumSearchResults-104"><a href="#SpectrumSearchResults-104"><span class="linenos">104</span></a>        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -391,7 +391,7 @@ ref_frag_types : list
 
     </div>
     <a class="headerlink" href="#SpectrumSearchResults.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="SpectrumSearchResults.__init__-61"><a href="#SpectrumSearchResults.__init__-61"><span class="linenos">61</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="SpectrumSearchResults.__init__-61"><a href="#SpectrumSearchResults.__init__-61"><span class="linenos">61</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
 </span><span id="SpectrumSearchResults.__init__-62"><a href="#SpectrumSearchResults.__init__-62"><span class="linenos">62</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">query_spectrum</span><span class="p">,</span> <span class="n">precursor_mz</span><span class="p">,</span> <span class="n">spectral_similarity_search_results</span>
 </span><span id="SpectrumSearchResults.__init__-63"><a href="#SpectrumSearchResults.__init__-63"><span class="linenos">63</span></a>    <span class="p">):</span>
 </span><span id="SpectrumSearchResults.__init__-64"><a href="#SpectrumSearchResults.__init__-64"><span class="linenos">64</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">query_spectrum</span> <span class="o">=</span> <span class="n">query_spectrum</span>
@@ -455,7 +455,7 @@ ref_frag_types : list
 
     </div>
     <a class="headerlink" href="#SpectrumSearchResults.to_dataframe"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="SpectrumSearchResults.to_dataframe-87"><a href="#SpectrumSearchResults.to_dataframe-87"><span class="linenos"> 87</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols_to_drop</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="SpectrumSearchResults.to_dataframe-87"><a href="#SpectrumSearchResults.to_dataframe-87"><span class="linenos"> 87</span></a>    <span class="k">def</span> <span class="nf">to_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols_to_drop</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="SpectrumSearchResults.to_dataframe-88"><a href="#SpectrumSearchResults.to_dataframe-88"><span class="linenos"> 88</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert the SpectrumSearchResults to a pandas DataFrame</span>
 </span><span id="SpectrumSearchResults.to_dataframe-89"><a href="#SpectrumSearchResults.to_dataframe-89"><span class="linenos"> 89</span></a>
 </span><span id="SpectrumSearchResults.to_dataframe-90"><a href="#SpectrumSearchResults.to_dataframe-90"><span class="linenos"> 90</span></a><span class="sd">        Parameters</span>
@@ -469,7 +469,7 @@ ref_frag_types : list
 </span><span id="SpectrumSearchResults.to_dataframe-98"><a href="#SpectrumSearchResults.to_dataframe-98"><span class="linenos"> 98</span></a><span class="sd">            A DataFrame with the SpectrumSearchResults attributes as columns</span>
 </span><span id="SpectrumSearchResults.to_dataframe-99"><a href="#SpectrumSearchResults.to_dataframe-99"><span class="linenos"> 99</span></a>
 </span><span id="SpectrumSearchResults.to_dataframe-100"><a href="#SpectrumSearchResults.to_dataframe-100"><span class="linenos">100</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="SpectrumSearchResults.to_dataframe-101"><a href="#SpectrumSearchResults.to_dataframe-101"><span class="linenos">101</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+</span><span id="SpectrumSearchResults.to_dataframe-101"><a href="#SpectrumSearchResults.to_dataframe-101"><span class="linenos">101</span></a>        <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 </span><span id="SpectrumSearchResults.to_dataframe-102"><a href="#SpectrumSearchResults.to_dataframe-102"><span class="linenos">102</span></a>
 </span><span id="SpectrumSearchResults.to_dataframe-103"><a href="#SpectrumSearchResults.to_dataframe-103"><span class="linenos">103</span></a>        <span class="c1"># get initial dict</span>
 </span><span id="SpectrumSearchResults.to_dataframe-104"><a href="#SpectrumSearchResults.to_dataframe-104"><span class="linenos">104</span></a>        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>

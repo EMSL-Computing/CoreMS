@@ -75,19 +75,19 @@
 
                         <label class="view-source-button" for="mod-NoiseCalc-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">import</span> <span class="nn">warnings</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">average</span><span class="p">,</span> <span class="n">histogram</span><span class="p">,</span> <span class="n">hstack</span><span class="p">,</span> <span class="n">inf</span><span class="p">,</span> <span class="n">isnan</span><span class="p">,</span> <span class="n">log10</span><span class="p">,</span> <span class="n">median</span><span class="p">,</span> <span class="n">nan</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="n">where</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">average</span><span class="p">,</span> <span class="n">histogram</span><span class="p">,</span> <span class="n">hstack</span><span class="p">,</span> <span class="n">inf</span><span class="p">,</span> <span class="n">isnan</span><span class="p">,</span> <span class="n">log10</span><span class="p">,</span> <span class="n">median</span><span class="p">,</span> <span class="n">nan</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="n">where</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems</span><span class="w"> </span><span class="kn">import</span> <span class="n">chunks</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span> <span class="nn">corems</span> <span class="kn">import</span> <span class="n">chunks</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="c1"># from matplotlib import pyplot</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Yuri E. Corilo&quot;</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="n">__date__</span> <span class="o">=</span> <span class="s2">&quot;Jun 27, 2019&quot;</span>
 </span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>
-</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="k">class</span><span class="w"> </span><span class="nc">NoiseThresholdCalc</span><span class="p">:</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="k">class</span> <span class="nc">NoiseThresholdCalc</span><span class="p">:</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for noise threshold calculation.</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="sd">    Parameters</span>
@@ -133,7 +133,7 @@
 </span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="sd">        Run the noise threshold calculation.</span>
 </span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>
-</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_noise_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>    <span class="k">def</span> <span class="nf">get_noise_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
 </span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the noise threshold.</span>
 </span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>
 </span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a><span class="sd">        Returns</span>
@@ -235,7 +235,7 @@
 </span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>                <span class="p">)</span>
 </span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>                <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 </span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a>
-</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cut_mz_domain_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>    <span class="k">def</span> <span class="nf">cut_mz_domain_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Cut the m/z domain to the noise threshold regions.</span>
 </span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a>
 </span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a><span class="sd">        Returns</span>
@@ -290,7 +290,7 @@
 </span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a>                <span class="n">high_mz_index</span><span class="p">:</span><span class="n">low_mz_index</span>
 </span><span id="L-214"><a href="#L-214"><span class="linenos">214</span></a>            <span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">abundance_profile</span><span class="p">[</span><span class="n">high_mz_index</span><span class="p">:</span><span class="n">low_mz_index</span><span class="p">]</span>
 </span><span id="L-215"><a href="#L-215"><span class="linenos">215</span></a>
-</span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_noise_average</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ymincentroid</span><span class="p">):</span>
+</span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a>    <span class="k">def</span> <span class="nf">get_noise_average</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ymincentroid</span><span class="p">):</span>
 </span><span id="L-217"><a href="#L-217"><span class="linenos">217</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the average noise and standard deviation.</span>
 </span><span id="L-218"><a href="#L-218"><span class="linenos">218</span></a>
 </span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a><span class="sd">        Parameters</span>
@@ -315,7 +315,7 @@
 </span><span id="L-238"><a href="#L-238"><span class="linenos">238</span></a>
 </span><span id="L-239"><a href="#L-239"><span class="linenos">239</span></a>        <span class="k">return</span> <span class="n">average_noise</span><span class="p">,</span> <span class="n">s_deviation</span>
 </span><span id="L-240"><a href="#L-240"><span class="linenos">240</span></a>
-</span><span id="L-241"><a href="#L-241"><span class="linenos">241</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_abundance_minima_centroid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">abun_cut</span><span class="p">):</span>
+</span><span id="L-241"><a href="#L-241"><span class="linenos">241</span></a>    <span class="k">def</span> <span class="nf">get_abundance_minima_centroid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">abun_cut</span><span class="p">):</span>
 </span><span id="L-242"><a href="#L-242"><span class="linenos">242</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the abundance minima for centroid data.</span>
 </span><span id="L-243"><a href="#L-243"><span class="linenos">243</span></a>
 </span><span id="L-244"><a href="#L-244"><span class="linenos">244</span></a><span class="sd">        Parameters</span>
@@ -348,7 +348,7 @@
 </span><span id="L-271"><a href="#L-271"><span class="linenos">271</span></a>
 </span><span id="L-272"><a href="#L-272"><span class="linenos">272</span></a>        <span class="k">return</span> <span class="n">abun_cut</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
 </span><span id="L-273"><a href="#L-273"><span class="linenos">273</span></a>
-</span><span id="L-274"><a href="#L-274"><span class="linenos">274</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run_log_noise_threshold_calc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-274"><a href="#L-274"><span class="linenos">274</span></a>    <span class="k">def</span> <span class="nf">run_log_noise_threshold_calc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-275"><a href="#L-275"><span class="linenos">275</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the log noise threshold calculation.</span>
 </span><span id="L-276"><a href="#L-276"><span class="linenos">276</span></a>
 </span><span id="L-277"><a href="#L-277"><span class="linenos">277</span></a>
@@ -410,7 +410,7 @@
 </span><span id="L-333"><a href="#L-333"><span class="linenos">333</span></a>            <span class="p">)</span>  <span class="c1"># for mFT 0.463</span>
 </span><span id="L-334"><a href="#L-334"><span class="linenos">334</span></a>            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">noise_mid</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">noise_1std</span><span class="p">)</span>
 </span><span id="L-335"><a href="#L-335"><span class="linenos">335</span></a>
-</span><span id="L-336"><a href="#L-336"><span class="linenos">336</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run_noise_threshold_calc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-336"><a href="#L-336"><span class="linenos">336</span></a>    <span class="k">def</span> <span class="nf">run_noise_threshold_calc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-337"><a href="#L-337"><span class="linenos">337</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs noise threshold calculation (not log based method)</span>
 </span><span id="L-338"><a href="#L-338"><span class="linenos">338</span></a>
 </span><span id="L-339"><a href="#L-339"><span class="linenos">339</span></a><span class="sd">        Returns</span>
@@ -455,7 +455,7 @@
 
     </div>
     <a class="headerlink" href="#NoiseThresholdCalc"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="NoiseThresholdCalc-14"><a href="#NoiseThresholdCalc-14"><span class="linenos"> 14</span></a><span class="k">class</span><span class="w"> </span><span class="nc">NoiseThresholdCalc</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="NoiseThresholdCalc-14"><a href="#NoiseThresholdCalc-14"><span class="linenos"> 14</span></a><span class="k">class</span> <span class="nc">NoiseThresholdCalc</span><span class="p">:</span>
 </span><span id="NoiseThresholdCalc-15"><a href="#NoiseThresholdCalc-15"><span class="linenos"> 15</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for noise threshold calculation.</span>
 </span><span id="NoiseThresholdCalc-16"><a href="#NoiseThresholdCalc-16"><span class="linenos"> 16</span></a>
 </span><span id="NoiseThresholdCalc-17"><a href="#NoiseThresholdCalc-17"><span class="linenos"> 17</span></a><span class="sd">    Parameters</span>
@@ -501,7 +501,7 @@
 </span><span id="NoiseThresholdCalc-57"><a href="#NoiseThresholdCalc-57"><span class="linenos"> 57</span></a><span class="sd">        Run the noise threshold calculation.</span>
 </span><span id="NoiseThresholdCalc-58"><a href="#NoiseThresholdCalc-58"><span class="linenos"> 58</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="NoiseThresholdCalc-59"><a href="#NoiseThresholdCalc-59"><span class="linenos"> 59</span></a>
-</span><span id="NoiseThresholdCalc-60"><a href="#NoiseThresholdCalc-60"><span class="linenos"> 60</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_noise_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+</span><span id="NoiseThresholdCalc-60"><a href="#NoiseThresholdCalc-60"><span class="linenos"> 60</span></a>    <span class="k">def</span> <span class="nf">get_noise_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
 </span><span id="NoiseThresholdCalc-61"><a href="#NoiseThresholdCalc-61"><span class="linenos"> 61</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the noise threshold.</span>
 </span><span id="NoiseThresholdCalc-62"><a href="#NoiseThresholdCalc-62"><span class="linenos"> 62</span></a>
 </span><span id="NoiseThresholdCalc-63"><a href="#NoiseThresholdCalc-63"><span class="linenos"> 63</span></a><span class="sd">        Returns</span>
@@ -603,7 +603,7 @@
 </span><span id="NoiseThresholdCalc-159"><a href="#NoiseThresholdCalc-159"><span class="linenos">159</span></a>                <span class="p">)</span>
 </span><span id="NoiseThresholdCalc-160"><a href="#NoiseThresholdCalc-160"><span class="linenos">160</span></a>                <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 </span><span id="NoiseThresholdCalc-161"><a href="#NoiseThresholdCalc-161"><span class="linenos">161</span></a>
-</span><span id="NoiseThresholdCalc-162"><a href="#NoiseThresholdCalc-162"><span class="linenos">162</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cut_mz_domain_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="NoiseThresholdCalc-162"><a href="#NoiseThresholdCalc-162"><span class="linenos">162</span></a>    <span class="k">def</span> <span class="nf">cut_mz_domain_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="NoiseThresholdCalc-163"><a href="#NoiseThresholdCalc-163"><span class="linenos">163</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Cut the m/z domain to the noise threshold regions.</span>
 </span><span id="NoiseThresholdCalc-164"><a href="#NoiseThresholdCalc-164"><span class="linenos">164</span></a>
 </span><span id="NoiseThresholdCalc-165"><a href="#NoiseThresholdCalc-165"><span class="linenos">165</span></a><span class="sd">        Returns</span>
@@ -658,7 +658,7 @@
 </span><span id="NoiseThresholdCalc-214"><a href="#NoiseThresholdCalc-214"><span class="linenos">214</span></a>                <span class="n">high_mz_index</span><span class="p">:</span><span class="n">low_mz_index</span>
 </span><span id="NoiseThresholdCalc-215"><a href="#NoiseThresholdCalc-215"><span class="linenos">215</span></a>            <span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">abundance_profile</span><span class="p">[</span><span class="n">high_mz_index</span><span class="p">:</span><span class="n">low_mz_index</span><span class="p">]</span>
 </span><span id="NoiseThresholdCalc-216"><a href="#NoiseThresholdCalc-216"><span class="linenos">216</span></a>
-</span><span id="NoiseThresholdCalc-217"><a href="#NoiseThresholdCalc-217"><span class="linenos">217</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_noise_average</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ymincentroid</span><span class="p">):</span>
+</span><span id="NoiseThresholdCalc-217"><a href="#NoiseThresholdCalc-217"><span class="linenos">217</span></a>    <span class="k">def</span> <span class="nf">get_noise_average</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ymincentroid</span><span class="p">):</span>
 </span><span id="NoiseThresholdCalc-218"><a href="#NoiseThresholdCalc-218"><span class="linenos">218</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the average noise and standard deviation.</span>
 </span><span id="NoiseThresholdCalc-219"><a href="#NoiseThresholdCalc-219"><span class="linenos">219</span></a>
 </span><span id="NoiseThresholdCalc-220"><a href="#NoiseThresholdCalc-220"><span class="linenos">220</span></a><span class="sd">        Parameters</span>
@@ -683,7 +683,7 @@
 </span><span id="NoiseThresholdCalc-239"><a href="#NoiseThresholdCalc-239"><span class="linenos">239</span></a>
 </span><span id="NoiseThresholdCalc-240"><a href="#NoiseThresholdCalc-240"><span class="linenos">240</span></a>        <span class="k">return</span> <span class="n">average_noise</span><span class="p">,</span> <span class="n">s_deviation</span>
 </span><span id="NoiseThresholdCalc-241"><a href="#NoiseThresholdCalc-241"><span class="linenos">241</span></a>
-</span><span id="NoiseThresholdCalc-242"><a href="#NoiseThresholdCalc-242"><span class="linenos">242</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_abundance_minima_centroid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">abun_cut</span><span class="p">):</span>
+</span><span id="NoiseThresholdCalc-242"><a href="#NoiseThresholdCalc-242"><span class="linenos">242</span></a>    <span class="k">def</span> <span class="nf">get_abundance_minima_centroid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">abun_cut</span><span class="p">):</span>
 </span><span id="NoiseThresholdCalc-243"><a href="#NoiseThresholdCalc-243"><span class="linenos">243</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the abundance minima for centroid data.</span>
 </span><span id="NoiseThresholdCalc-244"><a href="#NoiseThresholdCalc-244"><span class="linenos">244</span></a>
 </span><span id="NoiseThresholdCalc-245"><a href="#NoiseThresholdCalc-245"><span class="linenos">245</span></a><span class="sd">        Parameters</span>
@@ -716,7 +716,7 @@
 </span><span id="NoiseThresholdCalc-272"><a href="#NoiseThresholdCalc-272"><span class="linenos">272</span></a>
 </span><span id="NoiseThresholdCalc-273"><a href="#NoiseThresholdCalc-273"><span class="linenos">273</span></a>        <span class="k">return</span> <span class="n">abun_cut</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
 </span><span id="NoiseThresholdCalc-274"><a href="#NoiseThresholdCalc-274"><span class="linenos">274</span></a>
-</span><span id="NoiseThresholdCalc-275"><a href="#NoiseThresholdCalc-275"><span class="linenos">275</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run_log_noise_threshold_calc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="NoiseThresholdCalc-275"><a href="#NoiseThresholdCalc-275"><span class="linenos">275</span></a>    <span class="k">def</span> <span class="nf">run_log_noise_threshold_calc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="NoiseThresholdCalc-276"><a href="#NoiseThresholdCalc-276"><span class="linenos">276</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the log noise threshold calculation.</span>
 </span><span id="NoiseThresholdCalc-277"><a href="#NoiseThresholdCalc-277"><span class="linenos">277</span></a>
 </span><span id="NoiseThresholdCalc-278"><a href="#NoiseThresholdCalc-278"><span class="linenos">278</span></a>
@@ -778,7 +778,7 @@
 </span><span id="NoiseThresholdCalc-334"><a href="#NoiseThresholdCalc-334"><span class="linenos">334</span></a>            <span class="p">)</span>  <span class="c1"># for mFT 0.463</span>
 </span><span id="NoiseThresholdCalc-335"><a href="#NoiseThresholdCalc-335"><span class="linenos">335</span></a>            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">noise_mid</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">noise_1std</span><span class="p">)</span>
 </span><span id="NoiseThresholdCalc-336"><a href="#NoiseThresholdCalc-336"><span class="linenos">336</span></a>
-</span><span id="NoiseThresholdCalc-337"><a href="#NoiseThresholdCalc-337"><span class="linenos">337</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run_noise_threshold_calc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="NoiseThresholdCalc-337"><a href="#NoiseThresholdCalc-337"><span class="linenos">337</span></a>    <span class="k">def</span> <span class="nf">run_noise_threshold_calc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="NoiseThresholdCalc-338"><a href="#NoiseThresholdCalc-338"><span class="linenos">338</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs noise threshold calculation (not log based method)</span>
 </span><span id="NoiseThresholdCalc-339"><a href="#NoiseThresholdCalc-339"><span class="linenos">339</span></a>
 </span><span id="NoiseThresholdCalc-340"><a href="#NoiseThresholdCalc-340"><span class="linenos">340</span></a><span class="sd">        Returns</span>
@@ -874,7 +874,7 @@ Run the noise threshold calculation.</li>
 
     </div>
     <a class="headerlink" href="#NoiseThresholdCalc.get_noise_threshold"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="NoiseThresholdCalc.get_noise_threshold-60"><a href="#NoiseThresholdCalc.get_noise_threshold-60"><span class="linenos"> 60</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_noise_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="NoiseThresholdCalc.get_noise_threshold-60"><a href="#NoiseThresholdCalc.get_noise_threshold-60"><span class="linenos"> 60</span></a>    <span class="k">def</span> <span class="nf">get_noise_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
 </span><span id="NoiseThresholdCalc.get_noise_threshold-61"><a href="#NoiseThresholdCalc.get_noise_threshold-61"><span class="linenos"> 61</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the noise threshold.</span>
 </span><span id="NoiseThresholdCalc.get_noise_threshold-62"><a href="#NoiseThresholdCalc.get_noise_threshold-62"><span class="linenos"> 62</span></a>
 </span><span id="NoiseThresholdCalc.get_noise_threshold-63"><a href="#NoiseThresholdCalc.get_noise_threshold-63"><span class="linenos"> 63</span></a><span class="sd">        Returns</span>
@@ -1001,7 +1001,7 @@ Run the noise threshold calculation.</li>
 
     </div>
     <a class="headerlink" href="#NoiseThresholdCalc.cut_mz_domain_noise"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="NoiseThresholdCalc.cut_mz_domain_noise-162"><a href="#NoiseThresholdCalc.cut_mz_domain_noise-162"><span class="linenos">162</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cut_mz_domain_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="NoiseThresholdCalc.cut_mz_domain_noise-162"><a href="#NoiseThresholdCalc.cut_mz_domain_noise-162"><span class="linenos">162</span></a>    <span class="k">def</span> <span class="nf">cut_mz_domain_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="NoiseThresholdCalc.cut_mz_domain_noise-163"><a href="#NoiseThresholdCalc.cut_mz_domain_noise-163"><span class="linenos">163</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Cut the m/z domain to the noise threshold regions.</span>
 </span><span id="NoiseThresholdCalc.cut_mz_domain_noise-164"><a href="#NoiseThresholdCalc.cut_mz_domain_noise-164"><span class="linenos">164</span></a>
 </span><span id="NoiseThresholdCalc.cut_mz_domain_noise-165"><a href="#NoiseThresholdCalc.cut_mz_domain_noise-165"><span class="linenos">165</span></a><span class="sd">        Returns</span>
@@ -1080,7 +1080,7 @@ Run the noise threshold calculation.</li>
 
     </div>
     <a class="headerlink" href="#NoiseThresholdCalc.get_noise_average"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="NoiseThresholdCalc.get_noise_average-217"><a href="#NoiseThresholdCalc.get_noise_average-217"><span class="linenos">217</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_noise_average</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ymincentroid</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="NoiseThresholdCalc.get_noise_average-217"><a href="#NoiseThresholdCalc.get_noise_average-217"><span class="linenos">217</span></a>    <span class="k">def</span> <span class="nf">get_noise_average</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ymincentroid</span><span class="p">):</span>
 </span><span id="NoiseThresholdCalc.get_noise_average-218"><a href="#NoiseThresholdCalc.get_noise_average-218"><span class="linenos">218</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the average noise and standard deviation.</span>
 </span><span id="NoiseThresholdCalc.get_noise_average-219"><a href="#NoiseThresholdCalc.get_noise_average-219"><span class="linenos">219</span></a>
 </span><span id="NoiseThresholdCalc.get_noise_average-220"><a href="#NoiseThresholdCalc.get_noise_average-220"><span class="linenos">220</span></a><span class="sd">        Parameters</span>
@@ -1136,7 +1136,7 @@ The ymincentroid array.</li>
 
     </div>
     <a class="headerlink" href="#NoiseThresholdCalc.get_abundance_minima_centroid"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="NoiseThresholdCalc.get_abundance_minima_centroid-242"><a href="#NoiseThresholdCalc.get_abundance_minima_centroid-242"><span class="linenos">242</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_abundance_minima_centroid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">abun_cut</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="NoiseThresholdCalc.get_abundance_minima_centroid-242"><a href="#NoiseThresholdCalc.get_abundance_minima_centroid-242"><span class="linenos">242</span></a>    <span class="k">def</span> <span class="nf">get_abundance_minima_centroid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">abun_cut</span><span class="p">):</span>
 </span><span id="NoiseThresholdCalc.get_abundance_minima_centroid-243"><a href="#NoiseThresholdCalc.get_abundance_minima_centroid-243"><span class="linenos">243</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the abundance minima for centroid data.</span>
 </span><span id="NoiseThresholdCalc.get_abundance_minima_centroid-244"><a href="#NoiseThresholdCalc.get_abundance_minima_centroid-244"><span class="linenos">244</span></a>
 </span><span id="NoiseThresholdCalc.get_abundance_minima_centroid-245"><a href="#NoiseThresholdCalc.get_abundance_minima_centroid-245"><span class="linenos">245</span></a><span class="sd">        Parameters</span>
@@ -1200,7 +1200,7 @@ The abundance cut array.</li>
 
     </div>
     <a class="headerlink" href="#NoiseThresholdCalc.run_log_noise_threshold_calc"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="NoiseThresholdCalc.run_log_noise_threshold_calc-275"><a href="#NoiseThresholdCalc.run_log_noise_threshold_calc-275"><span class="linenos">275</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run_log_noise_threshold_calc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="NoiseThresholdCalc.run_log_noise_threshold_calc-275"><a href="#NoiseThresholdCalc.run_log_noise_threshold_calc-275"><span class="linenos">275</span></a>    <span class="k">def</span> <span class="nf">run_log_noise_threshold_calc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="NoiseThresholdCalc.run_log_noise_threshold_calc-276"><a href="#NoiseThresholdCalc.run_log_noise_threshold_calc-276"><span class="linenos">276</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the log noise threshold calculation.</span>
 </span><span id="NoiseThresholdCalc.run_log_noise_threshold_calc-277"><a href="#NoiseThresholdCalc.run_log_noise_threshold_calc-277"><span class="linenos">277</span></a>
 </span><span id="NoiseThresholdCalc.run_log_noise_threshold_calc-278"><a href="#NoiseThresholdCalc.run_log_noise_threshold_calc-278"><span class="linenos">278</span></a>
@@ -1304,7 +1304,7 @@ For mFT data it is a Rayleigh distribution, and the value is actually 10^(abu_ma
 
     </div>
     <a class="headerlink" href="#NoiseThresholdCalc.run_noise_threshold_calc"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="NoiseThresholdCalc.run_noise_threshold_calc-337"><a href="#NoiseThresholdCalc.run_noise_threshold_calc-337"><span class="linenos">337</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run_noise_threshold_calc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="NoiseThresholdCalc.run_noise_threshold_calc-337"><a href="#NoiseThresholdCalc.run_noise_threshold_calc-337"><span class="linenos">337</span></a>    <span class="k">def</span> <span class="nf">run_noise_threshold_calc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="NoiseThresholdCalc.run_noise_threshold_calc-338"><a href="#NoiseThresholdCalc.run_noise_threshold_calc-338"><span class="linenos">338</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs noise threshold calculation (not log based method)</span>
 </span><span id="NoiseThresholdCalc.run_noise_threshold_calc-339"><a href="#NoiseThresholdCalc.run_noise_threshold_calc-339"><span class="linenos">339</span></a>
 </span><span id="NoiseThresholdCalc.run_noise_threshold_calc-340"><a href="#NoiseThresholdCalc.run_noise_threshold_calc-340"><span class="linenos">340</span></a><span class="sd">        Returns</span>

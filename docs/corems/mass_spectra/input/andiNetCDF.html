@@ -102,20 +102,20 @@
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Yuri E. Corilo&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="n">__date__</span> <span class="o">=</span> <span class="s2">&quot;Feb 12, 2020&quot;</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">threading</span><span class="w"> </span><span class="kn">import</span> <span class="n">Thread</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="c1"># from io import BytesIO</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">netCDF4</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">s3path</span><span class="w"> </span><span class="kn">import</span> <span class="n">S3Path</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span> <span class="nn">netCDF4</span> <span class="kn">import</span> <span class="n">Dataset</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span> <span class="nn">s3path</span> <span class="kn">import</span> <span class="n">S3Path</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.encapsulation.constant</span><span class="w"> </span><span class="kn">import</span> <span class="n">Labels</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.encapsulation.factory.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_parameters</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.mass_spectra.factory.GC_Class</span><span class="w"> </span><span class="kn">import</span> <span class="n">GCMSBase</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.mass_spectrum.factory.MassSpectrumClasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">MassSpecCentroidLowRes</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.constant</span> <span class="kn">import</span> <span class="n">Labels</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.factory.parameters</span> <span class="kn">import</span> <span class="n">default_parameters</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="kn">from</span> <span class="nn">corems.mass_spectra.factory.GC_Class</span> <span class="kn">import</span> <span class="n">GCMSBase</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="kn">from</span> <span class="nn">corems.mass_spectrum.factory.MassSpectrumClasses</span> <span class="kn">import</span> <span class="n">MassSpecCentroidLowRes</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ReadAndiNetCDF</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="k">class</span> <span class="nc">ReadAndiNetCDF</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="sd">    A class for reading AndiNetCDF files and extracting mass spectra data.</span>
 </span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a>
@@ -168,7 +168,7 @@
 </span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>
 </span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>
-</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
 </span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>        <span class="n">file_location</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
 </span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>        <span class="n">analyzer</span><span class="o">=</span><span class="s2">&quot;Quadruple&quot;</span><span class="p">,</span>
@@ -211,7 +211,7 @@
 </span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">gcms</span> <span class="o">=</span> <span class="n">GCMSBase</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_location</span><span class="p">,</span> <span class="n">analyzer</span><span class="p">,</span> <span class="n">instrument_label</span><span class="p">)</span>
 </span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>
 </span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>    <span class="nd">@property</span>
-</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">polarity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>    <span class="k">def</span> <span class="nf">polarity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="sd">        Get the polarity of the ionization.</span>
 </span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>
@@ -222,7 +222,7 @@
 </span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
 </span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>
-</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">abun</span><span class="p">,</span> <span class="n">rp</span><span class="p">,</span> <span class="n">d_params</span><span class="p">):</span>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">abun</span><span class="p">,</span> <span class="n">rp</span><span class="p">,</span> <span class="n">d_params</span><span class="p">):</span>
 </span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a><span class="sd">        Add a mass spectrum to the GCMSBase object.</span>
 </span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>
@@ -247,14 +247,14 @@
 </span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>        <span class="n">mass_spec</span> <span class="o">=</span> <span class="n">MassSpecCentroidLowRes</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">d_params</span><span class="p">)</span>
 </span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">gcms</span><span class="o">.</span><span class="n">add_mass_spectrum</span><span class="p">(</span><span class="n">mass_spec</span><span class="p">)</span>
 </span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>
-</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a><span class="sd">        Populate the GCMSBase object with mass spectra data.</span>
 </span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a>        <span class="n">d_parameters</span> <span class="o">=</span> <span class="n">default_parameters</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_location</span><span class="p">)</span>
 </span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">import_mass_spectra</span><span class="p">(</span><span class="n">d_parameters</span><span class="p">)</span>
 </span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>
-</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">import_mass_spectra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_params</span><span class="p">):</span>
+</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>    <span class="k">def</span> <span class="nf">import_mass_spectra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_params</span><span class="p">):</span>
 </span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a><span class="sd">        Import mass spectra data from the AndiNetCDF file.</span>
 </span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>
@@ -293,7 +293,7 @@
 </span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">gcms</span><span class="o">.</span><span class="n">tic</span> <span class="o">=</span> <span class="n">list_tic</span>
 </span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">gcms</span><span class="o">.</span><span class="n">scans_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_scans</span>
 </span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a>
-</span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_gcms_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a>    <span class="k">def</span> <span class="nf">get_gcms_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-196"><a href="#L-196"><span class="linenos">196</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-197"><a href="#L-197"><span class="linenos">197</span></a><span class="sd">        Get the GCMSBase object.</span>
 </span><span id="L-198"><a href="#L-198"><span class="linenos">198</span></a>
@@ -314,7 +314,7 @@
 
     </div>
     <a class="headerlink" href="#ReadAndiNetCDF"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadAndiNetCDF-18"><a href="#ReadAndiNetCDF-18"><span class="linenos"> 18</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ReadAndiNetCDF</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadAndiNetCDF-18"><a href="#ReadAndiNetCDF-18"><span class="linenos"> 18</span></a><span class="k">class</span> <span class="nc">ReadAndiNetCDF</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
 </span><span id="ReadAndiNetCDF-19"><a href="#ReadAndiNetCDF-19"><span class="linenos"> 19</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadAndiNetCDF-20"><a href="#ReadAndiNetCDF-20"><span class="linenos"> 20</span></a><span class="sd">    A class for reading AndiNetCDF files and extracting mass spectra data.</span>
 </span><span id="ReadAndiNetCDF-21"><a href="#ReadAndiNetCDF-21"><span class="linenos"> 21</span></a>
@@ -367,7 +367,7 @@
 </span><span id="ReadAndiNetCDF-68"><a href="#ReadAndiNetCDF-68"><span class="linenos"> 68</span></a>
 </span><span id="ReadAndiNetCDF-69"><a href="#ReadAndiNetCDF-69"><span class="linenos"> 69</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="ReadAndiNetCDF-70"><a href="#ReadAndiNetCDF-70"><span class="linenos"> 70</span></a>
-</span><span id="ReadAndiNetCDF-71"><a href="#ReadAndiNetCDF-71"><span class="linenos"> 71</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+</span><span id="ReadAndiNetCDF-71"><a href="#ReadAndiNetCDF-71"><span class="linenos"> 71</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
 </span><span id="ReadAndiNetCDF-72"><a href="#ReadAndiNetCDF-72"><span class="linenos"> 72</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="ReadAndiNetCDF-73"><a href="#ReadAndiNetCDF-73"><span class="linenos"> 73</span></a>        <span class="n">file_location</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
 </span><span id="ReadAndiNetCDF-74"><a href="#ReadAndiNetCDF-74"><span class="linenos"> 74</span></a>        <span class="n">analyzer</span><span class="o">=</span><span class="s2">&quot;Quadruple&quot;</span><span class="p">,</span>
@@ -410,7 +410,7 @@
 </span><span id="ReadAndiNetCDF-111"><a href="#ReadAndiNetCDF-111"><span class="linenos">111</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">gcms</span> <span class="o">=</span> <span class="n">GCMSBase</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_location</span><span class="p">,</span> <span class="n">analyzer</span><span class="p">,</span> <span class="n">instrument_label</span><span class="p">)</span>
 </span><span id="ReadAndiNetCDF-112"><a href="#ReadAndiNetCDF-112"><span class="linenos">112</span></a>
 </span><span id="ReadAndiNetCDF-113"><a href="#ReadAndiNetCDF-113"><span class="linenos">113</span></a>    <span class="nd">@property</span>
-</span><span id="ReadAndiNetCDF-114"><a href="#ReadAndiNetCDF-114"><span class="linenos">114</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">polarity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="ReadAndiNetCDF-114"><a href="#ReadAndiNetCDF-114"><span class="linenos">114</span></a>    <span class="k">def</span> <span class="nf">polarity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="ReadAndiNetCDF-115"><a href="#ReadAndiNetCDF-115"><span class="linenos">115</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadAndiNetCDF-116"><a href="#ReadAndiNetCDF-116"><span class="linenos">116</span></a><span class="sd">        Get the polarity of the ionization.</span>
 </span><span id="ReadAndiNetCDF-117"><a href="#ReadAndiNetCDF-117"><span class="linenos">117</span></a>
@@ -421,7 +421,7 @@
 </span><span id="ReadAndiNetCDF-122"><a href="#ReadAndiNetCDF-122"><span class="linenos">122</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="ReadAndiNetCDF-123"><a href="#ReadAndiNetCDF-123"><span class="linenos">123</span></a>            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
 </span><span id="ReadAndiNetCDF-124"><a href="#ReadAndiNetCDF-124"><span class="linenos">124</span></a>
-</span><span id="ReadAndiNetCDF-125"><a href="#ReadAndiNetCDF-125"><span class="linenos">125</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">abun</span><span class="p">,</span> <span class="n">rp</span><span class="p">,</span> <span class="n">d_params</span><span class="p">):</span>
+</span><span id="ReadAndiNetCDF-125"><a href="#ReadAndiNetCDF-125"><span class="linenos">125</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">abun</span><span class="p">,</span> <span class="n">rp</span><span class="p">,</span> <span class="n">d_params</span><span class="p">):</span>
 </span><span id="ReadAndiNetCDF-126"><a href="#ReadAndiNetCDF-126"><span class="linenos">126</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadAndiNetCDF-127"><a href="#ReadAndiNetCDF-127"><span class="linenos">127</span></a><span class="sd">        Add a mass spectrum to the GCMSBase object.</span>
 </span><span id="ReadAndiNetCDF-128"><a href="#ReadAndiNetCDF-128"><span class="linenos">128</span></a>
@@ -446,14 +446,14 @@
 </span><span id="ReadAndiNetCDF-147"><a href="#ReadAndiNetCDF-147"><span class="linenos">147</span></a>        <span class="n">mass_spec</span> <span class="o">=</span> <span class="n">MassSpecCentroidLowRes</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">d_params</span><span class="p">)</span>
 </span><span id="ReadAndiNetCDF-148"><a href="#ReadAndiNetCDF-148"><span class="linenos">148</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">gcms</span><span class="o">.</span><span class="n">add_mass_spectrum</span><span class="p">(</span><span class="n">mass_spec</span><span class="p">)</span>
 </span><span id="ReadAndiNetCDF-149"><a href="#ReadAndiNetCDF-149"><span class="linenos">149</span></a>
-</span><span id="ReadAndiNetCDF-150"><a href="#ReadAndiNetCDF-150"><span class="linenos">150</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="ReadAndiNetCDF-150"><a href="#ReadAndiNetCDF-150"><span class="linenos">150</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="ReadAndiNetCDF-151"><a href="#ReadAndiNetCDF-151"><span class="linenos">151</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadAndiNetCDF-152"><a href="#ReadAndiNetCDF-152"><span class="linenos">152</span></a><span class="sd">        Populate the GCMSBase object with mass spectra data.</span>
 </span><span id="ReadAndiNetCDF-153"><a href="#ReadAndiNetCDF-153"><span class="linenos">153</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="ReadAndiNetCDF-154"><a href="#ReadAndiNetCDF-154"><span class="linenos">154</span></a>        <span class="n">d_parameters</span> <span class="o">=</span> <span class="n">default_parameters</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_location</span><span class="p">)</span>
 </span><span id="ReadAndiNetCDF-155"><a href="#ReadAndiNetCDF-155"><span class="linenos">155</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">import_mass_spectra</span><span class="p">(</span><span class="n">d_parameters</span><span class="p">)</span>
 </span><span id="ReadAndiNetCDF-156"><a href="#ReadAndiNetCDF-156"><span class="linenos">156</span></a>
-</span><span id="ReadAndiNetCDF-157"><a href="#ReadAndiNetCDF-157"><span class="linenos">157</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">import_mass_spectra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_params</span><span class="p">):</span>
+</span><span id="ReadAndiNetCDF-157"><a href="#ReadAndiNetCDF-157"><span class="linenos">157</span></a>    <span class="k">def</span> <span class="nf">import_mass_spectra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_params</span><span class="p">):</span>
 </span><span id="ReadAndiNetCDF-158"><a href="#ReadAndiNetCDF-158"><span class="linenos">158</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadAndiNetCDF-159"><a href="#ReadAndiNetCDF-159"><span class="linenos">159</span></a><span class="sd">        Import mass spectra data from the AndiNetCDF file.</span>
 </span><span id="ReadAndiNetCDF-160"><a href="#ReadAndiNetCDF-160"><span class="linenos">160</span></a>
@@ -492,7 +492,7 @@
 </span><span id="ReadAndiNetCDF-193"><a href="#ReadAndiNetCDF-193"><span class="linenos">193</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">gcms</span><span class="o">.</span><span class="n">tic</span> <span class="o">=</span> <span class="n">list_tic</span>
 </span><span id="ReadAndiNetCDF-194"><a href="#ReadAndiNetCDF-194"><span class="linenos">194</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">gcms</span><span class="o">.</span><span class="n">scans_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_scans</span>
 </span><span id="ReadAndiNetCDF-195"><a href="#ReadAndiNetCDF-195"><span class="linenos">195</span></a>
-</span><span id="ReadAndiNetCDF-196"><a href="#ReadAndiNetCDF-196"><span class="linenos">196</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_gcms_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="ReadAndiNetCDF-196"><a href="#ReadAndiNetCDF-196"><span class="linenos">196</span></a>    <span class="k">def</span> <span class="nf">get_gcms_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="ReadAndiNetCDF-197"><a href="#ReadAndiNetCDF-197"><span class="linenos">197</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadAndiNetCDF-198"><a href="#ReadAndiNetCDF-198"><span class="linenos">198</span></a><span class="sd">        Get the GCMSBase object.</span>
 </span><span id="ReadAndiNetCDF-199"><a href="#ReadAndiNetCDF-199"><span class="linenos">199</span></a>
@@ -568,7 +568,7 @@ Get the GCMSBase object.</li>
 
     </div>
     <a class="headerlink" href="#ReadAndiNetCDF.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadAndiNetCDF.__init__-71"><a href="#ReadAndiNetCDF.__init__-71"><span class="linenos"> 71</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadAndiNetCDF.__init__-71"><a href="#ReadAndiNetCDF.__init__-71"><span class="linenos"> 71</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
 </span><span id="ReadAndiNetCDF.__init__-72"><a href="#ReadAndiNetCDF.__init__-72"><span class="linenos"> 72</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="ReadAndiNetCDF.__init__-73"><a href="#ReadAndiNetCDF.__init__-73"><span class="linenos"> 73</span></a>        <span class="n">file_location</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
 </span><span id="ReadAndiNetCDF.__init__-74"><a href="#ReadAndiNetCDF.__init__-74"><span class="linenos"> 74</span></a>        <span class="n">analyzer</span><span class="o">=</span><span class="s2">&quot;Quadruple&quot;</span><span class="p">,</span>
@@ -747,7 +747,7 @@ else to the thread.</p>
 
     </div>
     <a class="headerlink" href="#ReadAndiNetCDF.get_mass_spectrum"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadAndiNetCDF.get_mass_spectrum-125"><a href="#ReadAndiNetCDF.get_mass_spectrum-125"><span class="linenos">125</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">abun</span><span class="p">,</span> <span class="n">rp</span><span class="p">,</span> <span class="n">d_params</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadAndiNetCDF.get_mass_spectrum-125"><a href="#ReadAndiNetCDF.get_mass_spectrum-125"><span class="linenos">125</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">abun</span><span class="p">,</span> <span class="n">rp</span><span class="p">,</span> <span class="n">d_params</span><span class="p">):</span>
 </span><span id="ReadAndiNetCDF.get_mass_spectrum-126"><a href="#ReadAndiNetCDF.get_mass_spectrum-126"><span class="linenos">126</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadAndiNetCDF.get_mass_spectrum-127"><a href="#ReadAndiNetCDF.get_mass_spectrum-127"><span class="linenos">127</span></a><span class="sd">        Add a mass spectrum to the GCMSBase object.</span>
 </span><span id="ReadAndiNetCDF.get_mass_spectrum-128"><a href="#ReadAndiNetCDF.get_mass_spectrum-128"><span class="linenos">128</span></a>
@@ -803,7 +803,7 @@ Additional parameters for the mass spectrum.</li>
 
     </div>
     <a class="headerlink" href="#ReadAndiNetCDF.run"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadAndiNetCDF.run-150"><a href="#ReadAndiNetCDF.run-150"><span class="linenos">150</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadAndiNetCDF.run-150"><a href="#ReadAndiNetCDF.run-150"><span class="linenos">150</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="ReadAndiNetCDF.run-151"><a href="#ReadAndiNetCDF.run-151"><span class="linenos">151</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadAndiNetCDF.run-152"><a href="#ReadAndiNetCDF.run-152"><span class="linenos">152</span></a><span class="sd">        Populate the GCMSBase object with mass spectra data.</span>
 </span><span id="ReadAndiNetCDF.run-153"><a href="#ReadAndiNetCDF.run-153"><span class="linenos">153</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -828,7 +828,7 @@ Additional parameters for the mass spectrum.</li>
 
     </div>
     <a class="headerlink" href="#ReadAndiNetCDF.import_mass_spectra"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadAndiNetCDF.import_mass_spectra-157"><a href="#ReadAndiNetCDF.import_mass_spectra-157"><span class="linenos">157</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">import_mass_spectra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_params</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadAndiNetCDF.import_mass_spectra-157"><a href="#ReadAndiNetCDF.import_mass_spectra-157"><span class="linenos">157</span></a>    <span class="k">def</span> <span class="nf">import_mass_spectra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_params</span><span class="p">):</span>
 </span><span id="ReadAndiNetCDF.import_mass_spectra-158"><a href="#ReadAndiNetCDF.import_mass_spectra-158"><span class="linenos">158</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadAndiNetCDF.import_mass_spectra-159"><a href="#ReadAndiNetCDF.import_mass_spectra-159"><span class="linenos">159</span></a><span class="sd">        Import mass spectra data from the AndiNetCDF file.</span>
 </span><span id="ReadAndiNetCDF.import_mass_spectra-160"><a href="#ReadAndiNetCDF.import_mass_spectra-160"><span class="linenos">160</span></a>
@@ -892,7 +892,7 @@ Additional parameters for the mass spectra.</li>
 
     </div>
     <a class="headerlink" href="#ReadAndiNetCDF.get_gcms_obj"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadAndiNetCDF.get_gcms_obj-196"><a href="#ReadAndiNetCDF.get_gcms_obj-196"><span class="linenos">196</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_gcms_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadAndiNetCDF.get_gcms_obj-196"><a href="#ReadAndiNetCDF.get_gcms_obj-196"><span class="linenos">196</span></a>    <span class="k">def</span> <span class="nf">get_gcms_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="ReadAndiNetCDF.get_gcms_obj-197"><a href="#ReadAndiNetCDF.get_gcms_obj-197"><span class="linenos">197</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadAndiNetCDF.get_gcms_obj-198"><a href="#ReadAndiNetCDF.get_gcms_obj-198"><span class="linenos">198</span></a><span class="sd">        Get the GCMSBase object.</span>
 </span><span id="ReadAndiNetCDF.get_gcms_obj-199"><a href="#ReadAndiNetCDF.get_gcms_obj-199"><span class="linenos">199</span></a>

@@ -84,18 +84,18 @@
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Yuri E. Corilo&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="n">__date__</span> <span class="o">=</span> <span class="s2">&quot;Jun 12, 2019&quot;</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span> <span class="nn">warnings</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.encapsulation.constant</span><span class="w"> </span><span class="kn">import</span> <span class="n">Atoms</span><span class="p">,</span> <span class="n">Labels</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.mass_spectrum.factory.MassSpectrumClasses</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.constant</span> <span class="kn">import</span> <span class="n">Atoms</span><span class="p">,</span> <span class="n">Labels</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span> <span class="nn">corems.mass_spectrum.factory.MassSpectrumClasses</span> <span class="kn">import</span> <span class="p">(</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>    <span class="n">MassSpecCentroid</span><span class="p">,</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>    <span class="n">MassSpecProfile</span><span class="p">,</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="p">)</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.mass_spectrum.input.baseClass</span><span class="w"> </span><span class="kn">import</span> <span class="n">MassListBaseClass</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.molecular_formula.factory.MolecularFormulaFactory</span><span class="w"> </span><span class="kn">import</span> <span class="n">MolecularFormula</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span> <span class="nn">corems.mass_spectrum.input.baseClass</span> <span class="kn">import</span> <span class="n">MassListBaseClass</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span> <span class="nn">corems.molecular_formula.factory.MolecularFormulaFactory</span> <span class="kn">import</span> <span class="n">MolecularFormula</span>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ReadCoremsMasslist</span><span class="p">(</span><span class="n">MassListBaseClass</span><span class="p">):</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="k">class</span> <span class="nc">ReadCoremsMasslist</span><span class="p">(</span><span class="n">MassListBaseClass</span><span class="p">):</span>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="sd">    The ReadCoremsMasslist object reads processed mass list data types</span>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="sd">    and returns the mass spectrum obj with the molecular formula obj</span>
@@ -105,7 +105,7 @@
 </span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>
 </span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>
-</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loadSettings</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MassSpecCentroid</span><span class="p">:</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loadSettings</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MassSpecCentroid</span><span class="p">:</span>
 </span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="sd">        Get the mass spectrum object from the processed mass list data.</span>
 </span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a>
@@ -153,7 +153,7 @@
 </span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>
 </span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>        <span class="k">return</span> <span class="n">mass_spec_obj</span>
 </span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>
-</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_molecular_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spec_obj</span><span class="p">,</span> <span class="n">dataframe</span><span class="p">):</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>    <span class="k">def</span> <span class="nf">add_molecular_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spec_obj</span><span class="p">,</span> <span class="n">dataframe</span><span class="p">):</span>
 </span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a><span class="sd">        Add molecular formula information to the mass spectrum object.</span>
 </span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>
@@ -312,7 +312,7 @@
 </span><span id="L-229"><a href="#L-229"><span class="linenos">229</span></a>                    <span class="n">mass_spec_obj</span><span class="p">[</span><span class="n">ms_peak_index</span><span class="p">]</span><span class="o">.</span><span class="n">add_molecular_formula</span><span class="p">(</span><span class="n">mfobj</span><span class="p">)</span>
 </span><span id="L-230"><a href="#L-230"><span class="linenos">230</span></a>
 </span><span id="L-231"><a href="#L-231"><span class="linenos">231</span></a>
-</span><span id="L-232"><a href="#L-232"><span class="linenos">232</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ReadMassList</span><span class="p">(</span><span class="n">MassListBaseClass</span><span class="p">):</span>
+</span><span id="L-232"><a href="#L-232"><span class="linenos">232</span></a><span class="k">class</span> <span class="nc">ReadMassList</span><span class="p">(</span><span class="n">MassListBaseClass</span><span class="p">):</span>
 </span><span id="L-233"><a href="#L-233"><span class="linenos">233</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-234"><a href="#L-234"><span class="linenos">234</span></a><span class="sd">    The ReadMassList object reads unprocessed mass list data types</span>
 </span><span id="L-235"><a href="#L-235"><span class="linenos">235</span></a><span class="sd">    and returns the mass spectrum object.</span>
@@ -328,7 +328,7 @@
 </span><span id="L-245"><a href="#L-245"><span class="linenos">245</span></a>
 </span><span id="L-246"><a href="#L-246"><span class="linenos">246</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-247"><a href="#L-247"><span class="linenos">247</span></a>
-</span><span id="L-248"><a href="#L-248"><span class="linenos">248</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span>
+</span><span id="L-248"><a href="#L-248"><span class="linenos">248</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span>
 </span><span id="L-249"><a href="#L-249"><span class="linenos">249</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-250"><a href="#L-250"><span class="linenos">250</span></a>        <span class="n">polarity</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
 </span><span id="L-251"><a href="#L-251"><span class="linenos">251</span></a>        <span class="n">scan</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
@@ -403,7 +403,7 @@
 </span><span id="L-320"><a href="#L-320"><span class="linenos">320</span></a>            <span class="k">return</span> <span class="n">mass_spec</span>
 </span><span id="L-321"><a href="#L-321"><span class="linenos">321</span></a>
 </span><span id="L-322"><a href="#L-322"><span class="linenos">322</span></a>
-</span><span id="L-323"><a href="#L-323"><span class="linenos">323</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ReadBrukerXMLList</span><span class="p">(</span><span class="n">MassListBaseClass</span><span class="p">):</span>
+</span><span id="L-323"><a href="#L-323"><span class="linenos">323</span></a><span class="k">class</span> <span class="nc">ReadBrukerXMLList</span><span class="p">(</span><span class="n">MassListBaseClass</span><span class="p">):</span>
 </span><span id="L-324"><a href="#L-324"><span class="linenos">324</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-325"><a href="#L-325"><span class="linenos">325</span></a><span class="sd">    The ReadBrukerXMLList object reads Bruker XML objects</span>
 </span><span id="L-326"><a href="#L-326"><span class="linenos">326</span></a><span class="sd">    and returns the mass spectrum object.</span>
@@ -420,7 +420,7 @@
 </span><span id="L-337"><a href="#L-337"><span class="linenos">337</span></a>
 </span><span id="L-338"><a href="#L-338"><span class="linenos">338</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-339"><a href="#L-339"><span class="linenos">339</span></a>
-</span><span id="L-340"><a href="#L-340"><span class="linenos">340</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span>
+</span><span id="L-340"><a href="#L-340"><span class="linenos">340</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span>
 </span><span id="L-341"><a href="#L-341"><span class="linenos">341</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-342"><a href="#L-342"><span class="linenos">342</span></a>        <span class="n">polarity</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="L-343"><a href="#L-343"><span class="linenos">343</span></a>        <span class="n">scan</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
@@ -485,7 +485,7 @@
 
     </div>
     <a class="headerlink" href="#ReadCoremsMasslist"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoremsMasslist-16"><a href="#ReadCoremsMasslist-16"><span class="linenos"> 16</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ReadCoremsMasslist</span><span class="p">(</span><span class="n">MassListBaseClass</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoremsMasslist-16"><a href="#ReadCoremsMasslist-16"><span class="linenos"> 16</span></a><span class="k">class</span> <span class="nc">ReadCoremsMasslist</span><span class="p">(</span><span class="n">MassListBaseClass</span><span class="p">):</span>
 </span><span id="ReadCoremsMasslist-17"><a href="#ReadCoremsMasslist-17"><span class="linenos"> 17</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadCoremsMasslist-18"><a href="#ReadCoremsMasslist-18"><span class="linenos"> 18</span></a><span class="sd">    The ReadCoremsMasslist object reads processed mass list data types</span>
 </span><span id="ReadCoremsMasslist-19"><a href="#ReadCoremsMasslist-19"><span class="linenos"> 19</span></a><span class="sd">    and returns the mass spectrum obj with the molecular formula obj</span>
@@ -495,7 +495,7 @@
 </span><span id="ReadCoremsMasslist-23"><a href="#ReadCoremsMasslist-23"><span class="linenos"> 23</span></a>
 </span><span id="ReadCoremsMasslist-24"><a href="#ReadCoremsMasslist-24"><span class="linenos"> 24</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="ReadCoremsMasslist-25"><a href="#ReadCoremsMasslist-25"><span class="linenos"> 25</span></a>
-</span><span id="ReadCoremsMasslist-26"><a href="#ReadCoremsMasslist-26"><span class="linenos"> 26</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loadSettings</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MassSpecCentroid</span><span class="p">:</span>
+</span><span id="ReadCoremsMasslist-26"><a href="#ReadCoremsMasslist-26"><span class="linenos"> 26</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loadSettings</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MassSpecCentroid</span><span class="p">:</span>
 </span><span id="ReadCoremsMasslist-27"><a href="#ReadCoremsMasslist-27"><span class="linenos"> 27</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadCoremsMasslist-28"><a href="#ReadCoremsMasslist-28"><span class="linenos"> 28</span></a><span class="sd">        Get the mass spectrum object from the processed mass list data.</span>
 </span><span id="ReadCoremsMasslist-29"><a href="#ReadCoremsMasslist-29"><span class="linenos"> 29</span></a>
@@ -543,7 +543,7 @@
 </span><span id="ReadCoremsMasslist-71"><a href="#ReadCoremsMasslist-71"><span class="linenos"> 71</span></a>
 </span><span id="ReadCoremsMasslist-72"><a href="#ReadCoremsMasslist-72"><span class="linenos"> 72</span></a>        <span class="k">return</span> <span class="n">mass_spec_obj</span>
 </span><span id="ReadCoremsMasslist-73"><a href="#ReadCoremsMasslist-73"><span class="linenos"> 73</span></a>
-</span><span id="ReadCoremsMasslist-74"><a href="#ReadCoremsMasslist-74"><span class="linenos"> 74</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_molecular_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spec_obj</span><span class="p">,</span> <span class="n">dataframe</span><span class="p">):</span>
+</span><span id="ReadCoremsMasslist-74"><a href="#ReadCoremsMasslist-74"><span class="linenos"> 74</span></a>    <span class="k">def</span> <span class="nf">add_molecular_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spec_obj</span><span class="p">,</span> <span class="n">dataframe</span><span class="p">):</span>
 </span><span id="ReadCoremsMasslist-75"><a href="#ReadCoremsMasslist-75"><span class="linenos"> 75</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadCoremsMasslist-76"><a href="#ReadCoremsMasslist-76"><span class="linenos"> 76</span></a><span class="sd">        Add molecular formula information to the mass spectrum object.</span>
 </span><span id="ReadCoremsMasslist-77"><a href="#ReadCoremsMasslist-77"><span class="linenos"> 77</span></a>
@@ -722,7 +722,7 @@ Please see MassListBaseClass for more details</p>
 
     </div>
     <a class="headerlink" href="#ReadCoremsMasslist.get_mass_spectrum"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoremsMasslist.get_mass_spectrum-26"><a href="#ReadCoremsMasslist.get_mass_spectrum-26"><span class="linenos">26</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loadSettings</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MassSpecCentroid</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoremsMasslist.get_mass_spectrum-26"><a href="#ReadCoremsMasslist.get_mass_spectrum-26"><span class="linenos">26</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loadSettings</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MassSpecCentroid</span><span class="p">:</span>
 </span><span id="ReadCoremsMasslist.get_mass_spectrum-27"><a href="#ReadCoremsMasslist.get_mass_spectrum-27"><span class="linenos">27</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadCoremsMasslist.get_mass_spectrum-28"><a href="#ReadCoremsMasslist.get_mass_spectrum-28"><span class="linenos">28</span></a><span class="sd">        Get the mass spectrum object from the processed mass list data.</span>
 </span><span id="ReadCoremsMasslist.get_mass_spectrum-29"><a href="#ReadCoremsMasslist.get_mass_spectrum-29"><span class="linenos">29</span></a>
@@ -807,7 +807,7 @@ Whether to load the settings for the mass spectrum. Default is True.</li>
 
     </div>
     <a class="headerlink" href="#ReadCoremsMasslist.add_molecular_formula"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoremsMasslist.add_molecular_formula-74"><a href="#ReadCoremsMasslist.add_molecular_formula-74"><span class="linenos"> 74</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_molecular_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spec_obj</span><span class="p">,</span> <span class="n">dataframe</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadCoremsMasslist.add_molecular_formula-74"><a href="#ReadCoremsMasslist.add_molecular_formula-74"><span class="linenos"> 74</span></a>    <span class="k">def</span> <span class="nf">add_molecular_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spec_obj</span><span class="p">,</span> <span class="n">dataframe</span><span class="p">):</span>
 </span><span id="ReadCoremsMasslist.add_molecular_formula-75"><a href="#ReadCoremsMasslist.add_molecular_formula-75"><span class="linenos"> 75</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadCoremsMasslist.add_molecular_formula-76"><a href="#ReadCoremsMasslist.add_molecular_formula-76"><span class="linenos"> 76</span></a><span class="sd">        Add molecular formula information to the mass spectrum object.</span>
 </span><span id="ReadCoremsMasslist.add_molecular_formula-77"><a href="#ReadCoremsMasslist.add_molecular_formula-77"><span class="linenos"> 77</span></a>
@@ -1024,7 +1024,7 @@ The processed mass list data.</li>
 
     </div>
     <a class="headerlink" href="#ReadMassList"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadMassList-233"><a href="#ReadMassList-233"><span class="linenos">233</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ReadMassList</span><span class="p">(</span><span class="n">MassListBaseClass</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadMassList-233"><a href="#ReadMassList-233"><span class="linenos">233</span></a><span class="k">class</span> <span class="nc">ReadMassList</span><span class="p">(</span><span class="n">MassListBaseClass</span><span class="p">):</span>
 </span><span id="ReadMassList-234"><a href="#ReadMassList-234"><span class="linenos">234</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadMassList-235"><a href="#ReadMassList-235"><span class="linenos">235</span></a><span class="sd">    The ReadMassList object reads unprocessed mass list data types</span>
 </span><span id="ReadMassList-236"><a href="#ReadMassList-236"><span class="linenos">236</span></a><span class="sd">    and returns the mass spectrum object.</span>
@@ -1040,7 +1040,7 @@ The processed mass list data.</li>
 </span><span id="ReadMassList-246"><a href="#ReadMassList-246"><span class="linenos">246</span></a>
 </span><span id="ReadMassList-247"><a href="#ReadMassList-247"><span class="linenos">247</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="ReadMassList-248"><a href="#ReadMassList-248"><span class="linenos">248</span></a>
-</span><span id="ReadMassList-249"><a href="#ReadMassList-249"><span class="linenos">249</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span>
+</span><span id="ReadMassList-249"><a href="#ReadMassList-249"><span class="linenos">249</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span>
 </span><span id="ReadMassList-250"><a href="#ReadMassList-250"><span class="linenos">250</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="ReadMassList-251"><a href="#ReadMassList-251"><span class="linenos">251</span></a>        <span class="n">polarity</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
 </span><span id="ReadMassList-252"><a href="#ReadMassList-252"><span class="linenos">252</span></a>        <span class="n">scan</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
@@ -1145,7 +1145,7 @@ The base class for reading mass list data types.</li>
 
     </div>
     <a class="headerlink" href="#ReadMassList.get_mass_spectrum"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadMassList.get_mass_spectrum-249"><a href="#ReadMassList.get_mass_spectrum-249"><span class="linenos">249</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadMassList.get_mass_spectrum-249"><a href="#ReadMassList.get_mass_spectrum-249"><span class="linenos">249</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span>
 </span><span id="ReadMassList.get_mass_spectrum-250"><a href="#ReadMassList.get_mass_spectrum-250"><span class="linenos">250</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="ReadMassList.get_mass_spectrum-251"><a href="#ReadMassList.get_mass_spectrum-251"><span class="linenos">251</span></a>        <span class="n">polarity</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
 </span><span id="ReadMassList.get_mass_spectrum-252"><a href="#ReadMassList.get_mass_spectrum-252"><span class="linenos">252</span></a>        <span class="n">scan</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
@@ -1289,7 +1289,7 @@ The mass spectrum object.</li>
 
     </div>
     <a class="headerlink" href="#ReadBrukerXMLList"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBrukerXMLList-324"><a href="#ReadBrukerXMLList-324"><span class="linenos">324</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ReadBrukerXMLList</span><span class="p">(</span><span class="n">MassListBaseClass</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBrukerXMLList-324"><a href="#ReadBrukerXMLList-324"><span class="linenos">324</span></a><span class="k">class</span> <span class="nc">ReadBrukerXMLList</span><span class="p">(</span><span class="n">MassListBaseClass</span><span class="p">):</span>
 </span><span id="ReadBrukerXMLList-325"><a href="#ReadBrukerXMLList-325"><span class="linenos">325</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadBrukerXMLList-326"><a href="#ReadBrukerXMLList-326"><span class="linenos">326</span></a><span class="sd">    The ReadBrukerXMLList object reads Bruker XML objects</span>
 </span><span id="ReadBrukerXMLList-327"><a href="#ReadBrukerXMLList-327"><span class="linenos">327</span></a><span class="sd">    and returns the mass spectrum object.</span>
@@ -1306,7 +1306,7 @@ The mass spectrum object.</li>
 </span><span id="ReadBrukerXMLList-338"><a href="#ReadBrukerXMLList-338"><span class="linenos">338</span></a>
 </span><span id="ReadBrukerXMLList-339"><a href="#ReadBrukerXMLList-339"><span class="linenos">339</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="ReadBrukerXMLList-340"><a href="#ReadBrukerXMLList-340"><span class="linenos">340</span></a>
-</span><span id="ReadBrukerXMLList-341"><a href="#ReadBrukerXMLList-341"><span class="linenos">341</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span>
+</span><span id="ReadBrukerXMLList-341"><a href="#ReadBrukerXMLList-341"><span class="linenos">341</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span>
 </span><span id="ReadBrukerXMLList-342"><a href="#ReadBrukerXMLList-342"><span class="linenos">342</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="ReadBrukerXMLList-343"><a href="#ReadBrukerXMLList-343"><span class="linenos">343</span></a>        <span class="n">polarity</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="ReadBrukerXMLList-344"><a href="#ReadBrukerXMLList-344"><span class="linenos">344</span></a>        <span class="n">scan</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
@@ -1389,7 +1389,7 @@ The base class for reading mass list data types and returning the mass spectrum 
 
     </div>
     <a class="headerlink" href="#ReadBrukerXMLList.get_mass_spectrum"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBrukerXMLList.get_mass_spectrum-341"><a href="#ReadBrukerXMLList.get_mass_spectrum-341"><span class="linenos">341</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_spectrum</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBrukerXMLList.get_mass_spectrum-341"><a href="#ReadBrukerXMLList.get_mass_spectrum-341"><span class="linenos">341</span></a>    <span class="k">def</span> <span class="nf">get_mass_spectrum</span><span class="p">(</span>
 </span><span id="ReadBrukerXMLList.get_mass_spectrum-342"><a href="#ReadBrukerXMLList.get_mass_spectrum-342"><span class="linenos">342</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="ReadBrukerXMLList.get_mass_spectrum-343"><a href="#ReadBrukerXMLList.get_mass_spectrum-343"><span class="linenos">343</span></a>        <span class="n">polarity</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="ReadBrukerXMLList.get_mass_spectrum-344"><a href="#ReadBrukerXMLList.get_mass_spectrum-344"><span class="linenos">344</span></a>        <span class="n">scan</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
