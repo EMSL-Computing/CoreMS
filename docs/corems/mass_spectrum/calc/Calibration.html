@@ -99,20 +99,20 @@
 </span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="c1"># import modules</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">import</span> <span class="nn">csv</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">import</span> <span class="nn">warnings</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">BytesIO</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>
-</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="kn">from</span> <span class="nn">s3path</span> <span class="kn">import</span> <span class="n">S3Path</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">s3path</span><span class="w"> </span><span class="kn">import</span> <span class="n">S3Path</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="c1"># import scipy modules for calibration</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">minimize</span>
 </span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a>
 </span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>
-</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="k">class</span> <span class="nc">MzDomainCalibration</span><span class="p">:</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MzDomainCalibration</span><span class="p">:</span>
 </span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;MzDomainCalibration class for recalibrating mass spectra</span>
 </span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>
 </span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="sd">    Parameters</span>
@@ -152,7 +152,7 @@
 </span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>
 </span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>
-</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">ref_masslist</span><span class="p">,</span> <span class="n">mzsegment</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">ref_masslist</span><span class="p">,</span> <span class="n">mzsegment</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">mass_spectrum</span>
 </span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">mzsegment</span> <span class="o">=</span> <span class="n">mzsegment</span>
 </span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>
@@ -170,7 +170,7 @@
 </span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>                <span class="s2">&quot;MS Obj loaded - &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mass_spectrum</span><span class="o">.</span><span class="n">mspeaks</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot; peaks found.&quot;</span>
 </span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>            <span class="p">)</span>
 </span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>    <span class="k">def</span> <span class="nf">load_ref_mass_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">load_ref_mass_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Load reference mass list (Bruker format)</span>
 </span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>
 </span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="sd">        Loads in a reference mass list from a .ref file</span>
@@ -220,7 +220,7 @@
 </span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>
 </span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>        <span class="k">return</span> <span class="n">df_ref</span>
 </span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>
-</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>    <span class="k">def</span> <span class="nf">gen_ref_mass_list_from_assigned</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_conf</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">):</span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">gen_ref_mass_list_from_assigned</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_conf</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">):</span>
 </span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate reference mass list from assigned masses</span>
 </span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>
 </span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a><span class="sd">        This function will generate a ref mass dataframe object from an assigned corems mass spec obj</span>
@@ -252,7 +252,7 @@
 </span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>            <span class="p">)</span>
 </span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a>        <span class="k">return</span> <span class="n">df_ref</span>
 </span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>
-</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a>    <span class="k">def</span> <span class="nf">find_calibration_points</span><span class="p">(</span>
+</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_calibration_points</span><span class="p">(</span>
 </span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a>        <span class="n">df_ref</span><span class="p">,</span>
 </span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a>        <span class="n">calib_ppm_error_threshold</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
@@ -392,7 +392,7 @@
 </span><span id="L-299"><a href="#L-299"><span class="linenos">299</span></a>            <span class="p">)</span>
 </span><span id="L-300"><a href="#L-300"><span class="linenos">300</span></a>        <span class="k">return</span> <span class="n">cal_peaks_mz</span><span class="p">,</span> <span class="n">cal_refs_mz</span>
 </span><span id="L-301"><a href="#L-301"><span class="linenos">301</span></a>
-</span><span id="L-302"><a href="#L-302"><span class="linenos">302</span></a>    <span class="k">def</span> <span class="nf">robust_calib</span><span class="p">(</span>
+</span><span id="L-302"><a href="#L-302"><span class="linenos">302</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">robust_calib</span><span class="p">(</span>
 </span><span id="L-303"><a href="#L-303"><span class="linenos">303</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-304"><a href="#L-304"><span class="linenos">304</span></a>        <span class="n">param</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
 </span><span id="L-305"><a href="#L-305"><span class="linenos">305</span></a>        <span class="n">cal_peaks_mz</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
@@ -454,7 +454,7 @@
 </span><span id="L-361"><a href="#L-361"><span class="linenos">361</span></a>        <span class="n">rmserror</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">error</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
 </span><span id="L-362"><a href="#L-362"><span class="linenos">362</span></a>        <span class="k">return</span> <span class="n">rmserror</span>
 </span><span id="L-363"><a href="#L-363"><span class="linenos">363</span></a>
-</span><span id="L-364"><a href="#L-364"><span class="linenos">364</span></a>    <span class="k">def</span> <span class="nf">recalibrate_mass_spectrum</span><span class="p">(</span>
+</span><span id="L-364"><a href="#L-364"><span class="linenos">364</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">recalibrate_mass_spectrum</span><span class="p">(</span>
 </span><span id="L-365"><a href="#L-365"><span class="linenos">365</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-366"><a href="#L-366"><span class="linenos">366</span></a>        <span class="n">cal_peaks_mz</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
 </span><span id="L-367"><a href="#L-367"><span class="linenos">367</span></a>        <span class="n">cal_refs_mz</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
@@ -608,7 +608,7 @@
 </span><span id="L-515"><a href="#L-515"><span class="linenos">515</span></a>            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Too few calibration points - aborting.&quot;</span><span class="p">)</span>
 </span><span id="L-516"><a href="#L-516"><span class="linenos">516</span></a>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span>
 </span><span id="L-517"><a href="#L-517"><span class="linenos">517</span></a>
-</span><span id="L-518"><a href="#L-518"><span class="linenos">518</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-518"><a href="#L-518"><span class="linenos">518</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-519"><a href="#L-519"><span class="linenos">519</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the calibration routine</span>
 </span><span id="L-520"><a href="#L-520"><span class="linenos">520</span></a>
 </span><span id="L-521"><a href="#L-521"><span class="linenos">521</span></a><span class="sd">        This function runs the calibration routine.</span>
@@ -663,7 +663,7 @@
 
     </div>
     <a class="headerlink" href="#MzDomainCalibration"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MzDomainCalibration-23"><a href="#MzDomainCalibration-23"><span class="linenos"> 23</span></a><span class="k">class</span> <span class="nc">MzDomainCalibration</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MzDomainCalibration-23"><a href="#MzDomainCalibration-23"><span class="linenos"> 23</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MzDomainCalibration</span><span class="p">:</span>
 </span><span id="MzDomainCalibration-24"><a href="#MzDomainCalibration-24"><span class="linenos"> 24</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;MzDomainCalibration class for recalibrating mass spectra</span>
 </span><span id="MzDomainCalibration-25"><a href="#MzDomainCalibration-25"><span class="linenos"> 25</span></a>
 </span><span id="MzDomainCalibration-26"><a href="#MzDomainCalibration-26"><span class="linenos"> 26</span></a><span class="sd">    Parameters</span>
@@ -703,7 +703,7 @@
 </span><span id="MzDomainCalibration-60"><a href="#MzDomainCalibration-60"><span class="linenos"> 60</span></a>
 </span><span id="MzDomainCalibration-61"><a href="#MzDomainCalibration-61"><span class="linenos"> 61</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="MzDomainCalibration-62"><a href="#MzDomainCalibration-62"><span class="linenos"> 62</span></a>
-</span><span id="MzDomainCalibration-63"><a href="#MzDomainCalibration-63"><span class="linenos"> 63</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">ref_masslist</span><span class="p">,</span> <span class="n">mzsegment</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="MzDomainCalibration-63"><a href="#MzDomainCalibration-63"><span class="linenos"> 63</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">ref_masslist</span><span class="p">,</span> <span class="n">mzsegment</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="MzDomainCalibration-64"><a href="#MzDomainCalibration-64"><span class="linenos"> 64</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">mass_spectrum</span>
 </span><span id="MzDomainCalibration-65"><a href="#MzDomainCalibration-65"><span class="linenos"> 65</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">mzsegment</span> <span class="o">=</span> <span class="n">mzsegment</span>
 </span><span id="MzDomainCalibration-66"><a href="#MzDomainCalibration-66"><span class="linenos"> 66</span></a>
@@ -721,7 +721,7 @@
 </span><span id="MzDomainCalibration-78"><a href="#MzDomainCalibration-78"><span class="linenos"> 78</span></a>                <span class="s2">&quot;MS Obj loaded - &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mass_spectrum</span><span class="o">.</span><span class="n">mspeaks</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot; peaks found.&quot;</span>
 </span><span id="MzDomainCalibration-79"><a href="#MzDomainCalibration-79"><span class="linenos"> 79</span></a>            <span class="p">)</span>
 </span><span id="MzDomainCalibration-80"><a href="#MzDomainCalibration-80"><span class="linenos"> 80</span></a>
-</span><span id="MzDomainCalibration-81"><a href="#MzDomainCalibration-81"><span class="linenos"> 81</span></a>    <span class="k">def</span> <span class="nf">load_ref_mass_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MzDomainCalibration-81"><a href="#MzDomainCalibration-81"><span class="linenos"> 81</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">load_ref_mass_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MzDomainCalibration-82"><a href="#MzDomainCalibration-82"><span class="linenos"> 82</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Load reference mass list (Bruker format)</span>
 </span><span id="MzDomainCalibration-83"><a href="#MzDomainCalibration-83"><span class="linenos"> 83</span></a>
 </span><span id="MzDomainCalibration-84"><a href="#MzDomainCalibration-84"><span class="linenos"> 84</span></a><span class="sd">        Loads in a reference mass list from a .ref file</span>
@@ -771,7 +771,7 @@
 </span><span id="MzDomainCalibration-128"><a href="#MzDomainCalibration-128"><span class="linenos">128</span></a>
 </span><span id="MzDomainCalibration-129"><a href="#MzDomainCalibration-129"><span class="linenos">129</span></a>        <span class="k">return</span> <span class="n">df_ref</span>
 </span><span id="MzDomainCalibration-130"><a href="#MzDomainCalibration-130"><span class="linenos">130</span></a>
-</span><span id="MzDomainCalibration-131"><a href="#MzDomainCalibration-131"><span class="linenos">131</span></a>    <span class="k">def</span> <span class="nf">gen_ref_mass_list_from_assigned</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_conf</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">):</span>
+</span><span id="MzDomainCalibration-131"><a href="#MzDomainCalibration-131"><span class="linenos">131</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">gen_ref_mass_list_from_assigned</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_conf</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">):</span>
 </span><span id="MzDomainCalibration-132"><a href="#MzDomainCalibration-132"><span class="linenos">132</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate reference mass list from assigned masses</span>
 </span><span id="MzDomainCalibration-133"><a href="#MzDomainCalibration-133"><span class="linenos">133</span></a>
 </span><span id="MzDomainCalibration-134"><a href="#MzDomainCalibration-134"><span class="linenos">134</span></a><span class="sd">        This function will generate a ref mass dataframe object from an assigned corems mass spec obj</span>
@@ -803,7 +803,7 @@
 </span><span id="MzDomainCalibration-160"><a href="#MzDomainCalibration-160"><span class="linenos">160</span></a>            <span class="p">)</span>
 </span><span id="MzDomainCalibration-161"><a href="#MzDomainCalibration-161"><span class="linenos">161</span></a>        <span class="k">return</span> <span class="n">df_ref</span>
 </span><span id="MzDomainCalibration-162"><a href="#MzDomainCalibration-162"><span class="linenos">162</span></a>
-</span><span id="MzDomainCalibration-163"><a href="#MzDomainCalibration-163"><span class="linenos">163</span></a>    <span class="k">def</span> <span class="nf">find_calibration_points</span><span class="p">(</span>
+</span><span id="MzDomainCalibration-163"><a href="#MzDomainCalibration-163"><span class="linenos">163</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_calibration_points</span><span class="p">(</span>
 </span><span id="MzDomainCalibration-164"><a href="#MzDomainCalibration-164"><span class="linenos">164</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="MzDomainCalibration-165"><a href="#MzDomainCalibration-165"><span class="linenos">165</span></a>        <span class="n">df_ref</span><span class="p">,</span>
 </span><span id="MzDomainCalibration-166"><a href="#MzDomainCalibration-166"><span class="linenos">166</span></a>        <span class="n">calib_ppm_error_threshold</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
@@ -943,7 +943,7 @@
 </span><span id="MzDomainCalibration-300"><a href="#MzDomainCalibration-300"><span class="linenos">300</span></a>            <span class="p">)</span>
 </span><span id="MzDomainCalibration-301"><a href="#MzDomainCalibration-301"><span class="linenos">301</span></a>        <span class="k">return</span> <span class="n">cal_peaks_mz</span><span class="p">,</span> <span class="n">cal_refs_mz</span>
 </span><span id="MzDomainCalibration-302"><a href="#MzDomainCalibration-302"><span class="linenos">302</span></a>
-</span><span id="MzDomainCalibration-303"><a href="#MzDomainCalibration-303"><span class="linenos">303</span></a>    <span class="k">def</span> <span class="nf">robust_calib</span><span class="p">(</span>
+</span><span id="MzDomainCalibration-303"><a href="#MzDomainCalibration-303"><span class="linenos">303</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">robust_calib</span><span class="p">(</span>
 </span><span id="MzDomainCalibration-304"><a href="#MzDomainCalibration-304"><span class="linenos">304</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="MzDomainCalibration-305"><a href="#MzDomainCalibration-305"><span class="linenos">305</span></a>        <span class="n">param</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
 </span><span id="MzDomainCalibration-306"><a href="#MzDomainCalibration-306"><span class="linenos">306</span></a>        <span class="n">cal_peaks_mz</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
@@ -1005,7 +1005,7 @@
 </span><span id="MzDomainCalibration-362"><a href="#MzDomainCalibration-362"><span class="linenos">362</span></a>        <span class="n">rmserror</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">error</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
 </span><span id="MzDomainCalibration-363"><a href="#MzDomainCalibration-363"><span class="linenos">363</span></a>        <span class="k">return</span> <span class="n">rmserror</span>
 </span><span id="MzDomainCalibration-364"><a href="#MzDomainCalibration-364"><span class="linenos">364</span></a>
-</span><span id="MzDomainCalibration-365"><a href="#MzDomainCalibration-365"><span class="linenos">365</span></a>    <span class="k">def</span> <span class="nf">recalibrate_mass_spectrum</span><span class="p">(</span>
+</span><span id="MzDomainCalibration-365"><a href="#MzDomainCalibration-365"><span class="linenos">365</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">recalibrate_mass_spectrum</span><span class="p">(</span>
 </span><span id="MzDomainCalibration-366"><a href="#MzDomainCalibration-366"><span class="linenos">366</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="MzDomainCalibration-367"><a href="#MzDomainCalibration-367"><span class="linenos">367</span></a>        <span class="n">cal_peaks_mz</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
 </span><span id="MzDomainCalibration-368"><a href="#MzDomainCalibration-368"><span class="linenos">368</span></a>        <span class="n">cal_refs_mz</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
@@ -1159,7 +1159,7 @@
 </span><span id="MzDomainCalibration-516"><a href="#MzDomainCalibration-516"><span class="linenos">516</span></a>            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Too few calibration points - aborting.&quot;</span><span class="p">)</span>
 </span><span id="MzDomainCalibration-517"><a href="#MzDomainCalibration-517"><span class="linenos">517</span></a>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span>
 </span><span id="MzDomainCalibration-518"><a href="#MzDomainCalibration-518"><span class="linenos">518</span></a>
-</span><span id="MzDomainCalibration-519"><a href="#MzDomainCalibration-519"><span class="linenos">519</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MzDomainCalibration-519"><a href="#MzDomainCalibration-519"><span class="linenos">519</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MzDomainCalibration-520"><a href="#MzDomainCalibration-520"><span class="linenos">520</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the calibration routine</span>
 </span><span id="MzDomainCalibration-521"><a href="#MzDomainCalibration-521"><span class="linenos">521</span></a>
 </span><span id="MzDomainCalibration-522"><a href="#MzDomainCalibration-522"><span class="linenos">522</span></a><span class="sd">        This function runs the calibration routine.</span>
@@ -1256,7 +1256,7 @@ Main recalibration function which uses a robust linear regression.</li>
 
     </div>
     <a class="headerlink" href="#MzDomainCalibration.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MzDomainCalibration.__init__-63"><a href="#MzDomainCalibration.__init__-63"><span class="linenos">63</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">ref_masslist</span><span class="p">,</span> <span class="n">mzsegment</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MzDomainCalibration.__init__-63"><a href="#MzDomainCalibration.__init__-63"><span class="linenos">63</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum</span><span class="p">,</span> <span class="n">ref_masslist</span><span class="p">,</span> <span class="n">mzsegment</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="MzDomainCalibration.__init__-64"><a href="#MzDomainCalibration.__init__-64"><span class="linenos">64</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span> <span class="o">=</span> <span class="n">mass_spectrum</span>
 </span><span id="MzDomainCalibration.__init__-65"><a href="#MzDomainCalibration.__init__-65"><span class="linenos">65</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">mzsegment</span> <span class="o">=</span> <span class="n">mzsegment</span>
 </span><span id="MzDomainCalibration.__init__-66"><a href="#MzDomainCalibration.__init__-66"><span class="linenos">66</span></a>
@@ -1323,7 +1323,7 @@ Main recalibration function which uses a robust linear regression.</li>
 
     </div>
     <a class="headerlink" href="#MzDomainCalibration.load_ref_mass_list"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MzDomainCalibration.load_ref_mass_list-81"><a href="#MzDomainCalibration.load_ref_mass_list-81"><span class="linenos"> 81</span></a>    <span class="k">def</span> <span class="nf">load_ref_mass_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MzDomainCalibration.load_ref_mass_list-81"><a href="#MzDomainCalibration.load_ref_mass_list-81"><span class="linenos"> 81</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">load_ref_mass_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MzDomainCalibration.load_ref_mass_list-82"><a href="#MzDomainCalibration.load_ref_mass_list-82"><span class="linenos"> 82</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Load reference mass list (Bruker format)</span>
 </span><span id="MzDomainCalibration.load_ref_mass_list-83"><a href="#MzDomainCalibration.load_ref_mass_list-83"><span class="linenos"> 83</span></a>
 </span><span id="MzDomainCalibration.load_ref_mass_list-84"><a href="#MzDomainCalibration.load_ref_mass_list-84"><span class="linenos"> 84</span></a><span class="sd">        Loads in a reference mass list from a .ref file</span>
@@ -1403,7 +1403,7 @@ reference mass list object.</li>
 
     </div>
     <a class="headerlink" href="#MzDomainCalibration.gen_ref_mass_list_from_assigned"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MzDomainCalibration.gen_ref_mass_list_from_assigned-131"><a href="#MzDomainCalibration.gen_ref_mass_list_from_assigned-131"><span class="linenos">131</span></a>    <span class="k">def</span> <span class="nf">gen_ref_mass_list_from_assigned</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_conf</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MzDomainCalibration.gen_ref_mass_list_from_assigned-131"><a href="#MzDomainCalibration.gen_ref_mass_list_from_assigned-131"><span class="linenos">131</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">gen_ref_mass_list_from_assigned</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_conf</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">):</span>
 </span><span id="MzDomainCalibration.gen_ref_mass_list_from_assigned-132"><a href="#MzDomainCalibration.gen_ref_mass_list_from_assigned-132"><span class="linenos">132</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate reference mass list from assigned masses</span>
 </span><span id="MzDomainCalibration.gen_ref_mass_list_from_assigned-133"><a href="#MzDomainCalibration.gen_ref_mass_list_from_assigned-133"><span class="linenos">133</span></a>
 </span><span id="MzDomainCalibration.gen_ref_mass_list_from_assigned-134"><a href="#MzDomainCalibration.gen_ref_mass_list_from_assigned-134"><span class="linenos">134</span></a><span class="sd">        This function will generate a ref mass dataframe object from an assigned corems mass spec obj</span>
@@ -1472,7 +1472,7 @@ reference mass list - based on calculated masses.</li>
 
     </div>
     <a class="headerlink" href="#MzDomainCalibration.find_calibration_points"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MzDomainCalibration.find_calibration_points-163"><a href="#MzDomainCalibration.find_calibration_points-163"><span class="linenos">163</span></a>    <span class="k">def</span> <span class="nf">find_calibration_points</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MzDomainCalibration.find_calibration_points-163"><a href="#MzDomainCalibration.find_calibration_points-163"><span class="linenos">163</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_calibration_points</span><span class="p">(</span>
 </span><span id="MzDomainCalibration.find_calibration_points-164"><a href="#MzDomainCalibration.find_calibration_points-164"><span class="linenos">164</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="MzDomainCalibration.find_calibration_points-165"><a href="#MzDomainCalibration.find_calibration_points-165"><span class="linenos">165</span></a>        <span class="n">df_ref</span><span class="p">,</span>
 </span><span id="MzDomainCalibration.find_calibration_points-166"><a href="#MzDomainCalibration.find_calibration_points-166"><span class="linenos">166</span></a>        <span class="n">calib_ppm_error_threshold</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
@@ -1654,7 +1654,7 @@ reference mz values of found calibration points.</li>
 
     </div>
     <a class="headerlink" href="#MzDomainCalibration.robust_calib"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MzDomainCalibration.robust_calib-303"><a href="#MzDomainCalibration.robust_calib-303"><span class="linenos">303</span></a>    <span class="k">def</span> <span class="nf">robust_calib</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MzDomainCalibration.robust_calib-303"><a href="#MzDomainCalibration.robust_calib-303"><span class="linenos">303</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">robust_calib</span><span class="p">(</span>
 </span><span id="MzDomainCalibration.robust_calib-304"><a href="#MzDomainCalibration.robust_calib-304"><span class="linenos">304</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="MzDomainCalibration.robust_calib-305"><a href="#MzDomainCalibration.robust_calib-305"><span class="linenos">305</span></a>        <span class="n">param</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
 </span><span id="MzDomainCalibration.robust_calib-306"><a href="#MzDomainCalibration.robust_calib-306"><span class="linenos">306</span></a>        <span class="n">cal_peaks_mz</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
@@ -1757,7 +1757,7 @@ root mean square mass error for calibration points.</li>
 
     </div>
     <a class="headerlink" href="#MzDomainCalibration.recalibrate_mass_spectrum"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MzDomainCalibration.recalibrate_mass_spectrum-365"><a href="#MzDomainCalibration.recalibrate_mass_spectrum-365"><span class="linenos">365</span></a>    <span class="k">def</span> <span class="nf">recalibrate_mass_spectrum</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MzDomainCalibration.recalibrate_mass_spectrum-365"><a href="#MzDomainCalibration.recalibrate_mass_spectrum-365"><span class="linenos">365</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">recalibrate_mass_spectrum</span><span class="p">(</span>
 </span><span id="MzDomainCalibration.recalibrate_mass_spectrum-366"><a href="#MzDomainCalibration.recalibrate_mass_spectrum-366"><span class="linenos">366</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="MzDomainCalibration.recalibrate_mass_spectrum-367"><a href="#MzDomainCalibration.recalibrate_mass_spectrum-367"><span class="linenos">367</span></a>        <span class="n">cal_peaks_mz</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
 </span><span id="MzDomainCalibration.recalibrate_mass_spectrum-368"><a href="#MzDomainCalibration.recalibrate_mass_spectrum-368"><span class="linenos">368</span></a>        <span class="n">cal_refs_mz</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
@@ -1963,7 +1963,7 @@ SPIKE a Processing Software dedicated to Fourier Spectroscopies
 
     </div>
     <a class="headerlink" href="#MzDomainCalibration.run"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MzDomainCalibration.run-519"><a href="#MzDomainCalibration.run-519"><span class="linenos">519</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MzDomainCalibration.run-519"><a href="#MzDomainCalibration.run-519"><span class="linenos">519</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MzDomainCalibration.run-520"><a href="#MzDomainCalibration.run-520"><span class="linenos">520</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the calibration routine</span>
 </span><span id="MzDomainCalibration.run-521"><a href="#MzDomainCalibration.run-521"><span class="linenos">521</span></a>
 </span><span id="MzDomainCalibration.run-522"><a href="#MzDomainCalibration.run-522"><span class="linenos">522</span></a><span class="sd">        This function runs the calibration routine.</span>

@@ -222,13 +222,13 @@
 
                         <label class="view-source-button" for="mod-molecularSQL-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">import</span> <span class="nn">sys</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a>
-</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">import</span> <span class="nn">json</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span> <span class="nn">os</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">import</span> <span class="nn">tqdm</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="p">(</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">tqdm</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>    <span class="n">Column</span><span class="p">,</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>    <span class="n">Float</span><span class="p">,</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>    <span class="n">ForeignKey</span><span class="p">,</span>
@@ -240,22 +240,22 @@
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>    <span class="n">exc</span><span class="p">,</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>    <span class="n">func</span><span class="p">,</span>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="p">)</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="kn">from</span> <span class="nn">sqlalchemy.exc</span> <span class="kn">import</span> <span class="n">SQLAlchemyError</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="kn">from</span> <span class="nn">sqlalchemy.ext.associationproxy</span> <span class="kn">import</span> <span class="n">association_proxy</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="kn">from</span> <span class="nn">sqlalchemy.ext.hybrid</span> <span class="kn">import</span> <span class="n">hybrid_method</span><span class="p">,</span> <span class="n">hybrid_property</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">backref</span><span class="p">,</span> <span class="n">relationship</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="kn">from</span> <span class="nn">sqlalchemy.orm.scoping</span> <span class="kn">import</span> <span class="n">scoped_session</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="kn">from</span> <span class="nn">sqlalchemy.orm.session</span> <span class="kn">import</span> <span class="n">sessionmaker</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="kn">from</span> <span class="nn">sqlalchemy.sql.operators</span> <span class="kn">import</span> <span class="n">exists</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="kn">from</span> <span class="nn">sqlalchemy.sql.schema</span> <span class="kn">import</span> <span class="n">UniqueConstraint</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.exc</span><span class="w"> </span><span class="kn">import</span> <span class="n">SQLAlchemyError</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.ext.associationproxy</span><span class="w"> </span><span class="kn">import</span> <span class="n">association_proxy</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.ext.declarative</span><span class="w"> </span><span class="kn">import</span> <span class="n">declarative_base</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.ext.hybrid</span><span class="w"> </span><span class="kn">import</span> <span class="n">hybrid_method</span><span class="p">,</span> <span class="n">hybrid_property</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.orm</span><span class="w"> </span><span class="kn">import</span> <span class="n">backref</span><span class="p">,</span> <span class="n">relationship</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.orm.scoping</span><span class="w"> </span><span class="kn">import</span> <span class="n">scoped_session</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.orm.session</span><span class="w"> </span><span class="kn">import</span> <span class="n">sessionmaker</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.sql.operators</span><span class="w"> </span><span class="kn">import</span> <span class="n">exists</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.sql.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">UniqueConstraint</span>
 </span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a>
-</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.constant</span> <span class="kn">import</span> <span class="n">Atoms</span><span class="p">,</span> <span class="n">Labels</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.encapsulation.constant</span><span class="w"> </span><span class="kn">import</span> <span class="n">Atoms</span><span class="p">,</span> <span class="n">Labels</span>
 </span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a>
 </span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
 </span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a>
 </span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a>
-</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a><span class="k">class</span> <span class="nc">HeteroAtoms</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a><span class="k">class</span><span class="w"> </span><span class="nc">HeteroAtoms</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
 </span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;HeteroAtoms class for the heteroAtoms table in the SQLite database.</span>
 </span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a>
 </span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="sd">    Attributes</span>
@@ -293,20 +293,20 @@
 </span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>        <span class="s2">&quot;CarbonHydrogen&quot;</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="s2">&quot;molecularformula&quot;</span><span class="p">,</span> <span class="n">viewonly</span><span class="o">=</span><span class="kc">True</span>
 </span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>    <span class="p">)</span>
 </span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>
-</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>        <span class="k">return</span> <span class="s2">&quot;&lt;HeteroAtoms Model </span><span class="si">{}</span><span class="s2"> class </span><span class="si">{}</span><span class="s2">&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 </span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>
 </span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>    <span class="nd">@hybrid_property</span>
-</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>    <span class="k">def</span> <span class="nf">halogens_count</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">halogens_count</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
 </span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the number of halogens as a float.&quot;&quot;&quot;</span>
 </span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">halogensCount</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">Float</span><span class="p">)</span>
 </span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the heteroAtoms class as a dictionary.&quot;&quot;&quot;</span>
 </span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 </span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>
 </span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>
-</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="k">class</span> <span class="nc">CarbonHydrogen</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="k">class</span><span class="w"> </span><span class="nc">CarbonHydrogen</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
 </span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;CarbonHydrogen class for the carbonHydrogen table in the SQLite database.</span>
 </span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>
 </span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a><span class="sd">    Attributes</span>
@@ -348,36 +348,36 @@
 </span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>        <span class="s2">&quot;HeteroAtoms&quot;</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="s2">&quot;molecularformula&quot;</span><span class="p">,</span> <span class="n">viewonly</span><span class="o">=</span><span class="kc">True</span>
 </span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>    <span class="p">)</span>
 </span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>
-</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the string representation of the object.&quot;&quot;&quot;</span>
 </span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>        <span class="k">return</span> <span class="s2">&quot;&lt;CarbonHydrogen Model </span><span class="si">{}</span><span class="s2"> C</span><span class="si">{}</span><span class="s2"> H</span><span class="si">{}</span><span class="s2">&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">C</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">)</span>
 </span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>
 </span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>    <span class="nd">@property</span>
-</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>    <span class="k">def</span> <span class="nf">mass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the mass of the carbonHydrogen class as a float.&quot;&quot;&quot;</span>
 </span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">C</span> <span class="o">*</span> <span class="n">Atoms</span><span class="o">.</span><span class="n">atomic_masses</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">))</span> <span class="o">+</span> <span class="p">(</span>
 </span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">H</span> <span class="o">*</span> <span class="n">Atoms</span><span class="o">.</span><span class="n">atomic_masses</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;H&quot;</span><span class="p">)</span>
 </span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>        <span class="p">)</span>
 </span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>
 </span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>    <span class="nd">@hybrid_property</span>
-</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>    <span class="k">def</span> <span class="nf">c</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
 </span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the number of carbon atoms as a float.&quot;&quot;&quot;</span>
 </span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">C</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">Float</span><span class="p">)</span>
 </span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>
 </span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>    <span class="nd">@hybrid_property</span>
-</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>    <span class="k">def</span> <span class="nf">h</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">h</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
 </span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the number of hydrogen atoms as a float.&quot;&quot;&quot;</span>
 </span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">H</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">Float</span><span class="p">)</span>
 </span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>
 </span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>    <span class="nd">@hybrid_property</span>
-</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>    <span class="k">def</span> <span class="nf">dbe</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">dbe</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
 </span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the double bond equivalent as a float.&quot;&quot;&quot;</span>
 </span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>        <span class="c1"># return cls.C.cast(Float) - (cls.H.cast(Float) / 2) + 1</span>
 </span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">C</span><span class="p">)</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">H</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
 </span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a>
 </span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>
 </span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a><span class="c1"># 264888.88 ms</span>
-</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a><span class="k">class</span> <span class="nc">MolecularFormulaLink</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MolecularFormulaLink</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
 </span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;MolecularFormulaLink class for the molecularformula table in the SQLite database.</span>
 </span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>
 </span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a><span class="sd">    Attributes</span>
@@ -451,7 +451,7 @@
 </span><span id="L-227"><a href="#L-227"><span class="linenos">227</span></a>
 </span><span id="L-228"><a href="#L-228"><span class="linenos">228</span></a>    <span class="n">classe</span> <span class="o">=</span> <span class="n">association_proxy</span><span class="p">(</span><span class="s2">&quot;heteroAtoms&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">)</span>
 </span><span id="L-229"><a href="#L-229"><span class="linenos">229</span></a>
-</span><span id="L-230"><a href="#L-230"><span class="linenos">230</span></a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-230"><a href="#L-230"><span class="linenos">230</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-231"><a href="#L-231"><span class="linenos">231</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the molecular formula as a dictionary.</span>
 </span><span id="L-232"><a href="#L-232"><span class="linenos">232</span></a>
 </span><span id="L-233"><a href="#L-233"><span class="linenos">233</span></a><span class="sd">        Returns</span>
@@ -467,7 +467,7 @@
 </span><span id="L-243"><a href="#L-243"><span class="linenos">243</span></a>            <span class="k">return</span> <span class="p">{</span><span class="o">**</span><span class="n">carbon</span><span class="p">,</span> <span class="o">**</span><span class="n">classe</span><span class="p">}</span>
 </span><span id="L-244"><a href="#L-244"><span class="linenos">244</span></a>
 </span><span id="L-245"><a href="#L-245"><span class="linenos">245</span></a>    <span class="nd">@property</span>
-</span><span id="L-246"><a href="#L-246"><span class="linenos">246</span></a>    <span class="k">def</span> <span class="nf">formula_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-246"><a href="#L-246"><span class="linenos">246</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">formula_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-247"><a href="#L-247"><span class="linenos">247</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the molecular formula as a string.&quot;&quot;&quot;</span>
 </span><span id="L-248"><a href="#L-248"><span class="linenos">248</span></a>        <span class="n">class_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
 </span><span id="L-249"><a href="#L-249"><span class="linenos">249</span></a>        <span class="n">class_str</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
@@ -476,7 +476,7 @@
 </span><span id="L-252"><a href="#L-252"><span class="linenos">252</span></a>        <span class="k">return</span> <span class="n">class_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 </span><span id="L-253"><a href="#L-253"><span class="linenos">253</span></a>
 </span><span id="L-254"><a href="#L-254"><span class="linenos">254</span></a>    <span class="nd">@property</span>
-</span><span id="L-255"><a href="#L-255"><span class="linenos">255</span></a>    <span class="k">def</span> <span class="nf">classe_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-255"><a href="#L-255"><span class="linenos">255</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">classe_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-256"><a href="#L-256"><span class="linenos">256</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the heteroAtoms class as a string.&quot;&quot;&quot;</span>
 </span><span id="L-257"><a href="#L-257"><span class="linenos">257</span></a>        <span class="n">class_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">classe</span><span class="p">)</span>
 </span><span id="L-258"><a href="#L-258"><span class="linenos">258</span></a>        <span class="n">class_str</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
@@ -485,7 +485,7 @@
 </span><span id="L-261"><a href="#L-261"><span class="linenos">261</span></a>        <span class="k">return</span> <span class="n">class_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 </span><span id="L-262"><a href="#L-262"><span class="linenos">262</span></a>
 </span><span id="L-263"><a href="#L-263"><span class="linenos">263</span></a>    <span class="nd">@hybrid_method</span>
-</span><span id="L-264"><a href="#L-264"><span class="linenos">264</span></a>    <span class="k">def</span> <span class="nf">_adduct_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">,</span> <span class="n">adduct_atom</span><span class="p">):</span>
+</span><span id="L-264"><a href="#L-264"><span class="linenos">264</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_adduct_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">,</span> <span class="n">adduct_atom</span><span class="p">):</span>
 </span><span id="L-265"><a href="#L-265"><span class="linenos">265</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the m/z of the adduct ion as a float.&quot;&quot;&quot;</span>
 </span><span id="L-266"><a href="#L-266"><span class="linenos">266</span></a>        <span class="k">return</span> <span class="p">(</span>
 </span><span id="L-267"><a href="#L-267"><span class="linenos">267</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">mass</span>
@@ -494,7 +494,7 @@
 </span><span id="L-270"><a href="#L-270"><span class="linenos">270</span></a>        <span class="p">)</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ion_charge</span><span class="p">)</span>
 </span><span id="L-271"><a href="#L-271"><span class="linenos">271</span></a>
 </span><span id="L-272"><a href="#L-272"><span class="linenos">272</span></a>    <span class="nd">@hybrid_method</span>
-</span><span id="L-273"><a href="#L-273"><span class="linenos">273</span></a>    <span class="k">def</span> <span class="nf">_protonated_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">):</span>
+</span><span id="L-273"><a href="#L-273"><span class="linenos">273</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_protonated_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">):</span>
 </span><span id="L-274"><a href="#L-274"><span class="linenos">274</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the m/z of the protonated ion as a float.&quot;&quot;&quot;</span>
 </span><span id="L-275"><a href="#L-275"><span class="linenos">275</span></a>        <span class="k">return</span> <span class="p">(</span>
 </span><span id="L-276"><a href="#L-276"><span class="linenos">276</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">mass</span>
@@ -503,16 +503,16 @@
 </span><span id="L-279"><a href="#L-279"><span class="linenos">279</span></a>        <span class="p">)</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ion_charge</span><span class="p">)</span>
 </span><span id="L-280"><a href="#L-280"><span class="linenos">280</span></a>
 </span><span id="L-281"><a href="#L-281"><span class="linenos">281</span></a>    <span class="nd">@hybrid_method</span>
-</span><span id="L-282"><a href="#L-282"><span class="linenos">282</span></a>    <span class="k">def</span> <span class="nf">_radical_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">):</span>
+</span><span id="L-282"><a href="#L-282"><span class="linenos">282</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_radical_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">):</span>
 </span><span id="L-283"><a href="#L-283"><span class="linenos">283</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the m/z of the radical ion as a float.&quot;&quot;&quot;</span>
 </span><span id="L-284"><a href="#L-284"><span class="linenos">284</span></a>        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span> <span class="o">+</span> <span class="p">(</span><span class="n">ion_charge</span> <span class="o">*</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">Atoms</span><span class="o">.</span><span class="n">electron_mass</span><span class="p">))</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ion_charge</span><span class="p">)</span>
 </span><span id="L-285"><a href="#L-285"><span class="linenos">285</span></a>
-</span><span id="L-286"><a href="#L-286"><span class="linenos">286</span></a>    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-286"><a href="#L-286"><span class="linenos">286</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-287"><a href="#L-287"><span class="linenos">287</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the string representation of the object.&quot;&quot;&quot;</span>
 </span><span id="L-288"><a href="#L-288"><span class="linenos">288</span></a>        <span class="k">return</span> <span class="s2">&quot;&lt;MolecularFormulaLink Model </span><span class="si">{}</span><span class="s2">&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formula_string</span><span class="p">)</span>
 </span><span id="L-289"><a href="#L-289"><span class="linenos">289</span></a>
 </span><span id="L-290"><a href="#L-290"><span class="linenos">290</span></a>
-</span><span id="L-291"><a href="#L-291"><span class="linenos">291</span></a><span class="k">class</span> <span class="nc">MolForm_SQL</span><span class="p">:</span>
+</span><span id="L-291"><a href="#L-291"><span class="linenos">291</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MolForm_SQL</span><span class="p">:</span>
 </span><span id="L-292"><a href="#L-292"><span class="linenos">292</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;MolForm_SQL class for the SQLite database.</span>
 </span><span id="L-293"><a href="#L-293"><span class="linenos">293</span></a>
 </span><span id="L-294"><a href="#L-294"><span class="linenos">294</span></a><span class="sd">    Attributes</span>
@@ -561,7 +561,7 @@
 </span><span id="L-337"><a href="#L-337"><span class="linenos">337</span></a>
 </span><span id="L-338"><a href="#L-338"><span class="linenos">338</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-339"><a href="#L-339"><span class="linenos">339</span></a>
-</span><span id="L-340"><a href="#L-340"><span class="linenos">340</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">echo</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="L-340"><a href="#L-340"><span class="linenos">340</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">echo</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="L-341"><a href="#L-341"><span class="linenos">341</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_engine</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
 </span><span id="L-342"><a href="#L-342"><span class="linenos">342</span></a>
 </span><span id="L-343"><a href="#L-343"><span class="linenos">343</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">add_engine_pidguard</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
@@ -576,7 +576,7 @@
 </span><span id="L-352"><a href="#L-352"><span class="linenos">352</span></a>
 </span><span id="L-353"><a href="#L-353"><span class="linenos">353</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 </span><span id="L-354"><a href="#L-354"><span class="linenos">354</span></a>
-</span><span id="L-355"><a href="#L-355"><span class="linenos">355</span></a>    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+</span><span id="L-355"><a href="#L-355"><span class="linenos">355</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
 </span><span id="L-356"><a href="#L-356"><span class="linenos">356</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Closes the database.</span>
 </span><span id="L-357"><a href="#L-357"><span class="linenos">357</span></a>
 </span><span id="L-358"><a href="#L-358"><span class="linenos">358</span></a><span class="sd">        Parameters</span>
@@ -594,7 +594,7 @@
 </span><span id="L-370"><a href="#L-370"><span class="linenos">370</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span><span id="L-371"><a href="#L-371"><span class="linenos">371</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">dispose</span><span class="p">()</span>
 </span><span id="L-372"><a href="#L-372"><span class="linenos">372</span></a>
-</span><span id="L-373"><a href="#L-373"><span class="linenos">373</span></a>    <span class="k">def</span> <span class="nf">initiate_database</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">database_name</span><span class="p">):</span>  <span class="c1"># CREATION</span>
+</span><span id="L-373"><a href="#L-373"><span class="linenos">373</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">initiate_database</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">database_name</span><span class="p">):</span>  <span class="c1"># CREATION</span>
 </span><span id="L-374"><a href="#L-374"><span class="linenos">374</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates the database.</span>
 </span><span id="L-375"><a href="#L-375"><span class="linenos">375</span></a>
 </span><span id="L-376"><a href="#L-376"><span class="linenos">376</span></a><span class="sd">        Parameters</span>
@@ -610,7 +610,7 @@
 </span><span id="L-386"><a href="#L-386"><span class="linenos">386</span></a>        <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;create database &quot;</span> <span class="o">+</span> <span class="n">database_name</span><span class="p">)</span>
 </span><span id="L-387"><a href="#L-387"><span class="linenos">387</span></a>        <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span><span id="L-388"><a href="#L-388"><span class="linenos">388</span></a>
-</span><span id="L-389"><a href="#L-389"><span class="linenos">389</span></a>    <span class="k">def</span> <span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-389"><a href="#L-389"><span class="linenos">389</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-390"><a href="#L-390"><span class="linenos">390</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Commits the session.&quot;&quot;&quot;</span>
 </span><span id="L-391"><a href="#L-391"><span class="linenos">391</span></a>        <span class="k">try</span><span class="p">:</span>
 </span><span id="L-392"><a href="#L-392"><span class="linenos">392</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
@@ -618,7 +618,7 @@
 </span><span id="L-394"><a href="#L-394"><span class="linenos">394</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
 </span><span id="L-395"><a href="#L-395"><span class="linenos">395</span></a>            <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
 </span><span id="L-396"><a href="#L-396"><span class="linenos">396</span></a>
-</span><span id="L-397"><a href="#L-397"><span class="linenos">397</span></a>    <span class="k">def</span> <span class="nf">init_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+</span><span id="L-397"><a href="#L-397"><span class="linenos">397</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">init_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
 </span><span id="L-398"><a href="#L-398"><span class="linenos">398</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes the SQLAlchemy engine.</span>
 </span><span id="L-399"><a href="#L-399"><span class="linenos">399</span></a>
 </span><span id="L-400"><a href="#L-400"><span class="linenos">400</span></a><span class="sd">        Parameters</span>
@@ -656,11 +656,11 @@
 </span><span id="L-432"><a href="#L-432"><span class="linenos">432</span></a>
 </span><span id="L-433"><a href="#L-433"><span class="linenos">433</span></a>        <span class="k">return</span> <span class="n">engine</span>  <span class="c1"># poolclass=NullPool</span>
 </span><span id="L-434"><a href="#L-434"><span class="linenos">434</span></a>
-</span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a>    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-436"><a href="#L-436"><span class="linenos">436</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the object.&quot;&quot;&quot;</span>
 </span><span id="L-437"><a href="#L-437"><span class="linenos">437</span></a>        <span class="k">return</span> <span class="bp">self</span>
 </span><span id="L-438"><a href="#L-438"><span class="linenos">438</span></a>
-</span><span id="L-439"><a href="#L-439"><span class="linenos">439</span></a>    <span class="k">def</span> <span class="nf">get_dict_by_classes</span><span class="p">(</span>
+</span><span id="L-439"><a href="#L-439"><span class="linenos">439</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_dict_by_classes</span><span class="p">(</span>
 </span><span id="L-440"><a href="#L-440"><span class="linenos">440</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-441"><a href="#L-441"><span class="linenos">441</span></a>        <span class="n">classes</span><span class="p">,</span>
 </span><span id="L-442"><a href="#L-442"><span class="linenos">442</span></a>        <span class="n">ion_type</span><span class="p">,</span>
@@ -699,7 +699,7 @@
 </span><span id="L-475"><a href="#L-475"><span class="linenos">475</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-476"><a href="#L-476"><span class="linenos">476</span></a>        <span class="n">verbose</span> <span class="o">=</span> <span class="n">molecular_search_settings</span><span class="o">.</span><span class="n">verbose_processing</span>
 </span><span id="L-477"><a href="#L-477"><span class="linenos">477</span></a>
-</span><span id="L-478"><a href="#L-478"><span class="linenos">478</span></a>        <span class="k">def</span> <span class="nf">query_normal</span><span class="p">(</span><span class="n">class_list</span><span class="p">,</span> <span class="n">len_adduct</span><span class="p">):</span>
+</span><span id="L-478"><a href="#L-478"><span class="linenos">478</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">query_normal</span><span class="p">(</span><span class="n">class_list</span><span class="p">,</span> <span class="n">len_adduct</span><span class="p">):</span>
 </span><span id="L-479"><a href="#L-479"><span class="linenos">479</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;query for normal database</span>
 </span><span id="L-480"><a href="#L-480"><span class="linenos">480</span></a>
 </span><span id="L-481"><a href="#L-481"><span class="linenos">481</span></a><span class="sd">            Parameters</span>
@@ -758,7 +758,7 @@
 </span><span id="L-534"><a href="#L-534"><span class="linenos">534</span></a>                <span class="p">)</span>
 </span><span id="L-535"><a href="#L-535"><span class="linenos">535</span></a>            <span class="p">)</span>
 </span><span id="L-536"><a href="#L-536"><span class="linenos">536</span></a>
-</span><span id="L-537"><a href="#L-537"><span class="linenos">537</span></a>        <span class="k">def</span> <span class="nf">add_dict_formula</span><span class="p">(</span><span class="n">formulas</span><span class="p">,</span> <span class="n">ion_type</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">,</span> <span class="n">adduct_atom</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="L-537"><a href="#L-537"><span class="linenos">537</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">add_dict_formula</span><span class="p">(</span><span class="n">formulas</span><span class="p">,</span> <span class="n">ion_type</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">,</span> <span class="n">adduct_atom</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-538"><a href="#L-538"><span class="linenos">538</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;add molecular formula to dict</span>
 </span><span id="L-539"><a href="#L-539"><span class="linenos">539</span></a>
 </span><span id="L-540"><a href="#L-540"><span class="linenos">540</span></a><span class="sd">            Parameters</span>
@@ -781,7 +781,7 @@
 </span><span id="L-557"><a href="#L-557"><span class="linenos">557</span></a>            <span class="s2">&quot;organize data by heteroatom classes&quot;</span>
 </span><span id="L-558"><a href="#L-558"><span class="linenos">558</span></a>            <span class="n">dict_res</span> <span class="o">=</span> <span class="p">{}</span>
 </span><span id="L-559"><a href="#L-559"><span class="linenos">559</span></a>
-</span><span id="L-560"><a href="#L-560"><span class="linenos">560</span></a>            <span class="k">def</span> <span class="nf">nominal_mass_by_ion_type</span><span class="p">(</span><span class="n">formula_obj</span><span class="p">):</span>
+</span><span id="L-560"><a href="#L-560"><span class="linenos">560</span></a>            <span class="k">def</span><span class="w"> </span><span class="nf">nominal_mass_by_ion_type</span><span class="p">(</span><span class="n">formula_obj</span><span class="p">):</span>
 </span><span id="L-561"><a href="#L-561"><span class="linenos">561</span></a>                <span class="k">if</span> <span class="n">ion_type</span> <span class="o">==</span> <span class="n">Labels</span><span class="o">.</span><span class="n">protonated_de_ion</span><span class="p">:</span>
 </span><span id="L-562"><a href="#L-562"><span class="linenos">562</span></a>                    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">formula_obj</span><span class="o">.</span><span class="n">_protonated_mz</span><span class="p">(</span><span class="n">ion_charge</span><span class="p">))</span>
 </span><span id="L-563"><a href="#L-563"><span class="linenos">563</span></a>
@@ -877,7 +877,7 @@
 </span><span id="L-653"><a href="#L-653"><span class="linenos">653</span></a>        <span class="c1"># dump all objs to memory</span>
 </span><span id="L-654"><a href="#L-654"><span class="linenos">654</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">expunge_all</span><span class="p">()</span>
 </span><span id="L-655"><a href="#L-655"><span class="linenos">655</span></a>
-</span><span id="L-656"><a href="#L-656"><span class="linenos">656</span></a>    <span class="k">def</span> <span class="nf">check_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classe</span><span class="p">,</span> <span class="n">ion_type</span><span class="p">,</span> <span class="n">molecular_search_settings</span><span class="p">):</span>
+</span><span id="L-656"><a href="#L-656"><span class="linenos">656</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">check_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classe</span><span class="p">,</span> <span class="n">ion_type</span><span class="p">,</span> <span class="n">molecular_search_settings</span><span class="p">):</span>
 </span><span id="L-657"><a href="#L-657"><span class="linenos">657</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks if a molecular formula is in the database.</span>
 </span><span id="L-658"><a href="#L-658"><span class="linenos">658</span></a>
 </span><span id="L-659"><a href="#L-659"><span class="linenos">659</span></a><span class="sd">        Parameters</span>
@@ -902,7 +902,7 @@
 </span><span id="L-678"><a href="#L-678"><span class="linenos">678</span></a>
 </span><span id="L-679"><a href="#L-679"><span class="linenos">679</span></a>        <span class="k">return</span> <span class="n">has_class</span>
 </span><span id="L-680"><a href="#L-680"><span class="linenos">680</span></a>
-</span><span id="L-681"><a href="#L-681"><span class="linenos">681</span></a>    <span class="k">def</span> <span class="nf">get_all_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-681"><a href="#L-681"><span class="linenos">681</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-682"><a href="#L-682"><span class="linenos">682</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a list of all classes in the database.&quot;&quot;&quot;</span>
 </span><span id="L-683"><a href="#L-683"><span class="linenos">683</span></a>        <span class="n">query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
 </span><span id="L-684"><a href="#L-684"><span class="linenos">684</span></a>            <span class="n">MolecularFormulaLink</span><span class="o">.</span><span class="n">classe</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s2">&quot;classe&quot;</span><span class="p">)</span>
@@ -910,7 +910,7 @@
 </span><span id="L-686"><a href="#L-686"><span class="linenos">686</span></a>
 </span><span id="L-687"><a href="#L-687"><span class="linenos">687</span></a>        <span class="k">return</span> <span class="n">query</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
 </span><span id="L-688"><a href="#L-688"><span class="linenos">688</span></a>
-</span><span id="L-689"><a href="#L-689"><span class="linenos">689</span></a>    <span class="k">def</span> <span class="nf">get_all</span><span class="p">(</span>
+</span><span id="L-689"><a href="#L-689"><span class="linenos">689</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_all</span><span class="p">(</span>
 </span><span id="L-690"><a href="#L-690"><span class="linenos">690</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-691"><a href="#L-691"><span class="linenos">691</span></a>    <span class="p">):</span>
 </span><span id="L-692"><a href="#L-692"><span class="linenos">692</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a list of all molecular formulas in the database.&quot;&quot;&quot;</span>
@@ -918,7 +918,7 @@
 </span><span id="L-694"><a href="#L-694"><span class="linenos">694</span></a>
 </span><span id="L-695"><a href="#L-695"><span class="linenos">695</span></a>        <span class="k">return</span> <span class="n">mol_formulas</span>
 </span><span id="L-696"><a href="#L-696"><span class="linenos">696</span></a>
-</span><span id="L-697"><a href="#L-697"><span class="linenos">697</span></a>    <span class="k">def</span> <span class="nf">delete_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+</span><span id="L-697"><a href="#L-697"><span class="linenos">697</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">delete_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
 </span><span id="L-698"><a href="#L-698"><span class="linenos">698</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes a molecular formula from the database.&quot;&quot;&quot;</span>
 </span><span id="L-699"><a href="#L-699"><span class="linenos">699</span></a>        <span class="k">try</span><span class="p">:</span>
 </span><span id="L-700"><a href="#L-700"><span class="linenos">700</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
@@ -928,7 +928,7 @@
 </span><span id="L-704"><a href="#L-704"><span class="linenos">704</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
 </span><span id="L-705"><a href="#L-705"><span class="linenos">705</span></a>            <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
 </span><span id="L-706"><a href="#L-706"><span class="linenos">706</span></a>
-</span><span id="L-707"><a href="#L-707"><span class="linenos">707</span></a>    <span class="k">def</span> <span class="nf">purge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
+</span><span id="L-707"><a href="#L-707"><span class="linenos">707</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">purge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
 </span><span id="L-708"><a href="#L-708"><span class="linenos">708</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes all molecular formulas from the database.</span>
 </span><span id="L-709"><a href="#L-709"><span class="linenos">709</span></a>
 </span><span id="L-710"><a href="#L-710"><span class="linenos">710</span></a><span class="sd">        Notes</span>
@@ -939,7 +939,7 @@
 </span><span id="L-715"><a href="#L-715"><span class="linenos">715</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
 </span><span id="L-716"><a href="#L-716"><span class="linenos">716</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 </span><span id="L-717"><a href="#L-717"><span class="linenos">717</span></a>
-</span><span id="L-718"><a href="#L-718"><span class="linenos">718</span></a>    <span class="k">def</span> <span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-718"><a href="#L-718"><span class="linenos">718</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-719"><a href="#L-719"><span class="linenos">719</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears the database.&quot;&quot;&quot;</span>
 </span><span id="L-720"><a href="#L-720"><span class="linenos">720</span></a>        <span class="n">meta</span> <span class="o">=</span> <span class="n">Base</span><span class="o">.</span><span class="n">metadata</span>
 </span><span id="L-721"><a href="#L-721"><span class="linenos">721</span></a>        <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">sorted_tables</span><span class="p">):</span>
@@ -947,7 +947,7 @@
 </span><span id="L-723"><a href="#L-723"><span class="linenos">723</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">delete</span><span class="p">())</span>
 </span><span id="L-724"><a href="#L-724"><span class="linenos">724</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 </span><span id="L-725"><a href="#L-725"><span class="linenos">725</span></a>
-</span><span id="L-726"><a href="#L-726"><span class="linenos">726</span></a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">commit</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="L-726"><a href="#L-726"><span class="linenos">726</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">commit</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="L-727"><a href="#L-727"><span class="linenos">727</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Closes the database.</span>
 </span><span id="L-728"><a href="#L-728"><span class="linenos">728</span></a>
 </span><span id="L-729"><a href="#L-729"><span class="linenos">729</span></a><span class="sd">        Parameters</span>
@@ -962,7 +962,7 @@
 </span><span id="L-738"><a href="#L-738"><span class="linenos">738</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span><span id="L-739"><a href="#L-739"><span class="linenos">739</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">dispose</span><span class="p">()</span>
 </span><span id="L-740"><a href="#L-740"><span class="linenos">740</span></a>
-</span><span id="L-741"><a href="#L-741"><span class="linenos">741</span></a>    <span class="k">def</span> <span class="nf">add_engine_pidguard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">):</span>
+</span><span id="L-741"><a href="#L-741"><span class="linenos">741</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_engine_pidguard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">):</span>
 </span><span id="L-742"><a href="#L-742"><span class="linenos">742</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds multiprocessing guards.</span>
 </span><span id="L-743"><a href="#L-743"><span class="linenos">743</span></a>
 </span><span id="L-744"><a href="#L-744"><span class="linenos">744</span></a><span class="sd">        Forces a connection to be reconnected if it is detected</span>
@@ -974,11 +974,11 @@
 </span><span id="L-750"><a href="#L-750"><span class="linenos">750</span></a><span class="sd">            The SQLAlchemy engine.</span>
 </span><span id="L-751"><a href="#L-751"><span class="linenos">751</span></a>
 </span><span id="L-752"><a href="#L-752"><span class="linenos">752</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-753"><a href="#L-753"><span class="linenos">753</span></a>        <span class="kn">import</span> <span class="nn">os</span>
-</span><span id="L-754"><a href="#L-754"><span class="linenos">754</span></a>        <span class="kn">import</span> <span class="nn">warnings</span>
+</span><span id="L-753"><a href="#L-753"><span class="linenos">753</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+</span><span id="L-754"><a href="#L-754"><span class="linenos">754</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 </span><span id="L-755"><a href="#L-755"><span class="linenos">755</span></a>
 </span><span id="L-756"><a href="#L-756"><span class="linenos">756</span></a>        <span class="nd">@event</span><span class="o">.</span><span class="n">listens_for</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s2">&quot;connect&quot;</span><span class="p">)</span>
-</span><span id="L-757"><a href="#L-757"><span class="linenos">757</span></a>        <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="n">dbapi_connection</span><span class="p">,</span> <span class="n">connection_record</span><span class="p">):</span>
+</span><span id="L-757"><a href="#L-757"><span class="linenos">757</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">connect</span><span class="p">(</span><span class="n">dbapi_connection</span><span class="p">,</span> <span class="n">connection_record</span><span class="p">):</span>
 </span><span id="L-758"><a href="#L-758"><span class="linenos">758</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;Forces a connection to be reconnected if it is detected</span>
 </span><span id="L-759"><a href="#L-759"><span class="linenos">759</span></a>
 </span><span id="L-760"><a href="#L-760"><span class="linenos">760</span></a><span class="sd">            Parameters</span>
@@ -991,7 +991,7 @@
 </span><span id="L-767"><a href="#L-767"><span class="linenos">767</span></a>            <span class="n">connection_record</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;pid&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">()</span>
 </span><span id="L-768"><a href="#L-768"><span class="linenos">768</span></a>
 </span><span id="L-769"><a href="#L-769"><span class="linenos">769</span></a>        <span class="nd">@event</span><span class="o">.</span><span class="n">listens_for</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s2">&quot;checkout&quot;</span><span class="p">)</span>
-</span><span id="L-770"><a href="#L-770"><span class="linenos">770</span></a>        <span class="k">def</span> <span class="nf">checkout</span><span class="p">(</span><span class="n">dbapi_connection</span><span class="p">,</span> <span class="n">connection_record</span><span class="p">,</span> <span class="n">connection_proxy</span><span class="p">):</span>
+</span><span id="L-770"><a href="#L-770"><span class="linenos">770</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">checkout</span><span class="p">(</span><span class="n">dbapi_connection</span><span class="p">,</span> <span class="n">connection_record</span><span class="p">,</span> <span class="n">connection_proxy</span><span class="p">):</span>
 </span><span id="L-771"><a href="#L-771"><span class="linenos">771</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;Forces a connection to be reconnected if it is detected</span>
 </span><span id="L-772"><a href="#L-772"><span class="linenos">772</span></a>
 </span><span id="L-773"><a href="#L-773"><span class="linenos">773</span></a><span class="sd">            Parameters</span>
@@ -1080,7 +1080,7 @@ instance that has no instance attributes and cannot be given any.</p>
 
     </div>
     <a class="headerlink" href="#Base.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Base.__init__-1185"><a href="#Base.__init__-1185"><span class="linenos">1185</span></a><span class="k">def</span> <span class="nf">_declarative_constructor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Base.__init__-1185"><a href="#Base.__init__-1185"><span class="linenos">1185</span></a><span class="k">def</span><span class="w"> </span><span class="nf">_declarative_constructor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 </span><span id="Base.__init__-1186"><a href="#Base.__init__-1186"><span class="linenos">1186</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A simple constructor that allows initialization from kwargs.</span>
 </span><span id="Base.__init__-1187"><a href="#Base.__init__-1187"><span class="linenos">1187</span></a>
 </span><span id="Base.__init__-1188"><a href="#Base.__init__-1188"><span class="linenos">1188</span></a><span class="sd">    Sets attributes on the constructed instance using the names and</span>
@@ -1148,7 +1148,7 @@ for example, any mapped columns or relationships.</p>
 
     </div>
     <a class="headerlink" href="#HeteroAtoms"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="HeteroAtoms-35"><a href="#HeteroAtoms-35"><span class="linenos">35</span></a><span class="k">class</span> <span class="nc">HeteroAtoms</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="HeteroAtoms-35"><a href="#HeteroAtoms-35"><span class="linenos">35</span></a><span class="k">class</span><span class="w"> </span><span class="nc">HeteroAtoms</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
 </span><span id="HeteroAtoms-36"><a href="#HeteroAtoms-36"><span class="linenos">36</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;HeteroAtoms class for the heteroAtoms table in the SQLite database.</span>
 </span><span id="HeteroAtoms-37"><a href="#HeteroAtoms-37"><span class="linenos">37</span></a>
 </span><span id="HeteroAtoms-38"><a href="#HeteroAtoms-38"><span class="linenos">38</span></a><span class="sd">    Attributes</span>
@@ -1186,15 +1186,15 @@ for example, any mapped columns or relationships.</p>
 </span><span id="HeteroAtoms-70"><a href="#HeteroAtoms-70"><span class="linenos">70</span></a>        <span class="s2">&quot;CarbonHydrogen&quot;</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="s2">&quot;molecularformula&quot;</span><span class="p">,</span> <span class="n">viewonly</span><span class="o">=</span><span class="kc">True</span>
 </span><span id="HeteroAtoms-71"><a href="#HeteroAtoms-71"><span class="linenos">71</span></a>    <span class="p">)</span>
 </span><span id="HeteroAtoms-72"><a href="#HeteroAtoms-72"><span class="linenos">72</span></a>
-</span><span id="HeteroAtoms-73"><a href="#HeteroAtoms-73"><span class="linenos">73</span></a>    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="HeteroAtoms-73"><a href="#HeteroAtoms-73"><span class="linenos">73</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="HeteroAtoms-74"><a href="#HeteroAtoms-74"><span class="linenos">74</span></a>        <span class="k">return</span> <span class="s2">&quot;&lt;HeteroAtoms Model </span><span class="si">{}</span><span class="s2"> class </span><span class="si">{}</span><span class="s2">&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 </span><span id="HeteroAtoms-75"><a href="#HeteroAtoms-75"><span class="linenos">75</span></a>
 </span><span id="HeteroAtoms-76"><a href="#HeteroAtoms-76"><span class="linenos">76</span></a>    <span class="nd">@hybrid_property</span>
-</span><span id="HeteroAtoms-77"><a href="#HeteroAtoms-77"><span class="linenos">77</span></a>    <span class="k">def</span> <span class="nf">halogens_count</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+</span><span id="HeteroAtoms-77"><a href="#HeteroAtoms-77"><span class="linenos">77</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">halogens_count</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
 </span><span id="HeteroAtoms-78"><a href="#HeteroAtoms-78"><span class="linenos">78</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the number of halogens as a float.&quot;&quot;&quot;</span>
 </span><span id="HeteroAtoms-79"><a href="#HeteroAtoms-79"><span class="linenos">79</span></a>        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">halogensCount</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">Float</span><span class="p">)</span>
 </span><span id="HeteroAtoms-80"><a href="#HeteroAtoms-80"><span class="linenos">80</span></a>
-</span><span id="HeteroAtoms-81"><a href="#HeteroAtoms-81"><span class="linenos">81</span></a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="HeteroAtoms-81"><a href="#HeteroAtoms-81"><span class="linenos">81</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="HeteroAtoms-82"><a href="#HeteroAtoms-82"><span class="linenos">82</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the heteroAtoms class as a dictionary.&quot;&quot;&quot;</span>
 </span><span id="HeteroAtoms-83"><a href="#HeteroAtoms-83"><span class="linenos">83</span></a>        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 </span></pre></div>
@@ -1317,7 +1317,7 @@ for example, any mapped columns or relationships.</p>
 
     </div>
     <a class="headerlink" href="#HeteroAtoms.to_dict"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="HeteroAtoms.to_dict-81"><a href="#HeteroAtoms.to_dict-81"><span class="linenos">81</span></a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="HeteroAtoms.to_dict-81"><a href="#HeteroAtoms.to_dict-81"><span class="linenos">81</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="HeteroAtoms.to_dict-82"><a href="#HeteroAtoms.to_dict-82"><span class="linenos">82</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the heteroAtoms class as a dictionary.&quot;&quot;&quot;</span>
 </span><span id="HeteroAtoms.to_dict-83"><a href="#HeteroAtoms.to_dict-83"><span class="linenos">83</span></a>        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 </span></pre></div>
@@ -1350,7 +1350,7 @@ for example, any mapped columns or relationships.</p>
 
     </div>
     <a class="headerlink" href="#CarbonHydrogen"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="CarbonHydrogen-86"><a href="#CarbonHydrogen-86"><span class="linenos"> 86</span></a><span class="k">class</span> <span class="nc">CarbonHydrogen</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="CarbonHydrogen-86"><a href="#CarbonHydrogen-86"><span class="linenos"> 86</span></a><span class="k">class</span><span class="w"> </span><span class="nc">CarbonHydrogen</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
 </span><span id="CarbonHydrogen-87"><a href="#CarbonHydrogen-87"><span class="linenos"> 87</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;CarbonHydrogen class for the carbonHydrogen table in the SQLite database.</span>
 </span><span id="CarbonHydrogen-88"><a href="#CarbonHydrogen-88"><span class="linenos"> 88</span></a>
 </span><span id="CarbonHydrogen-89"><a href="#CarbonHydrogen-89"><span class="linenos"> 89</span></a><span class="sd">    Attributes</span>
@@ -1392,29 +1392,29 @@ for example, any mapped columns or relationships.</p>
 </span><span id="CarbonHydrogen-125"><a href="#CarbonHydrogen-125"><span class="linenos">125</span></a>        <span class="s2">&quot;HeteroAtoms&quot;</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="s2">&quot;molecularformula&quot;</span><span class="p">,</span> <span class="n">viewonly</span><span class="o">=</span><span class="kc">True</span>
 </span><span id="CarbonHydrogen-126"><a href="#CarbonHydrogen-126"><span class="linenos">126</span></a>    <span class="p">)</span>
 </span><span id="CarbonHydrogen-127"><a href="#CarbonHydrogen-127"><span class="linenos">127</span></a>
-</span><span id="CarbonHydrogen-128"><a href="#CarbonHydrogen-128"><span class="linenos">128</span></a>    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="CarbonHydrogen-128"><a href="#CarbonHydrogen-128"><span class="linenos">128</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="CarbonHydrogen-129"><a href="#CarbonHydrogen-129"><span class="linenos">129</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the string representation of the object.&quot;&quot;&quot;</span>
 </span><span id="CarbonHydrogen-130"><a href="#CarbonHydrogen-130"><span class="linenos">130</span></a>        <span class="k">return</span> <span class="s2">&quot;&lt;CarbonHydrogen Model </span><span class="si">{}</span><span class="s2"> C</span><span class="si">{}</span><span class="s2"> H</span><span class="si">{}</span><span class="s2">&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">C</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">)</span>
 </span><span id="CarbonHydrogen-131"><a href="#CarbonHydrogen-131"><span class="linenos">131</span></a>
 </span><span id="CarbonHydrogen-132"><a href="#CarbonHydrogen-132"><span class="linenos">132</span></a>    <span class="nd">@property</span>
-</span><span id="CarbonHydrogen-133"><a href="#CarbonHydrogen-133"><span class="linenos">133</span></a>    <span class="k">def</span> <span class="nf">mass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="CarbonHydrogen-133"><a href="#CarbonHydrogen-133"><span class="linenos">133</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="CarbonHydrogen-134"><a href="#CarbonHydrogen-134"><span class="linenos">134</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the mass of the carbonHydrogen class as a float.&quot;&quot;&quot;</span>
 </span><span id="CarbonHydrogen-135"><a href="#CarbonHydrogen-135"><span class="linenos">135</span></a>        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">C</span> <span class="o">*</span> <span class="n">Atoms</span><span class="o">.</span><span class="n">atomic_masses</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">))</span> <span class="o">+</span> <span class="p">(</span>
 </span><span id="CarbonHydrogen-136"><a href="#CarbonHydrogen-136"><span class="linenos">136</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">H</span> <span class="o">*</span> <span class="n">Atoms</span><span class="o">.</span><span class="n">atomic_masses</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;H&quot;</span><span class="p">)</span>
 </span><span id="CarbonHydrogen-137"><a href="#CarbonHydrogen-137"><span class="linenos">137</span></a>        <span class="p">)</span>
 </span><span id="CarbonHydrogen-138"><a href="#CarbonHydrogen-138"><span class="linenos">138</span></a>
 </span><span id="CarbonHydrogen-139"><a href="#CarbonHydrogen-139"><span class="linenos">139</span></a>    <span class="nd">@hybrid_property</span>
-</span><span id="CarbonHydrogen-140"><a href="#CarbonHydrogen-140"><span class="linenos">140</span></a>    <span class="k">def</span> <span class="nf">c</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+</span><span id="CarbonHydrogen-140"><a href="#CarbonHydrogen-140"><span class="linenos">140</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
 </span><span id="CarbonHydrogen-141"><a href="#CarbonHydrogen-141"><span class="linenos">141</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the number of carbon atoms as a float.&quot;&quot;&quot;</span>
 </span><span id="CarbonHydrogen-142"><a href="#CarbonHydrogen-142"><span class="linenos">142</span></a>        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">C</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">Float</span><span class="p">)</span>
 </span><span id="CarbonHydrogen-143"><a href="#CarbonHydrogen-143"><span class="linenos">143</span></a>
 </span><span id="CarbonHydrogen-144"><a href="#CarbonHydrogen-144"><span class="linenos">144</span></a>    <span class="nd">@hybrid_property</span>
-</span><span id="CarbonHydrogen-145"><a href="#CarbonHydrogen-145"><span class="linenos">145</span></a>    <span class="k">def</span> <span class="nf">h</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+</span><span id="CarbonHydrogen-145"><a href="#CarbonHydrogen-145"><span class="linenos">145</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">h</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
 </span><span id="CarbonHydrogen-146"><a href="#CarbonHydrogen-146"><span class="linenos">146</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the number of hydrogen atoms as a float.&quot;&quot;&quot;</span>
 </span><span id="CarbonHydrogen-147"><a href="#CarbonHydrogen-147"><span class="linenos">147</span></a>        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">H</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">Float</span><span class="p">)</span>
 </span><span id="CarbonHydrogen-148"><a href="#CarbonHydrogen-148"><span class="linenos">148</span></a>
 </span><span id="CarbonHydrogen-149"><a href="#CarbonHydrogen-149"><span class="linenos">149</span></a>    <span class="nd">@hybrid_property</span>
-</span><span id="CarbonHydrogen-150"><a href="#CarbonHydrogen-150"><span class="linenos">150</span></a>    <span class="k">def</span> <span class="nf">dbe</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+</span><span id="CarbonHydrogen-150"><a href="#CarbonHydrogen-150"><span class="linenos">150</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">dbe</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
 </span><span id="CarbonHydrogen-151"><a href="#CarbonHydrogen-151"><span class="linenos">151</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the double bond equivalent as a float.&quot;&quot;&quot;</span>
 </span><span id="CarbonHydrogen-152"><a href="#CarbonHydrogen-152"><span class="linenos">152</span></a>        <span class="c1"># return cls.C.cast(Float) - (cls.H.cast(Float) / 2) + 1</span>
 </span><span id="CarbonHydrogen-153"><a href="#CarbonHydrogen-153"><span class="linenos">153</span></a>        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">C</span><span class="p">)</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">H</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
@@ -1592,7 +1592,7 @@ for example, any mapped columns or relationships.</p>
 
     </div>
     <a class="headerlink" href="#MolecularFormulaLink"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularFormulaLink-157"><a href="#MolecularFormulaLink-157"><span class="linenos">157</span></a><span class="k">class</span> <span class="nc">MolecularFormulaLink</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularFormulaLink-157"><a href="#MolecularFormulaLink-157"><span class="linenos">157</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MolecularFormulaLink</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
 </span><span id="MolecularFormulaLink-158"><a href="#MolecularFormulaLink-158"><span class="linenos">158</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;MolecularFormulaLink class for the molecularformula table in the SQLite database.</span>
 </span><span id="MolecularFormulaLink-159"><a href="#MolecularFormulaLink-159"><span class="linenos">159</span></a>
 </span><span id="MolecularFormulaLink-160"><a href="#MolecularFormulaLink-160"><span class="linenos">160</span></a><span class="sd">    Attributes</span>
@@ -1666,7 +1666,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolecularFormulaLink-228"><a href="#MolecularFormulaLink-228"><span class="linenos">228</span></a>
 </span><span id="MolecularFormulaLink-229"><a href="#MolecularFormulaLink-229"><span class="linenos">229</span></a>    <span class="n">classe</span> <span class="o">=</span> <span class="n">association_proxy</span><span class="p">(</span><span class="s2">&quot;heteroAtoms&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">)</span>
 </span><span id="MolecularFormulaLink-230"><a href="#MolecularFormulaLink-230"><span class="linenos">230</span></a>
-</span><span id="MolecularFormulaLink-231"><a href="#MolecularFormulaLink-231"><span class="linenos">231</span></a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MolecularFormulaLink-231"><a href="#MolecularFormulaLink-231"><span class="linenos">231</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolecularFormulaLink-232"><a href="#MolecularFormulaLink-232"><span class="linenos">232</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the molecular formula as a dictionary.</span>
 </span><span id="MolecularFormulaLink-233"><a href="#MolecularFormulaLink-233"><span class="linenos">233</span></a>
 </span><span id="MolecularFormulaLink-234"><a href="#MolecularFormulaLink-234"><span class="linenos">234</span></a><span class="sd">        Returns</span>
@@ -1682,7 +1682,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolecularFormulaLink-244"><a href="#MolecularFormulaLink-244"><span class="linenos">244</span></a>            <span class="k">return</span> <span class="p">{</span><span class="o">**</span><span class="n">carbon</span><span class="p">,</span> <span class="o">**</span><span class="n">classe</span><span class="p">}</span>
 </span><span id="MolecularFormulaLink-245"><a href="#MolecularFormulaLink-245"><span class="linenos">245</span></a>
 </span><span id="MolecularFormulaLink-246"><a href="#MolecularFormulaLink-246"><span class="linenos">246</span></a>    <span class="nd">@property</span>
-</span><span id="MolecularFormulaLink-247"><a href="#MolecularFormulaLink-247"><span class="linenos">247</span></a>    <span class="k">def</span> <span class="nf">formula_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MolecularFormulaLink-247"><a href="#MolecularFormulaLink-247"><span class="linenos">247</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">formula_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolecularFormulaLink-248"><a href="#MolecularFormulaLink-248"><span class="linenos">248</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the molecular formula as a string.&quot;&quot;&quot;</span>
 </span><span id="MolecularFormulaLink-249"><a href="#MolecularFormulaLink-249"><span class="linenos">249</span></a>        <span class="n">class_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
 </span><span id="MolecularFormulaLink-250"><a href="#MolecularFormulaLink-250"><span class="linenos">250</span></a>        <span class="n">class_str</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
@@ -1691,7 +1691,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolecularFormulaLink-253"><a href="#MolecularFormulaLink-253"><span class="linenos">253</span></a>        <span class="k">return</span> <span class="n">class_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 </span><span id="MolecularFormulaLink-254"><a href="#MolecularFormulaLink-254"><span class="linenos">254</span></a>
 </span><span id="MolecularFormulaLink-255"><a href="#MolecularFormulaLink-255"><span class="linenos">255</span></a>    <span class="nd">@property</span>
-</span><span id="MolecularFormulaLink-256"><a href="#MolecularFormulaLink-256"><span class="linenos">256</span></a>    <span class="k">def</span> <span class="nf">classe_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MolecularFormulaLink-256"><a href="#MolecularFormulaLink-256"><span class="linenos">256</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">classe_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolecularFormulaLink-257"><a href="#MolecularFormulaLink-257"><span class="linenos">257</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the heteroAtoms class as a string.&quot;&quot;&quot;</span>
 </span><span id="MolecularFormulaLink-258"><a href="#MolecularFormulaLink-258"><span class="linenos">258</span></a>        <span class="n">class_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">classe</span><span class="p">)</span>
 </span><span id="MolecularFormulaLink-259"><a href="#MolecularFormulaLink-259"><span class="linenos">259</span></a>        <span class="n">class_str</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
@@ -1700,7 +1700,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolecularFormulaLink-262"><a href="#MolecularFormulaLink-262"><span class="linenos">262</span></a>        <span class="k">return</span> <span class="n">class_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 </span><span id="MolecularFormulaLink-263"><a href="#MolecularFormulaLink-263"><span class="linenos">263</span></a>
 </span><span id="MolecularFormulaLink-264"><a href="#MolecularFormulaLink-264"><span class="linenos">264</span></a>    <span class="nd">@hybrid_method</span>
-</span><span id="MolecularFormulaLink-265"><a href="#MolecularFormulaLink-265"><span class="linenos">265</span></a>    <span class="k">def</span> <span class="nf">_adduct_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">,</span> <span class="n">adduct_atom</span><span class="p">):</span>
+</span><span id="MolecularFormulaLink-265"><a href="#MolecularFormulaLink-265"><span class="linenos">265</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_adduct_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">,</span> <span class="n">adduct_atom</span><span class="p">):</span>
 </span><span id="MolecularFormulaLink-266"><a href="#MolecularFormulaLink-266"><span class="linenos">266</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the m/z of the adduct ion as a float.&quot;&quot;&quot;</span>
 </span><span id="MolecularFormulaLink-267"><a href="#MolecularFormulaLink-267"><span class="linenos">267</span></a>        <span class="k">return</span> <span class="p">(</span>
 </span><span id="MolecularFormulaLink-268"><a href="#MolecularFormulaLink-268"><span class="linenos">268</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">mass</span>
@@ -1709,7 +1709,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolecularFormulaLink-271"><a href="#MolecularFormulaLink-271"><span class="linenos">271</span></a>        <span class="p">)</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ion_charge</span><span class="p">)</span>
 </span><span id="MolecularFormulaLink-272"><a href="#MolecularFormulaLink-272"><span class="linenos">272</span></a>
 </span><span id="MolecularFormulaLink-273"><a href="#MolecularFormulaLink-273"><span class="linenos">273</span></a>    <span class="nd">@hybrid_method</span>
-</span><span id="MolecularFormulaLink-274"><a href="#MolecularFormulaLink-274"><span class="linenos">274</span></a>    <span class="k">def</span> <span class="nf">_protonated_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">):</span>
+</span><span id="MolecularFormulaLink-274"><a href="#MolecularFormulaLink-274"><span class="linenos">274</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_protonated_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">):</span>
 </span><span id="MolecularFormulaLink-275"><a href="#MolecularFormulaLink-275"><span class="linenos">275</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the m/z of the protonated ion as a float.&quot;&quot;&quot;</span>
 </span><span id="MolecularFormulaLink-276"><a href="#MolecularFormulaLink-276"><span class="linenos">276</span></a>        <span class="k">return</span> <span class="p">(</span>
 </span><span id="MolecularFormulaLink-277"><a href="#MolecularFormulaLink-277"><span class="linenos">277</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">mass</span>
@@ -1718,11 +1718,11 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolecularFormulaLink-280"><a href="#MolecularFormulaLink-280"><span class="linenos">280</span></a>        <span class="p">)</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ion_charge</span><span class="p">)</span>
 </span><span id="MolecularFormulaLink-281"><a href="#MolecularFormulaLink-281"><span class="linenos">281</span></a>
 </span><span id="MolecularFormulaLink-282"><a href="#MolecularFormulaLink-282"><span class="linenos">282</span></a>    <span class="nd">@hybrid_method</span>
-</span><span id="MolecularFormulaLink-283"><a href="#MolecularFormulaLink-283"><span class="linenos">283</span></a>    <span class="k">def</span> <span class="nf">_radical_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">):</span>
+</span><span id="MolecularFormulaLink-283"><a href="#MolecularFormulaLink-283"><span class="linenos">283</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_radical_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">):</span>
 </span><span id="MolecularFormulaLink-284"><a href="#MolecularFormulaLink-284"><span class="linenos">284</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the m/z of the radical ion as a float.&quot;&quot;&quot;</span>
 </span><span id="MolecularFormulaLink-285"><a href="#MolecularFormulaLink-285"><span class="linenos">285</span></a>        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span> <span class="o">+</span> <span class="p">(</span><span class="n">ion_charge</span> <span class="o">*</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">Atoms</span><span class="o">.</span><span class="n">electron_mass</span><span class="p">))</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ion_charge</span><span class="p">)</span>
 </span><span id="MolecularFormulaLink-286"><a href="#MolecularFormulaLink-286"><span class="linenos">286</span></a>
-</span><span id="MolecularFormulaLink-287"><a href="#MolecularFormulaLink-287"><span class="linenos">287</span></a>    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MolecularFormulaLink-287"><a href="#MolecularFormulaLink-287"><span class="linenos">287</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolecularFormulaLink-288"><a href="#MolecularFormulaLink-288"><span class="linenos">288</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the string representation of the object.&quot;&quot;&quot;</span>
 </span><span id="MolecularFormulaLink-289"><a href="#MolecularFormulaLink-289"><span class="linenos">289</span></a>        <span class="k">return</span> <span class="s2">&quot;&lt;MolecularFormulaLink Model </span><span class="si">{}</span><span class="s2">&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formula_string</span><span class="p">)</span>
 </span></pre></div>
@@ -1911,7 +1911,7 @@ for example, any mapped columns or relationships.</p>
 
     </div>
     <a class="headerlink" href="#MolecularFormulaLink.to_dict"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularFormulaLink.to_dict-231"><a href="#MolecularFormulaLink.to_dict-231"><span class="linenos">231</span></a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularFormulaLink.to_dict-231"><a href="#MolecularFormulaLink.to_dict-231"><span class="linenos">231</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolecularFormulaLink.to_dict-232"><a href="#MolecularFormulaLink.to_dict-232"><span class="linenos">232</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the molecular formula as a dictionary.</span>
 </span><span id="MolecularFormulaLink.to_dict-233"><a href="#MolecularFormulaLink.to_dict-233"><span class="linenos">233</span></a>
 </span><span id="MolecularFormulaLink.to_dict-234"><a href="#MolecularFormulaLink.to_dict-234"><span class="linenos">234</span></a><span class="sd">        Returns</span>
@@ -1987,7 +1987,7 @@ for example, any mapped columns or relationships.</p>
 
     </div>
     <a class="headerlink" href="#MolForm_SQL"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL-292"><a href="#MolForm_SQL-292"><span class="linenos">292</span></a><span class="k">class</span> <span class="nc">MolForm_SQL</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL-292"><a href="#MolForm_SQL-292"><span class="linenos">292</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MolForm_SQL</span><span class="p">:</span>
 </span><span id="MolForm_SQL-293"><a href="#MolForm_SQL-293"><span class="linenos">293</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;MolForm_SQL class for the SQLite database.</span>
 </span><span id="MolForm_SQL-294"><a href="#MolForm_SQL-294"><span class="linenos">294</span></a>
 </span><span id="MolForm_SQL-295"><a href="#MolForm_SQL-295"><span class="linenos">295</span></a><span class="sd">    Attributes</span>
@@ -2036,7 +2036,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolForm_SQL-338"><a href="#MolForm_SQL-338"><span class="linenos">338</span></a>
 </span><span id="MolForm_SQL-339"><a href="#MolForm_SQL-339"><span class="linenos">339</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="MolForm_SQL-340"><a href="#MolForm_SQL-340"><span class="linenos">340</span></a>
-</span><span id="MolForm_SQL-341"><a href="#MolForm_SQL-341"><span class="linenos">341</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">echo</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="MolForm_SQL-341"><a href="#MolForm_SQL-341"><span class="linenos">341</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">echo</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="MolForm_SQL-342"><a href="#MolForm_SQL-342"><span class="linenos">342</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_engine</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
 </span><span id="MolForm_SQL-343"><a href="#MolForm_SQL-343"><span class="linenos">343</span></a>
 </span><span id="MolForm_SQL-344"><a href="#MolForm_SQL-344"><span class="linenos">344</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">add_engine_pidguard</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
@@ -2051,7 +2051,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolForm_SQL-353"><a href="#MolForm_SQL-353"><span class="linenos">353</span></a>
 </span><span id="MolForm_SQL-354"><a href="#MolForm_SQL-354"><span class="linenos">354</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 </span><span id="MolForm_SQL-355"><a href="#MolForm_SQL-355"><span class="linenos">355</span></a>
-</span><span id="MolForm_SQL-356"><a href="#MolForm_SQL-356"><span class="linenos">356</span></a>    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+</span><span id="MolForm_SQL-356"><a href="#MolForm_SQL-356"><span class="linenos">356</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
 </span><span id="MolForm_SQL-357"><a href="#MolForm_SQL-357"><span class="linenos">357</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Closes the database.</span>
 </span><span id="MolForm_SQL-358"><a href="#MolForm_SQL-358"><span class="linenos">358</span></a>
 </span><span id="MolForm_SQL-359"><a href="#MolForm_SQL-359"><span class="linenos">359</span></a><span class="sd">        Parameters</span>
@@ -2069,7 +2069,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolForm_SQL-371"><a href="#MolForm_SQL-371"><span class="linenos">371</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span><span id="MolForm_SQL-372"><a href="#MolForm_SQL-372"><span class="linenos">372</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">dispose</span><span class="p">()</span>
 </span><span id="MolForm_SQL-373"><a href="#MolForm_SQL-373"><span class="linenos">373</span></a>
-</span><span id="MolForm_SQL-374"><a href="#MolForm_SQL-374"><span class="linenos">374</span></a>    <span class="k">def</span> <span class="nf">initiate_database</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">database_name</span><span class="p">):</span>  <span class="c1"># CREATION</span>
+</span><span id="MolForm_SQL-374"><a href="#MolForm_SQL-374"><span class="linenos">374</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">initiate_database</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">database_name</span><span class="p">):</span>  <span class="c1"># CREATION</span>
 </span><span id="MolForm_SQL-375"><a href="#MolForm_SQL-375"><span class="linenos">375</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates the database.</span>
 </span><span id="MolForm_SQL-376"><a href="#MolForm_SQL-376"><span class="linenos">376</span></a>
 </span><span id="MolForm_SQL-377"><a href="#MolForm_SQL-377"><span class="linenos">377</span></a><span class="sd">        Parameters</span>
@@ -2085,7 +2085,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolForm_SQL-387"><a href="#MolForm_SQL-387"><span class="linenos">387</span></a>        <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;create database &quot;</span> <span class="o">+</span> <span class="n">database_name</span><span class="p">)</span>
 </span><span id="MolForm_SQL-388"><a href="#MolForm_SQL-388"><span class="linenos">388</span></a>        <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span><span id="MolForm_SQL-389"><a href="#MolForm_SQL-389"><span class="linenos">389</span></a>
-</span><span id="MolForm_SQL-390"><a href="#MolForm_SQL-390"><span class="linenos">390</span></a>    <span class="k">def</span> <span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MolForm_SQL-390"><a href="#MolForm_SQL-390"><span class="linenos">390</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolForm_SQL-391"><a href="#MolForm_SQL-391"><span class="linenos">391</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Commits the session.&quot;&quot;&quot;</span>
 </span><span id="MolForm_SQL-392"><a href="#MolForm_SQL-392"><span class="linenos">392</span></a>        <span class="k">try</span><span class="p">:</span>
 </span><span id="MolForm_SQL-393"><a href="#MolForm_SQL-393"><span class="linenos">393</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
@@ -2093,7 +2093,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolForm_SQL-395"><a href="#MolForm_SQL-395"><span class="linenos">395</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
 </span><span id="MolForm_SQL-396"><a href="#MolForm_SQL-396"><span class="linenos">396</span></a>            <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
 </span><span id="MolForm_SQL-397"><a href="#MolForm_SQL-397"><span class="linenos">397</span></a>
-</span><span id="MolForm_SQL-398"><a href="#MolForm_SQL-398"><span class="linenos">398</span></a>    <span class="k">def</span> <span class="nf">init_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+</span><span id="MolForm_SQL-398"><a href="#MolForm_SQL-398"><span class="linenos">398</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">init_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
 </span><span id="MolForm_SQL-399"><a href="#MolForm_SQL-399"><span class="linenos">399</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes the SQLAlchemy engine.</span>
 </span><span id="MolForm_SQL-400"><a href="#MolForm_SQL-400"><span class="linenos">400</span></a>
 </span><span id="MolForm_SQL-401"><a href="#MolForm_SQL-401"><span class="linenos">401</span></a><span class="sd">        Parameters</span>
@@ -2131,11 +2131,11 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolForm_SQL-433"><a href="#MolForm_SQL-433"><span class="linenos">433</span></a>
 </span><span id="MolForm_SQL-434"><a href="#MolForm_SQL-434"><span class="linenos">434</span></a>        <span class="k">return</span> <span class="n">engine</span>  <span class="c1"># poolclass=NullPool</span>
 </span><span id="MolForm_SQL-435"><a href="#MolForm_SQL-435"><span class="linenos">435</span></a>
-</span><span id="MolForm_SQL-436"><a href="#MolForm_SQL-436"><span class="linenos">436</span></a>    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MolForm_SQL-436"><a href="#MolForm_SQL-436"><span class="linenos">436</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolForm_SQL-437"><a href="#MolForm_SQL-437"><span class="linenos">437</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the object.&quot;&quot;&quot;</span>
 </span><span id="MolForm_SQL-438"><a href="#MolForm_SQL-438"><span class="linenos">438</span></a>        <span class="k">return</span> <span class="bp">self</span>
 </span><span id="MolForm_SQL-439"><a href="#MolForm_SQL-439"><span class="linenos">439</span></a>
-</span><span id="MolForm_SQL-440"><a href="#MolForm_SQL-440"><span class="linenos">440</span></a>    <span class="k">def</span> <span class="nf">get_dict_by_classes</span><span class="p">(</span>
+</span><span id="MolForm_SQL-440"><a href="#MolForm_SQL-440"><span class="linenos">440</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_dict_by_classes</span><span class="p">(</span>
 </span><span id="MolForm_SQL-441"><a href="#MolForm_SQL-441"><span class="linenos">441</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="MolForm_SQL-442"><a href="#MolForm_SQL-442"><span class="linenos">442</span></a>        <span class="n">classes</span><span class="p">,</span>
 </span><span id="MolForm_SQL-443"><a href="#MolForm_SQL-443"><span class="linenos">443</span></a>        <span class="n">ion_type</span><span class="p">,</span>
@@ -2174,7 +2174,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolForm_SQL-476"><a href="#MolForm_SQL-476"><span class="linenos">476</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="MolForm_SQL-477"><a href="#MolForm_SQL-477"><span class="linenos">477</span></a>        <span class="n">verbose</span> <span class="o">=</span> <span class="n">molecular_search_settings</span><span class="o">.</span><span class="n">verbose_processing</span>
 </span><span id="MolForm_SQL-478"><a href="#MolForm_SQL-478"><span class="linenos">478</span></a>
-</span><span id="MolForm_SQL-479"><a href="#MolForm_SQL-479"><span class="linenos">479</span></a>        <span class="k">def</span> <span class="nf">query_normal</span><span class="p">(</span><span class="n">class_list</span><span class="p">,</span> <span class="n">len_adduct</span><span class="p">):</span>
+</span><span id="MolForm_SQL-479"><a href="#MolForm_SQL-479"><span class="linenos">479</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">query_normal</span><span class="p">(</span><span class="n">class_list</span><span class="p">,</span> <span class="n">len_adduct</span><span class="p">):</span>
 </span><span id="MolForm_SQL-480"><a href="#MolForm_SQL-480"><span class="linenos">480</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;query for normal database</span>
 </span><span id="MolForm_SQL-481"><a href="#MolForm_SQL-481"><span class="linenos">481</span></a>
 </span><span id="MolForm_SQL-482"><a href="#MolForm_SQL-482"><span class="linenos">482</span></a><span class="sd">            Parameters</span>
@@ -2233,7 +2233,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolForm_SQL-535"><a href="#MolForm_SQL-535"><span class="linenos">535</span></a>                <span class="p">)</span>
 </span><span id="MolForm_SQL-536"><a href="#MolForm_SQL-536"><span class="linenos">536</span></a>            <span class="p">)</span>
 </span><span id="MolForm_SQL-537"><a href="#MolForm_SQL-537"><span class="linenos">537</span></a>
-</span><span id="MolForm_SQL-538"><a href="#MolForm_SQL-538"><span class="linenos">538</span></a>        <span class="k">def</span> <span class="nf">add_dict_formula</span><span class="p">(</span><span class="n">formulas</span><span class="p">,</span> <span class="n">ion_type</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">,</span> <span class="n">adduct_atom</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="MolForm_SQL-538"><a href="#MolForm_SQL-538"><span class="linenos">538</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">add_dict_formula</span><span class="p">(</span><span class="n">formulas</span><span class="p">,</span> <span class="n">ion_type</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">,</span> <span class="n">adduct_atom</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="MolForm_SQL-539"><a href="#MolForm_SQL-539"><span class="linenos">539</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;add molecular formula to dict</span>
 </span><span id="MolForm_SQL-540"><a href="#MolForm_SQL-540"><span class="linenos">540</span></a>
 </span><span id="MolForm_SQL-541"><a href="#MolForm_SQL-541"><span class="linenos">541</span></a><span class="sd">            Parameters</span>
@@ -2256,7 +2256,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolForm_SQL-558"><a href="#MolForm_SQL-558"><span class="linenos">558</span></a>            <span class="s2">&quot;organize data by heteroatom classes&quot;</span>
 </span><span id="MolForm_SQL-559"><a href="#MolForm_SQL-559"><span class="linenos">559</span></a>            <span class="n">dict_res</span> <span class="o">=</span> <span class="p">{}</span>
 </span><span id="MolForm_SQL-560"><a href="#MolForm_SQL-560"><span class="linenos">560</span></a>
-</span><span id="MolForm_SQL-561"><a href="#MolForm_SQL-561"><span class="linenos">561</span></a>            <span class="k">def</span> <span class="nf">nominal_mass_by_ion_type</span><span class="p">(</span><span class="n">formula_obj</span><span class="p">):</span>
+</span><span id="MolForm_SQL-561"><a href="#MolForm_SQL-561"><span class="linenos">561</span></a>            <span class="k">def</span><span class="w"> </span><span class="nf">nominal_mass_by_ion_type</span><span class="p">(</span><span class="n">formula_obj</span><span class="p">):</span>
 </span><span id="MolForm_SQL-562"><a href="#MolForm_SQL-562"><span class="linenos">562</span></a>                <span class="k">if</span> <span class="n">ion_type</span> <span class="o">==</span> <span class="n">Labels</span><span class="o">.</span><span class="n">protonated_de_ion</span><span class="p">:</span>
 </span><span id="MolForm_SQL-563"><a href="#MolForm_SQL-563"><span class="linenos">563</span></a>                    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">formula_obj</span><span class="o">.</span><span class="n">_protonated_mz</span><span class="p">(</span><span class="n">ion_charge</span><span class="p">))</span>
 </span><span id="MolForm_SQL-564"><a href="#MolForm_SQL-564"><span class="linenos">564</span></a>
@@ -2352,7 +2352,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolForm_SQL-654"><a href="#MolForm_SQL-654"><span class="linenos">654</span></a>        <span class="c1"># dump all objs to memory</span>
 </span><span id="MolForm_SQL-655"><a href="#MolForm_SQL-655"><span class="linenos">655</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">expunge_all</span><span class="p">()</span>
 </span><span id="MolForm_SQL-656"><a href="#MolForm_SQL-656"><span class="linenos">656</span></a>
-</span><span id="MolForm_SQL-657"><a href="#MolForm_SQL-657"><span class="linenos">657</span></a>    <span class="k">def</span> <span class="nf">check_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classe</span><span class="p">,</span> <span class="n">ion_type</span><span class="p">,</span> <span class="n">molecular_search_settings</span><span class="p">):</span>
+</span><span id="MolForm_SQL-657"><a href="#MolForm_SQL-657"><span class="linenos">657</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">check_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classe</span><span class="p">,</span> <span class="n">ion_type</span><span class="p">,</span> <span class="n">molecular_search_settings</span><span class="p">):</span>
 </span><span id="MolForm_SQL-658"><a href="#MolForm_SQL-658"><span class="linenos">658</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks if a molecular formula is in the database.</span>
 </span><span id="MolForm_SQL-659"><a href="#MolForm_SQL-659"><span class="linenos">659</span></a>
 </span><span id="MolForm_SQL-660"><a href="#MolForm_SQL-660"><span class="linenos">660</span></a><span class="sd">        Parameters</span>
@@ -2377,7 +2377,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolForm_SQL-679"><a href="#MolForm_SQL-679"><span class="linenos">679</span></a>
 </span><span id="MolForm_SQL-680"><a href="#MolForm_SQL-680"><span class="linenos">680</span></a>        <span class="k">return</span> <span class="n">has_class</span>
 </span><span id="MolForm_SQL-681"><a href="#MolForm_SQL-681"><span class="linenos">681</span></a>
-</span><span id="MolForm_SQL-682"><a href="#MolForm_SQL-682"><span class="linenos">682</span></a>    <span class="k">def</span> <span class="nf">get_all_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MolForm_SQL-682"><a href="#MolForm_SQL-682"><span class="linenos">682</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolForm_SQL-683"><a href="#MolForm_SQL-683"><span class="linenos">683</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a list of all classes in the database.&quot;&quot;&quot;</span>
 </span><span id="MolForm_SQL-684"><a href="#MolForm_SQL-684"><span class="linenos">684</span></a>        <span class="n">query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
 </span><span id="MolForm_SQL-685"><a href="#MolForm_SQL-685"><span class="linenos">685</span></a>            <span class="n">MolecularFormulaLink</span><span class="o">.</span><span class="n">classe</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s2">&quot;classe&quot;</span><span class="p">)</span>
@@ -2385,7 +2385,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolForm_SQL-687"><a href="#MolForm_SQL-687"><span class="linenos">687</span></a>
 </span><span id="MolForm_SQL-688"><a href="#MolForm_SQL-688"><span class="linenos">688</span></a>        <span class="k">return</span> <span class="n">query</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
 </span><span id="MolForm_SQL-689"><a href="#MolForm_SQL-689"><span class="linenos">689</span></a>
-</span><span id="MolForm_SQL-690"><a href="#MolForm_SQL-690"><span class="linenos">690</span></a>    <span class="k">def</span> <span class="nf">get_all</span><span class="p">(</span>
+</span><span id="MolForm_SQL-690"><a href="#MolForm_SQL-690"><span class="linenos">690</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_all</span><span class="p">(</span>
 </span><span id="MolForm_SQL-691"><a href="#MolForm_SQL-691"><span class="linenos">691</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="MolForm_SQL-692"><a href="#MolForm_SQL-692"><span class="linenos">692</span></a>    <span class="p">):</span>
 </span><span id="MolForm_SQL-693"><a href="#MolForm_SQL-693"><span class="linenos">693</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a list of all molecular formulas in the database.&quot;&quot;&quot;</span>
@@ -2393,7 +2393,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolForm_SQL-695"><a href="#MolForm_SQL-695"><span class="linenos">695</span></a>
 </span><span id="MolForm_SQL-696"><a href="#MolForm_SQL-696"><span class="linenos">696</span></a>        <span class="k">return</span> <span class="n">mol_formulas</span>
 </span><span id="MolForm_SQL-697"><a href="#MolForm_SQL-697"><span class="linenos">697</span></a>
-</span><span id="MolForm_SQL-698"><a href="#MolForm_SQL-698"><span class="linenos">698</span></a>    <span class="k">def</span> <span class="nf">delete_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+</span><span id="MolForm_SQL-698"><a href="#MolForm_SQL-698"><span class="linenos">698</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">delete_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
 </span><span id="MolForm_SQL-699"><a href="#MolForm_SQL-699"><span class="linenos">699</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes a molecular formula from the database.&quot;&quot;&quot;</span>
 </span><span id="MolForm_SQL-700"><a href="#MolForm_SQL-700"><span class="linenos">700</span></a>        <span class="k">try</span><span class="p">:</span>
 </span><span id="MolForm_SQL-701"><a href="#MolForm_SQL-701"><span class="linenos">701</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
@@ -2403,7 +2403,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolForm_SQL-705"><a href="#MolForm_SQL-705"><span class="linenos">705</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
 </span><span id="MolForm_SQL-706"><a href="#MolForm_SQL-706"><span class="linenos">706</span></a>            <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
 </span><span id="MolForm_SQL-707"><a href="#MolForm_SQL-707"><span class="linenos">707</span></a>
-</span><span id="MolForm_SQL-708"><a href="#MolForm_SQL-708"><span class="linenos">708</span></a>    <span class="k">def</span> <span class="nf">purge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
+</span><span id="MolForm_SQL-708"><a href="#MolForm_SQL-708"><span class="linenos">708</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">purge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
 </span><span id="MolForm_SQL-709"><a href="#MolForm_SQL-709"><span class="linenos">709</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes all molecular formulas from the database.</span>
 </span><span id="MolForm_SQL-710"><a href="#MolForm_SQL-710"><span class="linenos">710</span></a>
 </span><span id="MolForm_SQL-711"><a href="#MolForm_SQL-711"><span class="linenos">711</span></a><span class="sd">        Notes</span>
@@ -2414,7 +2414,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolForm_SQL-716"><a href="#MolForm_SQL-716"><span class="linenos">716</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
 </span><span id="MolForm_SQL-717"><a href="#MolForm_SQL-717"><span class="linenos">717</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 </span><span id="MolForm_SQL-718"><a href="#MolForm_SQL-718"><span class="linenos">718</span></a>
-</span><span id="MolForm_SQL-719"><a href="#MolForm_SQL-719"><span class="linenos">719</span></a>    <span class="k">def</span> <span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MolForm_SQL-719"><a href="#MolForm_SQL-719"><span class="linenos">719</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolForm_SQL-720"><a href="#MolForm_SQL-720"><span class="linenos">720</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears the database.&quot;&quot;&quot;</span>
 </span><span id="MolForm_SQL-721"><a href="#MolForm_SQL-721"><span class="linenos">721</span></a>        <span class="n">meta</span> <span class="o">=</span> <span class="n">Base</span><span class="o">.</span><span class="n">metadata</span>
 </span><span id="MolForm_SQL-722"><a href="#MolForm_SQL-722"><span class="linenos">722</span></a>        <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">sorted_tables</span><span class="p">):</span>
@@ -2422,7 +2422,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolForm_SQL-724"><a href="#MolForm_SQL-724"><span class="linenos">724</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">delete</span><span class="p">())</span>
 </span><span id="MolForm_SQL-725"><a href="#MolForm_SQL-725"><span class="linenos">725</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 </span><span id="MolForm_SQL-726"><a href="#MolForm_SQL-726"><span class="linenos">726</span></a>
-</span><span id="MolForm_SQL-727"><a href="#MolForm_SQL-727"><span class="linenos">727</span></a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">commit</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="MolForm_SQL-727"><a href="#MolForm_SQL-727"><span class="linenos">727</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">commit</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="MolForm_SQL-728"><a href="#MolForm_SQL-728"><span class="linenos">728</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Closes the database.</span>
 </span><span id="MolForm_SQL-729"><a href="#MolForm_SQL-729"><span class="linenos">729</span></a>
 </span><span id="MolForm_SQL-730"><a href="#MolForm_SQL-730"><span class="linenos">730</span></a><span class="sd">        Parameters</span>
@@ -2437,7 +2437,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolForm_SQL-739"><a href="#MolForm_SQL-739"><span class="linenos">739</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span><span id="MolForm_SQL-740"><a href="#MolForm_SQL-740"><span class="linenos">740</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">dispose</span><span class="p">()</span>
 </span><span id="MolForm_SQL-741"><a href="#MolForm_SQL-741"><span class="linenos">741</span></a>
-</span><span id="MolForm_SQL-742"><a href="#MolForm_SQL-742"><span class="linenos">742</span></a>    <span class="k">def</span> <span class="nf">add_engine_pidguard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">):</span>
+</span><span id="MolForm_SQL-742"><a href="#MolForm_SQL-742"><span class="linenos">742</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_engine_pidguard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">):</span>
 </span><span id="MolForm_SQL-743"><a href="#MolForm_SQL-743"><span class="linenos">743</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds multiprocessing guards.</span>
 </span><span id="MolForm_SQL-744"><a href="#MolForm_SQL-744"><span class="linenos">744</span></a>
 </span><span id="MolForm_SQL-745"><a href="#MolForm_SQL-745"><span class="linenos">745</span></a><span class="sd">        Forces a connection to be reconnected if it is detected</span>
@@ -2449,11 +2449,11 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolForm_SQL-751"><a href="#MolForm_SQL-751"><span class="linenos">751</span></a><span class="sd">            The SQLAlchemy engine.</span>
 </span><span id="MolForm_SQL-752"><a href="#MolForm_SQL-752"><span class="linenos">752</span></a>
 </span><span id="MolForm_SQL-753"><a href="#MolForm_SQL-753"><span class="linenos">753</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="MolForm_SQL-754"><a href="#MolForm_SQL-754"><span class="linenos">754</span></a>        <span class="kn">import</span> <span class="nn">os</span>
-</span><span id="MolForm_SQL-755"><a href="#MolForm_SQL-755"><span class="linenos">755</span></a>        <span class="kn">import</span> <span class="nn">warnings</span>
+</span><span id="MolForm_SQL-754"><a href="#MolForm_SQL-754"><span class="linenos">754</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+</span><span id="MolForm_SQL-755"><a href="#MolForm_SQL-755"><span class="linenos">755</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 </span><span id="MolForm_SQL-756"><a href="#MolForm_SQL-756"><span class="linenos">756</span></a>
 </span><span id="MolForm_SQL-757"><a href="#MolForm_SQL-757"><span class="linenos">757</span></a>        <span class="nd">@event</span><span class="o">.</span><span class="n">listens_for</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s2">&quot;connect&quot;</span><span class="p">)</span>
-</span><span id="MolForm_SQL-758"><a href="#MolForm_SQL-758"><span class="linenos">758</span></a>        <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="n">dbapi_connection</span><span class="p">,</span> <span class="n">connection_record</span><span class="p">):</span>
+</span><span id="MolForm_SQL-758"><a href="#MolForm_SQL-758"><span class="linenos">758</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">connect</span><span class="p">(</span><span class="n">dbapi_connection</span><span class="p">,</span> <span class="n">connection_record</span><span class="p">):</span>
 </span><span id="MolForm_SQL-759"><a href="#MolForm_SQL-759"><span class="linenos">759</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;Forces a connection to be reconnected if it is detected</span>
 </span><span id="MolForm_SQL-760"><a href="#MolForm_SQL-760"><span class="linenos">760</span></a>
 </span><span id="MolForm_SQL-761"><a href="#MolForm_SQL-761"><span class="linenos">761</span></a><span class="sd">            Parameters</span>
@@ -2466,7 +2466,7 @@ for example, any mapped columns or relationships.</p>
 </span><span id="MolForm_SQL-768"><a href="#MolForm_SQL-768"><span class="linenos">768</span></a>            <span class="n">connection_record</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;pid&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">()</span>
 </span><span id="MolForm_SQL-769"><a href="#MolForm_SQL-769"><span class="linenos">769</span></a>
 </span><span id="MolForm_SQL-770"><a href="#MolForm_SQL-770"><span class="linenos">770</span></a>        <span class="nd">@event</span><span class="o">.</span><span class="n">listens_for</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s2">&quot;checkout&quot;</span><span class="p">)</span>
-</span><span id="MolForm_SQL-771"><a href="#MolForm_SQL-771"><span class="linenos">771</span></a>        <span class="k">def</span> <span class="nf">checkout</span><span class="p">(</span><span class="n">dbapi_connection</span><span class="p">,</span> <span class="n">connection_record</span><span class="p">,</span> <span class="n">connection_proxy</span><span class="p">):</span>
+</span><span id="MolForm_SQL-771"><a href="#MolForm_SQL-771"><span class="linenos">771</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">checkout</span><span class="p">(</span><span class="n">dbapi_connection</span><span class="p">,</span> <span class="n">connection_record</span><span class="p">,</span> <span class="n">connection_proxy</span><span class="p">):</span>
 </span><span id="MolForm_SQL-772"><a href="#MolForm_SQL-772"><span class="linenos">772</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;Forces a connection to be reconnected if it is detected</span>
 </span><span id="MolForm_SQL-773"><a href="#MolForm_SQL-773"><span class="linenos">773</span></a>
 </span><span id="MolForm_SQL-774"><a href="#MolForm_SQL-774"><span class="linenos">774</span></a><span class="sd">            Parameters</span>
@@ -2563,7 +2563,7 @@ Adds multiprocessing guards.</li>
 
     </div>
     <a class="headerlink" href="#MolForm_SQL.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.__init__-341"><a href="#MolForm_SQL.__init__-341"><span class="linenos">341</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">echo</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.__init__-341"><a href="#MolForm_SQL.__init__-341"><span class="linenos">341</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">echo</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="MolForm_SQL.__init__-342"><a href="#MolForm_SQL.__init__-342"><span class="linenos">342</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_engine</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
 </span><span id="MolForm_SQL.__init__-343"><a href="#MolForm_SQL.__init__-343"><span class="linenos">343</span></a>
 </span><span id="MolForm_SQL.__init__-344"><a href="#MolForm_SQL.__init__-344"><span class="linenos">344</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">add_engine_pidguard</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
@@ -2616,7 +2616,7 @@ Adds multiprocessing guards.</li>
 
     </div>
     <a class="headerlink" href="#MolForm_SQL.initiate_database"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.initiate_database-374"><a href="#MolForm_SQL.initiate_database-374"><span class="linenos">374</span></a>    <span class="k">def</span> <span class="nf">initiate_database</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">database_name</span><span class="p">):</span>  <span class="c1"># CREATION</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.initiate_database-374"><a href="#MolForm_SQL.initiate_database-374"><span class="linenos">374</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">initiate_database</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">database_name</span><span class="p">):</span>  <span class="c1"># CREATION</span>
 </span><span id="MolForm_SQL.initiate_database-375"><a href="#MolForm_SQL.initiate_database-375"><span class="linenos">375</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates the database.</span>
 </span><span id="MolForm_SQL.initiate_database-376"><a href="#MolForm_SQL.initiate_database-376"><span class="linenos">376</span></a>
 </span><span id="MolForm_SQL.initiate_database-377"><a href="#MolForm_SQL.initiate_database-377"><span class="linenos">377</span></a><span class="sd">        Parameters</span>
@@ -2659,7 +2659,7 @@ The name of the database.</li>
 
     </div>
     <a class="headerlink" href="#MolForm_SQL.commit"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.commit-390"><a href="#MolForm_SQL.commit-390"><span class="linenos">390</span></a>    <span class="k">def</span> <span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.commit-390"><a href="#MolForm_SQL.commit-390"><span class="linenos">390</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolForm_SQL.commit-391"><a href="#MolForm_SQL.commit-391"><span class="linenos">391</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Commits the session.&quot;&quot;&quot;</span>
 </span><span id="MolForm_SQL.commit-392"><a href="#MolForm_SQL.commit-392"><span class="linenos">392</span></a>        <span class="k">try</span><span class="p">:</span>
 </span><span id="MolForm_SQL.commit-393"><a href="#MolForm_SQL.commit-393"><span class="linenos">393</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
@@ -2685,7 +2685,7 @@ The name of the database.</li>
 
     </div>
     <a class="headerlink" href="#MolForm_SQL.init_engine"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.init_engine-398"><a href="#MolForm_SQL.init_engine-398"><span class="linenos">398</span></a>    <span class="k">def</span> <span class="nf">init_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.init_engine-398"><a href="#MolForm_SQL.init_engine-398"><span class="linenos">398</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">init_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
 </span><span id="MolForm_SQL.init_engine-399"><a href="#MolForm_SQL.init_engine-399"><span class="linenos">399</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes the SQLAlchemy engine.</span>
 </span><span id="MolForm_SQL.init_engine-400"><a href="#MolForm_SQL.init_engine-400"><span class="linenos">400</span></a>
 </span><span id="MolForm_SQL.init_engine-401"><a href="#MolForm_SQL.init_engine-401"><span class="linenos">401</span></a><span class="sd">        Parameters</span>
@@ -2754,7 +2754,7 @@ The URL for the database.</li>
 
     </div>
     <a class="headerlink" href="#MolForm_SQL.get_dict_by_classes"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.get_dict_by_classes-440"><a href="#MolForm_SQL.get_dict_by_classes-440"><span class="linenos">440</span></a>    <span class="k">def</span> <span class="nf">get_dict_by_classes</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.get_dict_by_classes-440"><a href="#MolForm_SQL.get_dict_by_classes-440"><span class="linenos">440</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_dict_by_classes</span><span class="p">(</span>
 </span><span id="MolForm_SQL.get_dict_by_classes-441"><a href="#MolForm_SQL.get_dict_by_classes-441"><span class="linenos">441</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="MolForm_SQL.get_dict_by_classes-442"><a href="#MolForm_SQL.get_dict_by_classes-442"><span class="linenos">442</span></a>        <span class="n">classes</span><span class="p">,</span>
 </span><span id="MolForm_SQL.get_dict_by_classes-443"><a href="#MolForm_SQL.get_dict_by_classes-443"><span class="linenos">443</span></a>        <span class="n">ion_type</span><span class="p">,</span>
@@ -2793,7 +2793,7 @@ The URL for the database.</li>
 </span><span id="MolForm_SQL.get_dict_by_classes-476"><a href="#MolForm_SQL.get_dict_by_classes-476"><span class="linenos">476</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="MolForm_SQL.get_dict_by_classes-477"><a href="#MolForm_SQL.get_dict_by_classes-477"><span class="linenos">477</span></a>        <span class="n">verbose</span> <span class="o">=</span> <span class="n">molecular_search_settings</span><span class="o">.</span><span class="n">verbose_processing</span>
 </span><span id="MolForm_SQL.get_dict_by_classes-478"><a href="#MolForm_SQL.get_dict_by_classes-478"><span class="linenos">478</span></a>
-</span><span id="MolForm_SQL.get_dict_by_classes-479"><a href="#MolForm_SQL.get_dict_by_classes-479"><span class="linenos">479</span></a>        <span class="k">def</span> <span class="nf">query_normal</span><span class="p">(</span><span class="n">class_list</span><span class="p">,</span> <span class="n">len_adduct</span><span class="p">):</span>
+</span><span id="MolForm_SQL.get_dict_by_classes-479"><a href="#MolForm_SQL.get_dict_by_classes-479"><span class="linenos">479</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">query_normal</span><span class="p">(</span><span class="n">class_list</span><span class="p">,</span> <span class="n">len_adduct</span><span class="p">):</span>
 </span><span id="MolForm_SQL.get_dict_by_classes-480"><a href="#MolForm_SQL.get_dict_by_classes-480"><span class="linenos">480</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;query for normal database</span>
 </span><span id="MolForm_SQL.get_dict_by_classes-481"><a href="#MolForm_SQL.get_dict_by_classes-481"><span class="linenos">481</span></a>
 </span><span id="MolForm_SQL.get_dict_by_classes-482"><a href="#MolForm_SQL.get_dict_by_classes-482"><span class="linenos">482</span></a><span class="sd">            Parameters</span>
@@ -2852,7 +2852,7 @@ The URL for the database.</li>
 </span><span id="MolForm_SQL.get_dict_by_classes-535"><a href="#MolForm_SQL.get_dict_by_classes-535"><span class="linenos">535</span></a>                <span class="p">)</span>
 </span><span id="MolForm_SQL.get_dict_by_classes-536"><a href="#MolForm_SQL.get_dict_by_classes-536"><span class="linenos">536</span></a>            <span class="p">)</span>
 </span><span id="MolForm_SQL.get_dict_by_classes-537"><a href="#MolForm_SQL.get_dict_by_classes-537"><span class="linenos">537</span></a>
-</span><span id="MolForm_SQL.get_dict_by_classes-538"><a href="#MolForm_SQL.get_dict_by_classes-538"><span class="linenos">538</span></a>        <span class="k">def</span> <span class="nf">add_dict_formula</span><span class="p">(</span><span class="n">formulas</span><span class="p">,</span> <span class="n">ion_type</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">,</span> <span class="n">adduct_atom</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="MolForm_SQL.get_dict_by_classes-538"><a href="#MolForm_SQL.get_dict_by_classes-538"><span class="linenos">538</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">add_dict_formula</span><span class="p">(</span><span class="n">formulas</span><span class="p">,</span> <span class="n">ion_type</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">,</span> <span class="n">adduct_atom</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="MolForm_SQL.get_dict_by_classes-539"><a href="#MolForm_SQL.get_dict_by_classes-539"><span class="linenos">539</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;add molecular formula to dict</span>
 </span><span id="MolForm_SQL.get_dict_by_classes-540"><a href="#MolForm_SQL.get_dict_by_classes-540"><span class="linenos">540</span></a>
 </span><span id="MolForm_SQL.get_dict_by_classes-541"><a href="#MolForm_SQL.get_dict_by_classes-541"><span class="linenos">541</span></a><span class="sd">            Parameters</span>
@@ -2875,7 +2875,7 @@ The URL for the database.</li>
 </span><span id="MolForm_SQL.get_dict_by_classes-558"><a href="#MolForm_SQL.get_dict_by_classes-558"><span class="linenos">558</span></a>            <span class="s2">&quot;organize data by heteroatom classes&quot;</span>
 </span><span id="MolForm_SQL.get_dict_by_classes-559"><a href="#MolForm_SQL.get_dict_by_classes-559"><span class="linenos">559</span></a>            <span class="n">dict_res</span> <span class="o">=</span> <span class="p">{}</span>
 </span><span id="MolForm_SQL.get_dict_by_classes-560"><a href="#MolForm_SQL.get_dict_by_classes-560"><span class="linenos">560</span></a>
-</span><span id="MolForm_SQL.get_dict_by_classes-561"><a href="#MolForm_SQL.get_dict_by_classes-561"><span class="linenos">561</span></a>            <span class="k">def</span> <span class="nf">nominal_mass_by_ion_type</span><span class="p">(</span><span class="n">formula_obj</span><span class="p">):</span>
+</span><span id="MolForm_SQL.get_dict_by_classes-561"><a href="#MolForm_SQL.get_dict_by_classes-561"><span class="linenos">561</span></a>            <span class="k">def</span><span class="w"> </span><span class="nf">nominal_mass_by_ion_type</span><span class="p">(</span><span class="n">formula_obj</span><span class="p">):</span>
 </span><span id="MolForm_SQL.get_dict_by_classes-562"><a href="#MolForm_SQL.get_dict_by_classes-562"><span class="linenos">562</span></a>                <span class="k">if</span> <span class="n">ion_type</span> <span class="o">==</span> <span class="n">Labels</span><span class="o">.</span><span class="n">protonated_de_ion</span><span class="p">:</span>
 </span><span id="MolForm_SQL.get_dict_by_classes-563"><a href="#MolForm_SQL.get_dict_by_classes-563"><span class="linenos">563</span></a>                    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">formula_obj</span><span class="o">.</span><span class="n">_protonated_mz</span><span class="p">(</span><span class="n">ion_charge</span><span class="p">))</span>
 </span><span id="MolForm_SQL.get_dict_by_classes-564"><a href="#MolForm_SQL.get_dict_by_classes-564"><span class="linenos">564</span></a>
@@ -3018,7 +3018,7 @@ Solution: use postgres or split query</p>
 
     </div>
     <a class="headerlink" href="#MolForm_SQL.check_entry"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.check_entry-657"><a href="#MolForm_SQL.check_entry-657"><span class="linenos">657</span></a>    <span class="k">def</span> <span class="nf">check_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classe</span><span class="p">,</span> <span class="n">ion_type</span><span class="p">,</span> <span class="n">molecular_search_settings</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.check_entry-657"><a href="#MolForm_SQL.check_entry-657"><span class="linenos">657</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">check_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classe</span><span class="p">,</span> <span class="n">ion_type</span><span class="p">,</span> <span class="n">molecular_search_settings</span><span class="p">):</span>
 </span><span id="MolForm_SQL.check_entry-658"><a href="#MolForm_SQL.check_entry-658"><span class="linenos">658</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks if a molecular formula is in the database.</span>
 </span><span id="MolForm_SQL.check_entry-659"><a href="#MolForm_SQL.check_entry-659"><span class="linenos">659</span></a>
 </span><span id="MolForm_SQL.check_entry-660"><a href="#MolForm_SQL.check_entry-660"><span class="linenos">660</span></a><span class="sd">        Parameters</span>
@@ -3078,7 +3078,7 @@ The molecular formula search settings.</li>
 
     </div>
     <a class="headerlink" href="#MolForm_SQL.get_all_classes"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.get_all_classes-682"><a href="#MolForm_SQL.get_all_classes-682"><span class="linenos">682</span></a>    <span class="k">def</span> <span class="nf">get_all_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.get_all_classes-682"><a href="#MolForm_SQL.get_all_classes-682"><span class="linenos">682</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolForm_SQL.get_all_classes-683"><a href="#MolForm_SQL.get_all_classes-683"><span class="linenos">683</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a list of all classes in the database.&quot;&quot;&quot;</span>
 </span><span id="MolForm_SQL.get_all_classes-684"><a href="#MolForm_SQL.get_all_classes-684"><span class="linenos">684</span></a>        <span class="n">query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
 </span><span id="MolForm_SQL.get_all_classes-685"><a href="#MolForm_SQL.get_all_classes-685"><span class="linenos">685</span></a>            <span class="n">MolecularFormulaLink</span><span class="o">.</span><span class="n">classe</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s2">&quot;classe&quot;</span><span class="p">)</span>
@@ -3104,7 +3104,7 @@ The molecular formula search settings.</li>
 
     </div>
     <a class="headerlink" href="#MolForm_SQL.get_all"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.get_all-690"><a href="#MolForm_SQL.get_all-690"><span class="linenos">690</span></a>    <span class="k">def</span> <span class="nf">get_all</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.get_all-690"><a href="#MolForm_SQL.get_all-690"><span class="linenos">690</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_all</span><span class="p">(</span>
 </span><span id="MolForm_SQL.get_all-691"><a href="#MolForm_SQL.get_all-691"><span class="linenos">691</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="MolForm_SQL.get_all-692"><a href="#MolForm_SQL.get_all-692"><span class="linenos">692</span></a>    <span class="p">):</span>
 </span><span id="MolForm_SQL.get_all-693"><a href="#MolForm_SQL.get_all-693"><span class="linenos">693</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a list of all molecular formulas in the database.&quot;&quot;&quot;</span>
@@ -3130,7 +3130,7 @@ The molecular formula search settings.</li>
 
     </div>
     <a class="headerlink" href="#MolForm_SQL.delete_entry"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.delete_entry-698"><a href="#MolForm_SQL.delete_entry-698"><span class="linenos">698</span></a>    <span class="k">def</span> <span class="nf">delete_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.delete_entry-698"><a href="#MolForm_SQL.delete_entry-698"><span class="linenos">698</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">delete_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
 </span><span id="MolForm_SQL.delete_entry-699"><a href="#MolForm_SQL.delete_entry-699"><span class="linenos">699</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes a molecular formula from the database.&quot;&quot;&quot;</span>
 </span><span id="MolForm_SQL.delete_entry-700"><a href="#MolForm_SQL.delete_entry-700"><span class="linenos">700</span></a>        <span class="k">try</span><span class="p">:</span>
 </span><span id="MolForm_SQL.delete_entry-701"><a href="#MolForm_SQL.delete_entry-701"><span class="linenos">701</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
@@ -3158,7 +3158,7 @@ The molecular formula search settings.</li>
 
     </div>
     <a class="headerlink" href="#MolForm_SQL.purge"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.purge-708"><a href="#MolForm_SQL.purge-708"><span class="linenos">708</span></a>    <span class="k">def</span> <span class="nf">purge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.purge-708"><a href="#MolForm_SQL.purge-708"><span class="linenos">708</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">purge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
 </span><span id="MolForm_SQL.purge-709"><a href="#MolForm_SQL.purge-709"><span class="linenos">709</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes all molecular formulas from the database.</span>
 </span><span id="MolForm_SQL.purge-710"><a href="#MolForm_SQL.purge-710"><span class="linenos">710</span></a>
 </span><span id="MolForm_SQL.purge-711"><a href="#MolForm_SQL.purge-711"><span class="linenos">711</span></a><span class="sd">        Notes</span>
@@ -3191,7 +3191,7 @@ The molecular formula search settings.</li>
 
     </div>
     <a class="headerlink" href="#MolForm_SQL.clear_data"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.clear_data-719"><a href="#MolForm_SQL.clear_data-719"><span class="linenos">719</span></a>    <span class="k">def</span> <span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.clear_data-719"><a href="#MolForm_SQL.clear_data-719"><span class="linenos">719</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolForm_SQL.clear_data-720"><a href="#MolForm_SQL.clear_data-720"><span class="linenos">720</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears the database.&quot;&quot;&quot;</span>
 </span><span id="MolForm_SQL.clear_data-721"><a href="#MolForm_SQL.clear_data-721"><span class="linenos">721</span></a>        <span class="n">meta</span> <span class="o">=</span> <span class="n">Base</span><span class="o">.</span><span class="n">metadata</span>
 </span><span id="MolForm_SQL.clear_data-722"><a href="#MolForm_SQL.clear_data-722"><span class="linenos">722</span></a>        <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">sorted_tables</span><span class="p">):</span>
@@ -3217,7 +3217,7 @@ The molecular formula search settings.</li>
 
     </div>
     <a class="headerlink" href="#MolForm_SQL.close"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.close-727"><a href="#MolForm_SQL.close-727"><span class="linenos">727</span></a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">commit</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.close-727"><a href="#MolForm_SQL.close-727"><span class="linenos">727</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">commit</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="MolForm_SQL.close-728"><a href="#MolForm_SQL.close-728"><span class="linenos">728</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Closes the database.</span>
 </span><span id="MolForm_SQL.close-729"><a href="#MolForm_SQL.close-729"><span class="linenos">729</span></a>
 </span><span id="MolForm_SQL.close-730"><a href="#MolForm_SQL.close-730"><span class="linenos">730</span></a><span class="sd">        Parameters</span>
@@ -3257,7 +3257,7 @@ Whether to commit the session. Default is True.</li>
 
     </div>
     <a class="headerlink" href="#MolForm_SQL.add_engine_pidguard"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.add_engine_pidguard-742"><a href="#MolForm_SQL.add_engine_pidguard-742"><span class="linenos">742</span></a>    <span class="k">def</span> <span class="nf">add_engine_pidguard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolForm_SQL.add_engine_pidguard-742"><a href="#MolForm_SQL.add_engine_pidguard-742"><span class="linenos">742</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_engine_pidguard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">):</span>
 </span><span id="MolForm_SQL.add_engine_pidguard-743"><a href="#MolForm_SQL.add_engine_pidguard-743"><span class="linenos">743</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds multiprocessing guards.</span>
 </span><span id="MolForm_SQL.add_engine_pidguard-744"><a href="#MolForm_SQL.add_engine_pidguard-744"><span class="linenos">744</span></a>
 </span><span id="MolForm_SQL.add_engine_pidguard-745"><a href="#MolForm_SQL.add_engine_pidguard-745"><span class="linenos">745</span></a><span class="sd">        Forces a connection to be reconnected if it is detected</span>
@@ -3269,11 +3269,11 @@ Whether to commit the session. Default is True.</li>
 </span><span id="MolForm_SQL.add_engine_pidguard-751"><a href="#MolForm_SQL.add_engine_pidguard-751"><span class="linenos">751</span></a><span class="sd">            The SQLAlchemy engine.</span>
 </span><span id="MolForm_SQL.add_engine_pidguard-752"><a href="#MolForm_SQL.add_engine_pidguard-752"><span class="linenos">752</span></a>
 </span><span id="MolForm_SQL.add_engine_pidguard-753"><a href="#MolForm_SQL.add_engine_pidguard-753"><span class="linenos">753</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="MolForm_SQL.add_engine_pidguard-754"><a href="#MolForm_SQL.add_engine_pidguard-754"><span class="linenos">754</span></a>        <span class="kn">import</span> <span class="nn">os</span>
-</span><span id="MolForm_SQL.add_engine_pidguard-755"><a href="#MolForm_SQL.add_engine_pidguard-755"><span class="linenos">755</span></a>        <span class="kn">import</span> <span class="nn">warnings</span>
+</span><span id="MolForm_SQL.add_engine_pidguard-754"><a href="#MolForm_SQL.add_engine_pidguard-754"><span class="linenos">754</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+</span><span id="MolForm_SQL.add_engine_pidguard-755"><a href="#MolForm_SQL.add_engine_pidguard-755"><span class="linenos">755</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 </span><span id="MolForm_SQL.add_engine_pidguard-756"><a href="#MolForm_SQL.add_engine_pidguard-756"><span class="linenos">756</span></a>
 </span><span id="MolForm_SQL.add_engine_pidguard-757"><a href="#MolForm_SQL.add_engine_pidguard-757"><span class="linenos">757</span></a>        <span class="nd">@event</span><span class="o">.</span><span class="n">listens_for</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s2">&quot;connect&quot;</span><span class="p">)</span>
-</span><span id="MolForm_SQL.add_engine_pidguard-758"><a href="#MolForm_SQL.add_engine_pidguard-758"><span class="linenos">758</span></a>        <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="n">dbapi_connection</span><span class="p">,</span> <span class="n">connection_record</span><span class="p">):</span>
+</span><span id="MolForm_SQL.add_engine_pidguard-758"><a href="#MolForm_SQL.add_engine_pidguard-758"><span class="linenos">758</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">connect</span><span class="p">(</span><span class="n">dbapi_connection</span><span class="p">,</span> <span class="n">connection_record</span><span class="p">):</span>
 </span><span id="MolForm_SQL.add_engine_pidguard-759"><a href="#MolForm_SQL.add_engine_pidguard-759"><span class="linenos">759</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;Forces a connection to be reconnected if it is detected</span>
 </span><span id="MolForm_SQL.add_engine_pidguard-760"><a href="#MolForm_SQL.add_engine_pidguard-760"><span class="linenos">760</span></a>
 </span><span id="MolForm_SQL.add_engine_pidguard-761"><a href="#MolForm_SQL.add_engine_pidguard-761"><span class="linenos">761</span></a><span class="sd">            Parameters</span>
@@ -3286,7 +3286,7 @@ Whether to commit the session. Default is True.</li>
 </span><span id="MolForm_SQL.add_engine_pidguard-768"><a href="#MolForm_SQL.add_engine_pidguard-768"><span class="linenos">768</span></a>            <span class="n">connection_record</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;pid&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">()</span>
 </span><span id="MolForm_SQL.add_engine_pidguard-769"><a href="#MolForm_SQL.add_engine_pidguard-769"><span class="linenos">769</span></a>
 </span><span id="MolForm_SQL.add_engine_pidguard-770"><a href="#MolForm_SQL.add_engine_pidguard-770"><span class="linenos">770</span></a>        <span class="nd">@event</span><span class="o">.</span><span class="n">listens_for</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s2">&quot;checkout&quot;</span><span class="p">)</span>
-</span><span id="MolForm_SQL.add_engine_pidguard-771"><a href="#MolForm_SQL.add_engine_pidguard-771"><span class="linenos">771</span></a>        <span class="k">def</span> <span class="nf">checkout</span><span class="p">(</span><span class="n">dbapi_connection</span><span class="p">,</span> <span class="n">connection_record</span><span class="p">,</span> <span class="n">connection_proxy</span><span class="p">):</span>
+</span><span id="MolForm_SQL.add_engine_pidguard-771"><a href="#MolForm_SQL.add_engine_pidguard-771"><span class="linenos">771</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">checkout</span><span class="p">(</span><span class="n">dbapi_connection</span><span class="p">,</span> <span class="n">connection_record</span><span class="p">,</span> <span class="n">connection_proxy</span><span class="p">):</span>
 </span><span id="MolForm_SQL.add_engine_pidguard-772"><a href="#MolForm_SQL.add_engine_pidguard-772"><span class="linenos">772</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;Forces a connection to be reconnected if it is detected</span>
 </span><span id="MolForm_SQL.add_engine_pidguard-773"><a href="#MolForm_SQL.add_engine_pidguard-773"><span class="linenos">773</span></a>
 </span><span id="MolForm_SQL.add_engine_pidguard-774"><a href="#MolForm_SQL.add_engine_pidguard-774"><span class="linenos">774</span></a><span class="sd">            Parameters</span>

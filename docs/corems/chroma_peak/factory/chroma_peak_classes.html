@@ -216,20 +216,20 @@
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Yuri E. Corilo&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="n">__date__</span> <span class="o">=</span> <span class="s2">&quot;Jun 12, 2019&quot;</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">import</span> <span class="nn">copy</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span> <span class="nn">corems.chroma_peak.calc.ChromaPeakCalc</span> <span class="kn">import</span> <span class="p">(</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.chroma_peak.calc.ChromaPeakCalc</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>    <span class="n">GCPeakCalculation</span><span class="p">,</span>
 </span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>    <span class="n">LCMSMassFeatureCalculation</span><span class="p">,</span>
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="p">)</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="kn">from</span> <span class="nn">corems.mass_spectra.factory.chromat_data</span> <span class="kn">import</span> <span class="n">EIC_Data</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="kn">from</span> <span class="nn">corems.molecular_id.factory.EI_SQL</span> <span class="kn">import</span> <span class="n">LowResCompoundRef</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.mass_spectra.factory.chromat_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">EIC_Data</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.molecular_id.factory.EI_SQL</span><span class="w"> </span><span class="kn">import</span> <span class="n">LowResCompoundRef</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="k">class</span> <span class="nc">ChromaPeakBase</span><span class="p">:</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ChromaPeakBase</span><span class="p">:</span>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for chromatographic peak (ChromaPeak) objects.</span>
 </span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>
 </span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="sd">    Parameters</span>
@@ -278,7 +278,7 @@
 </span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a><span class="sd">    * None</span>
 </span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>
-</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">chromatogram_parent</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="n">start_index</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">final_index</span>
 </span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>    <span class="p">):</span>
 </span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">start_scan</span> <span class="o">=</span> <span class="n">start_index</span>
@@ -289,22 +289,22 @@
 </span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_area</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>
 </span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>    <span class="nd">@property</span>
-</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>    <span class="k">def</span> <span class="nf">retention_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">retention_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Retention Time&quot;&quot;&quot;</span>
 </span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="o">.</span><span class="n">retention_time</span>
 </span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>
 </span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>    <span class="nd">@property</span>
-</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>    <span class="k">def</span> <span class="nf">tic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">tic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Total Ion Current&quot;&quot;&quot;</span>
 </span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="o">.</span><span class="n">tic</span>
 </span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>
 </span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>    <span class="nd">@property</span>
-</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>    <span class="k">def</span> <span class="nf">area</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">area</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Peak Area&quot;&quot;&quot;</span>
 </span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_area</span>
 </span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>
 </span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>    <span class="nd">@property</span>
-</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>    <span class="k">def</span> <span class="nf">rt_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">rt_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Retention Time List&quot;&quot;&quot;</span>
 </span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>        <span class="k">return</span> <span class="p">[</span>
 </span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">chromatogram_parent</span><span class="o">.</span><span class="n">retention_time</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
@@ -312,7 +312,7 @@
 </span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>        <span class="p">]</span>
 </span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>
 </span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>    <span class="nd">@property</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>    <span class="k">def</span> <span class="nf">tic_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">tic_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Total Ion Current List&quot;&quot;&quot;</span>
 </span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>        <span class="k">return</span> <span class="p">[</span>
 </span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">chromatogram_parent</span><span class="o">.</span><span class="n">tic</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
@@ -320,7 +320,7 @@
 </span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>        <span class="p">]</span>
 </span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>
 </span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>
-</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="k">class</span> <span class="nc">LCMSMassFeature</span><span class="p">(</span><span class="n">ChromaPeakBase</span><span class="p">,</span> <span class="n">LCMSMassFeatureCalculation</span><span class="p">):</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="k">class</span><span class="w"> </span><span class="nc">LCMSMassFeature</span><span class="p">(</span><span class="n">ChromaPeakBase</span><span class="p">,</span> <span class="n">LCMSMassFeatureCalculation</span><span class="p">):</span>
 </span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class representing a mass feature in a liquid chromatography (LC) chromatogram.</span>
 </span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>
 </span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="sd">    Parameters</span>
@@ -390,7 +390,7 @@
 </span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a>
 </span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a>
-</span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+</span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a>        <span class="n">lcms_parent</span><span class="p">,</span>
 </span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a>        <span class="n">mz</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -438,7 +438,7 @@
 </span><span id="L-223"><a href="#L-223"><span class="linenos">223</span></a>                <span class="k">else</span> <span class="mi">0</span>
 </span><span id="L-224"><a href="#L-224"><span class="linenos">224</span></a>            <span class="p">)</span>
 </span><span id="L-225"><a href="#L-225"><span class="linenos">225</span></a>
-</span><span id="L-226"><a href="#L-226"><span class="linenos">226</span></a>    <span class="k">def</span> <span class="nf">update_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-226"><a href="#L-226"><span class="linenos">226</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">update_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-227"><a href="#L-227"><span class="linenos">227</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the mass to charge ratio from the mass spectrum object.&quot;&quot;&quot;</span>
 </span><span id="L-228"><a href="#L-228"><span class="linenos">228</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="L-229"><a href="#L-229"><span class="linenos">229</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -455,7 +455,7 @@
 </span><span id="L-240"><a href="#L-240"><span class="linenos">240</span></a>        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">mz_diff</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.01</span><span class="p">:</span>
 </span><span id="L-241"><a href="#L-241"><span class="linenos">241</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_mz_exp</span> <span class="o">=</span> <span class="n">new_mz</span>
 </span><span id="L-242"><a href="#L-242"><span class="linenos">242</span></a>
-</span><span id="L-243"><a href="#L-243"><span class="linenos">243</span></a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">to_plot</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;EIC&quot;</span><span class="p">,</span> <span class="s2">&quot;MS1&quot;</span><span class="p">,</span> <span class="s2">&quot;MS2&quot;</span><span class="p">],</span> <span class="n">return_fig</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">plot_smoothed_eic</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">plot_eic_datapoints</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+</span><span id="L-243"><a href="#L-243"><span class="linenos">243</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">to_plot</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;EIC&quot;</span><span class="p">,</span> <span class="s2">&quot;MS1&quot;</span><span class="p">,</span> <span class="s2">&quot;MS2&quot;</span><span class="p">],</span> <span class="n">return_fig</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">plot_smoothed_eic</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">plot_eic_datapoints</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 </span><span id="L-244"><a href="#L-244"><span class="linenos">244</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the mass feature.</span>
 </span><span id="L-245"><a href="#L-245"><span class="linenos">245</span></a>
 </span><span id="L-246"><a href="#L-246"><span class="linenos">246</span></a><span class="sd">        Parameters</span>
@@ -640,7 +640,7 @@
 </span><span id="L-425"><a href="#L-425"><span class="linenos">425</span></a>            <span class="k">return</span> <span class="n">fig</span>
 </span><span id="L-426"><a href="#L-426"><span class="linenos">426</span></a>
 </span><span id="L-427"><a href="#L-427"><span class="linenos">427</span></a>    <span class="nd">@property</span>
-</span><span id="L-428"><a href="#L-428"><span class="linenos">428</span></a>    <span class="k">def</span> <span class="nf">mz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-428"><a href="#L-428"><span class="linenos">428</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-429"><a href="#L-429"><span class="linenos">429</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Mass to charge ratio of the mass feature&quot;&quot;&quot;</span>
 </span><span id="L-430"><a href="#L-430"><span class="linenos">430</span></a>        <span class="c1"># If the mass feature has been calibrated, return the calibrated m/z, otherwise return the measured m/z</span>
 </span><span id="L-431"><a href="#L-431"><span class="linenos">431</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mz_cal</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -649,7 +649,7 @@
 </span><span id="L-434"><a href="#L-434"><span class="linenos">434</span></a>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mz_exp</span>
 </span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a>
 </span><span id="L-436"><a href="#L-436"><span class="linenos">436</span></a>    <span class="nd">@property</span>
-</span><span id="L-437"><a href="#L-437"><span class="linenos">437</span></a>    <span class="k">def</span> <span class="nf">mass_spectrum_deconvoluted</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-437"><a href="#L-437"><span class="linenos">437</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mass_spectrum_deconvoluted</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-438"><a href="#L-438"><span class="linenos">438</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the deconvoluted mass spectrum object associated with the mass feature, if deconvolution has been performed.&quot;&quot;&quot;</span>
 </span><span id="L-439"><a href="#L-439"><span class="linenos">439</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ms_deconvoluted_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="L-440"><a href="#L-440"><span class="linenos">440</span></a>            <span class="n">ms_deconvoluted</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="p">)</span>
@@ -661,55 +661,55 @@
 </span><span id="L-446"><a href="#L-446"><span class="linenos">446</span></a>            <span class="p">)</span>
 </span><span id="L-447"><a href="#L-447"><span class="linenos">447</span></a>
 </span><span id="L-448"><a href="#L-448"><span class="linenos">448</span></a>    <span class="nd">@property</span>
-</span><span id="L-449"><a href="#L-449"><span class="linenos">449</span></a>    <span class="k">def</span> <span class="nf">retention_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-449"><a href="#L-449"><span class="linenos">449</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">retention_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-450"><a href="#L-450"><span class="linenos">450</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Retention time of the mass feature&quot;&quot;&quot;</span>
 </span><span id="L-451"><a href="#L-451"><span class="linenos">451</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retention_time</span>
 </span><span id="L-452"><a href="#L-452"><span class="linenos">452</span></a>
 </span><span id="L-453"><a href="#L-453"><span class="linenos">453</span></a>    <span class="nd">@retention_time</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="L-454"><a href="#L-454"><span class="linenos">454</span></a>    <span class="k">def</span> <span class="nf">retention_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+</span><span id="L-454"><a href="#L-454"><span class="linenos">454</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">retention_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 </span><span id="L-455"><a href="#L-455"><span class="linenos">455</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the retention time of the mass feature&quot;&quot;&quot;</span>
 </span><span id="L-456"><a href="#L-456"><span class="linenos">456</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
 </span><span id="L-457"><a href="#L-457"><span class="linenos">457</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The retention time of the mass feature must be a float&quot;</span><span class="p">)</span>
 </span><span id="L-458"><a href="#L-458"><span class="linenos">458</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_retention_time</span> <span class="o">=</span> <span class="n">value</span>
 </span><span id="L-459"><a href="#L-459"><span class="linenos">459</span></a>
 </span><span id="L-460"><a href="#L-460"><span class="linenos">460</span></a>    <span class="nd">@property</span>
-</span><span id="L-461"><a href="#L-461"><span class="linenos">461</span></a>    <span class="k">def</span> <span class="nf">apex_scan</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-461"><a href="#L-461"><span class="linenos">461</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">apex_scan</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-462"><a href="#L-462"><span class="linenos">462</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Apex scan of the mass feature&quot;&quot;&quot;</span>
 </span><span id="L-463"><a href="#L-463"><span class="linenos">463</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apex_scan</span>
 </span><span id="L-464"><a href="#L-464"><span class="linenos">464</span></a>
 </span><span id="L-465"><a href="#L-465"><span class="linenos">465</span></a>    <span class="nd">@apex_scan</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="L-466"><a href="#L-466"><span class="linenos">466</span></a>    <span class="k">def</span> <span class="nf">apex_scan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+</span><span id="L-466"><a href="#L-466"><span class="linenos">466</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">apex_scan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 </span><span id="L-467"><a href="#L-467"><span class="linenos">467</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the apex scan of the mass feature&quot;&quot;&quot;</span>
 </span><span id="L-468"><a href="#L-468"><span class="linenos">468</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
 </span><span id="L-469"><a href="#L-469"><span class="linenos">469</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The apex scan of the mass feature must be an integer&quot;</span><span class="p">)</span>
 </span><span id="L-470"><a href="#L-470"><span class="linenos">470</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_apex_scan</span> <span class="o">=</span> <span class="n">value</span>
 </span><span id="L-471"><a href="#L-471"><span class="linenos">471</span></a>
 </span><span id="L-472"><a href="#L-472"><span class="linenos">472</span></a>    <span class="nd">@property</span>
-</span><span id="L-473"><a href="#L-473"><span class="linenos">473</span></a>    <span class="k">def</span> <span class="nf">intensity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-473"><a href="#L-473"><span class="linenos">473</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">intensity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-474"><a href="#L-474"><span class="linenos">474</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Intensity of the mass feature&quot;&quot;&quot;</span>
 </span><span id="L-475"><a href="#L-475"><span class="linenos">475</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intensity</span>
 </span><span id="L-476"><a href="#L-476"><span class="linenos">476</span></a>
 </span><span id="L-477"><a href="#L-477"><span class="linenos">477</span></a>    <span class="nd">@intensity</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="L-478"><a href="#L-478"><span class="linenos">478</span></a>    <span class="k">def</span> <span class="nf">intensity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+</span><span id="L-478"><a href="#L-478"><span class="linenos">478</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">intensity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 </span><span id="L-479"><a href="#L-479"><span class="linenos">479</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the intensity of the mass feature&quot;&quot;&quot;</span>
 </span><span id="L-480"><a href="#L-480"><span class="linenos">480</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
 </span><span id="L-481"><a href="#L-481"><span class="linenos">481</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The intensity of the mass feature must be a float&quot;</span><span class="p">)</span>
 </span><span id="L-482"><a href="#L-482"><span class="linenos">482</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_intensity</span> <span class="o">=</span> <span class="n">value</span>
 </span><span id="L-483"><a href="#L-483"><span class="linenos">483</span></a>
 </span><span id="L-484"><a href="#L-484"><span class="linenos">484</span></a>    <span class="nd">@property</span>
-</span><span id="L-485"><a href="#L-485"><span class="linenos">485</span></a>    <span class="k">def</span> <span class="nf">persistence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-485"><a href="#L-485"><span class="linenos">485</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">persistence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-486"><a href="#L-486"><span class="linenos">486</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Persistence of the mass feature&quot;&quot;&quot;</span>
 </span><span id="L-487"><a href="#L-487"><span class="linenos">487</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_persistence</span>
 </span><span id="L-488"><a href="#L-488"><span class="linenos">488</span></a>
 </span><span id="L-489"><a href="#L-489"><span class="linenos">489</span></a>    <span class="nd">@persistence</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="L-490"><a href="#L-490"><span class="linenos">490</span></a>    <span class="k">def</span> <span class="nf">persistence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+</span><span id="L-490"><a href="#L-490"><span class="linenos">490</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">persistence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 </span><span id="L-491"><a href="#L-491"><span class="linenos">491</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the persistence of the mass feature&quot;&quot;&quot;</span>
 </span><span id="L-492"><a href="#L-492"><span class="linenos">492</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
 </span><span id="L-493"><a href="#L-493"><span class="linenos">493</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The persistence of the mass feature must be a float&quot;</span><span class="p">)</span>
 </span><span id="L-494"><a href="#L-494"><span class="linenos">494</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_persistence</span> <span class="o">=</span> <span class="n">value</span>
 </span><span id="L-495"><a href="#L-495"><span class="linenos">495</span></a>
 </span><span id="L-496"><a href="#L-496"><span class="linenos">496</span></a>    <span class="nd">@property</span>
-</span><span id="L-497"><a href="#L-497"><span class="linenos">497</span></a>    <span class="k">def</span> <span class="nf">eic_rt_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-497"><a href="#L-497"><span class="linenos">497</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">eic_rt_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-498"><a href="#L-498"><span class="linenos">498</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Retention time list between the beginning and end of the mass feature&quot;&quot;&quot;</span>
 </span><span id="L-499"><a href="#L-499"><span class="linenos">499</span></a>        <span class="c1"># Find index of the start and final scans in the EIC data</span>
 </span><span id="L-500"><a href="#L-500"><span class="linenos">500</span></a>        <span class="n">start_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eic_data</span><span class="o">.</span><span class="n">scans</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start_scan</span><span class="p">)</span>
@@ -720,7 +720,7 @@
 </span><span id="L-505"><a href="#L-505"><span class="linenos">505</span></a>        <span class="k">return</span> <span class="n">rt_list</span>
 </span><span id="L-506"><a href="#L-506"><span class="linenos">506</span></a>
 </span><span id="L-507"><a href="#L-507"><span class="linenos">507</span></a>    <span class="nd">@property</span>
-</span><span id="L-508"><a href="#L-508"><span class="linenos">508</span></a>    <span class="k">def</span> <span class="nf">eic_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-508"><a href="#L-508"><span class="linenos">508</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">eic_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-509"><a href="#L-509"><span class="linenos">509</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;EIC List between the beginning and end of the mass feature&quot;&quot;&quot;</span>
 </span><span id="L-510"><a href="#L-510"><span class="linenos">510</span></a>        <span class="c1"># Find index of the start and final scans in the EIC data</span>
 </span><span id="L-511"><a href="#L-511"><span class="linenos">511</span></a>        <span class="n">start_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eic_data</span><span class="o">.</span><span class="n">scans</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start_scan</span><span class="p">)</span>
@@ -731,7 +731,7 @@
 </span><span id="L-516"><a href="#L-516"><span class="linenos">516</span></a>        <span class="k">return</span> <span class="n">eic</span>
 </span><span id="L-517"><a href="#L-517"><span class="linenos">517</span></a>
 </span><span id="L-518"><a href="#L-518"><span class="linenos">518</span></a>    <span class="nd">@property</span>
-</span><span id="L-519"><a href="#L-519"><span class="linenos">519</span></a>    <span class="k">def</span> <span class="nf">ms1_peak</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-519"><a href="#L-519"><span class="linenos">519</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">ms1_peak</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-520"><a href="#L-520"><span class="linenos">520</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;MS1 peak from associated mass spectrum that is closest to the mass feature&#39;s m/z&quot;&quot;&quot;</span>
 </span><span id="L-521"><a href="#L-521"><span class="linenos">521</span></a>        <span class="c1"># Find index array self.mass_spectrum.mz_exp that is closest to self.mz</span>
 </span><span id="L-522"><a href="#L-522"><span class="linenos">522</span></a>        <span class="n">closest_mz</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="o">.</span><span class="n">mz_exp</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">mz</span><span class="p">))</span>
@@ -740,36 +740,36 @@
 </span><span id="L-525"><a href="#L-525"><span class="linenos">525</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="o">.</span><span class="n">_mspeaks</span><span class="p">[</span><span class="n">closest_mz_index</span><span class="p">]</span>
 </span><span id="L-526"><a href="#L-526"><span class="linenos">526</span></a>
 </span><span id="L-527"><a href="#L-527"><span class="linenos">527</span></a>    <span class="nd">@property</span>
-</span><span id="L-528"><a href="#L-528"><span class="linenos">528</span></a>    <span class="k">def</span> <span class="nf">tailing_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-528"><a href="#L-528"><span class="linenos">528</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">tailing_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-529"><a href="#L-529"><span class="linenos">529</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Tailing factor of the mass feature&quot;&quot;&quot;</span>
 </span><span id="L-530"><a href="#L-530"><span class="linenos">530</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tailing_factor</span>
 </span><span id="L-531"><a href="#L-531"><span class="linenos">531</span></a>
 </span><span id="L-532"><a href="#L-532"><span class="linenos">532</span></a>    <span class="nd">@tailing_factor</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="L-533"><a href="#L-533"><span class="linenos">533</span></a>    <span class="k">def</span> <span class="nf">tailing_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+</span><span id="L-533"><a href="#L-533"><span class="linenos">533</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">tailing_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 </span><span id="L-534"><a href="#L-534"><span class="linenos">534</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the tailing factor of the mass feature&quot;&quot;&quot;</span>
 </span><span id="L-535"><a href="#L-535"><span class="linenos">535</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
 </span><span id="L-536"><a href="#L-536"><span class="linenos">536</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The tailing factor of the mass feature must be a float&quot;</span><span class="p">)</span>
 </span><span id="L-537"><a href="#L-537"><span class="linenos">537</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_tailing_factor</span> <span class="o">=</span> <span class="n">value</span>
 </span><span id="L-538"><a href="#L-538"><span class="linenos">538</span></a>
 </span><span id="L-539"><a href="#L-539"><span class="linenos">539</span></a>    <span class="nd">@property</span>
-</span><span id="L-540"><a href="#L-540"><span class="linenos">540</span></a>    <span class="k">def</span> <span class="nf">dispersity_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-540"><a href="#L-540"><span class="linenos">540</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">dispersity_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-541"><a href="#L-541"><span class="linenos">541</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Dispersity index of the mass feature&quot;&quot;&quot;</span>
 </span><span id="L-542"><a href="#L-542"><span class="linenos">542</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispersity_index</span>
 </span><span id="L-543"><a href="#L-543"><span class="linenos">543</span></a>
 </span><span id="L-544"><a href="#L-544"><span class="linenos">544</span></a>    <span class="nd">@dispersity_index</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="L-545"><a href="#L-545"><span class="linenos">545</span></a>    <span class="k">def</span> <span class="nf">dispersity_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+</span><span id="L-545"><a href="#L-545"><span class="linenos">545</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">dispersity_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 </span><span id="L-546"><a href="#L-546"><span class="linenos">546</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the dispersity index of the mass feature&quot;&quot;&quot;</span>
 </span><span id="L-547"><a href="#L-547"><span class="linenos">547</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
 </span><span id="L-548"><a href="#L-548"><span class="linenos">548</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The dispersity index of the mass feature must be a float&quot;</span><span class="p">)</span>
 </span><span id="L-549"><a href="#L-549"><span class="linenos">549</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_dispersity_index</span> <span class="o">=</span> <span class="n">value</span>
 </span><span id="L-550"><a href="#L-550"><span class="linenos">550</span></a>
 </span><span id="L-551"><a href="#L-551"><span class="linenos">551</span></a>    <span class="nd">@property</span>
-</span><span id="L-552"><a href="#L-552"><span class="linenos">552</span></a>    <span class="k">def</span> <span class="nf">half_height_width</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-552"><a href="#L-552"><span class="linenos">552</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">half_height_width</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-553"><a href="#L-553"><span class="linenos">553</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Half height width of the mass feature, average of min and max values, in minutes&quot;&quot;&quot;</span>
 </span><span id="L-554"><a href="#L-554"><span class="linenos">554</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_half_height_width</span><span class="p">)</span>
 </span><span id="L-555"><a href="#L-555"><span class="linenos">555</span></a>
 </span><span id="L-556"><a href="#L-556"><span class="linenos">556</span></a>    <span class="nd">@property</span>
-</span><span id="L-557"><a href="#L-557"><span class="linenos">557</span></a>    <span class="k">def</span> <span class="nf">best_ms2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-557"><a href="#L-557"><span class="linenos">557</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">best_ms2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-558"><a href="#L-558"><span class="linenos">558</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Points to the best representative MS2 mass spectrum</span>
 </span><span id="L-559"><a href="#L-559"><span class="linenos">559</span></a>
 </span><span id="L-560"><a href="#L-560"><span class="linenos">560</span></a><span class="sd">        Notes</span>
@@ -857,7 +857,7 @@
 </span><span id="L-642"><a href="#L-642"><span class="linenos">642</span></a>            <span class="k">return</span> <span class="kc">None</span>
 </span><span id="L-643"><a href="#L-643"><span class="linenos">643</span></a>
 </span><span id="L-644"><a href="#L-644"><span class="linenos">644</span></a>
-</span><span id="L-645"><a href="#L-645"><span class="linenos">645</span></a><span class="k">class</span> <span class="nc">GCPeak</span><span class="p">(</span><span class="n">ChromaPeakBase</span><span class="p">,</span> <span class="n">GCPeakCalculation</span><span class="p">):</span>
+</span><span id="L-645"><a href="#L-645"><span class="linenos">645</span></a><span class="k">class</span><span class="w"> </span><span class="nc">GCPeak</span><span class="p">(</span><span class="n">ChromaPeakBase</span><span class="p">,</span> <span class="n">GCPeakCalculation</span><span class="p">):</span>
 </span><span id="L-646"><a href="#L-646"><span class="linenos">646</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class representing a peak in a gas chromatography (GC) chromatogram.</span>
 </span><span id="L-647"><a href="#L-647"><span class="linenos">647</span></a>
 </span><span id="L-648"><a href="#L-648"><span class="linenos">648</span></a><span class="sd">    Parameters</span>
@@ -889,24 +889,24 @@
 </span><span id="L-674"><a href="#L-674"><span class="linenos">674</span></a><span class="sd">    * compound_names(). Returns a list of names of compounds associated with the peak.</span>
 </span><span id="L-675"><a href="#L-675"><span class="linenos">675</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-676"><a href="#L-676"><span class="linenos">676</span></a>
-</span><span id="L-677"><a href="#L-677"><span class="linenos">677</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chromatogram_parent</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="n">indexes</span><span class="p">):</span>
+</span><span id="L-677"><a href="#L-677"><span class="linenos">677</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chromatogram_parent</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="n">indexes</span><span class="p">):</span>
 </span><span id="L-678"><a href="#L-678"><span class="linenos">678</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_compounds</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="L-679"><a href="#L-679"><span class="linenos">679</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_ri</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="L-680"><a href="#L-680"><span class="linenos">680</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">chromatogram_parent</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="o">*</span><span class="n">indexes</span><span class="p">)</span>
 </span><span id="L-681"><a href="#L-681"><span class="linenos">681</span></a>
-</span><span id="L-682"><a href="#L-682"><span class="linenos">682</span></a>    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-682"><a href="#L-682"><span class="linenos">682</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-683"><a href="#L-683"><span class="linenos">683</span></a>        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compounds</span><span class="p">)</span>
 </span><span id="L-684"><a href="#L-684"><span class="linenos">684</span></a>
-</span><span id="L-685"><a href="#L-685"><span class="linenos">685</span></a>    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
+</span><span id="L-685"><a href="#L-685"><span class="linenos">685</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
 </span><span id="L-686"><a href="#L-686"><span class="linenos">686</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compounds</span><span class="p">[</span><span class="n">position</span><span class="p">]</span>
 </span><span id="L-687"><a href="#L-687"><span class="linenos">687</span></a>
-</span><span id="L-688"><a href="#L-688"><span class="linenos">688</span></a>    <span class="k">def</span> <span class="nf">remove_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compounds_obj</span><span class="p">):</span>
+</span><span id="L-688"><a href="#L-688"><span class="linenos">688</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">remove_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compounds_obj</span><span class="p">):</span>
 </span><span id="L-689"><a href="#L-689"><span class="linenos">689</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_compounds</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">compounds_obj</span><span class="p">)</span>
 </span><span id="L-690"><a href="#L-690"><span class="linenos">690</span></a>
-</span><span id="L-691"><a href="#L-691"><span class="linenos">691</span></a>    <span class="k">def</span> <span class="nf">clear_compounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-691"><a href="#L-691"><span class="linenos">691</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">clear_compounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-692"><a href="#L-692"><span class="linenos">692</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_compounds</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="L-693"><a href="#L-693"><span class="linenos">693</span></a>
-</span><span id="L-694"><a href="#L-694"><span class="linenos">694</span></a>    <span class="k">def</span> <span class="nf">add_compound</span><span class="p">(</span>
+</span><span id="L-694"><a href="#L-694"><span class="linenos">694</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_compound</span><span class="p">(</span>
 </span><span id="L-695"><a href="#L-695"><span class="linenos">695</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-696"><a href="#L-696"><span class="linenos">696</span></a>        <span class="n">compounds_dict</span><span class="p">,</span>
 </span><span id="L-697"><a href="#L-697"><span class="linenos">697</span></a>        <span class="n">spectral_similarity_scores</span><span class="p">,</span>
@@ -943,7 +943,7 @@
 </span><span id="L-728"><a href="#L-728"><span class="linenos">728</span></a>            <span class="p">)</span>
 </span><span id="L-729"><a href="#L-729"><span class="linenos">729</span></a>
 </span><span id="L-730"><a href="#L-730"><span class="linenos">730</span></a>    <span class="nd">@property</span>
-</span><span id="L-731"><a href="#L-731"><span class="linenos">731</span></a>    <span class="k">def</span> <span class="nf">ri</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-731"><a href="#L-731"><span class="linenos">731</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">ri</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-732"><a href="#L-732"><span class="linenos">732</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the retention index of the peak.</span>
 </span><span id="L-733"><a href="#L-733"><span class="linenos">733</span></a>
 </span><span id="L-734"><a href="#L-734"><span class="linenos">734</span></a><span class="sd">        Returns</span>
@@ -954,7 +954,7 @@
 </span><span id="L-739"><a href="#L-739"><span class="linenos">739</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ri</span>
 </span><span id="L-740"><a href="#L-740"><span class="linenos">740</span></a>
 </span><span id="L-741"><a href="#L-741"><span class="linenos">741</span></a>    <span class="nd">@property</span>
-</span><span id="L-742"><a href="#L-742"><span class="linenos">742</span></a>    <span class="k">def</span> <span class="nf">highest_ss_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-742"><a href="#L-742"><span class="linenos">742</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">highest_ss_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-743"><a href="#L-743"><span class="linenos">743</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the compound with the highest spectral similarity score.</span>
 </span><span id="L-744"><a href="#L-744"><span class="linenos">744</span></a>
 </span><span id="L-745"><a href="#L-745"><span class="linenos">745</span></a><span class="sd">        Returns</span>
@@ -968,7 +968,7 @@
 </span><span id="L-753"><a href="#L-753"><span class="linenos">753</span></a>            <span class="k">return</span> <span class="kc">None</span>
 </span><span id="L-754"><a href="#L-754"><span class="linenos">754</span></a>
 </span><span id="L-755"><a href="#L-755"><span class="linenos">755</span></a>    <span class="nd">@property</span>
-</span><span id="L-756"><a href="#L-756"><span class="linenos">756</span></a>    <span class="k">def</span> <span class="nf">highest_score_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-756"><a href="#L-756"><span class="linenos">756</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">highest_score_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-757"><a href="#L-757"><span class="linenos">757</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the compound with the highest similarity score.</span>
 </span><span id="L-758"><a href="#L-758"><span class="linenos">758</span></a>
 </span><span id="L-759"><a href="#L-759"><span class="linenos">759</span></a><span class="sd">        Returns</span>
@@ -982,7 +982,7 @@
 </span><span id="L-767"><a href="#L-767"><span class="linenos">767</span></a>            <span class="k">return</span> <span class="kc">None</span>
 </span><span id="L-768"><a href="#L-768"><span class="linenos">768</span></a>
 </span><span id="L-769"><a href="#L-769"><span class="linenos">769</span></a>    <span class="nd">@property</span>
-</span><span id="L-770"><a href="#L-770"><span class="linenos">770</span></a>    <span class="k">def</span> <span class="nf">compound_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-770"><a href="#L-770"><span class="linenos">770</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">compound_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-771"><a href="#L-771"><span class="linenos">771</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a list of names of compounds associated with the peak.</span>
 </span><span id="L-772"><a href="#L-772"><span class="linenos">772</span></a>
 </span><span id="L-773"><a href="#L-773"><span class="linenos">773</span></a><span class="sd">        Returns</span>
@@ -996,7 +996,7 @@
 </span><span id="L-781"><a href="#L-781"><span class="linenos">781</span></a>            <span class="k">return</span> <span class="p">[]</span>
 </span><span id="L-782"><a href="#L-782"><span class="linenos">782</span></a>
 </span><span id="L-783"><a href="#L-783"><span class="linenos">783</span></a>
-</span><span id="L-784"><a href="#L-784"><span class="linenos">784</span></a><span class="k">class</span> <span class="nc">GCPeakDeconvolved</span><span class="p">(</span><span class="n">GCPeak</span><span class="p">):</span>
+</span><span id="L-784"><a href="#L-784"><span class="linenos">784</span></a><span class="k">class</span><span class="w"> </span><span class="nc">GCPeakDeconvolved</span><span class="p">(</span><span class="n">GCPeak</span><span class="p">):</span>
 </span><span id="L-785"><a href="#L-785"><span class="linenos">785</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a deconvolved peak in a chromatogram.</span>
 </span><span id="L-786"><a href="#L-786"><span class="linenos">786</span></a>
 </span><span id="L-787"><a href="#L-787"><span class="linenos">787</span></a><span class="sd">    Parameters</span>
@@ -1013,7 +1013,7 @@
 </span><span id="L-798"><a href="#L-798"><span class="linenos">798</span></a><span class="sd">        List of total ion currents.</span>
 </span><span id="L-799"><a href="#L-799"><span class="linenos">799</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-800"><a href="#L-800"><span class="linenos">800</span></a>
-</span><span id="L-801"><a href="#L-801"><span class="linenos">801</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+</span><span id="L-801"><a href="#L-801"><span class="linenos">801</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="L-802"><a href="#L-802"><span class="linenos">802</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">chromatogram_parent</span><span class="p">,</span> <span class="n">mass_spectra</span><span class="p">,</span> <span class="n">apex_index</span><span class="p">,</span> <span class="n">rt_list</span><span class="p">,</span> <span class="n">tic_list</span>
 </span><span id="L-803"><a href="#L-803"><span class="linenos">803</span></a>    <span class="p">):</span>
 </span><span id="L-804"><a href="#L-804"><span class="linenos">804</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_ri</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1027,7 +1027,7 @@
 </span><span id="L-812"><a href="#L-812"><span class="linenos">812</span></a>        <span class="p">)</span>
 </span><span id="L-813"><a href="#L-813"><span class="linenos">813</span></a>
 </span><span id="L-814"><a href="#L-814"><span class="linenos">814</span></a>    <span class="nd">@property</span>
-</span><span id="L-815"><a href="#L-815"><span class="linenos">815</span></a>    <span class="k">def</span> <span class="nf">rt_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-815"><a href="#L-815"><span class="linenos">815</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">rt_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-816"><a href="#L-816"><span class="linenos">816</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the list of retention times.</span>
 </span><span id="L-817"><a href="#L-817"><span class="linenos">817</span></a>
 </span><span id="L-818"><a href="#L-818"><span class="linenos">818</span></a><span class="sd">        Returns</span>
@@ -1038,7 +1038,7 @@
 </span><span id="L-823"><a href="#L-823"><span class="linenos">823</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rt_list</span>
 </span><span id="L-824"><a href="#L-824"><span class="linenos">824</span></a>
 </span><span id="L-825"><a href="#L-825"><span class="linenos">825</span></a>    <span class="nd">@property</span>
-</span><span id="L-826"><a href="#L-826"><span class="linenos">826</span></a>    <span class="k">def</span> <span class="nf">tic_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-826"><a href="#L-826"><span class="linenos">826</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">tic_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-827"><a href="#L-827"><span class="linenos">827</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the list of total ion currents.</span>
 </span><span id="L-828"><a href="#L-828"><span class="linenos">828</span></a>
 </span><span id="L-829"><a href="#L-829"><span class="linenos">829</span></a><span class="sd">        Returns</span>
@@ -1062,7 +1062,7 @@
 
     </div>
     <a class="headerlink" href="#ChromaPeakBase"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ChromaPeakBase-18"><a href="#ChromaPeakBase-18"><span class="linenos"> 18</span></a><span class="k">class</span> <span class="nc">ChromaPeakBase</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ChromaPeakBase-18"><a href="#ChromaPeakBase-18"><span class="linenos"> 18</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ChromaPeakBase</span><span class="p">:</span>
 </span><span id="ChromaPeakBase-19"><a href="#ChromaPeakBase-19"><span class="linenos"> 19</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for chromatographic peak (ChromaPeak) objects.</span>
 </span><span id="ChromaPeakBase-20"><a href="#ChromaPeakBase-20"><span class="linenos"> 20</span></a>
 </span><span id="ChromaPeakBase-21"><a href="#ChromaPeakBase-21"><span class="linenos"> 21</span></a><span class="sd">    Parameters</span>
@@ -1111,7 +1111,7 @@
 </span><span id="ChromaPeakBase-64"><a href="#ChromaPeakBase-64"><span class="linenos"> 64</span></a><span class="sd">    * None</span>
 </span><span id="ChromaPeakBase-65"><a href="#ChromaPeakBase-65"><span class="linenos"> 65</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="ChromaPeakBase-66"><a href="#ChromaPeakBase-66"><span class="linenos"> 66</span></a>
-</span><span id="ChromaPeakBase-67"><a href="#ChromaPeakBase-67"><span class="linenos"> 67</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+</span><span id="ChromaPeakBase-67"><a href="#ChromaPeakBase-67"><span class="linenos"> 67</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="ChromaPeakBase-68"><a href="#ChromaPeakBase-68"><span class="linenos"> 68</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">chromatogram_parent</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="n">start_index</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">final_index</span>
 </span><span id="ChromaPeakBase-69"><a href="#ChromaPeakBase-69"><span class="linenos"> 69</span></a>    <span class="p">):</span>
 </span><span id="ChromaPeakBase-70"><a href="#ChromaPeakBase-70"><span class="linenos"> 70</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">start_scan</span> <span class="o">=</span> <span class="n">start_index</span>
@@ -1122,22 +1122,22 @@
 </span><span id="ChromaPeakBase-75"><a href="#ChromaPeakBase-75"><span class="linenos"> 75</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_area</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="ChromaPeakBase-76"><a href="#ChromaPeakBase-76"><span class="linenos"> 76</span></a>
 </span><span id="ChromaPeakBase-77"><a href="#ChromaPeakBase-77"><span class="linenos"> 77</span></a>    <span class="nd">@property</span>
-</span><span id="ChromaPeakBase-78"><a href="#ChromaPeakBase-78"><span class="linenos"> 78</span></a>    <span class="k">def</span> <span class="nf">retention_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="ChromaPeakBase-78"><a href="#ChromaPeakBase-78"><span class="linenos"> 78</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">retention_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="ChromaPeakBase-79"><a href="#ChromaPeakBase-79"><span class="linenos"> 79</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Retention Time&quot;&quot;&quot;</span>
 </span><span id="ChromaPeakBase-80"><a href="#ChromaPeakBase-80"><span class="linenos"> 80</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="o">.</span><span class="n">retention_time</span>
 </span><span id="ChromaPeakBase-81"><a href="#ChromaPeakBase-81"><span class="linenos"> 81</span></a>
 </span><span id="ChromaPeakBase-82"><a href="#ChromaPeakBase-82"><span class="linenos"> 82</span></a>    <span class="nd">@property</span>
-</span><span id="ChromaPeakBase-83"><a href="#ChromaPeakBase-83"><span class="linenos"> 83</span></a>    <span class="k">def</span> <span class="nf">tic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="ChromaPeakBase-83"><a href="#ChromaPeakBase-83"><span class="linenos"> 83</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">tic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="ChromaPeakBase-84"><a href="#ChromaPeakBase-84"><span class="linenos"> 84</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Total Ion Current&quot;&quot;&quot;</span>
 </span><span id="ChromaPeakBase-85"><a href="#ChromaPeakBase-85"><span class="linenos"> 85</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="o">.</span><span class="n">tic</span>
 </span><span id="ChromaPeakBase-86"><a href="#ChromaPeakBase-86"><span class="linenos"> 86</span></a>
 </span><span id="ChromaPeakBase-87"><a href="#ChromaPeakBase-87"><span class="linenos"> 87</span></a>    <span class="nd">@property</span>
-</span><span id="ChromaPeakBase-88"><a href="#ChromaPeakBase-88"><span class="linenos"> 88</span></a>    <span class="k">def</span> <span class="nf">area</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="ChromaPeakBase-88"><a href="#ChromaPeakBase-88"><span class="linenos"> 88</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">area</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="ChromaPeakBase-89"><a href="#ChromaPeakBase-89"><span class="linenos"> 89</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Peak Area&quot;&quot;&quot;</span>
 </span><span id="ChromaPeakBase-90"><a href="#ChromaPeakBase-90"><span class="linenos"> 90</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_area</span>
 </span><span id="ChromaPeakBase-91"><a href="#ChromaPeakBase-91"><span class="linenos"> 91</span></a>
 </span><span id="ChromaPeakBase-92"><a href="#ChromaPeakBase-92"><span class="linenos"> 92</span></a>    <span class="nd">@property</span>
-</span><span id="ChromaPeakBase-93"><a href="#ChromaPeakBase-93"><span class="linenos"> 93</span></a>    <span class="k">def</span> <span class="nf">rt_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="ChromaPeakBase-93"><a href="#ChromaPeakBase-93"><span class="linenos"> 93</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">rt_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="ChromaPeakBase-94"><a href="#ChromaPeakBase-94"><span class="linenos"> 94</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Retention Time List&quot;&quot;&quot;</span>
 </span><span id="ChromaPeakBase-95"><a href="#ChromaPeakBase-95"><span class="linenos"> 95</span></a>        <span class="k">return</span> <span class="p">[</span>
 </span><span id="ChromaPeakBase-96"><a href="#ChromaPeakBase-96"><span class="linenos"> 96</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">chromatogram_parent</span><span class="o">.</span><span class="n">retention_time</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
@@ -1145,7 +1145,7 @@
 </span><span id="ChromaPeakBase-98"><a href="#ChromaPeakBase-98"><span class="linenos"> 98</span></a>        <span class="p">]</span>
 </span><span id="ChromaPeakBase-99"><a href="#ChromaPeakBase-99"><span class="linenos"> 99</span></a>
 </span><span id="ChromaPeakBase-100"><a href="#ChromaPeakBase-100"><span class="linenos">100</span></a>    <span class="nd">@property</span>
-</span><span id="ChromaPeakBase-101"><a href="#ChromaPeakBase-101"><span class="linenos">101</span></a>    <span class="k">def</span> <span class="nf">tic_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="ChromaPeakBase-101"><a href="#ChromaPeakBase-101"><span class="linenos">101</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">tic_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="ChromaPeakBase-102"><a href="#ChromaPeakBase-102"><span class="linenos">102</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Total Ion Current List&quot;&quot;&quot;</span>
 </span><span id="ChromaPeakBase-103"><a href="#ChromaPeakBase-103"><span class="linenos">103</span></a>        <span class="k">return</span> <span class="p">[</span>
 </span><span id="ChromaPeakBase-104"><a href="#ChromaPeakBase-104"><span class="linenos">104</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">chromatogram_parent</span><span class="o">.</span><span class="n">tic</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
@@ -1221,7 +1221,7 @@ The list of total ion currents within the peak.</li>
 
     </div>
     <a class="headerlink" href="#ChromaPeakBase.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ChromaPeakBase.__init__-67"><a href="#ChromaPeakBase.__init__-67"><span class="linenos">67</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ChromaPeakBase.__init__-67"><a href="#ChromaPeakBase.__init__-67"><span class="linenos">67</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="ChromaPeakBase.__init__-68"><a href="#ChromaPeakBase.__init__-68"><span class="linenos">68</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">chromatogram_parent</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="n">start_index</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">final_index</span>
 </span><span id="ChromaPeakBase.__init__-69"><a href="#ChromaPeakBase.__init__-69"><span class="linenos">69</span></a>    <span class="p">):</span>
 </span><span id="ChromaPeakBase.__init__-70"><a href="#ChromaPeakBase.__init__-70"><span class="linenos">70</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">start_scan</span> <span class="o">=</span> <span class="n">start_index</span>
@@ -1368,7 +1368,7 @@ The list of total ion currents within the peak.</li>
 
     </div>
     <a class="headerlink" href="#LCMSMassFeature"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSMassFeature-109"><a href="#LCMSMassFeature-109"><span class="linenos">109</span></a><span class="k">class</span> <span class="nc">LCMSMassFeature</span><span class="p">(</span><span class="n">ChromaPeakBase</span><span class="p">,</span> <span class="n">LCMSMassFeatureCalculation</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSMassFeature-109"><a href="#LCMSMassFeature-109"><span class="linenos">109</span></a><span class="k">class</span><span class="w"> </span><span class="nc">LCMSMassFeature</span><span class="p">(</span><span class="n">ChromaPeakBase</span><span class="p">,</span> <span class="n">LCMSMassFeatureCalculation</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-110"><a href="#LCMSMassFeature-110"><span class="linenos">110</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class representing a mass feature in a liquid chromatography (LC) chromatogram.</span>
 </span><span id="LCMSMassFeature-111"><a href="#LCMSMassFeature-111"><span class="linenos">111</span></a>
 </span><span id="LCMSMassFeature-112"><a href="#LCMSMassFeature-112"><span class="linenos">112</span></a><span class="sd">    Parameters</span>
@@ -1438,7 +1438,7 @@ The list of total ion currents within the peak.</li>
 </span><span id="LCMSMassFeature-176"><a href="#LCMSMassFeature-176"><span class="linenos">176</span></a>
 </span><span id="LCMSMassFeature-177"><a href="#LCMSMassFeature-177"><span class="linenos">177</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="LCMSMassFeature-178"><a href="#LCMSMassFeature-178"><span class="linenos">178</span></a>
-</span><span id="LCMSMassFeature-179"><a href="#LCMSMassFeature-179"><span class="linenos">179</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+</span><span id="LCMSMassFeature-179"><a href="#LCMSMassFeature-179"><span class="linenos">179</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="LCMSMassFeature-180"><a href="#LCMSMassFeature-180"><span class="linenos">180</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="LCMSMassFeature-181"><a href="#LCMSMassFeature-181"><span class="linenos">181</span></a>        <span class="n">lcms_parent</span><span class="p">,</span>
 </span><span id="LCMSMassFeature-182"><a href="#LCMSMassFeature-182"><span class="linenos">182</span></a>        <span class="n">mz</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -1486,7 +1486,7 @@ The list of total ion currents within the peak.</li>
 </span><span id="LCMSMassFeature-224"><a href="#LCMSMassFeature-224"><span class="linenos">224</span></a>                <span class="k">else</span> <span class="mi">0</span>
 </span><span id="LCMSMassFeature-225"><a href="#LCMSMassFeature-225"><span class="linenos">225</span></a>            <span class="p">)</span>
 </span><span id="LCMSMassFeature-226"><a href="#LCMSMassFeature-226"><span class="linenos">226</span></a>
-</span><span id="LCMSMassFeature-227"><a href="#LCMSMassFeature-227"><span class="linenos">227</span></a>    <span class="k">def</span> <span class="nf">update_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSMassFeature-227"><a href="#LCMSMassFeature-227"><span class="linenos">227</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">update_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-228"><a href="#LCMSMassFeature-228"><span class="linenos">228</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the mass to charge ratio from the mass spectrum object.&quot;&quot;&quot;</span>
 </span><span id="LCMSMassFeature-229"><a href="#LCMSMassFeature-229"><span class="linenos">229</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="LCMSMassFeature-230"><a href="#LCMSMassFeature-230"><span class="linenos">230</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -1503,7 +1503,7 @@ The list of total ion currents within the peak.</li>
 </span><span id="LCMSMassFeature-241"><a href="#LCMSMassFeature-241"><span class="linenos">241</span></a>        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">mz_diff</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.01</span><span class="p">:</span>
 </span><span id="LCMSMassFeature-242"><a href="#LCMSMassFeature-242"><span class="linenos">242</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_mz_exp</span> <span class="o">=</span> <span class="n">new_mz</span>
 </span><span id="LCMSMassFeature-243"><a href="#LCMSMassFeature-243"><span class="linenos">243</span></a>
-</span><span id="LCMSMassFeature-244"><a href="#LCMSMassFeature-244"><span class="linenos">244</span></a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">to_plot</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;EIC&quot;</span><span class="p">,</span> <span class="s2">&quot;MS1&quot;</span><span class="p">,</span> <span class="s2">&quot;MS2&quot;</span><span class="p">],</span> <span class="n">return_fig</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">plot_smoothed_eic</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">plot_eic_datapoints</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+</span><span id="LCMSMassFeature-244"><a href="#LCMSMassFeature-244"><span class="linenos">244</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">to_plot</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;EIC&quot;</span><span class="p">,</span> <span class="s2">&quot;MS1&quot;</span><span class="p">,</span> <span class="s2">&quot;MS2&quot;</span><span class="p">],</span> <span class="n">return_fig</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">plot_smoothed_eic</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">plot_eic_datapoints</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-245"><a href="#LCMSMassFeature-245"><span class="linenos">245</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the mass feature.</span>
 </span><span id="LCMSMassFeature-246"><a href="#LCMSMassFeature-246"><span class="linenos">246</span></a>
 </span><span id="LCMSMassFeature-247"><a href="#LCMSMassFeature-247"><span class="linenos">247</span></a><span class="sd">        Parameters</span>
@@ -1688,7 +1688,7 @@ The list of total ion currents within the peak.</li>
 </span><span id="LCMSMassFeature-426"><a href="#LCMSMassFeature-426"><span class="linenos">426</span></a>            <span class="k">return</span> <span class="n">fig</span>
 </span><span id="LCMSMassFeature-427"><a href="#LCMSMassFeature-427"><span class="linenos">427</span></a>
 </span><span id="LCMSMassFeature-428"><a href="#LCMSMassFeature-428"><span class="linenos">428</span></a>    <span class="nd">@property</span>
-</span><span id="LCMSMassFeature-429"><a href="#LCMSMassFeature-429"><span class="linenos">429</span></a>    <span class="k">def</span> <span class="nf">mz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSMassFeature-429"><a href="#LCMSMassFeature-429"><span class="linenos">429</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-430"><a href="#LCMSMassFeature-430"><span class="linenos">430</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Mass to charge ratio of the mass feature&quot;&quot;&quot;</span>
 </span><span id="LCMSMassFeature-431"><a href="#LCMSMassFeature-431"><span class="linenos">431</span></a>        <span class="c1"># If the mass feature has been calibrated, return the calibrated m/z, otherwise return the measured m/z</span>
 </span><span id="LCMSMassFeature-432"><a href="#LCMSMassFeature-432"><span class="linenos">432</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mz_cal</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1697,7 +1697,7 @@ The list of total ion currents within the peak.</li>
 </span><span id="LCMSMassFeature-435"><a href="#LCMSMassFeature-435"><span class="linenos">435</span></a>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mz_exp</span>
 </span><span id="LCMSMassFeature-436"><a href="#LCMSMassFeature-436"><span class="linenos">436</span></a>
 </span><span id="LCMSMassFeature-437"><a href="#LCMSMassFeature-437"><span class="linenos">437</span></a>    <span class="nd">@property</span>
-</span><span id="LCMSMassFeature-438"><a href="#LCMSMassFeature-438"><span class="linenos">438</span></a>    <span class="k">def</span> <span class="nf">mass_spectrum_deconvoluted</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSMassFeature-438"><a href="#LCMSMassFeature-438"><span class="linenos">438</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mass_spectrum_deconvoluted</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-439"><a href="#LCMSMassFeature-439"><span class="linenos">439</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the deconvoluted mass spectrum object associated with the mass feature, if deconvolution has been performed.&quot;&quot;&quot;</span>
 </span><span id="LCMSMassFeature-440"><a href="#LCMSMassFeature-440"><span class="linenos">440</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ms_deconvoluted_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="LCMSMassFeature-441"><a href="#LCMSMassFeature-441"><span class="linenos">441</span></a>            <span class="n">ms_deconvoluted</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="p">)</span>
@@ -1709,55 +1709,55 @@ The list of total ion currents within the peak.</li>
 </span><span id="LCMSMassFeature-447"><a href="#LCMSMassFeature-447"><span class="linenos">447</span></a>            <span class="p">)</span>
 </span><span id="LCMSMassFeature-448"><a href="#LCMSMassFeature-448"><span class="linenos">448</span></a>
 </span><span id="LCMSMassFeature-449"><a href="#LCMSMassFeature-449"><span class="linenos">449</span></a>    <span class="nd">@property</span>
-</span><span id="LCMSMassFeature-450"><a href="#LCMSMassFeature-450"><span class="linenos">450</span></a>    <span class="k">def</span> <span class="nf">retention_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSMassFeature-450"><a href="#LCMSMassFeature-450"><span class="linenos">450</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">retention_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-451"><a href="#LCMSMassFeature-451"><span class="linenos">451</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Retention time of the mass feature&quot;&quot;&quot;</span>
 </span><span id="LCMSMassFeature-452"><a href="#LCMSMassFeature-452"><span class="linenos">452</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retention_time</span>
 </span><span id="LCMSMassFeature-453"><a href="#LCMSMassFeature-453"><span class="linenos">453</span></a>
 </span><span id="LCMSMassFeature-454"><a href="#LCMSMassFeature-454"><span class="linenos">454</span></a>    <span class="nd">@retention_time</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="LCMSMassFeature-455"><a href="#LCMSMassFeature-455"><span class="linenos">455</span></a>    <span class="k">def</span> <span class="nf">retention_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+</span><span id="LCMSMassFeature-455"><a href="#LCMSMassFeature-455"><span class="linenos">455</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">retention_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-456"><a href="#LCMSMassFeature-456"><span class="linenos">456</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the retention time of the mass feature&quot;&quot;&quot;</span>
 </span><span id="LCMSMassFeature-457"><a href="#LCMSMassFeature-457"><span class="linenos">457</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-458"><a href="#LCMSMassFeature-458"><span class="linenos">458</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The retention time of the mass feature must be a float&quot;</span><span class="p">)</span>
 </span><span id="LCMSMassFeature-459"><a href="#LCMSMassFeature-459"><span class="linenos">459</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_retention_time</span> <span class="o">=</span> <span class="n">value</span>
 </span><span id="LCMSMassFeature-460"><a href="#LCMSMassFeature-460"><span class="linenos">460</span></a>
 </span><span id="LCMSMassFeature-461"><a href="#LCMSMassFeature-461"><span class="linenos">461</span></a>    <span class="nd">@property</span>
-</span><span id="LCMSMassFeature-462"><a href="#LCMSMassFeature-462"><span class="linenos">462</span></a>    <span class="k">def</span> <span class="nf">apex_scan</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSMassFeature-462"><a href="#LCMSMassFeature-462"><span class="linenos">462</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">apex_scan</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-463"><a href="#LCMSMassFeature-463"><span class="linenos">463</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Apex scan of the mass feature&quot;&quot;&quot;</span>
 </span><span id="LCMSMassFeature-464"><a href="#LCMSMassFeature-464"><span class="linenos">464</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apex_scan</span>
 </span><span id="LCMSMassFeature-465"><a href="#LCMSMassFeature-465"><span class="linenos">465</span></a>
 </span><span id="LCMSMassFeature-466"><a href="#LCMSMassFeature-466"><span class="linenos">466</span></a>    <span class="nd">@apex_scan</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="LCMSMassFeature-467"><a href="#LCMSMassFeature-467"><span class="linenos">467</span></a>    <span class="k">def</span> <span class="nf">apex_scan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+</span><span id="LCMSMassFeature-467"><a href="#LCMSMassFeature-467"><span class="linenos">467</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">apex_scan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-468"><a href="#LCMSMassFeature-468"><span class="linenos">468</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the apex scan of the mass feature&quot;&quot;&quot;</span>
 </span><span id="LCMSMassFeature-469"><a href="#LCMSMassFeature-469"><span class="linenos">469</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-470"><a href="#LCMSMassFeature-470"><span class="linenos">470</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The apex scan of the mass feature must be an integer&quot;</span><span class="p">)</span>
 </span><span id="LCMSMassFeature-471"><a href="#LCMSMassFeature-471"><span class="linenos">471</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_apex_scan</span> <span class="o">=</span> <span class="n">value</span>
 </span><span id="LCMSMassFeature-472"><a href="#LCMSMassFeature-472"><span class="linenos">472</span></a>
 </span><span id="LCMSMassFeature-473"><a href="#LCMSMassFeature-473"><span class="linenos">473</span></a>    <span class="nd">@property</span>
-</span><span id="LCMSMassFeature-474"><a href="#LCMSMassFeature-474"><span class="linenos">474</span></a>    <span class="k">def</span> <span class="nf">intensity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSMassFeature-474"><a href="#LCMSMassFeature-474"><span class="linenos">474</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">intensity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-475"><a href="#LCMSMassFeature-475"><span class="linenos">475</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Intensity of the mass feature&quot;&quot;&quot;</span>
 </span><span id="LCMSMassFeature-476"><a href="#LCMSMassFeature-476"><span class="linenos">476</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intensity</span>
 </span><span id="LCMSMassFeature-477"><a href="#LCMSMassFeature-477"><span class="linenos">477</span></a>
 </span><span id="LCMSMassFeature-478"><a href="#LCMSMassFeature-478"><span class="linenos">478</span></a>    <span class="nd">@intensity</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="LCMSMassFeature-479"><a href="#LCMSMassFeature-479"><span class="linenos">479</span></a>    <span class="k">def</span> <span class="nf">intensity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+</span><span id="LCMSMassFeature-479"><a href="#LCMSMassFeature-479"><span class="linenos">479</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">intensity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-480"><a href="#LCMSMassFeature-480"><span class="linenos">480</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the intensity of the mass feature&quot;&quot;&quot;</span>
 </span><span id="LCMSMassFeature-481"><a href="#LCMSMassFeature-481"><span class="linenos">481</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-482"><a href="#LCMSMassFeature-482"><span class="linenos">482</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The intensity of the mass feature must be a float&quot;</span><span class="p">)</span>
 </span><span id="LCMSMassFeature-483"><a href="#LCMSMassFeature-483"><span class="linenos">483</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_intensity</span> <span class="o">=</span> <span class="n">value</span>
 </span><span id="LCMSMassFeature-484"><a href="#LCMSMassFeature-484"><span class="linenos">484</span></a>
 </span><span id="LCMSMassFeature-485"><a href="#LCMSMassFeature-485"><span class="linenos">485</span></a>    <span class="nd">@property</span>
-</span><span id="LCMSMassFeature-486"><a href="#LCMSMassFeature-486"><span class="linenos">486</span></a>    <span class="k">def</span> <span class="nf">persistence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSMassFeature-486"><a href="#LCMSMassFeature-486"><span class="linenos">486</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">persistence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-487"><a href="#LCMSMassFeature-487"><span class="linenos">487</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Persistence of the mass feature&quot;&quot;&quot;</span>
 </span><span id="LCMSMassFeature-488"><a href="#LCMSMassFeature-488"><span class="linenos">488</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_persistence</span>
 </span><span id="LCMSMassFeature-489"><a href="#LCMSMassFeature-489"><span class="linenos">489</span></a>
 </span><span id="LCMSMassFeature-490"><a href="#LCMSMassFeature-490"><span class="linenos">490</span></a>    <span class="nd">@persistence</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="LCMSMassFeature-491"><a href="#LCMSMassFeature-491"><span class="linenos">491</span></a>    <span class="k">def</span> <span class="nf">persistence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+</span><span id="LCMSMassFeature-491"><a href="#LCMSMassFeature-491"><span class="linenos">491</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">persistence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-492"><a href="#LCMSMassFeature-492"><span class="linenos">492</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the persistence of the mass feature&quot;&quot;&quot;</span>
 </span><span id="LCMSMassFeature-493"><a href="#LCMSMassFeature-493"><span class="linenos">493</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-494"><a href="#LCMSMassFeature-494"><span class="linenos">494</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The persistence of the mass feature must be a float&quot;</span><span class="p">)</span>
 </span><span id="LCMSMassFeature-495"><a href="#LCMSMassFeature-495"><span class="linenos">495</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_persistence</span> <span class="o">=</span> <span class="n">value</span>
 </span><span id="LCMSMassFeature-496"><a href="#LCMSMassFeature-496"><span class="linenos">496</span></a>
 </span><span id="LCMSMassFeature-497"><a href="#LCMSMassFeature-497"><span class="linenos">497</span></a>    <span class="nd">@property</span>
-</span><span id="LCMSMassFeature-498"><a href="#LCMSMassFeature-498"><span class="linenos">498</span></a>    <span class="k">def</span> <span class="nf">eic_rt_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSMassFeature-498"><a href="#LCMSMassFeature-498"><span class="linenos">498</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">eic_rt_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-499"><a href="#LCMSMassFeature-499"><span class="linenos">499</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Retention time list between the beginning and end of the mass feature&quot;&quot;&quot;</span>
 </span><span id="LCMSMassFeature-500"><a href="#LCMSMassFeature-500"><span class="linenos">500</span></a>        <span class="c1"># Find index of the start and final scans in the EIC data</span>
 </span><span id="LCMSMassFeature-501"><a href="#LCMSMassFeature-501"><span class="linenos">501</span></a>        <span class="n">start_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eic_data</span><span class="o">.</span><span class="n">scans</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start_scan</span><span class="p">)</span>
@@ -1768,7 +1768,7 @@ The list of total ion currents within the peak.</li>
 </span><span id="LCMSMassFeature-506"><a href="#LCMSMassFeature-506"><span class="linenos">506</span></a>        <span class="k">return</span> <span class="n">rt_list</span>
 </span><span id="LCMSMassFeature-507"><a href="#LCMSMassFeature-507"><span class="linenos">507</span></a>
 </span><span id="LCMSMassFeature-508"><a href="#LCMSMassFeature-508"><span class="linenos">508</span></a>    <span class="nd">@property</span>
-</span><span id="LCMSMassFeature-509"><a href="#LCMSMassFeature-509"><span class="linenos">509</span></a>    <span class="k">def</span> <span class="nf">eic_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSMassFeature-509"><a href="#LCMSMassFeature-509"><span class="linenos">509</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">eic_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-510"><a href="#LCMSMassFeature-510"><span class="linenos">510</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;EIC List between the beginning and end of the mass feature&quot;&quot;&quot;</span>
 </span><span id="LCMSMassFeature-511"><a href="#LCMSMassFeature-511"><span class="linenos">511</span></a>        <span class="c1"># Find index of the start and final scans in the EIC data</span>
 </span><span id="LCMSMassFeature-512"><a href="#LCMSMassFeature-512"><span class="linenos">512</span></a>        <span class="n">start_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eic_data</span><span class="o">.</span><span class="n">scans</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start_scan</span><span class="p">)</span>
@@ -1779,7 +1779,7 @@ The list of total ion currents within the peak.</li>
 </span><span id="LCMSMassFeature-517"><a href="#LCMSMassFeature-517"><span class="linenos">517</span></a>        <span class="k">return</span> <span class="n">eic</span>
 </span><span id="LCMSMassFeature-518"><a href="#LCMSMassFeature-518"><span class="linenos">518</span></a>
 </span><span id="LCMSMassFeature-519"><a href="#LCMSMassFeature-519"><span class="linenos">519</span></a>    <span class="nd">@property</span>
-</span><span id="LCMSMassFeature-520"><a href="#LCMSMassFeature-520"><span class="linenos">520</span></a>    <span class="k">def</span> <span class="nf">ms1_peak</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSMassFeature-520"><a href="#LCMSMassFeature-520"><span class="linenos">520</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">ms1_peak</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-521"><a href="#LCMSMassFeature-521"><span class="linenos">521</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;MS1 peak from associated mass spectrum that is closest to the mass feature&#39;s m/z&quot;&quot;&quot;</span>
 </span><span id="LCMSMassFeature-522"><a href="#LCMSMassFeature-522"><span class="linenos">522</span></a>        <span class="c1"># Find index array self.mass_spectrum.mz_exp that is closest to self.mz</span>
 </span><span id="LCMSMassFeature-523"><a href="#LCMSMassFeature-523"><span class="linenos">523</span></a>        <span class="n">closest_mz</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="o">.</span><span class="n">mz_exp</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">mz</span><span class="p">))</span>
@@ -1788,36 +1788,36 @@ The list of total ion currents within the peak.</li>
 </span><span id="LCMSMassFeature-526"><a href="#LCMSMassFeature-526"><span class="linenos">526</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span><span class="o">.</span><span class="n">_mspeaks</span><span class="p">[</span><span class="n">closest_mz_index</span><span class="p">]</span>
 </span><span id="LCMSMassFeature-527"><a href="#LCMSMassFeature-527"><span class="linenos">527</span></a>
 </span><span id="LCMSMassFeature-528"><a href="#LCMSMassFeature-528"><span class="linenos">528</span></a>    <span class="nd">@property</span>
-</span><span id="LCMSMassFeature-529"><a href="#LCMSMassFeature-529"><span class="linenos">529</span></a>    <span class="k">def</span> <span class="nf">tailing_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSMassFeature-529"><a href="#LCMSMassFeature-529"><span class="linenos">529</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">tailing_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-530"><a href="#LCMSMassFeature-530"><span class="linenos">530</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Tailing factor of the mass feature&quot;&quot;&quot;</span>
 </span><span id="LCMSMassFeature-531"><a href="#LCMSMassFeature-531"><span class="linenos">531</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tailing_factor</span>
 </span><span id="LCMSMassFeature-532"><a href="#LCMSMassFeature-532"><span class="linenos">532</span></a>
 </span><span id="LCMSMassFeature-533"><a href="#LCMSMassFeature-533"><span class="linenos">533</span></a>    <span class="nd">@tailing_factor</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="LCMSMassFeature-534"><a href="#LCMSMassFeature-534"><span class="linenos">534</span></a>    <span class="k">def</span> <span class="nf">tailing_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+</span><span id="LCMSMassFeature-534"><a href="#LCMSMassFeature-534"><span class="linenos">534</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">tailing_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-535"><a href="#LCMSMassFeature-535"><span class="linenos">535</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the tailing factor of the mass feature&quot;&quot;&quot;</span>
 </span><span id="LCMSMassFeature-536"><a href="#LCMSMassFeature-536"><span class="linenos">536</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-537"><a href="#LCMSMassFeature-537"><span class="linenos">537</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The tailing factor of the mass feature must be a float&quot;</span><span class="p">)</span>
 </span><span id="LCMSMassFeature-538"><a href="#LCMSMassFeature-538"><span class="linenos">538</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_tailing_factor</span> <span class="o">=</span> <span class="n">value</span>
 </span><span id="LCMSMassFeature-539"><a href="#LCMSMassFeature-539"><span class="linenos">539</span></a>
 </span><span id="LCMSMassFeature-540"><a href="#LCMSMassFeature-540"><span class="linenos">540</span></a>    <span class="nd">@property</span>
-</span><span id="LCMSMassFeature-541"><a href="#LCMSMassFeature-541"><span class="linenos">541</span></a>    <span class="k">def</span> <span class="nf">dispersity_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSMassFeature-541"><a href="#LCMSMassFeature-541"><span class="linenos">541</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">dispersity_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-542"><a href="#LCMSMassFeature-542"><span class="linenos">542</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Dispersity index of the mass feature&quot;&quot;&quot;</span>
 </span><span id="LCMSMassFeature-543"><a href="#LCMSMassFeature-543"><span class="linenos">543</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispersity_index</span>
 </span><span id="LCMSMassFeature-544"><a href="#LCMSMassFeature-544"><span class="linenos">544</span></a>
 </span><span id="LCMSMassFeature-545"><a href="#LCMSMassFeature-545"><span class="linenos">545</span></a>    <span class="nd">@dispersity_index</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="LCMSMassFeature-546"><a href="#LCMSMassFeature-546"><span class="linenos">546</span></a>    <span class="k">def</span> <span class="nf">dispersity_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+</span><span id="LCMSMassFeature-546"><a href="#LCMSMassFeature-546"><span class="linenos">546</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">dispersity_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-547"><a href="#LCMSMassFeature-547"><span class="linenos">547</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the dispersity index of the mass feature&quot;&quot;&quot;</span>
 </span><span id="LCMSMassFeature-548"><a href="#LCMSMassFeature-548"><span class="linenos">548</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-549"><a href="#LCMSMassFeature-549"><span class="linenos">549</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The dispersity index of the mass feature must be a float&quot;</span><span class="p">)</span>
 </span><span id="LCMSMassFeature-550"><a href="#LCMSMassFeature-550"><span class="linenos">550</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_dispersity_index</span> <span class="o">=</span> <span class="n">value</span>
 </span><span id="LCMSMassFeature-551"><a href="#LCMSMassFeature-551"><span class="linenos">551</span></a>
 </span><span id="LCMSMassFeature-552"><a href="#LCMSMassFeature-552"><span class="linenos">552</span></a>    <span class="nd">@property</span>
-</span><span id="LCMSMassFeature-553"><a href="#LCMSMassFeature-553"><span class="linenos">553</span></a>    <span class="k">def</span> <span class="nf">half_height_width</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSMassFeature-553"><a href="#LCMSMassFeature-553"><span class="linenos">553</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">half_height_width</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-554"><a href="#LCMSMassFeature-554"><span class="linenos">554</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Half height width of the mass feature, average of min and max values, in minutes&quot;&quot;&quot;</span>
 </span><span id="LCMSMassFeature-555"><a href="#LCMSMassFeature-555"><span class="linenos">555</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_half_height_width</span><span class="p">)</span>
 </span><span id="LCMSMassFeature-556"><a href="#LCMSMassFeature-556"><span class="linenos">556</span></a>
 </span><span id="LCMSMassFeature-557"><a href="#LCMSMassFeature-557"><span class="linenos">557</span></a>    <span class="nd">@property</span>
-</span><span id="LCMSMassFeature-558"><a href="#LCMSMassFeature-558"><span class="linenos">558</span></a>    <span class="k">def</span> <span class="nf">best_ms2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSMassFeature-558"><a href="#LCMSMassFeature-558"><span class="linenos">558</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">best_ms2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSMassFeature-559"><a href="#LCMSMassFeature-559"><span class="linenos">559</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Points to the best representative MS2 mass spectrum</span>
 </span><span id="LCMSMassFeature-560"><a href="#LCMSMassFeature-560"><span class="linenos">560</span></a>
 </span><span id="LCMSMassFeature-561"><a href="#LCMSMassFeature-561"><span class="linenos">561</span></a><span class="sd">        Notes</span>
@@ -1989,7 +1989,7 @@ List of mass features associated with the deconvoluted mass spectrum. Default is
 
     </div>
     <a class="headerlink" href="#LCMSMassFeature.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSMassFeature.__init__-179"><a href="#LCMSMassFeature.__init__-179"><span class="linenos">179</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSMassFeature.__init__-179"><a href="#LCMSMassFeature.__init__-179"><span class="linenos">179</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="LCMSMassFeature.__init__-180"><a href="#LCMSMassFeature.__init__-180"><span class="linenos">180</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="LCMSMassFeature.__init__-181"><a href="#LCMSMassFeature.__init__-181"><span class="linenos">181</span></a>        <span class="n">lcms_parent</span><span class="p">,</span>
 </span><span id="LCMSMassFeature.__init__-182"><a href="#LCMSMassFeature.__init__-182"><span class="linenos">182</span></a>        <span class="n">mz</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -2130,7 +2130,7 @@ List of mass features associated with the deconvoluted mass spectrum. Default is
 
     </div>
     <a class="headerlink" href="#LCMSMassFeature.update_mz"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSMassFeature.update_mz-227"><a href="#LCMSMassFeature.update_mz-227"><span class="linenos">227</span></a>    <span class="k">def</span> <span class="nf">update_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSMassFeature.update_mz-227"><a href="#LCMSMassFeature.update_mz-227"><span class="linenos">227</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">update_mz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSMassFeature.update_mz-228"><a href="#LCMSMassFeature.update_mz-228"><span class="linenos">228</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the mass to charge ratio from the mass spectrum object.&quot;&quot;&quot;</span>
 </span><span id="LCMSMassFeature.update_mz-229"><a href="#LCMSMassFeature.update_mz-229"><span class="linenos">229</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_spectrum</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="LCMSMassFeature.update_mz-230"><a href="#LCMSMassFeature.update_mz-230"><span class="linenos">230</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -2165,7 +2165,7 @@ List of mass features associated with the deconvoluted mass spectrum. Default is
 
     </div>
     <a class="headerlink" href="#LCMSMassFeature.plot"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSMassFeature.plot-244"><a href="#LCMSMassFeature.plot-244"><span class="linenos">244</span></a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">to_plot</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;EIC&quot;</span><span class="p">,</span> <span class="s2">&quot;MS1&quot;</span><span class="p">,</span> <span class="s2">&quot;MS2&quot;</span><span class="p">],</span> <span class="n">return_fig</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">plot_smoothed_eic</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">plot_eic_datapoints</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSMassFeature.plot-244"><a href="#LCMSMassFeature.plot-244"><span class="linenos">244</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">to_plot</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;EIC&quot;</span><span class="p">,</span> <span class="s2">&quot;MS1&quot;</span><span class="p">,</span> <span class="s2">&quot;MS2&quot;</span><span class="p">],</span> <span class="n">return_fig</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">plot_smoothed_eic</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">plot_eic_datapoints</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 </span><span id="LCMSMassFeature.plot-245"><a href="#LCMSMassFeature.plot-245"><span class="linenos">245</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the mass feature.</span>
 </span><span id="LCMSMassFeature.plot-246"><a href="#LCMSMassFeature.plot-246"><span class="linenos">246</span></a>
 </span><span id="LCMSMassFeature.plot-247"><a href="#LCMSMassFeature.plot-247"><span class="linenos">247</span></a><span class="sd">        Parameters</span>
@@ -2594,7 +2594,7 @@ If there are no MS2 similarity results, the best MS2 mass spectrum is determined
 
     </div>
     <a class="headerlink" href="#GCPeak"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="GCPeak-646"><a href="#GCPeak-646"><span class="linenos">646</span></a><span class="k">class</span> <span class="nc">GCPeak</span><span class="p">(</span><span class="n">ChromaPeakBase</span><span class="p">,</span> <span class="n">GCPeakCalculation</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="GCPeak-646"><a href="#GCPeak-646"><span class="linenos">646</span></a><span class="k">class</span><span class="w"> </span><span class="nc">GCPeak</span><span class="p">(</span><span class="n">ChromaPeakBase</span><span class="p">,</span> <span class="n">GCPeakCalculation</span><span class="p">):</span>
 </span><span id="GCPeak-647"><a href="#GCPeak-647"><span class="linenos">647</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class representing a peak in a gas chromatography (GC) chromatogram.</span>
 </span><span id="GCPeak-648"><a href="#GCPeak-648"><span class="linenos">648</span></a>
 </span><span id="GCPeak-649"><a href="#GCPeak-649"><span class="linenos">649</span></a><span class="sd">    Parameters</span>
@@ -2626,24 +2626,24 @@ If there are no MS2 similarity results, the best MS2 mass spectrum is determined
 </span><span id="GCPeak-675"><a href="#GCPeak-675"><span class="linenos">675</span></a><span class="sd">    * compound_names(). Returns a list of names of compounds associated with the peak.</span>
 </span><span id="GCPeak-676"><a href="#GCPeak-676"><span class="linenos">676</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="GCPeak-677"><a href="#GCPeak-677"><span class="linenos">677</span></a>
-</span><span id="GCPeak-678"><a href="#GCPeak-678"><span class="linenos">678</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chromatogram_parent</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="n">indexes</span><span class="p">):</span>
+</span><span id="GCPeak-678"><a href="#GCPeak-678"><span class="linenos">678</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chromatogram_parent</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="n">indexes</span><span class="p">):</span>
 </span><span id="GCPeak-679"><a href="#GCPeak-679"><span class="linenos">679</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_compounds</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="GCPeak-680"><a href="#GCPeak-680"><span class="linenos">680</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_ri</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="GCPeak-681"><a href="#GCPeak-681"><span class="linenos">681</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">chromatogram_parent</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="o">*</span><span class="n">indexes</span><span class="p">)</span>
 </span><span id="GCPeak-682"><a href="#GCPeak-682"><span class="linenos">682</span></a>
-</span><span id="GCPeak-683"><a href="#GCPeak-683"><span class="linenos">683</span></a>    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="GCPeak-683"><a href="#GCPeak-683"><span class="linenos">683</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="GCPeak-684"><a href="#GCPeak-684"><span class="linenos">684</span></a>        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compounds</span><span class="p">)</span>
 </span><span id="GCPeak-685"><a href="#GCPeak-685"><span class="linenos">685</span></a>
-</span><span id="GCPeak-686"><a href="#GCPeak-686"><span class="linenos">686</span></a>    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
+</span><span id="GCPeak-686"><a href="#GCPeak-686"><span class="linenos">686</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
 </span><span id="GCPeak-687"><a href="#GCPeak-687"><span class="linenos">687</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compounds</span><span class="p">[</span><span class="n">position</span><span class="p">]</span>
 </span><span id="GCPeak-688"><a href="#GCPeak-688"><span class="linenos">688</span></a>
-</span><span id="GCPeak-689"><a href="#GCPeak-689"><span class="linenos">689</span></a>    <span class="k">def</span> <span class="nf">remove_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compounds_obj</span><span class="p">):</span>
+</span><span id="GCPeak-689"><a href="#GCPeak-689"><span class="linenos">689</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">remove_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compounds_obj</span><span class="p">):</span>
 </span><span id="GCPeak-690"><a href="#GCPeak-690"><span class="linenos">690</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_compounds</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">compounds_obj</span><span class="p">)</span>
 </span><span id="GCPeak-691"><a href="#GCPeak-691"><span class="linenos">691</span></a>
-</span><span id="GCPeak-692"><a href="#GCPeak-692"><span class="linenos">692</span></a>    <span class="k">def</span> <span class="nf">clear_compounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="GCPeak-692"><a href="#GCPeak-692"><span class="linenos">692</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">clear_compounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="GCPeak-693"><a href="#GCPeak-693"><span class="linenos">693</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_compounds</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="GCPeak-694"><a href="#GCPeak-694"><span class="linenos">694</span></a>
-</span><span id="GCPeak-695"><a href="#GCPeak-695"><span class="linenos">695</span></a>    <span class="k">def</span> <span class="nf">add_compound</span><span class="p">(</span>
+</span><span id="GCPeak-695"><a href="#GCPeak-695"><span class="linenos">695</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_compound</span><span class="p">(</span>
 </span><span id="GCPeak-696"><a href="#GCPeak-696"><span class="linenos">696</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="GCPeak-697"><a href="#GCPeak-697"><span class="linenos">697</span></a>        <span class="n">compounds_dict</span><span class="p">,</span>
 </span><span id="GCPeak-698"><a href="#GCPeak-698"><span class="linenos">698</span></a>        <span class="n">spectral_similarity_scores</span><span class="p">,</span>
@@ -2680,7 +2680,7 @@ If there are no MS2 similarity results, the best MS2 mass spectrum is determined
 </span><span id="GCPeak-729"><a href="#GCPeak-729"><span class="linenos">729</span></a>            <span class="p">)</span>
 </span><span id="GCPeak-730"><a href="#GCPeak-730"><span class="linenos">730</span></a>
 </span><span id="GCPeak-731"><a href="#GCPeak-731"><span class="linenos">731</span></a>    <span class="nd">@property</span>
-</span><span id="GCPeak-732"><a href="#GCPeak-732"><span class="linenos">732</span></a>    <span class="k">def</span> <span class="nf">ri</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="GCPeak-732"><a href="#GCPeak-732"><span class="linenos">732</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">ri</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="GCPeak-733"><a href="#GCPeak-733"><span class="linenos">733</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the retention index of the peak.</span>
 </span><span id="GCPeak-734"><a href="#GCPeak-734"><span class="linenos">734</span></a>
 </span><span id="GCPeak-735"><a href="#GCPeak-735"><span class="linenos">735</span></a><span class="sd">        Returns</span>
@@ -2691,7 +2691,7 @@ If there are no MS2 similarity results, the best MS2 mass spectrum is determined
 </span><span id="GCPeak-740"><a href="#GCPeak-740"><span class="linenos">740</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ri</span>
 </span><span id="GCPeak-741"><a href="#GCPeak-741"><span class="linenos">741</span></a>
 </span><span id="GCPeak-742"><a href="#GCPeak-742"><span class="linenos">742</span></a>    <span class="nd">@property</span>
-</span><span id="GCPeak-743"><a href="#GCPeak-743"><span class="linenos">743</span></a>    <span class="k">def</span> <span class="nf">highest_ss_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="GCPeak-743"><a href="#GCPeak-743"><span class="linenos">743</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">highest_ss_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="GCPeak-744"><a href="#GCPeak-744"><span class="linenos">744</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the compound with the highest spectral similarity score.</span>
 </span><span id="GCPeak-745"><a href="#GCPeak-745"><span class="linenos">745</span></a>
 </span><span id="GCPeak-746"><a href="#GCPeak-746"><span class="linenos">746</span></a><span class="sd">        Returns</span>
@@ -2705,7 +2705,7 @@ If there are no MS2 similarity results, the best MS2 mass spectrum is determined
 </span><span id="GCPeak-754"><a href="#GCPeak-754"><span class="linenos">754</span></a>            <span class="k">return</span> <span class="kc">None</span>
 </span><span id="GCPeak-755"><a href="#GCPeak-755"><span class="linenos">755</span></a>
 </span><span id="GCPeak-756"><a href="#GCPeak-756"><span class="linenos">756</span></a>    <span class="nd">@property</span>
-</span><span id="GCPeak-757"><a href="#GCPeak-757"><span class="linenos">757</span></a>    <span class="k">def</span> <span class="nf">highest_score_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="GCPeak-757"><a href="#GCPeak-757"><span class="linenos">757</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">highest_score_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="GCPeak-758"><a href="#GCPeak-758"><span class="linenos">758</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the compound with the highest similarity score.</span>
 </span><span id="GCPeak-759"><a href="#GCPeak-759"><span class="linenos">759</span></a>
 </span><span id="GCPeak-760"><a href="#GCPeak-760"><span class="linenos">760</span></a><span class="sd">        Returns</span>
@@ -2719,7 +2719,7 @@ If there are no MS2 similarity results, the best MS2 mass spectrum is determined
 </span><span id="GCPeak-768"><a href="#GCPeak-768"><span class="linenos">768</span></a>            <span class="k">return</span> <span class="kc">None</span>
 </span><span id="GCPeak-769"><a href="#GCPeak-769"><span class="linenos">769</span></a>
 </span><span id="GCPeak-770"><a href="#GCPeak-770"><span class="linenos">770</span></a>    <span class="nd">@property</span>
-</span><span id="GCPeak-771"><a href="#GCPeak-771"><span class="linenos">771</span></a>    <span class="k">def</span> <span class="nf">compound_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="GCPeak-771"><a href="#GCPeak-771"><span class="linenos">771</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">compound_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="GCPeak-772"><a href="#GCPeak-772"><span class="linenos">772</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a list of names of compounds associated with the peak.</span>
 </span><span id="GCPeak-773"><a href="#GCPeak-773"><span class="linenos">773</span></a>
 </span><span id="GCPeak-774"><a href="#GCPeak-774"><span class="linenos">774</span></a><span class="sd">        Returns</span>
@@ -2782,7 +2782,7 @@ Retention index of the peak.</li>
 
     </div>
     <a class="headerlink" href="#GCPeak.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="GCPeak.__init__-678"><a href="#GCPeak.__init__-678"><span class="linenos">678</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chromatogram_parent</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="n">indexes</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="GCPeak.__init__-678"><a href="#GCPeak.__init__-678"><span class="linenos">678</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chromatogram_parent</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="n">indexes</span><span class="p">):</span>
 </span><span id="GCPeak.__init__-679"><a href="#GCPeak.__init__-679"><span class="linenos">679</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_compounds</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="GCPeak.__init__-680"><a href="#GCPeak.__init__-680"><span class="linenos">680</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_ri</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="GCPeak.__init__-681"><a href="#GCPeak.__init__-681"><span class="linenos">681</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">chromatogram_parent</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="o">*</span><span class="n">indexes</span><span class="p">)</span>
@@ -2803,7 +2803,7 @@ Retention index of the peak.</li>
 
     </div>
     <a class="headerlink" href="#GCPeak.remove_compound"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="GCPeak.remove_compound-689"><a href="#GCPeak.remove_compound-689"><span class="linenos">689</span></a>    <span class="k">def</span> <span class="nf">remove_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compounds_obj</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="GCPeak.remove_compound-689"><a href="#GCPeak.remove_compound-689"><span class="linenos">689</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">remove_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compounds_obj</span><span class="p">):</span>
 </span><span id="GCPeak.remove_compound-690"><a href="#GCPeak.remove_compound-690"><span class="linenos">690</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_compounds</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">compounds_obj</span><span class="p">)</span>
 </span></pre></div>
 
@@ -2822,7 +2822,7 @@ Retention index of the peak.</li>
 
     </div>
     <a class="headerlink" href="#GCPeak.clear_compounds"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="GCPeak.clear_compounds-692"><a href="#GCPeak.clear_compounds-692"><span class="linenos">692</span></a>    <span class="k">def</span> <span class="nf">clear_compounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="GCPeak.clear_compounds-692"><a href="#GCPeak.clear_compounds-692"><span class="linenos">692</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">clear_compounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="GCPeak.clear_compounds-693"><a href="#GCPeak.clear_compounds-693"><span class="linenos">693</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_compounds</span> <span class="o">=</span> <span class="p">[]</span>
 </span></pre></div>
 
@@ -2841,7 +2841,7 @@ Retention index of the peak.</li>
 
     </div>
     <a class="headerlink" href="#GCPeak.add_compound"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="GCPeak.add_compound-695"><a href="#GCPeak.add_compound-695"><span class="linenos">695</span></a>    <span class="k">def</span> <span class="nf">add_compound</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="GCPeak.add_compound-695"><a href="#GCPeak.add_compound-695"><span class="linenos">695</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_compound</span><span class="p">(</span>
 </span><span id="GCPeak.add_compound-696"><a href="#GCPeak.add_compound-696"><span class="linenos">696</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="GCPeak.add_compound-697"><a href="#GCPeak.add_compound-697"><span class="linenos">697</span></a>        <span class="n">compounds_dict</span><span class="p">,</span>
 </span><span id="GCPeak.add_compound-698"><a href="#GCPeak.add_compound-698"><span class="linenos">698</span></a>        <span class="n">spectral_similarity_scores</span><span class="p">,</span>
@@ -3009,7 +3009,7 @@ The similarity score of the compound. Default is None.</li>
 
     </div>
     <a class="headerlink" href="#GCPeakDeconvolved"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="GCPeakDeconvolved-785"><a href="#GCPeakDeconvolved-785"><span class="linenos">785</span></a><span class="k">class</span> <span class="nc">GCPeakDeconvolved</span><span class="p">(</span><span class="n">GCPeak</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="GCPeakDeconvolved-785"><a href="#GCPeakDeconvolved-785"><span class="linenos">785</span></a><span class="k">class</span><span class="w"> </span><span class="nc">GCPeakDeconvolved</span><span class="p">(</span><span class="n">GCPeak</span><span class="p">):</span>
 </span><span id="GCPeakDeconvolved-786"><a href="#GCPeakDeconvolved-786"><span class="linenos">786</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a deconvolved peak in a chromatogram.</span>
 </span><span id="GCPeakDeconvolved-787"><a href="#GCPeakDeconvolved-787"><span class="linenos">787</span></a>
 </span><span id="GCPeakDeconvolved-788"><a href="#GCPeakDeconvolved-788"><span class="linenos">788</span></a><span class="sd">    Parameters</span>
@@ -3026,7 +3026,7 @@ The similarity score of the compound. Default is None.</li>
 </span><span id="GCPeakDeconvolved-799"><a href="#GCPeakDeconvolved-799"><span class="linenos">799</span></a><span class="sd">        List of total ion currents.</span>
 </span><span id="GCPeakDeconvolved-800"><a href="#GCPeakDeconvolved-800"><span class="linenos">800</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="GCPeakDeconvolved-801"><a href="#GCPeakDeconvolved-801"><span class="linenos">801</span></a>
-</span><span id="GCPeakDeconvolved-802"><a href="#GCPeakDeconvolved-802"><span class="linenos">802</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+</span><span id="GCPeakDeconvolved-802"><a href="#GCPeakDeconvolved-802"><span class="linenos">802</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="GCPeakDeconvolved-803"><a href="#GCPeakDeconvolved-803"><span class="linenos">803</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">chromatogram_parent</span><span class="p">,</span> <span class="n">mass_spectra</span><span class="p">,</span> <span class="n">apex_index</span><span class="p">,</span> <span class="n">rt_list</span><span class="p">,</span> <span class="n">tic_list</span>
 </span><span id="GCPeakDeconvolved-804"><a href="#GCPeakDeconvolved-804"><span class="linenos">804</span></a>    <span class="p">):</span>
 </span><span id="GCPeakDeconvolved-805"><a href="#GCPeakDeconvolved-805"><span class="linenos">805</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_ri</span> <span class="o">=</span> <span class="kc">None</span>
@@ -3040,7 +3040,7 @@ The similarity score of the compound. Default is None.</li>
 </span><span id="GCPeakDeconvolved-813"><a href="#GCPeakDeconvolved-813"><span class="linenos">813</span></a>        <span class="p">)</span>
 </span><span id="GCPeakDeconvolved-814"><a href="#GCPeakDeconvolved-814"><span class="linenos">814</span></a>
 </span><span id="GCPeakDeconvolved-815"><a href="#GCPeakDeconvolved-815"><span class="linenos">815</span></a>    <span class="nd">@property</span>
-</span><span id="GCPeakDeconvolved-816"><a href="#GCPeakDeconvolved-816"><span class="linenos">816</span></a>    <span class="k">def</span> <span class="nf">rt_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="GCPeakDeconvolved-816"><a href="#GCPeakDeconvolved-816"><span class="linenos">816</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">rt_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="GCPeakDeconvolved-817"><a href="#GCPeakDeconvolved-817"><span class="linenos">817</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the list of retention times.</span>
 </span><span id="GCPeakDeconvolved-818"><a href="#GCPeakDeconvolved-818"><span class="linenos">818</span></a>
 </span><span id="GCPeakDeconvolved-819"><a href="#GCPeakDeconvolved-819"><span class="linenos">819</span></a><span class="sd">        Returns</span>
@@ -3051,7 +3051,7 @@ The similarity score of the compound. Default is None.</li>
 </span><span id="GCPeakDeconvolved-824"><a href="#GCPeakDeconvolved-824"><span class="linenos">824</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rt_list</span>
 </span><span id="GCPeakDeconvolved-825"><a href="#GCPeakDeconvolved-825"><span class="linenos">825</span></a>
 </span><span id="GCPeakDeconvolved-826"><a href="#GCPeakDeconvolved-826"><span class="linenos">826</span></a>    <span class="nd">@property</span>
-</span><span id="GCPeakDeconvolved-827"><a href="#GCPeakDeconvolved-827"><span class="linenos">827</span></a>    <span class="k">def</span> <span class="nf">tic_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="GCPeakDeconvolved-827"><a href="#GCPeakDeconvolved-827"><span class="linenos">827</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">tic_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="GCPeakDeconvolved-828"><a href="#GCPeakDeconvolved-828"><span class="linenos">828</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the list of total ion currents.</span>
 </span><span id="GCPeakDeconvolved-829"><a href="#GCPeakDeconvolved-829"><span class="linenos">829</span></a>
 </span><span id="GCPeakDeconvolved-830"><a href="#GCPeakDeconvolved-830"><span class="linenos">830</span></a><span class="sd">        Returns</span>
@@ -3092,7 +3092,7 @@ List of total ion currents.</li>
 
     </div>
     <a class="headerlink" href="#GCPeakDeconvolved.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="GCPeakDeconvolved.__init__-802"><a href="#GCPeakDeconvolved.__init__-802"><span class="linenos">802</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="GCPeakDeconvolved.__init__-802"><a href="#GCPeakDeconvolved.__init__-802"><span class="linenos">802</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="GCPeakDeconvolved.__init__-803"><a href="#GCPeakDeconvolved.__init__-803"><span class="linenos">803</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">chromatogram_parent</span><span class="p">,</span> <span class="n">mass_spectra</span><span class="p">,</span> <span class="n">apex_index</span><span class="p">,</span> <span class="n">rt_list</span><span class="p">,</span> <span class="n">tic_list</span>
 </span><span id="GCPeakDeconvolved.__init__-804"><a href="#GCPeakDeconvolved.__init__-804"><span class="linenos">804</span></a>    <span class="p">):</span>
 </span><span id="GCPeakDeconvolved.__init__-805"><a href="#GCPeakDeconvolved.__init__-805"><span class="linenos">805</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_ri</span> <span class="o">=</span> <span class="kc">None</span>

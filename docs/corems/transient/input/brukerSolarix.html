@@ -89,19 +89,19 @@
 
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Yuri E. Corilo&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="n">__date__</span> <span class="o">=</span> <span class="s2">&quot;Jun 12, 2019&quot;</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span> <span class="nn">xml.dom</span> <span class="kn">import</span> <span class="n">minidom</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">xml.dom</span><span class="w"> </span><span class="kn">import</span> <span class="n">minidom</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">float32</span><span class="p">,</span> <span class="n">float64</span><span class="p">,</span> <span class="n">frombuffer</span><span class="p">,</span> <span class="n">fromfile</span><span class="p">,</span> <span class="n">fromstring</span><span class="p">,</span> <span class="n">genfromtxt</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span> <span class="nn">s3path</span> <span class="kn">import</span> <span class="n">S3Path</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">float32</span><span class="p">,</span> <span class="n">float64</span><span class="p">,</span> <span class="n">frombuffer</span><span class="p">,</span> <span class="n">fromfile</span><span class="p">,</span> <span class="n">fromstring</span><span class="p">,</span> <span class="n">genfromtxt</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">s3path</span><span class="w"> </span><span class="kn">import</span> <span class="n">S3Path</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.factory.parameters</span> <span class="kn">import</span> <span class="n">default_parameters</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span> <span class="nn">corems.transient.factory.TransientClasses</span> <span class="kn">import</span> <span class="n">Transient</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.encapsulation.factory.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_parameters</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.transient.factory.TransientClasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">Transient</span>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="k">class</span> <span class="nc">ReadBrukerSolarix</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ReadBrukerSolarix</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A class used to Read a single Transient from Bruker&#39;s FT-MS acquisition station (fid, or ser)</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="sd">    Parameters</span>
@@ -140,13 +140,13 @@
 </span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>
 </span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>
-</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transient</span><span class="p">()</span>
 </span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>
-</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
 </span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>        <span class="k">return</span> <span class="kc">False</span>
 </span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>
-</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_directory_location</span><span class="p">):</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_directory_location</span><span class="p">):</span>
 </span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d_directory_location</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
 </span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>            <span class="n">d_directory_location</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">d_directory_location</span><span class="p">)</span>
 </span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>
@@ -179,7 +179,7 @@
 </span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>                <span class="o">%</span> <span class="p">(</span><span class="n">d_directory_location</span><span class="p">)</span>
 </span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>            <span class="p">)</span>
 </span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>
-</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>    <span class="k">def</span> <span class="nf">get_scan_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_scan_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Function to get the scan retention times, TIC values and scan indices.</span>
 </span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>
 </span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a><span class="sd">        Gets information from scan.xml file in the bruker .d folder.</span>
@@ -191,7 +191,7 @@
 </span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a><span class="sd">            a dictionary with scan number as key and rt and tic as values</span>
 </span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>        <span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">bs4</span><span class="w"> </span><span class="kn">import</span> <span class="n">BeautifulSoup</span>
 </span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>
 </span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>        <span class="k">try</span><span class="p">:</span>
 </span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>            <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_attr</span><span class="o">.</span><span class="n">open</span><span class="p">(),</span> <span class="s2">&quot;xml&quot;</span><span class="p">)</span>
@@ -208,7 +208,7 @@
 </span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>
 </span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>        <span class="k">return</span> <span class="n">dict_scan_rt_tic</span>
 </span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>
-</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>    <span class="k">def</span> <span class="nf">get_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_number</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_number</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 </span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Function to get the transient data and parameters from a Bruker Solarix .d folder.</span>
 </span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>
 </span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="sd">        Parameters</span>
@@ -226,7 +226,7 @@
 </span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>
 </span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">fix_freq_limits</span><span class="p">(</span><span class="n">file_d_params</span><span class="p">)</span>
 </span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>
-</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>        <span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="n">platform</span>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">sys</span><span class="w"> </span><span class="kn">import</span> <span class="n">platform</span>
 </span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>
 </span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>        <span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
 </span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>            <span class="c1"># Windows...</span>
@@ -281,7 +281,7 @@
 </span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a>        <span class="n">data_points</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">file_d_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;TD&quot;</span><span class="p">))</span>
 </span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a>
 </span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a>        <span class="n">scan</span> <span class="o">=</span> <span class="n">output_parameters</span><span class="p">[</span><span class="s2">&quot;scan_number&quot;</span><span class="p">]</span>
-</span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a>        <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+</span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">BytesIO</span>
 </span><span id="L-196"><a href="#L-196"><span class="linenos">196</span></a>
 </span><span id="L-197"><a href="#L-197"><span class="linenos">197</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transient_data_path</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;ser&quot;</span><span class="p">:</span>
 </span><span id="L-198"><a href="#L-198"><span class="linenos">198</span></a>            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transient_data_path</span><span class="p">,</span> <span class="n">S3Path</span><span class="p">):</span>
@@ -304,7 +304,7 @@
 </span><span id="L-215"><a href="#L-215"><span class="linenos">215</span></a>
 </span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a>    <span class="c1">#    for key, values in default_parameters.items():</span>
 </span><span id="L-217"><a href="#L-217"><span class="linenos">217</span></a>    <span class="c1">#        print(key, values)</span>
-</span><span id="L-218"><a href="#L-218"><span class="linenos">218</span></a>    <span class="k">def</span> <span class="nf">fix_freq_limits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_parameters</span><span class="p">):</span>
+</span><span id="L-218"><a href="#L-218"><span class="linenos">218</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">fix_freq_limits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_parameters</span><span class="p">):</span>
 </span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Function to read and set the correct frequency limits for the spectrum</span>
 </span><span id="L-220"><a href="#L-220"><span class="linenos">220</span></a>
 </span><span id="L-221"><a href="#L-221"><span class="linenos">221</span></a><span class="sd">        Notes</span>
@@ -336,7 +336,7 @@
 </span><span id="L-247"><a href="#L-247"><span class="linenos">247</span></a>            <span class="n">d_parameters</span><span class="p">[</span><span class="s2">&quot;EXC_Freq_Low&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lowfreq</span>
 </span><span id="L-248"><a href="#L-248"><span class="linenos">248</span></a>
 </span><span id="L-249"><a href="#L-249"><span class="linenos">249</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-250"><a href="#L-250"><span class="linenos">250</span></a>    <span class="k">def</span> <span class="nf">get_excite_sweep_range</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+</span><span id="L-250"><a href="#L-250"><span class="linenos">250</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_excite_sweep_range</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
 </span><span id="L-251"><a href="#L-251"><span class="linenos">251</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Function to determine excitation sweep range from ExciteSweep file</span>
 </span><span id="L-252"><a href="#L-252"><span class="linenos">252</span></a>
 </span><span id="L-253"><a href="#L-253"><span class="linenos">253</span></a><span class="sd">        This looks at the first and last rows of the ExciteSweep file to determine the excitation frequency range.</span>
@@ -357,7 +357,7 @@
 </span><span id="L-268"><a href="#L-268"><span class="linenos">268</span></a>        <span class="k">return</span> <span class="n">lowfreq</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">highfreq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </span><span id="L-269"><a href="#L-269"><span class="linenos">269</span></a>
 </span><span id="L-270"><a href="#L-270"><span class="linenos">270</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-271"><a href="#L-271"><span class="linenos">271</span></a>    <span class="k">def</span> <span class="nf">locate_file</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">type_file_name</span><span class="o">=</span><span class="s2">&quot;apexAcquisition.method&quot;</span><span class="p">):</span>
+</span><span id="L-271"><a href="#L-271"><span class="linenos">271</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">locate_file</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">type_file_name</span><span class="o">=</span><span class="s2">&quot;apexAcquisition.method&quot;</span><span class="p">):</span>
 </span><span id="L-272"><a href="#L-272"><span class="linenos">272</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Function to locate a file in a folder</span>
 </span><span id="L-273"><a href="#L-273"><span class="linenos">273</span></a>
 </span><span id="L-274"><a href="#L-274"><span class="linenos">274</span></a><span class="sd">        Find the full path of a specific file within the acquisition .d folder or subfolders</span>
@@ -381,7 +381,7 @@
 </span><span id="L-292"><a href="#L-292"><span class="linenos">292</span></a>
 </span><span id="L-293"><a href="#L-293"><span class="linenos">293</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-294"><a href="#L-294"><span class="linenos">294</span></a>
-</span><span id="L-295"><a href="#L-295"><span class="linenos">295</span></a>        <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+</span><span id="L-295"><a href="#L-295"><span class="linenos">295</span></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 </span><span id="L-296"><a href="#L-296"><span class="linenos">296</span></a>
 </span><span id="L-297"><a href="#L-297"><span class="linenos">297</span></a>        <span class="c1"># directory_location = folder.glob( &#39;**/*apexAcquisition.method&#39;)</span>
 </span><span id="L-298"><a href="#L-298"><span class="linenos">298</span></a>        <span class="n">directory_location</span> <span class="o">=</span> <span class="n">folder</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;**/*&quot;</span> <span class="o">+</span> <span class="n">type_file_name</span><span class="p">)</span>
@@ -401,7 +401,7 @@
 </span><span id="L-312"><a href="#L-312"><span class="linenos">312</span></a>        <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </span><span id="L-313"><a href="#L-313"><span class="linenos">313</span></a>
 </span><span id="L-314"><a href="#L-314"><span class="linenos">314</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-315"><a href="#L-315"><span class="linenos">315</span></a>    <span class="k">def</span> <span class="nf">parse_parameters</span><span class="p">(</span><span class="n">parameters_filename</span><span class="p">):</span>
+</span><span id="L-315"><a href="#L-315"><span class="linenos">315</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parse_parameters</span><span class="p">(</span><span class="n">parameters_filename</span><span class="p">):</span>
 </span><span id="L-316"><a href="#L-316"><span class="linenos">316</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Function to parse the parameters from apexAcquisition.method file</span>
 </span><span id="L-317"><a href="#L-317"><span class="linenos">317</span></a>
 </span><span id="L-318"><a href="#L-318"><span class="linenos">318</span></a><span class="sd">        Open the given file and retrieve all parameters from apexAcquisition.method</span>
@@ -485,11 +485,11 @@
 </span><span id="L-396"><a href="#L-396"><span class="linenos">396</span></a>
 </span><span id="L-397"><a href="#L-397"><span class="linenos">397</span></a>        <span class="k">return</span> <span class="n">parameter_dict</span>
 </span><span id="L-398"><a href="#L-398"><span class="linenos">398</span></a>
-</span><span id="L-399"><a href="#L-399"><span class="linenos">399</span></a>    <span class="k">def</span> <span class="nf">parse_sqlite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sqlite_filename</span><span class="o">=</span><span class="s2">&quot;chromatography-data.sqlite&quot;</span><span class="p">):</span>
+</span><span id="L-399"><a href="#L-399"><span class="linenos">399</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parse_sqlite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sqlite_filename</span><span class="o">=</span><span class="s2">&quot;chromatography-data.sqlite&quot;</span><span class="p">):</span>
 </span><span id="L-400"><a href="#L-400"><span class="linenos">400</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
-</span><span id="L-401"><a href="#L-401"><span class="linenos">401</span></a>        <span class="kn">import</span> <span class="nn">sqlite3</span>
+</span><span id="L-401"><a href="#L-401"><span class="linenos">401</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">sqlite3</span>
 </span><span id="L-402"><a href="#L-402"><span class="linenos">402</span></a>
-</span><span id="L-403"><a href="#L-403"><span class="linenos">403</span></a>        <span class="k">def</span> <span class="nf">read_sqlite_file</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">table_name</span><span class="p">):</span>
+</span><span id="L-403"><a href="#L-403"><span class="linenos">403</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">read_sqlite_file</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">table_name</span><span class="p">):</span>
 </span><span id="L-404"><a href="#L-404"><span class="linenos">404</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-405"><a href="#L-405"><span class="linenos">405</span></a><span class="sd">            Read data from a SQLite database file and return it as a list of tuples</span>
 </span><span id="L-406"><a href="#L-406"><span class="linenos">406</span></a>
@@ -526,7 +526,7 @@
 </span><span id="L-437"><a href="#L-437"><span class="linenos">437</span></a>            <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span><span id="L-438"><a href="#L-438"><span class="linenos">438</span></a>            <span class="k">return</span> <span class="n">stream</span>
 </span><span id="L-439"><a href="#L-439"><span class="linenos">439</span></a>
-</span><span id="L-440"><a href="#L-440"><span class="linenos">440</span></a>        <span class="k">def</span> <span class="nf">parse_binary</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+</span><span id="L-440"><a href="#L-440"><span class="linenos">440</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">parse_binary</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
 </span><span id="L-441"><a href="#L-441"><span class="linenos">441</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-442"><a href="#L-442"><span class="linenos">442</span></a><span class="sd">            Parse binary data from the sqlite data streams</span>
 </span><span id="L-443"><a href="#L-443"><span class="linenos">443</span></a><span class="sd">            &quot;&quot;&quot;</span>
@@ -575,7 +575,7 @@
 
     </div>
     <a class="headerlink" href="#ReadBrukerSolarix"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBrukerSolarix-16"><a href="#ReadBrukerSolarix-16"><span class="linenos"> 16</span></a><span class="k">class</span> <span class="nc">ReadBrukerSolarix</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBrukerSolarix-16"><a href="#ReadBrukerSolarix-16"><span class="linenos"> 16</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ReadBrukerSolarix</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix-17"><a href="#ReadBrukerSolarix-17"><span class="linenos"> 17</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A class used to Read a single Transient from Bruker&#39;s FT-MS acquisition station (fid, or ser)</span>
 </span><span id="ReadBrukerSolarix-18"><a href="#ReadBrukerSolarix-18"><span class="linenos"> 18</span></a>
 </span><span id="ReadBrukerSolarix-19"><a href="#ReadBrukerSolarix-19"><span class="linenos"> 19</span></a><span class="sd">    Parameters</span>
@@ -614,13 +614,13 @@
 </span><span id="ReadBrukerSolarix-52"><a href="#ReadBrukerSolarix-52"><span class="linenos"> 52</span></a>
 </span><span id="ReadBrukerSolarix-53"><a href="#ReadBrukerSolarix-53"><span class="linenos"> 53</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="ReadBrukerSolarix-54"><a href="#ReadBrukerSolarix-54"><span class="linenos"> 54</span></a>
-</span><span id="ReadBrukerSolarix-55"><a href="#ReadBrukerSolarix-55"><span class="linenos"> 55</span></a>    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="ReadBrukerSolarix-55"><a href="#ReadBrukerSolarix-55"><span class="linenos"> 55</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix-56"><a href="#ReadBrukerSolarix-56"><span class="linenos"> 56</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transient</span><span class="p">()</span>
 </span><span id="ReadBrukerSolarix-57"><a href="#ReadBrukerSolarix-57"><span class="linenos"> 57</span></a>
-</span><span id="ReadBrukerSolarix-58"><a href="#ReadBrukerSolarix-58"><span class="linenos"> 58</span></a>    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+</span><span id="ReadBrukerSolarix-58"><a href="#ReadBrukerSolarix-58"><span class="linenos"> 58</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix-59"><a href="#ReadBrukerSolarix-59"><span class="linenos"> 59</span></a>        <span class="k">return</span> <span class="kc">False</span>
 </span><span id="ReadBrukerSolarix-60"><a href="#ReadBrukerSolarix-60"><span class="linenos"> 60</span></a>
-</span><span id="ReadBrukerSolarix-61"><a href="#ReadBrukerSolarix-61"><span class="linenos"> 61</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_directory_location</span><span class="p">):</span>
+</span><span id="ReadBrukerSolarix-61"><a href="#ReadBrukerSolarix-61"><span class="linenos"> 61</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_directory_location</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix-62"><a href="#ReadBrukerSolarix-62"><span class="linenos"> 62</span></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d_directory_location</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix-63"><a href="#ReadBrukerSolarix-63"><span class="linenos"> 63</span></a>            <span class="n">d_directory_location</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">d_directory_location</span><span class="p">)</span>
 </span><span id="ReadBrukerSolarix-64"><a href="#ReadBrukerSolarix-64"><span class="linenos"> 64</span></a>
@@ -653,7 +653,7 @@
 </span><span id="ReadBrukerSolarix-91"><a href="#ReadBrukerSolarix-91"><span class="linenos"> 91</span></a>                <span class="o">%</span> <span class="p">(</span><span class="n">d_directory_location</span><span class="p">)</span>
 </span><span id="ReadBrukerSolarix-92"><a href="#ReadBrukerSolarix-92"><span class="linenos"> 92</span></a>            <span class="p">)</span>
 </span><span id="ReadBrukerSolarix-93"><a href="#ReadBrukerSolarix-93"><span class="linenos"> 93</span></a>
-</span><span id="ReadBrukerSolarix-94"><a href="#ReadBrukerSolarix-94"><span class="linenos"> 94</span></a>    <span class="k">def</span> <span class="nf">get_scan_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="ReadBrukerSolarix-94"><a href="#ReadBrukerSolarix-94"><span class="linenos"> 94</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_scan_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix-95"><a href="#ReadBrukerSolarix-95"><span class="linenos"> 95</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Function to get the scan retention times, TIC values and scan indices.</span>
 </span><span id="ReadBrukerSolarix-96"><a href="#ReadBrukerSolarix-96"><span class="linenos"> 96</span></a>
 </span><span id="ReadBrukerSolarix-97"><a href="#ReadBrukerSolarix-97"><span class="linenos"> 97</span></a><span class="sd">        Gets information from scan.xml file in the bruker .d folder.</span>
@@ -665,7 +665,7 @@
 </span><span id="ReadBrukerSolarix-103"><a href="#ReadBrukerSolarix-103"><span class="linenos">103</span></a><span class="sd">            a dictionary with scan number as key and rt and tic as values</span>
 </span><span id="ReadBrukerSolarix-104"><a href="#ReadBrukerSolarix-104"><span class="linenos">104</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="ReadBrukerSolarix-105"><a href="#ReadBrukerSolarix-105"><span class="linenos">105</span></a>
-</span><span id="ReadBrukerSolarix-106"><a href="#ReadBrukerSolarix-106"><span class="linenos">106</span></a>        <span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
+</span><span id="ReadBrukerSolarix-106"><a href="#ReadBrukerSolarix-106"><span class="linenos">106</span></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">bs4</span><span class="w"> </span><span class="kn">import</span> <span class="n">BeautifulSoup</span>
 </span><span id="ReadBrukerSolarix-107"><a href="#ReadBrukerSolarix-107"><span class="linenos">107</span></a>
 </span><span id="ReadBrukerSolarix-108"><a href="#ReadBrukerSolarix-108"><span class="linenos">108</span></a>        <span class="k">try</span><span class="p">:</span>
 </span><span id="ReadBrukerSolarix-109"><a href="#ReadBrukerSolarix-109"><span class="linenos">109</span></a>            <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_attr</span><span class="o">.</span><span class="n">open</span><span class="p">(),</span> <span class="s2">&quot;xml&quot;</span><span class="p">)</span>
@@ -682,7 +682,7 @@
 </span><span id="ReadBrukerSolarix-120"><a href="#ReadBrukerSolarix-120"><span class="linenos">120</span></a>
 </span><span id="ReadBrukerSolarix-121"><a href="#ReadBrukerSolarix-121"><span class="linenos">121</span></a>        <span class="k">return</span> <span class="n">dict_scan_rt_tic</span>
 </span><span id="ReadBrukerSolarix-122"><a href="#ReadBrukerSolarix-122"><span class="linenos">122</span></a>
-</span><span id="ReadBrukerSolarix-123"><a href="#ReadBrukerSolarix-123"><span class="linenos">123</span></a>    <span class="k">def</span> <span class="nf">get_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_number</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+</span><span id="ReadBrukerSolarix-123"><a href="#ReadBrukerSolarix-123"><span class="linenos">123</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_number</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix-124"><a href="#ReadBrukerSolarix-124"><span class="linenos">124</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Function to get the transient data and parameters from a Bruker Solarix .d folder.</span>
 </span><span id="ReadBrukerSolarix-125"><a href="#ReadBrukerSolarix-125"><span class="linenos">125</span></a>
 </span><span id="ReadBrukerSolarix-126"><a href="#ReadBrukerSolarix-126"><span class="linenos">126</span></a><span class="sd">        Parameters</span>
@@ -700,7 +700,7 @@
 </span><span id="ReadBrukerSolarix-138"><a href="#ReadBrukerSolarix-138"><span class="linenos">138</span></a>
 </span><span id="ReadBrukerSolarix-139"><a href="#ReadBrukerSolarix-139"><span class="linenos">139</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">fix_freq_limits</span><span class="p">(</span><span class="n">file_d_params</span><span class="p">)</span>
 </span><span id="ReadBrukerSolarix-140"><a href="#ReadBrukerSolarix-140"><span class="linenos">140</span></a>
-</span><span id="ReadBrukerSolarix-141"><a href="#ReadBrukerSolarix-141"><span class="linenos">141</span></a>        <span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="n">platform</span>
+</span><span id="ReadBrukerSolarix-141"><a href="#ReadBrukerSolarix-141"><span class="linenos">141</span></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">sys</span><span class="w"> </span><span class="kn">import</span> <span class="n">platform</span>
 </span><span id="ReadBrukerSolarix-142"><a href="#ReadBrukerSolarix-142"><span class="linenos">142</span></a>
 </span><span id="ReadBrukerSolarix-143"><a href="#ReadBrukerSolarix-143"><span class="linenos">143</span></a>        <span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
 </span><span id="ReadBrukerSolarix-144"><a href="#ReadBrukerSolarix-144"><span class="linenos">144</span></a>            <span class="c1"># Windows...</span>
@@ -755,7 +755,7 @@
 </span><span id="ReadBrukerSolarix-193"><a href="#ReadBrukerSolarix-193"><span class="linenos">193</span></a>        <span class="n">data_points</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">file_d_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;TD&quot;</span><span class="p">))</span>
 </span><span id="ReadBrukerSolarix-194"><a href="#ReadBrukerSolarix-194"><span class="linenos">194</span></a>
 </span><span id="ReadBrukerSolarix-195"><a href="#ReadBrukerSolarix-195"><span class="linenos">195</span></a>        <span class="n">scan</span> <span class="o">=</span> <span class="n">output_parameters</span><span class="p">[</span><span class="s2">&quot;scan_number&quot;</span><span class="p">]</span>
-</span><span id="ReadBrukerSolarix-196"><a href="#ReadBrukerSolarix-196"><span class="linenos">196</span></a>        <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+</span><span id="ReadBrukerSolarix-196"><a href="#ReadBrukerSolarix-196"><span class="linenos">196</span></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">BytesIO</span>
 </span><span id="ReadBrukerSolarix-197"><a href="#ReadBrukerSolarix-197"><span class="linenos">197</span></a>
 </span><span id="ReadBrukerSolarix-198"><a href="#ReadBrukerSolarix-198"><span class="linenos">198</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transient_data_path</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;ser&quot;</span><span class="p">:</span>
 </span><span id="ReadBrukerSolarix-199"><a href="#ReadBrukerSolarix-199"><span class="linenos">199</span></a>            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transient_data_path</span><span class="p">,</span> <span class="n">S3Path</span><span class="p">):</span>
@@ -778,7 +778,7 @@
 </span><span id="ReadBrukerSolarix-216"><a href="#ReadBrukerSolarix-216"><span class="linenos">216</span></a>
 </span><span id="ReadBrukerSolarix-217"><a href="#ReadBrukerSolarix-217"><span class="linenos">217</span></a>    <span class="c1">#    for key, values in default_parameters.items():</span>
 </span><span id="ReadBrukerSolarix-218"><a href="#ReadBrukerSolarix-218"><span class="linenos">218</span></a>    <span class="c1">#        print(key, values)</span>
-</span><span id="ReadBrukerSolarix-219"><a href="#ReadBrukerSolarix-219"><span class="linenos">219</span></a>    <span class="k">def</span> <span class="nf">fix_freq_limits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_parameters</span><span class="p">):</span>
+</span><span id="ReadBrukerSolarix-219"><a href="#ReadBrukerSolarix-219"><span class="linenos">219</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">fix_freq_limits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_parameters</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix-220"><a href="#ReadBrukerSolarix-220"><span class="linenos">220</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Function to read and set the correct frequency limits for the spectrum</span>
 </span><span id="ReadBrukerSolarix-221"><a href="#ReadBrukerSolarix-221"><span class="linenos">221</span></a>
 </span><span id="ReadBrukerSolarix-222"><a href="#ReadBrukerSolarix-222"><span class="linenos">222</span></a><span class="sd">        Notes</span>
@@ -810,7 +810,7 @@
 </span><span id="ReadBrukerSolarix-248"><a href="#ReadBrukerSolarix-248"><span class="linenos">248</span></a>            <span class="n">d_parameters</span><span class="p">[</span><span class="s2">&quot;EXC_Freq_Low&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lowfreq</span>
 </span><span id="ReadBrukerSolarix-249"><a href="#ReadBrukerSolarix-249"><span class="linenos">249</span></a>
 </span><span id="ReadBrukerSolarix-250"><a href="#ReadBrukerSolarix-250"><span class="linenos">250</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="ReadBrukerSolarix-251"><a href="#ReadBrukerSolarix-251"><span class="linenos">251</span></a>    <span class="k">def</span> <span class="nf">get_excite_sweep_range</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+</span><span id="ReadBrukerSolarix-251"><a href="#ReadBrukerSolarix-251"><span class="linenos">251</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_excite_sweep_range</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix-252"><a href="#ReadBrukerSolarix-252"><span class="linenos">252</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Function to determine excitation sweep range from ExciteSweep file</span>
 </span><span id="ReadBrukerSolarix-253"><a href="#ReadBrukerSolarix-253"><span class="linenos">253</span></a>
 </span><span id="ReadBrukerSolarix-254"><a href="#ReadBrukerSolarix-254"><span class="linenos">254</span></a><span class="sd">        This looks at the first and last rows of the ExciteSweep file to determine the excitation frequency range.</span>
@@ -831,7 +831,7 @@
 </span><span id="ReadBrukerSolarix-269"><a href="#ReadBrukerSolarix-269"><span class="linenos">269</span></a>        <span class="k">return</span> <span class="n">lowfreq</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">highfreq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </span><span id="ReadBrukerSolarix-270"><a href="#ReadBrukerSolarix-270"><span class="linenos">270</span></a>
 </span><span id="ReadBrukerSolarix-271"><a href="#ReadBrukerSolarix-271"><span class="linenos">271</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="ReadBrukerSolarix-272"><a href="#ReadBrukerSolarix-272"><span class="linenos">272</span></a>    <span class="k">def</span> <span class="nf">locate_file</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">type_file_name</span><span class="o">=</span><span class="s2">&quot;apexAcquisition.method&quot;</span><span class="p">):</span>
+</span><span id="ReadBrukerSolarix-272"><a href="#ReadBrukerSolarix-272"><span class="linenos">272</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">locate_file</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">type_file_name</span><span class="o">=</span><span class="s2">&quot;apexAcquisition.method&quot;</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix-273"><a href="#ReadBrukerSolarix-273"><span class="linenos">273</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Function to locate a file in a folder</span>
 </span><span id="ReadBrukerSolarix-274"><a href="#ReadBrukerSolarix-274"><span class="linenos">274</span></a>
 </span><span id="ReadBrukerSolarix-275"><a href="#ReadBrukerSolarix-275"><span class="linenos">275</span></a><span class="sd">        Find the full path of a specific file within the acquisition .d folder or subfolders</span>
@@ -855,7 +855,7 @@
 </span><span id="ReadBrukerSolarix-293"><a href="#ReadBrukerSolarix-293"><span class="linenos">293</span></a>
 </span><span id="ReadBrukerSolarix-294"><a href="#ReadBrukerSolarix-294"><span class="linenos">294</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="ReadBrukerSolarix-295"><a href="#ReadBrukerSolarix-295"><span class="linenos">295</span></a>
-</span><span id="ReadBrukerSolarix-296"><a href="#ReadBrukerSolarix-296"><span class="linenos">296</span></a>        <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+</span><span id="ReadBrukerSolarix-296"><a href="#ReadBrukerSolarix-296"><span class="linenos">296</span></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 </span><span id="ReadBrukerSolarix-297"><a href="#ReadBrukerSolarix-297"><span class="linenos">297</span></a>
 </span><span id="ReadBrukerSolarix-298"><a href="#ReadBrukerSolarix-298"><span class="linenos">298</span></a>        <span class="c1"># directory_location = folder.glob( &#39;**/*apexAcquisition.method&#39;)</span>
 </span><span id="ReadBrukerSolarix-299"><a href="#ReadBrukerSolarix-299"><span class="linenos">299</span></a>        <span class="n">directory_location</span> <span class="o">=</span> <span class="n">folder</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;**/*&quot;</span> <span class="o">+</span> <span class="n">type_file_name</span><span class="p">)</span>
@@ -875,7 +875,7 @@
 </span><span id="ReadBrukerSolarix-313"><a href="#ReadBrukerSolarix-313"><span class="linenos">313</span></a>        <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </span><span id="ReadBrukerSolarix-314"><a href="#ReadBrukerSolarix-314"><span class="linenos">314</span></a>
 </span><span id="ReadBrukerSolarix-315"><a href="#ReadBrukerSolarix-315"><span class="linenos">315</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="ReadBrukerSolarix-316"><a href="#ReadBrukerSolarix-316"><span class="linenos">316</span></a>    <span class="k">def</span> <span class="nf">parse_parameters</span><span class="p">(</span><span class="n">parameters_filename</span><span class="p">):</span>
+</span><span id="ReadBrukerSolarix-316"><a href="#ReadBrukerSolarix-316"><span class="linenos">316</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parse_parameters</span><span class="p">(</span><span class="n">parameters_filename</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix-317"><a href="#ReadBrukerSolarix-317"><span class="linenos">317</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Function to parse the parameters from apexAcquisition.method file</span>
 </span><span id="ReadBrukerSolarix-318"><a href="#ReadBrukerSolarix-318"><span class="linenos">318</span></a>
 </span><span id="ReadBrukerSolarix-319"><a href="#ReadBrukerSolarix-319"><span class="linenos">319</span></a><span class="sd">        Open the given file and retrieve all parameters from apexAcquisition.method</span>
@@ -959,11 +959,11 @@
 </span><span id="ReadBrukerSolarix-397"><a href="#ReadBrukerSolarix-397"><span class="linenos">397</span></a>
 </span><span id="ReadBrukerSolarix-398"><a href="#ReadBrukerSolarix-398"><span class="linenos">398</span></a>        <span class="k">return</span> <span class="n">parameter_dict</span>
 </span><span id="ReadBrukerSolarix-399"><a href="#ReadBrukerSolarix-399"><span class="linenos">399</span></a>
-</span><span id="ReadBrukerSolarix-400"><a href="#ReadBrukerSolarix-400"><span class="linenos">400</span></a>    <span class="k">def</span> <span class="nf">parse_sqlite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sqlite_filename</span><span class="o">=</span><span class="s2">&quot;chromatography-data.sqlite&quot;</span><span class="p">):</span>
+</span><span id="ReadBrukerSolarix-400"><a href="#ReadBrukerSolarix-400"><span class="linenos">400</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parse_sqlite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sqlite_filename</span><span class="o">=</span><span class="s2">&quot;chromatography-data.sqlite&quot;</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix-401"><a href="#ReadBrukerSolarix-401"><span class="linenos">401</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
-</span><span id="ReadBrukerSolarix-402"><a href="#ReadBrukerSolarix-402"><span class="linenos">402</span></a>        <span class="kn">import</span> <span class="nn">sqlite3</span>
+</span><span id="ReadBrukerSolarix-402"><a href="#ReadBrukerSolarix-402"><span class="linenos">402</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">sqlite3</span>
 </span><span id="ReadBrukerSolarix-403"><a href="#ReadBrukerSolarix-403"><span class="linenos">403</span></a>
-</span><span id="ReadBrukerSolarix-404"><a href="#ReadBrukerSolarix-404"><span class="linenos">404</span></a>        <span class="k">def</span> <span class="nf">read_sqlite_file</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">table_name</span><span class="p">):</span>
+</span><span id="ReadBrukerSolarix-404"><a href="#ReadBrukerSolarix-404"><span class="linenos">404</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">read_sqlite_file</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">table_name</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix-405"><a href="#ReadBrukerSolarix-405"><span class="linenos">405</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadBrukerSolarix-406"><a href="#ReadBrukerSolarix-406"><span class="linenos">406</span></a><span class="sd">            Read data from a SQLite database file and return it as a list of tuples</span>
 </span><span id="ReadBrukerSolarix-407"><a href="#ReadBrukerSolarix-407"><span class="linenos">407</span></a>
@@ -1000,7 +1000,7 @@
 </span><span id="ReadBrukerSolarix-438"><a href="#ReadBrukerSolarix-438"><span class="linenos">438</span></a>            <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span><span id="ReadBrukerSolarix-439"><a href="#ReadBrukerSolarix-439"><span class="linenos">439</span></a>            <span class="k">return</span> <span class="n">stream</span>
 </span><span id="ReadBrukerSolarix-440"><a href="#ReadBrukerSolarix-440"><span class="linenos">440</span></a>
-</span><span id="ReadBrukerSolarix-441"><a href="#ReadBrukerSolarix-441"><span class="linenos">441</span></a>        <span class="k">def</span> <span class="nf">parse_binary</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+</span><span id="ReadBrukerSolarix-441"><a href="#ReadBrukerSolarix-441"><span class="linenos">441</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">parse_binary</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix-442"><a href="#ReadBrukerSolarix-442"><span class="linenos">442</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadBrukerSolarix-443"><a href="#ReadBrukerSolarix-443"><span class="linenos">443</span></a><span class="sd">            Parse binary data from the sqlite data streams</span>
 </span><span id="ReadBrukerSolarix-444"><a href="#ReadBrukerSolarix-444"><span class="linenos">444</span></a><span class="sd">            &quot;&quot;&quot;</span>
@@ -1090,7 +1090,7 @@ Determine excitation sweep range from ExciteSweep file</li>
 
     </div>
     <a class="headerlink" href="#ReadBrukerSolarix.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBrukerSolarix.__init__-61"><a href="#ReadBrukerSolarix.__init__-61"><span class="linenos">61</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_directory_location</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBrukerSolarix.__init__-61"><a href="#ReadBrukerSolarix.__init__-61"><span class="linenos">61</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_directory_location</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix.__init__-62"><a href="#ReadBrukerSolarix.__init__-62"><span class="linenos">62</span></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d_directory_location</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix.__init__-63"><a href="#ReadBrukerSolarix.__init__-63"><span class="linenos">63</span></a>            <span class="n">d_directory_location</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">d_directory_location</span><span class="p">)</span>
 </span><span id="ReadBrukerSolarix.__init__-64"><a href="#ReadBrukerSolarix.__init__-64"><span class="linenos">64</span></a>
@@ -1161,7 +1161,7 @@ Determine excitation sweep range from ExciteSweep file</li>
 
     </div>
     <a class="headerlink" href="#ReadBrukerSolarix.get_scan_attr"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBrukerSolarix.get_scan_attr-94"><a href="#ReadBrukerSolarix.get_scan_attr-94"><span class="linenos"> 94</span></a>    <span class="k">def</span> <span class="nf">get_scan_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBrukerSolarix.get_scan_attr-94"><a href="#ReadBrukerSolarix.get_scan_attr-94"><span class="linenos"> 94</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_scan_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix.get_scan_attr-95"><a href="#ReadBrukerSolarix.get_scan_attr-95"><span class="linenos"> 95</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Function to get the scan retention times, TIC values and scan indices.</span>
 </span><span id="ReadBrukerSolarix.get_scan_attr-96"><a href="#ReadBrukerSolarix.get_scan_attr-96"><span class="linenos"> 96</span></a>
 </span><span id="ReadBrukerSolarix.get_scan_attr-97"><a href="#ReadBrukerSolarix.get_scan_attr-97"><span class="linenos"> 97</span></a><span class="sd">        Gets information from scan.xml file in the bruker .d folder.</span>
@@ -1173,7 +1173,7 @@ Determine excitation sweep range from ExciteSweep file</li>
 </span><span id="ReadBrukerSolarix.get_scan_attr-103"><a href="#ReadBrukerSolarix.get_scan_attr-103"><span class="linenos">103</span></a><span class="sd">            a dictionary with scan number as key and rt and tic as values</span>
 </span><span id="ReadBrukerSolarix.get_scan_attr-104"><a href="#ReadBrukerSolarix.get_scan_attr-104"><span class="linenos">104</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="ReadBrukerSolarix.get_scan_attr-105"><a href="#ReadBrukerSolarix.get_scan_attr-105"><span class="linenos">105</span></a>
-</span><span id="ReadBrukerSolarix.get_scan_attr-106"><a href="#ReadBrukerSolarix.get_scan_attr-106"><span class="linenos">106</span></a>        <span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
+</span><span id="ReadBrukerSolarix.get_scan_attr-106"><a href="#ReadBrukerSolarix.get_scan_attr-106"><span class="linenos">106</span></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">bs4</span><span class="w"> </span><span class="kn">import</span> <span class="n">BeautifulSoup</span>
 </span><span id="ReadBrukerSolarix.get_scan_attr-107"><a href="#ReadBrukerSolarix.get_scan_attr-107"><span class="linenos">107</span></a>
 </span><span id="ReadBrukerSolarix.get_scan_attr-108"><a href="#ReadBrukerSolarix.get_scan_attr-108"><span class="linenos">108</span></a>        <span class="k">try</span><span class="p">:</span>
 </span><span id="ReadBrukerSolarix.get_scan_attr-109"><a href="#ReadBrukerSolarix.get_scan_attr-109"><span class="linenos">109</span></a>            <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_attr</span><span class="o">.</span><span class="n">open</span><span class="p">(),</span> <span class="s2">&quot;xml&quot;</span><span class="p">)</span>
@@ -1218,7 +1218,7 @@ a dictionary with scan number as key and rt and tic as values</li>
 
     </div>
     <a class="headerlink" href="#ReadBrukerSolarix.get_transient"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBrukerSolarix.get_transient-123"><a href="#ReadBrukerSolarix.get_transient-123"><span class="linenos">123</span></a>    <span class="k">def</span> <span class="nf">get_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_number</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBrukerSolarix.get_transient-123"><a href="#ReadBrukerSolarix.get_transient-123"><span class="linenos">123</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_transient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_number</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix.get_transient-124"><a href="#ReadBrukerSolarix.get_transient-124"><span class="linenos">124</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Function to get the transient data and parameters from a Bruker Solarix .d folder.</span>
 </span><span id="ReadBrukerSolarix.get_transient-125"><a href="#ReadBrukerSolarix.get_transient-125"><span class="linenos">125</span></a>
 </span><span id="ReadBrukerSolarix.get_transient-126"><a href="#ReadBrukerSolarix.get_transient-126"><span class="linenos">126</span></a><span class="sd">        Parameters</span>
@@ -1236,7 +1236,7 @@ a dictionary with scan number as key and rt and tic as values</li>
 </span><span id="ReadBrukerSolarix.get_transient-138"><a href="#ReadBrukerSolarix.get_transient-138"><span class="linenos">138</span></a>
 </span><span id="ReadBrukerSolarix.get_transient-139"><a href="#ReadBrukerSolarix.get_transient-139"><span class="linenos">139</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">fix_freq_limits</span><span class="p">(</span><span class="n">file_d_params</span><span class="p">)</span>
 </span><span id="ReadBrukerSolarix.get_transient-140"><a href="#ReadBrukerSolarix.get_transient-140"><span class="linenos">140</span></a>
-</span><span id="ReadBrukerSolarix.get_transient-141"><a href="#ReadBrukerSolarix.get_transient-141"><span class="linenos">141</span></a>        <span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="n">platform</span>
+</span><span id="ReadBrukerSolarix.get_transient-141"><a href="#ReadBrukerSolarix.get_transient-141"><span class="linenos">141</span></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">sys</span><span class="w"> </span><span class="kn">import</span> <span class="n">platform</span>
 </span><span id="ReadBrukerSolarix.get_transient-142"><a href="#ReadBrukerSolarix.get_transient-142"><span class="linenos">142</span></a>
 </span><span id="ReadBrukerSolarix.get_transient-143"><a href="#ReadBrukerSolarix.get_transient-143"><span class="linenos">143</span></a>        <span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
 </span><span id="ReadBrukerSolarix.get_transient-144"><a href="#ReadBrukerSolarix.get_transient-144"><span class="linenos">144</span></a>            <span class="c1"># Windows...</span>
@@ -1291,7 +1291,7 @@ a dictionary with scan number as key and rt and tic as values</li>
 </span><span id="ReadBrukerSolarix.get_transient-193"><a href="#ReadBrukerSolarix.get_transient-193"><span class="linenos">193</span></a>        <span class="n">data_points</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">file_d_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;TD&quot;</span><span class="p">))</span>
 </span><span id="ReadBrukerSolarix.get_transient-194"><a href="#ReadBrukerSolarix.get_transient-194"><span class="linenos">194</span></a>
 </span><span id="ReadBrukerSolarix.get_transient-195"><a href="#ReadBrukerSolarix.get_transient-195"><span class="linenos">195</span></a>        <span class="n">scan</span> <span class="o">=</span> <span class="n">output_parameters</span><span class="p">[</span><span class="s2">&quot;scan_number&quot;</span><span class="p">]</span>
-</span><span id="ReadBrukerSolarix.get_transient-196"><a href="#ReadBrukerSolarix.get_transient-196"><span class="linenos">196</span></a>        <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+</span><span id="ReadBrukerSolarix.get_transient-196"><a href="#ReadBrukerSolarix.get_transient-196"><span class="linenos">196</span></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">BytesIO</span>
 </span><span id="ReadBrukerSolarix.get_transient-197"><a href="#ReadBrukerSolarix.get_transient-197"><span class="linenos">197</span></a>
 </span><span id="ReadBrukerSolarix.get_transient-198"><a href="#ReadBrukerSolarix.get_transient-198"><span class="linenos">198</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transient_data_path</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;ser&quot;</span><span class="p">:</span>
 </span><span id="ReadBrukerSolarix.get_transient-199"><a href="#ReadBrukerSolarix.get_transient-199"><span class="linenos">199</span></a>            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transient_data_path</span><span class="p">,</span> <span class="n">S3Path</span><span class="p">):</span>
@@ -1343,7 +1343,7 @@ the scan number to be read. Default is 1.</li>
 
     </div>
     <a class="headerlink" href="#ReadBrukerSolarix.fix_freq_limits"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBrukerSolarix.fix_freq_limits-219"><a href="#ReadBrukerSolarix.fix_freq_limits-219"><span class="linenos">219</span></a>    <span class="k">def</span> <span class="nf">fix_freq_limits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_parameters</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBrukerSolarix.fix_freq_limits-219"><a href="#ReadBrukerSolarix.fix_freq_limits-219"><span class="linenos">219</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">fix_freq_limits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_parameters</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix.fix_freq_limits-220"><a href="#ReadBrukerSolarix.fix_freq_limits-220"><span class="linenos">220</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Function to read and set the correct frequency limits for the spectrum</span>
 </span><span id="ReadBrukerSolarix.fix_freq_limits-221"><a href="#ReadBrukerSolarix.fix_freq_limits-221"><span class="linenos">221</span></a>
 </span><span id="ReadBrukerSolarix.fix_freq_limits-222"><a href="#ReadBrukerSolarix.fix_freq_limits-222"><span class="linenos">222</span></a><span class="sd">        Notes</span>
@@ -1408,7 +1408,7 @@ a dictionary with the parameters from the apexAcquisition.method file</li>
     </div>
     <a class="headerlink" href="#ReadBrukerSolarix.get_excite_sweep_range"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBrukerSolarix.get_excite_sweep_range-250"><a href="#ReadBrukerSolarix.get_excite_sweep_range-250"><span class="linenos">250</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="ReadBrukerSolarix.get_excite_sweep_range-251"><a href="#ReadBrukerSolarix.get_excite_sweep_range-251"><span class="linenos">251</span></a>    <span class="k">def</span> <span class="nf">get_excite_sweep_range</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+</span><span id="ReadBrukerSolarix.get_excite_sweep_range-251"><a href="#ReadBrukerSolarix.get_excite_sweep_range-251"><span class="linenos">251</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_excite_sweep_range</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix.get_excite_sweep_range-252"><a href="#ReadBrukerSolarix.get_excite_sweep_range-252"><span class="linenos">252</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Function to determine excitation sweep range from ExciteSweep file</span>
 </span><span id="ReadBrukerSolarix.get_excite_sweep_range-253"><a href="#ReadBrukerSolarix.get_excite_sweep_range-253"><span class="linenos">253</span></a>
 </span><span id="ReadBrukerSolarix.get_excite_sweep_range-254"><a href="#ReadBrukerSolarix.get_excite_sweep_range-254"><span class="linenos">254</span></a><span class="sd">        This looks at the first and last rows of the ExciteSweep file to determine the excitation frequency range.</span>
@@ -1459,7 +1459,7 @@ the full path to the ExciteSweep file</li>
     </div>
     <a class="headerlink" href="#ReadBrukerSolarix.locate_file"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBrukerSolarix.locate_file-271"><a href="#ReadBrukerSolarix.locate_file-271"><span class="linenos">271</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="ReadBrukerSolarix.locate_file-272"><a href="#ReadBrukerSolarix.locate_file-272"><span class="linenos">272</span></a>    <span class="k">def</span> <span class="nf">locate_file</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">type_file_name</span><span class="o">=</span><span class="s2">&quot;apexAcquisition.method&quot;</span><span class="p">):</span>
+</span><span id="ReadBrukerSolarix.locate_file-272"><a href="#ReadBrukerSolarix.locate_file-272"><span class="linenos">272</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">locate_file</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">type_file_name</span><span class="o">=</span><span class="s2">&quot;apexAcquisition.method&quot;</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix.locate_file-273"><a href="#ReadBrukerSolarix.locate_file-273"><span class="linenos">273</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Function to locate a file in a folder</span>
 </span><span id="ReadBrukerSolarix.locate_file-274"><a href="#ReadBrukerSolarix.locate_file-274"><span class="linenos">274</span></a>
 </span><span id="ReadBrukerSolarix.locate_file-275"><a href="#ReadBrukerSolarix.locate_file-275"><span class="linenos">275</span></a><span class="sd">        Find the full path of a specific file within the acquisition .d folder or subfolders</span>
@@ -1483,7 +1483,7 @@ the full path to the ExciteSweep file</li>
 </span><span id="ReadBrukerSolarix.locate_file-293"><a href="#ReadBrukerSolarix.locate_file-293"><span class="linenos">293</span></a>
 </span><span id="ReadBrukerSolarix.locate_file-294"><a href="#ReadBrukerSolarix.locate_file-294"><span class="linenos">294</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="ReadBrukerSolarix.locate_file-295"><a href="#ReadBrukerSolarix.locate_file-295"><span class="linenos">295</span></a>
-</span><span id="ReadBrukerSolarix.locate_file-296"><a href="#ReadBrukerSolarix.locate_file-296"><span class="linenos">296</span></a>        <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+</span><span id="ReadBrukerSolarix.locate_file-296"><a href="#ReadBrukerSolarix.locate_file-296"><span class="linenos">296</span></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 </span><span id="ReadBrukerSolarix.locate_file-297"><a href="#ReadBrukerSolarix.locate_file-297"><span class="linenos">297</span></a>
 </span><span id="ReadBrukerSolarix.locate_file-298"><a href="#ReadBrukerSolarix.locate_file-298"><span class="linenos">298</span></a>        <span class="c1"># directory_location = folder.glob( &#39;**/*apexAcquisition.method&#39;)</span>
 </span><span id="ReadBrukerSolarix.locate_file-299"><a href="#ReadBrukerSolarix.locate_file-299"><span class="linenos">299</span></a>        <span class="n">directory_location</span> <span class="o">=</span> <span class="n">folder</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;**/*&quot;</span> <span class="o">+</span> <span class="n">type_file_name</span><span class="p">)</span>
@@ -1544,7 +1544,7 @@ Expected options: ExciteSweep or apexAcquisition.method</li>
     </div>
     <a class="headerlink" href="#ReadBrukerSolarix.parse_parameters"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBrukerSolarix.parse_parameters-315"><a href="#ReadBrukerSolarix.parse_parameters-315"><span class="linenos">315</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="ReadBrukerSolarix.parse_parameters-316"><a href="#ReadBrukerSolarix.parse_parameters-316"><span class="linenos">316</span></a>    <span class="k">def</span> <span class="nf">parse_parameters</span><span class="p">(</span><span class="n">parameters_filename</span><span class="p">):</span>
+</span><span id="ReadBrukerSolarix.parse_parameters-316"><a href="#ReadBrukerSolarix.parse_parameters-316"><span class="linenos">316</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parse_parameters</span><span class="p">(</span><span class="n">parameters_filename</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix.parse_parameters-317"><a href="#ReadBrukerSolarix.parse_parameters-317"><span class="linenos">317</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Function to parse the parameters from apexAcquisition.method file</span>
 </span><span id="ReadBrukerSolarix.parse_parameters-318"><a href="#ReadBrukerSolarix.parse_parameters-318"><span class="linenos">318</span></a>
 </span><span id="ReadBrukerSolarix.parse_parameters-319"><a href="#ReadBrukerSolarix.parse_parameters-319"><span class="linenos">319</span></a><span class="sd">        Open the given file and retrieve all parameters from apexAcquisition.method</span>
@@ -1670,11 +1670,11 @@ Code may not handle all possible parameters, but should be sufficient for most c
 
     </div>
     <a class="headerlink" href="#ReadBrukerSolarix.parse_sqlite"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBrukerSolarix.parse_sqlite-400"><a href="#ReadBrukerSolarix.parse_sqlite-400"><span class="linenos">400</span></a>    <span class="k">def</span> <span class="nf">parse_sqlite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sqlite_filename</span><span class="o">=</span><span class="s2">&quot;chromatography-data.sqlite&quot;</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ReadBrukerSolarix.parse_sqlite-400"><a href="#ReadBrukerSolarix.parse_sqlite-400"><span class="linenos">400</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parse_sqlite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sqlite_filename</span><span class="o">=</span><span class="s2">&quot;chromatography-data.sqlite&quot;</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix.parse_sqlite-401"><a href="#ReadBrukerSolarix.parse_sqlite-401"><span class="linenos">401</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
-</span><span id="ReadBrukerSolarix.parse_sqlite-402"><a href="#ReadBrukerSolarix.parse_sqlite-402"><span class="linenos">402</span></a>        <span class="kn">import</span> <span class="nn">sqlite3</span>
+</span><span id="ReadBrukerSolarix.parse_sqlite-402"><a href="#ReadBrukerSolarix.parse_sqlite-402"><span class="linenos">402</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">sqlite3</span>
 </span><span id="ReadBrukerSolarix.parse_sqlite-403"><a href="#ReadBrukerSolarix.parse_sqlite-403"><span class="linenos">403</span></a>
-</span><span id="ReadBrukerSolarix.parse_sqlite-404"><a href="#ReadBrukerSolarix.parse_sqlite-404"><span class="linenos">404</span></a>        <span class="k">def</span> <span class="nf">read_sqlite_file</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">table_name</span><span class="p">):</span>
+</span><span id="ReadBrukerSolarix.parse_sqlite-404"><a href="#ReadBrukerSolarix.parse_sqlite-404"><span class="linenos">404</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">read_sqlite_file</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">table_name</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix.parse_sqlite-405"><a href="#ReadBrukerSolarix.parse_sqlite-405"><span class="linenos">405</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadBrukerSolarix.parse_sqlite-406"><a href="#ReadBrukerSolarix.parse_sqlite-406"><span class="linenos">406</span></a><span class="sd">            Read data from a SQLite database file and return it as a list of tuples</span>
 </span><span id="ReadBrukerSolarix.parse_sqlite-407"><a href="#ReadBrukerSolarix.parse_sqlite-407"><span class="linenos">407</span></a>
@@ -1711,7 +1711,7 @@ Code may not handle all possible parameters, but should be sufficient for most c
 </span><span id="ReadBrukerSolarix.parse_sqlite-438"><a href="#ReadBrukerSolarix.parse_sqlite-438"><span class="linenos">438</span></a>            <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span><span id="ReadBrukerSolarix.parse_sqlite-439"><a href="#ReadBrukerSolarix.parse_sqlite-439"><span class="linenos">439</span></a>            <span class="k">return</span> <span class="n">stream</span>
 </span><span id="ReadBrukerSolarix.parse_sqlite-440"><a href="#ReadBrukerSolarix.parse_sqlite-440"><span class="linenos">440</span></a>
-</span><span id="ReadBrukerSolarix.parse_sqlite-441"><a href="#ReadBrukerSolarix.parse_sqlite-441"><span class="linenos">441</span></a>        <span class="k">def</span> <span class="nf">parse_binary</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+</span><span id="ReadBrukerSolarix.parse_sqlite-441"><a href="#ReadBrukerSolarix.parse_sqlite-441"><span class="linenos">441</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">parse_binary</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
 </span><span id="ReadBrukerSolarix.parse_sqlite-442"><a href="#ReadBrukerSolarix.parse_sqlite-442"><span class="linenos">442</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ReadBrukerSolarix.parse_sqlite-443"><a href="#ReadBrukerSolarix.parse_sqlite-443"><span class="linenos">443</span></a><span class="sd">            Parse binary data from the sqlite data streams</span>
 </span><span id="ReadBrukerSolarix.parse_sqlite-444"><a href="#ReadBrukerSolarix.parse_sqlite-444"><span class="linenos">444</span></a><span class="sd">            &quot;&quot;&quot;</span>

@@ -90,17 +90,17 @@
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Yuri E. Corilo&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="n">__date__</span> <span class="o">=</span> <span class="s2">&quot;Jul 31, 2019&quot;</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">threading</span><span class="w"> </span><span class="kn">import</span> <span class="n">Thread</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">average</span><span class="p">,</span> <span class="n">std</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">average</span><span class="p">,</span> <span class="n">std</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span> <span class="nn">corems.molecular_id.calc.ClusterFilter</span> <span class="kn">import</span> <span class="n">ClusteringFilter</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">from</span> <span class="nn">corems.molecular_id.factory.molecularSQL</span> <span class="kn">import</span> <span class="n">MolForm_SQL</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span> <span class="nn">corems.molecular_id.search.molecularFormulaSearch</span> <span class="kn">import</span> <span class="n">SearchMolecularFormulas</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.molecular_id.calc.ClusterFilter</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClusteringFilter</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.molecular_id.factory.molecularSQL</span><span class="w"> </span><span class="kn">import</span> <span class="n">MolForm_SQL</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.molecular_id.search.molecularFormulaSearch</span><span class="w"> </span><span class="kn">import</span> <span class="n">SearchMolecularFormulas</span>
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>
-</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="k">class</span> <span class="nc">FindOxygenPeaks</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="k">class</span><span class="w"> </span><span class="nc">FindOxygenPeaks</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class to find Oxygen peaks in a mass spectrum for formula assignment search</span>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="sd">    Class to walk 14Da units over oxygen space for negative ion mass spectrum of natural organic matter</span>
@@ -137,7 +137,7 @@
 </span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a><span class="sd">            set the mass spectrum to interate over only the selected indexes</span>
 </span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>
-</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="n">sql_db</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">min_O</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">max_O</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">22</span>
 </span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>    <span class="p">):</span>
 </span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>        <span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -153,7 +153,7 @@
 </span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">sql_db</span> <span class="o">=</span> <span class="n">sql_db</span>
 </span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>
-</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the thread&quot;&quot;&quot;</span>
 </span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>        <span class="c1"># save initial settings min peaks per class filter</span>
 </span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>        <span class="n">initial_min_peak_bool</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span>
@@ -219,7 +219,7 @@
 </span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>
 </span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">sql_db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>
-</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>    <span class="k">def</span> <span class="nf">find_most_abundant_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">):</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_most_abundant_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">):</span>
 </span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Find the most abundant formula in the mass spectrum</span>
 </span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>
 </span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a><span class="sd">        Parameters</span>
@@ -276,7 +276,7 @@
 </span><span id="L-187"><a href="#L-187"><span class="linenos">187</span></a>        <span class="c1"># return the first option</span>
 </span><span id="L-188"><a href="#L-188"><span class="linenos">188</span></a>        <span class="c1"># return mspeak_most_abundant[0]</span>
 </span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a>
-</span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a>    <span class="k">def</span> <span class="nf">find_most_abundant_formula_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+</span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_most_abundant_formula_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
 </span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;[Test function] Find the most abundant formula in the mass spectrum</span>
 </span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a>
 </span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a><span class="sd">        Parameters</span>
@@ -314,7 +314,7 @@
 </span><span id="L-225"><a href="#L-225"><span class="linenos">225</span></a>        <span class="c1"># return the first option</span>
 </span><span id="L-226"><a href="#L-226"><span class="linenos">226</span></a>        <span class="c1"># return mspeak_most_abundant[0]</span>
 </span><span id="L-227"><a href="#L-227"><span class="linenos">227</span></a>
-</span><span id="L-228"><a href="#L-228"><span class="linenos">228</span></a>    <span class="k">def</span> <span class="nf">find_series_mspeaks</span><span class="p">(</span>
+</span><span id="L-228"><a href="#L-228"><span class="linenos">228</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_series_mspeaks</span><span class="p">(</span>
 </span><span id="L-229"><a href="#L-229"><span class="linenos">229</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="n">molecular_formula_obj_reference</span><span class="p">,</span> <span class="n">deltamz</span><span class="o">=</span><span class="mi">14</span>
 </span><span id="L-230"><a href="#L-230"><span class="linenos">230</span></a>    <span class="p">):</span>
 </span><span id="L-231"><a href="#L-231"><span class="linenos">231</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Find a series of abundant peaks in the mass spectrum for a given molecular formula</span>
@@ -395,7 +395,7 @@
 </span><span id="L-306"><a href="#L-306"><span class="linenos">306</span></a>            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Done molecular formula search&quot;</span><span class="p">)</span>
 </span><span id="L-307"><a href="#L-307"><span class="linenos">307</span></a>        <span class="k">return</span> <span class="p">[</span><span class="n">mspeak</span> <span class="k">for</span> <span class="n">mspeak</span> <span class="ow">in</span> <span class="n">list_most_abundant_peaks</span> <span class="k">if</span> <span class="n">mspeak</span><span class="p">]</span>
 </span><span id="L-308"><a href="#L-308"><span class="linenos">308</span></a>
-</span><span id="L-309"><a href="#L-309"><span class="linenos">309</span></a>    <span class="k">def</span> <span class="nf">get_list_found_peaks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-309"><a href="#L-309"><span class="linenos">309</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_list_found_peaks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-310"><a href="#L-310"><span class="linenos">310</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the list of found peaks</span>
 </span><span id="L-311"><a href="#L-311"><span class="linenos">311</span></a>
 </span><span id="L-312"><a href="#L-312"><span class="linenos">312</span></a><span class="sd">        Returns</span>
@@ -405,7 +405,7 @@
 </span><span id="L-316"><a href="#L-316"><span class="linenos">316</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-317"><a href="#L-317"><span class="linenos">317</span></a>        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list_found_mspeaks</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">mp</span><span class="p">:</span> <span class="n">mp</span><span class="o">.</span><span class="n">mz_exp</span><span class="p">)</span>
 </span><span id="L-318"><a href="#L-318"><span class="linenos">318</span></a>
-</span><span id="L-319"><a href="#L-319"><span class="linenos">319</span></a>    <span class="k">def</span> <span class="nf">set_mass_spec_indexes_by_found_peaks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-319"><a href="#L-319"><span class="linenos">319</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_mass_spec_indexes_by_found_peaks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-320"><a href="#L-320"><span class="linenos">320</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the mass spectrum to interate over only the selected indexes.</span>
 </span><span id="L-321"><a href="#L-321"><span class="linenos">321</span></a>
 </span><span id="L-322"><a href="#L-322"><span class="linenos">322</span></a><span class="sd">        Notes</span>
@@ -432,7 +432,7 @@
 
     </div>
     <a class="headerlink" href="#FindOxygenPeaks"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="FindOxygenPeaks-15"><a href="#FindOxygenPeaks-15"><span class="linenos"> 15</span></a><span class="k">class</span> <span class="nc">FindOxygenPeaks</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="FindOxygenPeaks-15"><a href="#FindOxygenPeaks-15"><span class="linenos"> 15</span></a><span class="k">class</span><span class="w"> </span><span class="nc">FindOxygenPeaks</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
 </span><span id="FindOxygenPeaks-16"><a href="#FindOxygenPeaks-16"><span class="linenos"> 16</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class to find Oxygen peaks in a mass spectrum for formula assignment search</span>
 </span><span id="FindOxygenPeaks-17"><a href="#FindOxygenPeaks-17"><span class="linenos"> 17</span></a>
 </span><span id="FindOxygenPeaks-18"><a href="#FindOxygenPeaks-18"><span class="linenos"> 18</span></a><span class="sd">    Class to walk 14Da units over oxygen space for negative ion mass spectrum of natural organic matter</span>
@@ -469,7 +469,7 @@
 </span><span id="FindOxygenPeaks-49"><a href="#FindOxygenPeaks-49"><span class="linenos"> 49</span></a><span class="sd">            set the mass spectrum to interate over only the selected indexes</span>
 </span><span id="FindOxygenPeaks-50"><a href="#FindOxygenPeaks-50"><span class="linenos"> 50</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="FindOxygenPeaks-51"><a href="#FindOxygenPeaks-51"><span class="linenos"> 51</span></a>
-</span><span id="FindOxygenPeaks-52"><a href="#FindOxygenPeaks-52"><span class="linenos"> 52</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+</span><span id="FindOxygenPeaks-52"><a href="#FindOxygenPeaks-52"><span class="linenos"> 52</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="FindOxygenPeaks-53"><a href="#FindOxygenPeaks-53"><span class="linenos"> 53</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="n">sql_db</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">min_O</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">max_O</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">22</span>
 </span><span id="FindOxygenPeaks-54"><a href="#FindOxygenPeaks-54"><span class="linenos"> 54</span></a>    <span class="p">):</span>
 </span><span id="FindOxygenPeaks-55"><a href="#FindOxygenPeaks-55"><span class="linenos"> 55</span></a>        <span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -485,7 +485,7 @@
 </span><span id="FindOxygenPeaks-65"><a href="#FindOxygenPeaks-65"><span class="linenos"> 65</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="FindOxygenPeaks-66"><a href="#FindOxygenPeaks-66"><span class="linenos"> 66</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">sql_db</span> <span class="o">=</span> <span class="n">sql_db</span>
 </span><span id="FindOxygenPeaks-67"><a href="#FindOxygenPeaks-67"><span class="linenos"> 67</span></a>
-</span><span id="FindOxygenPeaks-68"><a href="#FindOxygenPeaks-68"><span class="linenos"> 68</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="FindOxygenPeaks-68"><a href="#FindOxygenPeaks-68"><span class="linenos"> 68</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="FindOxygenPeaks-69"><a href="#FindOxygenPeaks-69"><span class="linenos"> 69</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the thread&quot;&quot;&quot;</span>
 </span><span id="FindOxygenPeaks-70"><a href="#FindOxygenPeaks-70"><span class="linenos"> 70</span></a>        <span class="c1"># save initial settings min peaks per class filter</span>
 </span><span id="FindOxygenPeaks-71"><a href="#FindOxygenPeaks-71"><span class="linenos"> 71</span></a>        <span class="n">initial_min_peak_bool</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span>
@@ -551,7 +551,7 @@
 </span><span id="FindOxygenPeaks-131"><a href="#FindOxygenPeaks-131"><span class="linenos">131</span></a>
 </span><span id="FindOxygenPeaks-132"><a href="#FindOxygenPeaks-132"><span class="linenos">132</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">sql_db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span><span id="FindOxygenPeaks-133"><a href="#FindOxygenPeaks-133"><span class="linenos">133</span></a>
-</span><span id="FindOxygenPeaks-134"><a href="#FindOxygenPeaks-134"><span class="linenos">134</span></a>    <span class="k">def</span> <span class="nf">find_most_abundant_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">):</span>
+</span><span id="FindOxygenPeaks-134"><a href="#FindOxygenPeaks-134"><span class="linenos">134</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_most_abundant_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">):</span>
 </span><span id="FindOxygenPeaks-135"><a href="#FindOxygenPeaks-135"><span class="linenos">135</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Find the most abundant formula in the mass spectrum</span>
 </span><span id="FindOxygenPeaks-136"><a href="#FindOxygenPeaks-136"><span class="linenos">136</span></a>
 </span><span id="FindOxygenPeaks-137"><a href="#FindOxygenPeaks-137"><span class="linenos">137</span></a><span class="sd">        Parameters</span>
@@ -608,7 +608,7 @@
 </span><span id="FindOxygenPeaks-188"><a href="#FindOxygenPeaks-188"><span class="linenos">188</span></a>        <span class="c1"># return the first option</span>
 </span><span id="FindOxygenPeaks-189"><a href="#FindOxygenPeaks-189"><span class="linenos">189</span></a>        <span class="c1"># return mspeak_most_abundant[0]</span>
 </span><span id="FindOxygenPeaks-190"><a href="#FindOxygenPeaks-190"><span class="linenos">190</span></a>
-</span><span id="FindOxygenPeaks-191"><a href="#FindOxygenPeaks-191"><span class="linenos">191</span></a>    <span class="k">def</span> <span class="nf">find_most_abundant_formula_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+</span><span id="FindOxygenPeaks-191"><a href="#FindOxygenPeaks-191"><span class="linenos">191</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_most_abundant_formula_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
 </span><span id="FindOxygenPeaks-192"><a href="#FindOxygenPeaks-192"><span class="linenos">192</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;[Test function] Find the most abundant formula in the mass spectrum</span>
 </span><span id="FindOxygenPeaks-193"><a href="#FindOxygenPeaks-193"><span class="linenos">193</span></a>
 </span><span id="FindOxygenPeaks-194"><a href="#FindOxygenPeaks-194"><span class="linenos">194</span></a><span class="sd">        Parameters</span>
@@ -646,7 +646,7 @@
 </span><span id="FindOxygenPeaks-226"><a href="#FindOxygenPeaks-226"><span class="linenos">226</span></a>        <span class="c1"># return the first option</span>
 </span><span id="FindOxygenPeaks-227"><a href="#FindOxygenPeaks-227"><span class="linenos">227</span></a>        <span class="c1"># return mspeak_most_abundant[0]</span>
 </span><span id="FindOxygenPeaks-228"><a href="#FindOxygenPeaks-228"><span class="linenos">228</span></a>
-</span><span id="FindOxygenPeaks-229"><a href="#FindOxygenPeaks-229"><span class="linenos">229</span></a>    <span class="k">def</span> <span class="nf">find_series_mspeaks</span><span class="p">(</span>
+</span><span id="FindOxygenPeaks-229"><a href="#FindOxygenPeaks-229"><span class="linenos">229</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_series_mspeaks</span><span class="p">(</span>
 </span><span id="FindOxygenPeaks-230"><a href="#FindOxygenPeaks-230"><span class="linenos">230</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="n">molecular_formula_obj_reference</span><span class="p">,</span> <span class="n">deltamz</span><span class="o">=</span><span class="mi">14</span>
 </span><span id="FindOxygenPeaks-231"><a href="#FindOxygenPeaks-231"><span class="linenos">231</span></a>    <span class="p">):</span>
 </span><span id="FindOxygenPeaks-232"><a href="#FindOxygenPeaks-232"><span class="linenos">232</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Find a series of abundant peaks in the mass spectrum for a given molecular formula</span>
@@ -727,7 +727,7 @@
 </span><span id="FindOxygenPeaks-307"><a href="#FindOxygenPeaks-307"><span class="linenos">307</span></a>            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Done molecular formula search&quot;</span><span class="p">)</span>
 </span><span id="FindOxygenPeaks-308"><a href="#FindOxygenPeaks-308"><span class="linenos">308</span></a>        <span class="k">return</span> <span class="p">[</span><span class="n">mspeak</span> <span class="k">for</span> <span class="n">mspeak</span> <span class="ow">in</span> <span class="n">list_most_abundant_peaks</span> <span class="k">if</span> <span class="n">mspeak</span><span class="p">]</span>
 </span><span id="FindOxygenPeaks-309"><a href="#FindOxygenPeaks-309"><span class="linenos">309</span></a>
-</span><span id="FindOxygenPeaks-310"><a href="#FindOxygenPeaks-310"><span class="linenos">310</span></a>    <span class="k">def</span> <span class="nf">get_list_found_peaks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="FindOxygenPeaks-310"><a href="#FindOxygenPeaks-310"><span class="linenos">310</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_list_found_peaks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="FindOxygenPeaks-311"><a href="#FindOxygenPeaks-311"><span class="linenos">311</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the list of found peaks</span>
 </span><span id="FindOxygenPeaks-312"><a href="#FindOxygenPeaks-312"><span class="linenos">312</span></a>
 </span><span id="FindOxygenPeaks-313"><a href="#FindOxygenPeaks-313"><span class="linenos">313</span></a><span class="sd">        Returns</span>
@@ -737,7 +737,7 @@
 </span><span id="FindOxygenPeaks-317"><a href="#FindOxygenPeaks-317"><span class="linenos">317</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="FindOxygenPeaks-318"><a href="#FindOxygenPeaks-318"><span class="linenos">318</span></a>        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list_found_mspeaks</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">mp</span><span class="p">:</span> <span class="n">mp</span><span class="o">.</span><span class="n">mz_exp</span><span class="p">)</span>
 </span><span id="FindOxygenPeaks-319"><a href="#FindOxygenPeaks-319"><span class="linenos">319</span></a>
-</span><span id="FindOxygenPeaks-320"><a href="#FindOxygenPeaks-320"><span class="linenos">320</span></a>    <span class="k">def</span> <span class="nf">set_mass_spec_indexes_by_found_peaks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="FindOxygenPeaks-320"><a href="#FindOxygenPeaks-320"><span class="linenos">320</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_mass_spec_indexes_by_found_peaks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="FindOxygenPeaks-321"><a href="#FindOxygenPeaks-321"><span class="linenos">321</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the mass spectrum to interate over only the selected indexes.</span>
 </span><span id="FindOxygenPeaks-322"><a href="#FindOxygenPeaks-322"><span class="linenos">322</span></a>
 </span><span id="FindOxygenPeaks-323"><a href="#FindOxygenPeaks-323"><span class="linenos">323</span></a><span class="sd">        Notes</span>
@@ -803,7 +803,7 @@ set the mass spectrum to interate over only the selected indexes</li>
 
     </div>
     <a class="headerlink" href="#FindOxygenPeaks.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="FindOxygenPeaks.__init__-52"><a href="#FindOxygenPeaks.__init__-52"><span class="linenos">52</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="FindOxygenPeaks.__init__-52"><a href="#FindOxygenPeaks.__init__-52"><span class="linenos">52</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
 </span><span id="FindOxygenPeaks.__init__-53"><a href="#FindOxygenPeaks.__init__-53"><span class="linenos">53</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="n">sql_db</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">min_O</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">max_O</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">22</span>
 </span><span id="FindOxygenPeaks.__init__-54"><a href="#FindOxygenPeaks.__init__-54"><span class="linenos">54</span></a>    <span class="p">):</span>
 </span><span id="FindOxygenPeaks.__init__-55"><a href="#FindOxygenPeaks.__init__-55"><span class="linenos">55</span></a>        <span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -888,7 +888,7 @@ else to the thread.</p>
 
     </div>
     <a class="headerlink" href="#FindOxygenPeaks.run"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="FindOxygenPeaks.run-68"><a href="#FindOxygenPeaks.run-68"><span class="linenos"> 68</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="FindOxygenPeaks.run-68"><a href="#FindOxygenPeaks.run-68"><span class="linenos"> 68</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="FindOxygenPeaks.run-69"><a href="#FindOxygenPeaks.run-69"><span class="linenos"> 69</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the thread&quot;&quot;&quot;</span>
 </span><span id="FindOxygenPeaks.run-70"><a href="#FindOxygenPeaks.run-70"><span class="linenos"> 70</span></a>        <span class="c1"># save initial settings min peaks per class filter</span>
 </span><span id="FindOxygenPeaks.run-71"><a href="#FindOxygenPeaks.run-71"><span class="linenos"> 71</span></a>        <span class="n">initial_min_peak_bool</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span>
@@ -972,7 +972,7 @@ else to the thread.</p>
 
     </div>
     <a class="headerlink" href="#FindOxygenPeaks.find_most_abundant_formula"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="FindOxygenPeaks.find_most_abundant_formula-134"><a href="#FindOxygenPeaks.find_most_abundant_formula-134"><span class="linenos">134</span></a>    <span class="k">def</span> <span class="nf">find_most_abundant_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="FindOxygenPeaks.find_most_abundant_formula-134"><a href="#FindOxygenPeaks.find_most_abundant_formula-134"><span class="linenos">134</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_most_abundant_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">):</span>
 </span><span id="FindOxygenPeaks.find_most_abundant_formula-135"><a href="#FindOxygenPeaks.find_most_abundant_formula-135"><span class="linenos">135</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Find the most abundant formula in the mass spectrum</span>
 </span><span id="FindOxygenPeaks.find_most_abundant_formula-136"><a href="#FindOxygenPeaks.find_most_abundant_formula-136"><span class="linenos">136</span></a>
 </span><span id="FindOxygenPeaks.find_most_abundant_formula-137"><a href="#FindOxygenPeaks.find_most_abundant_formula-137"><span class="linenos">137</span></a><span class="sd">        Parameters</span>
@@ -1060,7 +1060,7 @@ Mass spectrum object</li>
 
     </div>
     <a class="headerlink" href="#FindOxygenPeaks.find_most_abundant_formula_test"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="FindOxygenPeaks.find_most_abundant_formula_test-191"><a href="#FindOxygenPeaks.find_most_abundant_formula_test-191"><span class="linenos">191</span></a>    <span class="k">def</span> <span class="nf">find_most_abundant_formula_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="FindOxygenPeaks.find_most_abundant_formula_test-191"><a href="#FindOxygenPeaks.find_most_abundant_formula_test-191"><span class="linenos">191</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_most_abundant_formula_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
 </span><span id="FindOxygenPeaks.find_most_abundant_formula_test-192"><a href="#FindOxygenPeaks.find_most_abundant_formula_test-192"><span class="linenos">192</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;[Test function] Find the most abundant formula in the mass spectrum</span>
 </span><span id="FindOxygenPeaks.find_most_abundant_formula_test-193"><a href="#FindOxygenPeaks.find_most_abundant_formula_test-193"><span class="linenos">193</span></a>
 </span><span id="FindOxygenPeaks.find_most_abundant_formula_test-194"><a href="#FindOxygenPeaks.find_most_abundant_formula_test-194"><span class="linenos">194</span></a><span class="sd">        Parameters</span>
@@ -1131,7 +1131,7 @@ Molecular search settings object</li>
 
     </div>
     <a class="headerlink" href="#FindOxygenPeaks.find_series_mspeaks"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="FindOxygenPeaks.find_series_mspeaks-229"><a href="#FindOxygenPeaks.find_series_mspeaks-229"><span class="linenos">229</span></a>    <span class="k">def</span> <span class="nf">find_series_mspeaks</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="FindOxygenPeaks.find_series_mspeaks-229"><a href="#FindOxygenPeaks.find_series_mspeaks-229"><span class="linenos">229</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_series_mspeaks</span><span class="p">(</span>
 </span><span id="FindOxygenPeaks.find_series_mspeaks-230"><a href="#FindOxygenPeaks.find_series_mspeaks-230"><span class="linenos">230</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">mass_spectrum_obj</span><span class="p">,</span> <span class="n">molecular_formula_obj_reference</span><span class="p">,</span> <span class="n">deltamz</span><span class="o">=</span><span class="mi">14</span>
 </span><span id="FindOxygenPeaks.find_series_mspeaks-231"><a href="#FindOxygenPeaks.find_series_mspeaks-231"><span class="linenos">231</span></a>    <span class="p">):</span>
 </span><span id="FindOxygenPeaks.find_series_mspeaks-232"><a href="#FindOxygenPeaks.find_series_mspeaks-232"><span class="linenos">232</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Find a series of abundant peaks in the mass spectrum for a given molecular formula</span>
@@ -1247,7 +1247,7 @@ delta m/z to look for peaks</li>
 
     </div>
     <a class="headerlink" href="#FindOxygenPeaks.get_list_found_peaks"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="FindOxygenPeaks.get_list_found_peaks-310"><a href="#FindOxygenPeaks.get_list_found_peaks-310"><span class="linenos">310</span></a>    <span class="k">def</span> <span class="nf">get_list_found_peaks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="FindOxygenPeaks.get_list_found_peaks-310"><a href="#FindOxygenPeaks.get_list_found_peaks-310"><span class="linenos">310</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_list_found_peaks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="FindOxygenPeaks.get_list_found_peaks-311"><a href="#FindOxygenPeaks.get_list_found_peaks-311"><span class="linenos">311</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the list of found peaks</span>
 </span><span id="FindOxygenPeaks.get_list_found_peaks-312"><a href="#FindOxygenPeaks.get_list_found_peaks-312"><span class="linenos">312</span></a>
 </span><span id="FindOxygenPeaks.get_list_found_peaks-313"><a href="#FindOxygenPeaks.get_list_found_peaks-313"><span class="linenos">313</span></a><span class="sd">        Returns</span>
@@ -1281,7 +1281,7 @@ delta m/z to look for peaks</li>
 
     </div>
     <a class="headerlink" href="#FindOxygenPeaks.set_mass_spec_indexes_by_found_peaks"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="FindOxygenPeaks.set_mass_spec_indexes_by_found_peaks-320"><a href="#FindOxygenPeaks.set_mass_spec_indexes_by_found_peaks-320"><span class="linenos">320</span></a>    <span class="k">def</span> <span class="nf">set_mass_spec_indexes_by_found_peaks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="FindOxygenPeaks.set_mass_spec_indexes_by_found_peaks-320"><a href="#FindOxygenPeaks.set_mass_spec_indexes_by_found_peaks-320"><span class="linenos">320</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_mass_spec_indexes_by_found_peaks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="FindOxygenPeaks.set_mass_spec_indexes_by_found_peaks-321"><a href="#FindOxygenPeaks.set_mass_spec_indexes_by_found_peaks-321"><span class="linenos">321</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the mass spectrum to interate over only the selected indexes.</span>
 </span><span id="FindOxygenPeaks.set_mass_spec_indexes_by_found_peaks-322"><a href="#FindOxygenPeaks.set_mass_spec_indexes_by_found_peaks-322"><span class="linenos">322</span></a>
 </span><span id="FindOxygenPeaks.set_mass_spec_indexes_by_found_peaks-323"><a href="#FindOxygenPeaks.set_mass_spec_indexes_by_found_peaks-323"><span class="linenos">323</span></a><span class="sd">        Notes</span>

@@ -621,15 +621,15 @@
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Yuri E. Corilo&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="n">__date__</span> <span class="o">=</span> <span class="s2">&quot;Jul 02, 2019&quot;</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span> <span class="nn">dataclasses</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">import</span> <span class="nn">os</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">dataclasses</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.constant</span> <span class="kn">import</span> <span class="n">Atoms</span><span class="p">,</span> <span class="n">Labels</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.encapsulation.constant</span><span class="w"> </span><span class="kn">import</span> <span class="n">Atoms</span><span class="p">,</span> <span class="n">Labels</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>
 </span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="k">class</span> <span class="nc">TransientSetting</span><span class="p">:</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="k">class</span><span class="w"> </span><span class="nc">TransientSetting</span><span class="p">:</span>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Transient processing settings class</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>
 </span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="sd">    Attributes</span>
@@ -665,7 +665,7 @@
 </span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>    <span class="n">next_power_of_two</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 </span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a>    <span class="n">kaiser_beta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">8.6</span>
 </span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>
-</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a>        <span class="c1"># enforce datatype</span>
 </span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>            <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -675,7 +675,7 @@
 </span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>
 </span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>
 </span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="k">class</span> <span class="nc">DataInputSetting</span><span class="p">:</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="k">class</span><span class="w"> </span><span class="nc">DataInputSetting</span><span class="p">:</span>
 </span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Data input settings class</span>
 </span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>
 </span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="sd">    Attributes</span>
@@ -688,7 +688,7 @@
 </span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>    <span class="c1"># &quot;column_translate&quot; : {&quot;m/z&quot;:&quot;m/z&quot;, &quot;Resolving Power&quot;:&quot;Resolving Power&quot;, &quot;Abundance&quot;:&quot;Abundance&quot; , &quot;S/N&quot;:&quot;S/N&quot;}</span>
 </span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>    <span class="n">header_translate</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
 </span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>
-</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">header_translate</span> <span class="o">=</span> <span class="p">{</span>
 </span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>            <span class="s2">&quot;m/z&quot;</span><span class="p">:</span> <span class="n">Labels</span><span class="o">.</span><span class="n">mz</span><span class="p">,</span>
 </span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>            <span class="s2">&quot;mOz&quot;</span><span class="p">:</span> <span class="n">Labels</span><span class="o">.</span><span class="n">mz</span><span class="p">,</span>
@@ -706,26 +706,26 @@
 </span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>            <span class="s2">&quot;sn&quot;</span><span class="p">:</span> <span class="n">Labels</span><span class="o">.</span><span class="n">s2n</span><span class="p">,</span>
 </span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>        <span class="p">}</span>
 </span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>
-</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>    <span class="k">def</span> <span class="nf">add_mz_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_mz_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a label to the header_translate dictionary to be translated to the corems label for mz.&quot;&quot;&quot;</span>
 </span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">header_translate</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">mz</span>
 </span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>
-</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>    <span class="k">def</span> <span class="nf">add_peak_height_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_peak_height_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a label to the header_translate dictionary to be translated to the corems label for peak height.&quot;&quot;&quot;</span>
 </span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>
 </span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">header_translate</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">abundance</span>
 </span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>    <span class="k">def</span> <span class="nf">add_sn_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_sn_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a label to the header_translate dictionary to be translated to the corems label for signal to noise.&quot;&quot;&quot;</span>
 </span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">header_translate</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">s2n</span>
 </span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>
-</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>    <span class="k">def</span> <span class="nf">add_resolving_power_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_resolving_power_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a label to the header_translate dictionary to be translated to the corems label for resolving power.&quot;&quot;&quot;</span>
 </span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">header_translate</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">rp</span>
 </span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>
 </span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>
 </span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="k">class</span> <span class="nc">LiquidChromatographSetting</span><span class="p">:</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="k">class</span><span class="w"> </span><span class="nc">LiquidChromatographSetting</span><span class="p">:</span>
 </span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Liquid chromatograph processing settings class</span>
 </span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>
 </span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="sd">    Attributes</span>
@@ -873,7 +873,7 @@
 </span><span id="L-253"><a href="#L-253"><span class="linenos">253</span></a>    <span class="c1"># Parameters used for verbose processing</span>
 </span><span id="L-254"><a href="#L-254"><span class="linenos">254</span></a>    <span class="n">verbose_processing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="L-255"><a href="#L-255"><span class="linenos">255</span></a>
-</span><span id="L-256"><a href="#L-256"><span class="linenos">256</span></a>    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-256"><a href="#L-256"><span class="linenos">256</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-257"><a href="#L-257"><span class="linenos">257</span></a>        <span class="c1"># enforce datatype</span>
 </span><span id="L-258"><a href="#L-258"><span class="linenos">258</span></a>        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-259"><a href="#L-259"><span class="linenos">259</span></a>            <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -883,7 +883,7 @@
 </span><span id="L-263"><a href="#L-263"><span class="linenos">263</span></a>
 </span><span id="L-264"><a href="#L-264"><span class="linenos">264</span></a>
 </span><span id="L-265"><a href="#L-265"><span class="linenos">265</span></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-</span><span id="L-266"><a href="#L-266"><span class="linenos">266</span></a><span class="k">class</span> <span class="nc">MassSpectrumSetting</span><span class="p">:</span>
+</span><span id="L-266"><a href="#L-266"><span class="linenos">266</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MassSpectrumSetting</span><span class="p">:</span>
 </span><span id="L-267"><a href="#L-267"><span class="linenos">267</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Mass spectrum processing settings class</span>
 </span><span id="L-268"><a href="#L-268"><span class="linenos">268</span></a>
 </span><span id="L-269"><a href="#L-269"><span class="linenos">269</span></a><span class="sd">    Attributes</span>
@@ -988,7 +988,7 @@
 </span><span id="L-368"><a href="#L-368"><span class="linenos">368</span></a>    <span class="n">do_calibration</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="L-369"><a href="#L-369"><span class="linenos">369</span></a>    <span class="n">verbose_processing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="L-370"><a href="#L-370"><span class="linenos">370</span></a>
-</span><span id="L-371"><a href="#L-371"><span class="linenos">371</span></a>    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-371"><a href="#L-371"><span class="linenos">371</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-372"><a href="#L-372"><span class="linenos">372</span></a>        <span class="c1"># enforce datatype</span>
 </span><span id="L-373"><a href="#L-373"><span class="linenos">373</span></a>        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-374"><a href="#L-374"><span class="linenos">374</span></a>            <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -998,7 +998,7 @@
 </span><span id="L-378"><a href="#L-378"><span class="linenos">378</span></a>
 </span><span id="L-379"><a href="#L-379"><span class="linenos">379</span></a>
 </span><span id="L-380"><a href="#L-380"><span class="linenos">380</span></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-</span><span id="L-381"><a href="#L-381"><span class="linenos">381</span></a><span class="k">class</span> <span class="nc">MassSpecPeakSetting</span><span class="p">:</span>
+</span><span id="L-381"><a href="#L-381"><span class="linenos">381</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MassSpecPeakSetting</span><span class="p">:</span>
 </span><span id="L-382"><a href="#L-382"><span class="linenos">382</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Mass spectrum peak processing settings class</span>
 </span><span id="L-383"><a href="#L-383"><span class="linenos">383</span></a>
 </span><span id="L-384"><a href="#L-384"><span class="linenos">384</span></a><span class="sd">    Attributes</span>
@@ -1057,7 +1057,7 @@
 </span><span id="L-437"><a href="#L-437"><span class="linenos">437</span></a>
 </span><span id="L-438"><a href="#L-438"><span class="linenos">438</span></a>    <span class="n">legacy_centroid_polyfit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 </span><span id="L-439"><a href="#L-439"><span class="linenos">439</span></a>
-</span><span id="L-440"><a href="#L-440"><span class="linenos">440</span></a>    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-440"><a href="#L-440"><span class="linenos">440</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-441"><a href="#L-441"><span class="linenos">441</span></a>        <span class="c1"># default to CH2</span>
 </span><span id="L-442"><a href="#L-442"><span class="linenos">442</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">kendrick_base</span><span class="p">:</span>
 </span><span id="L-443"><a href="#L-443"><span class="linenos">443</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">kendrick_base</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
@@ -1070,7 +1070,7 @@
 </span><span id="L-450"><a href="#L-450"><span class="linenos">450</span></a>
 </span><span id="L-451"><a href="#L-451"><span class="linenos">451</span></a>
 </span><span id="L-452"><a href="#L-452"><span class="linenos">452</span></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-</span><span id="L-453"><a href="#L-453"><span class="linenos">453</span></a><span class="k">class</span> <span class="nc">GasChromatographSetting</span><span class="p">:</span>
+</span><span id="L-453"><a href="#L-453"><span class="linenos">453</span></a><span class="k">class</span><span class="w"> </span><span class="nc">GasChromatographSetting</span><span class="p">:</span>
 </span><span id="L-454"><a href="#L-454"><span class="linenos">454</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Gas chromatograph processing settings class</span>
 </span><span id="L-455"><a href="#L-455"><span class="linenos">455</span></a>
 </span><span id="L-456"><a href="#L-456"><span class="linenos">456</span></a><span class="sd">    Attributes</span>
@@ -1169,7 +1169,7 @@
 </span><span id="L-549"><a href="#L-549"><span class="linenos">549</span></a>
 </span><span id="L-550"><a href="#L-550"><span class="linenos">550</span></a>    <span class="n">verbose_processing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="L-551"><a href="#L-551"><span class="linenos">551</span></a>
-</span><span id="L-552"><a href="#L-552"><span class="linenos">552</span></a>    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-552"><a href="#L-552"><span class="linenos">552</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-553"><a href="#L-553"><span class="linenos">553</span></a>        <span class="c1"># enforce datatype</span>
 </span><span id="L-554"><a href="#L-554"><span class="linenos">554</span></a>        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-555"><a href="#L-555"><span class="linenos">555</span></a>            <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -1179,7 +1179,7 @@
 </span><span id="L-559"><a href="#L-559"><span class="linenos">559</span></a>
 </span><span id="L-560"><a href="#L-560"><span class="linenos">560</span></a>
 </span><span id="L-561"><a href="#L-561"><span class="linenos">561</span></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-</span><span id="L-562"><a href="#L-562"><span class="linenos">562</span></a><span class="k">class</span> <span class="nc">CompoundSearchSettings</span><span class="p">:</span>
+</span><span id="L-562"><a href="#L-562"><span class="linenos">562</span></a><span class="k">class</span><span class="w"> </span><span class="nc">CompoundSearchSettings</span><span class="p">:</span>
 </span><span id="L-563"><a href="#L-563"><span class="linenos">563</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Settings for compound search</span>
 </span><span id="L-564"><a href="#L-564"><span class="linenos">564</span></a>
 </span><span id="L-565"><a href="#L-565"><span class="linenos">565</span></a><span class="sd">    Attributes</span>
@@ -1226,7 +1226,7 @@
 </span><span id="L-606"><a href="#L-606"><span class="linenos">606</span></a>
 </span><span id="L-607"><a href="#L-607"><span class="linenos">607</span></a>    <span class="n">output_score_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;All&quot;</span>
 </span><span id="L-608"><a href="#L-608"><span class="linenos">608</span></a>
-</span><span id="L-609"><a href="#L-609"><span class="linenos">609</span></a>    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-609"><a href="#L-609"><span class="linenos">609</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-610"><a href="#L-610"><span class="linenos">610</span></a>        <span class="c1"># enforce datatype</span>
 </span><span id="L-611"><a href="#L-611"><span class="linenos">611</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">url_database</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span>
 </span><span id="L-612"><a href="#L-612"><span class="linenos">612</span></a>            <span class="s2">&quot;SPECTRAL_GCMS_DATABASE_URL&quot;</span><span class="p">,</span>
@@ -1256,7 +1256,7 @@
 </span><span id="L-636"><a href="#L-636"><span class="linenos">636</span></a>        <span class="p">]</span>
 </span><span id="L-637"><a href="#L-637"><span class="linenos">637</span></a>
 </span><span id="L-638"><a href="#L-638"><span class="linenos">638</span></a>
-</span><span id="L-639"><a href="#L-639"><span class="linenos">639</span></a><span class="k">class</span> <span class="nc">MolecularLookupDictSettings</span><span class="p">:</span>
+</span><span id="L-639"><a href="#L-639"><span class="linenos">639</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MolecularLookupDictSettings</span><span class="p">:</span>
 </span><span id="L-640"><a href="#L-640"><span class="linenos">640</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Settings for molecular searching</span>
 </span><span id="L-641"><a href="#L-641"><span class="linenos">641</span></a>
 </span><span id="L-642"><a href="#L-642"><span class="linenos">642</span></a><span class="sd">    These are used to generate the database entries, do not change.</span>
@@ -1300,7 +1300,7 @@
 </span><span id="L-680"><a href="#L-680"><span class="linenos">680</span></a>    <span class="c1">### make sure to include the selected covalence at the used_atoms_valences when adding new atoms</span>
 </span><span id="L-681"><a href="#L-681"><span class="linenos">681</span></a>    <span class="c1">### NOTE : Adducts atoms have zero covalence</span>
 </span><span id="L-682"><a href="#L-682"><span class="linenos">682</span></a>    <span class="c1">### NOTE : Not using static variable because this class is distributed using multiprocessing</span>
-</span><span id="L-683"><a href="#L-683"><span class="linenos">683</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-683"><a href="#L-683"><span class="linenos">683</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-684"><a href="#L-684"><span class="linenos">684</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">usedAtoms</span> <span class="o">=</span> <span class="p">{</span>
 </span><span id="L-685"><a href="#L-685"><span class="linenos">685</span></a>            <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">90</span><span class="p">),</span>
 </span><span id="L-686"><a href="#L-686"><span class="linenos">686</span></a>            <span class="s2">&quot;H&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span>
@@ -1350,7 +1350,7 @@
 </span><span id="L-730"><a href="#L-730"><span class="linenos">730</span></a>
 </span><span id="L-731"><a href="#L-731"><span class="linenos">731</span></a>
 </span><span id="L-732"><a href="#L-732"><span class="linenos">732</span></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-</span><span id="L-733"><a href="#L-733"><span class="linenos">733</span></a><span class="k">class</span> <span class="nc">MolecularFormulaSearchSettings</span><span class="p">:</span>
+</span><span id="L-733"><a href="#L-733"><span class="linenos">733</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MolecularFormulaSearchSettings</span><span class="p">:</span>
 </span><span id="L-734"><a href="#L-734"><span class="linenos">734</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Settings for molecular searching</span>
 </span><span id="L-735"><a href="#L-735"><span class="linenos">735</span></a>
 </span><span id="L-736"><a href="#L-736"><span class="linenos">736</span></a><span class="sd">    Attributes</span>
@@ -1546,7 +1546,7 @@
 </span><span id="L-926"><a href="#L-926"><span class="linenos">926</span></a>    <span class="c1"># used_atom_valences: {&#39;C&#39;: 4, &#39;H&#39;:1, etc} = dataclasses.field(default_factory=dict)</span>
 </span><span id="L-927"><a href="#L-927"><span class="linenos">927</span></a>    <span class="n">used_atom_valences</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
 </span><span id="L-928"><a href="#L-928"><span class="linenos">928</span></a>
-</span><span id="L-929"><a href="#L-929"><span class="linenos">929</span></a>    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-929"><a href="#L-929"><span class="linenos">929</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-930"><a href="#L-930"><span class="linenos">930</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">url_database</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">url_database</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
 </span><span id="L-931"><a href="#L-931"><span class="linenos">931</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">url_database</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span>
 </span><span id="L-932"><a href="#L-932"><span class="linenos">932</span></a>            <span class="s2">&quot;COREMS_DATABASE_URL&quot;</span><span class="p">,</span> <span class="s2">&quot;sqlite:///db/molformula.db&quot;</span>
@@ -1594,7 +1594,7 @@
     </div>
     <a class="headerlink" href="#TransientSetting"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="TransientSetting-12"><a href="#TransientSetting-12"><span class="linenos">12</span></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-</span><span id="TransientSetting-13"><a href="#TransientSetting-13"><span class="linenos">13</span></a><span class="k">class</span> <span class="nc">TransientSetting</span><span class="p">:</span>
+</span><span id="TransientSetting-13"><a href="#TransientSetting-13"><span class="linenos">13</span></a><span class="k">class</span><span class="w"> </span><span class="nc">TransientSetting</span><span class="p">:</span>
 </span><span id="TransientSetting-14"><a href="#TransientSetting-14"><span class="linenos">14</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Transient processing settings class</span>
 </span><span id="TransientSetting-15"><a href="#TransientSetting-15"><span class="linenos">15</span></a>
 </span><span id="TransientSetting-16"><a href="#TransientSetting-16"><span class="linenos">16</span></a><span class="sd">    Attributes</span>
@@ -1630,7 +1630,7 @@
 </span><span id="TransientSetting-46"><a href="#TransientSetting-46"><span class="linenos">46</span></a>    <span class="n">next_power_of_two</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 </span><span id="TransientSetting-47"><a href="#TransientSetting-47"><span class="linenos">47</span></a>    <span class="n">kaiser_beta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">8.6</span>
 </span><span id="TransientSetting-48"><a href="#TransientSetting-48"><span class="linenos">48</span></a>
-</span><span id="TransientSetting-49"><a href="#TransientSetting-49"><span class="linenos">49</span></a>    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="TransientSetting-49"><a href="#TransientSetting-49"><span class="linenos">49</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="TransientSetting-50"><a href="#TransientSetting-50"><span class="linenos">50</span></a>        <span class="c1"># enforce datatype</span>
 </span><span id="TransientSetting-51"><a href="#TransientSetting-51"><span class="linenos">51</span></a>        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="TransientSetting-52"><a href="#TransientSetting-52"><span class="linenos">52</span></a>            <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -1760,7 +1760,7 @@ Beta parameter for Kaiser or Half-Kaiser apodisation function. 0 is rectangular,
     </div>
     <a class="headerlink" href="#DataInputSetting"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="DataInputSetting-58"><a href="#DataInputSetting-58"><span class="linenos"> 58</span></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-</span><span id="DataInputSetting-59"><a href="#DataInputSetting-59"><span class="linenos"> 59</span></a><span class="k">class</span> <span class="nc">DataInputSetting</span><span class="p">:</span>
+</span><span id="DataInputSetting-59"><a href="#DataInputSetting-59"><span class="linenos"> 59</span></a><span class="k">class</span><span class="w"> </span><span class="nc">DataInputSetting</span><span class="p">:</span>
 </span><span id="DataInputSetting-60"><a href="#DataInputSetting-60"><span class="linenos"> 60</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Data input settings class</span>
 </span><span id="DataInputSetting-61"><a href="#DataInputSetting-61"><span class="linenos"> 61</span></a>
 </span><span id="DataInputSetting-62"><a href="#DataInputSetting-62"><span class="linenos"> 62</span></a><span class="sd">    Attributes</span>
@@ -1773,7 +1773,7 @@ Beta parameter for Kaiser or Half-Kaiser apodisation function. 0 is rectangular,
 </span><span id="DataInputSetting-69"><a href="#DataInputSetting-69"><span class="linenos"> 69</span></a>    <span class="c1"># &quot;column_translate&quot; : {&quot;m/z&quot;:&quot;m/z&quot;, &quot;Resolving Power&quot;:&quot;Resolving Power&quot;, &quot;Abundance&quot;:&quot;Abundance&quot; , &quot;S/N&quot;:&quot;S/N&quot;}</span>
 </span><span id="DataInputSetting-70"><a href="#DataInputSetting-70"><span class="linenos"> 70</span></a>    <span class="n">header_translate</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
 </span><span id="DataInputSetting-71"><a href="#DataInputSetting-71"><span class="linenos"> 71</span></a>
-</span><span id="DataInputSetting-72"><a href="#DataInputSetting-72"><span class="linenos"> 72</span></a>    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="DataInputSetting-72"><a href="#DataInputSetting-72"><span class="linenos"> 72</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="DataInputSetting-73"><a href="#DataInputSetting-73"><span class="linenos"> 73</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">header_translate</span> <span class="o">=</span> <span class="p">{</span>
 </span><span id="DataInputSetting-74"><a href="#DataInputSetting-74"><span class="linenos"> 74</span></a>            <span class="s2">&quot;m/z&quot;</span><span class="p">:</span> <span class="n">Labels</span><span class="o">.</span><span class="n">mz</span><span class="p">,</span>
 </span><span id="DataInputSetting-75"><a href="#DataInputSetting-75"><span class="linenos"> 75</span></a>            <span class="s2">&quot;mOz&quot;</span><span class="p">:</span> <span class="n">Labels</span><span class="o">.</span><span class="n">mz</span><span class="p">,</span>
@@ -1791,20 +1791,20 @@ Beta parameter for Kaiser or Half-Kaiser apodisation function. 0 is rectangular,
 </span><span id="DataInputSetting-87"><a href="#DataInputSetting-87"><span class="linenos"> 87</span></a>            <span class="s2">&quot;sn&quot;</span><span class="p">:</span> <span class="n">Labels</span><span class="o">.</span><span class="n">s2n</span><span class="p">,</span>
 </span><span id="DataInputSetting-88"><a href="#DataInputSetting-88"><span class="linenos"> 88</span></a>        <span class="p">}</span>
 </span><span id="DataInputSetting-89"><a href="#DataInputSetting-89"><span class="linenos"> 89</span></a>
-</span><span id="DataInputSetting-90"><a href="#DataInputSetting-90"><span class="linenos"> 90</span></a>    <span class="k">def</span> <span class="nf">add_mz_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+</span><span id="DataInputSetting-90"><a href="#DataInputSetting-90"><span class="linenos"> 90</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_mz_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="DataInputSetting-91"><a href="#DataInputSetting-91"><span class="linenos"> 91</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a label to the header_translate dictionary to be translated to the corems label for mz.&quot;&quot;&quot;</span>
 </span><span id="DataInputSetting-92"><a href="#DataInputSetting-92"><span class="linenos"> 92</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">header_translate</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">mz</span>
 </span><span id="DataInputSetting-93"><a href="#DataInputSetting-93"><span class="linenos"> 93</span></a>
-</span><span id="DataInputSetting-94"><a href="#DataInputSetting-94"><span class="linenos"> 94</span></a>    <span class="k">def</span> <span class="nf">add_peak_height_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+</span><span id="DataInputSetting-94"><a href="#DataInputSetting-94"><span class="linenos"> 94</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_peak_height_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="DataInputSetting-95"><a href="#DataInputSetting-95"><span class="linenos"> 95</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a label to the header_translate dictionary to be translated to the corems label for peak height.&quot;&quot;&quot;</span>
 </span><span id="DataInputSetting-96"><a href="#DataInputSetting-96"><span class="linenos"> 96</span></a>
 </span><span id="DataInputSetting-97"><a href="#DataInputSetting-97"><span class="linenos"> 97</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">header_translate</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">abundance</span>
 </span><span id="DataInputSetting-98"><a href="#DataInputSetting-98"><span class="linenos"> 98</span></a>
-</span><span id="DataInputSetting-99"><a href="#DataInputSetting-99"><span class="linenos"> 99</span></a>    <span class="k">def</span> <span class="nf">add_sn_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+</span><span id="DataInputSetting-99"><a href="#DataInputSetting-99"><span class="linenos"> 99</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_sn_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="DataInputSetting-100"><a href="#DataInputSetting-100"><span class="linenos">100</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a label to the header_translate dictionary to be translated to the corems label for signal to noise.&quot;&quot;&quot;</span>
 </span><span id="DataInputSetting-101"><a href="#DataInputSetting-101"><span class="linenos">101</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">header_translate</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">s2n</span>
 </span><span id="DataInputSetting-102"><a href="#DataInputSetting-102"><span class="linenos">102</span></a>
-</span><span id="DataInputSetting-103"><a href="#DataInputSetting-103"><span class="linenos">103</span></a>    <span class="k">def</span> <span class="nf">add_resolving_power_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+</span><span id="DataInputSetting-103"><a href="#DataInputSetting-103"><span class="linenos">103</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_resolving_power_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="DataInputSetting-104"><a href="#DataInputSetting-104"><span class="linenos">104</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a label to the header_translate dictionary to be translated to the corems label for resolving power.&quot;&quot;&quot;</span>
 </span><span id="DataInputSetting-105"><a href="#DataInputSetting-105"><span class="linenos">105</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">header_translate</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">rp</span>
 </span></pre></div>
@@ -1855,7 +1855,7 @@ Dictionary with the header labels to be translated to the corems labels. For exa
 
     </div>
     <a class="headerlink" href="#DataInputSetting.add_mz_label"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="DataInputSetting.add_mz_label-90"><a href="#DataInputSetting.add_mz_label-90"><span class="linenos">90</span></a>    <span class="k">def</span> <span class="nf">add_mz_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="DataInputSetting.add_mz_label-90"><a href="#DataInputSetting.add_mz_label-90"><span class="linenos">90</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_mz_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="DataInputSetting.add_mz_label-91"><a href="#DataInputSetting.add_mz_label-91"><span class="linenos">91</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a label to the header_translate dictionary to be translated to the corems label for mz.&quot;&quot;&quot;</span>
 </span><span id="DataInputSetting.add_mz_label-92"><a href="#DataInputSetting.add_mz_label-92"><span class="linenos">92</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">header_translate</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">mz</span>
 </span></pre></div>
@@ -1877,7 +1877,7 @@ Dictionary with the header labels to be translated to the corems labels. For exa
 
     </div>
     <a class="headerlink" href="#DataInputSetting.add_peak_height_label"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="DataInputSetting.add_peak_height_label-94"><a href="#DataInputSetting.add_peak_height_label-94"><span class="linenos">94</span></a>    <span class="k">def</span> <span class="nf">add_peak_height_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="DataInputSetting.add_peak_height_label-94"><a href="#DataInputSetting.add_peak_height_label-94"><span class="linenos">94</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_peak_height_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="DataInputSetting.add_peak_height_label-95"><a href="#DataInputSetting.add_peak_height_label-95"><span class="linenos">95</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a label to the header_translate dictionary to be translated to the corems label for peak height.&quot;&quot;&quot;</span>
 </span><span id="DataInputSetting.add_peak_height_label-96"><a href="#DataInputSetting.add_peak_height_label-96"><span class="linenos">96</span></a>
 </span><span id="DataInputSetting.add_peak_height_label-97"><a href="#DataInputSetting.add_peak_height_label-97"><span class="linenos">97</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">header_translate</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">abundance</span>
@@ -1900,7 +1900,7 @@ Dictionary with the header labels to be translated to the corems labels. For exa
 
     </div>
     <a class="headerlink" href="#DataInputSetting.add_sn_label"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="DataInputSetting.add_sn_label-99"><a href="#DataInputSetting.add_sn_label-99"><span class="linenos"> 99</span></a>    <span class="k">def</span> <span class="nf">add_sn_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="DataInputSetting.add_sn_label-99"><a href="#DataInputSetting.add_sn_label-99"><span class="linenos"> 99</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_sn_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="DataInputSetting.add_sn_label-100"><a href="#DataInputSetting.add_sn_label-100"><span class="linenos">100</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a label to the header_translate dictionary to be translated to the corems label for signal to noise.&quot;&quot;&quot;</span>
 </span><span id="DataInputSetting.add_sn_label-101"><a href="#DataInputSetting.add_sn_label-101"><span class="linenos">101</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">header_translate</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">s2n</span>
 </span></pre></div>
@@ -1922,7 +1922,7 @@ Dictionary with the header labels to be translated to the corems labels. For exa
 
     </div>
     <a class="headerlink" href="#DataInputSetting.add_resolving_power_label"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="DataInputSetting.add_resolving_power_label-103"><a href="#DataInputSetting.add_resolving_power_label-103"><span class="linenos">103</span></a>    <span class="k">def</span> <span class="nf">add_resolving_power_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="DataInputSetting.add_resolving_power_label-103"><a href="#DataInputSetting.add_resolving_power_label-103"><span class="linenos">103</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_resolving_power_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="DataInputSetting.add_resolving_power_label-104"><a href="#DataInputSetting.add_resolving_power_label-104"><span class="linenos">104</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a label to the header_translate dictionary to be translated to the corems label for resolving power.&quot;&quot;&quot;</span>
 </span><span id="DataInputSetting.add_resolving_power_label-105"><a href="#DataInputSetting.add_resolving_power_label-105"><span class="linenos">105</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">header_translate</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">Labels</span><span class="o">.</span><span class="n">rp</span>
 </span></pre></div>
@@ -1947,7 +1947,7 @@ Dictionary with the header labels to be translated to the corems labels. For exa
     </div>
     <a class="headerlink" href="#LiquidChromatographSetting"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="LiquidChromatographSetting-108"><a href="#LiquidChromatographSetting-108"><span class="linenos">108</span></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-</span><span id="LiquidChromatographSetting-109"><a href="#LiquidChromatographSetting-109"><span class="linenos">109</span></a><span class="k">class</span> <span class="nc">LiquidChromatographSetting</span><span class="p">:</span>
+</span><span id="LiquidChromatographSetting-109"><a href="#LiquidChromatographSetting-109"><span class="linenos">109</span></a><span class="k">class</span><span class="w"> </span><span class="nc">LiquidChromatographSetting</span><span class="p">:</span>
 </span><span id="LiquidChromatographSetting-110"><a href="#LiquidChromatographSetting-110"><span class="linenos">110</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Liquid chromatograph processing settings class</span>
 </span><span id="LiquidChromatographSetting-111"><a href="#LiquidChromatographSetting-111"><span class="linenos">111</span></a>
 </span><span id="LiquidChromatographSetting-112"><a href="#LiquidChromatographSetting-112"><span class="linenos">112</span></a><span class="sd">    Attributes</span>
@@ -2095,7 +2095,7 @@ Dictionary with the header labels to be translated to the corems labels. For exa
 </span><span id="LiquidChromatographSetting-254"><a href="#LiquidChromatographSetting-254"><span class="linenos">254</span></a>    <span class="c1"># Parameters used for verbose processing</span>
 </span><span id="LiquidChromatographSetting-255"><a href="#LiquidChromatographSetting-255"><span class="linenos">255</span></a>    <span class="n">verbose_processing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="LiquidChromatographSetting-256"><a href="#LiquidChromatographSetting-256"><span class="linenos">256</span></a>
-</span><span id="LiquidChromatographSetting-257"><a href="#LiquidChromatographSetting-257"><span class="linenos">257</span></a>    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LiquidChromatographSetting-257"><a href="#LiquidChromatographSetting-257"><span class="linenos">257</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LiquidChromatographSetting-258"><a href="#LiquidChromatographSetting-258"><span class="linenos">258</span></a>        <span class="c1"># enforce datatype</span>
 </span><span id="LiquidChromatographSetting-259"><a href="#LiquidChromatographSetting-259"><span class="linenos">259</span></a>        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LiquidChromatographSetting-260"><a href="#LiquidChromatographSetting-260"><span class="linenos">260</span></a>            <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -2649,7 +2649,7 @@ If True, print verbose processing information. Default is True.</li>
     </div>
     <a class="headerlink" href="#MassSpectrumSetting"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="MassSpectrumSetting-266"><a href="#MassSpectrumSetting-266"><span class="linenos">266</span></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-</span><span id="MassSpectrumSetting-267"><a href="#MassSpectrumSetting-267"><span class="linenos">267</span></a><span class="k">class</span> <span class="nc">MassSpectrumSetting</span><span class="p">:</span>
+</span><span id="MassSpectrumSetting-267"><a href="#MassSpectrumSetting-267"><span class="linenos">267</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MassSpectrumSetting</span><span class="p">:</span>
 </span><span id="MassSpectrumSetting-268"><a href="#MassSpectrumSetting-268"><span class="linenos">268</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Mass spectrum processing settings class</span>
 </span><span id="MassSpectrumSetting-269"><a href="#MassSpectrumSetting-269"><span class="linenos">269</span></a>
 </span><span id="MassSpectrumSetting-270"><a href="#MassSpectrumSetting-270"><span class="linenos">270</span></a><span class="sd">    Attributes</span>
@@ -2754,7 +2754,7 @@ If True, print verbose processing information. Default is True.</li>
 </span><span id="MassSpectrumSetting-369"><a href="#MassSpectrumSetting-369"><span class="linenos">369</span></a>    <span class="n">do_calibration</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="MassSpectrumSetting-370"><a href="#MassSpectrumSetting-370"><span class="linenos">370</span></a>    <span class="n">verbose_processing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="MassSpectrumSetting-371"><a href="#MassSpectrumSetting-371"><span class="linenos">371</span></a>
-</span><span id="MassSpectrumSetting-372"><a href="#MassSpectrumSetting-372"><span class="linenos">372</span></a>    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MassSpectrumSetting-372"><a href="#MassSpectrumSetting-372"><span class="linenos">372</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MassSpectrumSetting-373"><a href="#MassSpectrumSetting-373"><span class="linenos">373</span></a>        <span class="c1"># enforce datatype</span>
 </span><span id="MassSpectrumSetting-374"><a href="#MassSpectrumSetting-374"><span class="linenos">374</span></a>        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MassSpectrumSetting-375"><a href="#MassSpectrumSetting-375"><span class="linenos">375</span></a>            <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -3146,7 +3146,7 @@ If True, print verbose processing information. Default is True.</li>
     </div>
     <a class="headerlink" href="#MassSpecPeakSetting"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="MassSpecPeakSetting-381"><a href="#MassSpecPeakSetting-381"><span class="linenos">381</span></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-</span><span id="MassSpecPeakSetting-382"><a href="#MassSpecPeakSetting-382"><span class="linenos">382</span></a><span class="k">class</span> <span class="nc">MassSpecPeakSetting</span><span class="p">:</span>
+</span><span id="MassSpecPeakSetting-382"><a href="#MassSpecPeakSetting-382"><span class="linenos">382</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MassSpecPeakSetting</span><span class="p">:</span>
 </span><span id="MassSpecPeakSetting-383"><a href="#MassSpecPeakSetting-383"><span class="linenos">383</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Mass spectrum peak processing settings class</span>
 </span><span id="MassSpecPeakSetting-384"><a href="#MassSpecPeakSetting-384"><span class="linenos">384</span></a>
 </span><span id="MassSpecPeakSetting-385"><a href="#MassSpecPeakSetting-385"><span class="linenos">385</span></a><span class="sd">    Attributes</span>
@@ -3205,7 +3205,7 @@ If True, print verbose processing information. Default is True.</li>
 </span><span id="MassSpecPeakSetting-438"><a href="#MassSpecPeakSetting-438"><span class="linenos">438</span></a>
 </span><span id="MassSpecPeakSetting-439"><a href="#MassSpecPeakSetting-439"><span class="linenos">439</span></a>    <span class="n">legacy_centroid_polyfit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 </span><span id="MassSpecPeakSetting-440"><a href="#MassSpecPeakSetting-440"><span class="linenos">440</span></a>
-</span><span id="MassSpecPeakSetting-441"><a href="#MassSpecPeakSetting-441"><span class="linenos">441</span></a>    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MassSpecPeakSetting-441"><a href="#MassSpecPeakSetting-441"><span class="linenos">441</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MassSpecPeakSetting-442"><a href="#MassSpecPeakSetting-442"><span class="linenos">442</span></a>        <span class="c1"># default to CH2</span>
 </span><span id="MassSpecPeakSetting-443"><a href="#MassSpecPeakSetting-443"><span class="linenos">443</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">kendrick_base</span><span class="p">:</span>
 </span><span id="MassSpecPeakSetting-444"><a href="#MassSpecPeakSetting-444"><span class="linenos">444</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">kendrick_base</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
@@ -3402,7 +3402,7 @@ Default false.</li>
     </div>
     <a class="headerlink" href="#GasChromatographSetting"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="GasChromatographSetting-453"><a href="#GasChromatographSetting-453"><span class="linenos">453</span></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-</span><span id="GasChromatographSetting-454"><a href="#GasChromatographSetting-454"><span class="linenos">454</span></a><span class="k">class</span> <span class="nc">GasChromatographSetting</span><span class="p">:</span>
+</span><span id="GasChromatographSetting-454"><a href="#GasChromatographSetting-454"><span class="linenos">454</span></a><span class="k">class</span><span class="w"> </span><span class="nc">GasChromatographSetting</span><span class="p">:</span>
 </span><span id="GasChromatographSetting-455"><a href="#GasChromatographSetting-455"><span class="linenos">455</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Gas chromatograph processing settings class</span>
 </span><span id="GasChromatographSetting-456"><a href="#GasChromatographSetting-456"><span class="linenos">456</span></a>
 </span><span id="GasChromatographSetting-457"><a href="#GasChromatographSetting-457"><span class="linenos">457</span></a><span class="sd">    Attributes</span>
@@ -3501,7 +3501,7 @@ Default false.</li>
 </span><span id="GasChromatographSetting-550"><a href="#GasChromatographSetting-550"><span class="linenos">550</span></a>
 </span><span id="GasChromatographSetting-551"><a href="#GasChromatographSetting-551"><span class="linenos">551</span></a>    <span class="n">verbose_processing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="GasChromatographSetting-552"><a href="#GasChromatographSetting-552"><span class="linenos">552</span></a>
-</span><span id="GasChromatographSetting-553"><a href="#GasChromatographSetting-553"><span class="linenos">553</span></a>    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="GasChromatographSetting-553"><a href="#GasChromatographSetting-553"><span class="linenos">553</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="GasChromatographSetting-554"><a href="#GasChromatographSetting-554"><span class="linenos">554</span></a>        <span class="c1"># enforce datatype</span>
 </span><span id="GasChromatographSetting-555"><a href="#GasChromatographSetting-555"><span class="linenos">555</span></a>        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="GasChromatographSetting-556"><a href="#GasChromatographSetting-556"><span class="linenos">556</span></a>            <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -3803,7 +3803,7 @@ If True, print verbose processing information. Default is True.</li>
     </div>
     <a class="headerlink" href="#CompoundSearchSettings"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="CompoundSearchSettings-562"><a href="#CompoundSearchSettings-562"><span class="linenos">562</span></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-</span><span id="CompoundSearchSettings-563"><a href="#CompoundSearchSettings-563"><span class="linenos">563</span></a><span class="k">class</span> <span class="nc">CompoundSearchSettings</span><span class="p">:</span>
+</span><span id="CompoundSearchSettings-563"><a href="#CompoundSearchSettings-563"><span class="linenos">563</span></a><span class="k">class</span><span class="w"> </span><span class="nc">CompoundSearchSettings</span><span class="p">:</span>
 </span><span id="CompoundSearchSettings-564"><a href="#CompoundSearchSettings-564"><span class="linenos">564</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Settings for compound search</span>
 </span><span id="CompoundSearchSettings-565"><a href="#CompoundSearchSettings-565"><span class="linenos">565</span></a>
 </span><span id="CompoundSearchSettings-566"><a href="#CompoundSearchSettings-566"><span class="linenos">566</span></a><span class="sd">    Attributes</span>
@@ -3850,7 +3850,7 @@ If True, print verbose processing information. Default is True.</li>
 </span><span id="CompoundSearchSettings-607"><a href="#CompoundSearchSettings-607"><span class="linenos">607</span></a>
 </span><span id="CompoundSearchSettings-608"><a href="#CompoundSearchSettings-608"><span class="linenos">608</span></a>    <span class="n">output_score_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;All&quot;</span>
 </span><span id="CompoundSearchSettings-609"><a href="#CompoundSearchSettings-609"><span class="linenos">609</span></a>
-</span><span id="CompoundSearchSettings-610"><a href="#CompoundSearchSettings-610"><span class="linenos">610</span></a>    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="CompoundSearchSettings-610"><a href="#CompoundSearchSettings-610"><span class="linenos">610</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="CompoundSearchSettings-611"><a href="#CompoundSearchSettings-611"><span class="linenos">611</span></a>        <span class="c1"># enforce datatype</span>
 </span><span id="CompoundSearchSettings-612"><a href="#CompoundSearchSettings-612"><span class="linenos">612</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">url_database</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span>
 </span><span id="CompoundSearchSettings-613"><a href="#CompoundSearchSettings-613"><span class="linenos">613</span></a>            <span class="s2">&quot;SPECTRAL_GCMS_DATABASE_URL&quot;</span><span class="p">,</span>
@@ -4061,7 +4061,7 @@ List of compound names to use for retention index calibration. Default is ['Meth
 
     </div>
     <a class="headerlink" href="#MolecularLookupDictSettings"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularLookupDictSettings-640"><a href="#MolecularLookupDictSettings-640"><span class="linenos">640</span></a><span class="k">class</span> <span class="nc">MolecularLookupDictSettings</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularLookupDictSettings-640"><a href="#MolecularLookupDictSettings-640"><span class="linenos">640</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MolecularLookupDictSettings</span><span class="p">:</span>
 </span><span id="MolecularLookupDictSettings-641"><a href="#MolecularLookupDictSettings-641"><span class="linenos">641</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Settings for molecular searching</span>
 </span><span id="MolecularLookupDictSettings-642"><a href="#MolecularLookupDictSettings-642"><span class="linenos">642</span></a>
 </span><span id="MolecularLookupDictSettings-643"><a href="#MolecularLookupDictSettings-643"><span class="linenos">643</span></a><span class="sd">    These are used to generate the database entries, do not change.</span>
@@ -4105,7 +4105,7 @@ List of compound names to use for retention index calibration. Default is ['Meth
 </span><span id="MolecularLookupDictSettings-681"><a href="#MolecularLookupDictSettings-681"><span class="linenos">681</span></a>    <span class="c1">### make sure to include the selected covalence at the used_atoms_valences when adding new atoms</span>
 </span><span id="MolecularLookupDictSettings-682"><a href="#MolecularLookupDictSettings-682"><span class="linenos">682</span></a>    <span class="c1">### NOTE : Adducts atoms have zero covalence</span>
 </span><span id="MolecularLookupDictSettings-683"><a href="#MolecularLookupDictSettings-683"><span class="linenos">683</span></a>    <span class="c1">### NOTE : Not using static variable because this class is distributed using multiprocessing</span>
-</span><span id="MolecularLookupDictSettings-684"><a href="#MolecularLookupDictSettings-684"><span class="linenos">684</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MolecularLookupDictSettings-684"><a href="#MolecularLookupDictSettings-684"><span class="linenos">684</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolecularLookupDictSettings-685"><a href="#MolecularLookupDictSettings-685"><span class="linenos">685</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">usedAtoms</span> <span class="o">=</span> <span class="p">{</span>
 </span><span id="MolecularLookupDictSettings-686"><a href="#MolecularLookupDictSettings-686"><span class="linenos">686</span></a>            <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">90</span><span class="p">),</span>
 </span><span id="MolecularLookupDictSettings-687"><a href="#MolecularLookupDictSettings-687"><span class="linenos">687</span></a>            <span class="s2">&quot;H&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span>
@@ -4323,7 +4323,7 @@ Dictionary of atoms and valences. Default is {'C': 4, '13C': 4, 'H': 1, 'O': 2, 
     </div>
     <a class="headerlink" href="#MolecularFormulaSearchSettings"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularFormulaSearchSettings-733"><a href="#MolecularFormulaSearchSettings-733"><span class="linenos">733</span></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-</span><span id="MolecularFormulaSearchSettings-734"><a href="#MolecularFormulaSearchSettings-734"><span class="linenos">734</span></a><span class="k">class</span> <span class="nc">MolecularFormulaSearchSettings</span><span class="p">:</span>
+</span><span id="MolecularFormulaSearchSettings-734"><a href="#MolecularFormulaSearchSettings-734"><span class="linenos">734</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MolecularFormulaSearchSettings</span><span class="p">:</span>
 </span><span id="MolecularFormulaSearchSettings-735"><a href="#MolecularFormulaSearchSettings-735"><span class="linenos">735</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Settings for molecular searching</span>
 </span><span id="MolecularFormulaSearchSettings-736"><a href="#MolecularFormulaSearchSettings-736"><span class="linenos">736</span></a>
 </span><span id="MolecularFormulaSearchSettings-737"><a href="#MolecularFormulaSearchSettings-737"><span class="linenos">737</span></a><span class="sd">    Attributes</span>
@@ -4519,7 +4519,7 @@ Dictionary of atoms and valences. Default is {'C': 4, '13C': 4, 'H': 1, 'O': 2, 
 </span><span id="MolecularFormulaSearchSettings-927"><a href="#MolecularFormulaSearchSettings-927"><span class="linenos">927</span></a>    <span class="c1"># used_atom_valences: {&#39;C&#39;: 4, &#39;H&#39;:1, etc} = dataclasses.field(default_factory=dict)</span>
 </span><span id="MolecularFormulaSearchSettings-928"><a href="#MolecularFormulaSearchSettings-928"><span class="linenos">928</span></a>    <span class="n">used_atom_valences</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
 </span><span id="MolecularFormulaSearchSettings-929"><a href="#MolecularFormulaSearchSettings-929"><span class="linenos">929</span></a>
-</span><span id="MolecularFormulaSearchSettings-930"><a href="#MolecularFormulaSearchSettings-930"><span class="linenos">930</span></a>    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MolecularFormulaSearchSettings-930"><a href="#MolecularFormulaSearchSettings-930"><span class="linenos">930</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolecularFormulaSearchSettings-931"><a href="#MolecularFormulaSearchSettings-931"><span class="linenos">931</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">url_database</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">url_database</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
 </span><span id="MolecularFormulaSearchSettings-932"><a href="#MolecularFormulaSearchSettings-932"><span class="linenos">932</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">url_database</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span>
 </span><span id="MolecularFormulaSearchSettings-933"><a href="#MolecularFormulaSearchSettings-933"><span class="linenos">933</span></a>            <span class="s2">&quot;COREMS_DATABASE_URL&quot;</span><span class="p">,</span> <span class="s2">&quot;sqlite:///db/molformula.db&quot;</span>

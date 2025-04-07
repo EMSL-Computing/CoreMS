@@ -84,17 +84,17 @@
 
                         <label class="view-source-button" for="mod-SignalProcessing-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a>
-</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">from</span> <span class="nn">scipy.signal</span> <span class="kn">import</span> <span class="n">savgol_filter</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span> <span class="nn">scipy.signal.windows</span> <span class="kn">import</span> <span class="n">boxcar</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">interpolate</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="nb">abs</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">array</span><span class="p">,</span> <span class="n">polyfit</span><span class="p">,</span> <span class="n">asarray</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">scipy.signal</span><span class="w"> </span><span class="kn">import</span> <span class="n">savgol_filter</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">scipy.signal.windows</span><span class="w"> </span><span class="kn">import</span> <span class="n">boxcar</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">interpolate</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="nb">abs</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">array</span><span class="p">,</span> <span class="n">polyfit</span><span class="p">,</span> <span class="n">asarray</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="k">def</span> <span class="nf">peak_detector</span><span class="p">(</span><span class="n">tic</span><span class="p">,</span> <span class="n">max_tic</span><span class="p">):</span>  <span class="c1"># TODO remove max_tic argument?</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="k">def</span><span class="w"> </span><span class="nf">peak_detector</span><span class="p">(</span><span class="n">tic</span><span class="p">,</span> <span class="n">max_tic</span><span class="p">):</span>  <span class="c1"># TODO remove max_tic argument?</span>
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="sd">    Find peaks by detecting minima in the first derivative of the data</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="sd">    Used in LC/GC data processing</span>
@@ -123,7 +123,7 @@
 </span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a>        <span class="k">yield</span> <span class="p">(</span><span class="n">start_index</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">final_index</span><span class="p">)</span>
 </span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a>
 </span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>
-</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a><span class="k">def</span> <span class="nf">find_nearest_scan</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">nodes</span><span class="p">):</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a><span class="k">def</span><span class="w"> </span><span class="nf">find_nearest_scan</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">nodes</span><span class="p">):</span>
 </span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a><span class="sd">    Find nearest data point in a list of nodes (derivated data)</span>
 </span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a><span class="sd">    in LC/GC this is &#39;scan&#39;, in MS this is &#39;m/z&#39; data point</span>
@@ -148,7 +148,7 @@
 </span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>    <span class="k">return</span> <span class="n">nodes</span><span class="p">[</span><span class="n">scan_index</span><span class="p">]</span>
 </span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>
 </span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>
-</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="k">def</span> <span class="nf">check_corrected_abundance</span><span class="p">(</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="k">def</span><span class="w"> </span><span class="nf">check_corrected_abundance</span><span class="p">(</span>
 </span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>    <span class="n">closest_left</span><span class="p">,</span>
 </span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>    <span class="n">closest_right</span><span class="p">,</span>
 </span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>    <span class="n">apex_index</span><span class="p">,</span>
@@ -197,7 +197,7 @@
 </span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>        <span class="k">return</span> <span class="kc">False</span>
 </span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>
 </span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>
-</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="k">def</span> <span class="nf">peak_picking_first_derivative</span><span class="p">(</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="k">def</span><span class="w"> </span><span class="nf">peak_picking_first_derivative</span><span class="p">(</span>
 </span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>    <span class="n">domain</span><span class="p">,</span>
 </span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>    <span class="n">signal</span><span class="p">,</span>
 </span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>    <span class="n">max_height</span><span class="p">,</span>
@@ -349,7 +349,7 @@
 </span><span id="L-263"><a href="#L-263"><span class="linenos">263</span></a>                <span class="k">yield</span> <span class="p">(</span><span class="n">closest_left</span><span class="p">,</span> <span class="n">apex_index</span><span class="p">,</span> <span class="n">closest_right</span><span class="p">)</span>
 </span><span id="L-264"><a href="#L-264"><span class="linenos">264</span></a>
 </span><span id="L-265"><a href="#L-265"><span class="linenos">265</span></a>
-</span><span id="L-266"><a href="#L-266"><span class="linenos">266</span></a><span class="k">def</span> <span class="nf">find_minima</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">tic</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="L-266"><a href="#L-266"><span class="linenos">266</span></a><span class="k">def</span><span class="w"> </span><span class="nf">find_minima</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">tic</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="L-267"><a href="#L-267"><span class="linenos">267</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-268"><a href="#L-268"><span class="linenos">268</span></a><span class="sd">    Find the index of the local minima in the given time-of-flight (TOF) intensity array.</span>
 </span><span id="L-269"><a href="#L-269"><span class="linenos">269</span></a>
@@ -396,7 +396,7 @@
 </span><span id="L-310"><a href="#L-310"><span class="linenos">310</span></a>        <span class="k">return</span> <span class="n">j</span>
 </span><span id="L-311"><a href="#L-311"><span class="linenos">311</span></a>
 </span><span id="L-312"><a href="#L-312"><span class="linenos">312</span></a>
-</span><span id="L-313"><a href="#L-313"><span class="linenos">313</span></a><span class="k">def</span> <span class="nf">derivate</span><span class="p">(</span><span class="n">data_array</span><span class="p">):</span>
+</span><span id="L-313"><a href="#L-313"><span class="linenos">313</span></a><span class="k">def</span><span class="w"> </span><span class="nf">derivate</span><span class="p">(</span><span class="n">data_array</span><span class="p">):</span>
 </span><span id="L-314"><a href="#L-314"><span class="linenos">314</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-315"><a href="#L-315"><span class="linenos">315</span></a><span class="sd">    Calculate derivative of the data points.</span>
 </span><span id="L-316"><a href="#L-316"><span class="linenos">316</span></a><span class="sd">    Replaces nan with infinity</span>
@@ -425,7 +425,7 @@
 </span><span id="L-339"><a href="#L-339"><span class="linenos">339</span></a>    <span class="k">return</span> <span class="n">dy</span>
 </span><span id="L-340"><a href="#L-340"><span class="linenos">340</span></a>
 </span><span id="L-341"><a href="#L-341"><span class="linenos">341</span></a>
-</span><span id="L-342"><a href="#L-342"><span class="linenos">342</span></a><span class="k">def</span> <span class="nf">minima_detector</span><span class="p">(</span><span class="n">tic</span><span class="p">,</span> <span class="n">max_tic</span><span class="p">,</span> <span class="n">peak_height_max_percent</span><span class="p">,</span> <span class="n">peak_max_prominence_percent</span><span class="p">):</span>
+</span><span id="L-342"><a href="#L-342"><span class="linenos">342</span></a><span class="k">def</span><span class="w"> </span><span class="nf">minima_detector</span><span class="p">(</span><span class="n">tic</span><span class="p">,</span> <span class="n">max_tic</span><span class="p">,</span> <span class="n">peak_height_max_percent</span><span class="p">,</span> <span class="n">peak_max_prominence_percent</span><span class="p">):</span>
 </span><span id="L-343"><a href="#L-343"><span class="linenos">343</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-344"><a href="#L-344"><span class="linenos">344</span></a><span class="sd">    Minima detector for the TIC data points.</span>
 </span><span id="L-345"><a href="#L-345"><span class="linenos">345</span></a>
@@ -459,7 +459,7 @@
 </span><span id="L-373"><a href="#L-373"><span class="linenos">373</span></a>                <span class="k">yield from</span> <span class="p">(</span><span class="n">start_index</span><span class="p">,</span> <span class="n">final_index</span><span class="p">)</span>
 </span><span id="L-374"><a href="#L-374"><span class="linenos">374</span></a>
 </span><span id="L-375"><a href="#L-375"><span class="linenos">375</span></a>
-</span><span id="L-376"><a href="#L-376"><span class="linenos">376</span></a><span class="k">def</span> <span class="nf">baseline_detector</span><span class="p">(</span>
+</span><span id="L-376"><a href="#L-376"><span class="linenos">376</span></a><span class="k">def</span><span class="w"> </span><span class="nf">baseline_detector</span><span class="p">(</span>
 </span><span id="L-377"><a href="#L-377"><span class="linenos">377</span></a>    <span class="n">tic</span><span class="p">,</span> <span class="n">rt</span><span class="p">,</span> <span class="n">peak_height_max_percent</span><span class="p">,</span> <span class="n">peak_max_prominence_percent</span><span class="p">,</span> <span class="n">do_interpolation</span><span class="o">=</span><span class="kc">True</span>
 </span><span id="L-378"><a href="#L-378"><span class="linenos">378</span></a><span class="p">):</span>
 </span><span id="L-379"><a href="#L-379"><span class="linenos">379</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -536,7 +536,7 @@
 </span><span id="L-450"><a href="#L-450"><span class="linenos">450</span></a>        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">ynew1</span>
 </span><span id="L-451"><a href="#L-451"><span class="linenos">451</span></a>
 </span><span id="L-452"><a href="#L-452"><span class="linenos">452</span></a>
-</span><span id="L-453"><a href="#L-453"><span class="linenos">453</span></a><span class="k">def</span> <span class="nf">peak_detector_generator</span><span class="p">(</span>
+</span><span id="L-453"><a href="#L-453"><span class="linenos">453</span></a><span class="k">def</span><span class="w"> </span><span class="nf">peak_detector_generator</span><span class="p">(</span>
 </span><span id="L-454"><a href="#L-454"><span class="linenos">454</span></a>    <span class="n">tic</span><span class="p">,</span> <span class="n">stds</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">rt</span><span class="p">,</span> <span class="n">max_height</span><span class="p">,</span> <span class="n">min_height</span><span class="p">,</span> <span class="n">max_prominence</span><span class="p">,</span> <span class="n">min_datapoints</span>
 </span><span id="L-455"><a href="#L-455"><span class="linenos">455</span></a><span class="p">):</span>
 </span><span id="L-456"><a href="#L-456"><span class="linenos">456</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -624,7 +624,7 @@
 </span><span id="L-538"><a href="#L-538"><span class="linenos">538</span></a>            <span class="k">yield</span> <span class="p">(</span><span class="n">start_index</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">final_index</span><span class="p">)</span>
 </span><span id="L-539"><a href="#L-539"><span class="linenos">539</span></a>
 </span><span id="L-540"><a href="#L-540"><span class="linenos">540</span></a>
-</span><span id="L-541"><a href="#L-541"><span class="linenos">541</span></a><span class="k">def</span> <span class="nf">smooth_signal</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">window_len</span><span class="p">,</span> <span class="n">window</span><span class="p">,</span> <span class="n">pol_order</span><span class="p">,</span> <span class="n">implemented_smooth_method</span><span class="p">):</span>
+</span><span id="L-541"><a href="#L-541"><span class="linenos">541</span></a><span class="k">def</span><span class="w"> </span><span class="nf">smooth_signal</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">window_len</span><span class="p">,</span> <span class="n">window</span><span class="p">,</span> <span class="n">pol_order</span><span class="p">,</span> <span class="n">implemented_smooth_method</span><span class="p">):</span>
 </span><span id="L-542"><a href="#L-542"><span class="linenos">542</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-543"><a href="#L-543"><span class="linenos">543</span></a><span class="sd">    Smooth the data using a window with requested size.</span>
 </span><span id="L-544"><a href="#L-544"><span class="linenos">544</span></a>
@@ -696,7 +696,7 @@
 </span><span id="L-610"><a href="#L-610"><span class="linenos">610</span></a>    <span class="k">return</span> <span class="n">y</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">window_len</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="o">-</span><span class="n">window_len</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)]</span>
 </span><span id="L-611"><a href="#L-611"><span class="linenos">611</span></a>
 </span><span id="L-612"><a href="#L-612"><span class="linenos">612</span></a>
-</span><span id="L-613"><a href="#L-613"><span class="linenos">613</span></a><span class="k">def</span> <span class="nf">second_derivative_threshold</span><span class="p">(</span>
+</span><span id="L-613"><a href="#L-613"><span class="linenos">613</span></a><span class="k">def</span><span class="w"> </span><span class="nf">second_derivative_threshold</span><span class="p">(</span>
 </span><span id="L-614"><a href="#L-614"><span class="linenos">614</span></a>    <span class="n">tic</span><span class="p">,</span> <span class="n">stds</span><span class="p">,</span> <span class="n">rt</span><span class="p">,</span> <span class="n">peak_height_max_percent</span><span class="p">,</span> <span class="n">peak_max_prominence_percent</span>
 </span><span id="L-615"><a href="#L-615"><span class="linenos">615</span></a><span class="p">):</span>
 </span><span id="L-616"><a href="#L-616"><span class="linenos">616</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -755,7 +755,7 @@
 
     </div>
     <a class="headerlink" href="#peak_detector"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="peak_detector-12"><a href="#peak_detector-12"><span class="linenos">12</span></a><span class="k">def</span> <span class="nf">peak_detector</span><span class="p">(</span><span class="n">tic</span><span class="p">,</span> <span class="n">max_tic</span><span class="p">):</span>  <span class="c1"># TODO remove max_tic argument?</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="peak_detector-12"><a href="#peak_detector-12"><span class="linenos">12</span></a><span class="k">def</span><span class="w"> </span><span class="nf">peak_detector</span><span class="p">(</span><span class="n">tic</span><span class="p">,</span> <span class="n">max_tic</span><span class="p">):</span>  <span class="c1"># TODO remove max_tic argument?</span>
 </span><span id="peak_detector-13"><a href="#peak_detector-13"><span class="linenos">13</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="peak_detector-14"><a href="#peak_detector-14"><span class="linenos">14</span></a><span class="sd">    Find peaks by detecting minima in the first derivative of the data</span>
 </span><span id="peak_detector-15"><a href="#peak_detector-15"><span class="linenos">15</span></a><span class="sd">    Used in LC/GC data processing</span>
@@ -817,7 +817,7 @@ maximum value of the data points</li>
 
     </div>
     <a class="headerlink" href="#find_nearest_scan"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="find_nearest_scan-41"><a href="#find_nearest_scan-41"><span class="linenos">41</span></a><span class="k">def</span> <span class="nf">find_nearest_scan</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">nodes</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="find_nearest_scan-41"><a href="#find_nearest_scan-41"><span class="linenos">41</span></a><span class="k">def</span><span class="w"> </span><span class="nf">find_nearest_scan</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">nodes</span><span class="p">):</span>
 </span><span id="find_nearest_scan-42"><a href="#find_nearest_scan-42"><span class="linenos">42</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="find_nearest_scan-43"><a href="#find_nearest_scan-43"><span class="linenos">43</span></a><span class="sd">    Find nearest data point in a list of nodes (derivated data)</span>
 </span><span id="find_nearest_scan-44"><a href="#find_nearest_scan-44"><span class="linenos">44</span></a><span class="sd">    in LC/GC this is &#39;scan&#39;, in MS this is &#39;m/z&#39; data point</span>
@@ -875,7 +875,7 @@ array of nodes to search for the nearest node</li>
 
     </div>
     <a class="headerlink" href="#check_corrected_abundance"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="check_corrected_abundance-66"><a href="#check_corrected_abundance-66"><span class="linenos"> 66</span></a><span class="k">def</span> <span class="nf">check_corrected_abundance</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="check_corrected_abundance-66"><a href="#check_corrected_abundance-66"><span class="linenos"> 66</span></a><span class="k">def</span><span class="w"> </span><span class="nf">check_corrected_abundance</span><span class="p">(</span>
 </span><span id="check_corrected_abundance-67"><a href="#check_corrected_abundance-67"><span class="linenos"> 67</span></a>    <span class="n">closest_left</span><span class="p">,</span>
 </span><span id="check_corrected_abundance-68"><a href="#check_corrected_abundance-68"><span class="linenos"> 68</span></a>    <span class="n">closest_right</span><span class="p">,</span>
 </span><span id="check_corrected_abundance-69"><a href="#check_corrected_abundance-69"><span class="linenos"> 69</span></a>    <span class="n">apex_index</span><span class="p">,</span>
@@ -966,7 +966,7 @@ abundance normalization factor</li>
 
     </div>
     <a class="headerlink" href="#peak_picking_first_derivative"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="peak_picking_first_derivative-115"><a href="#peak_picking_first_derivative-115"><span class="linenos">115</span></a><span class="k">def</span> <span class="nf">peak_picking_first_derivative</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="peak_picking_first_derivative-115"><a href="#peak_picking_first_derivative-115"><span class="linenos">115</span></a><span class="k">def</span><span class="w"> </span><span class="nf">peak_picking_first_derivative</span><span class="p">(</span>
 </span><span id="peak_picking_first_derivative-116"><a href="#peak_picking_first_derivative-116"><span class="linenos">116</span></a>    <span class="n">domain</span><span class="p">,</span>
 </span><span id="peak_picking_first_derivative-117"><a href="#peak_picking_first_derivative-117"><span class="linenos">117</span></a>    <span class="n">signal</span><span class="p">,</span>
 </span><span id="peak_picking_first_derivative-118"><a href="#peak_picking_first_derivative-118"><span class="linenos">118</span></a>    <span class="n">max_height</span><span class="p">,</span>
@@ -1174,7 +1174,7 @@ flag to check the abundance</li>
 
     </div>
     <a class="headerlink" href="#find_minima"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="find_minima-267"><a href="#find_minima-267"><span class="linenos">267</span></a><span class="k">def</span> <span class="nf">find_minima</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">tic</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="find_minima-267"><a href="#find_minima-267"><span class="linenos">267</span></a><span class="k">def</span><span class="w"> </span><span class="nf">find_minima</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">tic</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="find_minima-268"><a href="#find_minima-268"><span class="linenos">268</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="find_minima-269"><a href="#find_minima-269"><span class="linenos">269</span></a><span class="sd">    Find the index of the local minima in the given time-of-flight (TOF) intensity array.</span>
 </span><span id="find_minima-270"><a href="#find_minima-270"><span class="linenos">270</span></a>
@@ -1252,7 +1252,7 @@ right : bool, optional
 
     </div>
     <a class="headerlink" href="#derivate"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="derivate-314"><a href="#derivate-314"><span class="linenos">314</span></a><span class="k">def</span> <span class="nf">derivate</span><span class="p">(</span><span class="n">data_array</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="derivate-314"><a href="#derivate-314"><span class="linenos">314</span></a><span class="k">def</span><span class="w"> </span><span class="nf">derivate</span><span class="p">(</span><span class="n">data_array</span><span class="p">):</span>
 </span><span id="derivate-315"><a href="#derivate-315"><span class="linenos">315</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="derivate-316"><a href="#derivate-316"><span class="linenos">316</span></a><span class="sd">    Calculate derivative of the data points.</span>
 </span><span id="derivate-317"><a href="#derivate-317"><span class="linenos">317</span></a><span class="sd">    Replaces nan with infinity</span>
@@ -1312,7 +1312,7 @@ array of data points</li>
 
     </div>
     <a class="headerlink" href="#minima_detector"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="minima_detector-343"><a href="#minima_detector-343"><span class="linenos">343</span></a><span class="k">def</span> <span class="nf">minima_detector</span><span class="p">(</span><span class="n">tic</span><span class="p">,</span> <span class="n">max_tic</span><span class="p">,</span> <span class="n">peak_height_max_percent</span><span class="p">,</span> <span class="n">peak_max_prominence_percent</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="minima_detector-343"><a href="#minima_detector-343"><span class="linenos">343</span></a><span class="k">def</span><span class="w"> </span><span class="nf">minima_detector</span><span class="p">(</span><span class="n">tic</span><span class="p">,</span> <span class="n">max_tic</span><span class="p">,</span> <span class="n">peak_height_max_percent</span><span class="p">,</span> <span class="n">peak_max_prominence_percent</span><span class="p">):</span>
 </span><span id="minima_detector-344"><a href="#minima_detector-344"><span class="linenos">344</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="minima_detector-345"><a href="#minima_detector-345"><span class="linenos">345</span></a><span class="sd">    Minima detector for the TIC data points.</span>
 </span><span id="minima_detector-346"><a href="#minima_detector-346"><span class="linenos">346</span></a>
@@ -1382,7 +1382,7 @@ maximum prominence of the peak</li>
 
     </div>
     <a class="headerlink" href="#baseline_detector"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="baseline_detector-377"><a href="#baseline_detector-377"><span class="linenos">377</span></a><span class="k">def</span> <span class="nf">baseline_detector</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="baseline_detector-377"><a href="#baseline_detector-377"><span class="linenos">377</span></a><span class="k">def</span><span class="w"> </span><span class="nf">baseline_detector</span><span class="p">(</span>
 </span><span id="baseline_detector-378"><a href="#baseline_detector-378"><span class="linenos">378</span></a>    <span class="n">tic</span><span class="p">,</span> <span class="n">rt</span><span class="p">,</span> <span class="n">peak_height_max_percent</span><span class="p">,</span> <span class="n">peak_max_prominence_percent</span><span class="p">,</span> <span class="n">do_interpolation</span><span class="o">=</span><span class="kc">True</span>
 </span><span id="baseline_detector-379"><a href="#baseline_detector-379"><span class="linenos">379</span></a><span class="p">):</span>
 </span><span id="baseline_detector-380"><a href="#baseline_detector-380"><span class="linenos">380</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -1498,7 +1498,7 @@ flag to interpolate the data points. Default is True</li>
 
     </div>
     <a class="headerlink" href="#peak_detector_generator"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="peak_detector_generator-454"><a href="#peak_detector_generator-454"><span class="linenos">454</span></a><span class="k">def</span> <span class="nf">peak_detector_generator</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="peak_detector_generator-454"><a href="#peak_detector_generator-454"><span class="linenos">454</span></a><span class="k">def</span><span class="w"> </span><span class="nf">peak_detector_generator</span><span class="p">(</span>
 </span><span id="peak_detector_generator-455"><a href="#peak_detector_generator-455"><span class="linenos">455</span></a>    <span class="n">tic</span><span class="p">,</span> <span class="n">stds</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">rt</span><span class="p">,</span> <span class="n">max_height</span><span class="p">,</span> <span class="n">min_height</span><span class="p">,</span> <span class="n">max_prominence</span><span class="p">,</span> <span class="n">min_datapoints</span>
 </span><span id="peak_detector_generator-456"><a href="#peak_detector_generator-456"><span class="linenos">456</span></a><span class="p">):</span>
 </span><span id="peak_detector_generator-457"><a href="#peak_detector_generator-457"><span class="linenos">457</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -1631,7 +1631,7 @@ minimum number of data points in the peak</li>
 
     </div>
     <a class="headerlink" href="#smooth_signal"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="smooth_signal-542"><a href="#smooth_signal-542"><span class="linenos">542</span></a><span class="k">def</span> <span class="nf">smooth_signal</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">window_len</span><span class="p">,</span> <span class="n">window</span><span class="p">,</span> <span class="n">pol_order</span><span class="p">,</span> <span class="n">implemented_smooth_method</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="smooth_signal-542"><a href="#smooth_signal-542"><span class="linenos">542</span></a><span class="k">def</span><span class="w"> </span><span class="nf">smooth_signal</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">window_len</span><span class="p">,</span> <span class="n">window</span><span class="p">,</span> <span class="n">pol_order</span><span class="p">,</span> <span class="n">implemented_smooth_method</span><span class="p">):</span>
 </span><span id="smooth_signal-543"><a href="#smooth_signal-543"><span class="linenos">543</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="smooth_signal-544"><a href="#smooth_signal-544"><span class="linenos">544</span></a><span class="sd">    Smooth the data using a window with requested size.</span>
 </span><span id="smooth_signal-545"><a href="#smooth_signal-545"><span class="linenos">545</span></a>
@@ -1751,7 +1751,7 @@ the smoothed signal</li>
 
     </div>
     <a class="headerlink" href="#second_derivative_threshold"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="second_derivative_threshold-614"><a href="#second_derivative_threshold-614"><span class="linenos">614</span></a><span class="k">def</span> <span class="nf">second_derivative_threshold</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="second_derivative_threshold-614"><a href="#second_derivative_threshold-614"><span class="linenos">614</span></a><span class="k">def</span><span class="w"> </span><span class="nf">second_derivative_threshold</span><span class="p">(</span>
 </span><span id="second_derivative_threshold-615"><a href="#second_derivative_threshold-615"><span class="linenos">615</span></a>    <span class="n">tic</span><span class="p">,</span> <span class="n">stds</span><span class="p">,</span> <span class="n">rt</span><span class="p">,</span> <span class="n">peak_height_max_percent</span><span class="p">,</span> <span class="n">peak_max_prominence_percent</span>
 </span><span id="second_derivative_threshold-616"><a href="#second_derivative_threshold-616"><span class="linenos">616</span></a><span class="p">):</span>
 </span><span id="second_derivative_threshold-617"><a href="#second_derivative_threshold-617"><span class="linenos">617</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
